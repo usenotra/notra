@@ -1,3 +1,4 @@
+import { nanoid } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth/minimal";
 import { nextCookies } from "better-auth/next-js";
@@ -42,6 +43,35 @@ export const auth = betterAuth({
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const email = user.email || "";
+          const raw = email.split("@")[0] || "";
+          const base = raw
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "")
+            .slice(0, 20);
+
+          const slug = `${base || "notra"}-${nanoid()}`;
+
+          await auth.api.createOrganization({
+            body: {
+              name: "Personal",
+              slug,
+              userId: user.id,
+              logo: `https://api.dicebear.com/9.x/glass/svg?seed=${slug}&backgroundType=gradientLinear,solid&backgroundColor=8E51FF`,
+            },
+          });
+        },
+      },
     },
   },
   user: {
