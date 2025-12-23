@@ -34,6 +34,11 @@ export const auth = betterAuth({
       await redis.del(key);
     },
   },
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://app.usenotra.com",
+    "https://app.trynotra.com",
+  ],
   session: {
     storeSessionInDatabase: true,
     preserveSessionInDatabase: true,

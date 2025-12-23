@@ -1,5 +1,6 @@
 import { tool } from "ai";
-import { z } from "zod";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
+import * as z from "zod";
 import { createOctokit } from "@/lib/octokit";
 
 export const getPullRequestsTool = tool({

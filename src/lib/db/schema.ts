@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -135,11 +136,80 @@ export const invitations = pgTable(
   ]
 );
 
+export const githubIntegrations = pgTable(
+  "github_integrations",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdByUserId: text("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    displayName: text("display_name").notNull(),
+    encryptedToken: text("encrypted_token"),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("githubIntegrations_organizationId_idx").on(table.organizationId),
+    index("githubIntegrations_createdByUserId_idx").on(table.createdByUserId),
+  ]
+);
+
+export const githubRepositories = pgTable(
+  "github_repositories",
+  {
+    id: text("id").primaryKey(),
+    integrationId: text("integration_id")
+      .notNull()
+      .references(() => githubIntegrations.id, { onDelete: "cascade" }),
+    owner: text("owner").notNull(),
+    repo: text("repo").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("githubRepositories_integrationId_idx").on(table.integrationId),
+    uniqueIndex("githubRepositories_integration_owner_repo_uidx").on(
+      table.integrationId,
+      table.owner,
+      table.repo
+    ),
+  ]
+);
+
+export const repositoryOutputs = pgTable(
+  "repository_outputs",
+  {
+    id: text("id").primaryKey(),
+    repositoryId: text("repository_id")
+      .notNull()
+      .references(() => githubRepositories.id, { onDelete: "cascade" }),
+    outputType: text("output_type").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    config: jsonb("config"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("repositoryOutputs_repositoryId_idx").on(table.repositoryId),
+    uniqueIndex("repositoryOutputs_repository_outputType_uidx").on(
+      table.repositoryId,
+      table.outputType
+    ),
+  ]
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
   members: many(members),
   invitations: many(invitations),
+  githubIntegrations: many(githubIntegrations),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -159,6 +229,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(members),
   invitations: many(invitations),
+  githubIntegrations: many(githubIntegrations),
 }));
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -182,3 +253,39 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const githubIntegrationsRelations = relations(
+  githubIntegrations,
+  ({ one, many }) => ({
+    organization: one(organizations, {
+      fields: [githubIntegrations.organizationId],
+      references: [organizations.id],
+    }),
+    createdByUser: one(users, {
+      fields: [githubIntegrations.createdByUserId],
+      references: [users.id],
+    }),
+    repositories: many(githubRepositories),
+  })
+);
+
+export const githubRepositoriesRelations = relations(
+  githubRepositories,
+  ({ one, many }) => ({
+    integration: one(githubIntegrations, {
+      fields: [githubRepositories.integrationId],
+      references: [githubIntegrations.id],
+    }),
+    outputs: many(repositoryOutputs),
+  })
+);
+
+export const repositoryOutputsRelations = relations(
+  repositoryOutputs,
+  ({ one }) => ({
+    repository: one(githubRepositories, {
+      fields: [repositoryOutputs.repositoryId],
+      references: [githubRepositories.id],
+    }),
+  })
+);

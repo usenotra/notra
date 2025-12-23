@@ -5,9 +5,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { NavDocuments } from "./nav-documents";
 import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 import { OrgSelector } from "./org-selector";
 
@@ -21,8 +19,6 @@ export function DashboardSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain />
-        <NavDocuments />
-        <NavSecondary className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

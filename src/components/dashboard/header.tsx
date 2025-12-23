@@ -17,18 +17,25 @@ export function SiteHeader() {
   const id = useId();
   const segments = pathname.split("/").filter(Boolean);
 
-  const breadcrumbs = segments.map((segment, index) => (
-    <BreadcrumbItem className="hover:underline" key={id}>
-      <Link href={`/${segments.slice(0, index + 1).join("/")}`}>
-        {segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")}
-      </Link>
-      {index < segments.length - 1 && (
-        <BreadcrumbSeparator key={`${id}-separator`}>
-          <HugeiconsIcon icon={ArrowRight01Icon} />
-        </BreadcrumbSeparator>
-      )}
-    </BreadcrumbItem>
-  ));
+  const breadcrumbSegments = segments.slice(1);
+
+  const breadcrumbs = breadcrumbSegments.map((segment, index) => {
+    const href = `/${segments.slice(0, index + 2).join("/")}`;
+
+    return (
+      <BreadcrumbItem className="hover:underline" key={`${id}-${index}`}>
+        <Link href={href}>
+          {segment.charAt(0).toUpperCase() +
+            segment.slice(1).replace(/-/g, " ")}
+        </Link>
+        {index < breadcrumbSegments.length - 1 && (
+          <BreadcrumbSeparator key={`${id}-separator-${index}`}>
+            <HugeiconsIcon icon={ArrowRight01Icon} />
+          </BreadcrumbSeparator>
+        )}
+      </BreadcrumbItem>
+    );
+  });
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-dashed transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

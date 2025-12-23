@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-const GithubDark = (props: SVGProps<SVGSVGElement>) => (
+const Github = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} fill="none" viewBox="0 0 1024 1024">
     <title>GitHub</title>
     <path
@@ -13,4 +13,4 @@ const GithubDark = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export { GithubDark };
+export { Github };

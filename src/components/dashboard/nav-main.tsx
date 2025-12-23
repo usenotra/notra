@@ -1,8 +1,9 @@
 "use client";
 
-import { HomeIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { PlugIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   SidebarGroup,
   SidebarMenu,
@@ -10,36 +11,26 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavMainItem = {
-  title: string;
-  url: string;
-  icon?: IconSvgElement;
-};
-
-const items: readonly NavMainItem[] = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: HomeIcon,
-  },
-];
-
 export function NavMain() {
+  const { activeOrganization } = useOrganizationsContext();
+
+  if (!activeOrganization?.slug) {
+    return null;
+  }
+
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              render={
-                <Link href={item.url}>
-                  {item.icon ? <HugeiconsIcon icon={item.icon} /> : null}
-                  <span>{item.title}</span>
-                </Link>
-              }
-            />
-          </SidebarMenuItem>
-        ))}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            render={
+              <Link href={`/${activeOrganization.slug}/integrations`}>
+                <HugeiconsIcon icon={PlugIcon} />
+                <span>Integrations</span>
+              </Link>
+            }
+          />
+        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   );
