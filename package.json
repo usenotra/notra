@@ -61,5 +61,6 @@
     "tsx": "^4.21.0",
     "typescript": "^5",
     "ultracite": "6.4.0"
-  }
+  },
+  "packageManager": "bun@1.3.5"
 }
