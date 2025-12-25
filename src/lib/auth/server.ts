@@ -6,11 +6,58 @@ import {
   lastLoginMethod,
   organization,
 } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { db } from "@/lib/db/drizzle";
+import { members, organizations } from "@/lib/db/schema";
 import { redis } from "@/lib/redis";
+import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/utils/constants";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 6);
+
+async function getActiveOrganizationId(
+  userId: string,
+  cookieHeader?: string | null
+): Promise<string | undefined> {
+  if (cookieHeader) {
+    const parsedCookies = Object.fromEntries(
+      cookieHeader.split(";").map((c) => {
+        const [key, ...v] = c.trim().split("=");
+        return [key, v.join("=")];
+      })
+    );
+    const lastVisitedSlug = parsedCookies[LAST_VISITED_ORGANIZATION_COOKIE];
+
+    if (lastVisitedSlug) {
+      const org = await db.query.organizations.findFirst({
+        where: eq(organizations.slug, lastVisitedSlug),
+        columns: { id: true },
+        with: {
+          members: {
+            where: eq(members.userId, userId),
+            columns: { id: true },
+          },
+        },
+      });
+
+      if (org && org.members.length > 0) {
+        return org.id;
+      }
+    }
+  }
+
+  const membership = await db.query.members.findFirst({
+    where: eq(members.userId, userId),
+    columns: { organizationId: true, role: true },
+    orderBy: (m, { desc }) => [desc(m.createdAt)],
+  });
+
+  if (membership) {
+    return membership.organizationId;
+  }
+
+  return;
+}
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -77,6 +124,26 @@ export const auth = betterAuth({
               logo: `https://api.dicebear.com/9.x/glass/svg?seed=${slug}&backgroundType=gradientLinear,solid&backgroundColor=8E51FF`,
             },
           });
+        },
+      },
+    },
+    session: {
+      create: {
+        before: async (session, ctx) => {
+          const cookieHeader = ctx?.headers?.get("cookie");
+          const activeOrgId = await getActiveOrganizationId(
+            session.userId,
+            cookieHeader
+          );
+
+          if (activeOrgId) {
+            return {
+              data: {
+                ...session,
+                activeOrganizationId: activeOrgId,
+              },
+            };
+          }
         },
       },
     },

@@ -4,7 +4,9 @@ import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
+import { useAtom } from "jotai";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -14,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Github } from "@/components/ui/svgs/github";
 import { Google } from "@/components/ui/svgs/google";
-import { handleSocialAuth } from "@/lib/auth/functions";
+import { authClient } from "@/lib/auth/client";
+import { isAuthLoadingAtom } from "@/utils/atoms/auth";
 
 function FieldInfo({ field }: { field: AnyFieldApi }) {
   const hasError = field.state.meta.isTouched && !field.state.meta.isValid;
@@ -49,12 +52,38 @@ function FieldInfo({ field }: { field: AnyFieldApi }) {
 }
 
 export default function SignUp() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useAtom(isAuthLoadingAtom);
+
+  async function handleSocialSignup(provider: "google" | "github") {
+    if (isAuthLoading) return;
+
+    setIsAuthLoading(true);
+    await authClient.signIn.social({
+      provider,
+      callbackURL: "/callback",
+    });
+  }
+
   const form = useForm({
     defaultValues: { email: "", password: "" },
     onSubmit: async ({ value }) => {
-      // Do something with form data
-      console.log(value);
+      if (isAuthLoading) return;
+
+      setIsAuthLoading(true);
+      const result = await authClient.signUp.email({
+        email: value.email,
+        password: value.password,
+        name: value.email.split("@")[0] || "User",
+      });
+
+      if (result.error) {
+        setIsAuthLoading(false);
+        return;
+      }
+
+      router.push("/callback");
     },
   });
 
@@ -71,7 +100,8 @@ export default function SignUp() {
         <div className="grid grid-cols-2 gap-4">
           <Button
             className="w-full"
-            onClick={() => handleSocialAuth({ provider: "google" })}
+            disabled={isAuthLoading}
+            onClick={() => handleSocialSignup("google")}
             type="button"
             variant="outline"
           >
@@ -80,7 +110,8 @@ export default function SignUp() {
           </Button>
           <Button
             className="w-full"
-            onClick={() => handleSocialAuth({ provider: "github" })}
+            disabled={isAuthLoading}
+            onClick={() => handleSocialSignup("github")}
             type="button"
             variant="outline"
           >
@@ -128,6 +159,7 @@ export default function SignUp() {
                     Email
                   </Label>
                   <Input
+                    disabled={isAuthLoading}
                     id={field.name}
                     name={field.name}
                     onBlur={field.handleBlur}
@@ -167,6 +199,7 @@ export default function SignUp() {
                   <div className="relative">
                     <Input
                       className="pr-9"
+                      disabled={isAuthLoading}
                       id={field.name}
                       name={field.name}
                       onBlur={field.handleBlur}
@@ -176,7 +209,8 @@ export default function SignUp() {
                       value={field.state.value}
                     />
                     <button
-                      className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground"
+                      className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                      disabled={isAuthLoading}
                       onClick={() => setShowPassword(!showPassword)}
                       type="button"
                     >
@@ -201,10 +235,10 @@ export default function SignUp() {
             {([canSubmit, isSubmitting]) => (
               <Button
                 className="mt-4 w-full"
-                disabled={!canSubmit}
+                disabled={!canSubmit || isAuthLoading}
                 type="submit"
               >
-                {isSubmitting ? "..." : "Continue"}
+                {isSubmitting || isAuthLoading ? "..." : "Continue"}
               </Button>
             )}
           </form.Subscribe>
@@ -223,12 +257,12 @@ export default function SignUp() {
         </p>
         <Separator />
         <p>
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Link
             className="underline underline-offset-4 hover:text-primary"
-            href="/signup"
+            href="/login"
           >
-            Register
+            Log in
           </Link>
         </p>
       </div>

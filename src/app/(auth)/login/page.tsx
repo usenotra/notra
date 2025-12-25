@@ -2,7 +2,9 @@
 
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useAtom } from "jotai";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,11 +14,43 @@ import { Separator } from "@/components/ui/separator";
 import { Github } from "@/components/ui/svgs/github";
 import { Google } from "@/components/ui/svgs/google";
 import { authClient } from "@/lib/auth/client";
-import { handleSocialAuth } from "@/lib/auth/functions";
+import { isAuthLoadingAtom } from "@/utils/atoms/auth";
 
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useAtom(isAuthLoadingAtom);
   const lastMethod = authClient.getLastUsedLoginMethod();
+
+  async function handleSocialLogin(provider: "google" | "github") {
+    if (isAuthLoading) return;
+
+    setIsAuthLoading(true);
+    await authClient.signIn.social({
+      provider,
+      callbackURL: "/callback",
+    });
+  }
+
+  async function handleEmailLogin(formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!(email && password) || isAuthLoading) return;
+
+    setIsAuthLoading(true);
+    const result = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (result.error) {
+      setIsAuthLoading(false);
+      return;
+    }
+
+    router.push("/callback");
+  }
 
   return (
     <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
@@ -40,7 +74,8 @@ export default function Login() {
             )}
             <Button
               className="w-full"
-              onClick={() => handleSocialAuth({ provider: "google" })}
+              disabled={isAuthLoading}
+              onClick={() => handleSocialLogin("google")}
               type="button"
               variant="outline"
             >
@@ -59,7 +94,8 @@ export default function Login() {
             )}
             <Button
               className="w-full"
-              onClick={() => handleSocialAuth({ provider: "github" })}
+              disabled={isAuthLoading}
+              onClick={() => handleSocialLogin("github")}
               type="button"
               variant="outline"
             >
@@ -77,13 +113,19 @@ export default function Login() {
           <span className="inline-block h-px w-full border-t bg-border" />
         </div>
 
-        <form>
+        <form action={handleEmailLogin}>
           <div className="grid gap-3">
             <div className="grid gap-1">
               <Label className="sr-only" htmlFor="email">
                 Email
               </Label>
-              <Input id="email" placeholder="Email" type="email" />
+              <Input
+                disabled={isAuthLoading}
+                id="email"
+                name="email"
+                placeholder="Email"
+                type="email"
+              />
             </div>
             <div className="grid gap-1">
               <Label className="sr-only" htmlFor="password">
@@ -92,12 +134,15 @@ export default function Login() {
               <div className="relative">
                 <Input
                   className="pr-9"
+                  disabled={isAuthLoading}
                   id="password"
+                  name="password"
                   placeholder="Password"
                   type={showPassword ? "text" : "password"}
                 />
                 <button
-                  className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground"
+                  className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  disabled={isAuthLoading}
                   onClick={() => setShowPassword(!showPassword)}
                   type="button"
                 >
@@ -119,8 +164,12 @@ export default function Login() {
                 Last Used
               </Badge>
             )}
-            <Button className="mt-4 w-full" type="submit">
-              Continue
+            <Button
+              className="mt-4 w-full"
+              disabled={isAuthLoading}
+              type="submit"
+            >
+              {isAuthLoading ? "..." : "Continue"}
             </Button>
           </div>
         </form>

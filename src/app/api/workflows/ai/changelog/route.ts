@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { githubChangelogAgent } from "@/lib/agents/changelog";
+import { createGithubChangelogAgent } from "@/lib/agents/changelog";
 import { getServerSession } from "@/lib/auth/session";
 import { generateChangelogBodySchema } from "@/utils/schemas/workflows";
 
@@ -28,7 +28,9 @@ export async function POST(request: Request) {
 
     const { prompt } = validationResult.data;
 
-    const result = await githubChangelogAgent.stream({
+    const agent = createGithubChangelogAgent(session.activeOrganizationId);
+
+    const result = await agent.stream({
       prompt,
     });
 

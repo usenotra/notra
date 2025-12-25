@@ -1,17 +1,17 @@
-import { validateWorkspaceAccess } from "@/actions/auth";
+import { validateOrganizationAccess } from "@/actions/auth";
 
-type WorkspaceLayoutProps = {
+type OrganizationLayoutProps = {
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
 };
 
-export default async function WorkspaceLayout({
+export default async function OrganizationLayout({
   children,
   params,
-}: WorkspaceLayoutProps) {
+}: OrganizationLayoutProps) {
   const { slug } = await params;
 
-  await validateWorkspaceAccess(slug);
+  await validateOrganizationAccess(slug);
 
   return <>{children}</>;
 }
