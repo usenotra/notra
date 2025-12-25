@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   experimental: {
     useCache: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/login",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withWorkflow(nextConfig);
