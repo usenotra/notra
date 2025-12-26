@@ -6,6 +6,7 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,10 +27,18 @@ export default function Login() {
     if (isAuthLoading) return;
 
     setIsAuthLoading(true);
-    await authClient.signIn.social({
-      provider,
-      callbackURL: "/callback",
-    });
+
+    try {
+      await authClient.signIn.social({
+        provider,
+        callbackURL: "/callback",
+      });
+    } catch (error) {
+      console.error("Social login error:", error);
+      toast.error("Failed to sign in. Please try again.");
+    } finally {
+      setIsAuthLoading(false);
+    }
   }
 
   async function handleEmailLogin(formData: FormData) {
