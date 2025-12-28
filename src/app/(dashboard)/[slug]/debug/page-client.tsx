@@ -57,8 +57,15 @@ export default function PageClient() {
       });
 
       if (!res.ok) {
+      let message = "Failed to generate changelog";
+      try {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to generate changelog");
+        message = errorData.error || message;
+      } catch {
+        const text = await res.text();
+        if (text) message = text;
+      }
+      throw new Error(message);
       }
 
       if (!res.body) {
