@@ -43,6 +43,7 @@ export default function PageClient({ organizationId }: PageClientProps) {
         ? `Generate a changelog for ${repoUrl} with release tag ${releaseTag}`
         : `Generate a changelog for ${repoUrl}`;
 
+      console.log("Sending prompt:", prompt);
       const res = await fetch("/api/workflows/ai/changelog", {
         method: "POST",
         headers: {
@@ -50,6 +51,9 @@ export default function PageClient({ organizationId }: PageClientProps) {
         },
         body: JSON.stringify({ prompt }),
       });
+
+      console.log("Response status:", res.status, res.statusText);
+      console.log("Response headers:", res.headers.get("content-type"));
 
       if (!res.ok) {
         let message = "Failed to generate changelog";
@@ -67,6 +71,8 @@ export default function PageClient({ organizationId }: PageClientProps) {
         throw new Error("No response body");
       }
 
+      console.log("Starting to read stream...");
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = "";
@@ -76,22 +82,26 @@ export default function PageClient({ organizationId }: PageClientProps) {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
+        console.log("Raw chunk:", chunk);
         const lines = chunk.split("\n");
 
         for (const line of lines) {
+          console.log("Processing line:", line);
           if (line.startsWith("data: ")) {
             const jsonStr = line.substring(6).trim();
+            console.log("JSON string:", jsonStr);
             if (jsonStr === "[DONE]") continue;
 
             try {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const data: any = JSON.parse(jsonStr);
+              console.log("Parsed data:", data);
               if (data.type === "text-delta" && data.textDelta) {
                 accumulatedText += data.textDelta;
                 setResponse(accumulatedText);
               }
-            } catch {
-              // Skip lines that aren't valid JSON
+            } catch (e) {
+              console.log("JSON parse error:", e);
             }
           }
         }
