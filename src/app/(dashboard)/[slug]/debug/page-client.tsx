@@ -24,6 +24,14 @@ export default function PageClient({ organizationId }: PageClientProps) {
   const [response, setResponse] = useState("");
   const [error, setError] = useState("");
 
+  // Debug logging
+  console.log(
+    "Current state - response length:",
+    response.length,
+    "isLoading:",
+    isLoading
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -98,6 +106,10 @@ export default function PageClient({ organizationId }: PageClientProps) {
               console.log("Parsed data:", data);
               if (data.type === "text-delta" && data.textDelta) {
                 accumulatedText += data.textDelta;
+                console.log(
+                  "Setting response, accumulated text length:",
+                  accumulatedText.length
+                );
                 setResponse(accumulatedText);
               }
             } catch (e) {
@@ -181,6 +193,21 @@ export default function PageClient({ organizationId }: PageClientProps) {
         <Card>
           <CardHeader>
             <CardTitle>Response</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <pre className="whitespace-pre-wrap break-words text-sm">
+                {response}
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {response && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Response (Streamdown)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm dark:prose-invert max-w-none">
