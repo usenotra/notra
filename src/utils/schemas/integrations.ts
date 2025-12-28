@@ -30,7 +30,7 @@ export const OUTPUT_CONTENT_TYPES = [
 ] as const;
 export type OutputContentType = (typeof OUTPUT_CONTENT_TYPES)[number];
 
-function isValidGitHubUrl(url: string): boolean {
+export function isValidGitHubUrl(url: string): boolean {
   const trimmed = url.trim();
   return GITHUB_URL_PATTERNS.some((pattern) => pattern.test(trimmed));
 }

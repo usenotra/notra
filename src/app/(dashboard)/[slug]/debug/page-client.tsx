@@ -11,23 +11,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { GITHUB_URL_PATTERNS } from "@/constants";
+import { isValidGitHubUrl } from "@/utils/schemas/integrations";
 
-interface PageClientProps {
+type PageClientProps = {
   organizationId: string;
-}
+};
 
-export default function PageClient() {
+export default function PageClient({ organizationId }: PageClientProps) {
   const [repoUrl, setRepoUrl] = useState("");
   const [releaseTag, setReleaseTag] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState("");
   const [error, setError] = useState("");
-
-  const isValidGitHubUrl = (url: string): boolean => {
-    const trimmed = url.trim();
-    return GITHUB_URL_PATTERNS.some((pattern) => pattern.test(trimmed));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,15 +52,15 @@ export default function PageClient() {
       });
 
       if (!res.ok) {
-      let message = "Failed to generate changelog";
-      try {
-        const errorData = await res.json();
-        message = errorData.error || message;
-      } catch {
-        const text = await res.text();
-        if (text) message = text;
-      }
-      throw new Error(message);
+        let message = "Failed to generate changelog";
+        try {
+          const errorData = await res.json();
+          message = errorData.error || message;
+        } catch {
+          const text = await res.text();
+          if (text) message = text;
+        }
+        throw new Error(message);
       }
 
       if (!res.body) {
