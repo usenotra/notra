@@ -13,11 +13,88 @@ import {
 import { Input } from "@/components/ui/input";
 import { isValidGitHubUrl } from "@/utils/schemas/integrations";
 
-type PageClientProps = {
-  organizationId: string;
+type UIMessageChunk = {
+  type: string;
+  textDelta?: string;
 };
 
-export default function PageClient({ organizationId }: PageClientProps) {
+function parseSSELine(line: string): string | null {
+  if (!line.startsWith("data: ")) {
+    return null;
+  }
+
+  const jsonStr = line.substring(6).trim();
+  if (jsonStr === "[DONE]") {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(jsonStr) as UIMessageChunk;
+    if (data.type === "text-delta" && data.textDelta) {
+      return data.textDelta;
+    }
+  } catch {
+    // Skip invalid JSON lines
+  }
+
+  return null;
+}
+
+async function processStreamResponse(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onUpdate: (text: string) => void
+): Promise<void> {
+  const decoder = new TextDecoder();
+  let accumulatedText = "";
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      const textDelta = parseSSELine(line);
+      if (textDelta) {
+        accumulatedText += textDelta;
+        onUpdate(accumulatedText);
+      }
+    }
+  }
+}
+
+async function fetchChangelog(prompt: string): Promise<Response> {
+  const res = await fetch("/api/workflows/ai/changelog", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!res.ok) {
+    let message = "Failed to generate changelog";
+    try {
+      const errorData = await res.json();
+      message = errorData.error || message;
+    } catch {
+      const text = await res.text();
+      if (text) {
+        message = text;
+      }
+    }
+    throw new Error(message);
+  }
+
+  return res;
+}
+
+export default function PageClient() {
   const [repoUrl, setRepoUrl] = useState("");
   const [releaseTag, setReleaseTag] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -43,63 +120,14 @@ export default function PageClient({ organizationId }: PageClientProps) {
         ? `Generate a changelog for ${repoUrl} with release tag ${releaseTag}`
         : `Generate a changelog for ${repoUrl}`;
 
-      const res = await fetch("/api/workflows/ai/changelog", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!res.ok) {
-        let message = "Failed to generate changelog";
-        try {
-          const errorData = await res.json();
-          message = errorData.error || message;
-        } catch {
-          const text = await res.text();
-          if (text) message = text;
-        }
-        throw new Error(message);
-      }
+      const res = await fetchChangelog(prompt);
 
       if (!res.body) {
         throw new Error("No response body");
       }
 
       const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = "";
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-
-        // Keep the last incomplete line in the buffer
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const jsonStr = line.substring(6).trim();
-            if (jsonStr === "[DONE]") continue;
-
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const data: any = JSON.parse(jsonStr);
-              if (data.type === "text-delta" && data.textDelta) {
-                accumulatedText += data.textDelta;
-                setResponse(accumulatedText);
-              }
-            } catch {
-              // Skip invalid JSON lines
-            }
-          }
-        }
-      }
+      await processStreamResponse(reader, setResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -158,7 +186,7 @@ export default function PageClient({ organizationId }: PageClientProps) {
               />
             </div>
 
-            {error && (
+            {error.length > 0 && (
               <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
                 {error}
               </div>
@@ -171,7 +199,7 @@ export default function PageClient({ organizationId }: PageClientProps) {
         </CardContent>
       </Card>
 
-      {(response || isLoading) && (
+      {(response.length > 0 || isLoading) && (
         <Card>
           <CardHeader>
             <CardTitle>Generated Changelog</CardTitle>
@@ -182,7 +210,7 @@ export default function PageClient({ organizationId }: PageClientProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading && !response ? (
+            {response.length === 0 ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 <p className="text-sm">

@@ -6,18 +6,10 @@ export const metadata: Metadata = {
   title: "Debug Agents",
 };
 
-async function Page({
-  params,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-}) {
-  const { slug } = await params;
-
+async function Page() {
   return (
     <Suspense>
-      <PageClient organizationId={slug} />
+      <PageClient />
     </Suspense>
   );
 }
