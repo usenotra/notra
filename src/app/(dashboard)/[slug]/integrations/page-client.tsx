@@ -28,6 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { GitHubIntegration } from "@/types/integrations";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 const TAB_VALUES = ["all", "installed"] as const;
@@ -39,20 +40,6 @@ const AddIntegrationDialog = dynamic(
     })),
   { ssr: false }
 );
-
-interface Integration {
-  id: string;
-  displayName: string;
-  type: string;
-  enabled: boolean;
-  createdAt: string;
-  repositories: Array<{
-    id: string;
-    owner: string;
-    repo: string;
-    enabled: boolean;
-  }>;
-}
 
 interface PageClientProps {
   organizationId: string;
@@ -274,9 +261,11 @@ export default function PageClient({
         throw new Error("Failed to fetch integrations");
       }
 
-      return response.json() as Promise<Integration[]>;
+      return response.json() as Promise<GitHubIntegration[]>;
     },
     enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   if (!organizationId) {
@@ -294,16 +283,9 @@ export default function PageClient({
     );
   }
 
-  const integrationsByType = integrations?.reduce(
-    (acc, integration) => {
-      if (!acc[integration.type]) {
-        acc[integration.type] = [];
-      }
-      acc[integration.type].push(integration);
-      return acc;
-    },
-    {} as Record<string, Integration[]>
-  );
+  const integrationsByType: Record<string, GitHubIntegration[]> = {
+    github: integrations ?? [],
+  };
 
   const installedCount = integrations?.length ?? 0;
 
@@ -456,12 +438,12 @@ export default function PageClient({
                 <div className="grid gap-4">
                   {integrations.map((integration) => {
                     const config = ALL_INTEGRATIONS.find(
-                      (i) => i.id === integration.type
+                      (i) => i.id === "github"
                     );
 
                     return (
                       <Link
-                        href={`/${organizationSlug}/integrations/${integration.type}/${integration.id}`}
+                        href={`/${organizationSlug}/integrations/github/${integration.id}`}
                         key={integration.id}
                       >
                         <Card className="cursor-pointer transition-colors hover:bg-accent/50">
