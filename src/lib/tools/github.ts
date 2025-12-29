@@ -29,7 +29,6 @@ export const getPullRequestsTool = tool({
         },
       }
     );
-    console.log(pullRequest.data);
     return pullRequest.data;
   },
 });
@@ -51,7 +50,6 @@ export const getReleaseByTagTool = tool({
   execute: async ({ repo, owner, tag }) => {
     const token = await getTokenForRepository(owner, repo);
     const octokit = createOctokit(token);
-    console.log("Getting release by tag", { repo, owner, tag });
     const releases = await octokit.request(
       "GET /repos/{owner}/{repo}/releases/tags/{tag}",
       {
@@ -63,7 +61,6 @@ export const getReleaseByTagTool = tool({
         },
       }
     );
-    console.log(releases.data);
     return releases.data;
   },
 });
@@ -88,8 +85,6 @@ export const getCommitsByTimeframeTool = tool({
     const token = await getTokenForRepository(owner, repo);
     const octokit = createOctokit(token);
     const since = getISODateFromDaysAgo(days);
-
-    console.log(`Fetching ${owner}/${repo} commits since ${since}`);
 
     const response = await octokit.request(
       "GET /repos/{owner}/{repo}/commits",
