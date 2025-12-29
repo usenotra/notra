@@ -423,7 +423,7 @@ export async function getTokenForRepository(
     },
   });
 
-  if (!repository?.integration.encryptedToken) {
+  if (!repository?.integration?.encryptedToken) {
     return null;
   }
 
