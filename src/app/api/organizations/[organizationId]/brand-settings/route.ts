@@ -1,27 +1,20 @@
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth/session";
+import { withOrganizationAuth } from "@/lib/auth/organization";
 import { db } from "@/lib/db/drizzle";
 import { brandSettings } from "@/lib/db/schema";
 
-export async function GET(request: NextRequest) {
+interface RouteContext {
+  params: Promise<{ organizationId: string }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const { session, user } = await getServerSession({
-      headers: request.headers,
-    });
+    const { organizationId } = await params;
+    const auth = await withOrganizationAuth(request, organizationId);
 
-    if (!(user && session?.activeOrganizationId)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
-      );
+    if (!auth.success) {
+      return auth.response;
     }
 
     const settings = await db.query.brandSettings.findFirst({

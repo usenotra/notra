@@ -185,7 +185,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         throw new Error("Organization ID is required");
       }
       const response = await fetch(
-        `/api/brand-settings?organizationId=${organizationId}`
+        `/api/organizations/${organizationId}/brand-settings`
       );
 
       if (!response.ok) {

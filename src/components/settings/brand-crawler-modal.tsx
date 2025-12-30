@@ -186,7 +186,7 @@ export function BrandCrawlerModal({
     queryKey: QUERY_KEYS.BRAND_SETTINGS.crawlerStatus(organizationId),
     queryFn: async () => {
       const response = await fetch(
-        `/api/brand-settings/crawler-status?organizationId=${organizationId}`
+        `/api/organizations/${organizationId}/brand-settings/crawler-status`
       );
       if (!response.ok) {
         return null;
@@ -229,15 +229,22 @@ export function BrandCrawlerModal({
 
   const startCrawler = useMutation({
     mutationFn: async ({ websiteUrl }: { websiteUrl: string }) => {
-      const response = await fetch("/api/brand-settings/crawl/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId, websiteUrl }),
-      });
+      const response = await fetch(
+        `/api/organizations/${organizationId}/brand-settings/crawl/start`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ websiteUrl }),
+        }
+      );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to start crawler");
+        let message = "Failed to start crawler";
+        try {
+          const error = await response.json();
+          message = error?.error ? error.error : message;
+        } catch {}
+        throw new Error(message);
       }
 
       return response.json() as Promise<{ workflowRunId: string }>;

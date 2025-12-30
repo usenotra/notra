@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth/session";
+import { withOrganizationAuth } from "@/lib/auth/organization";
 import { redis } from "@/lib/redis";
 
 type CrawlerStep = {
@@ -18,27 +18,17 @@ type CrawlerStatus = {
   workflowRunId: string | null;
 };
 
-export async function GET(request: NextRequest) {
+interface RouteContext {
+  params: Promise<{ organizationId: string }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const { session, user } = await getServerSession({
-      headers: request.headers,
-    });
+    const { organizationId } = await params;
+    const auth = await withOrganizationAuth(request, organizationId);
 
-    if (!(user && session?.activeOrganizationId)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
-      );
-    }
-    if (organizationId !== session.activeOrganizationId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!auth.success) {
+      return auth.response;
     }
 
     const statusKey = `brand-crawler:${organizationId}:status`;

@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth/session";
+import { withOrganizationAuth } from "@/lib/auth/organization";
 import { redis } from "@/lib/redis";
 
 type CrawlerStep = {
@@ -19,72 +19,76 @@ type CrawlerStatus = {
   workflowRunId: string | null;
 };
 
-const DEFAULT_STEPS: CrawlerStep[] = [
-  {
-    id: "validate",
-    name: "Validating URL",
-    description: "Checking if the website is accessible",
-    status: "pending",
-  },
-  {
-    id: "crawl",
-    name: "Crawling Website",
-    description: "Fetching and analyzing website content",
-    status: "pending",
-  },
-  {
-    id: "analyze",
-    name: "Analyzing Brand",
-    description: "AI is analyzing your brand identity",
-    status: "pending",
-  },
-  {
-    id: "save",
-    name: "Saving Results",
-    description: "Storing your brand profile",
-    status: "pending",
-  },
-];
+function getDefaultSteps(): CrawlerStep[] {
+  return [
+    {
+      id: "validate",
+      name: "Validating URL",
+      description: "Checking if the website is accessible",
+      status: "pending",
+    },
+    {
+      id: "crawl",
+      name: "Crawling Website",
+      description: "Fetching and analyzing website content",
+      status: "pending",
+    },
+    {
+      id: "analyze",
+      name: "Analyzing Brand",
+      description: "AI is analyzing your brand identity",
+      status: "pending",
+    },
+    {
+      id: "save",
+      name: "Saving Results",
+      description: "Storing your brand profile",
+      status: "pending",
+    },
+  ];
+}
 
-export async function POST(request: NextRequest) {
+interface RouteContext {
+  params: Promise<{ organizationId: string }>;
+}
+
+export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
-    const { session, user } = await getServerSession({
-      headers: request.headers,
-    });
+    const { organizationId } = await params;
+    const auth = await withOrganizationAuth(request, organizationId);
 
-    if (!(user && session?.activeOrganizationId)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!auth.success) {
+      return auth.response;
     }
 
     const body = await request.json();
-    const { organizationId, websiteUrl } = body;
+    const { websiteUrl } = body;
 
-    if (!organizationId || !websiteUrl) {
+    if (!websiteUrl) {
       return NextResponse.json(
-        { error: "Organization ID and website URL are required" },
+        { error: "Website URL is required" },
         { status: 400 }
       );
     }
 
     const lockKey = `brand-crawler:${organizationId}:lock`;
-    const existingLock = await redis.get(lockKey);
+    const acquired = await redis.set(lockKey, "locked", { nx: true, ex: 300 });
 
-    if (existingLock) {
+    if (!acquired) {
       return NextResponse.json(
         { error: "A crawl is already in progress for this organization" },
         { status: 409 }
       );
     }
 
-    await redis.set(lockKey, "locked", { ex: 300 });
-
     const workflowRunId = nanoid(16);
     const statusKey = `brand-crawler:${organizationId}:status`;
+    const defaultSteps = getDefaultSteps();
 
     const initialStatus: CrawlerStatus = {
       status: "crawling",
       currentStep: "validate",
-      steps: DEFAULT_STEPS.map((step, index) =>
+      steps: defaultSteps.map((step, index) =>
         index === 0 ? { ...step, status: "in_progress" as const } : step
       ),
       error: null,
@@ -97,7 +101,7 @@ export async function POST(request: NextRequest) {
       ? `https://${process.env.VERCEL_URL}`
       : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    fetch(`${baseUrl}/api/brand-settings/crawl`, {
+    fetch(`${baseUrl}/api/organizations/${organizationId}/brand-settings/crawl`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

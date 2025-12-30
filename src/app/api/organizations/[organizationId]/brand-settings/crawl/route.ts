@@ -1,6 +1,9 @@
+import { generateObject } from "ai";
 import { serve } from "@upstash/workflow/nextjs";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
+import * as z from "zod";
 import { db } from "@/lib/db/drizzle";
 import { brandSettings } from "@/lib/db/schema";
 import { openrouter } from "@/lib/openrouter";
@@ -22,32 +25,34 @@ type CrawlerStatus = {
   workflowRunId: string | null;
 };
 
-const DEFAULT_STEPS: CrawlerStep[] = [
-  {
-    id: "validate",
-    name: "Validating URL",
-    description: "Checking if the website is accessible",
-    status: "pending",
-  },
-  {
-    id: "crawl",
-    name: "Crawling Website",
-    description: "Fetching and analyzing website content",
-    status: "pending",
-  },
-  {
-    id: "analyze",
-    name: "Analyzing Brand",
-    description: "AI is analyzing your brand identity",
-    status: "pending",
-  },
-  {
-    id: "save",
-    name: "Saving Results",
-    description: "Storing your brand profile",
-    status: "pending",
-  },
-];
+function getDefaultSteps(): CrawlerStep[] {
+  return [
+    {
+      id: "validate",
+      name: "Validating URL",
+      description: "Checking if the website is accessible",
+      status: "pending",
+    },
+    {
+      id: "crawl",
+      name: "Crawling Website",
+      description: "Fetching and analyzing website content",
+      status: "pending",
+    },
+    {
+      id: "analyze",
+      name: "Analyzing Brand",
+      description: "AI is analyzing your brand identity",
+      status: "pending",
+    },
+    {
+      id: "save",
+      name: "Saving Results",
+      description: "Storing your brand profile",
+      status: "pending",
+    },
+  ];
+}
 
 async function updateCrawlerStatus(
   organizationId: string,
@@ -57,7 +62,7 @@ async function updateCrawlerStatus(
   const current = (await redis.get<CrawlerStatus>(statusKey)) || {
     status: "idle",
     currentStep: null,
-    steps: DEFAULT_STEPS,
+    steps: getDefaultSteps(),
     error: null,
     workflowRunId: null,
   };
@@ -77,8 +82,8 @@ async function updateStepStatus(
   const current = await redis.get<CrawlerStatus>(statusKey);
   if (!current) return;
 
-  const steps = current.steps.map((step) =>
-    step.id === stepId ? { ...step, status, error } : step
+  const steps = (Array.isArray(current.steps) ? current.steps : []).map(
+    (step) => (step.id === stepId ? { ...step, status, error } : step)
   );
 
   await redis.set(
@@ -96,6 +101,36 @@ type WorkflowPayload = {
   organizationId: string;
   websiteUrl: string;
 };
+
+const brandSchema = z.object({
+  companyName: z.string().describe("The name of the company or brand"),
+  companyDescription: z
+    .string()
+    .describe(
+      "A comprehensive description of what the company does, their values, and what sets them apart (2-4 sentences)"
+    ),
+  toneProfile: z
+    .enum([
+      "Professional",
+      "Conversational",
+      "Casual",
+      "Technical",
+      "Friendly",
+      "Authoritative",
+    ])
+    .describe("The overall tone of the brand's communication"),
+  customTone: z
+    .string()
+    .nullable()
+    .describe(
+      "Additional notes about the brand's unique voice or style, if applicable"
+    ),
+  audience: z
+    .string()
+    .describe(
+      "A description of the target audience for this brand (1-2 sentences)"
+    ),
+});
 
 export const { POST } = serve<WorkflowPayload>(
   async (context) => {
@@ -124,7 +159,12 @@ export const { POST } = serve<WorkflowPayload>(
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Failed to validate URL";
-        await updateStepStatus(organizationId, "validate", "error", errorMessage);
+        await updateStepStatus(
+          organizationId,
+          "validate",
+          "error",
+          errorMessage
+        );
         await updateCrawlerStatus(organizationId, {
           status: "error",
           error: errorMessage,
@@ -155,7 +195,7 @@ export const { POST } = serve<WorkflowPayload>(
         const title = titleMatch?.[1]?.trim() || "";
 
         const metaDescriptionMatch = html.match(
-          /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
+          /<meta[^>]*(?=[^>]*name=["']description["'])[^>]*content=["']([^"']+)["']/i
         );
         const metaDescription = metaDescriptionMatch?.[1]?.trim() || "";
 
@@ -194,42 +234,6 @@ export const { POST } = serve<WorkflowPayload>(
       await updateStepStatus(organizationId, "analyze", "in_progress");
 
       try {
-        const { generateObject } = await import("ai");
-        // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
-        const z = await import("zod");
-
-        const brandSchema = z.object({
-          companyName: z
-            .string()
-            .describe("The name of the company or brand"),
-          companyDescription: z
-            .string()
-            .describe(
-              "A comprehensive description of what the company does, their values, and what sets them apart (2-4 sentences)"
-            ),
-          toneProfile: z
-            .enum([
-              "Professional",
-              "Conversational",
-              "Casual",
-              "Technical",
-              "Friendly",
-              "Authoritative",
-            ])
-            .describe("The overall tone of the brand's communication"),
-          customTone: z
-            .string()
-            .nullable()
-            .describe(
-              "Additional notes about the brand's unique voice or style, if applicable"
-            ),
-          audience: z
-            .string()
-            .describe(
-              "A description of the target audience for this brand (1-2 sentences)"
-            ),
-        });
-
         const prompt = `Analyze the following website content and extract brand information.
 
 Website URL: ${websiteContent.url}
@@ -259,7 +263,12 @@ Be specific and detailed in your analysis.`;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Failed to analyze brand";
-        await updateStepStatus(organizationId, "analyze", "error", errorMessage);
+        await updateStepStatus(
+          organizationId,
+          "analyze",
+          "error",
+          errorMessage
+        );
         await updateCrawlerStatus(organizationId, {
           status: "error",
           error: errorMessage,
@@ -319,7 +328,9 @@ Be specific and detailed in your analysis.`;
         return { success: true };
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Failed to save brand settings";
+          error instanceof Error
+            ? error.message
+            : "Failed to save brand settings";
         await updateStepStatus(organizationId, "save", "error", errorMessage);
         await updateCrawlerStatus(organizationId, {
           status: "error",
