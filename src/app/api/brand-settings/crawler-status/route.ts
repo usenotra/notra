@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (organizationId !== session.activeOrganizationId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const statusKey = `brand-crawler:${organizationId}:status`;
     const statusData = await redis.get<CrawlerStatus>(statusKey);
