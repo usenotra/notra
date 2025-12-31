@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Streamdown } from "streamdown";
+import { AiChatSidebar } from "@/components/content/ai-chat-sidebar";
+import {
+  type ContentType,
+  CONTENT_TYPE_LABELS,
+} from "@/components/content/content-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { type ContentType, CONTENT_TYPE_LABELS } from "@/components/content/content-card";
 
 interface PageClientProps {
   contentId: string;
@@ -23,74 +26,84 @@ const EXAMPLE_CONTENT: ContentItem[] = [
   {
     id: "1",
     title: "Q4 2024 Product Update",
-    content: `# Q4 2024 Product Update
+    content: `<h1>Q4 2024 Product Update</h1>
 
-## Executive Summary
+<h2>Executive Summary</h2>
 
-This quarter we shipped major improvements to our API performance, reduced latency by 40%, and introduced new authentication methods for enterprise customers.
+<p>This quarter we shipped major improvements to our API performance, reduced latency by 40%, and introduced new authentication methods for enterprise customers.</p>
 
-## Key Achievements
+<h2>Key Achievements</h2>
 
-### Performance Improvements
+<h3>Performance Improvements</h3>
 
-- **API Latency**: Reduced average response time from 250ms to 150ms
-- **Database Optimization**: Implemented connection pooling and query caching
-- **CDN Integration**: Rolled out global edge caching for static assets
+<ul>
+<li><strong>API Latency</strong>: Reduced average response time from 250ms to 150ms</li>
+<li><strong>Database Optimization</strong>: Implemented connection pooling and query caching</li>
+<li><strong>CDN Integration</strong>: Rolled out global edge caching for static assets</li>
+</ul>
 
-### New Features
+<h3>New Features</h3>
 
-1. **Enterprise SSO**: Added support for SAML 2.0 and OIDC authentication
-2. **Webhook Events**: New webhook events for real-time notifications
-3. **Rate Limiting**: Configurable rate limits per API key
+<ol>
+<li><strong>Enterprise SSO</strong>: Added support for SAML 2.0 and OIDC authentication</li>
+<li><strong>Webhook Events</strong>: New webhook events for real-time notifications</li>
+<li><strong>Rate Limiting</strong>: Configurable rate limits per API key</li>
+</ol>
 
-### Security Updates
+<h3>Security Updates</h3>
 
-\`\`\`
-- Updated all dependencies to latest secure versions
+<pre><code>- Updated all dependencies to latest secure versions
 - Implemented CSP headers across all endpoints
-- Added audit logging for sensitive operations
-\`\`\`
+- Added audit logging for sensitive operations</code></pre>
 
-## Looking Ahead
+<h2>Looking Ahead</h2>
 
-In Q1 2025, we plan to focus on:
-- GraphQL API support
-- Multi-region deployment
-- Enhanced analytics dashboard
+<p>In Q1 2025, we plan to focus on:</p>
+<ul>
+<li>GraphQL API support</li>
+<li>Multi-region deployment</li>
+<li>Enhanced analytics dashboard</li>
+</ul>
 
-Thank you for your continued support!`,
+<p>Thank you for your continued support!</p>`,
     contentType: "investor_update",
     date: new Date(),
   },
   {
     id: "2",
     title: "Introducing Dark Mode Support",
-    content: `# Introducing Dark Mode Support
+    content: `<h1>Introducing Dark Mode Support</h1>
 
-We're excited to announce that **dark mode** is now available across all our applications!
+<p>We're excited to announce that <strong>dark mode</strong> is now available across all our applications!</p>
 
-## Why Dark Mode?
+<h2>Why Dark Mode?</h2>
 
-This highly requested feature helps:
-- Reduce eye strain during extended use
-- Improve battery life on OLED devices
-- Provide a more comfortable viewing experience in low-light environments
+<p>This highly requested feature helps:</p>
+<ul>
+<li>Reduce eye strain during extended use</li>
+<li>Improve battery life on OLED devices</li>
+<li>Provide a more comfortable viewing experience in low-light environments</li>
+</ul>
 
-## How to Enable
+<h2>How to Enable</h2>
 
-1. Navigate to **Settings**
-2. Select **Appearance**
-3. Choose your preferred theme:
-   - Light
-   - Dark
-   - System (follows your OS preference)
+<ol>
+<li>Navigate to <strong>Settings</strong></li>
+<li>Select <strong>Appearance</strong></li>
+<li>Choose your preferred theme:
+<ul>
+<li>Light</li>
+<li>Dark</li>
+<li>System (follows your OS preference)</li>
+</ul>
+</li>
+</ol>
 
-## Technical Implementation
+<h2>Technical Implementation</h2>
 
-We've implemented dark mode using CSS custom properties:
+<p>We've implemented dark mode using CSS custom properties:</p>
 
-\`\`\`css
-:root {
+<pre><code class="language-css">:root {
   --background: #ffffff;
   --foreground: #000000;
 }
@@ -98,188 +111,222 @@ We've implemented dark mode using CSS custom properties:
 .dark {
   --background: #1a1a1a;
   --foreground: #ffffff;
-}
-\`\`\`
+}</code></pre>
 
-## Feedback Welcome
+<h2>Feedback Welcome</h2>
 
-We'd love to hear your thoughts on our dark mode implementation. Feel free to reach out!`,
+<p>We'd love to hear your thoughts on our dark mode implementation. Feel free to reach out!</p>`,
     contentType: "blog_post",
     date: new Date(),
   },
   {
     id: "3",
     title: "Just shipped: Real-time collaboration features!",
-    content: `# Just shipped: Real-time collaboration features!
+    content: `<h1>Just shipped: Real-time collaboration features!</h1>
 
-Now you can work together with your team in real-time. See changes as they happen and never worry about conflicting edits again.
+<p>Now you can work together with your team in real-time. See changes as they happen and never worry about conflicting edits again.</p>
 
-## What's New
+<h2>What's New</h2>
 
-- **Live cursors**: See where your teammates are working
-- **Instant sync**: Changes appear immediately for all users
-- **Conflict resolution**: Smart merging prevents data loss
+<ul>
+<li><strong>Live cursors</strong>: See where your teammates are working</li>
+<li><strong>Instant sync</strong>: Changes appear immediately for all users</li>
+<li><strong>Conflict resolution</strong>: Smart merging prevents data loss</li>
+</ul>
 
-Try it out today!
+<p>Try it out today!</p>
 
-#ProductUpdate #Collaboration #TeamWork`,
+<p>#ProductUpdate #Collaboration #TeamWork</p>`,
     contentType: "twitter_post",
     date: new Date(),
   },
   {
     id: "4",
     title: "Version 2.5.0 Release Notes",
-    content: `# Version 2.5.0 Release Notes
+    content: `<h1>Version 2.5.0 Release Notes</h1>
 
-*Released: ${new Date().toLocaleDateString()}*
+<p><em>Released: ${new Date().toLocaleDateString()}</em></p>
 
----
+<hr />
 
-## New Features
+<h2>New Features</h2>
 
-### Multi-workspace Support
-- Create and switch between multiple workspaces
-- Invite team members to specific workspaces
-- Role-based access control per workspace
+<h3>Multi-workspace Support</h3>
+<ul>
+<li>Create and switch between multiple workspaces</li>
+<li>Invite team members to specific workspaces</li>
+<li>Role-based access control per workspace</li>
+</ul>
 
-### Improved Search
-- Full-text search across all content
-- Filter by date, type, and author
-- Search history and saved queries
+<h3>Improved Search</h3>
+<ul>
+<li>Full-text search across all content</li>
+<li>Filter by date, type, and author</li>
+<li>Search history and saved queries</li>
+</ul>
 
-### Custom Themes
-- Create your own color schemes
-- Import/export theme configurations
-- Community theme marketplace
+<h3>Custom Themes</h3>
+<ul>
+<li>Create your own color schemes</li>
+<li>Import/export theme configurations</li>
+<li>Community theme marketplace</li>
+</ul>
 
----
+<hr />
 
-## Bug Fixes
+<h2>Bug Fixes</h2>
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| #1234 | Fixed authentication issues on Safari | Fixed |
-| #1256 | Resolved memory leaks in dashboard | Fixed |
-| #1278 | Improved error handling in API calls | Fixed |
-| #1290 | Fixed timezone display issues | Fixed |
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Description</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#1234</td>
+<td>Fixed authentication issues on Safari</td>
+<td>Fixed</td>
+</tr>
+<tr>
+<td>#1256</td>
+<td>Resolved memory leaks in dashboard</td>
+<td>Fixed</td>
+</tr>
+<tr>
+<td>#1278</td>
+<td>Improved error handling in API calls</td>
+<td>Fixed</td>
+</tr>
+<tr>
+<td>#1290</td>
+<td>Fixed timezone display issues</td>
+<td>Fixed</td>
+</tr>
+</tbody>
+</table>
 
----
+<hr />
 
-## Breaking Changes
+<h2>Breaking Changes</h2>
 
-> **Note**: The v1 API endpoints have been deprecated. Please migrate to v2 by January 2025.
+<blockquote>
+<p><strong>Note</strong>: The v1 API endpoints have been deprecated. Please migrate to v2 by January 2025.</p>
+</blockquote>
 
-## Upgrade Instructions
+<h2>Upgrade Instructions</h2>
 
-\`\`\`bash
-npm update @your-app/client@2.5.0
-\`\`\`
+<pre><code class="language-bash">npm update @your-app/client@2.5.0</code></pre>
 
-For detailed migration guide, see our documentation.`,
+<p>For detailed migration guide, see our documentation.</p>`,
     contentType: "changelog",
     date: new Date(),
   },
   {
     id: "5",
     title: "Scaling Our Engineering Team",
-    content: `# Scaling Our Engineering Team
+    content: `<h1>Scaling Our Engineering Team</h1>
 
-We're thrilled to share how our engineering organization has grown from 5 to 50 engineers while maintaining our culture of innovation and quality.
+<p>We're thrilled to share how our engineering organization has grown from 5 to 50 engineers while maintaining our culture of innovation and quality.</p>
 
-## Our Journey
+<h2>Our Journey</h2>
 
-When we started, we were a small team of 5 engineers working out of a garage. Today, we have a global team of 50+ engineers across multiple time zones.
+<p>When we started, we were a small team of 5 engineers working out of a garage. Today, we have a global team of 50+ engineers across multiple time zones.</p>
 
-## Key Learnings
+<h2>Key Learnings</h2>
 
-### 1. Invest in Culture Early
-- Define your values before you scale
-- Hire for culture add, not just culture fit
-- Create mentorship programs
+<h3>1. Invest in Culture Early</h3>
+<ul>
+<li>Define your values before you scale</li>
+<li>Hire for culture add, not just culture fit</li>
+<li>Create mentorship programs</li>
+</ul>
 
-### 2. Build Strong Foundations
-- Documentation is not optional
-- Automated testing saves time
-- Code review is a learning opportunity
+<h3>2. Build Strong Foundations</h3>
+<ul>
+<li>Documentation is not optional</li>
+<li>Automated testing saves time</li>
+<li>Code review is a learning opportunity</li>
+</ul>
 
-### 3. Embrace Remote Work
-- Async-first communication
-- Clear ownership and accountability
-- Regular virtual team building
+<h3>3. Embrace Remote Work</h3>
+<ul>
+<li>Async-first communication</li>
+<li>Clear ownership and accountability</li>
+<li>Regular virtual team building</li>
+</ul>
 
-## What's Next
+<h2>What's Next</h2>
 
-We're continuing to grow and are looking for talented engineers to join our team. Check out our careers page to see open positions!
+<p>We're continuing to grow and are looking for talented engineers to join our team. Check out our careers page to see open positions!</p>
 
-#Engineering #Startup #Growth #Hiring`,
+<p>#Engineering #Startup #Growth #Hiring</p>`,
     contentType: "linkedin_post",
     date: new Date(),
   },
   {
     id: "6",
     title: "API v3 Migration Guide",
-    content: `# API v3 Migration Guide
+    content: `<h1>API v3 Migration Guide</h1>
 
-Everything you need to know about migrating from API v2 to v3.
+<p>Everything you need to know about migrating from API v2 to v3.</p>
 
-## Overview
+<h2>Overview</h2>
 
-API v3 introduces several improvements:
-- Better performance
-- More consistent response formats
-- Enhanced error messages
-- New endpoints for batch operations
+<p>API v3 introduces several improvements:</p>
+<ul>
+<li>Better performance</li>
+<li>More consistent response formats</li>
+<li>Enhanced error messages</li>
+<li>New endpoints for batch operations</li>
+</ul>
 
-## Breaking Changes
+<h2>Breaking Changes</h2>
 
-### Authentication
+<h3>Authentication</h3>
 
-**v2 (deprecated)**
-\`\`\`javascript
-headers: {
+<p><strong>v2 (deprecated)</strong></p>
+<pre><code class="language-javascript">headers: {
   'X-API-Key': 'your-api-key'
-}
-\`\`\`
+}</code></pre>
 
-**v3 (new)**
-\`\`\`javascript
-headers: {
+<p><strong>v3 (new)</strong></p>
+<pre><code class="language-javascript">headers: {
   'Authorization': 'Bearer your-api-key'
-}
-\`\`\`
+}</code></pre>
 
-### Response Format
+<h3>Response Format</h3>
 
-**v2 Response**
-\`\`\`json
-{
+<p><strong>v2 Response</strong></p>
+<pre><code class="language-json">{
   "data": { ... },
   "error": null
-}
-\`\`\`
+}</code></pre>
 
-**v3 Response**
-\`\`\`json
-{
+<p><strong>v3 Response</strong></p>
+<pre><code class="language-json">{
   "data": { ... },
   "meta": {
     "requestId": "abc123",
     "timestamp": "2024-12-31T00:00:00Z"
   }
-}
-\`\`\`
+}</code></pre>
 
-## Migration Checklist
+<h2>Migration Checklist</h2>
 
-- [ ] Update authentication headers
-- [ ] Update response parsing logic
-- [ ] Test all API endpoints
-- [ ] Update error handling
-- [ ] Monitor for deprecation warnings
+<ul>
+<li>Update authentication headers</li>
+<li>Update response parsing logic</li>
+<li>Test all API endpoints</li>
+<li>Update error handling</li>
+<li>Monitor for deprecation warnings</li>
+</ul>
 
-## Need Help?
+<h2>Need Help?</h2>
 
-Contact our support team at support@example.com or join our Discord community.`,
+<p>Contact our support team at support@example.com or join our Discord community.</p>`,
     contentType: "blog_post",
     date: new Date(),
   },
@@ -294,7 +341,10 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-export default function PageClient({ contentId, organizationSlug }: PageClientProps) {
+export default function PageClient({
+  contentId,
+  organizationSlug,
+}: PageClientProps) {
   const content = EXAMPLE_CONTENT.find((c) => c.id === contentId);
 
   if (!content) {
@@ -319,7 +369,7 @@ export default function PageClient({ contentId, organizationSlug }: PageClientPr
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="mx-auto w-full max-w-4xl space-y-6 px-4 lg:px-6">
+      <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="space-y-4">
           <Link href={`/${organizationSlug}/content`}>
             <Button size="sm" variant="ghost">
@@ -343,7 +393,9 @@ export default function PageClient({ contentId, organizationSlug }: PageClientPr
 
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <h1 className="font-bold text-3xl tracking-tight">{content.title}</h1>
+              <h1 className="font-bold text-3xl tracking-tight">
+                {content.title}
+              </h1>
               <div className="flex items-center gap-3">
                 <time
                   className="text-muted-foreground text-sm"
@@ -359,8 +411,16 @@ export default function PageClient({ contentId, organizationSlug }: PageClientPr
           </div>
         </div>
 
-        <div className="prose prose-neutral dark:prose-invert max-w-none rounded-lg border bg-card p-6">
-          <Streamdown>{content.content}</Streamdown>
+        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+          <div
+            className="prose prose-neutral dark:prose-invert max-w-none rounded-lg border bg-card p-6"
+            dangerouslySetInnerHTML={{ __html: content.content }}
+          />
+          <aside className="hidden lg:block">
+            <div className="sticky top-6 h-[calc(100vh-10rem)]">
+              <AiChatSidebar contentTitle={content.title} />
+            </div>
+          </aside>
         </div>
       </div>
     </div>

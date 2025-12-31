@@ -3,8 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @plugin "@toolwind/corner-shape";
-
-@source "../node_modules/streamdown/dist/*.js";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
