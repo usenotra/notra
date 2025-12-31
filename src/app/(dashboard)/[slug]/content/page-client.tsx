@@ -1,6 +1,3 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import { ContentCard, type ContentType } from "@/components/content/content-card";
 
 interface PageClientProps {
@@ -76,8 +73,6 @@ function formatDateHeading(): string {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
-  const router = useRouter();
-
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -95,10 +90,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               <ContentCard
                 contentType={content.contentType}
                 date={content.date}
+                href={`/${organizationSlug}/content/${content.id}`}
                 key={content.id}
-                onClick={() => {
-                  router.push(`/${organizationSlug}/content/${content.id}`);
-                }}
                 preview={content.preview}
                 title={content.title}
               />

@@ -1,5 +1,4 @@
-"use client";
-
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -35,7 +34,7 @@ interface ContentCardProps {
   contentType: ContentType;
   date: Date;
   className?: string;
-  onClick?: () => void;
+  href?: string;
 }
 
 function formatDate(date: Date): string {
@@ -52,16 +51,15 @@ function ContentCard({
   contentType,
   date,
   className,
-  onClick,
+  href,
 }: ContentCardProps) {
-  return (
+  const cardContent = (
     <Card
       className={cn(
         "flex h-full flex-col transition-colors",
-        onClick && "cursor-pointer hover:bg-accent/50",
+        href && "cursor-pointer hover:bg-accent/50",
         className
       )}
-      onClick={onClick}
     >
       <CardHeader>
         <CardTitle className="line-clamp-2">{title}</CardTitle>
@@ -80,6 +78,16 @@ function ContentCard({
       </CardFooter>
     </Card>
   );
+
+  if (href) {
+    return (
+      <Link className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg" href={href}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 export { ContentCard, CONTENT_TYPES, CONTENT_TYPE_LABELS };
