@@ -6,6 +6,7 @@
       "dependencies": {
         "@ai-sdk/react": "^2.0.117",
         "@base-ui/react": "^1.0.0",
+        "@biomejs/cli-linux-x64": "^2.3.10",
         "@hugeicons/core-free-icons": "^2.0.0",
         "@hugeicons/react": "^1.1.1",
         "@neondatabase/serverless": "^1.0.2",
