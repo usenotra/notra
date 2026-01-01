@@ -4,20 +4,9 @@ import { RESERVED_ORGANIZATION_SLUGS } from "@/utils/constants";
 
 export const organizationSlugSchema = z
   .string()
+  .slugify()
   .min(3, "Organization slug must be at least 3 characters long")
   .max(63, "Organization slug must be at most 63 characters long")
-  .regex(
-    /^[a-z0-9-]+$/,
-    "Organization slug can only contain lowercase letters, numbers, and hyphens"
-  )
-  .refine(
-    (value) => !(value.startsWith("-") || value.endsWith("-")),
-    "Organization slug cannot start or end with a hyphen"
-  )
-  .refine(
-    (value) => !value.includes("--"),
-    "Organization slug cannot contain consecutive hyphens"
-  )
   .refine(
     (value) =>
       !RESERVED_ORGANIZATION_SLUGS.includes(
