@@ -27,13 +27,13 @@ import {
   editGitHubIntegrationFormSchema,
 } from "@/utils/schemas/integrations";
 
-type EditIntegrationDialogProps = {
+interface EditIntegrationDialogProps {
   integration: GitHubIntegration;
   organizationId: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
-};
+}
 
 export function EditIntegrationDialog({
   integration,

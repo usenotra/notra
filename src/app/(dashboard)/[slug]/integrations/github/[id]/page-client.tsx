@@ -19,9 +19,9 @@ const EditIntegrationDialog = dynamic(
   { ssr: false }
 );
 
-type PageClientProps = {
+interface PageClientProps {
   integrationId: string;
-};
+}
 
 export default function PageClient({ integrationId }: PageClientProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);

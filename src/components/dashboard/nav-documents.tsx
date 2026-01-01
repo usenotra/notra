@@ -13,11 +13,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavDocumentsItem = {
+interface NavDocumentsItem {
   name: string;
   url: string;
   icon: IconSvgElement;
-};
+}
 
 const items: readonly NavDocumentsItem[] = [
   {

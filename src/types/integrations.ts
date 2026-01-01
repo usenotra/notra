@@ -1,23 +1,23 @@
 import type React from "react";
 import type { IntegrationType } from "@/utils/schemas/integrations";
 
-export type RepositoryOutput = {
+export interface RepositoryOutput {
   id: string;
   outputType: string;
   enabled: boolean;
-};
+}
 
-export type GitHubRepository = {
+export interface GitHubRepository {
   id: string;
   owner: string;
   repo: string;
   enabled: boolean;
   outputs?: RepositoryOutput[];
-};
+}
 
 export type Repository = GitHubRepository;
 
-export type GitHubIntegration = {
+export interface GitHubIntegration {
   id: string;
   displayName: string;
   enabled: boolean;
@@ -29,23 +29,23 @@ export type GitHubIntegration = {
     image: string | null;
   };
   repositories: GitHubRepository[];
-};
+}
 
-export type GitHubRepoInfo = {
+export interface GitHubRepoInfo {
   owner: string;
   repo: string;
   fullUrl: string;
-};
+}
 
-export type AvailableRepo = {
+export interface AvailableRepo {
   owner: string;
   name: string;
   fullName: string;
   private: boolean;
   description: string | null;
-};
+}
 
-export type IntegrationUIConfig = {
+export interface IntegrationUIConfig {
   id: IntegrationType;
   name: string;
   description: string;
@@ -53,34 +53,34 @@ export type IntegrationUIConfig = {
   href: string;
   available: boolean;
   category: "input" | "output";
-};
+}
 
-export type AddIntegrationDialogProps = {
+export interface AddIntegrationDialogProps {
   organizationId?: string;
   organizationSlug?: string;
   onSuccess?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
-};
+}
 
-export type AddRepositoryDialogProps = {
+export interface AddRepositoryDialogProps {
   integrationId: string;
   organizationId: string;
   onSuccess?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
-};
+}
 
-export type IntegrationCardProps = {
+export interface IntegrationCardProps {
   integration: GitHubIntegration;
   organizationId: string;
   organizationSlug: string;
   onUpdate?: () => void;
-};
+}
 
-export type RepositoryListProps = {
+export interface RepositoryListProps {
   integrationId: string;
   organizationId: string;
-};
+}

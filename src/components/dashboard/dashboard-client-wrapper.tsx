@@ -5,9 +5,9 @@ import { SiteHeader } from "@/components/dashboard/header";
 import { OrganizationsProvider } from "@/components/providers/organization-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-type DashboardClientWrapperProps = {
+interface DashboardClientWrapperProps {
   children: React.ReactNode;
-};
+}
 
 export function DashboardClientWrapper({
   children,

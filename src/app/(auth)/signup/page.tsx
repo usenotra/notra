@@ -57,7 +57,7 @@ export default function SignUp() {
   const [isAuthLoading, setIsAuthLoading] = useAtom(isAuthLoadingAtom);
 
   async function handleSocialSignup(provider: "google" | "github") {
-    if (isAuthLoading) return;
+    if (isAuthLoading) { return; }
 
     setIsAuthLoading(true);
     await authClient.signIn.social({
@@ -69,7 +69,7 @@ export default function SignUp() {
   const form = useForm({
     defaultValues: { email: "", password: "" },
     onSubmit: async ({ value }) => {
-      if (isAuthLoading) return;
+      if (isAuthLoading) { return; }
 
       setIsAuthLoading(true);
       const result = await authClient.signUp.email({

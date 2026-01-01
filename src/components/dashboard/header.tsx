@@ -24,7 +24,7 @@ export function SiteHeader() {
     const isLast = index === breadcrumbSegments.length - 1;
 
     const item = (
-      <BreadcrumbItem className="hover:underline" key={`${id}-${index}`}>
+      <BreadcrumbItem className="hover:underline" key={`${id}`}>
         <Link href={href}>
           {segment.charAt(0).toUpperCase() +
             segment.slice(1).replace(/-/g, " ")}
@@ -38,7 +38,7 @@ export function SiteHeader() {
 
     return [
       item,
-      <BreadcrumbSeparator key={`${id}-separator-${index}`}>
+      <BreadcrumbSeparator key={`${id}-separator`}>
         <HugeiconsIcon icon={ArrowRight01Icon} />
       </BreadcrumbSeparator>,
     ];

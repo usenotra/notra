@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth/server";
 
-type GetServerSessionParams = {
+interface GetServerSessionParams {
   headers: Headers;
-};
+}
 
 export async function getServerSession({ headers }: GetServerSessionParams) {
   const data = await auth.api.getSession({ headers }).catch((error) => {

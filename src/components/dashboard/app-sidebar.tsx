@@ -8,6 +8,7 @@ import {
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { OrgSelector } from "./org-selector";
+import { ThemeToggle } from "./theme-toggle";
 
 export function DashboardSidebar({
   ...props
@@ -21,6 +22,7 @@ export function DashboardSidebar({
         <NavMain />
       </SidebarContent>
       <SidebarFooter>
+        <ThemeToggle />
         <NavUser />
       </SidebarFooter>
     </Sidebar>
