@@ -24,7 +24,9 @@ export default function Login() {
   const lastMethod = authClient.getLastUsedLoginMethod();
 
   async function handleSocialLogin(provider: "google" | "github") {
-    if (isAuthLoading) { return; }
+    if (isAuthLoading) {
+      return;
+    }
 
     setIsAuthLoading(true);
 
@@ -45,7 +47,9 @@ export default function Login() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    if (!(email && password) || isAuthLoading) { return; }
+    if (!(email && password) || isAuthLoading) {
+      return;
+    }
 
     setIsAuthLoading(true);
     const result = await authClient.signIn.email({

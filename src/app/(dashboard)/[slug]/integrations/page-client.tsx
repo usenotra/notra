@@ -447,7 +447,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               {isLoading ? (
                 <>
                   <section>
-                    <h2 className="mb-4 font-semibold text-lg">Input Sources</h2>
+                    <h2 className="mb-4 font-semibold text-lg">
+                      Input Sources
+                    </h2>
                     <p className="mb-4 text-muted-foreground text-sm">
                       Connected services pulling data and updates
                     </p>
