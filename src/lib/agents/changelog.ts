@@ -1,5 +1,5 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
-import { stepCountIs, ToolLoopAgent } from "ai";
+import { stepCountIs, ToolLoopAgent, type Tool } from "ai";
 import { openrouter } from "../openrouter";
 import {
   getCommitsByTimeframeTool,
@@ -16,9 +16,9 @@ export function createGithubChangelogAgent(organizationId: string) {
   return new ToolLoopAgent({
     model: modelWithMemory,
     tools: {
-      getPullRequests: getPullRequestsTool,
-      getReleaseByTag: getReleaseByTagTool,
-      getCommitsByTimeframe: getCommitsByTimeframeTool,
+      getPullRequests: getPullRequestsTool as Tool,
+      getReleaseByTag: getReleaseByTagTool as Tool,
+      getCommitsByTimeframe: getCommitsByTimeframeTool as Tool,
     },
     instructions: `
   You are a helpful devrel with a passion for turning technical information into easy to follow changelogs, your job is it to take information from GitHub repositories and turn that information into a changelog designed for humans to read..
