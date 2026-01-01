@@ -1,5 +1,39 @@
 "use client";
 
+import type { ChatStatus, FileUIPart } from "ai";
+import {
+  CornerDownLeftIcon,
+  ImageIcon,
+  Loader2Icon,
+  MicIcon,
+  PaperclipIcon,
+  PlusIcon,
+  SquareIcon,
+  XIcon,
+} from "lucide-react";
+import { nanoid } from "nanoid";
+import {
+  type ChangeEvent,
+  type ChangeEventHandler,
+  Children,
+  type ClipboardEventHandler,
+  type ComponentProps,
+  createContext,
+  type FormEvent,
+  type FormEventHandler,
+  Fragment,
+  type HTMLAttributes,
+  type KeyboardEventHandler,
+  type PropsWithChildren,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -35,40 +69,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { ChatStatus, FileUIPart } from "ai";
-import {
-  CornerDownLeftIcon,
-  ImageIcon,
-  Loader2Icon,
-  MicIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SquareIcon,
-  XIcon,
-} from "lucide-react";
-import { nanoid } from "nanoid";
-import {
-  type ChangeEvent,
-  type ChangeEventHandler,
-  Children,
-  type ClipboardEventHandler,
-  type ComponentProps,
-  createContext,
-  type FormEvent,
-  type FormEventHandler,
-  Fragment,
-  type HTMLAttributes,
-  type KeyboardEventHandler,
-  type PropsWithChildren,
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
 
 // ============================================================================
 // Provider Context & Types
@@ -298,39 +298,51 @@ export function PromptInputAttachment({
 
   return (
     <PromptInputHoverCard>
-      <HoverCardTrigger render={<div className={cn(
-                      "group relative flex h-8 cursor-pointer select-none items-center gap-1.5 rounded-md border border-border px-1.5 font-medium text-sm transition-all hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                      className
-                    )} key={data.id} {...props} />} nativeButton={false}><div className="relative size-5 shrink-0">
-                      <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
-                        {isImage ? (
-                          <img
-                            alt={filename || "attachment"}
-                            className="size-5 object-cover"
-                            height={20}
-                            src={data.url}
-                            width={20}
-                          />
-                        ) : (
-                          <div className="flex size-5 items-center justify-center text-muted-foreground">
-                            <PaperclipIcon className="size-3" />
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        aria-label="Remove attachment"
-                        className="absolute inset-0 size-5 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [&>svg]:size-2.5"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          attachments.remove(data.id);
-                        }}
-                        type="button"
-                        variant="ghost"
-                      >
-                        <XIcon />
-                        <span className="sr-only">Remove</span>
-                      </Button>
-                    </div><span className="flex-1 truncate">{attachmentLabel}</span></HoverCardTrigger>
+      <HoverCardTrigger
+        nativeButton={false}
+        render={
+          <div
+            className={cn(
+              "group relative flex h-8 cursor-pointer select-none items-center gap-1.5 rounded-md border border-border px-1.5 font-medium text-sm transition-all hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+              className
+            )}
+            key={data.id}
+            {...props}
+          />
+        }
+      >
+        <div className="relative size-5 shrink-0">
+          <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
+            {isImage ? (
+              <img
+                alt={filename || "attachment"}
+                className="size-5 object-cover"
+                height={20}
+                src={data.url}
+                width={20}
+              />
+            ) : (
+              <div className="flex size-5 items-center justify-center text-muted-foreground">
+                <PaperclipIcon className="size-3" />
+              </div>
+            )}
+          </div>
+          <Button
+            aria-label="Remove attachment"
+            className="absolute inset-0 size-5 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [&>svg]:size-2.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              attachments.remove(data.id);
+            }}
+            type="button"
+            variant="ghost"
+          >
+            <XIcon />
+            <span className="sr-only">Remove</span>
+          </Button>
+        </div>
+        <span className="flex-1 truncate">{attachmentLabel}</span>
+      </HoverCardTrigger>
       <PromptInputHoverCardContent className="w-auto p-2">
         <div className="w-auto space-y-3">
           {isImage && (
@@ -382,7 +394,7 @@ export function PromptInputAttachments({
 
   return (
     <div
-      className={cn("flex flex-wrap items-center gap-2 p-3 w-full", className)}
+      className={cn("flex w-full flex-wrap items-center gap-2 p-3", className)}
       {...props}
     >
       {attachments.files.map((file) => (
@@ -601,7 +613,7 @@ export const PromptInput = ({
   useEffect(() => {
     const form = formRef.current;
     if (!form) return;
-    if (globalDrop) return // when global drop is on, let the document-level handler own drops
+    if (globalDrop) return; // when global drop is on, let the document-level handler own drops
 
     const onDragOver = (e: DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
@@ -978,7 +990,11 @@ export const PromptInputActionMenuTrigger = ({
   children,
   ...props
 }: PromptInputActionMenuTriggerProps) => (
-  <DropdownMenuTrigger render={<PromptInputButton className={className} {...props} />}>{children ?? <PlusIcon className="size-4" />}</DropdownMenuTrigger>
+  <DropdownMenuTrigger
+    render={<PromptInputButton className={className} {...props} />}
+  >
+    {children ?? <PlusIcon className="size-4" />}
+  </DropdownMenuTrigger>
 );
 
 export type PromptInputActionMenuContentProps = ComponentProps<

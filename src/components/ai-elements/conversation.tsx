@@ -1,11 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { ArrowDownIcon } from "lucide-react";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
@@ -93,7 +94,7 @@ export const ConversationScrollButton = ({
         variant="outline"
         {...props}
       >
-        <ArrowDownIcon className="size-4" />
+        <HugeiconsIcon className="size-4" icon={ArrowDown01Icon} />
       </Button>
     )
   );

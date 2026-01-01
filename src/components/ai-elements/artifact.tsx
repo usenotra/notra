@@ -1,5 +1,13 @@
 "use client";
 
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type {
+  ComponentProps,
+  ComponentType,
+  HTMLAttributes,
+  SVGProps,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -8,8 +16,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { type LucideIcon, XIcon } from "lucide-react";
-import type { ComponentProps, HTMLAttributes } from "react";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 
@@ -53,11 +59,10 @@ export const ArtifactClose = ({
       className
     )}
     size={size}
-    type="button"
     variant={variant}
     {...props}
   >
-    {children ?? <XIcon className="size-4" />}
+    {children ?? <HugeiconsIcon className="size-4" icon={Cancel01Icon} />}
     <span className="sr-only">Close</span>
   </Button>
 );
@@ -92,7 +97,7 @@ export const ArtifactActions = ({
 export type ArtifactActionProps = ComponentProps<typeof Button> & {
   tooltip?: string;
   label?: string;
-  icon?: LucideIcon;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
 export const ArtifactAction = ({
@@ -112,7 +117,6 @@ export const ArtifactAction = ({
         className
       )}
       size={size}
-      type="button"
       variant={variant}
       {...props}
     >

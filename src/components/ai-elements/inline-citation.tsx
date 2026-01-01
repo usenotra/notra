@@ -1,5 +1,14 @@
 "use client";
 
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import {
+  type ComponentProps,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Carousel,
@@ -13,15 +22,6 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
 
 export type InlineCitationProps = ComponentProps<"span">;
 
@@ -62,14 +62,24 @@ export const InlineCitationCardTrigger = ({
   className,
   ...props
 }: InlineCitationCardTriggerProps) => (
-  <HoverCardTrigger render={<Badge className={cn("ml-1 rounded-full", className)} variant="secondary" {...props} />}>{sources[0] ? (
-            <>
-              {new URL(sources[0]).hostname}{" "}
-              {sources.length > 1 && `+${sources.length - 1}`}
-            </>
-          ) : (
-            "unknown"
-          )}</HoverCardTrigger>
+  <HoverCardTrigger
+    render={
+      <Badge
+        className={cn("ml-1 rounded-full", className)}
+        variant="secondary"
+        {...props}
+      />
+    }
+  >
+    {sources[0] ? (
+      <>
+        {new URL(sources[0]).hostname}{" "}
+        {sources.length > 1 && `+${sources.length - 1}`}
+      </>
+    ) : (
+      "unknown"
+    )}
+  </HoverCardTrigger>
 );
 
 export type InlineCitationCardBodyProps = ComponentProps<"div">;

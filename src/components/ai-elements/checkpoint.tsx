@@ -1,5 +1,8 @@
 "use client";
 
+import { Bookmark01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { ComponentProps, HTMLAttributes, SVGProps } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -8,8 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { BookmarkIcon, type LucideProps } from "lucide-react";
-import type { ComponentProps, HTMLAttributes } from "react";
 
 export type CheckpointProps = HTMLAttributes<HTMLDivElement>;
 
@@ -19,7 +20,10 @@ export const Checkpoint = ({
   ...props
 }: CheckpointProps) => (
   <div
-    className={cn("flex items-center gap-0.5 text-muted-foreground overflow-hidden", className)}
+    className={cn(
+      "flex items-center gap-0.5 overflow-hidden text-muted-foreground",
+      className
+    )}
     {...props}
   >
     {children}
@@ -27,7 +31,7 @@ export const Checkpoint = ({
   </div>
 );
 
-export type CheckpointIconProps = LucideProps;
+export type CheckpointIconProps = SVGProps<SVGSVGElement>;
 
 export const CheckpointIcon = ({
   className,
@@ -35,7 +39,11 @@ export const CheckpointIcon = ({
   ...props
 }: CheckpointIconProps) =>
   children ?? (
-    <BookmarkIcon className={cn("size-4 shrink-0", className)} {...props} />
+    <HugeiconsIcon
+      className={cn("size-4 shrink-0", className)}
+      icon={Bookmark01Icon}
+      {...props}
+    />
   );
 
 export type CheckpointTriggerProps = ComponentProps<typeof Button> & {
@@ -44,7 +52,6 @@ export type CheckpointTriggerProps = ComponentProps<typeof Button> & {
 
 export const CheckpointTrigger = ({
   children,
-  className,
   variant = "ghost",
   size = "sm",
   tooltip,
@@ -52,13 +59,17 @@ export const CheckpointTrigger = ({
 }: CheckpointTriggerProps) =>
   tooltip ? (
     <Tooltip>
-      <TooltipTrigger render={<Button size={size} type="button" variant={variant} {...props} />}>{children}</TooltipTrigger>
+      <TooltipTrigger
+        render={<Button size={size} variant={variant} {...props} />}
+      >
+        {children}
+      </TooltipTrigger>
       <TooltipContent align="start" side="bottom">
         {tooltip}
       </TooltipContent>
     </Tooltip>
   ) : (
-    <Button size={size} type="button" variant={variant} {...props}>
+    <Button size={size} variant={variant} {...props}>
       {children}
     </Button>
   );
