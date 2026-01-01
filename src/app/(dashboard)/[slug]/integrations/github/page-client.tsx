@@ -13,9 +13,9 @@ interface IntegrationsResponse {
   count: number;
 }
 
-type PageClientProps = {
+interface PageClientProps {
   organizationSlug: string;
-};
+}
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
   const { getOrganization } = useOrganizationsContext();

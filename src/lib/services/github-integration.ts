@@ -13,16 +13,16 @@ import { createOctokit } from "../octokit";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
-type CreateGitHubIntegrationParams = {
+interface CreateGitHubIntegrationParams {
   organizationId: string;
   userId: string;
   token: string | null;
   displayName: string;
   owner: string;
   repo: string;
-};
+}
 
-type AddRepositoryParams = {
+interface AddRepositoryParams {
   integrationId: string;
   owner: string;
   repo: string;
@@ -31,14 +31,14 @@ type AddRepositoryParams = {
     enabled?: boolean;
     config?: Record<string, unknown>;
   }>;
-};
+}
 
-type ConfigureOutputParams = {
+interface ConfigureOutputParams {
   repositoryId: string;
   outputType: OutputContentType;
   enabled: boolean;
   config?: Record<string, unknown>;
-};
+}
 
 export async function validateUserOrgAccess(
   userId: string,
@@ -423,7 +423,9 @@ export async function getTokenForRepository(
     },
   });
 
-  if (!repository?.integration?.encryptedToken || !repository.integration.enabled) {
+  if (
+    !(repository?.integration?.encryptedToken && repository.integration.enabled)
+  ) {
     return undefined;
   }
 

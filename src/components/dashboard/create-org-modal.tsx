@@ -22,10 +22,10 @@ import { setLastVisitedOrganization } from "@/utils/cookies";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { createOrganizationSchema } from "@/utils/schemas/organization";
 
-type CreateOrgModalProps = {
+interface CreateOrgModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-};
+}
 
 export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
   const router = useRouter();

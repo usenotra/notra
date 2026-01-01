@@ -5,6 +5,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
+import {
+  InstalledIntegrationCard,
+  InstalledIntegrationCardSkeleton,
+} from "@/components/integrations-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -137,6 +141,15 @@ const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
 
 const ALL_INTEGRATIONS = [...INPUT_SOURCES, ...OUTPUT_SOURCES];
 
+const INTEGRATION_CATEGORY_MAP: Record<string, "input" | "output"> = {
+  github: "input",
+  linear: "input",
+  slack: "input",
+  framer: "output",
+  marble: "output",
+  webflow: "output",
+};
+
 function IntegrationCard({
   integration,
   activeCount,
@@ -258,7 +271,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     parseAsStringLiteral(TAB_VALUES).withDefault("all")
   );
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: QUERY_KEYS.INTEGRATIONS.all(organizationId ?? ""),
     queryFn: async () => {
       if (!organizationId) {
@@ -273,16 +286,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }
 
       const result = await response.json();
-      console.log("[Integrations API Response]", result);
       return result as IntegrationsResponse;
     },
     enabled: !!organizationId,
-  });
-
-  console.log("[Integrations Data]", {
-    data,
-    integrations: data?.integrations,
-    count: data?.count,
   });
 
   const integrations = data?.integrations;
@@ -438,85 +444,126 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
           <TabsContent value="installed">
             <div className="space-y-8 pt-4">
-              {isLoading && (
-                <div className="grid gap-3 sm:gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i}>
-                      <CardHeader className="gap-3">
-                        <div className="flex items-start gap-3 sm:gap-4">
-                          <Skeleton className="size-9 shrink-0 rounded-md sm:size-10" />
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <Skeleton className="h-4 w-20 sm:h-5 sm:w-24" />
-                            <Skeleton className="h-3 w-full sm:h-4" />
-                          </div>
-                        </div>
-                        <CardAction className="row-span-1 self-center sm:row-span-2 sm:self-start">
-                          <Skeleton className="h-6 w-16 rounded-full sm:w-20" />
-                        </CardAction>
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              {isLoading ? (
+                <>
+                  <section>
+                    <h2 className="mb-4 font-semibold text-lg">
+                      Input Sources
+                    </h2>
+                    <p className="mb-4 text-muted-foreground text-sm">
+                      Connected services pulling data and updates
+                    </p>
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {[1, 2].map((i) => (
+                        <InstalledIntegrationCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  </section>
 
-              {!isLoading && integrations && integrations.length > 0 && (
-                <div className="grid gap-3 sm:gap-4">
-                  {integrations.map((integration) => {
-                    const config = ALL_INTEGRATIONS.find(
-                      (i) => i.id === integration.type
-                    );
+                  <section>
+                    <h2 className="mb-4 font-semibold text-lg">
+                      Output Sources
+                    </h2>
+                    <p className="mb-4 text-muted-foreground text-sm">
+                      Connected services publishing and syncing content
+                    </p>
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {[1].map((i) => (
+                        <InstalledIntegrationCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <>
+                  {(() => {
+                    const inputIntegrations =
+                      integrations?.filter(
+                        (i) => INTEGRATION_CATEGORY_MAP[i.type] === "input"
+                      ) ?? [];
+                    const outputIntegrations =
+                      integrations?.filter(
+                        (i) => INTEGRATION_CATEGORY_MAP[i.type] === "output"
+                      ) ?? [];
+                    const hasAnyIntegrations =
+                      inputIntegrations.length > 0 ||
+                      outputIntegrations.length > 0;
+
+                    if (!hasAnyIntegrations) {
+                      return (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                          <p className="text-muted-foreground">
+                            No integrations installed yet.
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            Switch to the "All" tab to browse and connect
+                            integrations.
+                          </p>
+                        </div>
+                      );
+                    }
 
                     return (
-                      <Link
-                        href={`/${organizationSlug}/integrations/${integration.type}/${integration.id}`}
-                        key={integration.id}
-                      >
-                        <Card className="cursor-pointer transition-colors hover:bg-accent/50">
-                          <CardHeader className="gap-3">
-                            <div className="flex items-start gap-3 sm:gap-4">
-                              <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
-                                {config?.icon}
-                              </div>
-                              <div className="min-w-0 flex-1 space-y-1">
-                                <CardTitle className="truncate text-sm sm:text-base">
-                                  {integration.displayName}
-                                </CardTitle>
-                                <CardDescription className="text-xs sm:text-sm">
-                                  {config?.name} •{" "}
-                                  {integration.repositories.length}{" "}
-                                  {integration.repositories.length === 1
-                                    ? "repo"
-                                    : "repos"}
-                                </CardDescription>
-                              </div>
+                      <>
+                        {inputIntegrations.length > 0 && (
+                          <section>
+                            <h2 className="mb-4 font-semibold text-lg">
+                              Input Sources
+                            </h2>
+                            <p className="mb-4 text-muted-foreground text-sm">
+                              Connected services pulling data and updates
+                            </p>
+                            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {inputIntegrations.map((integration) => {
+                                const config = ALL_INTEGRATIONS.find(
+                                  (i) => i.id === integration.type
+                                );
+                                return (
+                                  <InstalledIntegrationCard
+                                    icon={config?.icon}
+                                    integration={integration}
+                                    key={integration.id}
+                                    onUpdate={() => refetch()}
+                                    organizationId={organizationId}
+                                    organizationSlug={organizationSlug}
+                                  />
+                                );
+                              })}
                             </div>
-                            <CardAction className="row-span-1 self-center sm:row-span-2 sm:self-start">
-                              <Badge
-                                className="text-xs"
-                                variant={
-                                  integration.enabled ? "default" : "secondary"
-                                }
-                              >
-                                {integration.enabled ? "On" : "Off"}
-                              </Badge>
-                            </CardAction>
-                          </CardHeader>
-                        </Card>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
+                          </section>
+                        )}
 
-              {!isLoading && (!integrations || integrations.length === 0) && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-muted-foreground">
-                    No integrations installed yet.
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Switch to the "All" tab to browse and connect integrations.
-                  </p>
-                </div>
+                        {outputIntegrations.length > 0 && (
+                          <section>
+                            <h2 className="mb-4 font-semibold text-lg">
+                              Output Sources
+                            </h2>
+                            <p className="mb-4 text-muted-foreground text-sm">
+                              Connected services publishing and syncing content
+                            </p>
+                            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {outputIntegrations.map((integration) => {
+                                const config = ALL_INTEGRATIONS.find(
+                                  (i) => i.id === integration.type
+                                );
+                                return (
+                                  <InstalledIntegrationCard
+                                    icon={config?.icon}
+                                    integration={integration}
+                                    key={integration.id}
+                                    onUpdate={() => refetch()}
+                                    organizationId={organizationId}
+                                    organizationSlug={organizationSlug}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </section>
+                        )}
+                      </>
+                    );
+                  })()}
+                </>
               )}
             </div>
           </TabsContent>

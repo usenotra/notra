@@ -1,9 +1,9 @@
 import { validateOrganizationAccess } from "@/actions/auth";
 
-type OrganizationLayoutProps = {
+interface OrganizationLayoutProps {
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
-};
+}
 
 export default async function OrganizationLayout({
   children,

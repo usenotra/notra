@@ -12,11 +12,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavSecondaryItem = {
+interface NavSecondaryItem {
   title: string;
   url: string;
   icon: IconSvgElement;
-};
+}
 
 const items: readonly NavSecondaryItem[] = [
   {
