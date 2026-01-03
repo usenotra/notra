@@ -82,7 +82,7 @@ function ContentCard({
   if (href) {
     return (
       <Link
-        className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         href={href}
       >
         {cardContent}

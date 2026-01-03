@@ -241,7 +241,10 @@ function IntegrationCard({
   return (
     <>
       {integration.available ? (
-        <Link href={`/${organizationSlug}/integrations/${integration.href}`}>
+        <Link
+          className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          href={`/${organizationSlug}/integrations/${integration.href}`}
+        >
           {cardContent}
         </Link>
       ) : (
