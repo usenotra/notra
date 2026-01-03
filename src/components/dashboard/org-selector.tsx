@@ -176,25 +176,23 @@ export function OrgSelector() {
                   Organizations
                 </DropdownMenuLabel>
                 {organizations.map((org) => (
-                  <DropdownMenuItem key={org.id}>
-                    <button
-                      className="relative flex w-full cursor-pointer items-center gap-4 disabled:opacity-50"
-                      disabled={isSwitching}
-                      onClick={() => switchOrganization(org)}
-                      type="button"
-                    >
-                      <Avatar className="size-6 rounded-[0.2rem]">
-                        <AvatarImage src={org.logo || undefined} />
-                        <AvatarFallback>{org.name.slice(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      {org.name}
-                      {activeOrganization?.id === org.id ? (
-                        <HugeiconsIcon
-                          className="absolute right-0 size-4 text-muted-foreground"
-                          icon={Tick02Icon}
-                        />
-                      ) : null}
-                    </button>
+                  <DropdownMenuItem
+                    className="flex items-center gap-4"
+                    disabled={isSwitching}
+                    key={org.id}
+                    onClick={() => switchOrganization(org)}
+                  >
+                    <Avatar className="size-6 rounded-[0.2rem]">
+                      <AvatarImage src={org.logo || undefined} />
+                      <AvatarFallback>{org.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    {org.name}
+                    {activeOrganization?.id === org.id ? (
+                      <HugeiconsIcon
+                        className="absolute right-0 size-4 text-muted-foreground"
+                        icon={Tick02Icon}
+                      />
+                    ) : null}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuGroup>
@@ -206,17 +204,14 @@ export function OrgSelector() {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
-              <button
-                className="flex w-full cursor-pointer items-center gap-4"
-                onClick={() => setIsCreateModalOpen(true)}
-                type="button"
-              >
-                <div className="flex size-6 items-center justify-center rounded-[0.2rem] bg-muted">
-                  <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-                </div>
-                Create Organization
-              </button>
+            <DropdownMenuItem
+              className="flex items-center gap-4"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <div className="flex size-6 items-center justify-center rounded-[0.2rem] bg-muted">
+                <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+              </div>
+              Create Organization
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

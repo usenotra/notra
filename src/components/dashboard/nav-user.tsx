@@ -6,7 +6,6 @@ import {
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -158,12 +157,10 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href="/account">
-                <DropdownMenuItem>
-                  <HugeiconsIcon icon={User02Icon} />
-                  Account
-                </DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem onClick={() => router.push("/account")}>
+                <HugeiconsIcon icon={User02Icon} />
+                Account
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
