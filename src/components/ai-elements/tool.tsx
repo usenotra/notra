@@ -1,14 +1,15 @@
 "use client";
 
-import type { ToolUIPart } from "ai";
 import {
-  CheckCircleIcon,
-  ChevronDownIcon,
-  CircleIcon,
-  ClockIcon,
+  ArrowDown01Icon,
+  CancelCircle01Icon,
+  CheckmarkCircle01Icon,
+  Circle01Icon,
+  Clock01Icon,
   WrenchIcon,
-  XCircleIcon,
-} from "lucide-react";
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { ToolUIPart } from "ai";
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -29,18 +30,17 @@ export const Tool = ({ className, ...props }: ToolProps) => (
   />
 );
 
-export type ToolHeaderProps = {
+export interface ToolHeaderProps {
   title?: string;
   type: ToolUIPart["type"];
   state: ToolUIPart["state"];
   className?: string;
-};
+}
 
 const getStatusBadge = (status: ToolUIPart["state"]) => {
   const labels: Record<ToolUIPart["state"], string> = {
     "input-streaming": "Pending",
     "input-available": "Running",
-    // @ts-expect-error state only available in AI SDK v6
     "approval-requested": "Awaiting Approval",
     "approval-responded": "Responded",
     "output-available": "Completed",
@@ -49,14 +49,37 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
   };
 
   const icons: Record<ToolUIPart["state"], ReactNode> = {
-    "input-streaming": <CircleIcon className="size-4" />,
-    "input-available": <ClockIcon className="size-4 animate-pulse" />,
-    // @ts-expect-error state only available in AI SDK v6
-    "approval-requested": <ClockIcon className="size-4 text-yellow-600" />,
-    "approval-responded": <CheckCircleIcon className="size-4 text-blue-600" />,
-    "output-available": <CheckCircleIcon className="size-4 text-green-600" />,
-    "output-error": <XCircleIcon className="size-4 text-red-600" />,
-    "output-denied": <XCircleIcon className="size-4 text-orange-600" />,
+    "input-streaming": <HugeiconsIcon className="size-4" icon={Circle01Icon} />,
+    "input-available": (
+      <HugeiconsIcon className="size-4 animate-pulse" icon={Clock01Icon} />
+    ),
+    "approval-requested": (
+      <HugeiconsIcon className="size-4 text-yellow-600" icon={Clock01Icon} />
+    ),
+    "approval-responded": (
+      <HugeiconsIcon
+        className="size-4 text-blue-600"
+        icon={CheckmarkCircle01Icon}
+      />
+    ),
+    "output-available": (
+      <HugeiconsIcon
+        className="size-4 text-green-600"
+        icon={CheckmarkCircle01Icon}
+      />
+    ),
+    "output-error": (
+      <HugeiconsIcon
+        className="size-4 text-red-600"
+        icon={CancelCircle01Icon}
+      />
+    ),
+    "output-denied": (
+      <HugeiconsIcon
+        className="size-4 text-orange-600"
+        icon={CancelCircle01Icon}
+      />
+    ),
   };
 
   return (
@@ -82,13 +105,19 @@ export const ToolHeader = ({
     {...props}
   >
     <div className="flex items-center gap-2">
-      <WrenchIcon className="size-4 text-muted-foreground" />
+      <HugeiconsIcon
+        className="size-4 text-muted-foreground"
+        icon={WrenchIcon}
+      />
       <span className="font-medium text-sm">
         {title ?? type.split("-").slice(1).join("-")}
       </span>
       {getStatusBadge(state)}
     </div>
-    <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+    <HugeiconsIcon
+      className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
+      icon={ArrowDown01Icon}
+    />
   </CollapsibleTrigger>
 );
 

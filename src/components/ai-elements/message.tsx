@@ -1,12 +1,14 @@
 "use client";
 
-import type { FileUIPart, UIMessage } from "ai";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PaperclipIcon,
-  XIcon,
-} from "lucide-react";
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  AttachmentIcon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { FileUIPart, UIMessage } from "ai";
+import Image from "next/image";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -103,14 +105,14 @@ export const MessageAction = ({
   return button;
 };
 
-type MessageBranchContextType = {
+interface MessageBranchContextType {
   currentBranch: number;
   totalBranches: number;
   goToPrevious: () => void;
   goToNext: () => void;
   branches: ReactElement[];
   setBranches: (branches: ReactElement[]) => void;
-};
+}
 
 const MessageBranchContext = createContext<MessageBranchContextType | null>(
   null
@@ -247,11 +249,10 @@ export const MessageBranchPrevious = ({
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
       size="icon-sm"
-      type="button"
       variant="ghost"
       {...props}
     >
-      {children ?? <ChevronLeftIcon size={14} />}
+      {children ?? <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />}
     </Button>
   );
 };
@@ -260,7 +261,6 @@ export type MessageBranchNextProps = ComponentProps<typeof Button>;
 
 export const MessageBranchNext = ({
   children,
-  className,
   ...props
 }: MessageBranchNextProps) => {
   const { goToNext, totalBranches } = useMessageBranch();
@@ -271,11 +271,10 @@ export const MessageBranchNext = ({
       disabled={totalBranches <= 1}
       onClick={goToNext}
       size="icon-sm"
-      type="button"
       variant="ghost"
       {...props}
     >
-      {children ?? <ChevronRightIcon size={14} />}
+      {children ?? <HugeiconsIcon icon={ArrowRight01Icon} size={14} />}
     </Button>
   );
 };
@@ -346,7 +345,7 @@ export function MessageAttachment({
     >
       {isImage ? (
         <>
-          <img
+          <Image
             alt={filename || "attachment"}
             className="size-full object-cover"
             height={100}
@@ -361,10 +360,9 @@ export function MessageAttachment({
                 e.stopPropagation();
                 onRemove();
               }}
-              type="button"
               variant="ghost"
             >
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} />
               <span className="sr-only">Remove</span>
             </Button>
           )}
@@ -373,12 +371,11 @@ export function MessageAttachment({
         <>
           <Tooltip>
             <TooltipTrigger
-              nativeButton={false}
               render={
                 <div className="flex size-full shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground" />
               }
             >
-              <PaperclipIcon className="size-4" />
+              <HugeiconsIcon className="size-4" icon={AttachmentIcon} />
             </TooltipTrigger>
             <TooltipContent>
               <p>{attachmentLabel}</p>
@@ -392,10 +389,9 @@ export function MessageAttachment({
                 e.stopPropagation();
                 onRemove();
               }}
-              type="button"
               variant="ghost"
             >
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} />
               <span className="sr-only">Remove</span>
             </Button>
           )}

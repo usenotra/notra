@@ -1,13 +1,12 @@
 "use client";
 
 import {
+  ArrowDown01Icon,
   Brain01Icon,
-  ChevronDownIcon,
   CircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import type { ComponentProps, ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, useContext, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useControllableState } from "@/lib/hooks/use-controllable-state";
 import { cn } from "@/lib/utils";
 
 interface ChainOfThoughtContextValue {
@@ -101,7 +101,7 @@ export const ChainOfThoughtHeader = memo(
               "size-4 transition-transform",
               isOpen ? "rotate-180" : "rotate-0"
             )}
-            icon={ChevronDownIcon}
+            icon={ArrowDown01Icon}
           />
         </CollapsibleTrigger>
       </Collapsible>
@@ -110,7 +110,7 @@ export const ChainOfThoughtHeader = memo(
 );
 
 export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
-  icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  icon?: typeof CircleIcon;
   label: ReactNode;
   description?: ReactNode;
   status?: "complete" | "active" | "pending";
@@ -119,7 +119,7 @@ export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
 export const ChainOfThoughtStep = memo(
   ({
     className,
-    icon: Icon = CircleIcon,
+    icon = CircleIcon,
     label,
     description,
     status = "complete",
@@ -143,7 +143,7 @@ export const ChainOfThoughtStep = memo(
         {...props}
       >
         <div className="relative mt-0.5">
-          <Icon className="size-4" />
+          <HugeiconsIcon className="size-4" icon={icon} />
           <div className="absolute top-7 bottom-0 left-1/2 -mx-px w-px bg-border" />
         </div>
         <div className="flex-1 space-y-2 overflow-hidden">

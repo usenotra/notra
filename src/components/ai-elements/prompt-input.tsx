@@ -1,17 +1,19 @@
 "use client";
 
-import type { ChatStatus, FileUIPart } from "ai";
 import {
+  Add01Icon,
+  AttachmentIcon,
+  Cancel01Icon,
   CornerDownLeftIcon,
-  ImageIcon,
-  Loader2Icon,
-  MicIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SquareIcon,
-  XIcon,
-} from "lucide-react";
+  Image01Icon,
+  Loading01Icon,
+  Mic01Icon,
+  Square01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { ChatStatus, FileUIPart } from "ai";
 import { nanoid } from "nanoid";
+import Image from "next/image";
 import {
   type ChangeEvent,
   type ChangeEventHandler,
@@ -74,22 +76,22 @@ import { cn } from "@/lib/utils";
 // Provider Context & Types
 // ============================================================================
 
-export type AttachmentsContext = {
+export interface AttachmentsContext {
   files: (FileUIPart & { id: string })[];
   add: (files: File[] | FileList) => void;
   remove: (id: string) => void;
   clear: () => void;
   openFileDialog: () => void;
   fileInputRef: RefObject<HTMLInputElement | null>;
-};
+}
 
-export type TextInputContext = {
+export interface TextInputContext {
   value: string;
   setInput: (v: string) => void;
   clear: () => void;
-};
+}
 
-export type PromptInputControllerProps = {
+export interface PromptInputControllerProps {
   textInput: TextInputContext;
   attachments: AttachmentsContext;
   /** INTERNAL: Allows PromptInput to register its file textInput + "open" callback */
@@ -97,7 +99,7 @@ export type PromptInputControllerProps = {
     ref: RefObject<HTMLInputElement | null>,
     open: () => void
   ) => void;
-};
+}
 
 const PromptInputController = createContext<PromptInputControllerProps | null>(
   null
@@ -299,7 +301,6 @@ export function PromptInputAttachment({
   return (
     <PromptInputHoverCard>
       <HoverCardTrigger
-        nativeButton={false}
         render={
           <div
             className={cn(
@@ -314,7 +315,7 @@ export function PromptInputAttachment({
         <div className="relative size-5 shrink-0">
           <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
             {isImage ? (
-              <img
+              <Image
                 alt={filename || "attachment"}
                 className="size-5 object-cover"
                 height={20}
@@ -323,7 +324,7 @@ export function PromptInputAttachment({
               />
             ) : (
               <div className="flex size-5 items-center justify-center text-muted-foreground">
-                <PaperclipIcon className="size-3" />
+                <HugeiconsIcon className="size-3" icon={AttachmentIcon} />
               </div>
             )}
           </div>
@@ -334,10 +335,9 @@ export function PromptInputAttachment({
               e.stopPropagation();
               attachments.remove(data.id);
             }}
-            type="button"
             variant="ghost"
           >
-            <XIcon />
+            <HugeiconsIcon icon={Cancel01Icon} />
             <span className="sr-only">Remove</span>
           </Button>
         </div>
@@ -347,7 +347,7 @@ export function PromptInputAttachment({
         <div className="w-auto space-y-3">
           {isImage && (
             <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
-              <img
+              <Image
                 alt={filename || "attachment preview"}
                 className="max-h-full max-w-full object-contain"
                 height={384}
@@ -424,15 +424,15 @@ export const PromptInputActionAddAttachments = ({
         attachments.openFileDialog();
       }}
     >
-      <ImageIcon className="mr-2 size-4" /> {label}
+      <HugeiconsIcon className="mr-2 size-4" icon={Image01Icon} /> {label}
     </DropdownMenuItem>
   );
 };
 
-export type PromptInputMessage = {
+export interface PromptInputMessage {
   text: string;
   files: FileUIPart[];
-};
+}
 
 export type PromptInputProps = Omit<
   HTMLAttributes<HTMLFormElement>,
@@ -597,7 +597,9 @@ export const PromptInput = ({
 
   // Let provider know about our hidden file input so external menus can call openFileDialog()
   useEffect(() => {
-    if (!usingProvider) return;
+    if (!usingProvider) {
+      return;
+    }
     controller.__registerFileInput(inputRef, () => inputRef.current?.click());
   }, [usingProvider, controller]);
 
@@ -612,8 +614,12 @@ export const PromptInput = ({
   // Attach drop handlers on nearest form and document (opt-in)
   useEffect(() => {
     const form = formRef.current;
-    if (!form) return;
-    if (globalDrop) return; // when global drop is on, let the document-level handler own drops
+    if (!form) {
+      return;
+    }
+    if (globalDrop) {
+      return; // when global drop is on, let the document-level handler own drops
+    }
 
     const onDragOver = (e: DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
@@ -637,7 +643,9 @@ export const PromptInput = ({
   }, [add, globalDrop]);
 
   useEffect(() => {
-    if (!globalDrop) return;
+    if (!globalDrop) {
+      return;
+    }
 
     const onDragOver = (e: DragEvent) => {
       if (e.dataTransfer?.types?.includes("Files")) {
@@ -664,7 +672,9 @@ export const PromptInput = ({
     () => () => {
       if (!usingProvider) {
         for (const f of filesRef.current) {
-          if (f.url) URL.revokeObjectURL(f.url);
+          if (f.url) {
+            URL.revokeObjectURL(f.url);
+          }
         }
       }
     },
@@ -729,7 +739,7 @@ export const PromptInput = ({
     // Convert blob URLs to data URLs asynchronously
     Promise.all(
       files.map(async ({ id, ...item }) => {
-        if (item.url && item.url.startsWith("blob:")) {
+        if (item.url?.startsWith("blob:")) {
           const dataUrl = await convertBlobUrlToDataUrl(item.url);
           // If conversion failed, keep the original blob URL
           return {
@@ -971,7 +981,6 @@ export const PromptInputButton = ({
     <InputGroupButton
       className={cn(className)}
       size={newSize}
-      type="button"
       variant={variant}
       {...props}
     />
@@ -993,7 +1002,7 @@ export const PromptInputActionMenuTrigger = ({
   <DropdownMenuTrigger
     render={<PromptInputButton className={className} {...props} />}
   >
-    {children ?? <PlusIcon className="size-4" />}
+    {children ?? <HugeiconsIcon className="size-4" icon={Add01Icon} />}
   </DropdownMenuTrigger>
 );
 
@@ -1032,14 +1041,16 @@ export const PromptInputSubmit = ({
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <CornerDownLeftIcon className="size-4" />;
+  let Icon = <HugeiconsIcon className="size-4" icon={CornerDownLeftIcon} />;
 
   if (status === "submitted") {
-    Icon = <Loader2Icon className="size-4 animate-spin" />;
+    Icon = (
+      <HugeiconsIcon className="size-4 animate-spin" icon={Loading01Icon} />
+    );
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <HugeiconsIcon className="size-4" icon={Square01Icon} />;
   } else if (status === "error") {
-    Icon = <XIcon className="size-4" />;
+    Icon = <HugeiconsIcon className="size-4" icon={Cancel01Icon} />;
   }
 
   return (
@@ -1077,23 +1088,23 @@ interface SpeechRecognitionEvent extends Event {
   resultIndex: number;
 }
 
-type SpeechRecognitionResultList = {
+interface SpeechRecognitionResultList {
   readonly length: number;
   item(index: number): SpeechRecognitionResult;
   [index: number]: SpeechRecognitionResult;
-};
+}
 
-type SpeechRecognitionResult = {
+interface SpeechRecognitionResult {
   readonly length: number;
   item(index: number): SpeechRecognitionAlternative;
   [index: number]: SpeechRecognitionAlternative;
   isFinal: boolean;
-};
+}
 
-type SpeechRecognitionAlternative = {
+interface SpeechRecognitionAlternative {
   transcript: string;
   confidence: number;
-};
+}
 
 interface SpeechRecognitionErrorEvent extends Event {
   error: string;
@@ -1211,7 +1222,7 @@ export const PromptInputSpeechButton = ({
       onClick={toggleListening}
       {...props}
     >
-      <MicIcon className="size-4" />
+      <HugeiconsIcon className="size-4" icon={Mic01Icon} />
     </PromptInputButton>
   );
 };
@@ -1271,12 +1282,8 @@ export const PromptInputSelectValue = ({
 
 export type PromptInputHoverCardProps = ComponentProps<typeof HoverCard>;
 
-export const PromptInputHoverCard = ({
-  openDelay = 0,
-  closeDelay = 0,
-  ...props
-}: PromptInputHoverCardProps) => (
-  <HoverCard closeDelay={closeDelay} openDelay={openDelay} {...props} />
+export const PromptInputHoverCard = (props: PromptInputHoverCardProps) => (
+  <HoverCard {...props} />
 );
 
 export type PromptInputHoverCardTriggerProps = ComponentProps<

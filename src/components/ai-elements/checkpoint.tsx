@@ -2,7 +2,7 @@
 
 import { Bookmark01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ComponentProps, HTMLAttributes, SVGProps } from "react";
+import type { ComponentProps, HTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -31,18 +31,13 @@ export const Checkpoint = ({
   </div>
 );
 
-export type CheckpointIconProps = SVGProps<SVGSVGElement>;
+export type CheckpointIconProps = ComponentProps<"div">;
 
-export const CheckpointIcon = ({
-  className,
-  children,
-  ...props
-}: CheckpointIconProps) =>
+export const CheckpointIcon = ({ className, children }: CheckpointIconProps) =>
   children ?? (
     <HugeiconsIcon
       className={cn("size-4 shrink-0", className)}
       icon={Bookmark01Icon}
-      {...props}
     />
   );
 
@@ -52,6 +47,7 @@ export type CheckpointTriggerProps = ComponentProps<typeof Button> & {
 
 export const CheckpointTrigger = ({
   children,
+  className,
   variant = "ghost",
   size = "sm",
   tooltip,

@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDownIcon, PaperclipIcon } from "lucide-react";
+import { ArrowDown01Icon, AttachmentIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,25 +12,25 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-export type QueueMessagePart = {
+export interface QueueMessagePart {
   type: string;
   text?: string;
   url?: string;
   filename?: string;
   mediaType?: string;
-};
+}
 
-export type QueueMessage = {
+export interface QueueMessage {
   id: string;
   parts: QueueMessagePart[];
-};
+}
 
-export type QueueTodo = {
+export interface QueueTodo {
   id: string;
   title: string;
   description?: string;
   status?: "pending" | "completed";
-};
+}
 
 export type QueueItemProps = ComponentProps<"li">;
 
@@ -130,7 +131,7 @@ export const QueueItemAction = ({
       className
     )}
     size="icon"
-    type="button"
+   
     variant="ghost"
     {...props}
   />
@@ -174,7 +175,7 @@ export const QueueItemFile = ({
     )}
     {...props}
   >
-    <PaperclipIcon size={12} />
+    <HugeiconsIcon icon={AttachmentIcon} size={12} />
     <span className="max-w-[100px] truncate">{children}</span>
   </span>
 );
@@ -219,7 +220,7 @@ export const QueueSectionTrigger = ({
           "group flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-left font-medium text-muted-foreground text-sm transition-colors hover:bg-muted",
           className
         )}
-        type="button"
+       
         {...props}
       />
     }
@@ -243,7 +244,10 @@ export const QueueSectionLabel = ({
   ...props
 }: QueueSectionLabelProps) => (
   <span className={cn("flex items-center gap-2", className)} {...props}>
-    <ChevronDownIcon className="size-4 transition-transform group-data-[state=closed]:-rotate-90" />
+    <HugeiconsIcon
+      className="size-4 transition-transform group-data-[state=closed]:-rotate-90"
+      icon={ArrowDown01Icon}
+    />
     {icon}
     <span>
       {count} {label}

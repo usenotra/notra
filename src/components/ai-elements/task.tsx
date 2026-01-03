@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDownIcon, SearchIcon } from "lucide-react";
+import { ArrowDown01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import {
   Collapsible,
@@ -58,9 +59,12 @@ export const TaskTrigger = ({
   <CollapsibleTrigger className={cn("group", className)} {...props}>
     {children ?? (
       <div className="flex w-full cursor-pointer items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground">
-        <SearchIcon className="size-4" />
+        <HugeiconsIcon className="size-4" icon={Search01Icon} />
         <p className="text-sm">{title}</p>
-        <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+        <HugeiconsIcon
+          className="size-4 transition-transform group-data-[state=open]:rotate-180"
+          icon={ArrowDown01Icon}
+        />
       </div>
     )}
   </CollapsibleTrigger>

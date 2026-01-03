@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ComponentProps,
   createContext,
@@ -50,7 +51,7 @@ export const InlineCitationText = ({
 export type InlineCitationCardProps = ComponentProps<typeof HoverCard>;
 
 export const InlineCitationCard = (props: InlineCitationCardProps) => (
-  <HoverCard closeDelay={0} openDelay={0} {...props} />
+  <HoverCard {...props} />
 );
 
 export type InlineCitationCardTriggerProps = ComponentProps<typeof Badge> & {
@@ -205,10 +206,13 @@ export const InlineCitationCarouselPrev = ({
       aria-label="Previous"
       className={cn("shrink-0", className)}
       onClick={handleClick}
-      type="button"
+     
       {...props}
     >
-      <ArrowLeftIcon className="size-4 text-muted-foreground" />
+      <HugeiconsIcon
+        className="size-4 text-muted-foreground"
+        icon={ArrowLeft01Icon}
+      />
     </button>
   );
 };
@@ -232,10 +236,13 @@ export const InlineCitationCarouselNext = ({
       aria-label="Next"
       className={cn("shrink-0", className)}
       onClick={handleClick}
-      type="button"
+     
       {...props}
     >
-      <ArrowRightIcon className="size-4 text-muted-foreground" />
+      <HugeiconsIcon
+        className="size-4 text-muted-foreground"
+        icon={ArrowRight01Icon}
+      />
     </button>
   );
 };

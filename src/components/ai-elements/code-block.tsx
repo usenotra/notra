@@ -21,9 +21,9 @@ type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   showLineNumbers?: boolean;
 };
 
-type CodeBlockContextType = {
+interface CodeBlockContextType {
   code: string;
-};
+}
 
 const CodeBlockContext = createContext<CodeBlockContextType>({
   code: "",

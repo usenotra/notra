@@ -2,6 +2,10 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/core", "ultracite/next"],
   "linter": {
-    "includes": ["**", "!src/components/ui/**"]
+    "includes": [
+      "**",
+      "!src/components/ui/**",
+      "!src/components/ai-elements/**"
+    ]
   }
 }
