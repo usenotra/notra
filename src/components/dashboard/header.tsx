@@ -24,7 +24,7 @@ export function SiteHeader() {
     const isLast = index === breadcrumbSegments.length - 1;
 
     const item = (
-      <BreadcrumbItem className="hover:underline" key={`${id}-item`}>
+      <BreadcrumbItem className="hover:underline" key={`${id}-item-${segment}`}>
         <BreadcrumbLink href={href}>
           {segment.charAt(0).toUpperCase() +
             segment.slice(1).replace(/-/g, " ")}
