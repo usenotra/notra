@@ -356,8 +356,11 @@ export default function PageClient({
             <p className="text-muted-foreground text-sm">
               This content may have been deleted or you don't have access to it.
             </p>
-            <Link href={`/${organizationSlug}/content`}>
-              <Button className="mt-4" variant="outline">
+            <Link
+              className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${organizationSlug}/content`}
+            >
+              <Button className="mt-4" tabIndex={-1} variant="outline">
                 Back to Content
               </Button>
             </Link>
@@ -371,8 +374,11 @@ export default function PageClient({
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="space-y-4">
-          <Link href={`/${organizationSlug}/content`}>
-            <Button size="sm" variant="ghost">
+          <Link
+            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${organizationSlug}/content`}
+          >
+            <Button size="sm" tabIndex={-1} variant="ghost">
               <svg
                 className="mr-2 size-4"
                 fill="none"
