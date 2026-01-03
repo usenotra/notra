@@ -133,13 +133,13 @@ export type PlanTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 export const PlanTrigger = ({ className, ...props }: PlanTriggerProps) => (
   <CollapsibleTrigger
+    {...props}
     render={
       <Button
         className={cn("size-8", className)}
         data-slot="plan-trigger"
         size="icon"
         variant="ghost"
-        {...props}
       />
     }
   >

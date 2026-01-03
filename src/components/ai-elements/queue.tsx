@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import type { Icon } from "@/types/hugeicons";
 
 export interface QueueMessagePart {
   type: string;
@@ -131,7 +132,6 @@ export const QueueItemAction = ({
       className
     )}
     size="icon"
-   
     variant="ghost"
     {...props}
   />
@@ -220,7 +220,6 @@ export const QueueSectionTrigger = ({
           "group flex w-full items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-left font-medium text-muted-foreground text-sm transition-colors hover:bg-muted",
           className
         )}
-       
         {...props}
       />
     }
@@ -233,7 +232,7 @@ export const QueueSectionTrigger = ({
 export type QueueSectionLabelProps = ComponentProps<"span"> & {
   count?: number;
   label: string;
-  icon?: React.ReactNode;
+  icon?: Icon;
 };
 
 export const QueueSectionLabel = ({
@@ -248,7 +247,7 @@ export const QueueSectionLabel = ({
       className="size-4 transition-transform group-data-[state=closed]:-rotate-90"
       icon={ArrowDown01Icon}
     />
-    {icon}
+    {icon && <HugeiconsIcon className="size-4" icon={icon} />}
     <span>
       {count} {label}
     </span>

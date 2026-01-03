@@ -206,7 +206,6 @@ export const InlineCitationCarouselPrev = ({
       aria-label="Previous"
       className={cn("shrink-0", className)}
       onClick={handleClick}
-     
       {...props}
     >
       <HugeiconsIcon
@@ -236,7 +235,6 @@ export const InlineCitationCarouselNext = ({
       aria-label="Next"
       className={cn("shrink-0", className)}
       onClick={handleClick}
-     
       {...props}
     >
       <HugeiconsIcon

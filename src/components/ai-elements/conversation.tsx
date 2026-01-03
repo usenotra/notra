@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { Icon } from "@/types/hugeicons";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
@@ -37,7 +38,7 @@ export const ConversationContent = ({
 export type ConversationEmptyStateProps = ComponentProps<"div"> & {
   title?: string;
   description?: string;
-  icon?: React.ReactNode;
+  icon?: Icon;
 };
 
 export const ConversationEmptyState = ({
@@ -57,7 +58,11 @@ export const ConversationEmptyState = ({
   >
     {children ?? (
       <>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
+        {icon && (
+          <div className="text-muted-foreground">
+            <HugeiconsIcon className="size-8" icon={icon} />
+          </div>
+        )}
         <div className="space-y-1">
           <h3 className="font-medium text-sm">{title}</h3>
           {description && (

@@ -2,9 +2,9 @@
 
 import {
   ArrowDown01Icon,
-  CancelCircle01Icon,
+  CancelCircleIcon,
   CheckmarkCircle01Icon,
-  Circle01Icon,
+  CircleIcon,
   Clock01Icon,
   WrenchIcon,
 } from "@hugeicons/core-free-icons";
@@ -49,7 +49,7 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
   };
 
   const icons: Record<ToolUIPart["state"], ReactNode> = {
-    "input-streaming": <HugeiconsIcon className="size-4" icon={Circle01Icon} />,
+    "input-streaming": <HugeiconsIcon className="size-4" icon={CircleIcon} />,
     "input-available": (
       <HugeiconsIcon className="size-4 animate-pulse" icon={Clock01Icon} />
     ),
@@ -69,15 +69,12 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
       />
     ),
     "output-error": (
-      <HugeiconsIcon
-        className="size-4 text-red-600"
-        icon={CancelCircle01Icon}
-      />
+      <HugeiconsIcon className="size-4 text-red-600" icon={CancelCircleIcon} />
     ),
     "output-denied": (
       <HugeiconsIcon
         className="size-4 text-orange-600"
-        icon={CancelCircle01Icon}
+        icon={CancelCircleIcon}
       />
     ),
   };

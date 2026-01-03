@@ -2,9 +2,9 @@
 
 import {
   Add01Icon,
+  ArrowDownLeftIcon,
   AttachmentIcon,
   Cancel01Icon,
-  CornerDownLeftIcon,
   Image01Icon,
   Loading01Icon,
   Mic01Icon,
@@ -1041,7 +1041,7 @@ export const PromptInputSubmit = ({
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <HugeiconsIcon className="size-4" icon={CornerDownLeftIcon} />;
+  let Icon = <HugeiconsIcon className="size-4" icon={ArrowDownLeftIcon} />;
 
   if (status === "submitted") {
     Icon = (
