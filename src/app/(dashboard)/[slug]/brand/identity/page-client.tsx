@@ -206,6 +206,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const updateMutation = useUpdateBrandSettings(organizationId);
 
   const [url, setUrl] = useState("");
+  // Use organization.websiteUrl as fallback when user hasn't typed anything
+  const effectiveUrl = url || organization?.websiteUrl || "";
 
   const isInitialized = useRef(false);
   const lastSavedData = useRef<string>("");
@@ -240,12 +242,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       isInitialized.current = true;
     }
   }, [data?.settings, form]);
-
-  useEffect(() => {
-    if (organization?.websiteUrl) {
-      setUrl(organization.websiteUrl);
-    }
-  }, [organization?.websiteUrl]);
 
   // Auto-save effect using form subscription
   useEffect(() => {
@@ -287,13 +283,13 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   }, [form, updateMutation]);
 
   const handleAnalyze = async () => {
-    if (!url.trim()) {
+    if (!effectiveUrl.trim()) {
       toast.error("Please enter a website URL");
       return;
     }
 
     try {
-      await analyzeMutation.mutateAsync(url);
+      await analyzeMutation.mutateAsync(effectiveUrl);
       toast.success("Analysis started");
     } catch (error) {
       toast.error(
@@ -402,7 +398,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                     isPending={analyzeMutation.isPending}
                     progress={progress}
                     setUrl={setUrl}
-                    url={url}
+                    url={effectiveUrl}
                   />
                 </CardContent>
               </Card>
@@ -449,11 +445,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 The website used to analyze your brand
               </p>
             </div>
-            <p className="text-muted-foreground text-xs">
-              DEBUG: organization.websiteUrl ={" "}
-              {JSON.stringify(organization?.websiteUrl)} | url state ={" "}
-              {JSON.stringify(url)}
-            </p>
             <div className="flex max-w-sm gap-2">
               <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm">
                 {organization?.websiteUrl ?? url ?? "No website configured"}

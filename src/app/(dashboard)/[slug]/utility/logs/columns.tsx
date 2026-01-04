@@ -38,8 +38,12 @@ function StatusBadge({ status }: { status: Log["status"] }) {
 }
 
 function getSortIcon(isSorted: false | "asc" | "desc") {
-  if (isSorted === "asc") { return ArrowUp01Icon; }
-  if (isSorted === "desc") { return ArrowDown01Icon; }
+  if (isSorted === "asc") {
+    return ArrowUp01Icon;
+  }
+  if (isSorted === "desc") {
+    return ArrowDown01Icon;
+  }
   return ArrowUpDownIcon;
 }
 
