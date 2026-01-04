@@ -41,13 +41,16 @@ export function NavUser() {
   async function handleSignOut() {
     setIsSigningOut(true);
     try {
-      await authClient.signOut();
-      toast.success("Signed out successfully");
-      router.push("/login");
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Signed out successfully");
+            router.push("/login");
+          },
+        },
+      });
     } catch (error) {
-      console.error("Failed to sign out:", error);
       toast.error("Failed to sign out");
-    } finally {
       setIsSigningOut(false);
     }
   }
