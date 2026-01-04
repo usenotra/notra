@@ -116,7 +116,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     };
 
     return NextResponse.json(response);
-  } catch {
+  } catch (error) {
+    console.error("Error fetching webhook logs:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
