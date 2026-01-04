@@ -37,6 +37,12 @@ function StatusBadge({ status }: { status: Log["status"] }) {
   return <Badge variant={variants[status]}>{status}</Badge>;
 }
 
+function getSortIcon(isSorted: false | "asc" | "desc") {
+  if (isSorted === "asc") { return ArrowUp01Icon; }
+  if (isSorted === "desc") { return ArrowDown01Icon; }
+  return ArrowUpDownIcon;
+}
+
 function DirectionBadge({ direction }: { direction: LogDirection }) {
   return (
     <Badge className="capitalize" variant="outline">
@@ -123,16 +129,7 @@ export const columns: ColumnDef<Log>[] = [
           variant="ghost"
         >
           Created At
-          <HugeiconsIcon
-            className="ml-2 size-4"
-            icon={
-              isSorted === "asc"
-                ? ArrowUp01Icon
-                : isSorted === "desc"
-                  ? ArrowDown01Icon
-                  : ArrowUpDownIcon
-            }
-          />
+          <HugeiconsIcon className="ml-2 size-4" icon={getSortIcon(isSorted)} />
         </Button>
       );
     },
