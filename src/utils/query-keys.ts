@@ -13,4 +13,9 @@ export const QUERY_KEYS = {
     availableRepos: (integrationId: string) =>
       ["integrations", integrationId, "available-repos"] as const,
   },
+  WEBHOOK_LOGS: {
+    base: ["webhook-logs"] as const,
+    list: (organizationId: string, page: number) =>
+      ["webhook-logs", organizationId, page] as const,
+  },
 } as const;
