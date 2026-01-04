@@ -3,7 +3,8 @@
 import { Refresh01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
-import { useEffect, useRef, useState } from "react";
+import { useAsyncDebouncedCallback } from "@tanstack/react-pacer";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Button } from "@/components/ui/button";
@@ -189,225 +190,61 @@ function ModalContent({
   );
 }
 
-export default function PageClient({ organizationSlug }: PageClientProps) {
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  const orgFromList = getOrganization(organizationSlug);
-  // Use activeOrganization if it matches - it has additional fields like websiteUrl from getFullOrganization()
-  const organization =
-    activeOrganization?.slug === organizationSlug
-      ? activeOrganization
-      : orgFromList;
-  const organizationId = organization?.id ?? "";
+interface BrandFormProps {
+  organizationId: string;
+  initialData: {
+    companyName: string;
+    companyDescription: string;
+    toneProfile: ToneProfile;
+    customTone: string;
+    audience: string;
+  };
+  websiteUrl: string | null | undefined;
+  onReanalyze: () => void;
+  isReanalyzing: boolean;
+}
 
-  const { data, isLoading: isLoadingSettings } =
-    useBrandSettings(organizationId);
-  const { progress } = useBrandAnalysisProgress(organizationId);
-  const analyzeMutation = useAnalyzeBrand(organizationId);
+function BrandForm({
+  organizationId,
+  initialData,
+  websiteUrl,
+  onReanalyze,
+  isReanalyzing,
+}: BrandFormProps) {
   const updateMutation = useUpdateBrandSettings(organizationId);
+  const lastSavedData = useRef<string>(JSON.stringify(initialData));
 
-  const [url, setUrl] = useState("");
-  // Use organization.websiteUrl as fallback when user hasn't typed anything
-  const effectiveUrl = url || organization?.websiteUrl || "";
-
-  const isInitialized = useRef(false);
-  const lastSavedData = useRef<string>("");
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedSave = useAsyncDebouncedCallback(
+    async (values: typeof initialData) => {
+      await updateMutation.mutateAsync(values);
+      lastSavedData.current = JSON.stringify(values);
+      toast.success("Changes saved");
+    },
+    { wait: AUTO_SAVE_DELAY }
+  );
 
   const form = useForm({
-    defaultValues: {
-      companyName: "",
-      companyDescription: "",
-      toneProfile: "Professional" as ToneProfile,
-      customTone: "",
-      audience: "",
-    },
+    defaultValues: initialData,
     onSubmit: async () => {
-      // No-op: we use auto-save instead of explicit submit
+      // No-op: we use auto-save via onChange listener
     },
-  });
+    listeners: {
+      onChange: ({ formApi }) => {
+        const currentValues = formApi.state.values;
+        const currentData = JSON.stringify(currentValues);
 
-  // Sync form values when data loads
-  useEffect(() => {
-    if (data?.settings) {
-      const newFormData = {
-        companyName: data.settings.companyName ?? "",
-        companyDescription: data.settings.companyDescription ?? "",
-        toneProfile:
-          (data.settings.toneProfile as ToneProfile) ?? "Professional",
-        customTone: data.settings.customTone ?? "",
-        audience: data.settings.audience ?? "",
-      };
-      form.reset(newFormData);
-      lastSavedData.current = JSON.stringify(newFormData);
-      isInitialized.current = true;
-    }
-  }, [data?.settings, form]);
+        if (currentData === lastSavedData.current) {
+          return;
+        }
 
-  // Auto-save effect using form subscription
-  useEffect(() => {
-    const unsubscribe = form.store.subscribe(() => {
-      if (!isInitialized.current) {
-        return;
-      }
-
-      const currentValues = form.state.values;
-      const currentData = JSON.stringify(currentValues);
-
-      if (currentData === lastSavedData.current) {
-        return;
-      }
-
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      saveTimeoutRef.current = setTimeout(async () => {
-        try {
-          await updateMutation.mutateAsync(currentValues);
-          lastSavedData.current = currentData;
-          toast.success("Changes saved");
-        } catch (error) {
+        debouncedSave(currentValues).catch((error) => {
           toast.error(
             error instanceof Error ? error.message : "Failed to save changes"
           );
-        }
-      }, AUTO_SAVE_DELAY);
-    });
-
-    return () => {
-      unsubscribe();
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [form, updateMutation]);
-
-  const handleAnalyze = async () => {
-    if (!effectiveUrl.trim()) {
-      toast.error("Please enter a website URL");
-      return;
-    }
-
-    try {
-      await analyzeMutation.mutateAsync(effectiveUrl);
-      toast.success("Analysis started");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to start analysis"
-      );
-    }
-  };
-
-  const isAnalyzing =
-    progress.status === "scraping" ||
-    progress.status === "extracting" ||
-    progress.status === "saving";
-
-  const hasSettings = !!data?.settings;
-
-  // Show skeleton during initial loading (no data yet)
-  if (!organizationId || (isLoadingSettings && !data)) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full space-y-6 px-4 lg:px-6">
-          <div className="space-y-1">
-            <h1 className="font-bold text-3xl tracking-tight">
-              Brand Identity
-            </h1>
-            <p className="text-muted-foreground">
-              Configure your brand identity and tone of voice
-            </p>
-          </div>
-
-          <div className="space-y-8">
-            <div className="space-y-3 border-b pb-8">
-              <Skeleton className="h-5 w-28" />
-              <Skeleton className="h-10 max-w-sm" />
-            </div>
-            <div className="space-y-3 border-b pb-8">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-10 max-w-sm" />
-            </div>
-            <div className="space-y-3 border-b pb-8">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-40 max-w-xl" />
-            </div>
-            <div className="space-y-3 border-b pb-8">
-              <Skeleton className="h-5 w-28" />
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-10 max-w-xs" />
-            </div>
-            <div className="space-y-3 border-b pb-8">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-4 w-64" />
-              <Skeleton className="h-32 max-w-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show blurred background with modal when no settings or analyzing
-  const showSetupModal = !hasSettings || isAnalyzing;
-  if (showSetupModal) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full px-4 lg:px-6">
-          <div className="relative min-h-[500px]">
-            <div className="pointer-events-none blur-sm">
-              <div className="mb-6 space-y-1">
-                <h1 className="font-bold text-3xl tracking-tight">
-                  Brand Identity
-                </h1>
-                <p className="text-muted-foreground">
-                  Configure your brand identity and tone of voice
-                </p>
-              </div>
-              <div className="space-y-8">
-                <div className="h-16 w-80 rounded-lg border bg-muted/20" />
-                <div className="h-16 w-80 rounded-lg border bg-muted/20" />
-                <div className="h-32 w-full max-w-xl rounded-lg border bg-muted/20" />
-                <div className="h-24 w-80 rounded-lg border bg-muted/20" />
-              </div>
-            </div>
-
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="text-center">
-                  <CardTitle>
-                    {getModalTitle(false, isAnalyzing, progress.status)}
-                  </CardTitle>
-                  <CardDescription>
-                    {getModalDescription(
-                      false,
-                      isAnalyzing,
-                      progress.status,
-                      progress.error
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ModalContent
-                    debugWebsiteUrl={organization?.websiteUrl}
-                    handleAnalyze={handleAnalyze}
-                    isAnalyzing={isAnalyzing}
-                    isLoadingSettings={false}
-                    isPending={analyzeMutation.isPending}
-                    progress={progress}
-                    setUrl={setUrl}
-                    url={effectiveUrl}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        });
+      },
+    },
+  });
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -447,16 +284,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </div>
             <div className="flex max-w-sm gap-2">
               <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm">
-                {organization?.websiteUrl ?? url ?? "No website configured"}
+                {websiteUrl ?? "No website configured"}
               </div>
               <Button
-                disabled={analyzeMutation.isPending}
-                onClick={handleAnalyze}
+                disabled={isReanalyzing}
+                onClick={onReanalyze}
                 size="icon"
                 variant="outline"
               >
                 <HugeiconsIcon
-                  className={analyzeMutation.isPending ? "animate-spin" : ""}
+                  className={isReanalyzing ? "animate-spin" : ""}
                   icon={Refresh01Icon}
                   size={16}
                 />
@@ -593,5 +430,174 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PageClient({ organizationSlug }: PageClientProps) {
+  const { getOrganization, activeOrganization } = useOrganizationsContext();
+  const orgFromList = getOrganization(organizationSlug);
+  const organization =
+    activeOrganization?.slug === organizationSlug
+      ? activeOrganization
+      : orgFromList;
+  const organizationId = organization?.id ?? "";
+
+  const { data, isLoading: isLoadingSettings } =
+    useBrandSettings(organizationId);
+  const { progress } = useBrandAnalysisProgress(organizationId);
+  const analyzeMutation = useAnalyzeBrand(organizationId);
+
+  const [url, setUrl] = useState("");
+  const effectiveUrl = url || organization?.websiteUrl || "";
+
+  const handleAnalyze = async () => {
+    if (!effectiveUrl.trim()) {
+      toast.error("Please enter a website URL");
+      return;
+    }
+
+    try {
+      await analyzeMutation.mutateAsync(effectiveUrl);
+      toast.success("Analysis started");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start analysis"
+      );
+    }
+  };
+
+  const isAnalyzing =
+    progress.status === "scraping" ||
+    progress.status === "extracting" ||
+    progress.status === "saving";
+
+  const hasSettings = !!data?.settings;
+
+  // Show skeleton during initial loading
+  if (!organizationId || (isLoadingSettings && !data)) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="w-full space-y-6 px-4 lg:px-6">
+          <div className="space-y-1">
+            <h1 className="font-bold text-3xl tracking-tight">
+              Brand Identity
+            </h1>
+            <p className="text-muted-foreground">
+              Configure your brand identity and tone of voice
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-3 border-b pb-8">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-10 max-w-sm" />
+            </div>
+            <div className="space-y-3 border-b pb-8">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-10 max-w-sm" />
+            </div>
+            <div className="space-y-3 border-b pb-8">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-40 max-w-xl" />
+            </div>
+            <div className="space-y-3 border-b pb-8">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 max-w-xs" />
+            </div>
+            <div className="space-y-3 border-b pb-8">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-64" />
+              <Skeleton className="h-32 max-w-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show setup modal when no settings or analyzing
+  if (!hasSettings || isAnalyzing) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="w-full px-4 lg:px-6">
+          <div className="relative min-h-[500px]">
+            <div className="pointer-events-none blur-sm">
+              <div className="mb-6 space-y-1">
+                <h1 className="font-bold text-3xl tracking-tight">
+                  Brand Identity
+                </h1>
+                <p className="text-muted-foreground">
+                  Configure your brand identity and tone of voice
+                </p>
+              </div>
+              <div className="space-y-8">
+                <div className="h-16 w-80 rounded-lg border bg-muted/20" />
+                <div className="h-16 w-80 rounded-lg border bg-muted/20" />
+                <div className="h-32 w-full max-w-xl rounded-lg border bg-muted/20" />
+                <div className="h-24 w-80 rounded-lg border bg-muted/20" />
+              </div>
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Card className="w-full max-w-md shadow-lg">
+                <CardHeader className="text-center">
+                  <CardTitle>
+                    {getModalTitle(false, isAnalyzing, progress.status)}
+                  </CardTitle>
+                  <CardDescription>
+                    {getModalDescription(
+                      false,
+                      isAnalyzing,
+                      progress.status,
+                      progress.error
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ModalContent
+                    debugWebsiteUrl={organization?.websiteUrl}
+                    handleAnalyze={handleAnalyze}
+                    isAnalyzing={isAnalyzing}
+                    isLoadingSettings={false}
+                    isPending={analyzeMutation.isPending}
+                    progress={progress}
+                    setUrl={setUrl}
+                    url={effectiveUrl}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render form with data from query - form is only rendered when data exists
+  const settings = data.settings;
+  if (!settings) {
+    return null;
+  }
+
+  const initialData = {
+    companyName: settings.companyName ?? "",
+    companyDescription: settings.companyDescription ?? "",
+    toneProfile: (settings.toneProfile as ToneProfile) ?? "Professional",
+    customTone: settings.customTone ?? "",
+    audience: settings.audience ?? "",
+  };
+
+  return (
+    <BrandForm
+      initialData={initialData}
+      isReanalyzing={analyzeMutation.isPending}
+      key={organizationId}
+      onReanalyze={handleAnalyze}
+      organizationId={organizationId}
+      websiteUrl={organization?.websiteUrl}
+    />
   );
 }

@@ -52,10 +52,10 @@ const navMainItems: NavMainItem[] = [
     category: "brand",
   },
   {
-    link: "/brand/logs",
+    link: "/utility/logs",
     icon: AnalyticsUpIcon,
     label: "Logs",
-    category: "brand",
+    category: "utility",
   },
 ];
 
