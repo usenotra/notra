@@ -19,4 +19,9 @@ export const QUERY_KEYS = {
     progress: (organizationId: string) =>
       ["brand", "progress", organizationId] as const,
   },
+  WEBHOOK_LOGS: {
+    base: ["webhook-logs"] as const,
+    list: (organizationId: string, page: number) =>
+      ["webhook-logs", organizationId, page] as const,
+  },
 } as const;
