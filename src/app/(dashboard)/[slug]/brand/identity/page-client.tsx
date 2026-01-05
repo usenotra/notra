@@ -6,6 +6,7 @@ import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncedCallback } from "@tanstack/react-pacer";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import z from "zod";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -466,6 +467,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const handleAnalyze = async () => {
     if (!effectiveUrl.trim()) {
       toast.error("Please enter a website URL");
+      return;
+    }
+
+    const parseRes = z.url().safeParse(effectiveUrl);
+    if (!parseRes.success) {
+      toast.error("Please enter a valid website URL");
       return;
     }
 
