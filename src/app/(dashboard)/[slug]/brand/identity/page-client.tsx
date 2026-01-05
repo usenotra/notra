@@ -6,7 +6,8 @@ import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncedCallback } from "@tanstack/react-pacer";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import z from "zod";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
+import * as z from "zod";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Button } from "@/components/ui/button";
 import {
