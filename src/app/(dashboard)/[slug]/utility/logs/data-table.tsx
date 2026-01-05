@@ -71,7 +71,7 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLoading && (
               <TableRow>
                 <TableCell
                   className="h-24 text-center"
@@ -80,7 +80,9 @@ export function DataTable<TData, TValue>({
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : table.getRowModel().rows?.length ? (
+            )}
+            {!isLoading &&
+              table.getRowModel().rows?.length > 0 &&
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   data-state={row.getIsSelected() && "selected"}
@@ -95,8 +97,8 @@ export function DataTable<TData, TValue>({
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : (
+              ))}
+            {!(isLoading || table.getRowModel().rows?.length) && (
               <TableRow>
                 <TableCell
                   className="h-24 text-center"

@@ -164,9 +164,12 @@ export function InstalledIntegrationCard({
           </div>
         </div>
         <CardAction className="row-span-1 self-center sm:row-span-2 sm:self-start">
+          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier */}
           <div
             className="flex items-center gap-1.5 sm:gap-2"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <Badge variant={integration.enabled ? "default" : "secondary"}>
               {integration.enabled ? "Enabled" : "Disabled"}

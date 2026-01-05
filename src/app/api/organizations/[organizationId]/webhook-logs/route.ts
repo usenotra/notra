@@ -38,6 +38,13 @@ const DIRECTIONS: LogDirection[] = ["incoming", "outgoing"];
 
 const STATUSES: WebhookLogStatus[] = ["success", "failed", "pending"];
 
+function getStatusCode(status: WebhookLogStatus): number | null {
+  if (status === "pending") {
+    return null;
+  }
+  return status === "success" ? 200 : 500;
+}
+
 function generateReferenceId(integrationType: IntegrationType): string | null {
   const random = Math.floor(Math.random() * 10_000);
   switch (integrationType) {
@@ -47,7 +54,7 @@ function generateReferenceId(integrationType: IntegrationType): string | null {
       return `LIN-${random}`;
     case "slack":
       return `MSG-${random}`;
-    case "webhook":
+    default:
       return null;
   }
 }
@@ -73,8 +80,7 @@ function generateExampleLogs(count: number): Log[] {
       integrationType,
       direction,
       status,
-      statusCode:
-        status === "pending" ? null : status === "success" ? 200 : 500,
+      statusCode: getStatusCode(status),
       errorMessage:
         status === "failed"
           ? "Connection timeout: Failed to establish connection"
@@ -101,10 +107,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1"));
+    const page = Math.max(
+      1,
+      Number.parseInt(searchParams.get("page") || "1", 10)
+    );
     const pageSize = Math.min(
       100,
-      Math.max(1, Number.parseInt(searchParams.get("pageSize") || "10"))
+      Math.max(1, Number.parseInt(searchParams.get("pageSize") || "10", 10))
     );
 
     const startIndex = (page - 1) * pageSize;

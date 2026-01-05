@@ -81,7 +81,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             <div className="overflow-hidden rounded-md border">
               <div className="p-4">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div className="flex items-center space-x-4 py-3" key={i}>
+                  <div
+                    className="flex items-center space-x-4 py-3"
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton list
+                    key={`skeleton-${i}`}
+                  >
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-5 w-20" />

@@ -8,7 +8,9 @@ export default function LogoutPage() {
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    if (hasStartedRef.current) return;
+    if (hasStartedRef.current) {
+      return;
+    }
     hasStartedRef.current = true;
 
     authClient

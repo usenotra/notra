@@ -420,6 +420,7 @@ export default function PageClient({
         <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
           <div
             className="prose prose-neutral dark:prose-invert max-w-none rounded-lg border bg-card p-6"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized server-side
             dangerouslySetInnerHTML={{ __html: content.content }}
           />
           <aside className="hidden lg:block">
