@@ -339,7 +339,7 @@ function BrandForm({
               <Button
                 disabled={isReanalyzing || !websiteUrl}
                 onClick={onReanalyze}
-                size="icon"
+                size="icon-lg"
                 variant="outline"
               >
                 <HugeiconsIcon
