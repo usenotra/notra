@@ -21,7 +21,7 @@ export const brandSettingsSchema = z.object({
 export type BrandSettingsInput = z.infer<typeof brandSettingsSchema>;
 
 export const analyzeBrandSchema = z.object({
-  url: z.string().url("Please enter a valid URL"),
+  url: z.url("Please enter a valid URL"),
 });
 
 export type AnalyzeBrandInput = z.infer<typeof analyzeBrandSchema>;

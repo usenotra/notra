@@ -1,7 +1,9 @@
 "use workflow";
 
+import { SdkError } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import { eq } from "drizzle-orm";
+import { FatalError } from "workflow";
 import { db } from "@/lib/db/drizzle";
 import { brandSettings, organizations } from "@/lib/db/schema";
 import { firecrawl } from "@/lib/firecrawl";
@@ -11,11 +13,25 @@ import { brandSettingsSchema } from "@/utils/schemas/brand";
 
 const PROGRESS_TTL = 300;
 
+type ProgressStatus =
+  | "idle"
+  | "scraping"
+  | "extracting"
+  | "saving"
+  | "completed"
+  | "failed";
+
 interface ProgressData {
-  status: "scraping" | "extracting" | "saving" | "completed" | "failed";
+  status: ProgressStatus;
   currentStep: number;
   totalSteps: number;
   error?: string;
+}
+
+interface ErrorDetail {
+  code: string;
+  path: string[];
+  message: string;
 }
 
 async function setProgress(organizationId: string, data: ProgressData) {
@@ -27,49 +43,84 @@ async function setProgress(organizationId: string, data: ProgressData) {
 
 export async function analyzeBrand(organizationId: string, url: string) {
   "use workflow";
+  let status: ProgressStatus = "idle";
+  let currentStep = 0;
+  const STEP_COUNT = 3;
 
-  await setProgress(organizationId, {
-    status: "scraping",
-    currentStep: 1,
-    totalSteps: 3,
-  });
+  try {
+    status = "scraping";
+    currentStep++;
+    await setProgress(organizationId, {
+      status,
+      currentStep,
+      totalSteps: STEP_COUNT,
+    });
 
-  const content = await scrapeWebsite(url);
+    const content = await scrapeWebsite(url);
 
-  await setProgress(organizationId, {
-    status: "extracting",
-    currentStep: 2,
-    totalSteps: 3,
-  });
+    status = "extracting";
+    currentStep++;
+    await setProgress(organizationId, {
+      status,
+      currentStep,
+      totalSteps: STEP_COUNT,
+    });
 
-  const brandInfo = await extractBrandInfo(content);
+    const brandInfo = await extractBrandInfo(content);
 
-  await setProgress(organizationId, {
-    status: "saving",
-    currentStep: 3,
-    totalSteps: 3,
-  });
+    status = "saving";
+    currentStep++;
+    await setProgress(organizationId, {
+      status,
+      currentStep,
+      totalSteps: STEP_COUNT,
+    });
 
-  await saveToDatabase(organizationId, url, brandInfo);
+    await saveToDatabase(organizationId, url, brandInfo);
 
-  await setProgress(organizationId, {
-    status: "completed",
-    currentStep: 3,
-    totalSteps: 3,
-  });
+    status = "completed";
+    await setProgress(organizationId, {
+      status,
+      currentStep,
+      totalSteps: STEP_COUNT,
+    });
 
-  return brandInfo;
+    return brandInfo;
+  } catch (error) {
+    await setProgress(organizationId, {
+      status: "failed",
+      currentStep,
+      totalSteps: STEP_COUNT,
+      error: `Unknown error while performing '${status}' step`,
+    });
+
+    throw error;
+  }
 }
 
 async function scrapeWebsite(url: string) {
   "use step";
 
-  const result = await firecrawl.scrape(url, {
-    formats: ["markdown"],
-    onlyMainContent: true,
-  });
+  try {
+    const result = await firecrawl.scrape(url, {
+      formats: ["markdown"],
+      onlyMainContent: true,
+    });
 
-  return result.markdown ?? "";
+    return result.markdown ?? "";
+  } catch (error) {
+    console.error("Error scraping website:", error);
+
+    if (error instanceof SdkError) {
+      for (const detail of error.details as ErrorDetail[]) {
+        if (detail.message === "Invalid URL") {
+          throw new FatalError("Invalid URL");
+        }
+      }
+    }
+
+    throw new Error("Unknown error attempting to scrape website");
+  }
 }
 
 async function extractBrandInfo(content: string) {
@@ -127,7 +178,6 @@ async function saveToDatabase(
         toneProfile: brandInfo.toneProfile,
         customTone: brandInfo.customTone ?? null,
         audience: brandInfo.audience,
-        sourceUrl: url,
       })
       .where(eq(brandSettings.organizationId, organizationId));
   } else {
@@ -139,7 +189,6 @@ async function saveToDatabase(
       toneProfile: brandInfo.toneProfile,
       customTone: brandInfo.customTone ?? null,
       audience: brandInfo.audience,
-      sourceUrl: url,
     });
   }
 }
