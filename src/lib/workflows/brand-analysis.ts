@@ -178,7 +178,6 @@ async function saveToDatabase(
         toneProfile: brandInfo.toneProfile,
         customTone: brandInfo.customTone ?? null,
         audience: brandInfo.audience,
-        sourceUrl: url,
       })
       .where(eq(brandSettings.organizationId, organizationId));
   } else {
@@ -190,7 +189,6 @@ async function saveToDatabase(
       toneProfile: brandInfo.toneProfile,
       customTone: brandInfo.customTone ?? null,
       audience: brandInfo.audience,
-      sourceUrl: url,
     });
   }
 }

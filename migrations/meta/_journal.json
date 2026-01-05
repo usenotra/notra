@@ -22,6 +22,13 @@
       "when": 1767485251130,
       "tag": "0002_moaning_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1767644122323,
+      "tag": "0003_remove-brand-settings-source-url",
+      "breakpoints": true
     }
   ]
 }

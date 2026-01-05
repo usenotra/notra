@@ -217,7 +217,6 @@ export const brandSettings = pgTable(
     toneProfile: text("tone_profile"),
     customTone: text("custom_tone"),
     audience: text("audience"),
-    sourceUrl: text("source_url"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

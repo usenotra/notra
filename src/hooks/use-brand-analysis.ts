@@ -13,7 +13,6 @@ interface BrandSettings {
   toneProfile: string | null;
   customTone: string | null;
   audience: string | null;
-  sourceUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
