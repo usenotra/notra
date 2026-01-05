@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import type { UpdateBrandSettingsInput } from "@/utils/schemas/brand";
 
@@ -56,6 +57,7 @@ export function useBrandSettings(organizationId: string) {
 
 export function useBrandAnalysisProgress(organizationId: string) {
   const queryClient = useQueryClient();
+  const hasReset = useRef(false);
 
   const query = useQuery({
     queryKey: QUERY_KEYS.BRAND.progress(organizationId),
@@ -99,6 +101,8 @@ export function useBrandAnalysisProgress(organizationId: string) {
   };
 
   const onComplete = () => {
+    hasReset.current = true;
+
     queryClient.invalidateQueries({
       queryKey: QUERY_KEYS.BRAND.settings(organizationId),
     });
@@ -110,7 +114,7 @@ export function useBrandAnalysisProgress(organizationId: string) {
     });
   };
 
-  if (progress.status === "completed") {
+  if (progress.status === "completed" && !hasReset.current) {
     onComplete();
   }
 
