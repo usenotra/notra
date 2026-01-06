@@ -336,7 +336,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 <p className="mb-4 text-muted-foreground text-sm">
                   Connect services to pull data and updates from
                 </p>
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {INPUT_SOURCES.map((integration) => (
                     <IntegrationCard
                       activeCount={
@@ -355,7 +355,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 <p className="mb-4 text-muted-foreground text-sm">
                   Connect services to publish and sync content to
                 </p>
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {OUTPUT_SOURCES.map((integration) => (
                     <IntegrationCard
                       activeCount={

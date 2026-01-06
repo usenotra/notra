@@ -29,7 +29,7 @@ function TitleCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-sm",
+        "group relative flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-xs",
         className
       )}
       {...props}
