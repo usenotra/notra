@@ -29,12 +29,17 @@ function TitleCard({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-sm",
+        "group relative flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-sm",
         className
       )}
-      style={gradientStyle}
       {...props}
     >
+      {accentColor && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[20px] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+          style={gradientStyle}
+        />
+      )}
       <div className="flex items-start justify-between gap-4 px-2 py-1.5">
         <div className="flex items-center gap-2">
           {icon && (
