@@ -56,6 +56,9 @@ export default function Login() {
     });
 
     if (result.error) {
+      toast.error(
+        result.error.message ?? "Failed to sign in. Please try again."
+      );
       setIsAuthLoading(false);
       return;
     }

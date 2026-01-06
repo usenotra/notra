@@ -2,11 +2,10 @@
 
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { AnyFieldApi } from "@tanstack/react-form";
-import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,37 +16,16 @@ import { Github } from "@/components/ui/svgs/github";
 import { Google } from "@/components/ui/svgs/google";
 import { authClient } from "@/lib/auth/client";
 
-function FieldInfo({ field }: { field: AnyFieldApi }) {
-  const hasError = field.state.meta.isTouched && !field.state.meta.isValid;
-  const isValidating = field.state.meta.isValidating;
-  const errorMessage = field.state.meta.errors[0];
-
-  if (!(hasError || isValidating)) {
-    return <div className="min-h-[16px]" />;
-  }
-
-  let errorText: string | null = null;
-  if (errorMessage) {
-    if (typeof errorMessage === "string") {
-      errorText = errorMessage;
-    } else {
-      errorText = String(errorMessage);
-    }
-  }
-
-  return (
-    <div className="min-h-[16px]">
-      {errorText ? (
-        <em className="text-destructive text-xs" role="alert">
-          {errorText}
-        </em>
-      ) : null}
-      {isValidating ? (
-        <span className="text-muted-foreground text-xs">Validating...</span>
-      ) : null}
-    </div>
-  );
-}
+const signupSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters"),
+});
 
 export default function SignUp() {
   const router = useRouter();
@@ -60,34 +38,50 @@ export default function SignUp() {
     }
 
     setIsAuthLoading(true);
-    await authClient.signIn.social({
-      provider,
-      callbackURL: "/callback",
-    });
+    try {
+      await authClient.signIn.social({
+        provider,
+        callbackURL: "/callback",
+      });
+    } catch (error) {
+      console.error("Social signup error:", error);
+      toast.error("Failed to sign up. Please try again.");
+    } finally {
+      setIsAuthLoading(false);
+    }
   }
 
-  const form = useForm({
-    defaultValues: { email: "", password: "" },
-    onSubmit: async ({ value }) => {
-      if (isAuthLoading) {
-        return;
-      }
+  async function handleEmailSignup(formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-      setIsAuthLoading(true);
-      const result = await authClient.signUp.email({
-        email: value.email,
-        password: value.password,
-        name: value.email.split("@")[0] || "User",
-      });
+    if (isAuthLoading) {
+      return;
+    }
 
-      if (result.error) {
-        setIsAuthLoading(false);
-        return;
-      }
+    const validation = signupSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast.error(validation.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
 
-      router.push("/callback");
-    },
-  });
+    setIsAuthLoading(true);
+    const result = await authClient.signUp.email({
+      email,
+      password,
+      name: email.split("@")[0] || "User",
+    });
+
+    if (result.error) {
+      toast.error(
+        result.error.message ?? "Failed to sign up. Please try again."
+      );
+      setIsAuthLoading(false);
+      return;
+    }
+
+    router.push("/callback");
+  }
 
   return (
     <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
@@ -130,120 +124,55 @@ export default function SignUp() {
           <span className="inline-block h-px w-full border-t bg-border" />
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
+        <form action={handleEmailSignup}>
           <div className="grid gap-3">
-            <form.Field
-              name="email"
-              validators={{
-                onChange: ({ value }) => {
-                  const result = z
-                    .string()
-                    .min(1, "Email is required")
-                    .email("Please enter a valid email address")
-                    .safeParse(value);
-                  if (!result.success) {
-                    return result.error.issues[0]?.message ?? "Invalid email";
-                  }
-                  return;
-                },
-                onChangeAsyncDebounceMs: 500,
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-1">
-                  <Label className="sr-only" htmlFor={field.name}>
-                    Email
-                  </Label>
-                  <Input
-                    disabled={isAuthLoading}
-                    id={field.name}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Email"
-                    type="email"
-                    value={field.state.value}
-                  />
-                  <FieldInfo field={field} />
-                </div>
-              )}
-            </form.Field>
-            <form.Field
-              name="password"
-              validators={{
-                onChange: ({ value }) => {
-                  const result = z
-                    .string()
-                    .min(1, "Password is required")
-                    .min(8, "Password must be at least 8 characters")
-                    .safeParse(value);
-                  if (!result.success) {
-                    return (
-                      result.error.issues[0]?.message ?? "Invalid password"
-                    );
-                  }
-                  return;
-                },
-                onChangeAsyncDebounceMs: 500,
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-1">
-                  <Label className="sr-only" htmlFor={field.name}>
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      className="pr-9"
-                      disabled={isAuthLoading}
-                      id={field.name}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Password"
-                      type={showPassword ? "text" : "password"}
-                      value={field.state.value}
-                    />
-                    <button
-                      className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
-                      disabled={isAuthLoading}
-                      onClick={() => setShowPassword(!showPassword)}
-                      type="button"
-                    >
-                      {showPassword ? (
-                        <HugeiconsIcon
-                          className="size-4"
-                          icon={ViewOffSlashIcon}
-                        />
-                      ) : (
-                        <HugeiconsIcon className="size-4" icon={ViewIcon} />
-                      )}
-                    </button>
-                  </div>
-                  <FieldInfo field={field} />
-                </div>
-              )}
-            </form.Field>
+            <div className="grid gap-1">
+              <Label className="sr-only" htmlFor="email">
+                Email
+              </Label>
+              <Input
+                disabled={isAuthLoading}
+                id="email"
+                name="email"
+                placeholder="Email"
+                type="email"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="sr-only" htmlFor="password">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  className="pr-9"
+                  disabled={isAuthLoading}
+                  id="password"
+                  name="password"
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                />
+                <button
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  disabled={isAuthLoading}
+                  onClick={() => setShowPassword(!showPassword)}
+                  type="button"
+                >
+                  {showPassword ? (
+                    <HugeiconsIcon className="size-4" icon={ViewOffSlashIcon} />
+                  ) : (
+                    <HugeiconsIcon className="size-4" icon={ViewIcon} />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-          <form.Subscribe
-            selector={(state) => [state.canSubmit, state.isSubmitting]}
+          <Button
+            className="mt-4 w-full"
+            disabled={isAuthLoading}
+            type="submit"
           >
-            {([canSubmit, isSubmitting]) => (
-              <Button
-                className="mt-4 w-full"
-                disabled={!canSubmit || isAuthLoading}
-                type="submit"
-              >
-                {isSubmitting || isAuthLoading ? "..." : "Continue"}
-              </Button>
-            )}
-          </form.Subscribe>
+            {isAuthLoading ? "..." : "Continue"}
+          </Button>
         </form>
       </div>
 

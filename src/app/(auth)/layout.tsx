@@ -20,7 +20,7 @@ export default async function AuthLayout({
     }
   }
   return (
-    <div className="flex h-screen w-full lg:grid lg:grid-cols-2">
+    <div className="flex h-screen w-full justify-center lg:grid lg:grid-cols-2">
       <div className="relative hidden lg:flex">
         <div className="absolute inset-0 flex items-center justify-center p-8">
           <div className="corner-squircle relative h-full w-full overflow-hidden rounded-xl supports-[corner-shape:squircle]:rounded-2xl">
