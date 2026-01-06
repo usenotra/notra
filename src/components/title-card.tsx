@@ -4,12 +4,14 @@ import { cn } from "@/lib/utils";
 
 interface TitleCardProps extends Omit<React.ComponentProps<"div">, "title"> {
   heading: React.ReactNode;
+  icon?: React.ReactNode;
   action?: React.ReactNode;
   contentClassName?: string;
 }
 
 function TitleCard({
   heading,
+  icon,
   action,
   className,
   contentClassName,
@@ -19,20 +21,27 @@ function TitleCard({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-[20px] border border-border/50 bg-muted/50 p-2 shadow-sm",
+        "flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-sm",
         className
       )}
       {...props}
     >
       <div className="flex items-start justify-between gap-4 px-2 py-1.5">
-        <h2 className="font-semibold text-lg">{heading}</h2>
+        <div className="flex items-center gap-2">
+          {icon && (
+            <div className="flex size-6 shrink-0 items-center justify-center text-muted-foreground [&_svg]:size-5">
+              {icon}
+            </div>
+          )}
+          <h2 className="font-medium text-lg">{heading}</h2>
+        </div>
         {action && (
           <div className="flex shrink-0 items-center gap-2">{action}</div>
         )}
       </div>
       <div
         className={cn(
-          "flex-1 rounded-[12px] bg-background p-4",
+          "flex-1 rounded-[12px] border border-border/80 bg-background p-4 shadow-xs",
           contentClassName
         )}
       >

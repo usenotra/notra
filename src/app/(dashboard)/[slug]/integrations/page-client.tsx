@@ -210,15 +210,11 @@ function IntegrationCard({
           : ""
       }
       heading={integration.name}
+      icon={integration.icon}
     >
-      <div className="flex items-start gap-3 sm:gap-4">
-        <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
-          {integration.icon}
-        </div>
-        <p className="line-clamp-2 text-muted-foreground text-xs sm:text-sm">
-          {integration.description}
-        </p>
-      </div>
+      <p className="line-clamp-2 text-muted-foreground text-sm">
+        {integration.description}
+      </p>
     </TitleCard>
   );
 

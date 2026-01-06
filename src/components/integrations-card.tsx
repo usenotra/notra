@@ -186,18 +186,10 @@ export function InstalledIntegrationCard({
       }
       className="cursor-pointer transition-colors hover:bg-muted/80"
       heading={integration.displayName}
+      icon={icon}
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-3 sm:gap-4">
-        {icon ? (
-          <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
-            {icon}
-          </div>
-        ) : null}
-        <p className="line-clamp-2 text-muted-foreground text-xs sm:text-sm">
-          {repositoryText}
-        </p>
-      </div>
+      <p className="text-muted-foreground text-sm">{repositoryText}</p>
     </TitleCard>
   );
 }
