@@ -22,7 +22,7 @@ function TitleCard({
 }: TitleCardProps) {
   const gradientStyle = accentColor
     ? {
-        backgroundImage: `linear-gradient(to top left, ${accentColor}15 0%, transparent 50%)`,
+        backgroundImage: `linear-gradient(to bottom right, ${accentColor}20 0%, transparent 50%)`,
       }
     : undefined;
 
