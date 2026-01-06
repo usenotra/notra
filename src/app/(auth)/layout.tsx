@@ -46,6 +46,7 @@ export default async function AuthLayout({
             <Link
               className="underline underline-offset-4 hover:text-primary"
               href="/terms"
+              rel="noopener noreferrer"
               target="_blank"
             >
               Terms of Service
@@ -54,6 +55,7 @@ export default async function AuthLayout({
             <Link
               className="underline underline-offset-4 hover:text-primary"
               href="/privacy"
+              rel="noopener noreferrer"
               target="_blank"
             >
               Privacy Policy
