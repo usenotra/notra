@@ -14,6 +14,7 @@ import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { TitleCard } from "@/components/title-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -306,46 +307,13 @@ function BrandForm({
           </p>
         </div>
 
-        <div className="space-y-8">
-          <form.Field name="companyName">
-            {(field) => (
-              <div className="space-y-3 border-b pb-8">
-                <Label className="font-medium text-base" htmlFor={field.name}>
-                  Company name
-                </Label>
-                <Input
-                  className="max-w-sm"
-                  id={field.name}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Your company name"
-                  value={field.state.value}
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <div className="space-y-3 border-b pb-8">
-            <div>
-              <Label className="font-medium text-base">Website</Label>
-              <p className="text-muted-foreground text-sm">
-                The website used to analyze your brand
-              </p>
-            </div>
-            <div className="flex max-w-sm gap-2">
-              <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm">
-                {websiteUrl ? (
-                  websiteUrl
-                ) : (
-                  <span className="text-muted-foreground">
-                    No website configured
-                  </span>
-                )}
-              </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TitleCard
+            action={
               <Button
                 disabled={isReanalyzing || !websiteUrl}
                 onClick={onReanalyze}
-                size="icon-lg"
+                size="sm"
                 variant="outline"
               >
                 <HugeiconsIcon
@@ -353,49 +321,65 @@ function BrandForm({
                   icon={Refresh01Icon}
                   size={16}
                 />
-                <span className="sr-only">Re-analyze website</span>
+                Re-analyze
               </Button>
-            </div>
-          </div>
+            }
+            heading="Company Profile"
+          >
+            <div className="space-y-6">
+              <form.Field name="companyName">
+                {(field) => (
+                  <div className="space-y-2">
+                    <Label htmlFor={field.name}>Company name</Label>
+                    <Input
+                      id={field.name}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Your company name"
+                      value={field.state.value}
+                    />
+                  </div>
+                )}
+              </form.Field>
 
-          <form.Field name="companyDescription">
-            {(field) => (
-              <div className="space-y-3 border-b pb-8">
-                <div>
-                  <Label className="font-medium text-base" htmlFor={field.name}>
-                    Company description
-                  </Label>
-                  <p className="text-muted-foreground text-sm">
-                    A short overview of your company
-                  </p>
+              <div className="space-y-2">
+                <Label>Website</Label>
+                <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
+                  {websiteUrl ? (
+                    websiteUrl
+                  ) : (
+                    <span className="text-muted-foreground">
+                      No website configured
+                    </span>
+                  )}
                 </div>
-                <Textarea
-                  className="min-h-[160px] max-w-xl"
-                  id={field.name}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Describe what your company does"
-                  value={field.state.value}
-                />
               </div>
-            )}
-          </form.Field>
 
-          <form.Field name="useCustomTone">
-            {(useCustomToneField) => (
-              <div className="space-y-3 border-b pb-8">
-                <div>
-                  <Label className="font-medium text-base">
-                    Tone & Language
-                  </Label>
-                  <p className="text-muted-foreground text-sm">
-                    How your brand speaks
-                  </p>
-                </div>
+              <form.Field name="companyDescription">
+                {(field) => (
+                  <div className="space-y-2">
+                    <Label htmlFor={field.name}>Description</Label>
+                    <Textarea
+                      className="min-h-[120px]"
+                      id={field.name}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="A short overview of your company"
+                      value={field.state.value}
+                    />
+                  </div>
+                )}
+              </form.Field>
+            </div>
+          </TitleCard>
+
+          <TitleCard heading="Tone & Language">
+            <form.Field name="useCustomTone">
+              {(useCustomToneField) => (
                 <div className="space-y-4">
                   <form.Field name="toneProfile">
                     {(toneProfileField) => (
-                      <>
+                      <div className="space-y-3">
                         <button
                           className="flex items-center gap-2"
                           onClick={() => {
@@ -449,7 +433,7 @@ function BrandForm({
                           }}
                           value={toneProfileField.state.value}
                         >
-                          <SelectTrigger className="max-w-xs">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -463,93 +447,91 @@ function BrandForm({
                             ))}
                           </SelectContent>
                         </Select>
-                      </>
+                      </div>
                     )}
                   </form.Field>
 
-                  <form.Field name="customTone">
-                    {(customToneField) => (
-                      <>
-                        <button
-                          className="flex items-center gap-2"
-                          onClick={() => useCustomToneField.handleChange(true)}
-                          type="button"
-                        >
-                          <div
-                            className={`flex size-5 items-center justify-center rounded-full ${
-                              useCustomToneField.state.value
-                                ? "bg-primary text-primary-foreground"
-                                : "border-2 border-muted-foreground/30"
-                            }`}
-                          >
-                            {useCustomToneField.state.value && (
-                              <svg
-                                aria-hidden="true"
-                                className="size-3"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={3}
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  d="M5 13l4 4L19 7"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                          <span
-                            className={
-                              useCustomToneField.state.value
-                                ? "text-sm"
-                                : "text-muted-foreground text-sm"
+                  <div className="border-t pt-4">
+                    <form.Field name="customTone">
+                      {(customToneField) => (
+                        <div className="space-y-3">
+                          <button
+                            className="flex items-center gap-2"
+                            onClick={() =>
+                              useCustomToneField.handleChange(true)
                             }
+                            type="button"
                           >
-                            Custom Tone
-                          </span>
-                        </button>
-                        <Input
-                          className="max-w-sm"
-                          disabled={!useCustomToneField.state.value}
-                          id={customToneField.name}
-                          onBlur={customToneField.handleBlur}
-                          onChange={(e) =>
-                            customToneField.handleChange(e.target.value)
-                          }
-                          placeholder="Add custom tone notes"
-                          value={customToneField.state.value}
-                        />
-                      </>
-                    )}
-                  </form.Field>
+                            <div
+                              className={`flex size-5 items-center justify-center rounded-full ${
+                                useCustomToneField.state.value
+                                  ? "bg-primary text-primary-foreground"
+                                  : "border-2 border-muted-foreground/30"
+                              }`}
+                            >
+                              {useCustomToneField.state.value && (
+                                <svg
+                                  aria-hidden="true"
+                                  className="size-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={3}
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M5 13l4 4L19 7"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <span
+                              className={
+                                useCustomToneField.state.value
+                                  ? "text-sm"
+                                  : "text-muted-foreground text-sm"
+                              }
+                            >
+                              Custom Tone
+                            </span>
+                          </button>
+                          <Input
+                            disabled={!useCustomToneField.state.value}
+                            id={customToneField.name}
+                            onBlur={customToneField.handleBlur}
+                            onChange={(e) =>
+                              customToneField.handleChange(e.target.value)
+                            }
+                            placeholder="Add custom tone notes"
+                            value={customToneField.state.value}
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+                  </div>
                 </div>
-              </div>
-            )}
-          </form.Field>
+              )}
+            </form.Field>
+          </TitleCard>
 
-          <form.Field name="audience">
-            {(field) => (
-              <div className="space-y-3 border-b pb-8">
-                <div>
-                  <Label className="font-medium text-base" htmlFor={field.name}>
-                    Audience
-                  </Label>
-                  <p className="text-muted-foreground text-sm">
-                    A description of the core audience you are writing for
-                  </p>
+          <TitleCard className="lg:col-span-2" heading="Target Audience">
+            <form.Field name="audience">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor={field.name}>Who are you writing for?</Label>
+                  <Textarea
+                    className="min-h-[120px]"
+                    id={field.name}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Describe your target audience - their interests, pain points, and what matters to them"
+                    value={field.state.value}
+                  />
                 </div>
-                <Textarea
-                  className="min-h-[120px] max-w-xl"
-                  id={field.name}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Describe your target audience"
-                  value={field.state.value}
-                />
-              </div>
-            )}
-          </form.Field>
+              )}
+            </form.Field>
+          </TitleCard>
         </div>
       </div>
     </div>
