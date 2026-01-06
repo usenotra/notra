@@ -23,9 +23,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { IntegrationsResponse } from "@/lib/services/integrations";
 import { QUERY_KEYS } from "@/utils/query-keys";
-import type { IntegrationType } from "@/utils/schemas/integrations";
+import type {
+  IntegrationsResponse,
+  IntegrationType,
+} from "@/utils/schemas/integrations";
 
 const TAB_VALUES = ["all", "installed"] as const;
 
