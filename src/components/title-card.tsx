@@ -6,6 +6,7 @@ interface TitleCardProps extends Omit<React.ComponentProps<"div">, "title"> {
   heading: React.ReactNode;
   icon?: React.ReactNode;
   action?: React.ReactNode;
+  accentColor?: string;
   contentClassName?: string;
 }
 
@@ -13,17 +14,25 @@ function TitleCard({
   heading,
   icon,
   action,
+  accentColor,
   className,
   contentClassName,
   children,
   ...props
 }: TitleCardProps) {
+  const gradientStyle = accentColor
+    ? {
+        backgroundImage: `linear-gradient(to top left, ${accentColor}15 0%, transparent 50%)`,
+      }
+    : undefined;
+
   return (
     <div
       className={cn(
         "flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2 shadow-sm",
         className
       )}
+      style={gradientStyle}
       {...props}
     >
       <div className="flex items-start justify-between gap-4 px-2 py-1.5">

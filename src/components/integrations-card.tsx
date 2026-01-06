@@ -40,6 +40,7 @@ export interface InstalledIntegrationCardProps {
   organizationId: string;
   organizationSlug: string;
   icon?: React.ReactNode;
+  accentColor?: string;
   onUpdate?: () => void;
 }
 
@@ -48,6 +49,7 @@ export function InstalledIntegrationCard({
   organizationId,
   organizationSlug,
   icon,
+  accentColor,
   onUpdate,
 }: InstalledIntegrationCardProps) {
   const queryClient = useQueryClient();
@@ -137,6 +139,7 @@ export function InstalledIntegrationCard({
 
   return (
     <TitleCard
+      accentColor={accentColor}
       action={
         // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier
         // biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier
