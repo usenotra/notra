@@ -53,7 +53,7 @@ function ContentCard({
         href && "cursor-pointer hover:bg-muted/80",
         className
       )}
-      title={title}
+      heading={title}
     >
       <div className="flex h-full flex-col">
         <p className="line-clamp-3 flex-1 text-muted-foreground text-sm">

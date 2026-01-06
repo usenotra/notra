@@ -185,8 +185,8 @@ export function InstalledIntegrationCard({
         </div>
       }
       className="cursor-pointer transition-colors hover:bg-muted/80"
+      heading={integration.displayName}
       onClick={handleCardClick}
-      title={integration.displayName}
     >
       <div className="flex items-start gap-3 sm:gap-4">
         {icon ? (

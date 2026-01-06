@@ -84,7 +84,7 @@ export function AiChatSidebar({ contentTitle }: AiChatSidebarProps) {
     <TitleCard
       className="flex h-full flex-col"
       contentClassName="flex-1 overflow-hidden"
-      title={
+      heading={
         <span className="flex items-center gap-2">
           <HugeiconsIcon icon={PaintBoardIcon} />
           AI Assistant

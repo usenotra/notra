@@ -112,7 +112,7 @@ export default function PageClient({
                   <TabsTrigger value="markdown">Markdown</TabsTrigger>
                 </TabsList>
               }
-              title={content.title}
+              heading={content.title}
             >
               <TabsContent className="mt-0" value="rendered">
                 <div

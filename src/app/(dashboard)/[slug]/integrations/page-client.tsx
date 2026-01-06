@@ -209,7 +209,7 @@ function IntegrationCard({
           ? "cursor-pointer transition-colors hover:bg-muted/80"
           : ""
       }
-      title={integration.name}
+      heading={integration.name}
     >
       <div className="flex items-start gap-3 sm:gap-4">
         <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
