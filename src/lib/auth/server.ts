@@ -97,7 +97,7 @@ export const auth = betterAuth({
               type: "string",
               required: false,
               input: true,
-              fieldName: "website_url",
+              fieldName: "websiteUrl",
             },
           },
         },
