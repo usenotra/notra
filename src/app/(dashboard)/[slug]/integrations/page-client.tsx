@@ -60,6 +60,7 @@ interface IntegrationConfig {
   name: string;
   description: string;
   icon: React.ReactNode;
+  accentColor: string;
   href: string;
   available: boolean;
   category: "input" | "output";
@@ -72,6 +73,7 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
     description:
       "Connect GitHub repositories for AI-powered changelogs, blog posts, and tweets",
     icon: <Github />,
+    accentColor: "#238636",
     href: "github",
     available: true,
     category: "input",
@@ -81,6 +83,7 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
     name: "Linear",
     description: "Sync issues and updates from Linear for automated content",
     icon: <Linear />,
+    accentColor: "#5E6AD2",
     href: "linear",
     available: false,
     category: "input",
@@ -90,6 +93,7 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
     name: "Slack",
     description: "Connect Slack workspaces to track updates and announcements",
     icon: <Slack />,
+    accentColor: "#4A154B",
     href: "slack",
     available: false,
     category: "input",
@@ -102,6 +106,7 @@ const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
     name: "Framer",
     description: "Sync content to your Framer site automatically",
     icon: <Framer />,
+    accentColor: "#0055FF",
     href: "framer",
     available: false,
     category: "output",
@@ -111,6 +116,7 @@ const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
     name: "Marble",
     description: "Publish to Marble for seamless content management",
     icon: <Marble />,
+    accentColor: "#6366F1",
     href: "marble",
     available: false,
     category: "output",
@@ -120,6 +126,7 @@ const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
     name: "Webflow",
     description: "Publish content directly to your Webflow CMS",
     icon: <Webflow />,
+    accentColor: "#4353FF",
     href: "webflow",
     available: false,
     category: "output",
@@ -161,6 +168,7 @@ function IntegrationCard({
 
   const cardContent = (
     <TitleCard
+      accentColor={integration.accentColor}
       action={
         <div className="flex items-center gap-1.5 sm:gap-2">
           {isLoading && <Skeleton className="h-5 w-8 rounded-full" />}
@@ -210,15 +218,11 @@ function IntegrationCard({
           : ""
       }
       heading={integration.name}
+      icon={integration.icon}
     >
-      <div className="flex items-start gap-3 sm:gap-4">
-        <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
-          {integration.icon}
-        </div>
-        <p className="line-clamp-2 text-muted-foreground text-xs sm:text-sm">
-          {integration.description}
-        </p>
-      </div>
+      <p className="line-clamp-2 text-muted-foreground text-sm">
+        {integration.description}
+      </p>
     </TitleCard>
   );
 
@@ -420,6 +424,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                               );
                               return (
                                 <InstalledIntegrationCard
+                                  accentColor={config?.accentColor}
                                   icon={config?.icon}
                                   integration={integration}
                                   key={integration.id}
@@ -448,6 +453,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                               );
                               return (
                                 <InstalledIntegrationCard
+                                  accentColor={config?.accentColor}
                                   icon={config?.icon}
                                   integration={integration}
                                   key={integration.id}

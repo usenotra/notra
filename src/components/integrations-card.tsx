@@ -40,6 +40,7 @@ export interface InstalledIntegrationCardProps {
   organizationId: string;
   organizationSlug: string;
   icon?: React.ReactNode;
+  accentColor?: string;
   onUpdate?: () => void;
 }
 
@@ -48,6 +49,7 @@ export function InstalledIntegrationCard({
   organizationId,
   organizationSlug,
   icon,
+  accentColor,
   onUpdate,
 }: InstalledIntegrationCardProps) {
   const queryClient = useQueryClient();
@@ -137,6 +139,7 @@ export function InstalledIntegrationCard({
 
   return (
     <TitleCard
+      accentColor={accentColor}
       action={
         // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier
         // biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier
@@ -186,18 +189,10 @@ export function InstalledIntegrationCard({
       }
       className="cursor-pointer transition-colors hover:bg-muted/80"
       heading={integration.displayName}
+      icon={icon}
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-3 sm:gap-4">
-        {icon ? (
-          <div className="flex size-9 shrink-0 items-center justify-center text-muted-foreground sm:size-10 [&_svg]:size-7 sm:[&_svg]:size-8">
-            {icon}
-          </div>
-        ) : null}
-        <p className="line-clamp-2 text-muted-foreground text-xs sm:text-sm">
-          {repositoryText}
-        </p>
-      </div>
+      <p className="text-muted-foreground text-sm">{repositoryText}</p>
     </TitleCard>
   );
 }
