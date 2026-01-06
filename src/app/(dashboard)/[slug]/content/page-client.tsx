@@ -92,7 +92,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             {EXAMPLE_CONTENT.map((content) => (
               <ContentCard
                 contentType={content.contentType}
-                date={content.date}
                 href={`/${organizationSlug}/content/${content.id}`}
                 key={content.id}
                 preview={content.preview}
