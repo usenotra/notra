@@ -27,7 +27,7 @@ export default async function AuthLayout({
             <PixelBlast
               color="#8b5cf6"
               edgeFade={0}
-              patternDensity={2}
+              patternDensity={1.5}
               patternScale={1}
               speed={0.5}
             />
