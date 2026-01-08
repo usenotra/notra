@@ -24,4 +24,9 @@ export const QUERY_KEYS = {
     list: (organizationId: string, page: number) =>
       ["webhook-logs", organizationId, page] as const,
   },
+  CONTENT: {
+    base: ["content"] as const,
+    detail: (organizationId: string, contentId: string) =>
+      ["content", organizationId, contentId] as const,
+  },
 } as const;

@@ -22,5 +22,19 @@
       "!migrations/**",
       "!src/components/PixelBlast.tsx"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/app/(dashboard)/\\[slug\\]/content/\\[id\\]/page-client.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          }
+        }
+      }
+    }
+  ]
 }

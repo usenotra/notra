@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { getContentById } from "./content-data";
 import PageClient from "./page-client";
 
@@ -23,10 +24,15 @@ export async function generateMetadata({
 
 async function Page({ params }: PageProps) {
   const { slug, id } = await params;
+  const { organization } = await validateOrganizationAccess(slug);
 
   return (
     <Suspense>
-      <PageClient contentId={id} organizationSlug={slug} />
+      <PageClient
+        contentId={id}
+        organizationId={organization.id}
+        organizationSlug={slug}
+      />
     </Suspense>
   );
 }
