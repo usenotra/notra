@@ -382,7 +382,7 @@ function BrandForm({
                     {(toneProfileField) => (
                       <div className="space-y-3">
                         <button
-                          className="flex items-center gap-2"
+                          className="flex cursor-pointer items-center gap-2"
                           onClick={() => {
                             useCustomToneField.handleChange(false);
                             form.setFieldValue("customTone", "");
@@ -457,7 +457,7 @@ function BrandForm({
                       {(customToneField) => (
                         <div className="space-y-3">
                           <button
-                            className="flex items-center gap-2"
+                            className="flex cursor-pointer items-center gap-2"
                             onClick={() =>
                               useCustomToneField.handleChange(true)
                             }
