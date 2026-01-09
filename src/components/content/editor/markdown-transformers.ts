@@ -12,12 +12,10 @@ export const HORIZONTAL_RULE: ElementTransformer = {
     return $isHorizontalRuleNode(node) ? "---" : null;
   },
   regExp: /^(---|\*\*\*|___)\s?$/,
-  replace: (parentNode, _children, _match, isImport) => {
+  replace: (parentNode) => {
     const hrNode = $createHorizontalRuleNode();
     parentNode.replace(hrNode);
-    if (isImport) {
-      hrNode.selectNext();
-    }
+    hrNode.selectNext();
   },
   type: "element",
 };
