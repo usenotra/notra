@@ -26,5 +26,5 @@ export const editorTheme: EditorThemeClasses = {
   },
   quote: "border-l-4 border-border pl-4 italic my-4 text-muted-foreground",
   code: "font-mono bg-muted p-4 rounded-lg block overflow-x-auto text-sm my-4",
-  link: "text-primary underline hover:no-underline",
+  link: "text-primary underline hover:no-underline cursor-pointer",
 };
