@@ -558,17 +558,9 @@ function Footer() {
 
           <div className="flex items-center gap-8 text-sm text-white/40">
             <Link
-              className="transition-colors hover:text-white"
-              href="/privacy"
-            >
-              Privacy
-            </Link>
-            <Link className="transition-colors hover:text-white" href="/terms">
-              Terms
-            </Link>
-            <Link
               className="flex items-center gap-2 transition-colors hover:text-white"
-              href="https://github.com"
+              href="https://github.com/mezotv/notra"
+              rel="noopener noreferrer"
               target="_blank"
             >
               <Github className="h-4 w-4" />
