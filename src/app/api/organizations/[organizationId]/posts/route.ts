@@ -47,7 +47,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const parsedLimit = limitParam
       ? Number.parseInt(limitParam, 10)
       : DEFAULT_LIMIT;
-    const limit = Math.min(Math.max(1, parsedLimit), MAX_LIMIT);
+    const limit = Number.isNaN(parsedLimit)
+      ? DEFAULT_LIMIT
+      : Math.min(Math.max(1, parsedLimit), MAX_LIMIT);
 
     let results: Post[];
 
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
       const cursorDate = new Date(cursorData.createdAt);
 
-      if (isNaN(cursorDate.getTime())) {
+      if (Number.isNaN(cursorDate.getTime())) {
         return NextResponse.json({ error: "Invalid cursor" }, { status: 400 });
       }
 
@@ -103,8 +105,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       })),
       nextCursor,
     });
-  } catch (error) {
-    console.error("Error fetching posts:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch posts" },
       { status: 500 }

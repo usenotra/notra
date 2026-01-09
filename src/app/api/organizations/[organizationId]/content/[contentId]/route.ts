@@ -41,8 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         date: post.createdAt.toISOString(),
       },
     });
-  } catch (error) {
-    console.error("Error fetching content:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch content" },
       { status: 500 }
@@ -93,6 +92,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         markdown,
         title: newTitle,
         content: newContent,
+        updatedAt: new Date(),
       })
       .where(
         and(eq(posts.id, contentId), eq(posts.organizationId, organizationId))
@@ -117,8 +117,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         date: updatedPost.createdAt.toISOString(),
       },
     });
-  } catch (error) {
-    console.error("Error updating content:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update content" },
       { status: 500 }
