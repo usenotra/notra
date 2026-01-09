@@ -1,24 +1,29 @@
 "use client";
 
-import { $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import type { Transformer } from "@lexical/markdown";
+import { $convertToMarkdownString } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect } from "react";
 
 interface MarkdownSyncPluginProps {
   onChange: (markdown: string) => void;
+  transformers: Transformer[];
 }
 
-export function MarkdownSyncPlugin({ onChange }: MarkdownSyncPluginProps) {
+export function MarkdownSyncPlugin({
+  onChange,
+  transformers,
+}: MarkdownSyncPluginProps) {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
-        const markdown = $convertToMarkdownString(TRANSFORMERS);
+        const markdown = $convertToMarkdownString(transformers);
         onChange(markdown);
       });
     });
-  }, [editor, onChange]);
+  }, [editor, onChange, transformers]);
 
   return null;
 }
