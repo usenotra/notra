@@ -4,6 +4,7 @@ import { CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import { ClickableLinkPlugin } from "@lexical/react/LexicalClickableLinkPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
@@ -91,6 +92,7 @@ export function LexicalEditor({
         <ListPlugin />
         {editable && <MarkdownShortcutPlugin transformers={TRANSFORMERS} />}
         {editable && <EditorAutoLinkPlugin />}
+        <ClickableLinkPlugin newTab />
         <MarkdownSyncPlugin onChange={handleChange} />
         <SelectionPlugin onSelectionChange={onSelectionChange} />
         {editorRef && (
