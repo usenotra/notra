@@ -120,8 +120,9 @@ function FloatingToolbar({
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     } else {
       const url = prompt("Enter URL:", "https://");
-      if (url !== null) {
-        editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
+      // Validate URL is not empty or just the placeholder
+      if (url !== null && url.trim() !== "" && url.trim() !== "https://") {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, url.trim());
       }
     }
   }, [editor, isLink]);
@@ -262,11 +263,28 @@ export function FloatingToolbarPlugin({
   }, [editor]);
 
   useEffect(() => {
-    document.addEventListener("selectionchange", updateToolbar);
-    return () => {
-      document.removeEventListener("selectionchange", updateToolbar);
+    // Scope selectionchange to this editor to avoid conflicts with multiple editors
+    const handleSelectionChange = () => {
+      const rootElement = editor.getRootElement();
+      if (rootElement === null) {
+        return;
+      }
+      const selection = window.getSelection();
+      // Only update if selection is within this editor
+      if (
+        selection !== null &&
+        selection.anchorNode !== null &&
+        rootElement.contains(selection.anchorNode)
+      ) {
+        updateToolbar();
+      }
     };
-  }, [updateToolbar]);
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [editor, updateToolbar]);
 
   useEffect(() => {
     return mergeRegister(
