@@ -1,6 +1,8 @@
 import type { EditorThemeClasses } from "lexical";
 
 export const editorTheme: EditorThemeClasses = {
+  hr: "my-4 border-none h-0.5 bg-border cursor-pointer",
+  hrSelected: "outline outline-2 outline-primary",
   paragraph: "mb-2",
   heading: {
     h1: "text-3xl font-bold mb-4 mt-6 first:mt-0",
