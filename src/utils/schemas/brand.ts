@@ -15,6 +15,7 @@ export const brandSettingsSchema = z.object({
   companyDescription: z.string().min(10, "Please provide a description"),
   toneProfile: toneProfileSchema,
   customTone: z.string().nullable().optional(),
+  customInstructions: z.string().nullable().optional(),
   audience: z.string().min(10, "Please describe your target audience"),
 });
 

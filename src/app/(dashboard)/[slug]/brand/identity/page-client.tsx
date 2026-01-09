@@ -242,6 +242,7 @@ interface BrandFormProps {
     companyDescription: string;
     toneProfile: ToneProfile;
     customTone: string;
+    customInstructions: string;
     useCustomTone: boolean;
     audience: string;
   };
@@ -513,6 +514,24 @@ function BrandForm({
                 </div>
               )}
             </form.Field>
+
+            <div className="border-t pt-4">
+              <form.Field name="customInstructions">
+                {(field) => (
+                  <div className="space-y-2">
+                    <Label htmlFor={field.name}>Custom Instructions</Label>
+                    <Textarea
+                      className="min-h-[100px]"
+                      id={field.name}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Add any specific instructions for AI-generated content (e.g., avoid certain phrases, always mention specific features, etc.)"
+                      value={field.state.value}
+                    />
+                  </div>
+                )}
+              </form.Field>
+            </div>
           </TitleCard>
 
           <TitleCard className="lg:col-span-2" heading="Target Audience">
@@ -702,6 +721,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     companyDescription: settings.companyDescription ?? "",
     toneProfile: (settings.toneProfile as ToneProfile) ?? "Professional",
     customTone: settings.customTone ?? "",
+    customInstructions: settings.customInstructions ?? "",
     useCustomTone: Boolean(settings.customTone),
     audience: settings.audience ?? "",
   };

@@ -12,6 +12,7 @@ interface BrandSettings {
   companyDescription: string | null;
   toneProfile: string | null;
   customTone: string | null;
+  customInstructions: string | null;
   audience: string | null;
   createdAt: string;
   updatedAt: string;

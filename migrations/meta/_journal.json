@@ -29,6 +29,13 @@
       "when": 1767644122323,
       "tag": "0003_remove-brand-settings-source-url",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767979503351,
+      "tag": "0004_tense_stone_men",
+      "breakpoints": true
     }
   ]
 }
