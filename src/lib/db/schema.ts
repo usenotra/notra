@@ -248,7 +248,7 @@ export const posts = pgTable(
   },
   (table) => [
     index("posts_organizationId_idx").on(table.organizationId),
-    index("posts_createdAt_idx").on(table.createdAt),
+    index("posts_createdAt_id_idx").on(table.createdAt, table.id),
   ]
 );
 

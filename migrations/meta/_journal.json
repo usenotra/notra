@@ -43,6 +43,13 @@
       "when": 1767984650432,
       "tag": "0005_faulty_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767986970792,
+      "tag": "0006_handy_tana_nile",
+      "breakpoints": true
     }
   ]
 }
