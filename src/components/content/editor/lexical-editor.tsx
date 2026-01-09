@@ -23,6 +23,7 @@ import {
   type EditorRefHandle,
   EditorRefPlugin,
 } from "./plugins/editor-ref-plugin";
+import { FloatingToolbarPlugin } from "./plugins/floating-toolbar-plugin";
 import { HorizontalRulePlugin } from "./plugins/horizontal-rule-plugin";
 import { MarkdownSyncPlugin } from "./plugins/markdown-sync-plugin";
 import { SelectionPlugin } from "./plugins/selection-plugin";
@@ -95,7 +96,7 @@ export function LexicalEditor({
         <RichTextPlugin
           contentEditable={
             <ContentEditable
-              className={`min-h-[500px] outline-none ${
+              className={`min-h-[500px] px-8 outline-none ${
                 editable ? "" : "cursor-default"
               }`}
             />
@@ -123,7 +124,10 @@ export function LexicalEditor({
           />
         )}
         {editable && floatingAnchorElem && (
-          <DraggableBlockPlugin anchorElem={floatingAnchorElem} />
+          <>
+            <FloatingToolbarPlugin anchorElem={floatingAnchorElem} />
+            <DraggableBlockPlugin anchorElem={floatingAnchorElem} />
+          </>
         )}
       </div>
     </LexicalComposer>
