@@ -8,13 +8,19 @@ const URL_MATCHER =
 const EMAIL_MATCHER =
   /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
 
+const TRAILING_PUNCTUATION = /[.,;:!?)]+$/;
+
 const MATCHERS = [
   (text: string) => {
     const match = URL_MATCHER.exec(text);
     if (match === null) {
       return null;
     }
-    const fullMatch = match[0];
+    let fullMatch = match[0];
+    const trailingPunct = TRAILING_PUNCTUATION.exec(fullMatch);
+    if (trailingPunct) {
+      fullMatch = fullMatch.slice(0, -trailingPunct[0].length);
+    }
     return {
       index: match.index,
       length: fullMatch.length,

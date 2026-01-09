@@ -90,7 +90,7 @@ export function LexicalEditor({
         <HistoryPlugin />
         <ListPlugin />
         {editable && <MarkdownShortcutPlugin transformers={TRANSFORMERS} />}
-        <EditorAutoLinkPlugin />
+        {editable && <EditorAutoLinkPlugin />}
         <MarkdownSyncPlugin onChange={handleChange} />
         <SelectionPlugin onSelectionChange={onSelectionChange} />
         {editorRef && (
