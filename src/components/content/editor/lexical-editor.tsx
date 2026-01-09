@@ -1,24 +1,29 @@
 "use client";
 
 import { CodeNode } from "@lexical/code";
-import { LinkNode } from "@lexical/link";
+import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
-import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import { $convertFromMarkdownString } from "@lexical/markdown";
+import { ClickableLinkPlugin } from "@lexical/react/LexicalClickableLinkPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 import { editorTheme } from "./editor-theme";
+import { EDITOR_TRANSFORMERS } from "./markdown-transformers";
+import { EditorAutoLinkPlugin } from "./plugins/auto-link-plugin";
 import {
   type EditorRefHandle,
   EditorRefPlugin,
 } from "./plugins/editor-ref-plugin";
 import { FloatingToolbarPlugin } from "./plugins/floating-toolbar-plugin";
+import { HorizontalRulePlugin } from "./plugins/horizontal-rule-plugin";
 import { MarkdownSyncPlugin } from "./plugins/markdown-sync-plugin";
 import { SelectionPlugin } from "./plugins/selection-plugin";
 
@@ -61,12 +66,14 @@ export function LexicalEditor({
         ListItemNode,
         CodeNode,
         LinkNode,
+        AutoLinkNode,
+        HorizontalRuleNode,
       ],
       theme: editorTheme,
       editable,
       onError,
       editorState: () => {
-        $convertFromMarkdownString(initialMarkdown, TRANSFORMERS);
+        $convertFromMarkdownString(initialMarkdown, EDITOR_TRANSFORMERS);
       },
     }),
     [initialMarkdown, editable, onError]
@@ -96,8 +103,16 @@ export function LexicalEditor({
         />
         <HistoryPlugin />
         <ListPlugin />
-        {editable && <MarkdownShortcutPlugin transformers={TRANSFORMERS} />}
-        <MarkdownSyncPlugin onChange={handleChange} />
+        <HorizontalRulePlugin />
+        {editable && (
+          <MarkdownShortcutPlugin transformers={EDITOR_TRANSFORMERS} />
+        )}
+        {editable && <EditorAutoLinkPlugin />}
+        <ClickableLinkPlugin newTab />
+        <MarkdownSyncPlugin
+          onChange={handleChange}
+          transformers={EDITOR_TRANSFORMERS}
+        />
         <SelectionPlugin onSelectionChange={onSelectionChange} />
         {editorRef && (
           <EditorRefPlugin

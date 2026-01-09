@@ -1,6 +1,8 @@
 import type { EditorThemeClasses } from "lexical";
 
 export const editorTheme: EditorThemeClasses = {
+  hr: "my-4 border-none h-0.5 bg-border cursor-pointer",
+  hrSelected: "outline outline-2 outline-primary",
   paragraph: "mb-2",
   heading: {
     h1: "text-3xl font-bold mb-4 mt-6 first:mt-0",
@@ -26,5 +28,5 @@ export const editorTheme: EditorThemeClasses = {
   },
   quote: "border-l-4 border-border pl-4 italic my-4 text-muted-foreground",
   code: "font-mono bg-muted p-4 rounded-lg block overflow-x-auto text-sm my-4",
-  link: "text-primary underline hover:no-underline",
+  link: "text-primary underline hover:no-underline cursor-pointer",
 };

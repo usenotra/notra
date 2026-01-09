@@ -49,7 +49,12 @@ function FloatingToolbar({
     const selection = window.getSelection();
     const toolbar = toolbarRef.current;
 
-    if (!selection || selection.isCollapsed || !toolbar) {
+    if (
+      !selection ||
+      selection.isCollapsed ||
+      selection.rangeCount === 0 ||
+      !toolbar
+    ) {
       return;
     }
 
@@ -57,7 +62,11 @@ function FloatingToolbar({
     const rect = range.getBoundingClientRect();
     const anchorRect = anchorElem.getBoundingClientRect();
 
-    const top = rect.top - anchorRect.top - toolbar.offsetHeight - 8;
+    // Constrain top to minimum of 8px to prevent toolbar going off-screen
+    const top = Math.max(
+      8,
+      rect.top - anchorRect.top - toolbar.offsetHeight - 8
+    );
     let left =
       rect.left - anchorRect.left + rect.width / 2 - toolbar.offsetWidth / 2;
 
@@ -75,14 +84,15 @@ function FloatingToolbar({
     const handleScroll = () => updatePosition();
     const handleResize = () => updatePosition();
 
-    window.addEventListener("scroll", handleScroll);
+    // Listen to scroll on anchorElem to capture scrolling within the editor container
+    anchorElem.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      anchorElem.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
     };
-  }, [updatePosition]);
+  }, [anchorElem, updatePosition]);
 
   useEffect(() => {
     return mergeRegister(
@@ -197,7 +207,7 @@ function getSelectedNode(selection: ReturnType<typeof $getSelection>) {
 }
 
 interface FloatingToolbarPluginProps {
-  anchorElem?: HTMLElement;
+  anchorElem: HTMLElement;
 }
 
 export function FloatingToolbarPlugin({
@@ -264,7 +274,7 @@ export function FloatingToolbarPlugin({
     );
   }, [editor, updateToolbar]);
 
-  if (!(isText && anchorElem)) {
+  if (!isText) {
     return null;
   }
 

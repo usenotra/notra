@@ -3,7 +3,6 @@
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
-  TRANSFORMERS,
 } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
@@ -17,6 +16,7 @@ import {
   type RefObject,
   useImperativeHandle,
 } from "react";
+import { EDITOR_TRANSFORMERS } from "../markdown-transformers";
 
 export interface SelectionInfo {
   text: string;
@@ -53,7 +53,7 @@ export function EditorRefPlugin({
           () => {
             const root = $getRoot();
             root.clear();
-            $convertFromMarkdownString(markdown, TRANSFORMERS);
+            $convertFromMarkdownString(markdown, EDITOR_TRANSFORMERS);
           },
           {
             discrete: true,
@@ -69,7 +69,7 @@ export function EditorRefPlugin({
       getMarkdown: () => {
         let markdown = "";
         editor.getEditorState().read(() => {
-          markdown = $convertToMarkdownString(TRANSFORMERS);
+          markdown = $convertToMarkdownString(EDITOR_TRANSFORMERS);
         });
         return markdown;
       },
