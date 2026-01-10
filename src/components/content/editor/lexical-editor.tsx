@@ -18,6 +18,7 @@ import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 import { editorTheme } from "./editor-theme";
 import { EDITOR_TRANSFORMERS } from "./markdown-transformers";
 import { EditorAutoLinkPlugin } from "./plugins/auto-link-plugin";
+import { ComponentPickerPlugin } from "./plugins/component-picker-plugin";
 import { DraggableBlockPlugin } from "./plugins/draggable-block-plugin";
 import {
   type EditorRefHandle,
@@ -110,6 +111,7 @@ export function LexicalEditor({
           <MarkdownShortcutPlugin transformers={EDITOR_TRANSFORMERS} />
         )}
         {editable && <EditorAutoLinkPlugin />}
+        {editable && <ComponentPickerPlugin />}
         <ClickableLinkPlugin newTab />
         <TabFocusPlugin />
         <MarkdownSyncPlugin
