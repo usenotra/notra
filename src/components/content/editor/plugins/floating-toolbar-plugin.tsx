@@ -131,7 +131,8 @@ function FloatingToolbar({
   useEffect(() => {
     if (isLinkEditMode) {
       setLinkUrl("https://");
-      setTimeout(() => linkInputRef.current?.focus(), 0);
+      const timeoutId = setTimeout(() => linkInputRef.current?.focus(), 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [isLinkEditMode]);
 
@@ -150,8 +151,22 @@ function FloatingToolbar({
   const submitLink = useCallback(() => {
     const trimmedUrl = linkUrl.trim();
     if (trimmedUrl !== "" && trimmedUrl !== "https://") {
-      // Update the link URL
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, trimmedUrl);
+      // Validate URL format
+      let isValidUrl = false;
+      try {
+        new URL(trimmedUrl);
+        isValidUrl = true;
+      } catch {
+        // Check if it's a relative URL
+        isValidUrl = trimmedUrl.startsWith("/") || trimmedUrl.startsWith("./");
+      }
+
+      if (isValidUrl) {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, trimmedUrl);
+      } else {
+        // Invalid URL format, remove the link
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+      }
     } else {
       // Remove the link if URL is empty
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);

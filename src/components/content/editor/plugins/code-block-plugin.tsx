@@ -56,6 +56,8 @@ function CodeBlockToolbar({
   codeElement,
 }: CodeBlockToolbarProps) {
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -82,6 +84,32 @@ function CodeBlockToolbar({
     };
   }, [updatePosition]);
 
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showDropdown) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDropdown]);
+
   const handleLanguageChange = useCallback(
     (newLanguage: string) => {
       editor.update(() => {
@@ -96,16 +124,33 @@ function CodeBlockToolbar({
   );
 
   const handleCopy = useCallback(() => {
+    // Check for clipboard API availability
+    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
+      return;
+    }
+
     editor.getEditorState().read(() => {
       const node = $getNodeByKey(nodeKey);
       if ($isCodeNode(node)) {
         const text = node.getTextContent();
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(text).catch(() => {
+          // Handle clipboard write failure silently
+        });
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+
+        // Clear any existing timeout
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => {
+          setCopied(false);
+          copyTimeoutRef.current = null;
+        }, 2000);
       }
     });
   }, [editor, nodeKey]);
+
+  const languageLabel = CODE_LANGUAGES[language] || "Plain Text";
 
   return createPortal(
     <div
@@ -113,24 +158,32 @@ function CodeBlockToolbar({
       ref={toolbarRef}
       style={{ pointerEvents: "auto" }}
     >
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <button
+          aria-expanded={showDropdown}
+          aria-haspopup="listbox"
+          aria-label={`Select code language (current: ${languageLabel})`}
           className="flex h-7 items-center gap-1 rounded border bg-popover px-2 text-muted-foreground text-xs hover:bg-muted"
           onClick={() => setShowDropdown(!showDropdown)}
           type="button"
         >
-          <span>{CODE_LANGUAGES[language] || "Plain Text"}</span>
+          <span>{languageLabel}</span>
           <ChevronDown className="size-3" />
         </button>
         {showDropdown && (
-          <div className="absolute top-full right-0 z-50 mt-1 max-h-60 w-40 overflow-y-auto rounded-lg border bg-popover p-1 shadow-lg">
+          <div
+            className="absolute top-full right-0 z-50 mt-1 max-h-60 w-40 overflow-y-auto rounded-lg border bg-popover p-1 shadow-lg"
+            role="listbox"
+          >
             {Object.entries(CODE_LANGUAGES).map(([key, label]) => (
               <button
+                aria-selected={key === language}
                 className={`w-full rounded px-2 py-1.5 text-left text-xs hover:bg-muted ${
                   key === language ? "bg-muted font-medium" : ""
                 }`}
                 key={key}
                 onClick={() => handleLanguageChange(key)}
+                role="option"
                 type="button"
               >
                 {label}
@@ -140,6 +193,7 @@ function CodeBlockToolbar({
         )}
       </div>
       <button
+        aria-label={copied ? "Code copied" : "Copy code to clipboard"}
         className="flex h-7 items-center rounded border bg-popover px-2 text-muted-foreground text-xs hover:bg-muted"
         onClick={handleCopy}
         title="Copy code"
