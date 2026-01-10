@@ -1,88 +1,136 @@
-# CLAUDE.md
+# Ultracite Code Standards
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This project uses **Ultracite**, a zero-config Biome preset that enforces strict code quality standards through automated formatting and linting.
 
-## Project Overview
+## Quick Reference
 
-Notra is a content engine SaaS application built with Next.js 16 (App Router), React 19, and TypeScript. It helps companies manage content by integrating with GitHub repositories and using AI to generate changelogs and other content outputs.
+- **Format code**: `npx ultracite fix`
+- **Check for issues**: `npx ultracite check`
+- **Diagnose setup**: `npx ultracite doctor`
 
-## Commands
+Biome (the underlying engine) provides extremely fast Rust-based linting and formatting. Most issues are automatically fixable.
 
-```bash
-# Development
-bun dev              # Start development server
-bun build            # Production build
-bun start            # Start production server
+---
 
-# Code Quality
-bun lint             # Check for linting issues (uses Ultracite/Biome)
-bun format           # Auto-fix formatting and lint issues
+## Core Principles
 
-# Database (Drizzle + PostgreSQL)
-bun db:generate      # Generate migrations from schema changes
-bun db:migrate       # Run pending migrations
-bun db:push          # Push schema directly (dev only)
-bun db:studio        # Open Drizzle Studio GUI
+Write code that is **accessible, performant, type-safe, and maintainable**. Focus on clarity and explicit intent over brevity.
 
-# Auth Schema
-bun auth:generate    # Regenerate better-auth schema
-```
+### Type Safety & Explicitness
 
-## Architecture
+- Use explicit types for function parameters and return values when they enhance clarity
+- Prefer `interface` over `type`
+- Prefer `unknown` over `any` when the type is genuinely unknown
+- Use const assertions (`as const`) for immutable values and literal types
+- Leverage TypeScript's type narrowing instead of type assertions
+- Use meaningful variable names instead of magic numbers - extract constants with descriptive names
 
-### Tech Stack
-- **Framework**: Next.js 16 with App Router, React Compiler enabled
-- **Database**: PostgreSQL with Drizzle ORM (`src/lib/db/`)
-- **Auth**: better-auth with organizations plugin (`src/lib/auth/server.ts`)
-- **AI**: Vercel AI SDK with OpenRouter provider (`src/lib/openrouter.ts`)
-- **Caching**: Upstash Redis for session storage and progress tracking
-- **Workflows**: `workflow` package for durable execution (brand analysis)
-- **Rich Text**: Lexical editor for content editing
+### Modern JavaScript/TypeScript
 
-### Route Structure
-- `src/app/(auth)/` - Authentication pages (login, signup, logout, callback)
-- `src/app/(dashboard)/[slug]/` - Organization-scoped dashboard pages
-- `src/app/api/organizations/[organizationId]/` - Organization-scoped API routes
+- Use arrow functions for callbacks and short functions
+- Prefer `for...of` loops over `.forEach()` and indexed `for` loops
+- Use optional chaining (`?.`) and nullish coalescing (`??`) for safer property access
+- Prefer template literals over string concatenation
+- Use destructuring for object and array assignments
+- Use `const` by default, `let` only when reassignment is needed, never `var`
 
-### Key Patterns
+### Async & Promises
 
-**Organization-scoped Resources**: Most features are scoped to organizations. The `[slug]` param identifies the org in the UI, while API routes use `[organizationId]`.
+- Always `await` promises in async functions - don't forget to use the return value
+- Use `async/await` syntax instead of promise chains for better readability
+- Handle errors appropriately in async code with try-catch blocks
+- Don't use async functions as Promise executors
 
-**AI Agents** (`src/lib/ai/agents/`): Use `ToolLoopAgent` from the AI SDK with Supermemory for organizational context:
-- `chat.ts` - Content editor assistant with markdown editing tools
-- `changelog.ts` - GitHub changelog generator
+### React & JSX
 
-**Workflows** (`src/lib/workflows/`): Durable functions using `"use workflow"` and `"use step"` directives for multi-step processes like brand analysis.
+- Use function components over class components
+- Call hooks at the top level only, never conditionally
+- Specify all dependencies in hook dependency arrays correctly
+- Use the `key` prop for elements in iterables (prefer unique IDs over array indices)
+- Nest children between opening and closing tags instead of passing as props
+- Don't define components inside other components
+- Use semantic HTML and ARIA attributes for accessibility:
+  - Provide meaningful alt text for images
+  - Use proper heading hierarchy
+  - Add labels for form inputs
+  - Include keyboard event handlers alongside mouse events
+  - Use semantic elements (`<button>`, `<nav>`, etc.) instead of divs with roles
 
-**Database Schema** (`src/lib/db/schema.ts`): Core tables include `users`, `organizations`, `members`, `githubIntegrations`, `githubRepositories`, `repositoryOutputs`, and `brandSettings`.
+### Error Handling & Debugging
 
-### Component Organization
-- `src/components/ui/` - shadcn/ui components (auto-generated, do not modify)
-- `src/components/ai-elements/` - AI chat interface components
-- `src/components/content/` - Content editing components including Lexical editor
-- `src/components/dashboard/` - Dashboard layout and navigation
-- `src/components/integrations/` - GitHub integration management
+- Remove `console.log`, `debugger`, and `alert` statements from production code
+- Throw `Error` objects with descriptive messages, not strings or other values
+- Use `try-catch` blocks meaningfully - don't catch errors just to rethrow them
+- Prefer early returns over nested conditionals for error cases
 
-### Utilities
-- `src/utils/schemas/` - Zod validation schemas
-- `src/utils/query-keys.ts` - TanStack Query key factories
-- `src/lib/utils.ts` - Shared utilities including `cn()` for class merging
+### Code Organization
 
-## Code Standards
+- Keep functions focused and under reasonable cognitive complexity limits
+- Extract complex conditions into well-named boolean variables
+- Use early returns to reduce nesting
+- Prefer simple conditionals over nested ternary operators
+- Group related code together and separate concerns
 
-This project uses **Ultracite** (Biome-based) for formatting and linting. Run `bun format` before committing.
+### Security
 
-For detailed code quality guidelines, conventions, and best practices, see [`ULTRACITE.md`](./ULTRACITE.md).
+- Add `rel="noopener"` when using `target="_blank"` on links
+- Avoid `dangerouslySetInnerHTML` unless absolutely necessary
+- Don't use `eval()` or assign directly to `document.cookie`
+- Validate and sanitize user input
+
+### Performance
+
+- Avoid spread syntax in accumulators within loops
+- Use top-level regex literals instead of creating them in loops
+- Prefer specific imports over namespace imports
+- When importing zod use this "import * as z from "zod";" and if needed add this lint rule above "-biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import"
+- Avoid barrel files (index files that re-export everything)
+- Use proper image components (e.g., Next.js `<Image>`) over `<img>` tags
+
+### Framework-Specific Guidance
+
+**Next.js:**
+- Use Next.js `<Image>` component for images
+- Use `next/head` or App Router metadata API for head elements
+- Use Server Components for async data fetching instead of async Client Components
+
+**React 19+:**
+- Use ref as a prop instead of `React.forwardRef`
+
+**Solid/Svelte/Vue/Qwik:**
+- Use `class` and `for` attributes (not `className` or `htmlFor`)
+
+---
+
+## Testing
+
+- Write assertions inside `it()` or `test()` blocks
+- Avoid done callbacks in async tests - use async/await instead
+- Don't use `.only` or `.skip` in committed code
+- Keep test suites reasonably flat - avoid excessive `describe` nesting
+
+## Comments
+- Avoid commenting every line
+- Don't comment unless you are working on critical infrastructure such as billing, emails or very complex code
+
+## When Biome Can't Help
+
+Biome's linter will catch most issues automatically. Focus your attention on:
+
+1. **Business logic correctness** - Biome can't validate your algorithms
+2. **Meaningful naming** - Use descriptive names for functions, variables, and types
+3. **Architecture decisions** - Component structure, data flow, and API design
+4. **Edge cases** - Handle boundary conditions and error states
+5. **User experience** - Accessibility, performance, and usability considerations
+6. **Documentation** - Add comments for complex logic, but prefer self-documenting code
+7. **Context7 MCP** - Use context7 for up to date documentation whenever library names are mentioned
+
+---
 
 ## Protected Files
 
-**Never modify `src/components/ui/*`** - these are auto-generated by shadcn/ui. Use `bunx --bun shadcn@latest add <component>` to add new components.
+**NEVER modify files in `src/components/ui/*`**. These are auto-generated UI components from shadcn/ui. If a UI component needs to be added or regenerated, use the shadcn CLI (`bunx --bun shadcn@latest add <component>`) instead of manually editing these files.
 
-## Environment Variables
+---
 
-Required variables (see `.env.example` if available):
-- `DATABASE_URL` - PostgreSQL connection string
-- `OPENROUTER_API_KEY` - AI provider API key
-- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - OAuth
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - OAuth
-- Upstash Redis credentials
+Most formatting and common issues are automatically fixed by Biome. Run `npx ultracite fix` before committing to ensure compliance.
