@@ -30,6 +30,8 @@ interface FloatingToolbarProps {
   isStrikethrough: boolean;
   isCode: boolean;
   isLink: boolean;
+  isLinkEditMode: boolean;
+  setIsLinkEditMode: (value: boolean) => void;
 }
 
 function FloatingToolbar({
@@ -41,10 +43,11 @@ function FloatingToolbar({
   isStrikethrough,
   isCode,
   isLink,
+  isLinkEditMode,
+  setIsLinkEditMode,
 }: FloatingToolbarProps) {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
-  const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("https://");
 
   const updatePosition = useCallback(() => {
@@ -95,9 +98,6 @@ function FloatingToolbar({
     const handleScroll = () => updatePosition();
     const handleResize = () => updatePosition();
 
-    // Listen to both window and anchorElem scroll events
-    // Window scroll is needed because getBoundingClientRect() returns viewport-relative coords
-    // AnchorElem scroll captures scrolling within the editor container
     window.addEventListener("scroll", handleScroll);
     anchorElem.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
@@ -127,26 +127,45 @@ function FloatingToolbar({
     );
   }, [editor, updatePosition]);
 
-  const handleLinkClick = useCallback(() => {
-    if (isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-      setShowLinkInput(false);
-    } else {
-      setShowLinkInput(true);
+  // Focus input when entering link edit mode
+  useEffect(() => {
+    if (isLinkEditMode) {
       setLinkUrl("https://");
-      // Focus the input after it renders
       setTimeout(() => linkInputRef.current?.focus(), 0);
     }
-  }, [editor, isLink]);
+  }, [isLinkEditMode]);
+
+  const handleLinkClick = useCallback(() => {
+    if (isLink) {
+      // Remove the link
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+      setIsLinkEditMode(false);
+    } else {
+      // Create link with placeholder URL first, then enter edit mode
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
+      setIsLinkEditMode(true);
+    }
+  }, [editor, isLink, setIsLinkEditMode]);
 
   const submitLink = useCallback(() => {
     const trimmedUrl = linkUrl.trim();
     if (trimmedUrl !== "" && trimmedUrl !== "https://") {
+      // Update the link URL
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, trimmedUrl);
+    } else {
+      // Remove the link if URL is empty
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
-    setShowLinkInput(false);
+    setIsLinkEditMode(false);
     setLinkUrl("https://");
-  }, [editor, linkUrl]);
+  }, [editor, linkUrl, setIsLinkEditMode]);
+
+  const cancelLinkEdit = useCallback(() => {
+    // Remove the placeholder link if canceling
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    setIsLinkEditMode(false);
+    setLinkUrl("https://");
+  }, [editor, setIsLinkEditMode]);
 
   const handleLinkKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -154,11 +173,11 @@ function FloatingToolbar({
         e.preventDefault();
         submitLink();
       } else if (e.key === "Escape") {
-        setShowLinkInput(false);
-        setLinkUrl("https://");
+        e.preventDefault();
+        cancelLinkEdit();
       }
     },
-    [submitLink]
+    [submitLink, cancelLinkEdit]
   );
 
   const buttonClass = (active: boolean) =>
@@ -221,14 +240,14 @@ function FloatingToolbar({
       <div className="mx-1 h-4 w-px bg-border" />
       <button
         aria-label="Insert link"
-        className={buttonClass(isLink)}
+        className={buttonClass(isLink || isLinkEditMode)}
         onClick={handleLinkClick}
         title="Link"
         type="button"
       >
         <Link className="size-4" />
       </button>
-      {showLinkInput && (
+      {isLinkEditMode && (
         <div className="ml-1 flex items-center gap-1">
           <input
             aria-label="URL"
@@ -284,6 +303,7 @@ export function FloatingToolbarPlugin({
   const [isStrikethrough, setIsStrikethrough] = useState(false);
   const [isCode, setIsCode] = useState(false);
   const [isLink, setIsLink] = useState(false);
+  const [isLinkEditMode, setIsLinkEditMode] = useState(false);
 
   const updateToolbar = useCallback(() => {
     editor.getEditorState().read(() => {
@@ -313,20 +333,17 @@ export function FloatingToolbarPlugin({
       setIsLink($isLinkNode(parent) || $isLinkNode(node));
 
       const textContent = selection.getTextContent().replace(/\n/g, "");
-      // Check textContent instead of node type to support multi-node selections
       setIsText(textContent !== "");
     });
   }, [editor]);
 
   useEffect(() => {
-    // Scope selectionchange to this editor to avoid conflicts with multiple editors
     const handleSelectionChange = () => {
       const rootElement = editor.getRootElement();
       if (rootElement === null) {
         return;
       }
       const selection = window.getSelection();
-      // Only update if selection is within this editor
       if (
         selection !== null &&
         selection.anchorNode !== null &&
@@ -355,7 +372,8 @@ export function FloatingToolbarPlugin({
     );
   }, [editor, updateToolbar]);
 
-  if (!isText) {
+  // Keep toolbar visible while in link edit mode even if selection changes
+  if (!(isText || isLinkEditMode)) {
     return null;
   }
 
@@ -367,8 +385,10 @@ export function FloatingToolbarPlugin({
       isCode={isCode}
       isItalic={isItalic}
       isLink={isLink}
+      isLinkEditMode={isLinkEditMode}
       isStrikethrough={isStrikethrough}
       isUnderline={isUnderline}
+      setIsLinkEditMode={setIsLinkEditMode}
     />,
     anchorElem
   );
