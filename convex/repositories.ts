@@ -269,12 +269,16 @@ export const remove = mutation({
 
     await ctx.db.delete(args.repositoryId);
     return null;
+  return null;
+
   },
+
 });
 
-// Internal query for webhook processing - no auth check needed as this is called
-// from server-side webhook handlers that don't have user context
-export const getByOwnerRepo = query({
+import { internalQuery } from "./_generated/server";
+
+// Internal query for webhook processing - only callable from server-side actions/mutations
+export const getByOwnerRepo = internalQuery({
   args: {
     owner: v.string(),
     repo: v.string(),
