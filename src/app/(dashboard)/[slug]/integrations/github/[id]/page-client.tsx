@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { RepositoryList } from "@/components/integrations/repository-list";
@@ -8,8 +8,8 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { GitHubIntegration } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { api } from "../../../../../../../convex/_generated/api";
+import type { Id } from "../../../../../../../convex/_generated/dataModel";
 
 const EditIntegrationDialog = dynamic(
   () =>
@@ -28,24 +28,14 @@ export default function PageClient({ integrationId }: PageClientProps) {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
 
-  const { data: integration, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.INTEGRATIONS.detail(integrationId),
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}`
-      );
+  const integration = useQuery(
+    api.integrations.get,
+    organizationId
+      ? { integrationId: integrationId as Id<"githubIntegrations"> }
+      : "skip"
+  );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch integration");
-      }
-
-      return response.json() as Promise<GitHubIntegration>;
-    },
-    enabled: !!organizationId,
-  });
+  const isLoading = integration === undefined;
 
   if (isLoading) {
     return (
@@ -73,6 +63,20 @@ export default function PageClient({ integrationId }: PageClientProps) {
       </div>
     );
   }
+
+  const integrationData = {
+    id: integration._id,
+    displayName: integration.displayName,
+    enabled: integration.enabled,
+    createdAt: integration.createdAt,
+    createdByUser: integration.createdByUser,
+    repositories: integration.repositories.map((r) => ({
+      id: r._id,
+      owner: r.owner,
+      repo: r.repo,
+      enabled: r.enabled,
+    })),
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -110,10 +114,9 @@ export default function PageClient({ integrationId }: PageClientProps) {
         </div>
 
         <EditIntegrationDialog
-          integration={integration}
+          integration={integrationData}
           onOpenChange={setEditDialogOpen}
           open={editDialogOpen}
-          organizationId={organizationId ?? ""}
         />
 
         <div className="space-y-6">
@@ -143,10 +146,7 @@ export default function PageClient({ integrationId }: PageClientProps) {
 
           <div className="space-y-4">
             <h2 className="font-semibold text-lg">Content Outputs</h2>
-            <RepositoryList
-              integrationId={integrationId}
-              organizationId={organizationId ?? ""}
-            />
+            <RepositoryList integrationId={integrationId} />
           </div>
         </div>
       </div>

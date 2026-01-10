@@ -1,35 +1,36 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/utils/query-keys";
-import type { PostsResponse } from "@/utils/schemas/content";
+import { usePaginatedQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 const DEFAULT_LIMIT = 12;
 
 export function usePosts(organizationId: string) {
-  return useInfiniteQuery({
-    queryKey: QUERY_KEYS.POSTS.list(organizationId),
-    queryFn: async ({ pageParam }): Promise<PostsResponse> => {
-      const params = new URLSearchParams({
-        limit: String(DEFAULT_LIMIT),
-      });
+  const { results, status, loadMore, isLoading } = usePaginatedQuery(
+    api.posts.list,
+    organizationId ? { organizationId } : "skip",
+    { initialNumItems: DEFAULT_LIMIT }
+  );
 
-      if (pageParam) {
-        params.set("cursor", pageParam);
-      }
-
-      const res = await fetch(
-        `/api/organizations/${organizationId}/posts?${params.toString()}`
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch posts");
-      }
-
-      return res.json();
-    },
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!organizationId,
-  });
+  return {
+    data: results
+      ? {
+          pages: [
+            {
+              posts: results.map((post) => ({
+                ...post,
+                id: post._id,
+                createdAt: new Date(post._creationTime).toISOString(),
+                updatedAt: new Date(post.updatedAt).toISOString(),
+              })),
+            },
+          ],
+        }
+      : undefined,
+    isLoading,
+    isFetchingNextPage: status === "LoadingMore",
+    hasNextPage: status === "CanLoadMore",
+    fetchNextPage: () => loadMore(DEFAULT_LIMIT),
+    status,
+  };
 }

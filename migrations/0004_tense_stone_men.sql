@@ -1,1 +1,0 @@
-ALTER TABLE "brand_settings" ADD COLUMN "custom_instructions" text;

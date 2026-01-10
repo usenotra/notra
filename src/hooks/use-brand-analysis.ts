@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
-import { QUERY_KEYS } from "@/utils/query-keys";
-import type { UpdateBrandSettingsInput } from "@/utils/schemas/brand";
+import { useMutation, useQuery } from "convex/react";
+import { useRef, useState } from "react";
+import { api } from "../../convex/_generated/api";
 
 interface BrandSettings {
   id: string;
@@ -18,17 +17,14 @@ interface BrandSettings {
   updatedAt: string;
 }
 
-interface BrandSettingsResponse {
-  settings: BrandSettings | null;
-}
-
 type ProgressStatus =
   | "idle"
   | "scraping"
   | "extracting"
   | "saving"
   | "completed"
-  | "failed";
+  | "failed"
+  | "analyzing";
 
 interface Progress {
   status: ProgressStatus;
@@ -37,86 +33,60 @@ interface Progress {
   error?: string;
 }
 
-interface ProgressResponse {
-  progress: Progress;
-}
-
 export function useBrandSettings(organizationId: string) {
-  return useQuery({
-    queryKey: QUERY_KEYS.BRAND.settings(organizationId),
-    queryFn: async (): Promise<BrandSettingsResponse> => {
-      const res = await fetch(`/api/organizations/${organizationId}/brand`);
-      if (!res.ok) {
-        throw new Error("Failed to fetch brand settings");
+  const data = useQuery(
+    api.brand.get,
+    organizationId ? { organizationId } : "skip"
+  );
+
+  const settings: BrandSettings | null = data
+    ? {
+        id: data._id,
+        organizationId: data.organizationId,
+        companyName: data.companyName ?? null,
+        companyDescription: data.companyDescription ?? null,
+        toneProfile: data.toneProfile ?? null,
+        customTone: data.customTone ?? null,
+        customInstructions: data.customInstructions ?? null,
+        audience: data.audience ?? null,
+        createdAt: new Date(data._creationTime).toISOString(),
+        updatedAt: new Date(data.updatedAt).toISOString(),
       }
-      return res.json();
-    },
-    enabled: !!organizationId,
-  });
+    : null;
+
+  return {
+    data: { settings },
+    isLoading: data === undefined,
+    error: null,
+  };
 }
 
 export function useBrandAnalysisProgress(organizationId: string) {
-  const queryClient = useQueryClient();
   const hasReset = useRef(false);
+  const data = useQuery(
+    api.brand.getProgress,
+    organizationId ? { organizationId } : "skip"
+  );
 
-  const query = useQuery({
-    queryKey: QUERY_KEYS.BRAND.progress(organizationId),
-    queryFn: async (): Promise<Progress> => {
-      const res = await fetch(
-        `/api/organizations/${organizationId}/brand/progress`
-      );
-      if (!res.ok) {
-        throw new Error("Failed to fetch progress");
+  const progress: Progress = data
+    ? {
+        status: data.status as ProgressStatus,
+        currentStep: data.progress ?? 0,
+        totalSteps: 3,
+        error: data.error,
       }
-      const data: ProgressResponse = await res.json();
-      return data.progress;
-    },
-    enabled: !!organizationId,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (!data) {
-        return 2000;
-      }
-      if (
-        data.status === "idle" ||
-        data.status === "completed" ||
-        data.status === "failed"
-      ) {
-        return false;
-      }
-      return 1000;
-    },
-  });
-
-  const progress = query.data ?? {
-    status: "idle" as const,
-    currentStep: 0,
-    totalSteps: 3,
-  };
+    : {
+        status: "idle",
+        currentStep: 0,
+        totalSteps: 3,
+      };
 
   const startPolling = () => {
     hasReset.current = false;
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.BRAND.progress(organizationId),
-    });
-  };
-
-  const onComplete = () => {
-    hasReset.current = true;
-
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.BRAND.settings(organizationId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTH.organizations,
-    });
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTH.activeOrganization,
-    });
   };
 
   if (progress.status === "completed" && !hasReset.current) {
-    onComplete();
+    hasReset.current = true;
   }
 
   return { progress, startPolling };
@@ -124,9 +94,13 @@ export function useBrandAnalysisProgress(organizationId: string) {
 
 export function useAnalyzeBrand(organizationId: string) {
   const { startPolling } = useBrandAnalysisProgress(organizationId);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  return useMutation({
-    mutationFn: async (url: string) => {
+  const mutate = async (url: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
       const res = await fetch(
         `/api/organizations/${organizationId}/brand/analyze`,
         {
@@ -136,37 +110,59 @@ export function useAnalyzeBrand(organizationId: string) {
         }
       );
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to start analysis");
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to start analysis");
       }
-      return res.json();
-    },
-    onSuccess: () => {
+      const data = await res.json();
       setTimeout(startPolling, 1000);
-    },
-  });
+      return data;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Unknown error"));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isPending: isLoading,
+    error,
+  };
 }
 
 export function useUpdateBrandSettings(organizationId: string) {
-  const queryClient = useQueryClient();
+  const upsertMutation = useMutation(api.brand.upsert);
+  const [isLoading, setIsLoading] = useState(false);
 
-  return useMutation({
-    mutationFn: async (data: UpdateBrandSettingsInput) => {
-      const res = await fetch(`/api/organizations/${organizationId}/brand`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+  const mutate = async (data: {
+    companyName?: string;
+    companyDescription?: string;
+    toneProfile?: string;
+    customTone?: string;
+    customInstructions?: string;
+    audience?: string;
+  }) => {
+    setIsLoading(true);
+    try {
+      await upsertMutation({
+        organizationId,
+        companyName: data.companyName,
+        companyDescription: data.companyDescription,
+        toneProfile: data.toneProfile,
+        customTone: data.customTone,
+        customInstructions: data.customInstructions,
+        audience: data.audience,
       });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to update brand settings");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.BRAND.settings(organizationId),
-      });
-    },
-  });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isPending: isLoading,
+  };
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueries, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
@@ -9,8 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { authClient } from "@/lib/auth/client";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { authClient } from "@/lib/auth/auth-client";
 
 export type Organization = NonNullable<
   ReturnType<typeof authClient.useListOrganizations>["data"]
@@ -21,6 +19,7 @@ interface OrganizationsContextValue {
   activeOrganization: Organization | null;
   isLoading: boolean;
   getOrganization: (slug: string) => Organization | undefined;
+  refetch: () => void;
 }
 
 const OrganizationsContext = createContext<OrganizationsContextValue | null>(
@@ -28,48 +27,28 @@ const OrganizationsContext = createContext<OrganizationsContextValue | null>(
 );
 
 export function OrganizationsProvider({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient();
   const hasAutoSelectedRef = useRef(false);
   const [optimisticActiveOrg, setOptimisticActiveOrg] =
     useState<Organization | null>(null);
 
-  const [
-    { data: organizationsData, isPending: isLoadingOrgs },
-    { data: activeOrganization, isPending: isLoadingActive },
-  ] = useQueries({
-    queries: [
-      {
-        queryKey: QUERY_KEYS.AUTH.organizations,
-        queryFn: async () => {
-          const result = await authClient.organization.list();
-          return result.data ?? [];
-        },
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-      },
-      {
-        queryKey: QUERY_KEYS.AUTH.activeOrganization,
-        queryFn: async () => {
-          const result = await authClient.organization.getFullOrganization();
-          return result.data ?? null;
-        },
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-      },
-    ],
-  });
+  const { data: organizationsData, isPending: isLoadingOrgs } =
+    authClient.useListOrganizations();
+
+  const {
+    data: activeOrganization,
+    isPending: isLoadingActive,
+    refetch: refetchActive,
+  } = authClient.useActiveOrganization();
 
   const organizations = organizationsData ?? [];
   const isLoading = isLoadingOrgs || isLoadingActive;
 
-  // Clear optimistic state when real data arrives
   useEffect(() => {
     if (activeOrganization) {
       setOptimisticActiveOrg(null);
     }
   }, [activeOrganization]);
 
-  // Auto-select first organization if no active organization is set
   useEffect(() => {
     if (
       !(isLoadingOrgs || isLoadingActive) &&
@@ -86,20 +65,13 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
           .setActive({ organizationId: firstOrg.id })
           .then((result) => {
             if (result.error) {
-              console.error(
-                "Failed to auto-set active organization:",
-                result.error
-              );
               setOptimisticActiveOrg(null);
               hasAutoSelectedRef.current = false;
             } else {
-              queryClient.invalidateQueries({
-                queryKey: QUERY_KEYS.AUTH.activeOrganization,
-              });
+              refetchActive();
             }
           })
-          .catch((error) => {
-            console.error("Error auto-setting active organization:", error);
+          .catch(() => {
             setOptimisticActiveOrg(null);
             hasAutoSelectedRef.current = false;
           });
@@ -113,11 +85,15 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     isLoadingActive,
     organizationsData,
     activeOrganization,
-    queryClient,
+    refetchActive,
   ]);
 
   const getOrganization = (slug: string) => {
     return organizations.find((org) => org.slug === slug);
+  };
+
+  const refetch = () => {
+    refetchActive();
   };
 
   const contextValue: OrganizationsContextValue = {
@@ -125,6 +101,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     activeOrganization: activeOrganization ?? optimisticActiveOrg,
     isLoading,
     getOrganization,
+    refetch,
   };
 
   return (

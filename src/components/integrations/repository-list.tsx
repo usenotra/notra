@@ -1,71 +1,45 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "convex/react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Repository, RepositoryListProps } from "@/types/integrations";
+import type { RepositoryListProps } from "@/types/integrations";
 import { getOutputTypeLabel } from "@/utils/output-types";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
-export function RepositoryList({
-  integrationId,
-  organizationId,
-}: RepositoryListProps) {
-  const queryClient = useQueryClient();
+export function RepositoryList({ integrationId }: RepositoryListProps) {
+  const [isToggling, setIsToggling] = useState(false);
 
-  const { data: integration, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.INTEGRATIONS.detail(integrationId),
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch repositories");
-      }
-      return response.json() as Promise<{
-        repositories: Repository[];
-      }>;
-    },
-    enabled: !!organizationId,
-  });
+  const integration = useQuery(
+    api.integrations.get,
+    integrationId
+      ? { integrationId: integrationId as Id<"githubIntegrations"> }
+      : "skip"
+  );
 
-  const toggleOutputMutation = useMutation({
-    mutationFn: async ({
-      outputId,
-      enabled,
-    }: {
-      outputId: string;
-      enabled: boolean;
-    }) => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/outputs/${outputId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update output");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.detail(integrationId),
-      });
-      toast.success("Content output updated");
-    },
-    onError: () => {
-      toast.error("Failed to update content output");
-    },
-  });
+  const toggleOutput = useMutation(api.outputs.toggle);
 
   const repositories = integration?.repositories || [];
+  const isLoading = integration === undefined;
+
+  const handleToggleOutput = async (outputId: string, enabled: boolean) => {
+    setIsToggling(true);
+    try {
+      await toggleOutput({
+        outputId: outputId as Id<"repositoryOutputs">,
+        enabled: !enabled,
+      });
+      toast.success("Content output updated");
+    } catch {
+      toast.error("Failed to update content output");
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -105,13 +79,10 @@ export function RepositoryList({
         {repository.outputs?.map((output) => (
           <button
             className="transition-all hover:scale-105"
-            disabled={toggleOutputMutation.isPending}
-            key={output.id}
+            disabled={isToggling}
+            key={output._id}
             onClick={() => {
-              toggleOutputMutation.mutate({
-                outputId: output.id,
-                enabled: !output.enabled,
-              });
+              handleToggleOutput(output._id, output.enabled);
             }}
             type="button"
           >

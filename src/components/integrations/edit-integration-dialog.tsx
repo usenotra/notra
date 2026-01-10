@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import type React from "react";
 import { isValidElement, useState } from "react";
 import { toast } from "sonner";
@@ -21,15 +21,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import type { GitHubIntegration } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import {
   type EditGitHubIntegrationFormValues,
   editGitHubIntegrationFormSchema,
 } from "@/utils/schemas/integrations";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 interface EditIntegrationDialogProps {
   integration: GitHubIntegration;
-  organizationId: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
@@ -37,7 +37,6 @@ interface EditIntegrationDialogProps {
 
 export function EditIntegrationDialog({
   integration,
-  organizationId,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   trigger,
@@ -45,41 +44,29 @@ export function EditIntegrationDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: async (values: EditGitHubIntegrationFormValues) => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integration.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-        }
-      );
+  const updateIntegration = useMutation(api.integrations.update);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update integration");
-      }
-
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.base,
+  const handleSubmit = async (values: EditGitHubIntegrationFormValues) => {
+    setIsPending(true);
+    try {
+      await updateIntegration({
+        integrationId: integration.id as Id<"githubIntegrations">,
+        displayName: values.displayName,
+        enabled: values.enabled,
       });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.detail(integration.id),
-      });
+
       toast.success("Integration updated successfully");
       setOpen(false);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update integration"
+      );
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   const form = useForm({
     defaultValues: {
@@ -91,7 +78,7 @@ export function EditIntegrationDialog({
       if (!validationResult.success) {
         return;
       }
-      mutation.mutate(validationResult.data);
+      handleSubmit(validationResult.data);
     },
   });
 
@@ -131,7 +118,7 @@ export function EditIntegrationDialog({
                   <Field>
                     <FieldLabel>Display Name</FieldLabel>
                     <Input
-                      disabled={mutation.isPending}
+                      disabled={isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="My GitHub Integration"
@@ -159,7 +146,7 @@ export function EditIntegrationDialog({
                     </div>
                     <Switch
                       checked={field.state.value}
-                      disabled={mutation.isPending}
+                      disabled={isPending}
                       onCheckedChange={(checked) => field.handleChange(checked)}
                     />
                   </div>
@@ -167,20 +154,18 @@ export function EditIntegrationDialog({
               </form.Field>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={mutation.isPending}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
               <form.Subscribe selector={(state) => [state.canSubmit]}>
                 {([canSubmit]) => (
                   <AlertDialogAction
-                    disabled={!canSubmit || mutation.isPending}
+                    disabled={!canSubmit || isPending}
                     onClick={(e) => {
                       e.preventDefault();
                       form.handleSubmit();
                     }}
                     type="button"
                   >
-                    {mutation.isPending ? "Saving..." : "Save Changes"}
+                    {isPending ? "Saving..." : "Save Changes"}
                   </AlertDialogAction>
                 )}
               </form.Subscribe>

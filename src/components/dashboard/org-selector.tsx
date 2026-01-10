@@ -6,7 +6,6 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -28,10 +27,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils";
 import { setLastVisitedOrganization } from "@/utils/cookies";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import {
   type Organization,
   useOrganizationsContext,
@@ -108,10 +106,9 @@ function OrgSelectorSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 
 export function OrgSelector() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { isMobile, state } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const { activeOrganization, organizations, isLoading } =
+  const { activeOrganization, organizations, isLoading, refetch } =
     useOrganizationsContext();
 
   const [isSwitching, setIsSwitching] = useState(false);
@@ -136,9 +133,7 @@ export function OrgSelector() {
 
       await setLastVisitedOrganization(org.slug);
 
-      await queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.AUTH.activeOrganization,
-      });
+      refetch();
 
       router.push(`/${org.slug}`);
     } catch (error) {

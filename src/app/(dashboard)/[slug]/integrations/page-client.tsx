@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
@@ -23,9 +23,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { IntegrationsResponse } from "@/lib/services/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import type { IntegrationType } from "@/utils/schemas/integrations";
+import { api } from "../../../../../convex/_generated/api";
 
 const TAB_VALUES = ["all", "installed"] as const;
 
@@ -262,27 +261,24 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     parseAsStringLiteral(TAB_VALUES).withDefault("all")
   );
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: QUERY_KEYS.INTEGRATIONS.all(organizationId ?? ""),
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations`
-      );
+  const data = useQuery(
+    api.integrations.list,
+    organizationId ? { organizationId } : "skip"
+  );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch integrations");
-      }
-
-      const result = await response.json();
-      return result as IntegrationsResponse;
-    },
-    enabled: !!organizationId,
-  });
-
-  const integrations = data?.integrations;
+  const isLoading = data === undefined;
+  const integrations = data?.integrations?.map((i) => ({
+    ...i,
+    id: i._id,
+    createdAt: new Date(i.createdAt),
+    type: "github" as IntegrationType,
+    repositories: i.repositories.map((r) => ({
+      id: r._id,
+      owner: r.owner,
+      repo: r.repo,
+      enabled: r.enabled,
+    })),
+  }));
   const installedCount = data?.count ?? 0;
 
   if (!organizationId) {
@@ -428,7 +424,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                                   icon={config?.icon}
                                   integration={integration}
                                   key={integration.id}
-                                  onUpdate={() => refetch()}
                                   organizationId={organizationId}
                                   organizationSlug={organizationSlug}
                                 />
@@ -457,7 +452,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                                   icon={config?.icon}
                                   integration={integration}
                                   key={integration.id}
-                                  onUpdate={() => refetch()}
                                   organizationId={organizationId}
                                   organizationSlug={organizationSlug}
                                 />

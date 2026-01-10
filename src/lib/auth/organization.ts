@@ -1,8 +1,13 @@
-import { and, eq } from "drizzle-orm";
+import { ConvexHttpClient } from "convex/browser";
 import { type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db/drizzle";
-import { members } from "@/lib/db/schema";
+import { api } from "../../../convex/_generated/api";
 import { getServerSession } from "./session";
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!CONVEX_URL) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
+}
+const convex = new ConvexHttpClient(CONVEX_URL);
 
 type User = NonNullable<Awaited<ReturnType<typeof getServerSession>>["user"]>;
 
@@ -42,15 +47,9 @@ export async function withOrganizationAuth(
     };
   }
 
-  const membership = await db.query.members.findFirst({
-    where: and(
-      eq(members.userId, user.id),
-      eq(members.organizationId, organizationId)
-    ),
-    columns: {
-      id: true,
-      role: true,
-    },
+  const membership = await convex.query(api.auth.getMemberByUserAndOrg, {
+    userId: user._id,
+    organizationId,
   });
 
   if (!membership) {
@@ -68,7 +67,10 @@ export async function withOrganizationAuth(
     context: {
       user,
       organizationId,
-      membership,
+      membership: {
+        id: membership._id,
+        role: membership.role,
+      },
     },
   };
 }

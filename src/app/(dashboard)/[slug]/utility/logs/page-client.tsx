@@ -2,13 +2,12 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "convex/react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { LogsResponse } from "@/types/webhook-logs";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { api } from "../../../../../../convex/_generated/api";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
@@ -23,25 +22,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.WEBHOOK_LOGS.list(organizationId ?? "", page),
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/webhook-logs?page=${page}&pageSize=10`
-      );
+  const data = useQuery(
+    api.webhook_logs.list,
+    organizationId ? { organizationId, page, pageSize: 10 } : "skip"
+  );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch webhook logs");
-      }
-
-      const result = await response.json();
-      return result as LogsResponse;
-    },
-    enabled: !!organizationId,
-  });
+  const isLoading = data === undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { isValidElement, useState } from "react";
@@ -27,11 +27,11 @@ import type {
   AddIntegrationDialogProps,
   GitHubRepoInfo,
 } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import {
   type AddGitHubIntegrationFormValues,
   addGitHubIntegrationFormSchema,
 } from "@/utils/schemas/integrations";
+import { api } from "../../../convex/_generated/api";
 
 export function AddIntegrationDialog({
   organizationId: propOrganizationId,
@@ -48,61 +48,46 @@ export function AddIntegrationDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: async (values: AddGitHubIntegrationFormValues) => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const parsed = parseGitHubUrl(values.repoUrl);
-      if (!parsed) {
-        throw new Error("Invalid GitHub repository URL");
-      }
+  const createIntegration = useMutation(api.integrations.create);
 
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            owner: parsed.owner,
-            repo: parsed.repo,
-            token: values.token?.trim() || null,
-            type: "github" as const,
-          }),
-        }
-      );
+  const handleSubmit = async (values: AddGitHubIntegrationFormValues) => {
+    if (!organizationId) {
+      throw new Error("Organization ID is required");
+    }
+    const parsed = parseGitHubUrl(values.repoUrl);
+    if (!parsed) {
+      throw new Error("Invalid GitHub repository URL");
+    }
 
-      const data = await response.json();
+    setIsPending(true);
+    try {
+      const integrationId = await createIntegration({
+        organizationId,
+        owner: parsed.owner,
+        repo: parsed.repo,
+        token: values.token?.trim() || undefined,
+      });
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create integration");
-      }
-
-      return data;
-    },
-    onSuccess: (integration) => {
-      if (organizationId) {
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.INTEGRATIONS.all(organizationId),
-        });
-      }
       toast.success("GitHub integration added successfully");
       setOpen(false);
       form.reset();
       onSuccess?.();
 
-      if (organizationSlug && integration?.id) {
+      if (organizationSlug && integrationId) {
         router.push(
-          `/${organizationSlug}/integrations/github/${integration.id}`
+          `/${organizationSlug}/integrations/github/${integrationId}`
         );
       }
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create integration"
+      );
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   const form = useForm({
     defaultValues: {
@@ -110,12 +95,11 @@ export function AddIntegrationDialog({
       token: "",
     },
     onSubmit: ({ value }) => {
-      // Validate with Zod before submitting
       const validationResult = addGitHubIntegrationFormSchema.safeParse(value);
       if (!validationResult.success) {
         return;
       }
-      mutation.mutate(validationResult.data);
+      handleSubmit(validationResult.data);
     },
   });
 
@@ -175,7 +159,7 @@ export function AddIntegrationDialog({
                   <Field>
                     <FieldLabel>GitHub Repository</FieldLabel>
                     <Input
-                      disabled={mutation.isPending}
+                      disabled={isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="https://github.com/facebook/react or facebook/react"
@@ -224,7 +208,7 @@ export function AddIntegrationDialog({
                       without a token.
                     </p>
                     <Textarea
-                      disabled={mutation.isPending}
+                      disabled={isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="ghp_... (leave empty for public repos)"
@@ -247,20 +231,18 @@ export function AddIntegrationDialog({
               </form.Field>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={mutation.isPending}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
               <form.Subscribe selector={(state) => [state.canSubmit]}>
                 {([canSubmit]) => (
                   <AlertDialogAction
-                    disabled={!canSubmit || mutation.isPending}
+                    disabled={!canSubmit || isPending}
                     onClick={(e) => {
                       e.preventDefault();
                       form.handleSubmit();
                     }}
                     type="button"
                   >
-                    {mutation.isPending ? "Adding..." : "Add Integration"}
+                    {isPending ? "Adding..." : "Add Integration"}
                   </AlertDialogAction>
                 )}
               </form.Subscribe>

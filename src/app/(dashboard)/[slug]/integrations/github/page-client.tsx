@@ -1,17 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "convex/react";
 import { AddIntegrationDialog } from "@/components/integrations/add-integration-dialog";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { GitHubIntegration } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
-
-interface IntegrationsResponse {
-  integrations: Array<GitHubIntegration & { type: string }>;
-  count: number;
-}
+import { api } from "../../../../../../convex/_generated/api";
 
 interface PageClientProps {
   organizationSlug: string;
@@ -21,35 +15,28 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
 
-  const {
-    data: response,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: QUERY_KEYS.INTEGRATIONS.all(organization?.id ?? ""),
-    queryFn: async () => {
-      if (!organization?.id) {
-        throw new Error("Organization not found");
-      }
-
-      const res = await fetch(
-        `/api/organizations/${organization.id}/integrations`
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch integrations");
-      }
-
-      return res.json() as Promise<IntegrationsResponse>;
-    },
-    enabled: !!organization?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes
-  });
-
-  const integrations = response?.integrations.filter(
-    (i) => i.type === "github"
+  const response = useQuery(
+    api.integrations.list,
+    organization?.id ? { organizationId: organization.id } : "skip"
   );
+
+  const isLoading = response === undefined;
+  const integrations = response?.integrations
+    ?.filter((i) => i.displayName)
+    .map((i) => ({
+      id: i._id,
+      displayName: i.displayName,
+      enabled: i.enabled,
+      createdAt: i.createdAt,
+      createdByUser: i.createdByUser,
+      type: "github" as const,
+      repositories: i.repositories.map((r) => ({
+        id: r._id,
+        owner: r.owner,
+        repo: r.repo,
+        enabled: r.enabled,
+      })),
+    }));
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -64,7 +51,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </p>
           </div>
           <AddIntegrationDialog
-            onSuccess={() => refetch()}
             organizationId={organization?.id ?? ""}
             organizationSlug={organizationSlug}
           />
@@ -93,8 +79,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 <IntegrationCard
                   integration={integration}
                   key={integration.id}
-                  onUpdate={() => refetch()}
-                  organizationId={organization?.id ?? ""}
                   organizationSlug={organizationSlug}
                 />
               ))}

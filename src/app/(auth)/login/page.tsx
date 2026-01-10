@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Github } from "@/components/ui/svgs/github";
 import { Google } from "@/components/ui/svgs/google";
-import { authClient } from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/auth-client";
 
 export default function Login() {
   const router = useRouter();

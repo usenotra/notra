@@ -1,7 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,86 +21,56 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { IntegrationCardProps } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 export function IntegrationCard({
   integration,
-  organizationId,
   organizationSlug,
   onUpdate,
 }: IntegrationCardProps) {
-  const queryClient = useQueryClient();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const toggleMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integration.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled }),
-        }
-      );
+  const updateIntegration = useMutation(api.integrations.update);
+  const removeIntegration = useMutation(api.integrations.remove);
 
-      if (!response.ok) {
-        throw new Error("Failed to update integration");
-      }
-
-      return response.json();
-    },
-    onSuccess: (_, enabled) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.base,
+  const handleToggle = async () => {
+    setIsLoading(true);
+    try {
+      await updateIntegration({
+        integrationId: integration.id as Id<"githubIntegrations">,
+        enabled: !integration.enabled,
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(
+        integration.enabled ? "Integration disabled" : "Integration enabled"
+      );
       onUpdate?.();
-    },
-    onError: () => {
+    } catch {
       toast.error("Failed to update integration");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integration.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete integration");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.base,
-      });
-      toast.success("Integration deleted");
-      onUpdate?.();
-    },
-    onError: () => {
-      toast.error("Failed to delete integration");
-    },
-  });
-
-  const handleToggle = () => {
-    toggleMutation.mutate(!integration.enabled);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     // biome-ignore lint: Using browser confirm for simple deletion confirmation
     if (!window.confirm("Are you sure you want to delete this integration?")) {
       return;
     }
-    deleteMutation.mutate();
+    setIsLoading(true);
+    try {
+      await removeIntegration({
+        integrationId: integration.id as Id<"githubIntegrations">,
+      });
+      toast.success("Integration deleted");
+      onUpdate?.();
+    } catch {
+      toast.error("Failed to delete integration");
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const isLoading = toggleMutation.isPending || deleteMutation.isPending;
 
   const handleCardClick = () => {
     router.push(`/${organizationSlug}/integrations/github/${integration.id}`);

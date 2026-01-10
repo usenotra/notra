@@ -35,6 +35,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["convex/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
     }
   ]
 }

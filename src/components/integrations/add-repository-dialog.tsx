@@ -1,8 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useMutation, useQuery } from "convex/react";
 import type React from "react";
 import { isValidElement, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,16 +26,17 @@ import type {
   AddRepositoryDialogProps,
   AvailableRepo,
 } from "@/types/integrations";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import {
   type AddRepositoryFormValues,
   addRepositoryFormSchema,
 } from "@/utils/schemas/integrations";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 function RepositorySelector({
   field,
   availableRepos,
-  mutation,
+  isPending,
 }: {
   field: {
     state: { value: string; meta: { errors: unknown[] } };
@@ -43,7 +44,7 @@ function RepositorySelector({
     handleChange: (value: string) => void;
   };
   availableRepos: AvailableRepo[];
-  mutation: { isPending: boolean };
+  isPending: boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const shouldVirtualize = availableRepos.length > 20;
@@ -81,7 +82,7 @@ function RepositorySelector({
                   className={`w-full px-3 py-2 text-left hover:bg-accent ${
                     field.state.value === repo.fullName ? "bg-accent" : ""
                   }`}
-                  disabled={mutation.isPending}
+                  disabled={isPending}
                   key={virtualRow.key}
                   onClick={() => field.handleChange(repo.fullName)}
                   style={{
@@ -114,7 +115,7 @@ function RepositorySelector({
     <>
       <select
         className="w-full rounded-lg border border-border bg-background px-3 py-2"
-        disabled={mutation.isPending}
+        disabled={isPending}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
         value={field.state.value}
@@ -139,7 +140,6 @@ function RepositorySelector({
 
 export function AddRepositoryDialog({
   integrationId,
-  organizationId,
   onSuccess,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
@@ -148,71 +148,53 @@ export function AddRepositoryDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  const { data: availableRepos = [], isLoading: loadingRepos } = useQuery({
-    queryKey: QUERY_KEYS.INTEGRATIONS.availableRepos(integrationId),
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}/repositories`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch repositories");
-      }
-      return response.json() as Promise<AvailableRepo[]>;
-    },
-    enabled: open && !!organizationId,
-  });
+  const availableReposResult = useQuery(
+    api.integrations.listAvailableRepos,
+    open && integrationId
+      ? { integrationId: integrationId as Id<"githubIntegrations"> }
+      : "skip"
+  );
 
-  const mutation = useMutation({
-    mutationFn: async (values: AddRepositoryFormValues) => {
-      const parsed = parseGitHubUrl(values.repository);
-      if (!parsed) {
-        throw new Error("Invalid repository format");
-      }
+  const availableRepos: AvailableRepo[] = availableReposResult ?? [];
+  const loadingRepos = availableReposResult === undefined && open;
 
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}/repositories`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            owner: parsed.owner,
-            repo: parsed.repo,
-            outputs: [
-              { type: "changelog", enabled: true },
-              { type: "blog_post", enabled: false },
-              { type: "twitter_post", enabled: false },
-              { type: "linkedin_post", enabled: false },
-              { type: "investor_update", enabled: false },
-            ],
-          }),
-        }
-      );
+  const addRepository = useMutation(api.repositories.add);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to add repository");
-      }
+  const handleSubmit = async (values: AddRepositoryFormValues) => {
+    const parsed = parseGitHubUrl(values.repository);
+    if (!parsed) {
+      throw new Error("Invalid repository format");
+    }
 
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.repositories(integrationId),
+    setIsPending(true);
+    try {
+      await addRepository({
+        integrationId: integrationId as Id<"githubIntegrations">,
+        owner: parsed.owner,
+        repo: parsed.repo,
+        outputs: [
+          { type: "changelog", enabled: true },
+          { type: "blog_post", enabled: false },
+          { type: "twitter_post", enabled: false },
+          { type: "linkedin_post", enabled: false },
+          { type: "investor_update", enabled: false },
+        ],
       });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.detail(integrationId),
-      });
+
       toast.success("Repository added successfully");
       setOpen(false);
       form.reset();
       onSuccess?.();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add repository"
+      );
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   const form = useForm({
     defaultValues: {
@@ -223,7 +205,7 @@ export function AddRepositoryDialog({
       if (!validationResult.success) {
         return;
       }
-      mutation.mutate(validationResult.data);
+      handleSubmit(validationResult.data);
     },
   });
 
@@ -278,7 +260,7 @@ export function AddRepositoryDialog({
                       <RepositorySelector
                         availableRepos={availableRepos}
                         field={field}
-                        mutation={mutation}
+                        isPending={isPending}
                       />
                     </Field>
                   );
@@ -288,7 +270,7 @@ export function AddRepositoryDialog({
                   <Field>
                     <FieldLabel>Repository</FieldLabel>
                     <Input
-                      disabled={mutation.isPending}
+                      disabled={isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="facebook/react or https://github.com/facebook/react"
@@ -311,20 +293,18 @@ export function AddRepositoryDialog({
             </form.Field>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={mutation.isPending}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
             <form.Subscribe selector={(state) => [state.canSubmit]}>
               {([canSubmit]) => (
                 <AlertDialogAction
-                  disabled={!canSubmit || mutation.isPending || loadingRepos}
+                  disabled={!canSubmit || isPending || loadingRepos}
                   onClick={(e) => {
                     e.preventDefault();
                     form.handleSubmit();
                   }}
                   type="button"
                 >
-                  {mutation.isPending ? "Adding..." : "Add Repository"}
+                  {isPending ? "Adding..." : "Add Repository"}
                 </AlertDialogAction>
               )}
             </form.Subscribe>

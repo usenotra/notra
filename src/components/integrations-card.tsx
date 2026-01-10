@@ -1,8 +1,9 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { TitleCard } from "@/components/title-card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 export interface InstalledIntegration {
   id: string;
@@ -46,84 +48,54 @@ export interface InstalledIntegrationCardProps {
 
 export function InstalledIntegrationCard({
   integration,
-  organizationId,
+  organizationId: _organizationId,
   organizationSlug,
   icon,
   accentColor,
   onUpdate,
 }: InstalledIntegrationCardProps) {
-  const queryClient = useQueryClient();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const toggleMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integration.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled }),
-        }
-      );
+  const updateIntegration = useMutation(api.integrations.update);
+  const removeIntegration = useMutation(api.integrations.remove);
 
-      if (!response.ok) {
-        throw new Error("Failed to update integration");
-      }
-
-      return response.json();
-    },
-    onSuccess: (_, enabled) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.base,
+  const handleToggle = async () => {
+    setIsLoading(true);
+    try {
+      await updateIntegration({
+        integrationId: integration.id as Id<"githubIntegrations">,
+        enabled: !integration.enabled,
       });
-      toast.success(enabled ? "Integration enabled" : "Integration disabled");
+      toast.success(
+        integration.enabled ? "Integration disabled" : "Integration enabled"
+      );
       onUpdate?.();
-    },
-    onError: () => {
+    } catch {
       toast.error("Failed to update integration");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integration.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete integration");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.INTEGRATIONS.base,
-      });
-      toast.success("Integration deleted");
-      onUpdate?.();
-    },
-    onError: () => {
-      toast.error("Failed to delete integration");
-    },
-  });
-
-  const handleToggle = () => {
-    toggleMutation.mutate(!integration.enabled);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = () => {
-    // biome-ignore lint: Using browser confirm for simple deletion confirmation
+  const handleDelete = async () => {
+    // biome-ignore lint/suspicious/noAlert: Using browser confirm for simple deletion confirmation
     if (!window.confirm("Are you sure you want to delete this integration?")) {
       return;
     }
-    deleteMutation.mutate();
+    setIsLoading(true);
+    try {
+      await removeIntegration({
+        integrationId: integration.id as Id<"githubIntegrations">,
+      });
+      toast.success("Integration deleted");
+      onUpdate?.();
+    } catch {
+      toast.error("Failed to delete integration");
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const isLoading = toggleMutation.isPending || deleteMutation.isPending;
 
   const handleCardClick = () => {
     router.push(
@@ -141,12 +113,12 @@ export function InstalledIntegrationCard({
     <TitleCard
       accentColor={accentColor}
       action={
-        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier
-        // biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier
+        // biome-ignore lint/a11y/noStaticElementInteractions: Container for dropdown, needs to stop propagation
         <div
           className="flex items-center gap-1.5 sm:gap-2"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
         >
           <Badge variant={integration.enabled ? "default" : "secondary"}>
             {integration.enabled ? "Enabled" : "Disabled"}

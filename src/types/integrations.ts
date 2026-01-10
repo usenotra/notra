@@ -75,12 +75,10 @@ export interface AddRepositoryDialogProps {
 
 export interface IntegrationCardProps {
   integration: GitHubIntegration;
-  organizationId: string;
   organizationSlug: string;
   onUpdate?: () => void;
 }
 
 export interface RepositoryListProps {
   integrationId: string;
-  organizationId: string;
 }

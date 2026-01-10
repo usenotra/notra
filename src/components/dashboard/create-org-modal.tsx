@@ -1,7 +1,6 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,10 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/auth-client";
 import { generateOrganizationAvatar, slugify } from "@/lib/utils";
 import { setLastVisitedOrganization } from "@/utils/cookies";
-import { QUERY_KEYS } from "@/utils/query-keys";
 import { createOrganizationSchema } from "@/utils/schemas/organization";
 
 interface CreateOrgModalProps {
@@ -29,7 +27,6 @@ interface CreateOrgModalProps {
 
 export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
 
   const form = useForm({
@@ -67,15 +64,6 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
         });
 
         await setLastVisitedOrganization(data.slug);
-
-        await Promise.allSettled([
-          queryClient.invalidateQueries({
-            queryKey: QUERY_KEYS.AUTH.organizations,
-          }),
-          queryClient.invalidateQueries({
-            queryKey: QUERY_KEYS.AUTH.activeOrganization,
-          }),
-        ]);
 
         toast.success("Organization created successfully");
 

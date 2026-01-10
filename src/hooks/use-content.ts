@@ -1,25 +1,41 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/utils/query-keys";
+import { useQuery } from "convex/react";
 import type { ContentResponse } from "@/utils/schemas/content";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 interface ContentApiResponse {
   content: ContentResponse;
 }
 
-export function useContent(organizationId: string, contentId: string) {
-  return useQuery({
-    queryKey: QUERY_KEYS.CONTENT.detail(organizationId, contentId),
-    queryFn: async (): Promise<ContentApiResponse> => {
-      const res = await fetch(
-        `/api/organizations/${organizationId}/content/${contentId}`
-      );
-      if (!res.ok) {
-        throw new Error("Failed to fetch content");
+export function useContent(_organizationId: string, contentId: string) {
+  const data = useQuery(
+    api.posts.get,
+    contentId ? { postId: contentId as Id<"posts"> } : "skip"
+  );
+
+  const content: ContentApiResponse | undefined = data
+    ? {
+        content: {
+          id: data._id,
+          title: data.title,
+          content: data.content,
+          markdown: data.markdown,
+          contentType: data.contentType as
+            | "changelog"
+            | "blog_post"
+            | "twitter_post"
+            | "linkedin_post"
+            | "investor_update",
+          date: new Date(data._creationTime).toISOString(),
+        },
       }
-      return res.json();
-    },
-    enabled: !!organizationId && !!contentId,
-  });
+    : undefined;
+
+  return {
+    data: content,
+    isLoading: data === undefined && !!contentId,
+    error: null,
+  };
 }

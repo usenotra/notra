@@ -1,1 +1,0 @@
-ALTER TABLE "brand_settings" DROP COLUMN "source_url";

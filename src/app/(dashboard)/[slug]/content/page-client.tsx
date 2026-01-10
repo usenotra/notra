@@ -5,7 +5,7 @@ import { ContentCard } from "@/components/content/content-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePosts } from "@/hooks/use-posts";
-import type { ContentType, Post } from "@/utils/schemas/content";
+import type { ContentType } from "@/utils/schemas/content";
 
 interface PageClientProps {
   organizationSlug: string;
@@ -21,8 +21,16 @@ function formatDateHeading(dateString: string): string {
   }).format(date);
 }
 
-function groupPostsByDate(posts: Post[]): Map<string, Post[]> {
-  const groups = new Map<string, Post[]>();
+interface PostItem {
+  id: string;
+  title: string;
+  markdown: string;
+  contentType: string;
+  createdAt: string;
+}
+
+function groupPostsByDate(posts: PostItem[]): Map<string, PostItem[]> {
+  const groups = new Map<string, PostItem[]>();
 
   for (const post of posts) {
     const date = new Date(post.createdAt);
@@ -96,14 +104,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       : orgFromList;
   const organizationId = organization?.id ?? "";
 
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    isError,
-  } = usePosts(organizationId);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    usePosts(organizationId);
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -144,12 +146,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         </div>
 
         {isLoading && <PostsSkeleton />}
-
-        {isError && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-            Failed to load posts. Please try again.
-          </div>
-        )}
 
         {!isLoading && allPosts.length === 0 && (
           <div className="rounded-lg border border-dashed p-8 text-center">

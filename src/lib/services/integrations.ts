@@ -6,7 +6,7 @@ export interface IntegrationWithRepositories {
   displayName: string;
   type: IntegrationType;
   enabled: boolean;
-  createdAt: Date;
+  createdAt: string;
   repositories: Array<{
     id: string;
     owner: string;
@@ -32,13 +32,13 @@ const integrationFetchers: Partial<
       await getGitHubIntegrationsByOrganization(organizationId);
 
     return integrations.map((integration) => ({
-      id: integration.id,
+      id: integration._id,
       displayName: integration.displayName,
       type: "github" as const,
       enabled: integration.enabled,
       createdAt: integration.createdAt,
       repositories: integration.repositories.map((repo) => ({
-        id: repo.id,
+        id: repo._id,
         owner: repo.owner,
         repo: repo.repo,
         enabled: repo.enabled,

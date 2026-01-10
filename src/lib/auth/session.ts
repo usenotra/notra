@@ -1,13 +1,19 @@
-import { auth } from "@/lib/auth/server";
+import { api } from "../../../convex/_generated/api";
+import { fetchAuthQuery } from "./auth-server";
 
 interface GetServerSessionParams {
   headers: Headers;
 }
 
-export async function getServerSession({ headers }: GetServerSessionParams) {
-  const data = await auth.api.getSession({ headers }).catch((error) => {
+export async function getServerSession(_params: GetServerSessionParams) {
+  try {
+    const user = await fetchAuthQuery(api.auth.getCurrentUser, {});
+    if (!user) {
+      return { session: null, user: null };
+    }
+    return { session: { userId: user._id }, user };
+  } catch (error) {
     console.error("Error getting server session", error);
-    return null;
-  });
-  return { session: data?.session, user: data?.user };
+    return { session: null, user: null };
+  }
 }

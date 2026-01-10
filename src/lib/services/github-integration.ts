@@ -1,17 +1,15 @@
-import { and, eq } from "drizzle-orm";
-import { customAlphabet } from "nanoid";
+import { ConvexHttpClient } from "convex/browser";
 import { decryptToken, encryptToken } from "@/lib/crypto/token-encryption";
-import { db } from "@/lib/db/drizzle";
-import {
-  githubIntegrations,
-  githubRepositories,
-  members,
-  repositoryOutputs,
-} from "@/lib/db/schema";
 import type { OutputContentType } from "@/utils/schemas/integrations";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { createOctokit } from "../octokit";
 
-const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!CONVEX_URL) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
+}
+const convex = new ConvexHttpClient(CONVEX_URL);
 
 interface CreateGitHubIntegrationParams {
   organizationId: string;
@@ -33,37 +31,28 @@ interface AddRepositoryParams {
   }>;
 }
 
-interface ConfigureOutputParams {
-  repositoryId: string;
-  outputType: OutputContentType;
-  enabled: boolean;
-  config?: Record<string, unknown>;
-}
-
 export async function validateUserOrgAccess(
   userId: string,
   organizationId: string
 ): Promise<boolean> {
-  const member = await db.query.members.findFirst({
-    where: and(
-      eq(members.userId, userId),
-      eq(members.organizationId, organizationId)
-    ),
+  const membership = await convex.query(api.auth.getMemberByUserAndOrg, {
+    userId,
+    organizationId,
   });
-  return !!member;
+  return !!membership;
 }
 
 export async function createGitHubIntegration(
   params: CreateGitHubIntegrationParams
 ) {
-  const { organizationId, userId, token, displayName, owner, repo } = params;
+  const { organizationId, userId, token, owner, repo } = params;
 
   const hasAccess = await validateUserOrgAccess(userId, organizationId);
   if (!hasAccess) {
     throw new Error("User does not have access to this organization");
   }
 
-  let encryptedToken: string | null = null;
+  let encryptedToken: string | undefined;
 
   if (token) {
     const octokit = createOctokit(token);
@@ -93,101 +82,26 @@ export async function createGitHubIntegration(
     }
   }
 
-  const [integration] = await db
-    .insert(githubIntegrations)
-    .values({
-      id: nanoid(),
-      organizationId,
-      createdByUserId: userId,
-      encryptedToken,
-      displayName,
-      enabled: true,
-    })
-    .returning();
-
-  const [repository] = await db
-    .insert(githubRepositories)
-    .values({
-      id: nanoid(),
-      integrationId: integration.id,
-      owner,
-      repo,
-      enabled: true,
-    })
-    .returning();
-
-  await db.insert(repositoryOutputs).values([
-    {
-      id: nanoid(),
-      repositoryId: repository.id,
-      outputType: "changelog",
-      enabled: true,
-      config: null,
-    },
-    {
-      id: nanoid(),
-      repositoryId: repository.id,
-      outputType: "blog_post",
-      enabled: false,
-      config: null,
-    },
-    {
-      id: nanoid(),
-      repositoryId: repository.id,
-      outputType: "twitter_post",
-      enabled: false,
-      config: null,
-    },
-  ]);
-
-  const fullIntegration = await getGitHubIntegrationById(integration.id);
-  if (!fullIntegration) {
-    throw new Error("Failed to retrieve created integration");
-  }
-
-  return fullIntegration;
-}
-
-export function getGitHubIntegrationsByOrganization(organizationId: string) {
-  return db.query.githubIntegrations.findMany({
-    where: eq(githubIntegrations.organizationId, organizationId),
-    with: {
-      createdByUser: {
-        columns: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-      repositories: {
-        with: {
-          outputs: true,
-        },
-      },
-    },
+  const integrationId = await convex.mutation(api.integrations.create, {
+    organizationId,
+    owner,
+    repo,
+    token: encryptedToken,
   });
+
+  return getGitHubIntegrationById(integrationId);
 }
 
-export function getGitHubIntegrationById(integrationId: string) {
-  return db.query.githubIntegrations.findFirst({
-    where: eq(githubIntegrations.id, integrationId),
-    with: {
-      organization: true,
-      createdByUser: {
-        columns: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-      repositories: {
-        with: {
-          outputs: true,
-        },
-      },
-    },
+export async function getGitHubIntegrationsByOrganization(
+  organizationId: string
+) {
+  const result = await convex.query(api.integrations.list, { organizationId });
+  return result?.integrations || [];
+}
+
+export async function getGitHubIntegrationById(integrationId: string) {
+  return await convex.query(api.integrations.get, {
+    integrationId: integrationId as Id<"githubIntegrations">,
   });
 }
 
@@ -210,11 +124,15 @@ export async function getDecryptedToken(
     throw new Error("User does not have access to this integration");
   }
 
-  if (!integration.encryptedToken) {
+  const token = await convex.query(api.integrations.getIntegrationToken, {
+    integrationId: integrationId as Id<"githubIntegrations">,
+  });
+
+  if (!token) {
     return null;
   }
 
-  return decryptToken(integration.encryptedToken);
+  return decryptToken(token);
 }
 
 export async function addRepository(
@@ -236,147 +154,69 @@ export async function addRepository(
     throw new Error("User does not have access to this integration");
   }
 
-  const [repository] = await db
-    .insert(githubRepositories)
-    .values({
-      id: nanoid(),
-      integrationId,
-      owner,
-      repo,
-      enabled: true,
-    })
-    .returning();
-
-  if (outputs.length > 0) {
-    await db.insert(repositoryOutputs).values(
-      outputs.map((output) => ({
-        id: nanoid(),
-        repositoryId: repository.id,
-        outputType: output.type,
-        enabled: output.enabled ?? true,
-        config: output.config,
-      }))
-    );
-  }
-
-  return repository;
-}
-
-export function getRepositoryById(repositoryId: string) {
-  return db.query.githubRepositories.findFirst({
-    where: eq(githubRepositories.id, repositoryId),
-    with: {
-      integration: true,
-      outputs: true,
-    },
-  });
-}
-
-export function getOutputById(outputId: string) {
-  return db.query.repositoryOutputs.findFirst({
-    where: eq(repositoryOutputs.id, outputId),
-    with: {
-      repository: {
-        with: {
-          integration: true,
-        },
-      },
-    },
-  });
-}
-
-export async function configureOutput(params: ConfigureOutputParams) {
-  const { repositoryId, outputType, enabled, config } = params;
-
-  const existing = await db.query.repositoryOutputs.findFirst({
-    where: and(
-      eq(repositoryOutputs.repositoryId, repositoryId),
-      eq(repositoryOutputs.outputType, outputType)
-    ),
+  const repositoryId = await convex.mutation(api.repositories.add, {
+    integrationId: integrationId as Id<"githubIntegrations">,
+    owner,
+    repo,
+    outputs: outputs.map((o) => ({
+      type: o.type,
+      enabled: o.enabled ?? true,
+    })),
   });
 
-  if (existing) {
-    const [updated] = await db
-      .update(repositoryOutputs)
-      .set({
-        enabled,
-        config,
-      })
-      .where(eq(repositoryOutputs.id, existing.id))
-      .returning();
-    return updated;
-  }
+  return { id: repositoryId, owner, repo };
+}
 
-  const [created] = await db
-    .insert(repositoryOutputs)
-    .values({
-      id: nanoid(),
-      repositoryId,
-      outputType,
-      enabled,
-      config,
-    })
-    .returning();
-
-  return created;
+export async function getRepositoryById(repositoryId: string) {
+  return await convex.query(api.repositories.get, {
+    repositoryId: repositoryId as Id<"githubRepositories">,
+  });
 }
 
 export async function toggleGitHubIntegration(
   integrationId: string,
   enabled: boolean
 ) {
-  const [updated] = await db
-    .update(githubIntegrations)
-    .set({ enabled })
-    .where(eq(githubIntegrations.id, integrationId))
-    .returning();
-
-  return updated;
+  await convex.mutation(api.integrations.update, {
+    integrationId: integrationId as Id<"githubIntegrations">,
+    enabled,
+  });
 }
 
 export async function updateGitHubIntegration(
   integrationId: string,
   data: { enabled?: boolean; displayName?: string }
 ) {
-  const [updated] = await db
-    .update(githubIntegrations)
-    .set(data)
-    .where(eq(githubIntegrations.id, integrationId))
-    .returning();
-
-  return updated;
+  await convex.mutation(api.integrations.update, {
+    integrationId: integrationId as Id<"githubIntegrations">,
+    ...data,
+  });
 }
 
 export async function toggleRepository(repositoryId: string, enabled: boolean) {
-  const [updated] = await db
-    .update(githubRepositories)
-    .set({ enabled })
-    .where(eq(githubRepositories.id, repositoryId))
-    .returning();
-
-  return updated;
+  await convex.mutation(api.repositories.update, {
+    repositoryId: repositoryId as Id<"githubRepositories">,
+    enabled,
+  });
 }
 
 export async function toggleOutput(outputId: string, enabled: boolean) {
-  const [updated] = await db
-    .update(repositoryOutputs)
-    .set({ enabled })
-    .where(eq(repositoryOutputs.id, outputId))
-    .returning();
-
-  return updated;
+  await convex.mutation(api.outputs.toggle, {
+    outputId: outputId as Id<"repositoryOutputs">,
+    enabled,
+  });
 }
 
 export async function deleteGitHubIntegration(integrationId: string) {
-  await db
-    .delete(githubIntegrations)
-    .where(eq(githubIntegrations.id, integrationId));
+  await convex.mutation(api.integrations.remove, {
+    integrationId: integrationId as Id<"githubIntegrations">,
+  });
 }
 
 export async function deleteRepository(repositoryId: string) {
-  await db
-    .delete(githubRepositories)
-    .where(eq(githubRepositories.id, repositoryId));
+  await convex.mutation(api.repositories.remove, {
+    repositoryId: repositoryId as Id<"githubRepositories">,
+  });
 }
 
 export async function listAvailableRepositories(
@@ -413,35 +253,28 @@ export async function getTokenForRepository(
   owner: string,
   repo: string
 ): Promise<string | undefined> {
-  const repository = await db.query.githubRepositories.findFirst({
-    where: and(
-      eq(githubRepositories.owner, owner),
-      eq(githubRepositories.repo, repo)
-    ),
-    with: {
-      integration: true,
-    },
+  const repository = await convex.query(api.repositories.getByOwnerRepo, {
+    owner,
+    repo,
   });
 
-  if (
-    !(repository?.integration?.encryptedToken && repository.integration.enabled)
-  ) {
+  if (!(repository?.encryptedToken && repository.integrationEnabled)) {
     return undefined;
   }
 
-  return decryptToken(repository.integration.encryptedToken);
+  return decryptToken(repository.encryptedToken);
 }
 
 export async function getTokenForIntegrationId(
   integrationId: string
 ): Promise<string | null> {
-  const integration = await db.query.githubIntegrations.findFirst({
-    where: eq(githubIntegrations.id, integrationId),
+  const token = await convex.query(api.integrations.getIntegrationToken, {
+    integrationId: integrationId as Id<"githubIntegrations">,
   });
 
-  if (!integration?.encryptedToken) {
+  if (!token) {
     return null;
   }
 
-  return decryptToken(integration.encryptedToken);
+  return decryptToken(token);
 }

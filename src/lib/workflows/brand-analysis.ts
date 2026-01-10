@@ -2,16 +2,18 @@
 
 import { SdkError } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
-import { eq } from "drizzle-orm";
+import { ConvexHttpClient } from "convex/browser";
 import { FatalError } from "workflow";
-import { db } from "@/lib/db/drizzle";
-import { brandSettings, organizations } from "@/lib/db/schema";
 import { firecrawl } from "@/lib/firecrawl";
 import { openrouter } from "@/lib/openrouter";
-import { redis } from "@/lib/redis";
 import { brandSettingsSchema } from "@/utils/schemas/brand";
+import { api } from "../../../convex/_generated/api";
 
-const PROGRESS_TTL = 300;
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!CONVEX_URL) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
+}
+const convex = new ConvexHttpClient(CONVEX_URL);
 
 type ProgressStatus =
   | "idle"
@@ -21,23 +23,33 @@ type ProgressStatus =
   | "completed"
   | "failed";
 
-interface ProgressData {
-  status: ProgressStatus;
-  currentStep: number;
-  totalSteps: number;
-  error?: string;
-}
-
 interface ErrorDetail {
   code: string;
   path: string[];
   message: string;
 }
 
-async function setProgress(organizationId: string, data: ProgressData) {
+type ConvexProgressStatus = "idle" | "analyzing" | "completed" | "failed";
+
+function mapStatusToConvex(status: ProgressStatus): ConvexProgressStatus {
+  if (status === "scraping" || status === "extracting" || status === "saving") {
+    return "analyzing";
+  }
+  return status as ConvexProgressStatus;
+}
+
+async function setProgress(
+  organizationId: string,
+  status: ProgressStatus,
+  currentStep: number,
+  error?: string
+) {
   "use step";
-  await redis.set(`brand:progress:${organizationId}`, data, {
-    ex: PROGRESS_TTL,
+  await convex.mutation(api.brand.setProgress, {
+    organizationId,
+    status: mapStatusToConvex(status),
+    progress: currentStep,
+    error,
   });
 }
 
@@ -45,54 +57,38 @@ export async function analyzeBrand(organizationId: string, url: string) {
   "use workflow";
   let status: ProgressStatus = "idle";
   let currentStep = 0;
-  const STEP_COUNT = 3;
+  const _STEP_COUNT = 3;
 
   try {
     status = "scraping";
     currentStep++;
-    await setProgress(organizationId, {
-      status,
-      currentStep,
-      totalSteps: STEP_COUNT,
-    });
+    await setProgress(organizationId, status, currentStep);
 
     const content = await scrapeWebsite(url);
 
     status = "extracting";
     currentStep++;
-    await setProgress(organizationId, {
-      status,
-      currentStep,
-      totalSteps: STEP_COUNT,
-    });
+    await setProgress(organizationId, status, currentStep);
 
     const brandInfo = await extractBrandInfo(content);
 
     status = "saving";
     currentStep++;
-    await setProgress(organizationId, {
-      status,
-      currentStep,
-      totalSteps: STEP_COUNT,
-    });
+    await setProgress(organizationId, status, currentStep);
 
-    await saveToDatabase(organizationId, url, brandInfo);
+    await saveToDatabase(organizationId, brandInfo);
 
     status = "completed";
-    await setProgress(organizationId, {
-      status,
-      currentStep,
-      totalSteps: STEP_COUNT,
-    });
+    await setProgress(organizationId, status, currentStep);
 
     return brandInfo;
   } catch (error) {
-    await setProgress(organizationId, {
-      status: "failed",
+    await setProgress(
+      organizationId,
+      "failed",
       currentStep,
-      totalSteps: STEP_COUNT,
-      error: `Unknown error while performing '${status}' step`,
-    });
+      `Unknown error while performing '${status}' step`
+    );
 
     throw error;
   }
@@ -153,42 +149,15 @@ interface BrandInfo {
   audience: string;
 }
 
-async function saveToDatabase(
-  organizationId: string,
-  url: string,
-  brandInfo: BrandInfo
-) {
+async function saveToDatabase(organizationId: string, brandInfo: BrandInfo) {
   "use step";
 
-  await db
-    .update(organizations)
-    .set({ websiteUrl: url })
-    .where(eq(organizations.id, organizationId));
-
-  const existing = await db.query.brandSettings.findFirst({
-    where: eq(brandSettings.organizationId, organizationId),
+  await convex.mutation(api.brand.upsert, {
+    organizationId,
+    companyName: brandInfo.companyName,
+    companyDescription: brandInfo.companyDescription,
+    toneProfile: brandInfo.toneProfile,
+    customTone: brandInfo.customTone ?? undefined,
+    audience: brandInfo.audience,
   });
-
-  if (existing) {
-    await db
-      .update(brandSettings)
-      .set({
-        companyName: brandInfo.companyName,
-        companyDescription: brandInfo.companyDescription,
-        toneProfile: brandInfo.toneProfile,
-        customTone: brandInfo.customTone ?? null,
-        audience: brandInfo.audience,
-      })
-      .where(eq(brandSettings.organizationId, organizationId));
-  } else {
-    await db.insert(brandSettings).values({
-      id: crypto.randomUUID(),
-      organizationId,
-      companyName: brandInfo.companyName,
-      companyDescription: brandInfo.companyDescription,
-      toneProfile: brandInfo.toneProfile,
-      customTone: brandInfo.customTone ?? null,
-      audience: brandInfo.audience,
-    });
-  }
 }

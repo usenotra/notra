@@ -1,62 +1,98 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { cookies, headers } from "next/headers";
+import { ConvexHttpClient } from "convex/browser";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth/server";
-import { db } from "@/lib/db/drizzle";
-import { members, organizations } from "@/lib/db/schema";
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/utils/constants";
+import { api } from "../../../convex/_generated/api";
+import { fetchAuthQuery } from "./auth-server";
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!CONVEX_URL) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
+}
+const convex = new ConvexHttpClient(CONVEX_URL);
 
 export async function validateOrganizationAccess(slug: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await fetchAuthQuery(api.auth.getCurrentUser, {});
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
-  const organization = await db.query.organizations.findFirst({
-    where: eq(organizations.slug, slug),
-    with: {
-      members: {
-        where: eq(members.userId, session.user.id),
-      },
-    },
+  const organization = await convex.query(api.auth.getOrganizationBySlug, {
+    slug,
   });
 
-  if (!organization || organization.members.length === 0) {
+  if (!organization) {
+    notFound();
+  }
+
+  const membership = await convex.query(api.auth.getMemberByUserAndOrg, {
+    userId: user._id,
+    organizationId: organization._id,
+  });
+
+  if (!membership) {
     notFound();
   }
 
   return {
-    organization,
-    user: session.user,
-    member: organization.members[0],
+    organization: {
+      id: organization._id,
+      name: organization.name,
+      slug: organization.slug,
+    },
+    user: {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    },
+    member: {
+      id: membership._id,
+      role: membership.role,
+    },
   };
 }
 
 export async function getSession() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await fetchAuthQuery(api.auth.getCurrentUser, {});
 
-  return session;
+  if (!user) {
+    return null;
+  }
+
+  return {
+    user: {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    },
+    session: {
+      userId: user._id,
+    },
+  };
 }
 
 export async function requireAuth() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await fetchAuthQuery(api.auth.getCurrentUser, {});
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
   return {
-    session: session.session,
-    user: session.user,
+    session: {
+      userId: user._id,
+    },
+    user: {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    },
   };
 }
 
@@ -67,36 +103,33 @@ export async function getLastActiveOrganization(userId: string) {
   )?.value;
 
   if (lastVisitedOrgSlug) {
-    const organization = await db.query.organizations.findFirst({
-      where: eq(organizations.slug, lastVisitedOrgSlug),
-      columns: { slug: true, id: true },
-      with: {
-        members: {
-          where: eq(members.userId, userId),
-          columns: { id: true },
-        },
-      },
+    const organization = await convex.query(api.auth.getOrganizationBySlug, {
+      slug: lastVisitedOrgSlug,
     });
 
-    if (organization && organization.members.length > 0) {
-      return { slug: organization.slug, id: organization.id };
+    if (organization) {
+      const membership = await convex.query(api.auth.getMemberByUserAndOrg, {
+        userId,
+        organizationId: organization._id,
+      });
+
+      if (membership) {
+        return { slug: organization.slug, id: organization._id };
+      }
     }
   }
 
-  const ownerMembership = await db.query.members.findFirst({
-    where: eq(members.userId, userId),
-    columns: { organizationId: true, role: true },
-    orderBy: (m, { desc }) => [desc(m.createdAt)],
+  const membership = await convex.query(api.auth.getFirstMembershipForUser, {
+    userId,
   });
 
-  if (ownerMembership) {
-    const org = await db.query.organizations.findFirst({
-      where: eq(organizations.id, ownerMembership.organizationId),
-      columns: { slug: true, id: true },
+  if (membership) {
+    const org = await convex.query(api.auth.getOrganizationById, {
+      organizationId: membership.organizationId,
     });
 
     if (org) {
-      return { slug: org.slug, id: org.id };
+      return { slug: org.slug, id: org._id };
     }
   }
 

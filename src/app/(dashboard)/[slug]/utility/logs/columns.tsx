@@ -4,26 +4,17 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   ArrowUpDownIcon,
-  Link04Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Github } from "@/components/ui/svgs/github";
-import { Linear } from "@/components/ui/svgs/linear";
-import { Slack } from "@/components/ui/svgs/slack";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type {
-  IntegrationType,
-  Log,
-  LogDirection,
-  StatusWithCode,
-} from "@/types/webhook-logs";
+import type { Log } from "@/types/webhook-logs";
 
 const columnHelper = createColumnHelper<Log>();
 
@@ -37,17 +28,29 @@ function formatDate(dateString: string): string {
   }).format(date);
 }
 
-function StatusBadge({ status }: { status: StatusWithCode }) {
-  const variants: Record<
-    StatusWithCode["label"],
-    "default" | "destructive" | "secondary"
-  > = {
-    success: "default",
-    failed: "destructive",
-    pending: "secondary",
-  };
+function getStatusVariant(
+  status: number
+): "default" | "destructive" | "secondary" {
+  if (status >= 200 && status < 300) {
+    return "default";
+  }
+  if (status >= 400) {
+    return "destructive";
+  }
+  return "secondary";
+}
 
-  return <Badge variant={variants[status.label]}>{status.label}</Badge>;
+function getStatusLabel(status: number): string {
+  if (status >= 200 && status < 300) {
+    return "success";
+  }
+  if (status >= 400 && status < 500) {
+    return "client error";
+  }
+  if (status >= 500) {
+    return "server error";
+  }
+  return "pending";
 }
 
 function getSortIcon(isSorted: false | "asc" | "desc") {
@@ -60,82 +63,34 @@ function getSortIcon(isSorted: false | "asc" | "desc") {
   return ArrowUpDownIcon;
 }
 
-function DirectionBadge({ direction }: { direction: LogDirection }) {
-  return (
-    <Badge className="capitalize" variant="outline">
-      {direction}
-    </Badge>
-  );
-}
-
-function IntegrationIcon({ type }: { type: IntegrationType }) {
-  switch (type) {
-    case "github":
-      return <Github className="size-4" />;
-    case "linear":
-      return <Linear className="size-4" />;
-    case "slack":
-      return <Slack className="size-4" />;
-    case "webhook":
-      return (
-        <HugeiconsIcon
-          className="size-4 text-muted-foreground"
-          icon={Link04Icon}
-        />
-      );
-    default: {
-      return type;
-    }
-  }
-}
-
 export const columns = [
-  columnHelper.accessor("title", {
-    header: "Title",
-    cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+  columnHelper.accessor("method", {
+    header: "Method",
+    cell: (info) => (
+      <Badge className="font-mono" variant="outline">
+        {info.getValue()}
+      </Badge>
+    ),
   }),
-  columnHelper.accessor("integrationType", {
-    header: "Integration",
-    cell: (info) => {
-      const type = info.getValue();
-      return (
-        <div className="flex items-center gap-2">
-          <IntegrationIcon type={type} />
-          <span className="capitalize">{type}</span>
-        </div>
-      );
-    },
-  }),
-  columnHelper.accessor("direction", {
-    header: "Direction",
-    cell: (info) => <DirectionBadge direction={info.getValue()} />,
+  columnHelper.accessor("path", {
+    header: "Path",
+    cell: (info) => (
+      <span className="font-mono text-sm">{info.getValue()}</span>
+    ),
   }),
   columnHelper.accessor("status", {
     header: "Status",
     cell: (info) => {
-      const label = info.getValue();
-      const code = info.row.original.statusCode;
-      const status = { label, code } as StatusWithCode;
+      const status = info.getValue();
       return (
         <Tooltip>
           <TooltipTrigger>
-            <StatusBadge status={status} />
+            <Badge variant={getStatusVariant(status)}>
+              {getStatusLabel(status)}
+            </Badge>
           </TooltipTrigger>
-          <TooltipContent>
-            {status.code !== null ? `Status code: ${status.code}` : "Pending"}
-          </TooltipContent>
+          <TooltipContent>Status code: {status}</TooltipContent>
         </Tooltip>
-      );
-    },
-  }),
-  columnHelper.accessor("referenceId", {
-    header: "Reference ID",
-    cell: (info) => {
-      const refId = info.getValue();
-      return (
-        <span className="font-mono text-muted-foreground text-sm">
-          {refId ?? "-"}
-        </span>
       );
     },
   }),
