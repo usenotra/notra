@@ -147,12 +147,15 @@ export const upsert = mutation({
     }
 
     return await ctx.db.insert("brandSettings", data);
+  return await ctx.db.insert("brandSettings", data);
+
   },
+
 });
 
 // Internal mutation for workflow system - no auth check needed as this is called
 // from server-side workflow handlers that don't have user context
-export const setProgress = mutation({
+export const setProgress = internalMutation({
   args: {
     organizationId: v.string(),
     status: v.union(
