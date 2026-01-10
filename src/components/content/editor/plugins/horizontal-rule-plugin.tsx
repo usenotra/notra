@@ -10,8 +10,6 @@ import { $insertNodeToNearestRoot } from "@lexical/utils";
 import { COMMAND_PRIORITY_EDITOR } from "lexical";
 import { useEffect } from "react";
 
-export { HorizontalRuleNode };
-
 export function HorizontalRulePlugin(): null {
   const [editor] = useLexicalComposerContext();
 
