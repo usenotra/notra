@@ -272,9 +272,9 @@ export default function KiboCodeBlockComponent({
           </div>
         </CodeBlockHeader>
         <CodeBlockBody>
-          {() =>
+          {(item) =>
             isEditing ? (
-              <div className="relative">
+              <div className="relative" key={item.language}>
                 <textarea
                   className="min-h-[100px] w-full resize-none bg-transparent p-4 font-mono text-sm outline-none"
                   onChange={(e) => setEditedCode(e.target.value)}
@@ -285,7 +285,11 @@ export default function KiboCodeBlockComponent({
                 />
               </div>
             ) : (
-              <CodeBlockItem lineNumbers value={normalizedLanguage}>
+              <CodeBlockItem
+                key={item.language}
+                lineNumbers
+                value={normalizedLanguage}
+              >
                 <CodeBlockContent
                   language={normalizedLanguage as BundledLanguage}
                 >
