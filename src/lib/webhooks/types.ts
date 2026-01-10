@@ -1,7 +1,10 @@
 import type { NextRequest } from "next/server";
 
+import type { NextRequest } from "next/server";
+import type { InputIntegrationType } from "@/utils/schemas/integrations";
+
 export interface WebhookContext {
-  provider: string;
+  provider: InputIntegrationType;
   organizationId: string;
   integrationId: string;
   request: NextRequest;
