@@ -129,17 +129,4 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       { status: 500 }
     );
   }
-
-  if (!result.success) {
-    return NextResponse.json(
-      { error: result.message ?? "Webhook processing failed" },
-      { status: 400 }
-    );
-  }
-
-  return NextResponse.json({
-    received: true,
-    message: result.message,
-    data: result.data,
-  });
 }
