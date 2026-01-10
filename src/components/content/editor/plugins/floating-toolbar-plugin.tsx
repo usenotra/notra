@@ -51,6 +51,7 @@ function FloatingToolbar({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
   const [linkUrl, setLinkUrl] = useState("https://");
+  const [isEditingExistingLink, setIsEditingExistingLink] = useState(false);
 
   const updatePosition = useCallback(() => {
     const selection = window.getSelection();
@@ -141,11 +142,13 @@ function FloatingToolbar({
     if (isLink) {
       // Edit existing link - populate with current URL
       setLinkUrl(existingLinkUrl || "https://");
+      setIsEditingExistingLink(true);
       setIsLinkEditMode(true);
     } else {
       // Create link with placeholder URL first, then enter edit mode
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
       setLinkUrl("https://");
+      setIsEditingExistingLink(false);
       setIsLinkEditMode(true);
     }
   }, [editor, isLink, existingLinkUrl, setIsLinkEditMode]);
@@ -180,14 +183,19 @@ function FloatingToolbar({
     }
     setIsLinkEditMode(false);
     setLinkUrl("https://");
+    setIsEditingExistingLink(false);
   }, [editor, linkUrl, setIsLinkEditMode]);
 
   const cancelLinkEdit = useCallback(() => {
-    // Remove the placeholder link if canceling
-    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    // Only remove the link if we're canceling a new link creation
+    // If editing an existing link, keep the original URL
+    if (!isEditingExistingLink) {
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    }
     setIsLinkEditMode(false);
     setLinkUrl("https://");
-  }, [editor, setIsLinkEditMode]);
+    setIsEditingExistingLink(false);
+  }, [editor, isEditingExistingLink, setIsLinkEditMode]);
 
   const handleLinkKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
