@@ -158,7 +158,7 @@ function FloatingToolbar({
         isValidUrl = true;
       } catch {
         // Check if it's a relative URL
-        isValidUrl = trimmedUrl.startsWith("/") || trimmedUrl.startsWith("./");
+        isValidUrl = trimmedUrl.startsWith("/") || trimmedUrl.startsWith("./") || trimmedUrl.startsWith("../") || trimmedUrl.startsWith("#") || trimmedUrl.startsWith("?");
       }
 
       if (isValidUrl) {
