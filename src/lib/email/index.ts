@@ -13,9 +13,10 @@ interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, react }: SendEmailOptions) {
   if (!resend) {
-    const resetUrl = react.props?.resetUrl as string | undefined;
+    const props = react.props as Record<string, unknown>;
+    const resetUrl = props?.resetUrl;
     console.log("[Email Dev Mode]", subject, "→", to);
-    if (resetUrl) {
+    if (typeof resetUrl === "string") {
       console.log("[Reset URL]", resetUrl);
     }
     return { success: true, data: { id: "dev-mode" } };
