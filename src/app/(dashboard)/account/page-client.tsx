@@ -10,7 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TitleCard } from "@/components/title-card";
@@ -31,6 +31,7 @@ interface Account {
 }
 
 export default function AccountPageClient() {
+  const router = useRouter();
   const { data: session, isPending: isSessionPending } =
     authClient.useSession();
   const user = session?.user;
@@ -49,7 +50,8 @@ export default function AccountPageClient() {
   }
 
   if (!user) {
-    return redirect("/login");
+    router.push("/login");
+    return null;
   }
 
   const hasGoogleLinked = accounts?.some((a) => a.providerId === "google");
@@ -103,18 +105,26 @@ function ProfileSection({ user }: ProfileSectionProps) {
       name: user.name,
     },
     onSubmit: async ({ value }) => {
-      if (value.name === user.name) {
+      const trimmedName = value.name.trim();
+
+      if (!trimmedName) {
+        toast.error("Name cannot be empty");
+        return;
+      }
+
+      if (trimmedName === user.name) {
         return;
       }
 
       setIsUpdating(true);
       try {
         const result = await authClient.updateUser({
-          name: value.name,
+          name: trimmedName,
         });
 
         if (result.error) {
           toast.error(result.error.message ?? "Failed to update profile");
+          setIsUpdating(false);
           return;
         }
 
@@ -208,6 +218,16 @@ function LoginDetailsSection({
       confirmPassword: "",
     },
     onSubmit: async ({ value }) => {
+      if (!value.currentPassword.trim()) {
+        toast.error("Current password is required");
+        return;
+      }
+
+      if (!value.newPassword.trim()) {
+        toast.error("New password cannot be empty");
+        return;
+      }
+
       if (value.newPassword !== value.confirmPassword) {
         toast.error("Passwords do not match");
         return;
@@ -228,6 +248,7 @@ function LoginDetailsSection({
 
         if (result.error) {
           toast.error(result.error.message ?? "Failed to change password");
+          setIsChangingPassword(false);
           return;
         }
 
@@ -422,6 +443,7 @@ function ConnectedAccountsSection({
 
       if (result.error) {
         toast.error(result.error.message ?? `Failed to unlink ${provider}`);
+        setLoadingProvider(null);
         return;
       }
 
