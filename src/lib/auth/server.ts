@@ -1,5 +1,5 @@
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { betterAuth } from "better-auth/minimal";
 import { nextCookies } from "better-auth/next-js";
 import {
   haveIBeenPwned,
@@ -131,6 +131,18 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      const { sendEmail } = await import("@/lib/email");
+      const { PasswordResetEmail } = await import(
+        "@/lib/email/templates/password-reset"
+      );
+      sendEmail({
+        to: user.email,
+        subject: "Reset your Notra password",
+        react: PasswordResetEmail({ resetUrl: url, userName: user.name }),
+      });
+    },
+    resetPasswordTokenExpiresIn: 3600,
   },
   socialProviders: {
     github: {
