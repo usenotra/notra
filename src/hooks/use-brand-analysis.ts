@@ -152,11 +152,12 @@ export function useAnalyzeBrand(organizationId: string) {
     onSuccess: () => {
       startPolling();
     },
-    onError: () => {
+    onError: (error) => {
       queryClient.setQueryData(QUERY_KEYS.BRAND.progress(organizationId), {
         status: "failed",
         currentStep: 0,
         totalSteps: 3,
+        error: error instanceof Error ? error.message : "Analysis failed",
       });
     },
   });
