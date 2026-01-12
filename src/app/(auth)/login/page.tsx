@@ -169,20 +169,16 @@ export default function Login() {
               </div>
             </div>
           </div>
-          <div className="relative">
+          <div className="relative mt-4">
             {lastMethod === "email" && (
               <Badge
-                className="absolute -top-4 -right-2 z-10"
+                className="absolute -top-2 -right-2 z-10"
                 variant="default"
               >
                 Last Used
               </Badge>
             )}
-            <Button
-              className="mt-4 w-full"
-              disabled={isAuthLoading}
-              type="submit"
-            >
+            <Button className="w-full" disabled={isAuthLoading} type="submit">
               {isAuthLoading ? "..." : "Continue"}
             </Button>
           </div>
