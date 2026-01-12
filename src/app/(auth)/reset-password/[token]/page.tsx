@@ -20,7 +20,9 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
@@ -73,7 +75,7 @@ export default function ResetPassword() {
         </p>
       </div>
 
-      <form action={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="grid gap-3">
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="password">
