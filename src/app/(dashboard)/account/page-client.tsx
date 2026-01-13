@@ -135,7 +135,7 @@ function ProfileSection({ user }: ProfileSectionProps) {
       const validated = nameSchema.safeParse(value.name);
 
       if (!validated.success) {
-        toast.error(validated.error.errors[0].message);
+        toast.error(validated.error.issues[0].message);
         return;
       }
 
@@ -247,7 +247,7 @@ function LoginDetailsSection({
       const validated = passwordSchema.safeParse(value);
 
       if (!validated.success) {
-        toast.error(validated.error.errors[0].message);
+        toast.error(validated.error.issues[0].message);
         return;
       }
 
