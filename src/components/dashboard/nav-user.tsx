@@ -6,7 +6,7 @@ import {
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,7 +77,8 @@ export function NavUser() {
   }
 
   if (!user) {
-    return redirect("/login");
+    router.push("/login");
+    return null;
   }
 
   return (
@@ -160,13 +161,17 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/account")}>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => router.push("/account")}
+              >
                 <HugeiconsIcon icon={User02Icon} />
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="cursor-pointer"
               disabled={isSigningOut}
               onClick={handleSignOut}
               variant="destructive"

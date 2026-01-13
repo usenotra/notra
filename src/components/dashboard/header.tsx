@@ -12,15 +12,20 @@ import {
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
 
+const NON_ORG_PATHS = ["/account"];
+
 export function SiteHeader() {
   const pathname = usePathname();
   const id = useId();
   const segments = pathname.split("/").filter(Boolean);
 
-  const breadcrumbSegments = segments.slice(1);
+  const isNonOrgPath = NON_ORG_PATHS.some((path) => pathname.startsWith(path));
+  const breadcrumbSegments = isNonOrgPath ? segments : segments.slice(1);
 
   const breadcrumbs = breadcrumbSegments.flatMap((segment, index) => {
-    const href = `/${segments.slice(0, index + 2).join("/")}`;
+    const href = isNonOrgPath
+      ? `/${segments.slice(0, index + 1).join("/")}`
+      : `/${segments.slice(0, index + 2).join("/")}`;
     const isLast = index === breadcrumbSegments.length - 1;
 
     const item = (
@@ -38,7 +43,7 @@ export function SiteHeader() {
 
     return [
       item,
-      <BreadcrumbSeparator key={`${id}-separator`}>
+      <BreadcrumbSeparator key={`${id}-separator-${segment}`}>
         <HugeiconsIcon icon={ArrowRight01Icon} />
       </BreadcrumbSeparator>,
     ];
