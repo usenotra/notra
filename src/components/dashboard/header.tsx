@@ -43,7 +43,7 @@ export function SiteHeader() {
 
     return [
       item,
-      <BreadcrumbSeparator key={`${id}-separator`}>
+      <BreadcrumbSeparator key={`${id}-separator-${index}`}>
         <HugeiconsIcon icon={ArrowRight01Icon} />
       </BreadcrumbSeparator>,
     ];
