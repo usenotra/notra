@@ -129,6 +129,7 @@ export const auth = betterAuth({
     storeSessionInDatabase: true,
     preserveSessionInDatabase: true,
   },
+  baseURL: process.env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
@@ -136,13 +137,24 @@ export const auth = betterAuth({
       const { PasswordResetEmail } = await import(
         "@/lib/email/templates/password-reset"
       );
-      sendEmail({
+      const result = await sendEmail({
         to: user.email,
         subject: "Reset your Notra password",
         react: PasswordResetEmail({ resetUrl: url, userName: user.name }),
       });
+
+      if (!result.success) {
+        throw new Error("Failed to send password reset email");
+      }
     },
     resetPasswordTokenExpiresIn: 3600,
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+      allowDifferentEmails: true,
+    },
   },
   socialProviders: {
     github: {

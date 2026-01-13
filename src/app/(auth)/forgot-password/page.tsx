@@ -23,19 +23,23 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
 
-    const result = await authClient.requestPasswordReset({
-      email,
-      redirectTo: "/reset-password",
-    });
+    try {
+      const result = await authClient.requestPasswordReset({
+        email,
+        redirectTo: "/reset-password",
+      });
 
-    setIsLoading(false);
+      if (result.error) {
+        toast.error("Something went wrong. Please try again.");
+        return;
+      }
 
-    if (result.error) {
-      toast.error("Something went wrong. Please try again.");
-      return;
+      setIsSubmitted(true);
+    } catch {
+      toast.error("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsSubmitted(true);
   }
 
   if (isSubmitted) {
