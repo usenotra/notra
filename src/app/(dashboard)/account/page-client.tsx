@@ -35,7 +35,7 @@ const passwordSchema = z
       .trim()
       .min(1, "New password cannot be empty")
       .min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
+    confirmPassword: z.string().trim().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
@@ -449,6 +449,7 @@ function ConnectedAccountsSection({
       });
     } catch {
       toast.error(`Failed to link ${provider} account`);
+    } finally {
       setLoadingProvider(null);
     }
   }

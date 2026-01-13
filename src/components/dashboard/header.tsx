@@ -23,7 +23,9 @@ export function SiteHeader() {
   const breadcrumbSegments = isNonOrgPath ? segments : segments.slice(1);
 
   const breadcrumbs = breadcrumbSegments.flatMap((segment, index) => {
-    const href = `/${segments.slice(0, index + 2).join("/")}`;
+    const href = isNonOrgPath
+      ? `/${segments.slice(0, index + 1).join("/")}`
+      : `/${segments.slice(0, index + 2).join("/")}`;
     const isLast = index === breadcrumbSegments.length - 1;
 
     const item = (
