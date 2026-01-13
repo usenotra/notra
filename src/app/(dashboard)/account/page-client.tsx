@@ -36,10 +36,17 @@ export default function AccountPageClient() {
     authClient.useSession();
   const user = session?.user;
 
-  const { data: accounts, refetch: refetchAccounts } = useQuery({
+  const {
+    data: accounts,
+    refetch: refetchAccounts,
+    isError: isAccountsError,
+  } = useQuery({
     queryKey: ["accounts"],
     queryFn: async () => {
       const result = await authClient.listAccounts();
+      if (result.error) {
+        throw new Error(result.error.message ?? "Failed to load accounts");
+      }
       return (result.data ?? []) as Account[];
     },
     enabled: !!user,
@@ -80,6 +87,7 @@ export default function AccountPageClient() {
             accounts={accounts ?? []}
             hasGithubLinked={hasGithubLinked ?? false}
             hasGoogleLinked={hasGoogleLinked ?? false}
+            isError={isAccountsError}
             onAccountsChange={refetchAccounts}
           />
         </div>
@@ -268,7 +276,7 @@ function LoginDetailsSection({
         <div className="space-y-2">
           <Label>Email</Label>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm">
+            <div className="flex-1 truncate rounded-md border bg-muted/50 px-3 py-2 text-sm">
               {email}
             </div>
             <HugeiconsIcon
@@ -309,6 +317,11 @@ function LoginDetailsSection({
                           value={field.state.value}
                         />
                         <button
+                          aria-label={
+                            showCurrentPassword
+                              ? "Hide current password"
+                              : "Show current password"
+                          }
                           className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                           onClick={() =>
                             setShowCurrentPassword(!showCurrentPassword)
@@ -342,6 +355,11 @@ function LoginDetailsSection({
                           value={field.state.value}
                         />
                         <button
+                          aria-label={
+                            showNewPassword
+                              ? "Hide new password"
+                              : "Show new password"
+                          }
                           className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           type="button"
@@ -403,6 +421,7 @@ interface ConnectedAccountsSectionProps {
   accounts: Account[];
   hasGoogleLinked: boolean;
   hasGithubLinked: boolean;
+  isError: boolean;
   onAccountsChange: () => void;
 }
 
@@ -410,6 +429,7 @@ function ConnectedAccountsSection({
   accounts,
   hasGoogleLinked,
   hasGithubLinked,
+  isError,
   onAccountsChange,
 }: ConnectedAccountsSectionProps) {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -454,6 +474,18 @@ function ConnectedAccountsSection({
     } finally {
       setLoadingProvider(null);
     }
+  }
+
+  if (isError) {
+    return (
+      <TitleCard className="lg:col-span-2" heading="Connected Accounts">
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
+          <p className="text-destructive text-sm">
+            Failed to load connected accounts. Please refresh the page.
+          </p>
+        </div>
+      </TitleCard>
+    );
   }
 
   return (
