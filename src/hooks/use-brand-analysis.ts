@@ -58,6 +58,12 @@ export function useBrandSettings(organizationId: string) {
 export function useBrandAnalysisProgress(organizationId: string) {
   const queryClient = useQueryClient();
   const hasReset = useRef(false);
+  const forcePollUntilMs = useRef<number | null>(null);
+
+  const shouldForcePoll = () => {
+    const untilMs = forcePollUntilMs.current;
+    return typeof untilMs === "number" && Date.now() < untilMs;
+  };
 
   const query = useQuery({
     queryKey: QUERY_KEYS.BRAND.progress(organizationId),
@@ -68,7 +74,25 @@ export function useBrandAnalysisProgress(organizationId: string) {
       if (!res.ok) {
         throw new Error("Failed to fetch progress");
       }
+
       const data: ProgressResponse = await res.json();
+
+      // If the backend is momentarily still "idle" right after starting
+      // an analysis, keep any optimistic non-idle state (e.g. "scraping")
+      // so the UI can show the stepper immediately.
+      if (data.progress.status === "idle" && shouldForcePoll()) {
+        const cached = queryClient.getQueryData<Progress>(
+          QUERY_KEYS.BRAND.progress(organizationId)
+        );
+        if (cached && cached.status !== "idle") {
+          return cached;
+        }
+      }
+
+      if (data.progress.status !== "idle") {
+        forcePollUntilMs.current = null;
+      }
+
       return data.progress;
     },
     enabled: !!organizationId,
@@ -77,13 +101,15 @@ export function useBrandAnalysisProgress(organizationId: string) {
       if (!data) {
         return 2000;
       }
-      if (
-        data.status === "idle" ||
-        data.status === "completed" ||
-        data.status === "failed"
-      ) {
+
+      if (data.status === "completed" || data.status === "failed") {
         return false;
       }
+
+      if (data.status === "idle") {
+        return shouldForcePoll() ? 1000 : false;
+      }
+
       return 1000;
     },
   });
@@ -96,6 +122,8 @@ export function useBrandAnalysisProgress(organizationId: string) {
 
   const startPolling = () => {
     hasReset.current = false;
+    forcePollUntilMs.current = Date.now() + 15_000;
+
     queryClient.invalidateQueries({
       queryKey: QUERY_KEYS.BRAND.progress(organizationId),
     });
@@ -103,6 +131,7 @@ export function useBrandAnalysisProgress(organizationId: string) {
 
   const onComplete = () => {
     hasReset.current = true;
+    forcePollUntilMs.current = null;
 
     queryClient.invalidateQueries({
       queryKey: QUERY_KEYS.BRAND.settings(organizationId),
@@ -122,9 +151,11 @@ export function useBrandAnalysisProgress(organizationId: string) {
   return { progress, startPolling };
 }
 
-export function useAnalyzeBrand(organizationId: string) {
+export function useAnalyzeBrand(
+  organizationId: string,
+  startPolling: () => void
+) {
   const queryClient = useQueryClient();
-  const { startPolling } = useBrandAnalysisProgress(organizationId);
 
   return useMutation({
     mutationFn: async (url: string) => {
@@ -148,6 +179,8 @@ export function useAnalyzeBrand(organizationId: string) {
         currentStep: 1,
         totalSteps: 3,
       });
+
+      startPolling();
     },
     onSuccess: () => {
       startPolling();

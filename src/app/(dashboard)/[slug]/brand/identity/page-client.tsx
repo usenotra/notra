@@ -578,8 +578,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const { data, isLoading: isLoadingSettings } =
     useBrandSettings(organizationId);
-  const { progress } = useBrandAnalysisProgress(organizationId);
-  const analyzeMutation = useAnalyzeBrand(organizationId);
+  const { progress, startPolling } = useBrandAnalysisProgress(organizationId);
+  const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
 
   const [url, setUrl] = useState("");
   const effectiveUrl = url.trim() || organization?.websiteUrl || "";
