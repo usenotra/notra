@@ -94,8 +94,9 @@ export function AddIntegrationDialog({
       onSuccess?.();
 
       if (organizationSlug && integration?.id) {
+        // Redirect to integration page with webhook setup param to trigger webhook dialog
         router.push(
-          `/${organizationSlug}/integrations/github/${integration.id}`
+          `/${organizationSlug}/integrations/github/${integration.id}?webhook=setup`
         );
       }
     },

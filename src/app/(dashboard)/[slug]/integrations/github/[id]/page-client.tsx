@@ -1,8 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { WebhookIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { RepositoryList } from "@/components/integrations/repository-list";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Badge } from "@/components/ui/badge";
@@ -19,14 +21,31 @@ const EditIntegrationDialog = dynamic(
   { ssr: false }
 );
 
+const WebhookSetupDialog = dynamic(
+  () =>
+    import("@/components/integrations/webhook-setup-dialog").then((mod) => ({
+      default: mod.WebhookSetupDialog,
+    })),
+  { ssr: false }
+);
+
 interface PageClientProps {
   integrationId: string;
 }
 
 export default function PageClient({ integrationId }: PageClientProps) {
+  const searchParams = useSearchParams();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [webhookDialogOpen, setWebhookDialogOpen] = useState(false);
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
+
+  // Check if webhook setup should be shown automatically via URL param
+  useEffect(() => {
+    if (searchParams.get("webhook") === "setup") {
+      setWebhookDialogOpen(true);
+    }
+  }, [searchParams]);
 
   const { data: integration, isLoading } = useQuery({
     queryKey: QUERY_KEYS.INTEGRATIONS.detail(integrationId),
@@ -140,6 +159,35 @@ export default function PageClient({ integrationId }: PageClientProps) {
               </Badge>
             </div>
           </div>
+
+          {integration.repositories[0] ? (
+            <div className="rounded-lg border p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <h2 className="font-semibold text-lg">Webhook Configuration</h2>
+                  <p className="text-muted-foreground text-sm">
+                    Set up a webhook to receive automatic notifications when releases are published, commits are pushed, and more.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setWebhookDialogOpen(true)}
+                  size="sm"
+                  variant="outline"
+                >
+                  <WebhookIcon className="mr-2 size-4" />
+                  Setup Webhook
+                </Button>
+              </div>
+              <WebhookSetupDialog
+                onOpenChange={setWebhookDialogOpen}
+                open={webhookDialogOpen}
+                organizationId={organizationId ?? ""}
+                owner={integration.repositories[0].owner}
+                repo={integration.repositories[0].repo}
+                repositoryId={integration.repositories[0].id}
+              />
+            </div>
+          ) : null}
 
           <div className="space-y-4">
             <h2 className="font-semibold text-lg">Content Outputs</h2>

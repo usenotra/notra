@@ -1,0 +1,1 @@
+ALTER TABLE "github_repositories" ADD COLUMN "encrypted_webhook_secret" text;
