@@ -19,9 +19,14 @@ export function createChatAgent(context: ChatAgentContext) {
     context.organizationId
   );
 
+  let markdown = context.currentMarkdown;
+
   const editContext = {
-    currentMarkdown: context.currentMarkdown,
-    onUpdate: context.onMarkdownUpdate,
+    getMarkdown: () => markdown,
+    setMarkdown: (nextMarkdown: string) => {
+      markdown = nextMarkdown;
+      context.onMarkdownUpdate(nextMarkdown);
+    },
   };
 
   const selectionContext = context.selectedText
