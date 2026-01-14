@@ -12,6 +12,7 @@ export interface GitHubRepository {
   owner: string;
   repo: string;
   enabled: boolean;
+  hasWebhook?: boolean;
   outputs?: RepositoryOutput[];
 }
 
@@ -83,4 +84,22 @@ export interface IntegrationCardProps {
 export interface RepositoryListProps {
   integrationId: string;
   organizationId: string;
+}
+
+export interface WebhookConfig {
+  webhookUrl: string;
+  webhookSecret: string;
+  repositoryId: string;
+  owner: string;
+  repo: string;
+}
+
+export interface WebhookSetupDialogProps {
+  repositoryId: string;
+  organizationId: string;
+  owner: string;
+  repo: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 }

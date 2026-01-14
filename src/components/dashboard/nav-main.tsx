@@ -3,6 +3,7 @@
 import {
   AnalyticsUpIcon,
   CorporateIcon,
+  Home01Icon,
   NoteIcon,
   PlugIcon,
 } from "@hugeicons/core-free-icons";
@@ -18,7 +19,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavMainCategory = "none" | "brand" | "utility";
+type NavMainCategory = "none" | "workspace" | "utility";
 
 interface NavMainItem {
   link: string;
@@ -28,31 +29,37 @@ interface NavMainItem {
 }
 
 const categoryLabels: Record<Exclude<NavMainCategory, "none">, string> = {
-  brand: "Brand",
+  workspace: "Workspace",
   utility: "Utility",
 };
 
 const navMainItems: NavMainItem[] = [
   {
-    link: "/integrations",
-    icon: PlugIcon,
-    label: "Integrations",
+    link: "",
+    icon: Home01Icon,
+    label: "Home",
     category: "none",
   },
   {
     link: "/content",
     icon: NoteIcon,
     label: "Content",
-    category: "none",
+    category: "workspace",
   },
   {
     link: "/brand/identity",
     icon: CorporateIcon,
     label: "Identity",
-    category: "brand",
+    category: "workspace",
   },
   {
-    link: "/utility/logs",
+    link: "/integrations",
+    icon: PlugIcon,
+    label: "Integrations",
+    category: "utility",
+  },
+  {
+    link: "/logs",
     icon: AnalyticsUpIcon,
     label: "Logs",
     category: "utility",

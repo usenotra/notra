@@ -18,6 +18,7 @@ export const db = drizzle(databaseUrl, {
       ? upstashCache({
           url: upstashUrl,
           token: upstashToken,
+          global: true,
         })
       : undefined,
   schema,

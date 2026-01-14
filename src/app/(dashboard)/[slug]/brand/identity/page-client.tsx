@@ -1,14 +1,10 @@
 "use client";
 
-import {
-  Loading02Icon,
-  MinusSignIcon,
-  Refresh01Icon,
-  Tick01Icon,
-} from "@hugeicons/core-free-icons";
+import { Refresh01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncedCallback } from "@tanstack/react-pacer";
+import { Check, LoaderCircle, Minus } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
@@ -71,16 +67,14 @@ const TONE_OPTIONS: { value: ToneProfile; label: string }[] = [
 ];
 
 function getStepperValue(status: string, currentStep: number): string {
-  if (status === "idle") {
+  if (status === "idle" || status === "failed") {
     return "";
   }
   if (status === "completed") {
     return "saving";
   }
-  if (status === "failed") {
-    return "";
-  }
-  return ANALYSIS_STEPS[currentStep - 1]?.value ?? "";
+  const stepIndex = Math.max(0, currentStep - 1);
+  return ANALYSIS_STEPS[stepIndex]?.value ?? ANALYSIS_STEPS[0]?.value ?? "";
 }
 
 function getModalTitle(
@@ -128,15 +122,27 @@ interface ModalContentProps {
   isPending: boolean;
 }
 
-function GetStepperIcon(currentStep: number, index: number) {
-  if (currentStep < index) {
-    return MinusSignIcon;
-  }
-  if (currentStep > index) {
-    return Tick01Icon;
-  }
+type StepIconState = "pending" | "active" | "completed";
 
-  return Loading02Icon;
+const STEP_ICONS: Record<StepIconState, () => React.ReactNode> = {
+  completed: () => <Check className="size-4" strokeWidth={3} />,
+  active: () => <LoaderCircle className="size-4 animate-spin" />,
+  pending: () => (
+    <Minus className="size-4 text-muted-foreground" strokeWidth={2} />
+  ),
+};
+
+function getStepIconState(
+  currentStep: number,
+  stepNumber: number
+): StepIconState {
+  if (currentStep < stepNumber) {
+    return "pending";
+  }
+  if (currentStep > stepNumber) {
+    return "completed";
+  }
+  return "active";
 }
 
 function ModalContent({
@@ -151,7 +157,7 @@ function ModalContent({
   if (isLoadingSettings) {
     return (
       <div className="flex justify-center py-4">
-        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <LoaderCircle className="size-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -163,45 +169,45 @@ function ModalContent({
         value={getStepperValue(progress.status, progress.currentStep)}
       >
         <StepperList>
-          {ANALYSIS_STEPS.map((step, index) => (
-            <StepperItem
-              completed={progress.currentStep > index + 1}
-              key={step.value}
-              value={step.value}
-            >
-              <StepperTrigger className="px-2">
-                <StepperIndicator>
-                  <HugeiconsIcon
-                    className={
-                      progress.currentStep === index + 1 ? "animate-spin" : ""
-                    }
-                    icon={GetStepperIcon(progress.currentStep, index + 1)}
-                  />
-                </StepperIndicator>
-                <StepperTitle>{step.label}</StepperTitle>
-              </StepperTrigger>
-              <StepperSeparator />
-            </StepperItem>
-          ))}
+          {ANALYSIS_STEPS.map((step, index) => {
+            const stepNumber = index + 1;
+            const iconState = getStepIconState(
+              progress.currentStep,
+              stepNumber
+            );
+            return (
+              <StepperItem
+                completed={progress.currentStep > stepNumber}
+                key={step.value}
+                value={step.value}
+              >
+                <StepperTrigger className="gap-2 px-2">
+                  <StepperIndicator className="size-8">
+                    {STEP_ICONS[iconState]()}
+                  </StepperIndicator>
+                  <StepperTitle className="text-sm">{step.label}</StepperTitle>
+                </StepperTrigger>
+                <StepperSeparator className="h-0.5" />
+              </StepperItem>
+            );
+          })}
         </StepperList>
       </Stepper>
     );
   }
 
   return (
-    <>
+    <div className="space-y-4">
       <div className="flex gap-3">
         <div
-          className={`flex w-full flex-row items-center rounded-md border transition-colors focus-within:border-primary ${progress.status === "failed" ? "border-destructive" : "border-border"} focus-within:border-ring focus-within:ring-ring/50`}
+          className={`flex w-full flex-row items-center overflow-hidden rounded-lg border bg-background transition-all focus-within:ring-2 focus-within:ring-ring/20 ${progress.status === "failed" ? "border-destructive" : "border-input"}`}
         >
-          <label
-            className="border-border border-r px-2.5 py-1 text-base text-muted-foreground transition-colors"
-            htmlFor="brand-url-input"
-          >
+          <span className="flex h-10 items-center border-input border-r bg-muted/50 px-3 text-muted-foreground text-sm">
             https://
-          </label>
+          </span>
           <input
-            className="px-2.5 py-1 text-base outline-none"
+            aria-label="Website URL"
+            className="h-10 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
             disabled={isPending}
             id="brand-url-input"
             onChange={(e) => setUrl(e.target.value)}
@@ -215,10 +221,14 @@ function ModalContent({
             value={url}
           />
         </div>
-        <Button disabled={isPending} onClick={handleAnalyze}>
+        <Button
+          className="h-10 px-6"
+          disabled={isPending}
+          onClick={handleAnalyze}
+        >
           {isPending ? (
             <>
-              <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <LoaderCircle className="size-4 animate-spin" />
               <span>Analyzing</span>
             </>
           ) : (
@@ -227,11 +237,11 @@ function ModalContent({
         </Button>
       </div>
       {progress.status === "failed" && (
-        <p className="text-center text-muted-foreground text-sm">
+        <p className="text-center text-destructive text-sm">
           Try again with a different URL
         </p>
       )}
-    </>
+    </div>
   );
 }
 
@@ -601,7 +611,17 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     }
   };
 
+  const effectiveProgress =
+    analyzeMutation.isPending && progress.status === "idle"
+      ? {
+          status: "scraping" as const,
+          currentStep: 1,
+          totalSteps: 3,
+        }
+      : progress;
+
   const isAnalyzing =
+    analyzeMutation.isPending ||
     progress.status === "scraping" ||
     progress.status === "extracting" ||
     progress.status === "saving";
@@ -677,16 +697,20 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <Card className="w-full max-w-md shadow-lg">
+              <Card className="w-full max-w-md border-border/50 shadow-xs">
                 <CardHeader className="text-center">
                   <CardTitle>
-                    {getModalTitle(false, isAnalyzing, progress.status)}
+                    {getModalTitle(
+                      false,
+                      isAnalyzing,
+                      effectiveProgress.status
+                    )}
                   </CardTitle>
                   <CardDescription>
                     {getModalDescription(
                       false,
                       isAnalyzing,
-                      progress.status,
+                      effectiveProgress.status,
                       progress.error
                     )}
                   </CardDescription>
@@ -697,7 +721,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                     isAnalyzing={isAnalyzing}
                     isLoadingSettings={false}
                     isPending={analyzeMutation.isPending}
-                    progress={progress}
+                    progress={effectiveProgress}
                     setUrl={setUrl}
                     url={effectiveUrl}
                   />

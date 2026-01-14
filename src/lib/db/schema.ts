@@ -172,6 +172,7 @@ export const githubRepositories = pgTable(
     owner: text("owner").notNull(),
     repo: text("repo").notNull(),
     enabled: boolean("enabled").default(true).notNull(),
+    encryptedWebhookSecret: text("encrypted_webhook_secret"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

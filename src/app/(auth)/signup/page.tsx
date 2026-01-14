@@ -181,7 +181,7 @@ export default function SignUp() {
           Forgot your password?{" "}
           <Link
             className="underline underline-offset-4 hover:text-primary"
-            href="/reset-password"
+            href="/forgot-password"
           >
             Reset Your Password
           </Link>

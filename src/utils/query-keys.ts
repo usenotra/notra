@@ -12,6 +12,8 @@ export const QUERY_KEYS = {
       ["integrations", integrationId, "repositories"] as const,
     availableRepos: (integrationId: string) =>
       ["integrations", integrationId, "available-repos"] as const,
+    webhookConfig: (repositoryId: string) =>
+      ["integrations", "webhook", repositoryId] as const,
   },
   BRAND: {
     settings: (organizationId: string) =>

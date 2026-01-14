@@ -123,6 +123,7 @@ export function useBrandAnalysisProgress(organizationId: string) {
 }
 
 export function useAnalyzeBrand(organizationId: string) {
+  const queryClient = useQueryClient();
   const { startPolling } = useBrandAnalysisProgress(organizationId);
 
   return useMutation({
@@ -141,8 +142,23 @@ export function useAnalyzeBrand(organizationId: string) {
       }
       return res.json();
     },
+    onMutate: () => {
+      queryClient.setQueryData(QUERY_KEYS.BRAND.progress(organizationId), {
+        status: "scraping",
+        currentStep: 1,
+        totalSteps: 3,
+      });
+    },
     onSuccess: () => {
-      setTimeout(startPolling, 1000);
+      startPolling();
+    },
+    onError: (error) => {
+      queryClient.setQueryData(QUERY_KEYS.BRAND.progress(organizationId), {
+        status: "failed",
+        currentStep: 0,
+        totalSteps: 3,
+        error: error instanceof Error ? error.message : "Analysis failed",
+      });
     },
   });
 }

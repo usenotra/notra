@@ -6,8 +6,8 @@ import {
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { redirect, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,9 +34,17 @@ export function NavUser() {
   const { isMobile, state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
+
+  useEffect(() => {
+    if (!(user || isPending || isRedirecting)) {
+      setIsRedirecting(true);
+      router.push("/login");
+    }
+  }, [user, isPending, isRedirecting, router]);
 
   async function handleSignOut() {
     setIsSigningOut(true);
@@ -77,7 +85,7 @@ export function NavUser() {
   }
 
   if (!user) {
-    return redirect("/login");
+    return null;
   }
 
   return (
@@ -160,13 +168,17 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/account")}>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => router.push("/account")}
+              >
                 <HugeiconsIcon icon={User02Icon} />
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="cursor-pointer"
               disabled={isSigningOut}
               onClick={handleSignOut}
               variant="destructive"

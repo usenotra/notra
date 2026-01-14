@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { decryptToken, encryptToken } from "@/lib/crypto/token-encryption";
@@ -12,6 +13,10 @@ import type { OutputContentType } from "@/utils/schemas/integrations";
 import { createOctokit } from "../octokit";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
+
+function generateWebhookSecret(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 interface CreateGitHubIntegrationParams {
   organizationId: string;
@@ -444,4 +449,130 @@ export async function getTokenForIntegrationId(
   }
 
   return decryptToken(integration.encryptedToken);
+}
+
+export interface WebhookConfig {
+  webhookUrl: string;
+  webhookSecret: string;
+  repositoryId: string;
+  owner: string;
+  repo: string;
+}
+
+export async function generateWebhookSecretForRepository(
+  repositoryId: string,
+  userId: string
+): Promise<WebhookConfig> {
+  const repository = await getRepositoryById(repositoryId);
+
+  if (!repository) {
+    throw new Error("Repository not found");
+  }
+
+  const hasAccess = await validateUserOrgAccess(
+    userId,
+    repository.integration.organizationId
+  );
+
+  if (!hasAccess) {
+    throw new Error("User does not have access to this repository");
+  }
+
+  const secret = generateWebhookSecret();
+  const encryptedSecret = encryptToken(secret);
+
+  await db
+    .update(githubRepositories)
+    .set({ encryptedWebhookSecret: encryptedSecret })
+    .where(eq(githubRepositories.id, repositoryId));
+
+  const webhookUrl = buildWebhookUrl(
+    repository.integration.id,
+    repository.integration.organizationId,
+    repositoryId
+  );
+
+  return {
+    webhookUrl,
+    webhookSecret: secret,
+    repositoryId,
+    owner: repository.owner,
+    repo: repository.repo,
+  };
+}
+
+export async function getWebhookConfigForRepository(
+  repositoryId: string,
+  userId: string
+): Promise<WebhookConfig | null> {
+  const repository = await getRepositoryById(repositoryId);
+
+  if (!repository) {
+    throw new Error("Repository not found");
+  }
+
+  const hasAccess = await validateUserOrgAccess(
+    userId,
+    repository.integration.organizationId
+  );
+
+  if (!hasAccess) {
+    throw new Error("User does not have access to this repository");
+  }
+
+  if (!repository.encryptedWebhookSecret) {
+    return null;
+  }
+
+  const webhookSecret = decryptToken(repository.encryptedWebhookSecret);
+  const webhookUrl = buildWebhookUrl(
+    repository.integration.id,
+    repository.integration.organizationId,
+    repositoryId
+  );
+
+  return {
+    webhookUrl,
+    webhookSecret,
+    repositoryId,
+    owner: repository.owner,
+    repo: repository.repo,
+  };
+}
+
+export async function hasWebhookConfigured(repositoryId: string): Promise<boolean> {
+  const repository = await db.query.githubRepositories.findFirst({
+    where: eq(githubRepositories.id, repositoryId),
+    columns: {
+      encryptedWebhookSecret: true,
+    },
+  });
+
+  return !!repository?.encryptedWebhookSecret;
+}
+
+export async function getWebhookSecretByRepositoryId(
+  repositoryId: string
+): Promise<string | null> {
+  const repository = await db.query.githubRepositories.findFirst({
+    where: eq(githubRepositories.id, repositoryId),
+    columns: {
+      encryptedWebhookSecret: true,
+    },
+  });
+
+  if (!repository?.encryptedWebhookSecret) {
+    return null;
+  }
+
+  return decryptToken(repository.encryptedWebhookSecret);
+}
+
+function buildWebhookUrl(
+  integrationId: string,
+  organizationId: string,
+  repositoryId: string
+): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  return `${baseUrl}/api/webhooks/github/${organizationId}/${integrationId}/${repositoryId}`;
 }
