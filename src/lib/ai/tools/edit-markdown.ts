@@ -50,46 +50,111 @@ interface EditMarkdownContext {
   onUpdate: (markdown: string) => void;
 }
 
-function getOperationLineNumber(op: EditOperation): number {
+function splitMarkdownLines(markdown: string): string[] {
+  return markdown.split(/\r?\n/);
+}
+
+function getOperationSortKey(op: EditOperation): number {
   if ("line" in op && op.line !== undefined) {
     return op.line;
+  }
+  if ("endLine" in op && op.endLine !== undefined) {
+    return op.endLine;
   }
   if ("startLine" in op && op.startLine !== undefined) {
     return op.startLine;
   }
   if ("afterLine" in op && op.afterLine !== undefined) {
+    // Inserting after line N affects subsequent lines.
     return op.afterLine;
   }
   return 0;
 }
 
-function applyOperation(lines: string[], op: EditOperation): void {
+function applyOperation(lines: string[], op: EditOperation): { ok: true } | { ok: false; error: string } {
   if (op.op === "replace") {
     if ("line" in op && op.line !== undefined) {
+      if (op.line < 1 || op.line > lines.length) {
+        return {
+          ok: false,
+          error: `Replace line ${op.line} out of bounds (1-${lines.length})`,
+        };
+      }
       lines[op.line - 1] = op.content;
-    } else if ("startLine" in op && "endLine" in op) {
-      const newLines = op.content.split("\n");
-      lines.splice(
-        op.startLine - 1,
-        op.endLine - op.startLine + 1,
-        ...newLines
-      );
+      return { ok: true };
     }
-  } else if (op.op === "insert" && "afterLine" in op) {
-    const newLines = op.content.split("\n");
-    lines.splice(op.afterLine, 0, ...newLines);
-  } else if (op.op === "delete") {
-    if ("line" in op && op.line !== undefined) {
-      lines.splice(op.line - 1, 1);
-    } else if ("startLine" in op && "endLine" in op) {
-      lines.splice(op.startLine - 1, op.endLine - op.startLine + 1);
+
+    if ("startLine" in op && "endLine" in op) {
+      if (op.startLine < 1 || op.endLine < 1 || op.startLine > op.endLine) {
+        return {
+          ok: false,
+          error: `Replace range invalid (${op.startLine}-${op.endLine})`,
+        };
+      }
+      if (op.endLine > lines.length) {
+        return {
+          ok: false,
+          error: `Replace range ${op.startLine}-${op.endLine} out of bounds (1-${lines.length})`,
+        };
+      }
+
+      const newLines = splitMarkdownLines(op.content);
+      lines.splice(op.startLine - 1, op.endLine - op.startLine + 1, ...newLines);
+      return { ok: true };
     }
+
+    return { ok: false, error: "Replace operation missing line or range" };
   }
+
+  if (op.op === "insert" && "afterLine" in op) {
+    if (op.afterLine < 0 || op.afterLine > lines.length) {
+      return {
+        ok: false,
+        error: `Insert afterLine ${op.afterLine} out of bounds (0-${lines.length})`,
+      };
+    }
+
+    const newLines = splitMarkdownLines(op.content);
+    lines.splice(op.afterLine, 0, ...newLines);
+    return { ok: true };
+  }
+
+  if (op.op === "delete") {
+    if ("line" in op && op.line !== undefined) {
+      if (op.line < 1 || op.line > lines.length) {
+        return {
+          ok: false,
+          error: `Delete line ${op.line} out of bounds (1-${lines.length})`,
+        };
+      }
+      lines.splice(op.line - 1, 1);
+      return { ok: true };
+    }
+
+    if ("startLine" in op && "endLine" in op) {
+      if (op.startLine < 1 || op.endLine < 1 || op.startLine > op.endLine) {
+        return {
+          ok: false,
+          error: `Delete range invalid (${op.startLine}-${op.endLine})`,
+        };
+      }
+      if (op.endLine > lines.length) {
+        return {
+          ok: false,
+          error: `Delete range ${op.startLine}-${op.endLine} out of bounds (1-${lines.length})`,
+        };
+      }
+      lines.splice(op.startLine - 1, op.endLine - op.startLine + 1);
+      return { ok: true };
+    }
+
+    return { ok: false, error: "Delete operation missing line or range" };
+  }
+
+  return { ok: false, error: "Unknown operation" };
 }
 
 export function createEditMarkdownTool(context: EditMarkdownContext) {
-  const currentLines = context.currentMarkdown.split("\n");
-
   return tool({
     description: toolDescription({
       toolName: "edit_markdown",
@@ -109,21 +174,37 @@ Supports: replace (single line or range), insert (after a line), delete (single 
         ),
     }),
     execute: ({ operations }) => {
+      const baseLines = splitMarkdownLines(context.currentMarkdown);
+      const workingLines = [...baseLines];
       const sortedOps = [...operations].sort(
-        (a, b) => getOperationLineNumber(b) - getOperationLineNumber(a)
+        (a, b) => getOperationSortKey(b) - getOperationSortKey(a)
       );
 
+      const errors: string[] = [];
       for (const op of sortedOps) {
-        applyOperation(currentLines, op);
+        const result = applyOperation(workingLines, op);
+        if (!result.ok) {
+          errors.push(result.error);
+        }
       }
 
-      const updatedMarkdown = currentLines.join("\n");
+      if (errors.length > 0) {
+        return {
+          success: false,
+          errors,
+          lineCount: baseLines.length,
+          preview: `${baseLines.slice(0, 10).join("\n")}\n...`,
+        };
+      }
+
+      const updatedMarkdown = workingLines.join("\n");
+      context.currentMarkdown = updatedMarkdown;
       context.onUpdate(updatedMarkdown);
 
       return {
         success: true,
-        lineCount: currentLines.length,
-        preview: `${currentLines.slice(0, 10).join("\n")}\n...`,
+        lineCount: workingLines.length,
+        preview: `${workingLines.slice(0, 10).join("\n")}\n...`,
       };
     },
   });
@@ -142,7 +223,7 @@ export function createGetMarkdownTool(context: EditMarkdownContext) {
     }),
     inputSchema: z.object({}),
     execute: () => {
-      const lines = context.currentMarkdown.split("\n");
+      const lines = splitMarkdownLines(context.currentMarkdown);
       const numberedContent = lines
         .map((line, i) => `${i + 1}: ${line}`)
         .join("\n");

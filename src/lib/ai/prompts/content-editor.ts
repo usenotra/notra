@@ -9,7 +9,7 @@ interface ContentEditorPromptParams {
 export function getContentEditorPrompt(params: ContentEditorPromptParams) {
   const { instruction, currentMarkdown, selectedText } = params;
 
-  const lines = currentMarkdown.split("\n");
+  const lines = currentMarkdown.split(/\r?\n/);
   const numberedContent = lines
     .map((line, i) => `${i + 1}: ${line}`)
     .join("\n");
