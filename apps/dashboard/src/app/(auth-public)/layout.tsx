@@ -1,4 +1,4 @@
-import PixelBlast from "@notra/ui/components/PixelBlast";
+import PixelBlast from "@/components/PixelBlast";
 import Link from "next/link";
 
 export default function AuthPublicLayout({

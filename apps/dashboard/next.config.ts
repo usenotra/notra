@@ -6,7 +6,12 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     useCache: true,
+    optimizePackageImports: ["@hugeicons/core-free-icons"],
   },
+  transpilePackages: [
+    "@notra/db",
+    "@notra/ui",
+  ],
   async redirects() {
     return [
       {

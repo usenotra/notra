@@ -1,6 +1,6 @@
 "use client";
 
-import { ContentCard } from "@notra/ui/components/content/content-card";
+import { ContentCard } from "@/components/content/content-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useEffect, useRef } from "react";

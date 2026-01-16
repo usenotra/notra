@@ -1,4 +1,4 @@
-import { DashboardClientWrapper } from "@notra/ui/components/dashboard/dashboard-client-wrapper";
+import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
 import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth/actions";
 

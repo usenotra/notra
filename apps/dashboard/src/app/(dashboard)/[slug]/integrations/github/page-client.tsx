@@ -1,7 +1,7 @@
 "use client";
 
-import { AddIntegrationDialog } from "@notra/ui/components/integrations/add-integration-dialog";
-import { IntegrationCard } from "@notra/ui/components/integrations/integration-card";
+import { AddIntegrationDialog } from "@/components/integrations/add-integration-dialog";
+import { IntegrationCard } from "@/components/integrations/integration-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";

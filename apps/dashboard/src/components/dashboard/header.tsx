@@ -10,7 +10,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "../ui/breadcrumb";
+} from "@notra/ui/components/ui/breadcrumb";
 
 const NON_ORG_PATHS = ["/account"];
 

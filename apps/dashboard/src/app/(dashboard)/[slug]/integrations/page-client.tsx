@@ -1,6 +1,6 @@
 "use client";
 
-import { InstalledIntegrationCard } from "@notra/ui/components/integrations-card";
+import { InstalledIntegrationCard } from "@/components/integrations-card";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -36,7 +36,7 @@ const TAB_VALUES = ["all", "installed"] as const;
 
 const AddIntegrationDialog = dynamic(
   () =>
-    import("@notra/ui/components/integrations/add-integration-dialog").then(
+    import("@/components/integrations/add-integration-dialog").then(
       (mod) => ({
         default: mod.AddIntegrationDialog,
       })

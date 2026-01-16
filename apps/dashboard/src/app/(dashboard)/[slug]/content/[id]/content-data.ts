@@ -1,4 +1,4 @@
-import type { ContentType } from "@notra/ui/components/content/content-card";
+import type { ContentType } from "@/components/content/content-card";
 
 export interface ContentItem {
   id: string;
