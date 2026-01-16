@@ -10,7 +10,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@notra/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": [
@@ -19,6 +18,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "../../packages/ui/src/hooks/use-controllable-state.ts"  ],
   "exclude": ["node_modules"]
 }

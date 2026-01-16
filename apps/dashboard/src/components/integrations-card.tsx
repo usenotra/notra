@@ -1,6 +1,6 @@
 "use client";
 
-import { TitleCard } from "@notra/ui/components/title-card";
+import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import {

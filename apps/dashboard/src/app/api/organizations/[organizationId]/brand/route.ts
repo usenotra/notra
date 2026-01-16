@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
-import { db } from "@/lib/db/drizzle";
-import { brandSettings } from "@/lib/db/schema";
+import { db } from "@notra/db/drizzle";
+import { brandSettings } from "@notra/db/schema";
 import { updateBrandSettingsSchema } from "@/utils/schemas/brand";
 
 interface RouteContext {

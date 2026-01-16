@@ -7,7 +7,7 @@ import {
   ViewOffSlashIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { TitleCard } from "@notra/ui/components/title-card";
+import { TitleCard } from "@/components/title-card";
 import {
   Avatar,
   AvatarFallback,

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db/drizzle";
-import { members } from "@/lib/db/schema";
+import { db } from "@notra/db/drizzle";
+import { members } from "@notra/db/schema";
 import { getServerSession } from "./session";
 
 type User = NonNullable<Awaited<ReturnType<typeof getServerSession>>["user"]>;

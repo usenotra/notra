@@ -1,6 +1,6 @@
 "use client";
 
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   AlertDialog,
   AlertDialogAction,

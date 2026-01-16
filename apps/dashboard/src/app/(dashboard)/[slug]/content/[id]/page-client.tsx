@@ -5,7 +5,7 @@ import { CONTENT_TYPE_LABELS } from "@notra/ui/components/content/content-card";
 import { DiffView } from "@notra/ui/components/content/diff-view";
 import { LexicalEditor } from "@notra/ui/components/content/editor/lexical-editor";
 import type { EditorRefHandle } from "@notra/ui/components/content/editor/plugins/editor-ref-plugin";
-import { TitleCard } from "@notra/ui/components/title-card";
+import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import {

@@ -1,4 +1,4 @@
-import { TitleCard } from "@notra/ui/components/title-card";
+import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

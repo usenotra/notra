@@ -2,7 +2,7 @@
 
 import { DashboardSidebar } from "@notra/ui/components/dashboard/app-sidebar";
 import { SiteHeader } from "@notra/ui/components/dashboard/header";
-import { OrganizationsProvider } from "@notra/ui/components/providers/organization-provider";
+import { OrganizationsProvider } from "@/components/providers/organization-provider";
 import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 
 interface DashboardClientWrapperProps {

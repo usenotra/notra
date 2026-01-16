@@ -2,8 +2,8 @@ import { and, eq } from "drizzle-orm";
 import { marked } from "marked";
 import { type NextRequest, NextResponse } from "next/server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
-import { db } from "@/lib/db/drizzle";
-import { posts } from "@/lib/db/schema";
+import { db } from "@notra/db/drizzle";
+import { posts } from "@notra/db/schema";
 
 const TITLE_REGEX = /^#\s+(.+)$/m;
 

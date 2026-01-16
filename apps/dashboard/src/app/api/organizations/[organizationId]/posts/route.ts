@@ -1,8 +1,8 @@
 import { and, desc, eq, type InferSelectModel, lt, or } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
-import { db } from "@/lib/db/drizzle";
-import { posts } from "@/lib/db/schema";
+import { db } from "@notra/db/drizzle";
+import { posts } from "@notra/db/schema";
 
 type Post = InferSelectModel<typeof posts>;
 

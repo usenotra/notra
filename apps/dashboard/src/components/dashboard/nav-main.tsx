@@ -8,7 +8,7 @@ import {
   PlugIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   SidebarGroup,
   SidebarGroupContent,

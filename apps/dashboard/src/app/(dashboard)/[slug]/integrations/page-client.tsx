@@ -1,8 +1,8 @@
 "use client";
 
 import { InstalledIntegrationCard } from "@notra/ui/components/integrations-card";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
-import { TitleCard } from "@notra/ui/components/title-card";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";

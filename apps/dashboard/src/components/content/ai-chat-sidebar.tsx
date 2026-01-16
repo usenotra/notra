@@ -2,7 +2,7 @@
 
 import { PaintBoardIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { TitleCard } from "@notra/ui/components/title-card";
+import { TitleCard } from "@/components/title-card";
 import { Button } from "@notra/ui/components/ui/button";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useState } from "react";

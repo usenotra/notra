@@ -2,8 +2,8 @@
 
 import { Refresh01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
-import { TitleCard } from "@notra/ui/components/title-card";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { TitleCard } from "@/components/title-card";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Card,

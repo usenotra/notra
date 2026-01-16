@@ -1,7 +1,7 @@
 "use client";
 
-import { RepositoryList } from "@notra/ui/components/integrations/repository-list";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
+import { RepositoryList } from "@/components/integrations/repository-list";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
@@ -13,7 +13,7 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 
 const EditIntegrationDialog = dynamic(
   () =>
-    import("@notra/ui/components/integrations/edit-integration-dialog").then(
+    import("@/components/integrations/edit-integration-dialog").then(
       (mod) => ({
         default: mod.EditIntegrationDialog,
       })

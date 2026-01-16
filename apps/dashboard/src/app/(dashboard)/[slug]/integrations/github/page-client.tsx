@@ -2,7 +2,7 @@
 
 import { AddIntegrationDialog } from "@notra/ui/components/integrations/add-integration-dialog";
 import { IntegrationCard } from "@notra/ui/components/integrations/integration-card";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import type { GitHubIntegration } from "@/types/integrations";

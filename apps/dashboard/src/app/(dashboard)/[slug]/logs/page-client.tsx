@@ -2,7 +2,7 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useOrganizationsContext } from "@notra/ui/components/providers/organization-provider";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";

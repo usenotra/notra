@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { decryptToken, encryptToken } from "@/lib/crypto/token-encryption";
-import { db } from "@/lib/db/drizzle";
+import { db } from "@notra/db/drizzle";
 import {
   githubIntegrations,
   githubRepositories,
   members,
   repositoryOutputs,
-} from "@/lib/db/schema";
+} from "@notra/db/schema";
 import type { OutputContentType } from "@/utils/schemas/integrations";
 import { createOctokit } from "../octokit";
 
