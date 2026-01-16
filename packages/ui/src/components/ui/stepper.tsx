@@ -4,11 +4,11 @@ import { useDirection } from "@radix-ui/react-direction";
 import { Slot } from "@radix-ui/react-slot";
 import { Check } from "lucide-react";
 import * as React from "react";
-import { useComposedRefs } from "@/lib/compose-refs";
-import { cn } from "@/lib/utils";
-import { useAsRef } from "../hooks/use-as-ref";
-import { useIsomorphicLayoutEffect } from "../hooks/use-isomorphic-layout-effect";
-import { useLazyRef } from "../hooks/use-lazy-ref";
+import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
+import { cn } from "@notra/ui/lib/utils";
+import { useAsRef } from "@notra/ui//hooks/use-as-ref";
+import { useIsomorphicLayoutEffect } from "@notra/ui/hooks/use-isomorphic-layout-effect";
+import { useLazyRef } from "@notra/ui/hooks/use-lazy-ref";
 
 const ROOT_NAME = "Stepper";
 const LIST_NAME = "StepperList";

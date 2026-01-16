@@ -15,7 +15,7 @@ import {
 } from "@notra/ui/components/ui/input-group";
 import { Command as CommandPrimitive } from "cmdk";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 function Command({
   className,

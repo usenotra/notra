@@ -6,7 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (

@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 interface LoaderIconProps {
   size?: number;

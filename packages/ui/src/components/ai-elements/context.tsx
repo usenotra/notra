@@ -10,7 +10,7 @@ import { Progress } from "@notra/ui/components/ui/progress";
 import type { LanguageModelUsage } from "ai";
 import { type ComponentProps, createContext, useContext } from "react";
 import { getUsage } from "tokenlens";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;

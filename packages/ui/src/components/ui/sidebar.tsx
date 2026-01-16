@@ -22,8 +22,8 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "../hooks/use-mobile";
+import { cn } from "@notra/ui/lib/utils";
+import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

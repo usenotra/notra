@@ -70,12 +70,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
-
-// ============================================================================
-// Provider Context & Types
-// ============================================================================
-
+import { cn } from "@notra/ui/lib/utils";
 export interface AttachmentsContext {
   files: (FileUIPart & { id: string })[];
   add: (files: File[] | FileList) => void;

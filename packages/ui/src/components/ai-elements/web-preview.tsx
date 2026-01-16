@@ -17,7 +17,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export interface WebPreviewContextValue {
   url: string;

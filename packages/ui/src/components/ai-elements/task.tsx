@@ -8,7 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
 import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type TaskItemFileProps = ComponentProps<"div">;
 

@@ -22,7 +22,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type InlineCitationProps = ComponentProps<"span">;
 

@@ -19,7 +19,7 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import type { ComponentProps } from "react";
 import { createContext, useContext } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 import { Shimmer } from "./shimmer";
 
 type PlanContextValue = {

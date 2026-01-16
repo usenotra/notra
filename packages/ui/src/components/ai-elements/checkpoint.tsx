@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import type { ComponentProps, HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type CheckpointProps = HTMLAttributes<HTMLDivElement>;
 

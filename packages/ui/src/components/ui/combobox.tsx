@@ -15,7 +15,7 @@ import {
   InputGroupInput,
 } from "@notra/ui/components/ui/input-group";
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 const Combobox = ComboboxPrimitive.Root;
 

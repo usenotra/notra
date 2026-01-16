@@ -18,7 +18,7 @@ import {
 import type { ToolUIPart } from "ai";
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 import { CodeBlock } from "./code-block";
 
 export type ToolProps = ComponentProps<typeof Collapsible>;

@@ -14,8 +14,8 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, useContext, useMemo } from "react";
-import { useControllableState } from "@/lib/hooks/use-controllable-state";
-import { cn } from "@/lib/utils";
+import { useControllableState } from "@notra/ui/hooks/use-controllable-state";
+import { cn } from "@notra/ui/lib/utils";
 
 interface ChainOfThoughtContextValue {
   isOpen: boolean;

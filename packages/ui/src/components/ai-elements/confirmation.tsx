@@ -9,7 +9,7 @@ import {
   type ReactNode,
   useContext,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 type ToolUIPartApproval =
   | {

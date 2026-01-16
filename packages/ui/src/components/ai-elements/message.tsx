@@ -23,7 +23,7 @@ import Image from "next/image";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];

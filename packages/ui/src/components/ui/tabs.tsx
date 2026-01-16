@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { motion } from "motion/react";
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 const TabsLayoutIdContext = createContext<string | null>(null);
 

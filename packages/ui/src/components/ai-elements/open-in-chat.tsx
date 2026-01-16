@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { type ComponentProps, createContext, useContext } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 const providers = {
   github: {

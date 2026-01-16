@@ -17,7 +17,7 @@ import {
 } from "@notra/ui/components/ui/dialog";
 import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type ModelSelectorProps = ComponentProps<typeof Dialog>;
 

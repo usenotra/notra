@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown01Icon, AttachmentIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Collapsible,
@@ -10,8 +10,7 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { ScrollArea } from "@notra/ui/components/ui/scroll-area";
 import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
-import type { Icon } from "@/types/hugeicons";
+import { cn } from "@notra/ui/lib/utils";
 
 export interface QueueMessagePart {
   type: string;
@@ -232,7 +231,7 @@ export const QueueSectionTrigger = ({
 export type QueueSectionLabelProps = ComponentProps<"span"> & {
   count?: number;
   label: string;
-  icon?: Icon;
+  icon?: IconSvgElement;
 };
 
 export const QueueSectionLabel = ({

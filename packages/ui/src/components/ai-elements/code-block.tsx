@@ -13,7 +13,7 @@ import {
   useState,
 } from "react";
 import { type BundledLanguage, codeToHtml, type ShikiTransformer } from "shiki";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;

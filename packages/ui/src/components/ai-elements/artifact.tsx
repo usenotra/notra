@@ -15,7 +15,7 @@ import type {
   HTMLAttributes,
   SVGProps,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 

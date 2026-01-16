@@ -3,7 +3,7 @@
 import { Button } from "@notra/ui/components/ui/button";
 import { ScrollArea, ScrollBar } from "@notra/ui/components/ui/scroll-area";
 import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type SuggestionsProps = ComponentProps<typeof ScrollArea>;
 

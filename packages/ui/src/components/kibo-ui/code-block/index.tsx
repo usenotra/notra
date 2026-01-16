@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import { useControllableState } from "@notra/ui/hooks/use-controllable-state";
 import {
   transformerNotationDiff,
   transformerNotationErrorLevel,
@@ -95,7 +95,7 @@ import {
   type CodeOptionsMultipleThemes,
   codeToHtml,
 } from "shiki";
-import { cn } from "@/lib/utils";
+import { cn } from "@notra/ui/lib/utils";
 
 export type { BundledLanguage } from "shiki";
 

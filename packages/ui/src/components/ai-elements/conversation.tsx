@@ -1,13 +1,12 @@
 "use client";
 
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
-import { cn } from "@/lib/utils";
-import type { Icon } from "@/types/hugeicons";
+import { cn } from "@notra/ui/lib/utils";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
@@ -38,7 +37,7 @@ export const ConversationContent = ({
 export type ConversationEmptyStateProps = ComponentProps<"div"> & {
   title?: string;
   description?: string;
-  icon?: Icon;
+  icon?: IconSvgElement;
 };
 
 export const ConversationEmptyState = ({

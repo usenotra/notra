@@ -10,8 +10,8 @@ import {
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
-import { useControllableState } from "@/lib/hooks/use-controllable-state";
-import { cn } from "@/lib/utils";
+import { useControllableState } from "@notra/ui/hooks/use-controllable-state";
+import { cn } from "@notra/ui/lib/utils";
 import { Shimmer } from "./shimmer";
 
 interface ReasoningContextValue {
