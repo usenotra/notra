@@ -2,34 +2,32 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
-    "NODE_ENV",
-    "DATABASE_URL",
-    "UPSTASH_REDIS_REST_URL",
-    "UPSTASH_REDIS_REST_TOKEN",
-    "GITHUB_CLIENT_ID",
-    "GITHUB_CLIENT_SECRET",
-    "GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET",
-    "BETTER_AUTH_URL",
-    "BETTER_AUTH_SECRET",
-    "OPENROUTER_API_KEY",
-    "SUPERMEMORY_API_KEY",
-    "FIRECRAWL_API_KEY",
-    "AI_GATEWAY_API_KEY",
-    "INTEGRATION_ENCRYPTION_KEY",
-    "RESEND_API_KEY"
+    "DATABASE_URL"
   ],
-  "globalPassThroughEnv": [
-    "NODE_ENV",
-    "DATABASE_URL",
-    "UPSTASH_REDIS_REST_URL",
-    "UPSTASH_REDIS_REST_TOKEN"
-  ],
+  "envMode": "loose",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vercel/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vercel/**"],
+      "passThroughEnv": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_SECRET",
+        "OPENROUTER_API_KEY",
+        "SUPERMEMORY_API_KEY",
+        "FIRECRAWL_API_KEY",
+        "AI_GATEWAY_API_KEY",
+        "INTEGRATION_ENCRYPTION_KEY",
+        "RESEND_API_KEY"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]

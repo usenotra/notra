@@ -6,13 +6,12 @@ import * as schema from "./schema";
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.warn("[ENV]: DATABASE_URL is not defined");
+  throw new Error("[ENV]: DATABASE_URL is not defined");
 }
 const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
 const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-const resolvedDatabaseUrl = databaseUrl ?? "postgres://localhost:5432/postgres";
 
-export const db = drizzle(resolvedDatabaseUrl, {
+export const db = drizzle(databaseUrl, {
   cache:
     upstashUrl && upstashToken
       ? upstashCache({
