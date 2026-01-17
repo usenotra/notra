@@ -2,13 +2,15 @@
   "name": "turbo",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "build": "dotenv -- turbo run build",
+    "dev": "dotenv -- turbo run dev",
+    "lint": "dotenv -- turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "dotenv -- turbo run check-types"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "dotenv-cli": "^10.0.0",
     "prettier": "^3.7.4",
     "turbo": "^2.7.4",
     "typescript": "5.9.2"
