@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
-import "./globals.css";
+import "@/styles/globals.css";
 
 import { Providers } from "@/utils/providers";
 

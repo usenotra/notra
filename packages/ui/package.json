@@ -16,6 +16,7 @@
     "format": "ultracite fix"
   },
   "dependencies": {
+    "@base-ui/react": "^1.1.0",
     "@tailwindcss/typography": "^0.5.19",
     "@toolwind/corner-shape": "^0.0.8-3",
     "clsx": "^2.1.1",
