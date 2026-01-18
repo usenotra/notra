@@ -6,10 +6,6 @@
     "./drizzle": "./src/drizzle.ts",
     "./schema": "./src/schema.ts"
   },
-  "scripts": {
-    "lint": "ultracite check",
-    "format": "ultracite fix"
-  },
   "dependencies": {
     "drizzle-orm": "^0.45.1"
   },
