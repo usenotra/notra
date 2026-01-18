@@ -2,8 +2,6 @@
 
 import { Refresh01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { TitleCard } from "@/components/title-card";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Card,
@@ -39,13 +37,15 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { TitleCard } from "@/components/title-card";
 import type { ToneProfile } from "@/utils/schemas/brand";
 import {
   useAnalyzeBrand,
   useBrandAnalysisProgress,
   useBrandSettings,
   useUpdateBrandSettings,
-} from "../../../../../../../../packages/ui/src/hooks/use-brand-analysis";
+} from "../../../../../lib/hooks/use-brand-analysis";
 
 const AUTO_SAVE_DELAY = 1500;
 

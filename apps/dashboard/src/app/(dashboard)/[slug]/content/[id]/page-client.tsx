@@ -1,11 +1,5 @@
 "use client";
 
-import { AiEditInput } from "@/components/content/ai-edit-input";
-import { CONTENT_TYPE_LABELS } from "@/components/content/content-card";
-import { DiffView } from "@/components/content/diff-view";
-import { LexicalEditor } from "@/components/content/editor/lexical-editor";
-import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
-import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -18,7 +12,13 @@ import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useContent } from "../../../../../../../../packages/ui/src/hooks/use-content";
+import { AiEditInput } from "@/components/content/ai-edit-input";
+import { CONTENT_TYPE_LABELS } from "@/components/content/content-card";
+import { DiffView } from "@/components/content/diff-view";
+import { LexicalEditor } from "@/components/content/editor/lexical-editor";
+import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
+import { TitleCard } from "@/components/title-card";
+import { useContent } from "../../../../../lib/hooks/use-content";
 
 const VIEW_OPTIONS = ["rendered", "markdown", "diff"] as const;
 type ViewOption = (typeof VIEW_OPTIONS)[number];
@@ -57,7 +57,7 @@ export default function PageClient({
 }: PageClientProps) {
   const [view, setView] = useQueryState(
     "view",
-    parseAsStringLiteral(VIEW_OPTIONS).withDefault("rendered"),
+    parseAsStringLiteral(VIEW_OPTIONS).withDefault("rendered")
   );
 
   const { data, isLoading, error } = useContent(organizationId, contentId);
@@ -107,7 +107,7 @@ export default function PageClient({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ markdown: editedMarkdown }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -166,7 +166,7 @@ export default function PageClient({
             </Button>
           </div>
         ),
-        { duration: Number.POSITIVE_INFINITY, position: "bottom-right" },
+        { duration: Number.POSITIVE_INFINITY, position: "bottom-right" }
       );
     } else if (!hasChanges && saveToastIdRef.current) {
       toast.dismiss(saveToastIdRef.current);
@@ -229,7 +229,7 @@ export default function PageClient({
             currentMarkdown,
             selectedText,
           }),
-        },
+        }
       );
 
       if (!response.ok) {

@@ -1,11 +1,11 @@
 "use client";
 
-import { ContentCard } from "@/components/content/content-card";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useEffect, useRef } from "react";
+import { ContentCard } from "@/components/content/content-card";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { ContentType, Post } from "@/utils/schemas/content";
-import { usePosts } from "../../../../../../../packages/ui/src/hooks/use-posts";
+import { usePosts } from "../../../../lib/hooks/use-posts";
 
 interface PageClientProps {
   organizationSlug: string;
