@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-nova",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "hugeicons",
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "aliases": {
+    "components": "@notra/ui/components",
+    "utils": "@notra/ui/lib/utils",
+    "ui": "@notra/ui/components/ui",
+    "lib": "@notra/ui/lib",
+    "hooks": "@notra/ui/hooks"
+  },
+  "registries": {
+    "@svgl": "https://svgl.app/r/{name}.json",
+    "@diceui": "https://diceui.com/r/{name}.json",
+    "@react-bits": "https://reactbits.dev/r/{name}.json",
+    "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json"
+  }
+}

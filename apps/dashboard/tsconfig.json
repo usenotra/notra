@@ -1,0 +1,23 @@
+{
+  "extends": "@notra/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "strict": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "next.config.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+, "../../packages/ui/src/hooks/use-controllable-state.ts"  ],
+  "exclude": ["node_modules"]
+}
