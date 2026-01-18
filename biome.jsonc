@@ -11,7 +11,9 @@
       "!src/components/ui/**",
       "!src/components/ai-elements/**",
       "!migrations/**",
-      "!src/components/PixelBlast.tsx"
+      "!src/components/PixelBlast.tsx",
+      "!packages/ui/src/components/ui/**",
+      "!packages/ui/src/components/ai-elements/**"
     ]
   },
   "formatter": {
@@ -20,7 +22,9 @@
       "!src/components/ui/**",
       "!src/components/ai-elements/**",
       "!migrations/**",
-      "!src/components/PixelBlast.tsx"
+      "!src/components/PixelBlast.tsx",
+      "!packages/ui/src/components/ui/**",
+      "!packages/ui/src/components/ai-elements/**"
     ]
   },
   "overrides": [

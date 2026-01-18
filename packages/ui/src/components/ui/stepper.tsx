@@ -1,14 +1,14 @@
 "use client";
 
-import { useDirection } from "@radix-ui/react-direction";
-import { Slot } from "@radix-ui/react-slot";
-import { Check } from "lucide-react";
-import * as React from "react";
+import { useDirection } from "@base-ui/react/direction-provider";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
-import { cn } from "@notra/ui/lib/utils";
 import { useAsRef } from "@notra/ui/hooks/use-as-ref";
 import { useIsomorphicLayoutEffect } from "@notra/ui/hooks/use-isomorphic-layout-effect";
 import { useLazyRef } from "@notra/ui/hooks/use-lazy-ref";
+import { cn } from "@notra/ui/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
+import { Check } from "lucide-react";
+import * as React from "react";
 
 const ROOT_NAME = "Stepper";
 const LIST_NAME = "StepperList";
@@ -45,7 +45,7 @@ type TriggerElement = React.ComponentRef<typeof StepperTrigger>;
 function getId(
   id: string,
   variant: "trigger" | "content" | "title" | "description",
-  value: string,
+  value: string
 ) {
   return `${id}-${variant}-${value}`;
 }
@@ -75,7 +75,7 @@ function getDirectionAwareKey(key: string, dir?: Direction) {
 function getFocusIntent(
   event: React.KeyboardEvent<TriggerElement>,
   dir?: Direction,
-  orientation?: Orientation,
+  orientation?: Orientation
 ) {
   const key = getDirectionAwareKey(event.key, dir);
   if (orientation === "horizontal" && ["ArrowUp", "ArrowDown"].includes(key))
@@ -87,7 +87,7 @@ function getFocusIntent(
 
 function focusFirst(
   candidates: React.RefObject<TriggerElement | null>[],
-  preventScroll = false,
+  preventScroll = false
 ) {
   const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
   for (const candidateRef of candidates) {
@@ -101,7 +101,7 @@ function focusFirst(
 
 function wrapArray<T>(array: T[], startIndex: number) {
   return array.map<T>(
-    (_, index) => array[(startIndex + index) % array.length] as T,
+    (_, index) => array[(startIndex + index) % array.length] as T
   );
 }
 
@@ -110,7 +110,7 @@ function getDataState(
   itemValue: string,
   stepState: StepState | undefined,
   steps: Map<string, StepState>,
-  variant: "item" | "separator" = "item",
+  variant: "item" | "separator" = "item"
 ): DataState {
   const stepKeys = Array.from(steps.keys());
   const currentIndex = stepKeys.indexOf(itemValue);
@@ -147,7 +147,7 @@ interface Store {
   setState: <K extends keyof StoreState>(key: K, value: StoreState[K]) => void;
   setStateWithValidation: (
     value: string,
-    direction: NavigationDirection,
+    direction: NavigationDirection
   ) => Promise<boolean>;
   hasValidation: () => boolean;
   notify: () => void;
@@ -171,7 +171,7 @@ function useStore<T>(selector: (state: StoreState) => T): T {
 
   const getSnapshot = React.useCallback(
     () => selector(store.getState()),
-    [store, selector],
+    [store, selector]
   );
 
   return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
@@ -214,7 +214,7 @@ interface StepperProps extends DivProps {
   onValueRemove?: (value: string) => void;
   onValidate?: (
     value: string,
-    direction: NavigationDirection,
+    direction: NavigationDirection
   ) => boolean | Promise<boolean>;
   activationMode?: ActivationMode;
   dir?: Direction;
@@ -333,7 +333,8 @@ function Stepper(props: StepperProps) {
     }
   }, [value]);
 
-  const dir = useDirection(dirProp);
+  const direction = useDirection();
+  const dir = dirProp ?? direction ?? "ltr";
 
   const instanceId = React.useId();
   const rootId = id ?? instanceId;
@@ -348,7 +349,7 @@ function Stepper(props: StepperProps) {
       nonInteractive,
       loop,
     }),
-    [rootId, dir, orientation, activationMode, disabled, nonInteractive, loop],
+    [rootId, dir, orientation, activationMode, disabled, nonInteractive, loop]
   );
 
   const RootPrimitive = asChild ? Slot : "div";
@@ -366,7 +367,7 @@ function Stepper(props: StepperProps) {
           className={cn(
             "flex gap-6",
             orientation === "horizontal" ? "w-full flex-col" : "flex-row",
-            className,
+            className
           )}
         />
       </StepperContext.Provider>
@@ -391,7 +392,7 @@ function useFocusContext(consumerName: string) {
   const context = React.useContext(FocusContext);
   if (!context) {
     throw new Error(
-      `\`${consumerName}\` must be used within \`FocusProvider\``,
+      `\`${consumerName}\` must be used within \`FocusProvider\``
     );
   }
   return context;
@@ -457,7 +458,9 @@ function StepperList(props: DivProps) {
       .sort((a, b) => {
         const elementA = a.ref.current;
         const elementB = b.ref.current;
-        if (!(elementA && elementB)) return 0;
+        if (!(elementA && elementB)) {
+          return 0;
+        }
         const position = elementA.compareDocumentPosition(elementB);
         if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
           return -1;
@@ -476,7 +479,7 @@ function StepperList(props: DivProps) {
 
       setIsTabbingBackOut(false);
     },
-    [propsRef],
+    [propsRef]
   );
 
   const onFocus = React.useCallback(
@@ -495,7 +498,7 @@ function StepperList(props: DivProps) {
 
         if (!entryFocusEvent.defaultPrevented) {
           const items = Array.from(itemsRef.current.values()).filter(
-            (item) => !item.disabled,
+            (item) => !item.disabled
           );
           const selectedItem = currentValue
             ? items.find((item) => item.value === currentValue)
@@ -515,7 +518,7 @@ function StepperList(props: DivProps) {
       }
       isClickFocusRef.current = false;
     },
-    [propsRef, isTabbingBackOut, currentValue, tabStopId],
+    [propsRef, isTabbingBackOut, currentValue, tabStopId]
   );
 
   const onMouseDown = React.useCallback(
@@ -526,7 +529,7 @@ function StepperList(props: DivProps) {
 
       isClickFocusRef.current = true;
     },
-    [propsRef],
+    [propsRef]
   );
 
   const focusContextValue = React.useMemo<FocusContextValue>(
@@ -549,7 +552,7 @@ function StepperList(props: DivProps) {
       onItemRegister,
       onItemUnregister,
       getItems,
-    ],
+    ]
   );
 
   const ListPrimitive = asChild ? Slot : "div";
@@ -569,7 +572,7 @@ function StepperList(props: DivProps) {
           orientation === "horizontal"
             ? "flex-row items-center"
             : "flex-col items-start",
-          className,
+          className
         )}
         onBlur={onBlur}
         onFocus={onFocus}
@@ -588,7 +591,7 @@ interface StepperItemContextValue {
 }
 
 const StepperItemContext = React.createContext<StepperItemContextValue | null>(
-  null,
+  null
 );
 
 function useStepperItemContext(consumerName: string) {
@@ -643,7 +646,7 @@ function StepperItem(props: StepperItemProps) {
       value: itemValue,
       stepState,
     }),
-    [itemValue, stepState],
+    [itemValue, stepState]
   );
 
   const ItemPrimitive = asChild ? Slot : "div";
@@ -660,7 +663,7 @@ function StepperItem(props: StepperItemProps) {
         className={cn(
           "relative flex not-last:flex-1 items-center",
           orientation === "horizontal" ? "flex-row" : "flex-col",
-          className,
+          className
         )}
         ref={ref}
       >
@@ -783,7 +786,7 @@ function StepperTrigger(props: ButtonProps) {
       value,
       steps,
       propsRef,
-    ],
+    ]
   );
 
   const onFocus = React.useCallback(
@@ -822,7 +825,7 @@ function StepperTrigger(props: ButtonProps) {
       value,
       steps,
       propsRef,
-    ],
+    ]
   );
 
   const onKeyDown = React.useCallback(
@@ -869,7 +872,7 @@ function StepperTrigger(props: ButtonProps) {
         } else if (focusIntent === "prev" || focusIntent === "next") {
           if (focusIntent === "prev") candidateRefs.reverse();
           const currentIndex = candidateRefs.findIndex(
-            (ref) => ref.current === event.currentTarget,
+            (ref) => ref.current === event.currentTarget
           );
           candidateRefs = loop
             ? wrapArray(candidateRefs, currentIndex + 1)
@@ -880,15 +883,15 @@ function StepperTrigger(props: ButtonProps) {
           const nextRef = candidateRefs[0];
           const nextElement = nextRef?.current;
           const nextItem = items.find(
-            (item) => item.ref.current === nextElement,
+            (item) => item.ref.current === nextElement
           );
 
           if (nextItem && nextItem.value !== itemValue) {
             const currentStepIndex = Array.from(steps.keys()).indexOf(
-              value || "",
+              value || ""
             );
             const targetStepIndex = Array.from(steps.keys()).indexOf(
-              nextItem.value,
+              nextItem.value
             );
             const direction: NavigationDirection =
               targetStepIndex > currentStepIndex ? "next" : "prev";
@@ -896,7 +899,7 @@ function StepperTrigger(props: ButtonProps) {
             if (direction === "next") {
               const isValid = await store.setStateWithValidation(
                 nextItem.value,
-                direction,
+                direction
               );
               if (!isValid) return;
             } else {
@@ -924,7 +927,7 @@ function StepperTrigger(props: ButtonProps) {
       itemValue,
       value,
       steps,
-    ],
+    ]
   );
 
   const onMouseDown = React.useCallback(
@@ -940,7 +943,7 @@ function StepperTrigger(props: ButtonProps) {
         focusContext.onItemFocus(triggerId);
       }
     },
-    [focusContext, triggerId, isDisabled, propsRef],
+    [focusContext, triggerId, isDisabled, propsRef]
   );
 
   const TriggerPrimitive = asChild ? Slot : "button";
@@ -965,7 +968,7 @@ function StepperTrigger(props: ButtonProps) {
       className={cn(
         "inline-flex items-center justify-center gap-3 rounded-md text-left outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         "not-has-data-[slot=description]:rounded-full not-has-data-[slot=title]:rounded-full",
-        className,
+        className
       )}
       onClick={onClick}
       onFocus={onFocus}
@@ -1005,7 +1008,7 @@ function StepperIndicator(props: StepperIndicatorProps) {
       {...indicatorProps}
       className={cn(
         "flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-muted bg-background font-medium text-muted-foreground text-sm transition-colors data-[state=active]:border-primary data-[state=completed]:border-primary data-[state=active]:bg-primary data-[state=completed]:bg-primary data-[state=active]:text-primary-foreground data-[state=completed]:text-primary-foreground",
-        className,
+        className
       )}
       ref={ref}
     >
@@ -1053,7 +1056,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
     itemContext.value,
     itemContext.stepState,
     steps,
-    "separator",
+    "separator"
   );
 
   const SeparatorPrimitive = asChild ? Slot : "div";
@@ -1071,7 +1074,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
       className={cn(
         "bg-border transition-colors data-[state=active]:bg-primary data-[state=completed]:bg-primary",
         orientation === "horizontal" ? "h-px flex-1" : "h-10 w-px",
-        className,
+        className
       )}
       ref={ref}
     />
@@ -1196,7 +1199,7 @@ function StepperPrev(props: ButtonProps) {
         store.setState("value", prevStepValue);
       }
     },
-    [propsRef, isDisabled, currentIndex, stepKeys, store],
+    [propsRef, isDisabled, currentIndex, stepKeys, store]
   );
 
   const PrevPrimitive = asChild ? Slot : "button";
@@ -1239,7 +1242,7 @@ function StepperNext(props: ButtonProps) {
         await store.setStateWithValidation(nextStepValue, "next");
       }
     },
-    [propsRef, isDisabled, currentIndex, stepKeys, store],
+    [propsRef, isDisabled, currentIndex, stepKeys, store]
   );
 
   const NextPrimitive = asChild ? Slot : "button";
