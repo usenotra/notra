@@ -5,6 +5,10 @@ import {
   createGetPullRequestsTool,
   createGetReleaseByTagTool,
 } from "@/lib/ai/tools/github";
+import {
+  getSkillByName,
+  listAvailableSkills,
+} from "@/lib/ai/tools/skills";
 import { openrouter } from "@/lib/openrouter";
 
 export function createGithubChangelogAgent(organizationId: string) {
@@ -19,9 +23,13 @@ export function createGithubChangelogAgent(organizationId: string) {
       getPullRequests: createGetPullRequestsTool(),
       getReleaseByTag: createGetReleaseByTagTool(),
       getCommitsByTimeframe: createGetCommitsByTimeframeTool(),
+      listAvailableSkills: listAvailableSkills(),
+      getSkillByName: getSkillByName(),
     },
     instructions: `
-  You are a helpful devrel with a passion for turning technical information into easy to follow changelogs, your job is it to take information from GitHub repositories and turn that information into a changelog designed for humans to read..
+  You are a helpful devrel with a passion for turning technical information into easy to follow changelogs, your job is it to take information from GitHub repositories and turn that information into a changelog designed for humans to read.
+  
+  You have access to skills that can help improve your work. Use listAvailableSkills to see available skills, and getSkillByName to use a specific skill when needed.
   `,
     stopWhen: stepCountIs(30),
   });

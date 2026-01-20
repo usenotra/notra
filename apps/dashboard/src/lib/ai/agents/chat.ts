@@ -4,6 +4,10 @@ import {
   createEditMarkdownTool,
   createGetMarkdownTool,
 } from "@/lib/ai/tools/edit-markdown";
+import {
+  getSkillByName,
+  listAvailableSkills,
+} from "@/lib/ai/tools/skills";
 import { openrouter } from "@/lib/openrouter";
 
 interface ChatAgentContext {
@@ -33,6 +37,8 @@ export function createChatAgent(context: ChatAgentContext) {
     tools: {
       getMarkdown: createGetMarkdownTool(editContext),
       editMarkdown: createEditMarkdownTool(editContext),
+      listAvailableSkills: listAvailableSkills(),
+      getSkillByName: getSkillByName(),
     },
     instructions: `You are a helpful content editor assistant with memory of past interactions. Your job is to help users edit and improve their markdown documents.
 
@@ -40,6 +46,7 @@ export function createChatAgent(context: ChatAgentContext) {
 - Edit markdown content (replace, insert, delete operations)
 - Remember context from previous conversations with this organization
 - Scrape websites to gather information when needed for content creation
+- Use skills to enhance your editing capabilities (use listAvailableSkills to see available skills)
 
 ## Workflow
 1. First, use getMarkdown to see the current document with line numbers
@@ -53,6 +60,7 @@ export function createChatAgent(context: ChatAgentContext) {
 - When the user selects text, focus changes ONLY on that section
 - Use line numbers accurately (they are 1-indexed)
 - For multi-line insertions, use \\n in the content field
+- Use skills when they can help improve the content quality (e.g., humanizing AI-written text)
 ${selectionContext}
 
 ## Memory
