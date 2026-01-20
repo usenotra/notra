@@ -89,7 +89,7 @@ Returns a list of available skills with their metadata (name, version, descripti
 }
 
 function getSkillsDir(): string {
-	return path.join(__dirname, "..", "skills");
+	return path.join(process.cwd(), "apps", "dashboard", "src", "lib", "ai", "skills");
 }
 
 export function getSkillByName(): Tool {
