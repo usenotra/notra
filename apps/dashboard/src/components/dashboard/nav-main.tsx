@@ -2,8 +2,10 @@
 
 import {
   AnalyticsUpIcon,
+  Calendar01Icon,
   CorporateIcon,
   Home01Icon,
+  Link04Icon,
   NoteIcon,
   PlugIcon,
 } from "@hugeicons/core-free-icons";
@@ -19,7 +21,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import Link from "next/link";
 
-type NavMainCategory = "none" | "workspace" | "utility";
+type NavMainCategory = "none" | "workspace" | "automation" | "utility";
 
 interface NavMainItem {
   link: string;
@@ -30,6 +32,7 @@ interface NavMainItem {
 
 const categoryLabels: Record<Exclude<NavMainCategory, "none">, string> = {
   workspace: "Workspace",
+  automation: "Automation",
   utility: "Utility",
 };
 
@@ -59,10 +62,16 @@ const navMainItems: NavMainItem[] = [
     category: "utility",
   },
   {
-    link: "/triggers",
-    icon: AnalyticsUpIcon,
-    label: "Triggers",
-    category: "utility",
+    link: "/automation/trigger",
+    icon: Link04Icon,
+    label: "Events",
+    category: "automation",
+  },
+  {
+    link: "/automation/schedule",
+    icon: Calendar01Icon,
+    label: "Schedules",
+    category: "automation",
   },
   {
     link: "/logs",

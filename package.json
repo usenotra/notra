@@ -12,7 +12,10 @@
     "db:push": "dotenv -- bunx drizzle-kit push --config packages/db/drizzle.config.ts",
     "db:studio": "dotenv -- bunx drizzle-kit studio --config packages/db/drizzle.config.ts",
     "db:drop": "dotenv -- bunx drizzle-kit drop --config packages/db/drizzle.config.ts",
-    "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts"
+    "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts",
+    "db:seed:automation": "dotenv -- bun packages/db/scripts/seed-automation.ts",
+    "db:seed:posts": "dotenv -- bun packages/db/scripts/seed-posts.ts",
+    "db:seed": "bun run db:seed:posts && bun run db:seed:automation"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

@@ -249,7 +249,9 @@ export default function PageClient({ integrationId }: PageClientProps) {
                   Manage automation rules across all repositories in one place.
                 </p>
               </div>
-              <Link href={`/${activeOrganization?.slug ?? ""}/triggers`}>
+              <Link
+                href={`/${activeOrganization?.slug ?? ""}/automation/trigger`}
+              >
                 <Button size="sm" variant="outline">
                   Manage triggers
                 </Button>

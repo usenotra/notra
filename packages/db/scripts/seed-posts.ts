@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { nanoid } from "nanoid";
 // biome-ignore lint/performance/noNamespaceImport: Required for drizzle schema
-import * as schema from "../src/lib/db/schema";
+import * as schema from "../src/schema";
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -534,13 +534,14 @@ async function seed() {
       };
     });
 
-    // Delete existing posts for this org to prevent duplicates on re-run
+    // Delete existing posts for this org to prevent duplicates
     await db
       .delete(schema.posts)
       .where(eq(schema.posts.organizationId, org.id));
 
     await db.insert(schema.posts).values(postsToInsert);
     console.log(`Inserted ${postsToInsert.length} posts for ${org.name}`);
+
   }
 
   console.log("Seed completed successfully!");
