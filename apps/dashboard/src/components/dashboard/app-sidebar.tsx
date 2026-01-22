@@ -15,7 +15,7 @@ export function DashboardSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offExamples" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <OrgSelector />
       </SidebarHeader>
