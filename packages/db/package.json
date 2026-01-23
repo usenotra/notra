@@ -2,12 +2,16 @@
   "name": "@notra/db",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "exports": {
     "./drizzle": "./src/drizzle.ts",
     "./schema": "./src/schema.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.1"
+    "drizzle-orm": "^0.45.1",
+    "nanoid": "^5.1.6"
   },
   "devDependencies": {
     "@notra/typescript-config": "*",
