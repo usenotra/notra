@@ -60,6 +60,7 @@ interface PageClientProps {
 }
 
 import type { IntegrationConfig } from "@/lib/integrations/catalog";
+import { IntegrationType } from "@/utils/schemas/integrations";
 
 function IntegrationCard({
   integration,
