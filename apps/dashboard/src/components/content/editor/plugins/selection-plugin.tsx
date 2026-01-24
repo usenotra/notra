@@ -62,9 +62,9 @@ export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
               const nodeText = node.getTextContent();
               if (node.getKey() === anchor.key) {
                 anchorOffset += anchor.offset;
-              } else if (node.getKey() === anchor.key) {
-                // Already handled above
-              } else {
+              } else if (anchorOffset === 0 || node.getKey() < anchor.key) {
+                anchorOffset += nodeText.length;
+              }
 
               if (node.getKey() === focus.key) {
                 focusOffset += focus.offset;

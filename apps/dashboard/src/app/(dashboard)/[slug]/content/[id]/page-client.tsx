@@ -256,8 +256,10 @@ export default function PageClient({
 
   const currentMarkdownRef = useRef(currentMarkdown);
   const selectionRef = useRef(selection);
+  const contextRef = useRef(context);
   currentMarkdownRef.current = currentMarkdown;
   selectionRef.current = selection;
+  contextRef.current = context;
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -265,6 +267,7 @@ export default function PageClient({
       body: () => ({
         currentMarkdown: currentMarkdownRef.current,
         selectedText: selectionRef.current?.text ?? null,
+        context: contextRef.current,
       }),
     }),
     onFinish: () => {
