@@ -27,25 +27,30 @@ import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
 
 type ChatInputProps = {
   onSend?: (value: string) => void;
+  isLoading?: boolean;
+  statusText?: string;
 };
 
-const ChatInput = ({ onSend }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
     if (!element) return;
-    element.style.height = "0px";
-    element.style.height = `${element.scrollHeight}px`;
+    element.style.height = "0";
+    const maxHeightRem = 12.5;
+    const maxHeightPx = maxHeightRem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    element.style.height = `${Math.min(element.scrollHeight / parseFloat(getComputedStyle(document.documentElement).fontSize), maxHeightRem)}rem`;
+    element.style.overflowY = element.scrollHeight > maxHeightPx ? "auto" : "hidden";
   }, []);
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
-    if (!trimmed) return;
+    if (!trimmed || isLoading) return;
     onSend?.(trimmed);
     setValue("");
     requestAnimationFrame(resizeTextarea);
-  }, [onSend, resizeTextarea, value]);
+  }, [onSend, resizeTextarea, value, isLoading]);
 
   useHotkeys(
     "enter",
@@ -62,21 +67,37 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
 
   return (
     <Card
-      className="bg-surface-subtle ease-out-expo w-full gap-0 rounded-[14px] border-0 py-0 shadow-none transition-shadow duration-200"
+      className="bg-background ease-out-expo w-full gap-0 rounded-[14px] border-0 py-0 shadow-none transition-shadow duration-200"
       data-focused={isFocused ? "true" : "false"}
     >
       <CardHeader className="sr-only">
         <span>Chat input</span>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="rounded-[14px] p-0.5 shadow-lg" tabIndex={-1}>
-          <div className="bg-surface flex flex-col rounded-xl">
+        <div className="rounded-[14px] border border-border bg-background p-0.5 shadow-lg" tabIndex={-1}>
+          {isLoading && statusText && (
+            <div className="flex items-start gap-2 px-3.5 pt-2 pb-1">
+              <svg
+                className="size-4 shrink-0 mt-0.5 animate-spin text-muted-foreground"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <p className="text-sm text-muted-foreground leading-5">{statusText}</p>
+            </div>
+          )}
+          <div className="bg-background flex flex-col rounded-xl">
             <div className="flex w-full items-center">
               <div className="relative flex flex-1 cursor-text transition-colors [--lh:1lh]">
                 <Textarea
-                  className="min-h-8 w-full resize-none border-0 bg-transparent py-0 pl-3.5 pr-2 text-sm text-neutral leading-8 whitespace-pre-wrap outline-none shadow-none ring-0 caret-neutral focus-visible:border-transparent focus-visible:ring-0 dark:caret-white"
+                  className="min-h-8 max-h-[12.5rem] w-full resize-none border-0 bg-transparent py-0 pl-3.5 pr-2 text-sm text-foreground leading-8 whitespace-pre-wrap outline-none shadow-none ring-0 caret-foreground focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Send a message"
-                  placeholder="Send a message..."
+                  disabled={isLoading}
+                  placeholder={isLoading ? "AI is working..." : "Send a message..."}
                   onBlur={() => setIsFocused(false)}
                   onChange={(event) => {
                     setValue(event.target.value);
@@ -96,9 +117,10 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                 <PopoverTrigger
                   render={
                     <Button
-                      className="h-7 rounded-lg px-2"
+                      className="bg-muted hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                       size="sm"
                       variant="outline"
+                      disabled={isLoading}
                     >
                       <div className="flex items-center gap-1.5 text-sm">
                         <svg
@@ -135,10 +157,10 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                       </div>
                     </Button>
                   }
-                ></PopoverTrigger>
+                />
                 <PopoverContent
                   align="start"
-                  className="bg-background border-neutral-subtle w-48 rounded-lg border p-1 shadow-lg"
+                  className="bg-background border-border w-48 rounded-lg border p-1 shadow-lg"
                 >
                   {ALL_INTEGRATIONS.map((integration, index) => {
                     const disabled = !integration.available;
@@ -148,16 +170,16 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                         className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
                           disabled
                             ? "cursor-not-allowed opacity-50"
-                            : "hover:bg-surface-subtle"
-                        } ${isFirst ? "bg-surface-strong rounded-md" : ""}`}
+                            : "hover:bg-accent"
+                        } ${isFirst ? "bg-muted rounded-md" : ""}`}
                         disabled={disabled}
                         key={integration.id}
                         type="button"
                       >
-                        <span className="size-4 shrink-0 text-neutral [&_svg]:size-4">
+                        <span className="size-4 shrink-0 text-foreground [&_svg]:size-4">
                           {integration.icon}
                         </span>
-                        <span className="text-neutral">{integration.name}</span>
+                        <span className="text-foreground">{integration.name}</span>
                       </button>
                     );
                   })}
@@ -170,25 +192,52 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                   <Button
                     tabIndex={0}
                     type="button"
-                    className="group/button focus-visible:ring-neutral-strong relative h-7 shrink-0 rounded-lg px-1.5 transition-transform focus-visible:ring-2"
+                    className="group/button focus-visible:ring-ring h-7 shrink-0 rounded-lg bg-muted px-1.5 transition-colors hover:bg-accent focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                     size="sm"
                     variant="outline"
                     onClick={handleSend}
+                    disabled={isLoading}
                   >
-                    <div className="absolute inset-0 rounded-lg shadow-xs transition-transform group-hover/button:to-surface-weak group-active/button:inset-shadow-xs group-active/button:shadow-none group-active/button:to-surface-subtle" />
-                    <div className="relative z-10 flex items-center gap-1 text-sm text-neutral">
-                      <div className="text-sm px-0.5 leading-0 transition-transform">
-                        Go
-                      </div>
-                      <div className="hidden h-4 items-center rounded border border-neutral bg-surface-weak px-1 text-[10px] text-neutral-subtle shadow-xs sm:inline-flex md:inline-flex">
-                        ↵
-                      </div>
+                    <div className="flex items-center gap-1 text-sm text-foreground">
+                      {isLoading ? (
+                        <svg
+                          className="size-4 animate-spin"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <title>Loading</title>
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : (
+                        <>
+                          <div className="text-sm px-0.5 leading-0 transition-transform">
+                            Go
+                          </div>
+                          <div className="hidden h-4 items-center rounded border border-border bg-background px-1 text-[10px] text-muted-foreground shadow-xs sm:inline-flex md:inline-flex">
+                            ↵
+                          </div>
+                        </>
+                      )}
                     </div>
                   </Button>
                 }
               />
               <TooltipContent>
-                Enter to send. Shift+Enter for a new line.
+                {isLoading ? "AI is thinking..." : "Enter to send. Shift+Enter for a new line."}
               </TooltipContent>
             </Tooltip>
           </CardFooter>

@@ -1,7 +1,11 @@
 "use client";
 
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import remend from "remend";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
+import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import {
   Tabs,
   TabsContent,
@@ -12,7 +16,7 @@ import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AiEditInput } from "@/components/content/ai-edit-input";
+import ChatInput from "@/components/chat-input";
 import { CONTENT_TYPE_LABELS } from "@/components/content/content-card";
 import { DiffView } from "@/components/content/diff-view";
 import { LexicalEditor } from "@/components/content/editor/lexical-editor";
@@ -60,20 +64,18 @@ export default function PageClient({
     parseAsStringLiteral(VIEW_OPTIONS).withDefault("rendered")
   );
 
+  const { state: sidebarState } = useSidebar();
   const { data, isLoading, error } = useContent(organizationId, contentId);
 
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
   const [originalMarkdown, setOriginalMarkdown] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
 
   const saveToastIdRef = useRef<string | number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<EditorRefHandle | null>(null);
-  // biome-ignore lint/suspicious/noEmptyBlockStatements: Initial empty function for ref
   const handleSaveRef = useRef<() => void>(() => {});
-  // biome-ignore lint/suspicious/noEmptyBlockStatements: Initial empty function for ref
   const handleDiscardRef = useRef<() => void>(() => {});
 
   // Initialize content when data loads
@@ -216,40 +218,103 @@ export default function PageClient({
     }
   }, []);
 
-  const handleAiEdit = async (instruction: string) => {
-    setIsEditing(true);
-    try {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/content/${contentId}/edit`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            instruction,
-            currentMarkdown,
-            selectedText,
-          }),
-        }
-      );
+  const currentMarkdownRef = useRef(currentMarkdown);
+  const selectedTextRef = useRef(selectedText);
+  currentMarkdownRef.current = currentMarkdown;
+  selectedTextRef.current = selectedText;
 
-      if (!response.ok) {
-        throw new Error("Failed to edit content");
-      }
-
-      const responseData = await response.json();
-      if (responseData.markdown) {
-        setEditedMarkdown(responseData.markdown);
-        // Update Lexical editor content directly without remounting
-        editorRef.current?.setMarkdown(responseData.markdown);
-      }
-
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
+      body: () => ({
+        currentMarkdown: currentMarkdownRef.current,
+        selectedText: selectedTextRef.current,
+      }),
+    }),
+    onFinish: () => {
       clearSelection();
-    } catch (err) {
+    },
+    onError: (err) => {
       console.error("Error editing content:", err);
-    } finally {
-      setIsEditing(false);
+      toast.error("Failed to edit content");
+    },
+  });
+
+  // Get current status for display - shows AI text or tool status
+  const currentToolStatus = (() => {
+    const toolNames: Record<string, string> = {
+      getMarkdown: "Reading document...",
+      editMarkdown: "Editing document...",
+      listAvailableSkills: "Checking skills...",
+      getSkillByName: "Loading skill...",
+    };
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message?.role === "assistant" && message.parts) {
+        for (let j = message.parts.length - 1; j >= 0; j--) {
+          const part = message.parts[j];
+          if (!part) continue;
+          if (part.type === "text" && part.text?.trim()) {
+            return part.text.trim();
+          }
+          if (part.type.startsWith("tool-")) {
+            const toolPart = part as { state: string };
+            // Extract tool name from type like "tool-getMarkdown" -> "getMarkdown"
+            const toolName = part.type.replace("tool-", "");
+            if (toolPart.state === "input-streaming" || toolPart.state === "input-available") {
+              return toolNames[toolName] || `Running ${toolName}...`;
+            }
+          }
+        }
+      }
     }
-  };
+    return undefined;
+  })();
+
+  // Track processed tool calls to avoid duplicate updates
+  const processedToolCallsRef = useRef<Set<string>>(new Set());
+
+  // Watch for tool results and update the editor
+  useEffect(() => {
+    for (const message of messages) {
+      if (message.role === "assistant" && message.parts) {
+        for (const part of message.parts) {
+          if (part.type === "tool-editMarkdown") {
+            const toolPart = part as {
+              toolCallId: string;
+              state: string;
+              output?: { updatedMarkdown?: string }
+            };
+
+            // Skip if already processed
+            if (processedToolCallsRef.current.has(toolPart.toolCallId)) {
+              continue;
+            }
+
+            if (
+              toolPart.state === "output-available" &&
+              toolPart.output?.updatedMarkdown
+            ) {
+              processedToolCallsRef.current.add(toolPart.toolCallId);
+              // Use remend to fix any incomplete markdown syntax
+              const fixedMarkdown = remend(toolPart.output.updatedMarkdown);
+              console.log(`[Tool] editMarkdown result applied, toolCallId=${toolPart.toolCallId}`);
+              setEditedMarkdown(fixedMarkdown);
+              editorRef.current?.setMarkdown(fixedMarkdown);
+            }
+          }
+        }
+      }
+    }
+  }, [messages]);
+
+  const handleAiEdit = useCallback(
+    async (instruction: string) => {
+      await sendMessage({ text: instruction });
+    },
+    [sendMessage]
+  );
 
   if (isLoading) {
     return (
@@ -368,7 +433,7 @@ export default function PageClient({
             <TabsContent className="mt-0" value="markdown">
               <textarea
                 aria-label="Markdown content editor"
-                className="min-h-[500px] w-full resize-none whitespace-pre-wrap rounded-lg border-0 bg-transparent font-mono text-sm selection:bg-primary/30 focus:outline-none focus:ring-0"
+                className="field-sizing-content w-full resize-none whitespace-pre-wrap rounded-lg border-0 bg-transparent font-mono text-sm selection:bg-primary/30 focus:outline-none focus:ring-0"
                 onChange={(e) => setEditedMarkdown(e.target.value)}
                 onMouseUp={handleTextareaSelect}
                 onSelect={handleTextareaSelect}
@@ -385,15 +450,12 @@ export default function PageClient({
           </TitleCard>
         </Tabs>
 
-        <div className="h-32" />
+        <div className="h-24" />
       </div>
 
-      <AiEditInput
-        isLoading={isEditing}
-        onClearSelection={clearSelection}
-        onSubmit={handleAiEdit}
-        selectedText={selectedText}
-      />
+      <div className={`fixed bottom-0 left-0 right-0 mx-auto w-full max-w-2xl px-4 pb-4 ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"}`}>
+        <ChatInput onSend={handleAiEdit} isLoading={status === "streaming" || status === "submitted"} statusText={currentToolStatus} />
+      </div>
     </div>
   );
 }

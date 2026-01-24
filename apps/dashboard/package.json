@@ -15,6 +15,7 @@
     "db:seed": "tsx scripts/seed-posts.ts"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.51",
     "@databuddy/sdk": "^2.3.24",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.4",
@@ -41,6 +42,7 @@
     "@tanstack/zod-form-adapter": "^0.42.1",
     "@upstash/redis": "^1.35.8",
     "ai": "^6.0.39",
+    "remend": "^1.1.0",
     "better-auth": "^1.4.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -61,8 +63,8 @@
     "postprocessing": "^6.36.0",
     "react": "19.2.1",
     "react-diff-viewer-continued": "^3.4.0",
-    "react-hotkeys-hook": "^5.2.3",
     "react-dom": "19.2.1",
+    "react-hotkeys-hook": "^5.2.3",
     "resend": "^6.7.0",
     "shadcn": "^3.6.2",
     "shiki": "^3.21.0",
