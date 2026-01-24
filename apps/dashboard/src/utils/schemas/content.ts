@@ -66,3 +66,9 @@ export const chatRequestSchema = z.object({
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
+
+export const updateContentSchema = z.object({
+  markdown: z.string(),
+});
+
+export type UpdateContentInput = z.infer<typeof updateContentSchema>;

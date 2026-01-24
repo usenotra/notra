@@ -1,72 +1,41 @@
 import dedent from "dedent";
 
-interface ContentEditorPromptParams {
-  instruction: string;
-  currentMarkdown: string;
+interface ContentEditorChatPromptParams {
   selectedText?: string;
+  repoContext?: { owner: string; repo: string }[];
 }
 
-export function getContentEditorPrompt(params: ContentEditorPromptParams) {
-  const { instruction, currentMarkdown, selectedText } = params;
-
-  const lines = currentMarkdown.split("\n");
-  const numberedContent = lines
-    .map((line, i) => `${i + 1}: ${line}`)
-    .join("\n");
+export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams) {
+  const { selectedText, repoContext } = params;
 
   const selectionContext = selectedText
-    ? dedent`
-      ## Selected Text (User has highlighted this portion)
-      Focus your changes ONLY on this specific section:
-      \`\`\`
-      ${selectedText}
-      \`\`\`
-    `
+    ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${selectedText}\n"""`
+    : "";
+
+  const repoContextStr = repoContext?.length
+    ? `\n\nThe user has added the following GitHub repositories as context:\n${repoContext.map((c) => `- ${c.owner}/${c.repo}`).join("\n")}`
     : "";
 
   return dedent`
-    # ROLE AND IDENTITY
+    You are a content editor assistant. Help users edit their markdown documents.
 
-    You are a skilled content editor. Apply the user's requested changes using a minimal set of line operations.
+    ## Workflow
+    1. Use getMarkdown to see the document with line numbers
+    2. Use editMarkdown to apply changes (work from bottom to top)
 
-    # TASK OBJECTIVE
+    ## Edit Operations
+    - replaceLine: { op: "replaceLine", line: number, content: string }
+    - replaceRange: { op: "replaceRange", startLine: number, endLine: number, content: string }
+    - insert: { op: "insert", afterLine: number, content: string }
+    - deleteLine: { op: "deleteLine", line: number }
+    - deleteRange: { op: "deleteRange", startLine: number, endLine: number }
 
-    Apply this instruction: "${instruction}"
-    ${selectionContext}
-
-    # CURRENT MARKDOWN (with line numbers)
-
-    ${numberedContent}
-
-    # OUTPUT FORMAT
-
-    Return ONLY a JSON array of operations. Each operation must be one of:
-
-    1. Replace a single line:
-       {"op": "replace", "line": <number>, "content": "<new content>"}
-
-    2. Replace a range of lines:
-       {"op": "replace", "startLine": <number>, "endLine": <number>, "content": "<new content with \\n for line breaks>"}
-
-    3. Insert after a line:
-       {"op": "insert", "afterLine": <number>, "content": "<content to insert>"}
-
-    4. Delete a line:
-       {"op": "delete", "line": <number>}
-
-    5. Delete a range:
-       {"op": "delete", "startLine": <number>, "endLine": <number|}
-
-    # CONSTRAINTS
-
-    - Return ONLY the JSON array, no explanations
-    - Use the minimum number of operations needed
+    ## Guidelines
+    - Make minimal edits
     - Line numbers are 1-indexed
-    - For multi-line content in "content" field, use \\n
-    - If the user selected text, ONLY modify lines containing that selection
-
-    # EXAMPLE OUTPUT
-
-    [{"op": "replace", "line": 5, "content": "Updated heading text"}]
+    - For multi-line content use \\n in content string
+    - When user selects text, focus only on that section
+    - IMPORTANT: Do NOT output the content of your edits in text. Only use the editMarkdown tool. Keep text responses brief - just explain what you're doing, not the actual content.
+    ${selectionContext}${repoContextStr}
   `;
 }
