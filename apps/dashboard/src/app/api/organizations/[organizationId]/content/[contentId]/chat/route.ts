@@ -3,7 +3,6 @@ import {
   convertToModelMessages,
   streamText,
   stepCountIs,
-  type UIMessage,
 } from "ai";
 import { type NextRequest } from "next/server";
 import { createMarkdownTools } from "@/lib/ai/tools/edit-markdown";
@@ -13,6 +12,7 @@ import {
 } from "@/lib/ai/tools/skills";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { openrouter } from "@/lib/openrouter";
+import { chatRequestSchema } from "@/utils/schemas/content";
 
 interface RouteContext {
   params: Promise<{ organizationId: string; contentId: string }>;
@@ -32,17 +32,20 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       return auth.response;
     }
 
-    const {
-      messages,
-      currentMarkdown,
-      selectedText,
-    }: {
-      messages: UIMessage[];
-      currentMarkdown: string;
-      selectedText?: string;
-    } = await request.json();
+    const body = await request.json();
+    const parseResult = chatRequestSchema.safeParse(body);
 
-    console.log(`[Chat API] Messages: ${messages.length}, Selected text: ${selectedText ? "yes" : "no"}`);
+    if (!parseResult.success) {
+      console.log("[Chat API] Validation failed:", parseResult.error.issues);
+      return new Response(
+        JSON.stringify({ error: "Invalid request body", details: parseResult.error.issues }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages, currentMarkdown, selectedText, context } = parseResult.data;
+
+    console.log(`[Chat API] Messages: ${messages.length}, Selected text: ${selectedText ? "yes" : "no"}, Context: ${context?.length ?? 0} items`);
 
     const modelWithMemory = withSupermemory(
       openrouter("anthropic/claude-sonnet-4.5"),
@@ -56,6 +59,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const selectionContext = selectedText
       ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${selectedText}\n"""`
+      : "";
+
+    const repoContext = context?.length
+      ? `\n\nThe user has added the following GitHub repositories as context:\n${context.map(c => `- ${c.owner}/${c.repo}`).join("\n")}`
       : "";
 
     console.log("[Chat API] Starting streamText with claude-sonnet-4.5");
@@ -81,7 +88,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 - For multi-line content use \\n in content string
 - When user selects text, focus only on that section
 - IMPORTANT: Do NOT output the content of your edits in text. Only use the editMarkdown tool. Keep text responses brief - just explain what you're doing, not the actual content.
-${selectionContext}`,
+${selectionContext}${repoContext}`,
       messages: await convertToModelMessages(messages),
       tools: {
         getMarkdown,

@@ -1,5 +1,7 @@
 "use client";
 
+import { AtIcon, Cancel01Icon, TextSelectionIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Card,
@@ -8,10 +10,17 @@ import {
   CardHeader,
 } from "@notra/ui/components/ui/card";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@notra/ui/components/ui/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import { Slack } from "@notra/ui/components/ui/svgs/slack";
@@ -21,20 +30,79 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useCallback, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
+import type { GitHubRepository } from "@/types/integrations";
+import type { IntegrationsResponse } from "@/lib/services/integrations";
+import { QUERY_KEYS } from "@/utils/query-keys";
+
+export type TextSelection = {
+  text: string;
+  startLine: number;
+  startChar: number;
+  endLine: number;
+  endChar: number;
+};
+
+export type ContextItem = {
+  type: "github-repo";
+  owner: string;
+  repo: string;
+  integrationId: string;
+};
 
 type ChatInputProps = {
   onSend?: (value: string) => void;
   isLoading?: boolean;
   statusText?: string;
+  selection?: TextSelection | null;
+  onClearSelection?: () => void;
+  organizationSlug?: string;
+  organizationId?: string;
+  context?: ContextItem[];
+  onAddContext?: (item: ContextItem) => void;
+  onRemoveContext?: (item: ContextItem) => void;
 };
 
-const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSelection, organizationSlug, organizationId, context = [], onAddContext, onRemoveContext }: ChatInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Fetch GitHub integrations
+  const { data: integrationsData } = useQuery<IntegrationsResponse>({
+    queryKey: QUERY_KEYS.INTEGRATIONS.all(organizationId ?? ""),
+    queryFn: async () => {
+      const response = await fetch(`/api/organizations/${organizationId}/integrations`);
+      if (!response.ok) throw new Error("Failed to fetch integrations");
+      return response.json();
+    },
+    enabled: !!organizationId,
+  });
+
+  // Get all enabled repos from all integrations (memoized, single iteration)
+  const enabledRepos = useMemo(() => {
+    const result: Array<GitHubRepository & { integrationId: string }> = [];
+    for (const integration of integrationsData?.integrations ?? []) {
+      for (const repo of integration.repositories) {
+        if (repo.enabled) {
+          result.push({ ...repo, integrationId: integration.id });
+        }
+      }
+    }
+    return result;
+  }, [integrationsData?.integrations]);
+
+  const isRepoInContext = useCallback(
+    (repo: GitHubRepository & { integrationId: string }) =>
+      context.some(
+        (c) => c.type === "github-repo" && c.owner === repo.owner && c.repo === repo.repo
+      ),
+    [context]
+  );
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
     if (!element) return;
@@ -74,7 +142,7 @@ const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) =>
         <span>Chat input</span>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="rounded-[14px] border border-border bg-background p-0.5 shadow-lg" tabIndex={-1}>
+        <div className="rounded-[14px] border border-border bg-background p-0.5 shadow-sm" tabIndex={-1}>
           {isLoading && statusText && (
             <div className="flex items-start gap-2 px-3.5 pt-2 pb-1">
               <svg
@@ -88,6 +156,60 @@ const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) =>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <p className="text-sm text-muted-foreground leading-5">{statusText}</p>
+            </div>
+          )}
+          {(context.length > 0 || selection) && (
+            <div className="flex items-center gap-2 px-3 pt-2 pb-1 overflow-x-auto">
+              {context.map((item, index) => (
+                <div
+                  key={`${item.type}-${item.owner}-${item.repo}-${index}`}
+                  className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs text-foreground"
+                >
+                  <Github className="size-3.5" />
+                  <span className="font-medium">{item.owner}/{item.repo}</span>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveContext?.(item)}
+                    className="ml-0.5 rounded p-0.5 hover:bg-accent transition-colors cursor-pointer"
+                    aria-label={`Remove ${item.owner}/${item.repo} from context`}
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                  </button>
+                </div>
+              ))}
+              {selection && (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs text-foreground" />
+                    }
+                  >
+                    <HugeiconsIcon icon={TextSelectionIcon} className="size-3.5 text-muted-foreground" />
+                    <span className="font-medium">
+                      L{selection.startLine}:{selection.startChar} → L{selection.endLine}:{selection.endChar}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onClearSelection}
+                      className="ml-0.5 rounded p-0.5 hover:bg-accent transition-colors cursor-pointer"
+                      aria-label="Remove selection"
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <div className="space-y-1">
+                      <p className="font-medium">Selected Text</p>
+                      <p className="text-xs opacity-70">
+                        From line {selection.startLine}, character {selection.startChar} to line {selection.endLine}, character {selection.endChar}
+                      </p>
+                      <p className="text-xs opacity-80 line-clamp-3 whitespace-pre-wrap break-all">
+                        "{selection.text.length > 150 ? selection.text.slice(0, 150) + "..." : selection.text}"
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
           )}
           <div className="bg-background flex flex-col rounded-xl">
@@ -113,78 +235,155 @@ const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) =>
           </div>
           <CardFooter className="flex items-center justify-between overflow-hidden p-2">
             <div className="flex items-center gap-1 sm:gap-2">
-              <Popover>
-                <PopoverTrigger
+              <DropdownMenu>
+                <DropdownMenuTrigger
                   render={
                     <Button
                       className="bg-muted hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                       size="sm"
                       variant="outline"
                       disabled={isLoading}
-                    >
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-at-sign size-4"
-                          aria-hidden="true"
-                        >
-                          <title>At sign</title>
-                          <circle cx="12" cy="12" r="4" />
-                          <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
-                        </svg>
-                        <span className="hidden min-[400px]:inline">
-                          Add Context
-                        </span>
-                        <div className="flex items-center pr-1 sm:pr-2">
-                          <span className="-mr-1.5 rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
-                            <Slack />
-                          </span>
-                          <span className="-mr-1.5 rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
-                            <Github />
-                          </span>
-                          <span className="rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
-                            <Linear />
-                          </span>
-                        </div>
-                      </div>
-                    </Button>
+                    />
                   }
-                />
-                <PopoverContent
-                  align="start"
-                  className="bg-background border-border w-48 rounded-lg border p-1 shadow-lg"
                 >
-                  {ALL_INTEGRATIONS.map((integration, index) => {
-                    const disabled = !integration.available;
-                    const isFirst = index === 0;
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <HugeiconsIcon icon={AtIcon} className="size-4" />
+                    <span className="hidden min-[400px]:inline">
+                      Add Context
+                    </span>
+                    <div className="flex items-center pr-1 sm:pr-2">
+                      <span className="-mr-1.5 rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
+                        <Slack />
+                      </span>
+                      <span className="-mr-1.5 rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
+                        <Github />
+                      </span>
+                      <span className="rounded-md bg-background p-0.5 ring-2 ring-white dark:ring-black [&_svg]:size-4">
+                        <Linear />
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Integrations</DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  {ALL_INTEGRATIONS.map((integration) => {
+                    const isGitHub = integration.id === "github";
+                    const isAvailable = integration.available;
+
+                    // GitHub with repos - show submenu
+                    if (isGitHub && isAvailable && enabledRepos.length > 0) {
+                      return (
+                        <DropdownMenuSub key={integration.id}>
+                          <DropdownMenuSubTrigger>
+                            <span className="size-4 shrink-0 text-foreground [&_svg]:size-4">
+                              {integration.icon}
+                            </span>
+                            <span className="text-foreground">{integration.name}</span>
+                            <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">
+                              {enabledRepos.length}
+                            </span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel>Select Repository</DropdownMenuLabel>
+                            </DropdownMenuGroup>
+                            {enabledRepos.map((repo) => {
+                              const inContext = isRepoInContext(repo);
+                              return (
+                                <DropdownMenuItem
+                                  key={repo.id}
+                                  onClick={() => {
+                                    if (inContext) {
+                                      onRemoveContext?.({
+                                        type: "github-repo",
+                                        owner: repo.owner,
+                                        repo: repo.repo,
+                                        integrationId: repo.integrationId,
+                                      });
+                                    } else {
+                                      onAddContext?.({
+                                        type: "github-repo",
+                                        owner: repo.owner,
+                                        repo: repo.repo,
+                                        integrationId: repo.integrationId,
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <Github className="size-4" />
+                                  <span className="truncate">{repo.owner}/{repo.repo}</span>
+                                  {inContext && (
+                                    <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">
+                                      Added
+                                    </span>
+                                  )}
+                                </DropdownMenuItem>
+                              );
+                            })}
+                            {organizationSlug && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  render={<Link href={`/${organizationSlug}/integrations/github`} />}
+                                >
+                                  Manage repositories
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                      );
+                    }
+
+                    // GitHub available but no repos
+                    if (isGitHub && isAvailable && organizationSlug) {
+                      return (
+                        <DropdownMenuItem
+                          key={integration.id}
+                          render={<Link href={`/${organizationSlug}/integrations/github`} />}
+                        >
+                          <span className="size-4 shrink-0 text-foreground [&_svg]:size-4">
+                            {integration.icon}
+                          </span>
+                          <span className="text-foreground">{integration.name}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            Setup
+                          </span>
+                        </DropdownMenuItem>
+                      );
+                    }
+
+                    // Not available integrations
                     return (
-                      <button
-                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
-                          disabled
-                            ? "cursor-not-allowed opacity-50"
-                            : "hover:bg-accent"
-                        } ${isFirst ? "bg-muted rounded-md" : ""}`}
-                        disabled={disabled}
+                      <DropdownMenuItem
                         key={integration.id}
-                        type="button"
+                        disabled
+                        className="opacity-60"
                       >
                         <span className="size-4 shrink-0 text-foreground [&_svg]:size-4">
                           {integration.icon}
                         </span>
                         <span className="text-foreground">{integration.name}</span>
-                      </button>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          Soon
+                        </span>
+                      </DropdownMenuItem>
                     );
                   })}
-                </PopoverContent>
-              </Popover>
+                  {organizationSlug && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        render={<Link href={`/${organizationSlug}/integrations`} />}
+                      >
+                        Manage integrations
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <Tooltip>
               <TooltipTrigger
@@ -197,45 +396,45 @@ const ChatInput = ({ onSend, isLoading = false, statusText }: ChatInputProps) =>
                     variant="outline"
                     onClick={handleSend}
                     disabled={isLoading}
-                  >
-                    <div className="flex items-center gap-1 text-sm text-foreground">
-                      {isLoading ? (
-                        <svg
-                          className="size-4 animate-spin"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <title>Loading</title>
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      ) : (
-                        <>
-                          <div className="text-sm px-0.5 leading-0 transition-transform">
-                            Go
-                          </div>
-                          <div className="hidden h-4 items-center rounded border border-border bg-background px-1 text-[10px] text-muted-foreground shadow-xs sm:inline-flex md:inline-flex">
-                            ↵
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </Button>
+                  />
                 }
-              />
+              >
+                <div className="flex items-center gap-1 text-sm text-foreground">
+                  {isLoading ? (
+                    <svg
+                      className="size-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <title>Loading</title>
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  ) : (
+                    <>
+                      <div className="text-sm px-0.5 leading-0 transition-transform">
+                        Go
+                      </div>
+                      <div className="hidden h-4 items-center rounded border border-border bg-background px-1 text-[10px] text-muted-foreground shadow-xs sm:inline-flex md:inline-flex">
+                        ↵
+                      </div>
+                    </>
+                  )}
+                </div>
+              </TooltipTrigger>
               <TooltipContent>
                 {isLoading ? "AI is thinking..." : "Enter to send. Shift+Enter for a new line."}
               </TooltipContent>

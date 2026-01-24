@@ -2,6 +2,7 @@
 
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
+  $getRoot,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_LOW,
@@ -9,8 +10,24 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 
+export type TextSelection = {
+  text: string;
+  startLine: number;
+  startChar: number;
+  endLine: number;
+  endChar: number;
+};
+
 interface SelectionPluginProps {
-  onSelectionChange: (selectedText: string | null) => void;
+  onSelectionChange: (selection: TextSelection | null) => void;
+}
+
+function getLineAndCharFromOffset(text: string, offset: number): { line: number; char: number } {
+  const lines = text.substring(0, offset).split("\n");
+  return {
+    line: lines.length,
+    char: (lines[lines.length - 1]?.length ?? 0) + 1,
+  };
 }
 
 export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
@@ -20,32 +37,71 @@ export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
     const unregister = editor.registerCommand(
       SELECTION_CHANGE_COMMAND,
       () => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection) && !selection.isCollapsed()) {
-          const text = selection.getTextContent().trim();
-          onSelectionChange(text || null);
-        }
+        editor.getEditorState().read(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection) && !selection.isCollapsed()) {
+            const text = selection.getTextContent().trim();
+            if (!text) {
+              return;
+            }
+
+            // Get the full text content to calculate positions
+            const root = $getRoot();
+            const fullText = root.getTextContent();
+
+            // Get anchor and focus points
+            const anchor = selection.anchor;
+            const focus = selection.focus;
+
+            // Calculate offsets by traversing nodes in document order
+            let anchorOffset = 0;
+            let focusOffset = 0;
+            let anchorFound = false;
+            let focusFound = false;
+
+            const nodes = root.getAllTextNodes();
+            for (const node of nodes) {
+              const nodeKey = node.getKey();
+              const nodeLength = node.getTextContent().length;
+
+              if (nodeKey === anchor.key) {
+                anchorOffset += anchor.offset;
+                anchorFound = true;
+              } else if (!anchorFound) {
+                anchorOffset += nodeLength;
+              }
+
+              if (nodeKey === focus.key) {
+                focusOffset += focus.offset;
+                focusFound = true;
+              } else if (!focusFound) {
+                focusOffset += nodeLength;
+              }
+            }
+
+            // Ensure start is before end
+            const startOffset = Math.min(anchorOffset, focusOffset);
+            const endOffset = Math.max(anchorOffset, focusOffset);
+
+            const start = getLineAndCharFromOffset(fullText, startOffset);
+            const end = getLineAndCharFromOffset(fullText, endOffset);
+
+            onSelectionChange({
+              text,
+              startLine: start.line,
+              startChar: start.char,
+              endLine: end.line,
+              endChar: end.char,
+            });
+          }
+        });
         return false;
       },
       COMMAND_PRIORITY_LOW
     );
 
-    // Also listen to native selection changes as backup
-    const handleNativeSelection = () => {
-      const nativeSelection = window.getSelection();
-      if (nativeSelection && !nativeSelection.isCollapsed) {
-        const text = nativeSelection.toString().trim();
-        if (text) {
-          onSelectionChange(text);
-        }
-      }
-    };
-
-    document.addEventListener("selectionchange", handleNativeSelection);
-
     return () => {
       unregister();
-      document.removeEventListener("selectionchange", handleNativeSelection);
     };
   }, [editor, onSelectionChange]);
 

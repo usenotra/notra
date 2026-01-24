@@ -27,13 +27,13 @@ import {
 import { FloatingToolbarPlugin } from "./plugins/floating-toolbar-plugin";
 import { HorizontalRulePlugin } from "./plugins/horizontal-rule-plugin";
 import { MarkdownSyncPlugin } from "./plugins/markdown-sync-plugin";
-import { SelectionPlugin } from "./plugins/selection-plugin";
+import { SelectionPlugin, type TextSelection } from "./plugins/selection-plugin";
 import { TabFocusPlugin } from "./plugins/tab-focus-plugin";
 
 interface LexicalEditorProps {
   initialMarkdown: string;
   onChange: (markdown: string) => void;
-  onSelectionChange: (selectedText: string | null) => void;
+  onSelectionChange: (selection: TextSelection | null) => void;
   editable?: boolean;
   editorRef?: RefObject<EditorRefHandle | null>;
 }
