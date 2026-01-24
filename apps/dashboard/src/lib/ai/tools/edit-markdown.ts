@@ -1,45 +1,32 @@
 import { tool } from "ai";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
-import { toolDescription } from "../utils/description";
 
 const editOperationSchema = z.discriminatedUnion("op", [
   z.object({
-    op: z.literal("replace"),
+    op: z.literal("replaceLine"),
     line: z.number().describe("The line number to replace (1-indexed)"),
     content: z.string().describe("The new content for the line"),
   }),
   z.object({
-    op: z.literal("replace"),
-    startLine: z
-      .number()
-      .describe("The starting line number of the range (1-indexed)"),
-    endLine: z
-      .number()
-      .describe("The ending line number of the range (1-indexed)"),
-    content: z
-      .string()
-      .describe("The new content (use \\n for multiple lines)"),
+    op: z.literal("replaceRange"),
+    startLine: z.number().describe("The starting line number (1-indexed)"),
+    endLine: z.number().describe("The ending line number (1-indexed)"),
+    content: z.string().describe("The new content (use \\n for multiple lines)"),
   }),
   z.object({
     op: z.literal("insert"),
-    afterLine: z
-      .number()
-      .describe("The line number after which to insert (0 for start)"),
+    afterLine: z.number().describe("Line number after which to insert (0 for start)"),
     content: z.string().describe("The content to insert"),
   }),
   z.object({
-    op: z.literal("delete"),
+    op: z.literal("deleteLine"),
     line: z.number().describe("The line number to delete (1-indexed)"),
   }),
   z.object({
-    op: z.literal("delete"),
-    startLine: z
-      .number()
-      .describe("The starting line number to delete (1-indexed)"),
-    endLine: z
-      .number()
-      .describe("The ending line number to delete (1-indexed)"),
+    op: z.literal("deleteRange"),
+    startLine: z.number().describe("The starting line number to delete (1-indexed)"),
+    endLine: z.number().describe("The ending line number to delete (1-indexed)"),
   }),
 ]);
 
@@ -64,93 +51,69 @@ function getOperationLineNumber(op: EditOperation): number {
 }
 
 function applyOperation(lines: string[], op: EditOperation): void {
-  if (op.op === "replace") {
-    if ("line" in op && op.line !== undefined) {
-      lines[op.line - 1] = op.content;
-    } else if ("startLine" in op && "endLine" in op) {
-      const newLines = op.content.split("\n");
-      lines.splice(
-        op.startLine - 1,
-        op.endLine - op.startLine + 1,
-        ...newLines
-      );
-    }
-  } else if (op.op === "insert" && "afterLine" in op) {
+  if (op.op === "replaceLine") {
+    lines[op.line - 1] = op.content;
+  } else if (op.op === "replaceRange") {
+    const newLines = op.content.split("\n");
+    lines.splice(op.startLine - 1, op.endLine - op.startLine + 1, ...newLines);
+  } else if (op.op === "insert") {
     const newLines = op.content.split("\n");
     lines.splice(op.afterLine, 0, ...newLines);
-  } else if (op.op === "delete") {
-    if ("line" in op && op.line !== undefined) {
-      lines.splice(op.line - 1, 1);
-    } else if ("startLine" in op && "endLine" in op) {
-      lines.splice(op.startLine - 1, op.endLine - op.startLine + 1);
-    }
+  } else if (op.op === "deleteLine") {
+    lines.splice(op.line - 1, 1);
+  } else if (op.op === "deleteRange") {
+    lines.splice(op.startLine - 1, op.endLine - op.startLine + 1);
   }
 }
 
-export function createEditMarkdownTool(context: EditMarkdownContext) {
-  const currentLines = context.currentMarkdown.split("\n");
+export function createMarkdownTools(context: EditMarkdownContext) {
+  let currentLines = context.currentMarkdown.split("\n");
 
-  return tool({
-    description: toolDescription({
-      toolName: "edit_markdown",
-      intro:
-        "Edits markdown content by applying operations like replace, insert, and delete. Supports single line and range operations.",
-      whenToUse:
-        "When user wants to modify specific parts of a markdown document, add new content, remove sections, or update existing text.",
-      usageNotes: `Always call get_markdown first to see current line numbers before editing.
-Process operations from highest line number to lowest to maintain accuracy.
-Supports: replace (single line or range), insert (after a line), delete (single line or range).`,
-    }),
-    inputSchema: z.object({
-      operations: z
-        .array(editOperationSchema)
-        .describe(
-          "Array of edit operations to apply. Process from highest line number to lowest."
-        ),
-    }),
-    execute: ({ operations }) => {
-      const sortedOps = [...operations].sort(
-        (a, b) => getOperationLineNumber(b) - getOperationLineNumber(a)
-      );
-
-      for (const op of sortedOps) {
-        applyOperation(currentLines, op);
-      }
-
-      const updatedMarkdown = currentLines.join("\n");
-      context.onUpdate(updatedMarkdown);
-
-      return {
-        success: true,
-        lineCount: currentLines.length,
-        preview: `${currentLines.slice(0, 10).join("\n")}\n...`,
-      };
-    },
-  });
-}
-
-export function createGetMarkdownTool(context: EditMarkdownContext) {
-  return tool({
-    description: toolDescription({
-      toolName: "get_markdown",
-      intro:
-        "Gets the current markdown content with line numbers. Shows the full document structure with each line numbered.",
-      whenToUse:
-        "Before making any edits to understand the document structure and get accurate line numbers for edit operations.",
-      whenNotToUse:
-        "If you already have the current line numbers from a recent call and no edits were made since.",
-    }),
+  const getMarkdown = tool({
+    description: "Gets the current markdown content with line numbers.",
     inputSchema: z.object({}),
     execute: () => {
-      const lines = context.currentMarkdown.split("\n");
-      const numberedContent = lines
+      const numberedContent = currentLines
         .map((line, i) => `${i + 1}: ${line}`)
         .join("\n");
-
-      return {
-        content: numberedContent,
-        lineCount: lines.length,
-      };
+      console.log(`[getMarkdown] Returning ${currentLines.length} lines`);
+      return { content: numberedContent, lineCount: currentLines.length };
     },
   });
+
+  const editMarkdown = tool({
+    description: `Edits markdown. Operations: replaceLine (line, content), replaceRange (startLine, endLine, content), insert (afterLine, content), deleteLine (line), deleteRange (startLine, endLine). Process from highest line number to lowest.`,
+    inputSchema: z.object({
+      operations: z.array(editOperationSchema),
+    }),
+    execute: ({ operations }) => {
+      try {
+        console.log(`[editMarkdown] Received:`, JSON.stringify(operations));
+
+        const sortedOps = [...operations].sort(
+          (a, b) => getOperationLineNumber(b) - getOperationLineNumber(a)
+        );
+
+        for (const op of sortedOps) {
+          console.log(`[editMarkdown] Applying: ${op.op}`);
+          applyOperation(currentLines, op);
+        }
+
+        const updatedMarkdown = currentLines.join("\n");
+        context.onUpdate(updatedMarkdown);
+
+        console.log(`[editMarkdown] Success. Lines: ${currentLines.length}`);
+        return {
+          success: true,
+          lineCount: currentLines.length,
+          updatedMarkdown,
+        };
+      } catch (err) {
+        console.error(`[editMarkdown] Error:`, err);
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
+  return { getMarkdown, editMarkdown };
 }

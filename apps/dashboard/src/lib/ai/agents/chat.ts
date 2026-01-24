@@ -1,9 +1,6 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
 import { stepCountIs, ToolLoopAgent } from "ai";
-import {
-  createEditMarkdownTool,
-  createGetMarkdownTool,
-} from "@/lib/ai/tools/edit-markdown";
+import { createMarkdownTools } from "@/lib/ai/tools/edit-markdown";
 import {
   getSkillByName,
   listAvailableSkills,
@@ -19,14 +16,14 @@ interface ChatAgentContext {
 
 export function createChatAgent(context: ChatAgentContext) {
   const modelWithMemory = withSupermemory(
-    openrouter("moonshotai/kimi-k2-0905"),
+    openrouter("anthropic/claude-sonnet-4.5"),
     context.organizationId
   );
 
-  const editContext = {
+  const { getMarkdown, editMarkdown } = createMarkdownTools({
     currentMarkdown: context.currentMarkdown,
     onUpdate: context.onMarkdownUpdate,
-  };
+  });
 
   const selectionContext = context.selectedText
     ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${context.selectedText}\n"""`
@@ -35,39 +32,31 @@ export function createChatAgent(context: ChatAgentContext) {
   return new ToolLoopAgent({
     model: modelWithMemory,
     tools: {
-      getMarkdown: createGetMarkdownTool(editContext),
-      editMarkdown: createEditMarkdownTool(editContext),
+      getMarkdown,
+      editMarkdown,
       listAvailableSkills: listAvailableSkills(),
       getSkillByName: getSkillByName(),
     },
-    instructions: `You are a helpful content editor assistant with memory of past interactions. Your job is to help users edit and improve their markdown documents.
-
-## Capabilities
-- Edit markdown content (replace, insert, delete operations)
-- Remember context from previous conversations with this organization
-- Scrape websites to gather information when needed for content creation
-- Use skills to enhance your editing capabilities (use listAvailableSkills to see available skills)
+    instructions: `You are a content editor assistant. Help users edit their markdown documents.
 
 ## Workflow
-1. First, use getMarkdown to see the current document with line numbers
-2. Analyze what changes are needed based on the user's request
-3. Use editMarkdown to apply precise changes (always work from bottom to top)
-4. Verify your changes are correct
+1. Use getMarkdown to see the document with line numbers
+2. Use editMarkdown to apply changes (work from bottom to top)
+
+## Edit Operations
+- replaceLine: { op: "replaceLine", line: number, content: string }
+- replaceRange: { op: "replaceRange", startLine: number, endLine: number, content: string }
+- insert: { op: "insert", afterLine: number, content: string }
+- deleteLine: { op: "deleteLine", line: number }
+- deleteRange: { op: "deleteRange", startLine: number, endLine: number }
 
 ## Guidelines
-- Make minimal, precise edits - don't rewrite more than necessary
-- Preserve the document's existing style and formatting
-- When the user selects text, focus changes ONLY on that section
-- Use line numbers accurately (they are 1-indexed)
-- For multi-line insertions, use \\n in the content field
-- Use skills when they can help improve the content quality (e.g., humanizing AI-written text)
-${selectionContext}
-
-## Memory
-You have access to organizational memory. Use it to:
-- Remember user preferences and writing style
-- Recall past editing patterns
-- Maintain consistency across documents`,
+- Make minimal edits
+- Line numbers are 1-indexed
+- For multi-line content use \\n in content string
+- When user selects text, focus only on that section
+- IMPORTANT: Do NOT output the content of your edits in text. Only use the editMarkdown tool. Keep text responses brief - just explain what you're doing, not the actual content.
+${selectionContext}`,
     stopWhen: stepCountIs(15),
   });
 }
