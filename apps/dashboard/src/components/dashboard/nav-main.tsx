@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   AnalyticsUpIcon,
   CorporateIcon,
@@ -105,13 +106,24 @@ function NavGroup({
 export function NavMain() {
   const { activeOrganization } = useOrganizationsContext();
 
+  const itemsByCategory = useMemo(() => {
+    const map: Record<NavMainCategory, NavMainItem[]> = {
+      none: [],
+      workspace: [],
+      utility: [],
+    };
+    for (const item of navMainItems) {
+      map[item.category].push(item);
+    }
+    return map;
+  }, []);
+
   if (!activeOrganization?.slug) {
     return null;
   }
 
   const slug = activeOrganization.slug;
 
-  const uncategorized = navMainItems.filter((item) => item.category === "none");
   const categories = Object.keys(categoryLabels) as Exclude<
     NavMainCategory,
     "none"
@@ -119,18 +131,15 @@ export function NavMain() {
 
   return (
     <>
-      <NavGroup items={uncategorized} slug={slug} />
-      {categories.map((category) => {
-        const items = navMainItems.filter((item) => item.category === category);
-        return (
-          <NavGroup
-            items={items}
-            key={category}
-            label={categoryLabels[category]}
-            slug={slug}
-          />
-        );
-      })}
+      <NavGroup items={itemsByCategory.none} slug={slug} />
+      {categories.map((category) => (
+        <NavGroup
+          items={itemsByCategory[category]}
+          key={category}
+          label={categoryLabels[category]}
+          slug={slug}
+        />
+      ))}
     </>
   );
 }
