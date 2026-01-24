@@ -53,23 +53,29 @@ export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
             const anchor = selection.anchor;
             const focus = selection.focus;
 
-            // Calculate offsets by traversing the tree
+            // Calculate offsets by traversing nodes in document order
             let anchorOffset = 0;
             let focusOffset = 0;
+            let anchorFound = false;
+            let focusFound = false;
 
             const nodes = root.getAllTextNodes();
             for (const node of nodes) {
-              const nodeText = node.getTextContent();
-              if (node.getKey() === anchor.key) {
+              const nodeKey = node.getKey();
+              const nodeLength = node.getTextContent().length;
+
+              if (nodeKey === anchor.key) {
                 anchorOffset += anchor.offset;
-              } else if (anchorOffset === 0 || node.getKey() < anchor.key) {
-                anchorOffset += nodeText.length;
+                anchorFound = true;
+              } else if (!anchorFound) {
+                anchorOffset += nodeLength;
               }
 
-              if (node.getKey() === focus.key) {
+              if (nodeKey === focus.key) {
                 focusOffset += focus.offset;
-              } else if (focusOffset === 0 || node.getKey() < focus.key) {
-                focusOffset += nodeText.length;
+                focusFound = true;
+              } else if (!focusFound) {
+                focusOffset += nodeLength;
               }
             }
 
