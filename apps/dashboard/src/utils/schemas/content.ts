@@ -48,3 +48,21 @@ export const editContentSchema = z.object({
 });
 
 export type EditContentInput = z.infer<typeof editContentSchema>;
+
+export const contextItemSchema = z.object({
+  type: z.literal("github-repo"),
+  owner: z.string(),
+  repo: z.string(),
+  integrationId: z.string(),
+});
+
+export type ContextItem = z.infer<typeof contextItemSchema>;
+
+export const chatRequestSchema = z.object({
+  messages: z.array(z.any()), // UIMessage from ai sdk
+  currentMarkdown: z.string(),
+  selectedText: z.string().optional(),
+  context: z.array(contextItemSchema).optional(),
+});
+
+export type ChatRequest = z.infer<typeof chatRequestSchema>;
