@@ -32,7 +32,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
 import type { GitHubRepository } from "@/types/integrations";
@@ -83,17 +83,26 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
     enabled: !!organizationId,
   });
 
-  // Get all enabled repos from all integrations
-  const enabledRepos = integrationsData?.integrations?.flatMap((integration) =>
-    integration.repositories
-      .filter((repo) => repo.enabled)
-      .map((repo) => ({ ...repo, integrationId: integration.id }))
-  ) ?? [];
+  // Get all enabled repos from all integrations (memoized, single iteration)
+  const enabledRepos = useMemo(() => {
+    const result: Array<GitHubRepository & { integrationId: string }> = [];
+    for (const integration of integrationsData?.integrations ?? []) {
+      for (const repo of integration.repositories) {
+        if (repo.enabled) {
+          result.push({ ...repo, integrationId: integration.id });
+        }
+      }
+    }
+    return result;
+  }, [integrationsData?.integrations]);
 
-  const isRepoInContext = (repo: GitHubRepository & { integrationId: string }) =>
-    context.some(
-      (c) => c.type === "github-repo" && c.owner === repo.owner && c.repo === repo.repo
-    );
+  const isRepoInContext = useCallback(
+    (repo: GitHubRepository & { integrationId: string }) =>
+      context.some(
+        (c) => c.type === "github-repo" && c.owner === repo.owner && c.repo === repo.repo
+      ),
+    [context]
+  );
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
     if (!element) return;
