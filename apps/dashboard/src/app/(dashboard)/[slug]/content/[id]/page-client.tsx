@@ -16,7 +16,7 @@ import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import ChatInput from "@/components/chat-input";
+import ChatInput, { type ContextItem, type TextSelection } from "@/components/chat-input";
 import { CONTENT_TYPE_LABELS } from "@/components/content/content-card";
 import { DiffView } from "@/components/content/diff-view";
 import { LexicalEditor } from "@/components/content/editor/lexical-editor";
@@ -69,8 +69,9 @@ export default function PageClient({
 
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
   const [originalMarkdown, setOriginalMarkdown] = useState("");
-  const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [selection, setSelection] = useState<TextSelection | null>(null);
   const [editorKey, setEditorKey] = useState(0);
+  const [context, setContext] = useState<ContextItem[]>([]);
 
   const saveToastIdRef = useRef<string | number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -186,7 +187,26 @@ export default function PageClient({
   }, []);
 
   const clearSelection = useCallback(() => {
-    setSelectedText(null);
+    setSelection(null);
+    window.getSelection()?.removeAllRanges();
+  }, []);
+
+  const handleAddContext = useCallback((item: ContextItem) => {
+    setContext((prev) => {
+      // Check if already in context
+      if (prev.some((c) => c.type === item.type && c.owner === item.owner && c.repo === item.repo)) {
+        return prev;
+      }
+      return [...prev, item];
+    });
+  }, []);
+
+  const handleRemoveContext = useCallback((item: ContextItem) => {
+    setContext((prev) =>
+      prev.filter(
+        (c) => !(c.type === item.type && c.owner === item.owner && c.repo === item.repo)
+      )
+    );
   }, []);
 
   // Handle Lexical editor changes
@@ -195,9 +215,9 @@ export default function PageClient({
   }, []);
 
   // Handle Lexical selection
-  const handleSelectionChange = useCallback((text: string | null) => {
-    if (text && text.length > 0) {
-      setSelectedText(text);
+  const handleSelectionChange = useCallback((sel: TextSelection | null) => {
+    if (sel && sel.text.length > 0) {
+      setSelection(sel);
     }
   }, []);
 
@@ -208,27 +228,43 @@ export default function PageClient({
       return;
     }
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    if (start !== end) {
-      const text = textarea.value.substring(start, end).trim();
+    const startOffset = textarea.selectionStart;
+    const endOffset = textarea.selectionEnd;
+    if (startOffset !== endOffset) {
+      const text = textarea.value.substring(startOffset, endOffset).trim();
       if (text) {
-        setSelectedText(text);
+        // Calculate line and character positions
+        const getLineAndChar = (offset: number) => {
+          const lines = textarea.value.substring(0, offset).split("\n");
+          return {
+            line: lines.length,
+            char: (lines[lines.length - 1]?.length ?? 0) + 1,
+          };
+        };
+        const start = getLineAndChar(startOffset);
+        const end = getLineAndChar(endOffset);
+        setSelection({
+          text,
+          startLine: start.line,
+          startChar: start.char,
+          endLine: end.line,
+          endChar: end.char,
+        });
       }
     }
   }, []);
 
   const currentMarkdownRef = useRef(currentMarkdown);
-  const selectedTextRef = useRef(selectedText);
+  const selectionRef = useRef(selection);
   currentMarkdownRef.current = currentMarkdown;
-  selectedTextRef.current = selectedText;
+  selectionRef.current = selection;
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
       body: () => ({
         currentMarkdown: currentMarkdownRef.current,
-        selectedText: selectedTextRef.current,
+        selectedText: selectionRef.current?.text ?? null,
       }),
     }),
     onFinish: () => {
@@ -454,7 +490,18 @@ export default function PageClient({
       </div>
 
       <div className={`fixed bottom-0 left-0 right-0 mx-auto w-full max-w-2xl px-4 pb-4 ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"}`}>
-        <ChatInput onSend={handleAiEdit} isLoading={status === "streaming" || status === "submitted"} statusText={currentToolStatus} />
+        <ChatInput
+          onSend={handleAiEdit}
+          isLoading={status === "streaming" || status === "submitted"}
+          statusText={currentToolStatus}
+          selection={selection}
+          onClearSelection={clearSelection}
+          organizationSlug={organizationSlug}
+          organizationId={organizationId}
+          context={context}
+          onAddContext={handleAddContext}
+          onRemoveContext={handleRemoveContext}
+        />
       </div>
     </div>
   );
