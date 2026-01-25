@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";

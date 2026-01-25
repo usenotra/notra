@@ -250,10 +250,10 @@ export default function PageClient({ integrationId }: PageClientProps) {
                 </p>
               </div>
               <Link
-                href={`/${activeOrganization?.slug ?? ""}/automation/trigger`}
+                href={`/${activeOrganization?.slug ?? ""}/automation/events`}
               >
                 <Button size="sm" variant="outline">
-                  Manage triggers
+                  Manage events
                 </Button>
               </Link>
             </div>

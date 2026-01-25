@@ -3,11 +3,12 @@
 import { useMemo } from "react";
 import {
 	AnalyticsUpIcon,
+	Calendar03Icon,
 	CorporateIcon,
 	Home01Icon,
 	NoteIcon,
+	Notification03Icon,
 	PlugIcon,
-	WorkflowSquare07FreeIcons,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
@@ -21,7 +22,7 @@ import {
 import Link from "next/link";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
-type NavMainCategory = "none" | "workspace" | "utility";
+type NavMainCategory = "none" | "workspace" | "schedules" | "utility";
 
 interface NavMainItem {
 	link: string;
@@ -32,6 +33,7 @@ interface NavMainItem {
 
 const categoryLabels: Record<Exclude<NavMainCategory, "none">, string> = {
 	workspace: "Workspace",
+	schedules: "Schedules",
 	utility: "Utility",
 };
 
@@ -55,15 +57,21 @@ const navMainItems: NavMainItem[] = [
 		category: "workspace",
 	},
 	{
+		link: "/automation/schedule",
+		icon: Calendar03Icon,
+		label: "Schedules",
+		category: "schedules",
+	},
+	{
+		link: "/automation/events",
+		icon: Notification03Icon,
+		label: "Events",
+		category: "schedules",
+	},
+	{
 		link: "/integrations",
 		icon: PlugIcon,
 		label: "Integrations",
-		category: "utility",
-	},
-	{
-		link: "/triggers",
-		icon: WorkflowSquare07FreeIcons,
-		label: "Triggers",
 		category: "utility",
 	},
 	{
@@ -117,6 +125,7 @@ export function NavMain() {
 		const map: Record<NavMainCategory, NavMainItem[]> = {
 			none: [],
 			workspace: [],
+			schedules: [],
 			utility: [],
 		};
 		for (const item of navMainItems) {

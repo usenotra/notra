@@ -2,13 +2,23 @@
 
 import {
 	ArrowRight01Icon,
+	Delete02Icon,
 	Link04Icon,
+	MoreVerticalIcon,
+	PauseIcon,
+	PlayIcon,
 	Rocket02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Switch } from "@notra/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -317,21 +327,35 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             {eventTriggers.map((trigger) => (
               <TitleCard
                 action={
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={trigger.enabled}
-                      onCheckedChange={() => updateMutation.mutate(trigger)}
-                      size="sm"
-                    />
-                    <Button
-                      onClick={() => deleteMutation.mutate(trigger.id)}
-                      size="sm"
-                      type="button"
-                      variant="outline"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="flex size-8 items-center justify-center rounded-md hover:bg-accent"
                     >
-											Delete
-										</Button>
-									</div>
+                      <HugeiconsIcon
+                        className="size-4 text-muted-foreground"
+                        icon={MoreVerticalIcon}
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => updateMutation.mutate(trigger)}
+                      >
+                        <HugeiconsIcon
+                          className="size-4"
+                          icon={trigger.enabled ? PauseIcon : PlayIcon}
+                        />
+                        {trigger.enabled ? "Pause" : "Enable"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => deleteMutation.mutate(trigger.id)}
+                        variant="destructive"
+                      >
+                        <HugeiconsIcon className="size-4" icon={Delete02Icon} />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 								}
 								heading="GitHub webhook"
 								key={trigger.id}
