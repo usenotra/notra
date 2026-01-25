@@ -1,92 +1,61 @@
 "use client";
 
-import {
-	Clock01Icon,
-	Delete02Icon,
-	MoreVerticalIcon,
-	PauseIcon,
-	PieChartIcon,
-	PlayIcon,
-	Rocket02Icon,
-} from "@hugeicons/core-free-icons";
+import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@notra/ui/components/ui/table";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@notra/ui/components/ui/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { TitleCard } from "@/components/title-card";
 import type { Trigger, TriggerSourceType } from "@/types/triggers";
 import { getOutputTypeLabel } from "@/utils/output-types";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { TriggerRowActions } from "../_components/trigger-row-actions";
+import { TriggerStatusBadge } from "../_components/trigger-status-badge";
 import { AddTriggerDialog } from "../../triggers/trigger-dialog";
-
-const SCHEDULE_METRICS = [
-	{
-		label: "Active schedules",
-		value: "5",
-		icon: PieChartIcon,
-	},
-	{
-		label: "Next run",
-		value: "Tomorrow, 09:00 UTC",
-		icon: Clock01Icon,
-	},
-	{
-		label: "Cadence coverage",
-		value: "Daily + weekly",
-		icon: Rocket02Icon,
-	},
-];
 
 const CRON_SOURCE_TYPES: TriggerSourceType[] = ["cron"];
 
-const SCHEDULE_PLAYBOOKS = [
-	{
-		title: "Weekly changelog",
-		description: "Summarize main branch updates every Friday morning.",
-		detail: "Best for steady release cadence.",
-	},
-	{
-		title: "Monthly investor update",
-		description: "Bundle shipped features into a crisp stakeholder update.",
-		detail: "Ideal for planning meetings.",
-	},
-	{
-		title: "Daily social pulse",
-		description: "Draft social posts after every set release window.",
-		detail: "Great for fast-moving teams.",
-	},
-];
+function formatCadence(cron?: Trigger["sourceConfig"]["cron"]) {
+	if (!cron) return "Not set";
+	const time = `${String(cron.hour).padStart(2, "0")}:${String(cron.minute).padStart(2, "0")} UTC`;
+	if (cron.cadence === "weekly") {
+		const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+		return `Weekly - ${days[cron.dayOfWeek ?? 0]} @ ${time}`;
+	}
+	if (cron.cadence === "monthly") {
+		return `Monthly - Day ${cron.dayOfMonth} @ ${time}`;
+	}
+	return `Daily @ ${time}`;
+}
+
+function formatDate(dateString: string) {
+	return new Intl.DateTimeFormat(undefined, {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	}).format(new Date(dateString));
+}
 
 interface PageClientProps {
 	organizationSlug: string;
-}
-
-function formatCadence(cadence?: Trigger["sourceConfig"]["cron"]) {
-	if (!cadence) {
-		return "Cadence not set";
-	}
-	const time = `${String(cadence.hour).padStart(2, "0")}:${String(
-		cadence.minute,
-	).padStart(2, "0")} UTC`;
-	if (cadence.cadence === "weekly") {
-		return `Weekly · ${time}`;
-	}
-	if (cadence.cadence === "monthly") {
-		return `Monthly · ${time}`;
-	}
-	return `Daily · ${time}`;
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
@@ -94,35 +63,35 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 	const organization = getOrganization(organizationSlug);
 	const organizationId = organization?.id;
 	const queryClient = useQueryClient();
-	const router = useRouter();
+	const [activeTab, setActiveTab] = useState<"active" | "paused">("active");
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/schedules`,
-      );
+	const { data, isLoading } = useQuery({
+		queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+		queryFn: async () => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/schedules`,
+			);
 
 			if (!response.ok) {
 				throw new Error("Failed to fetch triggers");
 			}
 
-      return response.json() as Promise<{ triggers: Trigger[] }>;
-    },
-    enabled: !!organizationId,
-  });
+			return response.json() as Promise<{ triggers: Trigger[] }>;
+		},
+		enabled: !!organizationId,
+	});
 
-  const updateMutation = useMutation({
-    mutationFn: async (trigger: Trigger) => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/schedules?triggerId=${trigger.id}`,
-        {
+	const updateMutation = useMutation({
+		mutationFn: async (trigger: Trigger) => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/schedules?triggerId=${trigger.id}`,
+				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
@@ -144,7 +113,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+				queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
 			});
 		},
 		onError: () => {
@@ -152,15 +121,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 	});
 
-  const deleteMutation = useMutation({
-    mutationFn: async (triggerId: string) => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/schedules?triggerId=${triggerId}`,
-        { method: "DELETE" },
-      );
+	const deleteMutation = useMutation({
+		mutationFn: async (triggerId: string) => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/schedules?triggerId=${triggerId}`,
+				{ method: "DELETE" },
+			);
 
 			if (!response.ok) {
 				throw new Error("Failed to delete schedule");
@@ -170,7 +139,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+				queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
 			});
 			toast.success("Schedule removed");
 		},
@@ -179,130 +148,89 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 	});
 
-  const triggers = data?.triggers ?? [];
+	const triggers = data?.triggers ?? [];
 	const scheduleTriggers = useMemo(
 		() => triggers.filter((trigger) => trigger.sourceType === "cron"),
 		[triggers],
 	);
 
+	const filteredTriggers = useMemo(() => {
+		return scheduleTriggers.filter((t) =>
+			activeTab === "active" ? t.enabled : !t.enabled,
+		);
+	}, [scheduleTriggers, activeTab]);
+
+	const activeCounts = useMemo(
+		() => ({
+			active: scheduleTriggers.filter((t) => t.enabled).length,
+			paused: scheduleTriggers.filter((t) => !t.enabled).length,
+		}),
+		[scheduleTriggers],
+	);
+
 	return (
 		<div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
 			<div className="w-full space-y-6 px-4 lg:px-6">
-				<div className="flex flex-col gap-6">
-					<div className="flex flex-wrap items-start justify-between gap-4">
-						<div className="space-y-2">
-							<h1 className="font-bold text-3xl tracking-tight">
-								Automation schedules
-							</h1>
-              <p className="max-w-2xl text-muted-foreground">
-                Plan predictable publishing windows. Configure cron schedules
-                that run daily, weekly, or monthly with the outputs you need.
-              </p>
-						</div>
-						<div className="flex flex-wrap items-center gap-3">
-							<Button
-								onClick={() =>
-									router.push(`/${organizationSlug}/automation/events`)
-								}
-								size="sm"
-								variant="ghost"
-							>
-								View events
+				<div className="flex items-start justify-between">
+					<div className="space-y-1">
+						<h1 className="font-bold text-3xl tracking-tight">
+							Automation Schedules
+						</h1>
+						<p className="text-muted-foreground">
+							Configure cron schedules that run daily, weekly, or monthly.
+						</p>
+					</div>
+					<AddTriggerDialog
+						allowedSourceTypes={CRON_SOURCE_TYPES}
+						apiPath={
+							organizationId
+								? `/api/organizations/${organizationId}/automation/schedules`
+								: undefined
+						}
+						initialSourceType="cron"
+						onSuccess={() =>
+							queryClient.invalidateQueries({
+								queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+							})
+						}
+						organizationId={organizationId ?? ""}
+						trigger={
+							<Button size="sm" variant="default">
+								<PlusIcon className="size-4" />
+								<span className="ml-1">New schedule</span>
 							</Button>
-              <AddTriggerDialog
-                allowedSourceTypes={CRON_SOURCE_TYPES}
-                initialSourceType="cron"
-                apiPath={
-                  organizationId
-                    ? `/api/organizations/${organizationId}/automation/schedules`
-                    : undefined
-                }
-                organizationId={organizationId ?? ""}
-								onSuccess={() =>
-									queryClient.invalidateQueries({
-                  queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
-									})
-								}
-								trigger={
-									<Button size="sm" variant="default">
-										<PlusIcon className="size-4" />
-										<span className="ml-1">New schedule</span>
-									</Button>
-								}
-							/>
-						</div>
-					</div>
-
-					<div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-						<TitleCard heading="Scheduling overview">
-							<div className="grid gap-4 sm:grid-cols-3">
-								{SCHEDULE_METRICS.map((metric) => (
-									<div
-										className="rounded-xl border border-border/70 bg-background/70 p-4"
-										key={metric.label}
-									>
-										<div className="flex items-center justify-between">
-											<p className="text-muted-foreground text-xs">
-												{metric.label}
-											</p>
-											<span className="rounded-full border border-border/70 bg-muted/40 p-2">
-												<HugeiconsIcon className="size-4" icon={metric.icon} />
-											</span>
-										</div>
-										<p className="mt-3 text-lg font-semibold">{metric.value}</p>
-									</div>
-								))}
-							</div>
-						</TitleCard>
-						<TitleCard heading="Popular playbooks">
-							<div className="space-y-3">
-								{SCHEDULE_PLAYBOOKS.map((playbook) => (
-									<div
-										className="rounded-xl border border-border/70 bg-background/70 p-4"
-										key={playbook.title}
-									>
-										<p className="font-semibold text-sm text-foreground">
-											{playbook.title}
-										</p>
-										<p className="mt-2 text-muted-foreground text-xs">
-											{playbook.description}
-										</p>
-										<p className="mt-2 text-[11px] text-muted-foreground">
-											{playbook.detail}
-										</p>
-									</div>
-								))}
-							</div>
-						</TitleCard>
-					</div>
+						}
+					/>
 				</div>
 
 				{isLoading ? (
 					<div className="space-y-4">
-						<Skeleton className="h-28 w-full" />
-						<Skeleton className="h-28 w-full" />
+						<Skeleton className="h-10 w-48" />
+						<Skeleton className="h-64 w-full" />
 					</div>
 				) : scheduleTriggers.length === 0 ? (
-					<div className="rounded-2xl border border-dashed p-10 text-center">
+					<div className="rounded-2xl border border-dashed p-12 text-center">
 						<h3 className="font-semibold text-lg">No schedules yet</h3>
-						<p className="text-muted-foreground text-sm">
-							Create a schedule to automate recurring content generation.
+						<p className="mt-1 text-muted-foreground text-sm">
+							Create your first schedule to automate recurring content.
 						</p>
-						<div className="mt-4 flex justify-center">
-              <AddTriggerDialog
-                allowedSourceTypes={CRON_SOURCE_TYPES}
-                initialSourceType="cron"
-                apiPath={
-                  organizationId
-                    ? `/api/organizations/${organizationId}/automation/schedules`
-                    : undefined
-                }
-                organizationId={organizationId ?? ""}
+						<div className="mt-4">
+							<AddTriggerDialog
+								allowedSourceTypes={CRON_SOURCE_TYPES}
+								apiPath={
+									organizationId
+										? `/api/organizations/${organizationId}/automation/schedules`
+										: undefined
+								}
+								initialSourceType="cron"
 								onSuccess={() =>
 									queryClient.invalidateQueries({
-                  queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+										queryKey: QUERY_KEYS.AUTOMATION.schedules(
+											organizationId ?? "",
+										),
 									})
 								}
+								organizationId={organizationId ?? ""}
 								trigger={
 									<Button size="sm" variant="outline">
 										<PlusIcon className="size-4" />
@@ -313,66 +241,114 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 						</div>
 					</div>
 				) : (
-					<div className="space-y-3">
-            {scheduleTriggers.map((trigger) => (
-              <TitleCard
-                action={
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="flex size-8 items-center justify-center rounded-md hover:bg-accent"
-                    >
-                      <HugeiconsIcon
-                        className="size-4 text-muted-foreground"
-                        icon={MoreVerticalIcon}
-                      />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => updateMutation.mutate(trigger)}
-                      >
-                        <HugeiconsIcon
-                          className="size-4"
-                          icon={trigger.enabled ? PauseIcon : PlayIcon}
-                        />
-                        {trigger.enabled ? "Pause" : "Enable"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => deleteMutation.mutate(trigger.id)}
-                        variant="destructive"
-                      >
-                        <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-								}
-								heading="Scheduled run"
-								key={trigger.id}
-							>
-								<div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-2">
-									<div>
-										<p className="font-medium text-foreground">Cadence</p>
-										<p>{formatCadence(trigger.sourceConfig.cron)}</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Output</p>
-										<p>{getOutputTypeLabel(trigger.outputType)}</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Targets</p>
-										<p>{trigger.targets.repositoryIds.length} repos</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Status</p>
-										<p>{trigger.enabled ? "Active" : "Paused"}</p>
-									</div>
-								</div>
-							</TitleCard>
-						))}
-					</div>
+					<Tabs
+						defaultValue="active"
+						onValueChange={(value) =>
+							setActiveTab(value as "active" | "paused")
+						}
+					>
+						<TabsList>
+							<TabsTrigger value="active">
+								Active ({activeCounts.active})
+							</TabsTrigger>
+							<TabsTrigger value="paused">
+								Paused ({activeCounts.paused})
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent className="mt-4" value="active">
+							<ScheduleTable
+								onDelete={(id) => deleteMutation.mutate(id)}
+								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								triggers={filteredTriggers}
+							/>
+						</TabsContent>
+
+						<TabsContent className="mt-4" value="paused">
+							<ScheduleTable
+								onDelete={(id) => deleteMutation.mutate(id)}
+								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								triggers={filteredTriggers}
+							/>
+						</TabsContent>
+					</Tabs>
 				)}
 			</div>
+		</div>
+	);
+}
+
+function ScheduleTable({
+	triggers,
+	onToggle,
+	onDelete,
+}: {
+	triggers: Trigger[];
+	onToggle: (trigger: Trigger) => void;
+	onDelete: (triggerId: string) => void;
+}) {
+	if (triggers.length === 0) {
+		return (
+			<div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground text-sm">
+				No schedules in this category.
+			</div>
+		);
+	}
+
+	return (
+		<div className="rounded-xl border">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Type</TableHead>
+						<TableHead>Cadence</TableHead>
+						<TableHead>Output</TableHead>
+						<TableHead>Targets</TableHead>
+						<TableHead>Status</TableHead>
+						<TableHead>Created</TableHead>
+						<TableHead className="w-12" />
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{triggers.map((trigger) => (
+						<TableRow key={trigger.id}>
+							<TableCell>
+								<div className="flex items-center gap-2">
+									<span className="flex size-8 items-center justify-center rounded-lg border bg-muted/50">
+										<HugeiconsIcon
+											className="size-4 text-muted-foreground"
+											icon={Calendar03Icon}
+										/>
+									</span>
+									<span className="text-sm">Scheduled run</span>
+								</div>
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{formatCadence(trigger.sourceConfig.cron)}
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{getOutputTypeLabel(trigger.outputType)}
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{trigger.targets.repositoryIds.length} repositories
+							</TableCell>
+							<TableCell>
+								<TriggerStatusBadge enabled={trigger.enabled} />
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{formatDate(trigger.createdAt)}
+							</TableCell>
+							<TableCell>
+								<TriggerRowActions
+									onDelete={onDelete}
+									onToggle={onToggle}
+									trigger={trigger}
+								/>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }

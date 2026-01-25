@@ -1,80 +1,37 @@
 "use client";
 
-import {
-	ArrowRight01Icon,
-	Delete02Icon,
-	Link04Icon,
-	MoreVerticalIcon,
-	PauseIcon,
-	PlayIcon,
-	Rocket02Icon,
-} from "@hugeicons/core-free-icons";
+import { GithubIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@notra/ui/components/ui/table";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@notra/ui/components/ui/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { TitleCard } from "@/components/title-card";
 import type { Trigger, TriggerSourceType } from "@/types/triggers";
 import { getOutputTypeLabel } from "@/utils/output-types";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { TriggerRowActions } from "../_components/trigger-row-actions";
+import { TriggerStatusBadge } from "../_components/trigger-status-badge";
 import { AddTriggerDialog } from "../../triggers/trigger-dialog";
 
-const QUICK_ACTIONS = [
-	{
-		title: "GitHub webhook",
-		description: "React to repo activity and ship instantly.",
-		icon: Link04Icon,
-	},
-	{
-		title: "Cross-channel publish",
-		description: "Turn events into posts, changelogs, and updates.",
-		icon: Rocket02Icon,
-	},
-	{
-		title: "Instant preview",
-		description: "Validate payloads before sending to production.",
-		icon: ArrowRight01Icon,
-	},
-];
-
 const EVENT_SOURCE_TYPES: TriggerSourceType[] = ["github_webhook"];
-
-const EVENT_RECIPES = [
-	{
-		title: "Push to main",
-		description: "Auto-generate release notes when new code lands.",
-		badge: "Ship faster",
-		accentColor: "#1D4ED8",
-	},
-	{
-		title: "Release published",
-		description: "Create launch content with every tagged release.",
-		badge: "Launch-ready",
-		accentColor: "#0E7490",
-	},
-	{
-		title: "Star activity",
-		description: "Capture momentum for social and investor updates.",
-		badge: "Keep buzz",
-		accentColor: "#7C2D12",
-	},
-];
-
-interface PageClientProps {
-	organizationSlug: string;
-}
 
 function formatEventList(events?: string[]) {
 	if (!events || events.length === 0) {
@@ -83,40 +40,52 @@ function formatEventList(events?: string[]) {
 	return events.map((event) => event.replace("_", " ")).join(", ");
 }
 
+function formatDate(dateString: string) {
+	return new Intl.DateTimeFormat(undefined, {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	}).format(new Date(dateString));
+}
+
+interface PageClientProps {
+	organizationSlug: string;
+}
+
 export default function PageClient({ organizationSlug }: PageClientProps) {
 	const { getOrganization } = useOrganizationsContext();
 	const organization = getOrganization(organizationSlug);
 	const organizationId = organization?.id;
 	const queryClient = useQueryClient();
-	const router = useRouter();
+	const [activeTab, setActiveTab] = useState<"active" | "paused">("active");
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
-    queryFn: async () => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/events`,
-      );
+	const { data, isLoading } = useQuery({
+		queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
+		queryFn: async () => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/events`,
+			);
 
 			if (!response.ok) {
 				throw new Error("Failed to fetch triggers");
 			}
 
-      return response.json() as Promise<{ triggers: Trigger[] }>;
-    },
-    enabled: !!organizationId,
-  });
+			return response.json() as Promise<{ triggers: Trigger[] }>;
+		},
+		enabled: !!organizationId,
+	});
 
-  const updateMutation = useMutation({
-    mutationFn: async (trigger: Trigger) => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/events?triggerId=${trigger.id}`,
-        {
+	const updateMutation = useMutation({
+		mutationFn: async (trigger: Trigger) => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/events?triggerId=${trigger.id}`,
+				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
@@ -138,7 +107,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
+				queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
 			});
 		},
 		onError: () => {
@@ -146,15 +115,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 	});
 
-  const deleteMutation = useMutation({
-    mutationFn: async (triggerId: string) => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const response = await fetch(
-        `/api/organizations/${organizationId}/automation/events?triggerId=${triggerId}`,
-        { method: "DELETE" },
-      );
+	const deleteMutation = useMutation({
+		mutationFn: async (triggerId: string) => {
+			if (!organizationId) {
+				throw new Error("Organization ID is required");
+			}
+			const response = await fetch(
+				`/api/organizations/${organizationId}/automation/events?triggerId=${triggerId}`,
+				{ method: "DELETE" },
+			);
 
 			if (!response.ok) {
 				throw new Error("Failed to delete trigger");
@@ -164,7 +133,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
+				queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
 			});
 			toast.success("Event trigger removed");
 		},
@@ -173,146 +142,88 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		},
 	});
 
-  const triggers = data?.triggers ?? [];
+	const triggers = data?.triggers ?? [];
 	const eventTriggers = useMemo(
 		() => triggers.filter((trigger) => trigger.sourceType === "github_webhook"),
 		[triggers],
 	);
 
+	const filteredTriggers = useMemo(() => {
+		return eventTriggers.filter((t) =>
+			activeTab === "active" ? t.enabled : !t.enabled,
+		);
+	}, [eventTriggers, activeTab]);
+
+	const activeCounts = useMemo(
+		() => ({
+			active: eventTriggers.filter((t) => t.enabled).length,
+			paused: eventTriggers.filter((t) => !t.enabled).length,
+		}),
+		[eventTriggers],
+	);
+
 	return (
 		<div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
 			<div className="w-full space-y-6 px-4 lg:px-6">
-				<div className="flex flex-col gap-6">
-					<div className="flex flex-wrap items-start justify-between gap-4">
-						<div className="space-y-2">
-							<h1 className="font-bold text-3xl tracking-tight">
-								Automation events
-							</h1>
-              <p className="max-w-2xl text-muted-foreground">
-                Turn product activity into ready-to-ship content. Build event
-                triggers that listen for GitHub updates and publish across
-                channels.
-              </p>
-						</div>
-						<div className="flex flex-wrap items-center gap-3">
-							<Button
-								onClick={() =>
-									router.push(`/${organizationSlug}/automation/schedule`)
-								}
-								size="sm"
-								variant="ghost"
-							>
-								View schedules
+				<div className="flex items-start justify-between">
+					<div className="space-y-1">
+						<h1 className="font-bold text-3xl tracking-tight">
+							Automation Events
+						</h1>
+						<p className="text-muted-foreground">
+							React to GitHub activity and trigger content generation
+							automatically.
+						</p>
+					</div>
+					<AddTriggerDialog
+						allowedSourceTypes={EVENT_SOURCE_TYPES}
+						apiPath={
+							organizationId
+								? `/api/organizations/${organizationId}/automation/events`
+								: undefined
+						}
+						initialSourceType="github_webhook"
+						onSuccess={() =>
+							queryClient.invalidateQueries({
+								queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
+							})
+						}
+						organizationId={organizationId ?? ""}
+						trigger={
+							<Button size="sm" variant="default">
+								<PlusIcon className="size-4" />
+								<span className="ml-1">New event trigger</span>
 							</Button>
-              <AddTriggerDialog
-                allowedSourceTypes={EVENT_SOURCE_TYPES}
-                initialSourceType="github_webhook"
-                apiPath={
-                  organizationId
-                    ? `/api/organizations/${organizationId}/automation/events`
-                    : undefined
-                }
-                organizationId={organizationId ?? ""}
-								onSuccess={() =>
-									queryClient.invalidateQueries({
-                  queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
-									})
-								}
-								trigger={
-									<Button size="sm" variant="default">
-										<PlusIcon className="size-4" />
-										<span className="ml-1">New event trigger</span>
-									</Button>
-								}
-							/>
-						</div>
-					</div>
-
-					<div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-						<TitleCard
-							action={
-								<Button size="sm" variant="outline">
-									See templates
-								</Button>
-							}
-							heading="Event recipes"
-						>
-							<p className="text-muted-foreground text-sm">
-								Pre-configured ideas to kickstart automation.
-							</p>
-							<div className="mt-4 grid gap-3 md:grid-cols-3">
-								{EVENT_RECIPES.map((recipe) => (
-									<div
-										className="rounded-xl border border-border/70 bg-background/70 p-4"
-										key={recipe.title}
-									>
-										<div className="flex items-center justify-between">
-											<p className="font-semibold text-sm text-foreground">
-												{recipe.title}
-											</p>
-											<span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
-												{recipe.badge}
-											</span>
-										</div>
-										<p className="mt-2 text-muted-foreground text-xs">
-											{recipe.description}
-										</p>
-										<div
-											className="mt-3 h-1.5 w-12 rounded-full"
-											style={{ backgroundColor: recipe.accentColor }}
-										/>
-									</div>
-								))}
-							</div>
-						</TitleCard>
-						<TitleCard heading="Why events matter">
-							<ul className="space-y-3 text-xs text-muted-foreground">
-								{QUICK_ACTIONS.map((action) => (
-									<li className="flex items-start gap-3" key={action.title}>
-										<span className="rounded-lg border border-border/60 bg-background p-2">
-											<HugeiconsIcon className="size-4" icon={action.icon} />
-										</span>
-										<span>
-											<span className="block font-medium text-foreground">
-												{action.title}
-											</span>
-											<span className="block text-muted-foreground">
-												{action.description}
-											</span>
-										</span>
-									</li>
-								))}
-							</ul>
-						</TitleCard>
-					</div>
+						}
+					/>
 				</div>
 
 				{isLoading ? (
 					<div className="space-y-4">
-						<Skeleton className="h-28 w-full" />
-						<Skeleton className="h-28 w-full" />
+						<Skeleton className="h-10 w-48" />
+						<Skeleton className="h-64 w-full" />
 					</div>
 				) : eventTriggers.length === 0 ? (
-					<div className="rounded-2xl border border-dashed p-10 text-center">
+					<div className="rounded-2xl border border-dashed p-12 text-center">
 						<h3 className="font-semibold text-lg">No event triggers yet</h3>
-						<p className="text-muted-foreground text-sm">
-							Build your first automation event to react to GitHub activity.
+						<p className="mt-1 text-muted-foreground text-sm">
+							Create your first event trigger to react to GitHub activity.
 						</p>
-						<div className="mt-4 flex justify-center">
-              <AddTriggerDialog
-                allowedSourceTypes={EVENT_SOURCE_TYPES}
-                initialSourceType="github_webhook"
-                apiPath={
-                  organizationId
-                    ? `/api/organizations/${organizationId}/automation/events`
-                    : undefined
-                }
-                organizationId={organizationId ?? ""}
+						<div className="mt-4">
+							<AddTriggerDialog
+								allowedSourceTypes={EVENT_SOURCE_TYPES}
+								apiPath={
+									organizationId
+										? `/api/organizations/${organizationId}/automation/events`
+										: undefined
+								}
+								initialSourceType="github_webhook"
 								onSuccess={() =>
 									queryClient.invalidateQueries({
-                  queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
+										queryKey: QUERY_KEYS.AUTOMATION.events(organizationId ?? ""),
 									})
 								}
+								organizationId={organizationId ?? ""}
 								trigger={
 									<Button size="sm" variant="outline">
 										<PlusIcon className="size-4" />
@@ -323,66 +234,114 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 						</div>
 					</div>
 				) : (
-					<div className="space-y-3">
-            {eventTriggers.map((trigger) => (
-              <TitleCard
-                action={
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="flex size-8 items-center justify-center rounded-md hover:bg-accent"
-                    >
-                      <HugeiconsIcon
-                        className="size-4 text-muted-foreground"
-                        icon={MoreVerticalIcon}
-                      />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => updateMutation.mutate(trigger)}
-                      >
-                        <HugeiconsIcon
-                          className="size-4"
-                          icon={trigger.enabled ? PauseIcon : PlayIcon}
-                        />
-                        {trigger.enabled ? "Pause" : "Enable"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => deleteMutation.mutate(trigger.id)}
-                        variant="destructive"
-                      >
-                        <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-								}
-								heading="GitHub webhook"
-								key={trigger.id}
-							>
-								<div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-2">
-									<div>
-										<p className="font-medium text-foreground">Events</p>
-										<p>{formatEventList(trigger.sourceConfig.eventTypes)}</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Output</p>
-										<p>{getOutputTypeLabel(trigger.outputType)}</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Targets</p>
-										<p>{trigger.targets.repositoryIds.length} repos</p>
-									</div>
-									<div>
-										<p className="font-medium text-foreground">Status</p>
-										<p>{trigger.enabled ? "Active" : "Paused"}</p>
-									</div>
-								</div>
-							</TitleCard>
-						))}
-					</div>
+					<Tabs
+						defaultValue="active"
+						onValueChange={(value) =>
+							setActiveTab(value as "active" | "paused")
+						}
+					>
+						<TabsList>
+							<TabsTrigger value="active">
+								Active ({activeCounts.active})
+							</TabsTrigger>
+							<TabsTrigger value="paused">
+								Paused ({activeCounts.paused})
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent className="mt-4" value="active">
+							<EventTable
+								onDelete={(id) => deleteMutation.mutate(id)}
+								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								triggers={filteredTriggers}
+							/>
+						</TabsContent>
+
+						<TabsContent className="mt-4" value="paused">
+							<EventTable
+								onDelete={(id) => deleteMutation.mutate(id)}
+								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								triggers={filteredTriggers}
+							/>
+						</TabsContent>
+					</Tabs>
 				)}
 			</div>
+		</div>
+	);
+}
+
+function EventTable({
+	triggers,
+	onToggle,
+	onDelete,
+}: {
+	triggers: Trigger[];
+	onToggle: (trigger: Trigger) => void;
+	onDelete: (triggerId: string) => void;
+}) {
+	if (triggers.length === 0) {
+		return (
+			<div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground text-sm">
+				No event triggers in this category.
+			</div>
+		);
+	}
+
+	return (
+		<div className="rounded-xl border">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Type</TableHead>
+						<TableHead>Events</TableHead>
+						<TableHead>Output</TableHead>
+						<TableHead>Targets</TableHead>
+						<TableHead>Status</TableHead>
+						<TableHead>Created</TableHead>
+						<TableHead className="w-12" />
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{triggers.map((trigger) => (
+						<TableRow key={trigger.id}>
+							<TableCell>
+								<div className="flex items-center gap-2">
+									<span className="flex size-8 items-center justify-center rounded-lg border bg-muted/50">
+										<HugeiconsIcon
+											className="size-4 text-muted-foreground"
+											icon={GithubIcon}
+										/>
+									</span>
+									<span className="text-sm">GitHub webhook</span>
+								</div>
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{formatEventList(trigger.sourceConfig.eventTypes)}
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{getOutputTypeLabel(trigger.outputType)}
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{trigger.targets.repositoryIds.length} repositories
+							</TableCell>
+							<TableCell>
+								<TriggerStatusBadge enabled={trigger.enabled} />
+							</TableCell>
+							<TableCell className="text-muted-foreground">
+								{formatDate(trigger.createdAt)}
+							</TableCell>
+							<TableCell>
+								<TriggerRowActions
+									onDelete={onDelete}
+									onToggle={onToggle}
+									trigger={trigger}
+								/>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
