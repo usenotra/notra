@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     default: "Notra",
   },
   description: "Notra - Content Management",
+  appleWebApp: {
+    title: "Notra",
+  },
 };
 
 export const viewport: Viewport = {
