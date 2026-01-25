@@ -36,6 +36,7 @@ interface ErrorDetail {
 
 async function setProgress(organizationId: string, data: ProgressData) {
   "use step";
+  if (!redis) return;
   await redis.set(`brand:progress:${organizationId}`, data, {
     ex: PROGRESS_TTL,
   });

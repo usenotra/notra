@@ -28,9 +28,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return auth.response;
     }
 
-    const progress = await redis.get<ProgressData>(
-      `brand:progress:${organizationId}`
-    );
+    const progress = redis
+      ? await redis.get<ProgressData>(`brand:progress:${organizationId}`)
+      : null;
 
     if (!progress) {
       return NextResponse.json({

@@ -4,7 +4,23 @@ import { appendWebhookLog } from "@/lib/webhooks/logging";
 import { getGithubWebhookMemoryPrompt } from "@/lib/ai/prompts/github-webhook-memory";
 import { openrouter } from "@/lib/openrouter";
 import { getWebhookSecretByRepositoryId } from "@/lib/services/github-integration";
+import { redis } from "@/lib/redis";
 import type { WebhookContext, WebhookResult } from "@/types/webhooks";
+
+const DELIVERY_TTL_SECONDS = 60 * 60 * 24;
+
+async function isDeliveryProcessed(deliveryId: string): Promise<boolean> {
+  if (!redis || !deliveryId) return false;
+  const key = `webhook:delivery:${deliveryId}`;
+  const exists = await redis.exists(key);
+  return exists === 1;
+}
+
+async function markDeliveryProcessed(deliveryId: string): Promise<void> {
+  if (!redis || !deliveryId) return;
+  const key = `webhook:delivery:${deliveryId}`;
+  await redis.set(key, "1", { ex: DELIVERY_TTL_SECONDS });
+}
 
 // Event types we care about (see docs/github-webhook-events.md)
 type GitHubEventType = "release" | "push" | "star" | "ping";
@@ -288,6 +304,14 @@ export async function handleGitHubWebhook(
     };
   }
 
+  if (delivery && (await isDeliveryProcessed(delivery))) {
+    return {
+      success: true,
+      message: "Webhook already processed (duplicate delivery)",
+      data: { event, delivery, duplicate: true },
+    };
+  }
+
   // Handle ping event (sent when webhook is first configured)
   if (event === "ping") {
     await appendWebhookLog({
@@ -480,6 +504,10 @@ export async function handleGitHubWebhook(
       data: processedEvent.data,
     },
   });
+
+  if (delivery) {
+    await markDeliveryProcessed(delivery);
+  }
 
   return {
     success: true,

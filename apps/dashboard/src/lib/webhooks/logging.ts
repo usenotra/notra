@@ -42,6 +42,10 @@ export async function appendWebhookLog(input: WebhookLogInput) {
     payload: input.payload ?? null,
   };
 
+  if (!redis) {
+    return log;
+  }
+
   const key = getLogKey(
     input.organizationId,
     input.integrationType,
@@ -65,6 +69,10 @@ export async function listWebhookLogs(
   integrationType: IntegrationType,
   integrationId?: string | null,
 ) {
+  if (!redis) {
+    return [];
+  }
+
   const key = integrationId
     ? getLogKey(organizationId, integrationType, integrationId)
     : getAllLogKey(organizationId);
