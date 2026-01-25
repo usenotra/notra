@@ -77,7 +77,7 @@ function PostsSkeleton() {
             className="flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2"
             key={key}
           >
-            <div className="flex items-center justify-between gap-4 py-1.5 px-2 pr-2">
+            <div className="flex items-center justify-between gap-4 py-1.5 px-2">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-5 w-20 rounded-full" />
             </div>
