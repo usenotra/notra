@@ -146,7 +146,12 @@ function verifySignature(
 ): boolean {
   const hmac = crypto.createHmac("sha256", secret);
   const digest = `sha256=${hmac.update(payload).digest("hex")}`;
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+  const digestBuffer = Buffer.from(digest);
+  const signatureBuffer = Buffer.from(signature);
+  if (digestBuffer.length !== signatureBuffer.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(digestBuffer, signatureBuffer);
 }
 
 function isDefaultBranchRef(ref: string, defaultBranch: string): boolean {

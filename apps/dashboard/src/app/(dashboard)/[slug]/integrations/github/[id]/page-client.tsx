@@ -55,11 +55,19 @@ function buildWebhookUrl(
 function CopyableWebhookUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast.success("Webhook URL copied to clipboard");
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    if (!navigator.clipboard) {
+      toast.error("Clipboard not supported");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Webhook URL copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   return (

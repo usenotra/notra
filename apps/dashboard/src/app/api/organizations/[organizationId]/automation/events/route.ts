@@ -292,7 +292,10 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     }
 
     const existing = await db.query.contentTriggers.findFirst({
-      where: eq(contentTriggers.id, triggerId),
+      where: and(
+        eq(contentTriggers.id, triggerId),
+        eq(contentTriggers.organizationId, organizationId),
+      ),
     });
 
     if (!existing) {
@@ -303,7 +306,14 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       await deleteQstashSchedule(existing.qstashScheduleId);
     }
 
-    await db.delete(contentTriggers).where(eq(contentTriggers.id, triggerId));
+    await db
+      .delete(contentTriggers)
+      .where(
+        and(
+          eq(contentTriggers.id, triggerId),
+          eq(contentTriggers.organizationId, organizationId),
+        ),
+      );
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting automation event:", error);

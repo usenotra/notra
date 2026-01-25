@@ -33,11 +33,19 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    toast.success(`${label} copied to clipboard`);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    if (!navigator.clipboard) {
+      toast.error("Clipboard not supported");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success(`${label} copied to clipboard`);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   return (
