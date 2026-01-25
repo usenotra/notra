@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    if (repository.integration.organizationId !== organizationId) {
+    if (repository.integration?.organizationId !== organizationId) {
       return NextResponse.json(
         { error: "Repository not found" },
         { status: 404 }
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    if (repository.integration.organizationId !== organizationId) {
+    if (repository.integration?.organizationId !== organizationId) {
       return NextResponse.json(
         { error: "Repository not found" },
         { status: 404 }

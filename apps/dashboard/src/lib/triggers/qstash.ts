@@ -11,12 +11,16 @@ function getQstashToken() {
 }
 
 function getAppUrl() {
-  return (
+  const url =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    process.env.VERCEL_URL ||
-    ""
-  );
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  if (!url) {
+    throw new Error(
+      "App URL not configured. Set NEXT_PUBLIC_APP_URL, APP_URL, or VERCEL_URL.",
+    );
+  }
+  return url;
 }
 
 export function buildCronExpression(config?: TriggerSourceConfig["cron"]) {

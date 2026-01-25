@@ -27,7 +27,9 @@ function normalizeTriggerConfig({
     ? [...sourceConfig.eventTypes].sort()
     : sourceConfig.eventTypes;
 
-  const repositoryIds = [...targets.repositoryIds].sort();
+  const repositoryIds = targets.repositoryIds
+    ? [...targets.repositoryIds].sort()
+    : [];
 
   return {
     sourceConfig: {
