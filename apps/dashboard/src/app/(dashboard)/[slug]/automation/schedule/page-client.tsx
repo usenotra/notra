@@ -20,7 +20,7 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -160,12 +160,27 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		);
 	}, [scheduleTriggers, activeTab]);
 
-	const activeCounts = useMemo(
-		() => ({
-			active: scheduleTriggers.filter((t) => t.enabled).length,
-			paused: scheduleTriggers.filter((t) => !t.enabled).length,
-		}),
-		[scheduleTriggers],
+	const activeCounts = useMemo(() => {
+		let active = 0;
+		let paused = 0;
+		for (const t of scheduleTriggers) {
+			if (t.enabled) {
+				active++;
+			} else {
+				paused++;
+			}
+		}
+		return { active, paused };
+	}, [scheduleTriggers]);
+
+	const handleToggle = useCallback(
+		(trigger: Trigger) => updateMutation.mutate(trigger),
+		[updateMutation],
+	);
+
+	const handleDelete = useCallback(
+		(id: string) => deleteMutation.mutate(id),
+		[deleteMutation],
 	);
 
 	return (
@@ -258,16 +273,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
 						<TabsContent className="mt-4" value="active">
 							<ScheduleTable
-								onDelete={(id) => deleteMutation.mutate(id)}
-								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								onDelete={handleDelete}
+								onToggle={handleToggle}
 								triggers={filteredTriggers}
 							/>
 						</TabsContent>
 
 						<TabsContent className="mt-4" value="paused">
 							<ScheduleTable
-								onDelete={(id) => deleteMutation.mutate(id)}
-								onToggle={(trigger) => updateMutation.mutate(trigger)}
+								onDelete={handleDelete}
+								onToggle={handleToggle}
 								triggers={filteredTriggers}
 							/>
 						</TabsContent>

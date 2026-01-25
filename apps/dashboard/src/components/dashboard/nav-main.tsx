@@ -1,6 +1,4 @@
 "use client";
-
-import { useMemo } from "react";
 import {
 	AnalyticsUpIcon,
 	Calendar03Icon,
@@ -82,6 +80,16 @@ const navMainItems: NavMainItem[] = [
 	},
 ];
 
+const itemsByCategory: Record<NavMainCategory, NavMainItem[]> = {
+	none: [],
+	workspace: [],
+	schedules: [],
+	utility: [],
+};
+for (const item of navMainItems) {
+	itemsByCategory[item.category].push(item);
+}
+
 function NavGroup({
 	items,
 	slug,
@@ -118,32 +126,19 @@ function NavGroup({
 	);
 }
 
+const categories = Object.keys(categoryLabels) as Exclude<
+	NavMainCategory,
+	"none"
+>[];
+
 export function NavMain() {
 	const { activeOrganization } = useOrganizationsContext();
-
-	const itemsByCategory = useMemo(() => {
-		const map: Record<NavMainCategory, NavMainItem[]> = {
-			none: [],
-			workspace: [],
-			schedules: [],
-			utility: [],
-		};
-		for (const item of navMainItems) {
-			map[item.category].push(item);
-		}
-		return map;
-	}, []);
 
 	if (!activeOrganization?.slug) {
 		return null;
 	}
 
 	const slug = activeOrganization.slug;
-
-	const categories = Object.keys(categoryLabels) as Exclude<
-		NavMainCategory,
-		"none"
-	>[];
 
 	return (
 		<>

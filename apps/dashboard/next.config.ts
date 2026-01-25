@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     useCache: true,
-    optimizePackageImports: ["@hugeicons/core-free-icons"],
+    optimizePackageImports: ["@hugeicons/core-free-icons", "lucide-react"],
   },
   transpilePackages: [
     "@notra/db",
