@@ -42,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    const { messages, currentMarkdown, selectedText, context } = parseResult.data;
+    const { messages, currentMarkdown, selection, context } = parseResult.data;
 
     const modelWithMemory = withSupermemory(
       openrouter("anthropic/claude-sonnet-4.5"),
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const result = streamText({
       model: modelWithMemory,
       system: getContentEditorChatPrompt({
-        selectedText,
+        selection,
         repoContext: context,
       }),
       messages: await convertToModelMessages(messages),

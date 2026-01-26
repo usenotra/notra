@@ -58,10 +58,20 @@ export const contextItemSchema = z.object({
 
 export type ContextItem = z.infer<typeof contextItemSchema>;
 
+export const textSelectionSchema = z.object({
+  text: z.string(),
+  startLine: z.number(),
+  startChar: z.number(),
+  endLine: z.number(),
+  endChar: z.number(),
+});
+
+export type TextSelection = z.infer<typeof textSelectionSchema>;
+
 export const chatRequestSchema = z.object({
   messages: z.array(z.any()), // UIMessage from ai sdk
   currentMarkdown: z.string(),
-  selectedText: z.string().optional(),
+  selection: textSelectionSchema.optional(),
   context: z.array(contextItemSchema).optional(),
 });
 

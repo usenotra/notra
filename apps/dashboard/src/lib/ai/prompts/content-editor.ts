@@ -1,15 +1,23 @@
 import dedent from "dedent";
 
+interface TextSelection {
+  text: string;
+  startLine: number;
+  startChar: number;
+  endLine: number;
+  endChar: number;
+}
+
 interface ContentEditorChatPromptParams {
-  selectedText?: string;
+  selection?: TextSelection;
   repoContext?: { owner: string; repo: string }[];
 }
 
 export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams) {
-  const { selectedText, repoContext } = params;
+  const { selection, repoContext } = params;
 
-  const selectionContext = selectedText
-    ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${selectedText}\n"""`
+  const selectionContext = selection
+    ? `\n\n## User Selection\nThe user has selected text from line ${selection.startLine} (char ${selection.startChar}) to line ${selection.endLine} (char ${selection.endChar}):\n"""\n${selection.text}\n"""\nCONSTRAINT: Your edits MUST only affect lines ${selection.startLine} to ${selection.endLine}. Do not modify content outside this range.`
     : "";
 
   const repoContextStr = repoContext?.length
