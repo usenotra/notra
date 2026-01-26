@@ -23,13 +23,14 @@ import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { Trigger, TriggerSourceType } from "@/types/triggers";
 import { getOutputTypeLabel } from "@/utils/output-types";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { AddTriggerDialog } from "../../triggers/trigger-dialog";
 import { TriggerRowActions } from "../_components/trigger-row-actions";
 import { TriggerStatusBadge } from "../_components/trigger-status-badge";
-import { AddTriggerDialog } from "../../triggers/trigger-dialog";
 
 const CRON_SOURCE_TYPES: TriggerSourceType[] = ["cron"];
 
@@ -184,7 +185,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 	);
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+		<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
 			<div className="w-full space-y-6 px-4 lg:px-6">
 				<div className="flex items-start justify-between">
 					<div className="space-y-1">
@@ -289,7 +290,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 					</Tabs>
 				)}
 			</div>
-		</div>
+		</PageContainer>
 	);
 }
 

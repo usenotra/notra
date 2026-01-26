@@ -202,6 +202,99 @@
   }
 }
 
+@layer components {
+  /* Container variants using container queries */
+  .page-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container {
+      max-width: 48rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container {
+      max-width: 64rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container {
+      max-width: 80rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container {
+      max-width: 96rem;
+    }
+  }
+
+  /* Relaxed variant - balanced for readability */
+  .page-container-relaxed {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container-relaxed {
+      max-width: 44rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container-relaxed {
+      max-width: 56rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container-relaxed {
+      max-width: 68rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container-relaxed {
+      max-width: 76rem;
+    }
+  }
+  @container (min-width: 96rem) {
+    .page-container-relaxed {
+      max-width: 80rem;
+    }
+  }
+
+  /* Compact variant - focused for forms/settings */
+  .page-container-compact {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container-compact {
+      max-width: 40rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container-compact {
+      max-width: 48rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container-compact {
+      max-width: 56rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container-compact {
+      max-width: 64rem;
+    }
+  }
+  @container (min-width: 96rem) {
+    .page-container-compact {
+      max-width: 72rem;
+    }
+  }
+}
+
 @utility scrollbar-stable {
   scrollbar-gutter: stable;
 }
