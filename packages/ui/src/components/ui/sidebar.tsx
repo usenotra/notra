@@ -92,7 +92,7 @@ function SidebarProvider({
 	const toggleSidebar = React.useCallback(
 		() =>
 			isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open),
-		[isMobile, setOpen, setOpenMobile],
+		[isMobile, setOpen],
 	);
 
 	// Adds a keyboard shortcut to toggle the sidebar.
@@ -125,7 +125,7 @@ function SidebarProvider({
 			setOpenMobile,
 			toggleSidebar,
 		}),
-		[state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+		[state, open, setOpen, isMobile, openMobile, toggleSidebar],
 	);
 
 	return (
@@ -540,11 +540,7 @@ function SidebarMenuButton({
 	}
 
 	// Wrap the base component with TooltipTrigger when tooltip is present
-	const comp = (
-		<TooltipTrigger asChild className="w-full">
-			{baseComp}
-		</TooltipTrigger>
-	);
+	const comp = <TooltipTrigger render={baseComp} className="w-full" />;
 
 	return (
 		<Tooltip>
