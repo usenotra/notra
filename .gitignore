@@ -37,6 +37,11 @@ yarn-error.log*
 .DS_Store
 *.pem
 
+# Symlinked skill directories (source is in .agents/skills/)
+.claude/skills/
+.cursor/skills/
+.opencode/skills/
+
 # Typescript
 *.tsbuildinfo
 next-env.d.ts
