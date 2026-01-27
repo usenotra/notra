@@ -32,7 +32,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
 import type { GitHubRepository } from "@/types/integrations";
@@ -65,12 +65,19 @@ type ChatInputProps = {
   context?: ContextItem[];
   onAddContext?: (item: ContextItem) => void;
   onRemoveContext?: (item: ContextItem) => void;
+  value?: string;
+  onValueChange?: (value: string) => void;
 };
 
-const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSelection, organizationSlug, organizationId, context = [], onAddContext, onRemoveContext }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSelection, organizationSlug, organizationId, context = [], onAddContext, onRemoveContext, value: controlledValue, onValueChange }: ChatInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [value, setValue] = useState("");
+  const [internalValue, setInternalValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledValue !== undefined;
+  const value = isControlled ? controlledValue : internalValue;
+  const setValue = isControlled ? (onValueChange ?? (() => {})) : setInternalValue;
 
   // Fetch GitHub integrations
   const { data: integrationsData } = useQuery<IntegrationsResponse>({
@@ -112,6 +119,14 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
     element.style.height = `${Math.min(element.scrollHeight / parseFloat(getComputedStyle(document.documentElement).fontSize), maxHeightRem)}rem`;
     element.style.overflowY = element.scrollHeight > maxHeightPx ? "auto" : "hidden";
   }, []);
+
+  // Resize textarea when controlled value changes
+  useEffect(() => {
+    if (isControlled) {
+      requestAnimationFrame(resizeTextarea);
+    }
+  }, [isControlled, controlledValue, resizeTextarea]);
+
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || isLoading) return;
