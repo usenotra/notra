@@ -39,11 +39,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
 
     if (checkError) {
-      console.error("[Autumn] Check error:", {
-        requestId,
-        customerId: organizationId,
-        error: checkError,
-      });
+      console.error("[Autumn] Check error:", { requestId, customerId: organizationId, error: checkError });
+      return NextResponse.json(
+        { error: "Failed to check usage limits", code: "BILLING_ERROR" },
+        { status: 500 }
+      );
     }
 
     if (!checkData?.allowed) {
