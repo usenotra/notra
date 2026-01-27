@@ -11,18 +11,25 @@ interface TextSelection {
 interface ContentEditorChatPromptParams {
   selection?: TextSelection;
   repoContext?: { owner: string; repo: string }[];
+  toolDescriptions?: string[];
+  hasGitHubEnabled?: boolean;
 }
 
 export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams) {
-  const { selection, repoContext } = params;
+  const { selection, repoContext, toolDescriptions, hasGitHubEnabled } = params;
 
   const selectionContext = selection
     ? `\n\n## User Selection\nThe user has selected text from line ${selection.startLine} (char ${selection.startChar}) to line ${selection.endLine} (char ${selection.endChar}):\n"""\n${selection.text}\n"""\nCONSTRAINT: Your edits MUST only affect lines ${selection.startLine} to ${selection.endLine}. Do not modify content outside this range.`
     : "";
 
-  const repoContextStr = repoContext?.length
-    ? `\n\nThe user has added the following GitHub repositories as context:\n${repoContext.map((c) => `- ${c.owner}/${c.repo}`).join("\n")}`
+  const capabilitiesSection = toolDescriptions?.length
+    ? `\n\n## Available Capabilities\n${toolDescriptions.map((d) => `- ${d}`).join("\n")}`
     : "";
+
+  const githubSection =
+    hasGitHubEnabled && repoContext?.length
+      ? `\n\n## GitHub Repositories\nThe user has added the following GitHub repositories as context:\n${repoContext.map((c) => `- ${c.owner}/${c.repo}`).join("\n")}\n\nWhen working with GitHub data, use the available GitHub tools to fetch PRs, releases, or commits.`
+      : "";
 
   return dedent`
     You are a content editor assistant. Help users edit their markdown documents.
@@ -44,6 +51,6 @@ export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams
     - For multi-line content use \\n in content string
     - When user selects text, focus only on that section
     - IMPORTANT: Do NOT output the content of your edits in text. Only use the editMarkdown tool. Keep text responses brief - just explain what you're doing, not the actual content.
-    ${selectionContext}${repoContextStr}
+    ${capabilitiesSection}${githubSection}${selectionContext}
   `;
 }

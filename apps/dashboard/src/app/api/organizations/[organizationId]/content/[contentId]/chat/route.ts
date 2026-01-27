@@ -1,20 +1,8 @@
-import { withSupermemory } from "@supermemory/tools/ai-sdk";
-import {
-  convertToModelMessages,
-  streamText,
-  stepCountIs,
-} from "ai";
 import type { NextRequest } from "next/server";
-import { getContentEditorChatPrompt } from "@/lib/ai/prompts/content-editor";
-import { createMarkdownTools } from "@/lib/ai/tools/edit-markdown";
-import {
-  getSkillByName,
-  listAvailableSkills,
-} from "@/lib/ai/tools/skills";
-import { withOrganizationAuth } from "@/lib/auth/organization";
-import { openrouter } from "@/lib/openrouter";
-import { chatRequestSchema } from "@/utils/schemas/content";
 import { NextResponse } from "next/server";
+import { orchestrateChat } from "@/lib/ai/orchestration";
+import { withOrganizationAuth } from "@/lib/auth/organization";
+import { chatRequestSchema } from "@/utils/schemas/content";
 
 interface RouteContext {
   params: Promise<{ organizationId: string; contentId: string }>;
@@ -44,33 +32,18 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const { messages, currentMarkdown, selection, context } = parseResult.data;
 
-    const modelWithMemory = withSupermemory(
-      openrouter("anthropic/claude-sonnet-4.5"),
-      organizationId
-    );
-
-    const { getMarkdown, editMarkdown } = createMarkdownTools({
+    const { stream, routingDecision } = await orchestrateChat({
+      organizationId,
+      messages,
       currentMarkdown,
-      onUpdate: () => {},
+      selection,
+      context,
+      maxSteps: 1,
     });
 
-    const result = streamText({
-      model: modelWithMemory,
-      system: getContentEditorChatPrompt({
-        selection,
-        repoContext: context,
-      }),
-      messages: await convertToModelMessages(messages),
-      tools: {
-        getMarkdown,
-        editMarkdown,
-        listAvailableSkills: listAvailableSkills(),
-        getSkillByName: getSkillByName(),
-      },
-      stopWhen: stepCountIs(1),
-    });
+    console.log("[Content Chat]", routingDecision);
 
-    return result.toUIMessageStreamResponse();
+    return stream.toUIMessageStreamResponse();
   } catch (_e) {
     return NextResponse.json(
       { error: "Failed to process chat request" },
