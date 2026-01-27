@@ -89,7 +89,7 @@ function OrgSelectorTrigger({
                   {activeOrganization?.name}
                 </span>
                 {isPro ? (
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-semibold">
+                  <Badge className="bg-purple-500/15 px-1.5 py-0 text-[10px] font-semibold text-purple-600 hover:bg-purple-500/15 dark:text-purple-400">
                     PRO
                   </Badge>
                 ) : (
@@ -136,7 +136,7 @@ export function OrgSelector() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const proProduct = customer?.products.find(
-    (p) => p.id === "pro" && (p.status === "active" || p.status === "trialing")
+    (p) => (p.id === "pro" || p.id === "pro_yearly") && (p.status === "active" || p.status === "trialing")
   );
   const isPro = Boolean(proProduct);
 

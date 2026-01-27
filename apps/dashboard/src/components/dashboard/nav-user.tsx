@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
 export function NavUser() {
   const router = useRouter();
@@ -39,9 +40,11 @@ export function NavUser() {
   const isCollapsed = state === "collapsed";
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const { activeOrganization } = useOrganizationsContext();
 
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
+  const slug = activeOrganization?.slug ?? "";
 
   useEffect(() => {
     if (!(user || isPending || isRedirecting)) {
@@ -174,7 +177,7 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => router.push("/account")}
+                onClick={() => router.push(`/${slug}/settings/account`)}
               >
                 <HugeiconsIcon icon={User02Icon} />
                 Account

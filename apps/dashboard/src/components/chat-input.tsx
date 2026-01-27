@@ -187,7 +187,7 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
                 {usageLimitError}
                 {organizationSlug && (
                   <Link
-                    href={`/${organizationSlug}/test-checkout`}
+                    href={`/${organizationSlug}/billing/plans`}
                     className="ml-1 underline underline-offset-2"
                   >
                     Upgrade now

@@ -3,7 +3,6 @@ import {
 	AnalyticsUpIcon,
 	Calendar03Icon,
 	CorporateIcon,
-	CreditCardIcon,
 	Home01Icon,
 	NoteIcon,
 	Notification03Icon,
@@ -21,7 +20,7 @@ import {
 import Link from "next/link";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
-type NavMainCategory = "none" | "workspace" | "schedules" | "utility" | "billing";
+type NavMainCategory = "none" | "workspace" | "schedules" | "utility";
 
 interface NavMainItem {
 	link: string;
@@ -34,7 +33,6 @@ const categoryLabels: Record<Exclude<NavMainCategory, "none">, string> = {
 	workspace: "Workspace",
 	schedules: "Schedules",
 	utility: "Utility",
-	billing: "Billing",
 };
 
 const navMainItems: NavMainItem[] = [
@@ -80,12 +78,6 @@ const navMainItems: NavMainItem[] = [
 		label: "Logs",
 		category: "utility",
 	},
-	{
-		link: "/usage",
-		icon: CreditCardIcon,
-		label: "Usage",
-		category: "billing",
-	},
 ];
 
 const itemsByCategory: Record<NavMainCategory, NavMainItem[]> = {
@@ -93,7 +85,6 @@ const itemsByCategory: Record<NavMainCategory, NavMainItem[]> = {
 	workspace: [],
 	schedules: [],
 	utility: [],
-	billing: [],
 };
 for (const item of navMainItems) {
 	itemsByCategory[item.category].push(item);
