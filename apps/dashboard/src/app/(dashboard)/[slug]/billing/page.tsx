@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { cn } from "@notra/ui/lib/utils";
 import type { CheckoutResult, Product } from "autumn-js";
 import { useCustomer, usePricingTable } from "autumn-js/react";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { TitleCard } from "@/components/title-card";
 
 const SCENARIO_TEXT: Record<string, string> = {
@@ -181,6 +181,7 @@ export default function BillingPage() {
 	const [loading, setLoading] = useState<string | null>(null);
 	const [isYearly, setIsYearly] = useState(true);
 	const [dateSortOrder, setDateSortOrder] = useState<"asc" | "desc">("desc");
+	const invoiceListId = useId();
 
 	const invoices = customer?.invoices ?? [];
 
@@ -340,7 +341,7 @@ export default function BillingPage() {
 											gradientHeight={0}
 										/>
 										<span className="text-muted-foreground text-sm font-normal ml-1 mb-0.5">
-											/{isYearly ? "year" : "month"}
+											/month
 										</span>
 									</div>
 								</div>
@@ -511,9 +512,9 @@ export default function BillingPage() {
 										</td>
 									</tr>
 								) : (
-									sortedInvoices.map((invoice, index) => (
+									sortedInvoices.map((invoice) => (
 										<tr
-											key={index}
+											key={`${invoiceListId}-${invoice.created_at}-${invoice.total}`}
 											className={cn(
 												"border-b border-border/80 last:border-0 transition-colors",
 												invoice.hosted_invoice_url &&

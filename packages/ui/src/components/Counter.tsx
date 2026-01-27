@@ -106,7 +106,7 @@ export default function Counter({
   value,
   fontSize = 100,
   padding = 0,
-  places = [...value.toString()].map((ch, i, a) => {
+  places = isFinite(value) ? [...value.toString()].map((ch, i, a) => {
     if (ch === '.') {
       return '.';
     }
@@ -117,7 +117,7 @@ export default function Counter({
     const exponent = isInteger ? a.length - i - 1 : i < dotIndex ? dotIndex - i - 1 : -(i - dotIndex);
 
     return 10 ** exponent;
-  }),
+  }) : [1],
   gap = 8,
   borderRadius = 4,
   horizontalPadding = 8,
