@@ -11,6 +11,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import { Badge } from "@notra/ui/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCustomer } from "autumn-js/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,10 +55,12 @@ function OrgSelectorTrigger({
   isCollapsed,
   isSwitching,
   activeOrganization,
+  isPro,
 }: {
   isCollapsed: boolean;
   isSwitching: boolean;
   activeOrganization: Organization | null;
+  isPro: boolean;
 }) {
   return (
     <DropdownMenuTrigger
@@ -80,10 +84,19 @@ function OrgSelectorTrigger({
           </Avatar>
           {isCollapsed ? null : (
             <>
-              <div className="flex flex-1 gap-2 text-left text-sm leading-tight">
+              <div className="flex flex-1 items-center gap-2 text-left text-sm leading-tight">
                 <span className="truncate text-ellipsis font-medium text-sm">
                   {activeOrganization?.name}
                 </span>
+                {isPro ? (
+                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-semibold">
+                    PRO
+                  </Badge>
+                ) : (
+                  <Badge className="bg-emerald-500/15 px-1.5 py-0 text-[10px] font-semibold text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400">
+                    FREE
+                  </Badge>
+                )}
               </div>
               <HugeiconsIcon className="ml-auto" icon={ArrowDown01Icon} />
             </>
@@ -117,9 +130,15 @@ export function OrgSelector() {
   const isCollapsed = state === "collapsed";
   const { activeOrganization, organizations, isLoading } =
     useOrganizationsContext();
+  const { customer } = useCustomer();
 
   const [isSwitching, setIsSwitching] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const proProduct = customer?.products.find(
+    (p) => p.id === "pro" && (p.status === "active" || p.status === "trialing")
+  );
+  const isPro = Boolean(proProduct);
 
   async function switchOrganization(org: Organization) {
     if (org.slug === activeOrganization?.slug) {
@@ -165,6 +184,7 @@ export function OrgSelector() {
               activeOrganization={activeOrganization}
               isCollapsed={isCollapsed}
               isSwitching={isSwitching}
+              isPro={isPro}
             />
           ) : (
             <OrgSelectorSkeleton isCollapsed={isCollapsed} />

@@ -5,6 +5,7 @@ import { Toaster } from "@notra/ui/components/ui/sonner";
 import { TooltipProvider } from "@notra/ui/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { AutumnProvider } from "autumn-js/react";
 import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
@@ -34,15 +35,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ReactQueryDevtools initialIsOpen={false} />
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
         <TooltipProvider>
-          <NuqsAdapter>
-            {children}
-            {databuddyClientID && (
-              <Databuddy
-                clientId={process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID}
-              />
-            )}
-          </NuqsAdapter>
-          <Toaster position="top-center" />
+          <AutumnProvider>
+            <NuqsAdapter>
+              {children}
+              {databuddyClientID && (
+                <Databuddy
+                  clientId={process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID}
+                />
+              )}
+            </NuqsAdapter>
+            <Toaster position="top-center" />
+          </AutumnProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
