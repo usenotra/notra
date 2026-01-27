@@ -74,20 +74,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const { messages, currentMarkdown, selection, context } = parseResult.data;
 
-    const { stream, routingDecision } = await orchestrateChat({
-      organizationId,
-      messages,
-      currentMarkdown,
-      selection,
-      context,
-      maxSteps: 1,
-    });
-
-    console.log("[Content Chat] Routing decision:", {
-      requestId,
-      decision: routingDecision,
-    });
-
     const { error: trackError } = await autumn.track({
       customer_id: organizationId,
       feature_id: FEATURES.CHAT_MESSAGES,
@@ -95,26 +81,37 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
 
     if (trackError) {
-      console.error("[Autumn] Track error - usage not recorded:", {
-        requestId,
-        customerId: organizationId,
-        featureId: FEATURES.CHAT_MESSAGES,
-        error: trackError,
-      });
-    } else {
-      console.log("[Autumn] Usage tracked:", {
-        requestId,
-        customerId: organizationId,
-        featureId: FEATURES.CHAT_MESSAGES,
-      });
+      console.error("[Autumn] Track error:", { requestId, customerId: organizationId, error: trackError });
     }
 
-    return stream.toUIMessageStreamResponse();
+    let tracked = !trackError;
+
+    try {
+      const { stream, routingDecision } = await orchestrateChat({
+        organizationId,
+        messages,
+        currentMarkdown,
+        selection,
+        context,
+        maxSteps: 1,
+      });
+
+      console.log("[Content Chat] Routing decision:", { requestId, decision: routingDecision });
+
+      return stream.toUIMessageStreamResponse();
+    } catch (orchestrationError) {
+      if (tracked) {
+        await autumn.track({
+          customer_id: organizationId,
+          feature_id: FEATURES.CHAT_MESSAGES,
+          value: -1,
+        });
+        console.log("[Autumn] Usage compensated after orchestration failure:", { requestId });
+      }
+      throw orchestrationError;
+    }
   } catch (e) {
-    console.error("[Content Chat] Error:", {
-      requestId,
-      error: e instanceof Error ? e.message : String(e),
-    });
+    console.error("[Content Chat] Error:", { requestId, error: e instanceof Error ? e.message : String(e) });
     return NextResponse.json(
       { error: "Failed to process chat request" },
       { status: 500 }

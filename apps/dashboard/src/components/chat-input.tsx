@@ -149,13 +149,7 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
     const { data: checkResult } = check({ featureId: FEATURES.CHAT_MESSAGES });
 
     if (!checkResult?.allowed) {
-      const balance = checkResult?.balance ?? 0;
-      const limit = checkResult?.usage_limit ?? checkResult?.included_usage ?? 0;
-      setInternalError(
-        balance === 0
-          ? `You've used all ${limit} chat messages this month. Upgrade for more.`
-          : `You don't have access to chat messages. Upgrade to get started.`
-      );
+      setInternalError("You've used all your chat messages this month. Upgrade for more.");
       return;
     }
 
