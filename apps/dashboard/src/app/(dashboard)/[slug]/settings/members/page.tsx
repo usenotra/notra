@@ -24,6 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { use, useState } from "react";
 import { authClient } from "@/lib/auth/client";
+import type { Invitation } from "better-auth/plugins/organization";
 
 interface PageProps {
 	params: Promise<{ slug: string }>;
@@ -39,17 +40,6 @@ interface Member {
 		email: string;
 		image?: string | null;
 	};
-}
-
-interface Invitation {
-	id: string;
-	organizationId: string;
-	email: string;
-	role: "member" | "owner" | "admin";
-	status: string;
-	expiresAt: string;
-	inviterId: string;
-	createdAt: string;
 }
 
 export default function MembersPage({ params }: PageProps) {
@@ -90,7 +80,7 @@ export default function MembersPage({ params }: PageProps) {
 			if (error) {
 				throw new Error("Failed to fetch invitations");
 			}
-			return (data ?? []) as Invitation[];
+			return data ?? [];
 		},
 		enabled: !!organization?.id,
 	});
@@ -340,7 +330,7 @@ export default function MembersPage({ params }: PageProps) {
 													</Badge>
 												</td>
 												<td className="px-4 py-3 text-sm text-muted-foreground">
-													{new Date(invitation.expiresAt).toLocaleDateString()}
+													{invitation.expiresAt.toLocaleDateString()}
 												</td>
 											</tr>
 										))}
