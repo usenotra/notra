@@ -47,9 +47,9 @@ interface Invitation {
 	email: string;
 	role: "member" | "owner" | "admin";
 	status: string;
-	expiresAt: Date;
+	expiresAt: string;
 	inviterId: string;
-	createdAt: Date;
+	createdAt: string;
 }
 
 export default function MembersPage({ params }: PageProps) {
@@ -340,7 +340,7 @@ export default function MembersPage({ params }: PageProps) {
 													</Badge>
 												</td>
 												<td className="px-4 py-3 text-sm text-muted-foreground">
-													{invitation.expiresAt.toLocaleDateString()}
+													{new Date(invitation.expiresAt).toLocaleDateString()}
 												</td>
 											</tr>
 										))}
