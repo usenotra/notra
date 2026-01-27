@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { useCustomer } from "autumn-js/react";
 import remend from "remend";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
@@ -66,6 +67,7 @@ export default function PageClient({
 
   const { state: sidebarState } = useSidebar();
   const { data, isLoading, error } = useContent(organizationId, contentId);
+  const { refetch: refetchCustomer } = useCustomer();
 
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
   const [originalMarkdown, setOriginalMarkdown] = useState("");
@@ -261,6 +263,8 @@ export default function PageClient({
   selectionRef.current = selection;
   contextRef.current = context;
 
+  const [chatError, setChatError] = useState<string | null>(null);
+
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
@@ -272,9 +276,28 @@ export default function PageClient({
     }),
     onFinish: () => {
       clearSelection();
+      refetchCustomer();
     },
     onError: (err) => {
       console.error("Error editing content:", err);
+
+      const errorMessage = err.message || String(err);
+
+      if (errorMessage.includes("USAGE_LIMIT_REACHED") || errorMessage.includes("Usage limit reached")) {
+        setChatError("You've used all your chat messages this month. Upgrade for more.");
+        return;
+      }
+
+      try {
+        const errorData = JSON.parse(errorMessage);
+        if (errorData.code === "USAGE_LIMIT_REACHED") {
+          setChatError("You've used all your chat messages this month. Upgrade for more.");
+          return;
+        }
+      } catch {
+        // Not a JSON error, fall through
+      }
+
       toast.error("Failed to edit content");
     },
   });
@@ -504,6 +527,8 @@ export default function PageClient({
           context={context}
           onAddContext={handleAddContext}
           onRemoveContext={handleRemoveContext}
+          error={chatError}
+          onClearError={() => setChatError(null)}
         />
       </div>
     </div>

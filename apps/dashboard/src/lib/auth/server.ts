@@ -1,3 +1,4 @@
+import { Autumn } from "autumn-js";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -112,7 +113,7 @@ export const auth = betterAuth({
     lastLoginMethod(),
     haveIBeenPwned(),
     nextCookies(),
-  ], // nextCookies() must be last
+  ],
   secondaryStorage: redis
     ? {
         get: async (key) => await redis!.get(key),
@@ -220,6 +221,29 @@ export const auth = betterAuth({
               slug,
             },
           };
+        },
+        after: async (org: { id: string; name: string }) => {
+          const autumn = new Autumn();
+          const result = await autumn.customers.create({
+            id: org.id,
+            name: org.name,
+          });
+
+          if (result.error) {
+            console.error("[Autumn] Failed to create org customer:", {
+              orgId: org.id,
+              orgName: org.name,
+              error: result.error,
+            });
+            throw new Error(
+              `Failed to set up billing for organization: ${result.error.message || "Unknown error"}`
+            );
+          }
+
+          console.log("[Autumn] Customer created successfully:", {
+            orgId: org.id,
+            orgName: org.name,
+          });
         },
       },
     },

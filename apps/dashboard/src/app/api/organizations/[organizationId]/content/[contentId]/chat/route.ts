@@ -1,8 +1,13 @@
+import { Autumn } from "autumn-js";
+import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { orchestrateChat } from "@/lib/ai/orchestration";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { FEATURES } from "@/lib/billing/constants";
 import { chatRequestSchema } from "@/utils/schemas/content";
+
+const autumn = new Autumn();
 
 interface RouteContext {
   params: Promise<{ organizationId: string; contentId: string }>;
@@ -11,6 +16,8 @@ interface RouteContext {
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  const requestId = nanoid(10);
+
   try {
     const { organizationId } = await params;
 
@@ -18,6 +25,41 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (!auth.success) {
       return auth.response;
+    }
+
+    console.log("[Autumn] Checking feature access:", {
+      requestId,
+      customerId: organizationId,
+      featureId: FEATURES.CHAT_MESSAGES,
+    });
+
+    const { data: checkData, error: checkError } = await autumn.check({
+      customer_id: organizationId,
+      feature_id: FEATURES.CHAT_MESSAGES,
+    });
+
+    if (checkError) {
+      console.error("[Autumn] Check error:", {
+        requestId,
+        customerId: organizationId,
+        error: checkError,
+      });
+    }
+
+    if (!checkData?.allowed) {
+      console.log("[Autumn] Usage limit reached:", {
+        requestId,
+        customerId: organizationId,
+        balance: checkData?.balance ?? 0,
+      });
+      return NextResponse.json(
+        {
+          error: "Usage limit reached",
+          code: "USAGE_LIMIT_REACHED",
+          balance: checkData?.balance ?? 0,
+        },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();
@@ -41,10 +83,38 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       maxSteps: 1,
     });
 
-    console.log("[Content Chat]", routingDecision);
+    console.log("[Content Chat] Routing decision:", {
+      requestId,
+      decision: routingDecision,
+    });
+
+    const { error: trackError } = await autumn.track({
+      customer_id: organizationId,
+      feature_id: FEATURES.CHAT_MESSAGES,
+      value: 1,
+    });
+
+    if (trackError) {
+      console.error("[Autumn] Track error - usage not recorded:", {
+        requestId,
+        customerId: organizationId,
+        featureId: FEATURES.CHAT_MESSAGES,
+        error: trackError,
+      });
+    } else {
+      console.log("[Autumn] Usage tracked:", {
+        requestId,
+        customerId: organizationId,
+        featureId: FEATURES.CHAT_MESSAGES,
+      });
+    }
 
     return stream.toUIMessageStreamResponse();
-  } catch (_e) {
+  } catch (e) {
+    console.error("[Content Chat] Error:", {
+      requestId,
+      error: e instanceof Error ? e.message : String(e),
+    });
     return NextResponse.json(
       { error: "Failed to process chat request" },
       { status: 500 }

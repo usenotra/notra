@@ -2,6 +2,7 @@
 
 import { AtIcon, Cancel01Icon, TextSelectionIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Card,
@@ -31,9 +32,11 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
+import { useCustomer } from "autumn-js/react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { FEATURES } from "@/lib/billing/constants";
 import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
 import type { GitHubRepository } from "@/types/integrations";
 import type { IntegrationsResponse } from "@/lib/services/integrations";
@@ -67,12 +70,22 @@ type ChatInputProps = {
   onRemoveContext?: (item: ContextItem) => void;
   value?: string;
   onValueChange?: (value: string) => void;
+  error?: string | null;
+  onClearError?: () => void;
 };
 
-const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSelection, organizationSlug, organizationId, context = [], onAddContext, onRemoveContext, value: controlledValue, onValueChange }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSelection, organizationSlug, organizationId, context = [], onAddContext, onRemoveContext, value: controlledValue, onValueChange, error: externalError, onClearError }: ChatInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [internalValue, setInternalValue] = useState("");
+  const [internalError, setInternalError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { check } = useCustomer();
+
+  const usageLimitError = externalError ?? internalError;
+  const clearError = () => {
+    setInternalError(null);
+    onClearError?.();
+  };
 
   // Support both controlled and uncontrolled modes
   const isControlled = controlledValue !== undefined;
@@ -127,13 +140,29 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
     }
   }, [isControlled, controlledValue, resizeTextarea]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmed = value.trim();
     if (!trimmed || isLoading) return;
+
+    clearError();
+
+    const { data: checkResult } = check({ featureId: FEATURES.CHAT_MESSAGES });
+
+    if (!checkResult?.allowed) {
+      const balance = checkResult?.balance ?? 0;
+      const limit = checkResult?.usage_limit ?? checkResult?.included_usage ?? 0;
+      setInternalError(
+        balance === 0
+          ? `You've used all ${limit} chat messages this month. Upgrade for more.`
+          : `You don't have access to chat messages. Upgrade to get started.`
+      );
+      return;
+    }
+
     onSend?.(trimmed);
     setValue("");
     requestAnimationFrame(resizeTextarea);
-  }, [onSend, resizeTextarea, value, isLoading]);
+  }, [onSend, resizeTextarea, value, isLoading, check]);
 
   useHotkeys(
     "enter",
@@ -158,6 +187,21 @@ const ChatInput = ({ onSend, isLoading = false, statusText, selection, onClearSe
       </CardHeader>
       <CardContent className="p-0">
         <div className="rounded-[14px] border border-border bg-background p-0.5 shadow-sm" tabIndex={-1}>
+          {usageLimitError && (
+            <Alert variant="destructive" className="mx-2 mt-2 mb-1">
+              <AlertDescription className="text-sm">
+                {usageLimitError}
+                {organizationSlug && (
+                  <Link
+                    href={`/${organizationSlug}/test-checkout`}
+                    className="ml-1 underline underline-offset-2"
+                  >
+                    Upgrade now
+                  </Link>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
           {isLoading && statusText && (
             <div className="flex items-start gap-2 px-3.5 pt-2 pb-1">
               <svg
