@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useCustomer } from "autumn-js/react";
 import { authClient } from "@/lib/auth/client";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
@@ -32,6 +33,7 @@ const OrganizationsContext = createContext<OrganizationsContextValue | null>(
 export function OrganizationsProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = usePathname();
+  const { refetch: refetchCustomer } = useCustomer();
   const hasAutoSelectedRef = useRef(false);
   const lastSyncedSlugRef = useRef<string | null>(null);
   const [optimisticActiveOrg, setOptimisticActiveOrg] =
@@ -192,6 +194,14 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     isLoading,
     getOrganization,
   };
+
+  useEffect(() => {
+    if (!contextValue.activeOrganization?.id) {
+      return;
+    }
+
+    refetchCustomer();
+  }, [contextValue.activeOrganization?.id, refetchCustomer]);
 
   return (
     <OrganizationsContext.Provider value={contextValue}>

@@ -27,6 +27,12 @@ export async function validateOrganizationAccess(slug: string) {
   });
 
   if (!organization || organization.members.length === 0) {
+    const fallbackOrganization = await getLastActiveOrganization(
+      session.user.id,
+    );
+    if (fallbackOrganization && fallbackOrganization.slug !== slug) {
+      redirect(`/${fallbackOrganization.slug}`);
+    }
     notFound();
   }
 
@@ -63,7 +69,7 @@ export async function requireAuth() {
 export async function getLastActiveOrganization(userId: string) {
   const cookieStore = await cookies();
   const lastVisitedOrgSlug = cookieStore.get(
-    LAST_VISITED_ORGANIZATION_COOKIE
+    LAST_VISITED_ORGANIZATION_COOKIE,
   )?.value;
 
   if (lastVisitedOrgSlug) {
