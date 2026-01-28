@@ -36,6 +36,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
   const { refetch: refetchCustomer } = useCustomer();
   const hasAutoSelectedRef = useRef(false);
   const lastSyncedSlugRef = useRef<string | null>(null);
+  const syncInProgressRef = useRef(false);
   const [optimisticActiveOrg, setOptimisticActiveOrg] =
     useState<Organization | null>(null);
 
@@ -97,6 +98,9 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
       lastSyncedSlugRef.current = slugFromPath;
       return;
     }
+    if (syncInProgressRef.current) {
+      return;
+    }
 
     const organizationFromPath = organizations.find(
       (org) => org.slug === slugFromPath,
@@ -109,6 +113,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     }
 
     lastSyncedSlugRef.current = slugFromPath;
+    syncInProgressRef.current = true;
     setOptimisticActiveOrg(organizationFromPath);
     authClient.organization
       .setActive({ organizationId: organizationFromPath.id })
@@ -127,6 +132,9 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
         console.error("Error syncing organization:", error);
         setOptimisticActiveOrg(null);
         lastSyncedSlugRef.current = null;
+      })
+      .finally(() => {
+        syncInProgressRef.current = false;
       });
   }, [
     activeOrganization?.slug,
@@ -144,6 +152,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
       organizationsData &&
       organizationsData.length > 0 &&
       !activeOrganization &&
+      !slugFromPath &&
       !hasAutoSelectedRef.current
     ) {
       const firstOrg = organizationsData[0];
@@ -182,6 +191,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     organizationsData,
     activeOrganization,
     queryClient,
+    slugFromPath,
   ]);
 
   const getOrganization = (slug: string) => {
