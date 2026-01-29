@@ -2,11 +2,9 @@
 
 import {
   CreditCardIcon,
-  AnalyticsUpIcon,
-  PaintBoardIcon,
-  Settings01Icon,
+  AnalyticsUpIcon, Settings01Icon,
   UserCircleIcon,
-  UserGroupIcon,
+  UserGroupIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
@@ -69,7 +67,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
 
   return (
     <>
-      <SidebarGroup className={cn(open ? "px-4" : "px-2")}>
+      <SidebarGroup>
         <SidebarGroupLabel>Account</SidebarGroupLabel>
         <SidebarMenu>
           {accountItems.map((item) => (
@@ -93,7 +91,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
         </SidebarMenu>
       </SidebarGroup>
 
-      <SidebarGroup className={cn(open ? "px-4" : "px-2")}>
+      <SidebarGroup>
         <SidebarGroupLabel>Organization</SidebarGroupLabel>
         <SidebarMenu>
           {organizationItems.map((item) => (
