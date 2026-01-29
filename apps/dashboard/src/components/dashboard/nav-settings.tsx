@@ -2,11 +2,9 @@
 
 import {
   CreditCardIcon,
-  AnalyticsUpIcon,
-  PaintBoardIcon,
-  Settings01Icon,
+  AnalyticsUpIcon, Settings01Icon,
   UserCircleIcon,
-  UserGroupIcon,
+  UserGroupIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
@@ -21,14 +19,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface NavSettingsItem {
-  name: string;
+  label: string;
   url: string;
   icon: IconSvgElement;
 }
 
 const accountItems: NavSettingsItem[] = [
   {
-    name: "Profile",
+    label: "Profile",
     url: "settings/account",
     icon: UserCircleIcon,
   },
@@ -36,22 +34,22 @@ const accountItems: NavSettingsItem[] = [
 
 const organizationItems: NavSettingsItem[] = [
   {
-    name: "General",
+    label: "General",
     url: "settings/general",
     icon: Settings01Icon,
   },
   {
-    name: "Members",
+    label: "Members",
     url: "settings/members",
     icon: UserGroupIcon,
   },
   {
-    name: "Billing",
+    label: "Billing",
     url: "billing",
     icon: CreditCardIcon,
   },
   {
-    name: "Usage",
+    label: "Usage",
     url: "billing/usage",
     icon: AnalyticsUpIcon,
   },
@@ -69,7 +67,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
 
   return (
     <>
-      <SidebarGroup className={cn(open ? "px-4" : "px-2")}>
+      <SidebarGroup>
         <SidebarGroupLabel>Account</SidebarGroupLabel>
         <SidebarMenu>
           {accountItems.map((item) => (
@@ -80,20 +78,20 @@ export function NavSettings({ slug }: NavSettingsProps) {
                   ? "bg-sidebar-accent text-foreground"
                   : "hover:text-accent-foreground",
               )}
-              key={item.name}
+              key={item.label}
               render={
                 <Link href={`/${slug}/${item.url}`}>
                   <HugeiconsIcon icon={item.icon} />
-                  <span>{item.name}</span>
+                  <span>{item.label}</span>
                 </Link>
               }
-              tooltip={item.name}
+              tooltip={item.label}
             />
           ))}
         </SidebarMenu>
       </SidebarGroup>
 
-      <SidebarGroup className={cn(open ? "px-4" : "px-2")}>
+      <SidebarGroup>
         <SidebarGroupLabel>Organization</SidebarGroupLabel>
         <SidebarMenu>
           {organizationItems.map((item) => (
@@ -104,14 +102,14 @@ export function NavSettings({ slug }: NavSettingsProps) {
                   ? "bg-sidebar-accent text-foreground"
                   : "hover:text-accent-foreground",
               )}
-              key={item.name}
+              key={item.label}
               render={
                 <Link href={`/${slug}/${item.url}`}>
                   <HugeiconsIcon icon={item.icon} />
-                  <span>{item.name}</span>
+                  <span>{item.label}</span>
                 </Link>
               }
-              tooltip={item.name}
+              tooltip={item.label}
             />
           ))}
         </SidebarMenu>

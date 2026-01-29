@@ -13,7 +13,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 
 interface NavSecondaryItem {
-  title: string;
+  label: string;
   url: string;
   icon: IconSvgElement;
 }
@@ -34,14 +34,15 @@ export function NavSecondary({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 render={
                   <Link href={item.url}>
                     <HugeiconsIcon icon={item.icon} />
-                    <span>{item.title}</span>
+                    <span>{item.label}</span>
                   </Link>
                 }
+                tooltip={item.label}
               />
             </SidebarMenuItem>
           ))}

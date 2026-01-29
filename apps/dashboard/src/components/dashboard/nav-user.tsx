@@ -74,7 +74,7 @@ export function NavUser() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton disabled size="lg">
+          <SidebarMenuButton disabled size="lg" tooltip={"Account"}>
             <Skeleton className="size-8 rounded-lg" />
             {!isCollapsed && (
               <>
@@ -105,15 +105,16 @@ export function NavUser() {
                 className={cn(
                   "cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
                   isCollapsed
-                    ? "size-10 min-w-0 justify-center rounded-full p-1"
+                    ? "size-10 min-w-0 justify-center p-1"
                     : ""
                 )}
                 disabled={isSigningOut}
                 size="lg"
+                tooltip={"Account"}
               >
                 <Avatar
                   className={cn(
-                    "size-8 rounded-lg",
+                    "size-8 rounded-lg after:rounded-lg",
                     isCollapsed ? "size-6.5" : ""
                   )}
                 >
@@ -152,7 +153,7 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="size-8 rounded-lg">
+                  <Avatar className="size-8 rounded-lg after:rounded-lg">
                     <AvatarImage
                       alt={user.name}
                       className="rounded-lg"
