@@ -6,7 +6,6 @@ import {
 	UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
 	Avatar,
 	AvatarFallback,
@@ -22,9 +21,11 @@ import {
 	TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { use, useState } from "react";
-import { authClient } from "@/lib/auth/client";
 import type { Invitation } from "better-auth/plugins/organization";
+import { use, useState } from "react";
+import { PageContainer } from "@/components/layout/container";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { authClient } from "@/lib/auth/client";
 
 interface PageProps {
 	params: Promise<{ slug: string }>;
@@ -91,7 +92,7 @@ export default function MembersPage({ params }: PageProps) {
 
 	if (!organization) {
 		return (
-			<div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+			<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
 				<div className="w-full space-y-6 px-4 lg:px-6">
 					<div className="space-y-1">
 						<Skeleton className="h-9 w-32" />
@@ -99,12 +100,12 @@ export default function MembersPage({ params }: PageProps) {
 					</div>
 					<Skeleton className="h-64 rounded-[20px]" />
 				</div>
-			</div>
+			</PageContainer>
 		);
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+		<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
 			<div className="w-full space-y-6 px-4 lg:px-6">
 				<div className="flex items-start justify-between">
 					<div className="space-y-1">
@@ -356,6 +357,6 @@ export default function MembersPage({ params }: PageProps) {
 					</TabsContent>
 				</Tabs>
 			</div>
-		</div>
+		</PageContainer>
 	);
 }
