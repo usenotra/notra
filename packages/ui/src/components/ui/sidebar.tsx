@@ -540,7 +540,7 @@ function SidebarMenuButton({
   }
 
   // Wrap the base component with TooltipTrigger when tooltip is present
-  const comp = <TooltipTrigger>{baseComp}</TooltipTrigger>;
+  const comp = <TooltipTrigger tabIndex={-1}>{baseComp}</TooltipTrigger>;
 
   return (
     <Tooltip>
