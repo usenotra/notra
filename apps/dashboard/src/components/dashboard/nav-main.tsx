@@ -117,6 +117,7 @@ function NavGroup({
 										<span>{item.label}</span>
 									</Link>
 								}
+								tooltip={item.label}
 							/>
 						</SidebarMenuItem>
 					))}

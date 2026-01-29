@@ -68,14 +68,15 @@ function OrgSelectorTrigger({
         <SidebarMenuButton
           className={cn(
             "cursor-pointer border border-transparent transition hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
-            isCollapsed ? "size-10 min-w-0 justify-center rounded-full p-1" : ""
+            isCollapsed ? "size-10 min-w-0 justify-center p-1" : ""
           )}
           disabled={isSwitching}
           size="lg"
+          tooltip={`Organization | ${activeOrganization?.name}`}
         >
-          <Avatar className={cn("size-8", isCollapsed ? "size-6.5" : "")}>
+          <Avatar className={cn("size-8 rounded-lg after:rounded-lg", isCollapsed ? "size-6.5" : "")}>
             <AvatarImage
-              className="rounded-[4px]"
+              className="rounded-lg"
               src={activeOrganization?.logo || undefined}
             />
             <AvatarFallback className="border bg-sidebar-accent">
@@ -114,7 +115,7 @@ function OrgSelectorSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 
   return (
     <SidebarMenuButton disabled size="lg">
-      <Skeleton className="size-8 rounded-[4px]" />
+      <Skeleton className="size-8 rounded-lg" />
       <div className="flex flex-1 gap-2 text-left text-sm leading-tight">
         <Skeleton className="h-4 w-24" />
       </div>
