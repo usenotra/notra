@@ -5,14 +5,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
-	SidebarGroup,
-	SidebarHeader,
+	SidebarFooter, SidebarGroup, SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
-	useSidebar,
+	useSidebar
 } from "@notra/ui/components/ui/sidebar";
-import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,6 +21,7 @@ import { NavSettings } from "./nav-settings";
 import { NavUser } from "./nav-user";
 import { OrgSelector } from "./org-selector";
 import { ThemeToggle } from "./theme-toggle";
+import { cn } from "@/lib/utils";
 
 export function DashboardSidebar({
 	...props
@@ -119,19 +117,18 @@ export function DashboardSidebar({
 							<SidebarGroup className={cn(open ? "px-2" : "px-0")}>
 								<SidebarMenu>
 									<SidebarMenuButton
-										className="border border-transparent transition-colors duration-200 hover:bg-sidebar-accent hover:text-accent-foreground"
 										render={
-											<Link href={`/${slug}/billing`}>
+											<Link href={`/${slug}/settings/account`}>
 												<HugeiconsIcon icon={Settings01Icon} />
 												<span>Settings</span>
 											</Link>
 										}
 										tooltip="Settings"
 									/>
+									<ThemeToggle />
 								</SidebarMenu>
+								<NavUser />
 							</SidebarGroup>
-							<ThemeToggle />
-							<NavUser />
 						</SidebarFooter>
 					</motion.div>
 				)}
