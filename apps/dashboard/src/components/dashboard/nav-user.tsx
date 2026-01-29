@@ -74,7 +74,7 @@ export function NavUser() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton disabled size="lg">
+          <SidebarMenuButton disabled size="lg" tooltip={"Account"}>
             <Skeleton className="size-8 rounded-lg" />
             {!isCollapsed && (
               <>
@@ -110,6 +110,7 @@ export function NavUser() {
                 )}
                 disabled={isSigningOut}
                 size="lg"
+                tooltip={"Account"}
               >
                 <Avatar
                   className={cn(

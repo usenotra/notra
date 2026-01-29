@@ -540,7 +540,9 @@ function SidebarMenuButton({
   }
 
   // Wrap the base component with TooltipTrigger when tooltip is present
-  const comp = <TooltipTrigger tabIndex={-1}>{baseComp}</TooltipTrigger>;
+  const comp = baseComp.type === "button" ? <TooltipTrigger className="w-full" tabIndex={-1} render={
+    baseComp
+  }/> : <TooltipTrigger className="w-full" tabIndex={-1}>{baseComp}</TooltipTrigger>;
 
   return (
     <Tooltip>

@@ -72,6 +72,7 @@ function OrgSelectorTrigger({
           )}
           disabled={isSwitching}
           size="lg"
+          tooltip={`Organization | ${activeOrganization?.name}`}
         >
           <Avatar className={cn("size-8 rounded-lg after:rounded-lg", isCollapsed ? "size-6.5" : "")}>
             <AvatarImage
