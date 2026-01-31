@@ -45,7 +45,7 @@
     "@upstash/workflow": "^1.1.0",
     "ai": "^6.0.62",
     "autumn-js": "^0.1.71",
-    "better-auth": "^1.4.10",
+    "better-auth": "^1.4.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
