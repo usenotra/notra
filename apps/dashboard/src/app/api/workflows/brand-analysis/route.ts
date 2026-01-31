@@ -112,7 +112,8 @@ export const { POST } = serve<BrandAnalysisPayload>(
           error: scrapingResult.error,
         });
       });
-      return { success: false, error: scrapingResult.error };
+      await context.cancel();
+      return;
     }
 
     // Step 2: Extract brand info
@@ -161,7 +162,8 @@ Extract the following information:
           error: extractionResult.error,
         });
       });
-      return { success: false, error: extractionResult.error };
+      await context.cancel();
+      return;
     }
 
     // Step 3: Save to database
