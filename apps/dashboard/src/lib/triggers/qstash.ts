@@ -1,6 +1,6 @@
+import { Client as QStashClient } from "@upstash/qstash";
+import { Client as WorkflowClient } from "@upstash/workflow";
 import type { TriggerSourceConfig } from "@/types/triggers";
-
-const QSTASH_API_BASE = "https://qstash.upstash.io/v2";
 
 function getQstashToken() {
   const token = process.env.QSTASH_TOKEN;
@@ -10,7 +10,7 @@ function getQstashToken() {
   return token;
 }
 
-function getAppUrl() {
+export function getAppUrl() {
   const url =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
@@ -21,6 +21,22 @@ function getAppUrl() {
     );
   }
   return url;
+}
+
+export function getBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
+  );
+}
+
+function getQStashClient() {
+  return new QStashClient({ token: getQstashToken() });
+}
+
+function getWorkflowClient() {
+  return new WorkflowClient({ token: getQstashToken() });
 }
 
 export function buildCronExpression(config?: TriggerSourceConfig["cron"]) {
@@ -51,49 +67,38 @@ export async function createQstashSchedule({
   triggerId: string;
   cron: string;
 }) {
-  const token = getQstashToken();
+  const client = getQStashClient();
   const appUrl = getAppUrl();
 
-  if (!appUrl) {
-    throw new Error("APP_URL is not configured");
-  }
+  const destination = `${appUrl}/api/workflows/schedule`;
 
-  const destination = `${appUrl}/api/triggers/run/${triggerId}`;
-
-  const response = await fetch(`${QSTASH_API_BASE}/schedules`, {
-    method: "POST",
+  const result = await client.schedules.create({
+    destination,
+    cron,
+    body: JSON.stringify({ triggerId }),
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      destination,
-      schedule: cron,
-      method: "POST",
-    }),
   });
 
-  const payload = await response.json();
-
-  if (!response.ok) {
-    throw new Error(payload?.error ?? "Failed to create QStash schedule");
-  }
-
-  return payload.scheduleId as string;
+  return result.scheduleId;
 }
 
 export async function deleteQstashSchedule(scheduleId: string) {
-  const token = getQstashToken();
+  const client = getQStashClient();
+  await client.schedules.delete(scheduleId);
+}
 
-  const response = await fetch(`${QSTASH_API_BASE}/schedules/${scheduleId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+export async function triggerScheduleNow(triggerId: string) {
+  const client = getWorkflowClient();
+  const appUrl = getAppUrl();
+
+  const destination = `${appUrl}/api/workflows/schedule`;
+
+  const result = await client.trigger({
+    url: destination,
+    body: { triggerId },
   });
 
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(payload?.error ?? "Failed to delete QStash schedule");
-  }
+  return result.workflowRunId;
 }
