@@ -41,6 +41,7 @@
     "@tanstack/react-virtual": "^3.13.14",
     "@tanstack/zod-form-adapter": "^0.42.1",
     "@upstash/redis": "^1.35.8",
+    "@upstash/workflow": "^1.1.0",
     "ai": "^6.0.62",
     "autumn-js": "^0.1.71",
     "better-auth": "^1.4.10",
