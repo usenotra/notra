@@ -70,13 +70,15 @@ export const { POST } = serve<SchedulePayload>(
     );
 
     if (!trigger) {
-      console.log(`[Schedule] Trigger ${triggerId} not found`);
-      return { success: false, error: "Trigger not found" };
+      console.log(`[Schedule] Trigger ${triggerId} not found, canceling`);
+      await context.cancel();
+      return;
     }
 
     if (!trigger.enabled) {
-      console.log(`[Schedule] Trigger ${triggerId} is disabled, skipping`);
-      return { success: false, error: "Trigger disabled" };
+      console.log(`[Schedule] Trigger ${triggerId} is disabled, canceling`);
+      await context.cancel();
+      return;
     }
 
     // Step 2: Fetch repository data for targets
@@ -108,8 +110,9 @@ export const { POST } = serve<SchedulePayload>(
     );
 
     if (repositories.length === 0) {
-      console.log(`[Schedule] No valid repositories for trigger ${triggerId}`);
-      return { success: false, error: "No valid repositories" };
+      console.log(`[Schedule] No valid repositories for trigger ${triggerId}, canceling`);
+      await context.cancel();
+      return;
     }
 
     // Step 3: Generate content based on output type
