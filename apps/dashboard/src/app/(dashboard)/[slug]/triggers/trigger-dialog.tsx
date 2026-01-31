@@ -112,7 +112,7 @@ export function AddTriggerDialog({
 			eventType: "release",
 			outputType: "changelog",
 			repositoryIds: [],
-			schedule: undefined,
+			schedule: { cadence: "daily", hour: 9, minute: 0 },
 		}),
 		[defaultSourceType],
 	);
