@@ -10,6 +10,7 @@ import {
 import { eq, inArray } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
+import { getBaseUrl } from "@/lib/triggers/qstash";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
@@ -180,12 +181,7 @@ export const { POST } = serve<SchedulePayload>(
     return { success: true, triggerId, postId };
   },
   {
-    baseUrl:
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : undefined),
+    baseUrl: getBaseUrl(),
     failureFunction: async ({ context, failStatus, failResponse }) => {
       console.error(
         `[Schedule] Workflow failed for trigger ${context.requestPayload.triggerId}:`,

@@ -8,6 +8,7 @@ import { brandSettings, organizations } from "@notra/db/schema";
 import { getFirecrawlClient } from "@/lib/firecrawl";
 import { openrouter } from "@/lib/openrouter";
 import { redis } from "@/lib/redis";
+import { getBaseUrl } from "@/lib/triggers/qstash";
 import { brandSettingsSchema } from "@/utils/schemas/brand";
 
 const PROGRESS_TTL = 300;
@@ -238,12 +239,7 @@ Extract the following information:
     return { success: true, brandInfo: extractionResult.brandInfo };
   },
   {
-    baseUrl:
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : undefined),
+    baseUrl: getBaseUrl(),
     failureFunction: async ({ context, failStatus, failResponse }) => {
       const { organizationId } = context.requestPayload;
 
