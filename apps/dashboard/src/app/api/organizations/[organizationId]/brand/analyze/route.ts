@@ -32,22 +32,9 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const { url } = validationResult.data;
 
     const client = new WorkflowClient({ token: process.env.QSTASH_TOKEN! });
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : undefined);
-
-    if (!appUrl) {
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
 
     await client.trigger({
-      url: `${appUrl}/api/workflows/brand-analysis`,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/workflows/brand-analysis`,
       body: { organizationId, url },
     });
 

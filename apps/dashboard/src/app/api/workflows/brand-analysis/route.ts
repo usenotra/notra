@@ -157,7 +157,13 @@ Extract the following information:
           return { success: true, brandInfo: output as BrandInfo };
         } catch (error) {
           console.error("Error extracting brand info:", error);
-          throw error;
+          return {
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to extract brand information",
+          };
         }
       }
     );
@@ -232,12 +238,7 @@ Extract the following information:
     return { success: true, brandInfo: extractionResult.brandInfo };
   },
   {
-    baseUrl:
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : undefined),
+    baseUrl: process.env.NEXT_PUBLIC_APP_URL,
     failureFunction: async ({ context, failStatus, failResponse }) => {
       const { organizationId } = context.requestPayload;
 

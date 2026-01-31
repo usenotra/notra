@@ -180,12 +180,7 @@ export const { POST } = serve<SchedulePayload>(
     return { success: true, triggerId, postId };
   },
   {
-    baseUrl:
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : undefined),
+    baseUrl: process.env.NEXT_PUBLIC_APP_URL,
     failureFunction: async ({ context, failStatus, failResponse }) => {
       console.error(
         `[Schedule] Workflow failed for trigger ${context.requestPayload.triggerId}:`,
