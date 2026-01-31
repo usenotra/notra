@@ -4,8 +4,7 @@ import { Suspense } from "react";
 import { auth } from "@/lib/auth/server";
 import { getInvitationById } from "@/lib/auth/actions";
 import PageClient from "./page-client";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Spinner } from "@hugeicons/core-free-icons";
+import { Loader2Icon } from "lucide-react";
 
 export default async function InvitePage(props: {
 	params: Promise<{ id: string }>;
@@ -16,7 +15,7 @@ export default async function InvitePage(props: {
 	return (
 		<Suspense fallback={
 			<div className="flex items-center justify-center">
-				<HugeiconsIcon icon={Spinner} className="animate-spin" />
+				<Loader2Icon className="animate-spin" />
 			</div>
 		}>
 			<InvitePageComponent invitationId={id} />
