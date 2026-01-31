@@ -304,7 +304,11 @@ export function AddTriggerDialog({
 														value={field.state.value}
 													>
 														<SelectTrigger className="w-full" id={field.name}>
-															<SelectValue placeholder="Event" />
+															<SelectValue placeholder="Event">
+																{EVENT_OPTIONS.find(
+																	(o) => o.value === field.state.value,
+																)?.label}
+															</SelectValue>
 														</SelectTrigger>
 														<SelectContent>
 															{EVENT_OPTIONS.map((option) => (
@@ -400,7 +404,11 @@ export function AddTriggerDialog({
 											value={field.state.value}
 										>
 											<SelectTrigger className="w-full" id={field.name}>
-												<SelectValue placeholder="Output" />
+												<SelectValue placeholder="Output">
+													{OUTPUT_OPTIONS.find(
+														(o) => o.value === field.state.value,
+													)?.label}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												{OUTPUT_OPTIONS.map((option) => (

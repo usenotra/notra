@@ -1,8 +1,7 @@
 "use client";
 
-import { GithubIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { Github } from "@notra/ui/components/ui/svgs/github";
 import {
 	Table,
 	TableBody,
@@ -207,7 +206,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 						trigger={
 							<Button size="sm" variant="default">
 								<PlusIcon className="size-4" />
-								<span className="ml-1">New event trigger</span>
+								<span className="ml-1">New Event Trigger</span>
 							</Button>
 						}
 					/>
@@ -322,10 +321,7 @@ function EventTable({
 							<TableCell>
 								<div className="flex items-center gap-2">
 									<span className="flex size-8 items-center justify-center rounded-lg border bg-muted/50">
-										<HugeiconsIcon
-											className="size-4 text-muted-foreground"
-											icon={GithubIcon}
-										/>
+										<Github className="size-4" />
 									</span>
 									<span className="text-sm">GitHub webhook</span>
 								</div>

@@ -23,6 +23,12 @@ interface SchedulePickerProps {
   onChange: (value?: ScheduleValue) => void;
 }
 
+const CADENCE_OPTIONS = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+] as const;
+
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 const DAYS_OF_WEEK = [
@@ -61,12 +67,16 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
           value={current.cadence}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Cadence" />
+            <SelectValue placeholder="Cadence">
+              {CADENCE_OPTIONS.find((o) => o.value === current.cadence)?.label}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
+            {CADENCE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -171,7 +181,7 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
 
       <Input
         disabled
-        value={`Timezone: UTC · ${current.cadence}`}
+        value={`Timezone: UTC · ${CADENCE_OPTIONS.find((o) => o.value === current.cadence)?.label ?? current.cadence}`}
         className="text-xs"
       />
     </div>

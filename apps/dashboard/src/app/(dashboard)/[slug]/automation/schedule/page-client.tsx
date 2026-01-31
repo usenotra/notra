@@ -336,7 +336,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 						trigger={
 							<Button size="sm" variant="default">
 								<PlusIcon className="size-4" />
-								<span className="ml-1">New schedule</span>
+								<span className="ml-1">New Schedule</span>
 							</Button>
 						}
 					/>
