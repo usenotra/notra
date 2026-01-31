@@ -1,8 +1,16 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["DATABASE_URL"],
-  "envMode": "loose",
+  "globalEnv": [
+    "DATABASE_URL",
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_DATABUDDY_CLIENT_ID",
+    "NEXT_PUBLIC_APP_URL",
+    "QSTASH_TOKEN",
+    "QSTASH_CURRENT_SIGNING_KEY",
+    "QSTASH_NEXT_SIGNING_KEY"
+  ],
+  "envMode": "strict",
   "tasks": {
     "transit": {
       "dependsOn": ["^transit"]
