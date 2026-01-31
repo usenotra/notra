@@ -43,6 +43,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
+    if (!trigger.enabled) {
+      return NextResponse.json(
+        { error: "Cannot run a disabled schedule" },
+        { status: 400 },
+      );
+    }
+
     const workflowRunId = await triggerScheduleNow(triggerId);
 
     return NextResponse.json({
