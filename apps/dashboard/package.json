@@ -28,6 +28,7 @@
     "@mendable/firecrawl-js": "^4.10.0",
     "@notra/db": "workspace:*",
     "@notra/ui": "workspace:*",
+    "@notra/email": "workspace:*",
     "@octokit/core": "^7.0.6",
     "@openrouter/ai-sdk-provider": "^1.5.4",
     "@react-email/components": "^1.0.4",

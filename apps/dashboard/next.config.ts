@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@notra/db",
     "@notra/ui",
+    "@notra/email",
   ],
   async redirects() {
     return [

@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Invitation } from "better-auth/plugins/organization";
 import { use, useState } from "react";
 import { PageContainer } from "@/components/layout/container";
+import { InviteMemberModal } from "@/components/members/invite-member-modal";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
 
@@ -51,6 +52,7 @@ export default function MembersPage({ params }: PageProps) {
 			? activeOrganization
 			: getOrganization(slug);
 	const [activeTab, setActiveTab] = useState("members");
+	const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
 	const { data: members, isLoading: membersLoading } = useQuery<Member[]>({
 		queryKey: ["members", organization?.id],
@@ -114,7 +116,7 @@ export default function MembersPage({ params }: PageProps) {
 							Manage who has access to this organization
 						</p>
 					</div>
-					<Button size="sm" disabled>
+					<Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
 						<HugeiconsIcon icon={Add01Icon} className="size-4" />
 						Invite Member
 					</Button>
@@ -357,6 +359,12 @@ export default function MembersPage({ params }: PageProps) {
 					</TabsContent>
 				</Tabs>
 			</div>
+
+			<InviteMemberModal
+				open={isInviteModalOpen}
+				onOpenChange={setIsInviteModalOpen}
+				organizationId={organization.id}
+			/>
 		</PageContainer>
 	);
 }

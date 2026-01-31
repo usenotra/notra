@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { PageContainer } from "@/components/layout/container";
 import { DeleteAccountSection } from "@/components/settings/delete-account";
+import { OrganizationsSection } from "@/components/settings/organizations-section";
 import { TitleCard } from "@/components/title-card";
 import { authClient } from "@/lib/auth/client";
 import { AccountPageSkeleton } from "./skeleton";
@@ -115,6 +116,7 @@ export default function SettingsAccountPage() {
 						isError={isAccountsError}
 						onAccountsChange={refetchAccounts}
 					/>
+					<OrganizationsSection />
 					<DeleteAccountSection />
 				</div>
 			</div>
