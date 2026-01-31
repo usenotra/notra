@@ -238,7 +238,12 @@ Extract the following information:
     return { success: true, brandInfo: extractionResult.brandInfo };
   },
   {
-    baseUrl: process.env.NEXT_PUBLIC_APP_URL,
+    baseUrl:
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.APP_URL ||
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : undefined),
     failureFunction: async ({ context, failStatus, failResponse }) => {
       const { organizationId } = context.requestPayload;
 
