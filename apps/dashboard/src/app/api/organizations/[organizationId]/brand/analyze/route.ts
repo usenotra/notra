@@ -37,7 +37,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       process.env.APP_URL ||
       (process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
+        : undefined);
+
+    if (!appUrl) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
 
     await client.trigger({
       url: `${appUrl}/api/workflows/brand-analysis`,

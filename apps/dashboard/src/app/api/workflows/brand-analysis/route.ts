@@ -96,9 +96,18 @@ export const { POST } = serve<BrandAnalysisPayload>(
                 return { success: false, error: "Invalid URL", fatal: true };
               }
             }
+            return {
+              success: false,
+              error: error.message || "Failed to scrape website",
+              fatal: false,
+            };
           }
 
-          throw new Error("Unknown error attempting to scrape website");
+          return {
+            success: false,
+            error: "Unknown error attempting to scrape website",
+            fatal: false,
+          };
         }
       }
     );
