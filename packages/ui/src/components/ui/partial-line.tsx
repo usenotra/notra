@@ -8,14 +8,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@notra/components/ui/card";
+} from "@notra/ui/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@notra/components/ui/chart";
-import { Badge } from "@notra/components/ui/badge";
+} from "@notra/ui/components/ui/chart";
+import { Badge } from "@notra/ui/components/ui/badge";
 import { TrendingUp } from "lucide-react";
 
 const chartData = [
@@ -158,7 +158,7 @@ export function useDynamicDasharray({
   curveAdjustment = 1,
 }: UseDynamicDasharrayProps): [
   (props: CustomizedChartProps) => null,
-  LineDasharray
+  LineDasharray,
 ] {
   const [lineDasharrays, setLineDasharrays] = useState<LineDasharray>([]);
 
@@ -189,7 +189,7 @@ export function useDynamicDasharray({
 
         const lineName = line?.item?.props?.dataKey;
         const lineConfig = lineConfigs?.find(
-          (config) => config?.name === lineName
+          (config) => config?.name === lineName,
         );
         const lineSplitIndex = lineConfig?.splitIndex ?? splitIndex;
         const dashedSegment = points?.slice(lineSplitIndex);
@@ -208,11 +208,11 @@ export function useDynamicDasharray({
           (targetDashPattern?.[0] || 0) + (targetDashPattern?.[1] || 0) || 1;
         const repetitions = Math.ceil(dashedLength / patternSegmentLength);
         const dashedPatternSegments = Array.from({ length: repetitions }, () =>
-          targetDashPattern.join(" ")
+          targetDashPattern.join(" "),
         );
 
         const finalDasharray = `${solidDasharrayPart} ${dashedPatternSegments.join(
-          " "
+          " ",
         )}`;
         newLineDasharrays.push({
           name: lineName!,
@@ -228,7 +228,7 @@ export function useDynamicDasharray({
 
       return null;
     },
-    [splitIndex, curveAdjustment, lineConfigs, dashPattern, lineDasharrays]
+    [splitIndex, curveAdjustment, lineConfigs, dashPattern, lineDasharrays],
   );
 
   return [DasharrayCalculator, lineDasharrays];

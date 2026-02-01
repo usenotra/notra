@@ -8,14 +8,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@notra/components/ui/card";
+} from "@notra/ui/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@notra/components/ui/chart";
-import { Badge } from "@notra/components/ui/badge";
+} from "@notra/ui/components/ui/chart";
+import { Badge } from "@notra/ui/components/ui/badge";
 import { TrendingDown } from "lucide-react";
 
 const chartData = [
