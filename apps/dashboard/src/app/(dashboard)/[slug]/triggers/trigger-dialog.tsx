@@ -68,13 +68,16 @@ interface TriggerFormValues {
 	schedule: Trigger["sourceConfig"]["cron"];
 }
 
-interface AddTriggerDialogProps {
+interface TriggerDialogProps {
 	organizationId: string;
 	onSuccess?: (trigger: Trigger) => void;
 	trigger?: React.ReactElement;
 	allowedSourceTypes?: Trigger["sourceType"][];
 	initialSourceType?: Trigger["sourceType"];
 	apiPath?: string;
+	editTrigger?: Trigger;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function AddTriggerDialog({
@@ -84,7 +87,14 @@ export function AddTriggerDialog({
 	allowedSourceTypes,
 	initialSourceType,
 	apiPath,
-}: AddTriggerDialogProps) {
+	editTrigger,
+	open: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+}: TriggerDialogProps) {
+	const isEditMode = !!editTrigger;
+	const isScheduleContext =
+		initialSourceType === "cron" ||
+		(allowedSourceTypes?.length === 1 && allowedSourceTypes[0] === "cron");
 	const sourceOptions: Array<{
 		value: Trigger["sourceType"];
 		label: string;
@@ -103,19 +113,38 @@ export function AddTriggerDialog({
 			? initialSourceType
 			: (availableSourceOptions[0]?.value ?? "github_webhook");
 
-	const [open, setOpen] = useState(false);
+	const [internalOpen, setInternalOpen] = useState(false);
+	const isControlled = controlledOpen !== undefined;
+	const open = isControlled ? controlledOpen : internalOpen;
+	const setOpen = isControlled
+		? (controlledOnOpenChange ?? (() => {}))
+		: setInternalOpen;
 	const comboboxAnchor = useComboboxAnchor();
 
-	const getDefaultValues = useCallback(
-		(): TriggerFormValues => ({
+	const getDefaultValues = useCallback((): TriggerFormValues => {
+		if (editTrigger) {
+			return {
+				sourceType: editTrigger.sourceType,
+				eventType:
+					(editTrigger.sourceConfig.eventTypes?.[0] as WebhookEventType) ??
+					"release",
+				outputType: editTrigger.outputType as OutputContentType,
+				repositoryIds: editTrigger.targets.repositoryIds,
+				schedule: editTrigger.sourceConfig.cron ?? {
+					cadence: "daily",
+					hour: 9,
+					minute: 0,
+				},
+			};
+		}
+		return {
 			sourceType: defaultSourceType,
 			eventType: "release",
 			outputType: "changelog",
 			repositoryIds: [],
 			schedule: { cadence: "daily", hour: 9, minute: 0 },
-		}),
-		[defaultSourceType],
-	);
+		};
+	}, [defaultSourceType, editTrigger]);
 
 	const form = useForm({
 		defaultValues: getDefaultValues(),
@@ -161,10 +190,13 @@ export function AddTriggerDialog({
 
 	const mutation = useMutation({
 		mutationFn: async (value: TriggerFormValues) => {
-			const targetPath =
+			const basePath =
 				apiPath ?? `/api/organizations/${organizationId}/triggers`;
+			const targetPath = isEditMode
+				? `${basePath}?triggerId=${editTrigger.id}`
+				: basePath;
 			const response = await fetch(targetPath, {
-				method: "POST",
+				method: isEditMode ? "PATCH" : "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					sourceType: value.sourceType,
@@ -175,7 +207,7 @@ export function AddTriggerDialog({
 					targets: { repositoryIds: value.repositoryIds },
 					outputType: value.outputType,
 					outputConfig: {},
-					enabled: true,
+					enabled: isEditMode ? editTrigger.enabled : true,
 				}),
 			});
 
@@ -183,15 +215,30 @@ export function AddTriggerDialog({
 
 			if (!response.ok) {
 				if (payload?.code === "DUPLICATE_TRIGGER") {
-					throw new Error("Trigger already exists");
+					throw new Error(
+						isScheduleContext ? "Schedule already exists" : "Trigger already exists",
+					);
 				}
-				throw new Error(payload?.error ?? "Failed to create trigger");
+				throw new Error(
+					payload?.error ??
+						(isEditMode
+							? "Failed to update schedule"
+							: isScheduleContext
+								? "Failed to create schedule"
+								: "Failed to create trigger"),
+				);
 			}
 
 			return payload as { trigger: Trigger };
 		},
 		onSuccess: (data) => {
-			toast.success("Trigger added");
+			toast.success(
+				isEditMode
+					? "Schedule updated"
+					: isScheduleContext
+						? "Schedule added"
+						: "Trigger added",
+			);
 			onSuccess?.(data.trigger);
 			setOpen(false);
 			form.reset();
@@ -226,9 +273,19 @@ export function AddTriggerDialog({
 			)}
 			<SheetContent className="sm:max-w-lg" side="right">
 				<SheetHeader>
-					<SheetTitle className="text-2xl">Add Trigger</SheetTitle>
+					<SheetTitle className="text-2xl">
+						{isEditMode
+							? "Edit Schedule"
+							: isScheduleContext
+								? "Add Schedule"
+								: "Add Trigger"}
+					</SheetTitle>
 					<SheetDescription>
-						Choose a source, targets, and output to automate content.
+						{isEditMode
+							? "Update the schedule configuration."
+							: isScheduleContext
+								? "Configure when and how to generate content automatically."
+								: "Choose a source, targets, and output to automate content."}
 					</SheetDescription>
 				</SheetHeader>
 
@@ -442,7 +499,15 @@ export function AddTriggerDialog({
 						>
 							{({ canSubmit, isSubmitting }) => (
 								<Button disabled={isSubmitting || !canSubmit} type="submit">
-									{isSubmitting ? "Adding..." : "Add trigger"}
+									{isSubmitting
+										? isEditMode
+											? "Saving..."
+											: "Adding..."
+										: isEditMode
+											? "Save changes"
+											: isScheduleContext
+												? "Add schedule"
+												: "Add trigger"}
 								</Button>
 							)}
 						</form.Subscribe>

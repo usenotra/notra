@@ -279,52 +279,44 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
     }
 
-    const oldQstashScheduleId = existing.qstashScheduleId ?? null;
-    let newQstashScheduleId: string | null = null;
+    const existingScheduleId = existing.qstashScheduleId ?? null;
+    let qstashScheduleId: string | null = null;
 
     if (sourceConfig.cron) {
       const cronExpression = buildCronExpression(sourceConfig.cron);
       if (cronExpression) {
-        newQstashScheduleId = await createQstashSchedule({
+        qstashScheduleId = await createQstashSchedule({
           triggerId,
           cron: cronExpression,
+          scheduleId: existingScheduleId ?? undefined,
         });
       }
+    } else if (existingScheduleId) {
+      await deleteQstashSchedule(existingScheduleId).catch(() => {});
     }
 
-    try {
-      const [trigger] = await db
-        .update(contentTriggers)
-        .set({
-          sourceType,
-          sourceConfig: normalized.sourceConfig,
-          targets: normalized.targets,
-          outputType,
-          outputConfig: outputConfig ?? null,
-          dedupeHash,
-          enabled,
-          qstashScheduleId: newQstashScheduleId,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(contentTriggers.id, triggerId),
-            eq(contentTriggers.organizationId, organizationId),
-          ),
-        )
-        .returning();
+    const [trigger] = await db
+      .update(contentTriggers)
+      .set({
+        sourceType,
+        sourceConfig: normalized.sourceConfig,
+        targets: normalized.targets,
+        outputType,
+        outputConfig: outputConfig ?? null,
+        dedupeHash,
+        enabled,
+        qstashScheduleId,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(contentTriggers.id, triggerId),
+          eq(contentTriggers.organizationId, organizationId),
+        ),
+      )
+      .returning();
 
-      if (oldQstashScheduleId) {
-        await deleteQstashSchedule(oldQstashScheduleId).catch(() => {});
-      }
-
-      return NextResponse.json({ trigger });
-    } catch (dbError) {
-      if (newQstashScheduleId) {
-        await deleteQstashSchedule(newQstashScheduleId).catch(() => {});
-      }
-      throw dbError;
-    }
+    return NextResponse.json({ trigger });
   } catch (error) {
     console.error("Error updating automation schedule:", error);
     return NextResponse.json(

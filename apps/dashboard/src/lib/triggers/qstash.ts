@@ -63,9 +63,11 @@ export function buildCronExpression(config?: TriggerSourceConfig["cron"]) {
 export async function createQstashSchedule({
   triggerId,
   cron,
+  scheduleId,
 }: {
   triggerId: string;
   cron: string;
+  scheduleId?: string;
 }) {
   const client = getQStashClient();
   const appUrl = getAppUrl();
@@ -73,6 +75,7 @@ export async function createQstashSchedule({
   const destination = `${appUrl}/api/workflows/schedule`;
 
   const result = await client.schedules.create({
+    ...(scheduleId && { scheduleId }),
     destination,
     cron,
     body: JSON.stringify({ triggerId }),

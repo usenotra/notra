@@ -3,6 +3,7 @@
 import {
 	Calendar03Icon,
 	Delete02Icon,
+	Edit02Icon,
 	MoreVerticalIcon,
 	PauseIcon,
 	PlayCircleIcon,
@@ -88,6 +89,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 	const queryClient = useQueryClient();
 	const [activeTab, setActiveTab] = useState<"active" | "paused">("active");
 	const [deleteTriggerId, setDeleteTriggerId] = useState<string | null>(null);
+	const [editTrigger, setEditTrigger] = useState<Trigger | null>(null);
 
 	const { data, isPending } = useQuery({
 		queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
@@ -292,6 +294,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		setDeleteTriggerId(id);
 	}, []);
 
+	const handleEdit = useCallback((trigger: Trigger) => {
+		setEditTrigger(trigger);
+	}, []);
+
 	const confirmDelete = useCallback(() => {
 		if (deleteTriggerId) {
 			deleteMutation.mutate(deleteTriggerId);
@@ -398,6 +404,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 								isRunning={runNowMutation.isPending}
 								isUpdating={updateMutation.isPending}
 								onDelete={handleDelete}
+								onEdit={handleEdit}
 								onRunNow={handleRunNow}
 								onToggle={handleToggle}
 								runningTriggerId={
@@ -420,6 +427,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 								isRunning={runNowMutation.isPending}
 								isUpdating={updateMutation.isPending}
 								onDelete={handleDelete}
+								onEdit={handleEdit}
 								onRunNow={handleRunNow}
 								onToggle={handleToggle}
 								runningTriggerId={
@@ -475,6 +483,28 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{editTrigger && (
+				<AddTriggerDialog
+					allowedSourceTypes={CRON_SOURCE_TYPES}
+					apiPath={
+						organizationId
+							? `/api/organizations/${organizationId}/automation/schedules`
+							: undefined
+					}
+					editTrigger={editTrigger}
+					initialSourceType="cron"
+					onOpenChange={(open) => !open && setEditTrigger(null)}
+					onSuccess={() => {
+						setEditTrigger(null);
+						queryClient.invalidateQueries({
+							queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId ?? ""),
+						});
+					}}
+					open={!!editTrigger}
+					organizationId={organizationId ?? ""}
+				/>
+			)}
 		</PageContainer>
 	);
 }
@@ -483,6 +513,7 @@ function ScheduleTable({
 	triggers,
 	onToggle,
 	onDelete,
+	onEdit,
 	onRunNow,
 	isUpdating,
 	isDeleting,
@@ -493,6 +524,7 @@ function ScheduleTable({
 	triggers: Trigger[];
 	onToggle: (trigger: Trigger) => void;
 	onDelete: (triggerId: string) => void;
+	onEdit: (trigger: Trigger) => void;
 	onRunNow: (triggerId: string) => void;
 	isUpdating: boolean;
 	isDeleting: boolean;
@@ -571,6 +603,10 @@ function ScheduleTable({
 											)}
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align="end">
+											<DropdownMenuItem onClick={() => onEdit(trigger)}>
+												<HugeiconsIcon className="size-4" icon={Edit02Icon} />
+												Edit
+											</DropdownMenuItem>
 											<DropdownMenuItem
 												disabled={isRunning || !trigger.enabled}
 												onClick={() => onRunNow(trigger.id)}
