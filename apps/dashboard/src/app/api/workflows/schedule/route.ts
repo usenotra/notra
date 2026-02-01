@@ -9,14 +9,17 @@ import {
 } from "@notra/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
+import { z } from "zod";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { getBaseUrl } from "@/lib/triggers/qstash";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
-type SchedulePayload = {
-  triggerId: string;
-};
+const schedulePayloadSchema = z.object({
+  triggerId: z.string().min(1),
+});
+
+type SchedulePayload = z.infer<typeof schedulePayloadSchema>;
 
 type TriggerData = {
   id: string;
@@ -43,7 +46,13 @@ type GeneratedContent = {
 
 export const { POST } = serve<SchedulePayload>(
   async (context: WorkflowContext<SchedulePayload>) => {
-    const { triggerId } = context.requestPayload;
+    const parseResult = schedulePayloadSchema.safeParse(context.requestPayload);
+    if (!parseResult.success) {
+      console.error("[Schedule] Invalid payload:", parseResult.error.flatten());
+      await context.cancel();
+      return;
+    }
+    const { triggerId } = parseResult.data;
 
     // Step 1: Fetch trigger configuration
     const trigger = await context.run<TriggerData | null>(

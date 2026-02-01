@@ -3,6 +3,7 @@ import type { WorkflowContext } from "@upstash/workflow";
 import { SdkError } from "@mendable/firecrawl-js";
 import { generateText, Output } from "ai";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, organizations } from "@notra/db/schema";
 import { getFirecrawlClient } from "@/lib/firecrawl";
@@ -42,10 +43,12 @@ interface BrandInfo {
   audience: string;
 }
 
-type BrandAnalysisPayload = {
-  organizationId: string;
-  url: string;
-};
+const brandAnalysisPayloadSchema = z.object({
+  organizationId: z.string().min(1),
+  url: z.string().url(),
+});
+
+type BrandAnalysisPayload = z.infer<typeof brandAnalysisPayloadSchema>;
 
 type ScrapingResult =
   | { success: true; content: string }
@@ -66,7 +69,18 @@ async function setProgress(organizationId: string, data: ProgressData) {
 
 export const { POST } = serve<BrandAnalysisPayload>(
   async (context: WorkflowContext<BrandAnalysisPayload>) => {
-    const { organizationId, url } = context.requestPayload;
+    const parseResult = brandAnalysisPayloadSchema.safeParse(
+      context.requestPayload
+    );
+    if (!parseResult.success) {
+      console.error(
+        "[Brand Analysis] Invalid payload:",
+        parseResult.error.flatten()
+      );
+      await context.cancel();
+      return;
+    }
+    const { organizationId, url } = parseResult.data;
 
     // Step 1: Scrape website
     await context.run("set-progress-scraping", async () => {
