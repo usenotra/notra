@@ -260,7 +260,11 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       ),
     });
 
-    const oldQstashScheduleId = existing?.qstashScheduleId ?? null;
+    if (!existing) {
+      return NextResponse.json({ error: "Trigger not found" }, { status: 404 });
+    }
+
+    const oldQstashScheduleId = existing.qstashScheduleId ?? null;
     let newQstashScheduleId: string | null = null;
 
     if (sourceType === "cron" && sourceConfig.cron) {
