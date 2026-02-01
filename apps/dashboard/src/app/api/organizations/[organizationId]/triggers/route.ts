@@ -254,7 +254,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     const existing = await db.query.contentTriggers.findFirst({
-      where: eq(contentTriggers.id, triggerId),
+      where: and(
+        eq(contentTriggers.id, triggerId),
+        eq(contentTriggers.organizationId, organizationId),
+      ),
     });
 
     const oldQstashScheduleId = existing?.qstashScheduleId ?? null;
@@ -284,7 +287,12 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           qstashScheduleId: newQstashScheduleId,
           updatedAt: new Date(),
         })
-        .where(eq(contentTriggers.id, triggerId))
+        .where(
+          and(
+            eq(contentTriggers.id, triggerId),
+            eq(contentTriggers.organizationId, organizationId),
+          ),
+        )
         .returning();
 
       if (oldQstashScheduleId) {
