@@ -295,28 +295,35 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       await deleteQstashSchedule(existingScheduleId).catch(() => {});
     }
 
-    const [trigger] = await db
-      .update(contentTriggers)
-      .set({
-        sourceType,
-        sourceConfig: normalized.sourceConfig,
-        targets: normalized.targets,
-        outputType,
-        outputConfig: outputConfig ?? null,
-        dedupeHash,
-        enabled,
-        qstashScheduleId,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(contentTriggers.id, triggerId),
-          eq(contentTriggers.organizationId, organizationId),
-        ),
-      )
-      .returning();
+    try {
+      const [trigger] = await db
+        .update(contentTriggers)
+        .set({
+          sourceType,
+          sourceConfig: normalized.sourceConfig,
+          targets: normalized.targets,
+          outputType,
+          outputConfig: outputConfig ?? null,
+          dedupeHash,
+          enabled,
+          qstashScheduleId,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(contentTriggers.id, triggerId),
+            eq(contentTriggers.organizationId, organizationId),
+          ),
+        )
+        .returning();
 
-    return NextResponse.json({ trigger });
+      return NextResponse.json({ trigger });
+    } catch (dbError) {
+      if (qstashScheduleId && qstashScheduleId !== existingScheduleId) {
+        await deleteQstashSchedule(qstashScheduleId).catch(() => {});
+      }
+      throw dbError;
+    }
   } catch (error) {
     console.error("Error updating automation schedule:", error);
     return NextResponse.json(
