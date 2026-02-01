@@ -57,14 +57,14 @@ import { SchedulePageSkeleton } from "./skeleton";
 
 const CRON_SOURCE_TYPES: TriggerSourceType[] = ["cron"];
 
-function formatCadence(cron?: Trigger["sourceConfig"]["cron"]) {
+function formatFrequency(cron?: Trigger["sourceConfig"]["cron"]) {
 	if (!cron) return "Not set";
 	const time = `${String(cron.hour).padStart(2, "0")}:${String(cron.minute).padStart(2, "0")} UTC`;
-	if (cron.cadence === "weekly") {
+	if (cron.frequency === "weekly") {
 		const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 		return `Weekly - ${days[cron.dayOfWeek ?? 0]} @ ${time}`;
 	}
-	if (cron.cadence === "monthly") {
+	if (cron.frequency === "monthly") {
 		return `Monthly - Day ${cron.dayOfMonth} @ ${time}`;
 	}
 	return `Daily @ ${time}`;
@@ -457,7 +457,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 						<AlertDialogDescription>
 							This will permanently delete this{" "}
 							{triggerToDelete
-								? formatCadence(triggerToDelete.sourceConfig.cron).toLowerCase()
+								? formatFrequency(triggerToDelete.sourceConfig.cron).toLowerCase()
 								: ""}{" "}
 							schedule. This action cannot be undone.
 						</AlertDialogDescription>
@@ -546,7 +546,7 @@ function ScheduleTable({
 				<TableHeader>
 					<TableRow>
 						<TableHead>Type</TableHead>
-						<TableHead>Cadence</TableHead>
+						<TableHead>Frequency</TableHead>
 						<TableHead>Output</TableHead>
 						<TableHead>Targets</TableHead>
 						<TableHead>Status</TableHead>
@@ -573,7 +573,7 @@ function ScheduleTable({
 									</div>
 								</TableCell>
 								<TableCell className="text-muted-foreground">
-									{formatCadence(trigger.sourceConfig.cron)}
+									{formatFrequency(trigger.sourceConfig.cron)}
 								</TableCell>
 								<TableCell className="text-muted-foreground">
 									{getOutputTypeLabel(trigger.outputType)}

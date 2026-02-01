@@ -576,11 +576,11 @@ export default function DesignSystemClientPage() {
             <CardContent className="space-y-4">
               <Select defaultValue="weekly">
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select cadence" />
+                  <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Cadence</SelectLabel>
+                    <SelectLabel>Frequency</SelectLabel>
                     <SelectItem value="daily">Daily</SelectItem>
                     <SelectItem value="weekly">Weekly</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>

@@ -54,7 +54,7 @@ async function seed() {
         sourceType: "cron",
         sourceConfig: {
           cron: {
-            cadence: "weekly",
+            frequency: "weekly",
             hour: 9,
             minute: 0,
             dayOfWeek: 1,
@@ -87,7 +87,7 @@ async function seed() {
         sourceType: "cron",
         sourceConfig: {
           cron: {
-            cadence: "daily",
+            frequency: "daily",
             hour: 16,
             minute: 30,
           },

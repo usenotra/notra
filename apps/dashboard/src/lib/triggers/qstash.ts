@@ -47,12 +47,12 @@ export function buildCronExpression(config?: TriggerSourceConfig["cron"]) {
   const minute = config.minute ?? 0;
   const hour = config.hour ?? 0;
 
-  if (config.cadence === "weekly") {
+  if (config.frequency === "weekly") {
     const dayOfWeek = config.dayOfWeek ?? 1;
     return `${minute} ${hour} * * ${dayOfWeek}`;
   }
 
-  if (config.cadence === "monthly") {
+  if (config.frequency === "monthly") {
     const dayOfMonth = config.dayOfMonth ?? 1;
     return `${minute} ${hour} ${dayOfMonth} * *`;
   }

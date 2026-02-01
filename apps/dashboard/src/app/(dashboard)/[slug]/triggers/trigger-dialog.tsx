@@ -131,7 +131,7 @@ export function AddTriggerDialog({
 				outputType: editTrigger.outputType as OutputContentType,
 				repositoryIds: editTrigger.targets.repositoryIds,
 				schedule: editTrigger.sourceConfig.cron ?? {
-					cadence: "daily",
+					frequency: "daily",
 					hour: 9,
 					minute: 0,
 				},
@@ -142,7 +142,7 @@ export function AddTriggerDialog({
 			eventType: "release",
 			outputType: "changelog",
 			repositoryIds: [],
-			schedule: { cadence: "daily", hour: 9, minute: 0 },
+			schedule: { frequency: "daily", hour: 9, minute: 0 },
 		};
 	}, [defaultSourceType, editTrigger]);
 
@@ -493,7 +493,7 @@ export function AddTriggerDialog({
 								canSubmit:
 									state.values.repositoryIds.length > 0 &&
 									(state.values.sourceType !== "cron" ||
-										(state.values.schedule && state.values.schedule.cadence)),
+										(state.values.schedule && state.values.schedule.frequency)),
 								isSubmitting: mutation.isPending,
 							})}
 						>
