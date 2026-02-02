@@ -5,7 +5,7 @@ import { brandSettings } from "@notra/db/schema";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { generateChangelogBodySchema } from "@/utils/schemas/workflows";
-import { getValidToneProfile } from "@/lib/ai/prompts/changelog/casual";
+import { getValidToneProfile } from "@/lib/ai/prompts/changelog/base";
 
 interface RouteContext {
   params: Promise<{ organizationId: string }>;

@@ -4,8 +4,8 @@ import {
   type ChangelogPromptParams,
 } from "./base";
 
-export function getCasualChangelogPrompt(
+export function getFormalChangelogPrompt(
   params: ChangelogPromptParams,
 ): string {
-  return buildChangelogPrompt(params, toneConfigs.Casual);
+  return buildChangelogPrompt(params, toneConfigs.Formal);
 }
