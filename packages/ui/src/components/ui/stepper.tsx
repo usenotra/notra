@@ -36,6 +36,8 @@ type DataState = "inactive" | "active" | "completed";
 interface DivProps extends useRender.ComponentProps<"div"> {}
 interface ButtonProps extends useRender.ComponentProps<"button"> {}
 
+type DataProps = { [key: `data-${string}`]: string | undefined };
+
 type ListElement = HTMLDivElement;
 type TriggerElement = HTMLButtonElement;
 
@@ -354,8 +356,8 @@ function Stepper(props: StepperProps) {
     defaultTagName: "div",
     render,
     ref,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-disabled": disabled ? "" : undefined,
         "data-orientation": orientation,
         "data-slot": "stepper",
@@ -366,9 +368,9 @@ function Stepper(props: StepperProps) {
           orientation === "horizontal" ? "w-full flex-col" : "flex-row",
           className,
         ),
-      } as React.ComponentProps<"div">,
-      rootProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, rootProps);
+    })(),
   });
 
   return (
@@ -564,8 +566,8 @@ function StepperList(props: DivProps) {
     defaultTagName: "div",
     render,
     ref: composedRef,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "aria-orientation": orientation,
         "data-orientation": orientation,
         "data-slot": "stepper-list",
@@ -583,9 +585,9 @@ function StepperList(props: DivProps) {
         onFocus,
         onMouseDown,
         children,
-      } as React.ComponentProps<"div">,
-      listProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, listProps);
+    })(),
   });
 
   return (
@@ -663,8 +665,8 @@ function StepperItem(props: StepperItemProps) {
     defaultTagName: "div",
     render,
     ref,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-disabled": stepState?.disabled ? "" : undefined,
         "data-orientation": orientation,
         "data-slot": "stepper-item",
@@ -676,9 +678,9 @@ function StepperItem(props: StepperItemProps) {
           className,
         ),
         children,
-      } as React.ComponentProps<"div">,
-      itemProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, itemProps);
+    })(),
   });
 
   return (
@@ -965,8 +967,8 @@ function StepperTrigger(props: ButtonProps) {
     defaultTagName: "button",
     render,
     ref: composedRef,
-    props: mergeProps<"button">(
-      {
+    props: (() => {
+      const defaultProps = {
         "aria-controls": contentId,
         "aria-current": isActive ? "step" : undefined,
         "aria-describedby": `${titleId} ${descriptionId}`,
@@ -990,9 +992,9 @@ function StepperTrigger(props: ButtonProps) {
         onFocus,
         onKeyDown,
         onMouseDown,
-      } as React.ComponentProps<"button">,
-      triggerProps,
-    ),
+      } satisfies useRender.ElementProps<"button"> & DataProps;
+      return mergeProps<"button">(defaultProps, triggerProps);
+    })(),
   });
 }
 
@@ -1030,8 +1032,8 @@ function StepperIndicator(props: StepperIndicatorProps) {
     defaultTagName: "div",
     render,
     ref,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-slot": "stepper-indicator",
         "data-state": dataState,
         dir: context.dir,
@@ -1040,9 +1042,9 @@ function StepperIndicator(props: StepperIndicatorProps) {
           className,
         ),
         children: indicatorChildren,
-      } as React.ComponentProps<"div">,
-      indicatorProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, indicatorProps);
+    })(),
   });
 }
 
@@ -1084,8 +1086,8 @@ function StepperSeparator(props: StepperSeparatorProps) {
     defaultTagName: "div",
     render,
     ref,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "aria-hidden": true,
         "aria-orientation": orientation,
         "data-orientation": orientation,
@@ -1098,9 +1100,9 @@ function StepperSeparator(props: StepperSeparatorProps) {
           orientation === "horizontal" ? "h-px flex-1" : "h-10 w-px",
           className,
         ),
-      } as React.ComponentProps<"div">,
-      separatorProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, separatorProps);
+    })(),
   });
 }
 
@@ -1118,16 +1120,16 @@ function StepperTitle(props: StepperTitleProps) {
     defaultTagName: "span",
     render,
     ref,
-    props: mergeProps<"span">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-slot": "title",
         dir: context.dir,
         id: titleId,
         className: cn("font-medium text-sm", className),
         children,
-      } as React.ComponentProps<"span">,
-      titleProps,
-    ),
+      } satisfies useRender.ElementProps<"span"> & DataProps;
+      return mergeProps<"span">(defaultProps, titleProps);
+    })(),
   });
 }
 
@@ -1145,16 +1147,16 @@ function StepperDescription(props: StepperDescriptionProps) {
     defaultTagName: "span",
     render,
     ref,
-    props: mergeProps<"span">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-slot": "description",
         dir: context.dir,
         id: descriptionId,
         className: cn("text-muted-foreground text-xs", className),
         children,
-      } as React.ComponentProps<"span">,
-      descriptionProps,
-    ),
+      } satisfies useRender.ElementProps<"span"> & DataProps;
+      return mergeProps<"span">(defaultProps, descriptionProps);
+    })(),
   });
 }
 
@@ -1185,17 +1187,17 @@ function StepperContent(props: StepperContentProps) {
     defaultTagName: "div",
     render,
     ref,
-    props: mergeProps<"div">(
-      {
+    props: (() => {
+      const defaultProps = {
         "aria-labelledby": triggerId,
         "data-slot": "stepper-content",
         dir: context.dir,
         id: contentId,
         role: "tabpanel",
         className: cn("flex-1 outline-none", className),
-      } as React.ComponentProps<"div">,
-      contentProps,
-    ),
+      } satisfies useRender.ElementProps<"div"> & DataProps;
+      return mergeProps<"div">(defaultProps, contentProps);
+    })(),
   });
 }
 
@@ -1233,15 +1235,15 @@ function StepperPrev(props: ButtonProps) {
     defaultTagName: "button",
     render,
     ref,
-    props: mergeProps<"button">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-slot": "stepper-prev",
         disabled: isDisabled,
         type: "button",
         onClick,
-      } as React.ComponentProps<"button">,
-      prevProps,
-    ),
+      } satisfies useRender.ElementProps<"button"> & DataProps;
+      return mergeProps<"button">(defaultProps, prevProps);
+    })(),
   });
 }
 
@@ -1279,15 +1281,15 @@ function StepperNext(props: ButtonProps) {
     defaultTagName: "button",
     render,
     ref,
-    props: mergeProps<"button">(
-      {
+    props: (() => {
+      const defaultProps = {
         "data-slot": "stepper-next",
         disabled: isDisabled,
         type: "button",
         onClick,
-      } as React.ComponentProps<"button">,
-      nextProps,
-    ),
+      } satisfies useRender.ElementProps<"button"> & DataProps;
+      return mergeProps<"button">(defaultProps, nextProps);
+    })(),
   });
 }
 
