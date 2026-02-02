@@ -1,7 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { db } from "@notra/db/drizzle";
+import { brandSettings } from "@notra/db/schema";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { generateChangelogBodySchema } from "@/utils/schemas/workflows";
+import type { ToneProfile } from "@/utils/schemas/brand";
 
 interface RouteContext {
   params: Promise<{ organizationId: string }>;
@@ -25,13 +29,25 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const { prompt } = validationResult.data;
 
-    const agent = createGithubChangelogAgent(organizationId);
+    // Fetch brand settings for the organization
+    const brand = await db.query.brandSettings.findFirst({
+      where: eq(brandSettings.organizationId, organizationId),
+    });
+
+    const agent = createGithubChangelogAgent({
+      organizationId,
+      tone: (brand?.toneProfile as ToneProfile) || "Conversational",
+      companyName: brand?.companyName || undefined,
+      companyDescription: brand?.companyDescription || undefined,
+      audience: brand?.audience || undefined,
+      customInstructions: brand?.customInstructions || undefined,
+    });
 
     const result = await agent.stream({
       prompt,
@@ -50,7 +66,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     console.error("Error generating changelog:", error);
     return NextResponse.json(
       { error: "Failed to generate changelog" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

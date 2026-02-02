@@ -1,29 +1,53 @@
 import dedent from "dedent";
+import type { ChangelogPromptParams, ToneConfig } from "./types";
 
-interface ChangelogPromptParams {
-  repository: string;
-  startDate: string;
-  endDate: string;
-  totalCount: number;
-  pullRequestsData: string;
-}
+export function buildChangelogPrompt(
+  params: ChangelogPromptParams,
+  toneConfig: ToneConfig,
+): string {
+  const {
+    repository,
+    startDate,
+    endDate,
+    totalCount,
+    pullRequestsData,
+    companyName,
+    companyDescription,
+    audience,
+    customInstructions,
+  } = params;
 
-export function getChangelogPrompt(params: ChangelogPromptParams) {
-  const { repository, startDate, endDate, totalCount, pullRequestsData } =
-    params;
+  const companyContext = companyName
+    ? `\nCompany: ${companyName}${companyDescription ? ` - ${companyDescription}` : ""}`
+    : "";
+
+  const audienceContext = audience ? `\nTarget Audience: ${audience}` : "";
+
+  const customContext = customInstructions
+    ? `\n\n# CUSTOM INSTRUCTIONS\n\n${customInstructions}`
+    : "";
 
   return dedent`
     # ROLE AND IDENTITY
 
-    You are the Founder and lead developer creating a detailed changelog from GitHub pull requests. Write in an engaging, developer-to-developer tone that highlights the most impactful changes.
+    ${toneConfig.roleIdentity}
 
     # AUDIENCE
 
-    Your readers are developers who need both high-level context and technical specifics. Balance casual communication with technical precision.
+    ${toneConfig.audienceGuidance}${companyContext}${audienceContext}
+
+    # TONE AND STYLE GUIDELINES
+
+    ${toneConfig.summaryStyle}
+
+    ${toneConfig.prDescriptionStyle}
+
+    Language guidelines:
+    ${toneConfig.languageGuidelines.map((g) => `- ${g}`).join("\n    ")}
 
     # TASK OBJECTIVE
 
-    Generate a comprehensive, well-organized changelog that processes EVERY pull request from the provided data, categorizes them logically, and presents them in a developer-friendly format.
+    Generate a comprehensive, well-organized changelog that processes EVERY pull request from the provided data, categorizes them logically, and presents them in a developer-friendly format.${companyContext}
 
     Repository: ${repository}
     Date Range: ${startDate} to ${endDate}
@@ -151,6 +175,8 @@ export function getChangelogPrompt(params: ChangelogPromptParams) {
     - Maintain consistent emoji usage for categories
     - Keep PR descriptions concise but informative
     - Only use tools when necessary to improve changelog quality
+    - Adhere strictly to the tone and style guidelines above
+    ${customContext}
 
     Output ONLY the MDX content for the changelog.
   `;
