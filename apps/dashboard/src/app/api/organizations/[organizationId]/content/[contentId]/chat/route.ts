@@ -112,7 +112,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         currentMarkdown,
         selection,
         context,
-        maxSteps: 10,
+        maxSteps: 5,
       });
 
       console.log("[Content Chat] Routing decision:", {
