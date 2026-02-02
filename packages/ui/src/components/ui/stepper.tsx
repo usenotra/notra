@@ -1072,8 +1072,6 @@ function StepperSeparator(props: StepperSeparatorProps) {
 
   const isLastStep = stepIndex === steps.size - 1;
 
-  if (isLastStep && !forceMount) return null;
-
   const dataState = getDataState(
     value,
     itemContext.value,
@@ -1082,7 +1080,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
     "separator",
   );
 
-  return useRender({
+  const separatorElement = useRender({
     defaultTagName: "div",
     render,
     ref,
@@ -1104,6 +1102,10 @@ function StepperSeparator(props: StepperSeparatorProps) {
       return mergeProps<"div">(defaultProps, separatorProps);
     })(),
   });
+
+  if (isLastStep && !forceMount) return null;
+
+  return separatorElement;
 }
 
 interface StepperTitleProps extends useRender.ComponentProps<"span"> {}
@@ -1181,9 +1183,7 @@ function StepperContent(props: StepperContentProps) {
   const contentId = getId(context.rootId, "content", valueProp);
   const triggerId = getId(context.rootId, "trigger", valueProp);
 
-  if (valueProp !== value && !forceMount) return null;
-
-  return useRender({
+  const contentElement = useRender({
     defaultTagName: "div",
     render,
     ref,
@@ -1199,6 +1199,10 @@ function StepperContent(props: StepperContentProps) {
       return mergeProps<"div">(defaultProps, contentProps);
     })(),
   });
+
+  if (valueProp !== value && !forceMount) return null;
+
+  return contentElement;
 }
 
 function StepperPrev(props: ButtonProps) {
