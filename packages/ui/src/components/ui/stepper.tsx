@@ -7,8 +7,7 @@ import { useAsRef } from "@notra/ui/hooks/use-as-ref";
 import { useIsomorphicLayoutEffect } from "@notra/ui/hooks/use-isomorphic-layout-effect";
 import { useLazyRef } from "@notra/ui/hooks/use-lazy-ref";
 import { cn } from "@notra/ui/lib/utils";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Check } from "@hugeicons/core-free-icons";
+import { Check } from "lucide-react";
 import * as React from "react";
 
 const ROOT_NAME = "Stepper";
@@ -60,9 +59,14 @@ function Slot(props: SlotProps) {
 
   if (!child) return null;
 
-  const mergedProps = mergeProps<"div">(
-    child.props as React.ComponentProps<"div">,
-    slotProps as React.ComponentProps<"div">,
+  const elementType =
+    typeof child.type === "string"
+      ? (child.type as keyof React.JSX.IntrinsicElements)
+      : "div";
+
+  const mergedProps = mergeProps<typeof elementType>(
+    child.props as React.ComponentProps<typeof elementType>,
+    slotProps as React.ComponentProps<typeof elementType>,
   );
 
   return React.cloneElement(child, {
@@ -1046,7 +1050,7 @@ function StepperIndicator(props: StepperIndicatorProps) {
       ) : children ? (
         children
       ) : dataState === "completed" ? (
-        <HugeiconsIcon icon={Check} className="size-4" />
+        <Check className="size-4" />
       ) : (
         stepPosition
       )}
