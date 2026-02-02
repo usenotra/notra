@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
 
     const brandContext = brand
-      ? `Company: ${brand.companyName ?? ""}\nDescription: ${brand.companyDescription ?? ""}\nAudience: ${brand.audience ?? ""}\nTone: ${brand.toneProfile ?? ""}\nCustom instructions: ${brand.customInstructions ?? ""}`
+      ? `Company: ${brand.companyName ?? ""}\nDescription: ${brand.companyDescription ?? ""}\nAudience: ${brand.audience ?? ""}\nTone: ${brand.customTone ?? brand.toneProfile ?? ""}\nCustom instructions: ${brand.customInstructions ?? ""}`
       : undefined;
 
     const agent = await createChatAgent(
