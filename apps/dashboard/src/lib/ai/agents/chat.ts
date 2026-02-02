@@ -1,10 +1,7 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
 import { stepCountIs, ToolLoopAgent } from "ai";
 import { createMarkdownTools } from "@/lib/ai/tools/edit-markdown";
-import {
-  getSkillByName,
-  listAvailableSkills,
-} from "@/lib/ai/tools/skills";
+import { getSkillByName, listAvailableSkills } from "@/lib/ai/tools/skills";
 import { selectModel, routeMessage } from "@/lib/ai/orchestration/router";
 import { openrouter } from "@/lib/openrouter";
 
@@ -13,18 +10,19 @@ interface ChatAgentContext {
   currentMarkdown: string;
   selectedText?: string;
   onMarkdownUpdate: (markdown: string) => void;
+  brandContext?: string;
 }
 
 export async function createChatAgent(
   context: ChatAgentContext,
-  instruction: string
+  instruction: string,
 ) {
   const decision = await routeMessage(instruction, false);
   const model = selectModel(decision);
 
   const modelWithMemory = withSupermemory(
     openrouter(model),
-    context.organizationId
+    context.organizationId,
   );
 
   const { getMarkdown, editMarkdown } = createMarkdownTools({
@@ -36,6 +34,10 @@ export async function createChatAgent(
     ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${context.selectedText}\n"""`
     : "";
 
+  const brandContext = context.brandContext
+    ? `\n\nBrand identity context:\n${context.brandContext}`
+    : "";
+
   return new ToolLoopAgent({
     model: modelWithMemory,
     tools: {
@@ -44,7 +46,7 @@ export async function createChatAgent(
       listAvailableSkills: listAvailableSkills(),
       getSkillByName: getSkillByName(),
     },
-    instructions: `You are a content editor assistant. Help users edit their markdown documents.
+    instructions: `You are a content editor assistant. Help users edit their markdown documents.${brandContext}
 
 ## Workflow
 1. Use getMarkdown to see the document with line numbers
