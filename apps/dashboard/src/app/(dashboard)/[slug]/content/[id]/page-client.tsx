@@ -103,6 +103,23 @@ export default function PageClient({
 
   const [, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    if (!hasChanges) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasChanges]);
+
   const handleSave = useCallback(async () => {
     if (!editedMarkdown) {
       return;
@@ -150,29 +167,31 @@ export default function PageClient({
     if (hasChanges && !saveToastIdRef.current) {
       saveToastIdRef.current = toast.custom(
         (t) => (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 shadow-lg">
-            <span className="text-muted-foreground text-sm">
-              Unsaved changes
-            </span>
-            <Button
-              onClick={() => {
-                handleDiscardRef.current();
-                toast.dismiss(t);
-              }}
-              size="sm"
-              variant="ghost"
-            >
-              Discard
-            </Button>
-            <Button
-              onClick={() => {
-                handleSaveRef.current();
-                toast.dismiss(t);
-              }}
-              size="sm"
-            >
-              Save
-            </Button>
+          <div className="rounded-[14px] border border-border bg-background p-0.5 shadow-sm">
+            <div className="flex items-center gap-3 rounded-[12px] bg-background px-4 py-3">
+              <span className="text-muted-foreground text-sm">
+                Unsaved changes
+              </span>
+              <Button
+                onClick={() => {
+                  handleDiscardRef.current();
+                  toast.dismiss(t);
+                }}
+                size="sm"
+                variant="ghost"
+              >
+                Discard
+              </Button>
+              <Button
+                onClick={() => {
+                  handleSaveRef.current();
+                  toast.dismiss(t);
+                }}
+                size="sm"
+              >
+                Save
+              </Button>
+            </div>
           </div>
         ),
         { duration: Number.POSITIVE_INFINITY, position: "bottom-right" },

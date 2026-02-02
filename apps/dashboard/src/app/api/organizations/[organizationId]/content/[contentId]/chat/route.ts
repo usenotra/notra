@@ -42,10 +42,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       });
 
       if (checkError) {
-        console.error("[Autumn] Check error:", { requestId, customerId: organizationId, error: checkError });
+        console.error("[Autumn] Check error:", {
+          requestId,
+          customerId: organizationId,
+          error: checkError,
+        });
         return NextResponse.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -61,11 +65,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
             code: "USAGE_LIMIT_REACHED",
             balance: checkData?.balance ?? 0,
           },
-          { status: 403 }
+          { status: 403 },
         );
       }
     } else {
-      console.log("[Autumn] Skipping billing check - AUTUMN_SECRET_KEY not configured", { requestId });
+      console.log(
+        "[Autumn] Skipping billing check - AUTUMN_SECRET_KEY not configured",
+        { requestId },
+      );
     }
 
     const body = await request.json();
@@ -74,7 +81,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!parseResult.success) {
       return NextResponse.json(
         { error: "Invalid request body", details: parseResult.error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,7 +96,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       });
 
       if (trackError) {
-        console.error("[Autumn] Track error:", { requestId, customerId: organizationId, error: trackError });
+        console.error("[Autumn] Track error:", {
+          requestId,
+          customerId: organizationId,
+          error: trackError,
+        });
       }
       tracked = !trackError;
     }
@@ -101,10 +112,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         currentMarkdown,
         selection,
         context,
-        maxSteps: 1,
+        maxSteps: 10,
       });
 
-      console.log("[Content Chat] Routing decision:", { requestId, decision: routingDecision });
+      console.log("[Content Chat] Routing decision:", {
+        requestId,
+        decision: routingDecision,
+      });
 
       return stream.toUIMessageStreamResponse({
         onError: (error) => {
@@ -122,15 +136,20 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           feature_id: FEATURES.AI_CREDITS,
           value: -1,
         });
-        console.log("[Autumn] Usage compensated after orchestration failure:", { requestId });
+        console.log("[Autumn] Usage compensated after orchestration failure:", {
+          requestId,
+        });
       }
       throw orchestrationError;
     }
   } catch (e) {
-    console.error("[Content Chat] Error:", { requestId, error: e instanceof Error ? e.message : String(e) });
+    console.error("[Content Chat] Error:", {
+      requestId,
+      error: e instanceof Error ? e.message : String(e),
+    });
     return NextResponse.json(
       { error: "Failed to process chat request" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
