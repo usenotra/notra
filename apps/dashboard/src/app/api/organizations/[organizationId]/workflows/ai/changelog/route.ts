@@ -5,7 +5,7 @@ import { brandSettings } from "@notra/db/schema";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { generateChangelogBodySchema } from "@/utils/schemas/workflows";
-import type { ToneProfile } from "@/utils/schemas/brand";
+import { getValidToneProfile } from "@/lib/ai/prompts/changelog/types";
 
 interface RouteContext {
   params: Promise<{ organizationId: string }>;
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const agent = createGithubChangelogAgent({
       organizationId,
-      tone: (brand?.toneProfile as ToneProfile) || "Conversational",
+      tone: getValidToneProfile(brand?.toneProfile, "Conversational"),
       companyName: brand?.companyName || undefined,
       companyDescription: brand?.companyDescription || undefined,
       audience: brand?.audience || undefined,

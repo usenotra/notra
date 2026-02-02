@@ -13,7 +13,7 @@ import { customAlphabet } from "nanoid";
 import { z } from "zod";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { getBaseUrl } from "@/lib/triggers/qstash";
-import type { ToneProfile } from "@/utils/schemas/brand";
+import { getValidToneProfile } from "@/lib/ai/prompts/changelog/types";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
@@ -167,7 +167,7 @@ export const { POST } = serve<SchedulePayload>(
           // Use the changelog agent to generate content with brand settings
           const agent = createGithubChangelogAgent({
             organizationId: trigger.organizationId,
-            tone: (brand?.toneProfile as ToneProfile) ?? "Conversational",
+            tone: getValidToneProfile(brand?.toneProfile, "Conversational"),
             companyName: brand?.companyName ?? undefined,
             companyDescription: brand?.companyDescription ?? undefined,
             audience: brand?.audience ?? undefined,

@@ -8,7 +8,10 @@ import {
 import { getSkillByName, listAvailableSkills } from "@/lib/ai/tools/skills";
 import { openrouter } from "@/lib/openrouter";
 import type { ToneProfile } from "@/utils/schemas/brand";
-import { toneConfigs } from "@/lib/ai/prompts/changelog/types";
+import {
+  getValidToneProfile,
+  toneConfigs,
+} from "@/lib/ai/prompts/changelog/types";
 
 export interface ChangelogAgentOptions {
   organizationId: string;
@@ -34,7 +37,8 @@ export function createGithubChangelogAgent(options: ChangelogAgentOptions) {
     organizationId,
   );
 
-  const toneConfig = toneConfigs[tone];
+  const validTone = getValidToneProfile(tone, "Conversational");
+  const toneConfig = toneConfigs[validTone];
 
   const companyContext = companyName
     ? `\nCompany: ${companyName}${companyDescription ? ` - ${companyDescription}` : ""}`
@@ -76,7 +80,7 @@ You are a helpful devrel with a passion for turning technical information into e
 - Present them in a developer-friendly format using MDX
 - Title must be 120 characters or less
 - Summary must be 600-800 words
-- Maintain consistent emoji usage for categories
+- Do not use emojis in section headings
 - Keep PR descriptions concise but informative
 
 # AVAILABLE TOOLS

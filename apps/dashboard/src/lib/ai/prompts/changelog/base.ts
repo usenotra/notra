@@ -115,28 +115,28 @@ export function buildChangelogPrompt(
 
     Organize EVERY PR from the data into appropriate sections:
 
-    ### 🚀 Features & Enhancements
+    ### Features & Enhancements
     [List all feature/enhancement PRs here]
 
-    ### 🐛 Bug Fixes
+    ### Bug Fixes
     [List all bug fix PRs here]
 
-    ### ⚡ Performance Improvements
+    ### Performance Improvements
     [List all performance PRs here]
 
-    ### 📚 Documentation
+    ### Documentation
     [List all documentation PRs here]
 
-    ### 🔧 Internal Changes
+    ### Internal Changes
     [List all internal/refactor PRs here]
 
-    ### 🧪 Testing
+    ### Testing
     [List all testing PRs here]
 
-    ### 🏗️ Infrastructure
+    ### Infrastructure
     [List all infrastructure PRs here]
 
-    ### 🔒 Security
+    ### Security
     [List all security PRs here]
 
     # PR ENTRY FORMAT
@@ -172,7 +172,7 @@ export function buildChangelogPrompt(
     - Summary must be 600-800 words
     - Use MDX format only
     - Do not include verification steps in output
-    - Maintain consistent emoji usage for categories
+    - Do not use emojis in section headings
     - Keep PR descriptions concise but informative
     - Only use tools when necessary to improve changelog quality
     - Adhere strictly to the tone and style guidelines above

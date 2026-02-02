@@ -1,4 +1,4 @@
-import type { ToneProfile } from "@/utils/schemas/brand";
+import { toneProfileSchema, type ToneProfile } from "@/utils/schemas/brand";
 
 export interface ChangelogPromptParams {
   repository: string;
@@ -26,6 +26,22 @@ export type TonePromptBuilder = (
   params: ChangelogPromptParams,
   toneConfig: ToneConfig,
 ) => string;
+
+export const VALID_TONE_PROFILES = toneProfileSchema.options;
+
+export function isValidToneProfile(
+  value: string | null | undefined,
+): value is ToneProfile {
+  if (!value) return false;
+  return VALID_TONE_PROFILES.includes(value as ToneProfile);
+}
+
+export function getValidToneProfile(
+  value: string | null | undefined,
+  defaultTone: ToneProfile = "Conversational",
+): ToneProfile {
+  return isValidToneProfile(value) ? value : defaultTone;
+}
 
 export const toneConfigs: Record<ToneProfile, ToneConfig> = {
   Professional: {
