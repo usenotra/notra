@@ -108,6 +108,7 @@ export default function PageClient({
       return;
     }
 
+    // TODO: add client-side route change confirmation for unsaved edits.
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
