@@ -13,7 +13,7 @@ import { customAlphabet } from "nanoid";
 import { z } from "zod";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
 import { getBaseUrl } from "@/lib/triggers/qstash";
-import { getValidToneProfile } from "@/lib/ai/prompts/changelog/types";
+import { getValidToneProfile } from "@/lib/ai/prompts/changelog/casual";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 

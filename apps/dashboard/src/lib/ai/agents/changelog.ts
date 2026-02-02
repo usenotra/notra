@@ -11,7 +11,7 @@ import type { ToneProfile } from "@/utils/schemas/brand";
 import {
   getValidToneProfile,
   toneConfigs,
-} from "@/lib/ai/prompts/changelog/types";
+} from "@/lib/ai/prompts/changelog/casual";
 
 export interface ChangelogAgentOptions {
   organizationId: string;
