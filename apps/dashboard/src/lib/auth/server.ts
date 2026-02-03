@@ -1,4 +1,3 @@
-import { Autumn } from "autumn-js";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -12,6 +11,7 @@ import { customAlphabet } from "nanoid";
 import { cookies } from "next/headers";
 import { db } from "@notra/db/drizzle";
 import { members, organizations } from "@notra/db/schema";
+import { autumn } from "@/lib/billing/autumn";
 import { redis } from "@/lib/redis";
 import { generateOrganizationAvatar } from "@/lib/utils";
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/utils/constants";
@@ -223,7 +223,12 @@ export const auth = betterAuth({
           };
         },
         after: async (org: { id: string; name: string }) => {
-          const autumn = new Autumn();
+          if (!autumn) {
+            console.warn(
+              "[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured",
+            );
+            return;
+          }
           const result = await autumn.customers.create({
             id: org.id,
             name: org.name,

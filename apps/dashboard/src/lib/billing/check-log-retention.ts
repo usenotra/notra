@@ -1,9 +1,6 @@
-import { Autumn } from "autumn-js";
+import { autumn } from "./autumn";
 import { FEATURES } from "./constants";
 import type { LogRetentionDays } from "@/lib/webhooks/logging";
-
-const AUTUMN_SECRET_KEY = process.env.AUTUMN_SECRET_KEY;
-const autumn = AUTUMN_SECRET_KEY ? new Autumn() : null;
 
 export async function checkLogRetention(
   organizationId: string,
