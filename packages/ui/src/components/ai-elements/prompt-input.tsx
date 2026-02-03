@@ -6,7 +6,6 @@ import {
   AttachmentIcon,
   Cancel01Icon,
   Image01Icon,
-  Loading01Icon,
   Mic01Icon,
   Square01Icon,
 } from "@hugeicons/core-free-icons";
@@ -46,6 +45,7 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import type { ChatStatus, FileUIPart } from "ai";
+import { Loader2Icon } from "lucide-react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 import {
@@ -1028,6 +1028,13 @@ export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
   status?: ChatStatus;
 };
 
+const STATUS_ICONS: Record<ChatStatus, ReactNode> = {
+  submitted: <Loader2Icon className="size-4 animate-spin" />,
+  streaming: <HugeiconsIcon className="size-4" icon={Square01Icon} />,
+  error: <HugeiconsIcon className="size-4" icon={Cancel01Icon} />,
+  ready: <HugeiconsIcon className="size-4" icon={ArrowDownLeftIcon} />,
+};
+
 export const PromptInputSubmit = ({
   className,
   variant = "default",
@@ -1036,17 +1043,7 @@ export const PromptInputSubmit = ({
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <HugeiconsIcon className="size-4" icon={ArrowDownLeftIcon} />;
-
-  if (status === "submitted") {
-    Icon = (
-      <HugeiconsIcon className="size-4 animate-spin" icon={Loading01Icon} />
-    );
-  } else if (status === "streaming") {
-    Icon = <HugeiconsIcon className="size-4" icon={Square01Icon} />;
-  } else if (status === "error") {
-    Icon = <HugeiconsIcon className="size-4" icon={Cancel01Icon} />;
-  }
+  const Icon = STATUS_ICONS[status ?? "ready"];
 
   return (
     <InputGroupButton

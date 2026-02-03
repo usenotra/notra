@@ -26,7 +26,7 @@ import {
 } from "@notra/ui/components/ui/radio-group";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -329,7 +329,7 @@ export function DeleteAccountSection() {
 								>
 									{isDeleting ? (
 										<>
-											<LoaderCircle className="size-4 animate-spin" />
+											<Loader2Icon className="size-4 animate-spin" />
 											Deleting...
 										</>
 									) : (

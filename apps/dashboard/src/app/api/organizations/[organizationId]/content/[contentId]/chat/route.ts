@@ -1,14 +1,11 @@
-import { Autumn } from "autumn-js";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { orchestrateChat } from "@/lib/ai/orchestration";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { autumn } from "@/lib/billing/autumn";
 import { FEATURES } from "@/lib/billing/constants";
 import { chatRequestSchema } from "@/utils/schemas/content";
-
-const AUTUMN_SECRET_KEY = process.env.AUTUMN_SECRET_KEY;
-const autumn = AUTUMN_SECRET_KEY ? new Autumn() : null;
 
 interface RouteContext {
   params: Promise<{ organizationId: string; contentId: string }>;

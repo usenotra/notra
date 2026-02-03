@@ -1,10 +1,12 @@
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { triggerScheduleNow } from "@/lib/triggers/qstash";
+import { appendWebhookLog } from "@/lib/webhooks/logging";
 
 interface RouteContext {
   params: Promise<{ organizationId: string }>;
@@ -51,6 +53,25 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     const workflowRunId = await triggerScheduleNow(triggerId);
+    const logRetentionDays = await checkLogRetention(organizationId);
+
+    await appendWebhookLog({
+      organizationId,
+      integrationId: triggerId,
+      integrationType: "manual",
+      title: `Manual trigger: ${trigger.outputType}`,
+      status: "success",
+      statusCode: 200,
+      referenceId: workflowRunId,
+      payload: {
+        triggerId,
+        sourceType: trigger.sourceType,
+        outputType: trigger.outputType,
+        workflowRunId,
+        triggeredBy: auth.context.user.id,
+      },
+      retentionDays: logRetentionDays,
+    });
 
     return NextResponse.json({
       success: true,

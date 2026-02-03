@@ -1,8 +1,15 @@
 import type { IntegrationType, Log } from "@/types/webhook-logs";
 import { redis } from "@/lib/redis";
 
-const LOG_TTL_SECONDS = 60 * 60 * 24 * 7;
+const LOG_TTL_7_DAYS = 60 * 60 * 24 * 7;
+const LOG_TTL_30_DAYS = 60 * 60 * 24 * 30;
 const LOG_LIMIT = 200;
+
+export type LogRetentionDays = 7 | 30;
+
+export function getLogTtlSeconds(retentionDays: LogRetentionDays): number {
+  return retentionDays === 30 ? LOG_TTL_30_DAYS : LOG_TTL_7_DAYS;
+}
 
 export interface WebhookLogInput {
   organizationId: string;
@@ -14,6 +21,7 @@ export interface WebhookLogInput {
   referenceId?: string | null;
   errorMessage?: string | null;
   payload?: Record<string, unknown> | null;
+  retentionDays?: LogRetentionDays;
 }
 
 function getLogKey(
@@ -46,6 +54,9 @@ export async function appendWebhookLog(input: WebhookLogInput) {
     return log;
   }
 
+  const retentionDays = input.retentionDays ?? 30;
+  const ttlSeconds = getLogTtlSeconds(retentionDays);
+
   const key = getLogKey(
     input.organizationId,
     input.integrationType,
@@ -55,11 +66,11 @@ export async function appendWebhookLog(input: WebhookLogInput) {
 
   await redis.lpush(key, log);
   await redis.ltrim(key, 0, LOG_LIMIT - 1);
-  await redis.expire(key, LOG_TTL_SECONDS);
+  await redis.expire(key, ttlSeconds);
 
   await redis.lpush(allKey, log);
   await redis.ltrim(allKey, 0, LOG_LIMIT - 1);
-  await redis.expire(allKey, LOG_TTL_SECONDS);
+  await redis.expire(allKey, ttlSeconds);
 
   return log;
 }

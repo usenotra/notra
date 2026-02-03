@@ -1,27 +1,51 @@
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
+import { appendWebhookLog } from "@/lib/webhooks/logging";
 import type { WebhookContext, WebhookResult } from "@/types/webhooks";
 
-export function handleLinearWebhook(context: WebhookContext): WebhookResult {
-	const { request, rawBody: _rawBody } = context;
+export async function handleLinearWebhook(
+  context: WebhookContext,
+): Promise<WebhookResult> {
+  const { request, rawBody: _rawBody, organizationId, integrationId } = context;
 
-	const signature = request.headers.get("linear-signature");
+  const signature = request.headers.get("linear-signature");
 
-	if (!signature) {
-		return {
-			success: false,
-			message: "Missing Linear-Signature header",
-		};
-	}
+  if (!signature) {
+    await appendWebhookLog({
+      organizationId,
+      integrationId,
+      integrationType: "linear",
+      title: "Missing Linear signature",
+      status: "failed",
+      statusCode: 400,
+      referenceId: null,
+      errorMessage: "Missing Linear-Signature header",
+    });
 
-	// TODO: Verify signature using webhook secret
-	// TODO: Parse payload and determine event type
-	// TODO: Handle specific events (issue created, updated, etc.)
-	// TODO: Create webhook log entry
+    return {
+      success: false,
+      message: "Missing Linear-Signature header",
+    };
+  }
 
-	return {
-		success: true,
-		message: "Received Linear webhook",
-		data: {
-			hasSignature: true,
-		},
-	};
+  const logRetentionDays = await checkLogRetention(organizationId);
+
+  await appendWebhookLog({
+    organizationId,
+    integrationId,
+    integrationType: "linear",
+    title: "Linear webhook received",
+    status: "success",
+    statusCode: 200,
+    referenceId: null,
+    payload: { hasSignature: true },
+    retentionDays: logRetentionDays,
+  });
+
+  return {
+    success: true,
+    message: "Received Linear webhook",
+    data: {
+      hasSignature: true,
+    },
+  };
 }
