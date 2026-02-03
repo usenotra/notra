@@ -1,6 +1,12 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@notra/ui/components/ui/card";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import {
 	Table,
@@ -29,6 +35,8 @@ import { AddTriggerDialog } from "../../triggers/trigger-dialog";
 import { TriggerRowActions } from "../_components/trigger-row-actions";
 import { TriggerStatusBadge } from "../_components/trigger-status-badge";
 import { EventsPageSkeleton } from "./skeleton";
+
+const COMING_SOON = true;
 
 const EVENT_SOURCE_TYPES: TriggerSourceType[] = ["github_webhook"];
 
@@ -175,6 +183,47 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		(id: string) => deleteMutation.mutate(id),
 		[deleteMutation],
 	);
+
+	if (COMING_SOON) {
+		return (
+			<PageContainer
+				className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6"
+				variant="compact"
+			>
+				<div className="w-full px-4 lg:px-6">
+					<div className="relative min-h-125">
+						<div className="pointer-events-none blur-sm">
+							<div className="mb-6 space-y-1">
+								<h1 className="font-bold text-3xl tracking-tight">
+									Automation Events
+								</h1>
+								<p className="text-muted-foreground">
+									React to GitHub activity and trigger content generation
+									automatically.
+								</p>
+							</div>
+							<div className="space-y-8">
+								<div className="h-12 w-64 rounded-lg border bg-muted/20" />
+								<div className="h-64 w-full rounded-lg border bg-muted/20" />
+							</div>
+						</div>
+
+						<div className="absolute inset-0 flex items-center justify-center">
+							<Card className="w-full max-w-md border-border/50 shadow-xs">
+								<CardHeader className="text-center">
+									<CardTitle>Coming Soon</CardTitle>
+									<CardDescription>
+										Event-based automation triggers are currently in development.
+										Stay tuned!
+									</CardDescription>
+								</CardHeader>
+							</Card>
+						</div>
+					</div>
+				</div>
+			</PageContainer>
+		);
+	}
 
 	return (
 		<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">

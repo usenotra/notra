@@ -10,6 +10,7 @@ import { deleteQstashSchedule } from "@/lib/triggers/qstash";
 import { customAlphabet } from "nanoid";
 import crypto from "crypto";
 
+const COMING_SOON = true;
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
 interface RouteContext {
@@ -62,6 +63,10 @@ function hashTrigger({
 }
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
+  if (COMING_SOON) {
+    return NextResponse.json({ triggers: [] });
+  }
+
   try {
     const { organizationId } = await params;
     const auth = await withOrganizationAuth(request, organizationId);
@@ -89,6 +94,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  if (COMING_SOON) {
+    return NextResponse.json(
+      { error: "Feature coming soon" },
+      { status: 503 },
+    );
+  }
+
   try {
     const { organizationId } = await params;
     const auth = await withOrganizationAuth(request, organizationId);
@@ -174,6 +186,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
+  if (COMING_SOON) {
+    return NextResponse.json(
+      { error: "Feature coming soon" },
+      { status: 503 },
+    );
+  }
+
   try {
     const { organizationId } = await params;
     const auth = await withOrganizationAuth(request, organizationId);
@@ -274,6 +293,13 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
+  if (COMING_SOON) {
+    return NextResponse.json(
+      { error: "Feature coming soon" },
+      { status: 503 },
+    );
+  }
+
   try {
     const { organizationId } = await params;
     const auth = await withOrganizationAuth(request, organizationId);
