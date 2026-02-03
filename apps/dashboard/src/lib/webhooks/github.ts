@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { generateText } from "ai";
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
 import { getGithubWebhookMemoryPrompt } from "@/lib/ai/prompts/github-webhook-memory";
 import { openrouter } from "@/lib/openrouter";
@@ -231,14 +232,8 @@ function processStarEvent(
 export async function handleGitHubWebhook(
   context: WebhookContext,
 ): Promise<WebhookResult> {
-  const {
-    request,
-    rawBody,
-    repositoryId,
-    organizationId,
-    integrationId,
-    logRetentionDays,
-  } = context;
+  const { request, rawBody, repositoryId, organizationId, integrationId } =
+    context;
 
   const eventHeader = request.headers.get("x-github-event");
   const signature = request.headers.get("x-hub-signature-256");
@@ -254,7 +249,6 @@ export async function handleGitHubWebhook(
       statusCode: 400,
       referenceId: delivery ?? null,
       errorMessage: "Missing X-GitHub-Event header",
-      retentionDays: logRetentionDays,
     });
 
     return {
@@ -273,26 +267,6 @@ export async function handleGitHubWebhook(
     };
   }
 
-  if (event === "ping") {
-    await appendWebhookLog({
-      organizationId,
-      integrationId,
-      integrationType: "github",
-      title: "Webhook ping received",
-      status: "success",
-      statusCode: 200,
-      referenceId: delivery ?? null,
-      payload: { event: "ping" },
-      retentionDays: logRetentionDays,
-    });
-
-    return {
-      success: true,
-      message: "Pong! Webhook configured successfully",
-      data: { event: "ping", delivery },
-    };
-  }
-
   const secret = await getWebhookSecretByRepositoryId(repositoryId);
   if (!secret) {
     await appendWebhookLog({
@@ -304,7 +278,6 @@ export async function handleGitHubWebhook(
       statusCode: 400,
       referenceId: delivery ?? null,
       errorMessage: "Webhook secret not configured",
-      retentionDays: logRetentionDays,
     });
 
     return {
@@ -323,7 +296,6 @@ export async function handleGitHubWebhook(
       statusCode: 400,
       referenceId: delivery ?? null,
       errorMessage: "Missing X-Hub-Signature-256 header",
-      retentionDays: logRetentionDays,
     });
 
     return {
@@ -342,12 +314,33 @@ export async function handleGitHubWebhook(
       statusCode: 401,
       referenceId: delivery ?? null,
       errorMessage: "Invalid webhook signature",
-      retentionDays: logRetentionDays,
     });
 
     return {
       success: false,
       message: "Invalid webhook signature",
+    };
+  }
+
+  const logRetentionDays = await checkLogRetention(organizationId);
+
+  if (event === "ping") {
+    await appendWebhookLog({
+      organizationId,
+      integrationId,
+      integrationType: "github",
+      title: "Webhook ping received",
+      status: "success",
+      statusCode: 200,
+      referenceId: delivery ?? null,
+      payload: { event: "ping" },
+      retentionDays: logRetentionDays,
+    });
+
+    return {
+      success: true,
+      message: "Pong! Webhook configured successfully",
+      data: { event: "ping", delivery },
     };
   }
 

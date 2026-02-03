@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 import type { InputIntegrationType } from "@/utils/schemas/integrations";
-import type { LogRetentionDays } from "@/lib/webhooks/logging";
 
 export interface WebhookContext {
 	provider: InputIntegrationType;
@@ -9,7 +8,6 @@ export interface WebhookContext {
 	repositoryId: string;
 	request: NextRequest;
 	rawBody: string;
-	logRetentionDays: LogRetentionDays;
 }
 
 export interface WebhookResult {

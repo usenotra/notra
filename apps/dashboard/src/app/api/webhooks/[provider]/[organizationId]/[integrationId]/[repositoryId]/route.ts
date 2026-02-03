@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import {
   getGitHubIntegrationById,
   getRepositoryById,
@@ -121,7 +120,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     const rawBody = await request.text();
-    const logRetentionDays = await checkLogRetention(organizationId);
 
     const context: WebhookContext = {
       provider,
@@ -130,7 +128,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       repositoryId,
       request,
       rawBody,
-      logRetentionDays,
     };
 
     const result = await handler(context);
