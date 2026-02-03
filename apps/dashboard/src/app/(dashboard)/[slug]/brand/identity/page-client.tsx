@@ -31,7 +31,7 @@ import {
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncedCallback } from "@tanstack/react-pacer";
-import { Check, LoaderCircle, Minus } from "lucide-react";
+import { Check, Loader2Icon, Minus } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
@@ -130,7 +130,7 @@ type StepIconState = "pending" | "active" | "completed";
 
 const STEP_ICONS: Record<StepIconState, () => React.ReactNode> = {
 	completed: () => <Check className="size-4" strokeWidth={3} />,
-	active: () => <LoaderCircle className="size-4 animate-spin" />,
+	active: () => <Loader2Icon className="size-4 animate-spin" />,
 	pending: () => (
 		<Minus className="size-4 text-muted-foreground" strokeWidth={2} />
 	),
@@ -161,7 +161,7 @@ function ModalContent({
 	if (isPendingSettings) {
 		return (
 			<div className="flex justify-center py-4">
-				<LoaderCircle className="size-8 animate-spin text-primary" />
+				<Loader2Icon className="size-8 animate-spin text-primary" />
 			</div>
 		);
 	}
@@ -232,7 +232,7 @@ function ModalContent({
 				>
 					{isPending ? (
 						<>
-							<LoaderCircle className="size-4 animate-spin" />
+							<Loader2Icon className="size-4 animate-spin" />
 							<span>Analyzing</span>
 						</>
 					) : (

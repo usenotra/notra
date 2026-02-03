@@ -6,6 +6,7 @@ import {
   TextSelectionIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Loader2Icon } from "lucide-react";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -268,27 +269,7 @@ const ChatInput = ({
           )}
           {isLoading && statusText && (
             <div className="flex items-start gap-2 px-3.5 pt-2 pb-1">
-              <svg
-                className="size-4 shrink-0 mt-0.5 animate-spin text-muted-foreground"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
+              <Loader2Icon className="size-4 shrink-0 mt-0.5 animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground leading-5">
                 {statusText}
               </p>
@@ -576,28 +557,7 @@ const ChatInput = ({
               >
                 <div className="flex items-center gap-1 text-sm text-foreground">
                   {isLoading ? (
-                    <svg
-                      className="size-4 animate-spin"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <title>Loading</title>
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
+                    <Loader2Icon className="size-4 animate-spin" />
                   ) : (
                     <>
                       <div className="text-sm px-0.5 leading-0 transition-transform">
