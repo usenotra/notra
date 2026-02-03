@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { generateText } from "ai";
+// TODO: Pass retentionDays from checkLogRetention(organizationId) to appendWebhookLog calls
 import { appendWebhookLog } from "@/lib/webhooks/logging";
 import { getGithubWebhookMemoryPrompt } from "@/lib/ai/prompts/github-webhook-memory";
 import { openrouter } from "@/lib/openrouter";
