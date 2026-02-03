@@ -6,7 +6,7 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { use, useState } from "react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/container";
@@ -132,7 +132,7 @@ export default function GeneralSettingsPage({ params }: PageProps) {
 						<Button disabled={isUpdating} type="submit">
 							{isUpdating ? (
 								<>
-									<LoaderCircle className="size-4 animate-spin" />
+									<Loader2Icon className="size-4 animate-spin" />
 									Saving...
 								</>
 							) : (

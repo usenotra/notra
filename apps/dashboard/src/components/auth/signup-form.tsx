@@ -1,0 +1,245 @@
+"use client";
+
+import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@notra/ui/components/ui/button";
+import { Input } from "@notra/ui/components/ui/input";
+import { Label } from "@notra/ui/components/ui/label";
+import { Separator } from "@notra/ui/components/ui/separator";
+import { Github } from "@notra/ui/components/ui/svgs/github";
+import { Google } from "@notra/ui/components/ui/svgs/google";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
+import * as z from "zod";
+import { authClient } from "@/lib/auth/client";
+
+const signupSchema = z.object({
+	email: z
+		.string()
+		.min(1, "Email is required")
+		.email("Please enter a valid email address"),
+	password: z
+		.string()
+		.min(1, "Password is required")
+		.min(8, "Password must be at least 8 characters"),
+});
+
+export interface SignupFormProps {
+	title?: string;
+	description?: string;
+	onSuccess?: () => void;
+	returnTo?: string;
+	showLoginLink?: boolean;
+	showForgotPasswordLink?: boolean;
+}
+
+export function SignupForm({
+	title = "Create an account",
+	description = "Please create an account to continue.",
+	onSuccess,
+	returnTo,
+	showLoginLink = true,
+	showForgotPasswordLink = false,
+}: SignupFormProps) {
+	const [showPassword, setShowPassword] = useState(false);
+	const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+	const callbackURL = returnTo
+		? `/callback?returnTo=${encodeURIComponent(returnTo)}`
+		: "/callback";
+
+	async function handleSocialSignup(provider: "google" | "github") {
+		if (isAuthLoading) {
+			return;
+		}
+
+		setIsAuthLoading(true);
+		try {
+			await authClient.signIn.social({
+				provider,
+				callbackURL,
+			});
+		} catch (error) {
+			console.error("Social signup error:", error);
+			toast.error("Failed to sign up. Please try again.");
+			setIsAuthLoading(false);
+		}
+	}
+
+	async function handleEmailSignup(formData: FormData) {
+		const email = formData.get("email") as string;
+		const password = formData.get("password") as string;
+
+		if (isAuthLoading) {
+			return;
+		}
+
+		const validation = signupSchema.safeParse({ email, password });
+		if (!validation.success) {
+			toast.error(validation.error.issues[0]?.message ?? "Invalid input");
+			return;
+		}
+
+		setIsAuthLoading(true);
+		try {
+			const result = await authClient.signUp.email({
+				email,
+				password,
+				name: email.split("@")[0] || "User",
+			});
+
+			if (result.error) {
+				toast.error(
+					result.error.message ?? "Failed to sign up. Please try again.",
+				);
+				setIsAuthLoading(false);
+				return;
+			}
+
+			// Call onSuccess callback if provided, otherwise redirect
+			if (onSuccess) {
+				onSuccess();
+			} else if (returnTo) {
+				window.location.href = returnTo;
+			} else {
+				window.location.href = "/callback";
+			}
+		} catch (error) {
+			console.error("Email signup error:", error);
+			toast.error("Failed to sign up. Please try again.");
+			setIsAuthLoading(false);
+		}
+	}
+
+	return (
+		<div className="flex w-full flex-col gap-8">
+			{(title || description) && (
+				<div className="text-center">
+					{title && (
+						<h1 className="font-semibold text-xl lg:text-2xl">{title}</h1>
+					)}
+					{description && (
+						<p className="text-muted-foreground text-sm">{description}</p>
+					)}
+				</div>
+			)}
+
+			<div className="grid gap-6">
+				<div className="grid grid-cols-2 gap-4">
+					<Button
+						className="w-full border-2 border-border bg-background hover:bg-muted"
+						disabled={isAuthLoading}
+						onClick={() => handleSocialSignup("google")}
+						type="button"
+						variant="outline"
+					>
+						<Google className="mr-2 size-4" />
+						Google
+					</Button>
+					<Button
+						className="w-full border-2 border-border bg-background hover:bg-muted"
+						disabled={isAuthLoading}
+						onClick={() => handleSocialSignup("github")}
+						type="button"
+						variant="outline"
+					>
+						<Github className="mr-2 size-4" />
+						GitHub
+					</Button>
+				</div>
+
+				<div className="relative flex items-center">
+					<span className="inline-block h-px w-full border-t bg-border" />
+					<span className="shrink-0 px-2 text-muted-foreground text-xs uppercase">
+						Or
+					</span>
+					<span className="inline-block h-px w-full border-t bg-border" />
+				</div>
+
+				<form action={handleEmailSignup}>
+					<div className="grid gap-3">
+						<div className="grid gap-1">
+							<Label className="sr-only" htmlFor="email">
+								Email
+							</Label>
+							<Input
+								autoComplete="email"
+								disabled={isAuthLoading}
+								id="email"
+								name="email"
+								placeholder="Email"
+								type="email"
+							/>
+						</div>
+						<div className="grid gap-1">
+							<Label className="sr-only" htmlFor="password">
+								Password
+							</Label>
+							<div className="relative">
+								<Input
+									autoComplete="new-password"
+									className="pr-9"
+									disabled={isAuthLoading}
+									id="password"
+									name="password"
+									placeholder="Password"
+									type={showPassword ? "text" : "password"}
+								/>
+								<button
+									aria-label={showPassword ? "Hide password" : "Show password"}
+									className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+									disabled={isAuthLoading}
+									onClick={() => setShowPassword(!showPassword)}
+									type="button"
+								>
+									{showPassword ? (
+										<HugeiconsIcon className="size-4" icon={ViewOffSlashIcon} />
+									) : (
+										<HugeiconsIcon className="size-4" icon={ViewIcon} />
+									)}
+								</button>
+							</div>
+						</div>
+					</div>
+					<Button
+						className="mt-4 w-full"
+						disabled={isAuthLoading}
+						type="submit"
+					>
+						{isAuthLoading ? "Loading…" : "Continue"}
+					</Button>
+				</form>
+			</div>
+
+			{(showForgotPasswordLink || showLoginLink) && (
+				<div className="flex flex-col gap-4 px-8 text-center text-muted-foreground text-xs">
+					{showForgotPasswordLink && (
+						<p>
+							Forgot your password?{" "}
+							<Link
+								className="underline underline-offset-4 hover:text-primary"
+								href="/forgot-password"
+							>
+								Reset Your Password
+							</Link>
+						</p>
+					)}
+					{showForgotPasswordLink && showLoginLink && <Separator />}
+					{showLoginLink && (
+						<p>
+							Already have an account?{" "}
+							<Link
+								className="underline underline-offset-4 hover:text-primary"
+								href="/login"
+							>
+								Log in
+							</Link>
+						</p>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}

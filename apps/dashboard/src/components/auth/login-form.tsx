@@ -1,0 +1,254 @@
+"use client";
+
+import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Badge } from "@notra/ui/components/ui/badge";
+import { Button } from "@notra/ui/components/ui/button";
+import { Input } from "@notra/ui/components/ui/input";
+import { Label } from "@notra/ui/components/ui/label";
+import { Separator } from "@notra/ui/components/ui/separator";
+import { Github } from "@notra/ui/components/ui/svgs/github";
+import { Google } from "@notra/ui/components/ui/svgs/google";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { authClient } from "@/lib/auth/client";
+
+export interface LoginFormProps {
+	title?: string;
+	description?: string;
+	onSuccess?: () => void;
+	returnTo?: string;
+	showSignupLink?: boolean;
+	showForgotPasswordLink?: boolean;
+}
+
+export function LoginForm({
+	title = "Welcome back",
+	description = "Please log in to continue.",
+	onSuccess,
+	returnTo,
+	showSignupLink = true,
+	showForgotPasswordLink = true,
+}: LoginFormProps) {
+	const [showPassword, setShowPassword] = useState(false);
+	const [isAuthLoading, setIsAuthLoading] = useState(false);
+	const lastMethod = authClient.getLastUsedLoginMethod();
+
+	const callbackURL = returnTo
+		? `/callback?returnTo=${encodeURIComponent(returnTo)}`
+		: "/callback";
+
+	async function handleSocialLogin(provider: "google" | "github") {
+		if (isAuthLoading) {
+			return;
+		}
+
+		setIsAuthLoading(true);
+
+		try {
+			await authClient.signIn.social({
+				provider,
+				callbackURL,
+			});
+		} catch (error) {
+			console.error("Social login error:", error);
+			toast.error("Failed to sign in. Please try again.");
+			setIsAuthLoading(false);
+		}
+	}
+
+	async function handleEmailLogin(formData: FormData) {
+		const email = formData.get("email") as string;
+		const password = formData.get("password") as string;
+
+		if (!(email && password) || isAuthLoading) {
+			return;
+		}
+
+		setIsAuthLoading(true);
+		try {
+			const result = await authClient.signIn.email({
+				email,
+				password,
+			});
+
+			if (result.error) {
+				toast.error(
+					result.error.message ?? "Failed to sign in. Please try again.",
+				);
+				setIsAuthLoading(false);
+				return;
+			}
+
+			// Call onSuccess callback if provided, otherwise redirect
+			if (onSuccess) {
+				onSuccess();
+			} else if (returnTo) {
+				window.location.href = returnTo;
+			} else {
+				window.location.href = "/callback";
+			}
+		} catch (error) {
+			console.error("Email login error:", error);
+			toast.error("Failed to sign in. Please try again.");
+			setIsAuthLoading(false);
+		}
+	}
+
+	return (
+		<div className="flex w-full flex-col gap-8">
+			{(title || description) && (
+				<div className="text-center">
+					{title && (
+						<h1 className="font-semibold text-xl lg:text-2xl">{title}</h1>
+					)}
+					{description && (
+						<p className="text-muted-foreground text-sm">{description}</p>
+					)}
+				</div>
+			)}
+
+			<div className="grid gap-6">
+				<div className="grid grid-cols-2 gap-4">
+					<div className="relative">
+						{lastMethod === "google" && (
+							<Badge
+								className="absolute -top-4 -right-2 z-10"
+								variant="default"
+							>
+								Last Used
+							</Badge>
+						)}
+						<Button
+							className="w-full border-2 border-border bg-background hover:bg-muted"
+							disabled={isAuthLoading}
+							onClick={() => handleSocialLogin("google")}
+							type="button"
+							variant="outline"
+						>
+							<Google className="mr-2 size-4" />
+							Google
+						</Button>
+					</div>
+					<div className="relative">
+						{lastMethod === "github" && (
+							<Badge
+								className="absolute -top-4 -right-2 z-10"
+								variant="default"
+							>
+								Last Used
+							</Badge>
+						)}
+						<Button
+							className="w-full border-2 border-border bg-background hover:bg-muted"
+							disabled={isAuthLoading}
+							onClick={() => handleSocialLogin("github")}
+							type="button"
+							variant="outline"
+						>
+							<Github className="mr-2 size-4" />
+							GitHub
+						</Button>
+					</div>
+				</div>
+
+				<div className="relative flex items-center">
+					<span className="inline-block h-px w-full border-t bg-border" />
+					<span className="shrink-0 px-2 text-muted-foreground text-xs uppercase">
+						Or
+					</span>
+					<span className="inline-block h-px w-full border-t bg-border" />
+				</div>
+
+				<form action={handleEmailLogin}>
+					<div className="grid gap-3">
+						<div className="grid gap-1">
+							<Label className="sr-only" htmlFor="email">
+								Email
+							</Label>
+							<Input
+								autoComplete="email"
+								disabled={isAuthLoading}
+								id="email"
+								name="email"
+								placeholder="Email"
+								type="email"
+							/>
+						</div>
+						<div className="grid gap-1">
+							<Label className="sr-only" htmlFor="password">
+								Password
+							</Label>
+							<div className="relative">
+								<Input
+									autoComplete="current-password"
+									className="pr-9"
+									disabled={isAuthLoading}
+									id="password"
+									name="password"
+									placeholder="Password"
+									type={showPassword ? "text" : "password"}
+								/>
+								<button
+									aria-label={showPassword ? "Hide password" : "Show password"}
+									className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+									disabled={isAuthLoading}
+									onClick={() => setShowPassword(!showPassword)}
+									type="button"
+								>
+									{showPassword ? (
+										<HugeiconsIcon className="size-4" icon={ViewOffSlashIcon} />
+									) : (
+										<HugeiconsIcon className="size-4" icon={ViewIcon} />
+									)}
+								</button>
+							</div>
+						</div>
+					</div>
+					<div className="relative mt-4">
+						{lastMethod === "email" && (
+							<Badge
+								className="absolute -top-2 -right-2 z-10"
+								variant="default"
+							>
+								Last Used
+							</Badge>
+						)}
+						<Button className="w-full" disabled={isAuthLoading} type="submit">
+							{isAuthLoading ? "Loading…" : "Continue"}
+						</Button>
+					</div>
+				</form>
+			</div>
+
+			{(showForgotPasswordLink || showSignupLink) && (
+				<div className="flex flex-col gap-4 px-8 text-center text-muted-foreground text-xs">
+					{showForgotPasswordLink && (
+						<p>
+							Forgot your password?{" "}
+							<Link
+								className="underline underline-offset-4 hover:text-primary"
+								href="/forgot-password"
+							>
+								Reset Your Password
+							</Link>
+						</p>
+					)}
+					{showForgotPasswordLink && showSignupLink && <Separator />}
+					{showSignupLink && (
+						<p>
+							Don&apos;t have an account?{" "}
+							<Link
+								className="underline underline-offset-4 hover:text-primary"
+								href="/signup"
+							>
+								Register
+							</Link>
+						</p>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
