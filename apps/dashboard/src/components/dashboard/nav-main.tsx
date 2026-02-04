@@ -18,6 +18,7 @@ import {
 	SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import Link from "next/link";
+import { memo } from "react";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
 type NavMainCategory = "none" | "workspace" | "schedules" | "utility";
@@ -90,7 +91,7 @@ for (const item of navMainItems) {
 	itemsByCategory[item.category].push(item);
 }
 
-function NavGroup({
+const NavGroup = memo(function NavGroup({
 	items,
 	slug,
 	label,
@@ -125,7 +126,7 @@ function NavGroup({
 			</SidebarGroupContent>
 		</SidebarGroup>
 	);
-}
+});
 
 const categories = Object.keys(categoryLabels) as Exclude<
 	NavMainCategory,
