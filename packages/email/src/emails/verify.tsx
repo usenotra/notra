@@ -18,26 +18,44 @@ import { EMAIL_CONFIG } from "../utils/config";
 interface VerifyUserEmailProps {
 	userEmail: string;
 	otp: string;
-	type: "sign-in" | "email-verification" | "forget-password";
+	type: "sign-in" | "email-verification";
 }
 
+const getContent = (
+	type: VerifyUserEmailProps["type"],
+): { heading: string; description: string } => {
+	switch (type) {
+		case "sign-in":
+			return {
+				heading: "Your sign-in code",
+				description:
+					"Use the code below to sign in to your account. This code will expire in 5 minutes.",
+			};
+		case "email-verification":
+			return {
+				heading: "Verify your email address",
+				description:
+					"Use the code below to verify your email address. This code will expire in 5 minutes.",
+			};
+		default: {
+			const _exhaustiveCheck: never = type;
+			return _exhaustiveCheck;
+		}
+	}
+};
+
 export const VerifyUserEmail = ({
-	userEmail,
-	otp,
-	type,
+	userEmail = "user@example.com",
+	otp = "123456",
+	type = "email-verification",
 }: VerifyUserEmailProps) => {
 	const logoUrl = EMAIL_CONFIG.getLogoUrl();
-	const previewText =
-		type === "sign-in"
-			? "Your verification code"
-			: type === "email-verification"
-				? "Verify your email address"
-				: "Reset your password";
+	const { heading, description } = getContent(type);
 
 	return (
 		<Html>
 			<Head />
-			<Preview>{previewText}</Preview>
+			<Preview>{heading}</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-white px-2 font-sans">
 					<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-[#eaeaea] border-solid p-[20px]">
@@ -52,12 +70,11 @@ export const VerifyUserEmail = ({
 						</Section>
 
 						<Heading className="my-6 text-center font-medium text-2xl text-black">
-							{previewText}
+							{heading}
 						</Heading>
 
 						<Text className="text-center text-[#737373] text-base leading-relaxed">
-							Use the verification code below to complete your verification
-							process. This code will expire in 5 minutes.
+							{description}
 						</Text>
 
 						<Section className="mt-[32px] mb-[32px] text-center">

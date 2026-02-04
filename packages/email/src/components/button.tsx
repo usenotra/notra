@@ -9,7 +9,7 @@ export const EmailButton = ({
   ...props
 }: EmailButtonProps) => {
   const baseClasses =
-    "rounded-lg bg-[#766df8] px-6 py-3 font-semibold text-sm text-white";
+    "rounded-lg bg-[#8b5cf6] px-6 py-3 font-semibold text-sm text-white";
   const combinedClassName = className
     ? `${baseClasses} ${className}`
     : baseClasses;

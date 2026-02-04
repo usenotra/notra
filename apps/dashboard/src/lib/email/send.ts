@@ -41,6 +41,19 @@ export async function sendInviteEmail(
 	});
 }
 
+function getVerificationSubject(type: "sign-in" | "email-verification"): string {
+	switch (type) {
+		case "sign-in":
+			return "Your sign-in code";
+		case "email-verification":
+			return "Verify your email address";
+		default: {
+			const _exhaustiveCheck: never = type;
+			return _exhaustiveCheck;
+		}
+	}
+}
+
 export async function sendVerificationEmail(
 	resend: Resend,
 	{
@@ -50,14 +63,14 @@ export async function sendVerificationEmail(
 	}: {
 		userEmail: string;
 		otp: string;
-		type: "sign-in" | "email-verification" | "forget-password";
+		type: "sign-in" | "email-verification";
 	},
 ) {
 	return await resend.emails.send({
 		from: EMAIL_CONFIG.from,
 		replyTo: EMAIL_CONFIG.replyTo,
 		to: userEmail,
-		subject: "Verify your email address",
+		subject: getVerificationSubject(type),
 		react: VerifyUserEmail({
 			userEmail,
 			otp,
@@ -80,7 +93,7 @@ export async function sendResetPassword(
 		from: EMAIL_CONFIG.from,
 		replyTo: EMAIL_CONFIG.replyTo,
 		to: userEmail,
-		subject: "Reset Your Password",
+		subject: "Reset your password",
 		react: ResetPasswordEmail({
 			userEmail,
 			resetLink,

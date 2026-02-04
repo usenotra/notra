@@ -19,12 +19,11 @@ import { EMAIL_CONFIG } from "../utils/config";
 interface ResetPasswordProps {
 	userEmail: string;
 	resetLink: string;
-	baseUrl?: string;
 }
 
 export const ResetPasswordEmail = ({
-	userEmail,
-	resetLink,
+	userEmail = "user@example.com",
+	resetLink = "https://app.usenotra.com/reset-password?token=example",
 }: ResetPasswordProps) => {
 	const logoUrl = EMAIL_CONFIG.getLogoUrl();
 	return (
@@ -49,9 +48,8 @@ export const ResetPasswordEmail = ({
 						</Heading>
 
 						<Text className="text-center text-[#737373] text-base leading-relaxed">
-							Forgot your password? We received a request to reset the password
-							for your account. To reset your password, click on the button
-							below:
+							We received a request to reset the password for your account. Click
+							the button below to choose a new password:
 						</Text>
 
 						<Section className="my-8 text-center">
@@ -62,8 +60,8 @@ export const ResetPasswordEmail = ({
 						<Text className="text-[#666666] text-[12px] leading-[24px]">
 							This email was intended for{" "}
 							<span className="text-black">{userEmail}</span>. If you didn't
-							request this, you can safely ignore this email. Need help? Reach
-							us at {EMAIL_CONFIG.replyTo}.
+							request this, you can safely ignore this email. This link will
+							expire in 1 hour. Need help? Reach us at {EMAIL_CONFIG.replyTo}.
 						</Text>
 						<EmailFooter />
 					</Container>

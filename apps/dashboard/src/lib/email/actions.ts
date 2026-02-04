@@ -84,16 +84,18 @@ export async function sendVerificationEmailAction({
 }: {
 	userEmail: string;
 	otp: string;
-	type: "sign-in" | "email-verification" | "forget-password";
+	type: "sign-in" | "email-verification";
 }) {
 	console.log("called verification email");
 
 	if (!resend && isDevelopment) {
+		const subject =
+			type === "sign-in" ? "Your sign-in code" : "Verify your email address";
 		return sendDevEmail({
 			from: EMAIL_CONFIG.from,
 			to: userEmail,
 			text: "This is a mock verification email",
-			subject: "Verify your email address",
+			subject,
 			_mockContext: {
 				type: "verification",
 				data: { userEmail, otp, verificationType: type },
@@ -131,7 +133,7 @@ export async function sendResetPasswordAction({
 			from: EMAIL_CONFIG.from,
 			to: userEmail,
 			text: "This is a mock reset password email",
-			subject: "Reset Your Password",
+			subject: "Reset your password",
 			_mockContext: { type: "reset", data: { userEmail, resetLink } },
 		});
 	}
@@ -141,12 +143,11 @@ export async function sendResetPasswordAction({
 	}
 
 	try {
-		const response = await sendResetPassword(resend, {
+		await sendResetPassword(resend, {
 			userEmail,
 			resetLink,
 		});
 
-		console.log("Email sent successfully:", response);
 		return { success: true, message: "Email sent successfully" };
 	} catch (error) {
 		console.error("Detailed error sending email:", error);

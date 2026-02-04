@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import {
+	emailOTP,
 	haveIBeenPwned,
 	lastLoginMethod,
 	organization,
@@ -15,6 +16,7 @@ import { autumn } from "@/lib/billing/autumn";
 import {
 	sendInviteEmailAction,
 	sendResetPasswordAction,
+	sendVerificationEmailAction,
 } from "@/lib/email/actions";
 import { redis } from "@/lib/redis";
 import { generateOrganizationAvatar } from "@/lib/utils";
@@ -100,6 +102,23 @@ export const auth = betterAuth({
 		joins: true,
 	},
 	plugins: [
+		emailOTP({
+			otpLength: 6,
+			expiresIn: 300,
+			sendVerificationOTP: async ({ email, otp, type }) => {
+				// Only handle sign-in and email-verification via OTP
+				// Password reset uses link-based flow via emailAndPassword.sendResetPassword
+				if (type === "forget-password") {
+					return;
+				}
+				// Not awaited to avoid timing attacks (per better-auth docs)
+				sendVerificationEmailAction({
+					userEmail: email,
+					otp,
+					type,
+				});
+			},
+		}),
 		organization({
 			schema: {
 				organization: {
@@ -156,12 +175,13 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		sendResetPassword: async ({ user, url }) => {
-			await sendResetPasswordAction({
+			// Not awaited to avoid timing attacks
+			sendResetPasswordAction({
 				userEmail: user.email,
 				resetLink: url,
 			});
 		},
-		resetPasswordTokenExpiresIn: 3600,
+		resetPasswordTokenExpiresIn: 3600, // 1 hour
 	},
 	account: {
 		accountLinking: {

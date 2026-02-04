@@ -8,7 +8,7 @@ export const EMAIL_CONFIG = {
   },
 
   /**
-   * App/Dashboard URL for the CMS application
+   * App/Dashboard URL for the Dashboard application
    * Falls back to production URL if not set
    */
   getAppUrl(): string {
@@ -20,7 +20,7 @@ export const EMAIL_CONFIG = {
    */
   getLogoUrl(): string {
     const siteUrl = this.getSiteUrl();
-    return `${siteUrl}/logo.svg`;
+    return `${siteUrl}/favicon.svg`;
   },
 
   /**
@@ -37,10 +37,10 @@ export const EMAIL_CONFIG = {
    * Physical mailing address for CAN-SPAM compliance
    */
   physicalAddress: {
-    name: "Notra",
-    street: "",
-    city: "",
-    zip: "",
-    country: "Federal Republic of Germany",
+    name: "Dominik Koch - c/o IP-Management #8532",
+    street: "Ludwig-Erhard-Str. 18",
+    city: "Hamburg",
+    zip: "20459",
+    country: "Germany",
   },
 } as const;
