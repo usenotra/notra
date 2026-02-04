@@ -1,6 +1,7 @@
 import "dotenv/config";
+import { neon } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/neon-http";
 import { nanoid } from "nanoid";
 // biome-ignore lint/performance/noNamespaceImport: Required for drizzle schema
 import * as schema from "../src/schema";
@@ -12,7 +13,8 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-const db = drizzle(databaseUrl, { schema });
+const sql = neon(databaseUrl);
+const db = drizzle({ client: sql, schema });
 
 async function seed() {
   console.log("Starting automation seed...");
