@@ -1,6 +1,7 @@
 import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import Link from "next/link";
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = [
@@ -29,7 +30,7 @@ interface ContentCardProps {
   href?: string;
 }
 
-function ContentCard({
+const ContentCard = memo(function ContentCard({
   title,
   preview,
   contentType,
@@ -64,7 +65,7 @@ function ContentCard({
   }
 
   return cardContent;
-}
+});
 
 export { ContentCard, CONTENT_TYPES, CONTENT_TYPE_LABELS };
 export type { ContentCardProps, ContentType };
