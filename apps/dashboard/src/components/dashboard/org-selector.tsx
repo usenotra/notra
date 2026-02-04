@@ -32,7 +32,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCustomer } from "autumn-js/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useState } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
@@ -134,8 +134,10 @@ export function OrgSelector() {
     useOrganizationsContext();
   const { customer } = useCustomer();
 
+  const [isPending, startTransition] = useTransition();
   const [isSwitching, setIsSwitching] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const isNavigating = isSwitching || isPending;
 
   const proProduct = customer?.products.find(
     (p) => (p.id === "pro" || p.id === "pro_yearly") && (p.status === "active" || p.status === "trialing")
@@ -172,16 +174,14 @@ export function OrgSelector() {
         return;
       }
 
-      await Promise.all([
-        setLastVisitedOrganization(org.slug),
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.AUTH.activeOrganization,
-        }),
-      ]);
+      await setLastVisitedOrganization(org.slug);
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.AUTH.activeOrganization,
+      });
 
+      setIsSwitching(false);
       startTransition(() => {
         router.replace(targetPath);
-        setIsSwitching(false);
       });
     } catch (error) {
       toast.error("Failed to switch organization");
@@ -201,7 +201,7 @@ export function OrgSelector() {
             <OrgSelectorTrigger
               activeOrganization={activeOrganization}
               isCollapsed={isCollapsed}
-              isSwitching={isSwitching}
+              isSwitching={isNavigating}
               isPro={isPro}
             />
           ) : (
@@ -221,7 +221,7 @@ export function OrgSelector() {
                 {organizations.map((org) => (
                   <DropdownMenuItem
                     className="flex items-center gap-4"
-                    disabled={isSwitching}
+                    disabled={isNavigating}
                     key={org.id}
                     onClick={() => switchOrganization(org)}
                   >
