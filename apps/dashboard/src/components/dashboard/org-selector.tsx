@@ -151,8 +151,9 @@ export function OrgSelector() {
     let targetPath = `/${org.slug}`;
 
     if (currentSlug && pathname) {
-      const subPath = pathname.replace(`/${currentSlug}`, "");
-      if (subPath) {
+      const segments = pathname.split("/").filter(Boolean);
+      if (segments[0] === currentSlug && segments.length > 1) {
+        const subPath = "/" + segments.slice(1).join("/");
         targetPath = `/${org.slug}${subPath}`;
       }
     }
@@ -167,6 +168,7 @@ export function OrgSelector() {
 
       if (error) {
         toast.error(error.message || "Failed to switch organization");
+        setIsSwitching(false);
         return;
       }
 
@@ -179,11 +181,11 @@ export function OrgSelector() {
 
       startTransition(() => {
         router.replace(targetPath);
+        setIsSwitching(false);
       });
     } catch (error) {
       toast.error("Failed to switch organization");
       console.error(error);
-    } finally {
       setIsSwitching(false);
     }
   }
