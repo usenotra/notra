@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ContentCard } from "@/components/content/content-card";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -95,8 +95,24 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 		};
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-	const allPosts = data?.pages.flatMap((page) => page.posts) ?? [];
-	const groupedPosts = groupPostsByDate(allPosts);
+	const allPosts = useMemo(
+		() => data?.pages.flatMap((page) => page.posts) ?? [],
+		[data?.pages]
+	);
+
+	const groupedPosts = useMemo(
+		() => groupPostsByDate(allPosts),
+		[allPosts]
+	);
+
+	// Cache preview results to avoid recomputing for each render
+	const previewsByPostId = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const post of allPosts) {
+			map.set(post.id, getPreview(post.markdown));
+		}
+		return map;
+	}, [allPosts]);
 
 	return (
 		<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -130,7 +146,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 									contentType={post.contentType as ContentType}
 									href={`/${organizationSlug}/content/${post.id}`}
 									key={post.id}
-									preview={getPreview(post.markdown)}
+									preview={previewsByPostId.get(post.id) ?? ""}
 									title={post.title}
 								/>
 							))}

@@ -4,6 +4,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -194,16 +195,20 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     slugFromPath,
   ]);
 
-  const getOrganization = (slug: string) => {
-    return organizations.find((org) => org.slug === slug);
-  };
+  const getOrganization = useCallback(
+    (slug: string) => organizations.find((org) => org.slug === slug),
+    [organizations]
+  );
 
-  const contextValue: OrganizationsContextValue = {
-    organizations,
-    activeOrganization: activeOrganization ?? optimisticActiveOrg,
-    isLoading,
-    getOrganization,
-  };
+  const contextValue = useMemo<OrganizationsContextValue>(
+    () => ({
+      organizations,
+      activeOrganization: activeOrganization ?? optimisticActiveOrg,
+      isLoading,
+      getOrganization,
+    }),
+    [organizations, activeOrganization, optimisticActiveOrg, isLoading, getOrganization]
+  );
 
   useEffect(() => {
     if (!contextValue.activeOrganization?.id) {

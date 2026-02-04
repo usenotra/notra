@@ -23,6 +23,21 @@ import { OrgSelector } from "./org-selector";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 
+// Animation variants hoisted outside component to prevent recreation on each render
+const createMainVariants = (shouldReduceMotion: boolean | null) => ({
+	initial: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "-100%" },
+	animate: { opacity: 1, x: 0 },
+	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "-100%" },
+});
+
+const createSettingsVariants = (shouldReduceMotion: boolean | null) => ({
+	initial: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" },
+	animate: { opacity: 1, x: 0 },
+	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" },
+});
+
+const TRANSITION = { duration: 0.2, type: "spring" as const, bounce: 0.1 };
+
 export function DashboardSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
@@ -36,25 +51,8 @@ export function DashboardSidebar({
 	const isSettingsRoute =
 		pathname.includes("/settings") || pathname.includes("/billing");
 
-	const mainVariants = {
-		initial: shouldReduceMotion
-			? { opacity: 1, x: 0 }
-			: { opacity: 0, x: "-100%" },
-		animate: { opacity: 1, x: 0 },
-		exit: shouldReduceMotion
-			? { opacity: 1, x: 0 }
-			: { opacity: 0, x: "-100%" },
-	};
-
-	const settingsVariants = {
-		initial: shouldReduceMotion
-			? { opacity: 1, x: 0 }
-			: { opacity: 0, x: "100%" },
-		animate: { opacity: 1, x: 0 },
-		exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" },
-	};
-
-	const transition = { duration: 0.2, type: "spring" as const, bounce: 0.1 };
+	const mainVariants = shouldReduceMotion ? createMainVariants(true) : createMainVariants(false);
+	const settingsVariants = shouldReduceMotion ? createSettingsVariants(true) : createSettingsVariants(false);
 
 	return (
 		<Sidebar
@@ -70,7 +68,7 @@ export function DashboardSidebar({
 						initial="initial"
 						animate="animate"
 						exit="exit"
-						transition={transition}
+						transition={TRANSITION}
 						className="flex flex-1 flex-col"
 					>
 						<SidebarHeader>
@@ -103,7 +101,7 @@ export function DashboardSidebar({
 						initial="initial"
 						animate="animate"
 						exit="exit"
-						transition={transition}
+						transition={TRANSITION}
 						className="flex flex-1 flex-col"
 					>
 						<SidebarHeader>
