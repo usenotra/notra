@@ -31,8 +31,8 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCustomer } from "autumn-js/react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useState } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
@@ -126,6 +126,7 @@ function OrgSelectorSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 
 export function OrgSelector() {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const { isMobile, state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -146,6 +147,17 @@ export function OrgSelector() {
       return;
     }
 
+    const currentSlug = activeOrganization?.slug;
+    let targetPath = `/${org.slug}`;
+
+    if (currentSlug && pathname) {
+      const subPath = pathname.replace(`/${currentSlug}`, "");
+      if (subPath) {
+        targetPath = `/${org.slug}${subPath}`;
+      }
+    }
+
+    router.prefetch(targetPath);
     setIsSwitching(true);
 
     try {
@@ -158,13 +170,16 @@ export function OrgSelector() {
         return;
       }
 
-      await setLastVisitedOrganization(org.slug);
+      await Promise.all([
+        setLastVisitedOrganization(org.slug),
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.AUTH.activeOrganization,
+        }),
+      ]);
 
-      await queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.AUTH.activeOrganization,
+      startTransition(() => {
+        router.replace(targetPath);
       });
-
-      router.push(`/${org.slug}`);
     } catch (error) {
       toast.error("Failed to switch organization");
       console.error(error);
