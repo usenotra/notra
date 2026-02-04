@@ -12,6 +12,10 @@ import { cookies } from "next/headers";
 import { db } from "@notra/db/drizzle";
 import { members, organizations } from "@notra/db/schema";
 import { autumn } from "@/lib/billing/autumn";
+import {
+	sendInviteEmailAction,
+	sendResetPasswordAction,
+} from "@/lib/email/actions";
 import { redis } from "@/lib/redis";
 import { generateOrganizationAvatar } from "@/lib/utils";
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/utils/constants";
@@ -109,6 +113,16 @@ export const auth = betterAuth({
           },
         },
       },
+      sendInvitationEmail: async (data) => {
+        const inviteLink = `${process.env.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
+        await sendInviteEmailAction({
+          inviteeEmail: data.email,
+          inviterName: data.inviter.user.name,
+          inviterEmail: data.inviter.user.email,
+          workspaceName: data.organization.name,
+          inviteLink,
+        });
+      },
     }),
     lastLoginMethod(),
     haveIBeenPwned(),
@@ -142,18 +156,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
-      const { sendEmail } = await import("@/lib/email");
-      const { PasswordResetEmail } =
-        await import("@/lib/email/templates/password-reset");
-      const result = await sendEmail({
-        to: user.email,
-        subject: "Reset your Notra password",
-        react: PasswordResetEmail({ resetUrl: url, userName: user.name }),
+      await sendResetPasswordAction({
+        userEmail: user.email,
+        resetLink: url,
       });
-
-      if (!result.success) {
-        throw new Error("Failed to send password reset email");
-      }
     },
     resetPasswordTokenExpiresIn: 3600,
   },

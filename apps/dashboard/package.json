@@ -29,6 +29,7 @@
     "@lexical/utils": "^0.39.0",
     "@mendable/firecrawl-js": "^4.10.0",
     "@notra/db": "workspace:*",
+    "@notra/email": "workspace:*",
     "@notra/ui": "workspace:*",
     "@octokit/core": "^7.0.6",
     "@openrouter/ai-sdk-provider": "^1.5.4",
