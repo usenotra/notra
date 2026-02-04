@@ -84,6 +84,13 @@ export async function orchestrateChat(
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(maxSteps),
+    onError({ error }) {
+      console.error("[Chat Stream Error]", {
+        organizationId,
+        model: routingDecision.model,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
   return { stream, routingDecision };
@@ -109,5 +116,5 @@ function getLastUserMessage(messages: UIMessage[]): string {
 
 export * from "./types";
 export { validateIntegrations, hasEnabledGitHubIntegration } from "./integration-validator";
-export { routeAndSelectModel, routeMessage, selectModel } from "./router";
+export { routeAndSelectModel, routeMessage, selectModel, MODELS } from "./router";
 export { buildToolSet } from "./tool-registry";

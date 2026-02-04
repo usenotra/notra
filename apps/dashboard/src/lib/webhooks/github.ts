@@ -1,11 +1,18 @@
 import crypto from "crypto";
 import { generateText } from "ai";
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
 import { getGithubWebhookMemoryPrompt } from "@/lib/ai/prompts/github-webhook-memory";
 import { openrouter } from "@/lib/openrouter";
 import { getWebhookSecretByRepositoryId } from "@/lib/services/github-integration";
 import { redis } from "@/lib/redis";
 import type { WebhookContext, WebhookResult } from "@/types/webhooks";
+import {
+  githubWebhookPayloadSchema,
+  isGitHubEventType,
+  type GitHubWebhookPayload,
+  type GitHubEventType,
+} from "@/utils/schemas/github-webhook";
 
 const DELIVERY_TTL_SECONDS = 60 * 60 * 24;
 
@@ -22,58 +29,9 @@ async function markDeliveryProcessed(deliveryId: string): Promise<void> {
   await redis.set(key, "1", { ex: DELIVERY_TTL_SECONDS });
 }
 
-// Event types we care about (see docs/github-webhook-events.md)
-type GitHubEventType = "release" | "push" | "star" | "ping";
-
 type MemoryEventType = Exclude<GitHubEventType, "ping">;
 
 const STAR_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
-
-interface GitHubWebhookPayload {
-  action?: string;
-  ref?: string;
-  ref_type?: string;
-  repository?: {
-    id: number;
-    name: string;
-    full_name: string;
-    default_branch: string;
-    owner: {
-      login: string;
-    };
-    stargazers_count?: number;
-  };
-  star_count?: number;
-  sender?: {
-    login: string;
-    id: number;
-  };
-  release?: {
-    tag_name: string;
-    name: string | null;
-    body: string | null;
-    draft: boolean;
-    prerelease: boolean;
-    published_at: string | null;
-    html_url: string;
-  };
-  commits?: Array<{
-    id: string;
-    message: string;
-    author: {
-      name: string;
-      email: string;
-      username?: string;
-    };
-    timestamp: string;
-    url: string;
-  }>;
-  head_commit?: {
-    id: string;
-    message: string;
-  };
-  starred_at?: string;
-}
 
 interface ProcessedEvent {
   type: string;
@@ -178,7 +136,6 @@ function processReleaseEvent(
   action: string,
   payload: GitHubWebhookPayload,
 ): ProcessedEvent | null {
-  // Only process published, created, edited, prereleased
   const validActions = ["published", "created", "edited", "prereleased"];
   if (!validActions.includes(action)) {
     return null;
@@ -189,7 +146,6 @@ function processReleaseEvent(
     return null;
   }
 
-  // Skip drafts unless they were just created
   if (release.draft && action !== "created") {
     return null;
   }
@@ -220,12 +176,10 @@ function processPushEvent(
     return null;
   }
 
-  // Only process pushes to default branch
   if (!isDefaultBranchRef(ref, defaultBranch)) {
     return null;
   }
 
-  // Ignore empty pushes (force push with no new commits)
   if (!commits || commits.length === 0) {
     return null;
   }
@@ -257,7 +211,6 @@ function processStarEvent(
   action: string,
   payload: GitHubWebhookPayload,
 ): ProcessedEvent | null {
-  // Only process star creation
   if (action !== "created") {
     return null;
   }
@@ -282,11 +235,11 @@ export async function handleGitHubWebhook(
   const { request, rawBody, repositoryId, organizationId, integrationId } =
     context;
 
-  const event = request.headers.get("x-github-event") as GitHubEventType | null;
+  const eventHeader = request.headers.get("x-github-event");
   const signature = request.headers.get("x-hub-signature-256");
   const delivery = request.headers.get("x-github-delivery");
 
-  if (!event) {
+  if (!eventHeader || !isGitHubEventType(eventHeader)) {
     await appendWebhookLog({
       organizationId,
       integrationId,
@@ -304,6 +257,8 @@ export async function handleGitHubWebhook(
     };
   }
 
+  const event: GitHubEventType = eventHeader;
+
   if (delivery && (await isDeliveryProcessed(delivery))) {
     return {
       success: true,
@@ -312,27 +267,6 @@ export async function handleGitHubWebhook(
     };
   }
 
-  // Handle ping event (sent when webhook is first configured)
-  if (event === "ping") {
-    await appendWebhookLog({
-      organizationId,
-      integrationId,
-      integrationType: "github",
-      title: "Webhook ping received",
-      status: "success",
-      statusCode: 200,
-      referenceId: delivery ?? null,
-      payload: { event: "ping" },
-    });
-
-    return {
-      success: true,
-      message: "Pong! Webhook configured successfully",
-      data: { event: "ping", delivery },
-    };
-  }
-
-  // Verify signature
   const secret = await getWebhookSecretByRepositoryId(repositoryId);
   if (!secret) {
     await appendWebhookLog({
@@ -388,10 +322,31 @@ export async function handleGitHubWebhook(
     };
   }
 
-  // Parse payload
-  let payload: GitHubWebhookPayload;
+  const logRetentionDays = await checkLogRetention(organizationId);
+
+  if (event === "ping") {
+    await appendWebhookLog({
+      organizationId,
+      integrationId,
+      integrationType: "github",
+      title: "Webhook ping received",
+      status: "success",
+      statusCode: 200,
+      referenceId: delivery ?? null,
+      payload: { event: "ping" },
+      retentionDays: logRetentionDays,
+    });
+
+    return {
+      success: true,
+      message: "Pong! Webhook configured successfully",
+      data: { event: "ping", delivery },
+    };
+  }
+
+  let parsedBody: unknown;
   try {
-    payload = JSON.parse(rawBody);
+    parsedBody = JSON.parse(rawBody);
   } catch {
     await appendWebhookLog({
       organizationId,
@@ -402,6 +357,7 @@ export async function handleGitHubWebhook(
       statusCode: 400,
       referenceId: delivery ?? null,
       errorMessage: "Invalid JSON payload",
+      retentionDays: logRetentionDays,
     });
 
     return {
@@ -410,9 +366,29 @@ export async function handleGitHubWebhook(
     };
   }
 
+  const validation = githubWebhookPayloadSchema.safeParse(parsedBody);
+  if (!validation.success) {
+    await appendWebhookLog({
+      organizationId,
+      integrationId,
+      integrationType: "github",
+      title: "Invalid webhook payload structure",
+      status: "failed",
+      statusCode: 400,
+      referenceId: delivery ?? null,
+      errorMessage: `Payload validation failed: ${validation.error.issues.map((i) => i.message).join(", ")}`,
+      retentionDays: logRetentionDays,
+    });
+
+    return {
+      success: false,
+      message: "Invalid webhook payload structure",
+    };
+  }
+
+  const payload = validation.data;
   const action = payload.action ?? "";
 
-  // Process event based on type
   let processedEvent: ProcessedEvent | null = null;
 
   switch (event) {
@@ -435,9 +411,9 @@ export async function handleGitHubWebhook(
         statusCode: 200,
         referenceId: delivery ?? null,
         payload: { event, action, ignored: true },
+        retentionDays: logRetentionDays,
       });
 
-      // Unhandled event type - acknowledge but don't process
       return {
         success: true,
         message: `Event type '${event}' is not processed`,
@@ -445,7 +421,6 @@ export async function handleGitHubWebhook(
       };
   }
 
-  // Event was filtered out (e.g., push to non-default branch)
   if (!processedEvent) {
     await appendWebhookLog({
       organizationId,
@@ -456,6 +431,7 @@ export async function handleGitHubWebhook(
       statusCode: 200,
       referenceId: delivery ?? null,
       payload: { event, action, filtered: true },
+      retentionDays: logRetentionDays,
     });
 
     return {
@@ -465,18 +441,14 @@ export async function handleGitHubWebhook(
     };
   }
 
-  // TODO: Store the processed event in the database
-  // TODO: Trigger any workflows based on the event
-
   const repositoryName = getRepositoryName(payload);
-  const stargazersCount = processedEvent.data.stargazersCount as
-    | number
-    | undefined;
+  const stargazersCount = processedEvent.data.stargazersCount;
 
   const shouldPersistMemory =
     processedEvent.type === "release" ||
     processedEvent.type === "push" ||
-    (processedEvent.type === "star" && isStarMilestone(stargazersCount));
+    (processedEvent.type === "star" &&
+      isStarMilestone(stargazersCount as number | undefined));
 
   if (shouldPersistMemory) {
     const customId = `github:${repositoryId}:${delivery ?? crypto.randomUUID()}`;
@@ -503,6 +475,7 @@ export async function handleGitHubWebhook(
       action: processedEvent.action,
       data: processedEvent.data,
     },
+    retentionDays: logRetentionDays,
   });
 
   if (delivery) {

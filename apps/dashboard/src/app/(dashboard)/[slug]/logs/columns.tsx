@@ -5,6 +5,7 @@ import {
   ArrowUp01Icon,
   ArrowUpDownIcon,
   Link04Icon,
+  PlayCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -81,6 +82,13 @@ function IntegrationIcon({ type }: { type: IntegrationType }) {
         <HugeiconsIcon
           className="size-4 text-muted-foreground"
           icon={Link04Icon}
+        />
+      );
+    case "manual":
+      return (
+        <HugeiconsIcon
+          className="size-4 text-muted-foreground"
+          icon={PlayCircleIcon}
         />
       );
     default: {

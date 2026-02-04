@@ -148,8 +148,8 @@ export type ConfigureOutputBody = z.infer<typeof configureOutputBodySchema>;
 export const WEBHOOK_EVENT_TYPES = ["release", "push", "star"] as const;
 export type WebhookEventType = (typeof WEBHOOK_EVENT_TYPES)[number];
 
-export const CRON_CADENCES = ["daily", "weekly", "monthly"] as const;
-export type CronCadence = (typeof CRON_CADENCES)[number];
+export const CRON_FREQUENCIES = ["daily", "weekly", "monthly"] as const;
+export type CronFrequency = (typeof CRON_FREQUENCIES)[number];
 
 export const triggerSourceTypeSchema = z.enum([
   "github_webhook",
@@ -162,7 +162,7 @@ export const triggerSourceConfigSchema = z.object({
   eventTypes: z.array(z.enum(WEBHOOK_EVENT_TYPES)).optional(),
   cron: z
     .object({
-      cadence: z.enum(CRON_CADENCES),
+      frequency: z.enum(CRON_FREQUENCIES),
       hour: z.number().min(0).max(23),
       minute: z.number().min(0).max(59),
       dayOfWeek: z.number().min(0).max(6).optional(),

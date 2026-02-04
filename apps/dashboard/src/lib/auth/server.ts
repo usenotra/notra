@@ -1,6 +1,3 @@
-import { db } from "@notra/db/drizzle";
-import { members, organizations } from "@notra/db/schema";
-import { Autumn } from "autumn-js";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -12,6 +9,9 @@ import {
 import { eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { cookies } from "next/headers";
+import { db } from "@notra/db/drizzle";
+import { members, organizations } from "@notra/db/schema";
+import { autumn } from "@/lib/billing/autumn";
 import {
 	sendInviteEmailAction,
 	sendResetPasswordAction,
@@ -229,7 +229,12 @@ export const auth = betterAuth({
 					};
 				},
 				after: async (org: { id: string; name: string }) => {
-					const autumn = new Autumn();
+					if (!autumn) {
+						console.warn(
+							"[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured",
+						);
+						return;
+					}
 					const result = await autumn.customers.create({
 						id: org.id,
 						name: org.name,
@@ -237,17 +242,6 @@ export const auth = betterAuth({
 							orgId: org.id,
 						},
 					});
-
-					if (result.error) {
-						console.error("[Autumn] Failed to create org customer:", {
-							orgId: org.id,
-							orgName: org.name,
-							error: result.error,
-						});
-						throw new Error(
-							`Failed to set up billing for organization: ${result.error.message || "Unknown error"}`,
-						);
-					}
 
 					console.log("[Autumn] Customer created successfully:", {
 						orgId: org.id,

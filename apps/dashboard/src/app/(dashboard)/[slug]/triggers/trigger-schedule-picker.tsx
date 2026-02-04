@@ -1,6 +1,6 @@
 "use client";
 
-import type { CronCadence } from "@/utils/schemas/integrations";
+import type { CronFrequency } from "@/utils/schemas/integrations";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/ui/select";
 
 interface ScheduleValue {
-  cadence: CronCadence;
+  frequency: CronFrequency;
   hour: number;
   minute: number;
   dayOfWeek?: number;
@@ -22,6 +22,12 @@ interface SchedulePickerProps {
   value?: ScheduleValue;
   onChange: (value?: ScheduleValue) => void;
 }
+
+const FREQUENCY_OPTIONS = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+] as const;
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -42,7 +48,7 @@ function pad(value: number) {
 }
 
 export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
-  const current = value ?? { cadence: "daily", hour: 9, minute: 0 };
+  const current = value ?? { frequency: "daily", hour: 9, minute: 0 };
 
   const update = (updates: Partial<ScheduleValue>) => {
     onChange({ ...current, ...updates });
@@ -55,18 +61,22 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
         <Select
           onValueChange={(val) => {
             if (val) {
-              update({ cadence: val as CronCadence });
+              update({ frequency: val as CronFrequency });
             }
           }}
-          value={current.cadence}
+          value={current.frequency}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Cadence" />
+            <SelectValue placeholder="Frequency">
+              {FREQUENCY_OPTIONS.find((o) => o.value === current.frequency)?.label}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
+            {FREQUENCY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -118,7 +128,7 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
           </Select>
         </div>
 
-        {current.cadence === "weekly" ? (
+        {current.frequency === "weekly" ? (
           <div className="space-y-2">
             <p className="text-muted-foreground text-xs">Day of week</p>
             <Select
@@ -143,7 +153,7 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
           </div>
         ) : null}
 
-        {current.cadence === "monthly" ? (
+        {current.frequency === "monthly" ? (
           <div className="space-y-2">
             <p className="text-muted-foreground text-xs">Day of month</p>
             <Select
@@ -171,7 +181,7 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
 
       <Input
         disabled
-        value={`Timezone: UTC · ${current.cadence}`}
+        value={`Timezone: UTC · ${FREQUENCY_OPTIONS.find((o) => o.value === current.frequency)?.label ?? current.frequency}`}
         className="text-xs"
       />
     </div>

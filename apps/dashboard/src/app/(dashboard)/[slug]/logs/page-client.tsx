@@ -4,9 +4,11 @@ import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
+import { useCustomer } from "autumn-js/react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { FEATURES } from "@/lib/billing/constants";
 import type { LogsResponse } from "@/types/webhook-logs";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { columns } from "./columns";
@@ -21,8 +23,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 	const { getOrganization } = useOrganizationsContext();
 	const organization = getOrganization(organizationSlug);
 	const organizationId = organization?.id;
+	const { check, customer } = useCustomer();
 
 	const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+
+	const has30DayRetention = customer
+		? check({ featureId: FEATURES.LOG_RETENTION_30_DAYS }).data?.allowed
+		: false;
+	const logRetentionDays = has30DayRetention ? 30 : 7;
 
 	const { data, isPending } = useQuery({
 		queryKey: QUERY_KEYS.WEBHOOK_LOGS.list(organizationId ?? "", page),
@@ -57,8 +65,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 				<Alert>
 					<HugeiconsIcon className="size-4" icon={InformationCircleIcon} />
 					<AlertDescription>
-						Log data is retained for 7 days. Older entries are automatically
-						removed.
+						Log data is retained for {logRetentionDays} days. Older entries are
+						automatically removed.
 					</AlertDescription>
 				</Alert>
 

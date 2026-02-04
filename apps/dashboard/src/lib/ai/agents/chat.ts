@@ -1,10 +1,8 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
 import { stepCountIs, ToolLoopAgent } from "ai";
 import { createMarkdownTools } from "@/lib/ai/tools/edit-markdown";
-import {
-  getSkillByName,
-  listAvailableSkills,
-} from "@/lib/ai/tools/skills";
+import { getSkillByName, listAvailableSkills } from "@/lib/ai/tools/skills";
+import { selectModel, routeMessage } from "@/lib/ai/orchestration/router";
 import { openrouter } from "@/lib/openrouter";
 
 interface ChatAgentContext {
@@ -12,12 +10,19 @@ interface ChatAgentContext {
   currentMarkdown: string;
   selectedText?: string;
   onMarkdownUpdate: (markdown: string) => void;
+  brandContext?: string;
 }
 
-export function createChatAgent(context: ChatAgentContext) {
+export async function createChatAgent(
+  context: ChatAgentContext,
+  instruction: string,
+) {
+  const decision = await routeMessage(instruction, false);
+  const model = selectModel(decision);
+
   const modelWithMemory = withSupermemory(
-    openrouter("anthropic/claude-sonnet-4.5"),
-    context.organizationId
+    openrouter(model),
+    context.organizationId,
   );
 
   const { getMarkdown, editMarkdown } = createMarkdownTools({
@@ -29,6 +34,10 @@ export function createChatAgent(context: ChatAgentContext) {
     ? `\n\nThe user has selected the following text (focus changes on this area):\n"""\n${context.selectedText}\n"""`
     : "";
 
+  const brandContext = context.brandContext
+    ? `\n\nBrand identity context:\n${context.brandContext}`
+    : "";
+
   return new ToolLoopAgent({
     model: modelWithMemory,
     tools: {
@@ -37,7 +46,7 @@ export function createChatAgent(context: ChatAgentContext) {
       listAvailableSkills: listAvailableSkills(),
       getSkillByName: getSkillByName(),
     },
-    instructions: `You are a content editor assistant. Help users edit their markdown documents.
+    instructions: `You are a content editor assistant. Help users edit their markdown documents.${brandContext}
 
 ## Workflow
 1. Use getMarkdown to see the document with line numbers

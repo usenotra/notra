@@ -66,14 +66,14 @@ export default function BillingUsagePage() {
 		total,
 		isLoading: usageLoading,
 	} = useAggregateEvents({
-		featureId: FEATURES.CHAT_MESSAGES,
+		featureId: FEATURES.AI_CREDITS,
 		range,
 		binSize: "day",
 	});
 
 	const usageSeries = useMemo(() => {
 		return (list ?? []).map((item) => {
-			const usage = Number(item[FEATURES.CHAT_MESSAGES] ?? 0);
+			const usage = Number(item[FEATURES.AI_CREDITS] ?? 0);
 			return {
 				date: formatDateLabel(new Date(item.period)),
 				usage,
@@ -82,8 +82,8 @@ export default function BillingUsagePage() {
 	}, [list]);
 
 	const totalUsage =
-		typeof total?.[FEATURES.CHAT_MESSAGES]?.sum === "number"
-			? (total?.[FEATURES.CHAT_MESSAGES]?.sum ?? 0)
+		typeof total?.[FEATURES.AI_CREDITS]?.sum === "number"
+			? (total?.[FEATURES.AI_CREDITS]?.sum ?? 0)
 			: 0;
 
 	// Extract all features from customer object
@@ -117,7 +117,7 @@ export default function BillingUsagePage() {
 
 	// Find the AI credits feature for the hero card
 	const aiCreditsFeature = features.find(
-		(f) => f.id === FEATURES.CHAT_MESSAGES,
+		(f) => f.id === FEATURES.AI_CREDITS,
 	);
 
 	if (customerLoading && !customer) {

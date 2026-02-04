@@ -15,11 +15,13 @@ interface ContentEditorChatPromptParams {
   hasGitHubEnabled?: boolean;
 }
 
-export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams) {
+export function getContentEditorChatPrompt(
+  params: ContentEditorChatPromptParams,
+) {
   const { selection, repoContext, toolDescriptions, hasGitHubEnabled } = params;
 
   const selectionContext = selection
-    ? `\n\n## User Selection\nThe user has selected text from line ${selection.startLine} (char ${selection.startChar}) to line ${selection.endLine} (char ${selection.endChar}):\n"""\n${selection.text}\n"""\nCONSTRAINT: Your edits MUST only affect lines ${selection.startLine} to ${selection.endLine}. Do not modify content outside this range.`
+    ? `\n\n## User Selection\nThe user selected lines ${selection.startLine}:${selection.startChar}–${selection.endLine}:${selection.endChar}:\n"""\n${selection.text}\n"""\nCONSTRAINT: Edit only within lines ${selection.startLine}–${selection.endLine}.`
     : "";
 
   const capabilitiesSection = toolDescriptions?.length
@@ -35,8 +37,8 @@ export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams
     You are a content editor assistant. Help users edit their markdown documents.
 
     ## Workflow
-    1. Use getMarkdown to see the document with line numbers
-    2. Use editMarkdown to apply changes (work from bottom to top)
+    1. If the user asks for edits, ALWAYS call getMarkdown first
+    2. Apply edits with editMarkdown (work from bottom to top)
 
     ## Edit Operations
     - replaceLine: { op: "replaceLine", line: number, content: string }
@@ -50,6 +52,7 @@ export function getContentEditorChatPrompt(params: ContentEditorChatPromptParams
     - Line numbers are 1-indexed
     - For multi-line content use \\n in content string
     - When user selects text, focus only on that section
+    - IMPORTANT: When the user requests edits, you MUST use the editMarkdown tool (no plain-text rewrites)
     - IMPORTANT: Do NOT output the content of your edits in text. Only use the editMarkdown tool. Keep text responses brief - just explain what you're doing, not the actual content.
     ${capabilitiesSection}${githubSection}${selectionContext}
   `;

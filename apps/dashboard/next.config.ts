@@ -1,5 +1,5 @@
+import path from "node:path";
 import type { NextConfig } from "next";
-import { withWorkflow } from "workflow/next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true, // enabled by default but I like to be explicit
@@ -11,10 +11,10 @@ const nextConfig: NextConfig = {
     useCache: true,
     optimizePackageImports: ["@hugeicons/core-free-icons", "lucide-react"],
   },
-  transpilePackages: [
-    "@notra/db",
-    "@notra/ui",
-  ],
+  turbopack: {
+    root: path.resolve(__dirname, "../.."),
+  },
+  transpilePackages: ["@notra/db", "@notra/ui"],
   async redirects() {
     return [
       {
@@ -26,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+export default nextConfig;

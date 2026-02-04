@@ -1,13 +1,13 @@
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { ROUTING_PROMPT } from "@/lib/ai/prompts/router";
 import { openrouter } from "@/lib/openrouter";
 import { routingDecisionSchema } from "./schemas";
 import type { RoutingDecision, RoutingResult } from "./types";
 
-const MODELS = {
-  router: "openai/gpt-oss-120b",
+export const MODELS = {
+  router: "openai/gpt-oss-120b", // Only for routing decisions, no supermemory
   simple: "openai/gpt-5.1",
-  complex: "anthropic/claude-sonnet-4.5",
+  complex: "moonshotai/kimi-k2.5",
 } as const;
 
 export async function routeMessage(
@@ -20,16 +20,16 @@ export async function routeMessage(
 
   const routerModel = openrouter(MODELS.router);
 
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: routerModel,
-    schema: routingDecisionSchema,
+    output: Output.object({ schema: routingDecisionSchema }),
     system: ROUTING_PROMPT,
     prompt: `Classify this user message:
 
 "${userMessage}"${contextHint}`,
   });
 
-  return object;
+  return output;
 }
 
 export function selectModel(decision: RoutingDecision): string {
