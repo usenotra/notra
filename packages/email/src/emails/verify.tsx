@@ -43,7 +43,7 @@ export const VerifyUserEmail = ({
 					<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-[#eaeaea] border-solid p-[20px]">
 						<Section className="mt-[32px]">
 							<Img
-								alt="Marble Logo"
+								alt="Notra Logo"
 								className="mx-auto"
 								height="40"
 								src={logoUrl}
