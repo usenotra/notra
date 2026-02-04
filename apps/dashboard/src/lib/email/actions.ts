@@ -89,11 +89,13 @@ export async function sendVerificationEmailAction({
 	console.log("called verification email");
 
 	if (!resend && isDevelopment) {
+		const subject =
+			type === "sign-in" ? "Your sign-in code" : "Verify your email address";
 		return sendDevEmail({
 			from: EMAIL_CONFIG.from,
 			to: userEmail,
 			text: "This is a mock verification email",
-			subject: "Verify your email address",
+			subject,
 			_mockContext: {
 				type: "verification",
 				data: { userEmail, otp, verificationType: type },

@@ -41,12 +41,16 @@ export async function sendInviteEmail(
 	});
 }
 
-function getVerificationSubject(type: "sign-in" | "email-verification") {
+function getVerificationSubject(type: "sign-in" | "email-verification"): string {
 	switch (type) {
 		case "sign-in":
 			return "Your sign-in code";
 		case "email-verification":
 			return "Verify your email address";
+		default: {
+			const _exhaustiveCheck: never = type;
+			return _exhaustiveCheck;
+		}
 	}
 }
 

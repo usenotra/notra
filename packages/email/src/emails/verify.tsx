@@ -21,7 +21,9 @@ interface VerifyUserEmailProps {
 	type: "sign-in" | "email-verification";
 }
 
-const getContent = (type: VerifyUserEmailProps["type"]) => {
+const getContent = (
+	type: VerifyUserEmailProps["type"],
+): { heading: string; description: string } => {
 	switch (type) {
 		case "sign-in":
 			return {
@@ -35,6 +37,10 @@ const getContent = (type: VerifyUserEmailProps["type"]) => {
 				description:
 					"Use the code below to verify your email address. This code will expire in 5 minutes.",
 			};
+		default: {
+			const _exhaustiveCheck: never = type;
+			return _exhaustiveCheck;
+		}
 	}
 };
 
