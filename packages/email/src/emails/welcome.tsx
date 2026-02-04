@@ -50,7 +50,6 @@ export const WelcomeEmail = ({ userEmail, baseUrl }: WelcomeEmailProps) => {
 						<Section className="my-8 text-center">
 							<EmailButton href={baseUrl}>Go to Dashboard</EmailButton>
 						</Section>
-						<Hr className="mx-0 mt-[26px] w-full border border-[#eaeaea] border-solid" />
 						<EmailFooter />
 					</Container>
 				</Body>
