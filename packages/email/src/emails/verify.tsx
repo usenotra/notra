@@ -39,9 +39,9 @@ const getContent = (type: VerifyUserEmailProps["type"]) => {
 };
 
 export const VerifyUserEmail = ({
-	userEmail,
-	otp,
-	type,
+	userEmail = "user@example.com",
+	otp = "123456",
+	type = "email-verification",
 }: VerifyUserEmailProps) => {
 	const logoUrl = EMAIL_CONFIG.getLogoUrl();
 	const { heading, description } = getContent(type);

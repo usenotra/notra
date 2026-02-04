@@ -22,8 +22,8 @@ interface ResetPasswordProps {
 }
 
 export const ResetPasswordEmail = ({
-	userEmail,
-	resetLink,
+	userEmail = "user@example.com",
+	resetLink = "https://app.usenotra.com/reset-password?token=example",
 }: ResetPasswordProps) => {
 	const logoUrl = EMAIL_CONFIG.getLogoUrl();
 	return (
