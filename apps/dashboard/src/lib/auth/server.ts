@@ -17,6 +17,7 @@ import {
 	sendInviteEmailAction,
 	sendResetPasswordAction,
 	sendVerificationEmailAction,
+	sendWelcomeEmailAction,
 } from "@/lib/email/actions";
 import { redis } from "@/lib/redis";
 import { generateOrganizationAvatar } from "@/lib/utils";
@@ -221,6 +222,9 @@ export const auth = betterAuth({
 							logo: generateOrganizationAvatar(slug),
 						},
 					});
+
+					// Send welcome email (not awaited to avoid blocking signup)
+					sendWelcomeEmailAction({ userEmail: email });
 				},
 			},
 		},
