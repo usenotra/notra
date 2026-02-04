@@ -1,4 +1,5 @@
 import {
+  emailOTPClient,
   inferOrgAdditionalFields,
   lastLoginMethodClient,
   organizationClient,
@@ -8,6 +9,7 @@ import type { auth } from "./server";
 
 export const authClient = createAuthClient({
   plugins: [
+    emailOTPClient(),
     lastLoginMethodClient(),
     organizationClient({
       schema: inferOrgAdditionalFields<typeof auth>(),
