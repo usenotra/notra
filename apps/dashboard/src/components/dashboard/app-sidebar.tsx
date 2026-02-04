@@ -51,8 +51,8 @@ export function DashboardSidebar({
 	const isSettingsRoute =
 		pathname.includes("/settings") || pathname.includes("/billing");
 
-	const mainVariants = createMainVariants(shouldReduceMotion);
-	const settingsVariants = createSettingsVariants(shouldReduceMotion);
+	const mainVariants = shouldReduceMotion ? createMainVariants(true) : createMainVariants(false);
+	const settingsVariants = shouldReduceMotion ? createSettingsVariants(true) : createSettingsVariants(false);
 
 	return (
 		<Sidebar
