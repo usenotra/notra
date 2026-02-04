@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import { nanoid } from "nanoid";
 // biome-ignore lint/performance/noNamespaceImport: Required for drizzle schema
 import * as schema from "../src/schema";
@@ -13,8 +13,8 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-const sql = neon(databaseUrl);
-const db = drizzle({ client: sql, schema });
+const pool = new Pool({ connectionString: databaseUrl });
+const db = drizzle({ client: pool, schema });
 
 interface SeedPost {
   title: string;

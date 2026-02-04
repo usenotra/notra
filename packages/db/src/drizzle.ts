@@ -1,6 +1,6 @@
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 import { upstashCache } from "drizzle-orm/cache/upstash";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/neon-serverless";
 // biome-ignore lint/performance/noNamespaceImport: Required for drizzle-kit
 import * as schema from "./schema";
 
@@ -13,10 +13,10 @@ if (!databaseUrl) {
 const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
 const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const sql = neon(databaseUrl);
+const pool = new Pool({ connectionString: databaseUrl });
 
 export const db = drizzle({
-  client: sql,
+  client: pool,
   schema,
   cache:
     upstashUrl && upstashToken
