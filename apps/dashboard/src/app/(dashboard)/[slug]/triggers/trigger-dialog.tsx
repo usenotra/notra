@@ -52,12 +52,16 @@ const EVENT_OPTIONS: Array<{ value: WebhookEventType; label: string }> = [
 	{ value: "star", label: "New star" },
 ];
 
-const OUTPUT_OPTIONS: Array<{ value: OutputContentType; label: string }> = [
+const OUTPUT_OPTIONS: Array<{
+	value: OutputContentType;
+	label: string;
+	disabled?: boolean;
+}> = [
 	{ value: "changelog", label: "Changelog" },
-	{ value: "blog_post", label: "Blog Post" },
-	{ value: "twitter_post", label: "Twitter Post" },
-	{ value: "linkedin_post", label: "LinkedIn Post" },
-	{ value: "investor_update", label: "Investor Update" },
+	{ value: "blog_post", label: "Blog Post", disabled: true },
+	{ value: "twitter_post", label: "Twitter Post", disabled: true },
+	{ value: "linkedin_post", label: "LinkedIn Post", disabled: true },
+	{ value: "investor_update", label: "Investor Update", disabled: true },
 ];
 
 interface TriggerFormValues {
@@ -469,8 +473,13 @@ export function AddTriggerDialog({
 											</SelectTrigger>
 											<SelectContent>
 												{OUTPUT_OPTIONS.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
+													<SelectItem
+														key={option.value}
+														value={option.value}
+														disabled={option.disabled}
+													>
 														{option.label}
+														{option.disabled ? " (Coming soon)" : ""}
 													</SelectItem>
 												))}
 											</SelectContent>

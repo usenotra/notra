@@ -190,3 +190,21 @@ export const configureTriggerBodySchema = z.object({
   enabled: z.boolean(),
 });
 export type ConfigureTriggerBody = z.infer<typeof configureTriggerBodySchema>;
+
+export const SUPPORTED_SCHEDULE_OUTPUT_TYPES = ["changelog"] as const;
+export type ScheduleOutputType = (typeof SUPPORTED_SCHEDULE_OUTPUT_TYPES)[number];
+
+export const configureScheduleBodySchema = configureTriggerBodySchema.extend({
+  sourceType: z.literal("cron"),
+  sourceConfig: z.object({
+    cron: z.object({
+      frequency: z.enum(CRON_FREQUENCIES),
+      hour: z.number().min(0).max(23),
+      minute: z.number().min(0).max(59),
+      dayOfWeek: z.number().min(0).max(6).optional(),
+      dayOfMonth: z.number().min(1).max(31).optional(),
+    }),
+  }),
+  outputType: z.enum(SUPPORTED_SCHEDULE_OUTPUT_TYPES),
+});
+export type ConfigureScheduleBody = z.infer<typeof configureScheduleBodySchema>;

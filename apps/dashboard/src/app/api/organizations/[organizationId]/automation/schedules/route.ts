@@ -5,7 +5,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { Trigger } from "@/types/triggers";
-import { configureTriggerBodySchema } from "@/utils/schemas/integrations";
+import { configureScheduleBodySchema } from "@/utils/schemas/integrations";
 import {
   buildCronExpression,
   createQstashSchedule,
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     const body = await request.json();
-    const bodyValidation = configureTriggerBodySchema.safeParse(body);
+    const bodyValidation = configureScheduleBodySchema.safeParse(body);
 
     if (!bodyValidation.success) {
       return NextResponse.json(
@@ -122,13 +122,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       outputConfig,
       enabled,
     } = bodyValidation.data;
-
-    if (sourceType !== "cron") {
-      return NextResponse.json(
-        { error: "Only schedule triggers are supported here" },
-        { status: 400 },
-      );
-    }
 
     const normalized = normalizeTriggerConfig({ sourceConfig, targets });
     const dedupeHash = hashTrigger({
@@ -153,16 +146,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     const triggerId = nanoid();
+    const cronExpression = buildCronExpression(sourceConfig.cron);
     let qstashScheduleId: string | null = null;
 
-    if (sourceConfig.cron) {
-      const cronExpression = buildCronExpression(sourceConfig.cron);
-      if (cronExpression) {
-        qstashScheduleId = await createQstashSchedule({
-          triggerId,
-          cron: cronExpression,
-        });
-      }
+    if (cronExpression) {
+      qstashScheduleId = await createQstashSchedule({
+        triggerId,
+        cron: cronExpression,
+      });
     }
 
     try {
@@ -217,7 +208,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     const body = await request.json();
-    const bodyValidation = configureTriggerBodySchema.safeParse(body);
+    const bodyValidation = configureScheduleBodySchema.safeParse(body);
 
     if (!bodyValidation.success) {
       return NextResponse.json(
@@ -237,13 +228,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       outputConfig,
       enabled,
     } = bodyValidation.data;
-
-    if (sourceType !== "cron") {
-      return NextResponse.json(
-        { error: "Only schedule triggers are supported here" },
-        { status: 400 },
-      );
-    }
 
     const normalized = normalizeTriggerConfig({ sourceConfig, targets });
     const dedupeHash = hashTrigger({
@@ -280,19 +264,15 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     const existingScheduleId = existing.qstashScheduleId ?? null;
+    const cronExpression = buildCronExpression(sourceConfig.cron);
     let qstashScheduleId: string | null = null;
 
-    if (sourceConfig.cron) {
-      const cronExpression = buildCronExpression(sourceConfig.cron);
-      if (cronExpression) {
-        qstashScheduleId = await createQstashSchedule({
-          triggerId,
-          cron: cronExpression,
-          scheduleId: existingScheduleId ?? undefined,
-        });
-      }
-    } else if (existingScheduleId) {
-      await deleteQstashSchedule(existingScheduleId).catch(() => {});
+    if (cronExpression) {
+      qstashScheduleId = await createQstashSchedule({
+        triggerId,
+        cron: cronExpression,
+        scheduleId: existingScheduleId ?? undefined,
+      });
     }
 
     try {
