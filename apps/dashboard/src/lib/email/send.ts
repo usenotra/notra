@@ -67,6 +67,11 @@ async function sendWithRetry(
 				}
 				return { data: null, error };
 			}
+
+			return {
+				data: null,
+				error: { name: "unknown_error", message: "No data or error returned from Resend" },
+			};
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
 			lastError = { name: "network_error", message };
