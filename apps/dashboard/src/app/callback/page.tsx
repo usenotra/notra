@@ -21,7 +21,11 @@ export default async function AuthCallback(props: {
       // If decoding fails, use original value
     }
     // Validate that returnTo is a relative path (security check)
-    if (returnTo.startsWith("/") && !returnTo.startsWith("//") && !returnTo.includes("\\")) {
+    if (
+      returnTo.startsWith("/") &&
+      !returnTo.startsWith("//") &&
+      !returnTo.includes("\\")
+    ) {
       // Redirect to returnTo before checking for organization
       redirect(returnTo);
       return; // Ensure we don't continue to organization redirect

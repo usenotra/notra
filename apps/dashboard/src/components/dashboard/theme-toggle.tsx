@@ -36,7 +36,11 @@ export function ThemeToggle() {
   }
 
   return (
-    <SidebarMenuButton onClick={handleToggle} className="cursor-pointer" tooltip={isDark ? "Light Mode" : "Dark Mode"}>
+    <SidebarMenuButton
+      className="cursor-pointer"
+      onClick={handleToggle}
+      tooltip={isDark ? "Light Mode" : "Dark Mode"}
+    >
       <HugeiconsIcon
         className="size-4"
         icon={isDark ? Sun03Icon : Moon02Icon}

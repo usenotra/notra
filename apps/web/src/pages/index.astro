@@ -1,63 +1,63 @@
 ---
-import "../styles/global.css";
-import { Content } from "../content/notra.mdx";
-import FaviconLink from "../components/FaviconLink.astro";
+  import "../styles/global.css";
+  import FaviconLink from "../components/FaviconLink.astro";
+  import { Content } from "../content/notra.mdx";
 
-const title = "Notra - Turn your work into content.";
-const description =
-	"Notra uses data you're already generating (merged GitHub PRs, completed Linear issue or Slack chats) to turn your work into content.";
-const canonicalURL = Astro.url.href;
+  const title = "Notra - Turn your work into content.";
+  const description =
+    "Notra uses data you're already generating (merged GitHub PRs, completed Linear issue or Slack chats) to turn your work into content.";
+  const canonicalURL = Astro.url.href;
 ---
-
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="generator" content={Astro.generator}>
 
-		<title>{title}</title>
-		<meta name="title" content={title} />
-		<meta name="description" content={description} />
-		<meta name="robots" content="index, follow" />
-		<link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="title" content={title}>
+    <meta name="description" content={description}>
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href={canonicalURL}>
 
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content={canonicalURL} />
-		<meta property="og:title" content={title} />
-		<meta property="og:description" content={description} />
-		<meta property="og:site_name" content="Notra" />
-		<meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website">
+    <meta property="og:url" content={canonicalURL}>
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:site_name" content="Notra">
+    <meta property="og:locale" content="en_US">
 
-		<meta name="twitter:url" content={canonicalURL} />
-		<meta name="twitter:title" content={title} />
-		<meta name="twitter:description" content={description} />
+    <meta name="twitter:url" content={canonicalURL}>
+    <meta name="twitter:title" content={title}>
+    <meta name="twitter:description" content={description}>
 
-		<link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml">
 
-		<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="shortcut icon" href="/favicon.ico" />
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-		<meta name="apple-mobile-web-app-title" content="Notra" />
-		<link rel="manifest" href="/site.webmanifest" />
-		<meta name="theme-color" content="#8b5cf6" />
-	</head>
-	<body class="bg-white dark:bg-zinc-900">
-		<main
-			class="relative z-10 mx-auto mt-16 max-w-xl px-4 py-4 text-zinc-900 dark:text-zinc-100"
-		>
-			<article class="prose dark:prose-invert prose-zinc">
-				<Content components={{ a: FaviconLink }} />
-			</article>
-		</main>
-	</body>
-	<script
-		is:inline
-		src="https://cdn.databuddy.cc/databuddy.js"
-		data-client-id="605510ad-be85-464c-89fe-db4c6a695cd1"
-		data-track-outgoing-links="true"
-		data-track-scroll-depth="true"
-		data-track-web-vitals="true"
-		crossorigin="anonymous"
-		async></script>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Notra">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#8b5cf6">
+  </head>
+  <body class="bg-white dark:bg-zinc-900">
+    <main
+      class="relative z-10 mx-auto mt-16 max-w-xl px-4 py-4 text-zinc-900 dark:text-zinc-100"
+    >
+      <article class="prose dark:prose-invert prose-zinc">
+        <Content components={{ a: FaviconLink }}/>
+      </article>
+    </main>
+  </body>
+  <script
+    is:inline
+    src="https://cdn.databuddy.cc/databuddy.js"
+    data-client-id="605510ad-be85-464c-89fe-db4c6a695cd1"
+    data-track-outgoing-links="true"
+    data-track-scroll-depth="true"
+    data-track-web-vitals="true"
+    crossorigin="anonymous"
+    async
+  ></script>
 </html>

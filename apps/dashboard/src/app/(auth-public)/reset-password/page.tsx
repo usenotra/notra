@@ -148,7 +148,7 @@ function ResetPasswordForm() {
               />
               <button
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
                 onClick={() => setShowPassword(!showPassword)}
                 type="button"
@@ -183,7 +183,7 @@ function ResetPasswordForm() {
                     ? "Hide confirm password"
                     : "Show confirm password"
                 }
-                className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                className="-translate-y-1/2 absolute top-1/2 right-4 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 type="button"

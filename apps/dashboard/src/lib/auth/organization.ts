@@ -8,90 +8,90 @@ import { getServerSession } from "./session";
 type User = NonNullable<Awaited<ReturnType<typeof getServerSession>>["user"]>;
 
 export interface OrganizationContext {
-	user: User;
-	organizationId: string;
-	membership: {
-		id: string;
-		role: string;
-	};
+  user: User;
+  organizationId: string;
+  membership: {
+    id: string;
+    role: string;
+  };
 }
 
 const organizationIdSchema = z.string().min(1);
 interface OrganizationAuthResult {
-	success: true;
-	context: OrganizationContext;
+  success: true;
+  context: OrganizationContext;
 }
 
 interface OrganizationAuthError {
-	success: false;
-	response: NextResponse;
+  success: false;
+  response: NextResponse;
 }
 
 export type OrganizationAuth = OrganizationAuthResult | OrganizationAuthError;
 
 export async function withOrganizationAuth(
-	request: NextRequest,
-	organizationId: string,
+  request: NextRequest,
+  organizationId: string
 ): Promise<OrganizationAuth> {
-	if (!process.env.DATABASE_URL) {
-		return {
-			success: false,
-			response: NextResponse.json(
-				{ error: "Database unavailable" },
-				{ status: 503 },
-			),
-		};
-	}
+  if (!process.env.DATABASE_URL) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: "Database unavailable" },
+        { status: 503 }
+      ),
+    };
+  }
 
-	const safeOrganizationId = organizationIdSchema.parse(organizationId);
-	if (!safeOrganizationId) {
-		return {
-			success: false,
-			response: NextResponse.json(
-				{ error: "Invalid organization ID" },
-				{ status: 503 },
-			),
-		};
-	}
+  const safeOrganizationId = organizationIdSchema.parse(organizationId);
+  if (!safeOrganizationId) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: "Invalid organization ID" },
+        { status: 503 }
+      ),
+    };
+  }
 
-	const { user } = await getServerSession({
-		headers: request.headers,
-	});
+  const { user } = await getServerSession({
+    headers: request.headers,
+  });
 
-	if (!user) {
-		return {
-			success: false,
-			response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-		};
-	}
+  if (!user) {
+    return {
+      success: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
 
-	const membership = await db.query.members.findFirst({
-		where: and(
-			eq(members.userId, user.id),
-			eq(members.organizationId, organizationId),
-		),
-		columns: {
-			id: true,
-			role: true,
-		},
-	});
+  const membership = await db.query.members.findFirst({
+    where: and(
+      eq(members.userId, user.id),
+      eq(members.organizationId, organizationId)
+    ),
+    columns: {
+      id: true,
+      role: true,
+    },
+  });
 
-	if (!membership) {
-		return {
-			success: false,
-			response: NextResponse.json(
-				{ error: "You do not have access to this organization" },
-				{ status: 403 },
-			),
-		};
-	}
+  if (!membership) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: "You do not have access to this organization" },
+        { status: 403 }
+      ),
+    };
+  }
 
-	return {
-		success: true,
-		context: {
-			user,
-			organizationId,
-			membership,
-		},
-	};
+  return {
+    success: true,
+    context: {
+      user,
+      organizationId,
+      membership,
+    },
+  };
 }

@@ -1,9 +1,5 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Separator } from "@notra/ui/components/ui/separator";
-import { SidebarTrigger } from "@notra/ui/components/ui/sidebar";
-import { usePathname } from "next/navigation";
-import { useId } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,6 +7,10 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@notra/ui/components/ui/breadcrumb";
+import { Separator } from "@notra/ui/components/ui/separator";
+import { SidebarTrigger } from "@notra/ui/components/ui/sidebar";
+import { usePathname } from "next/navigation";
+import { useId } from "react";
 
 const NON_ORG_PATHS = ["/account"];
 

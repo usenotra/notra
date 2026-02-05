@@ -3,7 +3,7 @@ import { appendWebhookLog } from "@/lib/webhooks/logging";
 import type { WebhookContext, WebhookResult } from "@/types/webhooks";
 
 export async function handleLinearWebhook(
-  context: WebhookContext,
+  context: WebhookContext
 ): Promise<WebhookResult> {
   const { request, rawBody: _rawBody, organizationId, integrationId } = context;
 

@@ -1,18 +1,18 @@
 import crypto from "node:crypto";
-import { withOrganizationAuth } from "@/lib/auth/organization";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
 import { and, eq, ne } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { TriggerSourceConfig, TriggerTarget } from "@/types/triggers";
-import { configureTriggerBodySchema } from "@/utils/schemas/integrations";
+import { NextResponse } from "next/server";
+import { withOrganizationAuth } from "@/lib/auth/organization";
 import {
   buildCronExpression,
   createQstashSchedule,
   deleteQstashSchedule,
 } from "@/lib/triggers/qstash";
+import type { TriggerSourceConfig, TriggerTarget } from "@/types/triggers";
+import { configureTriggerBodySchema } from "@/utils/schemas/integrations";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     console.error("Error fetching triggers:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: bodyValidation.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -133,14 +133,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const existing = await db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.organizationId, organizationId),
-        eq(contentTriggers.dedupeHash, dedupeHash),
+        eq(contentTriggers.dedupeHash, dedupeHash)
       ),
     });
 
     if (existing) {
       return NextResponse.json(
         { error: "Duplicate trigger", code: "DUPLICATE_TRIGGER" },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     console.error("Error creating trigger:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -204,7 +204,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     if (!triggerId) {
       return NextResponse.json(
         { error: "Trigger ID required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -217,7 +217,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: bodyValidation.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -242,21 +242,21 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       where: and(
         eq(contentTriggers.organizationId, organizationId),
         eq(contentTriggers.dedupeHash, dedupeHash),
-        ne(contentTriggers.id, triggerId),
+        ne(contentTriggers.id, triggerId)
       ),
     });
 
     if (duplicate) {
       return NextResponse.json(
         { error: "Duplicate trigger", code: "DUPLICATE_TRIGGER" },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
     const existing = await db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.id, triggerId),
-        eq(contentTriggers.organizationId, organizationId),
+        eq(contentTriggers.organizationId, organizationId)
       ),
     });
 
@@ -294,8 +294,8 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         .where(
           and(
             eq(contentTriggers.id, triggerId),
-            eq(contentTriggers.organizationId, organizationId),
-          ),
+            eq(contentTriggers.organizationId, organizationId)
+          )
         )
         .returning();
 
@@ -314,7 +314,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     console.error("Error updating trigger:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -333,14 +333,14 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     if (!triggerId) {
       return NextResponse.json(
         { error: "Trigger ID required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const existing = await db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.id, triggerId),
-        eq(contentTriggers.organizationId, organizationId),
+        eq(contentTriggers.organizationId, organizationId)
       ),
     });
 
@@ -357,15 +357,15 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       .where(
         and(
           eq(contentTriggers.id, triggerId),
-          eq(contentTriggers.organizationId, organizationId),
-        ),
+          eq(contentTriggers.organizationId, organizationId)
+        )
       );
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting trigger:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

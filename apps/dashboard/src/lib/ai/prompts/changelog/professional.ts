@@ -1,11 +1,11 @@
 import {
   buildChangelogPrompt,
-  toneConfigs,
   type ChangelogPromptParams,
+  toneConfigs,
 } from "./base";
 
 export function getProfessionalChangelogPrompt(
-  params: ChangelogPromptParams,
+  params: ChangelogPromptParams
 ): string {
   return buildChangelogPrompt(params, toneConfigs.Professional);
 }

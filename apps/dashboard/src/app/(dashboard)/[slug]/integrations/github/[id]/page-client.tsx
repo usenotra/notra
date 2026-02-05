@@ -1,7 +1,5 @@
 "use client";
 
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { GitHubIntegrationDetailSkeleton } from "./skeleton";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -11,22 +9,29 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { Input } from "@notra/ui/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
-import Link from "next/link";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  CopyIcon,
+} from "lucide-react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { GitHubIntegration, GitHubRepository } from "@/types/integrations";
 import type { Trigger } from "@/types/triggers";
 import { getOutputTypeLabel } from "@/utils/output-types";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { GitHubIntegrationDetailSkeleton } from "./skeleton";
 
 const EditIntegrationDialog = dynamic(
   () =>
     import("@/components/integrations/edit-integration-dialog").then((mod) => ({
       default: mod.EditIntegrationDialog,
     })),
-  { ssr: false },
+  { ssr: false }
 );
 
 const WebhookSetupDialog = dynamic(
@@ -34,7 +39,7 @@ const WebhookSetupDialog = dynamic(
     import("@/components/integrations/wehook-setup-dialog").then((mod) => ({
       default: mod.WebhookSetupDialog,
     })),
-  { ssr: false },
+  { ssr: false }
 );
 
 interface PageClientProps {
@@ -44,7 +49,7 @@ interface PageClientProps {
 function buildWebhookUrl(
   organizationId: string,
   integrationId: string,
-  repositoryId: string,
+  repositoryId: string
 ): string {
   const baseUrl =
     typeof window !== "undefined"
@@ -148,7 +153,7 @@ function SchedulesSection({
     queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId),
     queryFn: async () => {
       const response = await fetch(
-        `/api/organizations/${organizationId}/automation/schedules`,
+        `/api/organizations/${organizationId}/automation/schedules`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch schedules");
@@ -182,26 +187,29 @@ function SchedulesSection({
       {isPending ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-12 animate-pulse rounded-lg border bg-muted/30" />
+            <div
+              className="h-12 animate-pulse rounded-lg border bg-muted/30"
+              key={i}
+            />
           ))}
         </div>
       ) : isError ? (
-        <div className="flex items-center justify-center rounded-lg border border-dashed border-destructive/50 p-8 text-sm text-destructive">
+        <div className="flex items-center justify-center rounded-lg border border-destructive/50 border-dashed p-8 text-destructive text-sm">
           Failed to load schedules.
         </div>
       ) : displaySchedules.length === 0 ? (
-        <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-muted-foreground text-sm">
           No schedules configured yet.
         </div>
       ) : (
         <div className="divide-y rounded-lg border">
           {displaySchedules.map((schedule) => (
             <div
-              key={schedule.id}
               className="flex items-center justify-between gap-4 px-4 py-3"
+              key={schedule.id}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="truncate text-sm font-medium">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="truncate font-medium text-sm">
                   {getOutputTypeLabel(schedule.outputType)}
                 </span>
                 <span className="shrink-0 text-muted-foreground text-xs">
@@ -216,8 +224,8 @@ function SchedulesSection({
           {schedules.length > 5 && (
             <div className="px-4 py-2 text-center">
               <Link
-                href={`/${slug}/automation/schedule`}
                 className="text-muted-foreground text-xs hover:underline"
+                href={`/${slug}/automation/schedule`}
               >
                 +{schedules.length - 5} more schedules
               </Link>
@@ -241,7 +249,7 @@ export default function PageClient({ integrationId }: PageClientProps) {
         throw new Error("Organization ID is required");
       }
       const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}`,
+        `/api/organizations/${organizationId}/integrations/${integrationId}`
       );
 
       if (!response.ok) {
@@ -340,7 +348,10 @@ export default function PageClient({ integrationId }: PageClientProps) {
             </div>
           </div>
 
-          <SchedulesSection organizationId={organizationId ?? ""} slug={activeOrganization?.slug ?? ""} />
+          <SchedulesSection
+            organizationId={organizationId ?? ""}
+            slug={activeOrganization?.slug ?? ""}
+          />
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -350,12 +361,14 @@ export default function PageClient({ integrationId }: PageClientProps) {
             <p className="text-muted-foreground text-sm">
               React to repository events like releases, pushes, and stars.
             </p>
-            <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-muted-foreground text-sm">
               Event-based triggers are coming soon.
             </div>
           </div>
 
-          {process.env.NODE_ENV !== "production" && organizationId && integration.repositories.length > 0 ? (
+          {process.env.NODE_ENV !== "production" &&
+          organizationId &&
+          integration.repositories.length > 0 ? (
             <Collapsible className="space-y-4">
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border p-4 hover:bg-muted/50">
                 <div className="flex items-center gap-2">

@@ -41,7 +41,7 @@ export const addGitHubIntegrationFormSchema = z.object({
     .min(1, "Repository URL is required")
     .refine(
       (value) => isValidGitHubUrl(value),
-      "Invalid GitHub repository URL or format. Use: https://github.com/owner/repo, git@github.com:owner/repo, or owner/repo",
+      "Invalid GitHub repository URL or format. Use: https://github.com/owner/repo, git@github.com:owner/repo, or owner/repo"
     ),
   token: z.string().optional().nullable(),
 });
@@ -81,7 +81,7 @@ export const addRepositoryRequestSchema = z.object({
       z.object({
         type: z.enum(OUTPUT_CONTENT_TYPES),
         enabled: z.boolean(),
-      }),
+      })
     )
     .optional()
     .default([
@@ -192,7 +192,8 @@ export const configureTriggerBodySchema = z.object({
 export type ConfigureTriggerBody = z.infer<typeof configureTriggerBodySchema>;
 
 export const SUPPORTED_SCHEDULE_OUTPUT_TYPES = ["changelog"] as const;
-export type ScheduleOutputType = (typeof SUPPORTED_SCHEDULE_OUTPUT_TYPES)[number];
+export type ScheduleOutputType =
+  (typeof SUPPORTED_SCHEDULE_OUTPUT_TYPES)[number];
 
 export const configureScheduleBodySchema = configureTriggerBodySchema.extend({
   sourceType: z.literal("cron"),

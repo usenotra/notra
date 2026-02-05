@@ -1,6 +1,5 @@
 "use client";
 
-import type { CronFrequency } from "@/utils/schemas/integrations";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import type { CronFrequency } from "@/utils/schemas/integrations";
 
 interface ScheduleValue {
   frequency: CronFrequency;
@@ -68,7 +68,10 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Frequency">
-              {FREQUENCY_OPTIONS.find((o) => o.value === current.frequency)?.label}
+              {
+                FREQUENCY_OPTIONS.find((o) => o.value === current.frequency)
+                  ?.label
+              }
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -180,9 +183,9 @@ export function SchedulePicker({ value, onChange }: SchedulePickerProps) {
       </div>
 
       <Input
+        className="text-xs"
         disabled
         value={`Timezone: UTC · ${FREQUENCY_OPTIONS.find((o) => o.value === current.frequency)?.label ?? current.frequency}`}
-        className="text-xs"
       />
     </div>
   );

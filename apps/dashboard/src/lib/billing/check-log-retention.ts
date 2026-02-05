@@ -1,9 +1,9 @@
+import type { LogRetentionDays } from "@/lib/webhooks/logging";
 import { autumn } from "./autumn";
 import { FEATURES } from "./constants";
-import type { LogRetentionDays } from "@/lib/webhooks/logging";
 
 export async function checkLogRetention(
-  organizationId: string,
+  organizationId: string
 ): Promise<LogRetentionDays> {
   if (!autumn) {
     return 30;

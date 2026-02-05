@@ -1,11 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
+import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
+import { getValidToneProfile } from "@/lib/ai/prompts/changelog/base";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { generateChangelogBodySchema } from "@/utils/schemas/workflows";
-import { getValidToneProfile } from "@/lib/ai/prompts/changelog/base";
 
 interface RouteContext {
   params: Promise<{ organizationId: string }>;
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     console.error("Error generating changelog:", error);
     return NextResponse.json(
       { error: "Failed to generate changelog" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,21 +12,15 @@ import {
   AlertDialogTrigger,
 } from "@notra/ui/components/ui/alert-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { Button } from "@notra/ui/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@notra/ui/components/ui/field";
+import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
-
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { isValidElement, useState } from "react";
 import { toast } from "sonner";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { parseGitHubUrl } from "@/lib/utils/github";
 import type {
   AddIntegrationDialogProps,
@@ -82,7 +75,7 @@ export function AddIntegrationDialog({
             token: values.token?.trim() || null,
             type: "github" as const,
           }),
-        },
+        }
       );
 
       const data = await response.json();
@@ -144,7 +137,7 @@ export function AddIntegrationDialog({
       // Navigate to the integration page when webhook dialog is closed
       if (organizationSlug && createdIntegration?.id) {
         router.push(
-          `/${organizationSlug}/integrations/github/${createdIntegration.id}`,
+          `/${organizationSlug}/integrations/github/${createdIntegration.id}`
         );
       }
       setShowWebhookDialog(false);

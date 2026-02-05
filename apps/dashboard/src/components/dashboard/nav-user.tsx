@@ -30,9 +30,9 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
 export function NavUser() {
   const router = useRouter();
@@ -104,9 +104,7 @@ export function NavUser() {
               <SidebarMenuButton
                 className={cn(
                   "cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
-                  isCollapsed
-                    ? "size-10 min-w-0 justify-center p-1"
-                    : ""
+                  isCollapsed ? "size-10 min-w-0 justify-center p-1" : ""
                 )}
                 disabled={isSigningOut}
                 size="lg"

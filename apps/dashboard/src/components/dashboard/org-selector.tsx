@@ -74,7 +74,12 @@ function OrgSelectorTrigger({
           size="lg"
           tooltip={`Organization | ${activeOrganization?.name}`}
         >
-          <Avatar className={cn("size-8 rounded-lg after:rounded-lg", isCollapsed ? "size-6.5" : "")}>
+          <Avatar
+            className={cn(
+              "size-8 rounded-lg after:rounded-lg",
+              isCollapsed ? "size-6.5" : ""
+            )}
+          >
             <AvatarImage
               className="rounded-lg"
               src={activeOrganization?.logo || undefined}
@@ -90,11 +95,11 @@ function OrgSelectorTrigger({
                   {activeOrganization?.name}
                 </span>
                 {isPro ? (
-                  <Badge className="bg-purple-500/15 px-1.5 py-0 text-[10px] font-semibold text-purple-600 hover:bg-purple-500/15 dark:text-purple-400">
+                  <Badge className="bg-purple-500/15 px-1.5 py-0 font-semibold text-[10px] text-purple-600 hover:bg-purple-500/15 dark:text-purple-400">
                     PRO
                   </Badge>
                 ) : (
-                  <Badge className="bg-emerald-500/15 px-1.5 py-0 text-[10px] font-semibold text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400">
+                  <Badge className="bg-emerald-500/15 px-1.5 py-0 font-semibold text-[10px] text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400">
                     FREE
                   </Badge>
                 )}
@@ -140,7 +145,9 @@ export function OrgSelector() {
   const isNavigating = isSwitching || isPending;
 
   const proProduct = customer?.products.find(
-    (p) => (p.id === "pro" || p.id === "pro_yearly") && (p.status === "active" || p.status === "trialing")
+    (p) =>
+      (p.id === "pro" || p.id === "pro_yearly") &&
+      (p.status === "active" || p.status === "trialing")
   );
   const isPro = Boolean(proProduct);
 
@@ -201,8 +208,8 @@ export function OrgSelector() {
             <OrgSelectorTrigger
               activeOrganization={activeOrganization}
               isCollapsed={isCollapsed}
-              isSwitching={isNavigating}
               isPro={isPro}
+              isSwitching={isNavigating}
             />
           ) : (
             <OrgSelectorSkeleton isCollapsed={isCollapsed} />

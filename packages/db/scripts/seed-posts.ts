@@ -541,7 +541,6 @@ async function seed() {
 
     await db.insert(schema.posts).values(postsToInsert);
     console.log(`Inserted ${postsToInsert.length} posts for ${org.name}`);
-
   }
 
   console.log("Seed completed successfully!");

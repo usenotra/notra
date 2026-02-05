@@ -22,7 +22,10 @@ interface SelectionPluginProps {
   onSelectionChange: (selection: TextSelection | null) => void;
 }
 
-function getLineAndCharFromOffset(text: string, offset: number): { line: number; char: number } {
+function getLineAndCharFromOffset(
+  text: string,
+  offset: number
+): { line: number; char: number } {
   const lines = text.substring(0, offset).split("\n");
   return {
     line: lines.length,

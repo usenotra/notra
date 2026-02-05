@@ -1,15 +1,5 @@
 "use client";
 
-import { Badge } from "@notra/ui/components/ui/badge";
-import { Button } from "@notra/ui/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@notra/ui/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +10,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@notra/ui/components/ui/alert-dialog";
+import { Badge } from "@notra/ui/components/ui/badge";
+import { Button } from "@notra/ui/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@notra/ui/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +57,7 @@ export function IntegrationCard({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -84,7 +84,7 @@ export function IntegrationCard({
         `/api/organizations/${organizationId}/integrations/${integration.id}`,
         {
           method: "DELETE",
-        },
+        }
       );
 
       if (!response.ok) {
@@ -158,8 +158,7 @@ export function IntegrationCard({
           )}
         </CardDescription>
         <CardAction>
-          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Event propagation barrier */}
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier for card click */}
           <div
             className="flex items-center gap-2"
             data-no-card-click

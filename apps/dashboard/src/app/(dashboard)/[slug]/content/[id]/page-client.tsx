@@ -1,10 +1,6 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useCustomer } from "autumn-js/react";
-import remend from "remend";
-import { ContentDetailSkeleton } from "./skeleton";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
@@ -14,9 +10,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
+import { DefaultChatTransport } from "ai";
+import { useCustomer } from "autumn-js/react";
 import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
+import remend from "remend";
 import { toast } from "sonner";
 import ChatInput, {
   type ContextItem,
@@ -28,6 +27,7 @@ import { LexicalEditor } from "@/components/content/editor/lexical-editor";
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
 import { TitleCard } from "@/components/title-card";
 import { useContent } from "../../../../../lib/hooks/use-content";
+import { ContentDetailSkeleton } from "./skeleton";
 
 const VIEW_OPTIONS = ["rendered", "markdown", "diff"] as const;
 type ViewOption = (typeof VIEW_OPTIONS)[number];
@@ -66,7 +66,7 @@ export default function PageClient({
 }: PageClientProps) {
   const [view, setView] = useQueryState(
     "view",
-    parseAsStringLiteral(VIEW_OPTIONS).withDefault("rendered"),
+    parseAsStringLiteral(VIEW_OPTIONS).withDefault("rendered")
   );
 
   const { state: sidebarState } = useSidebar();
@@ -134,7 +134,7 @@ export default function PageClient({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ markdown: editedMarkdown }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -195,7 +195,7 @@ export default function PageClient({
             </div>
           </div>
         ),
-        { duration: Number.POSITIVE_INFINITY, position: "bottom-right" },
+        { duration: Number.POSITIVE_INFINITY, position: "bottom-right" }
       );
     } else if (!hasChanges && saveToastIdRef.current) {
       toast.dismiss(saveToastIdRef.current);
@@ -225,7 +225,7 @@ export default function PageClient({
           (c) =>
             c.type === item.type &&
             c.owner === item.owner &&
-            c.repo === item.repo,
+            c.repo === item.repo
         )
       ) {
         return prev;
@@ -242,8 +242,8 @@ export default function PageClient({
             c.type === item.type &&
             c.owner === item.owner &&
             c.repo === item.repo
-          ),
-      ),
+          )
+      )
     );
   }, []);
 
@@ -324,7 +324,7 @@ export default function PageClient({
         errorMessage.includes("Usage limit reached")
       ) {
         setChatError(
-          "You've used all your chat messages this month. Upgrade for more.",
+          "You've used all your chat messages this month. Upgrade for more."
         );
         return;
       }
@@ -333,7 +333,7 @@ export default function PageClient({
         const errorData = JSON.parse(errorMessage);
         if (errorData.code === "USAGE_LIMIT_REACHED") {
           setChatError(
-            "You've used all your chat messages this month. Upgrade for more.",
+            "You've used all your chat messages this month. Upgrade for more."
           );
           return;
         }
@@ -408,7 +408,7 @@ export default function PageClient({
               // Use remend to fix any incomplete markdown syntax
               const fixedMarkdown = remend(toolPart.output.updatedMarkdown);
               console.log(
-                `[Tool] editMarkdown result applied, toolCallId=${toolPart.toolCallId}`,
+                `[Tool] editMarkdown result applied, toolCallId=${toolPart.toolCallId}`
               );
               setEditedMarkdown(fixedMarkdown);
               editorRef.current?.setMarkdown(fixedMarkdown);
@@ -423,7 +423,7 @@ export default function PageClient({
     async (instruction: string) => {
       await sendMessage({ text: instruction });
     },
-    [sendMessage],
+    [sendMessage]
   );
 
   if (isPending) {
@@ -556,21 +556,21 @@ export default function PageClient({
       </div>
 
       <div
-        className={`fixed bottom-0 left-0 right-0 mx-auto w-full max-w-2xl px-4 pb-4 ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"}`}
+        className={`fixed right-0 bottom-0 left-0 mx-auto w-full max-w-2xl px-4 pb-4 ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"}`}
       >
         <ChatInput
-          onSend={handleAiEdit}
-          isLoading={status === "streaming" || status === "submitted"}
-          statusText={currentToolStatus}
-          selection={selection}
-          onClearSelection={clearSelection}
-          organizationSlug={organizationSlug}
-          organizationId={organizationId}
           context={context}
-          onAddContext={handleAddContext}
-          onRemoveContext={handleRemoveContext}
           error={chatError}
+          isLoading={status === "streaming" || status === "submitted"}
+          onAddContext={handleAddContext}
           onClearError={() => setChatError(null)}
+          onClearSelection={clearSelection}
+          onRemoveContext={handleRemoveContext}
+          onSend={handleAiEdit}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          selection={selection}
+          statusText={currentToolStatus}
         />
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
 import type { Metadata } from "next";
+import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
 import { requireAuth } from "@/lib/auth/actions";
 
 export const metadata: Metadata = {

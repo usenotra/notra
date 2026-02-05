@@ -1,8 +1,8 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { createChatAgent } from "@/lib/ai/agents/chat";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { createChatAgent } from "@/lib/ai/agents/chat";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { editContentSchema } from "@/utils/schemas/content";
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         },
         brandContext,
       },
-      instruction,
+      instruction
     );
 
     await agent.generate({ prompt: instruction });
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     console.error("Error editing content:", error);
     return NextResponse.json(
       { error: "Failed to edit content" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

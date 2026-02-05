@@ -10,7 +10,7 @@ export function EventsPageSkeleton() {
       <Skeleton className="h-10 w-48" />
       <div className="space-y-3">
         <div className="overflow-hidden rounded-xl border">
-          <div className="p-4 space-y-3">
+          <div className="space-y-3 p-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 className="flex items-center gap-4 py-2"

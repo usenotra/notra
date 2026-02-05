@@ -159,14 +159,14 @@ export function AddRepositoryDialog({
     queryKey: QUERY_KEYS.INTEGRATIONS.availableRepos(integrationId),
     queryFn: async () => {
       const response = await fetch(
-        `/api/organizations/${organizationId}/integrations/${integrationId}/repositories`,
+        `/api/organizations/${organizationId}/integrations/${integrationId}/repositories`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch repositories");
       }
       const repos = (await response.json()) as AvailableRepo[];
       const uniqueRepos = Array.from(
-        new Map(repos.map((repo) => [repo.fullName, repo])).values(),
+        new Map(repos.map((repo) => [repo.fullName, repo])).values()
       );
       return uniqueRepos;
     },
@@ -199,7 +199,7 @@ export function AddRepositoryDialog({
               { type: "investor_update", enabled: false },
             ],
           }),
-        },
+        }
       );
 
       if (!response.ok) {

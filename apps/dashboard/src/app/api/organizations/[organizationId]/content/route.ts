@@ -1,8 +1,8 @@
-import { and, desc, eq, type InferSelectModel, gte, lt, or } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
-import { withOrganizationAuth } from "@/lib/auth/organization";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
+import { and, desc, eq, gte, type InferSelectModel, lt, or } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { withOrganizationAuth } from "@/lib/auth/organization";
 
 type Post = InferSelectModel<typeof posts>;
 
@@ -47,12 +47,12 @@ function getDateRange(dateParam: string | null): {
   const startDate = new Date(
     baseDate.getFullYear(),
     baseDate.getMonth(),
-    baseDate.getDate(),
+    baseDate.getDate()
   );
   const endDate = new Date(
     baseDate.getFullYear(),
     baseDate.getMonth(),
-    baseDate.getDate() + 1,
+    baseDate.getDate() + 1
   );
 
   return { startDate, endDate };
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     if (dateRange) {
       baseFilters.push(
         gte(posts.createdAt, dateRange.startDate),
-        lt(posts.createdAt, dateRange.endDate),
+        lt(posts.createdAt, dateRange.endDate)
       );
     }
 
@@ -112,8 +112,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           ...baseFilters,
           or(
             lt(posts.createdAt, cursorDate),
-            and(eq(posts.createdAt, cursorDate), lt(posts.id, cursorData.id)),
-          ),
+            and(eq(posts.createdAt, cursorDate), lt(posts.id, cursorData.id))
+          )
         ),
         orderBy: [desc(posts.createdAt), desc(posts.id)],
         limit: limit + 1,
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch posts" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

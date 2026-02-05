@@ -104,7 +104,7 @@ async function seed() {
 
     await db.insert(schema.contentTriggers).values(triggersToInsert);
     console.log(
-      `Inserted ${triggersToInsert.length} automation triggers for ${org.name}`,
+      `Inserted ${triggersToInsert.length} automation triggers for ${org.name}`
     );
   }
 

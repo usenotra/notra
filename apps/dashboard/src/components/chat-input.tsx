@@ -6,7 +6,6 @@ import {
   TextSelectionIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -38,13 +37,14 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { useCustomer } from "autumn-js/react";
+import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { FEATURES } from "@/lib/billing/constants";
 import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
-import type { GitHubRepository } from "@/types/integrations";
 import type { IntegrationsResponse } from "@/lib/services/integrations";
+import type { GitHubRepository } from "@/types/integrations";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 export type TextSelection = {
@@ -135,7 +135,7 @@ const ChatInput = ({
     queryKey: QUERY_KEYS.INTEGRATIONS.all(organizationId ?? ""),
     queryFn: async () => {
       const response = await fetch(
-        `/api/organizations/${organizationId}/integrations`,
+        `/api/organizations/${organizationId}/integrations`
       );
       if (!response.ok) throw new Error("Failed to fetch integrations");
       return response.json();
@@ -162,9 +162,9 @@ const ChatInput = ({
         (c) =>
           c.type === "github-repo" &&
           c.owner === repo.owner &&
-          c.repo === repo.repo,
+          c.repo === repo.repo
       ),
-    [context],
+    [context]
   );
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
@@ -173,8 +173,8 @@ const ChatInput = ({
     const maxHeightRem = 12.5;
     const maxHeightPx =
       maxHeightRem *
-      parseFloat(getComputedStyle(document.documentElement).fontSize);
-    element.style.height = `${Math.min(element.scrollHeight / parseFloat(getComputedStyle(document.documentElement).fontSize), maxHeightRem)}rem`;
+      Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    element.style.height = `${Math.min(element.scrollHeight / Number.parseFloat(getComputedStyle(document.documentElement).fontSize), maxHeightRem)}rem`;
     element.style.overflowY =
       element.scrollHeight > maxHeightPx ? "auto" : "hidden";
   }, []);
@@ -236,12 +236,12 @@ const ChatInput = ({
     {
       enableOnFormTags: ["TEXTAREA"],
     },
-    [handleSend],
+    [handleSend]
   );
 
   return (
     <Card
-      className="bg-background ease-out-expo w-full gap-0 rounded-[14px] border-0 py-0 shadow-none transition-shadow duration-200"
+      className="w-full gap-0 rounded-[14px] border-0 bg-background py-0 shadow-none transition-shadow duration-200 ease-out-expo"
       data-focused={isFocused ? "true" : "false"}
     >
       <CardHeader className="sr-only">
@@ -253,13 +253,13 @@ const ChatInput = ({
           tabIndex={-1}
         >
           {usageLimitError && (
-            <Alert variant="destructive" className="mx-2 mt-2 mb-1">
-              <AlertDescription className="flex flex-wrap items-center gap-1 text-sm break-words">
+            <Alert className="mx-2 mt-2 mb-1" variant="destructive">
+              <AlertDescription className="flex flex-wrap items-center gap-1 break-words text-sm">
                 <span>{usageLimitError}</span>
                 {organizationSlug && (
                   <Link
-                    href={`/${organizationSlug}/billing/plans`}
                     className="font-medium underline underline-offset-2"
+                    href={`/${organizationSlug}/billing/plans`}
                   >
                     Upgrade
                   </Link>
@@ -269,30 +269,30 @@ const ChatInput = ({
           )}
           {isLoading && statusText && (
             <div className="flex items-start gap-2 px-3.5 pt-2 pb-1">
-              <Loader2Icon className="size-4 shrink-0 mt-0.5 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground leading-5">
+              <Loader2Icon className="mt-0.5 size-4 shrink-0 animate-spin text-muted-foreground" />
+              <p className="text-muted-foreground text-sm leading-5">
                 {statusText}
               </p>
             </div>
           )}
           {(context.length > 0 || selection) && (
-            <div className="flex items-center gap-2 px-3 pt-2 pb-1 overflow-x-auto">
+            <div className="flex items-center gap-2 overflow-x-auto px-3 pt-2 pb-1">
               {context.map((item, index) => (
                 <div
+                  className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-foreground text-xs"
                   key={`${item.type}-${item.owner}-${item.repo}-${index}`}
-                  className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs text-foreground"
                 >
                   <Github className="size-3.5" />
                   <span className="font-medium">
                     {item.owner}/{item.repo}
                   </span>
                   <button
-                    type="button"
-                    onClick={() => onRemoveContext?.(item)}
-                    className="ml-0.5 rounded p-0.5 hover:bg-accent transition-colors cursor-pointer"
                     aria-label={`Remove ${item.owner}/${item.repo} from context`}
+                    className="ml-0.5 cursor-pointer rounded p-0.5 transition-colors hover:bg-accent"
+                    onClick={() => onRemoveContext?.(item)}
+                    type="button"
                   >
-                    <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                    <HugeiconsIcon className="size-3" icon={Cancel01Icon} />
                   </button>
                 </div>
               ))}
@@ -300,24 +300,24 @@ const ChatInput = ({
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs text-foreground" />
+                      <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-foreground text-xs" />
                     }
                   >
                     <HugeiconsIcon
-                      icon={TextSelectionIcon}
                       className="size-3.5 text-muted-foreground"
+                      icon={TextSelectionIcon}
                     />
                     <span className="font-medium">
                       L{selection.startLine}:{selection.startChar} → L
                       {selection.endLine}:{selection.endChar}
                     </span>
                     <button
-                      type="button"
-                      onClick={onClearSelection}
-                      className="ml-0.5 rounded p-0.5 hover:bg-accent transition-colors cursor-pointer"
                       aria-label="Remove selection"
+                      className="ml-0.5 cursor-pointer rounded p-0.5 transition-colors hover:bg-accent"
+                      onClick={onClearSelection}
+                      type="button"
                     >
-                      <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                      <HugeiconsIcon className="size-3" icon={Cancel01Icon} />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
@@ -328,7 +328,7 @@ const ChatInput = ({
                         {selection.startChar} to line {selection.endLine},
                         character {selection.endChar}
                       </p>
-                      <p className="text-xs opacity-80 line-clamp-3 whitespace-pre-wrap break-all">
+                      <p className="line-clamp-3 whitespace-pre-wrap break-all text-xs opacity-80">
                         "
                         {selection.text.length > 150
                           ? selection.text.slice(0, 150) + "..."
@@ -341,22 +341,22 @@ const ChatInput = ({
               )}
             </div>
           )}
-          <div className="bg-background flex flex-col rounded-xl">
+          <div className="flex flex-col rounded-xl bg-background">
             <div className="flex w-full items-center">
               <div className="relative flex flex-1 cursor-text transition-colors [--lh:1lh]">
                 <Textarea
-                  className="min-h-8 max-h-[12.5rem] w-full resize-none border-0 bg-transparent py-0 pl-3.5 pr-2 text-sm text-foreground leading-8 whitespace-pre-wrap outline-none shadow-none ring-0 caret-foreground focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Send a message"
+                  className="max-h-[12.5rem] min-h-8 w-full resize-none whitespace-pre-wrap border-0 bg-transparent py-0 pr-2 pl-3.5 text-foreground text-sm leading-8 caret-foreground shadow-none outline-none ring-0 focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isLoading || isUsageBlocked}
-                  placeholder={
-                    isLoading ? "AI is working..." : "Send a message..."
-                  }
                   onBlur={() => setIsFocused(false)}
                   onChange={(event) => {
                     setValue(event.target.value);
                   }}
                   onFocus={() => setIsFocused(true)}
                   onInput={resizeTextarea}
+                  placeholder={
+                    isLoading ? "AI is working..." : "Send a message..."
+                  }
                   ref={textareaRef}
                   rows={1}
                   value={value}
@@ -365,7 +365,7 @@ const ChatInput = ({
             </div>
           </div>
           {shouldShowLowCredits && (
-            <div className="px-3 pb-1 text-xs text-muted-foreground">
+            <div className="px-3 pb-1 text-muted-foreground text-xs">
               {remainingChatCredits} chat messages left
             </div>
           )}
@@ -376,14 +376,14 @@ const ChatInput = ({
                   render={
                     <Button
                       className="bg-muted hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isLoading}
                       size="sm"
                       variant="outline"
-                      disabled={isLoading}
                     />
                   }
                 >
                   <div className="flex items-center gap-1.5 text-sm">
-                    <HugeiconsIcon icon={AtIcon} className="size-4" />
+                    <HugeiconsIcon className="size-4" icon={AtIcon} />
                     <span className="hidden min-[400px]:inline">
                       Add Context
                     </span>
@@ -419,7 +419,7 @@ const ChatInput = ({
                             <span className="text-foreground">
                               {integration.name}
                             </span>
-                            <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">
+                            <span className="ml-auto text-emerald-600 text-xs dark:text-emerald-400">
                               {enabledRepos.length}
                             </span>
                           </DropdownMenuSubTrigger>
@@ -457,7 +457,7 @@ const ChatInput = ({
                                     {repo.owner}/{repo.repo}
                                   </span>
                                   {inContext && (
-                                    <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">
+                                    <span className="ml-auto text-emerald-600 text-xs dark:text-emerald-400">
                                       Added
                                     </span>
                                   )}
@@ -500,7 +500,7 @@ const ChatInput = ({
                           <span className="text-foreground">
                             {integration.name}
                           </span>
-                          <span className="ml-auto text-xs text-muted-foreground">
+                          <span className="ml-auto text-muted-foreground text-xs">
                             Setup
                           </span>
                         </DropdownMenuItem>
@@ -510,9 +510,9 @@ const ChatInput = ({
                     // Not available integrations
                     return (
                       <DropdownMenuItem
-                        key={integration.id}
-                        disabled
                         className="opacity-60"
+                        disabled
+                        key={integration.id}
                       >
                         <span className="size-4 shrink-0 text-foreground [&_svg]:size-4">
                           {integration.icon}
@@ -520,7 +520,7 @@ const ChatInput = ({
                         <span className="text-foreground">
                           {integration.name}
                         </span>
-                        <span className="ml-auto text-xs text-muted-foreground">
+                        <span className="ml-auto text-muted-foreground text-xs">
                           Soon
                         </span>
                       </DropdownMenuItem>
@@ -545,22 +545,22 @@ const ChatInput = ({
               <TooltipTrigger
                 render={
                   <Button
+                    className="group/button h-7 shrink-0 rounded-lg bg-muted px-1.5 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={isLoading || isUsageBlocked}
+                    onClick={handleSend}
+                    size="sm"
                     tabIndex={0}
                     type="button"
-                    className="group/button focus-visible:ring-ring h-7 shrink-0 rounded-lg bg-muted px-1.5 transition-colors hover:bg-accent focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    size="sm"
                     variant="outline"
-                    onClick={handleSend}
-                    disabled={isLoading || isUsageBlocked}
                   />
                 }
               >
-                <div className="flex items-center gap-1 text-sm text-foreground">
+                <div className="flex items-center gap-1 text-foreground text-sm">
                   {isLoading ? (
                     <Loader2Icon className="size-4 animate-spin" />
                   ) : (
                     <>
-                      <div className="text-sm px-0.5 leading-0 transition-transform">
+                      <div className="px-0.5 text-sm leading-0 transition-transform">
                         Go
                       </div>
                       <div className="hidden h-4 items-center rounded border border-border bg-background px-1 text-[10px] text-muted-foreground shadow-xs sm:inline-flex md:inline-flex">

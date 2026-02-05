@@ -1,7 +1,6 @@
 "use client";
 
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,6 +10,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 
 interface NavSecondaryItem {
   label: string;

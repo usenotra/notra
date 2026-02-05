@@ -13,10 +13,10 @@ export function ContentDetailSkeleton() {
           <Skeleton className="h-5 w-80" />
         </div>
         <div className="rounded-[20px] border border-border/80 bg-muted/80 p-2">
-          <div className="py-1.5 px-2">
+          <div className="px-2 py-1.5">
             <Skeleton className="h-6 w-32" />
           </div>
-          <div className="rounded-[12px] border border-border/80 bg-background px-4 py-3 space-y-3">
+          <div className="space-y-3 rounded-[12px] border border-border/80 bg-background px-4 py-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton
                 className={`h-4 ${i === 7 ? "w-2/3" : "w-full"}`}

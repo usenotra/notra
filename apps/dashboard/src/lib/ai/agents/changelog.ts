@@ -1,6 +1,10 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
 import { stepCountIs, ToolLoopAgent } from "ai";
 import {
+  getValidToneProfile,
+  toneConfigs,
+} from "@/lib/ai/prompts/changelog/base";
+import {
   createGetCommitsByTimeframeTool,
   createGetPullRequestsTool,
   createGetReleaseByTagTool,
@@ -8,10 +12,6 @@ import {
 import { getSkillByName, listAvailableSkills } from "@/lib/ai/tools/skills";
 import { openrouter } from "@/lib/openrouter";
 import type { ToneProfile } from "@/utils/schemas/brand";
-import {
-  getValidToneProfile,
-  toneConfigs,
-} from "@/lib/ai/prompts/changelog/base";
 
 export interface ChangelogAgentOptions {
   organizationId: string;
@@ -34,7 +34,7 @@ export function createGithubChangelogAgent(options: ChangelogAgentOptions) {
 
   const modelWithMemory = withSupermemory(
     openrouter("moonshotai/kimi-k2.5"),
-    organizationId,
+    organizationId
   );
 
   const validTone = getValidToneProfile(tone, "Conversational");
