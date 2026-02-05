@@ -144,7 +144,7 @@ function SchedulesSection({
   organizationId: string;
   slug: string;
 }) {
-  const { data, isPending } = useQuery({
+  const { data, isPending, isError } = useQuery({
     queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId),
     queryFn: async () => {
       const response = await fetch(
@@ -170,18 +170,24 @@ function SchedulesSection({
             Automated content generation on a recurring basis.
           </p>
         </div>
-        <Link href={`/${slug}/automation/schedule`}>
-          <Button size="sm" variant="outline">
-            View all
-            <ArrowRightIcon className="ml-1 size-3.5" />
-          </Button>
-        </Link>
+        {slug && (
+          <Link href={`/${slug}/automation/schedule`}>
+            <Button size="sm" variant="outline">
+              View all
+              <ArrowRightIcon className="ml-1 size-3.5" />
+            </Button>
+          </Link>
+        )}
       </div>
       {isPending ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-12 animate-pulse rounded-lg border bg-muted/30" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-destructive/50 p-8 text-sm text-destructive">
+          Failed to load schedules.
         </div>
       ) : displaySchedules.length === 0 ? (
         <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-sm text-muted-foreground">
