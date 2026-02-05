@@ -52,7 +52,7 @@ function TitleCard({
               {icon}
             </div>
           )}
-          <p className="min-w-0 text-balance font-medium text-lg">{heading}</p>
+          <p className="min-w-0 truncate font-medium text-lg">{heading}</p>
         </div>
         {action && (
           <div className="flex shrink-0 items-center gap-2">{action}</div>

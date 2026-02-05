@@ -1,6 +1,5 @@
 "use client";
 
-import { RepositoryList } from "@/components/integrations/repository-list";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GitHubIntegrationDetailSkeleton } from "./skeleton";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -12,12 +11,14 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { Input } from "@notra/ui/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
-import { CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { GitHubIntegration, GitHubRepository } from "@/types/integrations";
+import type { Trigger } from "@/types/triggers";
+import { getOutputTypeLabel } from "@/utils/output-types";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 const EditIntegrationDialog = dynamic(
@@ -119,6 +120,105 @@ function WebhookDebugEntry({
         repo={repo.repo}
         repositoryId={repo.id}
       />
+    </div>
+  );
+}
+
+function formatFrequency(cron?: Trigger["sourceConfig"]["cron"]) {
+  if (!cron) return "Not set";
+  const time = `${String(cron.hour).padStart(2, "0")}:${String(cron.minute).padStart(2, "0")} UTC`;
+  if (cron.frequency === "weekly") {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return `Weekly - ${days[cron.dayOfWeek ?? 0]} @ ${time}`;
+  }
+  if (cron.frequency === "monthly") {
+    return `Monthly - Day ${cron.dayOfMonth} @ ${time}`;
+  }
+  return `Daily @ ${time}`;
+}
+
+function SchedulesSection({
+  organizationId,
+  slug,
+}: {
+  organizationId: string;
+  slug: string;
+}) {
+  const { data, isPending } = useQuery({
+    queryKey: QUERY_KEYS.AUTOMATION.schedules(organizationId),
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/organizations/${organizationId}/automation/schedules`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch schedules");
+      }
+      return response.json() as Promise<{ triggers: Trigger[] }>;
+    },
+    enabled: !!organizationId,
+  });
+
+  const schedules = data?.triggers ?? [];
+  const displaySchedules = schedules.slice(0, 5);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="font-semibold text-lg">Schedules</h2>
+          <p className="text-muted-foreground text-sm">
+            Automated content generation on a recurring basis.
+          </p>
+        </div>
+        <Link href={`/${slug}/automation/schedule`}>
+          <Button size="sm" variant="outline">
+            View all
+            <ArrowRightIcon className="ml-1 size-3.5" />
+          </Button>
+        </Link>
+      </div>
+      {isPending ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-12 animate-pulse rounded-lg border bg-muted/30" />
+          ))}
+        </div>
+      ) : displaySchedules.length === 0 ? (
+        <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-sm text-muted-foreground">
+          No schedules configured yet.
+        </div>
+      ) : (
+        <div className="divide-y rounded-lg border">
+          {displaySchedules.map((schedule) => (
+            <div
+              key={schedule.id}
+              className="flex items-center justify-between gap-4 px-4 py-3"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="truncate text-sm font-medium">
+                  {getOutputTypeLabel(schedule.outputType)}
+                </span>
+                <span className="shrink-0 text-muted-foreground text-xs">
+                  {formatFrequency(schedule.sourceConfig.cron)}
+                </span>
+              </div>
+              <Badge variant={schedule.enabled ? "default" : "secondary"}>
+                {schedule.enabled ? "Active" : "Paused"}
+              </Badge>
+            </div>
+          ))}
+          {schedules.length > 5 && (
+            <div className="px-4 py-2 text-center">
+              <Link
+                href={`/${slug}/automation/schedule`}
+                className="text-muted-foreground text-xs hover:underline"
+              >
+                +{schedules.length - 5} more schedules
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -234,36 +334,22 @@ export default function PageClient({ integrationId }: PageClientProps) {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="font-semibold text-lg">Content Outputs</h2>
-            <RepositoryList
-              integrationId={integrationId}
-              organizationId={organizationId ?? ""}
-            />
-          </div>
+          <SchedulesSection organizationId={organizationId ?? ""} slug={activeOrganization?.slug ?? ""} />
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-1">
-                <h2 className="font-semibold text-lg">Triggers</h2>
-                <p className="text-muted-foreground text-sm">
-                  Manage automation rules across all repositories in one place.
-                </p>
-              </div>
-              <Link
-                href={`/${activeOrganization?.slug ?? ""}/automation/events`}
-              >
-                <Button size="sm" variant="outline">
-                  Manage events
-                </Button>
-              </Link>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-lg">Events</h2>
+              <Badge variant="secondary">Coming soon</Badge>
             </div>
-            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-              Triggers now live on the workspace triggers page.
+            <p className="text-muted-foreground text-sm">
+              React to repository events like releases, pushes, and stars.
+            </p>
+            <div className="flex items-center justify-center rounded-lg border border-dashed p-8 text-sm text-muted-foreground">
+              Event-based triggers are coming soon.
             </div>
           </div>
 
-          {organizationId && integration.repositories.length > 0 ? (
+          {process.env.NODE_ENV !== "production" && organizationId && integration.repositories.length > 0 ? (
             <Collapsible className="space-y-4">
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border p-4 hover:bg-muted/50">
                 <div className="flex items-center gap-2">
