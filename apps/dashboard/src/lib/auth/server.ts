@@ -107,12 +107,9 @@ export const auth = betterAuth({
 			otpLength: 6,
 			expiresIn: 300,
 			sendVerificationOTP: async ({ email, otp, type }) => {
-				// Only handle sign-in and email-verification via OTP
-				// Password reset uses link-based flow via emailAndPassword.sendResetPassword
 				if (type === "forget-password") {
 					return;
 				}
-				// Not awaited to avoid timing attacks (per better-auth docs)
 				sendVerificationEmailAction({
 					userEmail: email,
 					otp,

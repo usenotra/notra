@@ -61,7 +61,7 @@ export async function sendInviteEmailAction({
 	}
 
 	try {
-		const response = await sendInviteEmail(resend, {
+		const { error } = await sendInviteEmail(resend, {
 			inviteeEmail,
 			inviterName,
 			inviterEmail,
@@ -69,10 +69,14 @@ export async function sendInviteEmailAction({
 			inviteLink,
 		});
 
-		console.log("Email sent successfully:", response);
-		return { success: true, message: "Email sent successfully" };
+		if (error) {
+			console.error(`Failed to send invite email to ${inviteeEmail}:`, error);
+			return { success: false, error: error.message };
+		}
+
+		return { success: true };
 	} catch (error) {
-		console.error("Detailed error sending email:", error);
+		console.error(`Unexpected error sending invite email to ${inviteeEmail}:`, error);
 		return { success: false, error: "Failed to send email" };
 	}
 }
@@ -86,8 +90,6 @@ export async function sendVerificationEmailAction({
 	otp: string;
 	type: "sign-in" | "email-verification";
 }) {
-	console.log("called verification email");
-
 	if (!resend && isDevelopment) {
 		const subject =
 			type === "sign-in" ? "Your sign-in code" : "Verify your email address";
@@ -108,15 +110,20 @@ export async function sendVerificationEmailAction({
 	}
 
 	try {
-		await sendVerificationEmail(resend, {
+		const { error } = await sendVerificationEmail(resend, {
 			userEmail,
 			otp,
 			type,
 		});
 
-		return { success: true, message: "Email sent successfully" };
+		if (error) {
+			console.error(`Failed to send ${type} email to ${userEmail}:`, error);
+			return { success: false, error: error.message };
+		}
+
+		return { success: true };
 	} catch (error) {
-		console.error("Detailed error sending email:", error);
+		console.error(`Unexpected error sending ${type} email to ${userEmail}:`, error);
 		return { success: false, error: "Failed to send email" };
 	}
 }
@@ -143,14 +150,19 @@ export async function sendResetPasswordAction({
 	}
 
 	try {
-		await sendResetPassword(resend, {
+		const { error } = await sendResetPassword(resend, {
 			userEmail,
 			resetLink,
 		});
 
-		return { success: true, message: "Email sent successfully" };
+		if (error) {
+			console.error(`Failed to send reset email to ${userEmail}:`, error);
+			return { success: false, error: error.message };
+		}
+
+		return { success: true };
 	} catch (error) {
-		console.error("Detailed error sending email:", error);
+		console.error(`Unexpected error sending reset email to ${userEmail}:`, error);
 		return { success: false, error: "Failed to send email" };
 	}
 }
@@ -175,13 +187,18 @@ export async function sendWelcomeEmailAction({
 	}
 
 	try {
-		await sendWelcomeEmail(resend, {
+		const { error } = await sendWelcomeEmail(resend, {
 			userEmail,
 		});
 
-		return { success: true, message: "Email sent successfully" };
+		if (error) {
+			console.error(`Failed to send welcome email to ${userEmail}:`, error);
+			return { success: false, error: error.message };
+		}
+
+		return { success: true };
 	} catch (error) {
-		console.error("Detailed error sending email:", error);
+		console.error(`Unexpected error sending welcome email to ${userEmail}:`, error);
 		return { success: false, error: "Failed to send email" };
 	}
 }
