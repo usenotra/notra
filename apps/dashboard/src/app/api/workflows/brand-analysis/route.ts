@@ -60,6 +60,17 @@ type ExtractionResult =
 
 const STEP_COUNT = 3;
 
+const isFirecrawlUnsupportedMessage = (message?: string | null) => {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("do not support this site") ||
+    normalized.includes("we do not support this site") ||
+    normalized.includes("unsupported site") ||
+    normalized.includes("unsupported url")
+  );
+};
+
 async function setProgress(organizationId: string, data: ProgressData) {
   if (!redis) return;
   await redis.set(`brand:progress:${organizationId}`, data, {
@@ -70,12 +81,12 @@ async function setProgress(organizationId: string, data: ProgressData) {
 export const { POST } = serve<BrandAnalysisPayload>(
   async (context: WorkflowContext<BrandAnalysisPayload>) => {
     const parseResult = brandAnalysisPayloadSchema.safeParse(
-      context.requestPayload
+      context.requestPayload,
     );
     if (!parseResult.success) {
       console.error(
         "[Brand Analysis] Invalid payload:",
-        parseResult.error.flatten()
+        parseResult.error.flatten(),
       );
       await context.cancel();
       return;
@@ -106,10 +117,30 @@ export const { POST } = serve<BrandAnalysisPayload>(
           console.error("Error scraping website:", error);
 
           if (error instanceof SdkError) {
-            for (const detail of error.details as ErrorDetail[]) {
-              if (detail.message === "Invalid URL") {
-                return { success: false, error: "Invalid URL", fatal: true };
-              }
+            const details = Array.isArray(error.details)
+              ? (error.details as ErrorDetail[])
+              : [];
+            const detailMessages = details.map((detail) => detail.message);
+
+            if (
+              detailMessages.includes("Invalid URL") ||
+              error.message?.includes("Invalid URL")
+            ) {
+              return { success: false, error: "Invalid URL", fatal: true };
+            }
+
+            if (
+              error.status === 403 ||
+              isFirecrawlUnsupportedMessage(error.message) ||
+              detailMessages.some((message) =>
+                isFirecrawlUnsupportedMessage(message),
+              )
+            ) {
+              return {
+                success: false,
+                error: "Unsupported website URL",
+                fatal: true,
+              };
             }
             return {
               success: false,
@@ -124,7 +155,7 @@ export const { POST } = serve<BrandAnalysisPayload>(
             fatal: false,
           };
         }
-      }
+      },
     );
 
     if (!scrapingResult.success) {
@@ -180,7 +211,7 @@ Extract the following information:
                 : "Failed to extract brand information",
           };
         }
-      }
+      },
     );
 
     if (!extractionResult.success) {
@@ -267,14 +298,14 @@ Extract the following information:
             totalSteps: STEP_COUNT,
             error: "Workflow failed unexpectedly",
           },
-          { ex: PROGRESS_TTL }
+          { ex: PROGRESS_TTL },
         );
       }
 
       console.error(
         `[Brand Analysis] Workflow failed for organization ${organizationId}:`,
-        { status: failStatus, response: failResponse }
+        { status: failStatus, response: failResponse },
       );
     },
-  }
+  },
 );
