@@ -8,7 +8,7 @@ const canonicalURL = Astro.url.href;
 
 const heroIcons = [
 	{ src: "/logos/GitHub Light.png", alt: "GitHub" },
-	{ src: "/logos/Linear Lightt.png", alt: "Linear" },
+	{ src: "/logos/Linear Light.png", alt: "Linear" },
 	{ src: "/logos/Slack Light.png", alt: "Slack" },
 ];
 
@@ -309,6 +309,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 				document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
 					anchor.addEventListener("click", function (e) {
 						var href = anchor.getAttribute("href");
+						if (!href || href.length < 2) return;
 						var target = document.querySelector(href);
 						if (target) {
 							e.preventDefault();
