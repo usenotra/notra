@@ -4,7 +4,6 @@
   "scripts": {
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
-    "format": "ultracite fix",
     "check-types": "dotenv -- turbo run check-types",
     "db:generate": "dotenv -- bunx drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:migrate": "dotenv -- bunx drizzle-kit migrate --config packages/db/drizzle.config.ts",
@@ -16,6 +15,7 @@
     "db:seed:posts": "dotenv -- bun packages/db/scripts/seed-posts.ts",
     "db:seed": "bun run db:seed:posts && bun run db:seed:automation",
     "email:dev": "dotenv -- bun run --filter=@notra/email dev",
+    "format": "ultracite --write",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
