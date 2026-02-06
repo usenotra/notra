@@ -597,9 +597,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const { data, isPending: isPendingSettings } =
     useBrandSettings(organizationId);
+  const lastToastError = useRef<string | null>(null);
   const { progress, startPolling } = useBrandAnalysisProgress(
     organizationId,
     (message) => {
+      if (lastToastError.current === message) {
+        return;
+      }
+      lastToastError.current = message;
       toast.error(message);
     },
   );
@@ -628,12 +633,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     }
 
     try {
+      lastToastError.current = null;
       await analyzeMutation.mutateAsync(urlToAnalyze);
       toast.success("Analysis started");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to start analysis";
-      if (progressError !== message) {
+      if (lastToastError.current !== message) {
+        lastToastError.current = message;
         toast.error(message);
       }
     }
