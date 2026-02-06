@@ -201,14 +201,8 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 							i === steps.length - 1 && "max-md:rounded-b-xl max-md:rounded-t-none max-md:-mt-px md:rounded-r-xl md:rounded-l-none md:border-l-0",
 							i > 0 && i < steps.length - 1 && "rounded-none max-md:-mt-px md:border-l-0",
 						]}>
-							<div class="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/8 text-primary text-sm font-bold mb-5">{i + 1}</div>
-							<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight">{step.title}</h3>
+							<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight"><span class="text-primary">{i + 1}.</span> {step.title}</h3>
 							<p class="text-[0.9375rem] text-muted-foreground leading-[1.65]">{step.desc}</p>
-							{i < steps.length - 1 && (
-								<span class="hidden md:flex absolute -right-2 top-11 z-2 w-4 h-4 items-center justify-center text-primary opacity-60">
-									<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5" /></svg>
-								</span>
-							)}
 						</div>
 					))}
 				</div>
