@@ -15,7 +15,6 @@ import {
 	SidebarMenuButton,
 	useSidebar,
 } from "@notra/ui/components/ui/sidebar";
-import { cn } from "@notra/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -73,12 +72,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
 				<SidebarMenu>
 					{accountItems.map((item) => (
 						<SidebarMenuButton
-							className={cn(
-								"border border-transparent transition-colors duration-200 hover:bg-sidebar-accent",
-								isActive(item.url)
-									? "bg-sidebar-accent text-foreground"
-									: "hover:text-accent-foreground",
-							)}
+							isActive={isActive(item.url)}
 							key={item.label}
 							render={
 								<Link href={`/${slug}/${item.url}`}>
@@ -97,12 +91,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
 				<SidebarMenu>
 					{organizationItems.map((item) => (
 						<SidebarMenuButton
-							className={cn(
-								"border border-transparent transition-colors duration-200 hover:bg-sidebar-accent",
-								isActive(item.url)
-									? "bg-sidebar-accent text-foreground"
-									: "hover:text-accent-foreground",
-							)}
+							isActive={isActive(item.url)}
 							key={item.label}
 							render={
 								<Link href={`/${slug}/${item.url}`}>
