@@ -643,11 +643,11 @@ function StepperItem(props: StepperItemProps) {
     return () => {
       store.removeStep(itemValue);
     };
-  }, [itemValue, completed, disabled]);
+  }, [itemValue, store]);
 
   useIsomorphicLayoutEffect(() => {
     store.setStep(itemValue, completed, disabled);
-  }, [itemValue, completed, disabled]);
+  }, [itemValue, completed, disabled, store]);
 
   const stepState = useStore((state) => state.steps.get(itemValue));
   const steps = useStore((state) => state.steps);
@@ -1070,7 +1070,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
 
   const stepIndex = Array.from(steps.keys()).indexOf(itemContext.value);
 
-  const isLastStep = stepIndex === steps.size - 1;
+  const isLastStep = steps.size > 0 && stepIndex === steps.size - 1;
 
   const dataState = getDataState(
     value,
