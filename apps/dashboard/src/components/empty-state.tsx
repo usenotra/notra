@@ -1,6 +1,4 @@
-import { Button } from "@notra/ui/components/ui/button";
-import { cn } from "@/lib/utils";
-
+import type React from "react";
 interface EmptyStateProps extends React.ComponentProps<"div"> {
   title: string;
   description: string;
