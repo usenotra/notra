@@ -156,8 +156,8 @@ export function AddIntegrationDialog({
 
   return (
     <>
-      {triggerElement}
       <AlertDialog onOpenChange={setOpen} open={open}>
+        {triggerElement}
         <AlertDialogContent className="sm:max-w-[600px]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl">
