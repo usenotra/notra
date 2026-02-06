@@ -60,19 +60,18 @@ export function DashboardSidebar({
 			{...props}
 			className="overflow-hidden border-none"
 		>
-			<AnimatePresence initial={false} mode="popLayout">
-				{isSettingsRoute ? (
-					<motion.div
-						key="settings"
-						variants={settingsVariants}
-						initial="initial"
-						animate="animate"
-						exit="exit"
-						transition={TRANSITION}
-						className="flex flex-1 flex-col"
-					>
-						<SidebarHeader>
-							<OrgSelector />
+			<SidebarHeader>
+				<OrgSelector />
+				<AnimatePresence initial={false} mode="popLayout">
+					{isSettingsRoute && (
+						<motion.div
+							key="back-button"
+							variants={settingsVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+						>
 							<SidebarMenu>
 								<SidebarMenuButton
 									className="border border-transparent transition-colors duration-200 hover:bg-sidebar-accent"
@@ -85,35 +84,53 @@ export function DashboardSidebar({
 									tooltip="Back"
 								/>
 							</SidebarMenu>
-						</SidebarHeader>
-						<SidebarContent>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</SidebarHeader>
+			<SidebarContent>
+				<AnimatePresence initial={false} mode="popLayout">
+					{isSettingsRoute ? (
+						<motion.div
+							key="settings"
+							variants={settingsVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+							className="flex flex-1 flex-col"
+						>
 							<NavSettings slug={slug} />
-						</SidebarContent>
-						<SidebarFooter className="gap-0">
-							<ThemeToggle />
-							<NavUser />
-						</SidebarFooter>
-					</motion.div>
-				) : (
-					<motion.div
-						key="main"
-						variants={mainVariants}
-						initial="initial"
-						animate="animate"
-						exit="exit"
-						transition={TRANSITION}
-						className="flex flex-1 flex-col"
-					>
-						<SidebarHeader>
-							<OrgSelector />
-						</SidebarHeader>
-						<SidebarContent>
+						</motion.div>
+					) : (
+						<motion.div
+							key="main"
+							variants={mainVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+							className="flex flex-1 flex-col"
+						>
 							<NavMain />
 							<NavSecondary className="mt-auto" />
-						</SidebarContent>
-						<SidebarFooter className="gap-0">
-							<SidebarGroup className={cn(open ? "px-2" : "px-0")}>
-								<SidebarMenu>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</SidebarContent>
+			<SidebarFooter className="gap-0">
+				<SidebarGroup className={cn(open ? "px-2" : "px-0")}>
+					<SidebarMenu>
+						<AnimatePresence initial={false} mode="popLayout">
+							{!isSettingsRoute && (
+								<motion.div
+									key="settings-button"
+									variants={mainVariants}
+									initial="initial"
+									animate="animate"
+									exit="exit"
+									transition={TRANSITION}
+								>
 									<SidebarMenuButton
 										render={
 											<Link href={`/${slug}/settings/account`}>
@@ -123,14 +140,14 @@ export function DashboardSidebar({
 										}
 										tooltip="Settings"
 									/>
-									<ThemeToggle />
-								</SidebarMenu>
-								<NavUser />
-							</SidebarGroup>
-						</SidebarFooter>
-					</motion.div>
-				)}
-			</AnimatePresence>
+								</motion.div>
+							)}
+						</AnimatePresence>
+						<ThemeToggle />
+					</SidebarMenu>
+					<NavUser />
+				</SidebarGroup>
+			</SidebarFooter>
 		</Sidebar>
 	);
 }
