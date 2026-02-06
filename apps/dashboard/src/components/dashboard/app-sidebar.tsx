@@ -49,7 +49,7 @@ export function DashboardSidebar({
 
 	// Check if we're on a settings page (billing or other settings)
 	const isSettingsRoute =
-		pathname.includes("/settings") || pathname.includes("/billing");
+		pathname.startsWith(`/${slug}/settings`) || pathname.startsWith(`/${slug}/billing`);
 
 	const mainVariants = shouldReduceMotion ? createMainVariants(true) : createMainVariants(false);
 	const settingsVariants = shouldReduceMotion ? createSettingsVariants(true) : createSettingsVariants(false);
