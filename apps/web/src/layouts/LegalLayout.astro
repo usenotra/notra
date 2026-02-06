@@ -1,0 +1,153 @@
+---
+import "../styles/global.css";
+
+const { frontmatter } = Astro.props;
+const title = frontmatter?.title ?? "";
+const pageTitle = `${title} - Notra`;
+const canonicalURL = Astro.url.href;
+
+const footerCategories = [
+	{
+		title: "Product",
+		links: [
+			{ label: "How it works", href: "/#how-it-works" },
+			{ label: "Features", href: "/#features" },
+		],
+	},
+	{
+		title: "Legal",
+		links: [
+			{ label: "Privacy Policy", href: "/privacy" },
+			{ label: "Terms of Service", href: "/terms" },
+			{ label: "Legal Notice", href: "/legal" },
+		],
+	},
+	{
+		title: "Social",
+		links: [
+			{ label: "X (Twitter)", href: "https://x.com/usenotra", external: true },
+		],
+	},
+];
+
+const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M241.917 472.989V431C241.917 388.417 241.917 367.124 255.146 353.896C268.375 340.666 289.666 340.667 332.25 340.667H422.583C443.629 340.667 454.15 340.666 462.452 344.105C473.518 348.689 482.312 357.482 486.896 368.549C490.334 376.849 490.334 387.371 490.334 408.417H558.084V374.542C558.084 364.019 558.084 358.758 559.802 354.608C562.094 349.074 566.491 344.678 572.024 342.386C576.175 340.667 581.437 340.667 591.959 340.667C602.48 340.667 607.742 340.667 611.893 342.386C617.426 344.678 621.823 349.074 624.115 354.608C625.834 358.758 625.834 364.019 625.834 374.542V532.625C625.834 543.146 625.834 548.408 624.115 552.559C621.823 558.092 617.426 562.489 611.893 564.781C607.742 566.5 602.48 566.5 591.959 566.5C581.437 566.5 576.175 566.5 572.024 564.781C566.491 562.489 562.094 558.092 559.802 552.559C558.084 548.408 558.084 543.146 558.084 532.625V476.167H490.334C490.334 518.75 490.334 540.041 477.104 553.271C463.875 566.5 442.583 566.5 400 566.5H337.017C323.442 566.5 316.654 566.5 310.253 564.562C303.853 562.625 298.205 558.858 286.909 551.328L282.142 548.151C262.451 535.023 252.605 528.458 247.261 518.472C241.917 508.488 241.917 496.654 241.917 472.989Z" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M241.917 431H174.167" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M366.125 340.667V272.917" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M287.083 272.917H445.167" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/>`;
+---
+
+<html lang="en" class="scroll-smooth overflow-x-hidden">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{pageTitle}</title>
+		<meta name="title" content={pageTitle} />
+		<meta name="robots" content="index, follow" />
+		<link rel="canonical" href={canonicalURL} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:site_name" content="Notra" />
+		<meta property="og:locale" content="en_US" />
+
+		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<meta name="apple-mobile-web-app-title" content="Notra" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<meta name="theme-color" content="#ffffff" />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+	</head>
+
+	<body class="antialiased bg-background text-foreground relative leading-relaxed font-['Inter',system-ui,sans-serif]">
+		<nav id="navbar" class="fixed inset-x-0 top-0 z-50 py-4 backdrop-blur-xl bg-background/85 border-b border-border transition-shadow [&.scrolled]:shadow-[0_1px_0.5rem_rgba(0,0,0,0.04)]">
+			<div class="max-w-[75rem] mx-auto px-6 md:px-12 flex items-center justify-between">
+				<a href="/" class="inline-flex items-center gap-2 text-[1.375rem] font-bold text-foreground no-underline tracking-[-0.04em]">
+					<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
+					Notra
+				</a>
+				<button class="hidden max-md:block bg-transparent border-none text-foreground cursor-pointer p-1" aria-label="Toggle menu" id="nav-toggle">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+						<line x1="4" y1="7" x2="20" y2="7" />
+						<line x1="4" y1="12" x2="20" y2="12" />
+						<line x1="4" y1="17" x2="20" y2="17" />
+					</svg>
+				</button>
+				<ul class="hidden md:flex items-center gap-8 list-none max-md:[&.open]:flex max-md:[&.open]:flex-col max-md:[&.open]:absolute max-md:[&.open]:top-full max-md:[&.open]:inset-x-0 max-md:[&.open]:bg-background max-md:[&.open]:border-b max-md:[&.open]:border-border max-md:[&.open]:p-6 max-md:[&.open]:gap-5 max-md:[&.open]:shadow-lg" id="nav-links">
+					<li><a href="/#how-it-works" class="text-muted-foreground no-underline text-sm font-medium">How it works</a></li>
+					<li><a href="/#features" class="text-muted-foreground no-underline text-sm font-medium">Features</a></li>
+					<li><a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold no-underline hover:bg-primary/90">Get Started</a></li>
+				</ul>
+			</div>
+		</nav>
+
+		<main class="max-w-[50rem] mx-auto px-6 md:px-12 pt-32 pb-20">
+			<h1 class="text-4xl font-extrabold tracking-tight text-foreground mt-0 mb-8">{title}</h1>
+			<article class="prose prose-neutral max-w-none prose-headings:tracking-tight prose-headings:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
+				<slot />
+			</article>
+		</main>
+
+		<footer class="py-12 border-t border-border">
+			<div class="max-w-[75rem] mx-auto px-6 md:px-12">
+				<div class="flex flex-col md:flex-row md:justify-between gap-10">
+					<div class="shrink-0">
+						<div class="inline-flex items-center gap-2 text-lg font-bold text-foreground tracking-tight mb-3">
+							<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
+							Notra
+						</div>
+						<p class="text-[0.8125rem] text-muted-foreground">&copy; Notra {new Date().getFullYear()}. All rights reserved.</p>
+					</div>
+					<div class="flex flex-wrap gap-12 md:gap-16">
+						{footerCategories.map((category) => (
+							<div key={category.title}>
+								<p class="text-sm font-semibold text-foreground mb-3">{category.title}</p>
+								<ul class="list-none flex flex-col gap-2.5">
+									{category.links.map((link) => (
+										<li key={link.label}>
+											<a
+												href={link.href}
+												class="text-muted-foreground no-underline text-sm hover:text-foreground"
+												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+											>
+												{link.label}
+											</a>
+										</li>
+									))}
+								</ul>
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+		</footer>
+
+		<script is:inline>
+			(function () {
+				var toggle = document.getElementById("nav-toggle");
+				var links = document.getElementById("nav-links");
+				var navbar = document.getElementById("navbar");
+
+				if (toggle && links) {
+					toggle.addEventListener("click", function () {
+						links.classList.toggle("open");
+					});
+				}
+
+				window.addEventListener("scroll", function () {
+					if (navbar) {
+						navbar.classList.toggle("scrolled", window.scrollY > 10);
+					}
+				});
+			})();
+		</script>
+
+		<script is:inline src="https://cdn.databuddy.cc/databuddy.js" data-client-id="605510ad-be85-464c-89fe-db4c6a695cd1" data-track-outgoing-links="true" data-track-scroll-depth="true" data-track-web-vitals="true" crossorigin="anonymous" async></script>
+	</body>
+</html>

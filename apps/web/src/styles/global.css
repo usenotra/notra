@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
+@source "../layouts/**/*.astro";
+@source "../pages/**/*.md";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";

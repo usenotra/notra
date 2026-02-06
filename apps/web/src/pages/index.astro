@@ -144,7 +144,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 					<h1 class="font-extrabold text-[clamp(2.75rem,6.5vw,4rem)] leading-tight tracking-[-0.035em] text-foreground mb-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 text-balance max-w-[43.75rem] mx-auto">
 						<span class="text-foreground">Turn your</span>
 						{heroIcons.map((icon) => (
-							<span class="inline-flex items-center justify-center shrink-0">
+							<span key={icon.alt} class="inline-flex items-center justify-center shrink-0">
 								<img class="w-12 h-12" src={icon.src} alt={icon.alt} />
 							</span>
 						))}
@@ -195,7 +195,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 mt-14 relative">
 					{steps.map((step, i) => (
-						<div class:list={[
+						<div key={step.title} class:list={[
 							"p-9 px-8 border border-border relative bg-card",
 							i === 0 && "max-md:rounded-t-xl max-md:rounded-b-none md:rounded-l-xl md:rounded-r-none",
 							i === steps.length - 1 && "max-md:rounded-b-xl max-md:rounded-t-none max-md:-mt-px md:rounded-r-xl md:rounded-l-none md:border-l-0",
@@ -225,7 +225,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-14">
 					{features.map((feature) => (
-						<div class="border border-border rounded-xl overflow-hidden bg-card">
+						<div key={feature.title} class="border border-border rounded-xl overflow-hidden bg-card">
 							<img src={feature.screenshot} alt={feature.title} class="w-full aspect-video object-cover bg-muted" loading="lazy" />
 							<div class="p-7 px-7">
 								<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight">{feature.title}</h3>
@@ -266,11 +266,11 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 					</div>
 					<div class="flex flex-wrap gap-12 md:gap-16">
 						{footerCategories.map((category) => (
-							<div>
+							<div key={category.title}>
 								<p class="text-sm font-semibold text-foreground mb-3">{category.title}</p>
 								<ul class="list-none flex flex-col gap-2.5">
 									{category.links.map((link) => (
-										<li>
+										<li key={link.label}>
 											<a
 												href={link.href}
 												class="text-muted-foreground no-underline text-sm hover:text-foreground"
