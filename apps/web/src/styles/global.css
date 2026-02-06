@@ -7,6 +7,8 @@
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: oklch(0.997 0 0);
   --foreground: oklch(0.2161 0.0061 56.0434);
@@ -32,13 +34,13 @@
   --chart-3: oklch(0.8943 0.0549 293.2829);
   --chart-4: oklch(0.9514 0.025 236.8242);
   --chart-5: oklch(0.9619 0.0179 272.3144);
-  --sidebar: oklch(0.6056 0.2189 292.7172);
-  --sidebar-foreground: oklch(0.997 0 0);
-  --sidebar-primary: oklch(0.4907 0.2412 292.5809);
-  --sidebar-primary-foreground: oklch(0.997 0 0);
-  --sidebar-accent: oklch(0.9742 0.0213 323.4333);
-  --sidebar-accent-foreground: oklch(0.4907 0.2412 292.5809);
-  --sidebar-border: oklch(0.709 0.1592 293.5412);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.4907 0.2412 292.5809);
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
@@ -197,6 +199,99 @@
 
   [contenteditable]::selection {
     background-color: oklch(0.6056 0.2189 292.7172 / 0.4);
+  }
+}
+
+@layer components {
+  /* Container variants using container queries */
+  .page-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container {
+      max-width: 48rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container {
+      max-width: 64rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container {
+      max-width: 80rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container {
+      max-width: 96rem;
+    }
+  }
+
+  /* Relaxed variant - balanced for readability */
+  .page-container-relaxed {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container-relaxed {
+      max-width: 44rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container-relaxed {
+      max-width: 56rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container-relaxed {
+      max-width: 68rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container-relaxed {
+      max-width: 76rem;
+    }
+  }
+  @container (min-width: 96rem) {
+    .page-container-relaxed {
+      max-width: 80rem;
+    }
+  }
+
+  /* Compact variant - focused for forms/settings */
+  .page-container-compact {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @container (min-width: 40rem) {
+    .page-container-compact {
+      max-width: 40rem;
+    }
+  }
+  @container (min-width: 48rem) {
+    .page-container-compact {
+      max-width: 48rem;
+    }
+  }
+  @container (min-width: 64rem) {
+    .page-container-compact {
+      max-width: 56rem;
+    }
+  }
+  @container (min-width: 80rem) {
+    .page-container-compact {
+      max-width: 64rem;
+    }
+  }
+  @container (min-width: 96rem) {
+    .page-container-compact {
+      max-width: 72rem;
+    }
   }
 }
 

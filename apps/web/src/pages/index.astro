@@ -12,12 +12,6 @@ const heroIcons = [
 	{ src: "/logos/Slack Light.png", alt: "Slack" },
 ];
 
-const trustedBy = [
-	{ src: "/logos/Github Dark.png", alt: "GitHub", name: "GitHub" },
-	{ src: "/logos/Linear Dark.png", alt: "Linear", name: "Linear" },
-	{ src: "/logos/Slack Dark.png", alt: "Slack", name: "Slack" },
-];
-
 const steps = [
 	{
 		title: "Connect your tools",
@@ -25,42 +19,59 @@ const steps = [
 	},
 	{
 		title: "AI analyzes your work",
-		desc: "Our content engine scans your activity, identifies stories worth telling, and drafts content matched to your brand voice and audience.",
+		desc: "The content engine scans your activity, picks out what matters, and drafts blog posts, changelogs, and social posts in your brand voice.",
 	},
 	{
 		title: "Wake up to drafts",
-		desc: "Every morning, find polished blog posts, changelogs, tweets, and updates ready to review, refine, or publish directly.",
+		desc: "Every morning, find blog posts, changelogs, and social updates ready to review or publish.",
 	},
 ];
 
 const features = [
 	{
 		title: "Automatic data collection",
-		desc: "Connect GitHub, Linear, Slack and more. Notra captures your team's activity through webhooks and native integrations — zero manual input.",
-		icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+		desc: "Connect GitHub, Linear, Slack and more. Notra captures your team's activity through webhooks and native integrations, without any manual input.",
+		screenshot: "/screenshots/integrations.png",
 	},
 	{
 		title: "Intelligent content generation",
-		desc: "An AI agent analyzes your raw data and generates multiple content formats — customized to fit your voice, brand, and audience.",
-		icon: '<path d="M12 3l1.912 5.813a1 1 0 0 0 .95.687h6.138l-4.962 3.6a1 1 0 0 0-.364 1.118L17.586 20l-4.962-3.6a1 1 0 0 0-1.176 0L6.414 20l1.912-5.813a1 1 0 0 0-.364-1.118L3 9.5h6.138a1 1 0 0 0 .95-.687L12 3z"/>',
+		desc: "An AI agent analyzes your raw data and generates blog posts, changelogs, and social posts tailored to your brand.",
+		screenshot: "/screenshots/content.png",
 	},
 	{
 		title: "Fully autonomous",
-		desc: "Go to sleep and wake up to content drafts waiting to be reviewed or published. Notra works while you rest, every single day.",
-		icon: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+		desc: "Go to sleep and wake up to content drafts waiting to be reviewed or published. Notra works while you rest.",
+		screenshot: "/screenshots/workflows.png",
 	},
 	{
 		title: "Your voice, your brand",
-		desc: "Configure your brand tone, style preferences, and audience. Every draft sounds like it was written by your team, not a machine.",
-		icon: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+		desc: "Configure your brand tone and style preferences. Every draft sounds like it was written by your team.",
+		screenshot: "/screenshots/brand.png",
 	},
 ];
 
-const footerLinks = [
-	{ label: "X (Twitter)", href: "https://x.com/dominikkoch", external: true },
-	{ label: "Privacy Policy", href: "/privacy" },
-	{ label: "Terms of Service", href: "/terms" },
-	{ label: "Legal Notice", href: "/legal" },
+const footerCategories = [
+	{
+		title: "Product",
+		links: [
+			{ label: "How it works", href: "#how-it-works" },
+			{ label: "Features", href: "#features" },
+		],
+	},
+	{
+		title: "Legal",
+		links: [
+			{ label: "Privacy Policy", href: "/privacy" },
+			{ label: "Terms of Service", href: "/terms" },
+			{ label: "Legal Notice", href: "/legal" },
+		],
+	},
+	{
+		title: "Social",
+		links: [
+			{ label: "X (Twitter)", href: "https://x.com/usenotra", external: true },
+		],
+	},
 ];
 
 const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M241.917 472.989V431C241.917 388.417 241.917 367.124 255.146 353.896C268.375 340.666 289.666 340.667 332.25 340.667H422.583C443.629 340.667 454.15 340.666 462.452 344.105C473.518 348.689 482.312 357.482 486.896 368.549C490.334 376.849 490.334 387.371 490.334 408.417H558.084V374.542C558.084 364.019 558.084 358.758 559.802 354.608C562.094 349.074 566.491 344.678 572.024 342.386C576.175 340.667 581.437 340.667 591.959 340.667C602.48 340.667 607.742 340.667 611.893 342.386C617.426 344.678 621.823 349.074 624.115 354.608C625.834 358.758 625.834 364.019 625.834 374.542V532.625C625.834 543.146 625.834 548.408 624.115 552.559C621.823 558.092 617.426 562.489 611.893 564.781C607.742 566.5 602.48 566.5 591.959 566.5C581.437 566.5 576.175 566.5 572.024 564.781C566.491 562.489 562.094 558.092 559.802 552.559C558.084 548.408 558.084 543.146 558.084 532.625V476.167H490.334C490.334 518.75 490.334 540.041 477.104 553.271C463.875 566.5 442.583 566.5 400 566.5H337.017C323.442 566.5 316.654 566.5 310.253 564.562C303.853 562.625 298.205 558.858 286.909 551.328L282.142 548.151C262.451 535.023 252.605 528.458 247.261 518.472C241.917 508.488 241.917 496.654 241.917 472.989Z" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M241.917 431H174.167" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M366.125 340.667V272.917" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/><path d="M287.083 272.917H445.167" stroke="#8E51FF" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -105,8 +116,8 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 	</head>
 
-	<body class="antialiased bg-white text-foreground relative leading-relaxed font-['Inter',system-ui,sans-serif]">
-		<nav id="navbar" class="fixed inset-x-0 top-0 z-50 py-4 backdrop-blur-xl bg-white/85 border-b border-gray-100 transition-shadow [&.scrolled]:shadow-[0_1px_0.5rem_rgba(0,0,0,0.04)]">
+	<body class="antialiased bg-background text-foreground relative leading-relaxed font-['Inter',system-ui,sans-serif]">
+		<nav id="navbar" class="fixed inset-x-0 top-0 z-50 py-4 backdrop-blur-xl bg-background/85 border-b border-border transition-shadow [&.scrolled]:shadow-[0_1px_0.5rem_rgba(0,0,0,0.04)]">
 			<div class="max-w-[75rem] mx-auto px-6 md:px-12 flex items-center justify-between">
 				<a href="/" class="inline-flex items-center gap-2 text-[1.375rem] font-bold text-foreground no-underline tracking-[-0.04em]">
 					<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
@@ -119,10 +130,10 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 						<line x1="4" y1="17" x2="20" y2="17" />
 					</svg>
 				</button>
-				<ul class="hidden md:flex items-center gap-8 list-none max-md:[&.open]:flex max-md:[&.open]:flex-col max-md:[&.open]:absolute max-md:[&.open]:top-full max-md:[&.open]:inset-x-0 max-md:[&.open]:bg-white max-md:[&.open]:border-b max-md:[&.open]:border-border max-md:[&.open]:p-6 max-md:[&.open]:gap-5 max-md:[&.open]:shadow-lg" id="nav-links">
+				<ul class="hidden md:flex items-center gap-8 list-none max-md:[&.open]:flex max-md:[&.open]:flex-col max-md:[&.open]:absolute max-md:[&.open]:top-full max-md:[&.open]:inset-x-0 max-md:[&.open]:bg-background max-md:[&.open]:border-b max-md:[&.open]:border-border max-md:[&.open]:p-6 max-md:[&.open]:gap-5 max-md:[&.open]:shadow-lg" id="nav-links">
 					<li><a href="#how-it-works" class="text-muted-foreground no-underline text-sm font-medium">How it works</a></li>
 					<li><a href="#features" class="text-muted-foreground no-underline text-sm font-medium">Features</a></li>
-					<li><a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-white rounded-full text-sm font-semibold no-underline hover:bg-[#7a3dff]">Get Started</a></li>
+					<li><a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold no-underline hover:bg-primary/90">Get Started</a></li>
 				</ul>
 			</div>
 		</nav>
@@ -131,41 +142,45 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 			<div class="max-w-[75rem] mx-auto px-6 md:px-12">
 				<div class="relative z-1 max-w-[50rem] mx-auto">
 					<h1 class="font-extrabold text-[clamp(2.75rem,6.5vw,4rem)] leading-tight tracking-[-0.035em] text-foreground mb-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 text-balance max-w-[43.75rem] mx-auto">
-						<span class="text-foreground/50">Turn your</span>
+						<span class="text-foreground">Turn your</span>
 						{heroIcons.map((icon) => (
 							<span class="inline-flex items-center justify-center shrink-0">
 								<img class="w-12 h-12" src={icon.src} alt={icon.alt} />
 							</span>
 						))}
-						<span class="text-foreground/50">work into</span>
+						<span class="text-foreground">work into</span>
 						<span class="text-primary">content</span>
 					</h1>
 					<p class="text-[clamp(1rem,2vw,1.125rem)] text-muted-foreground leading-[1.7] max-w-[32.5rem] mx-auto mb-9 text-balance">
-						Notra captures your team's daily work &mdash; merged PRs, closed issues, Slack conversations &mdash; and transforms it into publish-ready content.
+						Notra captures your team's daily work (merged PRs, closed issues, Slack conversations) and turns it into ready-to-publish content.
 					</p>
 					<div class="flex flex-wrap gap-3 items-center justify-center">
-						<a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-7 py-3.5 bg-primary text-white rounded-full text-[0.9375rem] font-semibold no-underline tracking-tight hover:bg-[#7a3dff]">
+						<a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-7 py-3.5 bg-primary text-primary-foreground rounded-lg text-[0.9375rem] font-semibold no-underline tracking-tight hover:bg-primary/90">
 							Get Started
 							<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M3 8h10M9 4l4 4-4 4" />
 							</svg>
 						</a>
-						<a href="#how-it-works" class="inline-flex items-center gap-1.5 px-7 py-3.5 text-muted-foreground border border-border rounded-full text-[0.9375rem] font-medium no-underline hover:border-gray-300 hover:text-foreground hover:bg-gray-50">See how it works</a>
+						<a href="#how-it-works" class="inline-flex items-center gap-1.5 px-7 py-3.5 text-muted-foreground border border-border rounded-lg text-[0.9375rem] font-medium no-underline hover:border-border hover:text-foreground hover:bg-muted">See how it works</a>
 					</div>
 				</div>
 			</div>
 		</section>
 
 		<div class="border-y border-border py-7">
-			<div class="max-w-[75rem] mx-auto px-6 md:px-12 flex items-center justify-center gap-8">
+			<div class="max-w-[75rem] mx-auto px-6 md:px-12 flex items-center justify-center gap-8 flex-wrap">
 				<span class="text-muted-foreground text-sm font-medium">Trusted by people at</span>
-				<div class="flex items-center gap-6">
-					{trustedBy.map((item) => (
-						<div class="flex items-center gap-2 text-muted-foreground text-[0.9375rem] font-medium">
-							<img class="w-6 h-6 rounded" src={item.src} alt={item.alt} />
-							{item.name}
-						</div>
-					))}
+				<div class="flex items-center gap-8">
+					<a href="https://consent.io?utm_source=notra" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity">
+						<img src="/logos/brands/consent.svg" alt="Consent" class="h-5 w-auto" />
+					</a>
+					<a href="https://upstash.com?utm_source=notra" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity">
+						<img src="/logos/brands/upstash.svg" alt="Upstash" class="h-7 w-auto" />
+					</a>
+					<a href="https://databuddy.cc?utm_source=notra" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-foreground hover:opacity-80 transition-opacity text-[0.9375rem] font-medium">
+						<img src="/logos/brands/databuddy.svg" alt="DataBuddy" class="w-5 h-5 rounded-sm" />
+						DataBuddy
+					</a>
 				</div>
 			</div>
 		</div>
@@ -175,18 +190,18 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 				<div>
 					<p class="text-xs uppercase tracking-[0.12em] text-primary font-semibold mb-3">HOW IT WORKS</p>
 					<h2 class="font-bold text-[clamp(1.75rem,4vw,2.75rem)] leading-tight tracking-tight text-foreground mb-4 text-balance">From code to content in three steps</h2>
-					<p class="text-[1.0625rem] text-muted-foreground leading-[1.7] max-w-[32.5rem]">No extra effort required. Notra works in the background, turning the outputs of your daily work into polished content drafts.</p>
+					<p class="text-[1.0625rem] text-muted-foreground leading-[1.7] max-w-[32.5rem] text-balance">No extra effort required. Notra works in the background, turning the outputs of your daily work into content drafts.</p>
 				</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 mt-14 relative">
 					{steps.map((step, i) => (
 						<div class:list={[
-							"p-9 px-8 border border-border relative bg-white",
-							i === 0 && "max-md:rounded-t-2xl max-md:rounded-b-none md:rounded-l-2xl md:rounded-r-none",
-							i === steps.length - 1 && "max-md:rounded-b-2xl max-md:rounded-t-none max-md:-mt-px md:rounded-r-2xl md:rounded-l-none md:border-l-0",
+							"p-9 px-8 border border-border relative bg-card",
+							i === 0 && "max-md:rounded-t-xl max-md:rounded-b-none md:rounded-l-xl md:rounded-r-none",
+							i === steps.length - 1 && "max-md:rounded-b-xl max-md:rounded-t-none max-md:-mt-px md:rounded-r-xl md:rounded-l-none md:border-l-0",
 							i > 0 && i < steps.length - 1 && "rounded-none max-md:-mt-px md:border-l-0",
 						]}>
-							<div class="flex items-center justify-center w-9 h-9 rounded-[0.625rem] bg-primary/8 text-primary text-sm font-bold mb-5">{i + 1}</div>
+							<div class="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/8 text-primary text-sm font-bold mb-5">{i + 1}</div>
 							<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight">{step.title}</h3>
 							<p class="text-[0.9375rem] text-muted-foreground leading-[1.65]">{step.desc}</p>
 							{i < steps.length - 1 && (
@@ -205,32 +220,30 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 				<div>
 					<p class="text-xs uppercase tracking-[0.12em] text-primary font-semibold mb-3">FEATURES</p>
 					<h2 class="font-bold text-[clamp(1.75rem,4vw,2.75rem)] leading-tight tracking-tight text-foreground mb-4 text-balance">Everything happens in the background</h2>
-					<p class="text-[1.0625rem] text-muted-foreground leading-[1.7] max-w-[32.5rem]">No prompting. No content calendars. Just connect your tools and let Notra work.</p>
+					<p class="text-[1.0625rem] text-muted-foreground leading-[1.7] max-w-[32.5rem] text-balance">No prompting. No content calendars. Just connect your tools and let Notra work.</p>
 				</div>
 
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-14">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-14">
 					{features.map((feature) => (
-						<div class="p-10 px-9 bg-white border border-border rounded-2xl relative">
-							<div class="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center mb-5 text-primary">
-								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" set:html={feature.icon} />
+						<div class="border border-border rounded-xl overflow-hidden bg-card">
+							<img src={feature.screenshot} alt={feature.title} class="w-full aspect-video object-cover bg-muted" loading="lazy" />
+							<div class="p-7 px-7">
+								<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight">{feature.title}</h3>
+								<p class="text-[0.9375rem] text-muted-foreground leading-[1.65]">{feature.desc}</p>
 							</div>
-							<h3 class="font-semibold text-xl text-foreground mb-2.5 tracking-tight">{feature.title}</h3>
-							<p class="text-[0.9375rem] text-muted-foreground leading-[1.65]">{feature.desc}</p>
 						</div>
 					))}
 				</div>
 			</div>
 		</section>
 
-		<section class="text-center py-28 relative overflow-hidden">
-			<div class="absolute w-[37.5rem] h-[37.5rem] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none blur-[3.75rem]" style="background: radial-gradient(circle, rgba(142, 81, 255, 0.1) 0%, rgba(142, 81, 255, 0.03) 40%, transparent 70%);"></div>
+		<section class="py-24">
 			<div class="max-w-[75rem] mx-auto px-6 md:px-12">
-				<div class="relative z-1 max-w-[35rem] mx-auto">
-					<p class="text-xs uppercase tracking-[0.12em] text-primary font-semibold mb-3">GET STARTED</p>
-					<h2 class="font-bold text-[clamp(2rem,5vw,2.75rem)] leading-tight tracking-tight text-foreground mb-4 text-balance">Ready to let your work speak for itself?</h2>
-					<p class="text-[1.0625rem] text-muted-foreground leading-[1.7] mb-9">Connect your tools and start generating content from your team's daily work.</p>
+				<div class="bg-primary rounded-xl px-8 py-16 md:px-16 text-center">
+					<h2 class="font-bold text-[clamp(2rem,5vw,2.75rem)] leading-tight tracking-tight text-primary-foreground mb-4 text-balance">Start turning your work into content</h2>
+					<p class="text-[1.0625rem] text-primary-foreground/70 leading-[1.7] max-w-[32.5rem] mx-auto mb-9 text-balance">Connect your tools and start generating content from your team's daily work.</p>
 					<div>
-						<a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-7 py-3.5 bg-primary text-white rounded-full text-[0.9375rem] font-semibold no-underline tracking-tight hover:bg-[#7a3dff]">
+						<a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-7 py-3.5 bg-background text-foreground rounded-lg text-[0.9375rem] font-semibold no-underline tracking-tight hover:bg-background/90">
 							Get Started
 							<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M3 8h10M9 4l4 4-4 4" />
@@ -241,27 +254,36 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 			</div>
 		</section>
 
-		<footer class="py-10 border-t border-border">
+		<footer class="py-12 border-t border-border">
 			<div class="max-w-[75rem] mx-auto px-6 md:px-12">
-				<div class="flex flex-col sm:flex-row gap-5 items-center text-center sm:justify-between sm:text-left">
-					<div class="inline-flex items-center gap-2 text-lg font-bold text-foreground tracking-tight">
-						<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
-						Notra
+				<div class="flex flex-col md:flex-row md:justify-between gap-10">
+					<div class="shrink-0">
+						<div class="inline-flex items-center gap-2 text-lg font-bold text-foreground tracking-tight mb-3">
+							<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
+							Notra
+						</div>
+						<p class="text-[0.8125rem] text-muted-foreground">&copy; Notra {new Date().getFullYear()}. All rights reserved.</p>
 					</div>
-					<ul class="flex flex-wrap gap-6 list-none">
-						{footerLinks.map((link) => (
-							<li>
-								<a
-									href={link.href}
-									class="text-muted-foreground no-underline text-sm font-medium hover:text-foreground"
-									{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-								>
-									{link.label}
-								</a>
-							</li>
+					<div class="flex flex-wrap gap-12 md:gap-16">
+						{footerCategories.map((category) => (
+							<div>
+								<p class="text-sm font-semibold text-foreground mb-3">{category.title}</p>
+								<ul class="list-none flex flex-col gap-2.5">
+									{category.links.map((link) => (
+										<li>
+											<a
+												href={link.href}
+												class="text-muted-foreground no-underline text-sm hover:text-foreground"
+												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+											>
+												{link.label}
+											</a>
+										</li>
+									))}
+								</ul>
+							</div>
 						))}
-					</ul>
-					<p class="text-[0.8125rem] text-gray-400">&copy; Notra 2025-2026. All rights reserved.</p>
+					</div>
 				</div>
 			</div>
 		</footer>
