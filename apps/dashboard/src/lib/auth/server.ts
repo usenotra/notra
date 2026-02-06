@@ -211,7 +211,7 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true,
-      trustedProviders: ["google", "github"],
+      trustedProviders: Object.keys(socialProviders ?? {}),
       allowDifferentEmails: true,
     },
   },
