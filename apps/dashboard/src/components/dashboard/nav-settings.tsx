@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
-import { cn } from "@notra/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -66,6 +65,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
 
   const isActive = (url: string) => pathname === `/${slug}/${url}`;
 
+<<<<<<< HEAD
   return (
     <>
       <SidebarGroup>
@@ -117,4 +117,47 @@ export function NavSettings({ slug }: NavSettingsProps) {
       </SidebarGroup>
     </>
   );
+=======
+	return (
+		<>
+			<SidebarGroup>
+				<SidebarGroupLabel>Account</SidebarGroupLabel>
+				<SidebarMenu>
+					{accountItems.map((item) => (
+						<SidebarMenuButton
+							isActive={isActive(item.url)}
+							key={item.label}
+							render={
+								<Link href={`/${slug}/${item.url}`}>
+									<HugeiconsIcon icon={item.icon} />
+									<span>{item.label}</span>
+								</Link>
+							}
+							tooltip={item.label}
+						/>
+					))}
+				</SidebarMenu>
+			</SidebarGroup>
+
+			<SidebarGroup>
+				<SidebarGroupLabel>Organization</SidebarGroupLabel>
+				<SidebarMenu>
+					{organizationItems.map((item) => (
+						<SidebarMenuButton
+							isActive={isActive(item.url)}
+							key={item.label}
+							render={
+								<Link href={`/${slug}/${item.url}`}>
+									<HugeiconsIcon icon={item.icon} />
+									<span>{item.label}</span>
+								</Link>
+							}
+							tooltip={item.label}
+						/>
+					))}
+				</SidebarMenu>
+			</SidebarGroup>
+		</>
+	);
+>>>>>>> origin/main
 }

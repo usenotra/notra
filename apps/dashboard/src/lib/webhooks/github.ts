@@ -70,18 +70,11 @@ async function createMemoryEntry({
     return null;
   }
 
-  const { system, user } = getGithubWebhookMemoryPrompt({
-    eventType,
-    repository,
-    action,
-    data,
-  });
-
-  const { text } = await generateText({
-    model: openrouter("google/gemini-3-flash-preview"),
-    system,
-    prompt: user,
-  });
+  const dataSnippet = JSON.stringify({ eventType, repository, action, data });
+  let text = `GitHub ${eventType} event for ${repository} (${action}).`;
+  if (dataSnippet) {
+    text += `\n\nData:\n${dataSnippet}`;
+  }
 
   if (!text.trim()) {
     return null;

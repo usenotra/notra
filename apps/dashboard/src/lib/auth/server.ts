@@ -26,6 +26,33 @@ import { organizationSlugSchema } from "@/utils/schemas/organization";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 6);
 
+function buildSocialProviders() {
+  const providers: Record<string, { clientId: string; clientSecret: string }> =
+    {};
+
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    providers.google = {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    };
+  }
+
+  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    providers.github = {
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    };
+  }
+
+  if (Object.keys(providers).length === 0) {
+    return undefined;
+  }
+
+  return providers;
+}
+
+const socialProviders = buildSocialProviders();
+
 const authSecret = process.env.BETTER_AUTH_SECRET;
 if (!authSecret) {
   console.warn("[ENV]: BETTER_AUTH_SECRET is not defined");
@@ -33,7 +60,11 @@ if (!authSecret) {
 
 async function getActiveOrganizationId(
   userId: string,
+<<<<<<< HEAD
   cookieHeader?: string | null
+=======
+  cookieHeader?: string | null,
+>>>>>>> origin/main
 ): Promise<string | undefined> {
   try {
     let lastVisitedSlug: string | undefined;
@@ -41,7 +72,11 @@ async function getActiveOrganizationId(
     try {
       const cookieStore = await cookies();
       lastVisitedSlug = cookieStore.get(
+<<<<<<< HEAD
         LAST_VISITED_ORGANIZATION_COOKIE
+=======
+        LAST_VISITED_ORGANIZATION_COOKIE,
+>>>>>>> origin/main
       )?.value;
     } catch {
       if (cookieHeader) {
@@ -49,7 +84,11 @@ async function getActiveOrganizationId(
           cookieHeader.split(";").map((c) => {
             const [key, ...v] = c.trim().split("=");
             return [key, v.join("=")];
+<<<<<<< HEAD
           })
+=======
+          }),
+>>>>>>> origin/main
         );
         lastVisitedSlug = parsedCookies[LAST_VISITED_ORGANIZATION_COOKIE];
       }
@@ -184,6 +223,7 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true,
+<<<<<<< HEAD
       trustedProviders: ["google", "github"],
       allowDifferentEmails: true,
     },
@@ -198,6 +238,13 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+=======
+      trustedProviders: Object.keys(socialProviders ?? {}),
+      allowDifferentEmails: true,
+    },
+  },
+  ...(socialProviders && { socialProviders }),
+>>>>>>> origin/main
   databaseHooks: {
     user: {
       create: {
@@ -237,7 +284,12 @@ export const auth = betterAuth({
 
           if (!validation.success) {
             throw new Error(
+<<<<<<< HEAD
               validation.error.issues[0]?.message ?? "Invalid organization slug"
+=======
+              validation.error.issues[0]?.message ??
+                "Invalid organization slug",
+>>>>>>> origin/main
             );
           }
 
@@ -251,7 +303,11 @@ export const auth = betterAuth({
         after: async (org: { id: string; name: string }) => {
           if (!autumn) {
             console.warn(
+<<<<<<< HEAD
               "[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured"
+=======
+              "[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured",
+>>>>>>> origin/main
             );
             return;
           }
@@ -276,7 +332,11 @@ export const auth = betterAuth({
           const cookieHeader = ctx?.headers?.get("cookie");
           const activeOrgId = await getActiveOrganizationId(
             session.userId,
+<<<<<<< HEAD
             cookieHeader
+=======
+            cookieHeader,
+>>>>>>> origin/main
           );
 
           if (activeOrgId) {

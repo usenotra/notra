@@ -97,9 +97,8 @@ export default function PageClient({
   const currentMarkdown = editedMarkdown ?? data?.content?.markdown ?? "";
   const hasChanges =
     editedMarkdown !== null && editedMarkdown !== originalMarkdown;
-  const title = currentMarkdown
-    ? extractTitleFromMarkdown(currentMarkdown)
-    : (data?.content?.title ?? "Loading...");
+  const title =
+    data?.content?.title || extractTitleFromMarkdown(currentMarkdown);
 
   const [, setIsSaving] = useState(false);
 

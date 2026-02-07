@@ -24,11 +24,16 @@ export function getAppUrl() {
 }
 
 export function getBaseUrl() {
-  return (
+  const url =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
-  );
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+  if (!url) {
+    return undefined;
+  }
+
+  return url.replace(/\/+$/, "");
 }
 
 function getQStashClient() {

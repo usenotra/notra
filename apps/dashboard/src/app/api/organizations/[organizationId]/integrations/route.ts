@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     console.error("Error fetching integrations:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,11 +68,17 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json(integration);
   } catch (error) {
     console.error("Error creating integration:", error);
+    if (
+      error instanceof Error &&
+      error.message === "Repository already connected"
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

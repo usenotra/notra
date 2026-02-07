@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { ContentCard } from "@/components/content/content-card";
+import { EmptyState } from "@/components/empty-state";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useTodayPosts } from "@/lib/hooks/use-posts";
@@ -56,6 +57,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </div>
           </div>
 
+<<<<<<< HEAD
           {isPending ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -86,4 +88,38 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       </div>
     </PageContainer>
   );
+=======
+					{isPending ? (
+						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+							{Array.from({ length: 3 }).map((_, index) => (
+								<div
+									className="h-[140px] rounded-[20px] border border-border/60 bg-muted/30"
+									key={`${skeletonId}-${index + 1}`}
+								/>
+							))}
+						</div>
+					) : previewPosts.length > 0 ? (
+						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+							{previewPosts.map((post) => (
+								<ContentCard
+									contentType={post.contentType as ContentType}
+									href={`/${organizationSlug}/content/${post.id}`}
+									key={post.id}
+									preview={getPreview(post.markdown)}
+									title={post.title}
+								/>
+							))}
+						</div>
+					) : (
+						<EmptyState
+							className="p-6"
+							description="Check back later or start a new post from the content page."
+							title="No content created today"
+						/>
+					)}
+				</section>
+			</div>
+		</PageContainer>
+	);
+>>>>>>> origin/main
 }

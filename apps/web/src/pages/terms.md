@@ -3,7 +3,7 @@ layout: ../layouts/LegalLayout.astro
 title: Terms of Service
 ---
 
-**Last updated: February 6, 2026**
+**Last updated: February 7, 2026**
 
 ## 1. Agreement to Terms
 
@@ -17,7 +17,9 @@ You must be at least 13 years old to use the Service. If you are under 13, you a
 
 ## 3. Subscription and Payment
 
-Notra offers both free and paid subscription plans. Paid subscriptions are billed on a recurring basis (monthly or annually) through our billing provider Autumn (powered by Stripe).
+Notra offers both free and paid subscription plans. Paid subscriptions are billed on a recurring basis (monthly or annually) through our billing provider [Autumn](https://useautumn.com) (powered by Stripe).
+
+When you sign up, we create an Autumn customer profile to enable usage tracking. If you later initiate a payment and a Stripe customer does not already exist, we may create one to process the transaction.
 
 By subscribing to a paid plan, you authorize us to charge your payment method on a recurring basis until you cancel. Prices are subject to change, but we will notify you of any price changes before they take effect.
 
@@ -54,37 +56,41 @@ We do not use your connected data to train AI models. Your data is processed in 
 
 You are responsible for reviewing all AI-generated content before publishing. We do not guarantee the accuracy, completeness, or appropriateness of any generated content.
 
-## 8. Warranty Disclaimer
+## 8. Email Delivery
+
+We send account and service-related emails using [Resend](https://resend.com). These emails may include verification, security notices, billing updates, and product communications required to operate the Service. Marketing emails are opt-in only, and you can unsubscribe using the link in the footer of each marketing email.
+
+## 9. Warranty Disclaimer
 
 The Service is provided on an "as is" and "as available" basis, without warranties of any kind, either express or implied. We do not warrant that the Service will be uninterrupted, error-free, or secure. We do not guarantee any specific level of uptime or availability.
 
 To the fullest extent permitted by law, we disclaim all warranties, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement.
 
-## 9. Products and Services
+## 10. Products and Services
 
 The features, functionality, and pricing of the Service are subject to change at any time. We reserve the right to modify, suspend, or discontinue any part of the Service with or without notice. We shall not be liable to you or any third party for any modification, suspension, or discontinuation of the Service.
 
-## 10. Contribution License
+## 11. Contribution License
 
 If you provide us with feedback, suggestions, or ideas regarding the Service, you grant us an unrestricted, irrevocable, royalty-free license to use, implement, and incorporate that feedback in any way we see fit, without obligation to you.
 
-## 11. Term and Termination
+## 12. Term and Termination
 
 These Terms remain in effect for as long as you use the Service. We may suspend or terminate your access to the Service at any time, for any reason, including if we reasonably believe you have violated these Terms.
 
 Upon termination, your right to use the Service will immediately cease. You may request deletion of your account and associated data by contacting us at dominik@usenotra.com.
 
-## 12. Modifications and Interruptions
+## 13. Modifications and Interruptions
 
 We reserve the right to change, modify, or remove any part of these Terms at any time. When we make material changes, we will update the "Last updated" date and may notify you through the Service or via email.
 
 The Service may experience interruptions due to maintenance, updates, or circumstances beyond our control. We are not liable for any loss or inconvenience caused by downtime.
 
-## 13. Governing Law
+## 14. Governing Law
 
 These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Germany. Any disputes arising out of or in connection with these Terms shall be resolved through binding arbitration administered by the International Chamber of Commerce (ICC), with the seat of arbitration in Hamburg, Germany.
 
-## 14. Disclaimer and Limitation of Liability
+## 15. Disclaimer and Limitation of Liability
 
 To the maximum extent permitted by applicable law, in no event shall Dominik Koch or Notra be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from:
 
@@ -95,7 +101,7 @@ To the maximum extent permitted by applicable law, in no event shall Dominik Koc
 
 Our total aggregate liability for all claims arising from or relating to these Terms or the Service shall not exceed the amount you have paid to us in the twelve (12) months preceding the event giving rise to the claim.
 
-## 15. Miscellaneous
+## 16. Miscellaneous
 
 **Severability:** If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary so that the remaining provisions remain in full force and effect.
 

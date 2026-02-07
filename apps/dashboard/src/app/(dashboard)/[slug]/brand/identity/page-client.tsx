@@ -81,7 +81,11 @@ function getStepperValue(status: string, currentStep: number): string {
 function getModalTitle(
   isPendingSettings: boolean,
   isAnalyzing: boolean,
+<<<<<<< HEAD
   status: string
+=======
+  status: string,
+>>>>>>> origin/main
 ): string {
   if (isPendingSettings) {
     return "Loading...";
@@ -99,7 +103,11 @@ function getModalDescription(
   isPendingSettings: boolean,
   isAnalyzing: boolean,
   status: string,
+<<<<<<< HEAD
   error?: string
+=======
+  error?: string,
+>>>>>>> origin/main
 ): string {
   if (isPendingSettings) {
     return "Checking your brand settings";
@@ -121,6 +129,10 @@ interface ModalContentProps {
   setUrl: (url: string) => void;
   handleAnalyze: () => void;
   isPending: boolean;
+<<<<<<< HEAD
+=======
+  inlineError?: string;
+>>>>>>> origin/main
 }
 
 const sanitizeBrandUrlInput = (value: string) =>
@@ -138,7 +150,11 @@ const STEP_ICONS: Record<StepIconState, () => React.ReactNode> = {
 
 function getStepIconState(
   currentStep: number,
+<<<<<<< HEAD
   stepNumber: number
+=======
+  stepNumber: number,
+>>>>>>> origin/main
 ): StepIconState {
   if (currentStep < stepNumber) {
     return "pending";
@@ -157,6 +173,10 @@ function ModalContent({
   setUrl,
   handleAnalyze,
   isPending,
+<<<<<<< HEAD
+=======
+  inlineError,
+>>>>>>> origin/main
 }: ModalContentProps) {
   if (isPendingSettings) {
     return (
@@ -177,7 +197,11 @@ function ModalContent({
             const stepNumber = index + 1;
             const iconState = getStepIconState(
               progress.currentStep,
+<<<<<<< HEAD
               stepNumber
+=======
+              stepNumber,
+>>>>>>> origin/main
             );
             return (
               <StepperItem
@@ -245,6 +269,12 @@ function ModalContent({
           Try again with a different URL
         </p>
       )}
+<<<<<<< HEAD
+=======
+      {inlineError && (
+        <p className="text-center text-destructive text-sm">{inlineError}</p>
+      )}
+>>>>>>> origin/main
     </div>
   );
 }
@@ -282,7 +312,11 @@ function BrandForm({
       lastSavedData.current = JSON.stringify(values);
       toast.success("Changes saved");
     },
+<<<<<<< HEAD
     { wait: AUTO_SAVE_DELAY }
+=======
+    { wait: AUTO_SAVE_DELAY },
+>>>>>>> origin/main
   );
 
   const form = useForm({
@@ -305,7 +339,11 @@ function BrandForm({
 
         debouncedSave(currentValues).catch((error) => {
           toast.error(
+<<<<<<< HEAD
             error instanceof Error ? error.message : "Failed to save changes"
+=======
+            error instanceof Error ? error.message : "Failed to save changes",
+>>>>>>> origin/main
           );
         });
       },
@@ -447,7 +485,11 @@ function BrandForm({
                           onValueChange={(value) => {
                             if (value) {
                               toneProfileField.handleChange(
+<<<<<<< HEAD
                                 value as ToneProfile
+=======
+                                value as ToneProfile,
+>>>>>>> origin/main
                               );
                             }
                           }}
@@ -592,8 +634,25 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const { data, isPending: isPendingSettings } =
     useBrandSettings(organizationId);
+<<<<<<< HEAD
   const { progress, startPolling } = useBrandAnalysisProgress(organizationId);
   const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
+=======
+  const lastToastError = useRef<string | null>(null);
+  const { progress, startPolling } = useBrandAnalysisProgress(
+    organizationId,
+    (message) => {
+      if (lastToastError.current === message) {
+        return;
+      }
+      lastToastError.current = message;
+      toast.error(message);
+    },
+  );
+  const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
+  const progressError =
+    progress.status === "failed" ? progress.error : undefined;
+>>>>>>> origin/main
 
   const [url, setUrl] = useState("");
   const effectiveUrl = url.trim() || organization?.websiteUrl || "";
@@ -616,12 +675,25 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     }
 
     try {
+<<<<<<< HEAD
       await analyzeMutation.mutateAsync(urlToAnalyze);
       toast.success("Analysis started");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to start analysis"
       );
+=======
+      lastToastError.current = null;
+      await analyzeMutation.mutateAsync(urlToAnalyze);
+      toast.success("Analysis started");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start analysis";
+      if (lastToastError.current !== message) {
+        lastToastError.current = message;
+        toast.error(message);
+      }
+>>>>>>> origin/main
     }
   };
 
@@ -680,7 +752,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                     {getModalTitle(
                       false,
                       isAnalyzing,
+<<<<<<< HEAD
                       effectiveProgress.status
+=======
+                      effectiveProgress.status,
+>>>>>>> origin/main
                     )}
                   </CardTitle>
                   <CardDescription>
@@ -688,7 +764,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       false,
                       isAnalyzing,
                       effectiveProgress.status,
+<<<<<<< HEAD
                       progress.error
+=======
+                      progress.error,
+>>>>>>> origin/main
                     )}
                   </CardDescription>
                 </CardHeader>
@@ -696,8 +776,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   <ModalContent
                     handleAnalyze={handleAnalyze}
                     isAnalyzing={isAnalyzing}
+<<<<<<< HEAD
                     isPending={analyzeMutation.isPending}
                     isPendingSettings={false}
+=======
+                    isPendingSettings={false}
+                    isPending={analyzeMutation.isPending}
+                    inlineError={progressError}
+>>>>>>> origin/main
                     progress={effectiveProgress}
                     setUrl={setUrl}
                     url={effectiveUrl}

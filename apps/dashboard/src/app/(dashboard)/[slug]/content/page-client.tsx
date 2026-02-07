@@ -3,6 +3,7 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useEffect, useMemo, useRef } from "react";
 import { ContentCard } from "@/components/content/content-card";
+import { EmptyState } from "@/components/empty-state";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { ContentType, Post } from "@/utils/schemas/content";
@@ -95,12 +96,21 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+<<<<<<< HEAD
   const allPosts = useMemo(
     () => data?.pages.flatMap((page) => page.posts) ?? [],
     [data?.pages]
   );
 
   const groupedPosts = useMemo(() => groupPostsByDate(allPosts), [allPosts]);
+=======
+	const allPosts = useMemo(
+		() => data?.pages.flatMap((page) => page.posts) ?? [],
+		[data?.pages],
+	);
+
+	const groupedPosts = useMemo(() => groupPostsByDate(allPosts), [allPosts]);
+>>>>>>> origin/main
 
   // Cache preview results to avoid recomputing for each render
   const previewsByPostId = useMemo(() => {
@@ -123,6 +133,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
         {isPending && <ContentPageSkeleton />}
 
+<<<<<<< HEAD
         {!isPending && allPosts.length === 0 && (
           <div className="rounded-lg border border-dashed p-8 text-center">
             <p className="text-muted-foreground">
@@ -131,6 +142,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </p>
           </div>
         )}
+=======
+				{!isPending && allPosts.length === 0 && (
+					<EmptyState
+						className="p-8"
+						description="Generate your first piece of content to get started."
+						title="No content yet"
+					/>
+				)}
+>>>>>>> origin/main
 
         {Array.from(groupedPosts.entries()).map(([dateKey, posts]) => (
           <section className="space-y-4" key={dateKey}>

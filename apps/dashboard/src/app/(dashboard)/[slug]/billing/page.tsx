@@ -36,6 +36,24 @@ const SCENARIO_TEXT: Record<string, string> = {
   cancel: "Cancel Plan",
 };
 
+const INVOICE_PRODUCT_NAME_MAP: Record<string, string> = {
+	free: "Free",
+	pro: "Pro Monthly",
+	pro_yearly: "Pro Yearly",
+};
+
+const INVOICE_TABLE_COLUMN_COUNT = 4;
+
+function formatInvoiceProductName(productId: string): string {
+	return INVOICE_PRODUCT_NAME_MAP[productId] ?? productId;
+}
+
+function getInvoiceDescription(productIds?: string[]): string {
+	if (!productIds?.length) return "Subscription";
+
+	return productIds.map(formatInvoiceProductName).join(", ");
+}
+
 function getPricingButtonText(product: Product): string {
   const { scenario, properties, free_trial } = product;
   const { is_one_off, updateable } = properties ?? {};
@@ -468,6 +486,7 @@ export default function BillingPage() {
           </div>
         </div>
 
+<<<<<<< HEAD
         <div className="space-y-3">
           <h2 className="font-semibold text-lg">Invoices</h2>
           <div className="overflow-hidden rounded-lg border border-border/80">
@@ -561,6 +580,100 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
+=======
+				<div className="space-y-3">
+					<h2 className="font-semibold text-lg">Invoices</h2>
+					<div className="overflow-hidden rounded-md border">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead
+										className="w-[140px] cursor-pointer select-none transition-colors hover:text-foreground"
+										onClick={() =>
+											setDateSortOrder(
+												dateSortOrder === "desc" ? "asc" : "desc",
+											)
+										}
+									>
+										<span className="inline-flex items-center gap-1">
+											Date
+											<HugeiconsIcon
+												icon={
+													dateSortOrder === "desc"
+														? ArrowDown01Icon
+														: ArrowUp01Icon
+												}
+												className="size-3.5"
+											/>
+										</span>
+									</TableHead>
+									<TableHead className="w-[40%]">Description</TableHead>
+									<TableHead className="w-[120px]">Amount</TableHead>
+									<TableHead className="w-[120px]">Status</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{sortedInvoices.length === 0 ? (
+									<TableRow>
+										<TableCell
+											colSpan={INVOICE_TABLE_COLUMN_COUNT}
+											className="text-muted-foreground h-24 text-center"
+										>
+											No invoices yet
+										</TableCell>
+									</TableRow>
+								) : (
+									sortedInvoices.map((invoice) => (
+										<TableRow
+											key={`${invoiceListId}-${invoice.created_at}-${invoice.total}`}
+											className={cn(
+												invoice.hosted_invoice_url &&
+													"cursor-pointer transition-colors hover:bg-muted/50",
+											)}
+											onClick={() => {
+												if (invoice.hosted_invoice_url) {
+													window.open(invoice.hosted_invoice_url, "_blank");
+												}
+											}}
+										>
+											<TableCell className="w-[140px]">
+												{invoice.created_at
+													? new Date(invoice.created_at).toLocaleDateString()
+													: "-"}
+											</TableCell>
+											<TableCell className="whitespace-normal break-words">
+												{getInvoiceDescription(invoice.product_ids)}
+											</TableCell>
+											<TableCell className="w-[120px] tabular-nums">
+												{invoice.total !== undefined
+													? `$${invoice.total.toFixed(2)}`
+													: "-"}
+											</TableCell>
+											<TableCell className="w-[120px]">
+												<Badge
+													variant={
+														invoice.status === "paid" ? "default" : "secondary"
+													}
+													className={cn(
+														invoice.status === "paid" &&
+															"bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15",
+													)}
+												>
+													{(invoice.status ?? "pending")
+														.charAt(0)
+														.toUpperCase() +
+														(invoice.status ?? "pending").slice(1)}
+												</Badge>
+											</TableCell>
+										</TableRow>
+									))
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				</div>
+			</div>
+>>>>>>> origin/main
 
       {pendingCheckout && confirmTexts && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

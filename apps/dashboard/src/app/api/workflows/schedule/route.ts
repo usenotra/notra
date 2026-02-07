@@ -11,7 +11,12 @@ import { serve } from "@upstash/workflow/nextjs";
 import { eq, inArray } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
+<<<<<<< HEAD
 import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
+=======
+import { generateChangelog } from "@/lib/ai/agents/changelog";
+import { getBaseUrl } from "@/lib/triggers/qstash";
+>>>>>>> origin/main
 import { getValidToneProfile } from "@/lib/ai/prompts/changelog/base";
 import { getBaseUrl } from "@/lib/triggers/qstash";
 
@@ -164,37 +169,25 @@ export const { POST } = serve<SchedulePayload>(
       "generate-content",
       async () => {
         if (trigger.outputType === "changelog") {
-          // Use the changelog agent to generate content with brand settings
-          const agent = createGithubChangelogAgent({
-            organizationId: trigger.organizationId,
-            tone: getValidToneProfile(brand?.toneProfile, "Conversational"),
-            companyName: brand?.companyName ?? undefined,
-            companyDescription: brand?.companyDescription ?? undefined,
-            audience: brand?.audience ?? undefined,
-            customInstructions: brand?.customInstructions ?? undefined,
-          });
-
-          // Build prompt with repository context
           const repoList = repositories
             .map((r) => `${r.owner}/${r.repo}`)
             .join(", ");
-          const prompt = `Generate a changelog for the following repositories: ${repoList}.
-          Look at the commits from the last 7 days and create a comprehensive, human-readable changelog.
-          Return the result in markdown format with a clear title.`;
 
-          const result = await agent.generate({
-            prompt,
-          });
-
-          // Extract title from first heading or use default
-          const markdown = result.text;
-          const titleMatch = markdown.match(/^#\s+(.+)$/m);
-          const title =
-            titleMatch?.[1] ?? `Changelog - ${new Date().toLocaleDateString()}`;
+          const { output } = await generateChangelog(
+            {
+              organizationId: trigger.organizationId,
+              tone: getValidToneProfile(brand?.toneProfile, "Conversational"),
+              companyName: brand?.companyName ?? undefined,
+              companyDescription: brand?.companyDescription ?? undefined,
+              audience: brand?.audience ?? undefined,
+              customInstructions: brand?.customInstructions ?? undefined,
+            },
+            `Generate a changelog for the following repositories: ${repoList}. Look at the commits from the last 7 days and create a comprehensive, human-readable changelog.`,
+          );
 
           return {
-            title,
-            markdown,
+            title: output.title,
+            markdown: output.markdown,
           };
         }
 

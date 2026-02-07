@@ -3,7 +3,7 @@ layout: ../layouts/LegalLayout.astro
 title: Privacy Policy
 ---
 
-**Last updated: February 6, 2026**
+**Last updated: February 7, 2026**
 
 ## 1. Privacy Statement
 
@@ -45,17 +45,17 @@ We collect the following types of information:
 
 **Content Data:** When you connect third-party integrations (such as GitHub, Linear, or Slack), we collect and process the data you authorize us to access from those services. This includes repository activity, issue data, and messages that you explicitly choose to connect.
 
-**Payment Data:** If you subscribe to a paid plan, payment processing is handled by our billing provider Autumn (powered by Stripe). We do not store your credit card details directly.
+**Payment Data:** If you subscribe to a paid plan, payment processing is handled by our billing provider [Autumn](https://useautumn.com) (powered by Stripe). We do not store your credit card details directly. When you sign up, we create an Autumn customer profile to enable usage tracking. If you later initiate a payment and a Stripe customer does not already exist, we may create one to process the transaction.
 
 ## 6. Third-Party Services
 
 We use the following third-party services to operate and improve the Service:
 
 - **Vercel** — Hosting and deployment
-- **Resend** — Transactional email delivery
+- **[Resend](https://resend.com)** — Transactional email delivery
 - **Upstash** — Redis database and message queues
 - **OpenRouter** — AI model access for content generation (using models such as Gemini 2.0 Flash and Kimi K2.5)
-- **Autumn** — Subscription billing (powered by Stripe)
+- **[Autumn](https://useautumn.com)** — Subscription billing (powered by Stripe)
 - **[DataBuddy](https://databuddy.cc)** — Cookie-free, GDPR-compliant website analytics
 - **GitHub** — OAuth authentication and repository integration
 - **Google** — OAuth authentication
@@ -78,7 +78,7 @@ We use the information we collect for the following purposes:
 
 - **Service delivery:** To provide, maintain, and improve the Service
 - **Billing:** To process subscriptions and payments
-- **Communications:** To send you important updates about the Service, including security notices and changes to our terms
+- **Communications:** To send you important updates about the Service, including security notices and changes to our terms. Marketing emails are opt-in only, and you can unsubscribe using the link in the footer of each marketing email.
 - **AI content generation:** To process your connected data through AI models and generate content drafts on your behalf
 - **Analytics:** To understand how the Service is used and to improve the user experience
 

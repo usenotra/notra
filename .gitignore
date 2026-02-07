@@ -39,6 +39,7 @@ yarn-error.log*
 
 # Symlinked skill directories (source is in .agents/skills/)
 .claude/skills/
+.claude/settings.local.json
 .cursor/skills/
 .opencode/skills/
 

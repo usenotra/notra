@@ -53,9 +53,15 @@ export function DashboardSidebar({
   const shouldReduceMotion = useReducedMotion();
   const slug = activeOrganization?.slug ?? "";
 
+<<<<<<< HEAD
   // Check if we're on a settings page (billing or other settings)
   const isSettingsRoute =
     pathname.includes("/settings") || pathname.includes("/billing");
+=======
+	// Check if we're on a settings page (billing or other settings)
+	const isSettingsRoute =
+		pathname.startsWith(`/${slug}/settings`) || pathname.startsWith(`/${slug}/billing`);
+>>>>>>> origin/main
 
   const mainVariants = shouldReduceMotion
     ? createMainVariants(true)
@@ -64,6 +70,7 @@ export function DashboardSidebar({
     ? createSettingsVariants(true)
     : createSettingsVariants(false);
 
+<<<<<<< HEAD
   return (
     <Sidebar
       collapsible="icon"
@@ -143,4 +150,102 @@ export function DashboardSidebar({
       </AnimatePresence>
     </Sidebar>
   );
+=======
+	return (
+		<Sidebar
+			collapsible="icon"
+			{...props}
+			className="overflow-hidden border-none"
+		>
+			<SidebarHeader>
+				<OrgSelector />
+				<AnimatePresence initial={false} mode="popLayout">
+					{isSettingsRoute && (
+						<motion.div
+							key="back-button"
+							variants={settingsVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+						>
+							<SidebarMenu>
+								<SidebarMenuButton
+									className="border border-transparent transition-colors duration-200 hover:bg-sidebar-accent"
+									render={
+										<Link href={`/${slug}`}>
+											<HugeiconsIcon icon={ArrowLeft01Icon} />
+											<span>Back</span>
+										</Link>
+									}
+									tooltip="Back"
+								/>
+							</SidebarMenu>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</SidebarHeader>
+			<SidebarContent>
+				<AnimatePresence initial={false} mode="popLayout">
+					{isSettingsRoute ? (
+						<motion.div
+							key="settings"
+							variants={settingsVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+							className="flex flex-1 flex-col"
+						>
+							<NavSettings slug={slug} />
+						</motion.div>
+					) : (
+						<motion.div
+							key="main"
+							variants={mainVariants}
+							initial="initial"
+							animate="animate"
+							exit="exit"
+							transition={TRANSITION}
+							className="flex flex-1 flex-col"
+						>
+							<NavMain />
+							<NavSecondary className="mt-auto" />
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</SidebarContent>
+			<SidebarFooter className="gap-0">
+				<SidebarGroup className={cn(open ? "px-2" : "px-0")}>
+					<SidebarMenu>
+						<AnimatePresence initial={false} mode="popLayout">
+							{!isSettingsRoute && (
+								<motion.div
+									key="settings-button"
+									variants={mainVariants}
+									initial="initial"
+									animate="animate"
+									exit="exit"
+									transition={TRANSITION}
+								>
+									<SidebarMenuButton
+										render={
+											<Link href={`/${slug}/settings/account`}>
+												<HugeiconsIcon icon={Settings01Icon} />
+												<span>Settings</span>
+											</Link>
+										}
+										tooltip="Settings"
+									/>
+								</motion.div>
+							)}
+						</AnimatePresence>
+						<ThemeToggle />
+					</SidebarMenu>
+					<NavUser />
+				</SidebarGroup>
+			</SidebarFooter>
+		</Sidebar>
+	);
+>>>>>>> origin/main
 }

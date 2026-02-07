@@ -67,7 +67,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 
 	<body class="antialiased bg-background text-foreground relative leading-relaxed font-['Inter',system-ui,sans-serif]">
 		<nav id="navbar" class="fixed inset-x-0 top-0 z-50 py-4 backdrop-blur-xl bg-background/85 border-b border-border transition-shadow [&.scrolled]:shadow-[0_1px_0.5rem_rgba(0,0,0,0.04)]">
-			<div class="max-w-[75rem] mx-auto px-6 md:px-12 flex items-center justify-between">
+			<div class="max-w-300 mx-auto px-6 md:px-12 flex items-center justify-between">
 				<a href="/" class="inline-flex items-center gap-2 text-[1.375rem] font-bold text-foreground no-underline tracking-[-0.04em]">
 					<svg class="w-7 h-7 shrink-0" viewBox="140 240 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" set:html={logoSvg} />
 					Notra
@@ -82,12 +82,12 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 				<ul class="hidden md:flex items-center gap-8 list-none max-md:[&.open]:flex max-md:[&.open]:flex-col max-md:[&.open]:absolute max-md:[&.open]:top-full max-md:[&.open]:inset-x-0 max-md:[&.open]:bg-background max-md:[&.open]:border-b max-md:[&.open]:border-border max-md:[&.open]:p-6 max-md:[&.open]:gap-5 max-md:[&.open]:shadow-lg" id="nav-links">
 					<li><a href="/#how-it-works" class="text-muted-foreground no-underline text-sm font-medium">How it works</a></li>
 					<li><a href="/#features" class="text-muted-foreground no-underline text-sm font-medium">Features</a></li>
-					<li><a href="https://app.notra.io" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold no-underline hover:bg-primary/90">Get Started</a></li>
+					<li><a href="https://app.usenotra.com" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold no-underline hover:bg-primary/90">Get Started</a></li>
 				</ul>
 			</div>
 		</nav>
 
-		<main class="max-w-[50rem] mx-auto px-6 md:px-12 pt-32 pb-20">
+		<main class="max-w-200 mx-auto px-6 md:px-12 pt-32 pb-20">
 			<h1 class="text-4xl font-extrabold tracking-tight text-foreground mt-0 mb-8">{title}</h1>
 			<article class="prose prose-neutral max-w-none prose-headings:tracking-tight prose-headings:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
 				<slot />
@@ -95,7 +95,7 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 		</main>
 
 		<footer class="py-12 border-t border-border">
-			<div class="max-w-[75rem] mx-auto px-6 md:px-12">
+			<div class="max-w-300 mx-auto px-6 md:px-12">
 				<div class="flex flex-col md:flex-row md:justify-between gap-10">
 					<div class="shrink-0">
 						<div class="inline-flex items-center gap-2 text-lg font-bold text-foreground tracking-tight mb-3">
@@ -106,11 +106,11 @@ const logoSvg = `<path d="M174.167 363.25V498.75" stroke="#8E51FF" stroke-width=
 					</div>
 					<div class="flex flex-wrap gap-12 md:gap-16">
 						{footerCategories.map((category) => (
-							<div key={category.title}>
+							<div>
 								<p class="text-sm font-semibold text-foreground mb-3">{category.title}</p>
 								<ul class="list-none flex flex-col gap-2.5">
 									{category.links.map((link) => (
-										<li key={link.label}>
+										<li>
 											<a
 												href={link.href}
 												class="text-muted-foreground no-underline text-sm hover:text-foreground"

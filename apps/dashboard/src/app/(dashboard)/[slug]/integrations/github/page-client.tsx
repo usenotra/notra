@@ -1,6 +1,8 @@
 "use client";
 
+import { Button } from "@notra/ui/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { EmptyState } from "@/components/empty-state";
 import { AddIntegrationDialog } from "@/components/integrations/add-integration-dialog";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { PageContainer } from "@/components/layout/container";
@@ -52,6 +54,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     (i) => i.type === "github"
   );
 
+<<<<<<< HEAD
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -70,10 +73,36 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             organizationSlug={organizationSlug}
           />
         </div>
+=======
+	return (
+		<PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+			<div className="w-full space-y-6 px-4 lg:px-6">
+				<div className="flex items-start justify-between gap-4">
+					<div className="space-y-1">
+						<h1 className="font-bold text-3xl tracking-tight">
+							GitHub Integrations
+						</h1>
+						<p className="text-muted-foreground">
+							Manage your GitHub repository integrations and outputs
+						</p>
+					</div>
+					<AddIntegrationDialog
+						onSuccess={() => refetch()}
+						organizationId={organization?.id ?? ""}
+						organizationSlug={organizationSlug}
+						trigger={
+							<Button size="sm" variant="default">
+								Add Github Integration
+							</Button>
+						}
+					/>
+				</div>
+>>>>>>> origin/main
 
         <div>
           {isPending ? <GitHubIntegrationsPageSkeleton /> : null}
 
+<<<<<<< HEAD
           {!isPending && (!integrations || integrations.length === 0) ? (
             <div className="rounded-xl border border-dashed p-12 text-center">
               <h3 className="font-medium text-lg">No integrations yet</h3>
@@ -82,6 +111,26 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               </p>
             </div>
           ) : null}
+=======
+					{!isPending && (!integrations || integrations.length === 0) ? (
+						<EmptyState
+							action={
+								<AddIntegrationDialog
+									onSuccess={() => refetch()}
+									organizationId={organization?.id ?? ""}
+									organizationSlug={organizationSlug}
+									trigger={
+										<Button size="sm" variant="outline">
+											Add Github Integration
+										</Button>
+									}
+								/>
+							}
+							description="Add your first GitHub integration to get started."
+							title="No integrations yet"
+						/>
+					) : null}
+>>>>>>> origin/main
 
           {!isPending && integrations && integrations.length > 0 ? (
             <div className="grid gap-4">
