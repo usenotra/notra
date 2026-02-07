@@ -14,12 +14,7 @@ import { Button } from "@notra/ui/components/ui/button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CheckIcon,
-  CopyIcon,
-  EyeIcon,
-  EyeOffIcon,
-} from "lucide-react";
+import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import type React from "react";
 import { isValidElement, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -49,11 +44,11 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 
   return (
     <Button
+      className="shrink-0"
       onClick={handleCopy}
       size="icon"
       type="button"
       variant="outline"
-      className="shrink-0"
     >
       {copied ? (
         <CheckIcon className="size-4" />
@@ -87,7 +82,7 @@ export function WebhookSetupDialog({
     queryKey: QUERY_KEYS.INTEGRATIONS.webhookConfig(repositoryId),
     queryFn: async () => {
       const response = await fetch(
-        `/api/organizations/${organizationId}/repositories/${repositoryId}/webhook`,
+        `/api/organizations/${organizationId}/repositories/${repositoryId}/webhook`
       );
       if (!response.ok) {
         if (response.status === 404) {
@@ -107,7 +102,7 @@ export function WebhookSetupDialog({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
       if (!response.ok) {
         const data = await response.json();
@@ -156,7 +151,7 @@ export function WebhookSetupDialog({
   return (
     <AlertDialog onOpenChange={setOpen} open={open}>
       {triggerElement}
-      <AlertDialogContent className="sm:max-w-md overflow-hidden">
+      <AlertDialogContent className="overflow-hidden sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl">
             Setup Webhook
@@ -184,11 +179,11 @@ export function WebhookSetupDialog({
                 <p className="font-medium text-sm">Payload URL</p>
                 <div className="flex gap-2">
                   <Input
+                    className="font-mono text-xs"
                     readOnly
                     value={webhookConfig.webhookUrl}
-                    className="font-mono text-xs"
                   />
-                  <CopyButton value={webhookConfig.webhookUrl} label="URL" />
+                  <CopyButton label="URL" value={webhookConfig.webhookUrl} />
                 </div>
               </fieldset>
 
@@ -196,17 +191,17 @@ export function WebhookSetupDialog({
                 <p className="font-medium text-sm">Secret</p>
                 <div className="flex gap-2">
                   <Input
+                    className="font-mono text-xs"
                     readOnly
                     type={secretRevealed ? "text" : "password"}
                     value={webhookConfig.webhookSecret}
-                    className="font-mono text-xs"
                   />
                   <Button
+                    className="shrink-0"
                     onClick={() => setSecretRevealed(!secretRevealed)}
                     size="icon"
                     type="button"
                     variant="outline"
-                    className="shrink-0"
                   >
                     {secretRevealed ? (
                       <EyeOffIcon className="size-4" />
@@ -215,8 +210,8 @@ export function WebhookSetupDialog({
                     )}
                   </Button>
                   <CopyButton
-                    value={webhookConfig.webhookSecret}
                     label="Secret"
+                    value={webhookConfig.webhookSecret}
                   />
                 </div>
               </fieldset>
@@ -266,8 +261,8 @@ export function WebhookSetupDialog({
         <AlertDialogFooter className="gap-2">
           <AlertDialogCancel className="h-9">Skip for now</AlertDialogCancel>
           <Button
-            disabled={!webhookConfig}
             className="h-9"
+            disabled={!webhookConfig}
             onClick={() => setOpen(false)}
             type="button"
           >

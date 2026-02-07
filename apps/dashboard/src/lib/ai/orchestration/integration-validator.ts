@@ -75,7 +75,6 @@ export async function validateIntegrations(
         `[Integration Validator] Error validating integration ${integrationId}:`,
         error
       );
-      continue;
     }
   }
 

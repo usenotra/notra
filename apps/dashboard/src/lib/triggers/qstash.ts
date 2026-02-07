@@ -17,7 +17,7 @@ export function getAppUrl() {
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   if (!url) {
     throw new Error(
-      "App URL not configured. Set NEXT_PUBLIC_APP_URL, APP_URL, or VERCEL_URL.",
+      "App URL not configured. Set NEXT_PUBLIC_APP_URL, APP_URL, or VERCEL_URL."
     );
   }
   return url;

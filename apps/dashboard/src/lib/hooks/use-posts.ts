@@ -19,7 +19,7 @@ export function usePosts(organizationId: string) {
       }
 
       const res = await fetch(
-        `/api/organizations/${organizationId}/content?${params.toString()}`,
+        `/api/organizations/${organizationId}/content?${params.toString()}`
       );
 
       if (!res.ok) {
@@ -48,7 +48,7 @@ export function useTodayPosts(organizationId: string) {
       }
 
       const res = await fetch(
-        `/api/organizations/${organizationId}/content?${params.toString()}`,
+        `/api/organizations/${organizationId}/content?${params.toString()}`
       );
 
       if (!res.ok) {

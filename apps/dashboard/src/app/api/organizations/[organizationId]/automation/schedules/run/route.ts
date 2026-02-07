@@ -1,10 +1,10 @@
-import { withOrganizationAuth } from "@/lib/auth/organization";
-import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { withOrganizationAuth } from "@/lib/auth/organization";
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { triggerScheduleNow } from "@/lib/triggers/qstash";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
 
@@ -27,28 +27,25 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!triggerId) {
       return NextResponse.json(
         { error: "Trigger ID required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const trigger = await db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.id, triggerId),
-        eq(contentTriggers.organizationId, organizationId),
+        eq(contentTriggers.organizationId, organizationId)
       ),
     });
 
     if (!trigger) {
-      return NextResponse.json(
-        { error: "Trigger not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Trigger not found" }, { status: 404 });
     }
 
     if (!trigger.enabled) {
       return NextResponse.json(
         { error: "Cannot run a disabled schedule" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -82,7 +79,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     console.error("Error triggering schedule:", error);
     return NextResponse.json(
       { error: "Failed to trigger schedule" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

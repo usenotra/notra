@@ -1,6 +1,8 @@
 "use client";
 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useCustomer } from "autumn-js/react";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -11,8 +13,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { usePathname } from "next/navigation";
-import { useCustomer } from "autumn-js/react";
 import { authClient } from "@/lib/auth/client";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
@@ -28,7 +28,7 @@ interface OrganizationsContextValue {
 }
 
 const OrganizationsContext = createContext<OrganizationsContextValue | null>(
-  null,
+  null
 );
 
 export function OrganizationsProvider({ children }: { children: ReactNode }) {
@@ -104,7 +104,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
     }
 
     const organizationFromPath = organizations.find(
-      (org) => org.slug === slugFromPath,
+      (org) => org.slug === slugFromPath
     );
     if (!organizationFromPath) {
       return;
@@ -166,7 +166,7 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
             if (result.error) {
               console.error(
                 "Failed to auto-set active organization:",
-                result.error,
+                result.error
               );
               setOptimisticActiveOrg(null);
               hasAutoSelectedRef.current = false;
@@ -207,7 +207,13 @@ export function OrganizationsProvider({ children }: { children: ReactNode }) {
       isLoading,
       getOrganization,
     }),
-    [organizations, activeOrganization, optimisticActiveOrg, isLoading, getOrganization]
+    [
+      organizations,
+      activeOrganization,
+      optimisticActiveOrg,
+      isLoading,
+      getOrganization,
+    ]
   );
 
   useEffect(() => {
@@ -229,7 +235,7 @@ export function useOrganizationsContext() {
   const context = useContext(OrganizationsContext);
   if (!context) {
     throw new Error(
-      "useOrganizationsContext must be used within OrganizationsProvider",
+      "useOrganizationsContext must be used within OrganizationsProvider"
     );
   }
   return context;

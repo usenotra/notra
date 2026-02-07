@@ -1,3 +1,5 @@
+import { db } from "@notra/db/drizzle";
+import { members, organizations } from "@notra/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -10,8 +12,6 @@ import {
 import { eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { cookies } from "next/headers";
-import { db } from "@notra/db/drizzle";
-import { members, organizations } from "@notra/db/schema";
 import { autumn } from "@/lib/billing/autumn";
 import {
   sendInviteEmailAction,
@@ -60,7 +60,7 @@ if (!authSecret) {
 
 async function getActiveOrganizationId(
   userId: string,
-  cookieHeader?: string | null,
+  cookieHeader?: string | null
 ): Promise<string | undefined> {
   try {
     let lastVisitedSlug: string | undefined;
@@ -68,7 +68,7 @@ async function getActiveOrganizationId(
     try {
       const cookieStore = await cookies();
       lastVisitedSlug = cookieStore.get(
-        LAST_VISITED_ORGANIZATION_COOKIE,
+        LAST_VISITED_ORGANIZATION_COOKIE
       )?.value;
     } catch {
       if (cookieHeader) {
@@ -76,7 +76,7 @@ async function getActiveOrganizationId(
           cookieHeader.split(";").map((c) => {
             const [key, ...v] = c.trim().split("=");
             return [key, v.join("=")];
-          }),
+          })
         );
         lastVisitedSlug = parsedCookies[LAST_VISITED_ORGANIZATION_COOKIE];
       }
@@ -255,8 +255,7 @@ export const auth = betterAuth({
 
           if (!validation.success) {
             throw new Error(
-              validation.error.issues[0]?.message ??
-                "Invalid organization slug",
+              validation.error.issues[0]?.message ?? "Invalid organization slug"
             );
           }
 
@@ -270,7 +269,7 @@ export const auth = betterAuth({
         after: async (org: { id: string; name: string }) => {
           if (!autumn) {
             console.warn(
-              "[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured",
+              "[Autumn] Skipping customer creation - AUTUMN_SECRET_KEY not configured"
             );
             return;
           }
@@ -295,7 +294,7 @@ export const auth = betterAuth({
           const cookieHeader = ctx?.headers?.get("cookie");
           const activeOrgId = await getActiveOrganizationId(
             session.userId,
-            cookieHeader,
+            cookieHeader
           );
 
           if (activeOrgId) {

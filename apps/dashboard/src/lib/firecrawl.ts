@@ -12,7 +12,7 @@ export function getFirecrawlClient(): FirecrawlClient {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "API key is required for the cloud API. Set FIRECRAWL_API_KEY env or pass apiKey.",
+      "API key is required for the cloud API. Set FIRECRAWL_API_KEY env or pass apiKey."
     );
   }
 

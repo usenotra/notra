@@ -5,7 +5,8 @@
     "baseUrl": ".",
     "paths": {
       "@notra/ui/*": ["./src/*"]
-    }
+    },
+    "strictNullChecks": true
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]

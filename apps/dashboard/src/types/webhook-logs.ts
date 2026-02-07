@@ -7,7 +7,12 @@ export type StatusWithCode =
 
 export type LogDirection = "incoming" | "outgoing";
 
-export type IntegrationType = "github" | "linear" | "slack" | "webhook" | "manual";
+export type IntegrationType =
+  | "github"
+  | "linear"
+  | "slack"
+  | "webhook"
+  | "manual";
 
 export interface Log {
   id: string;

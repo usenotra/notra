@@ -1,7 +1,7 @@
-import { TitleCard } from "@/components/title-card";
 import { Badge } from "@notra/ui/components/ui/badge";
 import Link from "next/link";
 import { memo } from "react";
+import { TitleCard } from "@/components/title-card";
 import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = [

@@ -355,13 +355,13 @@ export default function DesignSystemClientPage() {
   const [stepperValue, setStepperValue] = useState("review");
   const stepperSteps = ["details", "review", "launch"] as const;
   const activeStepIndex = stepperSteps.indexOf(
-    stepperValue as (typeof stepperSteps)[number],
+    stepperValue as (typeof stepperSteps)[number]
   );
 
   return (
     <main className="container mx-auto flex flex-col gap-12 py-10">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="font-semibold text-3xl tracking-tight">
           Notra UI Preview
         </h1>
         <p className="max-w-2xl text-muted-foreground text-sm">
@@ -379,13 +379,13 @@ export default function DesignSystemClientPage() {
 
       <section className="space-y-6">
         <SectionHeader
-          title="Colors"
           description="Theme tokens from the dashboard CSS variables."
+          title="Colors"
         />
         <div className="space-y-6">
           {colorGroups.map((group) => (
-            <div key={group.title} className="space-y-3">
-              <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
+            <div className="space-y-3" key={group.title}>
+              <h3 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
                 {group.title}
               </h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -712,8 +712,8 @@ export default function DesignSystemClientPage() {
                   <Input placeholder="Email address" />
                   <DialogFooter>
                     <Button
-                      variant="outline"
                       onClick={() => setDialogOpen(false)}
+                      variant="outline"
                     >
                       Cancel
                     </Button>
@@ -773,8 +773,8 @@ export default function DesignSystemClientPage() {
                   </div>
                   <SheetFooter>
                     <Button
-                      variant="outline"
                       onClick={() => setSheetOpen(false)}
+                      variant="outline"
                     >
                       Close
                     </Button>
@@ -858,26 +858,26 @@ export default function DesignSystemClientPage() {
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button
-                variant="outline"
                 onClick={() => toast("Workspace synced")}
+                variant="outline"
               >
                 Default
               </Button>
               <Button
-                variant="outline"
                 onClick={() => toast.success("Deployment complete")}
+                variant="outline"
               >
                 Success
               </Button>
               <Button
-                variant="outline"
                 onClick={() => toast.error("Something went wrong")}
+                variant="outline"
               >
                 Error
               </Button>
               <Button
-                variant="outline"
                 onClick={() => toast.loading("Processing...")}
+                variant="outline"
               >
                 Loading
               </Button>
@@ -989,8 +989,8 @@ export default function DesignSystemClientPage() {
                 <div className="space-y-2 p-3 text-sm">
                   {scrollItems.map((item) => (
                     <div
-                      key={item.id}
                       className="flex items-center justify-between"
+                      key={item.id}
                     >
                       <span>{item.label}</span>
                       <Badge variant="secondary">Queued</Badge>
@@ -1010,7 +1010,7 @@ export default function DesignSystemClientPage() {
                 <CarouselContent>
                   {["Reporting", "Automation", "Analytics"].map((label) => (
                     <CarouselItem key={label}>
-                      <div className="flex h-32 items-center justify-center rounded-lg border bg-muted/40 text-sm font-medium">
+                      <div className="flex h-32 items-center justify-center rounded-lg border bg-muted/40 font-medium text-sm">
                         {label} panel
                       </div>
                     </CarouselItem>
@@ -1046,7 +1046,7 @@ export default function DesignSystemClientPage() {
               <CardTitle>Command Palette</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" onClick={() => setCommandOpen(true)}>
+              <Button onClick={() => setCommandOpen(true)} variant="outline">
                 Open command dialog
               </Button>
               <Command className="h-52">
@@ -1068,7 +1068,7 @@ export default function DesignSystemClientPage() {
                   </CommandGroup>
                 </CommandList>
               </Command>
-              <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
+              <CommandDialog onOpenChange={setCommandOpen} open={commandOpen}>
                 <Command>
                   <CommandInput placeholder="Search commands..." />
                   <CommandList>
@@ -1139,28 +1139,28 @@ export default function DesignSystemClientPage() {
               <div className="flex flex-wrap gap-2">
                 <ButtonGroup>
                   <Button
-                    variant={stepperValue === "details" ? "default" : "outline"}
                     onClick={() => setStepperValue("details")}
+                    variant={stepperValue === "details" ? "default" : "outline"}
                   >
                     Details active
                   </Button>
                   <Button
-                    variant={stepperValue === "review" ? "default" : "outline"}
                     onClick={() => setStepperValue("review")}
+                    variant={stepperValue === "review" ? "default" : "outline"}
                   >
                     Review active
                   </Button>
                   <Button
-                    variant={stepperValue === "launch" ? "default" : "outline"}
                     onClick={() => setStepperValue("launch")}
+                    variant={stepperValue === "launch" ? "default" : "outline"}
                   >
                     Launch active
                   </Button>
                 </ButtonGroup>
               </div>
-              <Stepper value={stepperValue} onValueChange={setStepperValue}>
+              <Stepper onValueChange={setStepperValue} value={stepperValue}>
                 <StepperList>
-                  <StepperItem value="details" completed={activeStepIndex > 0}>
+                  <StepperItem completed={activeStepIndex > 0} value="details">
                     <StepperTrigger className="gap-3">
                       <StepperIndicator />
                       <div className="flex flex-col text-left">
@@ -1170,7 +1170,7 @@ export default function DesignSystemClientPage() {
                     </StepperTrigger>
                     <StepperSeparator />
                   </StepperItem>
-                  <StepperItem value="review" completed={activeStepIndex > 1}>
+                  <StepperItem completed={activeStepIndex > 1} value="review">
                     <StepperTrigger className="gap-3">
                       <StepperIndicator />
                       <div className="flex flex-col text-left">
@@ -1191,20 +1191,20 @@ export default function DesignSystemClientPage() {
                   </StepperItem>
                 </StepperList>
                 <StepperContent
+                  className="text-muted-foreground text-sm"
                   value="details"
-                  className="text-sm text-muted-foreground"
                 >
                   Provide the main details for the workflow.
                 </StepperContent>
                 <StepperContent
+                  className="text-muted-foreground text-sm"
                   value="review"
-                  className="text-sm text-muted-foreground"
                 >
                   Confirm all settings before launch.
                 </StepperContent>
                 <StepperContent
+                  className="text-muted-foreground text-sm"
                   value="launch"
-                  className="text-sm text-muted-foreground"
                 >
                   Ship the automation to production.
                 </StepperContent>
@@ -1237,6 +1237,12 @@ export default function DesignSystemClientPage() {
             </CardHeader>
             <CardContent>
               <TitleCard
+                accentColor="#8B5CF6"
+                action={
+                  <Button size="sm" variant="outline">
+                    View
+                  </Button>
+                }
                 heading="Automation health"
                 icon={
                   <svg
@@ -1258,12 +1264,6 @@ export default function DesignSystemClientPage() {
                     />
                   </svg>
                 }
-                action={
-                  <Button size="sm" variant="outline">
-                    View
-                  </Button>
-                }
-                accentColor="#8B5CF6"
               >
                 <p className="text-muted-foreground text-sm">
                   All workflows are running within expected thresholds.
@@ -1366,11 +1366,11 @@ export default function DesignSystemClientPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-3">
-                <div className="text-sm font-medium">Horizontal</div>
+                <div className="font-medium text-sm">Horizontal</div>
                 <Separator />
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-sm font-medium">Vertical</div>
+                <div className="font-medium text-sm">Vertical</div>
                 <Separator orientation="vertical" />
                 <div className="text-muted-foreground text-xs">
                   Inline content split
@@ -1386,7 +1386,7 @@ export default function DesignSystemClientPage() {
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <div className="text-sm font-medium">Live previews</div>
+                  <div className="font-medium text-sm">Live previews</div>
                   <div className="text-muted-foreground text-xs">
                     Toggle UI updates
                   </div>

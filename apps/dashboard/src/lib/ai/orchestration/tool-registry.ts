@@ -5,10 +5,7 @@ import {
   createGetPullRequestsTool,
   createGetReleaseByTagTool,
 } from "@/lib/ai/tools/github";
-import {
-  getSkillByName,
-  listAvailableSkills,
-} from "@/lib/ai/tools/skills";
+import { getSkillByName, listAvailableSkills } from "@/lib/ai/tools/skills";
 import type { RepoContext, ToolSet, ValidatedIntegration } from "./types";
 
 interface BuildToolSetParams {

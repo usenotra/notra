@@ -1,20 +1,19 @@
 ---
-interface Props {
-  href: string;
-}
+  interface Props {
+    href: string;
+  }
 
-const { href, ...rest } = Astro.props;
+  const { href, ...rest } = Astro.props;
 
-const hostname = new URL(href).hostname;
-const isExternalLink = hostname !== null;
-const faviconUrl = isExternalLink ? `https://icons.duckduckgo.com/ip3/${hostname}.ico` : null;
+  const hostname = new URL(href).hostname;
+  const isExternalLink = hostname !== null;
+  const faviconUrl = isExternalLink
+    ? `https://icons.duckduckgo.com/ip3/${hostname}.ico`
+    : null;
 
-const invertedFavicons = [
-  'github.com',
-];
-const isInvertedFavicon = invertedFavicons.includes(hostname);
+  const invertedFavicons = ["github.com"];
+  const isInvertedFavicon = invertedFavicons.includes(hostname);
 ---
-
 {isExternalLink ? (
   <a href={href} {...rest} target="_blank" rel="noopener noreferrer" class="favicon-link">
     <img

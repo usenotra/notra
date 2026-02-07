@@ -27,7 +27,10 @@ import {
 import { FloatingToolbarPlugin } from "./plugins/floating-toolbar-plugin";
 import { HorizontalRulePlugin } from "./plugins/horizontal-rule-plugin";
 import { MarkdownSyncPlugin } from "./plugins/markdown-sync-plugin";
-import { SelectionPlugin, type TextSelection } from "./plugins/selection-plugin";
+import {
+  SelectionPlugin,
+  type TextSelection,
+} from "./plugins/selection-plugin";
 import { TabFocusPlugin } from "./plugins/tab-focus-plugin";
 
 interface LexicalEditorProps {

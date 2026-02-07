@@ -4,7 +4,6 @@
   "scripts": {
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "dotenv -- turbo run check-types",
     "db:generate": "dotenv -- bunx drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:migrate": "dotenv -- bunx drizzle-kit migrate --config packages/db/drizzle.config.ts",
@@ -15,12 +14,17 @@
     "db:seed:automation": "dotenv -- bun packages/db/scripts/seed-automation.ts",
     "db:seed:posts": "dotenv -- bun packages/db/scripts/seed-posts.ts",
     "db:seed": "bun run db:seed:posts && bun run db:seed:automation",
-    "email:dev": "dotenv -- bun run --filter=@notra/email dev"
+    "email:dev": "dotenv -- bun run --filter=@notra/email dev",
+    "check": "ultracite check",
+    "format": "ultracite fix",
+    "format:unsafe": "ultracite fix --unsafe"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.2",
     "dotenv-cli": "^10.0.0",
-    "prettier": "^3.7.4",
-    "turbo": "^2.8.3"
+
+    "turbo": "^2.8.3",
+    "ultracite": "7.1.4"
   },
   "engines": {
     "node": "24.11.1"

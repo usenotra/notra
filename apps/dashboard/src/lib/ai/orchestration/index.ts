@@ -1,8 +1,8 @@
 import { withSupermemory } from "@supermemory/tools/ai-sdk";
 import {
   convertToModelMessages,
-  streamText,
   stepCountIs,
+  streamText,
   type UIMessage,
 } from "ai";
 import { getContentEditorChatPrompt } from "@/lib/ai/prompts/content-editor";
@@ -114,7 +114,15 @@ function getLastUserMessage(messages: UIMessage[]): string {
   return "";
 }
 
-export * from "./types";
-export { validateIntegrations, hasEnabledGitHubIntegration } from "./integration-validator";
-export { routeAndSelectModel, routeMessage, selectModel, MODELS } from "./router";
+export {
+  hasEnabledGitHubIntegration,
+  validateIntegrations,
+} from "./integration-validator";
+export {
+  MODELS,
+  routeAndSelectModel,
+  routeMessage,
+  selectModel,
+} from "./router";
 export { buildToolSet } from "./tool-registry";
+export * from "./types";

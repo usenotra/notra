@@ -12,11 +12,15 @@ const editOperationSchema = z.discriminatedUnion("op", [
     op: z.literal("replaceRange"),
     startLine: z.number().describe("The starting line number (1-indexed)"),
     endLine: z.number().describe("The ending line number (1-indexed)"),
-    content: z.string().describe("The new content (use \\n for multiple lines)"),
+    content: z
+      .string()
+      .describe("The new content (use \\n for multiple lines)"),
   }),
   z.object({
     op: z.literal("insert"),
-    afterLine: z.number().describe("Line number after which to insert (0 for start)"),
+    afterLine: z
+      .number()
+      .describe("Line number after which to insert (0 for start)"),
     content: z.string().describe("The content to insert"),
   }),
   z.object({
@@ -25,8 +29,12 @@ const editOperationSchema = z.discriminatedUnion("op", [
   }),
   z.object({
     op: z.literal("deleteRange"),
-    startLine: z.number().describe("The starting line number to delete (1-indexed)"),
-    endLine: z.number().describe("The ending line number to delete (1-indexed)"),
+    startLine: z
+      .number()
+      .describe("The starting line number to delete (1-indexed)"),
+    endLine: z
+      .number()
+      .describe("The ending line number to delete (1-indexed)"),
   }),
 ]);
 
@@ -67,7 +75,7 @@ function applyOperation(lines: string[], op: EditOperation): void {
 }
 
 export function createMarkdownTools(context: EditMarkdownContext) {
-  let currentLines = context.currentMarkdown.split("\n");
+  const currentLines = context.currentMarkdown.split("\n");
 
   const getMarkdown = tool({
     description: "Gets the current markdown content with line numbers.",
@@ -82,13 +90,14 @@ export function createMarkdownTools(context: EditMarkdownContext) {
   });
 
   const editMarkdown = tool({
-    description: `Edits markdown. Operations: replaceLine (line, content), replaceRange (startLine, endLine, content), insert (afterLine, content), deleteLine (line), deleteRange (startLine, endLine). Process from highest line number to lowest.`,
+    description:
+      "Edits markdown. Operations: replaceLine (line, content), replaceRange (startLine, endLine, content), insert (afterLine, content), deleteLine (line), deleteRange (startLine, endLine). Process from highest line number to lowest.",
     inputSchema: z.object({
       operations: z.array(editOperationSchema),
     }),
     execute: ({ operations }) => {
       try {
-        console.log(`[editMarkdown] Received:`, JSON.stringify(operations));
+        console.log("[editMarkdown] Received:", JSON.stringify(operations));
 
         const sortedOps = [...operations].sort(
           (a, b) => getOperationLineNumber(b) - getOperationLineNumber(a)
@@ -109,7 +118,7 @@ export function createMarkdownTools(context: EditMarkdownContext) {
           updatedMarkdown,
         };
       } catch (err) {
-        console.error(`[editMarkdown] Error:`, err);
+        console.error("[editMarkdown] Error:", err);
         return { success: false, error: String(err) };
       }
     },

@@ -21,7 +21,7 @@ export interface IntegrationsResponse {
 }
 
 type IntegrationFetcher = (
-  organizationId: string,
+  organizationId: string
 ) => Promise<IntegrationWithRepositories[]>;
 
 const integrationFetchers: Partial<
@@ -37,8 +37,8 @@ const integrationFetchers: Partial<
           integration.repositories.map((repo) => [
             `${repo.owner}/${repo.repo}`,
             repo,
-          ]),
-        ).values(),
+          ])
+        ).values()
       );
 
       return {
@@ -60,21 +60,21 @@ const integrationFetchers: Partial<
 
 export function registerIntegrationFetcher(
   type: IntegrationType,
-  fetcher: IntegrationFetcher,
+  fetcher: IntegrationFetcher
 ): void {
   integrationFetchers[type] = fetcher;
 }
 
 export async function getIntegrationsByOrganization(
-  organizationId: string,
+  organizationId: string
 ): Promise<IntegrationsResponse> {
   const activeFetchers = Object.entries(integrationFetchers).filter(
     (entry): entry is [IntegrationType, IntegrationFetcher] =>
-      entry[1] !== undefined,
+      entry[1] !== undefined
   );
 
   const results = await Promise.all(
-    activeFetchers.map(([, fetcher]) => fetcher(organizationId)),
+    activeFetchers.map(([, fetcher]) => fetcher(organizationId))
   );
 
   const integrations = results.flat();
@@ -86,7 +86,7 @@ export async function getIntegrationsByOrganization(
 }
 
 export async function getIntegrationCountByOrganization(
-  organizationId: string,
+  organizationId: string
 ): Promise<number> {
   const { count } = await getIntegrationsByOrganization(organizationId);
   return count;

@@ -1,6 +1,6 @@
-import PixelBlast from "@/components/PixelBlast";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import PixelBlast from "@/components/PixelBlast";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 
 export default async function AuthLayout({

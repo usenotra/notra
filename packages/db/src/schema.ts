@@ -39,7 +39,7 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     activeOrganizationId: text("active_organization_id"),
   },
-  (table) => [index("sessions_userId_idx").on(table.userId)],
+  (table) => [index("sessions_userId_idx").on(table.userId)]
 );
 
 export const accounts = pgTable(
@@ -63,7 +63,7 @@ export const accounts = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("accounts_userId_idx").on(table.userId)],
+  (table) => [index("accounts_userId_idx").on(table.userId)]
 );
 
 export const verifications = pgTable(
@@ -79,7 +79,7 @@ export const verifications = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("verifications_identifier_idx").on(table.identifier)],
+  (table) => [index("verifications_identifier_idx").on(table.identifier)]
 );
 
 export const organizations = pgTable(
@@ -93,7 +93,7 @@ export const organizations = pgTable(
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
   },
-  (table) => [uniqueIndex("organizations_slug_uidx").on(table.slug)],
+  (table) => [uniqueIndex("organizations_slug_uidx").on(table.slug)]
 );
 
 export const members = pgTable(
@@ -112,7 +112,7 @@ export const members = pgTable(
   (table) => [
     index("members_organizationId_idx").on(table.organizationId),
     index("members_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const invitations = pgTable(
@@ -134,7 +134,7 @@ export const invitations = pgTable(
   (table) => [
     index("invitations_organizationId_idx").on(table.organizationId),
     index("invitations_email_idx").on(table.email),
-  ],
+  ]
 );
 
 export const githubIntegrations = pgTable(
@@ -159,7 +159,7 @@ export const githubIntegrations = pgTable(
   (table) => [
     index("githubIntegrations_organizationId_idx").on(table.organizationId),
     index("githubIntegrations_createdByUserId_idx").on(table.createdByUserId),
-  ],
+  ]
 );
 
 export const contentTriggers = pgTable(
@@ -187,9 +187,9 @@ export const contentTriggers = pgTable(
     index("contentTriggers_organizationId_idx").on(table.organizationId),
     uniqueIndex("contentTriggers_organization_dedupe_uidx").on(
       table.organizationId,
-      table.dedupeHash,
+      table.dedupeHash
     ),
-  ],
+  ]
 );
 
 export const githubRepositories = pgTable(
@@ -210,9 +210,9 @@ export const githubRepositories = pgTable(
     uniqueIndex("githubRepositories_integration_owner_repo_uidx").on(
       table.integrationId,
       table.owner,
-      table.repo,
+      table.repo
     ),
-  ],
+  ]
 );
 
 export const repositoryOutputs = pgTable(
@@ -231,9 +231,9 @@ export const repositoryOutputs = pgTable(
     index("repositoryOutputs_repositoryId_idx").on(table.repositoryId),
     uniqueIndex("repositoryOutputs_repository_outputType_uidx").on(
       table.repositoryId,
-      table.outputType,
+      table.outputType
     ),
-  ],
+  ]
 );
 
 export const brandSettings = pgTable(
@@ -257,7 +257,7 @@ export const brandSettings = pgTable(
   },
   (table) => [
     uniqueIndex("brandSettings_organizationId_uidx").on(table.organizationId),
-  ],
+  ]
 );
 
 export const posts = pgTable(
@@ -281,9 +281,9 @@ export const posts = pgTable(
     index("posts_org_createdAt_id_idx").on(
       table.organizationId,
       table.createdAt,
-      table.id,
+      table.id
     ),
-  ],
+  ]
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -316,7 +316,7 @@ export const organizationsRelations = relations(
     githubIntegrations: many(githubIntegrations),
     brandSettings: one(brandSettings),
     posts: many(posts),
-  }),
+  })
 );
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -353,7 +353,7 @@ export const githubIntegrationsRelations = relations(
       references: [users.id],
     }),
     repositories: many(githubRepositories),
-  }),
+  })
 );
 
 export const contentTriggersRelations = relations(
@@ -363,7 +363,7 @@ export const contentTriggersRelations = relations(
       fields: [contentTriggers.organizationId],
       references: [organizations.id],
     }),
-  }),
+  })
 );
 
 export const githubRepositoriesRelations = relations(
@@ -374,7 +374,7 @@ export const githubRepositoriesRelations = relations(
       references: [githubIntegrations.id],
     }),
     outputs: many(repositoryOutputs),
-  }),
+  })
 );
 
 export const repositoryOutputsRelations = relations(
@@ -384,7 +384,7 @@ export const repositoryOutputsRelations = relations(
       fields: [repositoryOutputs.repositoryId],
       references: [githubRepositories.id],
     }),
-  }),
+  })
 );
 
 export const brandSettingsRelations = relations(brandSettings, ({ one }) => ({

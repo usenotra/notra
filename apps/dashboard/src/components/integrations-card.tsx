@@ -1,6 +1,5 @@
 "use client";
 
-import { TitleCard } from "@/components/title-card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,10 +21,11 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import type React from "react";
 import type { MouseEvent } from "react";
 import { useState } from "react";
-import type React from "react";
 import { toast } from "sonner";
+import { TitleCard } from "@/components/title-card";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 export interface InstalledIntegration {
@@ -81,7 +81,7 @@ export function InstalledIntegrationCard({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -108,7 +108,7 @@ export function InstalledIntegrationCard({
         `/api/organizations/${organizationId}/integrations/${integration.id}`,
         {
           method: "DELETE",
-        },
+        }
       );
 
       if (!response.ok) {
@@ -155,7 +155,7 @@ export function InstalledIntegrationCard({
       return;
     }
     router.push(
-      `/${organizationSlug}/integrations/${integration.type}/${integration.id}`,
+      `/${organizationSlug}/integrations/${integration.type}/${integration.id}`
     );
   };
 

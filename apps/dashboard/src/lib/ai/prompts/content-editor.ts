@@ -16,7 +16,7 @@ interface ContentEditorChatPromptParams {
 }
 
 export function getContentEditorChatPrompt(
-  params: ContentEditorChatPromptParams,
+  params: ContentEditorChatPromptParams
 ) {
   const { selection, repoContext, toolDescriptions, hasGitHubEnabled } = params;
 

@@ -1,0 +1,86 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/next",
+    "ultracite/biome/astro"
+  ],
+  "html": {
+    "experimentalFullSupportEnabled": true
+  },
+  "files": {
+    "includes": ["!packages/ui/src", "!**/*.astro"]
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        /* Needs more work to fix */
+        "noConsole": "off",
+
+        /* Needs more work to fix */
+        "useAwait": "off",
+
+        /* Allowed for Tailwind */
+        "noUnknownAtRules": "off",
+
+        "noArrayIndexKey": "warn",
+        "noEmptyBlockStatements": "warn",
+        "noDuplicateClassMembers": "warn",
+        "noGlobalAssign": "warn"
+      },
+      "style": {
+        /* Needs more work to fix */
+        "noNestedTernary": "warn",
+
+        /* Doesn't work with Astro */
+        "useFilenamingConvention": "off",
+
+        "useBlockStatements": "warn",
+        "noNonNullAssertion": "warn",
+        "useConsistentTypeDefinitions": "warn",
+        "useNodejsImportProtocol": "warn",
+        "useTemplate": "warn",
+        "useAtIndex": "warn",
+        "useForOf": "warn",
+        "useCollapsedIf": "warn"
+      },
+      "complexity": {
+        /* Has false positives */
+        "useSimplifiedLogicExpression": "off",
+
+        /* Needs more work to fix */
+        "noExcessiveCognitiveComplexity": "off",
+
+        "noForEach": "warn",
+        "useOptionalChain": "warn"
+      },
+      "performance": {
+        /* Needs more work to fix */
+        "useTopLevelRegex": "off",
+        "noNamespaceImport": "warn",
+        "noBarrelFile": "warn"
+      },
+      "correctness": {
+        /* Doesn't work with Astro */
+        "noUnusedImports": "off",
+
+        /* Needs more work to fix */
+        "noUnusedVariables": "off",
+
+        /* Doesn't work with Astro */
+        "noUndeclaredVariables": "off",
+
+        "noUnusedFunctionParameters": "warn",
+        "useExhaustiveDependencies": "warn"
+      },
+      "a11y": {
+        "useAriaPropsSupportedByRole": "warn"
+      }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
+}

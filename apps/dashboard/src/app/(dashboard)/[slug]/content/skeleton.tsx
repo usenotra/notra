@@ -14,11 +14,11 @@ export function ContentPageSkeleton() {
             className="flex flex-col rounded-[20px] border border-border/80 bg-muted/80 p-2"
             key={`${id}-card-${i}`}
           >
-            <div className="flex items-center justify-between gap-4 py-1.5 px-2">
+            <div className="flex items-center justify-between gap-4 px-2 py-1.5">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-5 w-20 rounded-full" />
             </div>
-            <div className="rounded-[12px] border border-border/80 bg-background px-4 py-3 space-y-2">
+            <div className="space-y-2 rounded-[12px] border border-border/80 bg-background px-4 py-3">
               <Skeleton className="h-3.5 w-full" />
               <Skeleton className="h-3.5 w-full" />
               <Skeleton className="h-3.5 w-2/3" />

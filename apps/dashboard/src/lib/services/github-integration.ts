@@ -49,21 +49,21 @@ interface ConfigureOutputParams {
 async function findRepositoryInOrganization(
   organizationId: string,
   owner: string,
-  repo: string,
+  repo: string
 ) {
   const [existing] = await db
     .select({ id: githubRepositories.id })
     .from(githubRepositories)
     .innerJoin(
       githubIntegrations,
-      eq(githubRepositories.integrationId, githubIntegrations.id),
+      eq(githubRepositories.integrationId, githubIntegrations.id)
     )
     .where(
       and(
         eq(githubIntegrations.organizationId, organizationId),
         sql`lower(${githubRepositories.owner}) = ${owner.toLowerCase()}`,
-        sql`lower(${githubRepositories.repo}) = ${repo.toLowerCase()}`,
-      ),
+        sql`lower(${githubRepositories.repo}) = ${repo.toLowerCase()}`
+      )
     )
     .limit(1);
 
@@ -72,19 +72,19 @@ async function findRepositoryInOrganization(
 
 export async function validateUserOrgAccess(
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<boolean> {
   const member = await db.query.members.findFirst({
     where: and(
       eq(members.userId, userId),
-      eq(members.organizationId, organizationId),
+      eq(members.organizationId, organizationId)
     ),
   });
   return !!member;
 }
 
 export async function createGitHubIntegration(
-  params: CreateGitHubIntegrationParams,
+  params: CreateGitHubIntegrationParams
 ) {
   const { organizationId, userId, token, displayName, owner, repo } = params;
 
@@ -96,7 +96,7 @@ export async function createGitHubIntegration(
   const existingRepository = await findRepositoryInOrganization(
     organizationId,
     owner,
-    repo,
+    repo
   );
 
   if (existingRepository) {
@@ -128,7 +128,7 @@ export async function createGitHubIntegration(
       });
     } catch (_error) {
       throw new Error(
-        "Unable to access repository. It may be private and require a Personal Access Token.",
+        "Unable to access repository. It may be private and require a Personal Access Token."
       );
     }
   }
@@ -246,7 +246,7 @@ export function getGitHubIntegrationById(integrationId: string) {
 
 export async function getDecryptedToken(
   integrationId: string,
-  userId: string,
+  userId: string
 ): Promise<string | null> {
   const integration = await getGitHubIntegrationById(integrationId);
 
@@ -256,7 +256,7 @@ export async function getDecryptedToken(
 
   const hasAccess = await validateUserOrgAccess(
     userId,
-    integration.organizationId,
+    integration.organizationId
   );
 
   if (!hasAccess) {
@@ -271,7 +271,7 @@ export async function getDecryptedToken(
 }
 
 export async function addRepository(
-  params: AddRepositoryParams & { userId: string },
+  params: AddRepositoryParams & { userId: string }
 ) {
   const { integrationId, owner, repo, outputs = [], userId } = params;
 
@@ -282,7 +282,7 @@ export async function addRepository(
 
   const hasAccess = await validateUserOrgAccess(
     userId,
-    integration.organizationId,
+    integration.organizationId
   );
 
   if (!hasAccess) {
@@ -292,7 +292,7 @@ export async function addRepository(
   const existingRepositoryInOrg = await findRepositoryInOrganization(
     integration.organizationId,
     owner,
-    repo,
+    repo
   );
 
   if (existingRepositoryInOrg) {
@@ -327,7 +327,7 @@ export async function addRepository(
         outputType: output.type,
         enabled: output.enabled ?? true,
         config: output.config,
-      })),
+      }))
     );
   }
 
@@ -363,7 +363,7 @@ export async function configureOutput(params: ConfigureOutputParams) {
   const existing = await db.query.repositoryOutputs.findFirst({
     where: and(
       eq(repositoryOutputs.repositoryId, repositoryId),
-      eq(repositoryOutputs.outputType, outputType),
+      eq(repositoryOutputs.outputType, outputType)
     ),
   });
 
@@ -395,7 +395,7 @@ export async function configureOutput(params: ConfigureOutputParams) {
 
 export async function toggleGitHubIntegration(
   integrationId: string,
-  enabled: boolean,
+  enabled: boolean
 ) {
   const [updated] = await db
     .update(githubIntegrations)
@@ -408,7 +408,7 @@ export async function toggleGitHubIntegration(
 
 export async function updateGitHubIntegration(
   integrationId: string,
-  data: { enabled?: boolean; displayName?: string },
+  data: { enabled?: boolean; displayName?: string }
 ) {
   const [updated] = await db
     .update(githubIntegrations)
@@ -453,7 +453,7 @@ export async function deleteRepository(repositoryId: string) {
 
 export async function listAvailableRepositories(
   integrationId: string,
-  userId: string,
+  userId: string
 ) {
   const token = await getDecryptedToken(integrationId, userId);
 
@@ -483,12 +483,12 @@ export async function listAvailableRepositories(
 
 export async function getTokenForRepository(
   owner: string,
-  repo: string,
+  repo: string
 ): Promise<string | undefined> {
   const repository = await db.query.githubRepositories.findFirst({
     where: and(
       eq(githubRepositories.owner, owner),
-      eq(githubRepositories.repo, repo),
+      eq(githubRepositories.repo, repo)
     ),
     with: {
       integration: true,
@@ -505,7 +505,7 @@ export async function getTokenForRepository(
 }
 
 export async function getTokenForIntegrationId(
-  integrationId: string,
+  integrationId: string
 ): Promise<string | null> {
   const integration = await db.query.githubIntegrations.findFirst({
     where: eq(githubIntegrations.id, integrationId),
@@ -528,7 +528,7 @@ export interface WebhookConfig {
 
 export async function generateWebhookSecretForRepository(
   repositoryId: string,
-  userId: string,
+  userId: string
 ): Promise<WebhookConfig> {
   const repository = await getRepositoryById(repositoryId);
 
@@ -538,7 +538,7 @@ export async function generateWebhookSecretForRepository(
 
   const hasAccess = await validateUserOrgAccess(
     userId,
-    repository.integration.organizationId,
+    repository.integration.organizationId
   );
 
   if (!hasAccess) {
@@ -556,7 +556,7 @@ export async function generateWebhookSecretForRepository(
   const webhookUrl = buildWebhookUrl(
     repository.integration.id,
     repository.integration.organizationId,
-    repositoryId,
+    repositoryId
   );
 
   return {
@@ -570,7 +570,7 @@ export async function generateWebhookSecretForRepository(
 
 export async function getWebhookConfigForRepository(
   repositoryId: string,
-  userId: string,
+  userId: string
 ): Promise<WebhookConfig | null> {
   const repository = await getRepositoryById(repositoryId);
 
@@ -580,7 +580,7 @@ export async function getWebhookConfigForRepository(
 
   const hasAccess = await validateUserOrgAccess(
     userId,
-    repository.integration.organizationId,
+    repository.integration.organizationId
   );
 
   if (!hasAccess) {
@@ -595,7 +595,7 @@ export async function getWebhookConfigForRepository(
   const webhookUrl = buildWebhookUrl(
     repository.integration.id,
     repository.integration.organizationId,
-    repositoryId,
+    repositoryId
   );
 
   return {
@@ -608,7 +608,7 @@ export async function getWebhookConfigForRepository(
 }
 
 export async function hasWebhookConfigured(
-  repositoryId: string,
+  repositoryId: string
 ): Promise<boolean> {
   const repository = await db.query.githubRepositories.findFirst({
     where: eq(githubRepositories.id, repositoryId),
@@ -621,7 +621,7 @@ export async function hasWebhookConfigured(
 }
 
 export async function getWebhookSecretByRepositoryId(
-  repositoryId: string,
+  repositoryId: string
 ): Promise<string | null> {
   const repository = await db.query.githubRepositories.findFirst({
     where: eq(githubRepositories.id, repositoryId),
@@ -640,7 +640,7 @@ export async function getWebhookSecretByRepositoryId(
 function buildWebhookUrl(
   integrationId: string,
   organizationId: string,
-  repositoryId: string,
+  repositoryId: string
 ): string {
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||

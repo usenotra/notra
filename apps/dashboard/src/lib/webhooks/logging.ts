@@ -1,5 +1,5 @@
-import type { IntegrationType, Log } from "@/types/webhook-logs";
 import { redis } from "@/lib/redis";
+import type { IntegrationType, Log } from "@/types/webhook-logs";
 
 const LOG_TTL_7_DAYS = 60 * 60 * 24 * 7;
 const LOG_TTL_30_DAYS = 60 * 60 * 24 * 30;
@@ -27,7 +27,7 @@ export interface WebhookLogInput {
 function getLogKey(
   organizationId: string,
   integrationType: IntegrationType,
-  integrationId: string,
+  integrationId: string
 ) {
   return `webhook-logs:${organizationId}:${integrationType}:${integrationId}`;
 }
@@ -60,7 +60,7 @@ export async function appendWebhookLog(input: WebhookLogInput) {
   const key = getLogKey(
     input.organizationId,
     input.integrationType,
-    input.integrationId,
+    input.integrationId
   );
   const allKey = getAllLogKey(input.organizationId);
 
@@ -78,7 +78,7 @@ export async function appendWebhookLog(input: WebhookLogInput) {
 export async function listWebhookLogs(
   organizationId: string,
   integrationType: IntegrationType,
-  integrationId?: string | null,
+  integrationId?: string | null
 ) {
   if (!redis) {
     return [];

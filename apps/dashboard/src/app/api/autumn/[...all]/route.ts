@@ -7,7 +7,7 @@ export const { GET, POST } = autumnHandler({
       headers: request.headers,
     });
 
-    if (!session?.user || !session?.session?.activeOrganizationId) {
+    if (!(session?.user && session?.session?.activeOrganizationId)) {
       return null;
     }
 

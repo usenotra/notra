@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         });
         return NextResponse.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
-          { status: 500 },
+          { status: 500 }
         );
       }
 
@@ -62,13 +62,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
             code: "USAGE_LIMIT_REACHED",
             balance: checkData?.balance ?? 0,
           },
-          { status: 403 },
+          { status: 403 }
         );
       }
     } else {
       console.log(
         "[Autumn] Skipping billing check - AUTUMN_SECRET_KEY not configured",
-        { requestId },
+        { requestId }
       );
     }
 
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!parseResult.success) {
       return NextResponse.json(
         { error: "Invalid request body", details: parseResult.error.issues },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
     return NextResponse.json(
       { error: "Failed to process chat request" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -1,5 +1,5 @@
-import PixelBlast from "@/components/PixelBlast";
 import Link from "next/link";
+import PixelBlast from "@/components/PixelBlast";
 
 export default function AuthPublicLayout({
   children,

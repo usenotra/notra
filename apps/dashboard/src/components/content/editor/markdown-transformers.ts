@@ -56,7 +56,7 @@ export const KIBO_CODE_BLOCK: MultilineElementTransformer = {
     startMatch,
     _endMatch,
     linesInBetween,
-    _isImport,
+    _isImport
   ) => {
     const language = startMatch[1] || "";
 
@@ -88,7 +88,7 @@ export const KIBO_CODE_BLOCK: MultilineElementTransformer = {
 };
 
 function isMultilineTransformer(
-  transformer: Transformer,
+  transformer: Transformer
 ): transformer is MultilineElementTransformer {
   return transformer.type === "multiline-element";
 }

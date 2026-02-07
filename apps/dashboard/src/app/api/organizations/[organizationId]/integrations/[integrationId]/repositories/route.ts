@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: paramValidation.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -42,20 +42,20 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     if (!integration) {
       return NextResponse.json(
         { error: "Integration not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     if (integration.organizationId !== organizationId) {
       return NextResponse.json(
         { error: "Integration not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     const repositories = await listAvailableRepositories(
       integrationId,
-      auth.context.user.id,
+      auth.context.user.id
     );
 
     return NextResponse.json(repositories);
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       {
         error: error instanceof Error ? error.message : "Internal server error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: paramValidation.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -98,14 +98,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!integration) {
       return NextResponse.json(
         { error: "Integration not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     if (integration.organizationId !== organizationId) {
       return NextResponse.json(
         { error: "Integration not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       {
         error: error instanceof Error ? error.message : "Internal server error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

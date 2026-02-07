@@ -57,7 +57,7 @@ export function useBrandSettings(organizationId: string) {
 
 export function useBrandAnalysisProgress(
   organizationId: string,
-  onFailure?: (error: string) => void,
+  onFailure?: (error: string) => void
 ) {
   const queryClient = useQueryClient();
   const hasReset = useRef(false);
@@ -73,7 +73,7 @@ export function useBrandAnalysisProgress(
     queryKey: QUERY_KEYS.BRAND.progress(organizationId),
     queryFn: async (): Promise<Progress> => {
       const res = await fetch(
-        `/api/organizations/${organizationId}/brand/progress`,
+        `/api/organizations/${organizationId}/brand/progress`
       );
       if (!res.ok) {
         throw new Error("Failed to fetch progress");
@@ -82,11 +82,13 @@ export function useBrandAnalysisProgress(
       const data: ProgressResponse = await res.json();
       const progress = data.progress;
 
-      if (progress.status === "failed" && progress.error) {
-        if (lastFailureMessage.current !== progress.error) {
-          onFailure?.(progress.error);
-          lastFailureMessage.current = progress.error;
-        }
+      if (
+        progress.status === "failed" &&
+        progress.error &&
+        lastFailureMessage.current !== progress.error
+      ) {
+        onFailure?.(progress.error);
+        lastFailureMessage.current = progress.error;
       }
 
       if (progress.status !== "failed" && lastFailureMessage.current) {
@@ -98,7 +100,7 @@ export function useBrandAnalysisProgress(
       // so the UI can show the stepper immediately.
       if (progress.status === "idle" && shouldForcePoll()) {
         const cached = queryClient.getQueryData<Progress>(
-          QUERY_KEYS.BRAND.progress(organizationId),
+          QUERY_KEYS.BRAND.progress(organizationId)
         );
         if (cached && cached.status !== "idle") {
           return cached;
@@ -169,7 +171,7 @@ export function useBrandAnalysisProgress(
 
 export function useAnalyzeBrand(
   organizationId: string,
-  startPolling: () => void,
+  startPolling: () => void
 ) {
   const queryClient = useQueryClient();
 
@@ -181,7 +183,7 @@ export function useAnalyzeBrand(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url }),
-        },
+        }
       );
       if (!res.ok) {
         const error = await res.json();

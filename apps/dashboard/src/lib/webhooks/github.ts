@@ -1,37 +1,37 @@
-import crypto from "crypto";
 import { generateText } from "ai";
-import { checkLogRetention } from "@/lib/billing/check-log-retention";
-import { appendWebhookLog } from "@/lib/webhooks/logging";
+import crypto from "crypto";
 import { getGithubWebhookMemoryPrompt } from "@/lib/ai/prompts/github-webhook-memory";
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { openrouter } from "@/lib/openrouter";
-import { getWebhookSecretByRepositoryId } from "@/lib/services/github-integration";
 import { redis } from "@/lib/redis";
+import { getWebhookSecretByRepositoryId } from "@/lib/services/github-integration";
+import { appendWebhookLog } from "@/lib/webhooks/logging";
 import type { WebhookContext, WebhookResult } from "@/types/webhooks";
 import {
+  type GitHubEventType,
+  type GitHubWebhookPayload,
   githubWebhookPayloadSchema,
   isGitHubEventType,
-  type GitHubWebhookPayload,
-  type GitHubEventType,
 } from "@/utils/schemas/github-webhook";
 
 const DELIVERY_TTL_SECONDS = 60 * 60 * 24;
 
 async function isDeliveryProcessed(deliveryId: string): Promise<boolean> {
-  if (!redis || !deliveryId) return false;
+  if (!(redis && deliveryId)) return false;
   const key = `webhook:delivery:${deliveryId}`;
   const exists = await redis.exists(key);
   return exists === 1;
 }
 
 async function markDeliveryProcessed(deliveryId: string): Promise<void> {
-  if (!redis || !deliveryId) return;
+  if (!(redis && deliveryId)) return;
   const key = `webhook:delivery:${deliveryId}`;
   await redis.set(key, "1", { ex: DELIVERY_TTL_SECONDS });
 }
 
 type MemoryEventType = Exclude<GitHubEventType, "ping">;
 
-const STAR_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+const STAR_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10_000];
 
 interface ProcessedEvent {
   type: string;
@@ -109,7 +109,7 @@ async function createMemoryEntry({
 function verifySignature(
   payload: string,
   signature: string,
-  secret: string,
+  secret: string
 ): boolean {
   const hmac = crypto.createHmac("sha256", secret);
   const digest = `sha256=${hmac.update(payload).digest("hex")}`;
@@ -127,7 +127,7 @@ function isDefaultBranchRef(ref: string, defaultBranch: string): boolean {
 
 function processReleaseEvent(
   action: string,
-  payload: GitHubWebhookPayload,
+  payload: GitHubWebhookPayload
 ): ProcessedEvent | null {
   const validActions = ["published", "created", "edited", "prereleased"];
   if (!validActions.includes(action)) {
@@ -159,13 +159,13 @@ function processReleaseEvent(
 }
 
 function processPushEvent(
-  payload: GitHubWebhookPayload,
+  payload: GitHubWebhookPayload
 ): ProcessedEvent | null {
   const ref = payload.ref;
   const defaultBranch = payload.repository?.default_branch;
   const commits = payload.commits;
 
-  if (!ref || !defaultBranch) {
+  if (!(ref && defaultBranch)) {
     return null;
   }
 
@@ -202,7 +202,7 @@ function processPushEvent(
 
 function processStarEvent(
   action: string,
-  payload: GitHubWebhookPayload,
+  payload: GitHubWebhookPayload
 ): ProcessedEvent | null {
   if (action !== "created") {
     return null;
@@ -223,7 +223,7 @@ function processStarEvent(
 }
 
 export async function handleGitHubWebhook(
-  context: WebhookContext,
+  context: WebhookContext
 ): Promise<WebhookResult> {
   const { request, rawBody, repositoryId, organizationId, integrationId } =
     context;
@@ -232,7 +232,7 @@ export async function handleGitHubWebhook(
   const signature = request.headers.get("x-hub-signature-256");
   const delivery = request.headers.get("x-github-delivery");
 
-  if (!eventHeader || !isGitHubEventType(eventHeader)) {
+  if (!(eventHeader && isGitHubEventType(eventHeader))) {
     await appendWebhookLog({
       organizationId,
       integrationId,

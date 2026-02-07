@@ -6,7 +6,7 @@ interface GithubWebhookMemoryPromptParams {
 }
 
 export function getGithubWebhookMemoryPrompt(
-  params: GithubWebhookMemoryPromptParams,
+  params: GithubWebhookMemoryPromptParams
 ) {
   const { eventType, repository, action, data } = params;
 

@@ -81,7 +81,7 @@ function getStepperValue(status: string, currentStep: number): string {
 function getModalTitle(
   isPendingSettings: boolean,
   isAnalyzing: boolean,
-  status: string,
+  status: string
 ): string {
   if (isPendingSettings) {
     return "Loading...";
@@ -99,7 +99,7 @@ function getModalDescription(
   isPendingSettings: boolean,
   isAnalyzing: boolean,
   status: string,
-  error?: string,
+  error?: string
 ): string {
   if (isPendingSettings) {
     return "Checking your brand settings";
@@ -139,7 +139,7 @@ const STEP_ICONS: Record<StepIconState, () => React.ReactNode> = {
 
 function getStepIconState(
   currentStep: number,
-  stepNumber: number,
+  stepNumber: number
 ): StepIconState {
   if (currentStep < stepNumber) {
     return "pending";
@@ -179,7 +179,7 @@ function ModalContent({
             const stepNumber = index + 1;
             const iconState = getStepIconState(
               progress.currentStep,
-              stepNumber,
+              stepNumber
             );
             return (
               <StepperItem
@@ -287,7 +287,7 @@ function BrandForm({
       lastSavedData.current = JSON.stringify(values);
       toast.success("Changes saved");
     },
-    { wait: AUTO_SAVE_DELAY },
+    { wait: AUTO_SAVE_DELAY }
   );
 
   const form = useForm({
@@ -310,7 +310,7 @@ function BrandForm({
 
         debouncedSave(currentValues).catch((error) => {
           toast.error(
-            error instanceof Error ? error.message : "Failed to save changes",
+            error instanceof Error ? error.message : "Failed to save changes"
           );
         });
       },
@@ -452,7 +452,7 @@ function BrandForm({
                           onValueChange={(value) => {
                             if (value) {
                               toneProfileField.handleChange(
-                                value as ToneProfile,
+                                value as ToneProfile
                               );
                             }
                           }}
@@ -606,7 +606,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       }
       lastToastError.current = message;
       toast.error(message);
-    },
+    }
   );
   const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
   const progressError =
@@ -701,7 +701,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                     {getModalTitle(
                       false,
                       isAnalyzing,
-                      effectiveProgress.status,
+                      effectiveProgress.status
                     )}
                   </CardTitle>
                   <CardDescription>
@@ -709,17 +709,17 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       false,
                       isAnalyzing,
                       effectiveProgress.status,
-                      progress.error,
+                      progress.error
                     )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ModalContent
                     handleAnalyze={handleAnalyze}
-                    isAnalyzing={isAnalyzing}
-                    isPendingSettings={false}
-                    isPending={analyzeMutation.isPending}
                     inlineError={progressError}
+                    isAnalyzing={isAnalyzing}
+                    isPending={analyzeMutation.isPending}
+                    isPendingSettings={false}
                     progress={effectiveProgress}
                     setUrl={setUrl}
                     url={effectiveUrl}

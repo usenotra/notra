@@ -1,5 +1,5 @@
 import dedent from "dedent";
-import { toneProfileSchema, type ToneProfile } from "@/utils/schemas/brand";
+import { type ToneProfile, toneProfileSchema } from "@/utils/schemas/brand";
 
 export interface ChangelogPromptParams {
   repository: string;
@@ -27,7 +27,7 @@ const VALID_TONE_PROFILES = toneProfileSchema.options;
 
 export function getValidToneProfile(
   value: string | null | undefined,
-  defaultTone: ToneProfile = "Conversational",
+  defaultTone: ToneProfile = "Conversational"
 ): ToneProfile {
   if (value && VALID_TONE_PROFILES.includes(value as ToneProfile)) {
     return value as ToneProfile;
@@ -121,7 +121,7 @@ export const toneConfigs: Record<ToneProfile, ToneConfig> = {
 
 export function buildChangelogPrompt(
   params: ChangelogPromptParams,
-  toneConfig: ToneConfig,
+  toneConfig: ToneConfig
 ): string {
   const {
     repository,
