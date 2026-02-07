@@ -225,9 +225,7 @@ export async function sendWelcomeEmail(
       replyTo: "dominik@usenotra.com",
       to: userEmail,
       subject: "Welcome to Notra",
-      react: WelcomeEmail({
-        userEmail,
-      }),
+      react: WelcomeEmail(),
       tags: [{ name: "category", value: "welcome" }],
     },
     `notra:welcome:${userEmail}`

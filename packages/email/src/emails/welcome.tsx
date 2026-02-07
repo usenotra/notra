@@ -2,13 +2,7 @@ import { Body, Head, Html, Link, Preview, Text } from "@react-email/components";
 
 import { EMAIL_CONFIG } from "../utils/config";
 
-interface WelcomeEmailProps {
-  userEmail?: string;
-}
-
-export const WelcomeEmail = ({
-  userEmail = "user@example.com",
-}: WelcomeEmailProps) => {
+export const WelcomeEmail = () => {
   const appUrl = EMAIL_CONFIG.getAppUrl();
 
   return (
