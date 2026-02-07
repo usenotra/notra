@@ -36,6 +36,24 @@ const SCENARIO_TEXT: Record<string, string> = {
 	cancel: "Cancel Plan",
 };
 
+const INVOICE_PRODUCT_NAME_MAP: Record<string, string> = {
+	free: "Free",
+	pro: "Pro Monthly",
+	pro_yearly: "Pro Yearly",
+};
+
+const INVOICE_TABLE_COLUMN_COUNT = 4;
+
+function formatInvoiceProductName(productId: string): string {
+	return INVOICE_PRODUCT_NAME_MAP[productId] ?? productId;
+}
+
+function getInvoiceDescription(productIds?: string[]): string {
+	if (!productIds?.length) return "Subscription";
+
+	return productIds.map(formatInvoiceProductName).join(", ");
+}
+
 function getPricingButtonText(product: Product): string {
 	const { scenario, properties, free_trial } = product;
 	const { is_one_off, updateable } = properties ?? {};
@@ -470,12 +488,12 @@ export default function BillingPage() {
 
 				<div className="space-y-3">
 					<h2 className="font-semibold text-lg">Invoices</h2>
-					<div className="overflow-hidden rounded-lg border border-border/80">
+					<div className="overflow-hidden rounded-md border">
 						<Table>
 							<TableHeader>
 								<TableRow>
 									<TableHead
-										className="cursor-pointer select-none transition-colors hover:text-foreground"
+										className="w-[140px] cursor-pointer select-none transition-colors hover:text-foreground"
 										onClick={() =>
 											setDateSortOrder(
 												dateSortOrder === "desc" ? "asc" : "desc",
@@ -494,17 +512,16 @@ export default function BillingPage() {
 											/>
 										</span>
 									</TableHead>
-									<TableHead>Description</TableHead>
-									<TableHead>Amount</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead className="sr-only">Invoice</TableHead>
+									<TableHead className="w-[40%]">Description</TableHead>
+									<TableHead className="w-[120px]">Amount</TableHead>
+									<TableHead className="w-[120px]">Status</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{sortedInvoices.length === 0 ? (
 									<TableRow>
 										<TableCell
-											colSpan={4}
+											colSpan={INVOICE_TABLE_COLUMN_COUNT}
 											className="text-muted-foreground h-24 text-center"
 										>
 											No invoices yet
@@ -524,20 +541,20 @@ export default function BillingPage() {
 												}
 											}}
 										>
-											<TableCell>
+											<TableCell className="w-[140px]">
 												{invoice.created_at
 													? new Date(invoice.created_at).toLocaleDateString()
 													: "-"}
 											</TableCell>
-											<TableCell>
-												{invoice.product_ids?.join(", ") || "Subscription"}
+											<TableCell className="whitespace-normal break-words">
+												{getInvoiceDescription(invoice.product_ids)}
 											</TableCell>
-											<TableCell>
+											<TableCell className="w-[120px] tabular-nums">
 												{invoice.total !== undefined
 													? `$${invoice.total.toFixed(2)}`
 													: "-"}
 											</TableCell>
-											<TableCell>
+											<TableCell className="w-[120px]">
 												<Badge
 													variant={
 														invoice.status === "paid" ? "default" : "secondary"
