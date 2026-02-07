@@ -349,16 +349,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           />
         </div>
 
-<<<<<<< HEAD
         {isPending ? (
           <SchedulePageSkeleton />
         ) : scheduleTriggers.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-12 text-center">
-            <h3 className="font-semibold text-lg">No schedules yet</h3>
-            <p className="mt-1 text-muted-foreground text-sm">
-              Create your first schedule to automate recurring content.
-            </p>
-            <div className="mt-4">
+          <EmptyState
+            action={
               <AddTriggerDialog
                 allowedSourceTypes={CRON_SOURCE_TYPES}
                 apiPath={
@@ -378,12 +373,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 trigger={
                   <Button size="sm" variant="outline">
                     <PlusIcon className="size-4" />
-                    <span className="ml-1">Add schedule</span>
+                    <span className="ml-1">New Schedule</span>
                   </Button>
                 }
               />
-            </div>
-          </div>
+            }
+            description="Create your first schedule to automate recurring content."
+            title="No schedules yet"
+          />
         ) : (
           <Tabs
             defaultValue="active"
@@ -399,55 +396,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 Paused ({activeCounts.paused})
               </TabsTrigger>
             </TabsList>
-=======
-				{isPending ? (
-					<SchedulePageSkeleton />
-				) : scheduleTriggers.length === 0 ? (
-					<EmptyState
-						action={
-							<AddTriggerDialog
-								allowedSourceTypes={CRON_SOURCE_TYPES}
-								apiPath={
-									organizationId
-										? `/api/organizations/${organizationId}/automation/schedules`
-										: undefined
-								}
-								initialSourceType="cron"
-								onSuccess={() =>
-									queryClient.invalidateQueries({
-										queryKey: QUERY_KEYS.AUTOMATION.schedules(
-											organizationId ?? "",
-										),
-									})
-								}
-								organizationId={organizationId ?? ""}
-								trigger={
-									<Button size="sm" variant="outline">
-										<PlusIcon className="size-4" />
-										<span className="ml-1">New Schedule</span>
-									</Button>
-								}
-							/>
-						}
-						description="Create your first schedule to automate recurring content."
-						title="No schedules yet"
-					/>
-				) : (
-					<Tabs
-						defaultValue="active"
-						onValueChange={(value) =>
-							setActiveTab(value as "active" | "paused")
-						}
-					>
-						<TabsList variant="line">
-							<TabsTrigger value="active">
-								Active ({activeCounts.active})
-							</TabsTrigger>
-							<TabsTrigger value="paused">
-								Paused ({activeCounts.paused})
-							</TabsTrigger>
-						</TabsList>
->>>>>>> origin/main
 
             <TabsContent className="mt-4" value="active">
               <ScheduleTable
@@ -498,7 +446,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         )}
       </div>
 
-<<<<<<< HEAD
       <AlertDialog
         onOpenChange={(open) => !open && setDeleteTriggerId(null)}
         open={!!deleteTriggerId}
@@ -537,46 +484,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-=======
-			<AlertDialog
-				onOpenChange={(open) => !open && setDeleteTriggerId(null)}
-				open={!!deleteTriggerId}
-			>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Delete schedule?</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will permanently delete this{" "}
-							{triggerToDelete
-								? formatFrequency(
-										triggerToDelete.sourceConfig.cron,
-									).toLowerCase()
-								: ""}{" "}
-							schedule. This action cannot be undone.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel disabled={deleteMutation.isPending}>
-							Cancel
-						</AlertDialogCancel>
-						<AlertDialogAction
-							disabled={deleteMutation.isPending}
-							onClick={confirmDelete}
-							variant="destructive"
-						>
-							{deleteMutation.isPending ? (
-								<>
-									<Loader2Icon className="size-4 animate-spin" />
-									Deleting...
-								</>
-							) : (
-								"Delete"
-							)}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
->>>>>>> origin/main
 
       {editTrigger && (
         <AddTriggerDialog
@@ -634,7 +541,6 @@ function ScheduleTable({
     );
   }
 
-<<<<<<< HEAD
   return (
     <div className="rounded-xl border">
       <Table>
@@ -742,113 +648,4 @@ function ScheduleTable({
       </Table>
     </div>
   );
-=======
-	return (
-		<div className="rounded-xl border">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Type</TableHead>
-						<TableHead>Frequency</TableHead>
-						<TableHead>Output</TableHead>
-						<TableHead>Targets</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead>Created</TableHead>
-						<TableHead className="w-12" />
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{triggers.map((trigger) => {
-						const isThisUpdating =
-							isUpdating && updatingTriggerId === trigger.id;
-						const isThisRunning = isRunning && runningTriggerId === trigger.id;
-
-						return (
-							<TableRow key={trigger.id}>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<span className="flex size-8 items-center justify-center rounded-lg border bg-muted/50">
-											<HugeiconsIcon
-												className="size-4 text-muted-foreground"
-												icon={Calendar03Icon}
-											/>
-										</span>
-										<span className="text-sm">Scheduled run</span>
-									</div>
-								</TableCell>
-								<TableCell className="text-muted-foreground">
-									{formatFrequency(trigger.sourceConfig.cron)}
-								</TableCell>
-								<TableCell className="text-muted-foreground">
-									{getOutputTypeLabel(trigger.outputType)}
-								</TableCell>
-								<TableCell className="text-muted-foreground">
-									{trigger.targets.repositoryIds.length} repositories
-								</TableCell>
-								<TableCell>
-									<TriggerStatusBadge enabled={trigger.enabled} />
-								</TableCell>
-								<TableCell className="text-muted-foreground">
-									{formatDate(trigger.createdAt)}
-								</TableCell>
-								<TableCell>
-									<DropdownMenu>
-										<DropdownMenuTrigger
-											className="flex size-8 items-center justify-center rounded-md hover:bg-accent disabled:opacity-50"
-											disabled={isThisUpdating || isThisRunning}
-										>
-											{isThisUpdating || isThisRunning ? (
-												<Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-											) : (
-												<HugeiconsIcon
-													className="size-4 text-muted-foreground"
-													icon={MoreVerticalIcon}
-												/>
-											)}
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end">
-											<DropdownMenuItem onClick={() => onEdit(trigger)}>
-												<HugeiconsIcon className="size-4" icon={Edit02Icon} />
-												Edit
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												disabled={isRunning || !trigger.enabled}
-												onClick={() => onRunNow(trigger.id)}
-											>
-												<HugeiconsIcon
-													className="size-4"
-													icon={PlayCircleIcon}
-												/>
-												Run now
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												disabled={isUpdating}
-												onClick={() => onToggle(trigger)}
-											>
-												<HugeiconsIcon
-													className="size-4"
-													icon={trigger.enabled ? PauseIcon : PlayIcon}
-												/>
-												{trigger.enabled ? "Pause" : "Enable"}
-											</DropdownMenuItem>
-											<DropdownMenuSeparator />
-											<DropdownMenuItem
-												disabled={isDeleting}
-												onClick={() => onDelete(trigger.id)}
-												variant="destructive"
-											>
-												<HugeiconsIcon className="size-4" icon={Delete02Icon} />
-												Delete
-											</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
-								</TableCell>
-							</TableRow>
-						);
-					})}
-				</TableBody>
-			</Table>
-		</div>
-	);
->>>>>>> origin/main
 }

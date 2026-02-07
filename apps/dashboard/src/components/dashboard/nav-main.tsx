@@ -93,84 +93,50 @@ for (const item of navMainItems) {
 }
 
 const NavGroup = memo(function NavGroup({
-<<<<<<< HEAD
   items,
   slug,
   label,
+  pathname,
 }: {
   items: NavMainItem[];
   slug: string;
   label?: string;
-=======
-	items,
-	slug,
-	label,
-	pathname,
-}: {
-	items: NavMainItem[];
-	slug: string;
-	label?: string;
-	pathname: string;
->>>>>>> origin/main
+  pathname: string;
 }) {
   if (items.length === 0) {
     return null;
   }
 
-<<<<<<< HEAD
   return (
     <SidebarGroup>
       {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.link}>
-              <SidebarMenuButton
-                render={
-                  <Link href={`/${slug}${item.link}`}>
-                    <HugeiconsIcon icon={item.icon} />
-                    <span>{item.label}</span>
-                  </Link>
-                }
-                tooltip={item.label}
-              />
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            const href = `/${slug}${item.link}`;
+            const isActive =
+              item.link === ""
+                ? pathname === `/${slug}` || pathname === `/${slug}/`
+                : pathname.startsWith(href);
+            return (
+              <SidebarMenuItem key={item.link}>
+                <SidebarMenuButton
+                  isActive={isActive}
+                  render={
+                    <Link href={href}>
+                      <HugeiconsIcon icon={item.icon} />
+                      <span>{item.label}</span>
+                    </Link>
+                  }
+                  tooltip={item.label}
+                />
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
-=======
-	return (
-		<SidebarGroup>
-			{label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
-			<SidebarGroupContent>
-				<SidebarMenu>
-					{items.map((item) => {
-						const href = `/${slug}${item.link}`;
-						const isActive = item.link === ""
-							? pathname === `/${slug}` || pathname === `/${slug}/`
-							: pathname.startsWith(href);
-						return (
-							<SidebarMenuItem key={item.link}>
-								<SidebarMenuButton
-									isActive={isActive}
-									render={
-										<Link href={href}>
-											<HugeiconsIcon icon={item.icon} />
-											<span>{item.label}</span>
-										</Link>
-									}
-									tooltip={item.label}
-								/>
-							</SidebarMenuItem>
-						);
-					})}
-				</SidebarMenu>
-			</SidebarGroupContent>
-		</SidebarGroup>
-	);
->>>>>>> origin/main
 });
 
 const categories = Object.keys(categoryLabels) as Exclude<
@@ -179,12 +145,8 @@ const categories = Object.keys(categoryLabels) as Exclude<
 >[];
 
 export function NavMain() {
-<<<<<<< HEAD
   const { activeOrganization } = useOrganizationsContext();
-=======
-	const { activeOrganization } = useOrganizationsContext();
-	const pathname = usePathname();
->>>>>>> origin/main
+  const pathname = usePathname();
 
   if (!activeOrganization?.slug) {
     return null;
@@ -192,34 +154,18 @@ export function NavMain() {
 
   const slug = activeOrganization.slug;
 
-<<<<<<< HEAD
   return (
     <>
-      <NavGroup items={itemsByCategory.none} slug={slug} />
+      <NavGroup items={itemsByCategory.none} pathname={pathname} slug={slug} />
       {categories.map((category) => (
         <NavGroup
           items={itemsByCategory[category]}
           key={category}
           label={categoryLabels[category]}
+          pathname={pathname}
           slug={slug}
         />
       ))}
     </>
   );
-=======
-	return (
-		<>
-			<NavGroup items={itemsByCategory.none} slug={slug} pathname={pathname} />
-			{categories.map((category) => (
-				<NavGroup
-					items={itemsByCategory[category]}
-					key={category}
-					label={categoryLabels[category]}
-					slug={slug}
-					pathname={pathname}
-				/>
-			))}
-		</>
-	);
->>>>>>> origin/main
 }

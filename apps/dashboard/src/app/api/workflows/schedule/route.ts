@@ -11,12 +11,7 @@ import { serve } from "@upstash/workflow/nextjs";
 import { eq, inArray } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
-<<<<<<< HEAD
-import { createGithubChangelogAgent } from "@/lib/ai/agents/changelog";
-=======
 import { generateChangelog } from "@/lib/ai/agents/changelog";
-import { getBaseUrl } from "@/lib/triggers/qstash";
->>>>>>> origin/main
 import { getValidToneProfile } from "@/lib/ai/prompts/changelog/base";
 import { getBaseUrl } from "@/lib/triggers/qstash";
 
@@ -182,7 +177,7 @@ export const { POST } = serve<SchedulePayload>(
               audience: brand?.audience ?? undefined,
               customInstructions: brand?.customInstructions ?? undefined,
             },
-            `Generate a changelog for the following repositories: ${repoList}. Look at the commits from the last 7 days and create a comprehensive, human-readable changelog.`,
+            `Generate a changelog for the following repositories: ${repoList}. Look at the commits from the last 7 days and create a comprehensive, human-readable changelog.`
           );
 
           return {

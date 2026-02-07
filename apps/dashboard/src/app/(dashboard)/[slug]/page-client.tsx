@@ -57,7 +57,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             </div>
           </div>
 
-<<<<<<< HEAD
           {isPending ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -80,46 +79,14 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground text-sm">
-              No content created today.
-            </div>
+            <EmptyState
+              className="p-6"
+              description="Check back later or start a new post from the content page."
+              title="No content created today"
+            />
           )}
         </section>
       </div>
     </PageContainer>
   );
-=======
-					{isPending ? (
-						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-							{Array.from({ length: 3 }).map((_, index) => (
-								<div
-									className="h-[140px] rounded-[20px] border border-border/60 bg-muted/30"
-									key={`${skeletonId}-${index + 1}`}
-								/>
-							))}
-						</div>
-					) : previewPosts.length > 0 ? (
-						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-							{previewPosts.map((post) => (
-								<ContentCard
-									contentType={post.contentType as ContentType}
-									href={`/${organizationSlug}/content/${post.id}`}
-									key={post.id}
-									preview={getPreview(post.markdown)}
-									title={post.title}
-								/>
-							))}
-						</div>
-					) : (
-						<EmptyState
-							className="p-6"
-							description="Check back later or start a new post from the content page."
-							title="No content created today"
-						/>
-					)}
-				</section>
-			</div>
-		</PageContainer>
-	);
->>>>>>> origin/main
 }

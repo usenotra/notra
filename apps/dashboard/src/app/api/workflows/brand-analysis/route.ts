@@ -81,12 +81,12 @@ async function setProgress(organizationId: string, data: ProgressData) {
 export const { POST } = serve<BrandAnalysisPayload>(
   async (context: WorkflowContext<BrandAnalysisPayload>) => {
     const parseResult = brandAnalysisPayloadSchema.safeParse(
-      context.requestPayload,
+      context.requestPayload
     );
     if (!parseResult.success) {
       console.error(
         "[Brand Analysis] Invalid payload:",
-        parseResult.error.flatten(),
+        parseResult.error.flatten()
       );
       await context.cancel();
       return;
@@ -133,7 +133,7 @@ export const { POST } = serve<BrandAnalysisPayload>(
               error.status === 403 ||
               isFirecrawlUnsupportedMessage(error.message) ||
               detailMessages.some((message) =>
-                isFirecrawlUnsupportedMessage(message),
+                isFirecrawlUnsupportedMessage(message)
               )
             ) {
               return {
@@ -155,7 +155,7 @@ export const { POST } = serve<BrandAnalysisPayload>(
             fatal: false,
           };
         }
-      },
+      }
     );
 
     if (!scrapingResult.success) {
@@ -211,7 +211,7 @@ Extract the following information:
                 : "Failed to extract brand information",
           };
         }
-      },
+      }
     );
 
     if (!extractionResult.success) {
@@ -298,14 +298,14 @@ Extract the following information:
             totalSteps: STEP_COUNT,
             error: "Workflow failed unexpectedly",
           },
-          { ex: PROGRESS_TTL },
+          { ex: PROGRESS_TTL }
         );
       }
 
       console.error(
         `[Brand Analysis] Workflow failed for organization ${organizationId}:`,
-        { status: failStatus, response: failResponse },
+        { status: failStatus, response: failResponse }
       );
     },
-  },
+  }
 );

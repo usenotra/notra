@@ -49,21 +49,21 @@ interface ConfigureOutputParams {
 async function findRepositoryInOrganization(
   organizationId: string,
   owner: string,
-  repo: string,
+  repo: string
 ) {
   const [existing] = await db
     .select({ id: githubRepositories.id })
     .from(githubRepositories)
     .innerJoin(
       githubIntegrations,
-      eq(githubRepositories.integrationId, githubIntegrations.id),
+      eq(githubRepositories.integrationId, githubIntegrations.id)
     )
     .where(
       and(
         eq(githubIntegrations.organizationId, organizationId),
         sql`lower(${githubRepositories.owner}) = ${owner.toLowerCase()}`,
-        sql`lower(${githubRepositories.repo}) = ${repo.toLowerCase()}`,
-      ),
+        sql`lower(${githubRepositories.repo}) = ${repo.toLowerCase()}`
+      )
     )
     .limit(1);
 
@@ -96,7 +96,7 @@ export async function createGitHubIntegration(
   const existingRepository = await findRepositoryInOrganization(
     organizationId,
     owner,
-    repo,
+    repo
   );
 
   if (existingRepository) {
@@ -289,21 +289,11 @@ export async function addRepository(
     throw new Error("User does not have access to this integration");
   }
 
-<<<<<<< HEAD
-  const existingRepository = await db.query.githubRepositories.findFirst({
-    where: and(
-      eq(githubRepositories.integrationId, integrationId),
-      eq(githubRepositories.owner, owner),
-      eq(githubRepositories.repo, repo)
-    ),
-  });
-=======
   const existingRepositoryInOrg = await findRepositoryInOrganization(
     integration.organizationId,
     owner,
-    repo,
+    repo
   );
->>>>>>> origin/main
 
   if (existingRepositoryInOrg) {
     throw new Error("Repository already connected");

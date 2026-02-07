@@ -65,7 +65,6 @@ export function NavSettings({ slug }: NavSettingsProps) {
 
   const isActive = (url: string) => pathname === `/${slug}/${url}`;
 
-<<<<<<< HEAD
   return (
     <>
       <SidebarGroup>
@@ -73,12 +72,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
         <SidebarMenu>
           {accountItems.map((item) => (
             <SidebarMenuButton
-              className={cn(
-                "border border-transparent transition-colors duration-200 hover:bg-sidebar-accent",
-                isActive(item.url)
-                  ? "bg-sidebar-accent text-foreground"
-                  : "hover:text-accent-foreground"
-              )}
+              isActive={isActive(item.url)}
               key={item.label}
               render={
                 <Link href={`/${slug}/${item.url}`}>
@@ -97,12 +91,7 @@ export function NavSettings({ slug }: NavSettingsProps) {
         <SidebarMenu>
           {organizationItems.map((item) => (
             <SidebarMenuButton
-              className={cn(
-                "border border-transparent transition-colors duration-200 hover:bg-sidebar-accent",
-                isActive(item.url)
-                  ? "bg-sidebar-accent text-foreground"
-                  : "hover:text-accent-foreground"
-              )}
+              isActive={isActive(item.url)}
               key={item.label}
               render={
                 <Link href={`/${slug}/${item.url}`}>
@@ -117,47 +106,4 @@ export function NavSettings({ slug }: NavSettingsProps) {
       </SidebarGroup>
     </>
   );
-=======
-	return (
-		<>
-			<SidebarGroup>
-				<SidebarGroupLabel>Account</SidebarGroupLabel>
-				<SidebarMenu>
-					{accountItems.map((item) => (
-						<SidebarMenuButton
-							isActive={isActive(item.url)}
-							key={item.label}
-							render={
-								<Link href={`/${slug}/${item.url}`}>
-									<HugeiconsIcon icon={item.icon} />
-									<span>{item.label}</span>
-								</Link>
-							}
-							tooltip={item.label}
-						/>
-					))}
-				</SidebarMenu>
-			</SidebarGroup>
-
-			<SidebarGroup>
-				<SidebarGroupLabel>Organization</SidebarGroupLabel>
-				<SidebarMenu>
-					{organizationItems.map((item) => (
-						<SidebarMenuButton
-							isActive={isActive(item.url)}
-							key={item.label}
-							render={
-								<Link href={`/${slug}/${item.url}`}>
-									<HugeiconsIcon icon={item.icon} />
-									<span>{item.label}</span>
-								</Link>
-							}
-							tooltip={item.label}
-						/>
-					))}
-				</SidebarMenu>
-			</SidebarGroup>
-		</>
-	);
->>>>>>> origin/main
 }

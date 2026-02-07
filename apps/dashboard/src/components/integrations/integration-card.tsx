@@ -139,83 +139,6 @@ export function IntegrationCard({
   };
 
   return (
-<<<<<<< HEAD
-    <Card
-      className="cursor-pointer transition-colors hover:bg-accent/50"
-      onClick={handleCardClick}
-    >
-      <CardHeader>
-        <CardTitle>{integration.displayName}</CardTitle>
-        <CardDescription>
-          {integration.createdByUser ? (
-            <>
-              Added by {integration.createdByUser.name} on{" "}
-              {new Date(integration.createdAt).toLocaleDateString()}
-            </>
-          ) : (
-            <>
-              Created on {new Date(integration.createdAt).toLocaleDateString()}
-            </>
-          )}
-        </CardDescription>
-        <CardAction>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: Event propagation barrier for card click */}
-          <div
-            className="flex items-center gap-2"
-            data-no-card-click
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-            role="presentation"
-            tabIndex={-1}
-          >
-            <Badge variant={integration.enabled ? "default" : "secondary"}>
-              {integration.enabled ? "Enabled" : "Disabled"}
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button disabled={isLoading} size="icon-sm" variant="ghost">
-                    <svg
-                      aria-label="More options"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <title>More options</title>
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="12" cy="5" r="1" />
-                      <circle cx="12" cy="19" r="1" />
-                    </svg>
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleToggle();
-                  }}
-                >
-                  {integration.enabled ? "Disable" : "Enable"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleDeleteClick();
-                  }}
-                  variant="destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-=======
     <>
       <Card
         className="cursor-pointer transition-colors hover:bg-accent/50"
@@ -307,7 +230,6 @@ export function IntegrationCard({
                 {integration.repositories.length !== 1 ? "ies" : ""} configured
               </p>
             )}
->>>>>>> origin/main
           </div>
         </CardContent>
       </Card>

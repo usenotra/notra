@@ -355,7 +355,7 @@ export default function DesignSystemClientPage() {
   const [stepperValue, setStepperValue] = useState("review");
   const stepperSteps = ["details", "review", "launch"] as const;
   const activeStepIndex = stepperSteps.indexOf(
-    stepperValue as (typeof stepperSteps)[number],
+    stepperValue as (typeof stepperSteps)[number]
   );
 
   return (
@@ -1139,28 +1139,28 @@ export default function DesignSystemClientPage() {
               <div className="flex flex-wrap gap-2">
                 <ButtonGroup>
                   <Button
-                    variant={stepperValue === "details" ? "default" : "outline"}
                     onClick={() => setStepperValue("details")}
+                    variant={stepperValue === "details" ? "default" : "outline"}
                   >
                     Details active
                   </Button>
                   <Button
-                    variant={stepperValue === "review" ? "default" : "outline"}
                     onClick={() => setStepperValue("review")}
+                    variant={stepperValue === "review" ? "default" : "outline"}
                   >
                     Review active
                   </Button>
                   <Button
-                    variant={stepperValue === "launch" ? "default" : "outline"}
                     onClick={() => setStepperValue("launch")}
+                    variant={stepperValue === "launch" ? "default" : "outline"}
                   >
                     Launch active
                   </Button>
                 </ButtonGroup>
               </div>
-              <Stepper value={stepperValue} onValueChange={setStepperValue}>
+              <Stepper onValueChange={setStepperValue} value={stepperValue}>
                 <StepperList>
-                  <StepperItem value="details" completed={activeStepIndex > 0}>
+                  <StepperItem completed={activeStepIndex > 0} value="details">
                     <StepperTrigger className="gap-3">
                       <StepperIndicator />
                       <div className="flex flex-col text-left">
@@ -1170,7 +1170,7 @@ export default function DesignSystemClientPage() {
                     </StepperTrigger>
                     <StepperSeparator />
                   </StepperItem>
-                  <StepperItem value="review" completed={activeStepIndex > 1}>
+                  <StepperItem completed={activeStepIndex > 1} value="review">
                     <StepperTrigger className="gap-3">
                       <StepperIndicator />
                       <div className="flex flex-col text-left">
