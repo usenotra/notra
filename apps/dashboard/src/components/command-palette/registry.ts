@@ -93,6 +93,22 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     path: (slug) => `/${slug}/geo/prompts`,
   },
   {
+    id: "geo-personas",
+    label: "Personas",
+    keywords: [
+      "geo",
+      "ai",
+      "personas",
+      "buyers",
+      "icp",
+      "customer profiles",
+      "memories",
+    ],
+    icon: UserGroupIcon,
+    section: "GEO",
+    path: (slug) => `/${slug}/geo/personas`,
+  },
+  {
     id: "geo-gaps",
     label: "Content Gaps",
     keywords: [

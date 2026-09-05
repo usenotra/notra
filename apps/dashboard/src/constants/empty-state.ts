@@ -6,6 +6,7 @@ export const EMPTY_STATE_TABLE_COLUMNS = {
   events: [80, 132, 88, 72, 80, 56, 88],
   sitemap: [220, 72, 96],
   prompts: [240, 72, 56],
+  personas: [240, 80, 64, 96],
   competitors: [160, 120, 72, 88],
   engines: [180, 160, 100, 120],
   shareOfVoice: [180, 200, 80, 72],

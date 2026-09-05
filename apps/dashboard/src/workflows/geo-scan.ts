@@ -3,6 +3,7 @@ import {
   GEO_SCAN_SEQUENCE_BATCH_SIZE,
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
+import { GEO_SCAN_PERSONA_BATCH_SIZE } from "@notra/geo-core/constants/geo-personas";
 import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanProjectTotals,
@@ -25,6 +26,7 @@ import {
   finalizeGeoScanProjectStep,
   listGeoScanProjectsStep,
   prepareGeoScanProjectStep,
+  runGeoScanPersonaBatchStep,
   runGeoScanSequenceBatchStep,
   runGeoScanTaskBatchStep,
   trackGeoScanRetryScheduledStep,
@@ -38,11 +40,11 @@ interface GeoScanProjectOutcome {
 
 /**
  * One project scan as a chain of small steps: plan → task batches → sequence
- * batches → finalize. Each batch persists its own results and rotates the
- * claim token, so a killed invocation costs one batch, not the scan — the
- * previous single-step design was killed wholesale by the function timeout
- * once an organization tracked enough engines, leaving the scan on "running"
- * forever with zero rows written.
+ * batches → persona batches → finalize. Each batch persists its own results
+ * and rotates the claim token, so a killed invocation costs one batch, not
+ * the scan — the previous single-step design was killed wholesale by the
+ * function timeout once an organization tracked enough engines, leaving the
+ * scan on "running" forever with zero rows written.
  */
 async function runGeoScanProjectRun(
   organizationId: string,
@@ -71,7 +73,8 @@ async function runGeoScanProjectRun(
     dropped: 0,
     usage: EMPTY_AGENT_TOKEN_USAGE,
   };
-  const attempted = plan.tasks.length + plan.sequences.length;
+  const attempted =
+    plan.tasks.length + plan.sequences.length + plan.personas.length;
 
   try {
     for (const batch of chunkGeoScanItems(
@@ -94,6 +97,21 @@ async function runGeoScanProjectRun(
       GEO_SCAN_SEQUENCE_BATCH_SIZE
     )) {
       const outcome = await runGeoScanSequenceBatchStep(
+        plan.context,
+        batch,
+        claimedAt
+      );
+      claimedAt = outcome.claimedAt;
+      totals.checks += outcome.checks;
+      totals.mentions += outcome.mentions;
+      totals.dropped += outcome.dropped;
+      totals.usage = addAgentTokenUsage(totals.usage, outcome.usage);
+    }
+    for (const batch of chunkGeoScanItems(
+      plan.personas,
+      GEO_SCAN_PERSONA_BATCH_SIZE
+    )) {
+      const outcome = await runGeoScanPersonaBatchStep(
         plan.context,
         batch,
         claimedAt

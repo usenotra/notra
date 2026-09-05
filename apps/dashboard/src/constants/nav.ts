@@ -34,6 +34,7 @@ import {
   GEO_PROMPTS_NAV_LINK,
   GEO_WRITER_NAV_LINK,
 } from "@notra/geo-core/constants/geo";
+import { GEO_PERSONAS_NAV_LINK } from "@notra/geo-core/constants/geo-personas";
 import { DURATION } from "@notra/ui/lib/motion";
 
 import { AGENT_FEEDBACK_NAV_LINK } from "@/constants/agent-feedback";
@@ -141,6 +142,12 @@ export const NAV_MAIN_ITEMS: NavMainItem[] = [
   { link: GEO_OVERVIEW_NAV_LINK, icon: AiBrowserIcon, label: "Overview" },
   { link: GEO_TRAFFIC_NAV_LINK, icon: Activity01Icon, label: "Traffic" },
   { link: GEO_PROMPTS_NAV_LINK, icon: AiChat01Icon, label: "Prompts" },
+  {
+    link: GEO_PERSONAS_NAV_LINK,
+    icon: UserGroupIcon,
+    label: "Personas",
+    badge: "Beta",
+  },
   { link: GEO_GAPS_NAV_LINK, icon: SearchList01Icon, label: "Content Gaps" },
   { link: GEO_SHELF_SPACE_NAV_LINK, icon: Layers01Icon, label: "Shelf Space" },
   {
@@ -163,6 +170,7 @@ export const NAV_GEO_VISIBILITY_LINKS: readonly string[] = [
   GEO_OVERVIEW_NAV_LINK,
   GEO_TRAFFIC_NAV_LINK,
   GEO_PROMPTS_NAV_LINK,
+  GEO_PERSONAS_NAV_LINK,
   GEO_COMPETITORS_NAV_LINK,
   AGENT_FEEDBACK_NAV_LINK,
 ];

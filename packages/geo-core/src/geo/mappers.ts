@@ -14,6 +14,11 @@ import type {
   GeoTrackedPrompt,
   GeoTrafficLogEntry,
 } from "../types/geo";
+import type {
+  GeoPersona,
+  GeoPersonaMemoryRow,
+  GeoPersonaRow,
+} from "../types/geo-personas";
 import { toGeoVisitorType } from "../utils/ai-traffic";
 import { resolveTrackedEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
@@ -113,4 +118,26 @@ function toNullableNumber(value: number | bigint | null): number | null {
     return null;
   }
   return Number(value);
+}
+
+export function toGeoPersona(
+  row: GeoPersonaRow,
+  memories: readonly GeoPersonaMemoryRow[]
+): GeoPersona {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    company: row.company,
+    summary: row.summary,
+    searchStyle: row.searchStyle,
+    profile: row.profile,
+    enabled: row.enabled,
+    createdAt: row.createdAt.toISOString(),
+    memories: memories.map((memory) => ({
+      id: memory.id,
+      kind: memory.kind,
+      content: memory.content,
+    })),
+  };
 }

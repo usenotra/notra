@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
 import {
   finalizeGeoScanProject,
   listGeoScanProjects,
@@ -8,6 +9,7 @@ import {
 } from "@notra/geo-core/geo/scan";
 import type {
   GeoScanBatchOutcome,
+  GeoScanPlannedPersona,
   GeoScanPlannedSequence,
   GeoScanPlannedTask,
   GeoScanProjectContext,
@@ -116,6 +118,23 @@ export async function runGeoScanSequenceBatchStep(
   try {
     return await Effect.runPromise(
       runGeoScanSequenceBatch(context, sequences, claimedAt).pipe(
+        Effect.provide(geoCoreDashboardLayer)
+      )
+    );
+  } finally {
+    await flushObservability();
+  }
+}
+
+export async function runGeoScanPersonaBatchStep(
+  context: GeoScanProjectContext,
+  personas: GeoScanPlannedPersona[],
+  claimedAt: string
+): Promise<GeoScanBatchOutcome> {
+  "use step";
+  try {
+    return await Effect.runPromise(
+      runGeoScanPersonaBatch(context, personas, claimedAt).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );

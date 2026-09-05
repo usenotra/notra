@@ -103,6 +103,8 @@
         "@calcom/embed-react": "^1.5.3",
         "@contextcompany/otel": "^1.0.16",
         "@databuddy/sdk": "^2.4.11",
+        "@dicebear/core": "^10.7.0",
+        "@dicebear/styles": "^10.6.0",
         "@hugeicons/core-free-icons": "^4.1.1",
         "@hugeicons/react": "^1.1.4",
         "@lexical/extension": "^0.39.0",
@@ -324,6 +326,7 @@
         "@upstash/qstash": "2.9.0-rc",
         "@upstash/realtime": "^1.0.3",
         "@upstash/redis": "^1.35.8",
+        "@upstash/vector": "^1.2.3",
         "ai": "6.0.206",
         "autumn-js": "^1.2.7",
         "dedent": "^1.7.1",
@@ -851,6 +854,10 @@
     "@databuddy/sdk": ["@databuddy/sdk@2.4.20", "", { "peerDependencies": { "react": ">=18", "vue": ">=3" }, "optionalPeers": ["react", "vue"] }, "sha512-gp8PLX7ZlVP7nKey0OuVtSKAdmDm5RcZbcpW5cmUqRoDcKQ6CnF0U3vi9fh7GwtXABIACq8FWunJthT1NmcTfQ=="],
 
     "@date-fns/tz": ["@date-fns/tz@1.5.0", "", {}, "sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg=="],
+
+    "@dicebear/core": ["@dicebear/core@10.7.0", "", {}, "sha512-JUOzKOd8RUByJJo8ZL+C7YE/pvEsWewfpbWUmR8OIQZWv/PvUQHnohdevySC3icyyxe6EIU/8B/rQgA42us1QA=="],
+
+    "@dicebear/styles": ["@dicebear/styles@10.6.0", "", {}, "sha512-KhxbEVI+z8TaenX58+ZhIRFBt7adggu/F+8g6ZYLu43H2/lgLuWA3Kg8vHBrCVWdfTTTt1p2wUhQomIkkypTuQ=="],
 
     "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.12.0", "", {}, "sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow=="],
 
@@ -2269,6 +2276,8 @@
     "@upstash/realtime": ["@upstash/realtime@1.0.3", "", { "peerDependencies": { "@upstash/redis": ">=1.35.4", "react": ">=16.8.0", "react-dom": ">=16.8.0", "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["react", "react-dom"] }, "sha512-cF5O0GqTW+yfb1PUzAQTvC0LZccLg8kgFHMc4MxTpQxSV5SKSHr3jl5xogLd772CCO0of9awZdWnbtyH2FHhQg=="],
 
     "@upstash/redis": ["@upstash/redis@1.38.0", "", { "dependencies": { "uncrypto": "^0.1.3" } }, "sha512-wu+dZBptlLy0+MCUEoHmzrY/TnmgDey3+c7EbIGwrLqAvkP8yi5MWZHYGIFtAygmL4Bkz2TdFu+eU0vFPncIcg=="],
+
+    "@upstash/vector": ["@upstash/vector@1.2.3", "", {}, "sha512-yXsWKeuHNYyH72BcSZd3bV5ZD5MybAoTvKxkMaeV2UzuGfNzbHBVh5eO+ysTWTFAf8I9XcOueF4tZfAGjCa4Iw=="],
 
     "@usemarble/sdk": ["@usemarble/sdk@1.2.2", "", { "dependencies": { "zod": "^3.25.65 || ^4.0.0" } }, "sha512-xBE3oNt1b0ac5JnjvwrFlp63KMT7hYT1Mr/a2E18z33cmQKi+gUrbbkBFOWSwTqaqaz16LBPCsepeHg1We3fdQ=="],
 
