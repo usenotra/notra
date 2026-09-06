@@ -8,10 +8,12 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import {
   useGeoModelCatalog,
   useGeoProjects,
+  useGeoPrompts,
   useGeoSettings,
 } from "@/lib/hooks/use-geo";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type { GeoPageClientProps } from "@/types/geo";
+import { countEnabledGeoPrompts } from "@/utils/geo-overview-page";
 
 import { GeoSettingsSkeleton } from "./skeleton";
 
@@ -38,6 +40,7 @@ function SettingsPageContent({ organizationSlug }: GeoPageClientProps) {
   const { data: settingsData, isPending } = useGeoSettings(organizationId);
   const { data: catalog } = useGeoModelCatalog(organizationId);
   const { data: projectsData } = useGeoProjects(organizationId);
+  const { data: promptsData } = useGeoPrompts(organizationId);
   const projects = projectsData?.projects ?? [];
   const activeProjectId =
     settingsData?.settings?.projectId ?? projectParam ?? projects.at(0)?.id;
@@ -59,6 +62,11 @@ function SettingsPageContent({ organizationSlug }: GeoPageClientProps) {
           catalog={catalog}
           key={activeProjectId}
           organizationId={organizationId}
+          promptCount={
+            promptsData
+              ? countEnabledGeoPrompts(promptsData.prompts)
+              : undefined
+          }
           settings={settingsData?.settings ?? null}
         />
         {activeProject ? (

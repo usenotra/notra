@@ -10,7 +10,14 @@ import {
   GEO_SCAN_PREFLIGHT_PENDING,
   GEO_SCAN_PREFLIGHT_PROMPTS_LABEL,
   GEO_SCAN_PREFLIGHT_TITLE,
+  GEO_SCAN_SIZE_DANGER,
+  GEO_SCAN_SIZE_LABEL,
+  GEO_SCAN_SIZE_WARN,
 } from "@notra/geo-core/constants/geo";
+import {
+  calcGeoScanSize,
+  geoScanSizeSeverity,
+} from "@notra/geo-core/utils/geo-scan";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -39,6 +46,12 @@ export function ScanPreflightDialog({
   lastScanAt,
 }: ScanPreflightDialogProps) {
   const engineNames = scanPreflightEngineNames(engines);
+  const scanSize = calcGeoScanSize({
+    promptCount,
+    engineCount: engines.length,
+    languageCount: languages.length,
+  });
+  const scanSizeSeverity = geoScanSizeSeverity(scanSize);
 
   return (
     <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
@@ -80,11 +93,27 @@ export function ScanPreflightDialog({
               </span>
             ) : null}
           </dd>
+          <dt className="text-muted-foreground">{GEO_SCAN_SIZE_LABEL}</dt>
+          <dd className="tabular-nums">{scanSize.toLocaleString()}</dd>
           <dt className="text-muted-foreground">
             {GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL}
           </dt>
           <dd>{formatScanPreflightLastScan(lastScanAt)}</dd>
         </dl>
+        {scanSizeSeverity !== "ok" ? (
+          <p
+            className={
+              scanSizeSeverity === "danger"
+                ? "text-destructive text-sm"
+                : "text-sm text-amber-600 dark:text-amber-500"
+            }
+            role="note"
+          >
+            {scanSizeSeverity === "danger"
+              ? GEO_SCAN_SIZE_DANGER
+              : GEO_SCAN_SIZE_WARN}
+          </p>
+        ) : null}
         <ResponsiveAlertDialogFooter>
           <ResponsiveAlertDialogCancel disabled={isPending}>
             {GEO_SCAN_PREFLIGHT_CANCEL}

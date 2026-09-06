@@ -847,6 +847,7 @@ export interface GeoSettingsFormProps {
   organizationId: string;
   settings: GeoSettings | null;
   catalog: GeoModelCatalog;
+  promptCount?: number;
 }
 
 export interface GeoTagListProps {

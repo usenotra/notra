@@ -3,6 +3,8 @@ import {
   GEO_SCAN_INTERVAL_FALLBACK_NOUN,
   GEO_SCAN_INTERVAL_LABEL_PREFIX,
   GEO_SCAN_INTERVAL_OPTIONS,
+  GEO_SCAN_SIZE_DANGER_THRESHOLD,
+  GEO_SCAN_SIZE_WARN_THRESHOLD,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
 import type { GeoEngineAttemptSummary } from "../types/geo";
@@ -192,4 +194,42 @@ export function summarizeGeoEngineAttempts(
     byEngine.set(task.engine, summary);
   }
   return [...byEngine.values()];
+}
+
+export type GeoScanSizeSeverity = "ok" | "warn" | "danger";
+
+/**
+ * Intentionally approximate scan size: every enabled prompt runs on each
+ * engine and language. The UI labels this "About"/"Estimated" because the
+ * scan planner can diverge: ZDR policy filtering, non-English prompt caps,
+ * grounded-engine caps and extra grounded attempts, and sequences.
+ */
+export function calcGeoScanSize(input: {
+  promptCount: number;
+  engineCount: number;
+  languageCount: number;
+}): number {
+  if (
+    !Number.isFinite(input.promptCount) ||
+    !Number.isFinite(input.engineCount) ||
+    !Number.isFinite(input.languageCount)
+  ) {
+    return 0;
+  }
+  if (input.promptCount <= 0 || input.engineCount <= 0) {
+    return 0;
+  }
+  return (
+    input.promptCount * input.engineCount * Math.max(1, input.languageCount)
+  );
+}
+
+export function geoScanSizeSeverity(total: number): GeoScanSizeSeverity {
+  if (total >= GEO_SCAN_SIZE_DANGER_THRESHOLD) {
+    return "danger";
+  }
+  if (total >= GEO_SCAN_SIZE_WARN_THRESHOLD) {
+    return "warn";
+  }
+  return "ok";
 }

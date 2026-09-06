@@ -7,12 +7,19 @@ import {
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
   GEO_SCAN_DEFAULT_INTERVAL_HOURS,
+  GEO_SCAN_SIZE_DANGER,
+  GEO_SCAN_SIZE_WARN,
   GEO_SETTINGS_AUTO_SAVE_MS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
 import { normalizeConversionPaths } from "@notra/geo-core/utils/geo-conversion-paths";
 import { resolveTrackedEngines } from "@notra/geo-core/utils/geo-engines";
 import { trackedGeoLanguages } from "@notra/geo-core/utils/geo-language-rows";
+import {
+  calcGeoScanSize,
+  type GeoScanSizeSeverity,
+  geoScanSizeSeverity,
+} from "@notra/geo-core/utils/geo-scan";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
@@ -30,10 +37,31 @@ import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import type { GeoSettingsFormProps } from "@/types/geo";
 
+function scanSizeNoteClassName(severity: GeoScanSizeSeverity): string {
+  if (severity === "danger") {
+    return "text-destructive text-xs tabular-nums";
+  }
+  if (severity === "warn") {
+    return "text-xs text-amber-600 tabular-nums dark:text-amber-500";
+  }
+  return "text-muted-foreground text-xs tabular-nums";
+}
+
+function scanSizeWarningSuffix(severity: GeoScanSizeSeverity): string {
+  if (severity === "danger") {
+    return ` ${GEO_SCAN_SIZE_DANGER}`;
+  }
+  if (severity === "warn") {
+    return ` ${GEO_SCAN_SIZE_WARN}`;
+  }
+  return "";
+}
+
 export function GeoSettingsForm({
   organizationId,
   settings,
   catalog,
+  promptCount,
 }: GeoSettingsFormProps) {
   const id = useId();
   const [companyName, setCompanyName] = useState(
@@ -170,6 +198,14 @@ export function GeoSettingsForm({
   }, []);
 
   const isSaving = debouncer.state.isPending || debouncer.state.isExecuting;
+  const scanSize = calcGeoScanSize({
+    promptCount: promptCount ?? 0,
+    engineCount: engines.length,
+    languageCount: languages.length,
+  });
+  const scanSizeSeverity = geoScanSizeSeverity(scanSize);
+  const scanSizeNoteClass = scanSizeNoteClassName(scanSizeSeverity);
+  const scanSizeText = `About ${scanSize.toLocaleString()} checks per scan (${promptCount?.toLocaleString()} prompts × ${engines.length.toLocaleString()} engines × ${Math.max(1, languages.length).toLocaleString()} languages).${scanSizeWarningSuffix(scanSizeSeverity)}`;
   let saveStatus: string | null = null;
   if (nameMissing && savedAt) {
     saveStatus = "Add a company name to save";
@@ -253,10 +289,17 @@ export function GeoSettingsForm({
         <TitleCard as="section" heading="Models" headingAs="h2">
           <div className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <p className="text-muted-foreground min-w-0 flex-1 text-sm text-pretty">
-                Each enabled provider runs on every prompt, on the frequency you
-                set here.
-              </p>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-muted-foreground text-sm text-pretty">
+                  Each enabled provider runs on every prompt, on the frequency
+                  you set here.
+                </p>
+                {promptCount !== undefined ? (
+                  <p className={scanSizeNoteClass} role="note">
+                    {scanSizeText}
+                  </p>
+                ) : null}
+              </div>
               <GeoScanFrequencySelect
                 id={id}
                 intervalHours={scanIntervalHours}
