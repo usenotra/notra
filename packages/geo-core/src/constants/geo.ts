@@ -26,7 +26,10 @@ import type {
   GeoTrafficSourceGroupDefinition,
   GeoVisitorType,
 } from "../types/geo";
-import { GEO_MODEL_CATALOG_SEED } from "./geo-model-catalog";
+import {
+  GEO_MODEL_CATALOG_SEED,
+  GEO_MODEL_CATALOG_STATIC,
+} from "./geo-model-catalog";
 
 export const GEO_MAX_ENGINES = 64;
 export const GEO_MODEL_CATALOG_STALE_MS = 60 * 60 * 1000;
@@ -40,14 +43,17 @@ export const GEO_OPENAI_API_KEY_ENV = "OPENAI_API_KEY";
 export const GEO_ANTHROPIC_API_KEY_ENV = "ANTHROPIC_API_KEY";
 export const GEO_PERPLEXITY_API_KEY_ENV = "PERPLEXITY_API_KEY";
 export const GEO_CURSOR_API_KEY_ENV = "CURSOR_API_KEY";
+export const GEO_SERPAPI_API_KEY_ENV = "SERPAPI_API_KEY";
 
 /** Catalog id of the Cursor engine; the SDK model id is the slug part. */
 export const GEO_CURSOR_ENGINE_ID = "cursor/composer-2.5";
 export const GEO_CURSOR_MODEL_ID = "composer-2.5";
 export const GEO_OPENCODE_ENGINE_ID = "opencode/gpt-5.6-sol-medium";
+export const GEO_AI_OVERVIEW_ENGINE_ID = "google/ai-overview";
 export const GEO_PROVIDER_TIMEOUT_MS = 120_000;
 export const GEO_ANSWER_TIMEOUT_MS = 180_000;
 export const GEO_CURSOR_TIMEOUT_MS = GEO_ANSWER_TIMEOUT_MS;
+export const GEO_AI_OVERVIEW_TIMEOUT_MS = GEO_ANSWER_TIMEOUT_MS;
 /** Databuddy flag that exposes the Cursor engine to an organization. */
 export const GEO_CURSOR_FLAG_KEY = "geo-cursor";
 /** Databuddy flag that exposes the OpenCode engine to an organization. */
@@ -333,7 +339,10 @@ const groundedEngineLabels: Record<string, string> = {
 };
 
 const catalogEngineLabels = Object.fromEntries(
-  GEO_MODEL_CATALOG_SEED.map((entry) => [entry.id, entry.label])
+  [...GEO_MODEL_CATALOG_SEED, ...GEO_MODEL_CATALOG_STATIC].map((entry) => [
+    entry.id,
+    entry.label,
+  ])
 );
 
 export const GEO_ENGINE_LABELS: Record<string, string> = {
@@ -345,6 +354,7 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
   openai: "ChatGPT",
   claude: "Claude",
   gemini: "Gemini",
+  google: "Google",
   amazon: "Amazon",
   perplexity: "Perplexity",
   cursor: "Cursor",
@@ -1005,7 +1015,7 @@ export const GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST =
   "Tags apply to custom prompts. Auto-generated prompts were skipped.";
 export const GEO_SCAN_PREFLIGHT_TITLE = "Run a scan now?";
 export const GEO_SCAN_PREFLIGHT_BODY =
-  "Every enabled prompt is asked on each engine and language below.";
+  "This run only — tracked engines stay as they are.";
 export const GEO_SCAN_PREFLIGHT_CONFIRM = "Run scan";
 export const GEO_SCAN_PREFLIGHT_CANCEL = "Cancel";
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
@@ -1014,6 +1024,8 @@ export const GEO_SCAN_PREFLIGHT_ENGINES_LABEL = "Engines";
 export const GEO_SCAN_PREFLIGHT_LANGUAGES_LABEL = "Languages";
 export const GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL = "Last scan";
 export const GEO_SCAN_PREFLIGHT_NEVER_SCANNED = "Not yet";
+export const GEO_SCAN_PREFLIGHT_SELECT_ALL = "Select all";
+export const GEO_SCAN_PREFLIGHT_NEED_ENGINE = "Pick at least one engine.";
 export const GEO_RANGE_PRESETS = [
   { value: "today", label: "Today" },
   { value: "yesterday", label: "Yesterday" },

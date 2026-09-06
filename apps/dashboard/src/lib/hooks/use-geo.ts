@@ -618,8 +618,18 @@ export function useGeoStartScan(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: geoStartScanMutationKey(organizationId, projectId),
-    mutationFn: (trigger?: GeoScanTrigger) =>
-      dashboardOrpc.geo.startScan.call({ organizationId, projectId, trigger }),
+    mutationFn: (
+      input?: GeoScanTrigger | { trigger?: GeoScanTrigger; engines?: string[] }
+    ) => {
+      const payload =
+        typeof input === "string" ? { trigger: input } : (input ?? {});
+      return dashboardOrpc.geo.startScan.call({
+        organizationId,
+        projectId,
+        trigger: payload.trigger,
+        engines: payload.engines,
+      });
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.settings.queryKey({

@@ -336,6 +336,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
  * catalog instead of coming from the gateway feed. `zdr: "none"` because
  * neither direct runner exposes an enforceable ZDR route to GEO; under enforced
  * ZDR each engine therefore needs explicit approval before it is scanned.
+ * Google AI Overview is fetched through SerpApi and is also non-ZDR.
  */
 export const GEO_MODEL_CATALOG_STATIC: readonly GeoModelCatalogEntry[] = [
   {
@@ -356,6 +357,15 @@ export const GEO_MODEL_CATALOG_STATIC: readonly GeoModelCatalogEntry[] = [
     default: false,
     gateways: ["box"],
   },
+  {
+    id: "google/ai-overview",
+    provider: "google",
+    label: "AI Overview",
+    zdr: "none",
+    released: "2026-09-05",
+    default: false,
+    gateways: ["serpapi"],
+  },
 ];
 
 /**
@@ -367,6 +377,7 @@ export const GEO_STATIC_ENGINE_ENV: Readonly<
 > = {
   "cursor/composer-2.5": ["CURSOR_API_KEY"],
   "opencode/gpt-5.6-sol-medium": ["UPSTASH_BOX_API_KEY", "OPENROUTER_API_KEY"],
+  "google/ai-overview": ["SERPAPI_API_KEY"],
 };
 
 /** Engines scanned when a project has not picked its own set. */

@@ -78,7 +78,7 @@ export function ShelfDetailDialog({
 
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent className="max-h-[90vh] [scrollbar-gutter:stable] gap-8 overflow-x-hidden overflow-y-auto p-5 sm:max-w-3xl sm:p-6">
+      <ResponsiveDialogContent className="max-h-[90vh] gap-8 overflow-x-hidden overflow-y-auto p-5 [scrollbar-gutter:stable] sm:max-w-3xl sm:p-6">
         <ResponsiveDialogHeader className="gap-2">
           <ResponsiveDialogTitle className="text-xl font-semibold tracking-tight text-pretty">
             {row.title ?? row.domain}

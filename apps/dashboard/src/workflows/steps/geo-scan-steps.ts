@@ -62,6 +62,7 @@ export async function prepareGeoScanProjectStep(
     scanId?: string;
     retried: boolean;
     promptIds?: string[];
+    engines?: string[];
   }
 ): Promise<GeoScanProjectPlanResult> {
   "use step";
@@ -72,6 +73,7 @@ export async function prepareGeoScanProjectStep(
         claimedAt: parseClaimedAt(options.claimedAt),
         scanId: options.scanId,
         promptIds: options.promptIds,
+        engines: options.engines,
       }).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     if (result.status === "skipped") {

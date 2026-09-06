@@ -645,9 +645,7 @@ export function ChatInputAdvanced({
     remainingChatCredits !== null &&
     remainingChatCredits > 0 &&
     remainingChatCredits <= 10;
-  const isUsageBlocked =
-    checkResult?.allowed === false &&
-    !chatIncludedInPlan;
+  const isUsageBlocked = checkResult?.allowed === false && !chatIncludedInPlan;
   const usageLimitError =
     externalError ??
     internalError ??

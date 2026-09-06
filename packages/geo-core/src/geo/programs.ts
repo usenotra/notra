@@ -73,6 +73,7 @@ import type {
   GeoPromptRescanInput,
   GeoPromptResultsResponse,
   GeoPromptUpdateChanges,
+  GeoScanStartInput,
   GeoScopeInput,
   GeoSettingsEngineAddInput,
   GeoSettingsLanguageAddInput,
@@ -104,6 +105,7 @@ import {
   normalizeConversionPaths,
   sumConversionVisits,
 } from "../utils/geo-conversion-paths";
+import { scopeGeoScanEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import {
   geoDefaultEngines,
@@ -119,6 +121,7 @@ import {
   GeoPromptDuplicateError,
   GeoPromptNotFoundError,
   GeoScanAlreadyRunningError,
+  GeoScanEnginesEmptyError,
   GeoSettingsDisabledError,
   GeoSettingsMissingError,
   GeoSettingsTrackingError,
@@ -1614,13 +1617,14 @@ export const toggleGeoPrompt = Effect.fn("geo.promptsToggle")(function* (
 
 export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
   input: GeoScopeInput,
-  promptIds?: readonly string[]
+  promptIds?: readonly string[],
+  engines?: readonly string[]
 ) {
   const scope = yield* requireGeoProject(input);
   const projectId = scope.projectId;
   const row = yield* geoDb("settings lookup failed", () =>
     db.query.geoSettings.findFirst({
-      columns: { id: true, enabled: true },
+      columns: { id: true, enabled: true, engines: true },
       where: eq(geoSettings.projectId, projectId),
     })
   );
@@ -1633,6 +1637,15 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
 
   if (!row.enabled) {
     return yield* Effect.fail(new GeoSettingsDisabledError({ projectId }));
+  }
+
+  const storedEngines = row.engines ?? [];
+  if (
+    engines &&
+    storedEngines.length > 0 &&
+    scopeGeoScanEngines(storedEngines, engines).length === 0
+  ) {
+    return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings
@@ -1652,14 +1665,15 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     scope.organizationId,
     projectId,
     claim.claimedAt,
-    promptIds
+    promptIds,
+    engines
   );
 });
 
 export const startGeoScan = Effect.fn("geo.startScan")(function* (
-  input: GeoScopeInput
+  input: GeoScanStartInput
 ) {
-  return yield* startGeoScanScoped(input);
+  return yield* startGeoScanScoped(input, undefined, input.engines);
 });
 
 export const startGeoPromptRescan = Effect.fn("geo.rescanPrompt")(function* (

@@ -38,7 +38,7 @@ function createDevelopmentAutumnCustomer() {
           maxPurchase: null,
           nextResetAt: null,
         },
-      ]),
+      ])
     ),
     flags: {},
   };

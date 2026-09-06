@@ -5,7 +5,8 @@ import type {
 } from "../types/geo";
 import { engineFamilyLabel, engineFamilyOf } from "./geo-engine-family";
 
-const GROUNDED_ENGINE_PATTERN = /(-direct)?-grounded$|^perplexity-sonar$/;
+const GROUNDED_ENGINE_PATTERN =
+  /(-direct)?-grounded$|^perplexity-sonar$|^google\/ai-overview$/;
 
 export function isGroundedEngine(engine: string): boolean {
   return GROUNDED_ENGINE_PATTERN.test(engine);

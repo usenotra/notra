@@ -56,6 +56,8 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return toUnexpectedError(failure.cause, "Failed to start the scan");
     case "GeoScanAlreadyRunningError":
       return badRequest("A scan is already running for this project");
+    case "GeoScanEnginesEmptyError":
+      return badRequest("Select at least one tracked engine to scan");
     case "GeoWriterCreditsExhaustedError":
       return paymentRequired(failure.message);
     case "GeoContentBriefNotFoundError":

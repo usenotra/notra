@@ -110,6 +110,12 @@ export class GeoScanAlreadyRunningError extends Data.TaggedError(
   readonly projectId: string;
 }> {}
 
+export class GeoScanEnginesEmptyError extends Data.TaggedError(
+  "GeoScanEnginesEmptyError"
+)<{
+  readonly projectId: string;
+}> {}
+
 export class GeoProjectNotFoundError extends Data.TaggedError(
   "GeoProjectNotFoundError"
 )<{
@@ -235,6 +241,7 @@ export type GeoRouterError =
   | GeoPromptNotFoundError
   | GeoSampleDataDisabledError
   | GeoScanAlreadyRunningError
+  | GeoScanEnginesEmptyError
   | GeoScanStartError
   | GeoSequenceCreateFailedError
   | GeoSequenceNotFoundError

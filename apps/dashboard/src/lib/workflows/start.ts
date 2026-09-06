@@ -210,6 +210,7 @@ export async function startGeoScanRun(payload: {
   claimedAt?: string;
   scanId?: string;
   promptIds?: string[];
+  engines?: string[];
 }): Promise<{ runId: string }> {
   const parsed = geoScanWorkflowPayloadSchema.parse(payload);
   const run = await start(geoScanWorkflow, [parsed]);

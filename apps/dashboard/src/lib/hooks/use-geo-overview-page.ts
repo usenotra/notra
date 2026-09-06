@@ -182,8 +182,8 @@ export function useGeoOverviewPage(
     scanPreflight: {
       open: preflightOpen,
       onOpenChange: setPreflightOpen,
-      onConfirm: () => {
-        startScan.mutate();
+      onConfirm: (engines) => {
+        startScan.mutate(engines ? { engines } : undefined);
         setPreflightOpen(false);
       },
       isPending: startScan.isPending,

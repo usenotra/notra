@@ -155,13 +155,24 @@ export function isGeoEngineZdrCapable(
   return entry ? entry.zdr !== "none" : false;
 }
 
+const STATIC_ENGINE_IDS = new Set(
+  GEO_MODEL_CATALOG_STATIC.map((entry) => entry.id)
+);
+
 export function geoModelsForProvider(
   catalog: GeoModelCatalog,
   providerId: GeoModelProviderId
 ): GeoModelCatalogEntry[] {
   return catalog.models
     .filter((model) => model.provider === providerId)
-    .sort((left, right) => right.released.localeCompare(left.released));
+    .sort((left, right) => {
+      const leftStatic = STATIC_ENGINE_IDS.has(left.id);
+      const rightStatic = STATIC_ENGINE_IDS.has(right.id);
+      if (leftStatic !== rightStatic) {
+        return leftStatic ? -1 : 1;
+      }
+      return right.released.localeCompare(left.released);
+    });
 }
 
 export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {

@@ -97,6 +97,10 @@ export const geoScanWorkflowPayloadSchema = geoOrganizationInputSchema
     claimedAt: iso.datetime().optional(),
     scanId: string().min(1).optional(),
     promptIds: array(string().min(1)).min(1).optional(),
+    engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
+      .min(1)
+      .max(GEO_MAX_ENGINES)
+      .optional(),
   })
   .refine(
     (value) =>

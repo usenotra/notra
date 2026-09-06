@@ -70,6 +70,11 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
         status: 409,
         error: "A scan is already running for this project",
       };
+    case "GeoScanEnginesEmptyError":
+      return {
+        status: 400,
+        error: "Select at least one tracked engine to scan",
+      };
     case "GeoCompetitorLimitError":
       return {
         status: 400,
