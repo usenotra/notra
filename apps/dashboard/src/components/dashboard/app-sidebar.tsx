@@ -9,6 +9,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
+  SidebarRail,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
@@ -162,6 +163,7 @@ export function DashboardSidebar({
       <SidebarFooter>
         <OrgSelector />
       </SidebarFooter>
+      <SidebarRail />
       <SidebarResizeHandle
         onWidthChange={onWidthChange}
         onWidthChangeEnd={onWidthChangeEnd}

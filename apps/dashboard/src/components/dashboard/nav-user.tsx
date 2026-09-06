@@ -92,7 +92,7 @@ export function NavUser() {
                 className="rounded-lg"
                 src={getUserAvatarUrl(user.image, user.email)}
               />
-              <AvatarFallback className="bg-foreground/10 text-foreground flex items-center justify-center rounded-lg text-[0.6875rem] leading-none font-medium">
+              <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground flex items-center justify-center rounded-lg text-[0.6875rem] leading-none font-medium">
                 <span className="-translate-y-px">{userInitial}</span>
               </AvatarFallback>
             </Avatar>
@@ -114,7 +114,7 @@ export function NavUser() {
                   className="rounded-lg"
                   src={getUserAvatarUrl(user.image, user.email)}
                 />
-                <AvatarFallback className="bg-foreground/10 text-foreground flex items-center justify-center rounded-lg text-xs leading-none font-medium">
+                <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground flex items-center justify-center rounded-lg text-xs leading-none font-medium">
                   <span className="-translate-y-px">{userInitial}</span>
                 </AvatarFallback>
               </Avatar>

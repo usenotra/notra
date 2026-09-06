@@ -4,8 +4,7 @@ import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
@@ -58,9 +57,6 @@ export function DashboardShell({
   const shellStyle: DashboardShellStyle = {
     "--eve-banner-height": visible ? EVE_BANNER_HEIGHT : "0rem",
   };
-  const pathname = usePathname();
-  const mainScrollRef = useRef<HTMLDivElement>(null);
-  const [mainScrolled, setMainScrolled] = useState(false);
   const {
     finishSidebarResize,
     setSidebarWidth,
@@ -72,22 +68,6 @@ export function DashboardShell({
   useEffect(() => {
     setDismissingOrganizationId(null);
   }, [organizationId]);
-
-  useEffect(() => {
-    const el = mainScrollRef.current;
-    if (!el) {
-      return;
-    }
-
-    const sync = () => {
-      const next = el.scrollTop > 0;
-      setMainScrolled((current) => (current === next ? current : next));
-    };
-
-    sync();
-    el.addEventListener("scroll", sync, { passive: true });
-    return () => el.removeEventListener("scroll", sync);
-  }, [pathname]);
 
   const handleStart = () => {
     if (!organizationId || starting) {
@@ -128,7 +108,7 @@ export function DashboardShell({
 
   return (
     <div
-      className="flex h-svh flex-col overflow-hidden overscroll-none"
+      className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
       style={shellStyle}
     >
       {bannerAvailable || dismissing ? (
@@ -167,10 +147,7 @@ export function DashboardShell({
         style={sidebarStyle}
       >
         <DashboardSidebar
-          className={cn(
-            "transition-[left,right,width,top,height] [transition-duration:var(--sidebar-duration),var(--sidebar-duration),var(--sidebar-duration),200ms,200ms] [transition-timing-function:var(--sidebar-ease),var(--sidebar-ease),var(--sidebar-ease),ease-out,ease-out] motion-reduce:transition-none md:top-(--eve-banner-height) md:h-[calc(100svh-var(--eve-banner-height))]",
-            visible && "md:pt-0!"
-          )}
+          className="transition-[left,right,width,top,height] [transition-duration:var(--sidebar-duration),var(--sidebar-duration),var(--sidebar-duration),200ms,200ms] [transition-timing-function:var(--sidebar-ease),var(--sidebar-ease),var(--sidebar-ease),ease-out,ease-out] motion-reduce:transition-none md:top-(--eve-banner-height) md:h-[calc(100svh-var(--eve-banner-height))]"
           onWidthChange={setSidebarWidth}
           onWidthChangeEnd={finishSidebarResize}
           onWidthChangeStart={startSidebarResize}
@@ -178,28 +155,11 @@ export function DashboardShell({
           variant="inset"
           width={sidebarWidth}
         />
-        <SidebarInset
-          className={cn(
-            "border-sidebar-border min-h-0 min-w-0 overflow-hidden",
-            visible && "md:mt-0! md:rounded-t-none! md:border-t-0!"
-          )}
-        >
+        <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
           <SiteHeader />
           <RestoreSidebarHome />
-          <div className="bg-muted relative flex min-h-0 flex-1 flex-col">
-            <div
-              className="scrollbar-stable scrollbar-floating border-sidebar-border bg-background @container/main -mx-px flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain rounded-t-2xl border border-b-0"
-              ref={mainScrollRef}
-            >
-              <SubscriptionGate>{children}</SubscriptionGate>
-            </div>
-            <div
-              aria-hidden
-              className={cn(
-                "from-background duration-normal pointer-events-none absolute -inset-x-px top-px z-10 h-12 rounded-t-[calc(1rem-1px)] bg-linear-to-b from-20% to-transparent transition-opacity ease-out motion-reduce:transition-none",
-                mainScrolled ? "opacity-100" : "opacity-0"
-              )}
-            />
+          <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
+            <SubscriptionGate>{children}</SubscriptionGate>
           </div>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />

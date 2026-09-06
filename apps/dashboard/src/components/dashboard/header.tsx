@@ -20,6 +20,7 @@ import {
   BreadcrumbSeparator,
 } from "@notra/ui/components/ui/breadcrumb";
 import { Kbd, KbdGroup } from "@notra/ui/components/ui/kbd";
+import { Separator } from "@notra/ui/components/ui/separator";
 import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { cn } from "@notra/ui/lib/utils";
 import { useHotkey } from "@tanstack/react-hotkeys";
@@ -201,7 +202,9 @@ export function SiteHeader() {
         }
 
         if (isCollectionDetail && isLast) {
-          return <BreadcrumbPage>{label}</BreadcrumbPage>;
+          return (
+            <BreadcrumbPage className="font-medium">{label}</BreadcrumbPage>
+          );
         }
 
         if (isClickable) {
@@ -209,7 +212,9 @@ export function SiteHeader() {
         }
 
         if (isLast) {
-          return <BreadcrumbPage>{label}</BreadcrumbPage>;
+          return (
+            <BreadcrumbPage className="font-medium">{label}</BreadcrumbPage>
+          );
         }
 
         return <span>{label}</span>;
@@ -275,7 +280,7 @@ export function SiteHeader() {
               key={`${id}-geo-item-${segment}`}
             >
               {isLast ? (
-                <BreadcrumbPage className="block truncate">
+                <BreadcrumbPage className="block truncate font-medium">
                   {label}
                 </BreadcrumbPage>
               ) : (
@@ -289,7 +294,7 @@ export function SiteHeader() {
             <HugeiconsIcon icon={ArrowRight01Icon} />
           </BreadcrumbSeparator>,
           <BreadcrumbItem className="min-w-0" key={`${id}-geo-tab`}>
-            <BreadcrumbPage className="block truncate">
+            <BreadcrumbPage className="block truncate font-medium">
               {geoTabLabel}
             </BreadcrumbPage>
           </BreadcrumbItem>,
@@ -317,19 +322,23 @@ export function SiteHeader() {
   })();
 
   return (
-    <header className="bg-muted flex h-12 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <div className="flex h-full min-w-0 items-center gap-2 overflow-hidden">
-          <SidebarToggle className="-mx-1.5" />
+    <header className="relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-2 lg:px-6">
+        <div className="flex min-w-0 items-center gap-1 overflow-hidden lg:gap-2">
+          <SidebarToggle className="-ml-1" />
+          <Separator
+            className="mx-2 h-4 self-center data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
+            orientation="vertical"
+          />
           <Breadcrumb className="min-w-0">
-            <BreadcrumbList className="min-w-0 flex-nowrap gap-2">
+            <BreadcrumbList className="text-foreground min-w-0 flex-nowrap gap-2 text-sm font-medium">
               {breadcrumbs}
             </BreadcrumbList>
           </Breadcrumb>
         </div>
         <button
           aria-label="Search"
-          className="bg-background/60 text-muted-foreground hover:bg-muted/60 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border px-2 text-sm transition-colors md:flex lg:w-64 xl:w-80 @[8rem]/search:justify-start @[8rem]/search:px-3"
+          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors md:flex lg:w-64 xl:w-80 @[8rem]/search:justify-start @[8rem]/search:px-3"
           onClick={() => setCommandPaletteOpen(true)}
           type="button"
         >

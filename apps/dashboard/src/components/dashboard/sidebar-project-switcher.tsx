@@ -138,11 +138,11 @@ export function SidebarProjectSwitcher() {
                   <ProjectLogo
                     className="size-7 rounded-lg"
                     domain={activeDomain}
-                    fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
+                    fallbackClassName="bg-sidebar-accent rounded-lg"
                     name={activeProject.name}
                   />
                   <div className="grid min-w-0 flex-1 leading-tight">
-                    <SidebarLabel className="truncate text-sm font-semibold">
+                    <SidebarLabel className="truncate text-sm font-medium">
                       {activeProject.name}
                     </SidebarLabel>
                     {activeDomain ? (

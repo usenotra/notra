@@ -3,15 +3,7 @@
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
-/* Status and GEO colour tokens come from @notra/ui/status.css via globals.css. */
-
-:root {
-  --sidebar: hsl(0 0% 100%);
-}
-
-.dark {
-  --sidebar: hsl(233 7% 8%);
-}
+/* Status, GEO, and sidebar tokens come from @notra/ui via globals.css. */
 
 @theme inline {
   --font-sans: var(--font-inter);
