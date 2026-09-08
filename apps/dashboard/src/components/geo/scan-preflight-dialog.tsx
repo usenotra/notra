@@ -11,6 +11,8 @@ import {
   GEO_SCAN_PREFLIGHT_PROMPTS_LABEL,
   GEO_SCAN_PREFLIGHT_SELECT_ALL,
   GEO_SCAN_PREFLIGHT_TITLE,
+  GEO_SCAN_SIZE_LABEL,
+  GEO_SCAN_SIZE_MESSAGES,
 } from "@notra/geo-core/constants/geo";
 import {
   ResponsiveDialog,
@@ -20,6 +22,11 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -27,6 +34,7 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { Twemoji } from "@/components/geo/twemoji";
 import { Checkbox } from "@/components/motion/checkbox";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
+import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { cn } from "@/lib/utils";
 import type { ScanPreflightDialogProps } from "@/types/geo";
 import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
@@ -97,6 +105,7 @@ function ScanPreflightEngineRow({
 }
 
 export function ScanPreflightDialog({
+  organizationId,
   open,
   onOpenChange,
   onConfirm,
@@ -111,6 +120,13 @@ export function ScanPreflightDialog({
   const selected = engines.filter((engine) => !deselected.has(engine));
   const selectedCount = selected.length;
   const canRun = selectedCount > 0;
+
+  const { scanSize, warningSeverity } = useGeoScanEstimate({
+    organizationId,
+    promptCount,
+    engines: selected,
+    languages,
+  });
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -131,8 +147,30 @@ export function ScanPreflightDialog({
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="flex items-center gap-2">
             {GEO_SCAN_PREFLIGHT_TITLE}
+            {warningSeverity ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span
+                      aria-label={GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
+                      className={cn(
+                        "inline-flex size-3.5 cursor-help items-center justify-center rounded-full text-[10px] leading-none font-bold",
+                        warningSeverity === "danger"
+                          ? "bg-destructive text-destructive-foreground"
+                          : "bg-warning text-warning-foreground"
+                      )}
+                    />
+                  }
+                >
+                  !
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  {GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             {GEO_SCAN_PREFLIGHT_BODY}
@@ -140,7 +178,8 @@ export function ScanPreflightDialog({
         </ResponsiveDialogHeader>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">
-            {promptCount.toLocaleString()} {GEO_SCAN_PREFLIGHT_PROMPTS_LABEL}
+            {promptCount?.toLocaleString() ?? "—"}{" "}
+            {GEO_SCAN_PREFLIGHT_PROMPTS_LABEL}
           </span>
           {languages.map((language) => (
             <span
@@ -157,6 +196,11 @@ export function ScanPreflightDialog({
               {language}
             </span>
           ))}
+          <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">
+            {scanSize === null
+              ? "Calculating checks…"
+              : `${scanSize.toLocaleString()} ${GEO_SCAN_SIZE_LABEL}`}
+          </span>
         </div>
         <p className="text-muted-foreground text-xs">
           {GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL}{" "}

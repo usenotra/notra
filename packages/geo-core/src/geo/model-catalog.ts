@@ -11,7 +11,8 @@ import {
 } from "../constants/geo-model-catalog";
 import { GeoFeatureFlagService } from "../deps";
 import { geoModelFeedSchema } from "../schemas/geo-model-feed";
-import type { GeoModelCatalog } from "../types/geo";
+import type { GeoModelCatalog, GeoResolvedModelCatalog } from "../types/geo";
+import { resolveGroundedEngines } from "../utils/geo-grounded-engines";
 import {
   buildGeoModelCatalogFromFeed,
   seedGeoModelCatalog,
@@ -77,10 +78,18 @@ export const loadGeoModelCatalog = Effect.fn("geo.modelCatalog")(function* (
     featureFlags.isCursorEngineEnabledForOrganization(organizationId),
     featureFlags.isOpenCodeEngineEnabledForOrganization(organizationId),
   ]);
-  return withoutGeoModelCatalogEntries(catalog, [
+  const available = withoutGeoModelCatalogEntries(catalog, [
     ...(cursorEnabled ? [] : [GEO_CURSOR_ENGINE_ID]),
     ...(openCodeEnabled
       ? []
       : [GEO_OPENCODE_ENGINE_ID, ...GEO_CODING_AGENT_ENGINE_IDS]),
   ]);
+  return {
+    ...available,
+    models: available.models.map((model) => ({
+      ...model,
+      supportsGroundedChecks:
+        resolveGroundedEngines([model.id], available).length > 0,
+    })),
+  } satisfies GeoResolvedModelCatalog;
 });

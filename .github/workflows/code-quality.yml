@@ -34,5 +34,5 @@ jobs:
       - name: Run unit and integration tests
         run: bun run test --force
 
-      - name: Typecheck tested packages
-        run: bun run check-types --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard
+      - name: Typecheck tested packages and UI docs
+        run: bun run check-types --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui

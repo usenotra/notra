@@ -851,6 +851,7 @@ export interface GeoSettingsFormProps {
   organizationId: string;
   settings: GeoSettings | null;
   catalog: GeoModelCatalog;
+  promptCount?: number;
   hideHeader?: boolean;
   section?: GeoSettingsFormSection;
 }
@@ -887,6 +888,7 @@ export interface GeoModelsSectionProps {
   onEnabledChange: (value: boolean) => void;
   scanIntervalHours: number;
   onScanIntervalHoursChange: (value: number) => void;
+  scanSizeNote: { className: string; text: string } | null;
 }
 
 export interface GeoSettingsAutosaveInput {
@@ -1122,11 +1124,12 @@ export interface CompetitorPromptSummaryStripProps {
 }
 
 export interface ScanPreflightDialogProps {
+  organizationId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (engines?: string[]) => void;
   isPending: boolean;
-  promptCount: number;
+  promptCount: number | undefined;
   engines: readonly string[];
   languages: readonly string[];
   lastScanAt: string | null;

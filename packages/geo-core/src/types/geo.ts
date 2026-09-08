@@ -1199,6 +1199,24 @@ export interface GeoModelCatalog {
   models: GeoModelCatalogEntry[];
 }
 
+/** Organization catalog after the server resolves available search routes. */
+export interface GeoResolvedModelCatalog extends GeoModelCatalog {
+  models: (GeoModelCatalogEntry & { supportsGroundedChecks: boolean })[];
+}
+
+export type GeoScanSizeSeverity = "ok" | "warn" | "danger";
+
+export interface GeoScanSizeInput {
+  promptCount: number;
+  engines: readonly string[];
+  languages: readonly string[];
+  catalog: GeoResolvedModelCatalog;
+  sequences: readonly Pick<
+    GeoPromptSequence,
+    "enabled" | "steps" | "createdAt"
+  >[];
+}
+
 /** One model as published by the Vercel AI Gateway feed. */
 export interface GeoGatewayModel {
   id: string;

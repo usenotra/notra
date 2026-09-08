@@ -1,0 +1,18 @@
+{
+  "name": "ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "blume dev --port 3006",
+    "build": "blume build",
+    "preview": "blume preview --port 3006",
+    "check-types": "blume check",
+    "doctor": "blume doctor"
+  },
+  "dependencies": {
+    "blume": "1.5.3"
+  },
+  "devDependencies": {
+    "astro": "7.2.10"
+  }
+}

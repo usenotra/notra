@@ -22,7 +22,6 @@ import type {
   GeoDiscoverWebsiteResult,
   GeoJourneyDetailResponse,
   GeoLanguageShareResponse,
-  GeoModelCatalog,
   GeoOnboardingBrandInput,
   GeoOnboardingBrandResult,
   GeoOverviewResponse,
@@ -178,7 +177,7 @@ function geoStartScanMutationKey(
 }
 
 export function useGeoModelCatalog(organizationId: string) {
-  return useQuery<GeoModelCatalog>({
+  return useQuery({
     ...dashboardOrpc.geo.modelCatalog.queryOptions({
       input: { organizationId },
     }),

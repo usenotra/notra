@@ -7,6 +7,7 @@ import {
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
   GEO_SCAN_DEFAULT_INTERVAL_HOURS,
+  GEO_SCAN_SIZE_MESSAGES,
   GEO_SETTINGS_AUTO_SAVE_MS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
@@ -27,7 +28,9 @@ import {
 } from "@/components/geo/geo-scan-schedule";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
+import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
+import { cn } from "@/lib/utils";
 import type {
   GeoBrandSectionProps,
   GeoLanguagesSectionProps,
@@ -40,6 +43,7 @@ export function GeoSettingsForm({
   organizationId,
   settings,
   catalog,
+  promptCount,
   hideHeader = false,
   section,
 }: GeoSettingsFormProps) {
@@ -88,6 +92,24 @@ export function GeoSettingsForm({
     scanIntervalHours,
     settings,
   });
+
+  const { scanSize, warningSeverity } = useGeoScanEstimate({
+    organizationId,
+    promptCount,
+    engines,
+    languages,
+  });
+  const scanSizeNote =
+    scanSize === null
+      ? null
+      : {
+          className: cn("text-xs tabular-nums", {
+            "text-muted-foreground": warningSeverity === null,
+            "text-warning": warningSeverity === "warn",
+            "text-destructive": warningSeverity === "danger",
+          }),
+          text: `About ${scanSize.toLocaleString()} checks per scan, including web-search checks and conversation turns.${warningSeverity ? ` ${GEO_SCAN_SIZE_MESSAGES[warningSeverity]}` : ""}`,
+        };
 
   const showBrand = section === undefined || section === "brand";
   const showLanguages = section === undefined || section === "languages";
@@ -143,6 +165,7 @@ export function GeoSettingsForm({
             onScanIntervalHoursChange={setScanIntervalHours}
             planLoading={planLoading}
             scanIntervalHours={scanIntervalHours}
+            scanSizeNote={scanSizeNote}
           />
         ) : null}
       </div>
@@ -402,6 +425,7 @@ function GeoModelsSection({
   onScanIntervalHoursChange,
   planLoading,
   scanIntervalHours,
+  scanSizeNote,
 }: GeoModelsSectionProps) {
   return (
     <TitleCard
@@ -417,10 +441,17 @@ function GeoModelsSection({
       headingAs="h2"
     >
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm text-pretty">
-          Each enabled provider runs on every prompt, on the frequency you set
-          here.
-        </p>
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-sm text-pretty">
+            Each enabled provider runs on every prompt, on the frequency you set
+            here.
+          </p>
+          {scanSizeNote ? (
+            <p className={scanSizeNote.className} role="note">
+              {scanSizeNote.text}
+            </p>
+          ) : null}
+        </div>
         <GeoEnginePicker
           canEnforceZdr={canEnforceZdr}
           catalog={catalog}
