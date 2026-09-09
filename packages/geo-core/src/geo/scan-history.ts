@@ -155,13 +155,16 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
             promptId: geoMentionChecks.promptId,
             engine: geoMentionChecks.engine,
             language: geoMentionChecks.language,
+            turn: geoMentionChecks.turn,
           })
           .from(geoMentionChecks)
           .where(scopeFilter)
       )
     : [];
   const savedKeys = new Set(
-    saved.map((row) => geoScanAnswerKey(row.promptId, row.engine, row.language))
+    saved.map((row) =>
+      geoScanAnswerKey(row.promptId, row.engine, row.language, row.turn)
+    )
   );
   const pending = (scan.plan?.tasks ?? [])
     .filter(

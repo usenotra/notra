@@ -9,6 +9,8 @@ export interface GeoScanPlanSnapshot {
 }
 
 export interface GeoScanPlannedAnswer {
+  sequenceId?: string;
+  turn?: number;
   key: string;
   promptId: string;
   prompt: string;

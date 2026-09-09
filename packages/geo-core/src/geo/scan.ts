@@ -98,7 +98,10 @@ import {
   isGeoScanRunning,
   summarizeGeoEngineAttempts,
 } from "../utils/geo-scan";
-import { geoScanPlanSnapshot } from "../utils/geo-scan-plan";
+import {
+  geoScanPlanSnapshot,
+  geoScanSequenceTasks,
+} from "../utils/geo-scan-plan";
 import { withGeoTiming } from "../utils/geo-timing";
 import { addAgentTokenUsage as addTokenUsage } from "../utils/token-usage";
 import { fetchGoogleAiOverview } from "./ai-overview";
@@ -1316,56 +1319,87 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
 
     const outcomes = yield* Effect.forEach(
       plannedSequences,
-      (planned) => {
-        const sequence: GeoSequenceDefinition = {
-          id: planned.sequenceId,
-          steps: planned.steps,
-        };
-        if (!planned.groundedKey) {
-          return runGeoOpenCodeSequenceCheck(
+      (planned) =>
+        Effect.gen(function* () {
+          const sequence: GeoSequenceDefinition = {
+            id: planned.sequenceId,
+            steps: planned.steps,
+          };
+          for (const task of geoScanSequenceTasks(planned)) {
+            yield* updateGeoScanTaskStatus(
+              context,
+              {
+                ...task,
+                prompt: { id: task.promptId, text: task.prompt },
+              },
+              "running",
+              task.turn
+            );
+          }
+          if (!planned.groundedKey) {
+            return yield* runGeoOpenCodeSequenceCheck(
+              checkContext,
+              sequence,
+              planned.engine,
+              planned.zdr
+            ).pipe(
+              geoSkip(
+                "sequence failed",
+                sequenceFailureFields(
+                  checkContext,
+                  sequence,
+                  planned.engine,
+                  false
+                )
+              ),
+              Effect.map((result) => ({ sequence, result }))
+            );
+          }
+          const grounded = resolveGroundedEngineByKey(planned.groundedKey);
+          if (!grounded) {
+            return { sequence, result: null };
+          }
+          return yield* runGeoSequenceCheck(
             checkContext,
             sequence,
-            planned.engine,
+            grounded,
             planned.zdr
           ).pipe(
+            Effect.timeoutOrElse({
+              duration: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
+              orElse: () =>
+                Effect.fail(
+                  new GeoScanError({
+                    message: `Sequence ${sequence.id} on ${grounded.key} timed out after ${GEO_SEQUENCE_PAIR_TIMEOUT_MS}ms`,
+                  })
+                ),
+            }),
             geoSkip(
               "sequence failed",
-              sequenceFailureFields(
-                checkContext,
-                sequence,
-                planned.engine,
-                false
-              )
+              sequenceFailureFields(checkContext, sequence, grounded.key, true)
             ),
             Effect.map((result) => ({ sequence, result }))
           );
-        }
-        const grounded = resolveGroundedEngineByKey(planned.groundedKey);
-        if (!grounded) {
-          return Effect.succeed({ sequence, result: null });
-        }
-        return runGeoSequenceCheck(
-          checkContext,
-          sequence,
-          grounded,
-          planned.zdr
-        ).pipe(
-          Effect.timeoutOrElse({
-            duration: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
-            orElse: () =>
-              Effect.fail(
-                new GeoScanError({
-                  message: `Sequence ${sequence.id} on ${grounded.key} timed out after ${GEO_SEQUENCE_PAIR_TIMEOUT_MS}ms`,
-                })
+        }).pipe(
+          Effect.tap(({ result }) =>
+            Effect.forEach(
+              geoScanSequenceTasks(planned).filter(
+                (task) => !result?.rows.some((row) => row.turn === task.turn)
               ),
-          }),
-          geoSkip(
-            "sequence failed",
-            sequenceFailureFields(checkContext, sequence, grounded.key, true)
-          ),
-          Effect.map((result) => ({ sequence, result }))
-        );
-      },
+              (task) =>
+                updateGeoScanTaskStatus(
+                  context,
+                  {
+                    ...task,
+                    prompt: { id: task.promptId, text: task.prompt },
+                  },
+                  "failed",
+                  task.turn
+                ),
+              { discard: true }
+            )
+          )
+        ),
       { concurrency: GEO_SCAN_CONCURRENCY }
     );
 

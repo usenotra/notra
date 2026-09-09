@@ -14,9 +14,15 @@ export const updateGeoScanTaskStatus = Effect.fn("geo.updateScanTaskStatus")(
       "organizationId" | "projectId" | "scanId"
     >,
     task: Pick<GeoScanPlannedTask, "prompt" | "engine" | "language">,
-    status: "running" | "failed"
+    status: "running" | "failed",
+    turn = 0
   ) {
-    const key = geoScanAnswerKey(task.prompt.id, task.engine, task.language);
+    const key = geoScanAnswerKey(
+      task.prompt.id,
+      task.engine,
+      task.language,
+      turn
+    );
     yield* geoDb("scan task status update failed", () =>
       db
         .update(geoScans)

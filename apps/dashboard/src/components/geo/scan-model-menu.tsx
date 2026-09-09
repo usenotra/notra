@@ -71,7 +71,7 @@ export function ScanModelMenu({
           <Button
             aria-label={label}
             className="active:scale-100"
-            disabled={disabled || engines.length === 0}
+            disabled={false}
             size={compact ? "icon" : "sm"}
             type="button"
             variant={compact ? "ghost" : variant}

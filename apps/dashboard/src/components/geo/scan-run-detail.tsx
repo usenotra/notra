@@ -282,6 +282,7 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
         />
       </div>
       <ScanAnswerSheet
+        key={checkId}
         scanId={run.id}
         initialLanguage={
           data?.results.find((result) => result.id === checkId)?.language

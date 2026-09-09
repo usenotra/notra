@@ -74,9 +74,9 @@ export function PromptEngineSwitcher({
         <span className="bg-background inline-flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8rem] font-medium">
           <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
           <span className="truncate">
-            {engineLabel(active.engine, answerMode)}
+            {formatEngineWithMode(active.engine)}
           </span>
-          {showsSearchIcon(active.engine) ? <SearchModeIcon /> : null}
+          {engineAnswerMode(active.engine) !== null ? <SearchModeIcon /> : null}
         </span>
       </div>
     );
