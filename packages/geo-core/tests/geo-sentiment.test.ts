@@ -22,6 +22,7 @@ const {
   queryGeoCheckSentimentEvidence,
   queryGeoSentimentAnalysisSnapshot,
   queryGeoSentimentAnalysisSample,
+  queryGeoSentimentBrand,
 } = await import("@notra/db/utils/geo-checks");
 const { loadGeoSentiment, loadGeoSentimentEvidence } =
   await import("../src/geo/sentiment");
@@ -39,6 +40,25 @@ beforeEach(async () => {
   await resetDatabase();
   await seedProject("main");
   await testDb.insert(geoScans).values({ id: "scan", ...scope });
+});
+
+test("analysis uses the canonical project GEO brand, scoped to its organization", async () => {
+  await postgres.exec(
+    "UPDATE brand_settings SET company_name = 'Different brand identity' WHERE id = 'brand-main'"
+  );
+  expect(await queryGeoSentimentBrand(scope)).toEqual({ companyName: "main" });
+  await postgres.exec(
+    "UPDATE geo_settings SET company_name = 'Canonical GEO brand' WHERE id = 'settings-main'"
+  );
+  expect(await queryGeoSentimentBrand(scope)).toEqual({
+    companyName: "Canonical GEO brand",
+  });
+  expect(
+    await queryGeoSentimentBrand({ ...scope, organizationId: "foreign" })
+  ).toBeUndefined();
+  expect(
+    await queryGeoSentimentBrand({ ...scope, projectId: "missing" })
+  ).toBeUndefined();
 });
 
 async function check(

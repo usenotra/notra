@@ -13,7 +13,7 @@ import {
 
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
 import { db } from "../drizzle";
-import { geoMentionChecks, geoScans } from "../schema";
+import { geoMentionChecks, geoScans, geoSettings } from "../schema";
 import type {
   GeoCheckCompetitorPromptRow,
   GeoCheckCompetitorShareRow,
@@ -67,6 +67,16 @@ export async function queryGeoCheckSentiment(
     .groupBy(day, geoMentionChecks.engine)
     .orderBy(day, geoMentionChecks.engine);
   return rows;
+}
+
+export function queryGeoSentimentBrand(scope: GeoCheckScope) {
+  return db.query.geoSettings.findFirst({
+    columns: { companyName: true },
+    where: and(
+      eq(geoSettings.projectId, scope.projectId ?? ""),
+      eq(geoSettings.organizationId, scope.organizationId)
+    ),
+  });
 }
 
 export async function queryGeoCheckSentimentEvidence(

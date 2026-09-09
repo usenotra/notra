@@ -373,6 +373,11 @@ test("freshness changes and lease theft cannot publish old results; failed runs 
   };
   expect((await runSentimentAnalysis(run)).status).toBe("stale");
   expect((await readSentimentAnalysis(run)).result).toBeNull();
+  expect(await readSentimentAnalysis(run)).toMatchObject({
+    status: "stale",
+    message:
+      "Analysis missing or out of date. Select Analyze answers to refresh.",
+  });
   expect(
     (
       await runSentimentAnalysis({

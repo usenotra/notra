@@ -1,6 +1,7 @@
 import { Button } from "@notra/ui/components/ui/button";
 
 import { InstrumentModule } from "@/components/instrument/instrument-module";
+import { SENTIMENT_POLARITY_STYLES } from "@/constants/geo-sentiment";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type {
   SentimentThemesProps,
@@ -108,17 +109,26 @@ function SentimentThemeResults({ result }: SentimentThemeResultsProps) {
   const groups = sentimentThemeGroups(result.themes);
   return (
     <>
-      <p className="text-muted-foreground text-xs">
-        {result.sampled} of {result.eligible} positive or negative answers
-        sampled. Up to 12 per polarity; first 2,000 characters per answer. Theme
-        evidence counts refer only to this sample.
-      </p>
+      <div className="text-muted-foreground space-y-1 text-xs">
+        <p>
+          Based on {result.sampled} sampled answers · Analyzed{" "}
+          {result.generatedAt.slice(0, 10)}
+        </p>
+        <details>
+          <summary className="focus-visible:outline-ring cursor-pointer rounded-sm py-1 focus-visible:outline-2">
+            Sampling details
+          </summary>
+          <p className="pt-1">
+            {result.sampled} of {result.eligible} eligible positive or negative
+            answers. Up to 12 per polarity, selected deterministically; first
+            2,000 answer characters and 500 prompt characters per check. Theme
+            evidence counts refer only to this sample. Quotes are exact saved
+            text.
+          </p>
+        </details>
+      </div>
       <SentimentThemeGroup polarity="positive" themes={groups.positive} />
       <SentimentThemeGroup polarity="negative" themes={groups.negative} />
-      <p className="text-muted-foreground text-xs">
-        Analyzed {result.generatedAt.slice(0, 10)} · AI-extracted themes; exact
-        saved quotes.
-      </p>
     </>
   );
 }
@@ -126,7 +136,11 @@ function SentimentThemeResults({ result }: SentimentThemeResultsProps) {
 function SentimentThemeGroup({ polarity, themes }: SentimentThemeGroupProps) {
   return (
     <section className="space-y-2">
-      <h3 className="text-sm font-medium capitalize">{polarity} themes</h3>
+      <h3
+        className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+      >
+        {polarity} themes
+      </h3>
       {themes.length === 0 ? (
         <p className="text-muted-foreground text-sm">
           No supported {polarity} themes in the sample.
@@ -171,10 +185,36 @@ function SentimentDistribution({ summary }: SentimentScoreProps) {
     <section className="space-y-3 border-t pt-4">
       <h3 className="text-sm font-medium">Classified mentions</h3>
       {summary.classifiedMentions > 0 ? (
+        <div
+          aria-hidden="true"
+          className="flex h-2 w-full overflow-hidden rounded-full"
+          data-testid="sentiment-distribution-bar"
+        >
+          {(["positive", "neutral", "negative"] as const).map((polarity) => (
+            <span
+              key={polarity}
+              data-polarity={polarity}
+              className={`h-full shrink-0 ${SENTIMENT_POLARITY_STYLES[polarity].fill}`}
+              style={{
+                width: `${(summary[polarity] / summary.classifiedMentions) * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+      {summary.classifiedMentions > 0 ? (
         <dl className="grid grid-cols-3 gap-3 text-sm">
           {(["positive", "neutral", "negative"] as const).map((polarity) => (
             <div key={polarity}>
-              <dt className="text-muted-foreground capitalize">{polarity}</dt>
+              <dt
+                className={`flex items-center gap-1.5 capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`size-1.5 shrink-0 rounded-full ${SENTIMENT_POLARITY_STYLES[polarity].fill}`}
+                />
+                {polarity}
+              </dt>
               <dd className="mt-1 font-medium tabular-nums">
                 {Math.round(
                   (summary[polarity] / summary.classifiedMentions) * 100
@@ -192,11 +232,17 @@ function SentimentDistribution({ summary }: SentimentScoreProps) {
           No classified mentions in this period.
         </p>
       )}
-      <p className="text-muted-foreground text-xs">
-        All {summary.classifiedMentions} classified mentions in this period.
-        Excludes {summary.unknownMentions} unrated mentions and{" "}
-        {summary.notMentioned} non-mentions.
-      </p>
+      <details className="text-muted-foreground text-xs">
+        <summary className="focus-visible:outline-ring cursor-pointer rounded-sm py-1 focus-visible:outline-2">
+          Distribution details
+        </summary>
+        <p className="pt-1">
+          All {summary.classifiedMentions} classified mentions in this period.
+          Excludes {summary.unknownMentions} unrated mentions and{" "}
+          {summary.notMentioned} non-mentions. Percentages are rounded; segment
+          widths use the exact counts.
+        </p>
+      </details>
     </section>
   );
 }

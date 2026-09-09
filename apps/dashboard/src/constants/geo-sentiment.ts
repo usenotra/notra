@@ -11,6 +11,11 @@ export const SENTIMENT_SCORE_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
 });
 export const SENTIMENT_FAMILY_ORDER = Object.keys(GEO_BRAND_LABELS);
+export const SENTIMENT_POLARITY_STYLES = {
+  positive: { fill: "bg-geo-up", text: "text-geo-up" },
+  neutral: { fill: "bg-geo-mid", text: "text-geo-mid" },
+  negative: { fill: "bg-geo-down", text: "text-geo-down" },
+};
 export const SENTIMENT_DELTA_FORMAT = new Intl.NumberFormat("en", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,

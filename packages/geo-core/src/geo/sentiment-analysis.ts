@@ -1,12 +1,10 @@
 import { gateway } from "@notra/ai/gateway";
-import { db } from "@notra/db/drizzle";
-import { brandSettings } from "@notra/db/schema";
 import {
   queryGeoSentimentAnalysisSample,
   queryGeoSentimentAnalysisSnapshot,
   toGeoCheckWindow,
+  queryGeoSentimentBrand,
 } from "@notra/db/utils/geo-checks";
-import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -34,19 +32,13 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
     const scope = yield* resolveGeoScope(input);
     const billing = yield* GeoContentBillingService;
     const brand = yield* geoDb("sentiment brand lookup failed", () =>
-      db.query.brandSettings.findFirst({
-        columns: { companyName: true },
-        where: and(
-          eq(brandSettings.id, scope.brandSettingsId ?? ""),
-          eq(brandSettings.organizationId, input.organizationId)
-        ),
-      })
+      queryGeoSentimentBrand(geoCheckScope(scope))
     );
     if (!brand?.companyName) {
       return {
         status: "unavailable",
         result: null,
-        message: "Set the project's brand name before analyzing sentiment.",
+        message: "Set the project's GEO brand name before analyzing sentiment.",
       } satisfies SentimentAnalysisState;
     }
     const period = sentimentPeriods(window).current;

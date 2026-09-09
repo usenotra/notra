@@ -54,7 +54,8 @@ export async function readSentimentAnalysis(
     state ?? {
       status: "stale",
       result: null,
-      message: "Analyze saved answers to extract themes for this period.",
+      message:
+        "Analysis missing or out of date. Select Analyze answers to refresh.",
     }
   );
 }

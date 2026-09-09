@@ -145,6 +145,8 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 The **Brand Sentiment** dashboard tab uses the same two-module layout as Visibility:
 a score and period-comparison trend on the left, with agent-extracted themes and
 the positive, neutral and negative distribution on the right. The modules stack on mobile.
+The distribution includes an exact-proportion stacked bar and a textual count/percentage
+legend. Sampling and denominator details are available in compact disclosures.
 Expand **Provider scores** for the compact provider breakdown. Each row shows the family's logo,
 name and score. Families follow the standard GEO brand order,
 with unlisted families sorted by name, rather than being ranked by score.
@@ -220,8 +222,12 @@ Analysis reads never generate content or write the cache. An authorized POST mut
 awaits the bounded extraction, with a 60-second model timeout and no automatic model retries.
 Redis stores results for seven days under organization, resolved project, UTC window,
 analysis version, brand name and historical-input fingerprint. The fingerprint includes
+the canonical project's `geo_settings.companyName`, matching the scan and judge context,
+rather than the linked content brand identity's name. It also includes
 all eligible answer content, even outside the bounded sample. A finalized scan invalidates
 the client's analysis query; changed inputs show an analysis action on the next read.
+That lookup is marked stale and displays **Analysis missing or out of date** with an explicit instruction
+to select **Analyze answers**. A completed scan does not itself generate themes.
 Generation is explicit, rather than automatically starting another paid call after a scan.
 
 The UI handles ready, pending, stale, failed and unavailable states. A 180-second Redis
