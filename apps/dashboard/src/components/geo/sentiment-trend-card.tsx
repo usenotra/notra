@@ -7,7 +7,6 @@ import {
 } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_CHART_CONFIG,
-  SENTIMENT_CHART_OPTIONS,
   SENTIMENT_SCORE_FORMAT,
 } from "@/constants/geo-sentiment";
 import type { SentimentTrendCardProps } from "@/types/geo-sentiment";
@@ -40,13 +39,14 @@ export function SentimentTrendCard({
           animation={false}
           className="min-h-64 w-full flex-1"
           config={SENTIMENT_CHART_CONFIG}
-          chartOptions={SENTIMENT_CHART_OPTIONS}
           curveType="linear"
           enableHoverHighlight={false}
           enableHoverReveal={false}
           data={points.map(({ day, score }) => ({ day, score }))}
           xDataKey="day"
         >
+          <EChartsAreaChart.Grid variant="solid" />
+          <EChartsAreaChart.YAxis min={0} max={100} interval={50} hideDots />
           <EChartsAreaChart.XAxis
             dataKey="day"
             hideDots

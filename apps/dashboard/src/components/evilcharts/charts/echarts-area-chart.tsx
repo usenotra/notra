@@ -264,6 +264,9 @@ export interface XAxisProps {
 const XAxis: FC<XAxisProps> = () => null;
 
 export interface YAxisProps {
+  min?: number;
+  max?: number;
+  interval?: number;
   dataKey?: string; // reserved for parity with the Recharts twin
   tickFormatter?: (value: number, index: number) => string; // formats y tick labels
   label?: string; // axis title, rotated alongside the tick labels
@@ -349,6 +352,9 @@ type XAxisSlot = {
   hideDots: boolean;
 };
 type YAxisSlot = {
+  min?: number;
+  max?: number;
+  interval?: number;
   present: boolean;
   dataKey?: string;
   tickFormatter?: (value: number, index: number) => string;
@@ -470,6 +476,9 @@ function collectConfig(children: ReactNode): CollectedConfig {
       const props = child.props as YAxisProps;
       yAxis = {
         present: true,
+        min: props.min,
+        max: props.max,
+        interval: props.interval,
         dataKey: props.dataKey,
         tickFormatter: props.tickFormatter,
         label: props.label,
@@ -990,7 +999,9 @@ function buildMainAxes(ctx: OptionBuildContext): {
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
-    max: isExpanded ? 1 : undefined,
+    min: isExpanded ? undefined : yAxisSlot.min,
+    max: isExpanded ? 1 : yAxisSlot.max,
+    interval: isExpanded ? undefined : yAxisSlot.interval,
     scale: !isExpanded && yAxisSlot.scale,
     // Axis title — rendered rotated alongside the tick labels, same styling.
     name: isLoading ? undefined : yAxisSlot.label,
