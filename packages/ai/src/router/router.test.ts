@@ -793,32 +793,6 @@ describe("RoutedLanguageModel", () => {
 });
 
 describe("development ZDR bypass", () => {
-  test("OpenRouter omits ZDR in development unless requested or explicitly relaxed", async () => {
-    const { router, openrouter } = createTestRouter({
-      plans,
-      policy: { allowNonZdr: true },
-    });
-    await router
-      .model(MODEL, { gateway: "openrouter", zdr: "required" })
-      .doGenerate(callOptions());
-    await router
-      .model(MODEL, { gateway: "openrouter", zdr: "required" })
-      .doGenerate(callOptions({ openrouter: { provider: { zdr: true } } }));
-    await router
-      .model(MODEL, { gateway: "openrouter", zdr: "none" })
-      .doGenerate(callOptions());
-    assert.deepEqual(
-      openrouter?.calls.map(
-        (call) => call.options.providerOptions?.openrouter?.provider
-      ),
-      [
-        { data_collection: "deny" },
-        { zdr: true, data_collection: "deny" },
-        { zdr: false, data_collection: "allow" },
-      ]
-    );
-  });
-
   test("omits ZDR flags unless the caller sets them, keeps no-training on", async () => {
     const { router, vercel, openrouter } = createTestRouter({
       plans,
@@ -834,13 +808,23 @@ describe("development ZDR bypass", () => {
 
     await router
       .model(MODEL, { organizationId: FREE_ORG })
+      .doGenerate(callOptions());
+    await router
+      .model(MODEL, { organizationId: FREE_ORG })
       .doGenerate(callOptions({ openrouter: { provider: { zdr: true } } }));
-    const openrouterSent = openrouter?.calls[0]?.options.providerOptions
-      ?.openrouter as Record<string, unknown>;
-    assert.deepEqual(openrouterSent.provider, {
-      zdr: true,
-      data_collection: "deny",
-    });
+    await router
+      .model(MODEL, { organizationId: FREE_ORG, zdr: "none" })
+      .doGenerate(callOptions());
+    assert.deepEqual(
+      openrouter?.calls.map(
+        (call) => call.options.providerOptions?.openrouter?.provider
+      ),
+      [
+        { data_collection: "deny" },
+        { zdr: true, data_collection: "deny" },
+        { zdr: false, data_collection: "allow" },
+      ]
+    );
   });
 });
 
