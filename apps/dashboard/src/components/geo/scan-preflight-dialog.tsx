@@ -1,5 +1,7 @@
 "use client";
 
+import { PlayIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_SCAN_PREFLIGHT_BODY,
   GEO_SCAN_PREFLIGHT_CANCEL,
@@ -114,18 +116,25 @@ export function ScanPreflightDialog({
   engines,
   languages,
   lastScanAt,
+  prompt,
+  confirmationOnly = false,
 }: ScanPreflightDialogProps) {
-  const selectable = engines.length > 1;
+  const selectable = !confirmationOnly && engines.length > 1;
   const [deselected, setDeselected] = useState<Set<string>>(() => new Set());
   const selected = engines.filter((engine) => !deselected.has(engine));
   const selectedCount = selected.length;
   const canRun = selectedCount > 0;
+  const title = prompt ? "Run prompt scan" : GEO_SCAN_PREFLIGHT_TITLE;
+  const description = prompt
+    ? "Choose one or more tracked models to answer this prompt in your configured languages."
+    : GEO_SCAN_PREFLIGHT_BODY;
 
   const { scanSize, warningSeverity } = useGeoScanEstimate({
     organizationId,
     promptCount,
     engines: selected,
     languages,
+    includeSequences: !prompt,
   });
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -140,7 +149,9 @@ export function ScanPreflightDialog({
       return;
     }
     onConfirm(scanPreflightEnginesToSubmit(engines, new Set(selected)));
-    setDeselected(new Set());
+    if (!prompt) {
+      setDeselected(new Set());
+    }
   };
 
   return (
@@ -148,7 +159,7 @@ export function ScanPreflightDialog({
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="flex items-center gap-2">
-            {GEO_SCAN_PREFLIGHT_TITLE}
+            {confirmationOnly ? "Start this scan?" : title}
             {warningSeverity ? (
               <Tooltip>
                 <TooltipTrigger
@@ -173,13 +184,16 @@ export function ScanPreflightDialog({
             ) : null}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {GEO_SCAN_PREFLIGHT_BODY}
+            {confirmationOnly
+              ? "Review the selected models and scan size before starting."
+              : description}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
+        {prompt ? <p className="text-sm font-medium">{prompt}</p> : null}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">
             {promptCount?.toLocaleString() ?? "—"}{" "}
-            {GEO_SCAN_PREFLIGHT_PROMPTS_LABEL}
+            {promptCount === 1 ? "prompt" : GEO_SCAN_PREFLIGHT_PROMPTS_LABEL}
           </span>
           {languages.map((language) => (
             <span
@@ -258,6 +272,11 @@ export function ScanPreflightDialog({
             </p>
           ) : null}
         </div>
+        {confirmationOnly ? (
+          <p className="text-muted-foreground text-sm">
+            Follow this scan’s progress on the Prompts page.
+          </p>
+        ) : null}
         <ResponsiveDialogFooter>
           <Button
             disabled={isPending}
@@ -268,6 +287,7 @@ export function ScanPreflightDialog({
             {GEO_SCAN_PREFLIGHT_CANCEL}
           </Button>
           <Button disabled={isPending || !canRun} onClick={runScan}>
+            <HugeiconsIcon aria-hidden="true" icon={PlayIcon} size={14} />
             {isPending
               ? GEO_SCAN_PREFLIGHT_PENDING
               : GEO_SCAN_PREFLIGHT_CONFIRM}

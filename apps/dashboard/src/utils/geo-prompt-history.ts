@@ -7,6 +7,7 @@ import {
 import type {
   GeoPromptHistoryCheck,
   GeoPromptResult,
+  GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 
 import type { PromptHistoryChange, PromptHistoryEntry } from "@/types/geo";
@@ -146,6 +147,32 @@ export function promptResultFromHistoryCheck(
     truncated: null,
     lastCheckedAt: check.capturedAt,
   };
+}
+
+export function latestPromptResults(
+  results: readonly GeoPromptResultSummary[],
+  checks: readonly GeoPromptHistoryCheck[],
+  promptId: string,
+  prompt: string
+): GeoPromptResultSummary[] {
+  const latest = new Map(results.map((result) => [result.engine, result]));
+  for (const check of checks) {
+    const previous = latest.get(check.engine);
+    if (!previous || check.capturedAt > previous.lastCheckedAt) {
+      latest.set(check.engine, {
+        checkId: check.id,
+        promptId,
+        prompt,
+        engine: check.engine,
+        mentioned: check.mentioned,
+        position: check.position,
+        sentiment: check.sentiment,
+        competitors: check.competitors,
+        lastCheckedAt: check.capturedAt,
+      });
+    }
+  }
+  return [...latest.values()];
 }
 
 export function promptSentimentLabel(sentiment: string | null): string {

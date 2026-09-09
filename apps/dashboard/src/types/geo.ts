@@ -921,6 +921,7 @@ export interface GeoTagListProps {
   /** When false, the field still has an accessible name via `label`. */
   labeled?: boolean;
   inputClassName?: string;
+  inline?: boolean;
 }
 
 export interface GeoEnginePickerProps {
@@ -1124,7 +1125,9 @@ export interface CompetitorPromptSummaryStripProps {
 }
 
 export interface ScanPreflightDialogProps {
+  confirmationOnly?: boolean;
   organizationId: string;
+  prompt?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (engines?: string[]) => void;
@@ -1133,6 +1136,13 @@ export interface ScanPreflightDialogProps {
   engines: readonly string[];
   languages: readonly string[];
   lastScanAt: string | null;
+}
+
+export interface PromptScanButtonProps {
+  organizationId: string;
+  row: GeoPromptTableRow;
+  compact?: boolean;
+  onPrepare?: () => void;
 }
 
 export interface GeoCompetitorDetailPoint {
@@ -1201,6 +1211,8 @@ export interface GeoRemoveDialogProps {
 }
 
 export interface PromptDetailDialogProps {
+  scanId?: string;
+  initialLanguage?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   row: GeoPromptTableRow | null;
@@ -1212,6 +1224,9 @@ export interface PromptDetailDialogProps {
 }
 
 export interface PromptAnswerPageProps {
+  scanId?: string;
+  initialLanguage?: string;
+  onPrepareScan?: () => void;
   row: GeoPromptTableRow;
   open: boolean;
   organizationId: string;
@@ -1253,6 +1268,8 @@ export interface PromptReceiptViewSwitchProps {
 }
 
 export interface PromptReceiptAnalysisProps {
+  scrollable?: boolean;
+  showHistory?: boolean;
   prompt: string;
   result: GeoPromptResult;
   history: GeoPromptHistoryCheck[];
@@ -1278,6 +1295,7 @@ export interface GeoAnswerActionsProps {
 }
 
 export interface GeoPromptAnswerThreadProps {
+  scrollable?: boolean;
   prompt: string;
   result: GeoPromptResult;
 }

@@ -172,6 +172,7 @@ function ThreadMessages({
 }
 
 export function GeoPromptAnswerThread({
+  scrollable = true,
   prompt,
   result,
 }: GeoPromptAnswerThreadProps) {
@@ -199,11 +200,19 @@ export function GeoPromptAnswerThread({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
+        scrollable
+          ? "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden"
+          : "relative flex flex-col",
         GEO_CHAT_SKIN_SURFACE[skin]
       )}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div
+        className={
+          scrollable
+            ? "min-h-0 flex-1 overflow-y-auto overscroll-contain"
+            : undefined
+        }
+      >
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
           <ThreadMessages
             answer={answer}

@@ -14,12 +14,17 @@ export function useGeoScanEstimate({
   promptCount,
   engines,
   languages,
+  includeSequences = true,
 }: GeoScanEstimateInput) {
   const { data: catalog } = useGeoModelCatalog(organizationId);
   const { sequences, isLoading: sequencesLoading } =
     useGeoSequencesDb(organizationId);
 
-  if (!catalog || sequencesLoading || promptCount === undefined) {
+  if (
+    !catalog ||
+    (includeSequences && sequencesLoading) ||
+    promptCount === undefined
+  ) {
     return { scanSize: null, warningSeverity: null };
   }
 
@@ -28,7 +33,7 @@ export function useGeoScanEstimate({
     engines,
     languages,
     catalog,
-    sequences,
+    sequences: includeSequences ? sequences : [],
   });
   const severity = geoScanSizeSeverity(scanSize);
   const warningSeverity = severity === "ok" ? null : severity;

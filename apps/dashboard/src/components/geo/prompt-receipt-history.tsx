@@ -252,9 +252,10 @@ export function PromptReceiptHistory({
         {
           key: "outcome",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.outcome,
-          width: "144px",
+          width: "168px",
+          minWidth: "168px",
           cell: ({ check }) => (
-            <span className={cn(HISTORY_LINE_CLASS, "gap-2")}>
+            <span className={cn(HISTORY_LINE_CLASS, "gap-2 whitespace-nowrap")}>
               <PromptOutcomeIcon mentioned={check.mentioned} />
               <span
                 className={

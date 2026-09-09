@@ -8,6 +8,10 @@ import type {
 
 import type { GeoPromptTableRow } from "@/types/geo";
 
+export interface PromptCopyButtonProps {
+  prompt: string;
+}
+
 export type GeoPromptDetailState =
   | { status: "ready"; result: GeoPromptResult }
   | { status: "loading" | "error" | "missing" };
@@ -33,6 +37,9 @@ export interface PromptAnswerBodyProps {
 }
 
 export interface PromptAnswerHeaderProps {
+  promptText?: string;
+  onPrepareScan?: () => void;
+  organizationId: string;
   row: GeoPromptTableRow;
   results: readonly GeoPromptResultSummary[];
   active: GeoPromptResultSummary | null;

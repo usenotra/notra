@@ -219,18 +219,23 @@ export function PromptReceiptAnalysis({
   isHistoryLoading,
   competitors,
   onSelectCheck,
+  showHistory = true,
+  scrollable = true,
 }: PromptReceiptAnalysisProps) {
   const entries = promptHistoryChanges(history);
   const competitorNames = [...new Set(result.competitors)];
 
   return (
-    <div className="bg-muted/20 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+    <div
+      className={
+        scrollable
+          ? "bg-muted/20 min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          : "bg-muted/20"
+      }
+    >
       <div className="flex w-full flex-col gap-4 p-4">
         <OutcomeStrip result={result} />
-        <ReceiptSection
-          count={competitorNames.length}
-          title={GEO_PROMPT_RECEIPT_LABELS.competitors}
-        >
+        <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.competitors}>
           <CompetitorsCell competitors={competitors} names={competitorNames} />
         </ReceiptSection>
         {result.searchQueries.length > 0 ? (
@@ -243,18 +248,17 @@ export function PromptReceiptAnalysis({
             <SourcesTable sources={result.sources} />
           </ReceiptSection>
         ) : null}
-        <ReceiptSection
-          count={isHistoryLoading ? null : entries.length}
-          title={GEO_PROMPT_RECEIPT_LABELS.history}
-        >
-          <PromptReceiptHistory
-            competitors={competitors}
-            entries={entries}
-            isLoading={isHistoryLoading}
-            key={entries[0]?.check.id ?? "empty"}
-            onSelect={onSelectCheck}
-          />
-        </ReceiptSection>
+        {showHistory ? (
+          <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.history}>
+            <PromptReceiptHistory
+              competitors={competitors}
+              entries={entries}
+              isLoading={isHistoryLoading}
+              key={entries[0]?.check.id ?? "empty"}
+              onSelect={onSelectCheck}
+            />
+          </ReceiptSection>
+        ) : null}
       </div>
     </div>
   );

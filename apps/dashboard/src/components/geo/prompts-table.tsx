@@ -11,8 +11,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_PROMPT_AUTO_MANAGED_HINT,
-  GEO_PROMPT_AUTO_MANAGED_LABEL,
   GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST,
   PROMPTS_TABLE_HEIGHT,
   PROMPTS_TABLE_ROW_HEIGHT,
@@ -26,7 +24,6 @@ import {
   GEO_PROMPT_SOURCE_FILTER_VALUES,
 } from "@notra/schemas/constants/dashboard/geo-prompts";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
-import { Badge } from "@notra/ui/components/ui/badge";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
@@ -40,11 +37,6 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -86,19 +78,17 @@ import {
 } from "@/utils/geo-prompts";
 
 const PROMPT_NOUNS = { singular: "prompt", plural: "prompts" } as const;
-const PROMPT_ACTIONS_WIDTH = "12rem";
+const PROMPT_ACTIONS_WIDTH = "6rem";
 
 function PromptRowActions({
   row,
   isPending,
   onToggle,
-  onEditTags,
   onDelete,
 }: {
   row: GeoPromptTableRow;
   isPending: boolean;
   onToggle: (enabled: boolean) => void;
-  onEditTags: () => void;
   onDelete: () => void;
 }) {
   const stop = (event: { stopPropagation: () => void }) =>
@@ -123,38 +113,6 @@ function PromptRowActions({
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {row.source === "auto" ? (
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Badge
-                className="text-muted-foreground cursor-help font-normal"
-                onClick={stop}
-                onPointerDown={stop}
-                variant="secondary"
-              >
-                {GEO_PROMPT_AUTO_MANAGED_LABEL}
-              </Badge>
-            }
-          />
-          <TooltipContent className="max-w-xs">
-            {GEO_PROMPT_AUTO_MANAGED_HINT}
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <Button
-          aria-label={`${GEO_PROMPT_TAGS_COPY.edit}: ${row.prompt}`}
-          disabled={isPending}
-          onClick={(event) => {
-            event.stopPropagation();
-            onEditTags();
-          }}
-          size="icon"
-          variant="ghost"
-        >
-          <HugeiconsIcon icon={Tag01Icon} size={14} />
-        </Button>
-      )}
       {pauseSwitch}
       <Button
         aria-label={`Remove ${row.prompt}`}
@@ -402,13 +360,17 @@ export function PromptsTable({
       minWidth: PROMPT_ACTIONS_WIDTH,
       align: "right",
       cell: (row) => (
-        <PromptRowActions
-          isPending={pendingPromptIds.has(row.id)}
-          onDelete={() => requestDelete([row])}
-          onEditTags={() => setTagsTarget({ mode: "edit", rows: [row] })}
-          onToggle={(enabled) => togglePrompt(row.id, enabled)}
-          row={row}
-        />
+        <div
+          className="flex items-center justify-end gap-1"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <PromptRowActions
+            isPending={pendingPromptIds.has(row.id)}
+            onDelete={() => requestDelete([row])}
+            onToggle={(enabled) => togglePrompt(row.id, enabled)}
+            row={row}
+          />
+        </div>
       ),
     },
   ];

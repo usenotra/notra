@@ -3,4 +3,5 @@ export interface GeoScanEstimateInput {
   promptCount: number | undefined;
   engines: readonly string[];
   languages: readonly string[];
+  includeSequences?: boolean;
 }
