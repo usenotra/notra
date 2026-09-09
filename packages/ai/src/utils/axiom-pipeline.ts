@@ -64,7 +64,10 @@ export function createAxiomPipeline(
   })(async (batch) => {
     // A full batch is dispatched synchronously by evlog.push(). Yield before
     // JSON serialization and fetch so enqueueing does not do batch-sized work.
-    await new Promise<void>((resolve) => setImmediate(resolve));
+    // setTimeout(0) instead of setImmediate: Next traces this file as Edge.
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
     reportOverflow();
     // evlog 2.13's createAxiomDrain swallows send errors. The throwing batch
     // API lets the pipeline own retries and report exhausted deliveries.
