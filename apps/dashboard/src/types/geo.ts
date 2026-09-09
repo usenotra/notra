@@ -124,10 +124,6 @@ export interface GeoLayoutProps {
   params: Promise<{ slug: string }>;
 }
 
-export interface GeoPageContentProps {
-  organizationSlug: string;
-}
-
 export interface GeoOverviewPageEmpty {
   status: "empty";
   organizationId: string;

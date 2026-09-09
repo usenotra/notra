@@ -6,8 +6,10 @@
 export function createTimeoutFetch(timeoutMs: number): typeof fetch {
   return (input, init) => {
     const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    const callerSignal =
-      init?.signal ?? (input instanceof Request ? input.signal : null);
+    let callerSignal = init?.signal;
+    if (callerSignal === undefined && input instanceof Request) {
+      callerSignal = input.signal;
+    }
     const signal = callerSignal
       ? AbortSignal.any([callerSignal, timeoutSignal])
       : timeoutSignal;

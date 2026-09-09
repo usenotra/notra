@@ -10,6 +10,7 @@ import {
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
 import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
+import { GeoFlagEvaluationError } from "@notra/geo-core/geo/errors";
 import { geoModelLive } from "@notra/geo-core/geo/model-live";
 import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import { Effect, Layer } from "effect";
@@ -81,14 +82,34 @@ const featureFlagLayer = Layer.succeed(GeoFeatureFlagService, {
     "GeoDashboardFeatureFlags.isCursorEnabled"
   )((organizationId) =>
     resolveGeoFlagState(GEO_CURSOR_FLAG_KEY, organizationId).pipe(
-      Effect.map((state) => state === "enabled")
+      Effect.flatMap((state) => {
+        if (state === "unavailable") {
+          return Effect.die(
+            new GeoFlagEvaluationError({
+              message: "Cursor engine flag is unavailable",
+              cause: state,
+            })
+          );
+        }
+        return Effect.succeed(state === "enabled");
+      })
     )
   ),
   isOpenCodeEngineEnabledForOrganization: Effect.fn(
     "GeoDashboardFeatureFlags.isOpenCodeEnabled"
   )((organizationId) =>
     resolveGeoFlagState(GEO_OPENCODE_FLAG_KEY, organizationId).pipe(
-      Effect.map((state) => state === "enabled")
+      Effect.flatMap((state) => {
+        if (state === "unavailable") {
+          return Effect.die(
+            new GeoFlagEvaluationError({
+              message: "OpenCode engine flag is unavailable",
+              cause: state,
+            })
+          );
+        }
+        return Effect.succeed(state === "enabled");
+      })
     )
   ),
 });

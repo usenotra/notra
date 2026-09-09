@@ -1,13 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { lazy } from "react";
 
 import { Brush } from "@/components/evilcharts/ui/echarts-brush-part";
-import {
-  createLazyChartLoader,
-  useLazyChart,
-} from "@/components/evilcharts/ui/use-lazy-chart";
-import { cn } from "@/lib/utils";
+import { LazyChartBoundary } from "@/components/evilcharts/ui/lazy-chart-boundary";
+import type { LazyLineChart } from "@/types/evilcharts";
 
 import type { EChartsLineChartProps } from "./echarts-line-chart-impl";
 import {
@@ -23,29 +20,20 @@ import {
 
 export type * from "./echarts-line-chart-impl";
 
-// The chart container in the implementation; the placeholder mirrors it so the
-// box is identical before and after the ECharts chunk loads.
-const CHART_BOX_CLASS = "relative flex flex-col text-xs";
+const Chart = lazy(() =>
+  import("./echarts-line-chart-impl").then((module) => ({
+    default: module.EChartsLineChart,
+  }))
+) as LazyLineChart;
 
-type ChartComponent = <TData extends Record<string, unknown>>(
-  props: EChartsLineChartProps<TData>
-) => ReactNode;
-
-const chartLoader = createLazyChartLoader<ChartComponent>(() =>
-  import("./echarts-line-chart-impl").then((module) => module.EChartsLineChart)
-);
-
-/** ECharts is loaded on the client only, after hydration — see `useLazyChart`. */
 export function EChartsLineChart<TData extends Record<string, unknown>>(
   props: EChartsLineChartProps<TData>
 ) {
-  const Chart = useLazyChart(chartLoader);
-
-  if (!Chart) {
-    return <div className={cn(CHART_BOX_CLASS, props.className)} />;
-  }
-
-  return <Chart {...props} />;
+  return (
+    <LazyChartBoundary className={props.className}>
+      <Chart {...props} />
+    </LazyChartBoundary>
+  );
 }
 
 EChartsLineChart.ActiveDot = ActiveDot;

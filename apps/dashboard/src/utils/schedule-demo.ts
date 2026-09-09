@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 const CAL_NAMESPACE = "15min";
 const CAL_TRIGGER_SELECTOR = `[data-cal-namespace="${CAL_NAMESPACE}"]`;
 
@@ -15,8 +17,14 @@ async function loadCalEmbed(): Promise<void> {
 }
 
 export async function scheduleDemo(): Promise<void> {
-  calEmbedPromise ??= loadCalEmbed();
-  await calEmbedPromise;
+  try {
+    calEmbedPromise ??= loadCalEmbed();
+    await calEmbedPromise;
+  } catch {
+    calEmbedPromise = null;
+    toast.error("Failed to open booking. Please try again.");
+    return;
+  }
 
   // The embed listens for clicks on the `data-cal-link` trigger at the document
   // level, so the hidden button opens the modal once the script is ready.

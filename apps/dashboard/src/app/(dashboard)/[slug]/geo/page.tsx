@@ -1,6 +1,7 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { validateOrganizationAccess } from "@/lib/auth/actions";
@@ -26,11 +27,31 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
     headers(),
   ]);
 
+  const requestedProjectId = geoRequestedProjectId(search);
   const projectId = await resolveInitialGeoProjectId(
     organization.id,
     slug,
-    geoRequestedProjectId(search)
+    requestedProjectId
   );
+
+  // The client reads the URL directly. Repair an invalid project before it can
+  // override the validated server scope with a stale or foreign id.
+  if (requestedProjectId && requestedProjectId !== projectId) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(search)) {
+      if (key === "project" || value === undefined) {
+        continue;
+      }
+      for (const entry of Array.isArray(value) ? value : [value]) {
+        query.append(key, entry);
+      }
+    }
+    if (projectId) {
+      query.set("project", projectId);
+    }
+    const suffix = query.toString();
+    redirect(`/${encodeURIComponent(slug)}/geo${suffix ? `?${suffix}` : ""}`);
+  }
 
   return (
     <HydrationBoundary

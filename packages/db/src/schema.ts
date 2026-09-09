@@ -1736,14 +1736,12 @@ export const geoMentionChecks = pgTable(
     // Matches the `distinct on (prompt_id, engine) ... order by captured_at desc`
     // shape used by promptResultSummaries/promptResults/competitorDetail/gaps;
     // the existing projectEnginePrompt index has the leading columns swapped.
-    index("geoMentionChecks_project_prompt_engine_captured_idx")
-      .on(
-        table.projectId,
-        table.promptId,
-        table.engine,
-        table.capturedAt.desc()
-      )
-      .where(sql`${table.sequenceId} IS NULL`),
+    index("geoMentionChecks_project_prompt_engine_captured_idx").on(
+      table.projectId,
+      table.promptId,
+      table.engine,
+      table.capturedAt.desc()
+    ),
     // sequenceResults orders by exactly this tuple; `sequence_id` appears in no
     // other index.
     index("geoMentionChecks_sequence_turn_engine_captured_idx")

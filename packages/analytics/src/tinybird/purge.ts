@@ -18,8 +18,8 @@ const GEO_DATASOURCES = ["geo_traffic_events"];
 
 const JOB_POLL_INTERVAL_MS = 1000;
 const JOB_POLL_MAX_ATTEMPTS = 60;
-/** Matches the query timeout in `client.ts`; these are the same API. */
-const TINYBIRD_REQUEST_TIMEOUT_MS = 10_000;
+const TINYBIRD_READ_TIMEOUT_MS = 10_000;
+const TINYBIRD_MUTATION_TIMEOUT_MS = 30_000;
 
 function sanitize(value: string): string {
   return value.replace(/['"\\]/g, "");
@@ -37,7 +37,7 @@ async function waitForJob(jobId: string): Promise<void> {
   for (let attempt = 0; attempt < JOB_POLL_MAX_ATTEMPTS; attempt += 1) {
     const response = await fetch(`${tinybirdBaseUrl()}/v0/jobs/${jobId}`, {
       headers: { Authorization: `Bearer ${process.env.TINYBIRD_TOKEN}` },
-      signal: AbortSignal.timeout(TINYBIRD_REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(TINYBIRD_READ_TIMEOUT_MS),
     });
     if (!response.ok) {
       throw new Error(`Tinybird job poll failed (${response.status})`);
@@ -64,7 +64,7 @@ async function runDelete(datasource: string, condition: string): Promise<void> {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({ delete_condition: condition }),
-      signal: AbortSignal.timeout(TINYBIRD_REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(TINYBIRD_MUTATION_TIMEOUT_MS),
     }
   );
   if (!response.ok) {

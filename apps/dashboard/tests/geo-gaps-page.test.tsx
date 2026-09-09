@@ -2,10 +2,16 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
+import {
+  GeoProjectQueryProvider,
+  useGeoProjectScope,
+} from "@/components/providers/geo-project-provider";
+
 let settingsFails = false;
 let gapsFails = false;
 let cachedGaps = false;
 let configured = true;
+let projectParam: string | null = null;
 const retrySettings = mock(async () => undefined);
 const retryGaps = mock(async () => undefined);
 
@@ -20,7 +26,7 @@ mock.module("@/components/providers/organization-provider", () => ({
   }),
 }));
 mock.module("@/lib/hooks/use-geo-project-query", () => ({
-  useGeoProjectQueryState: () => ["project-fixture"],
+  useGeoProjectQueryState: () => [projectParam],
 }));
 mock.module("@/lib/hooks/use-geo", () => ({
   useGeoSettings: () => ({
@@ -51,7 +57,10 @@ mock.module("@/lib/hooks/use-geo-writer", () => ({
   }),
 }));
 mock.module("@/components/geo/gaps-table", () => ({
-  GeoGapsTable: () => <div>Loaded gaps table</div>,
+  GeoGapsTable: () => {
+    const { projectId } = useGeoProjectScope();
+    return <div data-project={projectId}>Loaded gaps table</div>;
+  },
 }));
 mock.module("@/components/geo/writer/page-gate", () => ({
   GeoWriterNeedsSetup: () => <h1>Set up your brand</h1>,
@@ -68,9 +77,23 @@ beforeEach(() => {
   gapsFails = false;
   cachedGaps = false;
   configured = true;
+  projectParam = null;
 });
 
 describe("Content Gaps load failures", () => {
+  test("inherits the server project until an explicit URL selection overrides it", () => {
+    const page = (
+      <GeoProjectQueryProvider initialProjectId="cookie-project">
+        <GeoGapsPage organizationSlug="fixture" />
+      </GeoProjectQueryProvider>
+    );
+    expect(renderToStaticMarkup(page)).toContain(
+      'data-project="cookie-project"'
+    );
+    projectParam = "url-project";
+    expect(renderToStaticMarkup(page)).toContain('data-project="url-project"');
+  });
+
   test("does not mount the writer before a write action", () => {
     const html = renderToStaticMarkup(
       <GeoGapsPage organizationSlug="fixture" />

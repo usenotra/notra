@@ -1,49 +1,15 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import {
-  ArrowDown01Icon,
-  ArrowLeft02Icon,
-  Download01Icon,
-  SentIcon,
-  SidebarRight01Icon,
-  TextIcon,
-} from "@hugeicons/core-free-icons";
+import { SidebarRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
 import {
-  chatSessionsListResponseSchema,
-  uiMessageSchema,
-} from "@notra/ai/schemas/chat";
-import type {
-  ChatSessionSummary,
-  ContextItem,
-  TextSelection,
-} from "@notra/ai/types/chat";
-import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
-import {
-  contentChatHistoryPath,
   contentChatHistoryQueryKey,
-  contentChatSessionsPath,
   contentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
-import { geoBriefToMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markdown";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { sourceMetadataSchema } from "@notra/schemas/dashboard/content";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@notra/ui/components/ui/avatar";
-import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
-import { ButtonGroup } from "@notra/ui/components/ui/button-group";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@notra/ui/components/ui/dropdown-menu";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import {
   Tooltip,
@@ -54,121 +20,39 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { nanoid } from "nanoid";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import remend from "remend";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
-import { getContentTypeLabel } from "@/components/content/content-card";
-import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
-import { ContentPlanView } from "@/components/content/content-plan-view";
-import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
+import {
+  ContentAgentPanel,
+  ContentBackLink,
+  ContentComposerDock,
+  ContentSaveBar,
+} from "@/components/content/content-agent-layout";
+import { ContentDetailDocument } from "@/components/content/content-detail-document";
+import { ContentDetailToolbar } from "@/components/content/content-detail-toolbar";
 import { ContentEditorSwitch } from "@/components/content/editors";
-import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
-import { PostSocialButton } from "@/components/content/post-social-button";
-import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
 import { RecommendationsSection } from "@/components/content/recommendations-section";
-import { RightPanelPortal } from "@/components/dashboard/right-panel-portal";
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import {
-  ACTIVITY_PANEL_CLASSNAME,
-  ACTIVITY_PANEL_FRAME_CLASSNAME,
-  ACTIVITY_PANEL_OPEN_WIDTH_CLASSNAME,
-  CONTENT_TITLE_REGEX,
-  SAVE_BAR_SELECTOR,
-} from "@/constants/content-detail";
-import {
-  CONTENT_PLAN_CHAT_PLACEHOLDER,
-  CONTENT_PLAN_STAGE_LABEL,
-} from "@/constants/content-plan";
-import { IMAGE_EXPORT_TARGETS } from "@/constants/image-export";
-import { localStorageKeys } from "@/constants/storage";
-import { IMAGE_EXPORT_DOWNLOAD_TARGET } from "@/constants/studio-analytics";
+import { CONTENT_PLAN_CHAT_PLACEHOLDER } from "@/constants/content-plan";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
-import {
-  useGeoWriterBrief,
-  useGeoWriterUpdate,
-} from "@/lib/hooks/use-geo-writer";
+import { useContentChatHistory } from "@/lib/hooks/use-content-chat-history";
+import { useContentDocument } from "@/lib/hooks/use-content-document";
+import { useContentPlan } from "@/lib/hooks/use-content-plan";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import { cn } from "@/lib/utils";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import type { ContentDetailPageClientProps } from "@/types/content/detail";
-import type { ImageExportTarget } from "@/types/content/image-export";
-import { getBrandFaviconUrl } from "@/utils/brand";
 import { getEditMarkdownDiff } from "@/utils/chat-document-diff";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { snapshotContentChatAttachments } from "@/utils/content-chat-attachments";
-import { formatSnakeCaseLabel } from "@/utils/format";
-import {
-  isGeoWriterPlanReviewable,
-  parseGeoWriterDraft,
-} from "@/utils/geo-write-entry";
-import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
-import {
-  getImageExportTargetLabel,
-  isImageExportTarget,
-} from "@/utils/image-export";
-import { getConflictRevision } from "@/utils/orpc-errors";
-import { shakeElements } from "@/utils/shake-element";
 
 import { useContent } from "../../../../../lib/hooks/use-content";
 import { ContentDetailSkeleton } from "./skeleton";
-
-// Loaded on demand: the export pipeline pulls in opentype.js and a bundled font.
-const loadImageExport = () => import("@/lib/content/image-export");
-
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
-}
-
-function extractTitleFromMarkdown(markdown: string): string {
-  const match = markdown.match(CONTENT_TITLE_REGEX);
-  return match?.[1] ?? "Untitled";
-}
-
-function formatLookbackWindow(window: string): string {
-  return formatSnakeCaseLabel(window);
-}
-
-function formatDateRange(start: string, end: string): string {
-  const fmt = new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return `${fmt.format(new Date(start))} – ${fmt.format(new Date(end))}`;
-}
-
-function formatTriggerType(type: string): string {
-  if (type === "cron") {
-    return "Schedule";
-  }
-  if (type === "github_webhook") {
-    return "GitHub Webhook";
-  }
-  return formatSnakeCaseLabel(type);
-}
-
-function formatRepos(repos: { owner: string; repo: string }[]): string {
-  if (repos.length === 1 && repos[0]) {
-    return `${repos[0].owner}/${repos[0].repo}`;
-  }
-  return `${repos.length} repositories`;
-}
 
 export default function PageClient({
   contentId,
@@ -178,24 +62,6 @@ export default function PageClient({
   const { state: sidebarState } = useSidebar();
   const queryClient = useQueryClient();
   const { data, isPending, error } = useContent(organizationId, contentId);
-  const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
-  const geoWriterBriefQuery = useGeoWriterBrief(
-    organizationId,
-    geoWriterDraft?.briefId ?? null
-  );
-  const geoWriterUpdate = useGeoWriterUpdate(organizationId, contentId);
-  const [isPlanDirty, setIsPlanDirty] = useState(false);
-  const [hasPlanConflict, setHasPlanConflict] = useState(false);
-  const [planEditorVersion, setPlanEditorVersion] = useState(0);
-  const briefStatus = geoWriterBriefQuery.data?.status;
-  const isGeoWriterPlanMode = Boolean(
-    geoWriterDraft && briefStatus !== "completed"
-  );
-  const isGeoWriterPlanReviewableNow = isGeoWriterPlanReviewable(briefStatus);
-  const isGeoWriterChatLocked =
-    Boolean(geoWriterDraft) &&
-    !isGeoWriterPlanReviewableNow &&
-    briefStatus !== "completed";
   const { data: brandResponse } = useQuery(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
@@ -204,36 +70,78 @@ export default function PageClient({
   );
   const { activeOrganization } = useOrganizationsContext();
 
-  const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
-  const [originalMarkdown, setOriginalMarkdown] = useState("");
-  const [persistedTitle, setPersistedTitle] = useState<string | null>(null);
-  const [selection, setSelection] = useState<TextSelection | null>(null);
-  const [editorKey, setEditorKey] = useState(0);
-  const [context, setContext] = useState<ContextItem[]>([]);
-  const [chatInputValue, setChatInputValue] = useState("");
-  const [queuedMessages, setQueuedMessages] = useState<QueuedMessage[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [chatIdToHydrate, setChatIdToHydrate] = useState<string | null>(null);
-  const [imageExportTarget, setImageExportTarget] =
-    useState<ImageExportTarget>("paper");
-
-  const [isActivityPanelOpen, setIsActivityPanelOpen] = useState(false);
-  const [hasOpenedActivityPanel, setHasOpenedActivityPanel] = useState(false);
-  const [writeFocusNonce, setWriteFocusNonce] = useState(0);
-  const [reviewPreviousMarkdown, setReviewPreviousMarkdown] = useState<
-    string | null
-  >(null);
-  if (isActivityPanelOpen && !hasOpenedActivityPanel) {
-    setHasOpenedActivityPanel(true);
-  }
+  const chatHistory = useContentChatHistory({ organizationId, contentId });
+  const { state: chatUi, dispatch: dispatchChatUi } = chatHistory;
+  const documentController = useContentDocument({
+    content: data?.content,
+    contentId,
+    organizationId,
+  });
+  const {
+    draft: geoWriterDraft,
+    briefQuery: geoWriterBriefQuery,
+    update: geoWriterUpdate,
+    isDirty: isPlanDirty,
+    setIsDirty: setIsPlanDirty,
+    hasConflict: hasPlanConflict,
+    editorVersion: planEditorVersion,
+    isWriting: isPlanWriting,
+    isPlanMode: isGeoWriterPlanMode,
+    isReviewable: isGeoWriterPlanReviewableNow,
+    isChatLocked: isGeoWriterChatLocked,
+    onBriefChange: handlePlanBriefChange,
+    onArticleReady: handleGeoArticleReady,
+    onLoadLatest: handleLoadLatestPlan,
+    onSaveVersion: handleSavePlanVersion,
+  } = useContentPlan({
+    organizationId,
+    contentId,
+    sourceMetadata: data?.content?.sourceMetadata,
+    replacePersistedMarkdown: documentController.replacePersistedMarkdown,
+    resetForArticle: documentController.resetForArticle,
+  });
+  const {
+    applyAgentEdit,
+    clearReview,
+    discard: handleDiscard,
+    editedMarkdown,
+    editedMarkdownRef,
+    editorRef,
+    editorVersion: editorKey,
+    handleEditorChange,
+    hasChanges,
+    hasMarkdownChanges,
+    hasSlugChanges,
+    hasTitleChanges,
+    isSaving,
+    originalMarkdown,
+    editingTitle,
+    editingSlug,
+    reviewPreviousMarkdown,
+    save: handleSave,
+    serverSlug,
+    serverTitle,
+    setEditedMarkdown,
+    setEditingSlug,
+    setEditingTitle,
+    setOriginalMarkdown,
+    writeFocusNonce,
+  } = documentController;
+  const {
+    selection,
+    context,
+    input: chatInputValue,
+    queuedMessages,
+    activeChatId,
+    chatIdToHydrate,
+    error: chatError,
+    isPanelOpen: isActivityPanelOpen,
+    hasOpenedPanel: hasOpenedActivityPanel,
+  } = chatUi;
   const saveToastIdRef = useRef<string | number | null>(null);
-  const editorRef = useRef<EditorRefHandle | null>(null);
   const imageExportRef = useRef<HTMLDivElement | null>(null);
   const handleSaveRef = useRef<(() => void) | null>(null);
   const handleDiscardRef = useRef<(() => void) | null>(null);
-  const needsNormalizationRef = useRef(false);
-  const originalMarkdownRef = useRef("");
-  const editedMarkdownRef = useRef<string | null>(null);
   const hasTrackedOpenRef = useRef(false);
 
   useEffect(() => {
@@ -249,280 +157,6 @@ export default function PageClient({
       from_geo_writer: Boolean(geoWriterDraft),
     });
   }, [contentId, data?.content, geoWriterDraft]);
-
-  useEffect(() => {
-    const storedTarget = window.localStorage.getItem(
-      localStorageKeys.imageExportTarget
-    );
-    if (
-      storedTarget &&
-      isImageExportTarget(storedTarget) &&
-      storedTarget !== "wonder"
-    ) {
-      setImageExportTarget(storedTarget);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (data?.content && editedMarkdown === null) {
-      const nextMarkdown = data.content.markdown ?? "";
-      setEditedMarkdown(nextMarkdown);
-      setOriginalMarkdown(nextMarkdown);
-      originalMarkdownRef.current = nextMarkdown;
-      editedMarkdownRef.current = nextMarkdown;
-      needsNormalizationRef.current = true;
-      setEditorKey((k) => k + 1);
-    }
-  }, [data, editedMarkdown]);
-
-  useEffect(() => {
-    if (
-      data?.content?.contentType !== "image" ||
-      (data.content.markdown ?? "") === editedMarkdownRef.current
-    ) {
-      return;
-    }
-
-    const nextMarkdown = data.content.markdown ?? "";
-    setEditedMarkdown(nextMarkdown);
-    setOriginalMarkdown(nextMarkdown);
-    originalMarkdownRef.current = nextMarkdown;
-    editedMarkdownRef.current = nextMarkdown;
-    setEditorKey((k) => k + 1);
-  }, [data?.content]);
-
-  const currentMarkdown = editedMarkdown ?? data?.content?.markdown ?? "";
-  useEffect(() => {
-    setPersistedTitle(data?.content?.title ?? null);
-  }, [data?.content?.title]);
-
-  const serverTitle =
-    persistedTitle ??
-    data?.content?.title ??
-    extractTitleFromMarkdown(currentMarkdown);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const title = editingTitle ?? serverTitle;
-  const hasTitleChanges =
-    editingTitle !== null && editingTitle.trim() !== serverTitle;
-
-  const [persistedSlug, setPersistedSlug] = useState<string | null>(null);
-  const serverSlug = persistedSlug ?? data?.content?.slug ?? null;
-  const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const hasSlugChanges =
-    editingSlug !== null && editingSlug !== (serverSlug ?? "");
-
-  const hasMarkdownChanges =
-    editedMarkdown !== null && editedMarkdown !== originalMarkdown;
-  const hasChanges = hasMarkdownChanges || hasTitleChanges || hasSlugChanges;
-
-  const handlePlanBriefChange = useCallback(
-    (nextBrief: GeoContentBrief) => {
-      const briefId = geoWriterDraft?.briefId;
-      const expectedUpdatedAt = geoWriterBriefQuery.data?.updatedAt;
-      if (!(briefId && expectedUpdatedAt)) {
-        return;
-      }
-      const markdown = geoBriefToMarkdown(nextBrief);
-      geoWriterUpdate.mutate(
-        {
-          briefId,
-          expectedUpdatedAt,
-          markdown,
-          workingTitle: nextBrief.workingTitle,
-        },
-        {
-          onSuccess: () => {
-            setEditedMarkdown(markdown);
-            setOriginalMarkdown(markdown);
-            originalMarkdownRef.current = markdown;
-            editedMarkdownRef.current = markdown;
-            queryClient
-              .invalidateQueries({
-                queryKey: dashboardOrpc.content.get.queryKey({
-                  input: { organizationId, contentId },
-                }),
-              })
-              .catch(() => undefined);
-          },
-          onError: (error) => {
-            if (getConflictRevision(error).isConflict) {
-              setHasPlanConflict(true);
-            }
-          },
-        }
-      );
-    },
-    [
-      contentId,
-      geoWriterDraft?.briefId,
-      geoWriterBriefQuery.data?.updatedAt,
-      geoWriterUpdate,
-      organizationId,
-      queryClient,
-    ]
-  );
-
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleGeoArticleReady = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.get.queryKey({
-          input: { organizationId, contentId },
-        }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.list.key(),
-      }),
-    ]);
-    setEditedMarkdown(null);
-    setPersistedSlug(null);
-    setEditingTitle(null);
-    setEditingSlug(null);
-    setReviewPreviousMarkdown(null);
-  }, [contentId, organizationId, queryClient]);
-
-  useEffect(() => {
-    if (!hasChanges) {
-      return;
-    }
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-      shakeElements(SAVE_BAR_SELECTOR);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [hasChanges]);
-
-  const handleSave = useCallback(async () => {
-    if (!hasChanges) {
-      return true;
-    }
-
-    setIsSaving(true);
-    try {
-      const body: Record<string, string | null> = {};
-      if (hasTitleChanges) {
-        body.title = title.trim();
-      }
-      if (hasSlugChanges) {
-        body.slug = editingSlug?.trim() || null;
-      }
-      if (editedMarkdown !== null) {
-        body.markdown = editedMarkdown;
-      }
-
-      const responseData = (await dashboardOrpc.content.update.call({
-        organizationId,
-        contentId,
-        ...body,
-      })) as {
-        content?: { title?: string; slug?: string | null };
-      };
-
-      if (editedMarkdown !== null) {
-        setOriginalMarkdown(editedMarkdown);
-        originalMarkdownRef.current = editedMarkdown;
-      }
-      if (reviewPreviousMarkdown) {
-        setEditorKey((key) => key + 1);
-      }
-      setReviewPreviousMarkdown(null);
-      setPersistedTitle(responseData.content?.title ?? title.trim());
-      setEditingTitle(null);
-      setPersistedSlug(responseData.content?.slug ?? null);
-      setEditingSlug(null);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.get.queryKey({
-            input: { organizationId, contentId },
-          }),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.list.key(),
-        }),
-      ]);
-      toast.success("Content saved");
-      setIsSaving(false);
-      return true;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("already exists")) {
-        toast.error("A post with this slug already exists");
-      } else if (error instanceof Error && error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error("Failed to save content");
-      }
-      setIsSaving(false);
-      return false;
-    }
-  }, [
-    hasChanges,
-    hasTitleChanges,
-    hasSlugChanges,
-    editingSlug,
-    title,
-    editedMarkdown,
-    reviewPreviousMarkdown,
-    organizationId,
-    contentId,
-    queryClient,
-  ]);
-
-  const handleDiscard = useCallback(() => {
-    setEditedMarkdown(originalMarkdown);
-    editedMarkdownRef.current = originalMarkdown;
-    editorRef.current?.setMarkdown(originalMarkdown);
-    setEditingTitle(null);
-    setEditingSlug(null);
-    setReviewPreviousMarkdown(null);
-    setEditorKey((key) => key + 1);
-  }, [originalMarkdown]);
-
-  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
-
-  const handleToggleStatus = useCallback(async () => {
-    const currentStatus = data?.content?.status;
-    if (!currentStatus) {
-      return;
-    }
-    setIsTogglingStatus(true);
-    const newStatus = currentStatus === "published" ? "draft" : "published";
-    try {
-      await dashboardOrpc.content.update.call({
-        organizationId,
-        contentId,
-        status: newStatus,
-      });
-      toast.success(
-        newStatus === "published" ? "Post published" : "Post moved to drafts"
-      );
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.get.queryKey({
-            input: { organizationId, contentId },
-          }),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.list.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.metrics.get.queryKey({
-            input: { organizationId },
-          }),
-        }),
-      ]);
-    } catch {
-      toast.error("Failed to update post status");
-    }
-    setIsTogglingStatus(false);
-  }, [data?.content?.status, organizationId, contentId, queryClient]);
 
   useEffect(() => {
     handleSaveRef.current = handleSave;
@@ -597,63 +231,33 @@ export default function PageClient({
   }, []);
 
   const clearSelection = useCallback(() => {
-    setSelection(null);
+    dispatchChatUi({ type: "selectionChanged", selection: null });
     window.getSelection()?.removeAllRanges();
-  }, []);
+  }, [dispatchChatUi]);
 
-  const handleAddContext = useCallback((item: ContextItem) => {
-    setContext((prev) => {
-      const exists = prev.some((c) => {
-        if (c.type !== item.type) {
-          return false;
-        }
-        if (c.type === "github-repo" && item.type === "github-repo") {
-          return c.owner === item.owner && c.repo === item.repo;
-        }
-        return c.integrationId === item.integrationId;
-      });
-      if (exists) {
-        return prev;
+  const handleAddContext = useCallback(
+    (item: ContextItem) => {
+      dispatchChatUi({ type: "contextAdded", item });
+    },
+    [dispatchChatUi]
+  );
+
+  const handleRemoveContext = useCallback(
+    (item: ContextItem) => {
+      dispatchChatUi({ type: "contextRemoved", item });
+    },
+    [dispatchChatUi]
+  );
+
+  const handleSelectionChange = useCallback(
+    (sel: TextSelection | null) => {
+      if (sel && sel.text.length > 0) {
+        dispatchChatUi({ type: "selectionChanged", selection: sel });
       }
-      return [...prev, item];
-    });
-  }, []);
+    },
+    [dispatchChatUi]
+  );
 
-  const handleRemoveContext = useCallback((item: ContextItem) => {
-    setContext((prev) =>
-      prev.filter((c) => {
-        if (c.type !== item.type) {
-          return true;
-        }
-        if (c.type === "github-repo" && item.type === "github-repo") {
-          return !(c.owner === item.owner && c.repo === item.repo);
-        }
-        return c.integrationId !== item.integrationId;
-      })
-    );
-  }, []);
-
-  const handleEditorChange = useCallback((markdown: string) => {
-    if (
-      needsNormalizationRef.current &&
-      editedMarkdownRef.current === originalMarkdownRef.current
-    ) {
-      needsNormalizationRef.current = false;
-      setOriginalMarkdown(markdown);
-      originalMarkdownRef.current = markdown;
-    }
-    needsNormalizationRef.current = false;
-    setEditedMarkdown(markdown);
-    editedMarkdownRef.current = markdown;
-  }, []);
-
-  const handleSelectionChange = useCallback((sel: TextSelection | null) => {
-    if (sel && sel.text.length > 0) {
-      setSelection(sel);
-    }
-  }, []);
-
-  const [chatError, setChatError] = useState<string | null>(null);
   const drainQueueRef = useRef<() => void>(() => {
     // Populated after dispatchContentEdit is defined below.
   });
@@ -663,67 +267,6 @@ export default function PageClient({
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
   const processedToolCallsRef = useRef<Set<string>>(new Set());
-
-  const contentChatSessionsQuery = useQuery<ChatSessionSummary[]>({
-    queryKey: contentChatSessionsQueryKey(organizationId, contentId),
-    queryFn: async () => {
-      const response = await fetch(
-        contentChatSessionsPath(organizationId, contentId)
-      );
-      if (!response.ok) {
-        throw new Error("Failed to load content chat sessions");
-      }
-      const parsed = chatSessionsListResponseSchema.safeParse(
-        await response.json()
-      );
-      if (!parsed.success) {
-        throw new Error("Invalid content chat sessions response");
-      }
-      return parsed.data.sessions ?? [];
-    },
-    staleTime: 60_000,
-  });
-  const contentChatSessions = contentChatSessionsQuery.data ?? [];
-  const contentChatHistoryQuery = useQuery<UIMessage[] | null>({
-    queryKey: contentChatHistoryQueryKey(
-      organizationId,
-      contentId,
-      activeChatId
-    ),
-    queryFn: async () => {
-      if (!activeChatId) {
-        return null;
-      }
-      const response = await fetch(
-        contentChatHistoryPath(organizationId, contentId, activeChatId)
-      );
-      if (!response.ok) {
-        throw new Error("Failed to load content chat history");
-      }
-      const payload = await response.json();
-      const parsed = uiMessageSchema.array().safeParse(payload?.messages);
-      if (!parsed.success) {
-        throw new Error("Invalid content chat history response");
-      }
-      return parsed.data;
-    },
-    enabled: Boolean(activeChatId && chatIdToHydrate === activeChatId),
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-  });
-
-  useEffect(() => {
-    if (activeChatId || contentChatSessionsQuery.isPending) {
-      return;
-    }
-    const latestChatId = contentChatSessionsQuery.data?.at(0)?.chatId;
-    setActiveChatId(latestChatId ?? crypto.randomUUID());
-    setChatIdToHydrate(latestChatId ?? null);
-  }, [
-    activeChatId,
-    contentChatSessionsQuery.data,
-    contentChatSessionsQuery.isPending,
-  ]);
 
   const { messages, sendMessage, setMessages, status, stop } = useChat({
     transport: new DefaultChatTransport({
@@ -785,7 +328,8 @@ export default function PageClient({
         });
 
       const { isUsageLimit } = handleStandaloneChatError(err, {
-        setChatError,
+        setChatError: (chatError) =>
+          dispatchChatUi({ type: "errorChanged", error: chatError }),
       });
       if (!isUsageLimit) {
         toast.error("Failed to edit content");
@@ -807,7 +351,7 @@ export default function PageClient({
     if (status === "submitted" || status === "streaming") {
       return;
     }
-    const history = contentChatHistoryQuery.data;
+    const history = chatHistory.history;
     if (!history) {
       return;
     }
@@ -821,11 +365,12 @@ export default function PageClient({
       }
     }
     setMessages(history);
-    setChatIdToHydrate(null);
+    dispatchChatUi({ type: "historyHydrated" });
   }, [
     activeChatId,
     chatIdToHydrate,
-    contentChatHistoryQuery.data,
+    chatHistory.history,
+    dispatchChatUi,
     setMessages,
     status,
   ]);
@@ -835,28 +380,23 @@ export default function PageClient({
       if (isAgentBusyRef.current || chatId === activeChatId) {
         return;
       }
-      setQueuedMessages([]);
       queuedMessagesRef.current = [];
       processedToolCallsRef.current.clear();
       setMessages([]);
-      setActiveChatId(chatId);
-      setChatIdToHydrate(chatId);
+      dispatchChatUi({ type: "chatSelected", chatId });
     },
-    [activeChatId, setMessages]
+    [activeChatId, dispatchChatUi, setMessages]
   );
 
   const handleNewChat = useCallback(() => {
     if (isAgentBusyRef.current) {
       return;
     }
-    setQueuedMessages([]);
     queuedMessagesRef.current = [];
-    setChatInputValue("");
     processedToolCallsRef.current.clear();
     setMessages([]);
-    setActiveChatId(crypto.randomUUID());
-    setChatIdToHydrate(null);
-  }, [setMessages]);
+    dispatchChatUi({ type: "newChatStarted", chatId: crypto.randomUUID() });
+  }, [dispatchChatUi, setMessages]);
 
   const invalidateContentQueries = useCallback(
     () =>
@@ -944,14 +484,13 @@ export default function PageClient({
             ? remend(previousMarkdown)
             : previousMarkdown;
         setEditedMarkdown(fixedMarkdown);
-        editedMarkdownRef.current = fixedMarkdown;
         if (part.type === "tool-editMarkdown") {
           if (
             isGeoWriterPlanReviewableNow &&
             geoWriterDraft?.briefId &&
             geoWriterBriefQuery.data
           ) {
-            setReviewPreviousMarkdown(null);
+            clearReview();
             geoWriterUpdate.mutate(
               {
                 briefId: geoWriterDraft.briefId,
@@ -962,18 +501,16 @@ export default function PageClient({
               {
                 onSuccess: () => {
                   setOriginalMarkdown(fixedMarkdown);
-                  originalMarkdownRef.current = fixedMarkdown;
                 },
               }
             );
           } else {
-            setReviewPreviousMarkdown(
+            applyAgentEdit(
+              fixedMarkdown,
               reviewPrevious && reviewPrevious !== fixedMarkdown
                 ? reviewPrevious
                 : null
             );
-            setWriteFocusNonce((value) => value + 1);
-            setEditorKey((key) => key + 1);
           }
           trackEvent(POSTHOG_EVENTS.CONTENT_AGENT_EDIT_APPLIED, {
             content_id: contentId,
@@ -996,7 +533,13 @@ export default function PageClient({
     geoWriterUpdate,
     invalidateContentQueries,
     isGeoWriterPlanReviewableNow,
+    applyAgentEdit,
+    clearReview,
+    editedMarkdownRef,
+    editorRef,
+    setOriginalMarkdown,
     messages,
+    setEditedMarkdown,
   ]);
 
   const dispatchContentEdit = useCallback(
@@ -1045,7 +588,7 @@ export default function PageClient({
 
   const handleAiEdit = useCallback(
     async (instruction: string) => {
-      setIsActivityPanelOpen(true);
+      dispatchChatUi({ type: "panelOpened" });
       const attachments = snapshotContentChatAttachments(selection, context);
       if (isAgentBusyRef.current) {
         const next = [
@@ -1058,14 +601,14 @@ export default function PageClient({
           },
         ];
         queuedMessagesRef.current = next;
-        setQueuedMessages(next);
+        dispatchChatUi({ type: "queueChanged", messages: next });
         return;
       }
       wasStoppedByUserRef.current = false;
       isAgentBusyRef.current = true;
       await dispatchContentEdit(instruction, attachments);
     },
-    [context, dispatchContentEdit, selection]
+    [context, dispatchChatUi, dispatchContentEdit, selection]
   );
 
   const handleStop = useCallback(() => {
@@ -1073,28 +616,27 @@ export default function PageClient({
     stop();
   }, [stop]);
 
-  const handleRemoveQueued = useCallback((id: string) => {
-    const next = queuedMessagesRef.current.filter(
-      (message) => message.id !== id
-    );
-    queuedMessagesRef.current = next;
-    setQueuedMessages(next);
-  }, []);
+  const handleRemoveQueued = useCallback(
+    (id: string) => {
+      const next = queuedMessagesRef.current.filter(
+        (message) => message.id !== id
+      );
+      queuedMessagesRef.current = next;
+      dispatchChatUi({ type: "queueChanged", messages: next });
+    },
+    [dispatchChatUi]
+  );
 
-  const handleEditQueued = useCallback((message: QueuedMessage) => {
-    const next = queuedMessagesRef.current.filter(
-      (queued) => queued.id !== message.id
-    );
-    queuedMessagesRef.current = next;
-    setQueuedMessages(next);
-    setChatInputValue(message.text);
-    if (message.selection) {
-      setSelection(message.selection);
-    }
-    if (message.context?.length) {
-      setContext(message.context);
-    }
-  }, []);
+  const handleEditQueued = useCallback(
+    (message: QueuedMessage) => {
+      const next = queuedMessagesRef.current.filter(
+        (queued) => queued.id !== message.id
+      );
+      queuedMessagesRef.current = next;
+      dispatchChatUi({ type: "queuedMessageEdited", message });
+    },
+    [dispatchChatUi]
+  );
 
   const drainQueue = useCallback(() => {
     if (isDrainingRef.current) {
@@ -1108,7 +650,7 @@ export default function PageClient({
 
     isDrainingRef.current = true;
     queuedMessagesRef.current = queue.slice(1);
-    setQueuedMessages(queue.slice(1));
+    dispatchChatUi({ type: "queueChanged", messages: queue.slice(1) });
     dispatchContentEdit(next.text, {
       selection: next.selection,
       context: next.context,
@@ -1117,46 +659,15 @@ export default function PageClient({
       isDrainingRef.current = false;
       const restored = [next, ...queuedMessagesRef.current];
       queuedMessagesRef.current = restored;
-      setQueuedMessages(restored);
+      dispatchChatUi({ type: "queueChanged", messages: restored });
     });
-  }, [dispatchContentEdit]);
+  }, [dispatchChatUi, dispatchContentEdit]);
 
   useLayoutEffect(() => {
     drainQueueRef.current = drainQueue;
   }, [drainQueue]);
 
-  const saveBarSection =
-    hasChanges && isActivityPanelOpen ? (
-      <div
-        className={`pointer-events-none fixed bottom-4 left-0 z-50 hidden lg:right-96 lg:block ${sidebarState === "collapsed" ? "lg:left-14" : "lg:left-64"}`}
-      >
-        <div className="pointer-events-auto mx-auto w-full max-w-xl px-4">
-          <div
-            className="border-border bg-background rounded-[14px] border p-0.5 shadow-sm"
-            data-save-bar
-          >
-            <div className="bg-background flex items-center gap-3 rounded-lg py-2 pr-2 pl-4">
-              <span className="text-muted-foreground flex-1 text-sm">
-                You have unsaved changes
-              </span>
-              <Button onClick={handleDiscard} size="sm" variant="ghost">
-                Discard
-              </Button>
-              <Button onClick={handleSave} size="sm">
-                Save
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    ) : null;
-
-  const isChatDisabled =
-    isGeoWriterChatLocked ||
-    !activeChatId ||
-    contentChatSessionsQuery.isPending ||
-    contentChatHistoryQuery.isFetching ||
-    contentChatHistoryQuery.isError;
+  const isChatDisabled = isGeoWriterChatLocked || chatHistory.isUnavailable;
 
   const renderChatComposer = () => (
     <>
@@ -1166,14 +677,18 @@ export default function PageClient({
         error={chatError}
         isLoading={isAgentBusy}
         onAddContext={handleAddContext}
-        onClearError={() => setChatError(null)}
+        onClearError={() =>
+          dispatchChatUi({ type: "errorChanged", error: null })
+        }
         onClearSelection={clearSelection}
         onEditQueued={handleEditQueued}
         onRemoveContext={handleRemoveContext}
         onRemoveQueued={handleRemoveQueued}
         onSend={handleAiEdit}
         onStop={handleStop}
-        onValueChange={setChatInputValue}
+        onValueChange={(input) =>
+          dispatchChatUi({ type: "inputChanged", input })
+        }
         organizationId={organizationId}
         organizationSlug={organizationSlug}
         placeholder={
@@ -1189,11 +704,12 @@ export default function PageClient({
   );
 
   const chatInputSection = (
-    <div
-      className={`fixed right-0 bottom-0 left-0 mx-auto w-full max-w-2xl px-4 pb-4 md:w-auto ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"} ${isActivityPanelOpen ? "lg:hidden" : ""}`}
+    <ContentComposerDock
+      isPanelOpen={isActivityPanelOpen}
+      sidebarState={sidebarState}
     >
       {renderChatComposer()}
-    </div>
+    </ContentComposerDock>
   );
 
   if (isPending) {
@@ -1233,64 +749,11 @@ export default function PageClient({
   }
 
   const content = data.content;
-  const imageExportHtml =
-    content.contentType === "image" ? getImageExportHtml(content) : null;
-  const imageExportHtmlUrl =
-    content.contentType === "image" ? content.htmlUrl : null;
-  const imageDownloadUrl =
-    content.contentType === "image" && isHttpImageContent(content.content)
-      ? content.content
-      : null;
-  const copyImageExportFor = async (target: ImageExportTarget) => {
-    trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
-      content_id: contentId,
-      target,
-    });
-    const { copyImageAsFigma, copyImageAsPaper } = await loadImageExport();
-    if (target === "figma") {
-      await copyImageAsFigma(
-        imageExportRef.current,
-        title,
-        imageExportHtml,
-        imageExportHtmlUrl
-      );
-      return;
-    }
-
-    await copyImageAsPaper(
-      imageExportRef.current,
-      title,
-      imageExportHtml,
-      imageExportHtmlUrl
-    );
-  };
-  const handleCopyImageExport = () => {
-    void copyImageExportFor(imageExportTarget);
-  };
-  const handleImageExportTargetSelect = (value: string) => {
-    if (!isImageExportTarget(value) || value === "wonder") {
-      return;
-    }
-
-    setImageExportTarget(value);
-    window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
-    copyImageExportFor(value);
-  };
-  const collection = data.collection;
-  const backHref = collection
-    ? `/${organizationSlug}/collection/${collection.id}`
-    : `/${organizationSlug}/content`;
-  const backLabel = collection ? "Back to collection" : "Back to Content";
   const planBrief = geoWriterBriefQuery.data?.brief;
-  let mainDocument = (
+  const editor = (
     <ContentEditorSwitch
       actions={{
-        setEditedMarkdown: (markdown) => {
-          setEditedMarkdown(markdown);
-          if (markdown !== null) {
-            editedMarkdownRef.current = markdown;
-          }
-        },
+        setEditedMarkdown,
         setOriginalMarkdown,
         setEditingTitle,
         setEditingSlug,
@@ -1336,95 +799,21 @@ export default function PageClient({
       writeFocusNonce={writeFocusNonce}
     />
   );
-  if (isGeoWriterPlanMode && planBrief) {
-    mainDocument = (
-      <>
-        {hasPlanConflict ? (
-          <div
-            className="border-border bg-muted/50 mx-auto mb-6 flex w-full max-w-3xl flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-            role="alert"
-          >
-            <div>
-              <p className="text-sm font-medium">This plan changed elsewhere</p>
-              <p className="text-muted-foreground text-sm">
-                Your edits are preserved. Choose which version to keep.
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <Button
-                onClick={async () => {
-                  const result = await geoWriterBriefQuery.refetch();
-                  if (result.isError) {
-                    toast.error("Failed to load the latest plan");
-                    return;
-                  }
-                  setPlanEditorVersion((version) => version + 1);
-                  setHasPlanConflict(false);
-                }}
-                size="sm"
-                variant="outline"
-              >
-                Load latest
-              </Button>
-              <Button
-                onClick={async () => {
-                  const result = await geoWriterBriefQuery.refetch();
-                  if (result.isError) {
-                    toast.error("Failed to refresh the plan");
-                    return;
-                  }
-                  setHasPlanConflict(false);
-                }}
-                size="sm"
-              >
-                Save my version
-              </Button>
-            </div>
-          </div>
-        ) : null}
-        <ContentPlanView
-          brief={planBrief}
-          isWriting={briefStatus === "writing" || briefStatus === "approved"}
-          key={`${geoWriterDraft?.briefId ?? contentId}:${planEditorVersion}`}
-          onChange={
-            isGeoWriterPlanReviewableNow && !hasPlanConflict
-              ? handlePlanBriefChange
-              : undefined
-          }
-          onDirtyChange={
-            isGeoWriterPlanReviewableNow ? setIsPlanDirty : undefined
-          }
-        />
-      </>
-    );
-  } else if (isGeoWriterPlanMode) {
-    mainDocument = (
-      <div className="mx-auto w-full max-w-3xl space-y-6">
-        <div className="bg-muted/60 h-4 w-24 animate-pulse rounded-sm" />
-        <div className="bg-muted/60 h-10 w-3/4 animate-pulse rounded-sm" />
-        <div className="bg-muted/60 h-16 w-full animate-pulse rounded-sm" />
-        <div className="bg-muted/60 h-40 w-full animate-pulse rounded-sm" />
-      </div>
-    );
-  }
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="mx-auto w-full max-w-5xl space-y-6 px-4 lg:px-6">
           <div className="flex items-center justify-between gap-4">
-            <Link
-              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex w-fit items-center gap-1.5 rounded-sm text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-              href={backHref}
-            >
-              <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
-              {backLabel}
-            </Link>
+            <ContentBackLink
+              organizationSlug={organizationSlug}
+              collectionId={data.collection?.id}
+            />
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
                     className="hidden lg:inline-flex"
-                    onClick={() => setIsActivityPanelOpen((open) => !open)}
+                    onClick={() => dispatchChatUi({ type: "panelToggled" })}
                     size="icon-sm"
                     variant={isActivityPanelOpen ? "secondary" : "outline"}
                   />
@@ -1447,312 +836,34 @@ export default function PageClient({
             organizationId={organizationId}
           >
             {geoWriterDraft ? <WriterExecute.Banner /> : null}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                {content.contentType === "blog_post" ? (
-                  <p className="text-muted-foreground text-sm">
-                    {isGeoWriterPlanMode
-                      ? CONTENT_PLAN_STAGE_LABEL
-                      : "Blog post"}
-                    {content.status === "draft" && !isGeoWriterPlanMode ? (
-                      <>
-                        {" \u00B7 "}
-                        Draft
-                      </>
-                    ) : null}
-                  </p>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <time
-                      className="text-muted-foreground text-sm"
-                      dateTime={content.date}
-                    >
-                      {formatDate(new Date(content.date))}
-                    </time>
-                    <Badge className="capitalize" variant="secondary">
-                      {getContentTypeLabel(content.contentType)}
-                    </Badge>
-                    {content.contentType !== "image" && (
-                      <Badge
-                        className="capitalize"
-                        variant={
-                          content.status === "published" ? "default" : "outline"
-                        }
-                      >
-                        {content.status}
-                      </Badge>
-                    )}
-                  </div>
-                )}
-                {content.sourceMetadata &&
-                  (() => {
-                    const parsed = sourceMetadataSchema.safeParse(
-                      content.sourceMetadata
-                    );
-                    if (!parsed.success || !parsed.data) {
-                      return null;
-                    }
-                    const meta = parsed.data;
-                    const repositories = meta.repositories ?? [];
-                    if (
-                      repositories.length === 0 ||
-                      !meta.triggerSourceType ||
-                      !meta.lookbackWindow ||
-                      !meta.lookbackRange
-                    ) {
-                      return null;
-                    }
-
-                    const triggerSourceType = meta.triggerSourceType;
-                    const lookbackWindow = meta.lookbackWindow;
-                    const lookbackRange = meta.lookbackRange;
-                    const repoLabel = formatRepos(repositories);
-                    const needsTooltip = repositories.length > 1;
-                    return (
-                      <p className="text-muted-foreground text-xs">
-                        <span className="capitalize">
-                          {formatTriggerType(triggerSourceType)}
-                        </span>
-                        {" \u00B7 "}
-                        {needsTooltip ? (
-                          <Tooltip>
-                            <TooltipTrigger
-                              render={
-                                <span className="cursor-help underline decoration-dotted underline-offset-2">
-                                  {repoLabel}
-                                </span>
-                              }
-                            />
-                            <TooltipContent>
-                              <ul>
-                                {repositories.map((r) => (
-                                  <li key={`${r.owner}/${r.repo}`}>
-                                    {r.owner}/{r.repo}
-                                  </li>
-                                ))}
-                              </ul>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          repoLabel
-                        )}
-                        {" \u00B7 "}
-                        <span className="capitalize">
-                          {formatLookbackWindow(lookbackWindow)}
-                        </span>{" "}
-                        (
-                        {formatDateRange(
-                          lookbackRange.start,
-                          lookbackRange.end
-                        )}
-                        )
-                        {meta.brandVoiceName &&
-                          (() => {
-                            const voice = meta.brandVoiceId
-                              ? brandResponse?.voices.find(
-                                  (v) => v.id === meta.brandVoiceId
-                                )
-                              : brandResponse?.voices.find(
-                                  (v) => v.name === meta.brandVoiceName
-                                );
-                            return (
-                              <>
-                                {" \u00B7 "}
-                                {voice ? (
-                                  <Tooltip>
-                                    <TooltipTrigger
-                                      render={
-                                        <span className="cursor-help underline decoration-dotted underline-offset-2">
-                                          {meta.brandVoiceName}
-                                        </span>
-                                      }
-                                    />
-                                    <TooltipContent
-                                      className="flex items-start gap-3"
-                                      side="top"
-                                    >
-                                      <Avatar
-                                        className="mt-0.5 size-8 shrink-0 rounded-full after:rounded-full"
-                                        size="sm"
-                                      >
-                                        <AvatarImage
-                                          src={getBrandFaviconUrl(
-                                            voice.websiteUrl
-                                          )}
-                                        />
-                                        <AvatarFallback className="text-xs">
-                                          {voice.name.slice(0, 2).toUpperCase()}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <div className="space-y-0.5">
-                                        <p className="font-medium">
-                                          {voice.name}
-                                        </p>
-                                        {voice.toneProfile && (
-                                          <p>Tone: {voice.toneProfile}</p>
-                                        )}
-                                        {voice.language && (
-                                          <p>Language: {voice.language}</p>
-                                        )}
-                                        {voice.companyName && (
-                                          <p>Company: {voice.companyName}</p>
-                                        )}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ) : (
-                                  meta.brandVoiceName
-                                )}
-                              </>
-                            );
-                          })()}
-                      </p>
-                    );
-                  })()}
-              </div>
-              <div className="ml-auto flex shrink-0 items-center gap-2">
-                {(content.contentType === "changelog" ||
-                  content.contentType === "blog_post") &&
-                  currentMarkdown.trim() !== "" && (
-                    <PublishContentToGitHubDialog
-                      contentId={contentId}
-                      contentType={content.contentType}
-                      onSave={handleSave}
-                      organizationId={organizationId}
-                      organizationSlug={organizationSlug}
-                      title={title}
-                    />
-                  )}
-                {isGeoWriterPlanMode ? <WriterExecute.Button /> : null}
-                {content.contentType !== "image" && !isGeoWriterPlanMode ? (
-                  <Button
-                    disabled={isTogglingStatus}
-                    onClick={handleToggleStatus}
-                    size="sm"
-                    variant={content.status === "draft" ? "default" : "outline"}
-                  >
-                    {(() => {
-                      if (isTogglingStatus) {
-                        return "Updating...";
-                      }
-                      return content.status === "published"
-                        ? "Move to draft"
-                        : "Publish";
-                    })()}
-                    <HugeiconsIcon
-                      className="size-4"
-                      icon={
-                        content.status === "published" ? TextIcon : SentIcon
-                      }
-                    />
-                  </Button>
-                ) : null}
-                {content.contentType === "linkedin_post" && (
-                  <PostSocialButton
-                    content={currentMarkdown}
-                    from="editor"
-                    onContentChange={setEditedMarkdown}
-                    organizationId={organizationId}
-                    platform="linkedin"
-                  />
-                )}
-                {content.contentType === "twitter_post" && (
-                  <PostSocialButton
-                    content={currentMarkdown}
-                    from="editor"
-                    onContentChange={setEditedMarkdown}
-                    organizationId={organizationId}
-                    platform="twitter"
-                  />
-                )}
-                {content.contentType === "image" && (
-                  <>
-                    <Button
-                      onClick={() => {
-                        trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
-                          content_id: contentId,
-                          target: IMAGE_EXPORT_DOWNLOAD_TARGET,
-                        });
-                        void loadImageExport().then(({ downloadImage }) =>
-                          downloadImage(imageDownloadUrl, title)
-                        );
-                      }}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <HugeiconsIcon className="size-4" icon={Download01Icon} />
-                      Download image
-                    </Button>
-                    <ButtonGroup>
-                      <Button
-                        onClick={handleCopyImageExport}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <ImageExportTargetIcon
-                          className="size-4"
-                          target={imageExportTarget}
-                        />
-                        Copy for {getImageExportTargetLabel(imageExportTarget)}
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={<Button size="icon-sm" variant="outline" />}
-                        >
-                          <span className="sr-only">Select export target</span>
-                          <HugeiconsIcon
-                            className="size-4"
-                            icon={ArrowDown01Icon}
-                          />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52">
-                          <DropdownMenuRadioGroup
-                            onValueChange={handleImageExportTargetSelect}
-                            value={imageExportTarget}
-                          >
-                            {IMAGE_EXPORT_TARGETS.map((target) => {
-                              const isWonder = target === "wonder";
-
-                              return (
-                                <DropdownMenuRadioItem
-                                  className={cn(
-                                    "gap-2",
-                                    isWonder && "items-start"
-                                  )}
-                                  closeOnClick
-                                  disabled={isWonder}
-                                  key={target}
-                                  value={target}
-                                >
-                                  <ImageExportTargetIcon
-                                    className="mt-0.5 size-4"
-                                    target={target}
-                                  />
-                                  <span className="flex flex-col">
-                                    <span>
-                                      Copy for{" "}
-                                      {getImageExportTargetLabel(target)}
-                                    </span>
-                                    {isWonder && (
-                                      <span className="text-muted-foreground text-xs">
-                                        Coming soon
-                                      </span>
-                                    )}
-                                  </span>
-                                </DropdownMenuRadioItem>
-                              );
-                            })}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </ButtonGroup>
-                  </>
-                )}
-              </div>
-            </div>
+            <ContentDetailToolbar
+              content={content}
+              document={documentController}
+              imageExportRef={imageExportRef}
+              isPlanMode={isGeoWriterPlanMode}
+              organizationId={organizationId}
+              organizationSlug={organizationSlug}
+              voices={brandResponse?.voices ?? []}
+            />
           </WriterExecute.Root>
 
-          {mainDocument}
+          <ContentDetailDocument
+            editor={editor}
+            isPlanMode={isGeoWriterPlanMode}
+            plan={{
+              brief: planBrief,
+              briefId: geoWriterDraft?.briefId,
+              contentId,
+              editorVersion: planEditorVersion,
+              hasConflict: hasPlanConflict,
+              isReviewable: isGeoWriterPlanReviewableNow,
+              isWriting: isPlanWriting,
+              onBriefChange: handlePlanBriefChange,
+              onDirtyChange: setIsPlanDirty,
+              onLoadLatest: handleLoadLatestPlan,
+              onSaveVersion: handleSavePlanVersion,
+            }}
+          />
 
           {isGeoWriterPlanMode ? null : (
             <RecommendationsSection value={content.recommendations} />
@@ -1761,37 +872,27 @@ export default function PageClient({
           <div className="h-24" />
         </div>
       </div>
-      <RightPanelPortal>
-        <aside
-          aria-hidden={!isActivityPanelOpen}
-          className={cn(
-            ACTIVITY_PANEL_CLASSNAME,
-            isActivityPanelOpen ? ACTIVITY_PANEL_OPEN_WIDTH_CLASSNAME : "w-0"
-          )}
-          inert={isActivityPanelOpen ? undefined : true}
-        >
-          {hasOpenedActivityPanel ? (
-            <div className={ACTIVITY_PANEL_FRAME_CLASSNAME}>
-              <ContentChatActivityPanel
-                activeChatId={activeChatId}
-                isHistoryLoading={
-                  contentChatSessionsQuery.isPending ||
-                  contentChatHistoryQuery.isFetching
-                }
-                messages={messages}
-                onClose={() => setIsActivityPanelOpen(false)}
-                onNewChat={handleNewChat}
-                onSelectChat={handleSelectChat}
-                sessions={contentChatSessions}
-                status={status}
-              >
-                <div className="shrink-0 p-2 pt-1">{renderChatComposer()}</div>
-              </ContentChatActivityPanel>
-            </div>
-          ) : null}
-        </aside>
-      </RightPanelPortal>
-      {saveBarSection}
+      <ContentAgentPanel
+        isOpen={isActivityPanelOpen}
+        hasOpened={hasOpenedActivityPanel}
+        activeChatId={activeChatId}
+        isHistoryLoading={chatHistory.isHistoryLoading}
+        messages={messages}
+        onClose={() => dispatchChatUi({ type: "panelClosed" })}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        sessions={chatHistory.sessions}
+        status={status}
+      >
+        {renderChatComposer()}
+      </ContentAgentPanel>
+      <ContentSaveBar
+        hasChanges={hasChanges}
+        isPanelOpen={isActivityPanelOpen}
+        sidebarState={sidebarState}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+      />
       {chatInputSection}
     </>
   );

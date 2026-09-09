@@ -6,7 +6,6 @@ import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
-import { cache } from "react";
 
 import {
   ENTITLEMENT_FEATURES,
@@ -14,13 +13,10 @@ import {
 } from "@/constants/analytics-events";
 import { GEO_PLAN_REQUIRED_MESSAGE } from "@/constants/billing";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
 
-/**
- * Batched oRPC requests run many gated procedures inside one server request;
- * they share a single Autumn lookup per organization.
- */
-const checkAiAnswersEntitlement = cache(async (organizationId: string) => {
+const checkAiAnswersEntitlement = async (organizationId: string) => {
   if (!autumn) {
     return null;
   }
@@ -29,7 +25,7 @@ const checkAiAnswersEntitlement = cache(async (organizationId: string) => {
     customerId: organizationId,
     featureId: FEATURES.AI_ANSWERS,
   });
-});
+};
 
 async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
   if (!autumn) {
@@ -176,7 +172,8 @@ export type GeoEntitlementOutcome = "entitled" | "denied" | "skipped";
  * be reported at all (a non-member must not generate billing telemetry).
  */
 export async function resolveGeoEntitlement(
-  organizationId: string
+  organizationId: string,
+  headers?: Headers
 ): Promise<GeoEntitlementOutcome> {
   if (allowUnmeteredAiInDevelopment) {
     return "skipped";
@@ -190,8 +187,15 @@ export async function resolveGeoEntitlement(
   }
 
   try {
-    const data = await checkAiAnswersEntitlement(organizationId);
-    return data?.balance != null ? "entitled" : "denied";
+    const memo = headers ? getORPCRequestMemo(headers) : undefined;
+    let outcome = memo?.geoEntitlementByOrganization.get(organizationId);
+    if (!outcome) {
+      outcome = checkAiAnswersEntitlement(organizationId).then((data) =>
+        data?.balance != null ? "entitled" : "denied"
+      );
+      memo?.geoEntitlementByOrganization.set(organizationId, outcome);
+    }
+    return await outcome;
   } catch (error) {
     if (error instanceof ORPCError) {
       throw error;

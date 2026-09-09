@@ -275,7 +275,7 @@ async function assertGeoAccess(
 ): Promise<void> {
   const [membership, entitlement] = await Promise.allSettled([
     assertOrganizationAccess(params),
-    resolveGeoEntitlement(params.organizationId),
+    resolveGeoEntitlement(params.organizationId, params.headers),
   ]);
 
   if (membership.status === "rejected") {

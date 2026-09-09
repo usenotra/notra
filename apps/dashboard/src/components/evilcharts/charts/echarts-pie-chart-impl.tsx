@@ -19,6 +19,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1104,12 +1105,15 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
     [data, dataKey, nameKey, onSelectionChange]
   );
 
-  // Refresh the click handler's snapshot of the latest callbacks/flags every render.
-  live.handlers = {
-    isClickable: pie?.isClickable ?? false,
-    selectedSector,
-    selectSector,
-  };
+  // Publish the click handler snapshot only after this render commits. Mutating
+  // it during render lets events observe props from an abandoned concurrent render.
+  useLayoutEffect(() => {
+    live.handlers = {
+      isClickable: pie?.isClickable ?? false,
+      selectedSector,
+      selectSector,
+    };
+  }, [live, pie?.isClickable, selectedSector, selectSector]);
 
   // ── Option builder ───────────────────────────────────────────────────────────
   // Thin orchestrator over the pure builders above: snapshot the resolved colors
@@ -1284,7 +1288,7 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [isLoading, tooltipSlot.present, tooltipSlot.defaultIndex]);
+  }, [buildOption, chartOptions, data, isLoading, tooltipSlot.present, tooltipSlot.defaultIndex]);
 
   // ── Loading shimmer — rAF sweeps a bright window around the ring ──────────────
   useEffect(() => {

@@ -5396,7 +5396,6 @@
             }
           ],
           "isUnique": false,
-          "where": "\"geo_mention_checks\".\"sequence_id\" IS NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}

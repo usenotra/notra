@@ -2,7 +2,7 @@ import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { OrganizationMembership } from "@workos-inc/node";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class WebhookSyncError extends Data.TaggedError("WebhookSyncError")<{
@@ -105,31 +105,21 @@ export const upsertMembershipFromWebhook = Effect.fn(
 
   yield* Effect.tryPromise({
     try: async () => {
-      const existing = await db.query.members.findFirst({
-        where: and(
-          eq(members.userId, userId),
-          eq(members.organizationId, organizationId)
-        ),
-        columns: { id: true, role: true },
-      });
-
-      if (!existing) {
-        await db.insert(members).values({
+      await db
+        .insert(members)
+        .values({
           id: crypto.randomUUID(),
           organizationId,
           userId,
           role,
           createdAt: new Date(membership.createdAt),
+        })
+        .onConflictDoUpdate({
+          target: [members.organizationId, members.userId],
+          set: {
+            role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
+          },
         });
-        return;
-      }
-
-      if (existing.role !== role && existing.role !== "owner") {
-        await db
-          .update(members)
-          .set({ role })
-          .where(eq(members.id, existing.id));
-      }
     },
     catch: (cause) =>
       new WebhookSyncError({ message: "Failed to upsert membership", cause }),

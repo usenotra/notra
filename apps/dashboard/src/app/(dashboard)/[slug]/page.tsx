@@ -22,14 +22,19 @@ async function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  // Independent of each other, so both start before either is awaited. The
-  // stored-mode redirect keeps precedence over the access check; the no-op
-  // handler stops Node from flagging the loser of the race as unhandled.
-  const redirected = redirectOrgRootToStoredMode(slug, searchParams);
-  const access = validateOrganizationAccess(slug);
-  void access.catch(() => undefined);
-  await redirected;
-  const { user } = await access;
+  // Start both operations together, but observe access failures even when the
+  // stored-mode lookup throws a redirect.
+  const [redirected, access] = await Promise.allSettled([
+    redirectOrgRootToStoredMode(slug, searchParams),
+    validateOrganizationAccess(slug),
+  ]);
+  if (access.status === "rejected") {
+    throw access.reason;
+  }
+  if (redirected.status === "rejected") {
+    throw redirected.reason;
+  }
+  const { user } = access.value;
   const greeting = getGreeting(new Date());
   const userName = user.name?.trim();
   const greetingText = userName ? `${greeting}, ${userName}!` : `${greeting}!`;

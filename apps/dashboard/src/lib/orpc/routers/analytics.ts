@@ -48,7 +48,7 @@ async function assertAnalyticsAccess(
 ): Promise<void> {
   await assertAccessInParallel(
     assertOrganizationAccess(params),
-    assertAnalyticsEnabled(params.organizationId)
+    assertAnalyticsEnabled(params.organizationId, params.headers)
   );
 }
 

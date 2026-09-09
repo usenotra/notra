@@ -17,10 +17,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "@hugeicons/core-free-icons",
       "lucide-react",
-      "echarts",
       "recharts",
       "date-fns",
-      "motion",
       "@dnd-kit/core",
       "@dnd-kit/sortable",
     ],

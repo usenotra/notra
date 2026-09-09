@@ -21,8 +21,10 @@ const clientId = process.env.NEXT_PUBLIC_DATABUDDY_DASHBOARD_WEBSITE_ID ?? "";
  * state a failed evaluation produces.
  */
 const ANALYTICS_FLAG_REQUEST_TIMEOUT_MS = 5000;
+const MAX_PENDING_ANALYTICS_FLAG_EVALUATIONS = 500;
 
 let cachedManager: ServerFlagsManager | null = null;
+const pendingEvaluations = new Map<string, Promise<AnalyticsFlagEvaluation>>();
 
 function getFlagsManager(): ServerFlagsManager | null {
   if (clientId.length === 0) {
@@ -45,6 +47,31 @@ function getFlagsManager(): ServerFlagsManager | null {
 interface AnalyticsFlagEvaluation {
   readonly enabled: boolean;
   readonly reason?: string;
+}
+
+export function deduplicatePendingAnalyticsFlagEvaluation(
+  organizationId: string,
+  evaluate: () => Promise<AnalyticsFlagEvaluation>
+): Promise<AnalyticsFlagEvaluation> {
+  const existing = pendingEvaluations.get(organizationId);
+  if (existing) {
+    return existing;
+  }
+
+  if (pendingEvaluations.size >= MAX_PENDING_ANALYTICS_FLAG_EVALUATIONS) {
+    return Promise.resolve({
+      enabled: false,
+      reason: ANALYTICS_FLAG_ERROR_REASON,
+    });
+  }
+
+  const evaluation = evaluate();
+  pendingEvaluations.set(organizationId, evaluation);
+  void evaluation.then(
+    () => pendingEvaluations.delete(organizationId),
+    () => pendingEvaluations.delete(organizationId)
+  );
+  return evaluation;
 }
 
 /**
@@ -83,11 +110,16 @@ function resolveAnalyticsFlagState(
 
     return yield* boundAnalyticsFlagEvaluation(
       Effect.tryPromise({
+        // The SDK has no AbortSignal API. Keep the uncancellable promise
+        // shared until it settles so callers after a timeout do not create an
+        // unbounded pile of duplicate provider requests.
         try: () =>
-          manager.getFlag(SOCIAL_ANALYTICS_FLAG_KEY, {
-            organizationId,
-            properties: { organizationId },
-          }),
+          deduplicatePendingAnalyticsFlagEvaluation(organizationId, () =>
+            manager.getFlag(SOCIAL_ANALYTICS_FLAG_KEY, {
+              organizationId,
+              properties: { organizationId },
+            })
+          ),
         catch: (cause) =>
           new AnalyticsFlagEvaluationError({
             message: "Failed to evaluate the analytics feature flag",

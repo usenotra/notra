@@ -86,8 +86,9 @@ export function useGeoPromptsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery((q) =>
-    isEnabled ? q.from({ prompt: definition }) : undefined
+  const { data } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ prompt: definition }) : undefined),
+    [isEnabled]
   );
 
   const prompts: GeoTrackedPrompt[] = data ?? [];
@@ -171,8 +172,9 @@ export function useGeoCompetitorsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery((q) =>
-    isEnabled ? q.from({ competitor: definition }) : undefined
+  const { data } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ competitor: definition }) : undefined),
+    [isEnabled]
   );
 
   const competitors: GeoCompetitor[] = data ?? [];
@@ -217,8 +219,9 @@ export function useGeoSequencesDb(
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery((q) =>
-    isEnabled ? q.from({ sequence: definition }) : undefined
+  const { data, isLoading } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ sequence: definition }) : undefined),
+    [isEnabled]
   );
 
   const sequences: GeoPromptSequence[] = data ?? [];

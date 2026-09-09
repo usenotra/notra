@@ -24,6 +24,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -85,6 +86,7 @@ import type {
   TooltipLayout,
   TooltipValueFormatter,
 } from "@/types/charts";
+import { normalizeLineValue } from "@/utils/echarts-line-values";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1118,9 +1120,10 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     const restingDot = dotStyle(line.dotVariant, paint, background);
     const activeDot = dotStyle(line.activeDotVariant, paint, background);
     const restingVisible = line.dotVariant !== "none";
+    const activeVisible = line.activeDotVariant !== "none";
     const dotOpacity = opacity.dot;
 
-    const values = data.map((row) => Number(row[key]) || 0);
+    const values = data.map((row) => normalizeLineValue(row[key]));
     const n = values.length;
     // Hover-reveal is a root-level mode and owns the whole line rendering, so it
     // takes precedence over a per-line buffer tail (and the glow overlay) when
@@ -1172,7 +1175,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
                   pointColor,
                   background
                 ),
-                opacity: dotOpacity,
+                opacity: restingVisible ? dotOpacity : 0,
               },
               emphasis: {
                 itemStyle: {
@@ -1240,7 +1243,9 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // the line itself clickable too, like the Recharts <Line>.
       // (`true` covers both; the deprecated `triggerLineEvent` did the same.)
       triggerEvent: line.isClickable,
-      showSymbol: restingVisible,
+      // Keep symbols in the display list when only ActiveDot is configured, but
+      // hide them at rest so ECharts can reveal the emphasized symbol on hover.
+      showSymbol: restingVisible || activeVisible,
       symbol: "circle",
       symbolSize: restingVisible ? restingDot.size : activeDot.size,
       z,
@@ -1257,7 +1262,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         ? { opacity: dotOpacity }
         : {
             ...(restingVisible ? restingDot.itemStyle : activeDot.itemStyle),
-            opacity: dotOpacity,
+            opacity: restingVisible ? dotOpacity : 0,
           },
       emphasis: {
         // focus "series" blurs every other series in this grid while one is
@@ -1577,18 +1582,32 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     [lines]
   );
 
-  // Refresh the handlers' snapshot of the latest callbacks/flags every render.
-  live.handlers = {
-    onBrushChange: brushSlot.onChange,
+  // Publish imperative snapshots only after this render commits. Mutating them
+  // during render lets handlers observe props from an abandoned concurrent render.
+  useLayoutEffect(() => {
+    live.handlers = {
+      onBrushChange: brushSlot.onChange,
+      onSelectionChange,
+      clickableKeys,
+      selectedDataKey,
+      brushFormatLabel: brushSlot.formatLabel,
+      seriesKeys,
+      enableHoverHighlight,
+      enableHoverReveal,
+    };
+    live.dataLength = data.length;
+  }, [
+    live,
+    brushSlot.onChange,
+    brushSlot.formatLabel,
     onSelectionChange,
     clickableKeys,
     selectedDataKey,
-    brushFormatLabel: brushSlot.formatLabel,
     seriesKeys,
     enableHoverHighlight,
     enableHoverReveal,
-  };
-  live.dataLength = data.length;
+    data.length,
+  ]);
 
   const toggleSelection = useCallback(
     (key: string) => {
@@ -1609,13 +1628,12 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
         live.hoveredKey = null;
         setHoveredDataKey(null);
       }
-      setSelectedDataKey((prev) => {
-        const next = prev === key ? null : key;
-        onSelectionChange?.(next);
-        return next;
-      });
+      const next = live.handlers.selectedDataKey === key ? null : key;
+      live.handlers.selectedDataKey = next;
+      setSelectedDataKey(next);
+      live.handlers.onSelectionChange?.(next);
     },
-    [live, onSelectionChange]
+    [live]
   );
 
   // Reposition the brush overlays from the live refs — safe to call from drag

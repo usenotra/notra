@@ -10,7 +10,6 @@ import {
   sql,
 } from "drizzle-orm";
 
-import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks, geoScans } from "../schema";
@@ -212,7 +211,6 @@ export async function queryGeoCheckOverview(
       lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       mentionFilters(scope, window, { sequences: "single", englishOnly: true })
     )
@@ -247,7 +245,6 @@ export async function queryGeoCheckTimeseries(
       >`round(avg(${geoMentionChecks.position}) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.position} is not null), 1)::float8`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       mentionFilters(scope, window, {
         ...options,
@@ -385,7 +382,6 @@ export async function queryGeoCheckPromptSummaries(
       lastCheckedAt: geoMentionChecks.capturedAt,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       mentionFilters(scope, window, { sequences: "single", englishOnly: true })
     )
@@ -608,7 +604,6 @@ export async function queryGeoCheckCompetitorTimeseries(
       checks: sql<number>`count(*)::int`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(sql`(${geoMentionChecks.capturedAt})::date`)
     .orderBy(sql`(${geoMentionChecks.capturedAt})::date asc`);
@@ -641,7 +636,6 @@ export async function queryGeoCheckCompetitorPrompts(
       capturedAt: geoMentionChecks.capturedAt,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .orderBy(
       geoMentionChecks.promptId,
@@ -681,7 +675,6 @@ export async function queryGeoCheckLanguageShare(
       lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(
       sql`case when ${geoMentionChecks.language} = '' then 'English' else ${geoMentionChecks.language} end`
@@ -715,7 +708,6 @@ export async function queryGeoCheckLanguageShareTrends(
       mentionRate: sql<number>`round(count(*) filter (where ${geoMentionChecks.mentioned})::numeric / nullif(count(*), 0), 3)::float8`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(day, language)
     .orderBy(day, language);

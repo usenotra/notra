@@ -85,9 +85,9 @@ export function isTinybirdConfigured(): boolean {
   return Boolean(process.env.TINYBIRD_TOKEN);
 }
 
-function createTinybirdClient() {
+function createTinybirdClient(fetch?: typeof globalThis.fetch) {
   return new Tinybird({
-    fetch: createTimeoutFetch(TINYBIRD_REQUEST_TIMEOUT_MS),
+    fetch,
     token: process.env.TINYBIRD_TOKEN,
     baseUrl:
       process.env.TINYBIRD_BASE_URL ??
@@ -125,16 +125,29 @@ function createTinybirdClient() {
   });
 }
 
-let cachedClient: ReturnType<typeof createTinybirdClient> | null = null;
+let cachedQueryClient: ReturnType<typeof createTinybirdClient> | null = null;
+let cachedMutationClient: ReturnType<typeof createTinybirdClient> | null = null;
 
-function getTinybirdClient() {
+function getTinybirdQueryClient() {
   if (!isTinybirdConfigured()) {
     return null;
   }
-  if (!cachedClient) {
-    cachedClient = createTinybirdClient();
+  if (!cachedQueryClient) {
+    cachedQueryClient = createTinybirdClient(
+      createTimeoutFetch(TINYBIRD_REQUEST_TIMEOUT_MS)
+    );
   }
-  return cachedClient;
+  return cachedQueryClient;
+}
+
+function getTinybirdMutationClient() {
+  if (!isTinybirdConfigured()) {
+    return null;
+  }
+  if (!cachedMutationClient) {
+    cachedMutationClient = createTinybirdClient();
+  }
+  return cachedMutationClient;
 }
 
 async function ingestRows<TRow>(
@@ -142,11 +155,11 @@ async function ingestRows<TRow>(
   scope: AnalyticsCacheScope,
   organizationIds: ReadonlyArray<string | null>,
   ingest: (
-    client: NonNullable<ReturnType<typeof getTinybirdClient>>,
+    client: NonNullable<ReturnType<typeof getTinybirdMutationClient>>,
     batch: TRow[]
   ) => Promise<IngestResult>
 ): Promise<IngestResult | null> {
-  const client = getTinybirdClient();
+  const client = getTinybirdMutationClient();
   if (!client || rows.length === 0) {
     return null;
   }
@@ -161,10 +174,10 @@ function cachedPipeQuery<TParams extends Record<string, unknown>, TRow>(
   params: TParams,
   organizationId: string | null,
   query: (
-    client: NonNullable<ReturnType<typeof getTinybirdClient>>
+    client: NonNullable<ReturnType<typeof getTinybirdQueryClient>>
   ) => Promise<QueryResult<TRow>>
 ): Promise<QueryResult<TRow> | null> {
-  const client = getTinybirdClient();
+  const client = getTinybirdQueryClient();
   if (!client) {
     return Promise.resolve(null);
   }

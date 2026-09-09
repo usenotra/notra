@@ -23,7 +23,11 @@ export function PostHogIdentity() {
       return;
     }
 
+    let active = true;
     void withPostHog((posthog) => {
+      if (!active) {
+        return;
+      }
       const identifiedUserId = posthog.get_property("$user_id");
 
       if (!userId) {
@@ -42,6 +46,9 @@ export function PostHogIdentity() {
         hidePersonalData ? undefined : { email, name: name ?? undefined }
       );
     });
+    return () => {
+      active = false;
+    };
   }, [email, hidePersonalData, isPending, name, userId]);
 
   useEffect(() => {
@@ -49,7 +56,11 @@ export function PostHogIdentity() {
       return;
     }
 
+    let active = true;
     void withPostHog((posthog) => {
+      if (!active) {
+        return;
+      }
       posthog.resetGroups();
 
       if (organizationId) {
@@ -66,6 +77,9 @@ export function PostHogIdentity() {
         posthog.unregister("project_id");
       }
     });
+    return () => {
+      active = false;
+    };
   }, [isPending, organizationId, projectId, userId]);
 
   return null;

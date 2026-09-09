@@ -18,101 +18,18 @@ import { AgentReadinessScanningNotice } from "@/components/geo/agent-readiness/r
 import { AgentReadinessScoreCard } from "@/components/geo/agent-readiness/readiness-score-card";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PageContainer } from "@/components/layout/container";
-import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useAgentReadiness,
   useAgentReadinessScan,
   useGeoSettings,
 } from "@/lib/hooks/use-geo";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type { AgentReadinessBodyProps } from "@/types/agent-readiness";
 import type { GeoPageClientProps } from "@/types/geo";
 
 import { AgentReadinessSkeleton } from "./skeleton";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <AgentReadinessPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function ReadinessBody({
-  data,
-  isScanPending,
-  onRequestScan,
-}: AgentReadinessBodyProps) {
-  const { report, scan, targetUrl, history } = data;
-  const isScanning = isScanPending || scan?.status === "running";
-  const previousScore =
-    history.length > 1 ? (history.at(-2)?.score ?? null) : null;
-  const scanErrorMessage = getAgentReadinessScanErrorMessage(
-    scan?.errorMessage,
-    targetUrl
-  );
-
-  if (!report) {
-    if (isScanning) {
-      return <AgentReadinessScanningNotice targetUrl={targetUrl} />;
-    }
-    return (
-      <EmptyState
-        actionLabel={
-          scan?.status === "failed" ? "Try again" : "Scan your website"
-        }
-        description={
-          scan?.status === "failed" ? (
-            scanErrorMessage
-          ) : (
-            <>
-              Check how ready{" "}
-              <strong className="font-semibold">
-                {stripWebsiteProtocol(targetUrl)}
-              </strong>{" "}
-              is for AI agents. The scan is public and takes a few minutes.
-            </>
-          )
-        }
-        onActionClick={onRequestScan}
-        preview={<EmptyStateReadinessPreview />}
-        title={scan?.status === "failed" ? "Scan failed" : "No scan yet"}
-        titleIcon={
-          scan?.status === "failed" ? (
-            <HugeiconsIcon
-              className="text-destructive size-5"
-              icon={AlertCircleIcon}
-              strokeWidth={2}
-            />
-          ) : null
-        }
-      />
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      {scan?.status === "failed" ? (
-        <p className="text-destructive bg-destructive/5 rounded-xl border px-4 py-3 text-sm">
-          The latest rescan failed: {scanErrorMessage} Showing the last
-          completed report.
-        </p>
-      ) : null}
-      <AgentReadinessScoreCard
-        isScanning={isScanning}
-        onRescan={onRequestScan}
-        previousScore={previousScore}
-        report={report}
-      />
-      <AgentReadinessChecklist issues={report.issues} targetUrl={targetUrl} />
-    </div>
-  );
-}
-
-function AgentReadinessPageContent({ organizationSlug }: GeoPageClientProps) {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -191,5 +108,76 @@ function AgentReadinessPageContent({ organizationSlug }: GeoPageClientProps) {
         open={dialogOpen}
       />
     </PageContainer>
+  );
+}
+
+function ReadinessBody({
+  data,
+  isScanPending,
+  onRequestScan,
+}: AgentReadinessBodyProps) {
+  const { report, scan, targetUrl, history } = data;
+  const isScanning = isScanPending || scan?.status === "running";
+  const previousScore =
+    history.length > 1 ? (history.at(-2)?.score ?? null) : null;
+  const scanErrorMessage = getAgentReadinessScanErrorMessage(
+    scan?.errorMessage,
+    targetUrl
+  );
+
+  if (!report) {
+    if (isScanning) {
+      return <AgentReadinessScanningNotice targetUrl={targetUrl} />;
+    }
+    return (
+      <EmptyState
+        actionLabel={
+          scan?.status === "failed" ? "Try again" : "Scan your website"
+        }
+        description={
+          scan?.status === "failed" ? (
+            scanErrorMessage
+          ) : (
+            <>
+              Check how ready{" "}
+              <strong className="font-semibold">
+                {stripWebsiteProtocol(targetUrl)}
+              </strong>{" "}
+              is for AI agents. The scan is public and takes a few minutes.
+            </>
+          )
+        }
+        onActionClick={onRequestScan}
+        preview={<EmptyStateReadinessPreview />}
+        title={scan?.status === "failed" ? "Scan failed" : "No scan yet"}
+        titleIcon={
+          scan?.status === "failed" ? (
+            <HugeiconsIcon
+              className="text-destructive size-5"
+              icon={AlertCircleIcon}
+              strokeWidth={2}
+            />
+          ) : null
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {scan?.status === "failed" ? (
+        <p className="text-destructive bg-destructive/5 rounded-xl border px-4 py-3 text-sm">
+          The latest rescan failed: {scanErrorMessage} Showing the last
+          completed report.
+        </p>
+      ) : null}
+      <AgentReadinessScoreCard
+        isScanning={isScanning}
+        onRescan={onRequestScan}
+        previousScore={previousScore}
+        report={report}
+      />
+      <AgentReadinessChecklist issues={report.issues} targetUrl={targetUrl} />
+    </div>
   );
 }

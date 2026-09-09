@@ -14,8 +14,8 @@ import { getLastVisitedProject } from "@/utils/cookies";
  * and the first client render agree, so the hydrated cache is used instead of
  * being refetched, and the GEO subtree does not remount on the URL rewrite.
  *
- * Cached per request: the GEO layout and every GEO page call this with the same
- * arguments.
+ * Requested IDs are validated separately from the shared cookie/oldest fallback.
+ * Layouts and pages share that fallback even when their URL arguments differ.
  */
 export const resolveInitialGeoProjectId = cache(
   async (
@@ -24,9 +24,27 @@ export const resolveInitialGeoProjectId = cache(
     requestedProjectId: string | undefined
   ): Promise<string | undefined> => {
     if (requestedProjectId) {
-      return requestedProjectId;
+      const requested = await db.query.projects.findFirst({
+        columns: { id: true },
+        where: and(
+          eq(projects.id, requestedProjectId),
+          eq(projects.organizationId, organizationId)
+        ),
+      });
+      if (requested) {
+        return requested.id;
+      }
     }
 
+    return resolveFallbackGeoProjectId(organizationId, organizationSlug);
+  }
+);
+
+const resolveFallbackGeoProjectId = cache(
+  async (
+    organizationId: string,
+    organizationSlug: string
+  ): Promise<string | undefined> => {
     const cookieStore = await cookies();
     const lastVisitedProjectId = getLastVisitedProject(
       cookieStore,

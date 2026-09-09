@@ -28,7 +28,11 @@ async function loadAndInit(): Promise<PostHog | null> {
 }
 
 function ensureClient(): Promise<PostHog | null> {
-  clientPromise ??= loadAndInit();
+  clientPromise ??= loadAndInit().catch((error) => {
+    clientPromise = null;
+    console.error("Failed to initialize PostHog", error);
+    return null;
+  });
   return clientPromise;
 }
 

@@ -3,6 +3,7 @@
 import { Databuddy } from "@databuddy/sdk/react";
 import { Toaster } from "@notra/ui/components/ui/sonner";
 import { TooltipProvider } from "@notra/ui/components/ui/tooltip";
+import { DbClient, DbProvider } from "@tanstack/react-db";
 import {
   QueryCache,
   QueryClient,
@@ -82,7 +83,7 @@ function createProviderClients() {
     },
   });
 
-  return { queryClient };
+  return { queryClient, dbClient: new DbClient({ queryClient }) };
 }
 
 function DatabuddyAnalytics() {
@@ -103,28 +104,32 @@ function DatabuddyAnalytics() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [{ queryClient }] = useState(createProviderClients);
+  const [{ queryClient, dbClient }] = useState(createProviderClients);
   useMcpConnectionToast();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-      <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
-        <TooltipProvider delay={500}>
-          <AutumnOrgProvider>
-            <NuqsAdapter>
-              {children}
-              {POSTHOG_PROJECT_TOKEN ? (
-                <Suspense fallback={null}>
-                  <PostHogIdentity />
-                </Suspense>
-              ) : null}
-              <DatabuddyAnalytics />
-            </NuqsAdapter>
-            <Toaster position="top-center" />
-          </AutumnOrgProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+      <DbProvider client={dbClient}>
+        {ReactQueryDevtools ? (
+          <ReactQueryDevtools initialIsOpen={false} />
+        ) : null}
+        <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
+          <TooltipProvider delay={500}>
+            <AutumnOrgProvider>
+              <NuqsAdapter>
+                {children}
+                {POSTHOG_PROJECT_TOKEN ? (
+                  <Suspense fallback={null}>
+                    <PostHogIdentity />
+                  </Suspense>
+                ) : null}
+                <DatabuddyAnalytics />
+              </NuqsAdapter>
+              <Toaster position="top-center" />
+            </AutumnOrgProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </DbProvider>
     </QueryClientProvider>
   );
 }

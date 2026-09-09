@@ -16,10 +16,15 @@ let rendererPromise: Promise<EngineIconHtmlRenderer> | null = null;
  * render without their engine icon.
  */
 function loadRenderer(): Promise<EngineIconHtmlRenderer> {
-  rendererPromise ??= import("@/utils/engine-icon-html").then((module) => {
-    cachedRenderer = module.engineIconHtml;
-    return module.engineIconHtml;
-  });
+  rendererPromise ??= import("@/utils/engine-icon-html")
+    .then((module) => {
+      cachedRenderer = module.engineIconHtml;
+      return module.engineIconHtml;
+    })
+    .catch(() => {
+      rendererPromise = null;
+      return EMPTY_RENDERER;
+    });
   return rendererPromise;
 }
 

@@ -10,7 +10,6 @@ import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { PageContainer } from "@/components/layout/container";
-import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import {
@@ -21,9 +20,7 @@ import {
   useGeoSuggestionDismiss,
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoWriterGaps } from "@/lib/hooks/use-geo-writer";
-import type { GeoGapsPageContentProps } from "@/types/components/geo-gaps";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type { GeoPageClientProps } from "@/types/geo";
 import {
@@ -41,16 +38,6 @@ const WriteDialog = dynamic(() =>
 );
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoGapsPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
   const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);

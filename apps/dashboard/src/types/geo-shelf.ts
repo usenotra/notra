@@ -167,10 +167,6 @@ export interface GeoShelfDbApi {
   ) => void;
 }
 
-export interface GeoShelfPageContentProps {
-  organizationSlug: string;
-}
-
 /** Row selection keeps the URL so the detail dialog survives an id swap. */
 export interface GeoShelfSelection {
   id: string;

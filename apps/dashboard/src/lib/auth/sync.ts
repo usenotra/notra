@@ -8,7 +8,7 @@ import {
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { User } from "@workos-inc/node";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { isFreeEmail } from "free-email-domains-list";
 import { isValid as isNotDisposableEmail } from "mailchecker";
@@ -355,31 +355,21 @@ const reconcileWorkOSMemberships = Effect.fn("auth.sync.reconcileMemberships")(
 
       yield* Effect.tryPromise({
         try: async () => {
-          const existing = await db.query.members.findFirst({
-            where: and(
-              eq(members.userId, localUserId),
-              eq(members.organizationId, localOrgId)
-            ),
-            columns: { id: true, role: true },
-          });
-
-          if (!existing) {
-            await db.insert(members).values({
+          await db
+            .insert(members)
+            .values({
               id: crypto.randomUUID(),
               organizationId: localOrgId,
               userId: localUserId,
               role,
               createdAt: new Date(membership.createdAt),
+            })
+            .onConflictDoUpdate({
+              target: [members.organizationId, members.userId],
+              set: {
+                role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
+              },
             });
-            return;
-          }
-
-          if (existing.role !== role && existing.role !== "owner") {
-            await db
-              .update(members)
-              .set({ role })
-              .where(eq(members.id, existing.id));
-          }
         },
         catch: (cause) =>
           new UserSyncError({ message: "Failed to sync membership", cause }),

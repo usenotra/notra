@@ -165,7 +165,8 @@ export async function updateGeoShelfCitations(
     await tx.execute(sql`
       update ${geoShelfSources} as target
       set citations = incoming.citations,
-        title = coalesce(target.title, incoming.title)
+        title = coalesce(target.title, incoming.title),
+        updated_at = now()
       from (values ${values}) as incoming(id, citations, title)
       where target.id = incoming.id
         and target.organization_id = ${key.organizationId}

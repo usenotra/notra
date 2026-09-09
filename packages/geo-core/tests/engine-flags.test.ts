@@ -45,6 +45,29 @@ function organizationId(): string {
 }
 
 describe("engine flag cache", () => {
+  test("the same organization does not share flags across providers", async () => {
+    const enabled = countingFlagProvider();
+    const disabled = Layer.succeed(GeoFeatureFlagService, {
+      isCursorEngineEnabledForOrganization: () => Effect.succeed(false),
+      isOpenCodeEngineEnabledForOrganization: () => Effect.succeed(false),
+    });
+    const scope = organizationId();
+    await Effect.runPromise(
+      loadGeoEngineFlags(scope).pipe(Effect.provide(enabled.layer))
+    );
+    expect(
+      await Effect.runPromise(
+        loadGeoEngineFlags(scope).pipe(Effect.provide(disabled))
+      )
+    ).toEqual({ cursorEnabled: false, openCodeEnabled: false });
+    expect(
+      await Effect.runPromise(
+        loadGeoEngineFlags(scope).pipe(Effect.provide(enabled.layer))
+      )
+    ).toEqual({ cursorEnabled: true, openCodeEnabled: true });
+    expect(enabled.calls()).toBe(2);
+  });
+
   test("a warm lookup does not reach the flag provider", async () => {
     const provider = countingFlagProvider();
     const scope = organizationId();

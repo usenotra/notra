@@ -48,6 +48,14 @@ export async function dehydrateGeoOverviewQueries(
 
   // The remaining queries only mount on specific tabs (see
   // `useGeoOverviewPage`); prefetching them for another tab would be wasted.
+  if (input.activeTab === "journeys") {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.trafficJourneys.queryOptions({
+        input: input.trafficJourneys,
+      }),
+      queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
+    });
+  }
   if (input.activeTab === "visibility" || input.activeTab === "prompts") {
     void queryClient.prefetchQuery({
       ...dashboardOrpc.geo.promptResultSummaries.queryOptions({
