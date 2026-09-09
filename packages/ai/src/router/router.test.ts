@@ -8,6 +8,7 @@ import {
 } from "@notra/ai/constants/router";
 import type { ZdrMode } from "@notra/ai/types/router";
 
+import { createOpenRouterAdapter } from "./adapters/openrouter";
 import { createVercelAdapter } from "./adapters/vercel";
 import {
   GatewayCreditBalanceError,
@@ -907,7 +908,7 @@ describe("zdr: preferred", () => {
     );
     assert.equal(
       vercel.calls[0]?.options.providerOptions?.gateway?.disallowPromptTraining,
-      true
+      false
     );
     assert.equal(vercel.calls.length, 1);
     assert.equal(openrouter.calls.length, 0);
@@ -941,11 +942,11 @@ describe("zdr: preferred", () => {
       ),
       [true, undefined, undefined]
     );
-    assert.ok(
-      vercel.calls.every(
-        (call) =>
-          call.options.providerOptions?.gateway?.disallowPromptTraining === true
-      )
+    assert.deepEqual(
+      vercel.calls.map(
+        (call) => call.options.providerOptions?.gateway?.disallowPromptTraining
+      ),
+      [true, false, false]
     );
     await assert.rejects(
       async () =>
@@ -1119,4 +1120,122 @@ describe("classifyUpstreamFailure", () => {
     abort.name = "AbortError";
     assert.equal(classifyUpstreamFailure(abort), undefined);
   });
+});
+
+describe("non-enforced workspace privacy", () => {
+  test("none relaxes both gateways with the production policy", async () => {
+    const { router, vercel, openrouter } = createTestRouter({ plans });
+    for (const gateway of ["vercel", "openrouter"] as const) {
+      await router
+        .model(MODEL, { organizationId: PAID_ORG, gateway, zdr: "none" })
+        .doGenerate(callOptions());
+    }
+    assert.equal(
+      vercel?.calls[0]?.options.providerOptions?.gateway?.zeroDataRetention,
+      undefined
+    );
+    assert.equal(
+      vercel?.calls[0]?.options.providerOptions?.gateway
+        ?.disallowPromptTraining,
+      false
+    );
+    assert.deepEqual(
+      openrouter?.calls[0]?.options.providerOptions?.openrouter?.provider,
+      {
+        zdr: false,
+        data_collection: "allow",
+      }
+    );
+  });
+
+  test("preferred recovers from the Muse Spark rejection but required stays strict", async () => {
+    const vercel = createFakeAdapter({
+      id: "vercel",
+      onCall: (call) => {
+        if (call.options.providerOptions?.gateway?.disallowPromptTraining) {
+          throw httpError(
+            500,
+            "No providers that disallow prompt training available for model: meta/muse-spark-1.2. Providers considered: meta"
+          );
+        }
+      },
+    });
+    const { router } = createTestRouter({ plans, vercel, openrouter: null });
+    await router
+      .model(MODEL, {
+        organizationId: PAID_ORG,
+        gateway: "vercel",
+        zdr: "preferred",
+      })
+      .doGenerate(callOptions());
+    assert.deepEqual(
+      vercel.calls.map(
+        (call) => call.options.providerOptions?.gateway?.disallowPromptTraining
+      ),
+      [true, false]
+    );
+    await assert.rejects(
+      async () =>
+        await router
+          .model(MODEL, {
+            organizationId: PAID_ORG,
+            gateway: "vercel",
+            zdr: "required",
+          })
+          .doGenerate(callOptions()),
+      NoCompliantRouteError
+    );
+  });
+});
+
+test("relaxed OpenRouter calls override provider and model privacy defaults on the wire", async () => {
+  const adapter = createOpenRouterAdapter({
+    apiKey: "test-key",
+    fetch: async (_url, init) => {
+      const body = JSON.parse(String(init?.body));
+      assert.deepEqual(body.provider, { zdr: false, data_collection: "allow" });
+      return Response.json({
+        id: "test",
+        created: 0,
+        model: MODEL,
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "OK" },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      });
+    },
+  });
+  await adapter.createModel(MODEL).doGenerate({
+    ...callOptions(),
+    providerOptions: adapter.buildProviderOptions({
+      providerOptions: {},
+      router: {},
+      allowNonZdr: false,
+      relaxZdr: true,
+    }),
+  });
+});
+
+test("relaxed routes preserve explicit no-training restrictions", async () => {
+  const { router, vercel, openrouter } = createTestRouter({ plans });
+  await router
+    .model(MODEL, { gateway: "vercel", zdr: "none" })
+    .doGenerate(callOptions({ gateway: { disallowPromptTraining: true } }));
+  await router
+    .model(MODEL, { gateway: "openrouter", zdr: "none" })
+    .doGenerate(
+      callOptions({ openrouter: { provider: { data_collection: "deny" } } })
+    );
+  assert.equal(
+    vercel?.calls[0]?.options.providerOptions?.gateway?.disallowPromptTraining,
+    true
+  );
+  assert.deepEqual(
+    openrouter?.calls[0]?.options.providerOptions?.openrouter?.provider,
+    { zdr: false, data_collection: "deny" }
+  );
 });
