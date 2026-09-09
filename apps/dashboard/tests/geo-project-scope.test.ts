@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 
 import {
   geoHydrationInputs,
+  geoProjectRepairPath,
   geoRequestedProjectId,
   normalizeGeoProjectId,
 } from "@/utils/geo-hydration";
@@ -35,4 +36,17 @@ test("hydration keys use the server-resolved project for an empty param", () => 
   );
   expect(inputs.settings.projectId).toBe("server-project");
   expect(inputs.overview.projectId).toBe("server-project");
+});
+
+test("repair path drops the invalid project, keeps other params and sets the resolved one", () => {
+  expect(
+    geoProjectRepairPath(
+      "acme",
+      { project: "bad", tab: "prompts", range: ["7d", "30d"] },
+      "good"
+    )
+  ).toBe("/acme/geo?tab=prompts&range=7d&range=30d&project=good");
+  expect(geoProjectRepairPath("acme", { project: "bad" }, undefined)).toBe(
+    "/acme/geo"
+  );
 });

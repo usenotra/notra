@@ -28,6 +28,31 @@ export function geoRequestedProjectId(
   return normalizeGeoProjectId(firstSearchParam(search.project));
 }
 
+/**
+ * Path for the redirect that repairs an invalid `?project=`: drops the bad id,
+ * keeps every other search param and appends the validated project (if any).
+ */
+export function geoProjectRepairPath(
+  slug: string,
+  search: Record<string, string | string[] | undefined>,
+  projectId: string | undefined
+): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(search)) {
+    if (key === "project" || value === undefined) {
+      continue;
+    }
+    for (const entry of Array.isArray(value) ? value : [value]) {
+      query.append(key, entry);
+    }
+  }
+  if (projectId) {
+    query.set("project", projectId);
+  }
+  const suffix = query.toString();
+  return `/${encodeURIComponent(slug)}/geo${suffix ? `?${suffix}` : ""}`;
+}
+
 export function normalizeGeoProjectId(
   projectId: string | null | undefined
 ): string | undefined {

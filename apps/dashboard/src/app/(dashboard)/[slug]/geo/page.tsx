@@ -7,7 +7,10 @@ import { Suspense } from "react";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import type { GeoServerPageProps } from "@/types/geo-hydration";
-import { geoRequestedProjectId } from "@/utils/geo-hydration";
+import {
+  geoProjectRepairPath,
+  geoRequestedProjectId,
+} from "@/utils/geo-hydration";
 import { dehydrateGeoOverviewQueries } from "@/utils/geo-prefetch.server";
 
 import PageClient from "./page-client";
@@ -37,20 +40,7 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
   // The client reads the URL directly. Repair an invalid project before it can
   // override the validated server scope with a stale or foreign id.
   if (requestedProjectId && requestedProjectId !== projectId) {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(search)) {
-      if (key === "project" || value === undefined) {
-        continue;
-      }
-      for (const entry of Array.isArray(value) ? value : [value]) {
-        query.append(key, entry);
-      }
-    }
-    if (projectId) {
-      query.set("project", projectId);
-    }
-    const suffix = query.toString();
-    redirect(`/${encodeURIComponent(slug)}/geo${suffix ? `?${suffix}` : ""}`);
+    redirect(geoProjectRepairPath(slug, search, projectId));
   }
 
   return (
