@@ -13,11 +13,11 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useAggregateEvents } from "autumn-js/react";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
-import { UsageBreakdownChart } from "@/components/billing/usage-breakdown-chart";
 import { Button } from "@/components/button";
 import {
   IntegrationCardDither,
@@ -32,7 +32,6 @@ import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listene
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import type {
   FeatureData,
-  UsageBreakdownPoint,
   UsageLimitedFeatureRowProps,
   UsageRangeOption,
   UsageSectionBodyProps,
@@ -41,20 +40,31 @@ import {
   aiAnswersFooter,
   aiAnswersHint,
   aiAnswersValue,
+  creditsValue,
   featuresFromBalances,
   isRetentionFeature,
   limitedUsageFeatures,
   remainingCountLabel,
   unlimitedUsageFeatures,
+  usageBreakdownPoints,
   usageRetentionDays,
 } from "@/utils/billing-usage";
 import {
   formatCount,
-  formatDollars,
   formatPercent,
   remainingBarColor,
   remainingPercent,
 } from "@/utils/format";
+
+const UsageBreakdownChart = dynamic(
+  () =>
+    import("@/components/billing/usage-breakdown-chart").then(
+      (mod) => mod.UsageBreakdownChart
+    ),
+  {
+    loading: () => <Skeleton className="h-[280px] w-full rounded-lg" />,
+  }
+);
 
 function RemainingBar({
   label,
@@ -266,18 +276,7 @@ export function UsageSection() {
     },
   });
 
-  const chartData = useMemo((): UsageBreakdownPoint[] => {
-    if (!aggregatedList?.length) {
-      return [];
-    }
-    return aggregatedList.map((row) => {
-      const value = row.values?.[FEATURES.AI_ANSWERS];
-      return {
-        date: row.period,
-        ai_answers: typeof value === "number" ? value : 0,
-      };
-    });
-  }, [aggregatedList]);
+  const chartData = usageBreakdownPoints(aggregatedList);
 
   if (customerLoading && !customer) {
     return <UsageSectionSkeleton />;
@@ -332,6 +331,108 @@ export function UsageSection() {
   );
 }
 
+function UsageBalanceSection({
+  aiAnswersFeature,
+  aiAnswersRemaining,
+  aiCreditsFeature,
+  onOpenTopup,
+}: Pick<
+  UsageSectionBodyProps,
+  "aiAnswersFeature" | "aiAnswersRemaining" | "aiCreditsFeature" | "onOpenTopup"
+>) {
+  if (!aiAnswersFeature && !aiCreditsFeature) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold tracking-tight">Balance</h2>
+        <p className="text-muted-foreground max-w-prose text-sm text-pretty">
+          How much of each plan limit you have left this cycle.
+        </p>
+      </div>
+      <div className="grid items-stretch gap-4 sm:grid-cols-2">
+        {aiAnswersFeature ? (
+          <BalanceCard
+            accentColor={USAGE_ANSWERS_ACCENT}
+            footer={aiAnswersFooter(aiAnswersFeature, aiAnswersRemaining)}
+            hint={aiAnswersHint(aiAnswersFeature)}
+            remaining={aiAnswersFeature.unlimited ? null : aiAnswersRemaining}
+            title="AI Answers remaining"
+            value={aiAnswersValue(aiAnswersFeature)}
+          />
+        ) : null}
+        {aiCreditsFeature ? (
+          <BalanceCard
+            accentColor="#8b5cf6"
+            action={
+              <Button
+                aria-label="Top up credits"
+                onClick={onOpenTopup}
+                size="icon-sm"
+                variant="outline"
+              >
+                <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+              </Button>
+            }
+            footer="Credits extend usage beyond your plan limits."
+            title="Credits remaining"
+            value={creditsValue(aiCreditsFeature)}
+          />
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function UsageFeatureLimitsSection({
+  aiAnswersFeature,
+  hasRetentionFeature,
+  limitedFeatures,
+  retentionDays,
+  unlimitedFeatures,
+}: Pick<
+  UsageSectionBodyProps,
+  | "aiAnswersFeature"
+  | "hasRetentionFeature"
+  | "limitedFeatures"
+  | "retentionDays"
+  | "unlimitedFeatures"
+>) {
+  if (
+    limitedFeatures.length === 0 &&
+    !hasRetentionFeature &&
+    unlimitedFeatures.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold tracking-tight">Feature limits</h2>
+        <p className="text-muted-foreground max-w-prose text-sm text-pretty">
+          {aiAnswersFeature
+            ? "Other remaining quotas on your plan."
+            : "Remaining quotas on your plan."}
+        </p>
+      </div>
+      <div className="divide-y rounded-xl border">
+        {limitedFeatures.map((feature) => (
+          <UsageLimitedFeatureRow feature={feature} key={feature.id} />
+        ))}
+        {hasRetentionFeature ? (
+          <UsageRetentionRow retentionDays={retentionDays} />
+        ) : null}
+        {unlimitedFeatures.map((feature) => (
+          <UsageUnlimitedFeatureRow feature={feature} key={feature.id} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function UsageSectionBody({
   aiAnswersFeature,
   aiAnswersRemaining,
@@ -347,60 +448,14 @@ function UsageSectionBody({
   retentionDays,
   unlimitedFeatures,
 }: UsageSectionBodyProps) {
-  const showFeatureLimits =
-    limitedFeatures.length > 0 ||
-    hasRetentionFeature ||
-    unlimitedFeatures.length > 0;
-
   return (
     <div className="space-y-8">
-      {aiAnswersFeature || aiCreditsFeature ? (
-        <section className="space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">Balance</h2>
-            <p className="text-muted-foreground max-w-prose text-sm text-pretty">
-              How much of each plan limit you have left this cycle.
-            </p>
-          </div>
-          <div className="grid items-stretch gap-4 sm:grid-cols-2">
-            {aiAnswersFeature ? (
-              <BalanceCard
-                accentColor={USAGE_ANSWERS_ACCENT}
-                footer={aiAnswersFooter(aiAnswersFeature, aiAnswersRemaining)}
-                hint={aiAnswersHint(aiAnswersFeature)}
-                remaining={
-                  aiAnswersFeature.unlimited ? null : aiAnswersRemaining
-                }
-                title="AI Answers remaining"
-                value={aiAnswersValue(aiAnswersFeature)}
-              />
-            ) : null}
-            {aiCreditsFeature ? (
-              <BalanceCard
-                accentColor="#8b5cf6"
-                action={
-                  <Button
-                    aria-label="Top up credits"
-                    onClick={onOpenTopup}
-                    size="icon-sm"
-                    variant="outline"
-                  >
-                    <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
-                  </Button>
-                }
-                footer="Credits extend usage beyond your plan limits."
-                title="Credits remaining"
-                value={
-                  aiCreditsFeature.balance !== null
-                    ? formatDollars(aiCreditsFeature.balance)
-                    : "-"
-                }
-              />
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
+      <UsageBalanceSection
+        aiAnswersFeature={aiAnswersFeature}
+        aiAnswersRemaining={aiAnswersRemaining}
+        aiCreditsFeature={aiCreditsFeature}
+        onOpenTopup={onOpenTopup}
+      />
       {hasAiAnswers ? (
         <UsageBreakdownChart
           data={chartData}
@@ -409,32 +464,13 @@ function UsageSectionBody({
           range={range}
         />
       ) : null}
-
-      {showFeatureLimits ? (
-        <section className="space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Feature limits
-            </h2>
-            <p className="text-muted-foreground max-w-prose text-sm text-pretty">
-              {aiAnswersFeature
-                ? "Other remaining quotas on your plan."
-                : "Remaining quotas on your plan."}
-            </p>
-          </div>
-          <div className="divide-y rounded-xl border">
-            {limitedFeatures.map((feature) => (
-              <UsageLimitedFeatureRow feature={feature} key={feature.id} />
-            ))}
-            {hasRetentionFeature ? (
-              <UsageRetentionRow retentionDays={retentionDays} />
-            ) : null}
-            {unlimitedFeatures.map((feature) => (
-              <UsageUnlimitedFeatureRow feature={feature} key={feature.id} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <UsageFeatureLimitsSection
+        aiAnswersFeature={aiAnswersFeature}
+        hasRetentionFeature={hasRetentionFeature}
+        limitedFeatures={limitedFeatures}
+        retentionDays={retentionDays}
+        unlimitedFeatures={unlimitedFeatures}
+      />
     </div>
   );
 }

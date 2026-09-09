@@ -1,8 +1,17 @@
 import { FEATURES } from "@notra/ai/billing/features";
 
 import { USAGE_FEATURE_LABELS, USAGE_FEATURE_ORDER } from "@/constants/billing";
-import type { FeatureData } from "@/types/hooks/billing";
-import { formatCount, formatFullDate, formatPercent } from "@/utils/format";
+import type {
+  FeatureData,
+  UsageAggregateRow,
+  UsageBreakdownPoint,
+} from "@/types/hooks/billing";
+import {
+  formatCount,
+  formatDollars,
+  formatFullDate,
+  formatPercent,
+} from "@/utils/format";
 
 type BalanceRecord = {
   remaining?: number | null;
@@ -144,6 +153,25 @@ export function aiAnswersFooter(feature: FeatureData, remaining: number) {
     return "Included in your plan without a usage cap.";
   }
   return remainingFooter(remaining, feature.nextResetAt);
+}
+
+export function usageBreakdownPoints(
+  rows: readonly UsageAggregateRow[] | null | undefined
+): UsageBreakdownPoint[] {
+  if (!rows?.length) {
+    return [];
+  }
+  return rows.map((row) => {
+    const value = row.values?.[FEATURES.AI_ANSWERS];
+    return {
+      date: row.period,
+      ai_answers: typeof value === "number" ? value : 0,
+    };
+  });
+}
+
+export function creditsValue(feature: FeatureData) {
+  return feature.balance !== null ? formatDollars(feature.balance) : "-";
 }
 
 export function remainingCountLabel(feature: FeatureData) {

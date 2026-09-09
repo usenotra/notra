@@ -24,6 +24,11 @@ export interface UsageBreakdownPoint {
   ai_answers: number;
 }
 
+export interface UsageAggregateRow {
+  period: number;
+  values?: Record<string, number | undefined>;
+}
+
 export interface UsageBreakdownChartProps {
   data: UsageBreakdownPoint[];
   loading: boolean;

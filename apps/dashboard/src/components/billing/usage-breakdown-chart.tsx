@@ -1,22 +1,20 @@
 "use client";
 
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  Rectangle,
+  XAxis,
+  YAxis,
 } from "@notra/ui/components/ui/chart";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useId } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Rectangle,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import {
   USAGE_ANSWERS_CHART_CONFIG,
@@ -90,7 +88,6 @@ function UsageBreakdownChartBody({
       <BarChart
         accessibilityLayer
         data={data}
-        isAnimationActive={false}
         margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
       >
         <defs>
