@@ -54,9 +54,8 @@ export function GeoScanControlsProvider({
       toast.success("Scan started. Follow its progress on the Prompts page.");
     } catch {
       // The mutation reports the error; keep the selection available for retry.
-    } finally {
-      submitting.current = false;
     }
+    submitting.current = false;
   }
 
   return (

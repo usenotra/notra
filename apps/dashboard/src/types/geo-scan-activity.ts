@@ -1,3 +1,4 @@
+import type { GeoPromptReceiptView } from "@notra/geo-core/types/geo";
 import type {
   GeoScanResultSummary,
   GeoScanRunSummary,
@@ -5,9 +6,20 @@ import type {
 import type { ReactNode } from "react";
 
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
+import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
 
 export interface GeoScanActivityProps {
   organizationId: string;
+}
+
+export interface GeoScanActivityStatusProps {
+  run: GeoScanRunSummary | undefined;
+}
+
+export interface GeoScanAnswerContentProps {
+  state: GeoPromptDetailState;
+  view: GeoPromptReceiptView;
+  onRetry: () => void;
 }
 
 export interface GeoScanRequest {

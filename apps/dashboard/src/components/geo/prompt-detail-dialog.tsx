@@ -44,12 +44,9 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import {
-  useGeoCompetitors,
-  useGeoPromptHistory,
-  useGeoPromptResultDetail,
-} from "@/lib/hooks/use-geo";
+import { useGeoCompetitors } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import type {
   PromptAnswerPageProps,
   PromptDetailDialogProps,
@@ -59,16 +56,11 @@ import type {
   PromptAnswerHeaderProps,
 } from "@/types/geo-prompt-detail";
 import { sharedEngineAnswerMode } from "@/utils/geo-charts";
-import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
-import {
-  latestPromptResults,
-  promptHistoryForEngine,
-  promptResultFromHistoryCheck,
-} from "@/utils/geo-prompt-history";
+import { promptResultFromHistoryCheck } from "@/utils/geo-prompt-history";
 
 const INSTANT = { duration: 0 } as const;
 const SLIDE_PX = 18;
@@ -262,53 +254,38 @@ function PromptAnswerPage({
   scanId,
   initialLanguage,
 }: PromptAnswerPageProps) {
-  const [language, setLanguage] = useState(initialLanguage ?? "");
+  const {
+    history,
+    scanPromptId,
+    languages,
+    selectedLanguage,
+    setLanguage,
+    results,
+    engines,
+    engine,
+    setEngine,
+    active,
+    detail,
+    detailState,
+    engineHistory,
+    promptText,
+  } = usePromptAnswerSelection({
+    row,
+    organizationId,
+    open,
+    scanId,
+    initialLanguage,
+    initialEngine,
+  });
   const tagsInputId = useId();
   const { prompts, pendingPromptIds, setPromptTags } =
     useGeoPromptsDb(organizationId);
   const tags = prompts.find((prompt) => prompt.id === row.id)?.tags ?? row.tags;
-  const scanPromptId = row.results[0]?.promptId ?? row.id;
-  const history = useGeoPromptHistory(organizationId, scanPromptId, {
-    enabled: open,
-    scanId,
-  });
-  const scanChecks = (history.data?.checks ?? []).filter(
-    (check) => !scanId || check.scanId === scanId
-  );
-  const languages = [...new Set(scanChecks.map((check) => check.language))];
-  const selectedLanguage = languages.includes(language)
-    ? language
-    : languages[0];
-  const visibleChecks = scanId
-    ? scanChecks.filter((check) => check.language === selectedLanguage)
-    : scanChecks;
-  const results = latestPromptResults(
-    scanId && history.data ? [] : row.results,
-    visibleChecks,
-    scanPromptId,
-    row.prompt
-  );
-  const engines = results.map((result) => result.engine);
-  const [engine, setEngine] = useState(
-    () =>
-      engines.find((candidate) => candidate === initialEngine) ??
-      engines[0] ??
-      ""
-  );
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
   const [direction, setDirection] = useState(1);
   const reduceMotion = useReducedMotion();
-  const active =
-    results.find((result) => result.engine === engine) ?? results[0] ?? null;
-  const checkId = open ? (active?.checkId ?? null) : null;
-  const detail = useGeoPromptResultDetail(organizationId, checkId);
-  const detailState = geoPromptDetailState(
-    active?.checkId ?? null,
-    detail.data,
-    detail.isError
-  );
   const openedRef = useRef(false);
   const activeEngine = active?.engine ?? null;
   const resultCount = results.length;
@@ -330,9 +307,6 @@ function PromptAnswerPage({
     });
   }, [activeEngine, open, resultCount, row.id, surface]);
   const competitors = useGeoCompetitors(organizationId);
-  const engineHistory = active
-    ? promptHistoryForEngine(visibleChecks, active.engine)
-    : [];
   const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
 
   function selectEngine(next: string, nextDirection: number) {
@@ -376,9 +350,7 @@ function PromptAnswerPage({
       side="right"
     >
       <PromptAnswerHeader
-        promptText={
-          scanId ? (detail.data?.result?.prompt ?? row.prompt) : row.prompt
-        }
+        promptText={promptText}
         onPrepareScan={onPrepareScan}
         organizationId={organizationId}
         active={active}
@@ -434,11 +406,7 @@ function PromptAnswerPage({
                     void detail.refetch();
                   }}
                   onSelectCheck={openHistoryAnswer}
-                  prompt={
-                    scanId
-                      ? (detail.data?.result?.prompt ?? row.prompt)
-                      : row.prompt
-                  }
+                  prompt={promptText}
                   scanPromptId={scanPromptId}
                   selectedCheck={selectedCheck}
                   view={view}

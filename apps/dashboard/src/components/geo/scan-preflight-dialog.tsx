@@ -39,6 +39,7 @@ import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { cn } from "@/lib/utils";
 import type { ScanPreflightDialogProps } from "@/types/geo";
+import type { ScanPreflightHeaderProps } from "@/types/geo-scan-size";
 import { engineAnswerMode, formatEngineFamily } from "@/utils/geo-charts";
 import {
   formatScanPreflightLastScan,
@@ -106,6 +107,51 @@ function ScanPreflightEngineRow({
   );
 }
 
+function ScanPreflightHeader({
+  prompt,
+  confirmationOnly,
+  warningSeverity,
+}: ScanPreflightHeaderProps) {
+  const title = prompt ? "Run prompt scan" : GEO_SCAN_PREFLIGHT_TITLE;
+  const description = prompt
+    ? "Choose one or more tracked models to answer this prompt in your configured languages."
+    : GEO_SCAN_PREFLIGHT_BODY;
+  return (
+    <ResponsiveDialogHeader>
+      <ResponsiveDialogTitle className="flex items-center gap-2">
+        {confirmationOnly ? "Start this scan?" : title}
+        {warningSeverity ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span
+                  aria-label={GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
+                  className={cn(
+                    "inline-flex size-3.5 cursor-help items-center justify-center rounded-full text-[10px] leading-none font-bold",
+                    warningSeverity === "danger"
+                      ? "bg-destructive text-destructive-foreground"
+                      : "bg-warning text-warning-foreground"
+                  )}
+                />
+              }
+            >
+              !
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              {GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+      </ResponsiveDialogTitle>
+      <ResponsiveDialogDescription>
+        {confirmationOnly
+          ? "Review the selected models and scan size before starting."
+          : description}
+      </ResponsiveDialogDescription>
+    </ResponsiveDialogHeader>
+  );
+}
+
 export function ScanPreflightDialog({
   organizationId,
   open,
@@ -124,10 +170,6 @@ export function ScanPreflightDialog({
   const selected = engines.filter((engine) => !deselected.has(engine));
   const selectedCount = selected.length;
   const canRun = selectedCount > 0;
-  const title = prompt ? "Run prompt scan" : GEO_SCAN_PREFLIGHT_TITLE;
-  const description = prompt
-    ? "Choose one or more tracked models to answer this prompt in your configured languages."
-    : GEO_SCAN_PREFLIGHT_BODY;
 
   const { scanSize, warningSeverity } = useGeoScanEstimate({
     organizationId,
@@ -157,38 +199,11 @@ export function ScanPreflightDialog({
   return (
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-md">
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle className="flex items-center gap-2">
-            {confirmationOnly ? "Start this scan?" : title}
-            {warningSeverity ? (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span
-                      aria-label={GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
-                      className={cn(
-                        "inline-flex size-3.5 cursor-help items-center justify-center rounded-full text-[10px] leading-none font-bold",
-                        warningSeverity === "danger"
-                          ? "bg-destructive text-destructive-foreground"
-                          : "bg-warning text-warning-foreground"
-                      )}
-                    />
-                  }
-                >
-                  !
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  {GEO_SCAN_SIZE_MESSAGES[warningSeverity]}
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {confirmationOnly
-              ? "Review the selected models and scan size before starting."
-              : description}
-          </ResponsiveDialogDescription>
-        </ResponsiveDialogHeader>
+        <ScanPreflightHeader
+          prompt={prompt}
+          confirmationOnly={confirmationOnly}
+          warningSeverity={warningSeverity}
+        />
         {prompt ? <p className="text-sm font-medium">{prompt}</p> : null}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-lg px-2 py-1 text-xs tabular-nums">

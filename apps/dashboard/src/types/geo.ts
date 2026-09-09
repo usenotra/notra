@@ -214,6 +214,13 @@ export interface UseGeoSavedViewsResult {
   removeView: (viewId: string) => void;
 }
 
+export interface PromptTagsActionDialogProps {
+  target: PromptTagsDialogTarget | null;
+  suggestions: string[];
+  onConfirm: (tags: string[]) => void;
+  onClose: () => void;
+}
+
 export interface PromptTagsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

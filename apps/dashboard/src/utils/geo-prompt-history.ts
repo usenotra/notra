@@ -21,6 +21,24 @@ export function promptHistoryForEngine(
     .sort((left, right) => right.capturedAt.localeCompare(left.capturedAt));
 }
 
+export function promptHistoryForScanLanguage(
+  checks: readonly GeoPromptHistoryCheck[],
+  scanId: string | undefined,
+  language: string
+) {
+  const scanChecks = checks.filter(
+    (check) => !scanId || check.scanId === scanId
+  );
+  const languages = [...new Set(scanChecks.map((check) => check.language))];
+  const selectedLanguage = languages.includes(language)
+    ? language
+    : languages[0];
+  const visibleChecks = scanId
+    ? scanChecks.filter((check) => check.language === selectedLanguage)
+    : scanChecks;
+  return { languages, selectedLanguage, visibleChecks };
+}
+
 export function promptPositionLabel(position: number | null): string {
   return position === null
     ? GEO_PROMPT_RECEIPT_LABELS.notRanked

@@ -20,8 +20,12 @@ import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-sw
 import { GEO_PROMPT_DEFAULT_FILTERS } from "@/constants/geo-prompts";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
-import type { GeoScanAnswerProps } from "@/types/geo-scan-activity";
+import type {
+  GeoScanAnswerProps,
+  GeoScanAnswerContentProps,
+} from "@/types/geo-scan-activity";
 import { formatEngineWithMode } from "@/utils/geo-charts";
+import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import { buildPromptTableRows } from "@/utils/geo-prompts";
 
 const AnswerThread = dynamic(() =>
@@ -29,6 +33,30 @@ const AnswerThread = dynamic(() =>
     (module) => module.GeoPromptAnswerThread
   )
 );
+
+function ScanAnswerContent({
+  state,
+  view,
+  onRetry,
+}: GeoScanAnswerContentProps) {
+  if (state.status !== "ready") {
+    return <PromptDetailStatus status={state.status} onRetry={onRetry} />;
+  }
+  const { result } = state;
+  if (view === "raw") {
+    return <AnswerThread prompt={result.prompt} result={result} />;
+  }
+  return (
+    <PromptReceiptAnalysis
+      history={[]}
+      isHistoryLoading={false}
+      onSelectCheck={() => {}}
+      prompt={result.prompt}
+      result={result}
+      showHistory={false}
+    />
+  );
+}
 
 export function ScanAnswerSheet({
   organizationId,
@@ -101,43 +129,13 @@ export function ScanAnswerSheet({
             </div>
           ) : null}
         </SheetHeader>
-        {detail.isPending ? (
-          <PromptDetailStatus
-            onRetry={() => {
-              void detail.refetch();
-            }}
-            status="loading"
-          />
-        ) : null}
-        {detail.isError ? (
-          <PromptDetailStatus
-            onRetry={() => {
-              void detail.refetch();
-            }}
-            status="error"
-          />
-        ) : null}
-        {!detail.isPending && !detail.isError && !result ? (
-          <PromptDetailStatus
-            onRetry={() => {
-              void detail.refetch();
-            }}
-            status="missing"
-          />
-        ) : null}
-        {result && view === "analysis" ? (
-          <PromptReceiptAnalysis
-            history={[]}
-            isHistoryLoading={false}
-            onSelectCheck={() => {}}
-            prompt={result.prompt}
-            result={result}
-            showHistory={false}
-          />
-        ) : null}
-        {result && view === "raw" ? (
-          <AnswerThread prompt={result.prompt} result={result} />
-        ) : null}
+        <ScanAnswerContent
+          state={geoPromptDetailState(checkId, detail.data, detail.isError)}
+          view={view}
+          onRetry={() => {
+            void detail.refetch();
+          }}
+        />
       </SheetContent>
     </Sheet>
   );

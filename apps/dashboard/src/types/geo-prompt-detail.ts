@@ -6,7 +6,17 @@ import type {
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
 
-import type { GeoPromptTableRow } from "@/types/geo";
+import type { GeoPromptTableRow, PromptAnswerPageProps } from "@/types/geo";
+
+export type PromptAnswerSelectionInput = Pick<
+  PromptAnswerPageProps,
+  | "row"
+  | "organizationId"
+  | "open"
+  | "scanId"
+  | "initialLanguage"
+  | "initialEngine"
+>;
 
 export interface PromptCopyButtonProps {
   prompt: string;

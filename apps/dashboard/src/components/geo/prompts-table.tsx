@@ -49,7 +49,7 @@ import {
 } from "@/components/geo/prompt-badges";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import { PromptSavedViewsMenu } from "@/components/geo/prompt-saved-views-menu";
-import { PromptTagsDialog } from "@/components/geo/prompt-tags-dialog";
+import { PromptTagsActionDialog } from "@/components/geo/prompt-tags-action-dialog";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import {
@@ -375,9 +375,6 @@ export function PromptsTable({
     },
   ];
 
-  const tagsDialogTarget = tagsTarget?.rows[0] ?? null;
-  const tagsDialogIsEdit = tagsTarget?.mode === "edit";
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -579,31 +576,11 @@ export function PromptsTable({
         }}
         open={deleteOpen}
       />
-      <PromptTagsDialog
-        confirmLabel={
-          tagsDialogIsEdit
-            ? GEO_PROMPT_TAGS_COPY.confirm
-            : GEO_PROMPT_TAGS_COPY.bulkConfirm
-        }
-        description={
-          tagsDialogIsEdit
-            ? GEO_PROMPT_TAGS_COPY.editDescription
-            : GEO_PROMPT_TAGS_COPY.bulkDescription
-        }
-        initialTags={tagsDialogIsEdit ? (tagsDialogTarget?.tags ?? []) : []}
+      <PromptTagsActionDialog
+        target={tagsTarget}
         onConfirm={applyTags}
-        onOpenChange={(openDialog) => {
-          if (!openDialog) {
-            setTagsTarget(null);
-          }
-        }}
-        open={tagsTarget !== null}
+        onClose={() => setTagsTarget(null)}
         suggestions={tagsInUse}
-        title={
-          tagsDialogIsEdit
-            ? GEO_PROMPT_TAGS_COPY.edit
-            : GEO_PROMPT_TAGS_COPY.bulkTitle
-        }
       />
       <PromptDetailDialog
         isScanning={isScanning}
