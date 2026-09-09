@@ -1,0 +1,108 @@
+apps/dashboard/src/app/(dashboard)/[slug]/settings/usage/page.tsx
+  s_2c98e062b317b2::t_91612386856cbc 1-14
+apps/dashboard/src/components/billing/usage-section.tsx
+  s_2c98e062b317b2::t_6c3d09343e23d9 217
+  s_2c98e062b317b2::t_afa285c9548c77 124
+  s_2c98e062b317b2::t_00fbfc13c81d62 235
+  s_2c98e062b317b2::t_1f226a2f588360 109,111-115,117,122-123,125-132
+  s_2c98e062b317b2::t_75fc3e4934c123 116
+  s_2c98e062b317b2::t_1ee4e97f22eb8b 14
+  s_2c98e062b317b2::t_2fc12266966e1e 304
+  s_2c98e062b317b2::t_8ac0e4119307ea 110
+  s_2c98e062b317b2::t_cc4dd3c1745f5f 360
+  s_2c98e062b317b2::t_4d2a22ec2a4828 149-151
+  s_2c98e062b317b2::t_702ee025a7cb67 27
+  s_2c98e062b317b2::t_332f09a337d253 365
+  s_2c98e062b317b2::t_3eb08ce7dac249 386
+  s_2c98e062b317b2::t_8118137cc04577 263-266
+  s_2c98e062b317b2::t_67e3c31f6bf7af 380,388
+  s_2c98e062b317b2::t_d54363f740ef42 368
+  s_2c98e062b317b2::t_786f975984c6e2 404-410
+apps/dashboard/src/components/command-palette/registry.ts
+  s_2c98e062b317b2::t_37775d9b5aef33 286,293-300
+apps/dashboard/src/components/billing/usage-breakdown-chart.tsx
+  s_2c98e062b317b2::t_5d98273eef4b87 10
+  s_2c98e062b317b2::t_4182440151be3d 11,37,40,57-72,96-109,151
+  s_2c98e062b317b2::t_d387d5fdafe380 12-19
+  s_2c98e062b317b2::t_2bc449b298ac21 38
+  s_2c98e062b317b2::t_6d4e6ac4a9957c 148
+  s_2c98e062b317b2::t_29786f4ac2fb02 93
+  s_2c98e062b317b2::t_6a08e4049bd0a0 144,152
+  s_2c98e062b317b2::t_b9830a742be035 39
+  s_2c98e062b317b2::t_48fec3821f313f 23
+  s_2c98e062b317b2::t_0fef06bc6504c8 135,147,149,153
+  s_2c98e062b317b2::t_cc06fffa0f10aa 49
+packages/ui/src/components/ui/title-card.tsx
+  s_2c98e062b317b2::t_99f9bab4dcc369 71
+  s_2c98e062b317b2::t_83d6f40a2c67f1 16
+  s_2c98e062b317b2::t_2cec4df4fc8ae5 32
+  s_2c98e062b317b2::t_6bcd492b2490d3 56-58
+apps/dashboard/src/types/hooks/billing.ts
+  s_2c98e062b317b2::t_a457264310d1a5 16
+apps/dashboard/src/types/settings/modal.ts
+  s_2c98e062b317b2::t_25845bde33d368 11
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/usage/page.tsx
+  s_2c98e062b317b2::t_b625c583d7b20e 5,7-9,11,13
+apps/dashboard/src/utils/settings-path.ts
+  s_2c98e062b317b2::t_3a25d5be5b9650 50
+apps/dashboard/src/utils/billing-usage.ts
+  s_2c98e062b317b2::t_ba523848e6016e 18-21
+  s_2c98e062b317b2::t_da13f78dc1878d 3
+  s_2c98e062b317b2::t_96c8d35af356b2 66
+  s_2c98e062b317b2::t_a6950a6f198292 92-98
+apps/dashboard/src/utils/format.ts
+  ai_agent 8-23,53-71
+apps/dashboard/src/components/settings/panes/billing-pane.tsx
+  s_2c98e062b317b2::t_d13d7be27d1775 14,340
+  s_2c98e062b317b2::t_e468e70ea488b3 319-324,326-339,341-347,350-355,357,359-362,364-370
+  s_2c98e062b317b2::t_023e0e067a0deb 116
+  s_2c98e062b317b2::t_c4f045650b757f 17
+  s_2c98e062b317b2::t_015ba8bad7f96c 318,325,356,371
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/page.tsx
+  s_2c98e062b317b2::t_4c2fec54f89244 4,16
+  s_2c98e062b317b2::t_0daf117904a4fe 17-19
+apps/dashboard/src/components/settings/settings-modal.tsx
+  s_2c98e062b317b2::t_2c826f6ff2b3e6 137-138
+  s_2c98e062b317b2::t_ac369d5a730744 94-100
+packages/ui/src/components/ui/tabs.tsx
+  s_2c98e062b317b2::t_71e0702abff6bf 64
+apps/dashboard/src/constants/settings.ts
+  s_2c98e062b317b2::t_3596429267ebb1 261-262
+  s_2c98e062b317b2::t_d891fb9876aa3e 5
+  s_2c98e062b317b2::t_9af797657f626a 244-245
+  s_2c98e062b317b2::t_5f14ad5e4a2ea7 127-128,140-152
+  s_2c98e062b317b2::t_aa3fe94280c1a1 28
+  s_2c98e062b317b2::t_5de33dfc1312d8 281
+apps/dashboard/src/constants/billing.ts
+  s_2c98e062b317b2::t_f3c6616b954dce 194,196
+  s_2c98e062b317b2::t_8c6b4af2be9295 172-192
+  s_2c98e062b317b2::t_fd4dd27efffb4d 195,200
+  s_2c98e062b317b2::t_0381a4c34695a7 157
+apps/dashboard/src/lib/hooks/use-settings-modal.ts
+  s_2c98e062b317b2::t_f9e43e6d5379a6 2,4-8,18-19,25-38
+apps/dashboard/src/components/dashboard/header.tsx
+  s_2c98e062b317b2::t_6c18ded4c0153d 54-55
+apps/dashboard/src/utils/development-autumn.ts
+  s_2c98e062b317b2::t_1919360436f8ae 126-130
+  s_2c98e062b317b2::t_3c6c44aed04bca 65-67
+  s_2c98e062b317b2::t_d4c632fe08f393 5-17,60-64,68-89,93-94,96,98-99,101,104-125,131-158,162,167,174-176
+  s_2c98e062b317b2::t_0264264a810286 90-92,95,97,100,102-103
+apps/dashboard/src/components/settings/panes/usage-pane.tsx
+  s_2c98e062b317b2::t_a6090b926a4e74 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bcea3cbf356bd2bf9119c86224560ae93313ddbb",
+  "prompts": {},
+  "sessions": {
+    "s_2c98e062b317b2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "badc4013-4dd0-49d5-b214-d3bb90e86f27",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
