@@ -11,6 +11,7 @@ import {
 import { useId } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
+import { SentimentFamilyList } from "@/components/geo/sentiment-family-list";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_CHART_CONFIG,
@@ -47,7 +48,7 @@ export function BrandSentimentCard({
       }
       variant="table"
       className="h-full"
-      bodyClassName="flex flex-col gap-3"
+      bodyClassName="flex flex-col gap-6 sm:p-6"
     >
       <span id={descriptionId} className="sr-only">
         {SENTIMENT_SCORE_HINT}
@@ -67,44 +68,55 @@ export function BrandSentimentCard({
       ) : null}
       {query.isSuccess ? (
         <>
-          <p className="text-3xl font-medium tabular-nums">
-            {query.data.summary.score === null
-              ? "—"
-              : SENTIMENT_SCORE_FORMAT.format(query.data.summary.score)}{" "}
-            <span className="text-muted-foreground text-sm font-normal">
-              / 100
-            </span>
-          </p>
-          {query.data.summary.score === null ? (
-            <p className="text-muted-foreground text-sm">
-              No rated mentions in this period.
-            </p>
-          ) : (
-            <EChartsAreaChart
-              animation={false}
-              className="h-28 w-full"
-              config={SENTIMENT_CHART_CONFIG}
-              curveType="linear"
-              data={query.data.points.map(({ day, score }) => ({ day, score }))}
-              xDataKey="day"
-            >
-              <EChartsAreaChart.XAxis dataKey="day" />
-              <EChartsAreaChart.Area
-                dataKey="score"
-                gapMissing
-                variant="gradient"
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-center sm:gap-6">
+            <div className="space-y-2">
+              <h2 className="text-muted-foreground text-sm">Overall score</h2>
+              <p className="text-3xl font-medium tabular-nums">
+                {query.data.summary.score === null
+                  ? "—"
+                  : SENTIMENT_SCORE_FORMAT.format(
+                      query.data.summary.score
+                    )}{" "}
+                <span className="text-muted-foreground text-sm font-normal">
+                  / 100
+                </span>
+              </p>
+            </div>
+            {query.data.summary.score === null ? (
+              <p className="text-muted-foreground text-sm">
+                No rated mentions in this period.
+              </p>
+            ) : (
+              <EChartsAreaChart
+                animation={false}
+                className="h-36 w-full"
+                config={SENTIMENT_CHART_CONFIG}
+                curveType="linear"
+                data={query.data.points.map(({ day, score }) => ({
+                  day,
+                  score,
+                }))}
+                xDataKey="day"
               >
-                <EChartsAreaChart.Dot />
-              </EChartsAreaChart.Area>
-              <EChartsAreaChart.Tooltip
-                hideZeros={false}
-                labelKey="day"
-                valueFormatter={(value) =>
-                  `${SENTIMENT_SCORE_FORMAT.format(value)} / 100`
-                }
-              />
-            </EChartsAreaChart>
-          )}
+                <EChartsAreaChart.XAxis dataKey="day" />
+                <EChartsAreaChart.Area
+                  dataKey="score"
+                  gapMissing
+                  variant="gradient"
+                >
+                  <EChartsAreaChart.Dot />
+                </EChartsAreaChart.Area>
+                <EChartsAreaChart.Tooltip
+                  hideZeros={false}
+                  labelKey="day"
+                  valueFormatter={(value) =>
+                    `${SENTIMENT_SCORE_FORMAT.format(value)} / 100`
+                  }
+                />
+              </EChartsAreaChart>
+            )}
+          </div>
+          <SentimentFamilyList engines={query.data.engines} />
         </>
       ) : null}
       {isScanning ? (

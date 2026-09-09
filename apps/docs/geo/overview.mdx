@@ -142,7 +142,13 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 
 ### Brand Sentiment
 
-The **Brand Sentiment** dashboard tab shows a compact 0–100 score and daily trend.
+The **Brand Sentiment** dashboard tab shows the overall 0–100 score and daily trend,
+followed by compact **AI model families** rows. Each row shows the family's logo,
+name, a score bar and its score. Families follow the standard GEO brand order,
+with unlisted families sorted by name, rather than being ranked by score.
+Model and search-mode counts are combined within each family before scoring.
+An unrated family shows a dash with no bar; an all-negative family scores 0.
+These rows are read-only summaries for the selected project and date range.
 It replaces the dashboard's former Prompts tab. Open it directly with `?tab=sentiment`.
 Legacy `?tab=prompts` links fall back to **Visibility**. Prompt management remains
 on the standalone `/geo/prompts` page.

@@ -8,9 +8,11 @@ export const SENTIMENT_SCORE_HINT =
 export const SENTIMENT_SCORE_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
 });
+export const SENTIMENT_FAMILY_ORDER = Object.keys(GEO_BRAND_LABELS);
 export const SENTIMENT_CHART_CONFIG: ChartConfig = {
   score: {
     label: "Sentiment score",
     colors: seriesColors(CHART_PRIMARY_COLOR),
   },
 };
+import { GEO_BRAND_LABELS } from "@notra/geo-core/constants/geo";
