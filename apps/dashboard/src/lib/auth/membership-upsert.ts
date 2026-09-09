@@ -47,38 +47,45 @@ async function upsertMembershipAtomically(
     });
 }
 
-/**
- * Pre-0083 path: read then insert/update. Not race-safe, but it is exactly the
- * behaviour shipped before the unique index existed.
- */
+/** Pre-0083 path: serialize reads and writes for each membership. */
 async function upsertMembershipReadThenWrite(
   input: MembershipUpsertInput
 ): Promise<void> {
-  const existing = await db.query.members.findFirst({
-    where: and(
-      eq(members.userId, input.userId),
-      eq(members.organizationId, input.organizationId)
-    ),
-    columns: { id: true, role: true },
-  });
+  await db.transaction(
+    async (tx) => {
+      // Lock even when no row exists; a row lock cannot protect the first insert.
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${input.organizationId}), hashtext(${input.userId}))`
+      );
 
-  if (!existing) {
-    await db.insert(members).values({
-      id: crypto.randomUUID(),
-      organizationId: input.organizationId,
-      userId: input.userId,
-      role: input.role,
-      createdAt: input.createdAt,
-    });
-    return;
-  }
+      const existing = await tx.query.members.findFirst({
+        where: and(
+          eq(members.userId, input.userId),
+          eq(members.organizationId, input.organizationId)
+        ),
+        columns: { id: true, role: true },
+      });
 
-  if (existing.role !== input.role && existing.role !== "owner") {
-    await db
-      .update(members)
-      .set({ role: input.role })
-      .where(eq(members.id, existing.id));
-  }
+      if (!existing) {
+        await tx.insert(members).values({
+          id: crypto.randomUUID(),
+          organizationId: input.organizationId,
+          userId: input.userId,
+          role: input.role,
+          createdAt: input.createdAt,
+        });
+        return;
+      }
+
+      if (existing.role !== input.role && existing.role !== "owner") {
+        await tx
+          .update(members)
+          .set({ role: input.role })
+          .where(eq(members.id, existing.id));
+      }
+    },
+    { isolationLevel: "read committed" }
+  );
 }
 
 /**
