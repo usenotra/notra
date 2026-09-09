@@ -1,8 +1,12 @@
-import { ADDONS, LEGACY_PLANS, PLANS } from "@notra/ai/billing/features";
+import {
+  ADDONS,
+  FEATURES,
+  LEGACY_PLANS,
+  PLANS,
+} from "@notra/ai/billing/features";
+import type { ChartConfig } from "@notra/ui/components/ui/chart";
 
 import type { ProductFeature } from "@/types/hooks/billing";
-
-export const BILLING_SECTION_VALUES = ["billing", "usage"] as const;
 
 export const BILLING_PRICE_REGEX = /^\d+([.,]\d+)?$/;
 
@@ -149,3 +153,50 @@ export const ZDR_CONSENT_CONFIRM = "Enable";
 export const ZDR_CONSENT_CANCEL = "Not now";
 
 export const AUTUMN_ORGANIZATION_HEADER = "x-notra-organization";
+
+export const USAGE_RANGES = ["7d", "30d", "90d"] as const;
+
+export const USAGE_RANGE_TAB_LABELS: Record<
+  (typeof USAGE_RANGES)[number],
+  string
+> = {
+  "7d": "7D",
+  "30d": "30D",
+  "90d": "90D",
+};
+
+export const USAGE_FEATURE_ORDER: readonly string[] = [
+  FEATURES.AI_ANSWERS,
+  FEATURES.IMAGE_GENERATIONS,
+  FEATURES.LONG_FORM_POSTS,
+  FEATURES.SOCIAL_POSTS,
+  FEATURES.PROJECTS,
+  FEATURES.REFERENCES,
+  FEATURES.TEAM_MEMBERS,
+  FEATURES.WORKFLOWS,
+  FEATURES.INTEGRATIONS,
+];
+
+export const USAGE_FEATURE_LABELS: Record<string, string> = {
+  [FEATURES.AI_ANSWERS]: "AI answers",
+  [FEATURES.AI_CREDITS]: "Credits",
+  [FEATURES.IMAGE_GENERATIONS]: "Image generations",
+  [FEATURES.LONG_FORM_POSTS]: "Long-form posts",
+  [FEATURES.SOCIAL_POSTS]: "Social posts",
+  [FEATURES.PROJECTS]: "Projects",
+  [FEATURES.REFERENCES]: "References",
+  [FEATURES.TEAM_MEMBERS]: "Team members",
+  [FEATURES.WORKFLOWS]: "Workflows",
+  [FEATURES.INTEGRATIONS]: "Integrations",
+  [FEATURES.ZDR]: "Zero data retention",
+};
+
+export const USAGE_ANSWERS_ACCENT = "#10b981";
+export const USAGE_CHART_ACCENT = "#8b5cf6";
+
+export const USAGE_ANSWERS_CHART_CONFIG = {
+  ai_answers: {
+    label: "AI Answers",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;

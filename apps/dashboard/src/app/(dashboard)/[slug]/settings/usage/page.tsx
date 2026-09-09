@@ -4,7 +4,7 @@ import { settingsPath } from "@/utils/settings-path";
 
 export const instant = true;
 
-export default async function BillingUsagePage({
+export default async function SettingsUsageRedirect({
   params,
 }: {
   params: Promise<{ slug: string }>;

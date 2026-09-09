@@ -11,21 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@notra/ui/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@notra/ui/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useListPlans } from "autumn-js/react";
-import { parseAsStringLiteral, useQueryState } from "nuqs";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { InvoicesTable } from "@/components/billing/invoices-table";
 import { PlanCard } from "@/components/billing/plan-card";
-import { UsageSection } from "@/components/billing/usage-section";
 import { ZdrAddonCard } from "@/components/billing/zdr-addon-card";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -35,7 +28,6 @@ import {
   BILLING_INVOICE_SKELETON_KEYS,
   BILLING_PLAN_FEATURE_SKELETON_KEYS,
   BILLING_PLAN_SKELETON_KEYS,
-  BILLING_SECTION_VALUES,
   FEATURED_PLAN_TIER,
   PLANS_ANCHOR,
 } from "@/constants/billing";
@@ -121,59 +113,7 @@ function InvoiceTableSkeleton() {
   );
 }
 
-function BillingPaneFallback() {
-  return (
-    <SettingsPane>
-      <div className="flex items-center justify-between gap-3">
-        <Skeleton className="h-8 w-44 rounded-lg" />
-        <Skeleton className="h-8 w-40 rounded-md" />
-      </div>
-      <BillingPlansLoading />
-    </SettingsPane>
-  );
-}
-
-function BillingPlansLoading() {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-8 w-52 rounded-lg" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          {BILLING_PLAN_SKELETON_KEYS.map((key) => (
-            <BillingPlanCardSkeleton key={key} />
-          ))}
-        </div>
-      </div>
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-20" />
-        <TitleCard
-          action={<Skeleton className="h-5 w-14 rounded-full" />}
-          heading={<Skeleton className="h-5 w-44" />}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="w-full max-w-xl space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-            <Skeleton className="h-8 w-32 shrink-0 rounded-md" />
-          </div>
-        </TitleCard>
-      </div>
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-20" />
-        <InvoiceTableSkeleton />
-      </div>
-    </div>
-  );
-}
-
-function BillingSettingsPaneContent() {
+export function BillingSettingsPane() {
   const { activeOrganization } = useOrganizationsContext();
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const {
@@ -186,10 +126,6 @@ function BillingSettingsPaneContent() {
   } = useBillingCustomer({
     expand: ["invoices", "subscriptions.plan"],
   });
-  const [activeSection, setActiveSection] = useQueryState(
-    "tab",
-    parseAsStringLiteral(BILLING_SECTION_VALUES).withDefault("billing")
-  );
   const [loading, setLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
@@ -307,14 +243,7 @@ function BillingSettingsPaneContent() {
     : "Upgrade or change your plan.";
   const intervalLabel = isYearly ? "year" : "month";
 
-  function handleSectionChange(value: string) {
-    setActiveSection(value === "usage" ? "usage" : "billing");
-  }
-
   function renderManageSubscription() {
-    if (activeSection !== "billing") {
-      return null;
-    }
     if (customerLoading) {
       return <Skeleton className="h-8 w-40 rounded-md" />;
     }
@@ -386,89 +315,60 @@ function BillingSettingsPaneContent() {
   }
 
   return (
-    <SettingsPane>
-      <Tabs onValueChange={handleSectionChange} value={activeSection}>
-        <div className="flex items-center justify-between gap-3">
-          <TabsList aria-label="Billing sections">
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="usage">Usage</TabsTrigger>
-          </TabsList>
-          {renderManageSubscription()}
+    <SettingsPane titleAccessory={renderManageSubscription()}>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2
+              className="scroll-mt-24 text-lg font-semibold"
+              id={PLANS_ANCHOR}
+            >
+              Plans
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {isBillingLoading
+                ? "Upgrade or change your plan."
+                : plansDescription}
+            </p>
+          </div>
+          <Tabs
+            onValueChange={handleIntervalChange}
+            value={isYearly ? "yearly" : "monthly"}
+          >
+            <TabsList aria-label="Billing interval">
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger className="flex items-center gap-1.5" value="yearly">
+                Yearly
+                <Badge size="sm" variant="success">
+                  Save 20%
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        <TabsContent className="mt-4" value="billing">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2
-                    className="scroll-mt-24 text-lg font-semibold"
-                    id={PLANS_ANCHOR}
-                  >
-                    Plans
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    {isBillingLoading
-                      ? "Upgrade or change your plan."
-                      : plansDescription}
-                  </p>
-                </div>
-                <Tabs
-                  onValueChange={handleIntervalChange}
-                  value={isYearly ? "yearly" : "monthly"}
-                >
-                  <TabsList aria-label="Billing interval">
-                    <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                    <TabsTrigger
-                      className="flex items-center gap-1.5"
-                      value="yearly"
-                    >
-                      Yearly
-                      <Badge size="sm" variant="success">
-                        Save 20%
-                      </Badge>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {isBillingLoading
+            ? BILLING_PLAN_SKELETON_KEYS.map((key) => (
+                <BillingPlanCardSkeleton key={key} />
+              ))
+            : planGroups.map(renderPlanCard)}
+        </div>
+      </div>
 
-              <div className="grid gap-6 lg:grid-cols-3">
-                {isBillingLoading
-                  ? BILLING_PLAN_SKELETON_KEYS.map((key) => (
-                      <BillingPlanCardSkeleton key={key} />
-                    ))
-                  : planGroups.map(renderPlanCard)}
-              </div>
-            </div>
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Add-ons</h2>
+        <ZdrAddonCard />
+      </div>
 
-            <div className="space-y-3">
-              <h2 className="text-lg font-semibold">Add-ons</h2>
-              <ZdrAddonCard />
-            </div>
-
-            <div className="space-y-3">
-              <h2 className="text-lg font-semibold">Invoices</h2>
-              {customerLoading ? (
-                <InvoiceTableSkeleton />
-              ) : (
-                <InvoicesTable invoices={invoices ?? []} plans={plans} />
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent className="mt-4" value="usage">
-          <UsageSection />
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Invoices</h2>
+        {customerLoading ? (
+          <InvoiceTableSkeleton />
+        ) : (
+          <InvoicesTable invoices={invoices ?? []} plans={plans} />
+        )}
+      </div>
     </SettingsPane>
-  );
-}
-
-export function BillingSettingsPane() {
-  return (
-    <Suspense fallback={<BillingPaneFallback />}>
-      <BillingSettingsPaneContent />
-    </Suspense>
   );
 }

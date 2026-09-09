@@ -51,7 +51,8 @@ function triggerScheduleDemo() {
 
 const SEGMENT_CONFIG: Record<string, { label?: string; href?: null }> = {
   collection: { label: "Collections" },
-  billing: { label: "Billing & Usage" },
+  billing: { label: "Billing" },
+  usage: { label: "Usage" },
   automation: { href: null },
   brand: { href: null },
   "api-keys": { label: "API Keys" },

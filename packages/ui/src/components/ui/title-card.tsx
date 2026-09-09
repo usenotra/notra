@@ -13,6 +13,7 @@ interface TitleCardProps extends Omit<React.ComponentProps<"div">, "title"> {
   hoverBackground?: React.ReactNode;
   contentClassName?: string;
   footerClassName?: string;
+  accentClassName?: string;
   disabled?: boolean;
 }
 
@@ -28,6 +29,7 @@ function TitleCard({
   className,
   contentClassName,
   footerClassName,
+  accentClassName,
   disabled = false,
   children,
   ...props
@@ -51,8 +53,9 @@ function TitleCard({
       {accentColor && (
         <div
           className={cn(
-            "pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-normal",
-            !disabled && "group-hover:opacity-100"
+            "pointer-events-none absolute inset-0 -z-10 opacity-0",
+            !disabled && "group-hover:opacity-100",
+            accentClassName ?? "transition-opacity duration-normal"
           )}
           style={gradientStyle}
         />
@@ -65,7 +68,7 @@ function TitleCard({
           {hoverBackground}
         </div>
       )}
-      <div className="flex items-start justify-between gap-4 px-4 py-2.5">
+      <div className="flex h-10 items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {icon && (
             <div className="flex size-8 shrink-0 items-center justify-center text-muted-foreground [&_svg]:size-5">
