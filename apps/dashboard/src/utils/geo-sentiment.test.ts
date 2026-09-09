@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 
+import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 
 import { sentimentFamilyRows } from "./geo-sentiment";
@@ -64,8 +65,32 @@ test("unknown families sort by name, unrated is null and genuine negative is zer
       { ...empty, engine: "aaa-family" },
     ])
   ).toEqual([
-    { family: "aaa-family", label: "aaa-family", score: null },
-    { family: "zzz-family", label: "zzz-family", score: 0 },
+    {
+      family: "aaa-family",
+      iconEngine: "aaa-family",
+      label: "aaa-family",
+      score: null,
+    },
+    {
+      family: "zzz-family",
+      iconEngine: "zzz-family",
+      label: "zzz-family",
+      score: 0,
+    },
   ]);
   expect(sentimentFamilyRows([])).toEqual([]);
+});
+
+test("Google search surfaces and Gemini keep distinct families and matching icons", () => {
+  const counts = summarizeSentiment([]);
+  const rows = sentimentFamilyRows([
+    { ...counts, engine: "google-ai-overview" },
+    { ...counts, engine: "google/gemini-2.5-flash" },
+    { ...counts, engine: "google/gemini-2.5-flash-grounded" },
+  ]);
+  expect(rows.map((row) => row.label)).toEqual(["Gemini", "Google"]);
+  expect(rows.map((row) => resolveEngineIconKey(row.iconEngine))).toEqual([
+    "gemini",
+    "google",
+  ]);
 });

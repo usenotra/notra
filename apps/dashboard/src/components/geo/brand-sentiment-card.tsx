@@ -2,6 +2,7 @@
 
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { formatDayLabel } from "@notra/geo-core/utils/day-label";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Tooltip,
@@ -12,9 +13,10 @@ import { useId } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { SentimentFamilyList } from "@/components/geo/sentiment-family-list";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
+import { InstrumentSection } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_CHART_CONFIG,
+  SENTIMENT_CHART_OPTIONS,
   SENTIMENT_SCORE_FORMAT,
   SENTIMENT_SCORE_HINT,
 } from "@/constants/geo-sentiment";
@@ -28,7 +30,7 @@ export function BrandSentimentCard({
   const query = useGeoSentiment(organizationId);
   const descriptionId = useId();
   return (
-    <InstrumentModule
+    <InstrumentSection
       eyebrow="Brand sentiment"
       action={
         <Tooltip>
@@ -46,9 +48,7 @@ export function BrandSentimentCard({
           <TooltipContent>{SENTIMENT_SCORE_HINT}</TooltipContent>
         </Tooltip>
       }
-      variant="table"
-      className="h-full"
-      bodyClassName="flex flex-col gap-6 sm:p-6"
+      bodyClassName="flex flex-col gap-6"
     >
       <span id={descriptionId} className="sr-only">
         {SENTIMENT_SCORE_HINT}
@@ -70,7 +70,7 @@ export function BrandSentimentCard({
         <>
           <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-center sm:gap-6">
             <div className="space-y-2">
-              <h2 className="text-muted-foreground text-sm">Overall score</h2>
+              <p className="text-muted-foreground text-sm">Overall score</p>
               <p className="text-3xl font-medium tabular-nums">
                 {query.data.summary.score === null
                   ? "—"
@@ -91,20 +91,34 @@ export function BrandSentimentCard({
                 animation={false}
                 className="h-36 w-full"
                 config={SENTIMENT_CHART_CONFIG}
+                chartOptions={SENTIMENT_CHART_OPTIONS}
                 curveType="linear"
+                enableHoverHighlight={false}
+                enableHoverReveal={false}
                 data={query.data.points.map(({ day, score }) => ({
                   day,
                   score,
                 }))}
                 xDataKey="day"
               >
-                <EChartsAreaChart.XAxis dataKey="day" />
+                <EChartsAreaChart.XAxis
+                  dataKey="day"
+                  hideDots
+                  tickFormatter={formatDayLabel}
+                />
                 <EChartsAreaChart.Area
                   dataKey="score"
                   gapMissing
-                  variant="gradient"
+                  connectNulls={false}
+                  enableBufferLine={false}
+                  strokeVariant="solid"
+                  strokeWidth={2}
+                  variant="none"
                 >
-                  <EChartsAreaChart.Dot />
+                  {query.data.points.filter(({ score }) => score !== null)
+                    .length === 1 ? (
+                    <EChartsAreaChart.Dot />
+                  ) : null}
                 </EChartsAreaChart.Area>
                 <EChartsAreaChart.Tooltip
                   hideZeros={false}
@@ -124,6 +138,6 @@ export function BrandSentimentCard({
           Scan in progress
         </p>
       ) : null}
-    </InstrumentModule>
+    </InstrumentSection>
   );
 }

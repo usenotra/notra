@@ -11,12 +11,14 @@ import type { SentimentFamilyRow } from "@/types/geo-sentiment";
 export function sentimentFamilyRows(
   engines: GeoSentimentResponse["engines"]
 ): SentimentFamilyRow[] {
-  const families = [
-    ...new Set(engines.map(({ engine }) => engineFamilyOf(engine))),
-  ];
+  const engineNames = engines.map(({ engine }) => engine).sort();
+  const families = [...new Set(engineNames.map(engineFamilyOf))];
   return families
     .map((family) => ({
       family,
+      iconEngine:
+        engineNames.find((engine) => engineFamilyOf(engine) === family) ??
+        family,
       label: engineFamilyLabel(family),
       score: sentimentFamilyScore(engines, family),
     }))

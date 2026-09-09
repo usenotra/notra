@@ -3,6 +3,7 @@ import type { GeoSentimentResponse } from "@notra/geo-core/types/geo-sentiment";
 
 export interface SentimentFamilyRow {
   family: string;
+  iconEngine: string;
   label: string;
   score: number | null;
 }
