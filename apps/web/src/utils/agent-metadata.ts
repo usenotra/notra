@@ -52,9 +52,9 @@ function authIssuerUrl() {
 function buildAgentAuthMetadata() {
   return {
     register_uri: `${authIssuerUrl()}/oauth2/register`,
-    authorization_uri: `${authIssuerUrl()}/oauth2/authorize`,
-    token_uri: `${authIssuerUrl()}/oauth2/token`,
-    device_authorization_uri: `${authIssuerUrl()}/oauth2/device_authorization`,
+    authorization_endpoint: `${authIssuerUrl()}/oauth2/authorize`,
+    token_endpoint: `${authIssuerUrl()}/oauth2/token`,
+    device_authorization_endpoint: `${authIssuerUrl()}/oauth2/device_authorization`,
     revocation_uri: `${authIssuerUrl()}/oauth2/revoke`,
     skill: siteUrl(AGENT_DISCOVERY_PATHS.authMarkdown),
     credential_types_supported: ["api_key", "bearer"],

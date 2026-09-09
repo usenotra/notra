@@ -14,7 +14,7 @@ OAuth-capable clients should follow the authorization server advertised by the p
 
 ## Register
 
-Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Agents should request the least privileged resource scopes, such as \`projects.read\`, \`prompts.read\`, \`scans.write\`, \`visibility.read\`, \`briefs.read\`, and \`traffic.read\`. GEO tools also require a plan that includes GEO. Include \`offline_access\` when a refresh token is needed.
+Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Agents should request the least privileged resource scopes, such as \`projects.read\`, \`prompts.read\`, \`scans.read\`, \`scans.write\`, \`visibility.read\`, \`briefs.read\`, and \`traffic.read\`. Request both \`scans.write\` to start a scan and \`scans.read\` to poll its status and read results. GEO tools also require a plan that includes GEO. Include \`offline_access\` when a refresh token is needed.
 
 ## Authorize
 
