@@ -1,3 +1,5 @@
+import { GEO_BRAND_LABELS } from "@notra/geo-core/constants/geo";
+
 import type { ChartConfig } from "@/types/charts";
 import { seriesColors } from "@/utils/chart-colors";
 
@@ -15,4 +17,3 @@ export const SENTIMENT_CHART_CONFIG: ChartConfig = {
     colors: seriesColors(CHART_PRIMARY_COLOR),
   },
 };
-import { GEO_BRAND_LABELS } from "@notra/geo-core/constants/geo";
