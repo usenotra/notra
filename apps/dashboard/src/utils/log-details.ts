@@ -11,6 +11,21 @@ export function getLogDestination(source: IntegrationType, slug: string) {
   if (source === "events") {
     return { href: `${base}/automation/events`, label: "Open event triggers" };
   }
+  if (source === "geo") {
+    return { href: `${base}/geo`, label: "Open GEO" };
+  }
+  if (source === "agent-readiness") {
+    return {
+      href: `${base}/geo/agent-readiness`,
+      label: "Open agent readiness",
+    };
+  }
+  if (source === "search-console") {
+    return { href: `${base}/geo/traffic`, label: "Open traffic analytics" };
+  }
+  if (source === "brand") {
+    return { href: `${base}/brand/identity`, label: "Open brand identity" };
+  }
   if (source === "github" || source === "linear" || source === "slack") {
     return {
       href: `${base}/integrations/${source}`,

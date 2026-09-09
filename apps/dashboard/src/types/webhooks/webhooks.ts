@@ -32,7 +32,11 @@ export type IntegrationType =
   | "webhook"
   | "manual"
   | "schedule"
-  | "events";
+  | "events"
+  | "geo"
+  | "agent-readiness"
+  | "search-console"
+  | "brand";
 
 export type LogSourceFilter = "all" | Exclude<IntegrationType, "slack">;
 

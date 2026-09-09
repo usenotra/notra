@@ -16,7 +16,7 @@ import { IntegrationIcon } from "@/components/logs/integration-icon";
 import { LogStatusBadge } from "@/components/logs/log-status-badge";
 import type { TableColumn } from "@/components/motion/table";
 import type { Log, StatusWithCode } from "@/types/webhooks/webhooks";
-import { formatLogTimestamp } from "@/utils/logs";
+import { formatLogTimestamp, getSourceLabel } from "@/utils/logs";
 
 export const columns: TableColumn<Log>[] = [
   {
@@ -48,7 +48,7 @@ export const columns: TableColumn<Log>[] = [
     cell: (log) => (
       <span className="flex items-center gap-2">
         <IntegrationIcon type={log.integrationType} />
-        <span className="truncate capitalize">{log.integrationType}</span>
+        <span className="truncate">{getSourceLabel(log.integrationType)}</span>
       </span>
     ),
   },

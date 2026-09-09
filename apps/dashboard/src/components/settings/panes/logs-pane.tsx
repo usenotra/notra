@@ -133,7 +133,7 @@ export function LogsSettingsPane() {
               : {
                   title: "No logs yet",
                   description:
-                    "Activity from your integrations and automations will show up here.",
+                    "Activity from your integrations, automations, GEO scans, and syncs will show up here.",
                 }
           }
           onPageChange={setPage}

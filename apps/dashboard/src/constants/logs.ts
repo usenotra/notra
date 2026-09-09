@@ -22,6 +22,15 @@ export const LOG_CONTEXT_FIELDS = {
   outputType: "Content type",
   lookbackWindow: "Lookback window",
   repositoryCount: "Repositories checked",
+  companyName: "Project",
+  checks: "Checks run",
+  mentions: "Mentions found",
+  prompts: "Prompts scanned",
+  engines: "AI engines",
+  keywords: "Keywords synced",
+  suggestionsAdded: "Suggestions created",
+  url: "URL",
+  stage: "Stage",
   runId: "Run ID",
 } as const;
 
@@ -38,6 +47,10 @@ export const SOURCE_VALUES = [
   "manual",
   "schedule",
   "events",
+  "geo",
+  "agent-readiness",
+  "search-console",
+  "brand",
 ] as const satisfies readonly LogSourceFilter[];
 
 export const STATUS_VALUES = [
@@ -56,6 +69,10 @@ export const SOURCE_LABELS: Record<LogSourceFilter, string> = {
   manual: "Manual",
   schedule: "Schedule",
   events: "Events",
+  geo: "GEO",
+  "agent-readiness": "Agent Readiness",
+  "search-console": "Search Console",
+  brand: "Brand",
 };
 
 export const STATUS_LABELS: Record<LogStatusFilter, string> = {
