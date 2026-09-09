@@ -1,0 +1,13 @@
+apps/dashboard/src/constants/auth/membership.ts
+  ai_agent 1
+apps/dashboard/src/lib/auth/membership-upsert.test.ts
+  ai_agent 1-9,11,46-51,75-144
+apps/dashboard/src/lib/auth/membership-upsert.ts
+  ai_agent 5,14,87-89,95,102,107,135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a5c7a87f2c74702d1c86fb68a55ffe8c9ebe2a18",
+  "prompts": {}
+}
