@@ -1,0 +1,24 @@
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page.tsx
+  s_ad529e11c6976e::t_e5ff5627586ea3 10-13,43
+apps/dashboard/tests/geo-project-scope.test.ts
+  s_ad529e11c6976e::t_e5ff5627586ea3 40-52
+  s_ad529e11c6976e::t_40d0666bdc80e0 5
+apps/dashboard/src/utils/geo-hydration.ts
+  s_ad529e11c6976e::t_e5ff5627586ea3 31-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5041615b20687bb8a5af8f3be230b29fd4c60d0c",
+  "prompts": {},
+  "sessions": {
+    "s_ad529e11c6976e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2f28bc1-837f-4f5f-821a-003f770facab",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
