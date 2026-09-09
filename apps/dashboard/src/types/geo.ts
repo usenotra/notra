@@ -591,24 +591,6 @@ export interface MentionRateCardProps extends EngineFamilyBrandScope {
   organizationSlug?: string;
 }
 
-export interface PromptResultsPreviewProps {
-  results: GeoPromptResult[];
-  limit?: number;
-  isScanning?: boolean;
-  variant?: "all" | "unseen";
-  gapsHref?: string;
-}
-
-export interface GeoPromptsPanelProps {
-  results: GeoPromptResult[];
-  isScanning?: boolean;
-  gapsHref?: string;
-}
-
-export interface PromptSentimentLabelProps {
-  sentiment: string | null;
-}
-
 export interface EngineFamilyBrandScope {
   companyName?: string | null;
   aliases?: readonly string[];
@@ -618,7 +600,6 @@ export interface EngineFamilyBrandScope {
 }
 
 export interface EngineRateTableProps extends EngineFamilyBrandScope {
-  organizationId: string;
   engines: GeoOverviewEngine[];
   timeseriesPoints?: readonly GeoTimeseriesPoint[];
   promptResults?: readonly GeoPromptResult[];
@@ -680,7 +661,6 @@ export interface GeoTabsProps {
   competitors: GeoCompetitor[];
   languagePoints: GeoLanguageSharePoint[];
   promptResults: GeoPromptResult[];
-  promptCount: number;
   isScanning: boolean;
   journeys: GeoJourney[];
   organizationId: string;

@@ -1115,7 +1115,7 @@ export const COPY_FEEDBACK_MS = 2000;
 
 export const GEO_TAB_VALUES = [
   "visibility",
-  "prompts",
+  "sentiment",
   "journeys",
 ] as const satisfies readonly GeoTab[];
 

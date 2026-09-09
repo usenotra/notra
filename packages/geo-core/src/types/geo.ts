@@ -1031,7 +1031,7 @@ export interface GeoPromptSummary {
   results: GeoPromptResult[];
 }
 
-export type GeoTab = "visibility" | "prompts" | "journeys";
+export type GeoTab = "visibility" | "sentiment" | "journeys";
 
 export type GeoRangePreset =
   | "today"

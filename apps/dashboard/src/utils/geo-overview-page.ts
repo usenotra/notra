@@ -45,7 +45,6 @@ export function toGeoOverviewReadyPage(input: {
   competitors: GeoCompetitor[] | undefined;
   languagePoints: GeoLanguageSharePoint[] | undefined;
   promptResults: GeoPromptResult[] | undefined;
-  promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
   isScanning: boolean;
   revealActive: boolean;
@@ -60,7 +59,6 @@ export function toGeoOverviewReadyPage(input: {
   const languagePoints = input.languagePoints ?? [];
   const promptResults = input.promptResults ?? [];
   const journeys = input.journeys ?? [];
-  const promptCount = input.promptCount ?? 0;
 
   return {
     status: "ready",
@@ -84,7 +82,6 @@ export function toGeoOverviewReadyPage(input: {
       competitors,
       languagePoints,
       promptResults,
-      promptCount,
       isScanning: input.isScanning,
       journeys,
       organizationId: input.organizationId,

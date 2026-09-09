@@ -136,12 +136,16 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 
 - **Mentions**: a per-provider mention rate card with the delta against the first half of the range.
 - **Mention activity**: the daily mention trend across all providers, with a per-provider breakdown.
-- **Brand sentiment**: a compact 0–100 score and daily trend beside the visibility metrics.
-- **Mention rate by engine**: a table with **Engine**, **Mentions**, **Mention rate**, **Avg position**, **Sentiment**, **Last checked**, and **Trend** columns. Rows group into provider families; a family sheet shows the Search versus Without search split.
+- **Mention rate by engine**: a table with **Engine**, **Mentions**, **Mention rate**, **Avg position**, **Last checked**, and **Trend** columns. Rows group into provider families; a family sheet shows the Search versus Without search split.
 - **Share of voice**: your brand against tracked competitors, as a donut and a table, with the top five brands broken out and the rest grouped under Other.
 - **Performance by language**: **Language**, **Mention rate**, and **Trend** for each tracked language.
 
-#### Reading brand sentiment
+### Brand Sentiment
+
+The **Brand Sentiment** dashboard tab shows a compact 0–100 score and daily trend.
+It replaces the dashboard's former Prompts tab. Open it directly with `?tab=sentiment`.
+Legacy `?tab=prompts` links fall back to **Visibility**. Prompt management remains
+on the standalone `/geo/prompts` page.
 
 Brand sentiment uses saved **English, single-turn answers** for the active organization,
 project and date range. It describes the AI-assessed tone toward your brand, not the
@@ -158,8 +162,8 @@ mentions, the score is unavailable, shown as **—**, rather than zero. The exis
 `positiveShare` response field remains positive / classified mentions, which is 50% in
 the example above. It is distinct from the score.
 
-Daily buckets use UTC. The engine table combines model counts by engine family before
-calculating its score, rather than averaging model scores. Days without classified
+Daily buckets use UTC. Counts across engines are combined before calculating the
+score, rather than averaging model scores. Days without classified
 mentions remain gaps. The date picker's final day is included; internally the window ends
 at the start of the following UTC day.
 
@@ -172,10 +176,6 @@ Answer details show a compact sentiment label. An emphasized excerpt appears onl
 it is an exact, contiguous substring of the saved answer. Paraphrased or combined excerpts
 are not emphasized. The original answer renderer is preserved. Viewing sentiment uses
 existing labels and does not run new AI calls or reclassify older answers.
-
-### Prompts
-
-The latest answer per prompt and engine, with the presence badge, the excerpt, and a link to **All prompts** and to Content Gaps.
 
 ### Journeys
 

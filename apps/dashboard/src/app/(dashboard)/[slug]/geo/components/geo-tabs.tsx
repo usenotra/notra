@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES,
-  GEO_GAPS_NAV_LINK,
-} from "@notra/geo-core/constants/geo";
+import { GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES } from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   PermissionOption,
@@ -13,7 +10,6 @@ import type { ReactNode } from "react";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
-import { GeoPromptsPanel } from "@/components/geo/geo-prompts-panel";
 import { JourneyOverviewCard } from "@/components/geo/journey-overview-card";
 import { JourneyPathsCard } from "@/components/geo/journey-paths-card";
 import { JourneysCard } from "@/components/geo/journeys-card";
@@ -24,11 +20,9 @@ import { ShareOfVoiceCard } from "@/components/geo/share-of-voice-card";
 import { WhatChangedCard } from "@/components/geo/what-changed-card";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
-import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";
-import { geoNavHref } from "@/utils/geo-paths";
 import { toGeoTab } from "@/utils/geo-tabs";
 
 function TriggerCount({ count }: { count: number }) {
@@ -77,20 +71,12 @@ export function GeoTabs({
   competitors,
   languagePoints,
   promptResults,
-  promptCount,
   isScanning,
   journeys,
   organizationId,
 }: GeoTabsProps) {
-  const { projectId } = useGeoProjectScope();
-
   return (
-    <div
-      className={cn(
-        "flex flex-col",
-        activeTab === "prompts" && "min-h-0 flex-1"
-      )}
-    >
+    <div className="flex min-w-0 flex-col">
       <PermissionRow
         className="w-fit shrink-0"
         label="GEO sections"
@@ -103,12 +89,7 @@ export function GeoTabs({
         value={activeTab}
       >
         <PermissionOption value="visibility">Visibility</PermissionOption>
-        <PermissionOption value="prompts">
-          <span className="flex items-baseline gap-1.5">
-            Prompts
-            <TriggerCount count={promptCount} />
-          </span>
-        </PermissionOption>
+        <PermissionOption value="sentiment">Brand Sentiment</PermissionOption>
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
             Journeys
@@ -122,7 +103,7 @@ export function GeoTabs({
           <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible lg:grid-cols-12">
             <TabSection
               active={revealActive}
-              className="relative z-20 overflow-visible lg:col-span-4"
+              className="relative z-20 overflow-visible lg:col-span-5"
               order={0}
             >
               <MentionRateCard
@@ -138,7 +119,7 @@ export function GeoTabs({
             </TabSection>
             <TabSection
               active={revealActive}
-              className="lg:col-span-5"
+              className="lg:col-span-7"
               order={1}
             >
               <MentionTrendCard
@@ -146,18 +127,8 @@ export function GeoTabs({
                 points={timeseriesPoints}
               />
             </TabSection>
-            <TabSection
-              active={revealActive}
-              order={2}
-              className="lg:col-span-3"
-            >
-              <BrandSentimentCard
-                organizationId={organizationId}
-                isScanning={isScanning}
-              />
-            </TabSection>
           </InstrumentGrid>
-          <TabSection active={revealActive} order={3}>
+          <TabSection active={revealActive} order={2}>
             <WhatChangedCard
               competitors={competitors}
               isScanning={isScanning}
@@ -166,9 +137,8 @@ export function GeoTabs({
               promptResults={promptResults}
             />
           </TabSection>
-          <TabSection active={revealActive} order={4}>
+          <TabSection active={revealActive} order={3}>
             <EngineRateTable
-              organizationId={organizationId}
               aliases={settings.aliases}
               companyName={settings.companyName}
               competitors={competitors}
@@ -180,7 +150,7 @@ export function GeoTabs({
             />
           </TabSection>
           <InstrumentGrid className="grid-cols-1 gap-4 lg:grid-cols-2">
-            <TabSection active={revealActive} order={5}>
+            <TabSection active={revealActive} order={4}>
               <ShareOfVoiceCard
                 aliases={settings.aliases}
                 companyName={settings.companyName}
@@ -192,7 +162,7 @@ export function GeoTabs({
                 timeseries={competitorShareTimeseries}
               />
             </TabSection>
-            <TabSection active={revealActive} order={6}>
+            <TabSection active={revealActive} order={5}>
               <LanguagePerformanceCard
                 isScanning={isScanning}
                 organizationId={organizationId}
@@ -204,21 +174,12 @@ export function GeoTabs({
         </div>
       ) : null}
 
-      {activeTab === "prompts" ? (
-        <div className="mt-6 flex min-h-0 flex-1 flex-col gap-6">
-          <TabSection
-            active={revealActive}
-            className="min-h-0 flex-1"
-            order={0}
-          >
-            <GeoPromptsPanel
-              gapsHref={geoNavHref(
-                organizationSlug,
-                GEO_GAPS_NAV_LINK,
-                projectId
-              )}
+      {activeTab === "sentiment" ? (
+        <div className="mt-6 w-full max-w-lg">
+          <TabSection active={revealActive} order={0}>
+            <BrandSentimentCard
+              organizationId={organizationId}
               isScanning={isScanning}
-              results={promptResults}
             />
           </TabSection>
         </div>
