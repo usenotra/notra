@@ -175,7 +175,7 @@ export function GeoTabs({
       ) : null}
 
       {activeTab === "sentiment" ? (
-        <div className="mt-6 w-full max-w-3xl">
+        <div className="mt-6">
           <TabSection active={revealActive} order={0}>
             <BrandSentimentCard
               organizationId={organizationId}

@@ -9,21 +9,31 @@ export function SentimentFamilyList({ engines }: SentimentFamilyListProps) {
     return null;
   }
   return (
-    <section className="space-y-3" aria-label="AI model families">
-      <h3 className="text-muted-foreground text-sm font-medium">
-        AI model families
-      </h3>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <section
+      className="flex min-h-0 flex-1 flex-col gap-1"
+      aria-label="AI model families"
+    >
+      <div className="flex items-center justify-between gap-3 text-sm font-medium">
+        <span>Provider</span>
+        <span>Score</span>
+      </div>
+      <ul
+        className="focus-visible:ring-ring max-h-72 overflow-y-auto overscroll-contain outline-none focus-visible:ring-2"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users need to scroll longer provider breakdowns.
+        tabIndex={rows.length > 6 ? 0 : undefined}
+      >
         {rows.map((row) => (
           <li
             key={row.family}
-            className="bg-muted/40 flex min-w-0 flex-col gap-3 rounded-xl p-3"
+            className="grid min-h-11 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b last:border-b-0"
           >
             <span className="flex min-w-0 items-center gap-2 text-sm">
-              <EngineIcon engine={row.iconEngine} className="size-5 shrink-0" />
+              <span className="flex size-7 shrink-0 items-center justify-center">
+                <EngineIcon engine={row.iconEngine} />
+              </span>
               <span className="break-words">{row.label}</span>
             </span>
-            <span className="text-xl font-medium tabular-nums">
+            <span className="text-sm tabular-nums">
               {row.score === null ? (
                 <>
                   <span aria-hidden="true">—</span>

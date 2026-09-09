@@ -12,6 +12,13 @@ export interface SentimentFamilyListProps {
   engines: GeoSentimentResponse["engines"];
 }
 
+export interface SentimentTrendCardProps {
+  points: GeoSentimentResponse["points"] | undefined;
+  isPending: boolean;
+  isError: boolean;
+  isScanning: boolean;
+}
+
 export interface BrandSentimentCardProps {
   organizationId: string;
   isScanning: boolean;
