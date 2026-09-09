@@ -16,7 +16,7 @@
     "./types/*": "./src/types/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",

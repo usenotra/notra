@@ -8,7 +8,7 @@
     "agent:dev": "dotenv -e ../../.env -- eve dev",
     "agent:build": "eve build",
     "agent:start": "eve start",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "agent:dev:devtools": "AI_SDK_DEVTOOLS=true dotenv -e ../../.env -- eve dev",
     "devtools": "bun x @ai-sdk/devtools"
   },

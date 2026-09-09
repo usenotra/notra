@@ -20,7 +20,7 @@
     "./hooks/use-mobile": "./src/hooks/use-mobile.tsx"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

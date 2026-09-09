@@ -34,5 +34,15 @@ jobs:
       - name: Run unit and integration tests
         run: bun run test --force
 
+      - name: Restore incremental TypeScript state
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            apps/*/.cache/typecheck.tsbuildinfo
+            packages/*/.cache/typecheck.tsbuildinfo
+          key: typecheck-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock', 'package.json', 'apps/*/package.json', 'packages/*/package.json', 'apps/*/tsconfig*.json', 'packages/*/tsconfig*.json', 'packages/typescript-config/*.json') }}-${{ github.sha }}
+          restore-keys: |
+            typecheck-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock', 'package.json', 'apps/*/package.json', 'packages/*/package.json', 'apps/*/tsconfig*.json', 'packages/*/tsconfig*.json', 'packages/typescript-config/*.json') }}-
+
       - name: Typecheck tested packages and UI docs
         run: bun run check-types --filter=@notra/ai --filter=@notra/geo-core --filter=dashboard --filter=ui

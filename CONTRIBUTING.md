@@ -162,6 +162,20 @@ after `Deployment completed`; it is not additional time until the app is live.
 Both projects use filtered Turbo build commands and skip unaffected projects.
 Preserve those settings when changing the Vercel configuration.
 
+Standalone `check-types` scripts that run `tsc` enable incremental checking with
+command-line flags and write to `.cache/typecheck.tsbuildinfo` within each
+package. Run them through `bun run check-types` (optionally with `--filter`) to
+reuse this state. These flags override the shared base config for type checks
+without changing Eve or tsup builds. The files are already ignored by Git's
+`*.tsbuildinfo` rule and are declared as Turbo task outputs.
+
+The code-quality workflow restores these files using a cache key scoped to the
+runner platform, dependencies, configuration, and commit. A matching prefix can
+restore state from an earlier commit; TypeScript still checks changed source and
+its affected dependents. The workflow retains its existing package selection.
+Blume's `ui` app uses its own checker and does not produce this cache file.
+Next.js production builds continue to use their separate `.next/cache` state.
+
 ## Database Workflow
 
 Common Drizzle commands from the repo root:

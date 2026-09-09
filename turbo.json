@@ -134,7 +134,12 @@
       ]
     },
     "check-types": {
-      "dependsOn": ["transit"]
+      "dependsOn": ["transit"],
+      "outputs": [".cache/typecheck.tsbuildinfo"]
+    },
+    "ui#check-types": {
+      "dependsOn": ["transit"],
+      "outputs": []
     },
     "knip": {
       "dependsOn": ["transit"]
