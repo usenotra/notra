@@ -182,7 +182,7 @@ export function buildOpenRouterProviderOptions(
   const { zdr: _ignoredZdr, ...existingProviderWithoutZdr } = existingProvider;
   const provider: Record<string, unknown> = {
     ...existingProviderWithoutZdr,
-    zdr,
+    ...(relaxZdr || zdr ? { zdr } : {}),
     data_collection: dataCollection,
   };
 
