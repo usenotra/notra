@@ -1,0 +1,88 @@
+apps/dashboard/src/components/providers/geo-project-provider.tsx
+  s_ad529e11c6976e::t_98c4c0b1a1dda2 11,36-38
+apps/dashboard/src/components/content/content-source-metadata.tsx
+  s_ad529e11c6976e::t_14ab72da88ab07 19-22,117,119-122,137-139,141-143
+  s_ad529e11c6976e::t_1c4753e08b57e8 140
+apps/dashboard/src/components/content/image-export-actions.tsx
+  s_ad529e11c6976e::t_5f0238883c565a 23,28,37-42
+apps/dashboard/src/lib/auth/webhook-sync.ts
+  s_ad529e11c6976e::t_c45f06f7249db0 5
+  s_ad529e11c6976e::t_8880bb37521543 8-9,109-115
+apps/dashboard/src/utils/content-source-metadata.ts
+  s_ad529e11c6976e::t_14ab72da88ab07 1-13,17-22
+  s_ad529e11c6976e::t_1c4753e08b57e8 14-16
+apps/dashboard/src/app/(dashboard)/[slug]/content/[id]/page-client.tsx
+  s_ad529e11c6976e::t_b540eb6da69176 837
+packages/geo-core/src/types/engine-flags.ts
+  s_ad529e11c6976e::t_3ebccf9203d42b 13-18
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_ad529e11c6976e::t_a7ff56d6a88e01 110-114
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart-impl.tsx
+  ai_agent 1021-1023
+packages/geo-core/src/geo/engine-flags.ts
+  s_ad529e11c6976e::t_3ebccf9203d42b 8,19-31,34,36-41,45-49,62-64,66-68
+apps/dashboard/src/components/geo/writer/writer-execute.tsx
+  s_ad529e11c6976e::t_b540eb6da69176 51,57-58
+packages/geo-core/src/types/deps.ts
+  s_ad529e11c6976e::t_80a063e79652d1 8
+  s_ad529e11c6976e::t_ec4d89356a85ab 57-60,64,67
+apps/dashboard/src/lib/hooks/use-content-chat-history.ts
+  ai_agent 79-82,91-97,108
+apps/dashboard/src/lib/hooks/use-geo-writer.ts
+  s_ad529e11c6976e::t_8c927c61ddd938 44-49,51-52,92,117,141-148,150
+  s_ad529e11c6976e::t_b540eb6da69176 109-115
+  s_ad529e11c6976e::t_4259dc8f8e67c2 58-61
+  s_ad529e11c6976e::t_d9065f2434caad 71-74
+apps/dashboard/src/types/auth/membership.ts
+  s_ad529e11c6976e::t_8880bb37521543 1-6
+  s_ad529e11c6976e::t_fd905f0afcb995 7-12
+apps/dashboard/src/lib/hooks/use-content-plan.ts
+  s_ad529e11c6976e::t_c54455be7fd92e 30-39
+apps/dashboard/src/components/content/content-detail-document.tsx
+  s_ad529e11c6976e::t_a7ff56d6a88e01 73-75
+apps/dashboard/src/lib/geo/configure.ts
+  s_ad529e11c6976e::t_7d81ac9c7145ab 80-90,92,95-96,98-103,106
+apps/dashboard/tests/content-editor-state.test.ts
+  s_ad529e11c6976e::t_1ac9ece9d28068 173-205
+apps/dashboard/src/utils/geo-hydration.ts
+  s_ad529e11c6976e::t_98c4c0b1a1dda2 19-24,28-35
+apps/dashboard/src/lib/auth/sync.ts
+  s_ad529e11c6976e::t_c45f06f7249db0 6
+  s_ad529e11c6976e::t_8880bb37521543 19,353-359
+  s_ad529e11c6976e::t_d9065f2434caad 2
+apps/dashboard/tests/content-source-metadata.test.ts
+  s_ad529e11c6976e::t_1ac9ece9d28068 1-58
+apps/dashboard/src/lib/auth/membership-upsert.ts
+  s_ad529e11c6976e::t_7d96ca83d31d42 1-4,9-14,16-83,88,91-93,95-98,100-104,107,128-133
+  s_ad529e11c6976e::t_fd905f0afcb995 5-8,15,84-87,89-90,94,99,105-106,108-127
+apps/dashboard/src/types/components/geo-writer.ts
+  s_ad529e11c6976e::t_b540eb6da69176 104-105
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart-impl.tsx
+  s_ad529e11c6976e::t_84c6977f94ff78 1291-1294
+apps/dashboard/tests/geo-project-scope.test.ts
+  s_ad529e11c6976e::t_35dceb69b88c5f 1-38
+apps/dashboard/src/lib/auth/membership-upsert.test.ts
+  s_ad529e11c6976e::t_d9065f2434caad 17-19
+  s_ad529e11c6976e::t_fd905f0afcb995 1-16,20-71
+apps/dashboard/src/utils/content-editor-state.ts
+  ai_agent 147-148,157
+packages/geo-core/tests/engine-flags.test.ts
+  s_ad529e11c6976e::t_d9065f2434caad 7,73-76,88-91,152-155,180-182,193-195
+  s_ad529e11c6976e::t_2c79615af9cf39 72,87,151,156-179,183-192,196-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "51bf16d70ed98366c5e135e90d96c2ccc5b1e6ba",
+  "prompts": {},
+  "sessions": {
+    "s_ad529e11c6976e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2f28bc1-837f-4f5f-821a-003f770facab",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
