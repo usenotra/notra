@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
-import { apiUrl, buildAgentJson, siteUrl } from "@/utils/agent-metadata";
+import { buildAgentJson, siteUrl } from "@/utils/agent-metadata";
 
 export const metadata: Metadata = {
   title: "Notra Agent Interface",
@@ -22,6 +22,16 @@ export default function AgentPage() {
           </>
         }
       />
+      <section className="mx-auto w-[min(100%-3rem,56rem)]">
+        <h2 className="font-sans text-lg font-medium">
+          What you can do with Notra
+        </h2>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#1E1E1E99] dark:text-white/60">
+          {agent.capabilities.map((capability) => (
+            <li key={capability}>{capability}</li>
+          ))}
+        </ul>
+      </section>
       <section className="mx-auto grid w-[min(100%-3rem,56rem)] gap-4 text-sm md:grid-cols-2">
         <div className="rounded-3xl border border-[#1E1E1E14] bg-[linear-gradient(in_oklab_180deg,oklab(95.1%_0.011_-0.018_/_15%)_0%,oklab(93.7%_0.019_-0.031_/_75%)_100%)] p-6 dark:border-white/10 dark:bg-white/[0.02] dark:bg-none">
           <h2 className="font-sans text-lg font-medium tracking-[-0.015em] text-[#1E1E1E] dark:text-white">
@@ -34,7 +44,7 @@ export default function AgentPage() {
             <li>
               Integration Surfaces: {siteUrl("/.well-known/integrations.json")}
             </li>
-            <li>Auth guide: {siteUrl("/auth.md")}</li>
+            <li>Auth guide: {agent.api.auth}</li>
           </ul>
         </div>
         <div className="rounded-3xl border border-[#1E1E1E14] bg-[linear-gradient(in_oklab_180deg,oklab(95.1%_0.011_-0.018_/_15%)_0%,oklab(93.7%_0.019_-0.031_/_75%)_100%)] p-6 dark:border-white/10 dark:bg-white/[0.02] dark:bg-none">
@@ -42,14 +52,18 @@ export default function AgentPage() {
             Endpoints
           </h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[#1E1E1E99] dark:text-white/60">
-            <li>API: {apiUrl()}</li>
-            <li>OpenAPI: {apiUrl("/openapi.json")}</li>
-            <li>MCP: {agent.mcp.streamable_http}</li>
-            <li>NLWeb ask: {siteUrl("/ask")}</li>
+            <li>API base URL: {agent.api.base_url}</li>
+            <li>OpenAPI (GET): {agent.api.openapi}</li>
+            <li>MCP (streamable HTTP): {agent.mcp.streamable_http}</li>
+            <li>API status (GET): {agent.api.status}</li>
+            <li>Product discovery (POST): {siteUrl("/ask")}</li>
           </ul>
         </div>
       </section>
-      <pre className="bg-background overflow-auto rounded-2xl border border-[#1E1E1E14] p-5 font-mono text-xs leading-6 text-[#1E1E1E] dark:border-white/10 dark:text-white/80">
+      <pre
+        aria-label="Notra agent discovery JSON"
+        className="bg-background w-[min(100%-3rem,56rem)] overflow-auto rounded-2xl border border-[#1E1E1E14] p-5 font-mono text-xs leading-6 text-[#1E1E1E] dark:border-white/10 dark:text-white/80"
+      >
         {JSON.stringify(agent, null, 2)}
       </pre>
     </main>
