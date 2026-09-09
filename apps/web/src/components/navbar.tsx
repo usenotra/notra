@@ -28,7 +28,7 @@ import {
   useScroll,
 } from "motion/react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -61,6 +61,7 @@ import {
 } from "@/utils/navigation";
 
 import { NotraMark, notraMarkSvgString } from "./notra-mark";
+import { SignedOutLandingRedirect } from "./signed-out-landing-redirect";
 import { ThemeToggle } from "./theme-toggle";
 import { TrackedSignupLink } from "./tracked-signup-link";
 
@@ -299,7 +300,6 @@ function getNavbarPresentation(
 
 export function Navbar({ variant }: NavbarProps = {}) {
   const pathname = usePathname();
-  const router = useRouter();
   const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -336,26 +336,14 @@ export function Navbar({ variant }: NavbarProps = {}) {
   useNavbarAuthHotkeys({ isAuthenticated, isResolved });
 
   useEffect(() => {
-    if (!isResolved) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      if (pathname === "/home" || pathname === "/landing") {
-        // Keep the resolved session in this shared layout to avoid redirect loops.
-        router.replace(`/${window.location.search}${window.location.hash}`);
-      }
-      return;
-    }
-
-    if (pathname === "/") {
+    if (pathname === "/" && isResolved && isAuthenticated) {
       window.location.replace(
         process.env.NODE_ENV === "development"
           ? "http://localhost:3000/callback"
           : AUTH_DASHBOARD_URL
       );
     }
-  }, [pathname, router, isResolved, isAuthenticated]);
+  }, [pathname, isResolved, isAuthenticated]);
 
   const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
@@ -476,6 +464,10 @@ export function Navbar({ variant }: NavbarProps = {}) {
 
   return (
     <LazyMotion features={domAnimation} strict>
+      <SignedOutLandingRedirect
+        isAuthenticated={isAuthenticated}
+        isResolved={isResolved}
+      />
       <m.div
         animate={shellAnimate}
         className={`z-50 mx-auto ${positionClass}`}
