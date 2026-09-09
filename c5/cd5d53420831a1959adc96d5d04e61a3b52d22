@@ -1,0 +1,227 @@
+apps/web/src/lib/brand/constants.ts
+  s_642e395ea682d1::t_71e07d6e333be7 62,64-71,76,78
+apps/ui/public/r/table.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-9,11-16
+  s_7a36f0db53dddc::t_5c644b45932ca8 10
+apps/ui/examples/select.tsx
+  s_7a36f0db53dddc::t_e96d60b51e9a50 50-51
+  s_7a36f0db53dddc::t_7745dcebdb7a70 1-3,12-13,25-26,28-30,32-34,37-49,52-61,64-66,68-70,72-73,80,84-85
+  s_7a36f0db53dddc::t_658b1d63554cd4 14-24,74-79,81-83
+  s_7a36f0db53dddc::t_8fb92e936baac6 67
+  s_7a36f0db53dddc::t_75af65e2ac7b89 27,31
+  s_7a36f0db53dddc::t_fbbadf7ad123c9 4-11,62-63,86-88
+  s_7a36f0db53dddc::t_214804ed134aed 35-36
+packages/ui/src/components/ui/select.tsx
+  s_7a36f0db53dddc::t_d53c5a0fd8bd37 52,56
+  s_7a36f0db53dddc::t_b92f068b953ff3 58-59
+  s_7a36f0db53dddc::t_8a8ae1a32d9b31 89,91
+  s_7a36f0db53dddc::t_5113328a2e2835 63,74
+  s_7a36f0db53dddc::t_2681c2797a5e20 11,15-18,20-21,23-28
+apps/ui/public/r/tabs.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-17
+apps/ui/examples/dialog.tsx
+  s_7a36f0db53dddc::t_5333009f24a9bc 4,12-13,20,22,24-25,28-35,37-40
+  s_7a36f0db53dddc::t_031c8a0cdbb945 17-19
+  s_7a36f0db53dddc::t_ae06942687102f 1-3,5-11,14-16,21,23,26-27,36,41-46
+apps/ui/docs/tabs.mdx
+  s_7a36f0db53dddc::t_1ff7a36f20464f 1-5,10-12
+  s_7a36f0db53dddc::t_37e12178e2822f 13-35
+  s_7a36f0db53dddc::t_4d9e311fc51690 6-9
+packages/ui/registry.json
+  s_7a36f0db53dddc::t_3f67ddcd169dda 1-300
+apps/ui/public/r/switch.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-17
+apps/ui/public/r/theme.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-82
+apps/ui/docs/input.mdx
+  s_7a36f0db53dddc::t_80ad739dd1ecc4 6-9
+  s_7a36f0db53dddc::t_55b8d5943524b0 13-30
+  s_7a36f0db53dddc::t_e23953c0c424b1 1-5,10-12
+apps/ui/blume.config.ts
+  s_7a36f0db53dddc::t_65709fd76eddff 22,31-52,59-61,64-68,71
+  s_7a36f0db53dddc::t_f504b8ad10ace3 62,70
+  s_7a36f0db53dddc::t_fa0184cacc420a 63
+packages/ui/scripts/build-registry.ts
+  s_7a36f0db53dddc::t_38c0dfb8bb2550 8
+  s_7a36f0db53dddc::t_91343966ae92a6 1-7,9-19,21-29
+apps/ui/package.json
+  s_7a36f0db53dddc::t_df48349c01564a 7-8
+  s_7a36f0db53dddc::t_ea71e22bd7201f 15-16,18-20
+AGENTS.md
+  s_642e395ea682d1::t_d5a6b7aeaa3500 9-10
+  s_642e395ea682d1::t_792f24c235df6d 7-8
+apps/web/src/utils/llms.ts
+  s_642e395ea682d1::t_7cd0c66fa4f31b 76-79
+apps/ui/docs/alert.mdx
+  s_7a36f0db53dddc::t_53239dd98f61ec 1-5,10-12
+  s_7a36f0db53dddc::t_66c4d1f29edce0 13-26
+  s_7a36f0db53dddc::t_3ef07a75f8b150 6-9
+apps/ui/examples/tabs.tsx
+  s_7a36f0db53dddc::t_467260d1b914c0 1-23
+apps/ui/docs/select.mdx
+  s_7a36f0db53dddc::t_01dde748c79af0 6-9
+  s_7a36f0db53dddc::t_9bda6f1e1345a0 1-2,4-5,11-12
+  s_7a36f0db53dddc::t_ca034851e6ac98 13-34
+  s_7a36f0db53dddc::t_33760379665514 3,10
+apps/ui/examples/switch.tsx
+  s_7a36f0db53dddc::t_3e97352b55d319 6-14
+  s_7a36f0db53dddc::t_fb70edf4639f54 1-5,15-17
+apps/ui/public/r/utils.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-16
+apps/ui/docs/table.mdx
+  s_7a36f0db53dddc::t_a23307fb7b4185 13-21,23-25
+  s_7a36f0db53dddc::t_2925d1f11d1a76 1-2,4-5,11-12
+  s_7a36f0db53dddc::t_2775f3e1798c9d 3,10,22
+  s_7a36f0db53dddc::t_ec41963d3f214e 6-9
+packages/ui/src/components/ui/input.tsx
+  s_7a36f0db53dddc::t_935a3c40bab667 2-3,7,9-29,32-33,41
+  s_7a36f0db53dddc::t_6ad88e165424c0 8
+apps/ui/src/components/header.astro
+  s_7a36f0db53dddc::t_ecda82238fc15f 107
+apps/ui/examples/textarea.tsx
+  s_7a36f0db53dddc::t_163f61aea0bb8f 1-14
+apps/web/public/design.md
+  s_642e395ea682d1::t_bfe4c66ee752e4 356-364
+  s_642e395ea682d1::t_a13acbf612240e 3
+  s_642e395ea682d1::t_46854dc41602f2 197,199,201-205
+  s_642e395ea682d1::t_244f01ba394cc0 29
+  s_642e395ea682d1::t_0966819c142046 39,41-42,44,46,48,53
+  s_642e395ea682d1::t_7e88b33c48f6ae 229,231,233,235-238,241,245
+  s_642e395ea682d1::t_4f9a8fb1504ba5 2,6,8,10,12,14,16,18,26-28,30-31,33,35,37,50-52,54,56,58-60,63-65,70,72,74-77,80,82,84-85,87,89-98,101,103,105-106,108-113,115,117-122,124,126,128,130-133,135-137,139,141,143,145-146,149,151-161,166-170,174-180,182-185,187,189,191,193,195,207,209-213,215,217,219,221,223,225,227,239,243,247,249-309,312,316-318,320-323,325,331,333-346,351-355,365-373,375-376
+  s_642e395ea682d1::t_09feea9af7e72c 20
+  s_642e395ea682d1::t_9714b27e349346 62
+  s_642e395ea682d1::t_bf90280addca51 22,24,66-67,71,73,78-79,81,83,86,88,99-100,102,104,107,114,116,123,125,127,129,134,186,188,190,192,194,196,198,200,206,208,214,216,218,220,222,224,226,228,230,232,234,240,242,244,246,248,310-311,313-315,324,326-330,332
+  s_642e395ea682d1::t_653f6ad9d6601d 138,140,142,144,147-148,150,162-165,171-173,181
+  s_642e395ea682d1::t_a84cce6d9a7f97 319
+  s_642e395ea682d1::t_ef8376922ad1af 347-350
+  s_642e395ea682d1::t_b25d452d2b43e5 374
+apps/dashboard/components.json
+  s_7a36f0db53dddc::t_240b20cf4b73f2 22
+apps/ui/docs/badge.mdx
+  s_7a36f0db53dddc::t_7ffa9314cdbc85 13-31
+  s_7a36f0db53dddc::t_cf598f6d5272ba 6-9
+  s_7a36f0db53dddc::t_20c716ecc5f25a 1-5,10-12
+apps/web/src/app/(site)/brand/page.tsx
+  s_642e395ea682d1::t_0ada53a2228f2e 177-178
+  s_642e395ea682d1::t_7248c9f29b3952 181
+  s_642e395ea682d1::t_4d20129c145a02 211
+packages/ui/src/components/ui/button.tsx
+  s_7a36f0db53dddc::t_d5fee7a9441706 25
+  s_7a36f0db53dddc::t_2f843065d856e0 8
+  s_7a36f0db53dddc::t_246078523784c7 6-7,9-13,15,19-21,24,29-33,35,37-38
+apps/ui/public/r/motion.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-16
+apps/ui/examples/card.tsx
+  s_7a36f0db53dddc::t_011f466bf69e61 1-30,32-49
+packages/ui/components.json
+  s_7a36f0db53dddc::t_279e535337422c 24
+apps/ui/public/r/badge.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-17
+apps/ui/public/r/select.json
+  s_7a36f0db53dddc::t_e9bd137dbf76c7 15
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-14,16-21
+apps/web/types/brand.ts
+  s_642e395ea682d1::t_5818d3d1334c46 15
+packages/ui/src/styles/status.css
+  s_7a36f0db53dddc::t_0c47a92147cab9 36-37
+apps/ui/docs/switch.mdx
+  s_7a36f0db53dddc::t_615cbdceb6cf94 6-9
+  s_7a36f0db53dddc::t_d99a2877dc1efe 13-30
+  s_7a36f0db53dddc::t_cb1640d2994e6a 1-5,10-12
+apps/ui/theme.css
+  s_7a36f0db53dddc::t_558c1cf4b82d4f 2,9-12,24
+  s_7a36f0db53dddc::t_2d9d99da3c8732 3-8,19-22
+  s_7a36f0db53dddc::t_c2748ae92e72e6 13-18,23
+  s_7a36f0db53dddc::t_86305b157fa248 25-34
+  s_7a36f0db53dddc::t_cda2e21491bd14 1
+apps/ui/docs/index.mdx
+  s_7a36f0db53dddc::t_d2d49dd48f4f40 17-36
+  s_7a36f0db53dddc::t_df188b7aef4fcd 3,6,8-11,13-15
+apps/ui/docs/textarea.mdx
+  s_7a36f0db53dddc::t_ad24f0333ccd2f 13-33
+  s_7a36f0db53dddc::t_5bff9933307979 6-9
+apps/ui/public/r/button.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-17
+apps/ui/examples/input.tsx
+  s_7a36f0db53dddc::t_1150a91404ab9b 11-15
+  s_7a36f0db53dddc::t_b0a4851e8bed32 1-10,16-30
+packages/ui/src/styles/globals.css
+  s_7a36f0db53dddc::t_6616d9ec81c83f 15
+  s_7a36f0db53dddc::t_09832cdafc1da2 88-89
+apps/ui/docs/card.mdx
+  s_7a36f0db53dddc::t_e739425e38ffb5 1-5,10-12
+  s_7a36f0db53dddc::t_5d20d71c6bf32f 6-9
+  s_7a36f0db53dddc::t_d022f8709390c0 13-26
+packages/ui/package.json
+  s_7a36f0db53dddc::t_e97d8a9810711b 23-24
+apps/ui/public/r/card.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-16
+apps/ui/public/r/registry.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-300
+apps/ui/examples/badge.tsx
+  s_7a36f0db53dddc::t_78c89e605a1c04 1-13
+apps/ui/public/r/label.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-16
+apps/ui/public/r/input.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-10,12-17
+  s_7a36f0db53dddc::t_3024cb457f3c61 11
+apps/ui/examples/table.tsx
+  s_7a36f0db53dddc::t_7866b0aeeabdf0 1,14-22,24-28,35,38-39,44-48,51-60,62-63,65-67,71-75,77-81,85-88,91,93-98,102-106,111-113,115-118,123-125,131-139
+  s_7a36f0db53dddc::t_b73dbb6ef424b3 2,4,64,68-70,76,83,90,92,99,114,119-122,126-130,140
+  s_7a36f0db53dddc::t_b943428ef276f4 3,5-13,29-34,36-37,40-43,49-50,61,82,84,89,100-101,107-110,141-146
+apps/ui/public/r/textarea.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-16
+apps/ui/examples/button.tsx
+  s_7a36f0db53dddc::t_7997041455356b 1-4,9-26,35,51-52,61,63,68-72
+  s_7a36f0db53dddc::t_5bb346f94b256b 5-8,27-34,36-50,53-60,62,64-67
+packages/ui/src/components/ui/table.tsx
+  s_7a36f0db53dddc::t_cb04305e0ef9ca 3,10,28,39,52,65,78,91
+apps/ui/examples/theme.css
+  s_7a36f0db53dddc::t_00e77de23f7476 9-14
+  s_7a36f0db53dddc::t_64991100e23684 4-6
+  s_7a36f0db53dddc::t_243cb39209b82b 1-2,7-8
+  s_7a36f0db53dddc::t_65fa25a0862e82 3,15-111
+apps/ui/public/r/alert.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-17
+apps/ui/docs/dialog.mdx
+  s_7a36f0db53dddc::t_e8cee182195751 1-2,4-5,11-12
+  s_7a36f0db53dddc::t_dd15bb73e1f8fa 6-9
+  s_7a36f0db53dddc::t_a648d9546ab9e0 3,10
+  s_7a36f0db53dddc::t_e1d00e6c2536d6 13-34
+apps/ui/docs/button.mdx
+  s_7a36f0db53dddc::t_400b5368d0f53f 1-5,10-12
+  s_7a36f0db53dddc::t_002343e44bb582 6-9
+  s_7a36f0db53dddc::t_688e43208ce6c1 13-31
+apps/ui/examples/alert.tsx
+  s_7a36f0db53dddc::t_43ab0c3c95be41 1-29
+apps/ui/public/r/dialog.json
+  s_7a36f0db53dddc::t_ecfae6cb2da352 1-21
+apps/web/src/utils/site-markdown.ts
+  s_642e395ea682d1::t_42ff85db3d7241 279-280
+  s_642e395ea682d1::t_6943dca69660c3 227
+  s_642e395ea682d1::t_c89fd8571bfed6 302
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c5cd5d53420831a1959adc96d5d04e61a3b52d22",
+  "prompts": {},
+  "sessions": {
+    "s_642e395ea682d1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86881436-5240-4f43-b98d-da3a8fc21aa2",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_7a36f0db53dddc": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "38450718-f755-4f9b-9f27-34edff2096d6",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
