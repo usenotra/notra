@@ -148,7 +148,7 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
 
         <BlogPostSidebar authors={post.authors} toc={toc} />
 
-        <div className="col-start-2 row-start-2 self-start justify-self-end lg:col-start-1">
+        <div className="col-start-2 row-start-2 self-end justify-self-end lg:col-start-1">
           <BlogCopyArticle
             markdown={post.markdown}
             markdownUrl={markdownUrl}

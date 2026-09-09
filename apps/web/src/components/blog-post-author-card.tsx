@@ -16,7 +16,7 @@ export function BlogPostAuthorCard({ authors }: BlogPostAuthorCardProps) {
 
   return (
     <div>
-      <p className="text-foreground mb-3 font-sans text-sm font-medium">
+      <p className="text-foreground mb-3 hidden font-sans text-sm font-medium lg:block">
         Written by
       </p>
       <ul className="flex flex-col gap-3">
