@@ -1,0 +1,260 @@
+apps/dashboard/src/components/geo/prompt-add-dialog.tsx
+  s_ad529e11c6976e::t_3382a6b49eed23 67
+packages/db/src/drizzle.ts
+  s_ad529e11c6976e::t_923e87b9da50c2 25-29
+apps/dashboard/src/lib/auth/parallel-access.test.ts
+  s_ad529e11c6976e::t_6bb6b61e5c1682 1-50
+packages/analytics/src/tinybird/purge.ts
+  s_ad529e11c6976e::t_32852006979b8a 21-22,40,67
+apps/dashboard/src/utils/providers.tsx
+  s_ad529e11c6976e::t_7b2e6bc7738da5 111-127
+  s_ad529e11c6976e::t_a0ce331dec0619 85,106
+apps/dashboard/src/lib/billing/subscription.ts
+  s_ad529e11c6976e::t_8e806687e0ce2c 9,19-33,193
+  s_ad529e11c6976e::t_fc481a43b4df56 171-178,180,182,189,194,201,203-221
+packages/db/src/schema.ts
+  s_ad529e11c6976e::t_8fbf270d338c25 1718-1749,1751
+  s_ad529e11c6976e::t_c656ef072d544b 250-253
+  s_ad529e11c6976e::t_0d388e667aa8df 1501-1506
+  s_ad529e11c6976e::t_50e7b3069431aa 1750
+  s_ad529e11c6976e::t_7fce93cb2ccfae 1956-1964
+  s_ad529e11c6976e::t_98bd7a27840fb3 2086-2102
+  s_ad529e11c6976e::t_8290a796f767ed 1231-1236
+  s_ad529e11c6976e::t_83f4d3964923b4 272-277
+apps/dashboard/src/components/geo/mention-trend-card.tsx
+  s_ad529e11c6976e::t_0547ce51aeafa0 79
+  s_ad529e11c6976e::t_1485829ea4bbf9 23
+apps/dashboard/src/app/(dashboard)/[slug]/content/[id]/page-client.tsx
+  s_ad529e11c6976e::t_90d6a3363eedc0 1676-1678
+  s_ad529e11c6976e::t_80fa82a5ba5097 126-128
+  s_ad529e11c6976e::t_64d30359fc2605 1244,1249,1251,1260,1267-1269
+apps/dashboard/src/instrumentation.ts
+  s_ad529e11c6976e::t_b21c975a233f67 19-26
+packages/analytics/package.json
+  s_ad529e11c6976e::t_2f27777aa74055 17
+apps/dashboard/src/components/geo/conversation-replay-thread.tsx
+  s_ad529e11c6976e::t_12931ba2770bdb 11,26-33
+apps/dashboard/src/app/(dashboard)/[slug]/geo/layout.tsx
+  s_ad529e11c6976e::t_062528b1bf66e9 7,20,25
+apps/dashboard/src/lib/orpc/routers/onboarding.ts
+  s_ad529e11c6976e::t_f9354916944123 33-36,44-56,67-75,77,83-84,86
+  s_ad529e11c6976e::t_005b4a7317f023 38
+packages/ai/src/billing/autumn.ts
+  s_ad529e11c6976e::t_8e806687e0ce2c 7-12,14-17
+packages/ai/src/utils/octokit.ts
+  s_ad529e11c6976e::t_9276ccce1c62cc 4-9,13-15
+  s_ad529e11c6976e::t_2f27777aa74055 1
+apps/dashboard/src/types/onboarding.ts
+  s_ad529e11c6976e::t_3e96f151667672 14-19
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/usage/page.tsx
+  s_ad529e11c6976e::t_d4567b8f911bf9 5
+packages/geo-core/src/geo/agent-readiness.ts
+  s_ad529e11c6976e::t_d849897364d7e3 134-137,153,159,166-167
+  s_ad529e11c6976e::t_e5889b93cf8741 3
+  s_ad529e11c6976e::t_bda7392dfffd2b 4,34-53,115-133,138-152,154-158,160-165,168-170,210,212-213,221
+apps/dashboard/src/components/dashboard/org-selector.tsx
+  s_ad529e11c6976e::t_03737d68cffae8 443-445
+  s_ad529e11c6976e::t_f735eb1b9df57b 61
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page.tsx
+  s_ad529e11c6976e::t_a99b620c22ca4c 7,9,29-34,39
+apps/dashboard/src/utils/geo-prefetch.server.ts
+  s_ad529e11c6976e::t_a99b620c22ca4c 17,21,36-73
+apps/dashboard/src/constants/posthog.ts
+  s_ad529e11c6976e::t_04d88d98620b80 28-34
+apps/dashboard/src/lib/onboarding/errors.ts
+  s_ad529e11c6976e::t_f53365fc6cd027 1-13
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_ad529e11c6976e::t_5026c480ec89a5 621-626
+  s_ad529e11c6976e::t_f9dd6361e53b67 605-607,609
+  s_ad529e11c6976e::t_11f459135f1dca 1332-1336,1338-1341,1351-1352,1357-1368
+  s_ad529e11c6976e::t_ade02c55f4a2bd 68,134-136
+  s_ad529e11c6976e::t_f48b8833682a6b 58-67,69-70
+apps/dashboard/src/lib/geo-shelf/citation-query.ts
+  s_ad529e11c6976e::t_41a457a5359e90 42-45
+  s_ad529e11c6976e::t_c618d718315306 41
+apps/dashboard/src/lib/hooks/use-posts.ts
+  s_ad529e11c6976e::t_31f4a192e77410 13-18,26
+apps/dashboard/src/lib/analytics/posthog-lazy.ts
+  s_ad529e11c6976e::t_ac7c274a981857 1-56
+packages/utils/src/timeout-fetch.ts
+  s_ad529e11c6976e::t_2f27777aa74055 1-17
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart-impl.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-1400
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_ad529e11c6976e::t_7a3f4ad08a5a29 60-69
+  s_ad529e11c6976e::t_f9a1dafb8704b3 24
+apps/dashboard/src/instrumentation-client.ts
+  s_ad529e11c6976e::t_a2b6bf94047c8b 7
+  s_ad529e11c6976e::t_646aea80d788a6 1-2,4,8-11
+apps/dashboard/next.config.ts
+  s_ad529e11c6976e::t_fb118f91f3891a 17-26
+apps/dashboard/src/lib/auth/parallel-access.ts
+  s_ad529e11c6976e::t_8df859a4694530 1-23
+packages/db/src/constants/geo-check-cache.ts
+  s_ad529e11c6976e::t_923e87b9da50c2 1-14
+packages/geo-core/src/geo/engine-flags.ts
+  s_ad529e11c6976e::t_5c4456e69e68ec 1-55
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart-impl.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-2270
+apps/dashboard/src/components/dashboard/dashboard-client-wrapper.tsx
+  s_ad529e11c6976e::t_7826fbe07cff01 3-5,33-36,41-42,55-58
+  s_ad529e11c6976e::t_8bf5505ab0a01f 43-54
+apps/dashboard/src/components/dashboard/nav-recent-content.tsx
+  s_ad529e11c6976e::t_31f4a192e77410 35-42
+apps/dashboard/src/components/evilcharts/ui/echarts-brush.tsx
+  s_ad529e11c6976e::t_be80e45d54f55a 20-21
+apps/dashboard/src/components/providers/geo-project-provider.tsx
+  s_ad529e11c6976e::t_3c72ba172158ae 9,29,31-36,39
+apps/dashboard/src/lib/geo/initial-project.server.ts
+  s_ad529e11c6976e::t_3c72ba172158ae 1-56
+apps/dashboard/src/types/geo.ts
+  s_ad529e11c6976e::t_3c72ba172158ae 89-94
+packages/db/src/drizzle-http.ts
+  s_ad529e11c6976e::t_923e87b9da50c2 19-23
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart.tsx
+  s_ad529e11c6976e::t_d1e5bfa493cb4b 3,5-9,11-18,20,22-24,26-28,30-32,34-38,40-42,44,47,50-51
+apps/dashboard/src/app/(dashboard)/[slug]/page-client.tsx
+  s_ad529e11c6976e::t_17c4dd84ccfbdf 12
+  s_ad529e11c6976e::t_a9207a4d131426 138-141
+apps/dashboard/src/components/geo/ai-traffic-log-card.tsx
+  s_ad529e11c6976e::t_e02035910aea8a 55
+apps/dashboard/src/lib/orpc/client.ts
+  s_ad529e11c6976e::t_d578aa51b2f900 20-27,31-32
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart-impl.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-2588
+apps/dashboard/src/lib/hooks/use-active-generations.ts
+  s_ad529e11c6976e::t_e02035910aea8a 38-40,42,44
+apps/dashboard/src/app/(dashboard)/[slug]/iris/page-client.tsx
+  s_ad529e11c6976e::t_df07cf3fa07442 51,57-58,65,72,84
+apps/dashboard/src/lib/orpc/routers/geo.ts
+  s_ad529e11c6976e::t_e3dd295e98a29d 292-308,1426
+  s_ad529e11c6976e::t_883d05a8ab93c6 1429-1442
+  s_ad529e11c6976e::t_6ded6df8b921d7 199,1423-1425,1427-1428
+  s_ad529e11c6976e::t_2e177c6706a596 223-224
+  s_ad529e11c6976e::t_b5246e9ad9c3a6 267,272,277
+  s_ad529e11c6976e::t_fc481a43b4df56 268-271,276,278-289
+apps/dashboard/src/lib/analytics/access.ts
+  s_ad529e11c6976e::t_b5246e9ad9c3a6 1-2,7-12,16
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart-parts.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-24
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart-parts.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-23
+apps/dashboard/src/app/(dashboard)/[slug]/geo/geo-project-scope.tsx
+  s_ad529e11c6976e::t_062528b1bf66e9 1,3,5,7-10,12-16,21-26,29-31
+  s_ad529e11c6976e::t_a9207a4d131426 17-20
+packages/db/src/utils/geo-checks.ts
+  s_ad529e11c6976e::t_923e87b9da50c2 13,215,250,388,611,644,684,718
+  s_ad529e11c6976e::t_996e769a9b280d 99-100,102
+apps/dashboard/src/lib/analytics/flag.test.ts
+  s_ad529e11c6976e::t_ca5ce0fc7d82b0 1-67
+apps/dashboard/src/lib/onboarding/company-logo-cache.ts
+  s_ad529e11c6976e::t_3e96f151667672 5
+  s_ad529e11c6976e::t_9e15d9709d0daf 2-4,13-43,46,50,56-64,66-67,75-90,93-95,100-119
+  s_ad529e11c6976e::t_2db4afcc50cea2 65
+  s_ad529e11c6976e::t_4adbfe56c3b467 91-92
+  s_ad529e11c6976e::t_5a91da1e3da853 44-45,47-48,51-55,68-74,96-99
+packages/utils/package.json
+  s_ad529e11c6976e::t_2f27777aa74055 13
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart.tsx
+  s_ad529e11c6976e::t_d1e5bfa493cb4b 3,5-10,12-20,22,24-26,28-30,32-34,36-40,42-43,46,50,53-55
+apps/dashboard/src/app/(auth-public)/layout.tsx
+  s_ad529e11c6976e::t_af87baef5a9210 3,15
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart.tsx
+  s_ad529e11c6976e::t_d1e5bfa493cb4b 3,5-10,12-45,48,52-53,56-59
+packages/kiwi/src/fonts/loader.ts
+  s_ad529e11c6976e::t_d0d8241ae3c549 14-19,21
+apps/dashboard/src/lib/hooks/use-engine-icon-html.ts
+  s_ad529e11c6976e::t_0c46597ac29dba 1-49
+apps/dashboard/src/components/auth/pixel-blast-background.tsx
+  s_ad529e11c6976e::t_af87baef5a9210 1-31
+apps/dashboard/src/components/evilcharts/ui/use-lazy-chart.ts
+  s_ad529e11c6976e::t_4620b1753d78e8 1-50
+apps/dashboard/src/lib/geo-shelf/store.ts
+  s_ad529e11c6976e::t_ec1c716ca6fbcf 155-163,165-173
+apps/dashboard/src/lib/hooks/use-geo-writer.ts
+  s_ad529e11c6976e::t_e02035910aea8a 53,56
+apps/dashboard/src/lib/analytics/flag.ts
+  s_ad529e11c6976e::t_c375999d8522a3 45-70,84-96
+  s_ad529e11c6976e::t_12a345851355b5 18-24
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart-parts.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-20
+apps/dashboard/src/lib/hooks/use-geo-db.ts
+  s_ad529e11c6976e::t_2e191485f8630f 40-48,75-78,89,91,160-163,174,176,206-209,220,222
+  s_ad529e11c6976e::t_3382a6b49eed23 79,90,164,175,210,221
+packages/geo-core/src/geo/model-catalog.ts
+  s_ad529e11c6976e::t_49f1e869801ab1 20
+  s_ad529e11c6976e::t_8c6746613735f6 75-81
+apps/dashboard/src/components/evilcharts/ui/echarts-brush-part.tsx
+  s_ad529e11c6976e::t_be80e45d54f55a 1-17
+apps/dashboard/src/proxy.ts
+  s_ad529e11c6976e::t_b21c975a233f67 7
+apps/dashboard/src/lib/orpc/routers/brand.ts
+  s_ad529e11c6976e::t_586040726bf68e 116-118,124
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart-impl.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-2770
+apps/dashboard/src/components/command-palette/command-palette.tsx
+  s_ad529e11c6976e::t_be3fa10e531f92 73-74
+packages/geo-core/src/geo/gaps.ts
+  s_ad529e11c6976e::t_50e7b3069431aa 416-432,434-451,453-477
+  s_ad529e11c6976e::t_0548120dfbdc76 181,190,478-480,484
+packages/analytics/src/tinybird/client.ts
+  s_ad529e11c6976e::t_32852006979b8a 78-83,90
+  s_ad529e11c6976e::t_5a2cba44d7e471 1
+apps/dashboard/src/app/(dashboard)/[slug]/geo/agent-readiness/page.tsx
+  s_ad529e11c6976e::t_d4567b8f911bf9 15
+apps/dashboard/src/components/chat/integration-reference.tsx
+  s_ad529e11c6976e::t_591f4b45a3cb0e 34-36
+  s_ad529e11c6976e::t_0c0d9103b7757c 32-33
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_ad529e11c6976e::t_d1e5bfa493cb4b 3,5-10,12-22,24,26-28,30-32,34-36,38-42,44-45,48,51,53,57-59
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_ad529e11c6976e::t_e02035910aea8a 879
+  s_ad529e11c6976e::t_f68498a0dc3a02 372-373,385,497-498,505
+  s_ad529e11c6976e::t_213da2ce61ee9c 99-100,206,718,772
+apps/dashboard/src/components/geo/traffic-hero.tsx
+  s_ad529e11c6976e::t_1485829ea4bbf9 27
+  s_ad529e11c6976e::t_0547ce51aeafa0 120
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_ad529e11c6976e::t_f68498a0dc3a02 122-123,126-128,133-134
+packages/geo-core/tests/agent-readiness.test.ts
+  s_ad529e11c6976e::t_327c835384d7ac 58-92
+apps/dashboard/src/components/geo/conversation-builder-dialog.tsx
+  s_ad529e11c6976e::t_3382a6b49eed23 48-50
+apps/dashboard/src/components/dashboard/header.tsx
+  s_ad529e11c6976e::t_03737d68cffae8 1-2,31,44,94
+apps/dashboard/src/utils/schedule-demo.ts
+  s_ad529e11c6976e::t_03737d68cffae8 1-22,24
+  s_ad529e11c6976e::t_cc12d58a149655 23
+apps/dashboard/src/lib/hooks/use-brand-analysis.ts
+  s_ad529e11c6976e::t_213da2ce61ee9c 20-21
+  s_ad529e11c6976e::t_e02035910aea8a 75,77,85,88,90
+apps/dashboard/src/lib/analytics/posthog-client.ts
+  s_ad529e11c6976e::t_5f8eefb9650f46 6,12,19
+apps/dashboard/src/lib/orpc/routers/analytics.ts
+  s_ad529e11c6976e::t_8df859a4694530 42-54,59,74,94,112,127,147,166,181,195,223
+  s_ad529e11c6976e::t_8814e38e91defb 27
+apps/dashboard/src/app/(dashboard)/[slug]/page.tsx
+  s_ad529e11c6976e::t_7e218abce32752 25-32
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart-parts.tsx
+  s_ad529e11c6976e::t_bffee1a04dd574 1-19
+apps/dashboard/src/components/auth/auth-brand-panel.tsx
+  s_ad529e11c6976e::t_af87baef5a9210 5,9-20,31-44
+apps/dashboard/src/utils/geo-hydration.ts
+  s_ad529e11c6976e::t_a99b620c22ca4c 1-4,18-29,32,35,39-43,46,48-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6f40bddf53f1c5a0c8085453e88eafb35f027d25",
+  "prompts": {},
+  "sessions": {
+    "s_ad529e11c6976e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2f28bc1-837f-4f5f-821a-003f770facab",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
