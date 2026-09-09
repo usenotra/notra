@@ -12,6 +12,7 @@ import {
   brandSettings,
   geoCompetitors,
   geoPrompts,
+  geoScans,
   geoSettings,
 } from "@notra/db/schema";
 import {
@@ -155,7 +156,7 @@ import {
 } from "./prompts";
 import { startClaimedGeoScanRun } from "./scan-handoff";
 import { nextGeoScanAt } from "./scan-schedule";
-import { claimGeoScanRun } from "./scan-status";
+import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
 
 function mergeLegacyCompetitors(
@@ -871,6 +872,7 @@ export const loadGeoPromptHistory = Effect.fn("geo.promptHistory")(function* (
   const rows = yield* geoDb("prompt history query failed", () =>
     queryGeoCheckPromptHistory(geoCheckScope(scope), {
       promptIds: promptHistoryScanIds(input.promptId),
+      scanId: input.scanId,
       limit: GEO_PROMPT_HISTORY_LIMIT,
     })
   );
@@ -1800,5 +1802,42 @@ export const startGeoScan = Effect.fn("geo.startScan")(function* (
 export const startGeoPromptRescan = Effect.fn("geo.rescanPrompt")(function* (
   input: GeoPromptRescanInput
 ) {
-  return yield* startGeoScanScoped(input, [input.promptId]);
+  const { prompts } = yield* listGeoPrompts(input);
+  const prompt = prompts.find(
+    (candidate) =>
+      candidate.enabled &&
+      (candidate.id === input.promptId ||
+        customPromptScanId(candidate.id) === input.promptId)
+  );
+  if (!prompt) {
+    return yield* Effect.fail(
+      new GeoPromptNotFoundError({ promptId: input.promptId })
+    );
+  }
+  return yield* startGeoScanScoped(input, [prompt.id], input.engines);
+});
+
+export const loadGeoScanStatus = Effect.fn("geo.scanStatus")(function* (
+  input: GeoScopeInput,
+  scanId: string
+) {
+  const scope = yield* requireGeoProject(input);
+  yield* sweepStaleGeoScanRows(scope);
+  const scan = yield* geoDb("scan status lookup failed", () =>
+    db.query.geoScans.findFirst({
+      columns: { id: true, status: true, startedAt: true, finishedAt: true },
+      where: and(
+        eq(geoScans.id, scanId),
+        eq(geoScans.projectId, scope.projectId),
+        eq(geoScans.organizationId, scope.organizationId)
+      ),
+    })
+  );
+  return scan
+    ? {
+        ...scan,
+        startedAt: scan.startedAt.toISOString(),
+        finishedAt: scan.finishedAt?.toISOString() ?? null,
+      }
+    : null;
 });

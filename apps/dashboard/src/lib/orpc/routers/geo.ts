@@ -72,6 +72,7 @@ import {
   loadGeoTrafficLog,
   loadGeoTrafficPages,
   startGeoPromptRescan,
+  loadGeoScanStatus,
   startGeoScan,
   toggleGeoAutoPrompt,
   toggleGeoPrompt,
@@ -94,6 +95,10 @@ import {
   seedGeoSampleData,
 } from "@notra/geo-core/geo/sample-data";
 import { runGeoSequenceNow } from "@notra/geo-core/geo/scan";
+import {
+  loadGeoScanRun,
+  loadGeoScanRuns,
+} from "@notra/geo-core/geo/scan-history";
 import {
   selectGscSiteAndSyncSuggestions,
   syncGscSuggestions,
@@ -143,6 +148,7 @@ import {
   geoPromptHistoryInputSchema,
   geoPromptResultDetailInputSchema,
   geoPromptRescanInputSchema,
+  geoScanStatusInputSchema,
   geoPromptsImportInputSchema,
   geoPromptDeleteInputSchema,
   geoPromptToggleInputSchema,
@@ -165,6 +171,10 @@ import {
   geoWriterPlanInputSchema,
   geoWriterUpdateInputSchema,
 } from "@notra/geo-core/schemas/geo";
+import {
+  geoScanRunInputSchema,
+  geoScanRunsInputSchema,
+} from "@notra/geo-core/schemas/geo-scan-history";
 import { gscSelectSiteInputSchema } from "@notra/geo-core/schemas/google-search-console";
 import { GeoSearchConsoleError } from "@notra/geo-core/schemas/search-console-errors";
 import type {
@@ -1404,6 +1414,15 @@ export const geoRouter = {
   rescanPrompt: authorizedProcedure
     .input(geoPromptRescanInputSchema)
     .handler(geoHandler((input) => startGeoPromptRescan(input))),
+  scanStatus: authorizedProcedure
+    .input(geoScanStatusInputSchema)
+    .handler(geoHandler((input) => loadGeoScanStatus(input, input.scanId))),
+  scanRuns: authorizedProcedure
+    .input(geoScanRunsInputSchema)
+    .handler(geoHandler((input) => loadGeoScanRuns(input))),
+  scanRun: authorizedProcedure
+    .input(geoScanRunInputSchema)
+    .handler(geoHandler((input) => loadGeoScanRun(input))),
   writerGaps: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoHandler((input) => loadGeoContentGaps(input))),

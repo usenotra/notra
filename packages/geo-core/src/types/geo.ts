@@ -307,11 +307,13 @@ export interface GeoPromptResultDetailResponse {
 }
 
 export interface GeoPromptHistoryInput extends GeoScopeInput {
+  scanId?: string;
   promptId: string;
 }
 
 export interface GeoPromptRescanInput extends GeoScopeInput {
   promptId: string;
+  engines?: readonly string[];
 }
 
 export interface GeoRescanForPostInput {

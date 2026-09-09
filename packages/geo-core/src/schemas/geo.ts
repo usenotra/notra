@@ -261,11 +261,20 @@ export const geoPromptResultDetailInputSchema =
   });
 
 export const geoPromptHistoryInputSchema = geoOrganizationInputSchema.extend({
+  scanId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
   promptId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+});
+
+export const geoScanStatusInputSchema = geoOrganizationInputSchema.extend({
+  scanId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
 });
 
 export const geoPromptRescanInputSchema = geoOrganizationInputSchema.extend({
   promptId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+  engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
+    .min(1)
+    .max(GEO_MAX_ENGINES)
+    .optional(),
 });
 
 export const geoTimeseriesInputSchema = geoOrganizationInputSchema.extend({

@@ -202,12 +202,14 @@ describe("GEO scan workflow orchestration", () => {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     };
     const result = await geoScanWorkflow(payload);
     expect(prepare).toHaveBeenCalledWith("org-test", "project-test", {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
       retried: false,
     });
     expect(taskBatch.mock.calls.map(([, batch]) => batch.length)).toEqual([
@@ -436,6 +438,7 @@ describe("GEO scan workflow orchestration", () => {
         claimedAt: "2026-09-01T00:00:00.000Z",
         scanId: "old-scan",
         promptIds: ["prompt-0"],
+        engines: ["openai/gpt-4.1"],
       })
     ).toEqual({ status: "completed", checks: 2, mentions: 0 });
     expect(sleep).toHaveBeenCalledTimes(1);
@@ -456,6 +459,7 @@ describe("GEO scan workflow orchestration", () => {
     expect(prepare.mock.calls[2]?.[2]).toEqual({
       retried: true,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     });
   });
 
