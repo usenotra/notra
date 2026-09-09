@@ -117,6 +117,69 @@ export async function queryGeoCheckSentimentEvidence(
     .limit(limit);
 }
 
+export async function queryGeoSentimentAnalysisSnapshot(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow
+) {
+  const [row] = await db
+    .select({
+      fingerprint: sql<string>`md5(coalesce(string_agg(md5(jsonb_build_array(${geoMentionChecks.id}, ${geoMentionChecks.answer}, ${geoMentionChecks.prompt}, ${geoMentionChecks.sentiment}, ${geoMentionChecks.engine}, ${geoMentionChecks.capturedAt})::text), '' order by ${geoMentionChecks.id}), ''))`,
+      eligible: sql<number>`count(*)::int`,
+    })
+    .from(geoMentionChecks)
+    .where(
+      and(
+        mentionFilters(scope, window, {
+          sequences: "single",
+          englishOnly: true,
+        }),
+        eq(geoMentionChecks.turn, 0),
+        eq(geoMentionChecks.mentioned, true),
+        inArray(geoMentionChecks.sentiment, ["positive", "negative"])
+      )
+    );
+  if (!row) {
+    throw new Error("Sentiment snapshot returned no aggregate");
+  }
+  return row;
+}
+
+export async function queryGeoSentimentAnalysisSample(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow,
+  limitPerPolarity: number,
+  answerChars: number
+) {
+  const groups = await Promise.all(
+    ["positive", "negative"].map((sentiment) =>
+      db
+        .select({
+          id: geoMentionChecks.id,
+          sentiment: geoMentionChecks.sentiment,
+          answer: sql<string>`left(${geoMentionChecks.answer}, ${answerChars})`,
+          prompt: sql<string>`left(${geoMentionChecks.prompt}, 500)`,
+          engine: geoMentionChecks.engine,
+          capturedAt: sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
+        })
+        .from(geoMentionChecks)
+        .where(
+          and(
+            mentionFilters(scope, window, {
+              sequences: "single",
+              englishOnly: true,
+            }),
+            eq(geoMentionChecks.turn, 0),
+            eq(geoMentionChecks.mentioned, true),
+            eq(geoMentionChecks.sentiment, sentiment)
+          )
+        )
+        .orderBy(sql`md5(${geoMentionChecks.id})`, geoMentionChecks.id)
+        .limit(limitPerPolarity)
+    )
+  );
+  return groups.flat();
+}
+
 const CHECK_INSERT_CHUNK = 250;
 
 function toNumber(value: unknown): number {

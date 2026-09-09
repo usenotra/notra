@@ -12,7 +12,11 @@ import type {
   GeoSentimentResponse,
   GeoSentimentEvidenceResponse,
 } from "../types/geo-sentiment";
-import { sentimentPoints, summarizeSentiment } from "../utils/geo-sentiment";
+import { summarizeSentiment } from "../utils/geo-sentiment";
+import {
+  sentimentPeriods,
+  sentimentPeriodPoints,
+} from "../utils/sentiment-period";
 import { geoDb } from "./effect";
 import { geoCheckScope, resolveGeoScope } from "./projects";
 
@@ -21,17 +25,43 @@ export const loadGeoSentiment = Effect.fn("geo.sentiment")(function* (
   window: GeoWindowInput
 ) {
   const scope = yield* resolveGeoScope(input);
+  const periods = sentimentPeriods(window);
   const rows = yield* geoDb("sentiment query failed", () =>
-    queryGeoCheckSentiment(geoCheckScope(scope), toGeoCheckWindow(window))
+    queryGeoCheckSentiment(
+      geoCheckScope(scope),
+      toGeoCheckWindow(periods.current)
+    )
   );
+  const previousRows = yield* geoDb("previous sentiment query failed", () =>
+    queryGeoCheckSentiment(
+      geoCheckScope(scope),
+      toGeoCheckWindow(periods.previous)
+    )
+  );
+  const summary = summarizeSentiment(rows);
+  const previousSummary = summarizeSentiment(previousRows);
   const response: GeoSentimentResponse = {
     configured: true as const,
-    summary: summarizeSentiment(rows),
+    summary,
     engines: [...new Set(rows.map((row) => row.engine))].map((engine) => ({
       engine,
       ...summarizeSentiment(rows.filter((row) => row.engine === engine)),
     })),
-    points: sentimentPoints(rows),
+    points: sentimentPeriodPoints(rows, periods.current.from, periods.length),
+    comparison: {
+      current: periods.current,
+      previous: periods.previous,
+      summary: previousSummary,
+      points: sentimentPeriodPoints(
+        previousRows,
+        periods.previous.from,
+        periods.length
+      ),
+      delta:
+        summary.score === null || previousSummary.score === null
+          ? null
+          : summary.score - previousSummary.score,
+    },
   };
   return response;
 });

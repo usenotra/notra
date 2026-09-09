@@ -109,6 +109,7 @@ import {
   loadGeoSentiment,
   loadGeoSentimentEvidence,
 } from "@notra/geo-core/geo/sentiment";
+import { loadGeoSentimentAnalysis } from "@notra/geo-core/geo/sentiment-analysis";
 import {
   createGeoSequence,
   deleteGeoSequence,
@@ -167,6 +168,7 @@ import {
 } from "@notra/geo-core/schemas/geo";
 import { geoSentimentEvidenceInputSchema } from "@notra/geo-core/schemas/geo-sentiment";
 import { gscSelectSiteInputSchema } from "@notra/geo-core/schemas/google-search-console";
+import { sentimentPeriodInputSchema } from "@notra/geo-core/schemas/sentiment-analysis";
 import type {
   AgentReadinessResponse,
   AgentReadinessScanResponse,
@@ -891,8 +893,21 @@ export const geoRouter = {
     .input(geoTimeseriesInputSchema)
     .handler(geoHandler((input) => loadGeoOverview(input, geoWindow(input)))),
   sentiment: authorizedProcedure
-    .input(geoTimeseriesInputSchema)
+    .input(sentimentPeriodInputSchema)
     .handler(geoHandler((input) => loadGeoSentiment(input, geoWindow(input)))),
+  sentimentAnalysis: authorizedProcedure
+    .input(sentimentPeriodInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoSentimentAnalysis(input, geoWindow(input)))
+    ),
+  analyzeSentiment: authorizedProcedure
+    .route({ method: "POST" })
+    .input(sentimentPeriodInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadGeoSentimentAnalysis(input, geoWindow(input), true)
+      )
+    ),
   sentimentEvidence: authorizedProcedure
     .input(geoSentimentEvidenceInputSchema)
     .handler(

@@ -5,6 +5,7 @@ import { geoMentionChecks, geoScans } from "@notra/db/schema";
 import { drizzle } from "drizzle-orm/pglite";
 import { Effect } from "effect";
 
+import { GeoContentBillingService } from "../src/deps";
 import { geoSentimentEvidenceInputSchema } from "../src/schemas/geo-sentiment";
 import {
   sentimentPoints,
@@ -16,10 +17,16 @@ const { initializeDatabase, postgres, resetDatabase, seedProject, testDb } =
   createTestDatabase();
 
 mock.module("@notra/db/drizzle", () => ({ db: testDb }));
-const { queryGeoCheckSentiment, queryGeoCheckSentimentEvidence } =
-  await import("@notra/db/utils/geo-checks");
+const {
+  queryGeoCheckSentiment,
+  queryGeoCheckSentimentEvidence,
+  queryGeoSentimentAnalysisSnapshot,
+  queryGeoSentimentAnalysisSample,
+} = await import("@notra/db/utils/geo-checks");
 const { loadGeoSentiment, loadGeoSentimentEvidence } =
   await import("../src/geo/sentiment");
+const { loadGeoSentimentAnalysis } =
+  await import("../src/geo/sentiment-analysis");
 const scope = { organizationId: "org-test", projectId: "main" };
 const window = {
   from: new Date("2026-09-01T00:00:00Z"),
@@ -86,6 +93,70 @@ test("exact labels, unknowns and non-mentions use the correct denominator", asyn
     positiveShare: 0.5,
     classificationCoverage: 0.75,
   });
+});
+
+test("analysis sample and fingerprint enforce historical scope, bounds, polarity and content freshness", async () => {
+  await seedProject("other");
+  await seedProject("foreign", { organizationId: "foreign-org" });
+  for (const values of [
+    { projectId: "other" },
+    { projectId: "foreign", organizationId: "foreign-org" },
+    { language: "German" },
+    { sequenceId: "sequence" },
+    { turn: 1 },
+    { mentioned: false },
+    { sentiment: null },
+    { sentiment: "neutral" },
+    { capturedAt: window.toExclusive },
+  ]) {
+    await check(values);
+  }
+  for (let index = 0; index < 16; index++) {
+    await check({
+      id: `eligible-${index}`,
+      sentiment: index % 2 ? "positive" : "negative",
+      answer: "A".repeat(5000),
+    });
+  }
+  const before = await queryGeoSentimentAnalysisSnapshot(scope, window);
+  expect(before.eligible).toBe(16);
+  const sampled = await queryGeoSentimentAnalysisSample(scope, window, 3, 2000);
+  expect(sampled).toHaveLength(6);
+  expect(
+    sampled.every(
+      (row) => row.id.startsWith("eligible-") && row.answer.length === 2000
+    )
+  ).toBe(true);
+  expect(await queryGeoSentimentAnalysisSample(scope, window, 3, 2000)).toEqual(
+    sampled
+  );
+  await postgres.exec(
+    "UPDATE geo_mention_checks SET answer = answer || 'changed' WHERE id = 'eligible-0'"
+  );
+  expect(
+    (await queryGeoSentimentAnalysisSnapshot(scope, window)).fingerprint
+  ).not.toBe(before.fingerprint);
+});
+
+test("period comparison uses immediately preceding UTC history and weighted scores", async () => {
+  await check({
+    sentiment: "positive",
+    capturedAt: new Date("2026-08-30T00:00:00Z"),
+  });
+  await check({
+    sentiment: "neutral",
+    capturedAt: new Date("2026-08-31T23:59:59.999Z"),
+  });
+  await check({ sentiment: "negative" });
+  const result = await Effect.runPromise(
+    loadGeoSentiment(scope, { from: "2026-09-01", to: "2026-09-02" })
+  );
+  expect(result.comparison?.summary.score).toBe(75);
+  expect(result.comparison?.delta).toBe(-75);
+  expect(result.points.map((point) => point.score)).toEqual([0, null]);
+  expect(result.comparison?.points.map((point) => point.score)).toEqual([
+    100, 50,
+  ]);
 });
 
 test("empty and unclassified buckets stay null; counts weight engines", async () => {
@@ -241,6 +312,25 @@ test("loaders resolve project scope, reject foreign projects and return valid sc
       loadGeoSentiment({ ...scope, projectId: "foreign" }, range)
     )
   ).rejects.toThrow();
+  await expect(
+    Effect.runPromise(
+      loadGeoSentimentAnalysis(
+        { ...scope, projectId: "foreign" },
+        range,
+        true
+      ).pipe(
+        Effect.provideService(GeoContentBillingService, {
+          gateContentBilling: () =>
+            Effect.die("must not bill foreign projects"),
+          finalizeContentBilling: () =>
+            Effect.die("must not finalize foreign projects"),
+        }),
+        Effect.catchTag("GeoProjectNotFoundError", (error) =>
+          Effect.succeed({ deniedProject: error.projectId })
+        )
+      )
+    )
+  ).resolves.toEqual({ deniedProject: "foreign" });
   const page = await Effect.runPromise(
     loadGeoSentimentEvidence({ ...scope, ...range }, range)
   );

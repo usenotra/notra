@@ -146,6 +146,9 @@ async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
       queryKey: dashboardOrpc.geo.sentimentEvidence.key(),
     }),
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.sentimentAnalysis.key(),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.overview.key(),
     }),
     queryClient.invalidateQueries({

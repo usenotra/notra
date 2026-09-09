@@ -33,6 +33,7 @@ import {
 // ownership checks and finalizers below are the production implementations.
 mock.module("@notra/db/drizzle", () => ({ db: testDb }));
 mock.module("@notra/ai/evlog", () => ({
+  log: { info: mock(), warn: mock(), error: mock() },
   geoLog: { info: mock(), warn: mock(), error: mock() },
   geoLogDrainEnabled: true,
   flushGeoLog: async () => undefined,

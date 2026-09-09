@@ -11,13 +11,12 @@ import {
 import { useId } from "react";
 
 import { SentimentFamilyList } from "@/components/geo/sentiment-family-list";
+import { SentimentScore } from "@/components/geo/sentiment-score";
+import { SentimentThemes } from "@/components/geo/sentiment-themes";
 import { SentimentTrendCard } from "@/components/geo/sentiment-trend-card";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
-import {
-  SENTIMENT_SCORE_FORMAT,
-  SENTIMENT_SCORE_HINT,
-} from "@/constants/geo-sentiment";
+import { SENTIMENT_SCORE_HINT } from "@/constants/geo-sentiment";
 import { useGeoSentiment } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
 
@@ -32,7 +31,7 @@ export function BrandSentimentCard({
       <InstrumentModule
         eyebrow="Brand sentiment"
         variant="table"
-        className="h-full lg:col-span-5"
+        className="h-full lg:col-span-7"
         action={
           <Tooltip>
             <TooltipTrigger
@@ -68,34 +67,35 @@ export function BrandSentimentCard({
           </div>
         ) : null}
         {query.isSuccess ? (
-          <>
-            <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-              {query.data.summary.score === null
-                ? "—"
-                : SENTIMENT_SCORE_FORMAT.format(query.data.summary.score)}{" "}
-              <span className="text-muted-foreground text-sm font-normal">
-                / 100
-              </span>
-            </p>
-            {query.data.summary.score === null ? (
-              <p className="text-muted-foreground text-sm">
-                No rated mentions in this period.
-              </p>
-            ) : null}
-            <SentimentFamilyList engines={query.data.engines} />
-          </>
+          <SentimentScore
+            summary={query.data.summary}
+            comparison={query.data.comparison}
+          />
         ) : null}
         {isScanning ? (
           <p className="text-muted-foreground text-xs" role="status">
             Scan in progress
           </p>
         ) : null}
+        <SentimentTrendCard
+          points={query.isSuccess ? query.data.points : undefined}
+          comparison={query.isSuccess ? query.data.comparison : undefined}
+          isPending={query.isPending}
+          isError={query.isError}
+          isScanning={isScanning}
+        />
+        {query.isSuccess ? (
+          <details>
+            <summary className="focus-visible:outline-ring cursor-pointer py-2 text-sm focus-visible:outline-2">
+              Provider scores
+            </summary>
+            <SentimentFamilyList engines={query.data.engines} />
+          </details>
+        ) : null}
       </InstrumentModule>
-      <SentimentTrendCard
-        points={query.isSuccess ? query.data.points : undefined}
-        isPending={query.isPending}
-        isError={query.isError}
-        isScanning={isScanning}
+      <SentimentThemes
+        organizationId={organizationId}
+        summary={query.isSuccess ? query.data.summary : undefined}
       />
     </InstrumentGrid>
   );

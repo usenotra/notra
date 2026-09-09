@@ -23,6 +23,13 @@ export interface GeoSentimentResponse {
   summary: GeoSentimentBucket;
   engines: (GeoSentimentBucket & { engine: string })[];
   points: (GeoSentimentBucket & { day: string })[];
+  comparison?: {
+    current: { from: string; to: string };
+    previous: { from: string; to: string };
+    summary: GeoSentimentBucket;
+    points: (GeoSentimentBucket & { day: string })[];
+    delta: number | null;
+  };
 }
 
 export interface GeoSentimentEvidenceItem {

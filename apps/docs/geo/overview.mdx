@@ -143,8 +143,9 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 ### Brand Sentiment
 
 The **Brand Sentiment** dashboard tab uses the same two-module layout as Visibility:
-a summary score with a compact provider breakdown and a daily trend beside it.
-The modules stack on mobile. Each provider row shows the family's logo,
+a score and period-comparison trend on the left, with agent-extracted themes and
+the positive, neutral and negative distribution on the right. The modules stack on mobile.
+Expand **Provider scores** for the compact provider breakdown. Each row shows the family's logo,
 name and score. Families follow the standard GEO brand order,
 with unlisted families sorted by name, rather than being ranked by score.
 Model and search-mode counts are combined within each family before scoring.
@@ -153,6 +154,12 @@ These rows are read-only summaries for the selected project and date range.
 The trend is a solid observed line on a fixed 0–100 scale with gaps for missing
 ratings. Point markers appear when a rated day has no rated neighbor, so isolated
 observations remain visible. Contiguous series use a clean line. It includes no forecast.
+The previous period covers the same number of UTC calendar days immediately before the
+selected inclusive window. The two observed lines align by day within their respective
+periods, and tooltips identify both dates. Toggle either period independently.
+The delta is in **score points**, not a percent change. It is unavailable when either
+period has no classified mentions. Unspecified windows default to 30 UTC calendar days
+including today. Explicit windows support up to 366 days.
 It replaces the dashboard's former Prompts tab. Open it directly with `?tab=sentiment`.
 Legacy `?tab=prompts` links fall back to **Visibility**. Prompt management remains
 on the standalone `/geo/prompts` page.
@@ -186,6 +193,46 @@ Answer details show a compact sentiment label. An emphasized excerpt appears onl
 it is an exact, contiguous substring of the saved answer. Paraphrased or combined excerpts
 are not emphasized. The original answer renderer is preserved. Viewing sentiment uses
 existing labels and does not run new AI calls or reclassify older answers.
+
+#### Agent-extracted themes
+
+Select **Analyze answers** to extract themes from saved positive and negative answers.
+This is a separate structured model call through the organization's existing model router,
+using `openai/gpt-4.1-mini`. It has no browsing or other tools. Each attempted call uses
+one AI-answer quota unit or the existing AI-credit billing path, including failed output
+validation. The existing sentiment judge and its labels are unchanged.
+
+Sampling is deterministic: up to 12 checks per polarity, ordered by a hash of the saved
+check ID, with the first 2,000 answer characters and up to 500 prompt characters per check.
+The UI reports sampled and eligible answer counts. The model may return up to six themes,
+each with up to six evidence references. Every quote must be an exact contiguous substring
+of the supplied historical answer and match the theme's saved polarity. Foreign IDs,
+paraphrased quotes, duplicate sources and mismatched polarities invalidate the result.
+Answers and brand metadata are treated as untrusted data, never instructions.
+
+Expand a theme to see its saved quotes, engines, UTC dates and prompts. **Recurring** means
+at least two distinct sampled checks support it. **Single source** means one check.
+These evidence counts are not population prevalence or counts of independent users.
+The classified-mention distribution uses all scoped saved counts, not the theme sample;
+neutral is never combined with negative, and displayed percentages are rounded.
+
+Analysis reads never generate content or write the cache. An authorized POST mutation
+awaits the bounded extraction, with a 60-second model timeout and no automatic model retries.
+Redis stores results for seven days under organization, resolved project, UTC window,
+analysis version, brand name and historical-input fingerprint. The fingerprint includes
+all eligible answer content, even outside the bounded sample. A finalized scan invalidates
+the client's analysis query; changed inputs show an analysis action on the next read.
+Generation is explicit, rather than automatically starting another paid call after a scan.
+
+The UI handles ready, pending, stale, failed and unavailable states. A 180-second Redis
+lease prevents concurrent extraction for the same input. The worker checks ownership after
+billing reservation and uses an atomic token check when publishing. Old results cannot
+overwrite another worker's result or appear under a newer input fingerprint. Expired work
+can be retried. Missing Redis, provider configuration or a project brand name makes analysis
+unavailable. No schema migration is required.
+
+Quotes are mechanically validated; theme interpretation still depends on the model and
+the saved judge labels. A bounded sample can miss themes or repeat similar answers.
 
 ### Journeys
 
