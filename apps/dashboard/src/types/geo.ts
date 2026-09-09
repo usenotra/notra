@@ -31,7 +31,6 @@ import type {
   GeoPromptSequence,
   GeoPromptSource,
   GeoRangePreset,
-  GeoScopeInput,
   GeoSequenceTurnResult,
   GeoSettings,
   GeoSparklineMode,
@@ -344,11 +343,6 @@ export interface GeoCompetitorSuggestionsInput {
 export interface GeoBrandSearchInput {
   query: string;
 }
-
-export type GeoCompetitorSuggestionsHandlerInput = GeoScopeInput &
-  GeoCompetitorSuggestionsInput;
-
-export type GeoBrandSearchHandlerInput = GeoScopeInput & GeoBrandSearchInput;
 
 export interface GeoVisitorSignals {
   clientHints: boolean;

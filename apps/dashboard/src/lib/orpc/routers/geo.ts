@@ -220,8 +220,7 @@ import { identifyProjectGroup } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   assertActiveSubscription,
-  rejectGeoEntitlementDenied,
-  resolveGeoEntitlement,
+  assertGeoEntitlement,
 } from "@/lib/billing/subscription";
 import {
   collectGeoShelfMemberIds,
@@ -238,6 +237,7 @@ import {
   loadGeoShelfContext,
   updateGeoShelfSource,
 } from "@/lib/geo-shelf/service";
+import { assertGeoAccess } from "@/lib/geo/access";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
@@ -250,11 +250,7 @@ import {
 import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
 import type { GeoHandlerTracker } from "@/types/analytics/geo-events";
 import type { AuthenticatedUser } from "@/types/auth/organization";
-import type {
-  GeoBrandSearchHandlerInput,
-  GeoCompetitorSuggestionsHandlerInput,
-  GeoPromptSuggestionsResponse,
-} from "@/types/geo";
+import type { GeoPromptSuggestionsResponse } from "@/types/geo";
 import type { GeoDashboardRuntime } from "@/types/geo-runtime";
 import type { GeoShelfMember, GeoShelfSource } from "@/types/geo-shelf";
 import { ratelimit } from "@/utils/ratelimit";
@@ -262,31 +258,6 @@ import { ratelimit } from "@/utils/ratelimit";
 interface GeoHandlerOptions<TInput> {
   context: { headers: Headers; user?: AuthenticatedUser };
   input: TInput;
-}
-
-/**
- * The membership check and the billing lookup are independent, so they run
- * together. The denial itself (telemetry + 402) is only raised once membership
- * is confirmed: a non-member must neither learn about nor generate billing
- * events for an organization they do not belong to.
- */
-async function assertGeoAccess(
-  params: Parameters<typeof assertOrganizationAccess>[0]
-): Promise<void> {
-  const [membership, entitlement] = await Promise.allSettled([
-    assertOrganizationAccess(params),
-    resolveGeoEntitlement(params.organizationId, params.headers),
-  ]);
-
-  if (membership.status === "rejected") {
-    throw membership.reason;
-  }
-  if (entitlement.status === "rejected") {
-    throw entitlement.reason;
-  }
-  if (entitlement.value === "denied") {
-    rejectGeoEntitlementDenied(params.organizationId);
-  }
 }
 
 /**
@@ -1256,12 +1227,13 @@ export const geoRouter = {
   sequenceRun: authorizedProcedure
     .input(geoSequenceRunInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       const [, , rate] = await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
         ratelimit.geoSequenceRun.limit(input.organizationId),
       ]);
@@ -1394,28 +1366,44 @@ export const geoRouter = {
   competitorSuggestions: authorizedProcedure
     .input(geoCompetitorSuggestionsInputSchema)
     .handler(async (options) => {
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
       const rate = await ratelimit.geoCompetitorSuggestions.limit(
         options.input.organizationId
       );
       if (!rate.success) {
         throw badRequest("Too many lookups. Please wait a minute.");
       }
-      return geoOpenHandler((input: GeoCompetitorSuggestionsHandlerInput) =>
-        suggestGeoCompetitors(input, input.domain)
-      )(options);
+      return runOrpcEffect(
+        suggestGeoCompetitors(options.input, options.input.domain).pipe(
+          Effect.provide(geoCoreDashboardLayer)
+        ),
+        toGeoOrpcError
+      );
     }),
   brandSearch: authorizedProcedure
     .input(geoBrandSearchInputSchema)
     .handler(async (options) => {
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
       const rate = await ratelimit.geoBrandSearch.limit(
         options.input.organizationId
       );
       if (!rate.success) {
         throw badRequest("Too many searches. Please wait a minute.");
       }
-      return geoOpenHandler((input: GeoBrandSearchHandlerInput) =>
-        searchGeoBrands(input, input.query)
-      )(options);
+      return runOrpcEffect(
+        searchGeoBrands(options.input, options.input.query).pipe(
+          Effect.provide(geoCoreDashboardLayer)
+        ),
+        toGeoOrpcError
+      );
     }),
   startScan: authorizedProcedure.input(geoScanStartInputSchema).handler(
     geoHandler(
@@ -1459,12 +1447,13 @@ export const geoRouter = {
   writerPlan: authorizedProcedure
     .input(geoWriterPlanInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       const [, , rate] = await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
         ratelimit.geoWriterPlan.limit(input.organizationId),
       ]);
@@ -1509,12 +1498,13 @@ export const geoRouter = {
   writerStart: authorizedProcedure
     .input(geoWriterBriefIdInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
       ]);
 
@@ -1535,12 +1525,13 @@ export const geoRouter = {
   writerUpdate: authorizedProcedure
     .input(geoWriterUpdateInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
       ]);
 

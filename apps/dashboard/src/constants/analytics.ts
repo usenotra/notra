@@ -6,7 +6,12 @@ import type {
 export const SOCIAL_ANALYTICS_FLAG_KEY = "social-analytics";
 export const ANALYTICS_NAV_LINK = "/analytics";
 export const ANALYTICS_FLAG_CACHE_TTL_MS = 60_000;
-export const ANALYTICS_FLAG_STALE_TIME_MS = 30_000;
+export const ANALYTICS_FLAG_REQUEST_TIMEOUT_MS = 5000;
+export const ANALYTICS_FLAG_FAILURE_CACHE_TTL_MS = 5000;
+export const ANALYTICS_FLAG_CACHE_CAPACITY = 5000;
+export const MAX_PENDING_ANALYTICS_FLAG_EVALUATIONS = 500;
+export const ANALYTICS_FLAGS_API_URL =
+  "https://api.databuddy.cc/public/v1/flags/bulk";
 export const ANALYTICS_FLAG_ERROR_REASON = "ERROR";
 export const ANALYTICS_UNAVAILABLE_DESCRIPTION =
   "Analytics is not available for this workspace yet.";

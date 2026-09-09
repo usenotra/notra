@@ -167,9 +167,8 @@ export async function hasPaidSubscriptionHistory(
 export type GeoEntitlementOutcome = "entitled" | "denied" | "skipped";
 
 /**
- * Resolves the AI-answers entitlement without side effects, so callers can run
- * it alongside the membership check and decide afterwards whether a denial may
- * be reported at all (a non-member must not generate billing telemetry).
+ * Resolves the AI-answers entitlement without emitting denial telemetry.
+ * Confirm membership before calling: this lookup can contact the billing provider.
  */
 export async function resolveGeoEntitlement(
   organizationId: string,
@@ -217,10 +216,12 @@ export function rejectGeoEntitlementDenied(organizationId: string): never {
   throw paymentRequired(GEO_PLAN_REQUIRED_MESSAGE);
 }
 
+/** Call only after confirming organization membership. */
 export async function assertGeoEntitlement(
-  organizationId: string
+  organizationId: string,
+  headers?: Headers
 ): Promise<void> {
-  const outcome = await resolveGeoEntitlement(organizationId);
+  const outcome = await resolveGeoEntitlement(organizationId, headers);
   if (outcome === "denied") {
     rejectGeoEntitlementDenied(organizationId);
   }

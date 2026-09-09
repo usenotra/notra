@@ -1,9 +1,17 @@
 import { ANALYTICS_UNAVAILABLE_DESCRIPTION } from "@/constants/analytics";
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
+import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { forbidden } from "@/lib/orpc/utils/errors";
 
-export async function assertAnalyticsEnabled(
+export async function assertAnalyticsAccess(
+  params: Parameters<typeof assertOrganizationAccess>[0]
+): Promise<void> {
+  await assertOrganizationAccess(params);
+  await assertAnalyticsEnabled(params.organizationId, params.headers);
+}
+
+async function assertAnalyticsEnabled(
   organizationId: string,
   headers?: Headers
 ): Promise<void> {

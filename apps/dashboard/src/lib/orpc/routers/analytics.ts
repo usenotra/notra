@@ -9,7 +9,7 @@ import {
   untrackAccountInputSchema,
 } from "@notra/schemas/dashboard/analytics";
 
-import { assertAnalyticsEnabled } from "@/lib/analytics/access";
+import { assertAnalyticsAccess } from "@/lib/analytics/access";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import {
   loadEngagementTimeseries,
@@ -23,8 +23,6 @@ import {
   trackTwitterAccount,
   untrackTwitterAccount,
 } from "@/lib/analytics/programs";
-import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { assertAccessInParallel } from "@/lib/auth/parallel-access";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import { toAnalyticsOrpcError } from "@/lib/orpc/utils/analytics-errors";
@@ -38,19 +36,6 @@ import type {
   TopPostsResponse,
   TrackAccountPreviewResponse,
 } from "@/types/analytics";
-
-/**
- * The membership check and the analytics feature flag are independent, so they
- * run together; a failure in either still rejects the procedure.
- */
-async function assertAnalyticsAccess(
-  params: Parameters<typeof assertOrganizationAccess>[0]
-): Promise<void> {
-  await assertAccessInParallel(
-    assertOrganizationAccess(params),
-    assertAnalyticsEnabled(params.organizationId, params.headers)
-  );
-}
 
 export const analyticsRouter = {
   overview: authorizedProcedure
