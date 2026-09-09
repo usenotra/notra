@@ -13,6 +13,8 @@
 @source "../../../../packages/ui/src/components/brainless/claude/claude-prompt.tsx";
 @source "../../../../packages/ui/src/components/brainless/claude/claude-todo-list.tsx";
 @source "../../../../packages/ui/src/components/brainless/claude/claude-tool-call.tsx";
+@source "../../../../packages/ui/src/components/brainless/codex/codex-composer.tsx";
+@source "../../../../packages/ui/src/components/brainless/codex/codex-message.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-actions.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-composer.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-message.tsx";
