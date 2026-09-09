@@ -1,5 +1,5 @@
 {
-  "$schema": "https://v2-10-11.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-12.turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
@@ -116,7 +116,13 @@
     "build": {
       "dependsOn": ["transit"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vercel/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "dist/**",
+        ".vercel/**"
+      ]
     },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],

@@ -143,6 +143,25 @@ NEXT_PUBLIC_APP_URL=https://your-public-tunnel-url
 If you need a stable or custom URL, use a locally managed tunnel setup from the official docs:
 https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/create-local-tunnel/
 
+## Build performance
+
+The web and dashboard apps enable incremental TypeScript checking in their
+`tsconfig.json` files, overriding the shared base config. Keep this enabled:
+Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
+Vercel restores on subsequent builds. A cold build still checks the whole project;
+warm builds reuse unchanged checks without disabling type errors.
+
+Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
+`.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
+task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
+the incremental compiler state used when a task needs to run again.
+
+When comparing deployments, measure compilation, TypeScript, static generation,
+and output deployment separately. Vercel's `Creating build cache` phase occurs
+after `Deployment completed`; it is not additional time until the app is live.
+Both projects use filtered Turbo build commands and skip unaffected projects.
+Preserve those settings when changing the Vercel configuration.
+
 ## Database Workflow
 
 Common Drizzle commands from the repo root:

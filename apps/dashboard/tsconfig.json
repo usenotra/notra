@@ -1,6 +1,7 @@
 {
   "extends": "@notra/typescript-config/nextjs.json",
   "compilerOptions": {
+    "incremental": true,
     "strict": true,
     "plugins": [
       {
