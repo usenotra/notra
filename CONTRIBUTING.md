@@ -250,6 +250,31 @@ Open an issue or start a discussion in the repo.
 
 Thanks for helping improve Notra.
 
+## Vercel build selection
+
+Keep Vercel's **Skip unaffected projects** setting enabled. Each deployed app
+also has a version-pinned `ignoreCommand` in its `vercel.json` to check its
+workspace and transitive dependencies before installing dependencies or building.
+This catches unnecessary builds triggered by root documentation changes and
+unrelated workspaces' Bun lockfile changes. Root install configuration and the
+prepare script are declared in `turbo.json#globalDependencies` so changes to
+those files still trigger builds. Declare any new shared build inputs there too.
+
+The check uses `VERCEL_GIT_PREVIOUS_SHA`, the last successful deployment for
+that project and branch. There is deliberately no `HEAD^` fallback: first
+deployments and unavailable history must build, and multiple commits since the
+last deployment must be considered together. Errors also allow the build.
+
+`turbo-ignore` is deprecated in favor of Vercel's built-in skipping, but the
+pinned version remains a secondary check because built-in skipping currently
+deploys unrelated apps for these changes. Update its version and `--turbo-version`
+across all five app configs together when upgrading, and verify both skipped
+and required builds. Ignored builds still create canceled deployment records
+and briefly occupy a build slot; they avoid the install and full build.
+
+For a deliberate redeploy after an environment or project-setting change,
+uncheck **Use project's Ignore Build Step** in Vercel's Redeploy dialog.
+
 ## Automated tests
 
 Run the complete suite from the repository root:
