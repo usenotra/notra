@@ -2,6 +2,7 @@
   "extends": "@notra/typescript-config/nextjs.json",
   "compilerOptions": {
     "incremental": true,
+    "tsBuildInfoFile": ".cache/typecheck.tsbuildinfo",
     "strict": true,
     "plugins": [
       {
