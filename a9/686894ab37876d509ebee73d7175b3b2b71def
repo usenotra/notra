@@ -1,0 +1,876 @@
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart.tsx
+  s_472287b06c9ef8::t_19f1a326433abc 3,6,21-22,24,31-33,43
+  s_9dec415eb8ed9b::t_2eab6cab1b80ee 7,25
+apps/dashboard/src/lib/analytics/posthog-lazy.test.ts
+  s_d16ce202b210db::t_0e2fda7384a701 1-3,5-10,12-19,21-33,35,37-40
+apps/dashboard/src/app/(dashboard)/[slug]/geo/shelf-space/page-client.tsx
+  s_551a7a0ae9ba48::t_bc22765644e97a 39
+  s_1a82793fafdccd::t_9594ce98b55a80 20
+apps/dashboard/tests/review-regressions.test.ts
+  s_9e8fbb2a131797::t_2f496bcfaa162c 1-12,14-33,35-38,40-43,45-65
+apps/dashboard/src/lib/analytics/flag.test.ts
+  s_ba5f0c2d52ecae::t_ca0e7a139ddd05 17,22-24,26-42,44,47-49
+  s_170033d42b48a7::t_682fba1730e4ec 18-21,25,43,45-46
+  s_b7da9a727cab2c::t_66191ae9ebcc9f 8-11,50-81
+apps/dashboard/src/utils/geo-hydration.ts
+  s_f14c1282f62130::t_7039f39b694228 11,40,55
+apps/dashboard/tests/echarts-line-values.test.ts
+  s_082b298e63c040::t_c12c55dcb53e96 1-17,21-22
+  s_8da0a394742de4::t_a4eacfdee22862 18-20
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/page-client.tsx
+  s_1a82793fafdccd::t_9594ce98b55a80 20
+apps/dashboard/src/utils/content-editor-state.ts
+  s_7b6707ce1a21f7::t_84748199c7739e 125-136
+  s_e27e35dd426a15::t_bdc75319f5c16f 40,83
+  s_6a81aee9d6b4ff::t_6dd63411ac319b 88-89,94-96,174-175
+  s_a49011c73b53d1::t_cbdbb127dbf96d 73-74
+  s_d52b195fef8265::t_ff22b50a3003f4 42-45,47-48
+  s_7f1b5642e764f5::t_b274d77bd4c047 1-39,41,46,49-72,75-82,84-87,90-93,97-124,137-173,176-177
+apps/dashboard/src/utils/providers.tsx
+  s_975395dde05ee0::t_b80a16bff01f7b 6,86,107,112-132
+apps/dashboard/src/lib/orpc/context.ts
+  s_b469725eda59de::t_b6977c7fe11c8c 40-44
+apps/dashboard/src/utils/geo-prefetch.server.ts
+  s_f14c1282f62130::t_7039f39b694228 51-53,55-58
+apps/dashboard/src/constants/content-editor-state.ts
+  s_e27e35dd426a15::t_bdc75319f5c16f 1-28
+apps/dashboard/src/app/(dashboard)/[slug]/content/[id]/page-client.tsx
+  s_90555b347df427::t_72fcb24281fe92 88,236,241-243,248-250,257-259,372-373,388,399,611,626-628,637-639,664,860
+  s_d7d2e88f9d84f2::t_98564aced0abd9 104,106,109-116,121-127
+  s_9192cf53656d66::t_3d999cf7075d2a 46,78-87,89-96,98-101
+  s_052b4f783ae510::t_8bf973b4f81bd3 508-509,536,542,756
+  s_6a81aee9d6b4ff::t_6dd63411ac319b 539
+  s_0bd80e41fb62ae::t_215bded3ece424 44,354,670,879,884
+  s_1627a0f4c2e7bf::t_595a2e99f79bdf 73-74
+  s_868aeaf6f4f8b5::t_bb1ca3e14c8fa2 839-847,850-859,861-866
+  s_31682f70b96f92::t_5d6230ed18180b 4,105,108,493,537-538
+  s_9e4696c33bafea::t_fdfb5a653fe27b 753
+  s_b3d0302557f75a::t_b27dc2ec03eb4b 680,682,691
+  s_44722466f30c85::t_0865f3bf7edcee 636,707-709,712,807-810,875-877,887-895
+  s_20e40e825aac15::t_6eeeec664b7ed6 540
+  s_c66151094255b8::t_4f00f0c9a15015 103,107,117-120,128,130-140
+  s_6fe0b122fdb0e1::t_bad4283b8ba8fa 35-36,75-77,97,102,129
+  s_15d3e3b8ffe3cd::t_38ce812f20aec6 234,240,247,255
+apps/dashboard/src/lib/geo/configure.ts
+  s_d43d1585ed234c::t_11e1eb585d1bde 85-86,88-89,91-95,102-103,105-106,108-112
+  s_b7da9a727cab2c::t_66191ae9ebcc9f 13,90,107
+  s_cb2c59e4cc835a::t_2ee93448a4e5bf 87,104
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_9dec415eb8ed9b::t_2eab6cab1b80ee 7,27
+  s_472287b06c9ef8::t_19f1a326433abc 3,6,23-24,26,33-35,47
+apps/dashboard/src/utils/echarts-line-values.ts
+  s_082b298e63c040::t_c12c55dcb53e96 1,8-11
+  s_209358bf1b4727::t_d78f9cb740be36 6-7
+  s_8da0a394742de4::t_a4eacfdee22862 2-5
+apps/dashboard/src/lib/hooks/use-geo-db.ts
+  s_f14c1282f62130::t_7039f39b694228 91,177,224
+apps/dashboard/tests/content-editor-state.test.ts
+  s_b4d62cc6c7a6f2::t_8ab4b14daa8ae1 110,120,126,133,150,157-158
+  s_cdbf1abc3da003::t_56addea3f1ed92 161
+  s_057c33b2f9eca7::t_d38ca9e59fe0c1 174-179
+  s_f3234baeebded5::t_c326fc41be35d4 4-6,14,39,47,60-78,105-109,111-119,121-122,180
+  s_7f1b5642e764f5::t_b274d77bd4c047 1-3,8-9,11-13,15-38,40-46,48-59,123-125,159-160,162-173,181-188
+  s_1616b1363306ea::t_20b8128bf259eb 102-104,127-132,134-149,151-156
+apps/dashboard/src/lib/hooks/use-engine-icon-html.ts
+  s_7b5e1a44538587::t_8a54c9f0164054 23-26
+apps/dashboard/src/types/content/detail-toolbar.ts
+  s_de188cc82e10d0::t_15eb9f87a8fcfd 1,4,30,33-42
+  s_5248ac0b937e8f::t_734a6a84f864de 2-3,5-19,29,31-32,43
+  s_9ecec0e2962a2b::t_0772a80d860b15 20-28
+apps/dashboard/src/lib/hooks/use-content-document.ts
+  s_57291b1d73012f::t_a9115336d048ab 194,209
+  s_44f762448a7484::t_21353dc7fc8b1c 1-8,10-14,16-84,88-98,102-125,127-139,143-149,153-154,167-169,175-179,182-185,188-189,191-193,195,198-208,211-219,222-227,230-249
+  s_1d8338f62ba888::t_7c63ac73f5a261 155-166,170-171,196-197,210
+  s_bed13bfbc79959::t_14029a0afccf81 126,180-181,220
+  s_6a81aee9d6b4ff::t_6dd63411ac319b 85-87,99-101,150-152,172-174
+  s_9b57d22319e73a::t_b771ddea62ecd8 140-142,228-229
+apps/dashboard/src/lib/hooks/use-content-plan.ts
+  s_e22b6bcdbfeeb9::t_339d105da1c33d 1-10,12-16,18-25,27-44,46-53,55-61,64-67,69-70,72-81,83-89,92-93,95-127,129-134,136-137
+  s_a7345a960f67e3::t_2c2ef05edad531 128
+apps/dashboard/src/utils/schedule-demo.ts
+  s_7b5e1a44538587::t_8a54c9f0164054 1-2,20-27
+apps/dashboard/src/types/content/editor-state.ts
+  s_7f1b5642e764f5::t_b274d77bd4c047 1-3,5-20,22-25,34-35,37,77-95,97-104
+  s_e27e35dd426a15::t_bdc75319f5c16f 4,26-33,38-55,57-64,66-76
+  s_057c33b2f9eca7::t_d38ca9e59fe0c1 21
+  s_1070813c32f0cc::t_18f4b2180cd385 36,56,65
+  s_7b6707ce1a21f7::t_84748199c7739e 96
+apps/dashboard/src/app/(dashboard)/[slug]/page.tsx
+  s_6411454d5fb867::t_e5665ff941ffc3 25-30,32,35-37
+packages/geo-core/tests/engine-flags.test.ts
+  s_5481786982ce8a::t_d83adb72255588 48-70
+apps/dashboard/tests/geo-gaps-page.test.tsx
+  s_13329d6a7c8d9f::t_ae601f00f56d41 5-9,14,29,60-63,80,84-96
+apps/dashboard/src/lib/geo/initial-project.server.ts
+  s_8741797950cb24::t_1b00a645594ab6 17-18,39-47
+  s_f14c1282f62130::t_7039f39b694228 27-33,35
+apps/dashboard/src/lib/geo-shelf/store.ts
+  s_7ac4a10ffa4397::t_cb685a0ceab081 168-169
+packages/analytics/src/tinybird/client.ts
+  s_7ac4a10ffa4397::t_cb685a0ceab081 88,90,128-129,131,135-138,140-150,158,162,177,180
+apps/dashboard/src/components/evilcharts/ui/lazy-chart-boundary.tsx
+  s_2f3ca7bd5f2577::t_59d3749b1d8b48 1-38
+apps/dashboard/src/lib/analytics/posthog-lazy.ts
+  s_7b5e1a44538587::t_8a54c9f0164054 31-35
+apps/dashboard/src/types/evilcharts.ts
+  s_9dec415eb8ed9b::t_2eab6cab1b80ee 3-20
+  s_2f3ca7bd5f2577::t_59d3749b1d8b48 1-2,21-24
+apps/dashboard/src/utils/schedule-demo.test.ts
+  s_d16ce202b210db::t_0e2fda7384a701 1-4,6-22,24-32,34,36-39
+apps/dashboard/src/components/content/content-detail-document.tsx
+  s_de188cc82e10d0::t_15eb9f87a8fcfd 1-8,10-48,55-77
+  s_0f84e56599079d::t_f7eadcb63e000a 9,50,53
+apps/dashboard/tests/providers.test.tsx
+  s_13329d6a7c8d9f::t_ae601f00f56d41 1-13,17-40
+  s_22b14dc4115b96::t_0f3d96e52157c6 14-16
+apps/dashboard/src/components/dashboard/dashboard-client-wrapper.tsx
+  s_975395dde05ee0::t_b80a16bff01f7b 3
+packages/analytics/src/tinybird/purge.ts
+  s_7ac4a10ffa4397::t_cb685a0ceab081 21-22,40,67
+apps/dashboard/src/lib/billing/subscription.ts
+  s_3a5454ceb10fdf::t_c7ada24a751b17 194
+apps/dashboard/src/lib/analytics/flag.ts
+  s_d43d1585ed234c::t_11e1eb585d1bde 24,55-61,66-67,69-76,113-115
+  s_b7da9a727cab2c::t_66191ae9ebcc9f 52-54,117-122
+  s_6411454d5fb867::t_e5665ff941ffc3 62-63,65,68
+apps/dashboard/src/app/(dashboard)/[slug]/geo/write/page-client.tsx
+  s_551a7a0ae9ba48::t_bc22765644e97a 26
+  s_1a82793fafdccd::t_9594ce98b55a80 17
+packages/utils/src/timeout-fetch.ts
+  s_ef29225b660fbb::t_1174d5a2fc0cb4 9-12
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_a21f3aa9e4dde9::t_c020141d1a8dcb 19-25,27
+  s_b945d86b2f84b4::t_f46bd7c1a1c602 1-4,8-15,17-18,26,28-77,82-83,87,121-123,125-156,158-190,199-200
+  s_6e682695d50be5::t_1b8d9e2c35d9b3 91-92,99
+  s_6a9c8c150ccbc1::t_7a4390ca62aaf0 5-7,16,78-81,88-90,93-98,100-120,124,157
+  s_0f84e56599079d::t_f7eadcb63e000a 85
+  s_720df868313ddf::t_e05acf8c302e26 191-198
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page.tsx
+  s_c7a1a545bf5678::t_a8351fb6394424 4,30,34,37-41,43-54
+apps/dashboard/src/lib/auth/webhook-sync.ts
+  s_7ac4a10ffa4397::t_cb685a0ceab081 108-110,116-121
+  s_f1fc8fca080b13::t_6b23973b56f28b 5
+apps/dashboard/src/types/content/chat.ts
+  s_b8a6aca93a4277::t_c3f68701daf120 5-8
+apps/dashboard/src/lib/auth/sync.ts
+  s_7ac4a10ffa4397::t_cb685a0ceab081 358-360,366-371
+  s_90317dc75b9d99::t_01b91d889ba4df 11
+apps/dashboard/src/app/(dashboard)/[slug]/geo/agent-readiness/page-client.tsx
+  s_1a82793fafdccd::t_9594ce98b55a80 113-181
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart-impl.tsx
+  s_06619d3b7d5364::t_cf96a75e5334d4 27,1587,1632
+  s_082b298e63c040::t_c12c55dcb53e96 89,1123,1126,1178,1246-1248,1265,1585-1586,1588-1602,1609-1610,1631,1633-1634,1636
+apps/dashboard/src/lib/hooks/use-content-chat-history.ts
+  s_b8a6aca93a4277::t_c3f68701daf120 3-4,6-11,13-15,19,22-25,31-36,38-42,44-56,58-62,64-67,69-76,82-85,88,90,93-101
+  s_1627a0f4c2e7bf::t_595a2e99f79bdf 16,18,20,26-28,30,91-92
+apps/dashboard/src/components/content/content-source-metadata.tsx
+  s_0f84e56599079d::t_f7eadcb63e000a 29,32,43,70,109
+  s_9ecec0e2962a2b::t_0772a80d860b15 13-17,37-41,45-68,72-102,126,129,139,142
+  s_5248ac0b937e8f::t_734a6a84f864de 1-12,18-27,34-36,103-107,111-125,127-128,130-133,136-138,140-141,143-144
+apps/dashboard/src/app/(dashboard)/[slug]/iris/page-client.tsx
+  s_975395dde05ee0::t_b80a16bff01f7b 20,52,58,66-68
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart.tsx
+  s_472287b06c9ef8::t_19f1a326433abc 3,5,19-20,22,29-31,39
+  s_9dec415eb8ed9b::t_2eab6cab1b80ee 6,23
+packages/db/src/schema.ts
+  s_89ac4b49181361::t_23c53e85bf1bf7 1744
+apps/dashboard/src/components/providers/posthog-identity.tsx
+  s_0a12ba97aa83bd::t_30178ad39bf002 26,29-30,49-51,59,62-63,80-82
+apps/dashboard/src/lib/hooks/use-active-generations.ts
+  s_d0a23ad40e5c09::t_f6e354c1f3023b 104,111
+  s_975395dde05ee0::t_b80a16bff01f7b 38,40
+apps/dashboard/tests/home-posts.test.tsx
+  s_877a800d3c3f94::t_719dc47baa0661 3-7,18-21,25-36,48-49,52-56,73-99
+apps/dashboard/src/components/content/image-export-actions.tsx
+  s_5248ac0b937e8f::t_734a6a84f864de 1-10,12,15-16,18-20,25,27-33,59,62,74-76,79-83,86-88,90-93,96,102-109,113-123,129,131-133,135-147,149-151,153-154,156-161,163
+  s_de188cc82e10d0::t_15eb9f87a8fcfd 13,17,22-23,34-58,60-61,73,77-78,84-85,94,111-112,127,130
+  s_28064cfd42e2bc::t_70b39119443297 97-100,110,124-126,128
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/page-client.tsx
+  s_1a82793fafdccd::t_9594ce98b55a80 19
+apps/dashboard/src/types/content/detail-document.ts
+  s_e22b6bcdbfeeb9::t_339d105da1c33d 4-13
+  s_de188cc82e10d0::t_15eb9f87a8fcfd 1-3,14-32
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart.tsx
+  s_472287b06c9ef8::t_19f1a326433abc 3,6,23-24,26,33-35,47
+  s_9dec415eb8ed9b::t_2eab6cab1b80ee 7,27
+apps/dashboard/src/lib/geo/initial-project.server.test.ts
+  s_c61362cd8485f6::t_b280accaf69dbc 24-27
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart-impl.tsx
+  s_082b298e63c040::t_c12c55dcb53e96 1108-1109,1111-1116
+  s_06619d3b7d5364::t_cf96a75e5334d4 22,1110,1291
+packages/geo-core/src/geo/engine-flags.ts
+  s_ba906e28032afa::t_767a94174ea9ef 33-35,50-52,54
+  s_9b90febf4c7216::t_9948486f764fdc 4-5,7,18-19,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a9686894ab37876d509ebee73d7175b3b2b71def",
+  "prompts": {},
+  "sessions": {
+    "s_052b4f783ae510": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmuvlTMuqMOczMpygwd",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_057c33b2f9eca7": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmZKxPCHaxwhzjKuD7W",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_06619d3b7d5364": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoR2kQZhbQXkulQ1JQ5",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_082b298e63c040": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnstQh8nQbQGPyxKfvM",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_0a12ba97aa83bd": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoCRaq1OGOWZ9me85ow",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_0bd80e41fb62ae": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnTjvpnLtG9R751jwGe",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_0f84e56599079d": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnLt3ekHoVNfw1dIGos",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1070813c32f0cc": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnfQWQ8F49oEAVcRRlh",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_13329d6a7c8d9f": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmJ0tSYAOiHyTSMJI5z",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_15d3e3b8ffe3cd": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmWcm3WdFND6V9OGsDV",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1616b1363306ea": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lp0Q7f84lSFl03qqLMe",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1627a0f4c2e7bf": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnWxHjEVTrz9RNeMHeZ",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_170033d42b48a7": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LohF0g46Afn3rUiJGPc",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1a82793fafdccd": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lm9cj71mqRd4cPKFP2B",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1d8338f62ba888": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnmMN5hJhgVy0QVBm4c",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_209358bf1b4727": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnvWbHK0STZyNecXp5F",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_20e40e825aac15": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lp09IivGA6zfAxmck4j",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_22b14dc4115b96": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmKULyapLSw1iSvmK7L",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_28064cfd42e2bc": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoCrmx7d9r6u4v6yJE2",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_2f3ca7bd5f2577": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lmjj0HLYsFoEB1mqlqN",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_31682f70b96f92": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LngCyMkjmrFT3cJVa0R",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_3a5454ceb10fdf": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo2P4Z4hfTDu9Fsd36g",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_44722466f30c85": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnZIlGhz6aSdP5xTNls",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_44f762448a7484": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmqurObtQwxm5OUj9dX",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_472287b06c9ef8": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lmk7Q38yxMdnBeGxUeJ",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_5248ac0b937e8f": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmasRBB87xAO9zxTuEX",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_5481786982ce8a": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoybD81Wv3U3vcKVVEg",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_551a7a0ae9ba48": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmDoX740oWeIQI6Fohs",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_57291b1d73012f": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnkB3xChCHKbBpiJdsu",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_6411454d5fb867": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoEoD3Jf7h8SI1HgcMm",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_6a81aee9d6b4ff": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmxphUDaVS5GTcXzokC",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_6a9c8c150ccbc1": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnJdY9La48DvrlnnI3X",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_6e682695d50be5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lno35GcJSjiG3NIa93w",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_6fe0b122fdb0e1": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Ln9b3pGqA0YnGDpXdIa",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_720df868313ddf": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Ln84xRnBDDhLpYpvIsa",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_7ac4a10ffa4397": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo0Sz8B0ijkpNpNMyr5",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_7b5e1a44538587": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoBz2V5qHrHWQXOYpdQ",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_7b6707ce1a21f7": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnXY5LSXeF8IknsrwQV",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_7f1b5642e764f5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmSRGxu31Z6VC90IspU",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_868aeaf6f4f8b5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnCrBxvE8zdmbfegf9c",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_8741797950cb24": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lp7TLo6vrjqXeDnLbxv",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_877a800d3c3f94": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmNaMdWrNjus9iv9FgP",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_89ac4b49181361": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo3GEqwLKRwpulvOCuI",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_8da0a394742de4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LobN1jpkKGQcrOVzuPk",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_90317dc75b9d99": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo2R2boMmqjxoftE766",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_90555b347df427": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lne1NyUVP2oRgBatDKs",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9192cf53656d66": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnR3W3Hh7YzqqWlhtPI",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_975395dde05ee0": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmHFXWYF1lHmqu071H4",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9b57d22319e73a": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lnfzd3MBTBLHCl7VUV9",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9b90febf4c7216": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lp1y7nSAqhj3R3G7BR6",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9dec415eb8ed9b": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Ln0QFlMZLrfORgYnm0G",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9e4696c33bafea": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnBQP4IlF76gnlrZD7d",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9e8fbb2a131797": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoRcKtK9KyWyDDkwksh",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_9ecec0e2962a2b": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnEKyStXhWmbXRwdar3",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_a21f3aa9e4dde9": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnI2AQkimQtLvsLRKIC",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_a49011c73b53d1": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnflxSh6zUeHlMR3DfW",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_a7345a960f67e3": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LneceXrDJ3WmIPU8tLC",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b3d0302557f75a": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmXcCVUGNLBjC68ewPZ",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b469725eda59de": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo87shhVwgJKPV2BVOe",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b4d62cc6c7a6f2": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnhJUA1xX1UAJ82IRJ4",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b7da9a727cab2c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo4jaLjOgf1YQfUFaxl",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b8a6aca93a4277": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnSUe6KEFDPahELlr4R",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_b945d86b2f84b4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Ln6eJiA9Y2kUVDTtRuF",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_ba5f0c2d52ecae": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoexHooIU8TTjlfHYPa",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_ba906e28032afa": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoyBeaWSPNIsutXGjeR",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_bed13bfbc79959": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lozp5K0VezArnnjOitG",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_c61362cd8485f6": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Log0XdL4lbmPjVGzKYm",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_c66151094255b8": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmV3Xgxk88U5zMhn7XP",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_c7a1a545bf5678": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoiX8eZ45HfNSXWzojO",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_cb2c59e4cc835a": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo69fHgECAFODZKSqiU",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_cdbf1abc3da003": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmwVESSvSXSeLklGdBE",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_d0a23ad40e5c09": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lox9CCD57SejSHcA4Dd",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_d16ce202b210db": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoaISp0SIutCXCFLJo1",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_d43d1585ed234c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo3MtO64a3BczEomZzR",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_d52b195fef8265": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LozZwys8rHEER2fiQFm",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_d7d2e88f9d84f2": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmspE5bel3eBPJdbmiF",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_de188cc82e10d0": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Ln4jJvjrUA3MSiB0jyb",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_e22b6bcdbfeeb9": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LnQ4uIAtMd3dBrHtbWy",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_e27e35dd426a15": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmptiIlsBbE9gr3Vnmn",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_ef29225b660fbb": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoZD8Ef81mIAmXJ0SCH",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_f14c1282f62130": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LoE6PwIJY9BL4OGfeJH",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_f1fc8fca080b13": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Lo4SneWfIH3pIZzCTOY",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_f3234baeebded5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034LmvQgW19iaiZDwyiiXx",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
