@@ -28,7 +28,7 @@ import {
   useScroll,
 } from "motion/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -299,6 +299,7 @@ function getNavbarPresentation(
 
 export function Navbar({ variant }: NavbarProps = {}) {
   const pathname = usePathname();
+  const router = useRouter();
   const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -335,14 +336,26 @@ export function Navbar({ variant }: NavbarProps = {}) {
   useNavbarAuthHotkeys({ isAuthenticated, isResolved });
 
   useEffect(() => {
-    if (pathname === "/" && isResolved && isAuthenticated) {
+    if (!isResolved) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      if (pathname === "/home" || pathname === "/landing") {
+        // Keep the resolved session in this shared layout to avoid redirect loops.
+        router.replace(`/${window.location.search}${window.location.hash}`);
+      }
+      return;
+    }
+
+    if (pathname === "/") {
       window.location.replace(
         process.env.NODE_ENV === "development"
           ? "http://localhost:3000/callback"
           : AUTH_DASHBOARD_URL
       );
     }
-  }, [pathname, isResolved, isAuthenticated]);
+  }, [pathname, router, isResolved, isAuthenticated]);
 
   const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
