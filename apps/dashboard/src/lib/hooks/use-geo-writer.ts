@@ -41,14 +41,24 @@ export function useGeoWriterBriefs(organizationId: string) {
 
 export function useGeoWriterBrief(
   organizationId: string,
-  briefId: string | null
+  briefId: string | null,
+  /**
+   * Overrides the ambient GEO project scope. Content pages live outside the
+   * GEO scope provider, so they pass the project the brief belongs to.
+   */
+  projectIdOverride?: string
 ) {
-  const { projectId } = useGeoProjectScope();
+  const { projectId: scopedProjectId } = useGeoProjectScope();
+  const projectId = projectIdOverride ?? scopedProjectId;
   return useQuery<GeoContentBriefDetail>({
     ...dashboardOrpc.geo.writerBrief.queryOptions({
       input: { organizationId, projectId, briefId: briefId ?? "" },
     }),
     enabled: !!organizationId && !!briefId,
+    // Only "writing" is polled: `approveAndStartGeoWriter` claims the brief
+    // straight from "draft"/"failed" to "writing" in the same update that
+    // starts the run, so a brief never sits in "approved" waiting for the
+    // workflow. The status is kept in the UI's busy set for legacy rows only.
     refetchInterval: (query) =>
       query.state.data?.status === "writing"
         ? GEO_WRITER_BRIEF_POLL_INTERVAL_MS
@@ -58,8 +68,10 @@ export function useGeoWriterBrief(
   });
 }
 
-function useInvalidateWriterQueries(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+function useInvalidateWriterQueries(
+  organizationId: string,
+  projectId?: string
+) {
   const queryClient = useQueryClient();
   return async () => {
     await queryClient.invalidateQueries({
@@ -77,7 +89,7 @@ function useInvalidateWriterQueries(organizationId: string) {
 
 export function useGeoWriterPlan(organizationId: string) {
   const { projectId } = useGeoProjectScope();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (input: GeoWriterPlanInput) =>
       dashboardOrpc.geo.writerPlan.call({
@@ -94,10 +106,15 @@ export function useGeoWriterPlan(organizationId: string) {
   });
 }
 
-export function useGeoWriterStart(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterStart(
+  organizationId: string,
+  /** See `useGeoWriterBrief`: content pages scope by the article's project. */
+  projectIdOverride?: string
+) {
+  const { projectId: scopedProjectId } = useGeoProjectScope();
+  const projectId = projectIdOverride ?? scopedProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (briefId: string) =>
       dashboardOrpc.geo.writerStart.call({
@@ -121,10 +138,16 @@ export function useGeoWriterStart(organizationId: string) {
   });
 }
 
-export function useGeoWriterUpdate(organizationId: string, contentId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterUpdate(
+  organizationId: string,
+  contentId: string,
+  /** See `useGeoWriterBrief`: content pages scope by the article's project. */
+  projectIdOverride?: string
+) {
+  const { projectId: scopedProjectId } = useGeoProjectScope();
+  const projectId = projectIdOverride ?? scopedProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   const latestRevisionByBrief = useRef(new Map<string, string>());
   return useMutation({
     scope: { id: `geo-writer-update:${organizationId}:${projectId}` },

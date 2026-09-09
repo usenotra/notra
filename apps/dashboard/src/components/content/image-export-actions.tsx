@@ -20,11 +20,12 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { ImageExportActionsProps } from "@/types/content/detail-toolbar";
 import type { ImageExportTarget } from "@/types/content/image-export";
-import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
+import { getImageExportHtml } from "@/utils/image-content";
 import {
   getImageExportTargetLabel,
   isImageExportTarget,
 } from "@/utils/image-export";
+import { resolveImagePreviewSrc } from "@/utils/markdown-image";
 
 import { ImageExportTargetIcon } from "./image-export-target-icon";
 
@@ -33,9 +34,12 @@ const loadImageExport = () => import("@/lib/content/image-export");
 export function ImageExportActions(props: ImageExportActionsProps) {
   const [target, setTarget] = useState<ImageExportTarget>("paper");
   const exportHtml = getImageExportHtml(props.content);
-  const downloadUrl = isHttpImageContent(props.content.content)
-    ? props.content.content
-    : null;
+  // Mirrors the source `ImageEditor` renders, so images embedded as Markdown
+  // data URLs stay downloadable instead of resolving to `null`.
+  const downloadUrl = resolveImagePreviewSrc({
+    content: props.content.content,
+    markdown: props.content.markdown,
+  });
 
   useEffect(() => {
     const storedTarget = window.localStorage.getItem(

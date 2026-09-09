@@ -170,6 +170,39 @@ describe("content chat transitions", () => {
     });
   });
 
+  test("selecting a session leaves no draft or error behind", () => {
+    const state = {
+      ...INITIAL_CONTENT_CHAT_UI_STATE,
+      input: "unsent draft",
+      error: "Failed to edit content",
+      activeChatId: "chat-1",
+    };
+    expect(
+      contentChatUiReducer(state, { type: "chatSelected", chatId: "chat-2" })
+    ).toMatchObject({
+      input: "",
+      error: null,
+      activeChatId: "chat-2",
+    });
+  });
+
+  test("starting a new chat clears the previous request error", () => {
+    const state = {
+      ...INITIAL_CONTENT_CHAT_UI_STATE,
+      input: "unsent draft",
+      error: "Failed to edit content",
+      activeChatId: "chat-1",
+    };
+    expect(
+      contentChatUiReducer(state, { type: "newChatStarted", chatId: "chat-3" })
+    ).toMatchObject({
+      input: "",
+      error: null,
+      activeChatId: "chat-3",
+      chatIdToHydrate: null,
+    });
+  });
+
   test("does not add duplicate repository context", () => {
     const item = {
       type: "github-repo" as const,

@@ -101,6 +101,8 @@ export interface GeoGapsWriteEntry {
 
 export interface WriterExecuteRootProps {
   organizationId: string;
+  /** Project the brief belongs to; overrides the ambient GEO scope. */
+  projectId?: string;
   briefId: string | null;
   hasUnsavedChanges: boolean;
   onArticleReady: () => void | Promise<void>;

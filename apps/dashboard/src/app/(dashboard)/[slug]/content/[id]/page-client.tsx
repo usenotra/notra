@@ -834,6 +834,7 @@ export default function PageClient({
             }
             onArticleReady={handleGeoArticleReady}
             organizationId={organizationId}
+            projectId={geoWriterDraft?.projectId}
           >
             {geoWriterDraft ? <WriterExecute.Banner /> : null}
             <ContentDetailToolbar

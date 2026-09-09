@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect";
 
 import { GeoFeatureFlagService } from "../src/deps";
 import { loadGeoEngineFlags } from "../src/geo/engine-flags";
+import { GeoFlagEvaluationError } from "../src/geo/errors";
 
 interface CountingFlagProvider {
   readonly layer: Layer.Layer<GeoFeatureFlagService>;
@@ -59,12 +60,20 @@ describe("engine flag cache", () => {
       await Effect.runPromise(
         loadGeoEngineFlags(scope).pipe(Effect.provide(disabled))
       )
-    ).toEqual({ cursorEnabled: false, openCodeEnabled: false });
+    ).toEqual({
+      cursorEnabled: false,
+      openCodeEnabled: false,
+      available: true,
+    });
     expect(
       await Effect.runPromise(
         loadGeoEngineFlags(scope).pipe(Effect.provide(enabled.layer))
       )
-    ).toEqual({ cursorEnabled: true, openCodeEnabled: true });
+    ).toEqual({
+      cursorEnabled: true,
+      openCodeEnabled: true,
+      available: true,
+    });
     expect(enabled.calls()).toBe(2);
   });
 
@@ -75,7 +84,11 @@ describe("engine flag cache", () => {
     const cold = await Effect.runPromise(
       loadGeoEngineFlags(scope).pipe(Effect.provide(provider.layer))
     );
-    expect(cold).toEqual({ cursorEnabled: true, openCodeEnabled: true });
+    expect(cold).toEqual({
+      cursorEnabled: true,
+      openCodeEnabled: true,
+      available: true,
+    });
     // Two questions per organization, asked concurrently.
     expect(provider.calls()).toBe(2);
 
@@ -135,6 +148,56 @@ describe("engine flag cache", () => {
     const recovered = await Effect.runPromise(
       loadGeoEngineFlags(scope).pipe(Effect.provide(provider.layer))
     );
-    expect(recovered).toEqual({ cursorEnabled: true, openCodeEnabled: true });
+    expect(recovered).toEqual({
+      cursorEnabled: true,
+      openCodeEnabled: true,
+      available: true,
+    });
+  });
+
+  test("an unavailable provider hides engines without being cached", async () => {
+    let calls = 0;
+    let unavailable = true;
+    const layer = Layer.succeed(GeoFeatureFlagService, {
+      isCursorEngineEnabledForOrganization: () =>
+        Effect.suspend(() => {
+          calls += 1;
+          return unavailable
+            ? Effect.fail(
+                new GeoFlagEvaluationError({
+                  message: "flag provider unavailable",
+                  cause: "unavailable",
+                })
+              )
+            : Effect.succeed(true);
+        }),
+      isOpenCodeEngineEnabledForOrganization: () => Effect.succeed(true),
+    });
+    const scope = organizationId();
+
+    // Fail closed: the catalog still resolves, the gated engine stays hidden.
+    expect(
+      await Effect.runPromise(
+        loadGeoEngineFlags(scope).pipe(Effect.provide(layer))
+      )
+    ).toEqual({
+      cursorEnabled: false,
+      openCodeEnabled: true,
+      available: false,
+    });
+    expect(calls).toBe(1);
+
+    // Zero TTL: the next caller retries instead of reusing the outage.
+    unavailable = false;
+    expect(
+      await Effect.runPromise(
+        loadGeoEngineFlags(scope).pipe(Effect.provide(layer))
+      )
+    ).toEqual({
+      cursorEnabled: true,
+      openCodeEnabled: true,
+      available: true,
+    });
+    expect(calls).toBe(2);
   });
 });

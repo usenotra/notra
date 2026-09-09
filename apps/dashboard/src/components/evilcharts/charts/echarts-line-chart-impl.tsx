@@ -1018,7 +1018,9 @@ function buildBrushOption(
       type: "line",
       xAxisIndex: 1,
       yAxisIndex: 1,
-      data: data.map((row) => Number(row[key]) || 0),
+      // Same gap semantics as the main series so the overview never draws a
+      // zero where the plot shows a hole.
+      data: data.map((row) => normalizeLineValue(row[key])),
       smooth: curve.smooth,
       step: curve.step,
       connectNulls: line.connectNulls,

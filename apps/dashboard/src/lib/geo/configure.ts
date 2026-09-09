@@ -77,41 +77,33 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
   ),
 });
 
+/**
+ * "unavailable" is reported as a typed failure, not a defect: `loadGeoEngineFlags`
+ * turns it into a fail-closed `false` for this request without caching it, so
+ * the model-catalog RPC still resolves (with the affected engines hidden) and
+ * the next request retries the provider.
+ */
+const geoEngineFlag = (flagKey: string, organizationId: string) =>
+  resolveGeoFlagState(flagKey, organizationId).pipe(
+    Effect.flatMap((state) =>
+      state === "unavailable"
+        ? Effect.fail(
+            new GeoFlagEvaluationError({
+              message: `The GEO feature flag "${flagKey}" is unavailable`,
+              cause: state,
+            })
+          )
+        : Effect.succeed(state === "enabled")
+    )
+  );
+
 const featureFlagLayer = Layer.succeed(GeoFeatureFlagService, {
   isCursorEngineEnabledForOrganization: Effect.fn(
     "GeoDashboardFeatureFlags.isCursorEnabled"
-  )((organizationId) =>
-    resolveGeoFlagState(GEO_CURSOR_FLAG_KEY, organizationId).pipe(
-      Effect.flatMap((state) => {
-        if (state === "unavailable") {
-          return Effect.die(
-            new GeoFlagEvaluationError({
-              message: "Cursor engine flag is unavailable",
-              cause: state,
-            })
-          );
-        }
-        return Effect.succeed(state === "enabled");
-      })
-    )
-  ),
+  )((organizationId) => geoEngineFlag(GEO_CURSOR_FLAG_KEY, organizationId)),
   isOpenCodeEngineEnabledForOrganization: Effect.fn(
     "GeoDashboardFeatureFlags.isOpenCodeEnabled"
-  )((organizationId) =>
-    resolveGeoFlagState(GEO_OPENCODE_FLAG_KEY, organizationId).pipe(
-      Effect.flatMap((state) => {
-        if (state === "unavailable") {
-          return Effect.die(
-            new GeoFlagEvaluationError({
-              message: "OpenCode engine flag is unavailable",
-              cause: state,
-            })
-          );
-        }
-        return Effect.succeed(state === "enabled");
-      })
-    )
-  ),
+  )((organizationId) => geoEngineFlag(GEO_OPENCODE_FLAG_KEY, organizationId)),
 });
 
 const generationLayer = Layer.succeed(GeoGenerationService, {

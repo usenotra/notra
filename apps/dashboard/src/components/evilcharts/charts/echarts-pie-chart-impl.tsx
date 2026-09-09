@@ -1288,7 +1288,10 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [buildOption, chartOptions, data, isLoading, tooltipSlot.present, tooltipSlot.defaultIndex]);
+    // Re-show only when the tooltip settings or the data shape change. Depending
+    // on buildOption would re-run this on every sector selection and overwrite
+    // the user's hover with the default sector.
+  }, [data.length, isLoading, tooltipSlot.present, tooltipSlot.defaultIndex]);
 
   // ── Loading shimmer — rAF sweeps a bright window around the ring ──────────────
   useEffect(() => {

@@ -5,6 +5,7 @@ import {
   GeoEngineFlagCacheKey,
   type GeoEngineFlags,
 } from "../types/engine-flags";
+import type { GeoFlagEvaluationError } from "./errors";
 
 /**
  * Several GEO programs resolve the model catalog inside one server request, and
@@ -15,16 +16,37 @@ import {
 const ENGINE_FLAG_CACHE_TTL = Duration.seconds(30);
 const ENGINE_FLAG_CACHE_CAPACITY = 500;
 
+/**
+ * A provider outage is a degraded answer, not a failure: the engine stays
+ * hidden (fail closed) so the catalog still resolves, and `available: false`
+ * marks the answer as one that must not be cached.
+ */
+const evaluateFlag = (
+  flag: Effect.Effect<boolean, GeoFlagEvaluationError>
+): Effect.Effect<{ readonly enabled: boolean; readonly available: boolean }> =>
+  flag.pipe(
+    Effect.map((enabled) => ({ enabled, available: true })),
+    Effect.catch(() => Effect.succeed({ enabled: false, available: false }))
+  );
+
 const evaluateGeoEngineFlags = Effect.fn("geo.engineFlags.evaluate")(
   function* ({ organizationId, featureFlags }: GeoEngineFlagCacheKey) {
-    const [cursorEnabled, openCodeEnabled] = yield* Effect.all(
+    const [cursor, openCode] = yield* Effect.all(
       [
-        featureFlags.isCursorEngineEnabledForOrganization(organizationId),
-        featureFlags.isOpenCodeEngineEnabledForOrganization(organizationId),
+        evaluateFlag(
+          featureFlags.isCursorEngineEnabledForOrganization(organizationId)
+        ),
+        evaluateFlag(
+          featureFlags.isOpenCodeEngineEnabledForOrganization(organizationId)
+        ),
       ],
       { concurrency: "unbounded" }
     );
-    return { cursorEnabled, openCodeEnabled } satisfies GeoEngineFlags;
+    return {
+      cursorEnabled: cursor.enabled,
+      openCodeEnabled: openCode.enabled,
+      available: cursor.available && openCode.available,
+    } satisfies GeoEngineFlags;
   }
 );
 
@@ -37,10 +59,13 @@ const evaluateGeoEngineFlags = Effect.fn("geo.engineFlags.evaluate")(
 const engineFlagCache = Effect.runSync(
   Cache.makeWith(evaluateGeoEngineFlags, {
     capacity: ENGINE_FLAG_CACHE_CAPACITY,
-    // Only resolved evaluations are held. A provider that fails or defects is
-    // retried by the next caller, exactly as the previous memo did.
+    // Only answers the provider actually gave are held. A provider that fails,
+    // defects, or is unavailable is retried by the next caller, exactly as the
+    // previous memo did — a 30 s outage must not hide entitled engines for 30 s.
     timeToLive: (exit) =>
-      Exit.isSuccess(exit) ? ENGINE_FLAG_CACHE_TTL : Duration.zero,
+      Exit.isSuccess(exit) && exit.value.available
+        ? ENGINE_FLAG_CACHE_TTL
+        : Duration.zero,
   })
 );
 

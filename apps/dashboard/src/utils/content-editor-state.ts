@@ -144,6 +144,8 @@ export function contentChatUiReducer(
       return {
         ...state,
         queuedMessages: [],
+        input: "",
+        error: null,
         activeChatId: action.chatId,
         chatIdToHydrate: action.chatId,
       };
@@ -152,6 +154,7 @@ export function contentChatUiReducer(
         ...state,
         queuedMessages: [],
         input: "",
+        error: null,
         activeChatId: action.chatId,
         chatIdToHydrate: null,
       };

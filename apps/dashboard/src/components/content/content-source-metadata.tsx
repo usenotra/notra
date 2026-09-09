@@ -16,6 +16,10 @@ import type {
   VoiceMetadataProps,
 } from "@/types/content/detail-toolbar";
 import { getBrandFaviconUrl } from "@/utils/brand";
+import {
+  formatLinearSourceLabel,
+  hasContentSourceReference,
+} from "@/utils/content-source-metadata";
 import { formatSnakeCaseLabel } from "@/utils/format";
 
 const rangeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -110,8 +114,12 @@ export function ContentSourceMetadata({
   }
   const meta = parsed.data;
   const repositories = meta.repositories ?? [];
+  const linearIntegrations = meta.linearIntegrations ?? [];
   if (
-    repositories.length === 0 ||
+    !hasContentSourceReference({
+      repositoryCount: repositories.length,
+      linearIntegrationCount: linearIntegrations.length,
+    }) ||
     !meta.triggerSourceType ||
     !meta.lookbackWindow ||
     !meta.lookbackRange
@@ -126,7 +134,13 @@ export function ContentSourceMetadata({
     <p className="text-muted-foreground text-xs">
       <span className="capitalize">{triggerLabel(meta.triggerSourceType)}</span>
       {" · "}
-      <RepositoryMetadata repositories={repositories} />
+      {repositories.length > 0 ? (
+        <RepositoryMetadata repositories={repositories} />
+      ) : null}
+      {repositories.length > 0 && linearIntegrations.length > 0 ? " · " : null}
+      {linearIntegrations.length > 0
+        ? formatLinearSourceLabel(linearIntegrations.length)
+        : null}
       {" · "}
       <span className="capitalize">
         {formatSnakeCaseLabel(meta.lookbackWindow)}

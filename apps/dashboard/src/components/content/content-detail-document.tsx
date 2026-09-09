@@ -70,7 +70,9 @@ export function ContentDetailDocument({
             ? plan.onBriefChange
             : undefined
         }
-        onDirtyChange={plan.isReviewable ? plan.onDirtyChange : undefined}
+        // Stays wired when the plan is not reviewable so a read-only plan
+        // reports its clean state instead of leaving a stale dirty flag.
+        onDirtyChange={plan.onDirtyChange}
       />
     </>
   );

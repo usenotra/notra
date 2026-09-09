@@ -16,10 +16,23 @@ function firstSearchParam(
   return Array.isArray(value) ? value[0] : value;
 }
 
+/**
+ * `?project=` with an empty value is the same as no scope at all. Normalising
+ * it here keeps the server's repair guard and the client scope in agreement —
+ * an empty string is falsy, so an un-normalised "" would silently skip the
+ * guard while the client kept `projectId: ""` and missed every hydrated key.
+ */
 export function geoRequestedProjectId(
   search: Record<string, string | string[] | undefined>
 ): string | undefined {
-  return firstSearchParam(search.project);
+  return normalizeGeoProjectId(firstSearchParam(search.project));
+}
+
+export function normalizeGeoProjectId(
+  projectId: string | null | undefined
+): string | undefined {
+  const trimmed = projectId?.trim();
+  return trimmed ? trimmed : undefined;
 }
 
 /**

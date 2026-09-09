@@ -27,8 +27,16 @@ export function useContentPlan({
 }: UseContentPlanOptions) {
   const queryClient = useQueryClient();
   const draft = parseGeoWriterDraft(sourceMetadata);
-  const briefQuery = useGeoWriterBrief(organizationId, draft?.briefId ?? null);
-  const update = useGeoWriterUpdate(organizationId, contentId);
+  // Content pages render outside the GEO project scope provider, so the brief's
+  // own project has to be threaded explicitly - otherwise a brief in a
+  // non-default project is loaded and saved against the default one.
+  const briefProjectId = draft?.projectId;
+  const briefQuery = useGeoWriterBrief(
+    organizationId,
+    draft?.briefId ?? null,
+    briefProjectId
+  );
+  const update = useGeoWriterUpdate(organizationId, contentId, briefProjectId);
   const [isDirty, setIsDirty] = useState(false);
   const [hasConflict, setHasConflict] = useState(false);
   const [editorVersion, setEditorVersion] = useState(0);

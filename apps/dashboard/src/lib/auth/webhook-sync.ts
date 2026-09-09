@@ -2,8 +2,10 @@ import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { OrganizationMembership } from "@workos-inc/node";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
+
+import { upsertMembership } from "@/lib/auth/membership-upsert";
 
 class WebhookSyncError extends Data.TaggedError("WebhookSyncError")<{
   readonly message: string;
@@ -104,23 +106,13 @@ export const upsertMembershipFromWebhook = Effect.fn(
   const role = membership.role.slug || "member";
 
   yield* Effect.tryPromise({
-    try: async () => {
-      await db
-        .insert(members)
-        .values({
-          id: crypto.randomUUID(),
-          organizationId,
-          userId,
-          role,
-          createdAt: new Date(membership.createdAt),
-        })
-        .onConflictDoUpdate({
-          target: [members.organizationId, members.userId],
-          set: {
-            role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
-          },
-        });
-    },
+    try: () =>
+      upsertMembership({
+        organizationId,
+        userId,
+        role,
+        createdAt: new Date(membership.createdAt),
+      }),
     catch: (cause) =>
       new WebhookSyncError({ message: "Failed to upsert membership", cause }),
   });
