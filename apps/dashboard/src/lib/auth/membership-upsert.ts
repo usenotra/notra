@@ -13,7 +13,7 @@ const MISSING_CONFLICT_TARGET_CODE = "42P10";
 
 let conflictTargetRetryAt = 0;
 
-export function hasMissingConflictTargetCode(error: unknown): boolean {
+function hasMissingConflictTargetCode(error: unknown): boolean {
   let current: unknown = error;
   while (current && typeof current === "object") {
     if (
@@ -95,7 +95,7 @@ async function upsertMembershipReadThenWrite(
  * The next call after expiry retries the atomic upsert so warm processes recover
  * after the migration without restarting.
  */
-export async function runMembershipUpsert(
+async function runMembershipUpsert(
   strategies: MembershipUpsertStrategies,
   input: MembershipUpsertInput
 ): Promise<void> {
@@ -135,9 +135,4 @@ const productionStrategies: MembershipUpsertStrategies = {
  */
 export function upsertMembership(input: MembershipUpsertInput): Promise<void> {
   return runMembershipUpsert(productionStrategies, input);
-}
-
-/** Test seam: forget the cached "index missing" decision. */
-export function resetMembershipUpsertState(): void {
-  conflictTargetRetryAt = 0;
 }

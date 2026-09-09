@@ -49,7 +49,7 @@ interface AnalyticsFlagEvaluation {
   readonly reason?: string;
 }
 
-export function deduplicatePendingAnalyticsFlagEvaluation(
+function deduplicatePendingAnalyticsFlagEvaluation(
   organizationId: string,
   evaluate: () => Promise<AnalyticsFlagEvaluation>
 ): Promise<AnalyticsFlagEvaluation> {
@@ -77,10 +77,9 @@ export function deduplicatePendingAnalyticsFlagEvaluation(
 /**
  * Bounds one evaluation and collapses every non-answer onto `unavailable`: a
  * timeout, an SDK rejection, and the provider's own error reason all mean "we
- * do not know", and the surface treats them identically. Exported so that
- * equivalence can be asserted without a live Databuddy client.
+ * do not know", and the surface treats them identically.
  */
-export function boundAnalyticsFlagEvaluation(
+function boundAnalyticsFlagEvaluation(
   evaluate: Effect.Effect<AnalyticsFlagEvaluation, AnalyticsFlagEvaluationError>
 ): Effect.Effect<AnalyticsFlagState> {
   return evaluate.pipe(

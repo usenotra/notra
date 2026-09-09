@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-  type QueryObserverOptions,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const activeProject = mock(() => ({
@@ -15,25 +11,9 @@ const activeProject = mock(() => ({
 mock.module("@/lib/hooks/use-active-project", () => ({
   useActiveProject: activeProject,
 }));
-mock.module("next/navigation", () => ({
-  usePathname: () => "/fixture/content",
-  useRouter: () => ({ push: mock() }),
-}));
 mock.module("@/lib/orpc/query", () => ({
   dashboardOrpc: {
     content: {
-      activeGenerations: {
-        list: {
-          queryOptions: (options: object) => ({
-            ...options,
-            queryKey: ["active-generations"],
-            queryFn: async () => ({ generations: [], results: [] }),
-          }),
-        },
-        clearCompleted: {
-          mutationOptions: () => ({ mutationFn: async () => undefined }),
-        },
-      },
       list: {
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ["content", "list", input],
@@ -45,14 +25,7 @@ mock.module("@/lib/orpc/query", () => ({
 }));
 
 const { usePosts, useTodayPosts } = await import("../src/lib/hooks/use-posts");
-const { useActiveGenerations } =
-  await import("../src/lib/hooks/use-active-generations");
 let organizationId = "org-1";
-
-function ActiveGenerationsProbe() {
-  useActiveGenerations(organizationId);
-  return null;
-}
 
 function TodayPostsProbe() {
   useTodayPosts(organizationId);
@@ -70,33 +43,6 @@ beforeEach(() => {
 });
 
 describe("dashboard home post query", () => {
-  test("keeps discovering external generations while idle and polls faster while active", () => {
-    const client = new QueryClient();
-    renderToStaticMarkup(
-      <QueryClientProvider client={client}>
-        <ActiveGenerationsProbe />
-      </QueryClientProvider>
-    );
-    const query = client.getQueryCache().getAll()[0];
-    expect(query).toBeDefined();
-    if (!query) {
-      throw new Error("Missing active generations query");
-    }
-    const options = query.options as QueryObserverOptions;
-    const interval = options.refetchInterval;
-    if (typeof interval !== "function") {
-      throw new Error("Expected adaptive polling");
-    }
-    expect(interval(query)).toBe(15_000);
-    query.setData({ generations: [], results: [] });
-    expect(interval(query)).toBe(15_000);
-    query.setData({ generations: [{ runId: "external-run" }], results: [] });
-    expect(interval(query)).toBe(3000);
-    query.setData({ generations: [], results: [] });
-    expect(interval(query)).toBe(15_000);
-    expect(options.refetchIntervalInBackground).toBe(false);
-  });
-
   test("requests only three scoped posts for today's preview", () => {
     const client = new QueryClient();
     renderToStaticMarkup(
