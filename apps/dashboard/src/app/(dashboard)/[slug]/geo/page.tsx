@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 
 import { validateOrganizationAccess } from "@/lib/auth/actions";
+import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import type { GeoServerPageProps } from "@/types/geo-hydration";
+import { geoRequestedProjectId } from "@/utils/geo-hydration";
 import { dehydrateGeoOverviewQueries } from "@/utils/geo-prefetch.server";
 
 import PageClient from "./page-client";
@@ -24,10 +26,17 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
     headers(),
   ]);
 
+  const projectId = await resolveInitialGeoProjectId(
+    organization.id,
+    slug,
+    geoRequestedProjectId(search)
+  );
+
   return (
     <HydrationBoundary
       state={await dehydrateGeoOverviewQueries(
         organization.id,
+        projectId,
         search,
         requestHeaders
       )}

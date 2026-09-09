@@ -6,6 +6,7 @@ import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
+import { cache } from "react";
 
 import {
   ENTITLEMENT_FEATURES,
@@ -14,6 +15,21 @@ import {
 import { GEO_PLAN_REQUIRED_MESSAGE } from "@/constants/billing";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
+
+/**
+ * Batched oRPC requests run many gated procedures inside one server request;
+ * they share a single Autumn lookup per organization.
+ */
+const checkAiAnswersEntitlement = cache(async (organizationId: string) => {
+  if (!autumn) {
+    return null;
+  }
+
+  return await autumn.check({
+    customerId: organizationId,
+    featureId: FEATURES.AI_ANSWERS,
+  });
+});
 
 async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
   if (!autumn) {
@@ -152,43 +168,56 @@ export async function hasPaidSubscriptionHistory(
   }
 }
 
-export async function assertGeoEntitlement(
+export type GeoEntitlementOutcome = "entitled" | "denied" | "skipped";
+
+/**
+ * Resolves the AI-answers entitlement without side effects, so callers can run
+ * it alongside the membership check and decide afterwards whether a denial may
+ * be reported at all (a non-member must not generate billing telemetry).
+ */
+export async function resolveGeoEntitlement(
   organizationId: string
-): Promise<void> {
+): Promise<GeoEntitlementOutcome> {
   if (allowUnmeteredAiInDevelopment) {
-    return;
+    return "skipped";
   }
 
   if (!autumn) {
     if (process.env.NODE_ENV === "production") {
       throw internalServerError("Billing is not configured");
     }
-    return;
+    return "skipped";
   }
 
-  let entitled = false;
   try {
-    const data = await autumn.check({
-      customerId: organizationId,
-      featureId: FEATURES.AI_ANSWERS,
-    });
-    entitled = data.balance != null;
+    const data = await checkAiAnswersEntitlement(organizationId);
+    return data?.balance != null ? "entitled" : "denied";
   } catch (error) {
     if (error instanceof ORPCError) {
       throw error;
     }
     throw internalServerError("Failed to verify plan entitlement");
   }
+}
 
-  if (!entitled) {
-    trackServerEvent({
-      event: POSTHOG_EVENTS.ENTITLEMENT_DENIED,
-      organizationId,
-      properties: {
-        feature: ENTITLEMENT_FEATURES.AI_ANSWERS,
-        surface: ENTITLEMENT_SURFACES.DASHBOARD,
-      },
-    });
-    throw paymentRequired(GEO_PLAN_REQUIRED_MESSAGE);
+/** Reports the denial and rejects the request. Call only for confirmed members. */
+export function rejectGeoEntitlementDenied(organizationId: string): never {
+  trackServerEvent({
+    event: POSTHOG_EVENTS.ENTITLEMENT_DENIED,
+    organizationId,
+    properties: {
+      feature: ENTITLEMENT_FEATURES.AI_ANSWERS,
+      surface: ENTITLEMENT_SURFACES.DASHBOARD,
+    },
+  });
+  throw paymentRequired(GEO_PLAN_REQUIRED_MESSAGE);
+}
+
+export async function assertGeoEntitlement(
+  organizationId: string
+): Promise<void> {
+  const outcome = await resolveGeoEntitlement(organizationId);
+  if (outcome === "denied") {
+    rejectGeoEntitlementDenied(organizationId);
   }
 }

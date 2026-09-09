@@ -152,17 +152,25 @@ export async function updateGeoShelfCitations(
   if (updates.length === 0) {
     return;
   }
+  // One statement instead of one UPDATE per changed source: this runs on the
+  // shelf read path, where every source's citation counts usually moved.
+  const values = sql.join(
+    updates.map(
+      (update) =>
+        sql`(${update.id}::text, ${JSON.stringify(update.citations)}::jsonb, ${update.title}::text)`
+    ),
+    sql`, `
+  );
   await db.transaction(async (tx) => {
-    for (const update of updates) {
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- one transaction connection executes queries serially
-      await tx
-        .update(geoShelfSources)
-        .set({
-          citations: update.citations,
-          title: sql`coalesce(${geoShelfSources.title}, ${update.title})`,
-        })
-        .where(and(scopeWhere(key), eq(geoShelfSources.id, update.id)));
-    }
+    await tx.execute(sql`
+      update ${geoShelfSources} as target
+      set citations = incoming.citations,
+        title = coalesce(target.title, incoming.title)
+      from (values ${values}) as incoming(id, citations, title)
+      where target.id = incoming.id
+        and target.organization_id = ${key.organizationId}
+        and target.project_id = ${key.projectId}
+    `);
   });
 }
 

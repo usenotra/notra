@@ -6,6 +6,7 @@ import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type {
   GeoProjectContextValue,
   GeoProjectProviderProps,
+  GeoProjectQueryProviderProps,
 } from "@/types/geo";
 
 const GeoProjectContext = createContext<GeoProjectContextValue>({
@@ -25,14 +26,17 @@ export function GeoProjectProvider({
 }
 
 export function GeoProjectQueryProvider({
+  initialProjectId,
   children,
-}: Pick<GeoProjectProviderProps, "children">) {
-  const [projectId] = useGeoProjectQueryState();
+}: GeoProjectQueryProviderProps) {
+  const [projectParam] = useGeoProjectQueryState();
+  // The sidebar writes the same id into the URL once `projectsList` resolves;
+  // starting from the server-resolved value keeps the scope (and every query
+  // key derived from it) stable across that rewrite.
+  const projectId = projectParam ?? initialProjectId;
 
   return (
-    <GeoProjectProvider projectId={projectId ?? undefined}>
-      {children}
-    </GeoProjectProvider>
+    <GeoProjectProvider projectId={projectId}>{children}</GeoProjectProvider>
   );
 }
 

@@ -95,11 +95,6 @@ import { IMAGE_EXPORT_DOWNLOAD_TARGET } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import {
-  copyImageAsFigma,
-  copyImageAsPaper,
-  downloadImage,
-} from "@/lib/content/image-export";
-import {
   useGeoWriterBrief,
   useGeoWriterUpdate,
 } from "@/lib/hooks/use-geo-writer";
@@ -127,6 +122,9 @@ import { shakeElements } from "@/utils/shake-element";
 
 import { useContent } from "../../../../../lib/hooks/use-content";
 import { ContentDetailSkeleton } from "./skeleton";
+
+// Loaded on demand: the export pipeline pulls in opentype.js and a bundled font.
+const loadImageExport = () => import("@/lib/content/image-export");
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -1243,13 +1241,14 @@ export default function PageClient({
     content.contentType === "image" && isHttpImageContent(content.content)
       ? content.content
       : null;
-  const copyImageExportFor = (target: ImageExportTarget) => {
+  const copyImageExportFor = async (target: ImageExportTarget) => {
     trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
       content_id: contentId,
       target,
     });
+    const { copyImageAsFigma, copyImageAsPaper } = await loadImageExport();
     if (target === "figma") {
-      copyImageAsFigma(
+      await copyImageAsFigma(
         imageExportRef.current,
         title,
         imageExportHtml,
@@ -1258,14 +1257,16 @@ export default function PageClient({
       return;
     }
 
-    copyImageAsPaper(
+    await copyImageAsPaper(
       imageExportRef.current,
       title,
       imageExportHtml,
       imageExportHtmlUrl
     );
   };
-  const handleCopyImageExport = () => copyImageExportFor(imageExportTarget);
+  const handleCopyImageExport = () => {
+    void copyImageExportFor(imageExportTarget);
+  };
   const handleImageExportTargetSelect = (value: string) => {
     if (!isImageExportTarget(value) || value === "wonder") {
       return;
@@ -1672,7 +1673,9 @@ export default function PageClient({
                           content_id: contentId,
                           target: IMAGE_EXPORT_DOWNLOAD_TARGET,
                         });
-                        downloadImage(imageDownloadUrl, title);
+                        void loadImageExport().then(({ downloadImage }) =>
+                          downloadImage(imageDownloadUrl, title)
+                        );
                       }}
                       size="sm"
                       variant="outline"

@@ -14,7 +14,16 @@ const nextConfig: NextConfig = {
     "/*": ["./src/lib/ai/skills/**/*", "../../packages/ai/src/skills/**/*"],
   },
   experimental: {
-    optimizePackageImports: ["@hugeicons/core-free-icons", "lucide-react"],
+    optimizePackageImports: [
+      "@hugeicons/core-free-icons",
+      "lucide-react",
+      "echarts",
+      "recharts",
+      "date-fns",
+      "motion",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+    ],
     hideLogsAfterAbort: true,
     instantInsights: {
       validationLevel: "manual-warning",

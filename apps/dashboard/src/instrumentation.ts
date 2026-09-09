@@ -16,8 +16,14 @@ export async function register() {
     process.env.NEXT_RUNTIME === "nodejs" &&
     process.env.NODE_ENV === "production"
   ) {
-    const { registerOTelTCC } = await import("@contextcompany/otel/nextjs");
-    registerOTelTCC();
+    // The exporter throws on an empty key, which would take the whole server
+    // down at boot instead of just losing traces.
+    if (process.env.TCC_API_KEY) {
+      const { registerOTelTCC } = await import("@contextcompany/otel/nextjs");
+      registerOTelTCC();
+    } else {
+      console.warn("TCC_API_KEY is not set. TCC tracing is disabled.");
+    }
   }
 }
 

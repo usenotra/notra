@@ -196,6 +196,7 @@ import {
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { after } from "next/server";
 
 import {
   GEO_COMPETITOR_SOURCES,
@@ -219,7 +220,8 @@ import { identifyProjectGroup } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   assertActiveSubscription,
-  assertGeoEntitlement,
+  rejectGeoEntitlementDenied,
+  resolveGeoEntitlement,
 } from "@/lib/billing/subscription";
 import {
   collectGeoShelfMemberIds,
@@ -262,11 +264,48 @@ interface GeoHandlerOptions<TInput> {
   input: TInput;
 }
 
+/**
+ * The membership check and the billing lookup are independent, so they run
+ * together. The denial itself (telemetry + 402) is only raised once membership
+ * is confirmed: a non-member must neither learn about nor generate billing
+ * events for an organization they do not belong to.
+ */
 async function assertGeoAccess(
   params: Parameters<typeof assertOrganizationAccess>[0]
 ): Promise<void> {
-  await assertOrganizationAccess(params);
-  await assertGeoEntitlement(params.organizationId);
+  const [membership, entitlement] = await Promise.allSettled([
+    assertOrganizationAccess(params),
+    resolveGeoEntitlement(params.organizationId),
+  ]);
+
+  if (membership.status === "rejected") {
+    throw membership.reason;
+  }
+  if (entitlement.status === "rejected") {
+    throw entitlement.reason;
+  }
+  if (entitlement.value === "denied") {
+    rejectGeoEntitlementDenied(params.organizationId);
+  }
+}
+
+/**
+ * Analytics that must not sit in front of the response. `after` is available in
+ * this router because oRPC is served from a Route Handler, so the request scope
+ * is still open when the tracker is scheduled.
+ *
+ * Next logs a rejected `after` task, but without saying which procedure
+ * produced it and while marking the invocation as errored, so the failure is
+ * caught and labelled here instead.
+ */
+function trackAfterResponse(label: string, track: () => Promise<void>): void {
+  after(async () => {
+    try {
+      await track();
+    } catch (error) {
+      console.error(`[geo] ${label} tracking failed:`, error);
+    }
+  });
 }
 
 function geoOpenHandler<
@@ -1381,22 +1420,26 @@ export const geoRouter = {
   startScan: authorizedProcedure.input(geoScanStartInputSchema).handler(
     geoHandler(
       (input) => startGeoScan(input),
-      async ({ context, input, output }) => {
-        const snapshot = await loadGeoScanStartSnapshot(input);
-        trackGeoRouterEvent({
-          context,
-          input,
-          event: POSTHOG_EVENTS.GEO_SCAN_STARTED,
-          projectId: snapshot?.projectId,
-          properties: {
-            trigger: input.trigger ?? GEO_DEFAULT_SCAN_TRIGGER,
-            scan_id: output.scanId,
-            prompt_count: snapshot?.prompt_count,
-            engine_count: snapshot?.engine_count,
-            language_count: snapshot?.language_count,
-            is_first_scan: snapshot?.is_first_scan,
-            zdr_enforced: snapshot?.zdr_enforced,
-          },
+      ({ context, input, output }) => {
+        // The snapshot re-reads the project and its settings; that must not sit
+        // in front of the scan response.
+        trackAfterResponse("scan start", async () => {
+          const snapshot = await loadGeoScanStartSnapshot(input);
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_SCAN_STARTED,
+            projectId: snapshot?.projectId,
+            properties: {
+              trigger: input.trigger ?? GEO_DEFAULT_SCAN_TRIGGER,
+              scan_id: output.scanId,
+              prompt_count: snapshot?.prompt_count,
+              engine_count: snapshot?.engine_count,
+              language_count: snapshot?.language_count,
+              is_first_scan: snapshot?.is_first_scan,
+              zdr_enforced: snapshot?.zdr_enforced,
+            },
+          });
         });
       }
     )

@@ -1,7 +1,5 @@
 import { type Font, parse } from "opentype.js";
 
-import { INTER_TTF_BASE64 } from "./inter-data";
-
 let fallbackFontPromise: Promise<Font> | null = null;
 
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
@@ -13,10 +11,14 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+async function parseFallbackFont(): Promise<Font> {
+  // Imported lazily so the base64 font payload never lands in a first-load chunk.
+  const { INTER_TTF_BASE64 } = await import("./inter-data");
+  return parse(base64ToArrayBuffer(INTER_TTF_BASE64));
+}
+
 export async function loadFallbackFont(): Promise<Font> {
-  fallbackFontPromise ??= Promise.resolve(
-    parse(base64ToArrayBuffer(INTER_TTF_BASE64))
-  );
+  fallbackFontPromise ??= parseFallbackFont();
   return fallbackFontPromise;
 }
 

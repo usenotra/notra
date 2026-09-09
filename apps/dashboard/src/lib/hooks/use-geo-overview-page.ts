@@ -119,14 +119,19 @@ export function useGeoOverviewPage(
     geoRange.query,
     activeTab === "visibility" || activeTab === "prompts"
   );
+  // Only the visibility tab renders these; see `GeoTabs`.
+  const isVisibilityTab = activeTab === "visibility";
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
-    geoRange.query
+    geoRange.query,
+    false,
+    isVisibilityTab
   );
   const { data: competitorList } = useGeoCompetitors(organizationId);
   const { data: languageShare } = useGeoLanguageShare(
     organizationId,
-    geoRange.query
+    geoRange.query,
+    isVisibilityTab
   );
   const { data: trafficJourneys } = useGeoTrafficJourneys(
     organizationId,

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { validateOrganizationAccess } from "@/lib/auth/actions";
 import type { AgentReadinessPageProps } from "@/types/agent-readiness";
 
 import PageClient from "./page-client";
@@ -13,9 +12,9 @@ export const metadata: Metadata = {
 
 export const instant = true;
 
+// Access is enforced by the `[slug]` layout; this page only needs the slug.
 async function PageContent({ params }: AgentReadinessPageProps) {
   const { slug } = await params;
-  await validateOrganizationAccess(slug);
   return <PageClient organizationSlug={slug} />;
 }
 

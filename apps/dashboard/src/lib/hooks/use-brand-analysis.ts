@@ -17,6 +17,8 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 
 import { dashboardOrpc } from "../orpc/query";
 
+const ANALYSIS_POLL_INTERVAL_MS = 1000;
+
 const IDLE_PROGRESS: ProgressResponse["progress"] = {
   status: "idle",
   currentStep: 0,
@@ -70,8 +72,9 @@ export function useBrandAnalysisProgress(
     enabled: !!organizationId,
     refetchInterval: (query) => {
       const progress = query.state.data?.progress;
+      // No data yet, or a terminal status: nothing to follow.
       if (!progress) {
-        return 2000;
+        return false;
       }
 
       if (progress.status === "completed" || progress.status === "failed") {
@@ -79,11 +82,12 @@ export function useBrandAnalysisProgress(
       }
 
       if (progress.status === "idle") {
-        return shouldForcePoll() ? 1000 : false;
+        return shouldForcePoll() ? ANALYSIS_POLL_INTERVAL_MS : false;
       }
 
-      return 1000;
+      return ANALYSIS_POLL_INTERVAL_MS;
     },
+    refetchIntervalInBackground: false,
   });
 
   const progress = query.data?.progress ?? IDLE_PROGRESS;

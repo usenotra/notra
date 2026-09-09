@@ -1,10 +1,12 @@
-import posthog from "posthog-js";
+import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
+import { initPostHog } from "@/lib/analytics/posthog-lazy";
 
-import { POSTHOG_CONFIG, POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
+const POSTHOG_INIT_FALLBACK_DELAY_MS = 2000;
 
 if (POSTHOG_PROJECT_TOKEN && typeof window !== "undefined") {
-  posthog.init(POSTHOG_PROJECT_TOKEN, {
-    ...POSTHOG_CONFIG,
-    tracing_headers: [window.location.hostname],
-  });
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => initPostHog());
+  } else {
+    window.setTimeout(() => initPostHog(), POSTHOG_INIT_FALLBACK_DELAY_MS);
+  }
 }

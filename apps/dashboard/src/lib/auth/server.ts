@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
-import { connection } from "next/server";
 import { cache } from "react";
 
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
@@ -101,8 +100,6 @@ const buildAuthIdentity = Effect.fn("auth.identity.build")(function* (
 
 export const getAuthIdentity = cache(
   async (): Promise<AuthIdentityData | null> => {
-    await connection();
-
     let authResult: Awaited<ReturnType<typeof withAuth>>;
 
     try {

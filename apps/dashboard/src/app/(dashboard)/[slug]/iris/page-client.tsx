@@ -17,7 +17,6 @@ import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   IRIS_ACTIVE_POLL_INTERVAL_MS,
-  IRIS_IDLE_POLL_INTERVAL_MS,
   IRIS_SIGNALS_PREVIEW_LIMIT,
 } from "@/constants/iris";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -49,27 +48,28 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       initialPageParam: undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       enabled: isReady,
+      // No open run: stop polling entirely instead of falling back to an idle interval.
       refetchInterval: (query: {
         state: { data?: { pages: IrisListRunsResult[] } };
       }) =>
         isIrisRunOpen(query.state.data?.pages.at(0)?.runs.at(0) ?? null)
           ? IRIS_ACTIVE_POLL_INTERVAL_MS
-          : IRIS_IDLE_POLL_INTERVAL_MS,
+          : false,
+      refetchIntervalInBackground: false,
     })
   );
 
   const runs = runsQuery.data?.pages.flatMap((page) => page.runs) ?? [];
   const latestRun = runs.at(0) ?? null;
   const isBusy = isIrisRunOpen(latestRun);
-  const pollInterval = isBusy
-    ? IRIS_ACTIVE_POLL_INTERVAL_MS
-    : IRIS_IDLE_POLL_INTERVAL_MS;
+  const pollInterval = isBusy ? IRIS_ACTIVE_POLL_INTERVAL_MS : false;
 
   const overviewQuery = useQuery(
     dashboardOrpc.iris.getOverview.queryOptions({
       input: { organizationId },
       enabled: isReady,
       refetchInterval: pollInterval,
+      refetchIntervalInBackground: false,
     })
   );
 
@@ -81,6 +81,7 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       input: { organizationId, limit: IRIS_SIGNALS_PREVIEW_LIMIT },
       enabled: isReady && mandate !== null,
       refetchInterval: pollInterval,
+      refetchIntervalInBackground: false,
     })
   );
 

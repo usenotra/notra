@@ -50,10 +50,10 @@ export function useGeoWriterBrief(
     }),
     enabled: !!organizationId && !!briefId,
     refetchInterval: (query) =>
-      query.state.data?.status === "writing" ||
-      query.state.data?.status === "approved"
+      query.state.data?.status === "writing"
         ? GEO_WRITER_BRIEF_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load the brief" },
   });
 }

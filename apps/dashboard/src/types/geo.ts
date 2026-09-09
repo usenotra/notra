@@ -86,6 +86,12 @@ export interface GeoProjectProviderProps {
   children: ReactNode;
 }
 
+export interface GeoProjectQueryProviderProps {
+  /** Server-resolved project used until the URL carries `?project=`. */
+  initialProjectId?: string;
+  children: ReactNode;
+}
+
 export interface GeoProjectCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

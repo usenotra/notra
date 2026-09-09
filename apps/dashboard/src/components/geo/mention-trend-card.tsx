@@ -20,12 +20,12 @@ import {
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
 import { CHART_MUTED_COLOR, CHART_PRIMARY_COLOR } from "@/constants/charts";
+import { useEngineIconHtml } from "@/lib/hooks/use-engine-icon-html";
 import type { ChartConfig } from "@/types/charts";
 import type { MentionTrendCardProps, MentionTrendSeries } from "@/types/geo";
 import { formatFullDayLabel } from "@/utils/analytics-charts";
 import { accountSeriesColors, seriesColors } from "@/utils/chart-colors";
 import { chartKey } from "@/utils/chart-keys";
-import { engineIconHtml } from "@/utils/engine-icon-html";
 import {
   buildMentionTrendRows,
   fitMentionTrendLine,
@@ -76,6 +76,7 @@ export function MentionTrendCard({
   isScanning = false,
 }: MentionTrendCardProps) {
   const [activeKeys, setActiveKeys] = useState<Set<string>>(() => new Set());
+  const engineIconHtml = useEngineIconHtml();
 
   const { rows, engines } = buildMentionTrendRows(points);
   const series = mentionTrendSeries(engines).filter((entry) =>

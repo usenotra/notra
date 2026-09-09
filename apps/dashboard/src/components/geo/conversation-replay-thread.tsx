@@ -8,9 +8,9 @@ import type {
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
 import { geoAnswerThinkingClassName } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import dynamic from "next/dynamic";
 
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
-import { AnswerMarkdown } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
 import { cn } from "@/lib/utils";
 import type {
@@ -22,6 +22,15 @@ import {
   conversationReplaySearch,
 } from "@/utils/geo-answer-replay";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
+
+// Markdown rendering (~138 kB gz) is only needed once a replay is on screen.
+const AnswerMarkdown = dynamic(
+  () =>
+    import("@/components/geo/geo-prompt-answer-thread").then(
+      (module) => module.AnswerMarkdown
+    ),
+  { ssr: false }
+);
 
 function replaySources(turn: GeoSequenceTurnResult): PerplexitySearchSource[] {
   return perplexitySourcesFromStoredOrExcerpt(turn.sources, turn.answer);

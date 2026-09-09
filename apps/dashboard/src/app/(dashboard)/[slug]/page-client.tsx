@@ -9,7 +9,7 @@ import { useId } from "react";
 import { Button } from "@/components/button";
 import { ContentCard } from "@/components/content/content-card";
 import { ContentSkeletonCard } from "@/components/content/content-skeleton-card";
-import { CreateContentDialog } from "@/components/content/create-content-dialog";
+import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
 import { ContentActivityCard } from "@/components/dashboard/content-activity-card";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
@@ -135,7 +135,10 @@ export default function PageClient({
                 Latest items created today
               </p>
             </div>
-            <CreateContentDialog entry="home" organizationId={organizationId} />
+            <LazyCreateContentDialog
+              entry="home"
+              organizationId={organizationId}
+            />
           </div>
 
           {todayContent}

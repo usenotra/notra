@@ -1,3 +1,4 @@
+import { createTimeoutFetch } from "@notra/utils/timeout-fetch";
 import {
   type InferParams,
   type IngestResult,
@@ -74,12 +75,19 @@ import {
   topPosts,
 } from "./pipes/social";
 
+/**
+ * Analytics queries sit on the request path, so a stalled Tinybird must fail
+ * instead of holding the request open. The SDK's own default is 30s.
+ */
+const TINYBIRD_REQUEST_TIMEOUT_MS = 10_000;
+
 export function isTinybirdConfigured(): boolean {
   return Boolean(process.env.TINYBIRD_TOKEN);
 }
 
 function createTinybirdClient() {
   return new Tinybird({
+    fetch: createTimeoutFetch(TINYBIRD_REQUEST_TIMEOUT_MS),
     token: process.env.TINYBIRD_TOKEN,
     baseUrl:
       process.env.TINYBIRD_BASE_URL ??

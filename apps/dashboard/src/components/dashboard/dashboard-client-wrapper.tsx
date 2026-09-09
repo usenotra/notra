@@ -1,6 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
+import { DbClient, DbProvider } from "@tanstack/react-db";
+import { useQueryClient } from "@tanstack/react-query";
+import { Suspense, useState } from "react";
 
 import { CommandPalette } from "@/components/command-palette/command-palette";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette-context";
@@ -28,26 +30,32 @@ export function DashboardClientWrapper({
   initialSidebarWidth,
   modal,
 }: DashboardClientWrapperProps) {
+  const queryClient = useQueryClient();
+  // Scoped to the dashboard: the react-db engine has no consumers outside it.
+  const [dbClient] = useState(() => new DbClient({ queryClient }));
+
   return (
     <OrganizationsProvider
       initialActiveOrganization={initialActiveOrganization}
     >
-      <DatabuddyFlagsProvider>
-        <FeedbackProvider>
-          <CommandPaletteProvider>
-            <DashboardShell
-              initialSidebarOpen={initialSidebarOpen}
-              initialSidebarWidth={initialSidebarWidth}
-            >
-              {children}
-            </DashboardShell>
-            <CommandPalette />
-            <Suspense fallback={null}>
-              <SettingsModal />
-            </Suspense>
-          </CommandPaletteProvider>
-        </FeedbackProvider>
-      </DatabuddyFlagsProvider>
+      <DbProvider client={dbClient}>
+        <DatabuddyFlagsProvider>
+          <FeedbackProvider>
+            <CommandPaletteProvider>
+              <DashboardShell
+                initialSidebarOpen={initialSidebarOpen}
+                initialSidebarWidth={initialSidebarWidth}
+              >
+                {children}
+              </DashboardShell>
+              <CommandPalette />
+              <Suspense fallback={null}>
+                <SettingsModal />
+              </Suspense>
+            </CommandPaletteProvider>
+          </FeedbackProvider>
+        </DatabuddyFlagsProvider>
+      </DbProvider>
       {modal}
     </OrganizationsProvider>
   );

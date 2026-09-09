@@ -24,6 +24,7 @@ import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-ch
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
 import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "@/constants/charts";
+import { useEngineIconHtml } from "@/lib/hooks/use-engine-icon-html";
 import { cn } from "@/lib/utils";
 import type { ChartConfig, TooltipRowGroup } from "@/types/charts";
 import type {
@@ -39,7 +40,6 @@ import {
   trafficTrendProviderTypeKey,
 } from "@/utils/ai-traffic-trend";
 import { seriesColors } from "@/utils/chart-colors";
-import { engineIconHtml } from "@/utils/engine-icon-html";
 import { formatChartInteger } from "@/utils/geo-charts";
 
 const HERO_CHART_OPTIONS = {
@@ -117,6 +117,7 @@ export function TrafficHero({
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
+  const engineIconHtml = useEngineIconHtml();
   const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
   const showTrend = rows.length >= GEO_SPARKLINE_MIN_POINTS;
   const days = trafficSparklineDays(points);

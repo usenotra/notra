@@ -113,11 +113,15 @@ const typeDefaults: Record<string, ApplicablePlatform[]> = {
 };
 
 async function verifyVoiceOwnership(organizationId: string, voiceId: string) {
+  // Most call sites only need the ownership check; the two that read the row
+  // need `isDefault` / `websiteUrl`. Nothing needs the tone, instruction or
+  // description text columns.
   const voice = await db.query.brandSettings.findFirst({
     where: and(
       eq(brandSettings.id, voiceId),
       eq(brandSettings.organizationId, organizationId)
     ),
+    columns: { id: true, isDefault: true, websiteUrl: true },
   });
 
   if (!voice) {

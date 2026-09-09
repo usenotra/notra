@@ -14,7 +14,6 @@ import { hasShownToast, markToastShown } from "@/utils/toast-dedupe";
 import { dashboardOrpc } from "../orpc/query";
 
 const ACTIVE_POLL_INTERVAL = 3000;
-const IDLE_POLL_INTERVAL = 30_000;
 
 interface ActiveGenerationsResponse {
   generations: ActiveGeneration[];
@@ -36,11 +35,13 @@ export function useActiveGenerations(organizationId: string) {
       meta: { errorMessage: "Failed to load active generations" },
       refetchInterval: (query) => {
         const data = query.state.data;
-        if (data && data.generations.length > 0) {
-          return ACTIVE_POLL_INTERVAL;
+        // Nothing generating: stop polling until a mutation invalidates this query.
+        if (!data || data.generations.length === 0) {
+          return false;
         }
-        return IDLE_POLL_INTERVAL;
+        return ACTIVE_POLL_INTERVAL;
       },
+      refetchIntervalInBackground: false,
     })
   );
 
