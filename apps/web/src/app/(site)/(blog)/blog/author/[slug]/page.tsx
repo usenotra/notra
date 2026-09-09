@@ -1,15 +1,11 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@notra/ui/components/ui/avatar";
 import { buttonVariants } from "@notra/ui/components/ui/button";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import type { BlogAuthorPageProps } from "~types/blog";
 
+import { BlogAuthorAvatar } from "@/components/blog-author-avatar";
 import { BlogPostCard } from "@/components/blog-post-card";
 import { resolveSocialLink } from "@/utils/author-socials";
 import {
@@ -89,14 +85,7 @@ export default async function BlogAuthorPage({ params }: BlogAuthorPageProps) {
     <div className="mx-auto w-full max-w-220 px-4 pt-24 sm:px-6 sm:pt-28 md:px-8 md:pt-32 lg:px-0">
       <div className="flex flex-col items-start gap-5">
         <ViewTransition name={blogAuthorAvatarTransitionName(author.slug)}>
-          <Avatar className="size-20" size="default">
-            {author.image ? (
-              <AvatarImage alt={author.name} src={author.image} />
-            ) : null}
-            <AvatarFallback className="text-2xl">
-              {author.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          <BlogAuthorAvatar image={author.image} name={author.name} size={80} />
         </ViewTransition>
 
         <div className="flex flex-col gap-1">

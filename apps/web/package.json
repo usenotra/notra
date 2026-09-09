@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun run styles:generate && next dev --port 3001",
-    "build": "bun run styles:check && next build",
+    "dev": "bun run images:generate && bun run styles:generate && next dev --port 3001",
+    "build": "bun run images:generate && bun run styles:check && next build",
     "styles:generate": "bun scripts/generate-ui-sources.mjs",
     "styles:check": "bun scripts/generate-ui-sources.mjs --check",
     "start": "next start",
     "knip": "knip",
     "postinstall": "fumadocs-mdx",
     "remotion:studio": "remotion studio src/remotion/index.ts",
-    "remotion:render": "remotion render src/remotion/index.ts StarVideo out/star-video.mp4"
+    "remotion:render": "remotion render src/remotion/index.ts StarVideo out/star-video.mp4",
+    "images:generate": "bun scripts/generate-blog-image-placeholders.ts"
   },
   "dependencies": {
     "@c15t/nextjs": "^2.0.4",
@@ -70,6 +71,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "babel-plugin-react-compiler": "1.0.0",
+    "blurhash": "^2.0.5",
     "knip": "^6.12.1",
     "tailwindcss": "4.3.1",
     "typescript": "^5"

@@ -114,8 +114,8 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
         />
       ) : null}
 
-      <div className="grid w-full grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_16rem]">
-        <article className="min-w-0 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
+      <article className="grid w-full grid-cols-1 gap-x-16 gap-y-6 lg:grid-cols-[minmax(0,1fr)_16rem] [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
+        <header className="min-w-0 lg:col-start-1 lg:row-start-1">
           <ViewTransition name="blog-back-button">
             <Link
               className="group mb-6 inline-flex items-center gap-2 font-mono text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-50"
@@ -139,8 +139,12 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
               {post.title}
             </h1>
           </ViewTransition>
+        </header>
 
-          <div className="border-border mt-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6">
+        <BlogPostSidebar authors={post.authors} toc={toc} />
+
+        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+          <div className="border-border flex flex-wrap items-center justify-between gap-4 border-b pb-6">
             <span className="font-mono text-sm text-neutral-700 dark:text-neutral-200">
               {readingMinutes} min read
             </span>
@@ -157,10 +161,8 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
           </BlogArticle>
 
           <BlogPostPagination next={next} previous={previous} />
-        </article>
-
-        <BlogPostSidebar authors={post.authors} toc={toc} />
-      </div>
+        </div>
+      </article>
     </div>
   );
 }

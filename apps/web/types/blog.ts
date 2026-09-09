@@ -2,6 +2,12 @@ import type { IconSvgElement } from "@hugeicons/react";
 import type { TOCItemType } from "fumadocs-core/toc";
 import type { ReactNode } from "react";
 
+export interface BlogAuthorAvatarProps {
+  image: string | null;
+  name: string;
+  size?: number;
+}
+
 export interface NotraAuthorSocial {
   url: string;
   platform: string;
