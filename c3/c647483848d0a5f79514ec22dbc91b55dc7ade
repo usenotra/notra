@@ -1,0 +1,32 @@
+apps/dashboard/src/utils/billing-usage.ts
+  s_2c98e062b317b2::t_627c850a2a662a 4-14
+  s_2c98e062b317b2::t_f13c1c4086d28a 158-176
+apps/dashboard/src/components/billing/usage-breakdown-chart.tsx
+  s_2c98e062b317b2::t_6ef50b504c557e 4-6,10-12
+apps/dashboard/src/types/hooks/billing.ts
+  s_2c98e062b317b2::t_cdb79ae3b8a74c 27-31
+packages/ui/src/components/ui/chart.tsx
+  s_2c98e062b317b2::t_c87e3608606e1b 349-357,359-361,366-370
+apps/dashboard/src/components/billing/usage-section.tsx
+  s_2c98e062b317b2::t_4b7da10b57d47c 43,49,59-67
+  s_2c98e062b317b2::t_66daf7652c3be9 279
+  s_2c98e062b317b2::t_c8e8691c17a9cc 334-340,342-435,453-458,467-473
+  s_2c98e062b317b2::t_3adff7b436dcb1 341
+  s_2c98e062b317b2::t_0d6123cc16a229 16,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c3c647483848d0a5f79514ec22dbc91b55dc7ade",
+  "prompts": {},
+  "sessions": {
+    "s_2c98e062b317b2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "badc4013-4dd0-49d5-b214-d3bb90e86f27",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
