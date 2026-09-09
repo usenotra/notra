@@ -31,18 +31,13 @@ export function usePromptAnswerSelection({
   const { languages, selectedLanguage, visibleChecks } =
     promptHistoryForScanLanguage(history.data?.checks ?? [], scanId, language);
   const results = latestPromptResults(
-    scanId && history.data ? [] : row.results,
+    scanId ? [] : row.results,
     visibleChecks,
     scanPromptId,
     row.prompt
   );
   const engines = results.map((result) => result.engine);
-  const [engine, setEngine] = useState(
-    () =>
-      engines.find((candidate) => candidate === initialEngine) ??
-      engines[0] ??
-      ""
-  );
+  const [engine, setEngine] = useState(initialEngine ?? "");
   const active =
     results.find((result) => result.engine === engine) ?? results[0] ?? null;
   const checkId = open ? (active?.checkId ?? null) : null;
@@ -50,8 +45,16 @@ export function usePromptAnswerSelection({
   const detailState = geoPromptDetailState(
     active?.checkId ?? null,
     detail.data,
-    detail.isError
+    detail.isError,
+    scanId ? history.status : undefined
   );
+  const onRetry = () => {
+    if (scanId && history.isError) {
+      void history.refetch();
+    } else {
+      void detail.refetch();
+    }
+  };
   const engineHistory = active
     ? promptHistoryForEngine(visibleChecks, active.engine)
     : [];
@@ -71,6 +74,7 @@ export function usePromptAnswerSelection({
     active,
     detail,
     detailState,
+    onRetry,
     engineHistory,
     promptText,
   };

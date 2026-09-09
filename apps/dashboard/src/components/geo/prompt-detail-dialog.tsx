@@ -30,10 +30,10 @@ import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
 import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
-import { PromptReceiptAnalysis } from "@/components/geo/prompt-receipt-analysis";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { PromptScanButton } from "@/components/geo/prompt-scan-button";
 import {
@@ -216,29 +216,17 @@ function PromptAnswerBody({
     );
   }
 
-  if (detailState.status !== "ready") {
-    return <PromptDetailStatus onRetry={onRetry} status={detailState.status} />;
-  }
-
-  if (view === "analysis") {
-    return (
-      <PromptReceiptAnalysis
-        scrollable={false}
-        competitors={competitors}
-        history={history}
-        isHistoryLoading={isHistoryLoading}
-        onSelectCheck={onSelectCheck}
-        prompt={prompt}
-        result={detailState.result}
-      />
-    );
-  }
-
   return (
-    <GeoPromptAnswerThread
+    <PromptAnswerContent
+      state={detailState}
+      view={view}
+      onRetry={onRetry}
       scrollable={false}
+      competitors={competitors}
+      history={history}
+      isHistoryLoading={isHistoryLoading}
+      onSelectCheck={onSelectCheck}
       prompt={prompt}
-      result={detailState.result}
     />
   );
 }
@@ -265,7 +253,7 @@ function PromptAnswerPage({
     engine,
     setEngine,
     active,
-    detail,
+    onRetry,
     detailState,
     engineHistory,
     promptText,
@@ -343,6 +331,20 @@ function PromptAnswerPage({
     );
   }
 
+  const emptyAnswer =
+    detailState.status === "loading" || detailState.status === "error" ? (
+      <PromptDetailStatus onRetry={onRetry} status={detailState.status} />
+    ) : (
+      <div className="flex min-h-48 items-center justify-center px-6">
+        <p className="text-muted-foreground text-center text-sm text-pretty">
+          {geoScanEmptyMessage(
+            isScanning,
+            "Run a scan to see how engines answer this"
+          )}
+        </p>
+      </div>
+    );
+
   return (
     <SheetContent
       className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
@@ -402,9 +404,7 @@ function PromptAnswerPage({
                   history={engineHistory}
                   isHistoryLoading={history.isPending}
                   onBackToLatest={() => setSelectedCheck(null)}
-                  onRetry={() => {
-                    void detail.refetch();
-                  }}
+                  onRetry={onRetry}
                   onSelectCheck={openHistoryAnswer}
                   prompt={promptText}
                   scanPromptId={scanPromptId}
@@ -413,14 +413,7 @@ function PromptAnswerPage({
                 />
               </motion.div>
             ) : (
-              <div className="flex min-h-48 items-center justify-center px-6">
-                <p className="text-muted-foreground text-center text-sm text-pretty">
-                  {geoScanEmptyMessage(
-                    isScanning,
-                    "Run a scan to see how engines answer this"
-                  )}
-                </p>
-              </div>
+              emptyAnswer
             )}
           </AnimatePresence>
         </div>

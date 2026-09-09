@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
@@ -16,10 +16,13 @@ import type {
   GeoScanRequest,
 } from "@/types/geo-scan-activity";
 
-const GeoScanControlsContext = createContext<GeoScanControls | null>(null);
+const GeoScanControlsContext = createContext<GeoScanControls["prepare"] | null>(
+  null
+);
 
 export function useGeoScanControls() {
-  return useContext(GeoScanControlsContext);
+  const prepare = useContext(GeoScanControlsContext);
+  return prepare ? { prepare } : null;
 }
 
 export function GeoScanControlsProvider({
@@ -34,7 +37,6 @@ export function GeoScanControlsProvider({
   const single = useGeoRescanPrompt(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const settings = data?.settings;
-  const controls = useMemo(() => ({ prepare: setRequest }), []);
 
   async function confirm() {
     if (!request || isScanning || submitting.current) {
@@ -59,7 +61,7 @@ export function GeoScanControlsProvider({
   }
 
   return (
-    <GeoScanControlsContext value={controls}>
+    <GeoScanControlsContext value={setRequest}>
       {children}
       {request && settings ? (
         <ScanPreflightDialog

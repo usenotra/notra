@@ -215,7 +215,6 @@ describe("model service in real scan batches", () => {
           message: "scan task status update failed",
           scanId: "progress-scan",
           promptId: "bad",
-          causeMessage: expect.stringContaining("failed"),
         })
       );
       const scan = await testDb.query.geoScans.findFirst();

@@ -8,55 +8,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
-import { PromptReceiptAnalysis } from "@/components/geo/prompt-receipt-analysis";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
 import { GEO_PROMPT_DEFAULT_FILTERS } from "@/constants/geo-prompts";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
-import type {
-  GeoScanAnswerProps,
-  GeoScanAnswerContentProps,
-} from "@/types/geo-scan-activity";
+import type { GeoScanAnswerProps } from "@/types/geo-scan-activity";
 import { formatEngineWithMode } from "@/utils/geo-charts";
 import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import { buildPromptTableRows } from "@/utils/geo-prompts";
-
-const AnswerThread = dynamic(() =>
-  import("@/components/geo/geo-prompt-answer-thread").then(
-    (module) => module.GeoPromptAnswerThread
-  )
-);
-
-function ScanAnswerContent({
-  state,
-  view,
-  onRetry,
-}: GeoScanAnswerContentProps) {
-  if (state.status !== "ready") {
-    return <PromptDetailStatus status={state.status} onRetry={onRetry} />;
-  }
-  const { result } = state;
-  if (view === "raw") {
-    return <AnswerThread prompt={result.prompt} result={result} />;
-  }
-  return (
-    <PromptReceiptAnalysis
-      history={[]}
-      isHistoryLoading={false}
-      onSelectCheck={() => {}}
-      prompt={result.prompt}
-      result={result}
-      showHistory={false}
-    />
-  );
-}
 
 export function ScanAnswerSheet({
   organizationId,
@@ -129,7 +94,10 @@ export function ScanAnswerSheet({
             </div>
           ) : null}
         </SheetHeader>
-        <ScanAnswerContent
+        <PromptAnswerContent
+          history={[]}
+          isHistoryLoading={false}
+          showHistory={false}
           state={geoPromptDetailState(checkId, detail.data, detail.isError)}
           view={view}
           onRetry={() => {

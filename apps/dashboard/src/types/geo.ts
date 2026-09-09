@@ -65,6 +65,7 @@ import type { Button } from "@/components/button";
 import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
+import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
 import type { TablePaginationState } from "@/types/table";
 
 export interface GeoProjectCreateInput {
@@ -1285,6 +1286,16 @@ export interface PromptReceiptAnalysisProps {
   competitors?: readonly GeoCompetitor[];
   /** Opens the answer captured by one scan from the history. */
   onSelectCheck?: (check: GeoPromptHistoryCheck) => void;
+}
+
+export interface PromptAnswerContentProps extends Omit<
+  PromptReceiptAnalysisProps,
+  "result" | "prompt"
+> {
+  state: GeoPromptDetailState;
+  view: GeoPromptReceiptView;
+  onRetry: () => void;
+  prompt?: string;
 }
 
 export interface PromptReceiptHistoryProps {
