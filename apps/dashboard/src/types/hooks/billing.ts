@@ -38,7 +38,7 @@ export interface UsageBreakdownChartProps {
 
 export interface UsageSectionBodyProps {
   aiAnswersFeature: FeatureData | undefined;
-  aiAnswersRemaining: number;
+  aiAnswersRemaining: number | null;
   aiCreditsFeature: FeatureData | undefined;
   chartData: UsageBreakdownPoint[];
   chartLoading: boolean;

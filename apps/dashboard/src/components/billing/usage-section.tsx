@@ -186,7 +186,7 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
   const used =
     feature.included !== null && feature.balance !== null
       ? Math.max(feature.included - feature.balance, 0)
-      : 0;
+      : null;
 
   return (
     <div className="flex flex-col gap-3 p-4">
@@ -205,8 +205,9 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
                 />
               </TooltipTrigger>
               <TooltipContent>
-                {formatCount(used)} used of {formatCount(feature.included ?? 0)}{" "}
-                this cycle.
+                {used !== null
+                  ? `${formatCount(used)} used of ${formatCount(feature.included ?? 0)} this cycle.`
+                  : `${formatCount(feature.included ?? 0)} included this cycle.`}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -215,7 +216,9 @@ function UsageLimitedFeatureRow({ feature }: UsageLimitedFeatureRowProps) {
           </p>
         </div>
       </div>
-      <RemainingBar label={feature.name} remaining={remaining} />
+      {remaining !== null ? (
+        <RemainingBar label={feature.name} remaining={remaining} />
+      ) : null}
     </div>
   );
 }

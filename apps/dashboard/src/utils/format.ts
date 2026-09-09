@@ -25,6 +25,7 @@ export function formatShortDate(timestamp: number): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(new Date(timestamp));
 }
 
@@ -53,9 +54,9 @@ export function usageBarColor(percent: number): string {
 export function remainingPercent(
   balance: number | null,
   included: number | null
-): number {
+): number | null {
   if (balance === null || included === null || included <= 0) {
-    return 0;
+    return null;
   }
 
   return Math.min(Math.max((balance / included) * 100, 0), 100);

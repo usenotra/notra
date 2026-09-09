@@ -148,9 +148,17 @@ export function aiAnswersHint(feature: FeatureData) {
   return `of ${formatCount(feature.included)} this cycle`;
 }
 
-export function aiAnswersFooter(feature: FeatureData, remaining: number) {
+export function aiAnswersFooter(
+  feature: FeatureData,
+  remaining: number | null
+) {
   if (feature.unlimited) {
     return "Included in your plan without a usage cap.";
+  }
+  if (remaining === null) {
+    return feature.nextResetAt === null
+      ? undefined
+      : `Resets ${formatFullDate(feature.nextResetAt)}`;
   }
   return remainingFooter(remaining, feature.nextResetAt);
 }

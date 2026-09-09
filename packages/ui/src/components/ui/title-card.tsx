@@ -68,7 +68,7 @@ function TitleCard({
           {hoverBackground}
         </div>
       )}
-      <div className="flex h-10 items-center justify-between gap-4 px-4">
+      <div className="flex min-h-10 items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {icon && (
             <div className="flex size-8 shrink-0 items-center justify-center text-muted-foreground [&_svg]:size-5">

@@ -129,6 +129,7 @@ function UsageBreakdownChartBody({
         <ChartTooltip
           content={
             <ChartTooltipContent
+              formatter={(value) => formatCount(Number(value))}
               indicator="dot"
               labelFormatter={(_, payload) => {
                 const item = payload?.[0]?.payload as
