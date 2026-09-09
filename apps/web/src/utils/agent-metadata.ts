@@ -86,7 +86,7 @@ export function buildAgentJson() {
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     icon: siteUrl("/notra-mark.svg"),
-    category: "AI content generation",
+    category: "Generative engine optimization (GEO)",
     docs: DOCS_URL,
     api: {
       base_url: API_URL,

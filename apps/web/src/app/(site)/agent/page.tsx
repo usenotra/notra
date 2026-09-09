@@ -6,7 +6,7 @@ import { apiUrl, buildAgentJson, siteUrl } from "@/utils/agent-metadata";
 export const metadata: Metadata = {
   title: "Notra Agent Interface",
   description:
-    "Machine-readable Notra discovery view for agents, API clients, and MCP integrations.",
+    "Explore Notra's generative engine optimization (GEO) tools for AI visibility, competitor share of voice, and content gaps through the API and MCP.",
 };
 
 export default function AgentPage() {
@@ -15,7 +15,7 @@ export default function AgentPage() {
   return (
     <main className="flex w-full flex-col items-center gap-8 pb-28 antialiased [font-synthesis:none]">
       <MarketingHeroWash
-        subtitle="Notra turns shipped product work into changelogs, launch posts, blog drafts, marketing assets, and social updates in a saved brand voice. Agents should use this view for discovery instead of parsing the marketing homepage."
+        subtitle="Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini, and Perplexity, compare your share of voice with competitors, and turn content gaps into articles in your brand voice."
         title={
           <>
             Notra <span className="text-primary">Agent</span> Interface
