@@ -114,8 +114,8 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
         />
       ) : null}
 
-      <article className="grid w-full grid-cols-1 gap-x-16 gap-y-6 lg:grid-cols-[minmax(0,1fr)_16rem] [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
-        <header className="min-w-0 lg:col-start-1 lg:row-start-1">
+      <article className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-x-16 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
+        <header className="col-span-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-1">
           <ViewTransition name="blog-back-button">
             <Link
               className="group mb-6 inline-flex items-center gap-2 font-mono text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-50"
@@ -130,9 +130,14 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
             </Link>
           </ViewTransition>
 
-          <time className="block font-mono text-sm text-neutral-700 dark:text-neutral-200">
-            Published {formatBlogDate(post.createdAt)}
-          </time>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-neutral-700 dark:text-neutral-200">
+            <time dateTime={post.createdAt}>
+              Published {formatBlogDate(post.createdAt)}
+            </time>
+            <span className="whitespace-nowrap">
+              · {readingMinutes} min read
+            </span>
+          </div>
 
           <ViewTransition name={blogPostTitleTransitionName(slug)}>
             <h1 className="font-display mt-6 max-w-3xl text-4xl leading-[1.05] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] sm:text-5xl dark:text-white">
@@ -143,19 +148,15 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
 
         <BlogPostSidebar authors={post.authors} toc={toc} />
 
-        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-          <div className="border-border flex flex-wrap items-center justify-between gap-4 border-b pb-6">
-            <span className="font-mono text-sm text-neutral-700 dark:text-neutral-200">
-              {readingMinutes} min read
-            </span>
+        <div className="col-start-2 row-start-2 self-start justify-self-end lg:col-start-1">
+          <BlogCopyArticle
+            markdown={post.markdown}
+            markdownUrl={markdownUrl}
+            title={post.title}
+          />
+        </div>
 
-            <BlogCopyArticle
-              markdown={post.markdown}
-              markdownUrl={markdownUrl}
-              title={post.title}
-            />
-          </div>
-
+        <div className="border-border col-span-2 min-w-0 border-t pt-6 lg:col-span-1 lg:col-start-1 lg:row-start-3">
           <BlogArticle>
             <MDX components={getBlogMDXComponents()} />
           </BlogArticle>
