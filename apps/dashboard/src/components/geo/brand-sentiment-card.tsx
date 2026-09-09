@@ -22,6 +22,7 @@ import {
 } from "@/constants/geo-sentiment";
 import { useGeoSentiment } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
+import { hasIsolatedSentimentPoint } from "@/utils/geo-sentiment";
 
 export function BrandSentimentCard({
   organizationId,
@@ -115,8 +116,7 @@ export function BrandSentimentCard({
                   strokeWidth={2}
                   variant="none"
                 >
-                  {query.data.points.filter(({ score }) => score !== null)
-                    .length === 1 ? (
+                  {hasIsolatedSentimentPoint(query.data.points) ? (
                     <EChartsAreaChart.Dot />
                   ) : null}
                 </EChartsAreaChart.Area>

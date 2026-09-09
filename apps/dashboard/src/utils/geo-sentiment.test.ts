@@ -3,7 +3,36 @@ import { expect, test } from "bun:test";
 import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 
-import { sentimentFamilyRows } from "./geo-sentiment";
+import {
+  hasIsolatedSentimentPoint,
+  sentimentFamilyRows,
+} from "./geo-sentiment";
+
+test("markers preserve isolated observations while contiguous series stay clean", () => {
+  for (const scores of [
+    [70, null, 80],
+    [70, null, 80, 90],
+    [70, 80, null, 90],
+    [null, 70, null],
+    [null, 0, null, 80, null],
+    [70],
+  ]) {
+    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
+      true
+    );
+  }
+  for (const scores of [
+    [],
+    [null, null],
+    [70, 80, 90],
+    [null, 70, 80, null],
+    [0, 0],
+  ]) {
+    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
+      false
+    );
+  }
+});
 
 test("family rows weight counts across models and search modes, preserving brand order", () => {
   const engines = [

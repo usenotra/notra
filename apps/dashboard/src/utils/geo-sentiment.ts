@@ -8,6 +8,17 @@ import { sentimentFamilyScore } from "@notra/geo-core/utils/geo-sentiment";
 import { SENTIMENT_FAMILY_ORDER } from "@/constants/geo-sentiment";
 import type { SentimentFamilyRow } from "@/types/geo-sentiment";
 
+export function hasIsolatedSentimentPoint(
+  points: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
+): boolean {
+  return points.some(
+    (point, index) =>
+      point.score !== null &&
+      points[index - 1]?.score == null &&
+      points[index + 1]?.score == null
+  );
+}
+
 export function sentimentFamilyRows(
   engines: GeoSentimentResponse["engines"]
 ): SentimentFamilyRow[] {
