@@ -1,15 +1,14 @@
 import { expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 
 test("scan-scoped answer selection in an isolated module registry", () => {
-  const result = Bun.spawnSync({
-    cmd: [
-      process.execPath,
-      "test",
-      "./tests/fixtures/prompt-answer-selection.fixture.ts",
-    ],
-    cwd: new URL("..", import.meta.url).pathname,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  expect(result.exitCode, result.stderr.toString()).toBe(0);
+  const result = spawnSync(
+    process.execPath,
+    ["test", "./tests/fixtures/prompt-answer-selection.fixture.ts"],
+    {
+      cwd: new URL("..", import.meta.url).pathname,
+      encoding: "utf8",
+    }
+  );
+  expect(result.status, result.stderr).toBe(0);
 });
