@@ -73,6 +73,11 @@ export async function buildLlmsText() {
     "",
     formatLink("Home", "/index.md", "Landing page overview"),
     formatLink(
+      "Design",
+      "/design.md",
+      "How to design product and site like Notra"
+    ),
+    formatLink(
       "Features",
       "/features.md",
       "Product capabilities and publishing workflows"

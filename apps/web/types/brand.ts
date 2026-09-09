@@ -12,6 +12,7 @@ export interface BrandFont {
   fontClassName: string;
   role: string;
   googleFontsUrl: string;
+  source: string;
 }
 
 export interface BrandColorSwatchProps {

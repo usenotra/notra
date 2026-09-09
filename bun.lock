@@ -245,8 +245,12 @@
       "name": "ui",
       "dependencies": {
         "@hugeicons/core-free-icons": "^4.1.1",
+        "@hugeicons/react": "^1.1.4",
+        "@notra/ui": "workspace:*",
         "@tanstack/hotkeys": "^0.8.0",
         "blume": "1.5.3",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8",
       },
       "devDependencies": {
         "astro": "7.2.10",

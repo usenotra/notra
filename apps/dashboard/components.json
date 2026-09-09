@@ -19,6 +19,7 @@
     "hooks": "@/lib/hooks"
   },
   "registries": {
+    "@notra": "http://localhost:3006/r/{name}.json",
     "@beui": "https://beui.dev/r/{name}.json",
     "@evilcharts": "https://evilcharts.com/r/{name}.json",
     "@bklit": "https://ui.bklit.com/r/{name}.json"

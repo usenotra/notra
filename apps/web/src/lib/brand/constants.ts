@@ -59,14 +59,23 @@ export const BRAND_FONTS: BrandFont[] = [
   {
     name: "Inter",
     fontClassName: "font-sans",
-    role: "Primary typeface for UI, headings, and body copy.",
+    role: "UI, body, and product type. Loaded as font-sans.",
     googleFontsUrl: "https://fonts.google.com/specimen/Inter",
+    source: "Google Fonts",
+  },
+  {
+    name: "Satoshi",
+    fontClassName: "font-display",
+    role: "Marketing display and section headings. Loaded as font-display.",
+    googleFontsUrl: "https://www.fontshare.com/fonts/satoshi",
+    source: "Fontshare",
   },
   {
     name: "Instrument Serif",
     fontClassName: "font-serif",
-    role: "Display typeface for editorial accents.",
+    role: "Scarce editorial accent. Not for headings, buttons, or tables.",
     googleFontsUrl: "https://fonts.google.com/specimen/Instrument+Serif",
+    source: "Google Fonts",
   },
 ];
 

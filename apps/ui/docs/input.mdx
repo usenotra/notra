@@ -1,0 +1,30 @@
+---
+title: Input
+description: One border in rest. Focus is still a single border, not a ring stack.
+---
+
+```bash
+npx shadcn@latest add @notra/input @notra/label
+```
+
+Live preview of `@notra/ui/components/ui/input`, labeled with `@notra/ui/components/ui/label`.
+
+<Component path="input" />
+
+## API reference
+
+Notra-specific props. Native input attributes still apply; `size` is the visual scale, not HTML `size`.
+
+<TypeTable
+  type={{
+    size: {
+      type: '"sm" | "default" | "lg"',
+      default: '"default"',
+      description: "Match Button and Select heights: sm 28px, default 32px, lg 36px.",
+    },
+    "aria-invalid": {
+      type: "boolean",
+      description: "Draws the destructive border and ring used for field errors.",
+    },
+  }}
+/>

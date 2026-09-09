@@ -1,0 +1,33 @@
+---
+title: Textarea
+description: Same field language as Input, for longer copy.
+---
+
+```bash
+npx shadcn@latest add @notra/textarea
+```
+
+Live preview of `@notra/ui/components/ui/textarea`.
+
+<Component path="textarea" />
+
+## API reference
+
+Notra-specific props. Native textarea attributes still apply.
+
+<TypeTable
+  type={{
+    placeholder: {
+      type: "string",
+      description: "Muted placeholder, same token as Input.",
+    },
+    disabled: {
+      type: "boolean",
+      description: "Blocks editing and drops opacity, same as Input.",
+    },
+    "aria-invalid": {
+      type: "boolean",
+      description: "Destructive border and ring for field errors.",
+    },
+  }}
+/>

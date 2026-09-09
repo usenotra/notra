@@ -4,8 +4,10 @@
 
 This repo is a Bun + Turborepo monorepo (product: **Notra**, an AI content-generation
 platform). See `README.md` and `CONTRIBUTING.md` for the standard workflow and
-`package.json` scripts for the canonical commands. The notes below only cover
-non-obvious, durable gotchas for working in the Cursor Cloud environment.
+`package.json` scripts for the canonical commands. Product UI follows
+`https://www.usenotra.com/design.md` (`apps/web/public/design.md`).
+The notes below only cover non-obvious, durable gotchas for working in the Cursor
+Cloud environment.
 
 ### Toolchain
 - Runtime/package manager is **Bun `1.4.0`** (installed at `~/.bun`); tooling uses

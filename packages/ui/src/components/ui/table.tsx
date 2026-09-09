@@ -1,13 +1,13 @@
 "use client";
 
-import * as React from "react";
+import type * as React from "react";
 
 import { cn } from "@notra/ui/lib/utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto rounded-xl bg-card ring-1 ring-foreground/10"
       data-slot="table-container"
     >
       <table
@@ -25,7 +25,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
-      className={cn("bg-muted/80 text-foreground [&_tr]:border-b", className)}
+      className={cn("text-muted-foreground", className)}
       data-slot="table-header"
       {...props}
     />
@@ -36,7 +36,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
       className={cn(
-        "bg-transparent [&>tr>td]:bg-background [&>tr>td]:transition-colors [&>tr:hover>td]:bg-muted/50 [&_tr:first-child>td]:shadow-[inset_0_1px_0_var(--border)] [&_tr:last-child]:border-0",
+        "[&>tr>td]:bg-card [&>tr>td]:transition-colors [&>tr:hover>td]:bg-muted/40 [&_tr:first-child>td]:shadow-[inset_0_1px_0_var(--border)] [&_tr:last-child>td:first-child]:rounded-bl-xl [&_tr:last-child>td:last-child]:rounded-br-xl",
         className
       )}
       data-slot="table-body"
@@ -49,7 +49,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
       className={cn(
-        "border-t bg-background font-medium [&>tr]:last:border-b-0",
+        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
         className
       )}
       data-slot="table-footer"
@@ -62,7 +62,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "border-border/60 border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "transition-colors data-[state=selected]:[&>td]:bg-muted/50",
         className
       )}
       data-slot="table-row"
@@ -75,7 +75,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "h-10 px-3 text-left align-middle font-medium text-foreground whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "h-9 bg-card px-4 text-left align-middle font-medium text-xs uppercase tracking-wide whitespace-nowrap first:rounded-tl-xl last:rounded-tr-xl [&:has([role=checkbox])]:pr-0",
         className
       )}
       data-slot="table-head"
@@ -88,7 +88,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       className={cn(
-        "p-3 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "px-4 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
         className
       )}
       data-slot="table-cell"

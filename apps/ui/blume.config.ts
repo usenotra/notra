@@ -19,6 +19,7 @@ export default defineConfig({
       : [],
   },
   description: "Notra UI package showcase, powered by Blume.",
+  examples: { css: "examples/theme.css" },
   logo: {
     image: {
       alt: "Notra logo",
@@ -27,11 +28,47 @@ export default defineConfig({
     },
     text: "Notra UI",
   },
+  navigation: {
+    sidebar: [
+      "/",
+      {
+        collapsed: false,
+        items: [
+          "/button",
+          "/input",
+          "/textarea",
+          "/select",
+          "/badge",
+          "/alert",
+          "/card",
+          "/tabs",
+          "/table",
+          "/dialog",
+          "/switch",
+        ],
+        label: "Components",
+      },
+    ],
+  },
   seo: {
     og: {
       enabled: true,
       logo: "public/logo.svg",
     },
+  },
+  theme: {
+    accent: "oklch(0.55 0.219 292.717)",
+    background: {
+      dark: "hsl(233 7% 8%)",
+      light: "#ffffff",
+    },
+    fonts: {
+      body: "inter",
+      display: "inter",
+      mono: "geist-mono",
+    },
+    mode: "system",
+    radius: "md",
   },
   title: "Notra UI",
 });

@@ -224,6 +224,7 @@ export function buildLandingMarkdown() {
     "Primary CTA: [Start for free](https://app.usenotra.com/signup)",
     "",
     markdownSection("Explore in Markdown", [
+      "- [Design](https://www.usenotra.com/design.md)",
       "- [Features](https://www.usenotra.com/features.md)",
       "- [Pricing](https://www.usenotra.com/pricing.md)",
       "- [Blog](https://www.usenotra.com/blog.md)",
@@ -275,7 +276,8 @@ export function buildBrandMarkdown() {
     (color) => `- ${color.name}: ${color.hex} (${color.value}) - ${color.usage}`
   );
   const fontLines = BRAND_FONTS.map(
-    (font) => `- [${font.name}](${font.googleFontsUrl}) - ${font.role}`
+    (font) =>
+      `- [${font.name}](${font.googleFontsUrl}) (${font.source}) - ${font.role}`
   );
 
   return [
@@ -297,7 +299,7 @@ export function buildBrandMarkdown() {
     markdownSection("Typography", [
       ...fontLines,
       "",
-      "The wordmark sets the Notra name in Inter Semibold next to the mark.",
+      "The live lockup is the mark plus the word Notra. Marketing headings use Satoshi (`font-display`). Product UI uses Inter. On dark surfaces, sit the mark on a cream tile.",
     ]),
   ].join("\n");
 }

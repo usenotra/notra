@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "utils",
+  "title": "Utils",
+  "description": "cn() helper used by every Notra primitive.",
+  "dependencies": ["cnfast"],
+  "files": [
+    {
+      "path": "src/lib/utils.ts",
+      "content": "export { cn } from \"cnfast\";\n",
+      "type": "registry:lib",
+      "target": "@lib/utils.ts"
+    }
+  ],
+  "type": "registry:lib"
+}

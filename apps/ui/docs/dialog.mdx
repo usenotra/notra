@@ -1,0 +1,34 @@
+---
+title: Dialog
+description: Add a repository. Cancel is outline and closes.
+---
+
+```bash
+npx shadcn@latest add @notra/dialog
+```
+
+Same composition as the dashboard: title, field, outline Cancel, primary action. Live preview of `@notra/ui/components/ui/dialog`.
+
+<Component path="dialog" />
+
+## API reference
+
+Notra-specific props. See the source for inherited Base UI props.
+
+<TypeTable
+  type={{
+    "open / onOpenChange": {
+      type: "Base UI Dialog.Root props",
+      description: "Control whether the dialog is shown.",
+    },
+    "DialogClose": {
+      type: "render={<Button variant=\"outline\" />}",
+      description: "Cancel must be DialogClose, not a plain Button, or the dialog stays open.",
+    },
+    "DialogContent.showCloseButton": {
+      type: "boolean",
+      default: "true",
+      description: "Corner X. Keep it on unless the footer is the only dismiss.",
+    },
+  }}
+/>
