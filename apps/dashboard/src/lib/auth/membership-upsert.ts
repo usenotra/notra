@@ -2,6 +2,7 @@ import { db } from "@notra/db/drizzle";
 import { members } from "@notra/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
+import { MEMBERSHIP_CONFLICT_TARGET_RETRY_MS } from "@/constants/auth/membership";
 import type {
   MembershipUpsertInput,
   MembershipUpsertStrategies,
@@ -10,7 +11,7 @@ import type {
 /** Postgres `invalid_column_reference`: no unique index matches ON CONFLICT. */
 const MISSING_CONFLICT_TARGET_CODE = "42P10";
 
-let conflictTargetMissing = false;
+let conflictTargetRetryAt = 0;
 
 export function hasMissingConflictTargetCode(error: unknown): boolean {
   let current: unknown = error;
@@ -83,25 +84,27 @@ async function upsertMembershipReadThenWrite(
 /**
  * Runs the atomic upsert and, if Postgres reports that no unique index matches
  * the ON CONFLICT target (migration 0083 not applied yet), the legacy path.
- * The decision is cached for the process lifetime so a deploy that lands before
- * the migration pays the failed statement once, not on every login.
+ * Cache a missing index for 60 seconds to avoid a failed statement on every login.
+ * The next call after expiry retries the atomic upsert so warm processes recover
+ * after the migration without restarting.
  */
 export async function runMembershipUpsert(
   strategies: MembershipUpsertStrategies,
   input: MembershipUpsertInput
 ): Promise<void> {
-  if (conflictTargetMissing) {
+  if (Date.now() < conflictTargetRetryAt) {
     await strategies.readThenWrite(input);
     return;
   }
 
   try {
     await strategies.atomic(input);
+    conflictTargetRetryAt = 0;
   } catch (error) {
     if (!hasMissingConflictTargetCode(error)) {
       throw error;
     }
-    conflictTargetMissing = true;
+    conflictTargetRetryAt = Date.now() + MEMBERSHIP_CONFLICT_TARGET_RETRY_MS;
     strategies.onFallback?.();
     await strategies.readThenWrite(input);
   }
@@ -129,5 +132,5 @@ export function upsertMembership(input: MembershipUpsertInput): Promise<void> {
 
 /** Test seam: forget the cached "index missing" decision. */
 export function resetMembershipUpsertState(): void {
-  conflictTargetMissing = false;
+  conflictTargetRetryAt = 0;
 }
