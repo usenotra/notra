@@ -9,6 +9,8 @@ import type { GeoRangePreset } from "@notra/geo-core/types/geo";
 import type { GeoDateRange, GeoRangeQuery, GeoRangeState } from "@/types/geo";
 
 const DAY_PAD_LENGTH = 2;
+const DAY_STRING_LENGTH = 10;
+const YEAR_STRING_LENGTH = 4;
 const DAY_MS = 86_400_000;
 const CUSTOM_PARAM_REGEX = /^custom_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})$/;
 
@@ -28,10 +30,17 @@ export function parseLocalDay(day: string): Date {
   return new Date(year ?? 0, (month ?? 1) - 1, date ?? 1);
 }
 
+/**
+ * Presets resolve in UTC on purpose. The day strings are handed straight to the
+ * API, which reads them as UTC days (`toGeoCheckWindow`), and the same preset
+ * has to resolve identically on the server and in the browser — otherwise the
+ * server-rendered query key never matches the one the client builds and the
+ * prefetched data is silently discarded.
+ */
 function shiftedDay(offsetDays: number): string {
   const date = new Date();
-  date.setDate(date.getDate() - offsetDays);
-  return localDayString(date);
+  date.setUTCDate(date.getUTCDate() - offsetDays);
+  return date.toISOString().slice(0, DAY_STRING_LENGTH);
 }
 
 export function geoPresetRange(preset: GeoRangePreset): GeoDateRange {
@@ -41,7 +50,7 @@ export function geoPresetRange(preset: GeoRangePreset): GeoDateRange {
       return { dateFrom: shiftedDay(1), dateTo: shiftedDay(1) };
     case "ytd":
       return {
-        dateFrom: localDayString(new Date(new Date().getFullYear(), 0, 1)),
+        dateFrom: `${today.slice(0, YEAR_STRING_LENGTH)}-01-01`,
         dateTo: today,
       };
     default:

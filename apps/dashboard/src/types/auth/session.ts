@@ -13,6 +13,11 @@ export interface AuthSessionData {
   user: SessionUser;
 }
 
+export interface AuthIdentityData {
+  user: SessionUser;
+  impersonatedBy: string | null;
+}
+
 export interface GetServerSessionParams {
   headers: Headers;
 }

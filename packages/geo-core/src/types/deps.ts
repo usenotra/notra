@@ -1,6 +1,11 @@
 import type { ContentBillingReservation } from "@notra/ai/types/billing";
+import type {
+  GscIntegrationRow,
+  GscQueryRow,
+} from "@notra/ai/types/google-search-console";
 import type { Effect } from "effect";
 
+import type { GeoSearchConsoleError } from "../schemas/search-console-errors";
 import type { AgentReadinessWorkflowPayload } from "./agent-readiness";
 import type {
   FinalizeContentBillingInput,
@@ -8,6 +13,13 @@ import type {
 } from "./content-billing";
 import type { ActiveGeneration } from "./generation-tracking";
 import type { GeoZdrEntitlement, GeoWriterPayload } from "./geo";
+
+export interface GeoSearchConsoleServiceShape {
+  readonly topQueries: (
+    integration: GscIntegrationRow,
+    siteUrl: string
+  ) => Effect.Effect<GscQueryRow[], GeoSearchConsoleError>;
+}
 
 export interface GeoWorkflowServiceShape {
   readonly startGeoScanRun: (payload: {

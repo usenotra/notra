@@ -28,11 +28,7 @@ export const INPUT_INTEGRATION_TYPES = [
 ] as const;
 export type InputIntegrationType = (typeof INPUT_INTEGRATION_TYPES)[number];
 
-export const OUTPUT_INTEGRATION_TYPES = [
-  "marble",
-  "webflow",
-  "framer",
-] as const;
+export const OUTPUT_INTEGRATION_TYPES = ["webflow", "framer"] as const;
 
 export const EXTENSION_INTEGRATION_TYPES = ["raycast"] as const;
 export type ExtensionIntegrationType =

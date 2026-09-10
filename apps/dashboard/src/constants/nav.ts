@@ -3,12 +3,9 @@ import {
   AiBrowserIcon,
   AiChat01Icon,
   Analytics01Icon,
-  AnalyticsUpIcon,
-  Attachment01Icon,
   Calendar03Icon,
   ChartAnalysisIcon,
   Comment01Icon,
-  CreditCardIcon,
   Home01Icon,
   Key01Icon,
   Layers01Icon,
@@ -24,9 +21,6 @@ import {
   Robot01Icon,
   SearchList01Icon,
   Settings01Icon,
-  UserCircleIcon,
-  UserGroupIcon,
-  Wallet01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   GEO_AGENT_READINESS_NAV_LINK,
@@ -43,7 +37,6 @@ import type {
   NavGroupKey,
   NavMainItem,
   NavPrimaryActionConfig,
-  NavSettingsItem,
   NavVisibility,
   SidebarMode,
   SidebarModeOption,
@@ -174,7 +167,6 @@ export const NAV_GEO_IMPROVE_LINKS: readonly string[] = [
   GEO_WRITER_NAV_LINK,
   CONTENT_NAV_LINK,
   SCHEDULES_NAV_LINK,
-  GEO_SETTINGS_NAV_LINK,
 ];
 
 export const NAV_GEO_LINKS: readonly string[] = [
@@ -218,7 +210,7 @@ export const NAV_PRIMARY_ACTIONS: Record<SidebarMode, NavPrimaryActionConfig> =
     studio: { label: "New post", icon: PlusSignIcon },
   };
 
-// Shared sidebar panel swap (GEO <-> Studio, main <-> chat/settings/brand).
+// Shared sidebar panel swap (GEO <-> Studio, main <-> chat/brand).
 // Both layers travel their own side while the outgoing one blurs out and the
 // incoming one resolves — the blur is what lets them overlap for the full
 // window without the two lists colliding into an unreadable double image, so
@@ -283,30 +275,3 @@ export const POST_STATUS_DOT_CLASS: Record<PostStatus, string> = {
   draft: "bg-muted-foreground/50",
   published: "bg-success",
 };
-
-export const SETTINGS_ACCOUNT_NAV_ITEMS: NavSettingsItem[] = [
-  { label: "Account", url: "settings/account", icon: UserCircleIcon },
-];
-
-export const SETTINGS_ORGANIZATION_NAV_ITEMS: NavSettingsItem[] = [
-  { label: "General", url: "settings/general", icon: Settings01Icon },
-  { label: "Members", url: "settings/members", icon: UserGroupIcon },
-  {
-    label: "Notifications",
-    url: "settings/notifications",
-    icon: Notification03Icon,
-  },
-  {
-    label: "Attachments",
-    url: "settings/attachments",
-    icon: Attachment01Icon,
-  },
-  { label: "Billing & Usage", url: "settings/billing", icon: CreditCardIcon },
-  {
-    label: "Credits",
-    url: "settings/credits",
-    icon: Wallet01Icon,
-    requiresAiCredits: true,
-  },
-  { label: "Logs", url: "settings/logs", icon: AnalyticsUpIcon },
-];

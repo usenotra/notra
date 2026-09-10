@@ -1,0 +1,21 @@
+:root {
+  --opencode-tui-background: #fdfdfd;
+  --opencode-tui-surface: #f6f6f6;
+  --opencode-tui-foreground: #1d1d1d;
+  --opencode-tui-muted: #929292;
+  --opencode-tui-subtle: #dedede;
+  --opencode-tui-purple: #8256d6;
+  --opencode-tui-orange: #e48600;
+  --opencode-tui-green: #00a861;
+}
+
+.dark {
+  --opencode-tui-background: #0a0a0a;
+  --opencode-tui-surface: #141414;
+  --opencode-tui-foreground: #eeeeee;
+  --opencode-tui-muted: #a0a0a0;
+  --opencode-tui-subtle: #484848;
+  --opencode-tui-purple: #9d7cd8;
+  --opencode-tui-orange: #fab283;
+  --opencode-tui-green: #7fd88f;
+}

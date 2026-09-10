@@ -1,0 +1,59 @@
+---
+title: "On-Demand Content Generation with Fine-Grained Control"
+description: "On-demand generation, selective source filtering, Twitter OAuth brand voice imports, and instant publish for scheduled triggers."
+date: "2026-03-13T23:29:10.418Z"
+updatedAt: "2026-06-07T21:24:28.367Z"
+author: "notra"
+---
+
+This week shipped features that give teams much better control over content generation. You can now generate changelogs, blog posts, and tweets on-demand while picking exactly which commits, PRs, and releases to include. Brand voice imports pull directly from your X accounts via OAuth, and there's a new blog generator for longer-form storytelling across four tones. Triggers can auto-publish instead of always creating drafts, saving manual review work. We also made generation progress visible with skeleton cards, added a fail tool so agents tell you why they can't generate, and improved error logging throughout the dashboard.
+
+## Highlights
+
+### On-demand content with selective source filtering
+
+Generate changelogs, blog posts, and tweets on-demand. Choose which commits, PRs, and releases to include, and set a custom lookback window per generation.
+
+### Multi-source brand voice import via Twitter OAuth
+
+Import tweet examples directly from connected X accounts, with pinned tweets prioritized first. Add custom text references alongside imports.
+
+### Blog post generator with narrative tones
+
+New output type for long-form storytelling. Choose from casual, conversational, professional, or formal tones, separate from changelog format.
+
+### Instant publish toggle for triggers
+
+Schedules can now auto-publish generated content instead of always creating drafts, cutting manual review for teams running frequent generations.
+
+### Multiple social posts per generation
+
+Twitter and LinkedIn agents create multiple distinct drafts from a single run when the data warrants it. Workflow notifications list all created posts.
+
+## More Updates
+
+### Features & Enhancements
+
+- **Support multiple social posts per generation** [#198](https://github.com/usenotra/notra/pull/198) - Twitter and LinkedIn agents can create multiple drafts from a single run with updated workflow notifications. (Author: [@mezotv](https://github.com/mezotv/))
+- **Add instant publish toggle for triggers** [#205](https://github.com/usenotra/notra/pull/205) - Enable auto-publish on schedules and event triggers for immediate post creation with "published" status. (Author: [@mezotv](https://github.com/mezotv/))
+- **Warn about affected triggers when deleting brand voice** [#197](https://github.com/usenotra/notra/pull/197) - Prevent orphaned schedules by disabling triggers that reference a deleted voice, with a preview shown before deletion. (Author: [@mezotv](https://github.com/mezotv/))
+- **Add connected accounts section to settings** [#194](https://github.com/usenotra/notra/pull/194) - View and manage connected X/Twitter accounts directly in organization settings with one-click disconnect. (Author: [@mezotv](https://github.com/mezotv/))
+- **Track active content generations with skeleton cards** [#196](https://github.com/usenotra/notra/pull/196) - See real-time progress for running generators on dashboard and content pages via skeleton placeholders and toast notifications. (Author: [@mezotv](https://github.com/mezotv/))
+
+### Developer Experience
+
+- **Add fail tool for AI agents** [#195](https://github.com/usenotra/notra/pull/195) - Agents gracefully fail with a reason shown in logs and emails when no data is available. (Author: [@mezotv](https://github.com/mezotv/))
+- **Improve logs UI and add error visibility** [#195](https://github.com/usenotra/notra/pull/195) - Error messages display under log entry titles, actions column added with reference ID copy, integration type labeling fixed. (Author: [@mezotv](https://github.com/mezotv/))
+- **Add getBrandReferences tool to all AI agents** [#188](https://github.com/usenotra/notra/pull/188) - All agents call the brand voice API first to match your writing style before generating. (Author: [@mezotv](https://github.com/mezotv/))
+
+### Bug Fixes
+
+- **Fix webhook logging for on-demand content** - On-demand content now appears in Logs page after creation. (Author: [@mezotv](https://github.com/mezotv/))
+- **Split missing header vs unsupported event type in webhook handler** - Clearer error logging helps distinguish config issues from actual unsupported events.
+- **Fix API content routes with org-scoped keys** [#204](https://github.com/usenotra/notra/pull/204) - API routes properly align with org-scoped API keys.
+
+### Infrastructure
+
+- **Use Bun in Docker image** [#203](https://github.com/usenotra/notra/pull/203) - Docker builds now use Bun for faster startup times.
+- **Expose environment port for deployment** [#203](https://github.com/usenotra/notra/pull/203) - Server reads port from process.env for cloud deployments.
+- **Changelog and Showcase refactor** [#199](https://github.com/usenotra/notra/pull/199) - Marketing site displays product changelog using Notra's own SDK with timeline view and detail pages. (Author: [@mezotv](https://github.com/mezotv/))

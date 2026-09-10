@@ -45,7 +45,8 @@ import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
 import {
   CHART_MIN_BAR_PERCENT,
-  CHART_OTHER_SLICE_LABEL,
+  SHARE_OF_VOICE_AGGREGATE_ID,
+  SHARE_OF_VOICE_AGGREGATE_LABEL,
   CHART_PERCENT_SCALE,
 } from "@/constants/charts";
 
@@ -84,6 +85,8 @@ export function buildShareOfVoiceBreakdown(
     mentions: number,
     trend: readonly GeoSparklinePoint[]
   ): ShareOfVoiceRow => ({
+    id: `brand:${brand}`,
+    kind: "brand",
     brand,
     mentions,
     share: total > 0 ? mentions / total : 0,
@@ -94,13 +97,15 @@ export function buildShareOfVoiceBreakdown(
     toRow(point.brand, point.mentions, point.trend ?? [])
   );
   if (otherTotal > 0) {
-    rows.push(
-      toRow(
-        CHART_OTHER_SLICE_LABEL,
-        otherTotal,
-        sumGeoSparklinePoints(rest.map((point) => point.trend ?? []))
-      )
-    );
+    rows.push({
+      id: SHARE_OF_VOICE_AGGREGATE_ID,
+      kind: "aggregate",
+      brand: SHARE_OF_VOICE_AGGREGATE_LABEL,
+      mentions: otherTotal,
+      share: total > 0 ? otherTotal / total : 0,
+      trend: sumGeoSparklinePoints(rest.map((point) => point.trend ?? [])),
+      tracked: false,
+    });
   }
   return {
     rows,
@@ -127,7 +132,7 @@ export function toShareOfVoiceDonutSlices(
 ): ShareOfVoiceDonutSlice[] {
   return rows.map((row, index) => ({
     ...row,
-    slice: chartKey(`${row.brand}-${index}`),
+    slice: chartKey(`${row.id}-${index}`),
   }));
 }
 

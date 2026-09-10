@@ -1,0 +1,44 @@
+---
+title: "Async API, write-scoped keys, Framer integration"
+description: "Async content generation APIs, write-scoped keys, Framer integration, and API security improvements shipped this week."
+date: "2026-03-22T09:01:46.193Z"
+updatedAt: "2026-06-07T21:25:03.345Z"
+author: "notra"
+---
+
+Over the past week, we shipped async API endpoints for content generation, write-scoped API keys with granular permissions, and security improvements. Developers can now trigger content generation in the background, poll job status, and integrate generation directly into their workflows. This enables scheduled content jobs, batch operations, and automation pipelines. We also added Framer integration with an interactive four-step setup, improved brand voice consistency across all generated content types, and added API security headers to protect against common vulnerabilities. You can now connect public GitHub repositories without requiring personal access tokens, edit your own API tokens from settings, and manage access permissions at a granular level.
+
+## Highlights
+
+### Async API content generation with job polling
+
+Trigger content generation asynchronously and check job status in your own workflows. Enables scheduled content, batch operations, and seamless integration into automation tooling.
+
+### Write-scoped API keys and post deletion
+
+Create read-only or read-write API keys with granular permissions. The new DELETE endpoint lets you remove posts programmatically.
+
+### Framer integration
+
+Connect Notra to Framer projects with an interactive setup guide. Generate content right from your Framer workspace in four steps.
+
+### Brand voice consistency across content types
+
+Your brand voice is now enforced across all generated content, from changelogs to blog posts to social updates.
+
+### API security headers
+
+Added HTTP security headers to protect API responses against common web vulnerabilities.
+
+## More Updates
+
+### Features & Enhancements
+
+- **Connect public GitHub repos without a token** - Use any public repository without needing personal access tokens.
+- **Searchable brand voice selector** - Replaced the dropdown with a searchable combobox for faster lookup when managing multiple voices. (Author: [@mezotv](https://github.com/mezotv/))
+- **Edit your own API tokens** - Rotate or update authentication tokens directly from settings.
+
+### Infrastructure
+
+- **Extract AI logic into shared packages/ai** [#207](https://github.com/usenotra/notra/pull/207) - Refactored all AI agents, prompts, tools, and utilities into a dedicated module for code reuse across dashboard and API. (Author: [@mezotv](https://github.com/mezotv/))
+- **Autumn SDK v2 migration** - Upgraded to Autumn v2 for improved compatibility with the latest SDK features.

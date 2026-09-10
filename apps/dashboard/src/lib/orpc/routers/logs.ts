@@ -1,10 +1,15 @@
 import { webhookLogsQuerySchema } from "@notra/schemas/dashboard/api-params";
-import { listWebhookLogsInputSchema } from "@notra/schemas/dashboard/logs";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  listWebhookLogsInputSchema,
+  webhookLogDetailInputSchema,
+} from "@notra/schemas/dashboard/logs";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
 import * as z from "zod";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { notFound } from "@/lib/orpc/utils/errors";
 import { listWebhookLogs } from "@/lib/webhooks/logging";
 import type { Log, LogsResponse } from "@/types/webhooks/webhooks";
 
@@ -43,6 +48,47 @@ function filterLogs(
 
 export const logsRouter = {
   webhooks: {
+    overview: authorizedProcedure
+      .input(organizationIdInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+          user: context.user,
+        });
+        const logs = await listWebhookLogs(
+          input.organizationId,
+          "github",
+          null
+        );
+        return {
+          logs: logs.map(({ payload, ...log }) => ({
+            ...log,
+            hasPayload: Boolean(payload && Object.keys(payload).length > 0),
+          })),
+        };
+      }),
+    get: authorizedProcedure
+      .input(webhookLogDetailInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+          user: context.user,
+        });
+        const logs = await listWebhookLogs(
+          input.organizationId,
+          "github",
+          null
+        );
+        const log = logs.find((entry) => entry.id === input.logId);
+        if (!log) {
+          throw notFound(
+            "This log is no longer available. It may have expired."
+          );
+        }
+        return log;
+      }),
     list: authorizedProcedure
       .input(listWebhookLogsInputSchema)
       .handler(async ({ context, input }) => {

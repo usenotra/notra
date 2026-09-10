@@ -172,9 +172,12 @@ export default defineConfig({
         "apps/agent/agent/lib/schemas/chat-mirror.ts",
         "apps/agent/agent/lib/schemas/slack.ts",
         "packages/schemas/src/schemas/dashboard/onboarding-agent.ts",
+        "packages/schemas/src/schemas/api/internal-dashboard.ts",
+        "packages/schemas/src/schemas/api/qstash.ts",
         "packages/ai/src/integrations/mcp-auth-errors.ts",
         "packages/ai/src/integrations/mcp-oauth-errors.ts",
         "packages/ai/src/schemas/slack.ts",
+        "packages/ai/src/schemas/github-operations.ts",
         "packages/tools/src/schemas/retry.ts",
         "packages/tools/src/schemas/social.ts",
       ],
@@ -186,6 +189,36 @@ export default defineConfig({
       files: ["packages/geo/src/index.ts", "packages/geo/src/feedback.ts"],
       rules: {
         "oxc/no-barrel-file": "off",
+      },
+    },
+    {
+      // Every Autumn customer read must go through the shared wrapper, or it
+      // requests a differently-shaped `expand` and gets its own cache entry.
+      files: ["apps/dashboard/src/**"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "autumn-js/react",
+                importNames: ["useCustomer"],
+                message:
+                  "Import useBillingCustomer from @/lib/hooks/use-billing-customer instead, so all callers share one customer query.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: [
+        "apps/dashboard/src/lib/hooks/use-billing-customer.ts",
+        "apps/dashboard/src/utils/billing-customer.ts",
+        "apps/dashboard/src/types/billing/plan.ts",
+      ],
+      rules: {
+        "no-restricted-imports": "off",
       },
     },
   ],

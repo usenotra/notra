@@ -3,6 +3,8 @@
 import type { PostsResponse } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
 
+import { DASHBOARD_HOME_POST_LIMIT } from "@/constants/content-preview";
+
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
 
@@ -32,7 +34,7 @@ export function useTodayPosts(organizationId: string) {
         organizationId,
         projectId: projectId ?? undefined,
         page: 1,
-        pageSize: DEFAULT_PAGE_SIZE,
+        pageSize: DASHBOARD_HOME_POST_LIMIT,
         date: "today",
       },
     }),

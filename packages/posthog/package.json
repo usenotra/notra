@@ -11,7 +11,7 @@
     "./constants/*": "./src/constants/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
     "posthog-node": "5.50.0"

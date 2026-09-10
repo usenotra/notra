@@ -3,6 +3,7 @@
 import { Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_JOURNEY_TRAIL_DETAIL_LIMIT } from "@notra/geo-core/constants/geo";
+import type { GeoJourneyEvent } from "@notra/geo-core/types/geo";
 import {
   formatGeoJourneySpan,
   formatGeoSource,
@@ -15,20 +16,14 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { useMemo } from "react";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathTrail } from "@/components/geo/journey-path-trail";
 import { CountryFlag } from "@/components/geo/twemoji";
+import { Table, type TableColumn } from "@/components/motion/table";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoJourneyDetail } from "@/lib/hooks/use-geo";
 import type { JourneyDetailDialogProps } from "@/types/geo";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
@@ -38,6 +33,7 @@ import {
   formatGeoRefererSource,
   hasGeoJourneyReferers,
 } from "@/utils/geo-journey";
+import { tableHeightFor } from "@/utils/table";
 
 const JOURNEY_EVENT_SKELETON_ROW_KEYS = [
   "a",
@@ -49,33 +45,6 @@ const JOURNEY_EVENT_SKELETON_ROW_KEYS = [
   "g",
   "h",
 ] as const;
-
-function JourneyEventSkeletonRows({
-  rows,
-  showReferer,
-}: {
-  rows: number;
-  showReferer: boolean;
-}) {
-  return JOURNEY_EVENT_SKELETON_ROW_KEYS.slice(0, rows).map((key) => (
-    <TableRow key={key}>
-      <TableCell>
-        <Skeleton className="h-4 w-16" />
-      </TableCell>
-      <TableCell>
-        <Skeleton className="h-4 w-40" />
-      </TableCell>
-      {showReferer ? (
-        <TableCell>
-          <Skeleton className="h-4 w-24" />
-        </TableCell>
-      ) : null}
-      <TableCell>
-        <Skeleton className="h-4 w-20" />
-      </TableCell>
-    </TableRow>
-  ));
-}
 
 export function JourneyDetailDialog({
   open,
@@ -104,6 +73,52 @@ export function JourneyDetailDialog({
   );
   const displayedPaths =
     eventPaths.length > 0 ? eventPaths : journey.samplePaths;
+
+  const columns: TableColumn<GeoJourneyEvent>[] = [
+    {
+      key: "capturedAt",
+      header: "Time",
+      width: "6rem",
+      cell: (event) => (
+        <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
+          {formatGeoJourneyClock(event.capturedAt)}
+        </span>
+      ),
+    },
+    {
+      key: "path",
+      header: "Path",
+      width: "1fr",
+      minWidth: "12rem",
+      cell: (event) => (
+        <span className="block truncate font-mono text-xs" title={event.path}>
+          {event.path}
+        </span>
+      ),
+    },
+  ];
+  if (showReferer) {
+    columns.push({
+      key: "referer",
+      header: "Referer",
+      width: "9rem",
+      cell: (event) => formatGeoRefererSource(event.referer),
+    });
+  }
+  columns.push({
+    key: "country",
+    header: "Country",
+    width: "10rem",
+    cell: (event) =>
+      event.country ? (
+        <span className="flex min-w-0 items-center gap-2">
+          <CountryFlag className="size-4 shrink-0" code={event.country} />
+          <span className="truncate">{countryName(event.country)}</span>
+        </span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      ),
+  });
 
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
@@ -169,69 +184,17 @@ export function JourneyDetailDialog({
               paths={displayedPaths}
             />
           ) : null}
-          <div aria-busy={isLoading} className="max-h-96 overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Path</TableHead>
-                  {showReferer && <TableHead>Referer</TableHead>}
-                  <TableHead>Country</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <JourneyEventSkeletonRows
-                    rows={skeletonRows}
-                    showReferer={showReferer}
-                  />
-                ) : null}
-                {!isLoading && events.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      className="text-muted-foreground text-sm"
-                      colSpan={showReferer ? 4 : 3}
-                    >
-                      No events captured for this journey
-                    </TableCell>
-                  </TableRow>
-                )}
-                {events.map((event) => (
-                  <TableRow key={`${event.capturedAt}-${event.path}`}>
-                    <TableCell className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-                      {formatGeoJourneyClock(event.capturedAt)}
-                    </TableCell>
-                    <TableCell
-                      className="max-w-[22rem] truncate font-mono text-xs"
-                      title={event.path}
-                    >
-                      {event.path}
-                    </TableCell>
-                    {showReferer && (
-                      <TableCell className="text-sm">
-                        {formatGeoRefererSource(event.referer)}
-                      </TableCell>
-                    )}
-                    <TableCell className="text-sm">
-                      {event.country ? (
-                        <span className="flex min-w-0 items-center gap-2">
-                          <CountryFlag
-                            className="size-4 shrink-0"
-                            code={event.country}
-                          />
-                          <span className="truncate">
-                            {countryName(event.country)}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Table
+            columns={columns}
+            data={events}
+            emptyState="No events captured for this journey"
+            getRowId={(event, index) =>
+              `${event.capturedAt}-${event.path}-${index}`
+            }
+            height={tableHeightFor(isLoading ? skeletonRows : events.length)}
+            loading={isLoading}
+            rowHeight={TABLE_ROW_HEIGHT}
+          />
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

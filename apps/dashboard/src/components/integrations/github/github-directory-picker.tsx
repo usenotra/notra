@@ -458,7 +458,7 @@ export function GitHubDirectoryPicker({
         render={
           <Button
             aria-label={`${contentLabel} folder: ${directory || "Repository root"}. Browse folders`}
-            className="h-10 w-full justify-between px-3 font-normal"
+            className="bg-background text-muted-foreground h-10 w-full justify-between gap-3 rounded-lg border px-3 font-normal shadow-none"
             disabled={disabled}
             id={triggerId}
             type="button"
@@ -471,9 +471,10 @@ export function GitHubDirectoryPicker({
             className="text-muted-foreground size-4 shrink-0"
             icon={Folder01Icon}
           />
-          <span className="truncate">{directory || "Repository root"}</span>
+          <span className="truncate font-mono text-xs">
+            {directory || "Repository root"}
+          </span>
         </span>
-        <span className="text-muted-foreground shrink-0 text-xs">Browse</span>
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent className="sm:max-w-[600px]">

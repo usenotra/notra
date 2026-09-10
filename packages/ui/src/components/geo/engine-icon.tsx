@@ -95,6 +95,7 @@ type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
 const SIMPLE_ICONS: Partial<Record<EngineIconKey, IconComponent>> = {
   claude: ClaudeAiIcon,
+  "claude-code": ClaudeAiIcon,
   gemini: Gemini,
   perplexity: Perplexity,
   mistral: Mistral,
@@ -132,6 +133,7 @@ const THEMED_ICONS: Partial<
   Record<EngineIconKey, readonly [IconComponent, IconComponent]>
 > = {
   openai: [Openai, OpenaiDark],
+  codex: [Openai, OpenaiDark],
   grok: [Grok, GrokDark],
   qwen: [Qwen, QwenDark],
   apple: [Apple, AppleDark],

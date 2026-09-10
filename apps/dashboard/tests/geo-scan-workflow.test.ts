@@ -10,6 +10,7 @@ import {
 import { EMPTY_AGENT_TOKEN_USAGE } from "@notra/geo-core/utils/token-usage";
 import { FatalError } from "workflow";
 
+import type { AppendAutomationLogInput } from "../src/types/workflows/content-generation-steps";
 import type * as Steps from "../src/workflows/steps/geo-scan-steps";
 import { scanPlan } from "./utils/geo-scan-plan";
 
@@ -21,9 +22,26 @@ const renewClaim = mock<typeof Steps.renewGeoScanClaimStep>();
 const finalize = mock<typeof Steps.finalizeGeoScanProjectStep>();
 const trackRetry = mock<typeof Steps.trackGeoScanRetryScheduledStep>();
 const sleep = mock(async (_delay: string) => undefined);
+const appendLog = mock(async (_input: AppendAutomationLogInput) => undefined);
+const fetchRetention = mock(async () => 30 as const);
 // These tests exercise orchestration decisions as ordinary functions. The
-// durable runtime and model/billing steps have separate integration boundaries.
+// durable runtime and model/billing steps have separate integration
+// boundaries — the activity-log steps are mocked too, otherwise they would
+// perform real Redis/billing network I/O during orchestration tests.
 mock.module("workflow", () => ({ FatalError, sleep }));
+mock.module("../src/workflows/steps/content-generation-steps", () => ({
+  appendAutomationLog: appendLog,
+  fetchLogRetention: fetchRetention,
+  // Mirrors the production best-effort wrapper so orchestration tests can
+  // exercise logging failures without real Redis access.
+  appendAutomationLogBestEffort: async (input: AppendAutomationLogInput) => {
+    try {
+      await appendLog(input);
+    } catch {
+      // swallowed, like the production implementation
+    }
+  },
+}));
 mock.module("../src/workflows/steps/geo-scan-steps", () => ({
   listGeoScanProjectsStep: listProjects,
   prepareGeoScanProjectStep: prepare,
@@ -56,9 +74,13 @@ beforeEach(() => {
     finalize,
     trackRetry,
     sleep,
+    appendLog,
+    fetchRetention,
   ]) {
     fn.mockReset();
   }
+  appendLog.mockResolvedValue(undefined);
+  fetchRetention.mockResolvedValue(30);
   renewClaim.mockImplementation(async (_projectId, claimedAt) => claimedAt);
   listProjects.mockResolvedValue(["project-test"]);
   prepare.mockImplementation(async (_org, projectId) => ({
@@ -74,6 +96,7 @@ beforeEach(() => {
       inputTokens: 10,
       outputTokens: 5,
       totalTokens: 15,
+      totalUsd: 0.125,
     },
   }));
   sequenceBatch.mockImplementation(async (_context, batch) => ({
@@ -112,6 +135,7 @@ describe("GEO scan workflow orchestration", () => {
     });
     expect(taskBatch).not.toHaveBeenCalled();
     expect(finalize).not.toHaveBeenCalled();
+    expect(appendLog).not.toHaveBeenCalled();
     expect(sleep).not.toHaveBeenCalled();
   });
 
@@ -201,12 +225,14 @@ describe("GEO scan workflow orchestration", () => {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     };
     const result = await geoScanWorkflow(payload);
     expect(prepare).toHaveBeenCalledWith("org-test", "project-test", {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
       retried: false,
     });
     expect(taskBatch.mock.calls.map(([, batch]) => batch.length)).toEqual([
@@ -233,11 +259,28 @@ describe("GEO scan workflow orchestration", () => {
           inputTokens: 20,
           outputTokens: 10,
           totalTokens: 30,
+          totalUsd: 0.25,
         },
       },
       "completed",
       plan.claimedAt,
       { retried: false }
+    );
+    expect(appendLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org-test",
+        integrationId: "project-test",
+        integrationType: "geo",
+        title: "GEO scan completed for Notra",
+        status: "success",
+        referenceId: "run-test",
+        retentionDays: 30,
+        payload: expect.objectContaining({
+          checks: plan.tasks.length + plan.sequences.length,
+          mentions: 2,
+          scanId: "scan-project-test",
+        }),
+      })
     );
     expect(sleep).not.toHaveBeenCalled();
   });
@@ -345,6 +388,16 @@ describe("GEO scan workflow orchestration", () => {
       plan.claimedAt,
       { retried: false, failureReason: "Error" }
     );
+    expect(appendLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org-test",
+        integrationId: "project-test",
+        integrationType: "geo",
+        title: "GEO scan failed for Notra",
+        status: "failed",
+        errorMessage: "Error",
+      })
+    );
   });
 
   test("renews the claim from the workflow once the token is old enough", async () => {
@@ -402,7 +455,12 @@ describe("GEO scan workflow orchestration", () => {
     });
     expect(finalize).toHaveBeenCalledWith(
       plan.context,
-      { checks: 2, mentions: 1, dropped: 1, usage: EMPTY_AGENT_TOKEN_USAGE },
+      {
+        checks: 2,
+        mentions: 1,
+        dropped: 1,
+        usage: { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 0 },
+      },
       "failed",
       plan.claimedAt,
       { retried: false, failureReason: "Error" }
@@ -429,6 +487,7 @@ describe("GEO scan workflow orchestration", () => {
         claimedAt: "2026-09-01T00:00:00.000Z",
         scanId: "old-scan",
         promptIds: ["prompt-0"],
+        engines: ["openai/gpt-4.1"],
       })
     ).toEqual({ status: "completed", checks: 2, mentions: 0 });
     expect(sleep).toHaveBeenCalledTimes(1);
@@ -449,7 +508,21 @@ describe("GEO scan workflow orchestration", () => {
     expect(prepare.mock.calls[2]?.[2]).toEqual({
       retried: true,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     });
+    // Each attempt leaves an activity-log entry: the failed first pass, the
+    // healthy project, and the successful retry.
+    expect(
+      appendLog.mock.calls.map(([input]) => [
+        input.integrationId,
+        input.status,
+        input.payload?.retried,
+      ])
+    ).toEqual([
+      ["empty", "failed", false],
+      ["healthy", "success", false],
+      ["empty", "success", true],
+    ]);
   });
 
   test("a second empty scan fails permanently instead of retrying indefinitely", async () => {
@@ -468,5 +541,52 @@ describe("GEO scan workflow orchestration", () => {
       "failed",
       "failed",
     ]);
+  });
+
+  test("a logging failure on the success path does not change the scan outcome", async () => {
+    appendLog.mockRejectedValue(new Error("Redis unavailable"));
+    const result = await geoScanWorkflow({ organizationId: "org-test" });
+    expect(result).toMatchObject({ status: "completed" });
+    expect(finalize.mock.calls.map(([, , status]) => status)).toEqual([
+      "completed",
+    ]);
+    expect(appendLog).toHaveBeenCalledTimes(1);
+  });
+
+  test("a logging failure after a failed wave does not escalate the failure", async () => {
+    const plan = scanPlan("project-test", GEO_SCAN_TASK_BATCH_SIZE + 1);
+    prepare.mockResolvedValue({ status: "planned", plan });
+    taskBatch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                checks: 2,
+                mentions: 1,
+                dropped: 1,
+                usage: EMPTY_AGENT_TOKEN_USAGE,
+              }),
+            5
+          );
+        })
+    );
+    taskBatch.mockRejectedValueOnce(new Error("Engine unavailable"));
+    appendLog.mockRejectedValue(new Error("Redis unavailable"));
+    // The batch failure is already finalized as "failed"; the rejected log
+    // append must not throw on top of it or alter the returned result.
+    expect(await geoScanWorkflow({ organizationId: "org-test" })).toEqual({
+      status: "completed",
+      checks: 2,
+      mentions: 1,
+    });
+    expect(finalize).toHaveBeenCalledWith(
+      plan.context,
+      expect.objectContaining({ checks: 2 }),
+      "failed",
+      plan.claimedAt,
+      { retried: false, failureReason: "Error" }
+    );
+    expect(appendLog).toHaveBeenCalledTimes(1);
   });
 });

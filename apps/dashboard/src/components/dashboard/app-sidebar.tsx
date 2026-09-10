@@ -22,7 +22,6 @@ import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-ha
 import { ChatHistoryNav } from "./chat-history-nav";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
-import { NavSettings } from "./nav-settings";
 import { NavUtility } from "./nav-utility";
 import { OrgSelector } from "./org-selector";
 import { SidebarLabel } from "./sidebar-label";
@@ -69,10 +68,7 @@ export function DashboardSidebar({
   const slug = pathnameSegments[0] ?? activeOrganization?.slug ?? "";
 
   const section = pathnameSegments[1];
-  const panelId =
-    section === "settings" || section === "chat" || section === "brand"
-      ? section
-      : "main";
+  const panelId = section === "chat" || section === "brand" ? section : "main";
   const isSubpage = panelId !== "main";
 
   const hasVisitedMainRef = useRef(false);
@@ -128,16 +124,6 @@ export function DashboardSidebar({
                 <>
                   <SidebarBackButton onBack={handleBack} />
                   <ChatHistoryNav />
-                </>
-              ),
-            },
-            {
-              id: "settings",
-              side: "right",
-              children: (
-                <>
-                  <SidebarBackButton onBack={handleBack} />
-                  <NavSettings slug={slug} />
                 </>
               ),
             },

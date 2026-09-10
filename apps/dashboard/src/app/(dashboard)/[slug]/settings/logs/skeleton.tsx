@@ -1,15 +1,22 @@
 "use client";
 
-import { TableListSkeletonRows } from "@/components/table-list-skeleton-rows";
+import { Table } from "@/components/motion/table";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { tableHeightFor } from "@/utils/table";
+
+import { columns } from "./columns";
+
+const LOGS_SKELETON_ROW_COUNT = 10;
 
 export function LogsPageSkeleton() {
   return (
-    <div className="space-y-3">
-      <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border">
-        <div className="bg-background space-y-3 rounded-t-lg p-4">
-          <TableListSkeletonRows count={10} />
-        </div>
-      </div>
-    </div>
+    <Table
+      className="rounded-2xl"
+      columns={columns}
+      data={[]}
+      height={tableHeightFor(LOGS_SKELETON_ROW_COUNT, TABLE_ROW_HEIGHT)}
+      loading
+      rowHeight={TABLE_ROW_HEIGHT}
+    />
   );
 }

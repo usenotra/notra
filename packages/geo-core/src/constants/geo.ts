@@ -15,7 +15,7 @@ import type {
   GeoJourneyPathKind,
   GeoPromptIntent,
   GeoPromptIntentRule,
-  GeoPromptResult,
+  GeoPromptResultSummary,
   GeoRangePreset,
   GeoSearchGapAction,
   GeoTab,
@@ -49,6 +49,18 @@ export const GEO_SERPAPI_API_KEY_ENV = "SERPAPI_API_KEY";
 export const GEO_CURSOR_ENGINE_ID = "cursor/composer-2.5";
 export const GEO_CURSOR_MODEL_ID = "composer-2.5";
 export const GEO_OPENCODE_ENGINE_ID = "opencode/gpt-5.6-sol-medium";
+export const GEO_CLAUDE_CODE_ENGINE_IDS = [
+  "claude-code/claude-fable-5.1",
+  "claude-code/claude-opus-5",
+] as const;
+export const GEO_CODEX_ENGINE_IDS = [
+  "codex/gpt-6-astra",
+  "codex/gpt-5.6-sol-rei",
+] as const;
+export const GEO_CODING_AGENT_ENGINE_IDS = [
+  ...GEO_CLAUDE_CODE_ENGINE_IDS,
+  ...GEO_CODEX_ENGINE_IDS,
+] as const;
 export const GEO_AI_OVERVIEW_ENGINE_ID = "google/ai-overview";
 export const GEO_PROVIDER_TIMEOUT_MS = 120_000;
 export const GEO_ANSWER_TIMEOUT_MS = 180_000;
@@ -56,7 +68,7 @@ export const GEO_CURSOR_TIMEOUT_MS = GEO_ANSWER_TIMEOUT_MS;
 export const GEO_AI_OVERVIEW_TIMEOUT_MS = GEO_ANSWER_TIMEOUT_MS;
 /** Databuddy flag that exposes the Cursor engine to an organization. */
 export const GEO_CURSOR_FLAG_KEY = "geo-cursor";
-/** Databuddy flag that exposes the OpenCode engine to an organization. */
+/** Databuddy flag that exposes OpenCode, Claude Code, and Codex. */
 export const GEO_OPENCODE_FLAG_KEY = "geo-opencode";
 export const GEO_FLAG_CACHE_TTL_MS = 60_000;
 export const GEO_FLAG_STALE_TIME_MS = 30_000;
@@ -100,7 +112,7 @@ export const GEO_GAPS_METER_TONE_CLASS = {
 } as const;
 export const GEO_GAPS_LOGO_STACK_LIMIT = 4;
 export const GEO_GAPS_WRITE_LABELS = {
-  write: "Write from gap",
+  write: "Write",
   review: "Review",
   writing: "Writing",
   open: "Open post",
@@ -212,7 +224,7 @@ export const GEO_SEARCH_GAP_ACTION_CLASS: Record<GeoSearchGapAction, string> = {
   ignore: "border-border bg-muted/70 text-muted-foreground",
 };
 export const GEO_SEARCH_GAP_WRITE_LABELS = {
-  create: "Write from gap",
+  create: "Write",
   update: "Update page",
   merge: "Merge into page",
   ignore: "Write",
@@ -359,6 +371,8 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
   perplexity: "Perplexity",
   cursor: "Cursor",
   opencode: "OpenCode",
+  "claude-code": "Claude Code",
+  codex: "Codex",
   copilot: "Copilot",
   mistral: "Mistral",
   deepseek: "DeepSeek",
@@ -739,6 +753,9 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   timpi: "Timpi",
   cursor: "Cursor",
   opencode: "OpenCode",
+  "claude-code": "Claude Code",
+  "claude code": "Claude Code",
+  codex: "Codex",
   devin: "Devin",
   cline: "Cline",
   manus: "Manus",
@@ -833,6 +850,12 @@ export const GEO_TRAFFIC_GROUPS_BY_ENGINE: Partial<
   duckduckgo: { key: "duckduckgo", label: "DuckDuckGo", icon: "duckduckgo" },
   opencode: { key: "opencode", label: "OpenCode", icon: "opencode" },
   cursor: { key: "cursor", label: "Cursor", icon: "cursor" },
+  "claude-code": {
+    key: "claude-code",
+    label: "Claude Code",
+    icon: "claude-code",
+  },
+  codex: { key: "codex", label: "Codex", icon: "codex" },
   exa: { key: "exa", label: "Exa", icon: "exasearchbot" },
   firecrawl: {
     key: "firecrawl",
@@ -1020,7 +1043,7 @@ export const GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST =
   "Tags apply to custom prompts. Auto-generated prompts were skipped.";
 export const GEO_SCAN_PREFLIGHT_TITLE = "Run a scan now?";
 export const GEO_SCAN_PREFLIGHT_BODY =
-  "This run only — tracked engines stay as they are.";
+  "Your selection applies only to this scan and won't change your tracked engines.";
 export const GEO_SCAN_PREFLIGHT_CONFIRM = "Run scan";
 export const GEO_SCAN_PREFLIGHT_CANCEL = "Cancel";
 export const GEO_SCAN_PREFLIGHT_PENDING = "Starting…";
@@ -1029,6 +1052,17 @@ export const GEO_SCAN_PREFLIGHT_ENGINES_LABEL = "Engines";
 export const GEO_SCAN_PREFLIGHT_LANGUAGES_LABEL = "Languages";
 export const GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL = "Last scan";
 export const GEO_SCAN_PREFLIGHT_NEVER_SCANNED = "Not yet";
+export const GEO_SCAN_SIZE_LABEL = "Estimated checks";
+export const GEO_SCAN_SIZE_WARN_THRESHOLD = 150;
+export const GEO_SCAN_SIZE_DANGER_THRESHOLD = 300;
+export const GEO_SCAN_SIZE_WARN =
+  "Large scan. It takes longer and costs more. Use fewer engines, prompts, or languages.";
+export const GEO_SCAN_SIZE_DANGER =
+  "Very large scan. It will likely take a long time. Use fewer engines, prompts, or languages.";
+export const GEO_SCAN_SIZE_MESSAGES = {
+  warn: GEO_SCAN_SIZE_WARN,
+  danger: GEO_SCAN_SIZE_DANGER,
+};
 export const GEO_SCAN_PREFLIGHT_SELECT_ALL = "Select all";
 export const GEO_SCAN_PREFLIGHT_NEED_ENGINE = "Pick at least one engine.";
 export const GEO_RANGE_PRESETS = [
@@ -1083,7 +1117,7 @@ export const GEO_RATE_SPARKLINE_PADDING = 2;
 export const GEO_EMPTY_TIMESERIES: readonly GeoTimeseriesPoint[] = [];
 export const GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES: readonly GeoCompetitorShareTimeseriesPoint[] =
   [];
-export const GEO_EMPTY_PROMPT_RESULTS: readonly GeoPromptResult[] = [];
+export const GEO_EMPTY_PROMPT_RESULTS: readonly GeoPromptResultSummary[] = [];
 export const GEO_EMPTY_COMPETITORS: readonly GeoCompetitor[] = [];
 export const GEO_EMPTY_TRAFFIC_RESPONSE: AiTrafficResponse = {
   configured: false,
@@ -1128,7 +1162,9 @@ export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
   chatgpt: "bg-background",
   gemini: "bg-white dark:bg-[#1f1f1f]",
   perplexity: "bg-white dark:bg-[#111]",
-  opencode: "bg-[#fdfdfd]",
+  opencode: "bg-[var(--opencode-tui-background,#fdfdfd)]",
+  "claude-code": "bg-[#1a1a1a]",
+  codex: "bg-[#1a1a1a]",
 };
 
 export const GEO_TAB_BREADCRUMB_LABELS: Record<string, string> = {

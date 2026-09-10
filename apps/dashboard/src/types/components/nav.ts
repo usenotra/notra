@@ -99,17 +99,6 @@ export interface UseSidebarModeResult {
   pendingMode: SidebarMode | null;
 }
 
-export interface NavSettingsItem {
-  label: string;
-  url: string;
-  icon: IconSvgElement;
-  requiresAiCredits?: boolean;
-}
-
-export interface NavSettingsProps {
-  slug: string;
-}
-
 export interface NavBrandIdentityProps {
   slug: string;
 }

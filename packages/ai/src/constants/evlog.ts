@@ -1,3 +1,6 @@
 export const GEO_LOG_EVENT_PREFIX = "geo.";
-export const GEO_LOG_BATCH_SIZE = 50;
-export const GEO_LOG_BATCH_INTERVAL_MS = 2000;
+export const LOG_PIPELINE_OPTIONS = {
+  batch: { size: 50, intervalMs: 2000 },
+  retry: { maxAttempts: 3, initialDelayMs: 250, maxDelayMs: 1000 },
+  maxBufferSize: 1000,
+};

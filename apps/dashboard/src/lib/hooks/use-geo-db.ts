@@ -196,7 +196,7 @@ export function useGeoSequencesDb(organizationId: string) {
     projectId,
   });
 
-  const { data } = useLiveQuery({
+  const { data, isLoading } = useLiveQuery({
     query: (q) => q.from({ sequence: definition }),
   });
 
@@ -240,6 +240,7 @@ export function useGeoSequencesDb(organizationId: string) {
 
   return {
     sequences,
+    isLoading,
     pendingSequenceIds: pendingIds,
     addSequence,
     updateSequence,

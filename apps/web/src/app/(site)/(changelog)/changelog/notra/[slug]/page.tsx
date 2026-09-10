@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ChangelogEntryPageProps } from "~types/changelog";
 
-import { ChangelogHtmlArticle } from "@/components/changelog-html-article";
+import { notraChangelog } from "@/../.source/server";
+import { BlogArticle } from "@/components/blog-article";
+import { getBlogMDXComponents } from "@/components/blog-mdx-components";
 import { NotraMark } from "@/components/notra-mark";
 import {
   formatChangelogDate,
@@ -16,6 +18,12 @@ import {
 } from "@/utils/jsonld";
 import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
+
+export function generateStaticParams() {
+  return notraChangelog.map((entry) => ({
+    slug: entry.info.path.replace(/\.mdx$/, ""),
+  }));
+}
 
 export async function generateMetadata({
   params,
@@ -60,9 +68,11 @@ export default async function ChangelogEntryPage({
   const { slug } = await params;
   const post = await getNotraChangelogPostBySlug(slug);
 
-  if (!post) {
+  const entry = notraChangelog.find((item) => item.info.path === `${slug}.mdx`);
+  if (!(post && entry)) {
     notFound();
   }
+  const MDX = entry.body;
 
   const url = `${SITE_URL}/changelog/notra/${slug}`;
   const articleJsonLd = buildArticleJsonLd({
@@ -115,7 +125,9 @@ export default async function ChangelogEntryPage({
         </p>
       </div>
 
-      <ChangelogHtmlArticle html={post.content} />
+      <BlogArticle>
+        <MDX components={getBlogMDXComponents()} />
+      </BlogArticle>
     </div>
   );
 }

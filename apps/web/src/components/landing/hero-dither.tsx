@@ -1,12 +1,12 @@
 import { DeferredDithering } from "@/components/deferred-dithering";
-import type { HeroDitherProps } from "@/types/landing/hero";
 
-export function HeroDither({ className }: HeroDitherProps) {
+export function HeroDither() {
   return (
     <DeferredDithering
-      className={className}
+      className="absolute inset-0 h-full w-full"
       colorBack="#00000000"
       colorFront="#8B5CF633"
+      fit="cover"
       scale={0.53}
       shape="wave"
       size={2.9}

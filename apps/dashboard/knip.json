@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["scripts/*.ts"],
+  "entry": [
+    "scripts/*.ts",
+    "tests/fixtures/prompt-answer-selection.fixture.ts"
+  ],
   "paths": {
     "@/*": ["./src/*"]
   },

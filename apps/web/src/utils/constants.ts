@@ -1,6 +1,6 @@
 import { DatabuddyWordmark } from "@notra/ui/components/ui/svgs/databuddyWordmark";
+import { Hexclave } from "@notra/ui/components/ui/svgs/hexclave";
 import { Inth } from "@notra/ui/components/ui/svgs/inth";
-import { StackAuth } from "@notra/ui/components/ui/svgs/stack-auth";
 import type { ComponentType, SVGProps } from "react";
 
 export const NOTRA_LOGO_PATH = "/notra-mark.svg";
@@ -13,35 +13,7 @@ export const RSS_FEED_LANGUAGE = "en-us";
 
 export const BLOG_INDEX_PATH = "/blog";
 export const BLOG_AUTHOR_PATH = "/blog/author";
-export const CHANGELOG_INDEX_PATH = "/changelog";
 export const NOTRA_CHANGELOG_INDEX_PATH = "/changelog/notra";
-export const SITEMAP_PATH = "/sitemap.xml";
-export const LLMS_PATH = "/llms.txt";
-export const LLMS_FULL_PATH = "/llms-full.txt";
-
-export const MARBLE_BLOG_CATEGORY_SLUG = "blog";
-export const MARBLE_CHANGELOG_CATEGORY_SLUG = "changelog";
-export const MARBLE_DEFAULT_POST_LIMIT = 100;
-
-export const MARBLE_CACHE_KEYS = {
-  blogPosts: "marble-blog-posts-v4",
-  blogAuthors: "marble-blog-authors-v1",
-  changelogPosts: "marble-changelog-posts-v2",
-} as const;
-
-export const MARBLE_CACHE_TAGS = {
-  blogPosts: "marble-blog-posts",
-  blogAuthors: "marble-blog-authors",
-  changelogPosts: "marble-changelog-posts",
-} as const;
-
-export const MARBLE_POST_CACHE_TAG_PREFIX = "marble-post";
-
-export const MARBLE_REVALIDATE_SECONDS = {
-  blogPosts: 3000,
-  blogAuthors: 3000,
-  changelogPosts: 300,
-} as const;
 
 export const OG_EXCLUDED_CONTRIBUTOR = "mezotv";
 export const OG_MAX_CONTRIBUTORS = 6;
@@ -286,9 +258,9 @@ export const SOCIAL_PROOF_LOGOS: {
     className: "h-8",
   },
   {
-    name: "Stack Auth",
-    Component: StackAuth,
-    href: "https://stack-auth.com?utm_source=notra",
-    className: "h-8",
+    name: "Hexclave",
+    Component: Hexclave,
+    href: "https://hexclave.com?utm_source=notra",
+    className: "h-8 text-[#49423d] dark:text-[#f3eeea]",
   },
 ];

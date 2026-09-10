@@ -12,7 +12,6 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useCustomer } from "autumn-js/react";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +19,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 
 function formatDollars(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -39,7 +39,7 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
     data: customer,
     isLoading,
     refetch,
-  } = useCustomer({
+  } = useBillingCustomer({
     expand: ["balances.feature"],
   });
   const [loading, setLoading] = useState(false);

@@ -81,6 +81,19 @@ export function calculateTokenCostCents(
   modelId?: string,
   applyMarkup = true
 ): number {
+  const baseCostDollars = calculateTokenCostUsd(usage, modelId);
+
+  const multiplier = applyMarkup ? MARKUP_MULTIPLIER : 1;
+  const costCents = Math.ceil(baseCostDollars * multiplier * 100);
+
+  return Math.max(costCents, MINIMUM_COST_CENTS);
+}
+
+/** Unrounded token cost; round and apply markup only when settling the total. */
+export function calculateTokenCostUsd(
+  usage: AgentTokenUsage,
+  modelId?: string
+): number {
   const pricing = getModelPricing(modelId);
 
   const inputCostDollars =
@@ -92,16 +105,12 @@ export function calculateTokenCostCents(
   const cacheWriteCostDollars =
     (usage.cacheWriteTokens / 1_000_000) * pricing.cacheWritePerMillionTokens;
 
-  const baseCostDollars =
+  return (
     inputCostDollars +
     outputCostDollars +
     cacheReadCostDollars +
-    cacheWriteCostDollars;
-
-  const multiplier = applyMarkup ? MARKUP_MULTIPLIER : 1;
-  const costCents = Math.ceil(baseCostDollars * multiplier * 100);
-
-  return Math.max(costCents, MINIMUM_COST_CENTS);
+    cacheWriteCostDollars
+  );
 }
 
 export function shouldApplyMarkup(balance: Balance | null): boolean {

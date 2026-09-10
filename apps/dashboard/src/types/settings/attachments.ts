@@ -8,11 +8,7 @@ export interface AttachmentRow {
   url: string;
 }
 
-export interface AttachmentCardProps {
-  attachment: AttachmentRow;
-  selected: boolean;
-  pending: boolean;
-  onOpen: () => void;
-  onDelete: () => void;
-  onSelectedChange: (selected: boolean) => void;
+export interface AttachmentTableColumnOptions {
+  pendingKey: string | null;
+  onDelete: (key: string) => void;
 }

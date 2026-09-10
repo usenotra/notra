@@ -66,6 +66,7 @@ import {
   updateSlackIntegration,
 } from "@notra/ai/integrations/slack-workspace";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
+import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
@@ -127,7 +128,6 @@ import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { isUniqueConstraintError } from "@/lib/db/errors";
 import { toMcpIntegrationAuthKind } from "@/lib/integrations/auth-kind";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
-import { hasGitHubStatus } from "@/lib/integrations/github/publish-content-to-github";
 import {
   clearCachedSlackChannels,
   getCachedSlackChannels,
@@ -140,8 +140,8 @@ import type {
   GitHubRepository,
   RepositoryOutput,
 } from "@/types/integrations";
-import type { GitHubConnectionMethod } from "@/types/services/integrations";
 import type { SlackChannelOption } from "@/types/slack-integration";
+import { hasGitHubStatus } from "@/utils/github-publish-failure";
 import { ratelimit } from "@/utils/ratelimit";
 
 import {
@@ -546,6 +546,7 @@ export const integrationsRouter = {
         if (input.enabled !== undefined || input.displayName !== undefined) {
           await updateGitHubIntegration(input.integrationId, {
             enabled: input.enabled,
+            repositoryEnabled: input.enabled,
             displayName: input.displayName,
           });
         }

@@ -38,7 +38,7 @@ export const DEFAULT_GITHUB_CONTENT_DIRECTORIES = {
 
 export const DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED = {
   changelog: true,
-  blog_post: false,
+  blog_post: true,
 } as const satisfies Record<GitHubPublishContentType, boolean>;
 
 export const GITHUB_API_VERSION_HEADERS = {
@@ -50,6 +50,10 @@ export const GITHUB_PULL_REQUEST_BODY_SECTION_START =
 export const GITHUB_PULL_REQUEST_BODY_SECTION_END =
   "<!-- notra:content:end -->";
 
+/** GitHub rejects issue and pull request bodies longer than this. */
+export const GITHUB_PULL_REQUEST_BODY_MAX_LENGTH = 65_536;
+
+/** GitHub App installation tokens author this commit as `{slug}[bot]`. */
 export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
   mutation CreateCommitOnBranch($input: CreateCommitOnBranchInput!) {
     createCommitOnBranch(input: $input) {
@@ -69,8 +73,24 @@ export const GITHUB_RECOVERY_COPY = {
     title: "GitHub permissions needed",
   },
   github_authentication_required: {
-    description: "Reconnect the GitHub integration, then try again.",
-    title: "Reconnect GitHub",
+    description:
+      "Review the GitHub App installation, then select and save this repository in the GitHub integration settings.",
+    title: "Review the GitHub App connection",
+  },
+  github_repository_connection_required: {
+    description:
+      "This repository has no saved credentials. Connect the GitHub App, then select and save this repository to publish.",
+    title: "Connect this repository to publish",
+  },
+  github_token_authentication_required: {
+    description:
+      "The saved personal access token was rejected. Update it in the GitHub integration settings, or connect this repository through the GitHub App.",
+    title: "Update the GitHub token",
+  },
+  github_token_permissions_required: {
+    description:
+      "Allow the saved personal access token to write repository contents and pull requests, or connect this repository through the GitHub App.",
+    title: "GitHub token permissions needed",
   },
   github_content_publishing_paused: {
     description:

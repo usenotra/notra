@@ -1,9 +1,18 @@
 import {
-  internalWorkflowErrorResponseSchema,
-  internalWorkflowStartResponseSchema,
-} from "@notra/schemas/api/internal-workflow";
-import { getVercelOidcToken } from "@vercel/oidc";
+  InternalDashboardAdapterError,
+  InternalDashboardError,
+  InternalDashboardTimeoutError,
+} from "@notra/schemas/api/internal-dashboard";
+import { internalWorkflowStartResponseSchema } from "@notra/schemas/api/internal-workflow";
+import { Effect } from "effect";
 import type { ZodType } from "zod";
+
+import {
+  InternalDashboardService,
+  internalDashboardLive,
+} from "../lib/internal-dashboard";
+import { runServiceEffect } from "./run-service-effect";
+export { InternalDashboardError, InternalDashboardTimeoutError };
 
 interface InternalWorkflowEnv {
   WORKFLOW_BASE_URL?: string;
@@ -19,42 +28,6 @@ export function getInternalWorkflowUrl(env: InternalWorkflowEnv, path: string) {
   }
 
   return `${trimTrailingSlash(env.WORKFLOW_BASE_URL)}${path}`;
-}
-
-/**
- * A non-2xx answer from an internal dashboard route.
- *
- * Carries the dashboard's `code` when it sent one, so a caller can turn a
- * domain refusal (an unmet feature flag, say) into its own status instead of
- * flattening every failure into a 500.
- */
-export class InternalDashboardError extends Error {
-  readonly status: number;
-  readonly code: string | null;
-  /** Raw response body, so a caller can read a structured payload out of it. */
-  readonly body: string;
-
-  constructor(status: number, code: string | null, body: string) {
-    super(
-      `Internal dashboard request failed with status ${status}${body ? `: ${body}` : ""}`
-    );
-    this.name = "InternalDashboardError";
-    this.status = status;
-    this.code = code;
-    this.body = body;
-  }
-}
-
-function readErrorCode(body: string): string | null {
-  try {
-    const parsed = internalWorkflowErrorResponseSchema.safeParse(
-      JSON.parse(body)
-    );
-    return parsed.success ? (parsed.data.code ?? null) : null;
-  } catch {
-    // Not JSON — the dashboard answered with plain text.
-  }
-  return null;
 }
 
 /**
@@ -84,17 +57,6 @@ function readErrorCode(body: string): string | null {
  */
 export const SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS = 240_000;
 
-/** Signals a synchronous internal call that outlived its timeout. */
-export class InternalDashboardTimeoutError extends Error {
-  readonly timeoutMs: number;
-
-  constructor(timeoutMs: number) {
-    super(`Internal dashboard call timed out after ${timeoutMs}ms`);
-    this.name = "InternalDashboardTimeoutError";
-    this.timeoutMs = timeoutMs;
-  }
-}
-
 /**
  * POSTs to an internal dashboard route and decodes its successful JSON body.
  *
@@ -112,46 +74,12 @@ export async function callDashboardInternal<A>(
   responseSchema: ZodType<A>,
   timeoutMs?: number
 ): Promise<A> {
-  const secret = process.env.INTERNAL_WORKFLOW_SECRET?.trim();
-  const token = secret || (await getVercelOidcToken().catch(() => null));
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-  };
-  if (token) {
-    headers.authorization = `Bearer ${token}`;
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      ...(timeoutMs === undefined
-        ? {}
-        : { signal: AbortSignal.timeout(timeoutMs) }),
-    });
-
-    if (!response.ok) {
-      const detail = await response.text();
-      throw new InternalDashboardError(
-        response.status,
-        readErrorCode(detail),
-        detail
-      );
-    }
-
-    const data: unknown = await response.json();
-    return responseSchema.parse(data);
-  } catch (cause) {
-    if (
-      timeoutMs !== undefined &&
-      cause instanceof Error &&
-      (cause.name === "TimeoutError" || cause.name === "AbortError")
-    ) {
-      throw new InternalDashboardTimeoutError(timeoutMs);
-    }
-    throw cause;
-  }
+  return runServiceEffect(
+    Effect.gen(function* () {
+      const service = yield* InternalDashboardService;
+      return yield* service.call(url, payload, responseSchema, timeoutMs);
+    }).pipe(Effect.provide(internalDashboardLive))
+  );
 }
 
 export async function startDashboardWorkflow(
@@ -165,3 +93,24 @@ export async function startDashboardWorkflow(
   );
   return data.runId;
 }
+
+export const startDashboardWorkflowEffect = Effect.fn(
+  "InternalDashboard.startWorkflow"
+)(function* (url: string | null, payload: unknown) {
+  if (!url) {
+    return yield* Effect.fail(
+      new InternalDashboardAdapterError({
+        kind: "configuration",
+        message:
+          "WORKFLOW_BASE_URL is not configured — cannot reach the dashboard.",
+      })
+    );
+  }
+  const service = yield* InternalDashboardService;
+  const data = yield* service.call(
+    url,
+    payload,
+    internalWorkflowStartResponseSchema
+  );
+  return data.runId;
+});

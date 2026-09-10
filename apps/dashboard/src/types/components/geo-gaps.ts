@@ -7,6 +7,7 @@ import type {
   GeoSuggestionKeyword,
   GeoWriterSourceKind,
 } from "@notra/geo-core/types/geo";
+import type { ReactNode } from "react";
 
 export interface GeoGapsWriteCellProps {
   action: GeoGapWriteAction;
@@ -20,6 +21,17 @@ export interface GeoGapsWriteCellProps {
 }
 
 export type GeoGapsTab = "prompt" | "search";
+
+export type GeoGapDetailSelection =
+  | { kind: "prompt"; id: string }
+  | { kind: "search"; id: string };
+
+export interface GeoGapDetailDialogProps {
+  prompt: GeoPromptGapRow | null;
+  search: GeoSearchGapRow | null;
+  searchActions?: ReactNode;
+  onOpenChange: (open: boolean) => void;
+}
 
 export type GeoGapsMeterTone = "empty" | "low" | "mid" | "high";
 

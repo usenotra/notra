@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 const GOOGLE_FONT_URL_REGEX =
   /src: url\((.+)\) format\('(opentype|truetype)'\)/;
 
@@ -39,11 +42,16 @@ export async function loadImageAsDataUrl(url: string | null) {
     return null;
   }
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      return null;
+    let input: Buffer;
+    if (url.startsWith("/")) {
+      input = await readFile(join(process.cwd(), "public", url));
+    } else {
+      const response = await fetch(url);
+      if (!response.ok) {
+        return null;
+      }
+      input = Buffer.from(await response.arrayBuffer());
     }
-    const input = Buffer.from(await response.arrayBuffer());
     const { default: sharp } = await import("sharp");
     const png = await sharp(input).png().toBuffer();
     return `data:image/png;base64,${png.toString("base64")}`;

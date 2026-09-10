@@ -65,6 +65,8 @@ export interface TableProps<T> {
   onDeleteColumn?: (columnKey: string, index: number) => void;
   /** Fixed row height in px — required for virtualization. */
   rowHeight?: number;
+  /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
+  rowSizing?: "fixed" | "content";
   /** Scroll viewport height in px. */
   height?: number;
   /** Floor for the table body when there are fewer rows than `height` allows. */
@@ -79,6 +81,8 @@ export interface TableProps<T> {
   skeletonRows?: number;
   /** Called when a row is clicked or activated with Enter/Space. */
   onRowClick?: (row: T) => void;
+  /** Only matching rows receive click handlers, keyboard activation, and pointer styling. */
+  isRowClickable?: (row: T) => boolean;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */

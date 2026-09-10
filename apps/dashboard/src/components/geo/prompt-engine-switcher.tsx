@@ -68,6 +68,20 @@ export function PromptEngineSwitcher({
   const showsSearchIcon = (engine: string) =>
     answerMode === null && engineAnswerMode(engine) !== null;
 
+  if (results.length === 1) {
+    return (
+      <div className="flex min-w-0 flex-1 items-center">
+        <span className="bg-background inline-flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8rem] font-medium">
+          <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
+          <span className="truncate">
+            {formatEngineWithMode(active.engine)}
+          </span>
+          {engineAnswerMode(active.engine) !== null ? <SearchModeIcon /> : null}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <LazyMotion features={domAnimation}>
       <div className="flex min-w-0 flex-1 items-center gap-2">

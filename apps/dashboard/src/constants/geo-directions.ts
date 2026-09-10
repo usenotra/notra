@@ -180,6 +180,7 @@ const GEO_DIRECTIONS_OWN_BRAND = { companyName: GEO_DIRECTIONS_COMPANY };
 
 export const GEO_DIRECTIONS_SHARE_SLICES = GEO_DIRECTIONS_SHARE.map(
   (point, index) => ({
+    kind: "brand" as const,
     brand: point.brand,
     mentions: point.mentions,
     slice: chartKey(`${point.brand}-${index}`),
@@ -193,7 +194,7 @@ export const GEO_DIRECTIONS_SHARE_CONFIG: ChartConfig = Object.fromEntries(
       label: row.brand,
       colors: seriesColors(
         shareOfVoiceSliceColor(
-          row.brand,
+          row,
           shareOfVoiceRivalIndex(
             GEO_DIRECTIONS_SHARE_SLICES,
             row.brand,

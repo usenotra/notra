@@ -5,10 +5,27 @@ export function formatDollars(cents: number): string {
   }).format(cents / 100);
 }
 
+const COUNT_FORMATTER = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
+const PERCENT_FORMATTER = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 1,
+});
+
+export function formatCount(value: number): string {
+  return COUNT_FORMATTER.format(value);
+}
+
+export function formatPercent(value: number): string {
+  return PERCENT_FORMATTER.format(value);
+}
+
 export function formatShortDate(timestamp: number): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(new Date(timestamp));
 }
 
@@ -32,6 +49,27 @@ export function formatArticleDate(date: Date): string {
 
 export function usageBarColor(percent: number): string {
   return percent > 70 ? "bg-warning" : "bg-success";
+}
+
+export function remainingPercent(
+  balance: number | null,
+  included: number | null
+): number | null {
+  if (balance === null || included === null || included <= 0) {
+    return null;
+  }
+
+  return Math.min(Math.max((balance / included) * 100, 0), 100);
+}
+
+export function remainingBarColor(percent: number): string {
+  if (percent < 10) {
+    return "bg-destructive";
+  }
+  if (percent < 30) {
+    return "bg-warning";
+  }
+  return "bg-success";
 }
 
 export function isCreditRange<T extends string>(

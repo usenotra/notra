@@ -12,7 +12,7 @@ import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
 import { isUserBanned } from "@/lib/auth/banned";
 import { AuthSessionError } from "@/lib/auth/errors";
 import { ensureLocalUser } from "@/lib/auth/sync";
-import type { AuthSessionData } from "@/types/auth/session";
+import type { AuthIdentityData, AuthSessionData } from "@/types/auth/session";
 
 const readLastVisitedOrganizationSlug = Effect.fn(
   "auth.session.readLastVisitedSlug"
@@ -76,7 +76,7 @@ const resolveActiveOrganizationId = Effect.fn(
   return membership?.organizationId ?? null;
 });
 
-const buildAuthSession = Effect.fn("auth.session.build")(function* (
+const buildAuthIdentity = Effect.fn("auth.identity.build")(function* (
   workosUser: Parameters<typeof ensureLocalUser>[0],
   impersonatorEmail: string | null
 ) {
@@ -91,22 +91,16 @@ const buildAuthSession = Effect.fn("auth.session.build")(function* (
     );
   }
 
-  const activeOrganizationId = yield* resolveActiveOrganizationId(user.id);
-
-  const session: AuthSessionData = {
-    session: {
-      userId: user.id,
-      activeOrganizationId,
-      impersonatedBy: impersonatorEmail,
-    },
+  const identity: AuthIdentityData = {
+    impersonatedBy: impersonatorEmail,
     user,
   };
 
-  return session;
+  return identity;
 });
 
-export const getAuthSession = cache(
-  async (): Promise<AuthSessionData | null> => {
+export const getAuthIdentity = cache(
+  async (): Promise<AuthIdentityData | null> => {
     await connection();
 
     let authResult: Awaited<ReturnType<typeof withAuth>>;
@@ -124,7 +118,7 @@ export const getAuthSession = cache(
     }
 
     return await Effect.runPromise(
-      buildAuthSession(
+      buildAuthIdentity(
         authResult.user,
         authResult.impersonator?.email ?? null
       ).pipe(
@@ -134,6 +128,34 @@ export const getAuthSession = cache(
               workosUserId: authResult.user?.id,
               error: error.message,
             }),
+            Effect.as(null)
+          )
+        )
+      )
+    );
+  }
+);
+
+export const getAuthSession = cache(
+  async (): Promise<AuthSessionData | null> => {
+    const identity = await getAuthIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    return Effect.runPromise(
+      resolveActiveOrganizationId(identity.user.id).pipe(
+        Effect.map((activeOrganizationId) => ({
+          session: {
+            userId: identity.user.id,
+            activeOrganizationId,
+            impersonatedBy: identity.impersonatedBy,
+          },
+          user: identity.user,
+        })),
+        Effect.catch((error) =>
+          Effect.logWarning("Failed to build auth session").pipe(
+            Effect.annotateLogs({ error: error.message }),
             Effect.as(null)
           )
         )

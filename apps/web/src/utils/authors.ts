@@ -1,62 +1,18 @@
-import { unstable_cache } from "next/cache";
 import type { NotraAuthor, NotraBlogPost } from "~types/blog";
 
-import {
-  BLOG_AUTHOR_PATH,
-  MARBLE_CACHE_KEYS,
-  MARBLE_CACHE_TAGS,
-  MARBLE_REVALIDATE_SECONDS,
-} from "@/utils/constants";
-import { listMarbleAuthors } from "@/utils/marble";
-
-function normalizeAuthor(author: {
-  id: string;
-  name: string;
-  image: string | null;
-  slug: string;
-  bio: string | null;
-  role: string | null;
-  socials: { url: string; platform: string }[];
-  count?: { posts: number };
-}): NotraAuthor {
-  return {
-    id: author.id,
-    name: author.name,
-    image: author.image,
-    slug: author.slug,
-    bio: author.bio,
-    role: author.role,
-    socials: author.socials.map((social) => ({
-      url: social.url,
-      platform: social.platform,
-    })),
-    postCount: author.count?.posts ?? 0,
-  };
-}
-
-const fetchAuthors = unstable_cache(
-  async () => {
-    try {
-      const authors = await listMarbleAuthors();
-      return authors.map(normalizeAuthor);
-    } catch (error) {
-      console.error("Failed to load Marble authors", error);
-      return [] satisfies NotraAuthor[];
-    }
-  },
-  [MARBLE_CACHE_KEYS.blogAuthors],
-  {
-    revalidate: MARBLE_REVALIDATE_SECONDS.blogAuthors,
-    tags: [MARBLE_CACHE_TAGS.blogAuthors],
-  }
-);
+import { blog } from "@/../.source/server";
+import { BLOG_AUTHORS } from "@/constants/blog-authors";
+import { BLOG_AUTHOR_PATH } from "@/utils/constants";
 
 export function getAuthorHref(slug: string) {
   return `${BLOG_AUTHOR_PATH}/${slug}`;
 }
 
-export async function listNotraAuthors() {
-  return fetchAuthors();
+export async function listNotraAuthors(): Promise<NotraAuthor[]> {
+  return BLOG_AUTHORS.map((author) => ({
+    ...author,
+    postCount: blog.filter((entry) => entry.author === author.slug).length,
+  }));
 }
 
 export async function getNotraAuthorBySlug(slug: string) {

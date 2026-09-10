@@ -16,15 +16,10 @@ import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
-import { authClient } from "@/lib/auth/client";
 import { useActiveGenerations } from "@/lib/hooks/use-active-generations";
 import { useTodayPosts } from "@/lib/hooks/use-posts";
-import { getGreeting } from "@/utils/dashboard-greeting";
+import type { DashboardHomePageClientProps } from "@/types/dashboard/home";
 import { resolveImagePreviewSrc } from "@/utils/markdown-image";
-
-interface PageClientProps {
-  organizationSlug: string;
-}
 
 function getPreview(markdown: string): string {
   const lines = markdown
@@ -41,7 +36,10 @@ function getPreview(markdown: string): string {
     .slice(0, 160);
 }
 
-export default function PageClient({ organizationSlug }: PageClientProps) {
+export default function PageClient({
+  greetingText,
+  organizationSlug,
+}: DashboardHomePageClientProps) {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -50,12 +48,8 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       : orgFromList;
   const organizationId = organization?.id ?? "";
   const skeletonId = useId();
-  const { data: session } = authClient.useSession();
   const { data, isPending } = useTodayPosts(organizationId);
   const { data: activeGenerations } = useActiveGenerations(organizationId);
-  const greeting = getGreeting(new Date());
-  const userName = session?.user?.name?.trim();
-  const greetingText = userName ? `${greeting}, ${userName}!` : `${greeting}!`;
   const posts = data?.posts ?? [];
   const visibleGenerations = activeGenerations?.slice(0, 3) ?? [];
   const hasActiveGenerations = visibleGenerations.length > 0;

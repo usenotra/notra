@@ -1,6 +1,6 @@
 import type {
   GeoPresenceStatus,
-  GeoPromptResult,
+  GeoPromptResultSummary,
   GeoPromptSummary,
 } from "../types/geo";
 import { engineFamilyLabel, engineFamilyOf } from "./geo-engine-family";
@@ -13,7 +13,7 @@ export function isGroundedEngine(engine: string): boolean {
 }
 
 function classifyPromptPresence(
-  results: GeoPromptResult[]
+  results: GeoPromptResultSummary[]
 ): GeoPresenceStatus | null {
   if (results.length === 0) {
     return null;
@@ -40,7 +40,7 @@ function classifyPromptPresence(
 }
 
 export function summarizePromptResults(
-  results: GeoPromptResult[]
+  results: GeoPromptResultSummary[]
 ): GeoPromptSummary[] {
   const groups = new Map<string, GeoPromptSummary>();
   for (const result of results) {

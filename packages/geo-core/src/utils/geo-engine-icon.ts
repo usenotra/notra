@@ -22,6 +22,14 @@ const ENGINE_ICON_RULES: readonly EngineIconRule[] = [
     patterns: ["opencode"],
   },
   {
+    key: "claude-code",
+    patterns: ["claude-code", "claude code"],
+  },
+  {
+    key: "codex",
+    patterns: ["codex"],
+  },
+  {
     key: "openai",
     patterns: ["openai", "gpt", "chatgpt", "oai-"],
   },

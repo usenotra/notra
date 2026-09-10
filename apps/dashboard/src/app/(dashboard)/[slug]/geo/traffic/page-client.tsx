@@ -36,6 +36,7 @@ import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import type { GeoPageClientProps } from "@/types/geo";
 import { withGeoProject } from "@/utils/geo-paths";
+import { geoSettingsPath } from "@/utils/settings-path";
 
 import { GeoTrafficSkeleton } from "./skeleton";
 
@@ -179,7 +180,7 @@ function TrafficPageContent({ organizationSlug }: GeoPageClientProps) {
           <InstrumentReveal active={revealActive} order={0}>
             <AiTrafficCard
               settingsHref={withGeoProject(
-                `/${organizationSlug}/geo/settings`,
+                geoSettingsPath(organizationSlug),
                 projectId
               )}
               traffic={traffic}

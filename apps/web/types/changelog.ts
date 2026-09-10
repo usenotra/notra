@@ -62,10 +62,6 @@ export interface ChangelogRowProps {
   item: ChangelogTimelineItem;
 }
 
-export interface ChangelogHtmlArticleProps {
-  html: string;
-}
-
 export interface ChangelogEntryPageProps {
   params: Promise<{ slug: string }>;
 }

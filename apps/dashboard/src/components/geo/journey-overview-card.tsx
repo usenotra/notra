@@ -9,8 +9,14 @@ import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
-import type { JourneyOverviewCardProps } from "@/types/geo";
+import { Table, type TableColumn } from "@/components/motion/table";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import type {
+  GeoJourneySourceRow,
+  JourneyOverviewCardProps,
+} from "@/types/geo";
 import { buildJourneyOverview } from "@/utils/geo-journey";
+import { tableHeightFor } from "@/utils/table";
 
 function shareLabel(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -18,6 +24,33 @@ function shareLabel(value: number): string {
 
 export function JourneyOverviewCard({ journeys }: JourneyOverviewCardProps) {
   const overview = useMemo(() => buildJourneyOverview(journeys), [journeys]);
+  const columns: TableColumn<GeoJourneySourceRow>[] = [
+    {
+      key: "source",
+      header: "Source",
+      width: "1fr",
+      sortable: true,
+      sortValue: (row) => formatGeoSource(row.source),
+      cell: (row) => (
+        <span className="flex min-w-0 items-center gap-2 text-sm">
+          <EngineIcon engine={row.source} />
+          <span className="truncate">{formatGeoSource(row.source)}</span>
+        </span>
+      ),
+    },
+    {
+      key: "journeys",
+      header: "Journeys",
+      width: "7rem",
+      align: "right",
+      sortable: true,
+      cell: (row) => (
+        <span className="text-sm tabular-nums">
+          {row.journeys.toLocaleString()}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <InstrumentModule className="h-full" eyebrow="Journeys">
@@ -54,34 +87,16 @@ export function JourneyOverviewCard({ journeys }: JourneyOverviewCardProps) {
             </div>
           </dl>
           <div>
-            <div className="text-muted-foreground flex items-center justify-between gap-3 px-1 pb-1.5 text-xs">
-              <span>Source</span>
-              <span>Journeys</span>
-            </div>
-            <div className="border-border border-t">
-              {overview.sources.map((row, index) => {
-                const name = formatGeoSource(row.source);
-                return (
-                  <div
-                    className="flex items-center gap-3 border-b px-1 py-2.5 last:border-b-0"
-                    key={`${row.source}-${row.visitorType}`}
-                  >
-                    <span className="text-muted-foreground w-4 shrink-0 text-right text-xs tabular-nums">
-                      {index + 1}
-                    </span>
-                    <span className="flex min-w-0 flex-1 items-center gap-2">
-                      <EngineIcon engine={row.source} />
-                      <span className="truncate text-sm font-medium">
-                        {name}
-                      </span>
-                    </span>
-                    <span className="text-sm tabular-nums">
-                      {row.journeys.toLocaleString()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <Table
+              className="rounded-2xl"
+              columns={columns}
+              data={overview.sources}
+              defaultSort={{ key: "journeys", direction: "desc" }}
+              getRowId={(row) => `${row.source}-${row.visitorType}`}
+              height={tableHeightFor(overview.sources.length)}
+              resizable
+              rowHeight={TABLE_ROW_HEIGHT}
+            />
             {overview.uniqueSources > overview.sources.length ? (
               <p className="text-muted-foreground px-1 pt-2 text-xs tabular-nums">
                 +

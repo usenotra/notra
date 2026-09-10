@@ -15,7 +15,7 @@ import {
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useCustomer, useListPlans } from "autumn-js/react";
+import { useListPlans } from "autumn-js/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +28,7 @@ import {
 } from "@/lib/analytics/billing-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { attachPlanWithAddons } from "@/lib/billing/attach-plan";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import type { BillingPlanGroup } from "@/types/billing/plan";
 import type { GeoUpgradeDialogProps } from "@/types/components/geo";
 import {
@@ -46,8 +47,10 @@ export function GeoUpgradeDialog({
   open,
   onOpenChange,
 }: GeoUpgradeDialogProps) {
-  const { data: plans, isLoading: plansLoading } = useListPlans();
-  const { attach, multiAttach, refetch } = useCustomer();
+  const { data: plans, isLoading: plansLoading } = useListPlans({
+    queryOptions: { enabled: open },
+  });
+  const { attach, multiAttach, refetch } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [includeZdr, setIncludeZdr] = useState(false);

@@ -6,13 +6,16 @@ import type { NextConfig } from "next";
 
 import { SHOWCASE_COMPANIES } from "./src/utils/showcase";
 import { SOCIAL_LINKS } from "./src/utils/social-links";
-import { SITE_URL } from "./src/utils/urls";
+import { APP_URL, SITE_URL } from "./src/utils/urls";
 
 const SHOWCASE_COMPANY_SLUGS = SHOWCASE_COMPANIES.map(
   (company) => company.slug
 );
 
 const C15T_BACKEND_URL = "https://notra-prod-notra.inth.app";
+
+const DASHBOARD_SESSION_ORIGIN =
+  process.env.NODE_ENV === "development" ? "http://localhost:3000" : APP_URL;
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -21,6 +24,12 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["@notra/ui", "@notra/email", "@notra/kiwi"],
   serverExternalPackages: ["@remotion/bundler", "@remotion/renderer"],
+  outputFileTracingIncludes: {
+    "/blog/**/opengraph-image*": [
+      "./public/blog/authors/**/*",
+      "./public/blog/og-dither.png",
+    ],
+  },
   rewrites: async () => {
     return [
       {
@@ -126,8 +135,8 @@ const nextConfig: NextConfig = {
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' databuddy.cc *.databuddy.cc https://challenges.cloudflare.com",
             "style-src 'self' 'unsafe-inline'",
             "font-src 'self'",
-            "img-src 'self' data: blob: databuddy.cc *.databuddy.cc avatars.githubusercontent.com cdn.contentport.io images.marblecms.com media.marblecms.com media.brand.dev *.r2.dev cdn.usenotra.com pbs.twimg.com abs.twimg.com",
-            "connect-src 'self' databuddy.cc *.databuddy.cc *.inth.app *.c15t.com *.c15t.dev",
+            "img-src 'self' data: blob: databuddy.cc *.databuddy.cc avatars.githubusercontent.com cdn.contentport.io media.brand.dev *.r2.dev cdn.usenotra.com pbs.twimg.com abs.twimg.com",
+            `connect-src 'self' databuddy.cc *.databuddy.cc *.inth.app *.c15t.com *.c15t.dev ${DASHBOARD_SESSION_ORIGIN}`,
             "frame-src https://challenges.cloudflare.com",
             "frame-ancestors 'none'",
             "object-src 'none'",
@@ -152,14 +161,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "cdn.contentport.io",
-      },
-      {
-        protocol: "https",
-        hostname: "images.marblecms.com",
-      },
-      {
-        protocol: "https",
-        hostname: "media.marblecms.com",
       },
       {
         protocol: "https",

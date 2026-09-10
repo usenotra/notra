@@ -2,7 +2,6 @@ import { BetterAuthLight } from "@notra/ui/components/ui/svgs/betterAuthLight";
 import { Cal } from "@notra/ui/components/ui/svgs/cal";
 import { Databuddy } from "@notra/ui/components/ui/svgs/databuddy";
 import { Langfuse } from "@notra/ui/components/ui/svgs/langfuse";
-import { Marble } from "@notra/ui/components/ui/svgs/marble";
 import { Neon } from "@notra/ui/components/ui/svgs/neon";
 import Image from "next/image";
 import type { ReactNode } from "react";
@@ -21,7 +20,6 @@ export const SHOWCASE_COMPANY_ICONS: Record<string, ReactNode> = {
       width={53}
     />
   ),
-  marble: <Marble className="size-5 rounded" />,
   neon: <Neon className="size-5 rounded" />,
   openclaw: (
     <Image

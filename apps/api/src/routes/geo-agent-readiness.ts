@@ -1,11 +1,13 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
-  AgentReadinessApiError,
-  AgentReadinessTargetMissingError,
   loadAgentReadiness,
   startAgentReadinessScan,
 } from "@notra/geo-core/geo/agent-readiness";
 import { requireGeoProject } from "@notra/geo-core/geo/projects";
+import {
+  AgentReadinessApiError,
+  AgentReadinessTargetMissingError,
+} from "@notra/geo-core/schemas/agent-readiness-errors";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   agentReadinessResponseSchema,
@@ -105,7 +107,7 @@ geoAgentReadinessRoutes.openapi(getReadinessRoute, async (c) => {
   }
 
   try {
-    const report = await loadAgentReadiness(scope.value);
+    const report = await Effect.runPromise(loadAgentReadiness(scope.value));
     return c.json({ ...report, organization: base.organization }, 200);
   } catch (error) {
     const failure = readinessFailure(error);

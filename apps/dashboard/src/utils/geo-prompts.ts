@@ -2,7 +2,7 @@ import { GEO_PROMPT_FUNNEL_TOP_POSITION } from "@notra/geo-core/constants/geo";
 import { trackedPromptScanId } from "@notra/geo-core/geo/prompts";
 import type {
   GeoPresenceStatus,
-  GeoPromptResult,
+  GeoPromptResultSummary,
   GeoTrackedPrompt,
 } from "@notra/geo-core/types/geo";
 import { engineFamilyOf } from "@notra/geo-core/utils/geo-engine-family";
@@ -18,7 +18,7 @@ import type {
 } from "@/types/geo";
 import { bestFuzzyScore, fuzzyMatches } from "@/utils/fuzzy";
 
-function promptMentionSets(results: readonly GeoPromptResult[]): {
+function promptMentionSets(results: readonly GeoPromptResultSummary[]): {
   mentioned: Set<string>;
   topRanked: Set<string>;
 } {
@@ -41,7 +41,7 @@ function promptMentionSets(results: readonly GeoPromptResult[]): {
 
 export function promptCoverage(
   promptCount: number,
-  results: readonly GeoPromptResult[]
+  results: readonly GeoPromptResultSummary[]
 ): GeoPromptCoverage {
   const { mentioned } = promptMentionSets(results);
   if (promptCount <= 0) {
@@ -104,7 +104,7 @@ function matchesPromptFilters(
 
 export function buildPromptTableRows(
   prompts: readonly GeoTrackedPrompt[],
-  results: readonly GeoPromptResult[],
+  results: readonly GeoPromptResultSummary[],
   filters: GeoPromptTableFilters
 ): GeoPromptTableRow[] {
   const summaries = new Map(
@@ -151,9 +151,9 @@ export function buildPromptTableRows(
 }
 
 export function bestMentionedResult(
-  results: readonly GeoPromptResult[]
-): GeoPromptResult | null {
-  let best: GeoPromptResult | null = null;
+  results: readonly GeoPromptResultSummary[]
+): GeoPromptResultSummary | null {
+  let best: GeoPromptResultSummary | null = null;
   for (const result of results) {
     if (!result.mentioned) {
       continue;
@@ -171,9 +171,9 @@ export function bestMentionedResult(
 
 export function engineFamilyPromptHits(
   family: string,
-  results: readonly GeoPromptResult[]
+  results: readonly GeoPromptResultSummary[]
 ): EngineFamilyPromptHit[] {
-  const byPrompt = new Map<string, GeoPromptResult[]>();
+  const byPrompt = new Map<string, GeoPromptResultSummary[]>();
   for (const result of results) {
     if (engineFamilyOf(result.engine) !== family) {
       continue;
@@ -217,7 +217,7 @@ export function engineFamilyPromptHits(
 
 export function promptTableRowForId(
   promptId: string,
-  results: readonly GeoPromptResult[]
+  results: readonly GeoPromptResultSummary[]
 ): GeoPromptTableRow | null {
   const group = results.filter((result) => result.promptId === promptId);
   const first = group[0];

@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
 import { and, eq, gte, isNull, lt, notExists, or } from "drizzle-orm";
-import { Effect, Exit } from "effect";
+import { Effect, Exit, Schedule } from "effect";
 
 import {
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
@@ -366,7 +366,7 @@ export const createGeoScanRow = Effect.fn("geo.createScanRow")(function* (
  * gets swept one stale window later.
  */
 export const sweepStaleGeoScanRows = Effect.fn("geo.sweepStaleScanRows")(
-  function* () {
+  function* (scope?: GeoScanRunScope) {
     const staleBefore = new Date(Date.now() - GEO_SCAN_STALE_MS);
     const failed = yield* geoDb("stale scan sweep failed", () =>
       db
@@ -376,6 +376,10 @@ export const sweepStaleGeoScanRows = Effect.fn("geo.sweepStaleScanRows")(
           and(
             eq(geoScans.status, "running"),
             lt(geoScans.startedAt, staleBefore),
+            scope
+              ? eq(geoScans.organizationId, scope.organizationId)
+              : undefined,
+            scope ? eq(geoScans.projectId, scope.projectId) : undefined,
             notExists(
               db
                 .select({ id: geoSettings.id })
@@ -443,6 +447,12 @@ export const finishGeoScanRow = Effect.fn("geo.finishScanRow")(function* (
           eq(geoScans.status, "running")
         )
       )
+  ).pipe(
+    // Only retry this idempotent status write, never the surrounding scan or
+    // billing settlement. The running predicate also handles a lost DB reply.
+    Effect.retry(
+      Schedule.exponential("100 millis").pipe(Schedule.upTo({ times: 3 }))
+    )
   );
 });
 

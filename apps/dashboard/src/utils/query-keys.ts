@@ -3,6 +3,11 @@ export const QUERY_KEYS = {
     session: ["auth", "session"],
     organizations: ["auth", "organizations"],
     activeOrganization: ["auth", "activeOrganization"],
+    // Deliberately nested under `activeOrganization` so the existing
+    // `invalidateQueries({ queryKey: AUTH.activeOrganization })` call sites
+    // reach the per-slug summaries by prefix. Keep the first two segments.
+    organizationSummary: (slug: string) =>
+      ["auth", "activeOrganization", "summary", slug] as const,
   },
   INTEGRATIONS: {
     base: ["integrations"] as const,

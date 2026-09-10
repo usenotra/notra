@@ -2,6 +2,13 @@ import { PGlite } from "@electric-sql/pglite";
 import {
   brandSettings,
   geoScans,
+  geoPrompts,
+  geoPromptSuggestions,
+  geoAgentReadinessReports,
+  geoCompetitors,
+  googleSearchConsoleIntegrations,
+  geoMentionChecks,
+  users,
   geoSettings,
   organizations,
   projects,
@@ -13,16 +20,35 @@ import type { ScanSettingsInput } from "../types/fixtures";
 
 // Generate DDL from production tables so column/constraint changes reach tests.
 const schema = {
+  users,
+  geoPrompts,
+  geoPromptSuggestions,
+  geoAgentReadinessReports,
+  geoCompetitors,
+  googleSearchConsoleIntegrations,
+  geoMentionChecks,
   organizations,
   brandSettings,
   projects,
   geoSettings,
   geoScans,
 };
-export const postgres = new PGlite();
-export const testDb = drizzle(postgres, { schema });
+export const database = { postgres: new PGlite() };
+let currentDb = drizzle(database.postgres, { schema });
+// Bun caches the mocked db module across test files. Keep its export stable while
+// each file owns a fresh database through beforeAll/afterAll.
+export const testDb = new Proxy(currentDb, {
+  get(_target, property) {
+    const value = Reflect.get(currentDb, property, currentDb);
+    return typeof value === "function" ? value.bind(currentDb) : value;
+  },
+});
 
 export async function initializeDatabase() {
+  if (database.postgres.closed) {
+    database.postgres = new PGlite();
+    currentDb = drizzle(database.postgres, { schema });
+  }
   const statements = await generateMigration(
     generateDrizzleJson({}),
     generateDrizzleJson(schema)
@@ -31,17 +57,17 @@ export async function initializeDatabase() {
   for (const statement of statements.filter(
     (sql) => !sql.startsWith("ALTER TABLE")
   )) {
-    await postgres.exec(statement);
+    await database.postgres.exec(statement);
   }
   for (const statement of statements.filter((sql) =>
     sql.startsWith("ALTER TABLE")
   )) {
-    await postgres.exec(statement);
+    await database.postgres.exec(statement);
   }
 }
 
 export async function resetDatabase() {
-  await postgres.exec('TRUNCATE "organizations" CASCADE');
+  await database.postgres.exec('TRUNCATE "organizations" CASCADE');
 }
 
 export async function seedProject(

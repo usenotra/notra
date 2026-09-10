@@ -1,9 +1,5 @@
-import { gateway } from "@notra/ai/gateway";
 import {
-  GscApiError,
-  GscReauthRequiredError,
   getGscIntegration,
-  queryGscTopQueries,
   updateGscIntegrationIfUnchanged,
 } from "@notra/ai/integrations/google-search-console";
 import type {
@@ -18,27 +14,24 @@ import {
   geoPrompts,
   geoSettings,
 } from "@notra/db/schema";
-import { generateText, Output } from "ai";
 import { and, eq, ne } from "drizzle-orm";
+import { Effect } from "effect";
 
 import {
-  GEO_DISCOVERY_SYSTEM_PROMPT,
   GEO_GAP_TITLE_MAX_LENGTH,
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
 } from "../constants/geo";
+import { GeoModelService, GeoSearchConsoleService } from "../deps";
 import {
-  GSC_SUGGESTION_MAX_TOKENS,
-  GSC_SUGGESTION_MODEL,
-  GSC_SYNC_LOOKBACK_DAYS,
-  GSC_SYNC_ROW_LIMIT,
-} from "../constants/google-search-console";
-import { geoSearchConsoleSuggestionSchema } from "../schemas/google-search-console";
+  GeoSearchConsoleError,
+  GeoSearchConsoleStampError,
+} from "../schemas/search-console-errors";
 import type {
-  GscSuggestionGenerationParams,
   GscSuggestionSyncOutcome,
   GscSyncResult,
 } from "../types/google-search-console";
+import { geoDb } from "./effect";
 import {
   buildBrandTerms,
   normalizeSuggestionKey,
@@ -46,25 +39,13 @@ import {
   resolveSourceKeywords,
   selectKeywordsForModel,
 } from "./suggestion-keywords";
-import { buildGscSuggestionPrompt } from "./suggestion-prompt";
-
-async function generateSuggestions(params: GscSuggestionGenerationParams) {
-  const result = await generateText({
-    model: gateway(GSC_SUGGESTION_MODEL, {}),
-    output: Output.object({ schema: geoSearchConsoleSuggestionSchema }),
-    system: GEO_DISCOVERY_SYSTEM_PROMPT,
-    prompt: buildGscSuggestionPrompt(params),
-    maxOutputTokens: GSC_SUGGESTION_MAX_TOKENS,
-  });
-  return result.output.prompts;
-}
 
 /**
  * `lastError` is rendered in the dashboard, so only curated copy goes in —
  * raw provider/SDK messages stay in the logs.
  */
 function toStoredSyncError(error: unknown): string {
-  if (error instanceof GscApiError) {
+  if (error instanceof GeoSearchConsoleError) {
     return error.status === 403
       ? "Google denied access to this property. Reconnect or pick another one."
       : "Search Console could not be reached. We will retry with the next sync.";
@@ -72,112 +53,156 @@ function toStoredSyncError(error: unknown): string {
   return "We could not turn your Search Console keywords into prompt suggestions.";
 }
 
-async function commitGscSuggestionSync(
-  integration: GscIntegrationRow,
-  outcome: GscSuggestionSyncOutcome,
-  integrationUpdates: GscIntegrationUpdate
-): Promise<GscSyncResult> {
-  const lastSyncedAt = new Date(
-    Math.max(Date.now(), (integration.lastSyncedAt?.getTime() ?? 0) + 1)
-  );
-  const suggestionsAdded = await db.transaction(async (tx) => {
-    const currentIntegration = await updateGscIntegrationIfUnchanged(
-      integration,
-      {
-        ...integrationUpdates,
-        lastSyncedAt,
-        lastError: null,
-        topQueries: outcome.topQueries,
-      },
-      tx
+const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
+  function* (
+    integration: GscIntegrationRow,
+    outcome: GscSuggestionSyncOutcome,
+    integrationUpdates: GscIntegrationUpdate
+  ) {
+    const lastSyncedAt = new Date(
+      Math.max(Date.now(), (integration.lastSyncedAt?.getTime() ?? 0) + 1)
     );
-    if (!currentIntegration) {
-      return null;
-    }
+    const suggestionsAdded = yield* geoDb(
+      "commit Search Console suggestions",
+      () =>
+        db.transaction(async (tx) => {
+          const currentIntegration = await updateGscIntegrationIfUnchanged(
+            integration,
+            {
+              ...integrationUpdates,
+              lastSyncedAt,
+              lastError: null,
+              topQueries: outcome.topQueries,
+            },
+            tx
+          );
+          if (!currentIntegration) {
+            return null;
+          }
 
-    await tx
-      .delete(geoPromptSuggestions)
-      .where(
-        and(
-          eq(geoPromptSuggestions.organizationId, integration.organizationId),
-          eq(geoPromptSuggestions.status, "pending")
-        )
-      );
-    if (outcome.suggestions.length === 0) {
-      return 0;
-    }
+          await tx
+            .delete(geoPromptSuggestions)
+            .where(
+              and(
+                eq(
+                  geoPromptSuggestions.organizationId,
+                  integration.organizationId
+                ),
+                eq(geoPromptSuggestions.status, "pending")
+              )
+            );
+          if (outcome.suggestions.length === 0) {
+            return 0;
+          }
 
-    const inserted = await tx
-      .insert(geoPromptSuggestions)
-      .values(outcome.suggestions)
-      .onConflictDoNothing()
-      .returning({ id: geoPromptSuggestions.id });
-    return inserted.length;
-  });
-  if (suggestionsAdded === null) {
-    return { status: "skipped", reason: "integration_changed" };
+          const inserted = await tx
+            .insert(geoPromptSuggestions)
+            .values(outcome.suggestions)
+            .onConflictDoNothing()
+            .returning({ id: geoPromptSuggestions.id });
+          return inserted.length;
+        })
+    );
+    if (suggestionsAdded === null) {
+      return {
+        status: "skipped",
+        reason: "integration_changed",
+      } satisfies GscSyncResult;
+    }
+    return {
+      status: "completed",
+      keywords: outcome.topQueries.length,
+      suggestionsAdded,
+    } satisfies GscSyncResult;
   }
-  return {
-    status: "completed",
-    keywords: outcome.topQueries.length,
-    suggestionsAdded,
-  };
-}
+);
 
-export async function selectGscSiteAndSyncSuggestions(
-  integration: GscIntegrationRow,
-  siteUrl: string
-): Promise<GscSyncResult> {
+export const selectGscSiteAndSyncSuggestions = Effect.fn(
+  "geo.searchConsole.selectSite"
+)(function* (integration: GscIntegrationRow, siteUrl: string) {
   if (integration.disconnectingAt) {
-    return { status: "skipped", reason: "integration_changed" };
+    return {
+      status: "skipped",
+      reason: "integration_changed",
+    } satisfies GscSyncResult;
   }
   if (integration.status === "reauth_required") {
-    return { status: "skipped", reason: "reauth_required" };
+    return {
+      status: "skipped",
+      reason: "reauth_required",
+    } satisfies GscSyncResult;
   }
 
-  try {
-    const outcome = await runSync(integration, siteUrl);
-    return await commitGscSuggestionSync(integration, outcome, { siteUrl });
-  } catch (error) {
-    if (!(error instanceof GscReauthRequiredError)) {
-      await updateGscIntegrationIfUnchanged(integration, {
-        lastError: toStoredSyncError(error),
-      });
+  return yield* syncIntegration(integration, siteUrl, { siteUrl });
+});
+
+export const syncGscSuggestions = Effect.fn("geo.searchConsole.sync")(
+  function* (organizationId: string) {
+    const integration = yield* geoDb("read Search Console integration", () =>
+      getGscIntegration(organizationId)
+    );
+    if (!integration) {
+      return {
+        status: "skipped",
+        reason: "not_connected",
+      } satisfies GscSyncResult;
     }
-    throw error;
-  }
-}
-
-export async function syncGscSuggestions(
-  organizationId: string
-): Promise<GscSyncResult> {
-  const integration = await getGscIntegration(organizationId);
-  if (!integration) {
-    return { status: "skipped", reason: "not_connected" };
-  }
-  if (integration.disconnectingAt) {
-    return { status: "skipped", reason: "integration_changed" };
-  }
-  if (!integration.siteUrl) {
-    return { status: "skipped", reason: "no_site_selected" };
-  }
-  if (integration.status === "reauth_required") {
-    return { status: "skipped", reason: "reauth_required" };
-  }
-
-  try {
-    const outcome = await runSync(integration, integration.siteUrl);
-    return await commitGscSuggestionSync(integration, outcome, {});
-  } catch (error) {
-    console.error("[GSC] Sync failed:", error);
-    if (!(error instanceof GscReauthRequiredError)) {
-      await updateGscIntegrationIfUnchanged(integration, {
-        lastError: toStoredSyncError(error),
-      });
+    if (integration.disconnectingAt) {
+      return {
+        status: "skipped",
+        reason: "integration_changed",
+      } satisfies GscSyncResult;
     }
-    throw error;
+    if (!integration.siteUrl) {
+      return {
+        status: "skipped",
+        reason: "no_site_selected",
+      } satisfies GscSyncResult;
+    }
+    if (integration.status === "reauth_required") {
+      return {
+        status: "skipped",
+        reason: "reauth_required",
+      } satisfies GscSyncResult;
+    }
+
+    return yield* syncIntegration(integration, integration.siteUrl, {});
   }
-}
+);
+
+const syncIntegration = Effect.fn("geo.searchConsole.syncIntegration")(
+  function* (
+    integration: GscIntegrationRow,
+    siteUrl: string,
+    updates: GscIntegrationUpdate
+  ) {
+    return yield* runSync(integration, siteUrl).pipe(
+      Effect.flatMap((outcome) =>
+        commitGscSuggestionSync(integration, outcome, updates)
+      ),
+      Effect.catch((error) =>
+        Effect.gen(function* () {
+          console.error("[GSC] Sync failed:", error);
+          if (
+            !(error instanceof GeoSearchConsoleError && error.reauthRequired)
+          ) {
+            yield* geoDb("stamp Search Console sync error", () =>
+              updateGscIntegrationIfUnchanged(integration, {
+                lastError: toStoredSyncError(error),
+              })
+            ).pipe(
+              Effect.mapError(
+                (stampCause) =>
+                  new GeoSearchConsoleStampError({ cause: error, stampCause })
+              )
+            );
+          }
+          return yield* Effect.fail(error);
+        })
+      )
+    );
+  }
+);
 
 /**
  * Tracked competitors are the only third-party names the model may use in a
@@ -204,11 +229,12 @@ function mergeCompetitorNames(
   return names;
 }
 
-async function runSync(
+const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
   integration: GscIntegrationRow,
   siteUrl: string
-): Promise<GscSuggestionSyncOutcome> {
+) {
   const organizationId = integration.organizationId;
+  const google = yield* GeoSearchConsoleService;
 
   const [
     rows,
@@ -217,41 +243,50 @@ async function runSync(
     competitorRows,
     trackedRows,
     suggestionRows,
-  ] = await Promise.all([
-    queryGscTopQueries(integration, {
-      siteUrl,
-      days: GSC_SYNC_LOOKBACK_DAYS,
-      rowLimit: GSC_SYNC_ROW_LIMIT,
-    }),
-    db.query.geoSettings.findFirst({
-      where: eq(geoSettings.organizationId, organizationId),
-      columns: { companyName: true, aliases: true, competitors: true },
-    }),
-    db.query.brandSettings.findFirst({
-      where: and(
-        eq(brandSettings.organizationId, organizationId),
-        eq(brandSettings.isDefault, true)
+  ] = yield* Effect.all(
+    [
+      google.topQueries(integration, siteUrl),
+      geoDb("read suggestion settings", () =>
+        db.query.geoSettings.findFirst({
+          where: eq(geoSettings.organizationId, organizationId),
+          columns: { companyName: true, aliases: true, competitors: true },
+        })
       ),
-      columns: { companyDescription: true },
-    }),
-    db.query.geoCompetitors.findMany({
-      where: eq(geoCompetitors.organizationId, organizationId),
-      columns: { name: true },
-    }),
-    db.query.geoPrompts.findMany({
-      where: eq(geoPrompts.organizationId, organizationId),
-      columns: { prompt: true },
-    }),
-    // Accepted/dismissed rows occupy the (organizationId, prompt) unique index
-    // even after the tracked prompt is deleted. Pending rows are replaced later.
-    db.query.geoPromptSuggestions.findMany({
-      where: and(
-        eq(geoPromptSuggestions.organizationId, organizationId),
-        ne(geoPromptSuggestions.status, "pending")
+      geoDb("read suggestion brand", () =>
+        db.query.brandSettings.findFirst({
+          where: and(
+            eq(brandSettings.organizationId, organizationId),
+            eq(brandSettings.isDefault, true)
+          ),
+          columns: { companyDescription: true },
+        })
       ),
-      columns: { prompt: true },
-    }),
-  ]);
+      geoDb("read suggestion competitors", () =>
+        db.query.geoCompetitors.findMany({
+          where: eq(geoCompetitors.organizationId, organizationId),
+          columns: { name: true },
+        })
+      ),
+      geoDb("read tracked suggestions", () =>
+        db.query.geoPrompts.findMany({
+          where: eq(geoPrompts.organizationId, organizationId),
+          columns: { prompt: true },
+        })
+      ),
+      // Accepted/dismissed rows occupy the (organizationId, prompt) unique index
+      // even after the tracked prompt is deleted. Pending rows are replaced later.
+      geoDb("read prior suggestions", () =>
+        db.query.geoPromptSuggestions.findMany({
+          where: and(
+            eq(geoPromptSuggestions.organizationId, organizationId),
+            ne(geoPromptSuggestions.status, "pending")
+          ),
+          columns: { prompt: true },
+        })
+      ),
+    ],
+    { concurrency: "unbounded" }
+  );
 
   const brandTerms = buildBrandTerms(settingsRow);
   const keywords = selectKeywordsForModel(rows, brandTerms);
@@ -276,7 +311,8 @@ async function runSync(
     settingsRow?.competitors ?? []
   );
 
-  const generated = await generateSuggestions({
+  const models = yield* GeoModelService;
+  const generated = yield* models.suggest({
     companyName: settingsRow?.companyName ?? null,
     companyDescription: brandRow?.companyDescription ?? null,
     competitors,
@@ -322,5 +358,5 @@ async function runSync(
   return {
     suggestions: values,
     topQueries: rows,
-  };
-}
+  } satisfies GscSuggestionSyncOutcome;
+});

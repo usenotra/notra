@@ -2,45 +2,65 @@
 
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PROMPT_HISTORY_ANSWER_LABELS } from "@notra/geo-core/constants/geo";
+import {
+  GEO_PROMPT_HISTORY_ANSWER_LABELS,
+  GEO_PROMPT_MAX_TAGS,
+} from "@notra/geo-core/constants/geo";
 import type {
   GeoPromptHistoryCheck,
   GeoPromptReceiptView,
-  GeoPromptResult,
+  GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { geoPromptIntentLabel } from "@notra/geo-core/utils/geo-prompt-intent";
+import { normalizePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 import { tween } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
+import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
+import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
+import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
-import { PromptReceiptAnalysis } from "@/components/geo/prompt-receipt-analysis";
 import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-switch";
+import { PromptScanButton } from "@/components/geo/prompt-scan-button";
+import {
+  GeoScanControlsProvider,
+  useGeoScanControls,
+} from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
+import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoCompetitors, useGeoPromptHistory } from "@/lib/hooks/use-geo";
+import { useGeoCompetitors } from "@/lib/hooks/use-geo";
+import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import type {
   PromptAnswerPageProps,
   PromptDetailDialogProps,
 } from "@/types/geo";
+import type {
+  PromptAnswerBodyProps,
+  PromptAnswerHeaderProps,
+} from "@/types/geo-prompt-detail";
 import { sharedEngineAnswerMode } from "@/utils/geo-charts";
-import { adjacentPromptEngine } from "@/utils/geo-prompt-engines";
 import {
-  promptHistoryForEngine,
-  promptResultFromHistoryCheck,
-} from "@/utils/geo-prompt-history";
+  adjacentPromptEngine,
+  promptEngineArrowDelta,
+} from "@/utils/geo-prompt-engines";
+import { promptResultFromHistoryCheck } from "@/utils/geo-prompt-history";
 
 const INSTANT = { duration: 0 } as const;
 const SLIDE_PX = 18;
@@ -60,7 +80,7 @@ function threadVariants(reduceMotion: boolean) {
 }
 
 function latestPromptCheckAt(
-  results: readonly GeoPromptResult[]
+  results: readonly GeoPromptResultSummary[]
 ): string | null {
   let latest: string | null = null;
   for (const result of results) {
@@ -97,35 +117,172 @@ function HistoryAnswerBanner({
   );
 }
 
-function PromptAnswerPage({
+function PromptAnswerHeader({
+  promptText,
+  onPrepareScan,
+  organizationId,
   row,
+  results,
+  active,
+  view,
+  onSelectEngine,
+  onSelectView,
+}: PromptAnswerHeaderProps) {
+  const answerMode = sharedEngineAnswerMode(
+    results.map((result) => result.engine)
+  );
+  const latestCheck = active?.lastCheckedAt ?? latestPromptCheckAt(results);
+
+  return (
+    <SheetHeader className="shrink-0 gap-3 border-b p-4">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 pr-8">
+        <SheetTitle className="min-w-0 text-sm leading-5 font-medium">
+          <PromptCopyButton prompt={promptText ?? row.prompt} />
+        </SheetTitle>
+        <SheetDescription className="sr-only">
+          {answerMode
+            ? `Latest ${answerMode} answer from each engine`
+            : "Latest answer from each engine"}
+        </SheetDescription>
+        {latestCheck ? (
+          <time
+            className="text-muted-foreground shrink-0 text-xs tabular-nums"
+            dateTime={latestCheck}
+          >
+            {formatAiTrafficTimestamp(latestCheck)}
+          </time>
+        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <PromptScanButton
+            onPrepare={onPrepareScan}
+            organizationId={organizationId}
+            row={row}
+          />
+        </div>
+      </div>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div>
+          <dt className="text-muted-foreground text-xs">Intent</dt>
+          <dd>{geoPromptIntentLabel(row.intent)}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground text-xs">Best position</dt>
+          <dd className="tabular-nums">
+            {row.bestPosition === null ? "Not ranked" : `#${row.bestPosition}`}
+          </dd>
+        </div>
+      </dl>
+      {results.length > 0 && active ? (
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+          <PromptEngineSwitcher
+            active={active}
+            onChange={onSelectEngine}
+            results={results}
+          />
+          <PromptReceiptViewSwitch onChange={onSelectView} view={view} />
+        </div>
+      ) : null}
+    </SheetHeader>
+  );
+}
+
+function PromptAnswerBody({
+  detailState,
+  view,
+  prompt,
+  scanPromptId,
+  selectedCheck,
+  history,
+  isHistoryLoading,
+  competitors,
+  onRetry,
+  onSelectCheck,
+  onBackToLatest,
+}: PromptAnswerBodyProps) {
+  if (selectedCheck) {
+    return (
+      <>
+        <HistoryAnswerBanner check={selectedCheck} onBack={onBackToLatest} />
+        <GeoPromptAnswerThread
+          scrollable={false}
+          prompt={prompt}
+          result={promptResultFromHistoryCheck(
+            selectedCheck,
+            scanPromptId,
+            prompt
+          )}
+        />
+      </>
+    );
+  }
+
+  return (
+    <PromptAnswerContent
+      state={detailState}
+      view={view}
+      onRetry={onRetry}
+      scrollable={false}
+      competitors={competitors}
+      history={history}
+      isHistoryLoading={isHistoryLoading}
+      onSelectCheck={onSelectCheck}
+      prompt={prompt}
+    />
+  );
+}
+
+function PromptAnswerPage({
+  onPrepareScan,
+  row,
+  open,
   organizationId,
   isScanning = false,
   surface,
   initialEngine,
+  scanId,
+  initialLanguage,
 }: PromptAnswerPageProps) {
-  const results = row.results;
-  const engines = results.map((result) => result.engine);
-  const [engine, setEngine] = useState(
-    () =>
-      engines.find((candidate) => candidate === initialEngine) ??
-      engines[0] ??
-      ""
-  );
+  const {
+    history,
+    scanPromptId,
+    languages,
+    selectedLanguage,
+    setLanguage,
+    results,
+    engines,
+    engine,
+    setEngine,
+    active,
+    onRetry,
+    detailState,
+    engineHistory,
+    promptText,
+  } = usePromptAnswerSelection({
+    row,
+    organizationId,
+    open,
+    scanId,
+    initialLanguage,
+    initialEngine,
+  });
+  const tagsInputId = useId();
+  const { prompts, pendingPromptIds, setPromptTags } =
+    useGeoPromptsDb(organizationId);
+  const tags = prompts.find((prompt) => prompt.id === row.id)?.tags ?? row.tags;
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
   const [direction, setDirection] = useState(1);
   const reduceMotion = useReducedMotion();
-  const answerMode = sharedEngineAnswerMode(engines);
-  const latestCheck = latestPromptCheckAt(results);
-  const active =
-    results.find((result) => result.engine === engine) ?? results[0] ?? null;
   const openedRef = useRef(false);
   const activeEngine = active?.engine ?? null;
   const resultCount = results.length;
 
   useEffect(() => {
+    if (!open) {
+      openedRef.current = false;
+      return;
+    }
     if (openedRef.current) {
       return;
     }
@@ -136,21 +293,9 @@ function PromptAnswerPage({
       engine_count: resultCount,
       prompt_id: row.id,
     });
-  }, [activeEngine, resultCount, row.id, surface]);
-  const scanPromptId = results[0]?.promptId ?? row.id;
-  const history = useGeoPromptHistory(organizationId, scanPromptId, {
-    enabled: results.length > 0,
-  });
+  }, [activeEngine, open, resultCount, row.id, surface]);
   const competitors = useGeoCompetitors(organizationId);
-  const engineHistory = active
-    ? promptHistoryForEngine(history.data?.checks ?? [], active.engine)
-    : [];
   const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
-
-  const rawResult =
-    active && selectedCheck
-      ? promptResultFromHistoryCheck(selectedCheck, scanPromptId, row.prompt)
-      : active;
 
   function selectEngine(next: string, nextDirection: number) {
     if (next === engine) {
@@ -174,117 +319,134 @@ function PromptAnswerPage({
   }
 
   function handleArrowNavigation(event: KeyboardEvent<HTMLElement>) {
-    if (
-      results.length < 2 ||
-      (event.key !== "ArrowLeft" && event.key !== "ArrowRight") ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey
-    ) {
-      return;
-    }
-
-    const target = event.target;
-    if (
-      target instanceof HTMLElement &&
-      (target.isContentEditable ||
-        target.closest("input, textarea, select, [contenteditable='true']"))
-    ) {
+    const delta = promptEngineArrowDelta(event, results.length);
+    if (delta === null) {
       return;
     }
 
     event.preventDefault();
-    const delta = event.key === "ArrowLeft" ? -1 : 1;
     selectEngine(
       adjacentPromptEngine(engines, active?.engine ?? engine, delta),
       delta
     );
   }
 
+  const emptyAnswer =
+    detailState.status === "loading" || detailState.status === "error" ? (
+      <PromptDetailStatus onRetry={onRetry} status={detailState.status} />
+    ) : (
+      <div className="flex min-h-48 items-center justify-center px-6">
+        <p className="text-muted-foreground text-center text-sm text-pretty">
+          {geoScanEmptyMessage(
+            isScanning,
+            "Run a scan to see how engines answer this"
+          )}
+        </p>
+      </div>
+    );
+
   return (
-    <ResponsiveDialogContent
-      className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] w-full max-w-[min(calc(100vw-2rem),54rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),54rem)]"
-      drawerClassName="h-[94svh] max-h-[94svh]"
+    <SheetContent
+      className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
       onKeyDown={handleArrowNavigation}
+      side="right"
     >
-      <ResponsiveDialogHeader className="shrink-0 gap-4 overflow-visible border-b px-6 pt-5 pb-4">
-        <div className="flex flex-col gap-1 pr-8">
-          <ResponsiveDialogTitle className="text-xl leading-snug font-semibold text-balance">
-            {row.prompt}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription className="sr-only">
-            {answerMode
-              ? `Latest ${answerMode} answer from each engine`
-              : "Latest answer from each engine"}
-          </ResponsiveDialogDescription>
-          {latestCheck ? (
-            <p className="text-muted-foreground text-sm">
-              {formatAiTrafficTimestamp(latestCheck)}
-            </p>
-          ) : null}
-        </div>
-        {results.length > 0 && active ? (
-          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-            <PromptEngineSwitcher
-              active={active}
-              onChange={selectEngine}
-              results={results}
-            />
-            <PromptReceiptViewSwitch onChange={selectView} view={view} />
-          </div>
-        ) : null}
-      </ResponsiveDialogHeader>
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        <AnimatePresence custom={direction} initial={false}>
-          {active ? (
-            <motion.div
-              animate="center"
-              className="absolute inset-0 flex flex-col"
-              custom={direction}
-              exit="exit"
-              initial="enter"
-              key={`${active.engine}-${view}-${selectedCheck?.id ?? "latest"}`}
-              transition={threadTransition}
-              variants={threadVariants(Boolean(reduceMotion))}
+      <PromptAnswerHeader
+        promptText={promptText}
+        onPrepareScan={onPrepareScan}
+        organizationId={organizationId}
+        active={active}
+        onSelectEngine={selectEngine}
+        onSelectView={selectView}
+        row={row}
+        results={results}
+        view={view}
+      />
+      {scanId && languages.length > 1 ? (
+        <div
+          className="flex shrink-0 flex-wrap gap-1 border-b px-4 py-2"
+          aria-label="Answer language"
+          role="group"
+        >
+          {languages.map((item) => (
+            <Button
+              key={item}
+              aria-pressed={item === selectedLanguage}
+              onClick={() => {
+                setLanguage(item);
+                setSelectedCheck(null);
+              }}
+              size="sm"
+              variant={item === selectedLanguage ? "secondary" : "ghost"}
             >
-              {view === "analysis" ? (
-                <PromptReceiptAnalysis
+              {item}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="relative grid">
+          <AnimatePresence custom={direction} initial={false}>
+            {active ? (
+              <motion.div
+                animate="center"
+                className="col-start-1 row-start-1 flex min-w-0 flex-col"
+                custom={direction}
+                exit="exit"
+                initial="enter"
+                key={`${active.engine}-${view}-${selectedCheck?.id ?? "latest"}`}
+                transition={threadTransition}
+                variants={threadVariants(Boolean(reduceMotion))}
+              >
+                <PromptAnswerBody
                   competitors={competitors.data?.competitors}
+                  detailState={detailState}
                   history={engineHistory}
                   isHistoryLoading={history.isPending}
+                  onBackToLatest={() => setSelectedCheck(null)}
+                  onRetry={onRetry}
                   onSelectCheck={openHistoryAnswer}
-                  prompt={row.prompt}
-                  result={active}
+                  prompt={promptText}
+                  scanPromptId={scanPromptId}
+                  selectedCheck={selectedCheck}
+                  view={view}
                 />
-              ) : (
-                <>
-                  {selectedCheck ? (
-                    <HistoryAnswerBanner
-                      check={selectedCheck}
-                      onBack={() => setSelectedCheck(null)}
-                    />
-                  ) : null}
-                  <GeoPromptAnswerThread
-                    prompt={row.prompt}
-                    result={rawResult ?? active}
-                  />
-                </>
-              )}
-            </motion.div>
+              </motion.div>
+            ) : (
+              emptyAnswer
+            )}
+          </AnimatePresence>
+        </div>
+        <section
+          className="bg-muted/20 space-y-3 px-4 pt-0 pb-4"
+          aria-labelledby={`${tagsInputId}-heading`}
+        >
+          <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
+            Tags
+          </h3>
+          {row.source === "auto" ? (
+            <p className="text-sm break-words">
+              {tags.length > 0 ? tags.join(", ") : "No tags"}
+            </p>
           ) : (
-            <div className="flex h-full min-h-0 items-center justify-center px-6">
-              <p className="text-muted-foreground text-center text-sm text-pretty">
-                {geoScanEmptyMessage(
-                  isScanning,
-                  "Run a scan to see how engines answer this"
-                )}
-              </p>
-            </div>
+            <GeoTagList
+              disabled={pendingPromptIds.has(row.id)}
+              id={tagsInputId}
+              inline
+              inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
+              label={GEO_PROMPT_TAGS_COPY.label}
+              labeled={false}
+              max={GEO_PROMPT_MAX_TAGS}
+              onChange={(nextTags) =>
+                setPromptTags(row.id, normalizePromptTags(nextTags))
+              }
+              placeholder="Add a tag…"
+              values={tags}
+            />
           )}
-        </AnimatePresence>
+        </section>
       </div>
-    </ResponsiveDialogContent>
+    </SheetContent>
   );
 }
 
@@ -296,23 +458,34 @@ export function PromptDetailDialog({
   surface,
   organizationId,
   initialEngine,
+  scanId,
+  initialLanguage,
 }: PromptDetailDialogProps) {
   const { activeOrganization } = useOrganizationsContext();
+  const scanControls = useGeoScanControls();
   const resolvedOrganizationId = organizationId ?? activeOrganization?.id ?? "";
-  if (!row) {
-    return null;
-  }
 
-  return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
+  const content = row ? (
+    <Sheet onOpenChange={onOpenChange} open={open}>
       <PromptAnswerPage
+        onPrepareScan={() => onOpenChange(false)}
         initialEngine={initialEngine}
+        initialLanguage={initialLanguage}
+        scanId={scanId}
         isScanning={isScanning}
-        key={row.id}
+        key={`${row.id}-${scanId ?? "latest"}`}
+        open={open}
         organizationId={resolvedOrganizationId}
         row={row}
         surface={surface}
       />
-    </ResponsiveDialog>
+    </Sheet>
+  ) : null;
+  return scanControls ? (
+    content
+  ) : (
+    <GeoScanControlsProvider organizationId={resolvedOrganizationId}>
+      {content}
+    </GeoScanControlsProvider>
   );
 }

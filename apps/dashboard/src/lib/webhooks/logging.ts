@@ -37,6 +37,7 @@ function getAllLogKey(organizationId: string) {
 export async function appendWebhookLog(input: WebhookLogInput) {
   const log: Log & { payload?: Record<string, unknown> | null } = {
     id: `log_${crypto.randomUUID().slice(0, 8)}`,
+    integrationId: input.integrationId,
     referenceId: input.referenceId ?? null,
     title: input.title,
     integrationType: input.integrationType,

@@ -10,7 +10,7 @@ import { cache } from "react";
 
 import { LAST_VISITED_ORGANIZATION_COOKIE } from "@/constants/cookies";
 import { isSessionBanned } from "@/lib/auth/banned";
-import { getAuthSession } from "@/lib/auth/server";
+import { getAuthIdentity, getAuthSession } from "@/lib/auth/server";
 import { retryTransientDbError } from "@/lib/db/retry";
 import { getLastVisitedProject } from "@/utils/cookies";
 
@@ -22,7 +22,7 @@ const getOrganizationAccess = cache(async (rawSlug: string) => {
   }
 
   const slug = slugValidation.data;
-  const session = await getAuthSession();
+  const session = await getAuthIdentity();
 
   if (!session?.user) {
     if (await isSessionBanned()) {
@@ -63,20 +63,21 @@ export async function getSession() {
   return session;
 }
 
-export async function requireAuth() {
-  const session = await getAuthSession();
+/**
+ * Authenticated user, without resolving the active organization. Callers that
+ * need the active organization should read the session via `getSession`.
+ */
+export async function requireAuthIdentity() {
+  const identity = await getAuthIdentity();
 
-  if (!session?.user) {
+  if (!identity?.user) {
     if (await isSessionBanned()) {
       redirect("/auth/banned");
     }
     redirect("/login");
   }
 
-  return {
-    session: session.session,
-    user: session.user,
-  };
+  return identity;
 }
 
 async function getLastActiveOrganizationForUser(userId: string) {

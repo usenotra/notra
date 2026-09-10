@@ -9,6 +9,9 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
+import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
+import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import { Effect, Layer } from "effect";
 
 import { resolveZdrEntitlement } from "@/lib/billing/subscription";
@@ -105,6 +108,9 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
 
 /** Complete dashboard runtime for GEO programs. */
 export const geoCoreDashboardLayer = Layer.mergeAll(
+  agentReadinessNetworkLive,
+  geoModelLive,
+  geoSearchConsoleLive,
   workflowLayer,
   billingLayer,
   entitlementLayer,

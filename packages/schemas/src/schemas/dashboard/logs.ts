@@ -14,3 +14,8 @@ export const listWebhookLogsInputSchema = z.object({
   status: webhookLogsQuerySchema.shape.status,
   search: webhookLogsQuerySchema.shape.search,
 });
+
+export const webhookLogDetailInputSchema = z.object({
+  organizationId: organizationIdSchema,
+  logId: z.string().min(1),
+});

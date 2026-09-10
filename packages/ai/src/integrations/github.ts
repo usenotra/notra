@@ -20,6 +20,19 @@ import {
   type GitHubAppRepository,
   type GitHubAppRepositoryResponse,
 } from "../schemas/github-app";
+import {
+  GitHubAppConfigurationError,
+  GitHubCredentialDecryptionError,
+  GitHubPersistenceError,
+  GitHubRequestError,
+  GitHubRepositoryCacheError,
+  GitHubResponseError,
+} from "../schemas/github-operations";
+import type {
+  GitHubInstallationReference,
+  GitHubCredentialDependencies,
+  SelectGitHubRepositoriesParams,
+} from "../types/github-operations";
 import type {
   AddRepositoryParams,
   ConfigureOutputParams,
@@ -35,7 +48,11 @@ import type { GitHubToolRepositoryContext } from "../types/tools";
 import { createOctokit } from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";
+import { runGitHubEffect } from "../utils/run-github-effect";
+import { saveGitHubRepositorySelection } from "../utils/save-github-repository-selection";
 import { getConfiguredAppUrl } from "../utils/url";
+import { selectGitHubRepositories } from "./github-selection";
+import { resolveGitHubCredentials, resolveGitHubToken } from "./github-token";
 
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 16);
 const GITHUB_SCOPE_SEPARATOR_PATTERN = /[,\s]+/;
@@ -108,10 +125,21 @@ function base64url(value: string) {
     .replace(/\//g, "_");
 }
 
+function readGitHubAppConfig() {
+  return {
+    appId: process.env.GITHUB_APP_ID,
+    privateKey: process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    slug: process.env.GITHUB_APP_SLUG ?? process.env.GITHUB_APP_NAME,
+  };
+}
+
+export function isGitHubAppConfigured() {
+  const { appId, privateKey, slug } = readGitHubAppConfig();
+  return Boolean(appId && privateKey && slug);
+}
+
 function getGitHubAppConfig() {
-  const appId = process.env.GITHUB_APP_ID;
-  const privateKey = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  const slug = process.env.GITHUB_APP_SLUG ?? process.env.GITHUB_APP_NAME;
+  const { appId, privateKey, slug } = readGitHubAppConfig();
 
   if (!(appId && privateKey && slug)) {
     throw new GitHubAppNotConfiguredError();
@@ -143,42 +171,41 @@ function createGitHubAppJwt() {
 }
 
 async function createGitHubAppInstallationToken(installationId: string) {
-  const octokit = createOctokit(createGitHubAppJwt());
-  const { data } = await octokit.request(
-    "POST /app/installations/{installation_id}/access_tokens",
-    {
-      installation_id: Number(installationId),
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
+  return runGitHubEffect(
+    createGitHubAppInstallationTokenEffect(installationId).pipe(
+      Effect.mapError((error) => error.cause)
+    )
   );
-
-  return data.token;
 }
 
-async function createGitHubAppInstallationTokenForRecord(
-  recordId: string,
-  options?: { organizationId?: string }
-) {
-  const installation = await db.query.githubAppInstallations.findFirst({
-    where: options?.organizationId
-      ? and(
-          eq(githubAppInstallations.id, recordId),
-          eq(githubAppInstallations.organizationId, options.organizationId)
-        )
-      : eq(githubAppInstallations.id, recordId),
-    columns: {
-      installationId: true,
-    },
+const createGitHubAppInstallationTokenEffect = Effect.fn(
+  "GitHub.createInstallationToken"
+)(function* (installationId: string) {
+  const jwt = yield* Effect.try({
+    try: createGitHubAppJwt,
+    catch: (cause) => new GitHubAppConfigurationError({ cause }),
   });
-
-  if (!installation) {
-    throw new Error("GitHub App installation not found");
-  }
-
-  return createGitHubAppInstallationToken(installation.installationId);
-}
+  const octokit = createOctokit(jwt);
+  const { data } = yield* Effect.tryPromise({
+    try: () =>
+      octokit.request(
+        "POST /app/installations/{installation_id}/access_tokens",
+        {
+          installation_id: Number(installationId),
+          headers: { "X-GitHub-Api-Version": "2022-11-28" },
+        }
+      ),
+    catch: (cause) =>
+      getErrorStatus(cause) === 401
+        ? new GitHubAppConfigurationError({ cause })
+        : new GitHubRequestError({
+            operation: "createInstallationToken",
+            status: getErrorStatus(cause) ?? undefined,
+            cause,
+          }),
+  });
+  return data.token;
+});
 
 async function getGitHubAppInstallation(installationId: string) {
   const octokit = createOctokit(createGitHubAppJwt());
@@ -355,32 +382,6 @@ export async function isGitHubAccountConnectionRequired(userId: string) {
   });
 
   return !githubAccount?.accessToken;
-}
-
-async function insertDefaultRepositoryOutputs(repositoryId: string) {
-  await db.insert(repositoryOutputs).values([
-    {
-      id: nanoid(),
-      repositoryId,
-      outputType: "changelog",
-      enabled: true,
-      config: null,
-    },
-    {
-      id: nanoid(),
-      repositoryId,
-      outputType: "blog_post",
-      enabled: false,
-      config: null,
-    },
-    {
-      id: nanoid(),
-      repositoryId,
-      outputType: "twitter_post",
-      enabled: false,
-      config: null,
-    },
-  ]);
 }
 
 function toRepositoryRecord(integration: {
@@ -605,7 +606,7 @@ export async function createGitHubIntegration(
       id: nanoid(),
       repositoryId: integration.id,
       outputType: "blog_post",
-      enabled: false,
+      enabled: true,
       config: null,
     },
     {
@@ -721,20 +722,25 @@ export async function listGitHubAppInstallationsByOrganization(
   });
 }
 
-async function listRepositoriesForInstallation(installation: {
-  organizationId: string;
-  installationId: string;
-}) {
+const listRepositoriesForInstallation = Effect.fn(
+  "GitHub.listInstallationRepositories"
+)(function* (installation: GitHubInstallationReference) {
   const cacheKey = `github_app_repositories:${installation.organizationId}:${installation.installationId}`;
   if (redis) {
-    const cached = await redis.get(cacheKey);
-    const decodedCached = await Effect.runPromise(
-      decodeCachedGitHubAppRepositories(cached).pipe(
-        Effect.match({
-          onFailure: () => null,
-          onSuccess: (repositories) => repositories,
-        })
-      )
+    const cache = redis;
+    const cached = yield* Effect.tryPromise({
+      try: () => cache.get(cacheKey),
+      catch: (cause) =>
+        new GitHubRepositoryCacheError({
+          operation: "readRepositories",
+          cause,
+        }),
+    });
+    const decodedCached = yield* decodeCachedGitHubAppRepositories(cached).pipe(
+      Effect.match({
+        onFailure: () => null,
+        onSuccess: (repositories) => repositories,
+      })
     );
 
     if (decodedCached) {
@@ -742,7 +748,7 @@ async function listRepositoriesForInstallation(installation: {
     }
   }
 
-  const token = await createGitHubAppInstallationToken(
+  const token = yield* createGitHubAppInstallationTokenEffect(
     installation.installationId
   );
   const octokit = createOctokit(token);
@@ -750,15 +756,28 @@ async function listRepositoriesForInstallation(installation: {
   let page = 1;
 
   while (true) {
-    const { data } = await octokit.request("GET /installation/repositories", {
-      per_page: 100,
-      page,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+    const currentPage = page;
+    const { data } = yield* Effect.tryPromise({
+      try: () =>
+        octokit.request("GET /installation/repositories", {
+          per_page: 100,
+          page: currentPage,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        }),
+      catch: (cause) =>
+        new GitHubRequestError({
+          operation: "listRepositories",
+          status: getErrorStatus(cause) ?? undefined,
+          cause,
+        }),
     });
-    const response = await Effect.runPromise(
-      decodeGitHubAppRepositoriesResponse(data)
+    const response = yield* decodeGitHubAppRepositoriesResponse(data).pipe(
+      Effect.mapError(
+        (cause) =>
+          new GitHubResponseError({ operation: "listRepositories", cause })
+      )
     );
     repositories.push(...response.repositories);
 
@@ -780,31 +799,41 @@ async function listRepositoriesForInstallation(installation: {
     })
   );
 
-  await redis?.set(cacheKey, mappedRepositories, {
-    ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
+  yield* Effect.tryPromise({
+    try: async () => {
+      await redis?.set(cacheKey, mappedRepositories, {
+        ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
+      });
+    },
+    catch: (cause) =>
+      new GitHubRepositoryCacheError({ operation: "writeRepositories", cause }),
   });
 
   return mappedRepositories;
-}
+});
 
-export async function listGitHubAppRepositories(
+export const listGitHubAppRepositoriesEffect = Effect.fn(
+  "GitHub.listRepositories"
+)(function* (
   organizationId: string,
-  preloadedInstallations?: Awaited<
-    ReturnType<typeof listGitHubAppInstallationsByOrganization>
-  >
+  preloadedInstallations?: GitHubInstallationReference[]
 ) {
   const installations =
     preloadedInstallations ??
-    (await listGitHubAppInstallationsByOrganization(organizationId));
+    (yield* Effect.tryPromise({
+      try: () => listGitHubAppInstallationsByOrganization(organizationId),
+      catch: (cause) =>
+        new GitHubPersistenceError({ operation: "listInstallations", cause }),
+    }));
 
   if (installations.length === 0) {
     return [];
   }
 
-  const repositoryLists = await Promise.all(
-    installations.map((installation) =>
-      listRepositoriesForInstallation(installation)
-    )
+  const repositoryLists = yield* Effect.forEach(
+    installations,
+    listRepositoriesForInstallation,
+    { concurrency: 4 }
   );
 
   const repositoriesById = new Map<string, GitHubAppRepository>();
@@ -815,7 +844,7 @@ export async function listGitHubAppRepositories(
   }
 
   return [...repositoriesById.values()];
-}
+});
 
 export async function getSelectedGitHubAppRepositoryIds(
   organizationId: string,
@@ -844,169 +873,32 @@ export async function getSelectedGitHubAppRepositoryIds(
     .filter((id): id is string => Boolean(id));
 }
 
-export async function setSelectedGitHubAppRepositories(params: {
-  organizationId: string;
-  userId: string;
-  repositoryIds: string[];
-}) {
-  const installations = await listGitHubAppInstallationsByOrganization(
-    params.organizationId
-  );
-
-  if (installations.length === 0) {
-    throw new Error("GitHub App installation not found");
-  }
-
-  const repositoryLists = await Promise.all(
-    installations.map(async (installation) => ({
-      installation,
-      repositories: await listRepositoriesForInstallation(installation),
-    }))
-  );
-
-  const repositoryById = new Map<string, GitHubAppRepository>();
-  const installationRecordIdByRepositoryId = new Map<string, string>();
-  for (const { installation, repositories } of repositoryLists) {
-    for (const repository of repositories) {
-      repositoryById.set(repository.id, repository);
-      installationRecordIdByRepositoryId.set(repository.id, installation.id);
-    }
-  }
-
-  const selectedRepositories = params.repositoryIds.map((repositoryId) => {
-    const repository = repositoryById.get(repositoryId);
-    if (!repository) {
-      throw new Error(
-        "Selected repository is not available to this installation"
-      );
-    }
-    return repository;
+export function setSelectedGitHubAppRepositoriesEffect(
+  params: SelectGitHubRepositoriesParams
+) {
+  return selectGitHubRepositories(params, {
+    listInstallations: (organizationId) =>
+      Effect.tryPromise({
+        try: () => listGitHubAppInstallationsByOrganization(organizationId),
+        catch: (cause) =>
+          new GitHubPersistenceError({ operation: "listInstallations", cause }),
+      }),
+    listRepositories: listRepositoriesForInstallation,
+    saveSelection: saveGitHubRepositorySelection,
+    invalidateRepositories: (installation) =>
+      Effect.tryPromise({
+        try: async () => {
+          await redis?.del(
+            `github_app_repositories:${installation.organizationId}:${installation.installationId}`
+          );
+        },
+        catch: (cause) =>
+          new GitHubRepositoryCacheError({
+            operation: "invalidateRepositories",
+            cause,
+          }),
+      }),
   });
-
-  const existing = await db.query.githubIntegrations.findMany({
-    where: and(
-      eq(githubIntegrations.organizationId, params.organizationId),
-      inArray(
-        githubIntegrations.githubAppInstallationId,
-        installations.map((installation) => installation.id)
-      )
-    ),
-    columns: {
-      id: true,
-      githubRepositoryId: true,
-    },
-  });
-  const existingByRepositoryId = new Map(
-    existing
-      .filter((repo) => repo.githubRepositoryId)
-      .map((repo) => [repo.githubRepositoryId as string, repo.id])
-  );
-
-  const selectedIds = new Set(params.repositoryIds);
-  const deselectedIds = existing
-    .filter(
-      (repo) =>
-        repo.githubRepositoryId && !selectedIds.has(repo.githubRepositoryId)
-    )
-    .map((repo) => repo.id);
-
-  await Promise.all(
-    selectedRepositories.map(async (repository) => {
-      const existingIntegrationId = existingByRepositoryId.get(repository.id);
-      const conflictingRepository = await findRepositoryInOrganization(
-        params.organizationId,
-        repository.owner,
-        repository.name
-      );
-
-      if (
-        conflictingRepository &&
-        conflictingRepository.id !== existingIntegrationId
-      ) {
-        throw new Error(
-          `Repository ${repository.fullName} is already connected`
-        );
-      }
-    })
-  );
-
-  if (deselectedIds.length > 0) {
-    await db
-      .update(githubIntegrations)
-      .set({
-        enabled: false,
-        repositoryEnabled: false,
-      })
-      .where(inArray(githubIntegrations.id, deselectedIds));
-  }
-
-  for (const repository of selectedRepositories) {
-    const existingIntegrationId = existingByRepositoryId.get(repository.id);
-
-    if (existingIntegrationId) {
-      await db
-        .update(githubIntegrations)
-        .set({
-          displayName: repository.fullName,
-          owner: repository.owner,
-          repo: repository.name,
-          defaultBranch: repository.defaultBranch,
-          githubRepositoryPrivate: repository.private,
-          repositoryEnabled: true,
-          enabled: true,
-        })
-        .where(eq(githubIntegrations.id, existingIntegrationId));
-      continue;
-    }
-
-    const webhookSecret = generateWebhookSecret();
-    const owningInstallationRecordId = installationRecordIdByRepositoryId.get(
-      repository.id
-    );
-    if (!owningInstallationRecordId) {
-      throw new Error(
-        "Selected repository is not available to this installation"
-      );
-    }
-
-    const [created] = await db
-      .insert(githubIntegrations)
-      .values({
-        id: nanoid(),
-        organizationId: params.organizationId,
-        createdByUserId: params.userId,
-        displayName: repository.fullName,
-        encryptedToken: null,
-        githubAppInstallationId: owningInstallationRecordId,
-        githubRepositoryId: repository.id,
-        githubRepositoryPrivate: repository.private,
-        owner: repository.owner,
-        repo: repository.name,
-        defaultBranch: repository.defaultBranch,
-        repositoryEnabled: true,
-        encryptedWebhookSecret: encryptToken(webhookSecret),
-        enabled: true,
-      })
-      .returning();
-
-    if (created) {
-      await insertDefaultRepositoryOutputs(created.id);
-    }
-  }
-
-  await Promise.all(
-    installations.map((installation) =>
-      Promise.resolve(
-        redis?.del(
-          `github_app_repositories:${params.organizationId}:${installation.installationId}`
-        )
-      )
-    )
-  );
-
-  return {
-    selectedRepositoryIds: params.repositoryIds,
-  };
 }
 
 export async function deleteGitHubAppInstallationForOrganization(
@@ -1146,7 +1038,9 @@ export async function getGitHubCloneToken(
     integrationId,
     userId
   );
-  return resolveCloneToken(integration);
+  return getTokenForIntegrationId(integration.id, {
+    organizationId: integration.organizationId,
+  });
 }
 
 export async function getGitHubCloneTokenForOrganization(
@@ -1157,24 +1051,9 @@ export async function getGitHubCloneTokenForOrganization(
   if (!integration || integration.organizationId !== organizationId) {
     throw new Error("Integration not found for this organization");
   }
-  return resolveCloneToken(integration);
-}
-
-function resolveCloneToken(integration: {
-  githubAppInstallationId: string | null;
-  encryptedToken: string | null;
-}) {
-  if (integration.githubAppInstallationId) {
-    return createGitHubAppInstallationTokenForRecord(
-      integration.githubAppInstallationId
-    );
-  }
-
-  if (!integration.encryptedToken) {
-    return null;
-  }
-
-  return decryptToken(integration.encryptedToken);
+  return getTokenForIntegrationId(integration.id, {
+    organizationId: integration.organizationId,
+  });
 }
 
 export async function addRepository(
@@ -1274,7 +1153,8 @@ export async function setRepositoryOutputDirectory(
       id: nanoid(),
       repositoryId: params.repositoryId,
       outputType: params.outputType,
-      enabled: params.outputType === "changelog",
+      enabled:
+        params.outputType === "changelog" || params.outputType === "blog_post",
       config: { directory: params.directory },
     })
     .onConflictDoUpdate({
@@ -1303,6 +1183,7 @@ export async function updateGitHubIntegration(
   integrationId: string,
   data: {
     enabled?: boolean;
+    repositoryEnabled?: boolean;
     displayName?: string;
     owner?: string;
     repo?: string;
@@ -1505,6 +1386,8 @@ export async function getTokenForRepository(
 
   const [integration] = await db
     .select({
+      id: githubIntegrations.id,
+      organizationId: githubIntegrations.organizationId,
       encryptedToken: githubIntegrations.encryptedToken,
       githubAppInstallationId: githubIntegrations.githubAppInstallationId,
       integrationEnabled: githubIntegrations.enabled,
@@ -1512,50 +1395,123 @@ export async function getTokenForRepository(
     })
     .from(githubIntegrations)
     .where(and(...whereClauses))
-    .limit(1);
+    .limit(1)
+    .$withCache(false);
 
   if (!(integration?.integrationEnabled && integration.repositoryEnabled)) {
     return undefined;
   }
 
-  if (integration.githubAppInstallationId) {
-    return createGitHubAppInstallationTokenForRecord(
-      integration.githubAppInstallationId
-    );
-  }
-
-  if (!integration.encryptedToken) {
-    return undefined;
-  }
-
-  return decryptToken(integration.encryptedToken);
+  return runGitHubEffect(
+    resolveGitHubCredentials(
+      integration.id,
+      integration,
+      githubCredentialDependencies
+    ).pipe(
+      Effect.catchTag("GitHubCredentialsMissingError", () =>
+        Effect.succeed(undefined)
+      ),
+      Effect.catchTag("GitHubRequestError", (error) => Effect.fail(error.cause))
+    )
+  );
 }
 
-export async function getTokenForIntegrationId(
+const githubCredentialDependencies: GitHubCredentialDependencies = {
+  findInstallation: (recordId, organizationId) =>
+    Effect.tryPromise({
+      try: () =>
+        db
+          .select({ installationId: githubAppInstallations.installationId })
+          .from(githubAppInstallations)
+          .where(
+            and(
+              eq(githubAppInstallations.id, recordId),
+              eq(githubAppInstallations.organizationId, organizationId),
+              eq(githubAppInstallations.enabled, true)
+            )
+          )
+          .limit(1)
+          .$withCache(false)
+          .then(([installation]) => installation),
+      catch: (cause) =>
+        new GitHubPersistenceError({ operation: "findInstallation", cause }),
+    }),
+  createInstallationToken: createGitHubAppInstallationTokenEffect,
+  decryptToken: (encryptedToken, integrationId) =>
+    Effect.try({
+      try: () => decryptToken(encryptedToken),
+      catch: (cause) =>
+        new GitHubCredentialDecryptionError({ integrationId, cause }),
+    }),
+};
+
+export function createGitHubAppInstallationTokenForRecordEffect(
+  recordId: string,
+  organizationId: string
+) {
+  return resolveGitHubCredentials(
+    recordId,
+    {
+      organizationId,
+      githubAppInstallationId: recordId,
+      encryptedToken: null,
+    },
+    githubCredentialDependencies
+  );
+}
+
+export function getTokenForIntegrationIdEffect(
   integrationId: string,
   options?: { organizationId?: string }
 ) {
-  const integration = await db.query.githubIntegrations.findFirst({
-    where: options?.organizationId
-      ? and(
-          eq(githubIntegrations.id, integrationId),
-          eq(githubIntegrations.organizationId, options.organizationId)
-        )
-      : eq(githubIntegrations.id, integrationId),
-  });
+  return resolveGitHubToken(
+    { integrationId, organizationId: options?.organizationId },
+    {
+      ...githubCredentialDependencies,
+      findIntegration: (params) =>
+        Effect.tryPromise({
+          try: () =>
+            db
+              .select({
+                organizationId: githubIntegrations.organizationId,
+                githubAppInstallationId:
+                  githubIntegrations.githubAppInstallationId,
+                encryptedToken: githubIntegrations.encryptedToken,
+              })
+              .from(githubIntegrations)
+              .where(
+                params.organizationId
+                  ? and(
+                      eq(githubIntegrations.id, params.integrationId),
+                      eq(
+                        githubIntegrations.organizationId,
+                        params.organizationId
+                      )
+                    )
+                  : eq(githubIntegrations.id, params.integrationId)
+              )
+              .limit(1)
+              .$withCache(false)
+              .then(([integration]) => integration),
+          catch: (cause) =>
+            new GitHubPersistenceError({ operation: "findIntegration", cause }),
+        }),
+    }
+  );
+}
 
-  if (integration?.githubAppInstallationId) {
-    return createGitHubAppInstallationTokenForRecord(
-      integration.githubAppInstallationId,
-      options
-    );
-  }
-
-  if (!integration?.encryptedToken) {
-    return null;
-  }
-
-  return decryptToken(integration.encryptedToken);
+export function getTokenForIntegrationId(
+  integrationId: string,
+  options?: { organizationId?: string }
+) {
+  return runGitHubEffect(
+    getTokenForIntegrationIdEffect(integrationId, options).pipe(
+      Effect.catchTag("GitHubCredentialsMissingError", () =>
+        Effect.succeed(null)
+      ),
+      Effect.catchTag("GitHubRequestError", (error) => Effect.fail(error.cause))
+    )
+  );
 }
 
 export async function getGitHubToolRepositoryContextByIntegrationId(
@@ -1576,8 +1532,6 @@ export async function getGitHubToolRepositoryContextByIntegrationId(
       owner: githubIntegrations.owner,
       repo: githubIntegrations.repo,
       defaultBranch: githubIntegrations.defaultBranch,
-      encryptedToken: githubIntegrations.encryptedToken,
-      githubAppInstallationId: githubIntegrations.githubAppInstallationId,
       integrationEnabled: githubIntegrations.enabled,
       repositoryEnabled: githubIntegrations.repositoryEnabled,
     })
@@ -1605,15 +1559,10 @@ export async function getGitHubToolRepositoryContextByIntegrationId(
     );
   }
 
-  let token: string | undefined;
-
-  if (integration.githubAppInstallationId) {
-    token = await createGitHubAppInstallationTokenForRecord(
-      integration.githubAppInstallationId
-    );
-  } else if (integration.encryptedToken) {
-    token = decryptToken(integration.encryptedToken);
-  }
+  const token =
+    (await getTokenForIntegrationId(integration.id, {
+      organizationId: integration.organizationId,
+    })) ?? undefined;
 
   return {
     integrationId: integration.id,

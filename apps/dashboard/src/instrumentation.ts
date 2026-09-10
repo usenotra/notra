@@ -1,8 +1,13 @@
 import { defineNodeInstrumentation } from "evlog/next/instrumentation";
 
-const evlogInstrumentation = defineNodeInstrumentation(
-  () => import("@notra/ai/evlog")
-);
+const evlogInstrumentation = defineNodeInstrumentation(async () => {
+  const [evlog, { after }] = await Promise.all([
+    import("@notra/ai/evlog"),
+    import("next/server"),
+  ]);
+  evlog.setLogFlushScheduler((flush) => after(flush));
+  return evlog;
+});
 
 export async function register() {
   await evlogInstrumentation.register();
@@ -27,9 +32,11 @@ export const onRequestError: typeof evlogInstrumentation.onRequestError =
     const [
       { captureServerException, flushPostHogServer },
       { getPostHogRequestContext },
+      { scheduleRequestErrorTelemetry },
     ] = await Promise.all([
       import("@notra/posthog/server"),
       import("@notra/posthog/request"),
+      import("@/utils/request-error-telemetry"),
     ]);
 
     const requestContext = getPostHogRequestContext({
@@ -48,5 +55,8 @@ export const onRequestError: typeof evlogInstrumentation.onRequestError =
         route_type: context.routeType,
       },
     });
-    await flushPostHogServer();
+    const { flushLogs } = await import("@notra/ai/evlog");
+    scheduleRequestErrorTelemetry(() =>
+      Promise.allSettled([flushPostHogServer(), flushLogs()])
+    );
   };

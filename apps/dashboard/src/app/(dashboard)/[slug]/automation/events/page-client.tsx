@@ -1,22 +1,9 @@
 "use client";
 
-import {
-  Add01Icon,
-  ArrowDown01Icon,
-  ArrowUp01Icon,
-  ArrowUpDownIcon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Github } from "@notra/ui/components/ui/svgs/github";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import {
   Tabs,
   TabsContent,
@@ -39,11 +26,13 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
+import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
@@ -53,6 +42,7 @@ import {
   isAutomationOutputType,
 } from "@/utils/event-trigger-form";
 import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { tableHeightFor } from "@/utils/table";
 
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "short",
@@ -69,16 +59,6 @@ function formatEventList(events?: string[]) {
 
 function formatDate(dateString: string) {
   return DATE_FORMATTER.format(new Date(dateString));
-}
-
-function getSortIcon(isSorted: false | "asc" | "desc") {
-  if (isSorted === "asc") {
-    return ArrowUp01Icon;
-  }
-  if (isSorted === "desc") {
-    return ArrowDown01Icon;
-  }
-  return ArrowUpDownIcon;
 }
 
 interface PageClientProps {
@@ -378,113 +358,123 @@ function EventTable({
   onDelete: (triggerId: string) => void;
   onEdit: (trigger: Trigger) => void;
 }) {
-  const sortedTriggers =
-    createdSortOrder === false
-      ? triggers
-      : Array.from(triggers).sort((a, b) => {
-          const createdAtA = new Date(a.createdAt).getTime();
-          const createdAtB = new Date(b.createdAt).getTime();
-          return createdSortOrder === "desc"
-            ? createdAtB - createdAtA
-            : createdAtA - createdAtB;
-        });
-
-  const sortIcon = getSortIcon(createdSortOrder);
-
-  if (triggers.length === 0) {
-    return (
-      <div className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
-        No event triggers in this category.
-      </div>
-    );
-  }
+  const columns: TableColumn<Trigger>[] = [
+    {
+      key: "sourceType",
+      header: "Type",
+      width: "1fr",
+      minWidth: "13rem",
+      cell: () => (
+        <div className="flex items-center gap-2">
+          <span className="bg-muted/50 flex size-8 shrink-0 items-center justify-center rounded-lg border">
+            <Github className="size-4" />
+          </span>
+          <span className="text-sm whitespace-nowrap">GitHub Webhook</span>
+        </div>
+      ),
+    },
+    {
+      key: "events",
+      header: "Events",
+      width: "8rem",
+      cell: (trigger) => (
+        <span className="text-muted-foreground capitalize">
+          {formatEventList(trigger.sourceConfig.eventTypes)}
+        </span>
+      ),
+    },
+    {
+      key: "identity",
+      header: "Identity",
+      width: "12rem",
+      cell: (trigger) => {
+        const explicitBrandVoiceId = trigger.outputConfig?.brandVoiceId;
+        return (
+          <span className="text-muted-foreground">
+            <BrandVoiceCell
+              isDefault={!explicitBrandVoiceId}
+              voice={
+                explicitBrandVoiceId
+                  ? brandVoiceMap[explicitBrandVoiceId]
+                  : defaultBrandVoice
+              }
+            />
+          </span>
+        );
+      },
+    },
+    {
+      key: "outputType",
+      header: "Output",
+      width: "10rem",
+      cell: (trigger) => (
+        <span className="text-muted-foreground flex items-center gap-1.5 capitalize">
+          <OutputTypeIcon
+            className="size-3.5 shrink-0"
+            outputType={trigger.outputType}
+          />
+          {getOutputTypeLabel(trigger.outputType)}
+        </span>
+      ),
+    },
+    {
+      key: "sources",
+      header: "Sources",
+      width: "8rem",
+      cell: (trigger) => (
+        <span className="text-muted-foreground">
+          <SourcesCell repositoryIds={trigger.targets.repositoryIds} />
+        </span>
+      ),
+    },
+    {
+      key: "enabled",
+      header: "Status",
+      width: "7rem",
+      cell: (trigger) => <TriggerStatusBadge enabled={trigger.enabled} />,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      width: "10rem",
+      sortable: true,
+      sortValue: (trigger) => new Date(trigger.createdAt).getTime(),
+      cell: (trigger) => (
+        <span className="text-muted-foreground whitespace-nowrap tabular-nums">
+          {formatDate(trigger.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: <span className="sr-only">Actions</span>,
+      width: "5rem",
+      cell: (trigger) => (
+        <TriggerRowActions
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onToggle={onToggle}
+          trigger={trigger}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border shadow-2xs">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Events</TableHead>
-            <TableHead>Identity</TableHead>
-            <TableHead>Output</TableHead>
-            <TableHead>Sources</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>
-              <Button
-                className="-ml-4"
-                onClick={() =>
-                  onSortCreatedChange(
-                    createdSortOrder === "asc" ? "desc" : "asc"
-                  )
-                }
-                variant="ghost"
-              >
-                Created At
-                <HugeiconsIcon className="ml-2 size-4" icon={sortIcon} />
-              </Button>
-            </TableHead>
-            <TableHead className="w-12" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedTriggers.map((trigger) => {
-            const explicitBrandVoiceId = trigger.outputConfig?.brandVoiceId;
-            const hasExplicitVoice = !!explicitBrandVoiceId;
-            const brandVoice = explicitBrandVoiceId
-              ? brandVoiceMap[explicitBrandVoiceId]
-              : defaultBrandVoice;
-
-            return (
-              <TableRow key={trigger.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-muted/50 flex size-8 items-center justify-center rounded-lg border">
-                      <Github className="size-4" />
-                    </span>
-                    <span className="text-sm">GitHub Webhook</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground capitalize">
-                  {formatEventList(trigger.sourceConfig.eventTypes)}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  <BrandVoiceCell
-                    isDefault={!hasExplicitVoice}
-                    voice={brandVoice}
-                  />
-                </TableCell>
-                <TableCell className="text-muted-foreground capitalize">
-                  <span className="flex items-center gap-1.5">
-                    <OutputTypeIcon
-                      className="size-3.5"
-                      outputType={trigger.outputType}
-                    />
-                    {getOutputTypeLabel(trigger.outputType)}
-                  </span>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  <SourcesCell repositoryIds={trigger.targets.repositoryIds} />
-                </TableCell>
-                <TableCell>
-                  <TriggerStatusBadge enabled={trigger.enabled} />
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(trigger.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <TriggerRowActions
-                    onDelete={onDelete}
-                    onEdit={onEdit}
-                    onToggle={onToggle}
-                    trigger={trigger}
-                  />
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <Table
+      className="rounded-2xl"
+      columns={columns}
+      data={triggers}
+      emptyState="No event triggers in this category."
+      getRowId={(trigger) => trigger.id}
+      height={tableHeightFor(triggers.length)}
+      onSortChange={(sort) => onSortCreatedChange(sort?.direction ?? false)}
+      rowHeight={TABLE_ROW_HEIGHT}
+      sort={
+        createdSortOrder
+          ? { key: "createdAt", direction: createdSortOrder }
+          : null
+      }
+    />
   );
 }

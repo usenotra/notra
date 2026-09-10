@@ -1,66 +1,74 @@
-import {
-  GEO_LOG_BATCH_INTERVAL_MS,
-  GEO_LOG_BATCH_SIZE,
-} from "@notra/ai/constants/evlog";
 import type { EvlogDrain, GeoLogEvent, GeoLogger } from "@notra/ai/types/evlog";
+import type { LogFlushScheduler } from "@notra/ai/types/operational-log";
 import { isGeoLogEvent } from "@notra/ai/utils/evlog";
+import { getEvlogRuntime } from "@notra/ai/utils/evlog-runtime";
+import { createLogFlushScheduler } from "@notra/ai/utils/log-flush-scheduler";
+import {
+  getOperationalContext,
+  runWithOperationalContext,
+} from "@notra/ai/utils/operational-context";
 import type { DrainContext } from "evlog";
-import { createAxiomDrain } from "evlog/axiom";
 import { createEvlog } from "evlog/next";
 import { createInstrumentation } from "evlog/next/instrumentation";
-import { createDrainPipeline } from "evlog/pipeline";
 
 const service = process.env.NODE_ENV === "development" ? "notra-dev" : "notra";
 
-function createDatasetDrain(dataset: string | undefined) {
-  if (!process.env.AXIOM_TOKEN || !dataset) {
-    return undefined;
-  }
-  return createAxiomDrain({
-    token: process.env.AXIOM_TOKEN,
-    dataset,
-    orgId: process.env.AXIOM_ORG_ID,
-  });
+const runtime = getEvlogRuntime();
+
+export function setLogFlushScheduler(scheduler: LogFlushScheduler): void {
+  runtime.flushScheduler = createLogFlushScheduler(scheduler);
 }
 
-const aiDrain = createDatasetDrain(process.env.AXIOM_AI_DATASET);
-const geoAxiomDrain = createDatasetDrain(process.env.AXIOM_GEO_DATASET);
-const geoDrain = geoAxiomDrain
-  ? createDrainPipeline<DrainContext>({
-      batch: {
-        size: GEO_LOG_BATCH_SIZE,
-        intervalMs: GEO_LOG_BATCH_INTERVAL_MS,
-      },
-      onDropped: (events, error) => {
-        console.error(
-          `[evlog/geo] dropped ${events.length} events`,
-          error ?? "buffer overflow"
-        );
-      },
-    })(geoAxiomDrain)
-  : undefined;
+export async function flushLogs(): Promise<void> {
+  await Promise.all([runtime.aiDrain?.flush(), runtime.geoDrain?.flush()]);
+}
 
 function routeDrain(ctx: DrainContext) {
   if (isGeoLogEvent(ctx.event)) {
-    geoDrain?.(ctx);
-    return;
+    runtime.geoDrain?.(ctx);
+  } else {
+    runtime.aiDrain?.(ctx);
   }
-  return aiDrain?.(ctx);
+  try {
+    runtime.flushScheduler?.(flushLogs);
+  } catch {
+    // Next's after() is unavailable outside a request. Long-lived runtimes
+    // use the batch timer and explicitly flush during graceful shutdown.
+  }
 }
 
 const drain: EvlogDrain | undefined =
-  aiDrain || geoDrain ? routeDrain : undefined;
+  runtime.aiDrain || runtime.geoDrain ? routeDrain : undefined;
 
 const config = {
   service,
   drain,
 };
 
-export const { withEvlog, useLogger, log, createError } = createEvlog(config);
+const evlog = createEvlog(config);
+export const { useLogger, log, createError } = evlog;
+
+export function withEvlog<TArgs extends unknown[], TReturn>(
+  handler: (...args: TArgs) => TReturn
+) {
+  return evlog.withEvlog((...args: TArgs) => {
+    const parent = getOperationalContext();
+    const loggerRequestId = useLogger().getContext().requestId;
+    const requestId =
+      parent?.requestId ??
+      (typeof loggerRequestId === "string"
+        ? loggerRequestId
+        : crypto.randomUUID());
+    useLogger().set({ requestId });
+    return runWithOperationalContext({ ...parent, requestId }, () =>
+      handler(...args)
+    );
+  });
+}
 
 export const { register, onRequestError } = createInstrumentation(config);
 
-export const geoLogDrainEnabled = geoDrain !== undefined;
+export const geoLogDrainEnabled = runtime.geoDrain !== undefined;
 
 register();
 
@@ -71,5 +79,6 @@ export const geoLog: GeoLogger = {
 };
 
 export async function flushGeoLog(): Promise<void> {
-  await geoDrain?.flush();
+  // GEO jobs can also call AI and website-data integrations.
+  await flushLogs();
 }

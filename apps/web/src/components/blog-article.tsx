@@ -3,13 +3,13 @@
 import { useEffect, useRef } from "react";
 import type { BlogArticleProps } from "~types/blog";
 
-import { ChangelogHtmlArticle } from "@/components/changelog-html-article";
+import { ARTICLE_CLASS_NAME } from "@/constants/content";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 
 const COPY_BUTTON_SELECTOR = "[data-copy-code]";
 const COPIED_STATE_DURATION_MS = 2000;
 
-export function BlogArticle({ html }: BlogArticleProps) {
+export function BlogArticle({ children }: BlogArticleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const copiedTimers = useRef(
     new Map<Element, ReturnType<typeof setTimeout>>()
@@ -77,7 +77,7 @@ export function BlogArticle({ html }: BlogArticleProps) {
 
   return (
     <div ref={containerRef}>
-      <ChangelogHtmlArticle html={html} />
+      <div className={ARTICLE_CLASS_NAME}>{children}</div>
     </div>
   );
 }

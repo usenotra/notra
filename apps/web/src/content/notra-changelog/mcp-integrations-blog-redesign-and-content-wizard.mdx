@@ -1,0 +1,96 @@
+---
+title: "MCP integrations, blog redesign, and content wizard"
+description: "MCP server integrations with encrypted headers, redesigned integrations and blog pages, server-side code highlighting, a refreshed Create Content flow, Image content generation, landing page updates, security fixes, and UX improvements."
+date: "2026-06-02T00:00:00.000Z"
+updatedAt: "2026-06-07T21:23:56.382Z"
+author: "notra"
+---
+
+This week shipped some key pieces for your development workflow. MCP server integrations now let you connect custom tools with encrypted headers and runtime loading. The Integrations page got a full redesign with category tabs and MCP promoted to a first-class integration. We redesigned the blog with author profile pages and dynamic per-post OG images. Code blocks now highlight on the server side and have copy buttons. The Create Content flow is now a three-step wizard (Formats, Activity, Brand Identity), and the landing page got a refresh with a 3D mega menu and gradients across all pages. We also added an Image content type so you can generate brand-matched repository images from chat or schedules. Several security fixes and UX improvements round out the week.
+
+## Highlights
+
+### MCP Server Integrations with encrypted headers and runtime tool loading
+
+Organization-scoped MCP servers with encrypted header storage, connection testing from the dashboard, and runtime tool loading for chat and standalone agents. Tools show in chat with dynamic blocks and server favicons. (#369)
+
+### Integrations page redesigned with category filters and MCP promotion
+
+New top-level tabs (All, Input, Output, Extensions) replace section-based organization. MCP is now a first-class integration card linking to a dedicated /integrations/mcp page. Added unified "Connect" buttons with hotkey across GitHub, Linear, and MCP. (#370)
+
+### Blog author pages and dynamic OpenGraph images
+
+Added /blog/author/\[slug\] profile pages with role and social links. Each blog post now gets a dynamic OG image with the title, author avatar, and role. Both posts and author pages use true ISR for fast incremental updates. (#367)
+
+### Blog code highlighting with server-side rendering and copy buttons
+
+Code blocks highlight server-side with Shiki using dual light/dark themes. A copy button appears on hover and copies the snippet to clipboard with a toast confirmation. (#366)
+
+### Landing page redesign with mega menu and smooth animations
+
+Reusable SiteShell component brings the hero gradient to every page. The navbar mega menu uses a dub-style 3D scale-in effect, and caret color inherits the trigger text. Offscreen sections use content-visibility for performance. (#364)
+
+## More Updates
+
+### Features & Enhancements
+
+- **Create Content as 3-step wizard** (#348) - Formats, Activity, and Brand Identity steps. Multi-format and multi-identity generation fans out as parallel requests. Commit previews now show GitHub login when available.
+- **Create Schedule as dialog** (#349) - Daily/Weekly/Monthly tabs, time picker, day-of-week/day-of-month selectors, and a live summary card with next run and local timezone. Auto-publish hidden and forced off for LinkedIn/Tweet.
+- **Image content type** (#375) - Generate brand-matched repository images through content creation and chat. Supports revisions from chat with sandbox snapshots and records usage for billing.
+- **Figma and Paper export for image content** (#377) - Copy buttons on image detail pages for exporting to design tools via Kiwi clipboard helpers.
+- **Author profile pages for blog posts** (#367) - Profiles at /blog/author/\[slug\] with avatar, role, and icon-only social links (brand icons with globe fallback for unknown platforms).
+- **True ISR for blog and author pages** (#367) - Both now prerender at build and regenerate on a timer instead of serving dynamically.
+- **Chat media uploads** (#306) - Attach images and documents to conversations. Scoped to org with org membership checks and R2 persistence.
+- **Chat post persistence** (#328) - Save, edit, regenerate, and publish posts directly from chat previews with draft tracking.
+- **Structured onboarding flow** (#310) - Three-step wizard: workspace setup, social connection (X/Twitter), then pricing. Deferred brand analysis dispatch.
+- **X thread builder free tool** - No signup required. Draft, reorder, and personalize threads with drag-and-drop and per-post char counter. Linked from footer Free Tools.
+- **Knip static analysis** (#330) - Caught unused exports and dead files across web, dashboard, and API. Integrated into CI.
+- **Chat model picker with search** - Popover combobox with searchable models. Added Kimi K2.6 and GPT-5.5 support.
+- **CLI auth handshake** - New /dashboard page and API routes (POST /api/cli/sessions/\[sessionId\]/authorize, GET /api/cli/sessions/\[sessionId\]) for Notra CLI authorization. Mints scoped Unkey API keys.
+
+### Performance & Infrastructure
+
+- **AI Gateway Auto-Caching** - Enabled automatic caching for improved response times on content generation.
+- **TanStack Form + Zod for dialogs** (#350) - Migrated schedule and content dialogs to form framework. Deferred validation runs only on submit; buttons stay enabled until clicked.
+- **Chat backend extracted to @notra/ai package** (#318, #319) - Chat history, schemas, types, metadata helpers, and abort polling now reusable across apps/api and apps/dashboard via configureChat(\{ redis \}).
+- **Shared content generation infrastructure** (#321) - Consolidated language rules, brand identity, factuality, tool guidance, and humanizer blocks. Reduces prompt duplication across changelog, blog-post, and linkedin builders.
+- **Refactored chat tool helpers to Zod schemas** (#371) - Stronger typing for tool requests and approvals.
+- **Repo image generation improvements** - XML-based agent prompt following Claude best practices. Recovery pass when output.html is missing.
+- **Repo image via content workflow** (#375) - Removed standalone /\[slug\]/repo-image page. Image generation now flows through content UI and chat.
+- **Event trigger creation as dialog** (#351) - ResponsiveDialog matching schedule/content chrome. EventTypeCard for release vs push, GitHub-only repos, and brand voice controls.
+- **CLI sessions with 5-minute expiry** (#316) - One-shot poll via plaintext Verifications table for temporary API key handoff.
+
+### Security & Bug Fixes
+
+- **Reject executable skill frontmatter** (#373) - Skill files with language markers like ---js are now rejected. Parser enforces plain YAML only via gray-matter with explicit language setting.
+- **Linear webhook payload validation** (#335) - Zod schema enforces valid structure before processing; invalid payloads logged and rejected.
+- **Realtime channel authorization per-org** (#325) - Multi-tenant leak fixed. ACL now enforces exact channel shape, rejects wildcards, and requires org membership for all subscribed channels.
+- **Linear OAuth state validation per-org** (#327) - Validateion on authorize and callback. Session userId must match oauthState userId; org membership checked both times. State deleted only after auth passes.
+- **SSRF protection for IPv4-mapped IPv6** (#326) - Hardened URL validation. Detects ::ffff: IPv4-mapped and ::/96 IPv4-compatible addresses and checks them against reserved ranges.
+- **Skill frontmatter validation** - Empty frontmatter and missing name/description now rejected. Partial unique constraint on (name, organization\_id, is\_system).
+- **Fixed null-state crash in trigger editor** (#315) - Prevents crashes when triggers are partially configured.
+- **Validate Linear webhook structure** - Reject malformed payloads before routing to handlers.
+- **Prevent concurrent chat delete race** - Deleted chats no longer accept appended messages; upsert checks deleted\_at IS NULL.
+- **Guard GitHub integration token rotation** (#315) - Repository rename now editable; validates new owner/repo pair against GitHub and rejects duplicates.
+
+### Internal Changes
+
+- **Notification settings restructured** (#335) - Config-driven toggle components, owner recipient summary, loading skeletons.
+- **Onboarding website field optional** (#331) - Brand analysis skipped unless a website is provided.
+- **Chat availability expanded** - Removed ai-chat-experiment flag; chat now available to everyone.
+- **Humanizer skill content inlined** (#301) - Seeding no longer depends on reading files at runtime.
+- **Unsaved changes toast lifecycle fix** (#301) - Toast dismisses only when hasChanges flips to false.
+- **Brand identity favicon in chat tool blocks** (#307) - Dynamic tool icons show brand favicon when available.
+- **Modal dialog unification** - Consistent chrome for schedule, content, and event creation with matching ResponsiveDialog, footer status, and validation patterns.
+- **TCC tracing for AI SDK runs** (#324) - Added observability for agent execution.
+- **Offline-first Databuddy analytics** - Masking slugs and skipping reserved routes in telemetry.
+- **Better-auth integration improvements** - Session context from request headers; organization context resolved for redirects.
+
+### Documentation
+
+- **Switched docs to Luma** - Restructured with Guides, API Reference, and Devtools sections. Simplified navigation and clearer information hierarchy.
+- **Added quickstart guide** - Step-by-step setup walkthrough for new users.
+- **Merged mintlify content** - Integrated concepts, automation, content types, organization, webhooks, and API reference pages.
+- **llms.txt discovery** - Advertises /llms.txt and /llms-full.txt on every page for AI agent discoverability.
+- **RSS 2.0 feed for blog** - Auto-discovery via Atom link tag in page head.
+- **Removed em dashes from docs** - Replaced with standard punctuation throughout all documentation files.

@@ -3,6 +3,15 @@ linkWorkspacePackages = false
 # Only install package versions published at least 7 days ago
 minimumReleaseAge = 604800
 minimumReleaseAgeExcludes = [
+  # Turbo requires the matching native binary on each build platform.
+  "turbo",
+  "@turbo/darwin-64",
+  "@turbo/darwin-arm64",
+  "@turbo/linux-64",
+  "@turbo/linux-arm64",
+  "@turbo/windows-64",
+  "@turbo/windows-arm64",
+  "@base-ui/react",
   "@next/env",
   "@next/swc-darwin-arm64",
   "@next/swc-darwin-x64",

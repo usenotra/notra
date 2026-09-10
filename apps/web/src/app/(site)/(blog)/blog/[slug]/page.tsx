@@ -6,10 +6,13 @@ import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import type { BlogEntryPageProps } from "~types/blog";
 
+import { blog } from "@/../.source/server";
 import { BlogArticle } from "@/components/blog-article";
 import { BlogCopyArticle } from "@/components/blog-copy-article";
+import { getBlogMDXComponents } from "@/components/blog-mdx-components";
 import { BlogPostPagination } from "@/components/blog-post-pagination";
 import { BlogPostSidebar } from "@/components/blog-post-sidebar";
+import { CtaBanner } from "@/components/landing/cta-banner";
 import {
   formatBlogDate,
   getNotraBlogPostBySlug,
@@ -20,9 +23,8 @@ import {
   buildBlogArticleJsonLd,
   buildBlogFaqJsonLd,
 } from "@/utils/blog-jsonld";
-import { extractBlogToc } from "@/utils/blog-toc";
 import { blogPostTitleTransitionName } from "@/utils/blog-view-transitions";
-import { highlightCodeBlocks } from "@/utils/highlight-code";
+import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
 import { getReadingTimeMinutes } from "@/utils/reading-time";
@@ -74,19 +76,18 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
   const { slug } = await params;
   const post = await getNotraBlogPostBySlug(slug);
 
-  if (!post) {
+  const entry = blog.find((item) => item.info.path === `${slug}.mdx`);
+  if (!(post && entry)) {
     notFound();
   }
+  const MDX = entry.body;
 
   const url = `${SITE_URL}/blog/${slug}`;
   const markdownUrl = `${SITE_URL}/blog/${slug}.md`;
   const imageUrl = `${SITE_URL}${DEFAULT_SOCIAL_IMAGE.url}`;
-  const { html: htmlWithIds, toc } = extractBlogToc(post.content);
+  const toc = entry.toc;
   const readingMinutes = getReadingTimeMinutes(post.markdown);
-  const [content, { previous, next }] = await Promise.all([
-    highlightCodeBlocks(htmlWithIds),
-    getNotraBlogPostPagination(slug),
-  ]);
+  const { previous, next } = await getNotraBlogPostPagination(slug);
   const articleJsonLd = buildBlogArticleJsonLd({ post, url, imageUrl });
   const faqJsonLd = buildBlogFaqJsonLd(post);
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
@@ -115,8 +116,8 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
         />
       ) : null}
 
-      <div className="grid w-full grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_16rem]">
-        <article className="min-w-0 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
+      <article className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-x-16 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24">
+        <header className="col-span-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-1">
           <ViewTransition name="blog-back-button">
             <Link
               className="group mb-6 inline-flex items-center gap-2 font-mono text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-50"
@@ -131,34 +132,42 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
             </Link>
           </ViewTransition>
 
-          <time className="block font-mono text-sm text-neutral-700 dark:text-neutral-200">
-            Published {formatBlogDate(post.createdAt)}
-          </time>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-neutral-700 dark:text-neutral-200">
+            <time dateTime={post.createdAt}>
+              Published {formatBlogDate(post.createdAt)}
+            </time>
+            <span className="whitespace-nowrap">
+              · {readingMinutes} min read
+            </span>
+          </div>
 
           <ViewTransition name={blogPostTitleTransitionName(slug)}>
             <h1 className="font-display mt-6 max-w-3xl text-4xl leading-[1.05] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] sm:text-5xl dark:text-white">
               {post.title}
             </h1>
           </ViewTransition>
-
-          <div className="border-border mt-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6">
-            <span className="font-mono text-sm text-neutral-700 dark:text-neutral-200">
-              {readingMinutes} min read
-            </span>
-
-            <BlogCopyArticle
-              markdown={post.markdown}
-              markdownUrl={markdownUrl}
-              title={post.title}
-            />
-          </div>
-
-          <BlogArticle html={content} />
-
-          <BlogPostPagination next={next} previous={previous} />
-        </article>
+        </header>
 
         <BlogPostSidebar authors={post.authors} toc={toc} />
+
+        <div className="col-start-2 row-start-2 self-end justify-self-end lg:col-start-1">
+          <BlogCopyArticle
+            markdown={`${post.markdown.trim()}\n\n${buildCtaBannerMarkdown()}`}
+            markdownUrl={markdownUrl}
+            title={post.title}
+          />
+        </div>
+
+        <div className="border-border col-span-2 min-w-0 border-t pt-6 lg:col-span-1 lg:col-start-1 lg:row-start-3">
+          <BlogArticle>
+            <MDX components={getBlogMDXComponents()} />
+          </BlogArticle>
+
+          <BlogPostPagination next={next} previous={previous} />
+        </div>
+      </article>
+      <div className="mt-16">
+        <CtaBanner />
       </div>
     </div>
   );

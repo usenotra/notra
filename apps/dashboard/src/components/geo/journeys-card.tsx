@@ -4,8 +4,6 @@ import { GEO_JOURNEY_TRAIL_TABLE_LIMIT } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
-  formatGeoJourneyChip,
-  formatGeoJourneySpan,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -38,28 +36,20 @@ export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
 
   const columns: TableColumn<GeoJourney>[] = [
     {
-      key: "journeyId",
-      header: "Journey",
-      width: "7.5rem",
-      cell: (row) => (
-        <span
-          className="bg-muted text-muted-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs"
-          title={row.journeyId}
-        >
-          {formatGeoJourneyChip(row.journeyId)}
-        </span>
-      ),
-    },
-    {
       key: "source",
       header: "Source",
       width: "1fr",
       sortable: true,
       cell: (row) => (
-        <span className="flex min-w-0 items-center gap-2 text-sm">
+        <button
+          aria-label={`Open ${formatGeoSource(row.source)} journey from ${formatAiTrafficTimestamp(row.lastSeenAt)}`}
+          className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center gap-2 rounded-sm text-left text-sm hover:underline focus-visible:ring-2"
+          onClick={() => openJourney(row)}
+          type="button"
+        >
           <EngineIcon engine={row.source} />
           <span className="truncate">{formatGeoSource(row.source)}</span>
-        </span>
+        </button>
       ),
       sortValue: (row) => formatGeoSource(row.source),
     },
@@ -69,25 +59,6 @@ export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
       width: "5.625rem",
       sortable: true,
       cell: (row) => <span className="text-sm tabular-nums">{row.pages}</span>,
-    },
-    {
-      key: "distinctPaths",
-      header: "Unique",
-      width: "5.625rem",
-      sortable: true,
-      cell: (row) => (
-        <span className="text-sm tabular-nums">{row.distinctPaths}</span>
-      ),
-    },
-    {
-      key: "span",
-      header: "Span",
-      width: "9.5rem",
-      cell: (row) => (
-        <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatGeoJourneySpan(row.firstSeenAt, row.lastSeenAt)}
-        </span>
-      ),
     },
     {
       key: "lastSeenAt",

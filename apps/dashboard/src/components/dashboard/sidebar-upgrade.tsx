@@ -2,7 +2,7 @@
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
-import { useCustomer, useListPlans } from "autumn-js/react";
+import { useListPlans } from "autumn-js/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -13,26 +13,36 @@ import { PAYWALL_KINDS, PLAN_SURFACES } from "@/constants/analytics-events";
 import { billingInterval } from "@/lib/analytics/billing-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useOnboardingStatus } from "@/lib/hooks/use-onboarding";
 import { groupBillingPlans, nextPlanGroup } from "@/utils/billing-plans";
+import {
+  canShowSidebarUpgrade,
+  sidebarUpgradeCopy,
+} from "@/utils/sidebar-upgrade";
 
 export function SidebarUpgrade() {
   const { activeOrganization } = useOrganizationsContext();
   const orgId = activeOrganization?.id ?? "";
 
   const { data: onboarding } = useOnboardingStatus(orgId);
+  const canShowUpgrade = canShowSidebarUpgrade(
+    onboarding?.onboardingCompleted,
+    onboarding?.onboardingDismissed
+  );
   const {
     attach,
     data: customer,
     refetch,
-  } = useCustomer({
+  } = useBillingCustomer({
     expand: ["subscriptions.plan"],
   });
-  const { data: plans } = useListPlans();
+  const { data: plans } = useListPlans({
+    queryOptions: {
+      enabled: canShowUpgrade,
+    },
+  });
   const [loading, setLoading] = useState(false);
-
-  const isOnboardingDone =
-    onboarding?.onboardingCompleted || onboarding?.onboardingDismissed;
 
   const activeSubscription = customer?.subscriptions.find(
     (subscription) => !subscription.addOn && subscription.status === "active"
@@ -49,28 +59,14 @@ export function SidebarUpgrade() {
     !!targetPlan?.freeTrial &&
     !!targetPlan.customerEligibility?.trialAvailable;
 
-  let buttonLabel = hasNoPlan
-    ? "Get started"
-    : `Upgrade to ${targetGroup?.name}`;
-  if (showTrial) {
-    buttonLabel = "Start free trial";
-  }
-  if (loading) {
-    buttonLabel = "Loading...";
-  }
+  const { buttonLabel, description, heading } = sidebarUpgradeCopy({
+    hasNoPlan,
+    isLoading: loading,
+    planName: targetGroup?.name,
+    showTrial,
+  });
 
-  const heading = hasNoPlan ? "Get Started" : `Upgrade to ${targetGroup?.name}`;
-  let description = "Get more AI answers, projects, and higher usage limits.";
-  if (hasNoPlan) {
-    description = showTrial
-      ? "Start your free trial and unlock AI-powered workflows."
-      : "Pick a plan to unlock AI-powered workflows.";
-  }
-
-  const isVisible =
-    process.env.NEXT_PUBLIC_SHOW_UPGRADE_BUTTON === "true" &&
-    Boolean(isOnboardingDone) &&
-    targetPlan !== null;
+  const isVisible = canShowUpgrade && targetPlan !== null;
   const pathname = usePathname();
   const route = toAnalyticsRoute(pathname, activeOrganization?.slug);
   const shownRef = useRef(false);

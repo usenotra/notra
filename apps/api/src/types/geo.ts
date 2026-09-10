@@ -3,6 +3,9 @@ import type {
   GeoFeatureFlagService,
   GeoGenerationService,
   GeoWorkflowService,
+  AgentReadinessNetwork,
+  GeoModelService,
+  GeoSearchConsoleService,
 } from "@notra/geo-core/deps";
 import type { ZodType } from "zod";
 
@@ -18,6 +21,9 @@ export type GeoOutcome<A> =
   | { readonly ok: false; readonly failure: GeoFailure };
 
 export type GeoApiRuntime =
+  | AgentReadinessNetwork
+  | GeoModelService
+  | GeoSearchConsoleService
   | GeoEntitlementService
   | GeoFeatureFlagService
   | GeoGenerationService
