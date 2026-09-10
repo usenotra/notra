@@ -50,8 +50,10 @@ export interface ConfigureOutputParams {
   config?: Record<string, unknown> | null;
 }
 
-export interface SetRepositoryOutputDirectoryParams {
-  directory: string;
+export interface SetRepositoryOutputConfigParams {
+  contentPath?: string | null;
+  directory?: string;
+  imagePath?: string | null;
   outputType: RepositoryOutputType;
   repositoryId: string;
 }

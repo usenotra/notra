@@ -49,6 +49,12 @@ export const GITHUB_PULL_REQUEST_BODY_SECTION_START =
   "<!-- notra:content:start -->";
 export const GITHUB_PULL_REQUEST_BODY_SECTION_END =
   "<!-- notra:content:end -->";
+export const GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX = "<!-- notra:assets:";
+export const GITHUB_CONTENT_COMMIT_METADATA_PREFIX = "Notra-Publication: ";
+/** Leaves one comparison slot for the content file below GitHub's 300-file cap. */
+export const GITHUB_CONTENT_MAX_ASSET_COUNT = 298;
+export const GITHUB_CONTENT_MAX_ASSET_BYTES = 20 * 1024 * 1024;
+export const GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES = 10 * 1024 * 1024;
 
 /** GitHub rejects issue and pull request bodies longer than this. */
 export const GITHUB_PULL_REQUEST_BODY_MAX_LENGTH = 65_536;

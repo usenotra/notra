@@ -4,6 +4,7 @@ import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organiz
 import * as z from "zod";
 
 import {
+  GITHUB_CONTENT_PATH_MAX_LENGTH,
   GITHUB_PATH_INVALID_CHARACTERS_REGEX,
   GITHUB_PUBLISH_CONTENT_TYPES,
   GITHUB_URL_PATTERNS,
@@ -272,8 +273,38 @@ export const repositoryContentDirectorySchema = z
     "Directory contains an invalid segment"
   );
 
+export const repositoryRelativePathSchema = z
+  .string()
+  .trim()
+  .min(1, "File path is required")
+  .max(GITHUB_CONTENT_PATH_MAX_LENGTH, "File path is too long")
+  .refine((path) => !path.startsWith("/"), "Enter a repository-relative path")
+  .refine((path) => !path.endsWith("/"), "File path must include a file name")
+  .refine((path) => !path.includes("\\"), "Use forward slashes in file paths")
+  .refine(
+    (path) => !GITHUB_PATH_INVALID_CHARACTERS_REGEX.test(path),
+    "File path contains invalid characters"
+  )
+  .refine(
+    (path) =>
+      path
+        .split("/")
+        .every((segment) => segment && segment !== "." && segment !== ".."),
+    "File path contains an invalid segment"
+  );
+
+export const repositoryContentPathTemplateSchema =
+  repositoryRelativePathSchema.refine(
+    (path) => /\.(?:md|mdx)$/i.test(path),
+    "Content path must end in .md or .mdx"
+  );
+
+export const repositoryImagePathTemplateSchema = repositoryRelativePathSchema;
+
 export const repositoryContentDirectoryConfigSchema = z.looseObject({
-  directory: repositoryContentDirectorySchema,
+  directory: repositoryContentDirectorySchema.optional(),
+  contentPath: repositoryContentPathTemplateSchema.nullable().optional(),
+  imagePath: repositoryImagePathTemplateSchema.nullable().optional(),
 });
 
 export const repositoryContentDirectoryInputSchema = z.object({
@@ -281,9 +312,19 @@ export const repositoryContentDirectoryInputSchema = z.object({
 });
 
 export const updateRepositoryContentDirectoryBodySchema =
-  repositoryContentDirectoryInputSchema.extend({
-    directory: repositoryContentDirectorySchema,
-  });
+  repositoryContentDirectoryInputSchema
+    .extend({
+      directory: repositoryContentDirectorySchema.optional(),
+      contentPath: repositoryContentPathTemplateSchema.nullable().optional(),
+      imagePath: repositoryImagePathTemplateSchema.nullable().optional(),
+    })
+    .refine(
+      (value) =>
+        value.directory !== undefined ||
+        value.contentPath !== undefined ||
+        value.imagePath !== undefined,
+      "At least one publishing path must be provided"
+    );
 
 export const listRepositoryDirectoriesInputSchema = z.object({
   directory: repositoryContentDirectorySchema.default(""),
