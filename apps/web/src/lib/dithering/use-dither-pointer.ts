@@ -62,6 +62,8 @@ export function useDitherPointer({
     current.current = REST_OFFSET;
     cancelAnimationFrame(frame.current);
     frame.current = 0;
+    setOffset(REST_OFFSET);
+    setIsHovering(false);
   }, [enabled]);
 
   useEffect(

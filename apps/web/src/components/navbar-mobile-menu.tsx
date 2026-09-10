@@ -125,7 +125,7 @@ export function NavbarMobileMenu({
   const layout = NAVBAR_MOBILE_OVERLAY_LAYOUT[overlayLayout];
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {open ? (
         <MobileNavOverlay
           isAuthenticated={isAuthenticated}

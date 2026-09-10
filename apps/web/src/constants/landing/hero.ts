@@ -17,9 +17,9 @@ export const HERO_HEADLINE_CYCLE: HeroCycleWord[] = [
 
 export const HERO_HEADLINE_CYCLE_MS = 2600;
 
-export const HERO_WORD_SIZE_EM = 0.9;
-
-export const HERO_WORD_SIZE_DESCENDER_EM = 0.78;
+export const HERO_HEADLINE_WIDTH_WORD = HERO_HEADLINE_CYCLE.reduce(
+  (longest, word) => (word.text.length > longest.text.length ? word : longest)
+);
 
 export const HERO_SUBHEAD =
   "Notra asks ChatGPT, Claude, Gemini and Perplexity the questions your buyers ask. You see whether you come up, who comes up instead, and what to write about it.";
