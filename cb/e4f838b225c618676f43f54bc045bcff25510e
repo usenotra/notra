@@ -1,0 +1,32 @@
+apps/web/src/lib/dithering/use-dither-pointer.ts
+  s_9c4b8410e74999::t_fc6528928f30ec 3,53-74,99,101,106-155,161,163,166-169
+apps/web/src/lib/navigation/use-mobile-nav-menu.ts
+  s_9c4b8410e74999::t_4258e5fa7eeb07 78-81
+apps/web/src/components/not-found-numeral.tsx
+  ai_agent 4
+  s_9c4b8410e74999::t_fb7ced21d4ee0d 108
+apps/web/src/components/navbar-mobile-menu.tsx
+  ai_agent 203
+  s_9c4b8410e74999::t_f3149d8052f834 130-138,144-202,204-227
+  s_9c4b8410e74999::t_aef95b5bf832cb 371,394
+  s_9c4b8410e74999::t_01c9d54d1acd48 385
+  s_9c4b8410e74999::t_85ea9d6770320d 244
+  s_9c4b8410e74999::t_122ec14be27899 18
+  s_9c4b8410e74999::t_4334ba6e59230a 52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cbe4f838b225c618676f43f54bc045bcff25510e",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
