@@ -16,7 +16,8 @@ const CLOSE_FALLBACK_MS = DURATION.normal * 1000 + 50;
 
 export function useRightPanelSlide(
   open: boolean,
-  expanded: boolean
+  expanded: boolean,
+  releaseSlotImmediately = false
 ): RightPanelSlide {
   const prefersReducedMotion = useReducedMotion() === true;
   const [slotOpen, setSlotOpen] = useState(open);
@@ -47,13 +48,16 @@ export function useRightPanelSlide(
     }
 
     const shouldWaitForExit =
-      wasEnteredRef.current && !prefersReducedMotion && !expanded;
+      wasEnteredRef.current &&
+      !prefersReducedMotion &&
+      !expanded &&
+      !releaseSlotImmediately;
     setEntered(false);
     wasEnteredRef.current = false;
     if (!shouldWaitForExit) {
       setSlotOpen(false);
     }
-  }, [expanded, open, prefersReducedMotion]);
+  }, [expanded, open, prefersReducedMotion, releaseSlotImmediately]);
 
   useEffect(() => {
     if (open || entered || !slotOpen) {

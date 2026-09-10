@@ -12,6 +12,7 @@ import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-ch
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
 import {
+  CHAT_TOOL_CHART_EMPTY_SERIES,
   CHAT_TOOL_CHART_HEIGHT_CLASS,
   CHAT_TOOL_CHART_OPTIONS,
   CHART_PRIMARY_COLOR,
@@ -22,11 +23,14 @@ import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type { ToolOutputChartProps } from "@/types/components/chat-tool-chart";
 import { accountSeriesColors, seriesColors } from "@/utils/chart-colors";
-import { pivotChartSeries } from "@/utils/chat-tool-chart";
+import {
+  CHART_CATEGORY_KEY,
+  chartSeriesDataKey,
+  pivotChartSeries,
+} from "@/utils/chat-tool-chart";
 
 const VALUE_KEY = "value";
 const CATEGORY_KEY = "category";
-const X_KEY = "x";
 
 function ChartFrame({
   title,
@@ -61,19 +65,27 @@ function EmptyChartMessage({ message }: { message: string }) {
 function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
   const series = chart.series;
   const data = useMemo(() => pivotChartSeries(series), [series]);
+  const keyedSeries = useMemo(
+    () =>
+      series.map((entry, index) => ({
+        dataKey: chartSeriesDataKey(entry.name, index),
+        label: entry.name,
+      })),
+    [series]
+  );
   const config = useMemo(() => {
     const next: ChartConfig = {};
-    for (const [index, entry] of series.entries()) {
-      next[entry.name] = {
-        label: entry.name,
+    for (const [index, entry] of keyedSeries.entries()) {
+      next[entry.dataKey] = {
+        label: entry.label,
         colors: accountSeriesColors(index),
       };
     }
     return next;
-  }, [series]);
+  }, [keyedSeries]);
 
   if (data.length === 0) {
-    return null;
+    return <EmptyChartMessage message={CHAT_TOOL_CHART_EMPTY_SERIES} />;
   }
 
   return (
@@ -84,13 +96,13 @@ function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
       config={config}
       curveType="monotone"
       data={data}
-      xDataKey={X_KEY}
+      xDataKey={CHART_CATEGORY_KEY}
     >
-      {series.map((entry) => (
+      {keyedSeries.map((entry) => (
         <EChartsAreaChart.Area
-          dataKey={entry.name}
+          dataKey={entry.dataKey}
           gapMissing
-          key={entry.name}
+          key={entry.dataKey}
           strokeVariant="solid"
           variant="gradient"
         />

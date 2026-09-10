@@ -46,6 +46,7 @@ export const SPARKLINE_CHART_OPTIONS: Record<string, unknown> = {
 };
 
 export const CHAT_TOOL_CHART_HEIGHT_CLASS = "h-40";
+export const CHAT_TOOL_CHART_EMPTY_SERIES = "No data points to plot.";
 export const CHAT_TOOL_CHART_OPTIONS: Record<string, unknown> = {
   grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
 };

@@ -10,4 +10,5 @@ export const RIGHT_PANEL_FRAME_MOTION_CLASSNAME =
 export const RIGHT_PANEL_FRAME_ENTERED_CLASSNAME = "translate-x-0";
 export const RIGHT_PANEL_FRAME_EXITED_CLASSNAME = "translate-x-full";
 export const RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME = "w-96";
-export const RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME = "w-full";
+export const RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME =
+  "w-[calc(100%-0.5rem-1px)]";

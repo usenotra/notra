@@ -18,10 +18,17 @@ import type {
   GeoTimeseriesChartInput,
 } from "@notra/ai/types/chart-artifact";
 
-const GROUNDED_ENGINE_SUFFIX_PATTERN = /(-direct)?-grounded$/u;
+const DIRECT_GROUNDED_SUFFIX = "-direct-grounded";
+const GROUNDED_SUFFIX = "-grounded";
 
 function chartEngineLabel(engine: string): string {
-  return engine.replace(GROUNDED_ENGINE_SUFFIX_PATTERN, "");
+  if (engine.endsWith(DIRECT_GROUNDED_SUFFIX)) {
+    return `${engine.slice(0, -DIRECT_GROUNDED_SUFFIX.length)} (direct)`;
+  }
+  if (engine.endsWith(GROUNDED_SUFFIX)) {
+    return `${engine.slice(0, -GROUNDED_SUFFIX.length)} (grounded)`;
+  }
+  return engine;
 }
 
 function toMentionRatePercent(rate: number): number {
@@ -53,14 +60,12 @@ export function buildGeoOverviewChart(
     input.days,
     GEO_CHART_MENTION_RATE_SUBTITLE
   );
-  const segments = input.engines
-    .map((engine) => ({
-      label: chartEngineLabel(engine.engine),
-      value: toMentionRatePercent(engine.mention_rate),
-    }))
-    .filter((segment) => segment.value > 0);
+  const segments = input.engines.map((engine) => ({
+    label: chartEngineLabel(engine.engine),
+    value: toMentionRatePercent(engine.mention_rate),
+  }));
 
-  if (segments.length === 0) {
+  if (input.engines.length === 0) {
     return emptyChart(
       GEO_OVERVIEW_CHART_TITLE,
       subtitle,
@@ -83,23 +88,26 @@ export function buildGeoTimeseriesChart(
     input.days,
     GEO_CHART_MENTION_RATE_SUBTITLE
   );
-  const seriesByEngine = new Map<string, ChartSeries>();
+  const seriesByEngine = new Map<
+    string,
+    { name: string; pointsByDay: Map<string, number> }
+  >();
 
   for (const point of input.points) {
-    const name = chartEngineLabel(point.engine);
-    const series = seriesByEngine.get(name) ?? { name, points: [] };
-    series.points.push({
-      x: point.day,
-      y: toMentionRatePercent(point.mention_rate),
-    });
-    seriesByEngine.set(name, series);
+    const series = seriesByEngine.get(point.engine) ?? {
+      name: chartEngineLabel(point.engine),
+      pointsByDay: new Map<string, number>(),
+    };
+    series.pointsByDay.set(point.day, toMentionRatePercent(point.mention_rate));
+    seriesByEngine.set(point.engine, series);
   }
 
-  const series = [...seriesByEngine.values()].filter((entry) =>
-    entry.points.some((point) => point.y > 0)
-  );
+  const series: ChartSeries[] = [...seriesByEngine.values()].map((entry) => ({
+    name: entry.name,
+    points: [...entry.pointsByDay.entries()].map(([x, y]) => ({ x, y })),
+  }));
 
-  if (series.length === 0) {
+  if (input.points.length === 0) {
     return emptyChart(
       GEO_TIMESERIES_CHART_TITLE,
       subtitle,

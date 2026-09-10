@@ -33,6 +33,7 @@ import {
 import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
+import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
@@ -82,6 +83,7 @@ function DashboardAgentChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
     }),
+    sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
     onFinish: () => {
       emitAutumnRefresh();
       if (activeChatId) {

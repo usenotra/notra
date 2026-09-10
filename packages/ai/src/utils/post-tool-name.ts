@@ -1,4 +1,5 @@
 import { CREATE_POST_TOOL_NAMES } from "../constants/post-tools";
+import type { ContentType } from "../schemas/content";
 
 export type CreatePostToolName =
   (typeof CREATE_POST_TOOL_NAMES)[keyof typeof CREATE_POST_TOOL_NAMES];
@@ -14,12 +15,10 @@ const MARKDOWN_CREATE_POST_TOOL_NAMES = new Set<string>(
   )
 );
 
-export function getCreatePostToolName(contentType: string): string {
-  return (
-    CREATE_POST_TOOL_NAMES[
-      contentType as keyof typeof CREATE_POST_TOOL_NAMES
-    ] ?? "createPost"
-  );
+export function getCreatePostToolName(
+  contentType: ContentType
+): (typeof CREATE_POST_TOOL_NAMES)[ContentType] {
+  return CREATE_POST_TOOL_NAMES[contentType];
 }
 
 export function isCreatePostToolName(

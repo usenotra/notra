@@ -4,11 +4,19 @@ import type {
   ChartSeries,
 } from "@notra/ai/types/chart-artifact";
 
+import { chartKey } from "@/utils/chart-keys";
+
+export const CHART_CATEGORY_KEY = "__category";
+
 export function parseToolOutputChart(
   output: unknown
 ): ChartArtifact | undefined {
   const parsed = toolOutputChartSchema.safeParse(output);
   return parsed.success ? parsed.data.chart : undefined;
+}
+
+export function chartSeriesDataKey(name: string, index: number): string {
+  return `${chartKey(name)}-${index}`;
 }
 
 export function pivotChartSeries(
@@ -17,17 +25,17 @@ export function pivotChartSeries(
   const xs = [
     ...new Set(series.flatMap((entry) => entry.points.map((point) => point.x))),
   ];
-  const pointsByName = new Map(
-    series.map((entry) => [
-      entry.name,
-      new Map(entry.points.map((point) => [point.x, point.y] as const)),
-    ])
-  );
+  const keyedSeries = series.map((entry, index) => ({
+    dataKey: chartSeriesDataKey(entry.name, index),
+    points: new Map(entry.points.map((point) => [point.x, point.y] as const)),
+  }));
 
   return xs.map((x) => {
-    const row: Record<string, string | number | null> = { x };
-    for (const [name, points] of pointsByName) {
-      row[name] = points.get(x) ?? null;
+    const row: Record<string, string | number | null> = {
+      [CHART_CATEGORY_KEY]: x,
+    };
+    for (const entry of keyedSeries) {
+      row[entry.dataKey] = entry.points.get(x) ?? null;
     }
     return row;
   });

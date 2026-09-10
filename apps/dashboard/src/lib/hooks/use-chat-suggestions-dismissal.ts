@@ -15,13 +15,10 @@ function subscribe(onChange: () => void) {
 }
 
 function readDismissed(key: string) {
-  if (dismissedKeys.has(key)) {
-    return true;
-  }
   try {
     return window.localStorage.getItem(key) === "1";
   } catch {
-    return false;
+    return dismissedKeys.has(key);
   }
 }
 

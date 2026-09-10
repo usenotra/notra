@@ -156,13 +156,15 @@ export function ChatSuggestions({
   const { dismissed, dismiss } = useChatSuggestionsDismissal(dismissStorageKey);
   const [page, setPage] = useState(0);
   const isPointerInside = useRef(false);
+  const isFocusInside = useRef(false);
   const isList = layout === "list";
   const pageCount = Math.max(1, Math.ceil(suggestions.length / visibleCount));
-  const shouldRotate = rotate && pageCount > 1 && !hidden;
+  const shouldRotate = rotate && pageCount > 1 && !hidden && !dismissed;
 
   useEffect(() => {
     if (hidden) {
       isPointerInside.current = false;
+      isFocusInside.current = false;
     }
   }, [hidden]);
 
@@ -172,7 +174,7 @@ export function ChatSuggestions({
     }
 
     const intervalId = window.setInterval(() => {
-      if (!isPointerInside.current) {
+      if (!isPointerInside.current && !isFocusInside.current) {
         setPage((current) => current + 1);
       }
     }, rotateIntervalMs);
@@ -202,6 +204,16 @@ export function ChatSuggestions({
         aria-label="Example prompts"
         className={cn("flex w-full flex-col", isList ? "gap-1.5" : "gap-2")}
         initial={false}
+        onBlurCapture={(event) => {
+          const next = event.relatedTarget;
+          if (next instanceof Node && event.currentTarget.contains(next)) {
+            return;
+          }
+          isFocusInside.current = false;
+        }}
+        onFocusCapture={() => {
+          isFocusInside.current = true;
+        }}
         onPointerEnter={() => {
           isPointerInside.current = true;
         }}

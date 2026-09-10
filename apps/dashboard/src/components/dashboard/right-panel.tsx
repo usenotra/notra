@@ -33,7 +33,8 @@ export function RightPanel({ id, children }: RightPanelProps) {
   const open = active === id;
   const { entered, onFrameTransitionEnd, slotOpen } = useRightPanelSlide(
     open,
-    expanded
+    expanded,
+    active !== null && !open
   );
 
   return (
