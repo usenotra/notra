@@ -89,21 +89,32 @@ function DashboardAgentChat({
   });
   const sessions = sessionsQuery.data ?? [];
 
+  const prepareSendMessagesRequest = useCallback(
+    ({
+      messages,
+      body,
+    }: {
+      messages: UIMessage[];
+      body?: Record<string, unknown>;
+    }) => ({
+      body: {
+        ...body,
+        chatId: activeChatIdRef.current,
+        projectId: projectIdRef.current,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        messages,
+      },
+    }),
+    []
+  );
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
-        prepareSendMessagesRequest: ({ messages, body }) => ({
-          body: {
-            ...body,
-            chatId: activeChatIdRef.current,
-            projectId: projectIdRef.current,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            messages,
-          },
-        }),
+        prepareSendMessagesRequest,
       }),
-    [organizationId]
+    [organizationId, prepareSendMessagesRequest]
   );
 
   const {
@@ -289,7 +300,9 @@ function DashboardAgentChat({
   const handleOpenChat = useCallback(() => {
     const hasConversation =
       messagesRef.current.length > 0 ||
-      sessions.some((session) => session.chatId === activeChatId);
+      Boolean(
+        sessionsQuery.data?.some((session) => session.chatId === activeChatId)
+      );
     const path = dashboardAgentOpenChatPath(organizationSlug, {
       chatId: activeChatId,
       hasConversation,
@@ -303,7 +316,14 @@ function DashboardAgentChat({
     closeAfterNavigationRef.current = true;
     router.prefetch(path);
     router.push(path, { scroll: false });
-  }, [activeChatId, onClose, organizationSlug, pathname, router, sessions]);
+  }, [
+    activeChatId,
+    onClose,
+    organizationSlug,
+    pathname,
+    router,
+    sessionsQuery.data,
+  ]);
 
   useEffect(() => {
     if (!closeAfterNavigationRef.current) {

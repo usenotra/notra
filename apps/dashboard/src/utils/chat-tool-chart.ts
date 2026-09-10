@@ -61,7 +61,7 @@ export function rankBarChartSegments(
   const asPercent = maxValue <= CHART_PERCENT_SCALE;
   const scale = asPercent ? CHART_PERCENT_SCALE : maxValue || 1;
 
-  const ranked = [...segments].sort((left, right) => right.value - left.value);
+  const ranked = segments.toSorted((left, right) => right.value - left.value);
   const baseNames = ranked.map((segment) =>
     formatChartEngineLabel(segment.label)
   );

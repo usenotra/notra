@@ -30,8 +30,9 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
   const shouldReduceMotion = useReducedMotion();
   const shaderRef = useRef<HTMLDivElement>(null);
   const [shaderReady, setShaderReady] = useState(false);
-  const [shaderVisible, setShaderVisible] = useState(false);
+  const [shaderRevealed, setShaderRevealed] = useState(false);
   const instantReveal = shouldReduceMotion === true;
+  const shaderVisible = instantReveal || shaderRevealed;
   const colors =
     resolvedTheme === "dark"
       ? CHAT_EMPTY_DITHER_COLORS_DARK
@@ -46,12 +47,7 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
   }, []);
 
   useEffect(() => {
-    if (!shaderReady) {
-      return;
-    }
-
-    if (instantReveal) {
-      setShaderVisible(true);
+    if (!shaderReady || instantReveal) {
       return;
     }
 
@@ -65,13 +61,13 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
       if (root.querySelector("canvas")) {
         observer.disconnect();
         frame = window.requestAnimationFrame(() => {
-          setShaderVisible(true);
+          setShaderRevealed(true);
         });
       }
     });
     const fallback = window.setTimeout(() => {
       observer.disconnect();
-      setShaderVisible(true);
+      setShaderRevealed(true);
     }, CHAT_EMPTY_DITHER_REVEAL_FALLBACK_MS);
 
     observer.observe(root, { childList: true, subtree: true });
@@ -79,7 +75,7 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
       observer.disconnect();
       window.clearTimeout(fallback);
       frame = window.requestAnimationFrame(() => {
-        setShaderVisible(true);
+        setShaderRevealed(true);
       });
     }
 

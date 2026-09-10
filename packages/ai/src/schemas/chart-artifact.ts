@@ -55,8 +55,6 @@ export const chartArtifactSchema = z.discriminatedUnion("kind", [
   areaChartArtifactSchema,
 ]);
 
-export const toolOutputChartSchema = z
-  .object({
-    chart: chartArtifactSchema,
-  })
-  .passthrough();
+export const toolOutputChartSchema = z.looseObject({
+  chart: chartArtifactSchema,
+});

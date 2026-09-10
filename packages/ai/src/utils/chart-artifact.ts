@@ -12,6 +12,7 @@ import {
 } from "@notra/ai/constants/chart-artifact";
 import type {
   ChartArtifact,
+  ChartSegment,
   ChartSeries,
   GeoCompetitorShareChartInput,
   GeoOverviewChartInput,
@@ -130,12 +131,15 @@ export function buildGeoCompetitorShareChart(
     input.days,
     GEO_CHART_MENTION_COUNT_SUBTITLE
   );
-  const segments = input.competitors
-    .map((competitor) => ({
-      label: competitor.brand,
-      value: competitor.mentions,
-    }))
-    .filter((segment) => segment.value > 0);
+  const segments: ChartSegment[] = [];
+  for (const competitor of input.competitors) {
+    if (competitor.mentions > 0) {
+      segments.push({
+        label: competitor.brand,
+        value: competitor.mentions,
+      });
+    }
+  }
 
   if (segments.length === 0) {
     return emptyChart(

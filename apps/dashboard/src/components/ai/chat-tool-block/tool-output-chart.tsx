@@ -6,7 +6,7 @@ import type {
   ChartArtifact,
   PieChartArtifact,
 } from "@notra/ai/types/chart-artifact";
-import { type ReactNode, useMemo } from "react";
+import type { ReactNode } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
@@ -69,25 +69,18 @@ function EmptyChartMessage({ message }: { message: string }) {
 
 function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
   const series = chart.series;
-  const data = useMemo(() => pivotChartSeries(series), [series]);
-  const keyedSeries = useMemo(
-    () =>
-      series.map((entry, index) => ({
-        dataKey: chartSeriesDataKey(entry.name, index),
-        label: formatChartEngineLabel(entry.name),
-      })),
-    [series]
-  );
-  const config = useMemo(() => {
-    const next: ChartConfig = {};
-    for (const [index, entry] of keyedSeries.entries()) {
-      next[entry.dataKey] = {
-        label: entry.label,
-        colors: accountSeriesColors(index),
-      };
-    }
-    return next;
-  }, [keyedSeries]);
+  const data = pivotChartSeries(series);
+  const keyedSeries = series.map((entry, index) => ({
+    dataKey: chartSeriesDataKey(entry.name, index),
+    label: formatChartEngineLabel(entry.name),
+  }));
+  const config: ChartConfig = {};
+  for (const [index, entry] of keyedSeries.entries()) {
+    config[entry.dataKey] = {
+      label: entry.label,
+      colors: accountSeriesColors(index),
+    };
+  }
 
   if (data.length === 0) {
     return <EmptyChartMessage message={CHAT_TOOL_CHART_EMPTY_SERIES} />;
@@ -150,10 +143,7 @@ function RankMeter({ row }: { row: ToolOutputRankRow }) {
 }
 
 function BarArtifactChart({ chart }: { chart: BarChartArtifact }) {
-  const rows = useMemo(
-    () => rankBarChartSegments(chart.segments),
-    [chart.segments]
-  );
+  const rows = rankBarChartSegments(chart.segments);
 
   if (rows.length === 0) {
     return null;
@@ -170,24 +160,17 @@ function BarArtifactChart({ chart }: { chart: BarChartArtifact }) {
 
 function PieArtifactChart({ chart }: { chart: PieChartArtifact }) {
   const segments = chart.segments;
-  const data = useMemo(
-    () =>
-      segments.map((segment) => ({
-        name: segment.label,
-        [VALUE_KEY]: segment.value,
-      })),
-    [segments]
-  );
-  const config = useMemo(() => {
-    const next: ChartConfig = {};
-    for (const [index, segment] of segments.entries()) {
-      next[segment.label] = {
-        label: segment.label,
-        colors: accountSeriesColors(index),
-      };
-    }
-    return next;
-  }, [segments]);
+  const data = segments.map((segment) => ({
+    name: segment.label,
+    [VALUE_KEY]: segment.value,
+  }));
+  const config: ChartConfig = {};
+  for (const [index, segment] of segments.entries()) {
+    config[segment.label] = {
+      label: segment.label,
+      colors: accountSeriesColors(index),
+    };
+  }
 
   if (data.length === 0) {
     return null;

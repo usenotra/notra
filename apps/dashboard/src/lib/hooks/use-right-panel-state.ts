@@ -16,8 +16,22 @@ const INITIAL_HAS_OPENED: Record<RightPanelId, boolean> = {
 export function useRightPanelState(): RightPanelContextValue {
   const pathname = usePathname();
   const [active, setActive] = useState<RightPanelId | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expandRequested, setExpandRequested] = useState(false);
+  const [seenPathname, setSeenPathname] = useState(pathname);
   const [hasOpened, setHasOpened] = useState(INITIAL_HAS_OPENED);
+
+  if (seenPathname !== pathname) {
+    setSeenPathname(pathname);
+    if (expandRequested) {
+      setExpandRequested(false);
+    }
+  }
+
+  if (active === null && expandRequested) {
+    setExpandRequested(false);
+  }
+
+  const expanded = active !== null && expandRequested;
 
   const openPanel = (id: RightPanelId) => {
     setActive(id);
@@ -44,18 +58,8 @@ export function useRightPanelState(): RightPanelContextValue {
     if (active === null) {
       return;
     }
-    setExpanded((current) => !current);
+    setExpandRequested((current) => !current);
   };
-
-  useEffect(() => {
-    if (active === null) {
-      setExpanded(false);
-    }
-  }, [active]);
-
-  useEffect(() => {
-    setExpanded(false);
-  }, [pathname]);
 
   useEffect(() => {
     if (!expanded) {
@@ -67,7 +71,7 @@ export function useRightPanelState(): RightPanelContextValue {
         return;
       }
       event.preventDefault();
-      setExpanded(false);
+      setExpandRequested(false);
     };
 
     window.addEventListener("keydown", onKeyDown);

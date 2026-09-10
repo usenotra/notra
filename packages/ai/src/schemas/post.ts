@@ -13,8 +13,6 @@ export const createPostDraftFieldsSchema = z.object({
   markdown: z.string(),
 });
 
-export const createdPostToolOutputSchema = z
-  .object({
-    postId: z.string().min(1),
-  })
-  .passthrough();
+export const createdPostToolOutputSchema = z.looseObject({
+  postId: z.string().min(1),
+});
