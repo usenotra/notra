@@ -1,13 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import {
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { DitheringShader } from "@/components/dithering-shader";
 import { NOT_FOUND_DITHERING, NOT_FOUND_HEADING } from "@/constants/not-found";
@@ -49,7 +43,6 @@ export function NotFoundNumeral() {
     lerp: NOT_FOUND_DITHERING.hover.lerp,
     visibleYRatio: NOT_FOUND_DITHERING.hover.visibleYRatio,
   });
-  const handlePainted = useCallback(() => setShaderPainted(true), []);
 
   useLayoutEffect(() => {
     const node = textRef.current;
@@ -112,7 +105,7 @@ export function NotFoundNumeral() {
             fit={NOT_FOUND_DITHERING.fit}
             offsetX={offsetX}
             offsetY={offsetY}
-            onPainted={handlePainted}
+            onPainted={() => setShaderPainted(true)}
             scale={NOT_FOUND_DITHERING.scale}
             shape={NOT_FOUND_DITHERING.shape}
             size={NOT_FOUND_DITHERING.size}

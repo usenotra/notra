@@ -5,7 +5,6 @@ import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -22,11 +21,6 @@ export function useMobileNavMenu(
 ) {
   const pathname = usePathname();
   const wasOpenRef = useRef(false);
-
-  const closeAfterPaint = useCallback(() => {
-    // Let the click commit before unmounting the overlay.
-    requestAnimationFrame(() => setOpen(false));
-  }, [setOpen]);
 
   useEffect(() => {
     setOpen(false);
@@ -81,5 +75,8 @@ export function useMobileNavMenu(
     return () => media.removeEventListener("change", onChange);
   }, [setOpen]);
 
-  return closeAfterPaint;
+  return function closeAfterPaint() {
+    // Let the click commit before unmounting the overlay.
+    requestAnimationFrame(() => setOpen(false));
+  };
 }

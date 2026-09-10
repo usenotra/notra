@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import type {
   DitherPointerOffset,
@@ -55,9 +49,29 @@ export function useDitherPointer({
   const target = useRef(REST_OFFSET);
   const frame = useRef(0);
   const optionsRef = useRef({ enabled, offsetRange, lerp, visibleYRatio });
-  optionsRef.current = { enabled, offsetRange, lerp, visibleYRatio };
 
-  const tick = useCallback(() => {
+  useEffect(() => {
+    optionsRef.current = { enabled, offsetRange, lerp, visibleYRatio };
+  });
+
+  useEffect(() => {
+    if (enabled) {
+      return;
+    }
+    target.current = REST_OFFSET;
+    current.current = REST_OFFSET;
+    cancelAnimationFrame(frame.current);
+    frame.current = 0;
+  }, [enabled]);
+
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frame.current);
+    },
+    []
+  );
+
+  function tick() {
     const { lerp: follow } = optionsRef.current;
     const nextX =
       current.current.offsetX +
@@ -82,103 +96,77 @@ export function useDitherPointer({
     }
 
     frame.current = requestAnimationFrame(tick);
-  }, []);
+  }
 
-  const startLoop = useCallback(() => {
+  function startLoop() {
     if (frame.current) {
       return;
     }
     frame.current = requestAnimationFrame(tick);
-  }, [tick]);
+  }
 
-  const aimAtPointer = useCallback(
-    (event: {
-      clientX: number;
-      clientY: number;
-      currentTarget: EventTarget;
-    }) => {
-      const {
-        enabled: canTrack,
-        offsetRange: range,
-        visibleYRatio: yRatio,
-      } = optionsRef.current;
-      if (!canTrack) {
-        return;
-      }
-      const node = event.currentTarget;
-      if (!(node instanceof HTMLElement)) {
-        return;
-      }
-      target.current = getDitherPointerOffset(
-        event.clientX,
-        event.clientY,
-        node.getBoundingClientRect(),
-        range,
-        yRatio
-      );
-      startLoop();
-    },
-    [startLoop]
-  );
+  function aimAtPointer(event: {
+    clientX: number;
+    clientY: number;
+    currentTarget: EventTarget;
+  }) {
+    const {
+      enabled: canTrack,
+      offsetRange: range,
+      visibleYRatio: yRatio,
+    } = optionsRef.current;
+    if (!canTrack) {
+      return;
+    }
+    const node = event.currentTarget;
+    if (!(node instanceof HTMLElement)) {
+      return;
+    }
+    target.current = getDitherPointerOffset(
+      event.clientX,
+      event.clientY,
+      node.getBoundingClientRect(),
+      range,
+      yRatio
+    );
+    startLoop();
+  }
 
-  const onPointerEnter = useCallback(
-    (event: {
-      clientX: number;
-      clientY: number;
-      currentTarget: EventTarget;
-    }) => {
-      if (!optionsRef.current.enabled) {
-        return;
-      }
-      setIsHovering(true);
-      aimAtPointer(event);
-    },
-    [aimAtPointer]
-  );
+  function onPointerEnter(event: {
+    clientX: number;
+    clientY: number;
+    currentTarget: EventTarget;
+  }) {
+    if (!optionsRef.current.enabled) {
+      return;
+    }
+    setIsHovering(true);
+    aimAtPointer(event);
+  }
 
-  const onPointerMove = useCallback(
-    (event: {
-      clientX: number;
-      clientY: number;
-      currentTarget: EventTarget;
-    }) => {
-      aimAtPointer(event);
-    },
-    [aimAtPointer]
-  );
+  function onPointerMove(event: {
+    clientX: number;
+    clientY: number;
+    currentTarget: EventTarget;
+  }) {
+    aimAtPointer(event);
+  }
 
-  const onPointerLeave = useCallback(() => {
+  function onPointerLeave() {
     setIsHovering(false);
     target.current = REST_OFFSET;
     if (optionsRef.current.enabled) {
       startLoop();
     }
-  }, [startLoop]);
+  }
 
-  useEffect(() => {
-    if (enabled) {
-      return;
-    }
-    target.current = REST_OFFSET;
-    current.current = REST_OFFSET;
-    setOffset(REST_OFFSET);
-    setIsHovering(false);
-    cancelAnimationFrame(frame.current);
-    frame.current = 0;
-  }, [enabled]);
-
-  useEffect(
-    () => () => {
-      cancelAnimationFrame(frame.current);
-    },
-    []
-  );
+  const shownOffset = enabled ? offset : REST_OFFSET;
 
   return {
-    offsetX: offset.offsetX,
-    offsetY: offset.offsetY,
-    speed: isHovering ? hoverSpeed : restSpeed,
-    isHovering,
+    offsetX: shownOffset.offsetX,
+    offsetY: shownOffset.offsetY,
+    speed: enabled && isHovering ? hoverSpeed : restSpeed,
+    isHovering: enabled && isHovering,
     pointerProps: {
       onPointerEnter,
       onPointerMove,

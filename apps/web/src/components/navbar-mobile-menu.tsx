@@ -15,7 +15,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AUTH_DASHBOARD_URL, AUTH_SIGNIN_URL } from "@/constants/auth";
 import {
@@ -49,7 +49,7 @@ const TRIGGER_CLASSNAME =
 
 const PANEL_CLASSNAME = "overflow-hidden";
 
-const AUTH_BUTTON_CLASSNAME =
+const MENU_FOOTER_BUTTON_CLASSNAME =
   "font-display flex h-12 items-center justify-center rounded-full text-base tracking-[-0.015em]";
 
 const STAGGER_IN = 0.028;
@@ -118,92 +118,113 @@ export function NavbarMobileMenu({
   overlayLayout,
   onNavigate,
 }: NavbarMobileMenuProps) {
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
   const overlay = reduceMotion ? reducedOverlayVariants : overlayVariants;
   const stagger = reduceMotion ? reducedItemVariants : staggerVariants;
   const item = reduceMotion ? reducedItemVariants : itemVariants;
   const layout = NAVBAR_MOBILE_OVERLAY_LAYOUT[overlayLayout];
 
-  useEffect(() => {
-    if (!open) {
-      setOpenGroup(null);
-    }
-  }, [open]);
-
   return (
     <AnimatePresence>
       {open ? (
-        <m.div
-          animate="visible"
-          aria-label="Navigation"
-          aria-modal="true"
-          className={cn(
-            "pointer-events-none fixed inset-0 z-40 flex flex-col overflow-hidden overscroll-none bg-white lg:hidden dark:bg-neutral-950",
-            layout.shell
-          )}
-          exit="exit"
-          id="mobile-navigation"
-          initial="hidden"
-          role="dialog"
-          variants={overlay}
-        >
-          <m.nav
-            className={cn(
-              "pointer-events-auto flex min-h-0 flex-1 [scrollbar-width:none] flex-col overflow-y-auto overscroll-contain pb-4 [&::-webkit-scrollbar]:hidden",
-              layout.inset
-            )}
-            variants={stagger}
-          >
-            {MARKETING_NAV.map((entry) => {
-              if (entry.type === "link") {
-                return (
-                  <m.div key={entry.href} variants={item}>
-                    <Link
-                      className={TRIGGER_CLASSNAME}
-                      href={entry.href}
-                      onClick={onNavigate}
-                    >
-                      {entry.label}
-                    </Link>
-                  </m.div>
-                );
-              }
-
-              return (
-                <m.div key={entry.label} variants={item}>
-                  <GroupDropdown
-                    group={entry}
-                    item={item}
-                    onOpenChange={(next) =>
-                      setOpenGroup(next ? entry.label : null)
-                    }
-                    onSelect={onNavigate}
-                    open={openGroup === entry.label}
-                    stagger={stagger}
-                  />
-                </m.div>
-              );
-            })}
-          </m.nav>
-
-          <m.div
-            className={cn(
-              "pointer-events-auto flex shrink-0 flex-col gap-3 border-t border-[#1E1E1E14] bg-white pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] dark:border-white/10 dark:bg-neutral-950",
-              layout.inset
-            )}
-            variants={stagger}
-          >
-            <MobileAuthActions
-              isAuthenticated={isAuthenticated}
-              isResolved={isResolved}
-              item={item}
-              onNavigate={onNavigate}
-            />
-          </m.div>
-        </m.div>
+        <MobileNavOverlay
+          isAuthenticated={isAuthenticated}
+          isResolved={isResolved}
+          item={item}
+          layout={layout}
+          onNavigate={onNavigate}
+          overlay={overlay}
+          stagger={stagger}
+        />
       ) : null}
     </AnimatePresence>
+  );
+}
+
+function MobileNavOverlay({
+  isAuthenticated,
+  isResolved,
+  item,
+  layout,
+  onNavigate,
+  overlay,
+  stagger,
+}: NavbarAuthActionsProps & {
+  item: Variants;
+  layout: (typeof NAVBAR_MOBILE_OVERLAY_LAYOUT)[keyof typeof NAVBAR_MOBILE_OVERLAY_LAYOUT];
+  onNavigate: () => void;
+  overlay: Variants;
+  stagger: Variants;
+}) {
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  return (
+    <m.div
+      animate="visible"
+      aria-label="Navigation"
+      aria-modal="true"
+      className={cn(
+        "pointer-events-none fixed inset-0 z-40 flex flex-col overflow-hidden overscroll-none bg-white lg:hidden dark:bg-neutral-950",
+        layout.shell
+      )}
+      exit="exit"
+      id="mobile-navigation"
+      initial="hidden"
+      role="dialog"
+      variants={overlay}
+    >
+      <m.nav
+        className={cn(
+          "pointer-events-auto flex min-h-0 flex-1 [scrollbar-width:none] flex-col overflow-y-auto overscroll-contain pb-4 [&::-webkit-scrollbar]:hidden",
+          layout.inset
+        )}
+        variants={stagger}
+      >
+        {MARKETING_NAV.map((entry) => {
+          if (entry.type === "link") {
+            return (
+              <m.div key={entry.href} variants={item}>
+                <Link
+                  className={TRIGGER_CLASSNAME}
+                  href={entry.href}
+                  onClick={onNavigate}
+                >
+                  {entry.label}
+                </Link>
+              </m.div>
+            );
+          }
+
+          return (
+            <m.div key={entry.label} variants={item}>
+              <GroupDropdown
+                group={entry}
+                item={item}
+                onOpenChange={(next) => setOpenGroup(next ? entry.label : null)}
+                onSelect={onNavigate}
+                open={openGroup === entry.label}
+                stagger={stagger}
+              />
+            </m.div>
+          );
+        })}
+      </m.nav>
+
+      <m.div
+        className={cn(
+          "pointer-events-auto flex shrink-0 flex-col gap-3 border-t border-[#1E1E1E14] bg-white pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] dark:border-white/10 dark:bg-neutral-950",
+          layout.inset
+        )}
+        variants={stagger}
+      >
+        <MobileAuthActions
+          isAuthenticated={isAuthenticated}
+          isResolved={isResolved}
+          item={item}
+          onNavigate={onNavigate}
+        />
+      </m.div>
+    </m.div>
   );
 }
 
@@ -220,7 +241,7 @@ function GroupDropdown({
       <CollapsibleTrigger className={TRIGGER_CLASSNAME}>
         {group.label}
         <NavbarChevron
-          className="size-5 shrink-0 text-[#1E1E1E73] duration-200 dark:text-white/50"
+          className="size-5 shrink-0 text-[#1E1E1E73] transition-transform duration-200 dark:text-white/50"
           flipped={open}
         />
       </CollapsibleTrigger>
@@ -347,7 +368,7 @@ function MobileAuthActions({
     return (
       <m.div variants={item}>
         <Link
-          className={`cta-gradient-primary ${AUTH_BUTTON_CLASSNAME} font-medium text-white`}
+          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
           href={AUTH_DASHBOARD_URL}
           onClick={onNavigate}
         >
@@ -361,7 +382,7 @@ function MobileAuthActions({
     <>
       <m.div variants={item}>
         <Link
-          className={`${AUTH_BUTTON_CLASSNAME} border border-[#1E1E1E26] text-[#1E1E1E] dark:border-white/15 dark:text-white`}
+          className={`${MENU_FOOTER_BUTTON_CLASSNAME} border border-[#1E1E1E26] text-[#1E1E1E] dark:border-white/15 dark:text-white`}
           href={AUTH_SIGNIN_URL}
           onClick={onNavigate}
         >
@@ -370,7 +391,7 @@ function MobileAuthActions({
       </m.div>
       <m.div variants={item}>
         <TrackedSignupLink
-          className={`cta-gradient-primary ${AUTH_BUTTON_CLASSNAME} font-medium text-white`}
+          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
           onClick={onNavigate}
           source={NAVBAR_MOBILE_SIGNUP_SOURCE}
         >
