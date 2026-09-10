@@ -2,11 +2,11 @@
 
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_PICKER_VISIBLE_MODELS } from "@notra/geo-core/constants/geo-model-catalog";
-import type {
-  GeoModelCatalog,
-  GeoModelCatalogEntry,
-} from "@notra/geo-core/types/geo";
+import {
+  GEO_PICKER_VISIBLE_MODELS,
+  GEO_PICKER_VISIBLE_PROVIDERS,
+} from "@notra/geo-core/constants/geo-model-catalog";
+import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 import {
   applyGeoZdrEngineFallback,
   sortKnownEngines,
@@ -51,28 +51,18 @@ import {
 } from "@/constants/billing";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { cn } from "@/lib/utils";
-import type { GeoEnginePickerProps } from "@/types/geo";
+import type {
+  GeoEnginePickerProps,
+  GeoEngineProviderListProps,
+  GeoEngineProviderModelsProps,
+  GeoEngineProviderRowProps,
+} from "@/types/geo";
 import {
   findActivePlanSubscription,
   zdrAddonPlanId,
 } from "@/utils/billing-plans";
 
 const ROW_CLASS = "flex items-center justify-between gap-3 px-3 py-2";
-
-function partiallySelectedProviders(
-  catalog: GeoModelCatalog,
-  selected: ReadonlySet<string>
-): Set<string> {
-  const expanded = new Set<string>();
-  for (const provider of catalog.providers) {
-    const models = geoModelsForProvider(catalog, provider.id);
-    const count = models.filter((model) => selected.has(model.id)).length;
-    if (count > 0 && count < models.length) {
-      expanded.add(provider.id);
-    }
-  }
-  return expanded;
-}
 
 function GeoModelRow({
   approved,
@@ -162,26 +152,14 @@ export function GeoEnginePicker({
   scheduleRow,
 }: GeoEnginePickerProps) {
   const id = useId();
-  const reduceMotion = useReducedMotion();
   const { activeOrganization } = useOrganizationsContext();
   const { attach, data: customer, refetch } = useBillingCustomer();
   const [addonLoading, setAddonLoading] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
   const checkoutReturnHandled = useRef(false);
-  const selectedIds = new Set(selected);
   const approvedNonZdrIds = new Set(nonZdrApproved);
-  const [expanded, setExpanded] = useState<Set<string>>(() =>
-    partiallySelectedProviders(catalog, selectedIds)
-  );
-  const [showMore, setShowMore] = useState(() =>
-    catalog.providers.some(
-      (provider) =>
-        !provider.featured &&
-        geoModelsForProvider(catalog, provider.id).some((model) =>
-          selectedIds.has(model.id)
-        )
-    )
-  );
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [showMore, setShowMore] = useState(false);
   const [pendingApproval, setPendingApproval] =
     useState<GeoModelCatalogEntry | null>(null);
   const [showAllModels, setShowAllModels] = useState<Set<string>>(
@@ -344,13 +322,6 @@ export function GeoEnginePicker({
     setAddonLoading(false);
   };
 
-  const hiddenProviders = catalog.providers.filter(
-    (provider) => !provider.featured
-  );
-  const hiddenProviderIndex = new Map(
-    hiddenProviders.map((provider, index) => [provider.id, index])
-  );
-  const hiddenCount = hiddenProviders.length;
   const billingHref = activeOrganization
     ? `/${activeOrganization.slug}/settings/billing#${ZDR_ADDON_ANCHOR}`
     : null;
@@ -368,257 +339,23 @@ export function GeoEnginePicker({
       ) : null}
 
       <div className="border-border/80 bg-background overflow-hidden rounded-lg border">
-        <ul>
-          {catalog.providers.map((provider) => {
-            const isVisible = provider.featured || showMore;
-            const revealIndex = hiddenProviderIndex.get(provider.id) ?? 0;
-            const staggerDelay = showMore
-              ? revealIndex * 0.045
-              : (hiddenCount - revealIndex - 1) * 0.035;
-            const models = geoModelsForProvider(catalog, provider.id);
-            const isExpanded = expanded.has(provider.id);
-            const allModelsShown = showAllModels.has(provider.id);
-            const selectedModels = models.filter((model) =>
-              selectedIds.has(model.id)
-            );
-            const orderedModels = [
-              ...selectedModels,
-              ...models.filter((model) => !selectedIds.has(model.id)),
-            ];
-            const primaryModelCount = Math.max(
-              GEO_PICKER_VISIBLE_MODELS,
-              selectedModels.length
-            );
-            const primaryModels = orderedModels.slice(0, primaryModelCount);
-            const additionalModels = orderedModels.slice(primaryModelCount);
-            const visibleModels = allModelsShown
-              ? orderedModels
-              : primaryModels;
-            const selectedVisible = visibleModels.filter((model) =>
-              selectedIds.has(model.id)
-            );
-            const someOn = selectedModels.length > 0;
-            const allOn =
-              visibleModels.length > 0 &&
-              selectedVisible.length === visibleModels.length;
-            const selectedCount = selectedModels.length;
-            const providerLocked = allOn && selectedCount === selected.length;
-            const checkboxId = `${id}-${provider.id}`;
-            return (
-              <motion.li
-                animate={
-                  isVisible
-                    ? {
-                        filter: "blur(0px)",
-                        height: "auto",
-                        opacity: 1,
-                        y: 0,
-                      }
-                    : {
-                        filter: "blur(5px)",
-                        height: 0,
-                        opacity: 0,
-                        y: -5,
-                      }
-                }
-                aria-hidden={!isVisible}
-                className="border-border/60 relative overflow-hidden border-b last:border-b-0"
-                inert={isVisible ? undefined : true}
-                initial={false}
-                key={provider.id}
-                transition={
-                  reduceMotion
-                    ? { duration: 0 }
-                    : {
-                        delay: provider.featured ? 0 : staggerDelay,
-                        filter: { duration: 0.18 },
-                        height: {
-                          duration: 0.24,
-                          ease: [0.23, 1, 0.32, 1],
-                        },
-                        opacity: { duration: 0.16 },
-                        y: {
-                          duration: 0.2,
-                          ease: [0.23, 1, 0.32, 1],
-                        },
-                      }
-                }
-              >
-                <div
-                  className={cn(
-                    ROW_CLASS,
-                    "bg-background hover:bg-muted/50 ps-4 pe-6 transition-colors"
-                  )}
-                >
-                  <button
-                    aria-expanded={isExpanded}
-                    className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left text-sm outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
-                    disabled={disabled}
-                    onClick={() => toggleExpanded(provider.id)}
-                    type="button"
-                  >
-                    {hasProviderWordmark(provider.id) ? (
-                      <ProviderWordmark
-                        className="h-2.5 w-auto"
-                        label={provider.label}
-                        provider={provider.id}
-                      />
-                    ) : (
-                      <>
-                        <span className="flex size-7 shrink-0 items-center justify-center overflow-visible">
-                          <EngineIcon
-                            className="size-4 overflow-visible"
-                            engine={models[0]?.id ?? provider.id}
-                          />
-                        </span>
-                        <span className="truncate font-medium">
-                          {provider.label}
-                        </span>
-                      </>
-                    )}
-                    <HugeiconsIcon
-                      className={cn(
-                        "text-muted-foreground duration-normal size-3.5 shrink-0 transition-transform",
-                        isExpanded && "rotate-180"
-                      )}
-                      icon={ArrowDown01Icon}
-                    />
-                  </button>
-                  <Checkbox
-                    aria-label={`Toggle all ${provider.label} models`}
-                    checked={allOn}
-                    disabled={disabled || providerLocked}
-                    id={checkboxId}
-                    indeterminate={someOn && !allOn}
-                    onCheckedChange={(next) =>
-                      toggleProvider(models, visibleModels, next)
-                    }
-                  />
-                </div>
-                <div
-                  className={cn(
-                    "bg-muted/20 duration-normal ease-emphasized grid transition-[grid-template-rows] motion-reduce:transition-none",
-                    isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                  )}
-                >
-                  <div
-                    className="min-h-0 overflow-hidden"
-                    inert={isExpanded ? undefined : true}
-                  >
-                    <div className="border-border/60 bg-background relative mx-3 mb-3 rounded-lg border py-1">
-                      <span
-                        aria-hidden
-                        className="bg-border pointer-events-none absolute top-2 bottom-2 left-[1.25rem] w-px"
-                      />
-                      <ul>
-                        {primaryModels.map((model) => {
-                          const checked = selectedIds.has(model.id);
-                          const modelId = `${id}-${model.id}`;
-                          return (
-                            <GeoModelRow
-                              approved={approvedNonZdrIds.has(model.id)}
-                              checked={checked}
-                              disabled={disabled || (checked && lastSelected)}
-                              id={modelId}
-                              key={model.id}
-                              model={model}
-                              onCheckedChange={(next) =>
-                                toggleModel(model, next)
-                              }
-                              showZdrState={zdrActive}
-                            />
-                          );
-                        })}
-                        {additionalModels.length > 0 ? (
-                          <li
-                            aria-hidden={!allModelsShown}
-                            className={cn(
-                              "duration-slow ease-emphasized grid transition-[grid-template-rows] motion-reduce:transition-none",
-                              allModelsShown
-                                ? "grid-rows-[1fr]"
-                                : "grid-rows-[0fr]"
-                            )}
-                          >
-                            <div
-                              className="min-h-0 overflow-hidden"
-                              inert={allModelsShown ? undefined : true}
-                            >
-                              <ul>
-                                {additionalModels.map((model, modelIndex) => {
-                                  const checked = selectedIds.has(model.id);
-                                  const modelId = `${id}-${model.id}`;
-                                  return (
-                                    <GeoModelRow
-                                      approved={approvedNonZdrIds.has(model.id)}
-                                      checked={checked}
-                                      disabled={
-                                        disabled || (checked && lastSelected)
-                                      }
-                                      id={modelId}
-                                      key={model.id}
-                                      model={model}
-                                      onCheckedChange={(next) =>
-                                        toggleModel(model, next)
-                                      }
-                                      revealed={allModelsShown}
-                                      revealIndex={modelIndex}
-                                      revealTotal={additionalModels.length}
-                                      showZdrState={zdrActive}
-                                    />
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          </li>
-                        ) : null}
-                        {additionalModels.length > 0 ? (
-                          <li className="py-1.5 ps-10 pe-3">
-                            <button
-                              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-sm text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed"
-                              disabled={disabled}
-                              onClick={() => toggleShowAllModels(provider.id)}
-                              type="button"
-                            >
-                              {allModelsShown
-                                ? "Show fewer models"
-                                : `Show ${additionalModels.length} other ${additionalModels.length === 1 ? "model" : "models"}`}
-                            </button>
-                          </li>
-                        ) : null}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </motion.li>
-            );
-          })}
-          {catalog.providers.some((provider) => !provider.featured) ? (
-            <li className="bg-background">
-              <button
-                aria-expanded={showMore}
-                className="text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:ring-ring flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset disabled:cursor-not-allowed"
-                disabled={disabled}
-                onClick={() => setShowMore((current) => !current)}
-                type="button"
-              >
-                <span className="flex size-7 shrink-0 items-center justify-center">
-                  <HugeiconsIcon
-                    className={cn(
-                      "duration-normal size-3.5 transition-transform motion-reduce:transition-none",
-                      showMore && "rotate-180"
-                    )}
-                    icon={ArrowDown01Icon}
-                  />
-                </span>
-                <span>
-                  {showMore
-                    ? "Show fewer providers"
-                    : `Show ${hiddenCount} more providers`}
-                </span>
-              </button>
-            </li>
-          ) : null}
-        </ul>
+        <GeoEngineProviderList
+          catalog={catalog}
+          disabled={disabled}
+          expanded={expanded}
+          id={id}
+          lastSelected={lastSelected}
+          nonZdrApproved={nonZdrApproved}
+          onToggleExpanded={toggleExpanded}
+          onToggleModel={toggleModel}
+          onToggleProvider={toggleProvider}
+          onToggleShowAllModels={toggleShowAllModels}
+          onToggleShowMore={() => setShowMore((current) => !current)}
+          selected={selected}
+          showAllModels={showAllModels}
+          showMore={showMore}
+          zdrActive={zdrActive}
+        />
 
         <div className="divide-y border-t">
           {scheduleRow}
@@ -715,5 +452,392 @@ export function GeoEnginePicker({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function GeoEngineProviderList({
+  catalog,
+  disabled,
+  expanded,
+  id,
+  lastSelected,
+  nonZdrApproved,
+  onToggleExpanded,
+  onToggleModel,
+  onToggleProvider,
+  onToggleShowAllModels,
+  onToggleShowMore,
+  selected,
+  showAllModels,
+  showMore,
+  zdrActive,
+}: GeoEngineProviderListProps) {
+  const reduceMotion = useReducedMotion();
+  const selectedIds = new Set(selected);
+  const approvedNonZdrIds = new Set(nonZdrApproved);
+  const hiddenProviders = catalog.providers.slice(GEO_PICKER_VISIBLE_PROVIDERS);
+  const hiddenProviderIndex = new Map(
+    hiddenProviders.map((provider, index) => [provider.id, index])
+  );
+  const hiddenCount = hiddenProviders.length;
+
+  return (
+    <ul>
+      {catalog.providers.map((provider, providerIndex) => (
+        <GeoEngineProviderRow
+          approvedNonZdrIds={approvedNonZdrIds}
+          disabled={disabled}
+          expanded={expanded.has(provider.id)}
+          hiddenCount={hiddenCount}
+          id={id}
+          key={provider.id}
+          lastSelected={lastSelected}
+          onToggleExpanded={onToggleExpanded}
+          onToggleModel={onToggleModel}
+          onToggleProvider={onToggleProvider}
+          onToggleShowAllModels={onToggleShowAllModels}
+          provider={provider}
+          providerIndex={providerIndex}
+          reduceMotion={reduceMotion}
+          revealIndex={hiddenProviderIndex.get(provider.id) ?? 0}
+          selectedCount={selected.length}
+          selectedIds={selectedIds}
+          showAllModels={showAllModels.has(provider.id)}
+          showMore={showMore}
+          catalog={catalog}
+          zdrActive={zdrActive}
+        />
+      ))}
+      {hiddenCount > 0 ? (
+        <li className="bg-background">
+          <button
+            aria-expanded={showMore}
+            className="text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:ring-ring flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset disabled:cursor-not-allowed"
+            disabled={disabled}
+            onClick={onToggleShowMore}
+            type="button"
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center">
+              <HugeiconsIcon
+                className={cn(
+                  "duration-normal size-3.5 transition-transform motion-reduce:transition-none",
+                  showMore && "rotate-180"
+                )}
+                icon={ArrowDown01Icon}
+              />
+            </span>
+            <span>
+              {showMore
+                ? "Show fewer providers"
+                : `Show ${hiddenCount} more providers`}
+            </span>
+          </button>
+        </li>
+      ) : null}
+    </ul>
+  );
+}
+
+function geoProviderRowModel({
+  hiddenCount,
+  id,
+  models,
+  providerId,
+  providerIndex,
+  revealIndex,
+  selectedCount,
+  selectedIds,
+  showAllModels,
+  showMore,
+}: {
+  hiddenCount: number;
+  id: string;
+  models: readonly GeoModelCatalogEntry[];
+  providerId: string;
+  providerIndex: number;
+  revealIndex: number;
+  selectedCount: number;
+  selectedIds: ReadonlySet<string>;
+  showAllModels: boolean;
+  showMore: boolean;
+}) {
+  const isPreviewed = providerIndex < GEO_PICKER_VISIBLE_PROVIDERS;
+  const selectedModels = models.filter((model) => selectedIds.has(model.id));
+  const orderedModels = [
+    ...selectedModels,
+    ...models.filter((model) => !selectedIds.has(model.id)),
+  ];
+  const primaryModelCount = Math.max(
+    GEO_PICKER_VISIBLE_MODELS,
+    selectedModels.length
+  );
+  const primaryModels = orderedModels.slice(0, primaryModelCount);
+  const additionalModels = orderedModels.slice(primaryModelCount);
+  const visibleModels = showAllModels ? orderedModels : primaryModels;
+  const selectedVisible = visibleModels.filter((model) =>
+    selectedIds.has(model.id)
+  );
+  const allOn =
+    visibleModels.length > 0 && selectedVisible.length === visibleModels.length;
+
+  return {
+    additionalModels,
+    allOn,
+    checkboxId: `${id}-${providerId}`,
+    isPreviewed,
+    isVisible: isPreviewed || showMore,
+    primaryModels,
+    providerLocked: allOn && selectedModels.length === selectedCount,
+    someOn: selectedModels.length > 0,
+    staggerDelay: showMore
+      ? revealIndex * 0.045
+      : (hiddenCount - revealIndex - 1) * 0.035,
+    visibleModels,
+  };
+}
+
+function GeoEngineProviderRow({
+  approvedNonZdrIds,
+  catalog,
+  disabled,
+  expanded,
+  hiddenCount,
+  id,
+  lastSelected,
+  onToggleExpanded,
+  onToggleModel,
+  onToggleProvider,
+  onToggleShowAllModels,
+  provider,
+  providerIndex,
+  reduceMotion,
+  revealIndex,
+  selectedCount,
+  selectedIds,
+  showAllModels,
+  showMore,
+  zdrActive,
+}: GeoEngineProviderRowProps) {
+  const models = geoModelsForProvider(catalog, provider.id);
+  const row = geoProviderRowModel({
+    hiddenCount,
+    id,
+    models,
+    providerId: provider.id,
+    providerIndex,
+    revealIndex,
+    selectedCount,
+    selectedIds,
+    showAllModels,
+    showMore,
+  });
+
+  return (
+    <motion.li
+      animate={
+        row.isVisible
+          ? {
+              filter: "blur(0px)",
+              height: "auto",
+              opacity: 1,
+              y: 0,
+            }
+          : {
+              filter: "blur(5px)",
+              height: 0,
+              opacity: 0,
+              y: -5,
+            }
+      }
+      aria-hidden={!row.isVisible}
+      className="border-border/60 relative overflow-hidden border-b last:border-b-0"
+      inert={row.isVisible ? undefined : true}
+      initial={false}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : {
+              delay: row.isPreviewed ? 0 : row.staggerDelay,
+              filter: { duration: 0.18 },
+              height: {
+                duration: 0.24,
+                ease: [0.23, 1, 0.32, 1],
+              },
+              opacity: { duration: 0.16 },
+              y: {
+                duration: 0.2,
+                ease: [0.23, 1, 0.32, 1],
+              },
+            }
+      }
+    >
+      <div
+        className={cn(
+          ROW_CLASS,
+          "bg-background hover:bg-muted/50 ps-4 pe-6 transition-colors"
+        )}
+      >
+        <button
+          aria-expanded={expanded}
+          className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left text-sm outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
+          disabled={disabled}
+          onClick={() => onToggleExpanded(provider.id)}
+          type="button"
+        >
+          {hasProviderWordmark(provider.id) ? (
+            <ProviderWordmark
+              className="h-2.5 w-auto"
+              label={provider.label}
+              provider={provider.id}
+            />
+          ) : (
+            <>
+              <span className="flex size-7 shrink-0 items-center justify-center overflow-visible">
+                <EngineIcon
+                  className="size-4 overflow-visible"
+                  engine={models[0]?.id ?? provider.id}
+                />
+              </span>
+              <span className="truncate font-medium">{provider.label}</span>
+            </>
+          )}
+          <HugeiconsIcon
+            className={cn(
+              "text-muted-foreground duration-normal size-3.5 shrink-0 transition-transform",
+              expanded && "rotate-180"
+            )}
+            icon={ArrowDown01Icon}
+          />
+        </button>
+        <Checkbox
+          aria-label={`Toggle all ${provider.label} models`}
+          checked={row.allOn}
+          disabled={disabled || row.providerLocked}
+          id={row.checkboxId}
+          indeterminate={row.someOn && !row.allOn}
+          onCheckedChange={(next) =>
+            onToggleProvider(models, row.visibleModels, next)
+          }
+        />
+      </div>
+      <div
+        className={cn(
+          "bg-muted/20 duration-normal ease-emphasized grid transition-[grid-template-rows] motion-reduce:transition-none",
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div
+          className="min-h-0 overflow-hidden"
+          inert={expanded ? undefined : true}
+        >
+          <div className="border-border/60 bg-background relative mx-3 mb-3 rounded-lg border py-1">
+            <span
+              aria-hidden
+              className="bg-border pointer-events-none absolute top-2 bottom-2 left-[1.25rem] w-px"
+            />
+            <GeoEngineProviderModels
+              additionalModels={row.additionalModels}
+              approvedNonZdrIds={approvedNonZdrIds}
+              disabled={disabled}
+              id={id}
+              lastSelected={lastSelected}
+              onToggleModel={onToggleModel}
+              onToggleShowAllModels={onToggleShowAllModels}
+              primaryModels={row.primaryModels}
+              providerId={provider.id}
+              selectedIds={selectedIds}
+              showAllModels={showAllModels}
+              zdrActive={zdrActive}
+            />
+          </div>
+        </div>
+      </div>
+    </motion.li>
+  );
+}
+
+function GeoEngineProviderModels({
+  additionalModels,
+  approvedNonZdrIds,
+  disabled,
+  id,
+  lastSelected,
+  onToggleModel,
+  onToggleShowAllModels,
+  primaryModels,
+  providerId,
+  selectedIds,
+  showAllModels,
+  zdrActive,
+}: GeoEngineProviderModelsProps) {
+  return (
+    <ul>
+      {primaryModels.map((model) => {
+        const checked = selectedIds.has(model.id);
+        const modelId = `${id}-${model.id}`;
+        return (
+          <GeoModelRow
+            approved={approvedNonZdrIds.has(model.id)}
+            checked={checked}
+            disabled={disabled || (checked && lastSelected)}
+            id={modelId}
+            key={model.id}
+            model={model}
+            onCheckedChange={(next) => onToggleModel(model, next)}
+            showZdrState={zdrActive}
+          />
+        );
+      })}
+      {additionalModels.length > 0 ? (
+        <li
+          aria-hidden={!showAllModels}
+          className={cn(
+            "duration-slow ease-emphasized grid transition-[grid-template-rows] motion-reduce:transition-none",
+            showAllModels ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          )}
+        >
+          <div
+            className="min-h-0 overflow-hidden"
+            inert={showAllModels ? undefined : true}
+          >
+            <ul>
+              {additionalModels.map((model, modelIndex) => {
+                const checked = selectedIds.has(model.id);
+                const modelId = `${id}-${model.id}`;
+                return (
+                  <GeoModelRow
+                    approved={approvedNonZdrIds.has(model.id)}
+                    checked={checked}
+                    disabled={disabled || (checked && lastSelected)}
+                    id={modelId}
+                    key={model.id}
+                    model={model}
+                    onCheckedChange={(next) => onToggleModel(model, next)}
+                    revealed={showAllModels}
+                    revealIndex={modelIndex}
+                    revealTotal={additionalModels.length}
+                    showZdrState={zdrActive}
+                  />
+                );
+              })}
+            </ul>
+          </div>
+        </li>
+      ) : null}
+      {additionalModels.length > 0 ? (
+        <li className="py-1.5 ps-10 pe-3">
+          <button
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-sm text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed"
+            disabled={disabled}
+            onClick={() => onToggleShowAllModels(providerId)}
+            type="button"
+          >
+            {showAllModels
+              ? "Show fewer models"
+              : `Show ${additionalModels.length} other ${additionalModels.length === 1 ? "model" : "models"}`}
+          </button>
+        </li>
+      ) : null}
+    </ul>
   );
 }

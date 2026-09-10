@@ -14,7 +14,7 @@ export function CodexComposer({
   onChange,
   onKeyDown,
   placeholder = "Ask Codex to do anything",
-  model = "gpt-5.4-codex",
+  model = "gpt-6-astra",
   cwd = "~/acme/web",
   context = "12% context used",
   className,

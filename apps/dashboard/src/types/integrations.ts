@@ -1,3 +1,4 @@
+import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 import type React from "react";
 
@@ -21,6 +22,7 @@ export type Repository = GitHubRepository;
 
 export interface GitHubIntegration {
   id: string;
+  connectionMethod?: GitHubConnectionMethod;
   displayName: string;
   enabled: boolean;
   managedByGitHubApp: boolean;

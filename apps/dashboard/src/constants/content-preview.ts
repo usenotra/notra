@@ -11,6 +11,8 @@ export const GITHUB_API_MAX_RESULTS = 500;
 
 export const DEFAULT_CONTENT_TYPE: OnDemandContentType = "changelog";
 
+export const DASHBOARD_HOME_POST_LIMIT = 3;
+
 export const DEFAULT_DATA_POINTS: ContentDataPointSettings = {
   includePullRequests: true,
   includeCommits: true,

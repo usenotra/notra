@@ -29,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Kbd, KbdGroup } from "@notra/ui/components/ui/kbd";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -37,6 +37,7 @@ import {
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
@@ -51,6 +52,7 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { cn, errorMessageOr } from "@/lib/utils";
 import type { OrganizationOptionsListProps } from "@/types/dashboard";
 import { planDisplayName } from "@/utils/billing-plans";
@@ -282,6 +284,8 @@ export function OrgSelector() {
   const isDark = resolvedTheme === "dark";
   const toggleTheme = () => setTheme(isDark ? "light" : "dark");
   const { openFeedback } = useFeedback();
+  const { openSettings } = useSettingsModal();
+  const isApplePlatform = useIsApplePlatform();
 
   function triggerScheduleDemo() {
     const btn = document.querySelector<HTMLButtonElement>(
@@ -380,8 +384,7 @@ export function OrgSelector() {
       toast("Subscribe to create more organizations", {
         action: {
           label: "Upgrade",
-          onClick: () =>
-            router.push(`/${activeOrganization?.slug}/settings/billing`),
+          onClick: () => openSettings("billing"),
         },
       });
       return;
@@ -454,9 +457,7 @@ export function OrgSelector() {
                   ORG_MENU_ITEM_CLASS,
                   "text-primary focus:text-primary [&_svg]:text-primary"
                 )}
-                onClick={() =>
-                  router.push(`/${activeOrganization?.slug}/settings/billing`)
-                }
+                onClick={() => openSettings("billing")}
               >
                 <HugeiconsIcon icon={SparklesIcon} />
                 Upgrade to Growth
@@ -467,12 +468,14 @@ export function OrgSelector() {
 
             <DropdownMenuItem
               className={ORG_MENU_ITEM_CLASS}
-              onClick={() =>
-                router.push(`/${activeOrganization?.slug}/settings/account`)
-              }
+              onClick={() => openSettings("account")}
             >
               <HugeiconsIcon icon={Settings01Icon} />
               Settings
+              <KbdGroup className="ml-auto">
+                <Kbd>{isApplePlatform ? "⌘" : "Ctrl"}</Kbd>
+                <Kbd>,</Kbd>
+              </KbdGroup>
             </DropdownMenuItem>
 
             <DropdownMenuItem

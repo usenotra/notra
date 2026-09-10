@@ -143,6 +143,39 @@ NEXT_PUBLIC_APP_URL=https://your-public-tunnel-url
 If you need a stable or custom URL, use a locally managed tunnel setup from the official docs:
 https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/create-local-tunnel/
 
+## Build performance
+
+The web and dashboard apps enable incremental TypeScript checking in their
+`tsconfig.json` files, overriding the shared base config. Keep this enabled:
+Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
+Vercel restores on subsequent builds. A cold build still checks the whole project;
+warm builds reuse unchanged checks without disabling type errors.
+
+Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
+`.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
+task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
+the incremental compiler state used when a task needs to run again.
+
+When comparing deployments, measure compilation, TypeScript, static generation,
+and output deployment separately. Vercel's `Creating build cache` phase occurs
+after `Deployment completed`; it is not additional time until the app is live.
+Both projects use filtered Turbo build commands and skip unaffected projects.
+Preserve those settings when changing the Vercel configuration.
+
+Standalone `check-types` scripts that run `tsc` enable incremental checking with
+command-line flags and write to `.cache/typecheck.tsbuildinfo` within each
+package. Run them through `bun run check-types` (optionally with `--filter`) to
+reuse this state. These flags override the shared base config for type checks
+without changing Eve or tsup builds. The files are already ignored by Git's
+`*.tsbuildinfo` rule and are declared as Turbo task outputs.
+
+The code-quality workflow restores these files using a cache key scoped to the
+runner platform, dependencies, configuration, and commit. A matching prefix can
+restore state from an earlier commit; TypeScript still checks changed source and
+its affected dependents. The workflow retains its existing package selection.
+Blume's `ui` app uses its own checker and does not produce this cache file.
+Next.js production builds continue to use their separate `.next/cache` state.
+
 ## Database Workflow
 
 Common Drizzle commands from the repo root:
@@ -216,6 +249,31 @@ We keep both in sync so the website and markdown endpoint (`/markdown`) say the 
 Open an issue or start a discussion in the repo.
 
 Thanks for helping improve Notra.
+
+## Vercel build selection
+
+Keep Vercel's **Skip unaffected projects** setting enabled. Each deployed app
+also has a version-pinned `ignoreCommand` in its `vercel.json` to check its
+workspace and transitive dependencies before installing dependencies or building.
+This catches unnecessary builds triggered by root documentation changes and
+unrelated workspaces' Bun lockfile changes. Root install configuration and the
+prepare script are declared in `turbo.json#globalDependencies` so changes to
+those files still trigger builds. Declare any new shared build inputs there too.
+
+The check uses `VERCEL_GIT_PREVIOUS_SHA`, the last successful deployment for
+that project and branch. There is deliberately no `HEAD^` fallback: first
+deployments and unavailable history must build, and multiple commits since the
+last deployment must be considered together. Errors also allow the build.
+
+`turbo-ignore` is deprecated in favor of Vercel's built-in skipping, but the
+pinned version remains a secondary check because built-in skipping currently
+deploys unrelated apps for these changes. Update its version and `--turbo-version`
+across all five app configs together when upgrading, and verify both skipped
+and required builds. Ignored builds still create canceled deployment records
+and briefly occupy a build slot; they avoid the install and full build.
+
+For a deliberate redeploy after an environment or project-setting change,
+uncheck **Use project's Ignore Build Step** in Vercel's Redeploy dialog.
 
 ## Automated tests
 

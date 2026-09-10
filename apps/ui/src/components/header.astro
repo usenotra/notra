@@ -1,0 +1,137 @@
+---
+import { Moon02Icon, Sun02Icon } from "@hugeicons/core-free-icons";
+import Header from "blume/components/layout/Header.astro";
+import type { HeaderProps as Props } from "../types/header";
+---
+
+<notra-theme-header>
+  <Header {...Astro.props} />
+  <template data-theme-icons>
+    {
+      [Moon02Icon, Sun02Icon].map((icon, index) => (
+        <svg
+          aria-hidden="true"
+          data-theme-icon={index === 0 ? "moon" : "sun"}
+          fill="none"
+          height="16"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {icon.map(([Tag, { key, strokeWidth, strokeLinecap, strokeLinejoin, ...attributes }]) => (
+            <Tag
+              {...attributes}
+              stroke-linecap={strokeLinecap}
+              stroke-linejoin={strokeLinejoin}
+              stroke-width={strokeWidth}
+            />
+          ))}
+        </svg>
+      ))
+    }
+  </template>
+</notra-theme-header>
+
+<script>
+  import { HotkeyManager } from "@tanstack/hotkeys";
+
+  class NotraThemeHeader extends HTMLElement {
+    cleanup?: () => void;
+
+    connectedCallback() {
+      this.cleanup?.();
+      const button = this.querySelector<HTMLButtonElement>("[data-blume-theme-toggle]");
+      const template = this.querySelector<HTMLTemplateElement>("[data-theme-icons]");
+      if (!(button && template)) return;
+
+      button.replaceChildren(template.content.cloneNode(true));
+      button.setAttribute("aria-keyshortcuts", "d");
+      button.title = "Toggle theme (D)";
+
+      const syncTheme = () => {
+        const isDark = document.documentElement.dataset.theme === "dark";
+        button.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+        button.setAttribute("aria-pressed", String(isDark));
+      };
+      syncTheme();
+
+      const observer = new MutationObserver(syncTheme);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      // Keep Blume's theme persistence and click behavior as the single source of truth.
+      const hotkey = HotkeyManager.getInstance().register("D", () => button.click(), {
+        ignoreInputs: true,
+        requireReset: true,
+      });
+      this.cleanup = () => {
+        observer.disconnect();
+        hotkey.unregister();
+      };
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get("notra-theme-header")) {
+    customElements.define("notra-theme-header", NotraThemeHeader);
+  }
+</script>
+
+<style is:global>
+  notra-theme-header {
+    display: contents;
+  }
+
+  /* Keep the mark equally sized in both themes, with room for the dark-mode box. */
+  notra-theme-header [data-blume-header] > a > span[aria-hidden="true"] {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  notra-theme-header [data-blume-header] > a > span[aria-hidden="true"] > svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  [data-theme="dark"] notra-theme-header [data-blume-header] > a > span[aria-hidden="true"] {
+    background: #f6f3f1;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 0 0 1px rgb(255 255 255 / 10%), inset 0 1px 2px rgb(255 255 255 / 8%);
+  }
+
+  notra-theme-header [data-blume-theme-toggle] {
+    position: relative;
+    border-radius: 0.5rem;
+    color: var(--foreground);
+  }
+
+  notra-theme-header [data-theme-icon] {
+    position: absolute;
+  }
+
+  [data-theme="dark"] notra-theme-header [data-theme-icon="moon"],
+  html:not([data-theme="dark"]) notra-theme-header [data-theme-icon="sun"] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    notra-theme-header [data-theme-icon] {
+      animation: notra-theme-icon-in 300ms ease-out;
+    }
+
+    @keyframes notra-theme-icon-in {
+      from {
+        opacity: 0;
+        filter: blur(4px);
+        transform: rotate(-90deg) scale(0.25);
+      }
+      to {
+        opacity: 1;
+        filter: blur(0);
+        transform: rotate(0) scale(1);
+      }
+    }
+  }
+</style>

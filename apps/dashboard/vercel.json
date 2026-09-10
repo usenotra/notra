@@ -1,5 +1,11 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "npx --yes turbo-ignore@2.10.12 dashboard --turbo-version=2.10.12",
   "crons": [
+    {
+      "path": "/api/cron/monitoring",
+      "schedule": "*/5 * * * *"
+    },
     {
       "path": "/api/cron/geo-scan",
       "schedule": "*/10 * * * *"

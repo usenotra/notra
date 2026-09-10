@@ -9,6 +9,9 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
+import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
+import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { Redis } from "@upstash/redis";
 import { Effect, Layer } from "effect";
@@ -119,6 +122,9 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
  * dashboard and are reached through its authenticated internal endpoints.
  */
 export const geoCoreApiLayer = Layer.mergeAll(
+  agentReadinessNetworkLive,
+  geoModelLive,
+  geoSearchConsoleLive,
   workflowLayer,
   entitlementLayer,
   featureFlagLayer,

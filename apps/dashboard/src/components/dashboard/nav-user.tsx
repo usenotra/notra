@@ -26,6 +26,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useHidePersonalData } from "@/lib/hooks/use-privacy-preferences";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { cn } from "@/lib/utils";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
@@ -43,10 +44,10 @@ export function NavUser() {
   );
   const { activeOrganization } = useOrganizationsContext();
   const { hidePersonalData } = useHidePersonalData();
+  const { openSettings } = useSettingsModal();
 
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
-  const slug = activeOrganization?.slug ?? "";
 
   async function handleSignOut() {
     setIsSigningOut(true);
@@ -143,7 +144,7 @@ export function NavUser() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => router.push(`/${slug}/settings/account`)}
+            onClick={() => openSettings("account")}
           >
             <HugeiconsIcon icon={User02Icon} />
             Account

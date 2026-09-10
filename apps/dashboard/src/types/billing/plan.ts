@@ -46,6 +46,12 @@ export type BillingCustomer = NonNullable<
   ReturnType<typeof useCustomer>["data"]
 >;
 export type BillingSubscription = BillingCustomer["subscriptions"][number];
+export type BillingInvoice = NonNullable<BillingCustomer["invoices"]>[number];
+
+export interface InvoicesTableProps {
+  invoices: BillingInvoice[];
+  plans: BillingPlan[] | undefined;
+}
 
 export type AttachPlanFn = ReturnType<typeof useCustomer>["attach"];
 export type MultiAttachPlanFn = ReturnType<typeof useCustomer>["multiAttach"];

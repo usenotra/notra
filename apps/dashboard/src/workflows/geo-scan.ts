@@ -95,12 +95,20 @@ async function runGeoScanBatchWindow<T>(
     while (hasPendingBatches() && inFlight.size < GEO_SCAN_BATCH_CONCURRENCY) {
       const now = Date.now();
       if (isClaimRenewalDue(state.claimedAt, now)) {
-        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- each renewal depends on the previous claim token
-        state.claimedAt = await renewGeoScanClaimStep(
-          context.projectId,
-          state.claimedAt,
-          nextClaimRenewalToken(state.claimedAt, now)
-        );
+        try {
+          // react-doctor-disable-next-line react-doctor/async-await-in-loop -- each renewal depends on the previous claim token
+          state.claimedAt = await renewGeoScanClaimStep(
+            context.projectId,
+            state.claimedAt,
+            nextClaimRenewalToken(state.claimedAt, now)
+          );
+        } catch (error) {
+          // A failed renewal stops new work, not the batches already running.
+          // Drain those before finalizing or releasing their claim.
+          failed = true;
+          failure = error;
+          break;
+        }
       }
       const index = nextIndex;
       nextIndex += 1;
@@ -111,6 +119,9 @@ async function runGeoScanBatchWindow<T>(
           (error: unknown) => ({ index, error })
         )
       );
+    }
+    if (inFlight.size === 0) {
+      break;
     }
     const settled = await Promise.race(inFlight.values());
     inFlight.delete(settled.index);

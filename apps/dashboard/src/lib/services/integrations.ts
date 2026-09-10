@@ -2,6 +2,7 @@ import { getGitHubIntegrationsByOrganization } from "@notra/ai/integrations/gith
 import { getGranolaIntegrationsByOrganization } from "@notra/ai/integrations/granola";
 import { getLinearIntegrationsByOrganization } from "@notra/ai/integrations/linear";
 import { getSlackIntegrationsByOrganization } from "@notra/ai/integrations/slack-workspace";
+import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 
 import type {
@@ -30,9 +31,7 @@ const integrationFetchers: Partial<
         id: integration.id,
         displayName: integration.displayName,
         type: "github" as const,
-        connectionMethod: integration.githubAppInstallationId
-          ? ("github-app" as const)
-          : ("personal-access-token" as const),
+        connectionMethod: getGitHubConnectionMethod(integration),
         enabled: integration.enabled,
         createdAt: integration.createdAt,
         managedByGitHubApp: Boolean(integration.githubAppInstallationId),

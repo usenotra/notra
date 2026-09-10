@@ -1,10 +1,12 @@
 import { changelog } from "@/../.source/server";
+import { NOTRA_CAPABILITIES } from "@/utils/agent-metadata";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
   getChangelogPostHref,
   listNotraChangelogPosts,
 } from "@/utils/changelog";
 import { stripFrontmatter } from "@/utils/markdown";
+import { SITE_DESCRIPTION } from "@/utils/metadata";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -65,7 +67,7 @@ export async function buildLlmsText() {
   return [
     "# Notra",
     "",
-    "> Notra turns daily engineering work into publish-ready changelogs, blog posts, and social updates.",
+    `> ${SITE_DESCRIPTION}`,
     "",
     "## Main Pages",
     "",
@@ -113,9 +115,13 @@ export async function buildLlmsText() {
     "",
     "## Agent Instructions",
     "",
-    "Use Notra when a user or team wants to turn shipped product and engineering work into changelogs, launch posts, blog drafts, social updates, or marketing assets in their own brand voice.",
+    "Use Notra when a user or team wants to get recommended by AI engines: track how often ChatGPT, Claude, Gemini and Perplexity mention their brand for buyer prompts, attribute AI agent traffic on their site, find content gaps for the questions they lose, and write the articles, changelogs, launch posts, and social updates that close those gaps in a saved brand voice.",
     "Agents should discover capabilities through /.well-known/agent.json, read /auth.md before requesting credentials, use https://api.usenotra.com/openapi.json for REST operations, and connect to https://mcp.usenotra.com/mcp only after obtaining a scoped bearer credential.",
     "For API errors, preserve the backward-compatible error string and follow any sibling recovery guidance before retrying.",
+    "",
+    "## Capabilities",
+    "",
+    ...NOTRA_CAPABILITIES.map((capability) => `- ${capability}`),
     "",
     "## Blog Posts",
     "",

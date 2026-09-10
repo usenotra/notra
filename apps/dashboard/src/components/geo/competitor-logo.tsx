@@ -1,6 +1,7 @@
 "use client";
 
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
+import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
@@ -33,7 +34,7 @@ function CompetitorLogoInner({
   className,
   onSettled,
 }: CompetitorLogoProps & { logo: string | null }) {
-  const sources = competitorLogoSources(domain, logo);
+  const sources = competitorLogoSources(domain ?? null, logo);
   const [sourceIndex, setSourceIndex] = useState(0);
   const src = sources[sourceIndex] ?? null;
 
@@ -71,12 +72,14 @@ function CompetitorLogoInner({
 
 export function CompetitorLogo({
   name,
-  domain,
+  domain = null,
+  competitors,
   className,
   onSettled,
 }: CompetitorLogoProps) {
-  const { data } = useCompanyLogo(domain, name);
-  const resolvedDomain = domain ?? data?.domain ?? null;
+  const trackedDomain = domain ?? findCompetitorDomain(competitors, name);
+  const { data } = useCompanyLogo(trackedDomain, name);
+  const resolvedDomain = trackedDomain ?? data?.domain ?? null;
   const logo = data?.url ?? null;
 
   return (

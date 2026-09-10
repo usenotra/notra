@@ -22,7 +22,6 @@ import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
 import {
   CHART_MUTED_COLOR,
-  CHART_OTHER_SLICE_LABEL,
   CHART_PRIMARY_COLOR,
   RIVAL_SWATCHES,
 } from "@/constants/charts";
@@ -72,14 +71,15 @@ export function competitorSliceColor(index: number): ChartColorPair {
 }
 
 export function shareOfVoiceSliceColor(
-  brand: string,
+  row: Pick<ShareOfVoiceRow, "brand" | "kind">,
   index: number,
   competitors?: readonly GeoCompetitor[],
   ownBrand?: { companyName?: string | null; aliases?: readonly string[] }
 ): ChartColorPair {
-  if (brand === CHART_OTHER_SLICE_LABEL) {
+  if (row.kind === "aggregate") {
     return CHART_MUTED_COLOR;
   }
+  const { brand } = row;
   if (isOwnBrandName(brand, ownBrand?.companyName, ownBrand?.aliases)) {
     return CHART_PRIMARY_COLOR;
   }
@@ -98,9 +98,6 @@ export function isTrackedShareOfVoiceBrand(
   competitors: readonly GeoCompetitor[] | undefined,
   ownBrand?: { companyName?: string | null; aliases?: readonly string[] }
 ): boolean {
-  if (brand === CHART_OTHER_SLICE_LABEL) {
-    return false;
-  }
   if (isOwnBrandName(brand, ownBrand?.companyName, ownBrand?.aliases)) {
     return true;
   }
@@ -217,19 +214,19 @@ export function engineFamilyBrandRows(
 }
 
 export function shareOfVoiceRivalIndex(
-  rows: readonly { brand: string }[],
+  rows: readonly Pick<ShareOfVoiceRow, "brand" | "kind">[],
   brand: string,
   ownBrand?: { companyName?: string | null; aliases?: readonly string[] }
 ): number {
   let index = 0;
   for (const row of rows) {
+    if (row.kind === "aggregate") {
+      continue;
+    }
     if (row.brand === brand) {
       return index;
     }
-    if (
-      row.brand !== CHART_OTHER_SLICE_LABEL &&
-      !isOwnBrandName(row.brand, ownBrand?.companyName, ownBrand?.aliases)
-    ) {
+    if (!isOwnBrandName(row.brand, ownBrand?.companyName, ownBrand?.aliases)) {
       index += 1;
     }
   }
@@ -359,7 +356,7 @@ export function buildShareOfVoiceMentionSparklines(
   const allDays = [...new Set(timeseries.map((point) => point.day))].sort();
   const topBrandKeys = new Set<string>();
   for (const row of rows) {
-    if (row.brand !== CHART_OTHER_SLICE_LABEL) {
+    if (row.kind === "brand") {
       topBrandKeys.add(competitorKey(row.brand));
     }
   }
@@ -367,9 +364,9 @@ export function buildShareOfVoiceMentionSparklines(
   const sparklines = new Map<string, GeoSparklinePoint[]>();
 
   for (const row of rows) {
-    if (row.brand === CHART_OTHER_SLICE_LABEL) {
+    if (row.kind === "aggregate") {
       sparklines.set(
-        row.brand,
+        row.id,
         allDays.map((day) => {
           let mentions = 0;
           for (const [brandKey, dayMap] of byBrandDay) {
@@ -385,7 +382,7 @@ export function buildShareOfVoiceMentionSparklines(
 
     const dayMap = byBrandDay.get(competitorKey(row.brand));
     sparklines.set(
-      row.brand,
+      row.id,
       allDays.map((day) => ({
         day,
         value: dayMap?.get(day) ?? 0,

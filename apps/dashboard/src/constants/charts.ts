@@ -37,6 +37,9 @@ export const ACCOUNT_SERIES_COLORS: readonly ChartColorPair[] = [
 ];
 
 export const CHART_OTHER_SLICE_LABEL = "Other";
+export const SHARE_OF_VOICE_AGGREGATE_ID = "aggregate:other";
+export const SHARE_OF_VOICE_AGGREGATE_LABEL = "Other brands";
+export const SHARE_OF_VOICE_RANKING_LIMIT = 4;
 export const CHART_PERCENT_SCALE = 100;
 export const CHART_MIN_BAR_PERCENT = 2;
 export const SPARKLINE_SERIES_KEY = "value";

@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
       throw accessError;
     }
 
-    await upsertGitHubAppInstallation({
+    const installation = await upsertGitHubAppInstallation({
       organizationId: installState.organizationId,
       userId: installState.userId,
       installationId,
@@ -184,6 +184,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(
       buildCallbackUrl(baseUrl, installState.callbackPath, {
         githubConnected: "true",
+        githubAccountId: installation.accountId,
       })
     );
   } catch (error) {

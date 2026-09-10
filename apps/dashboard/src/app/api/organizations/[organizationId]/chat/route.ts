@@ -66,8 +66,8 @@ export const POST = withEvlog(async function POST(
   request: NextRequest,
   { params }: RouteContext<{ organizationId: string }>
 ) {
-  const requestId = nanoid(10);
   const log = getLogger();
+  const requestId = String(log.getContext().requestId);
   let cleanupOrganizationId: string | null = null;
   let cleanupChatId: string | null = null;
   let cleanupStreamId: string | null = null;
@@ -78,7 +78,6 @@ export const POST = withEvlog(async function POST(
     log.set({
       feature: "standalone_chat",
       organizationId,
-      requestId,
     });
 
     const auth = await withOrganizationAuth(request, organizationId);

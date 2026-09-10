@@ -1,13 +1,14 @@
 "use client";
 
 import { GEO_SEARCH_GAP_DISMISSED_TOAST } from "@notra/geo-core/constants/geo";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
-import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { PageContainer } from "@/components/layout/container";
 import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -33,6 +34,12 @@ import {
 
 import { GeoGapsSkeleton } from "./skeleton";
 
+const WriteDialog = dynamic(() =>
+  import("@/components/geo/writer/write-dialog").then(
+    (module) => module.WriteDialog
+  )
+);
+
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const [projectParam] = useGeoProjectQueryState();
 
@@ -53,8 +60,8 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
       : orgFromList;
   const organizationId = organization?.id ?? "";
 
-  const { data: settingsData, isPending: isSettingsPending } =
-    useGeoSettings(organizationId);
+  const settingsQuery = useGeoSettings(organizationId);
+  const { data: settingsData, isPending: isSettingsPending } = settingsQuery;
   const gapsQuery = useGeoWriterGaps(organizationId);
   const competitorsQuery = useGeoCompetitors(organizationId);
   const startScan = useGeoStartScan(organizationId);
@@ -70,6 +77,36 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
     setDialogInitial(initial ?? emptyWriteDialogState());
     setDialogOpen(true);
   }, []);
+
+  if (
+    (settingsQuery.isError && !settingsData) ||
+    (settingsData?.settings && gapsQuery.isError && !gapsQuery.data)
+  ) {
+    return (
+      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:py-6">
+        <div className="space-y-4 px-4 lg:px-6" role="alert">
+          <h1 className="text-3xl font-bold tracking-tight">Content Gaps</h1>
+          <p className="text-muted-foreground">
+            We couldn&apos;t load content gaps. Try again.
+          </p>
+          <Button
+            disabled={settingsQuery.isFetching || gapsQuery.isFetching}
+            onClick={() => {
+              if (settingsQuery.isError) {
+                void settingsQuery.refetch();
+              }
+              if (gapsQuery.isError) {
+                void gapsQuery.refetch();
+              }
+            }}
+            variant="outline"
+          >
+            Retry
+          </Button>
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (!(isSettingsPending || settingsData?.settings)) {
     return (
@@ -156,7 +193,7 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
         )}
       </div>
 
-      {organizationId ? (
+      {organizationId && dialogInitial ? (
         <WriteDialog
           entry={GEO_WRITE_DIALOG_ENTRIES.GAP}
           initial={dialogInitial}

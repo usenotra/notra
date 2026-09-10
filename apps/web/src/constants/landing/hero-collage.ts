@@ -101,7 +101,7 @@ export const HERO_COLLAGE_CITATION_ROWS: CitationRow[] = [
     id: "c-12",
     agoSeconds: 360,
     provider: "Claude Code",
-    engine: "claude",
+    engine: "claude-code",
     path: "/llms-full.txt",
     purpose: "assistant-browse",
     markdown: true,

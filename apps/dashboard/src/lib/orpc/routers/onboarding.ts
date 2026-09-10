@@ -26,7 +26,10 @@ import {
   getOnboardingAgentState,
   startSelfServeOnboardingAgent,
 } from "@/lib/onboarding-agent";
-import { pickCompanyLogoUrl } from "@/lib/onboarding/company-logo";
+import {
+  pickBrandSearchResult,
+  pickCompanyLogoUrl,
+} from "@/lib/onboarding/company-logo";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { ratelimit } from "@/utils/ratelimit";
 
@@ -53,14 +56,7 @@ export const onboardingRouter = {
         }
 
         const response = await searchBrands(input.query);
-        const key = input.query.toLowerCase();
-        const brand =
-          response.results.find(
-            (result) => result.name.trim().toLowerCase() === key
-          ) ??
-          response.results.find(
-            (result) => result.domain.trim().toLowerCase() === key
-          );
+        const brand = pickBrandSearchResult(response.results, input.query);
         return {
           domain: brand?.domain ?? null,
           url: brand?.logo || null,

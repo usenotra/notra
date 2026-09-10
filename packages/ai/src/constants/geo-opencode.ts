@@ -1,5 +1,8 @@
 export const GEO_OPENCODE_BOX_MODEL_ID = "openrouter/openai/gpt-5.6-sol";
-export const GEO_OPENCODE_REASONING_EFFORT = "medium";
+export const GEO_OPENCODE_REASONING_EFFORT = "medium" as const;
+export const GEO_CLAUDE_CODE_EFFORT = "medium" as const;
+export const GEO_CODEX_REASONING_EFFORT = "medium" as const;
+export const GEO_CODEX_WEB_SEARCH = true as const;
 export const GEO_OPENCODE_RUN_TIMEOUT_MS = 150_000;
 export const GEO_OPENCODE_SOURCE_LIMIT = 20;
 export const GEO_OPENCODE_BOX_API_BASE_URL =

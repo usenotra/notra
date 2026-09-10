@@ -18,6 +18,9 @@ export function DataTable<TData>({
   isLoading,
   emptyState,
   onRowClick,
+  sort,
+  onSortChange,
+  totalCount,
 }: DataTableProps<TData>) {
   const rowCount = isLoading ? LOGS_SKELETON_ROW_COUNT : data.length;
 
@@ -28,6 +31,8 @@ export function DataTable<TData>({
         columns={columns}
         data={data}
         defaultSort={{ key: "createdAt", direction: "desc" }}
+        sort={sort}
+        onSortChange={onSortChange}
         emptyState={
           emptyState ? (
             <div className="flex flex-col items-center justify-center gap-2 px-6 py-2 text-center">
@@ -63,6 +68,7 @@ export function DataTable<TData>({
         <div className="flex items-center justify-between py-4">
           <span className="text-muted-foreground text-sm">
             Page {page} of {totalPages}
+            {totalCount !== undefined ? ` · ${totalCount} logs` : ""}
           </span>
           <div className="flex items-center space-x-2">
             <Button

@@ -67,8 +67,8 @@ export const POST = withEvlog(async function POST(
   request: NextRequest,
   { params }: RouteContext<{ organizationId: string; contentId: string }>
 ) {
-  const requestId = nanoid(10);
   const log = getLogger();
+  const requestId = String(log.getContext().requestId);
 
   try {
     const { organizationId, contentId } = await params;
@@ -77,7 +77,6 @@ export const POST = withEvlog(async function POST(
       feature: "content_chat",
       organizationId,
       contentId,
-      requestId,
     });
 
     const auth = await withOrganizationAuth(request, organizationId);

@@ -21,9 +21,9 @@ import type {
 
 export function countEnabledGeoPrompts(
   prompts: readonly GeoTrackedPrompt[] | undefined
-): number {
+): number | undefined {
   if (!prompts) {
-    return 0;
+    return undefined;
   }
 
   return prompts.filter((prompt) => prompt.enabled).length;
@@ -49,7 +49,10 @@ export function toGeoOverviewReadyPage(input: {
   journeys: GeoJourney[] | undefined;
   isScanning: boolean;
   revealActive: boolean;
-  scanPreflight: Omit<ScanPreflightDialogProps, "engines" | "languages">;
+  scanPreflight: Omit<
+    ScanPreflightDialogProps,
+    "engines" | "languages" | "organizationId"
+  >;
 }): GeoOverviewPageReady {
   const engines = input.engines ?? [];
   const timeseriesPoints = input.timeseriesPoints ?? [];
@@ -91,6 +94,7 @@ export function toGeoOverviewReadyPage(input: {
     },
     scanPreflight: {
       ...input.scanPreflight,
+      organizationId: input.organizationId,
       engines: input.settings.engines,
       languages: input.settings.languages,
     },

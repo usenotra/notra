@@ -1,7 +1,11 @@
 import type { GeoCheckSource } from "@notra/db/types/geo-checks";
 
 import type { GeoCompetitorSeed } from "../types/geo";
-import { GEO_OPENCODE_ENGINE_ID } from "./geo";
+import {
+  GEO_CLAUDE_CODE_ENGINE_IDS,
+  GEO_CODEX_ENGINE_IDS,
+  GEO_OPENCODE_ENGINE_ID,
+} from "./geo";
 
 export const GEO_SAMPLE_DAYS = 30;
 export const GEO_SAMPLE_PROJECT_NAME = "Notra demo";
@@ -19,6 +23,10 @@ export const GEO_SAMPLE_ENGINES: readonly {
   { engine: "google/gemini-3-flash-grounded", mentionRate: 0.41 },
   { engine: "google/gemini-3-flash", mentionRate: 0.35 },
   { engine: GEO_OPENCODE_ENGINE_ID, mentionRate: 0.64 },
+  { engine: GEO_CLAUDE_CODE_ENGINE_IDS[0], mentionRate: 0.61 },
+  { engine: GEO_CLAUDE_CODE_ENGINE_IDS[1], mentionRate: 0.58 },
+  { engine: GEO_CODEX_ENGINE_IDS[0], mentionRate: 0.59 },
+  { engine: GEO_CODEX_ENGINE_IDS[1], mentionRate: 0.57 },
 ];
 
 export const GEO_SAMPLE_GROUNDED_ENGINES: readonly string[] = [
@@ -31,6 +39,8 @@ export const GEO_SAMPLE_SEARCH_ENGINES: readonly string[] = [
   ...GEO_SAMPLE_GROUNDED_ENGINES,
   "perplexity-sonar",
   GEO_OPENCODE_ENGINE_ID,
+  ...GEO_CLAUDE_CODE_ENGINE_IDS,
+  ...GEO_CODEX_ENGINE_IDS,
 ];
 
 export const GEO_SAMPLE_SEARCH_QUERY_SUFFIXES: readonly string[] = [
@@ -252,6 +262,7 @@ export const GEO_SAMPLE_CRAWLERS: readonly {
   agent: string;
   category: string;
 }[] = [
+  { agent: "Claude Code", category: "assistant-browse" },
   { agent: "GPTBot", category: "training-crawler" },
   { agent: "OAI-SearchBot", category: "search-index" },
   { agent: "ClaudeBot", category: "training-crawler" },

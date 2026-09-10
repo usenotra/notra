@@ -1,22 +1,18 @@
 "use client";
 
-import { Add01Icon, LockKeyIcon } from "@hugeicons/core-free-icons";
+import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
-import { Badge } from "@notra/ui/components/ui/badge";
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@notra/ui/components/ui/card";
-import { Github } from "@notra/ui/components/ui/svgs/github";
-import { useMemo } from "react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 
 import { Button } from "@/components/button";
 import type { GitHubAccountCardProps } from "@/types/integrations/github";
@@ -27,86 +23,49 @@ export function GitHubAccountCard({
   selectedRepositoryIds,
   onAddRepositories,
   onDisconnect,
+  isDisconnecting,
 }: GitHubAccountCardProps) {
-  const selectedRepositories = useMemo(
-    () =>
-      repositories.filter((repo) => selectedRepositoryIds.includes(repo.id)),
-    [repositories, selectedRepositoryIds]
-  );
-
-  const accountInitial = account.login.charAt(0).toUpperCase();
-
+  const selectedIds = new Set(selectedRepositoryIds);
+  const count = repositories.filter((repository) =>
+    selectedIds.has(repository.id)
+  ).length;
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <Avatar className="size-9">
-            <AvatarImage alt={account.login} src={account.avatarUrl} />
-            <AvatarFallback>{accountInitial}</AvatarFallback>
-          </Avatar>
-          <div className="space-y-0.5">
-            <CardTitle className="flex items-center gap-2">
-              {account.name ?? account.login}
-              <Badge variant="secondary">
-                {account.type === "Organization" ? "Organization" : "Personal"}
-              </Badge>
-            </CardTitle>
-            <p className="text-muted-foreground text-sm">@{account.login}</p>
-          </div>
-        </div>
-        <CardAction>
-          <Button onClick={onDisconnect} size="sm" variant="ghost">
-            Disconnect
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">
-            Connected repositories
-            <span className="text-muted-foreground ml-1.5">
-              {selectedRepositories.length}
-            </span>
-          </p>
-          <Button
-            className="gap-1.5"
-            onClick={onAddRepositories}
-            size="sm"
-            variant="outline"
-          >
-            <HugeiconsIcon className="size-4" icon={Add01Icon} />
-            Add repositories
-          </Button>
-        </div>
-        {selectedRepositories.length === 0 ? (
-          <p className="text-muted-foreground rounded-lg border border-dashed px-3 py-6 text-center text-sm">
-            No repositories selected yet.
-          </p>
-        ) : (
-          <ul className="divide-y rounded-lg border">
-            {selectedRepositories.map((repo) => (
-              <li className="flex items-center gap-3 px-3 py-2.5" key={repo.id}>
-                <Github className="text-muted-foreground size-4 shrink-0" />
-                <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                  <span className="min-w-0 truncate text-sm font-medium">
-                    {repo.fullName}
-                  </span>
-                  {repo.private ? (
-                    <>
-                      <HugeiconsIcon
-                        aria-hidden="true"
-                        className="text-muted-foreground size-3.5 shrink-0"
-                        icon={LockKeyIcon}
-                      />
-                      <span className="sr-only">Private repository</span>
-                    </>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-3 py-3">
+      <Avatar className="size-8">
+        <AvatarImage alt="" src={account.avatarUrl} />
+        <AvatarFallback>{account.login.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{account.login}</p>
+        <p className="text-muted-foreground text-xs">
+          {account.type === "Organization"
+            ? "Organization"
+            : "Personal account"}{" "}
+          · {count} {count === 1 ? "repository" : "repositories"}
+        </p>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label={`Manage ${account.login}`}
+              disabled={isDisconnecting}
+              size="icon-sm"
+              variant="ghost"
+            />
+          }
+        >
+          <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onAddRepositories}>
+            Manage repositories
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onDisconnect} variant="destructive">
+            Disconnect account
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

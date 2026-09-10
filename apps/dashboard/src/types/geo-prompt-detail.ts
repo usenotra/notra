@@ -6,6 +6,22 @@ import type {
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
 
+import type { GeoPromptTableRow, PromptAnswerPageProps } from "@/types/geo";
+
+export type PromptAnswerSelectionInput = Pick<
+  PromptAnswerPageProps,
+  | "row"
+  | "organizationId"
+  | "open"
+  | "scanId"
+  | "initialLanguage"
+  | "initialEngine"
+>;
+
+export interface PromptCopyButtonProps {
+  prompt: string;
+}
+
 export type GeoPromptDetailState =
   | { status: "ready"; result: GeoPromptResult }
   | { status: "loading" | "error" | "missing" };
@@ -31,7 +47,10 @@ export interface PromptAnswerBodyProps {
 }
 
 export interface PromptAnswerHeaderProps {
-  prompt: string;
+  promptText?: string;
+  onPrepareScan?: () => void;
+  organizationId: string;
+  row: GeoPromptTableRow;
   results: readonly GeoPromptResultSummary[];
   active: GeoPromptResultSummary | null;
   view: GeoPromptReceiptView;

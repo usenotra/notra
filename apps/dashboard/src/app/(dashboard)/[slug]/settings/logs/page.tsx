@@ -1,37 +1,27 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import Loading from "./loading";
-import PageClient from "./page-client";
-
-export const metadata: Metadata = {
-  title: "Webhook Logs",
-};
+import { LOGS_SETTINGS_SEARCH_KEYS } from "@/constants/settings";
+import type { SettingsUrlSearchParams } from "@/types/settings/modal";
+import {
+  settingsPath,
+  settingsQueryFromSearchParams,
+} from "@/utils/settings-path";
 
 export const instant = true;
 
-async function PageContent({
+export default async function SettingsLogsRedirect({
   params,
+  searchParams,
 }: {
-  params: Promise<{
-    slug: string;
-  }>;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SettingsUrlSearchParams>;
 }) {
-  const { slug } = await params;
-  return <PageClient organizationSlug={slug} />;
-}
-
-function Page({
-  params,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-}) {
-  return (
-    <Suspense fallback={<Loading />}>
-      <PageContent params={params} />
-    </Suspense>
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  redirect(
+    settingsPath(
+      slug,
+      "logs",
+      settingsQueryFromSearchParams(query, LOGS_SETTINGS_SEARCH_KEYS)
+    )
   );
 }
-export default Page;

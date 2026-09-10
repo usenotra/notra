@@ -18,8 +18,7 @@ export async function POST(request: Request) {
       version: "1.0",
     },
     query: body.query ?? null,
-    answer:
-      "Notra turns shipped work into changelogs, launch posts, blog posts, marketing assets, and social updates in a saved brand voice.",
+    answer: agent.description,
     resources: [agent.api.openapi, agent.api.auth, agent.mcp.docs],
   };
 

@@ -466,6 +466,7 @@ export async function appendAutomationLog(
 ): Promise<void> {
   "use step";
   await appendWebhookLog({
+    payload: input.payload,
     organizationId: input.organizationId,
     integrationId: input.integrationId,
     integrationType: input.integrationType,

@@ -1,39 +1,68 @@
 import {
+  GEO_CLAUDE_CODE_EFFORT,
+  GEO_CODEX_REASONING_EFFORT,
+  GEO_CODEX_WEB_SEARCH,
   GEO_OPENCODE_BOX_API_KEY_ENV,
+  GEO_OPENCODE_BOX_MODEL_ID,
   GEO_OPENCODE_MODEL_API_KEY_ENV,
   GEO_OPENCODE_REASONING_EFFORT,
   GEO_OPENCODE_RUN_TIMEOUT_MS,
   GEO_OPENCODE_SOURCE_LIMIT,
 } from "@notra/ai/constants/geo-opencode";
+import type { GeoBoxHarness } from "@notra/ai/types/geo-opencode";
 import {
   createGeoOpenCodeBoxName,
   createGeoOpenCodeBox,
   deleteGeoOpenCodeBox,
 } from "@notra/ai/utils/geo-opencode-box";
 import { extractHttpUrls } from "@notra/ai/utils/geo-opencode-sources";
+import { geoBoxTokenUsage } from "@notra/ai/utils/geo-opencode-usage";
 import { requireApiKey } from "@notra/utils/require-api-key";
-import type { Chunk, RunCost, StreamRun } from "@upstash/box";
-import { Agent, Box, BoxError } from "@upstash/box";
-import type { LanguageModelUsage } from "ai";
+import type {
+  Chunk,
+  ClaudeCodeAgentOptions,
+  CodexAgentOptions,
+  OpenCodeAgentOptions,
+  StreamRun,
+} from "@upstash/box";
+import { Agent, Box, BoxApiKey, BoxError } from "@upstash/box";
 
-function boxCostToLanguageModelUsage(
-  cost: Pick<RunCost, "cachedInputTokens" | "inputTokens" | "outputTokens">
-): LanguageModelUsage {
-  return {
-    inputTokens: cost.inputTokens,
-    inputTokenDetails: {
-      noCacheTokens: Math.max(0, cost.inputTokens - cost.cachedInputTokens),
-      cacheReadTokens: cost.cachedInputTokens,
-      cacheWriteTokens: undefined,
-    },
-    outputTokens: cost.outputTokens,
-    outputTokenDetails: {
-      textTokens: cost.outputTokens,
-      reasoningTokens: undefined,
-    },
-    totalTokens: cost.inputTokens + cost.outputTokens,
-    cachedInputTokens: cost.cachedInputTokens,
+function boxAgentFromHarness(harness: GeoBoxHarness | undefined): Agent {
+  if (harness === "claude-code") {
+    return Agent.ClaudeCode;
+  }
+  if (harness === "codex") {
+    return Agent.Codex;
+  }
+  return Agent.OpenCode;
+}
+
+function boxModelApiKey(agent: Agent) {
+  if (agent === Agent.OpenCode) {
+    return requireApiKey(GEO_OPENCODE_MODEL_API_KEY_ENV);
+  }
+  return BoxApiKey.UpstashKey;
+}
+
+function boxStreamOptions(agent: Agent) {
+  if (agent === Agent.ClaudeCode) {
+    const options: ClaudeCodeAgentOptions = {
+      effort: GEO_CLAUDE_CODE_EFFORT,
+    };
+    return options;
+  }
+  if (agent === Agent.Codex) {
+    const options: CodexAgentOptions = {
+      modelReasoningEffort: GEO_CODEX_REASONING_EFFORT,
+      webSearch: GEO_CODEX_WEB_SEARCH,
+    };
+    return options;
+  }
+  const options: OpenCodeAgentOptions = {
+    reasoningEffort: GEO_OPENCODE_REASONING_EFFORT,
+    textVerbosity: "medium",
   };
+  return options;
 }
 
 function abortReason(signal: AbortSignal) {
@@ -108,8 +137,10 @@ async function consumeGeoOpenCodeStream(
 }
 
 async function runGeoOpenCodePrompt(
-  box: Box<Agent.OpenCode>,
+  box: Box,
   prompt: string,
+  agent: Agent,
+  model: string,
   signal?: AbortSignal,
   deadlineAtMs?: number
 ) {
@@ -132,10 +163,7 @@ async function runGeoOpenCodePrompt(
     const stream = await consumeGeoOpenCodeStream(
       box.agent.stream({
         prompt,
-        options: {
-          reasoningEffort: GEO_OPENCODE_REASONING_EFFORT,
-          textVerbosity: "medium",
-        },
+        options: { ...boxStreamOptions(agent) },
         onToolUse: (tool) => {
           toolCalls.push(tool);
           collectSources(tool.input);
@@ -152,14 +180,14 @@ async function runGeoOpenCodePrompt(
 
     const text = stream.result.trim();
     if (!text) {
-      throw new BoxError("OpenCode returned no result");
+      throw new BoxError("Box agent returned no result");
     }
     collectSources(text);
     return {
       text,
       sources: [...sourceUrls].map((url) => ({ url, title: null })),
       toolCalls,
-      usage: boxCostToLanguageModelUsage(stream.cost),
+      usage: geoBoxTokenUsage(stream.cost, model),
     };
   } catch (error) {
     if (operation.signal.aborted) {
@@ -174,7 +202,9 @@ async function runGeoOpenCodePrompt(
 export async function askGeoOpenCodeConversation(
   prompts: readonly string[],
   signal?: AbortSignal,
-  deadlineAtMs?: number
+  deadlineAtMs?: number,
+  model = GEO_OPENCODE_BOX_MODEL_ID,
+  harness: GeoBoxHarness = "opencode"
 ) {
   if (prompts.length === 0) {
     return [];
@@ -182,19 +212,22 @@ export async function askGeoOpenCodeConversation(
   if (signal?.aborted) {
     throw abortReason(signal);
   }
+  const agent = boxAgentFromHarness(harness);
   const boxApiKey = requireApiKey(GEO_OPENCODE_BOX_API_KEY_ENV);
-  const modelApiKey = requireApiKey(GEO_OPENCODE_MODEL_API_KEY_ENV);
+  const modelApiKey = boxModelApiKey(agent);
   const boxName = createGeoOpenCodeBoxName();
   const createTimeoutMs = remainingRunTimeout(deadlineAtMs);
   const createOperation = operationSignal(signal, createTimeoutMs);
-  let box: Box<Agent.OpenCode>;
+  let box: Box;
   try {
     box = await createGeoOpenCodeBox(
       boxName,
       boxApiKey,
       modelApiKey,
       createOperation.signal,
-      createTimeoutMs
+      createTimeoutMs,
+      model,
+      agent
     );
   } finally {
     createOperation.dispose();
@@ -211,7 +244,15 @@ export async function askGeoOpenCodeConversation(
   try {
     for (const prompt of prompts) {
       results.push(
-        await runGeoOpenCodePrompt(box, prompt, signal, deadlineAtMs)
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- each prompt depends on the previous turn in the same box conversation
+        await runGeoOpenCodePrompt(
+          box,
+          prompt,
+          agent,
+          model,
+          signal,
+          deadlineAtMs
+        )
       );
     }
     if (signal?.aborted) {
@@ -233,7 +274,7 @@ export async function askGeoOpenCodeConversation(
     if (cleanupFailed) {
       throw new AggregateError(
         [operationError, cleanupError],
-        "OpenCode run and box cleanup failed"
+        "Box agent run and box cleanup failed"
       );
     }
     throw operationError;
@@ -247,15 +288,19 @@ export async function askGeoOpenCodeConversation(
 export async function askGeoOpenCode(
   prompt: string,
   signal?: AbortSignal,
-  deadlineAtMs?: number
+  deadlineAtMs?: number,
+  model = GEO_OPENCODE_BOX_MODEL_ID,
+  harness: GeoBoxHarness = "opencode"
 ) {
   const [result] = await askGeoOpenCodeConversation(
     [prompt],
     signal,
-    deadlineAtMs
+    deadlineAtMs,
+    model,
+    harness
   );
   if (!result) {
-    throw new Error("OpenCode returned no result");
+    throw new Error("Box agent returned no result");
   }
   return result;
 }

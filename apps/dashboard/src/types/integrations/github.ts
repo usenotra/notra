@@ -3,7 +3,51 @@ import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
 import type React from "react";
 
-import type { GitHubRepository } from "../integrations";
+import type { GitHubIntegration, GitHubRepository } from "../integrations";
+
+export interface GitHubRepositoryRowProps {
+  integration: GitHubIntegration;
+  organizationId: string;
+  onMigrate: (integration: GitHubIntegration) => void;
+  isMigrating: boolean;
+  onManageRepositories: () => void;
+}
+
+export interface GitHubRepositoryActionsProps {
+  onMigrate: () => void;
+  isMigrating: boolean;
+  onToggleWebhooks: () => void;
+  webhooksOpen: boolean;
+  integration: GitHubIntegration;
+  organizationId: string;
+  onManageRepositories: () => void;
+}
+
+export type GitHubRepositoryDialog = "edit" | "token" | "delete" | null;
+
+export interface GitHubRepositoryMenuProps extends GitHubRepositoryActionsProps {
+  isEnabled: boolean;
+  isPending: boolean;
+  onToggle: () => void;
+  onDialog: (dialog: GitHubRepositoryDialog) => void;
+}
+
+export interface GitHubLegacyPageProps {
+  params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export interface GitHubWebhookSettingsProps {
+  repository: GitHubRepository;
+  organizationId: string;
+}
+
+export interface GitHubWebhookRotationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}
 
 export type GitHubClient = ReturnType<typeof createOctokit>;
 export type GitHubPublishContentType = "blog_post" | "changelog";
@@ -38,6 +82,18 @@ export interface GitHubAppRepository {
   private: boolean;
   description: string | null;
   defaultBranch: string;
+}
+
+export interface GitHubAccountsSectionProps {
+  accounts: GitHubAppAccount[];
+  repositories: GitHubAppRepository[];
+  selectedRepositoryIds: string[];
+  isLoading: boolean;
+  isError: boolean;
+  onConnect: () => void;
+  onRetry: () => void;
+  onOpenRepositories: (accountId: string) => void;
+  onDisconnect: (accountId: string) => void;
 }
 
 export type GitHubInstallFailureReason =
@@ -79,6 +135,8 @@ export interface RepositoryMultiSelectProps {
 
 export interface SelectRepositoriesDialogProps {
   repositories: GitHubAppRepository[];
+  error?: string;
+  onRetry?: () => void;
   onSave: (repositoryIds: string[]) => void;
   initialSelected?: string[];
   isLoading?: boolean;
@@ -100,6 +158,7 @@ export interface GitHubIntegrationDialogProps {
 }
 
 export interface GitHubAccountCardProps {
+  isDisconnecting?: boolean;
   account: GitHubAppAccount;
   repositories: GitHubAppRepository[];
   selectedRepositoryIds: string[];
@@ -109,7 +168,8 @@ export interface GitHubAccountCardProps {
 
 export interface GitHubPublishingSettingsProps {
   organizationId: string;
-  repositories: GitHubRepository[];
+  repository: GitHubRepository;
+  disabled?: boolean;
 }
 
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
@@ -307,9 +367,19 @@ export interface GitHubPublishFailureDependencies {
 
 export type GitHubPublishRecovery = (
   | { code: "github_authentication_required" }
+  | { code: "github_repository_connection_required" }
+  | { code: "github_token_authentication_required" }
+  | { code: "github_token_permissions_required" }
   | { code: "github_content_publishing_paused" }
   | {
       code: "github_app_permissions_required";
       permissionsUrl?: string;
     }
 ) & { publishingPaused?: boolean };
+export interface UseGitHubRepositorySelectionOptions {
+  organizationId: string;
+  enabled?: boolean;
+  refetchOnMount?: boolean;
+  initialAccountId?: string | null;
+  onSaved: () => void;
+}

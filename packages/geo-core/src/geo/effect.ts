@@ -20,7 +20,9 @@ export function geoQuery<A>(
 }
 
 export function geoSkip<A, E>(message: string, fields?: GeoSkipFields) {
-  return (effect: Effect.Effect<A, E>): Effect.Effect<A | null> =>
+  return <R>(
+    effect: Effect.Effect<A, E, R>
+  ): Effect.Effect<A | null, never, R> =>
     effect.pipe(
       Effect.catch((error) => {
         logGeoSkip(message, fields, error);

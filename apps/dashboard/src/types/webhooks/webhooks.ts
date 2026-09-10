@@ -19,8 +19,8 @@ export type WebhookLogStatus = "success" | "failed" | "pending" | "skipped";
 
 export type StatusWithCode =
   | { label: "pending"; code: number | null }
-  | { label: "success"; code: number }
-  | { label: "failed"; code: number }
+  | { label: "success"; code: number | null }
+  | { label: "failed"; code: number | null }
   | { label: "skipped"; code: number | null };
 
 export type LogDirection = "incoming" | "outgoing";
@@ -40,6 +40,8 @@ export type LogStatusFilter = "all" | WebhookLogStatus;
 
 export interface Log {
   id: string;
+  integrationId?: string;
+  hasPayload?: boolean;
   referenceId: string | null;
   title: string;
   integrationType: IntegrationType;

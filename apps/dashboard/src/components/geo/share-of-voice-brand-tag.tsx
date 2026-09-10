@@ -1,5 +1,7 @@
 "use client";
 
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_BRAND_DISCOVERED_LABEL,
   GEO_BRAND_TRACK_ACTION,
@@ -36,16 +38,21 @@ export function TrackBrandButton({
   return (
     <Button
       aria-label={`${GEO_BRAND_TRACK_ACTION} ${brand}`}
-      className={cn("text-muted-foreground h-5 shrink-0 px-1.5", className)}
+      className={cn("h-7 shrink-0 gap-1 px-2 text-xs", className)}
       onClick={(event) => {
         event.stopPropagation();
         onTrack(brand);
       }}
       onPointerDown={(event) => event.stopPropagation()}
       size="xs"
-      variant="ghost"
+      variant="outline"
     >
-      {GEO_BRAND_TRACK_ACTION}
+      <HugeiconsIcon
+        aria-hidden="true"
+        className="size-3.5"
+        icon={PlusSignIcon}
+      />
+      <span data-track-label>{GEO_BRAND_TRACK_ACTION}</span>
     </Button>
   );
 }

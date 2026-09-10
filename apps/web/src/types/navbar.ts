@@ -6,6 +6,7 @@ export interface NavbarProps {
 
 export interface NavbarAuthActionsProps {
   isAuthenticated: boolean;
+  isResolved: boolean;
 }
 
 export interface NavbarKbdProps {

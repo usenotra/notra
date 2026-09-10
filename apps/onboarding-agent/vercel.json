@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "npx --yes turbo-ignore@2.10.12 @notra/onboarding-agent --turbo-version=2.10.12"
+}

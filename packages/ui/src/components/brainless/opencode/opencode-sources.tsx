@@ -3,6 +3,7 @@
 import { OpencodeActivity } from "@notra/ui/components/brainless/opencode/opencode-activity";
 import {
   OPENCODE_COLORS,
+  OPENCODE_DARK_SOURCE_COLORS,
   OPENCODE_SEARCH_HEADER_MS,
   OPENCODE_SEARCH_QUERY_MS,
   OPENCODE_SEARCH_SOURCES_MS,
@@ -62,13 +63,13 @@ function SourceRow({
     <>
       <span
         className="min-w-0 truncate"
-        style={{ color: OPENCODE_COLORS.foreground }}
+        style={{ color: "var(--opencode-source-foreground)" }}
       >
         {source.domain}
       </span>
       <span
         className="min-w-0 truncate"
-        style={{ color: OPENCODE_COLORS.muted }}
+        style={{ color: "var(--opencode-source-muted)" }}
       >
         {urlLabel}
       </span>
@@ -85,8 +86,8 @@ function SourceRow({
           rel="noopener noreferrer"
           style={
             {
-              color: OPENCODE_COLORS.foreground,
-              "--opencode-purple": OPENCODE_COLORS.purple,
+              color: "var(--opencode-source-foreground)",
+              "--opencode-purple": "var(--opencode-source-accent)",
             } as CSSProperties
           }
           target="_blank"
@@ -104,11 +105,13 @@ function SourceRow({
 
 export function OpencodeSources({
   sources,
+  darkSurface = false,
   queries = EMPTY_QUERIES,
   sequential = false,
   reducedMotion = false,
   className,
 }: OpencodeSourcesProps) {
+  const colors = darkSurface ? OPENCODE_DARK_SOURCE_COLORS : OPENCODE_COLORS;
   const shouldSequence = sequential && !reducedMotion;
   const [progress, setProgress] = useState({
     queries: 0,
@@ -166,7 +169,14 @@ export function OpencodeSources({
   const visibleQueries = queries.slice(0, visibleQueryCount);
 
   return (
-    <div className={cn("flex w-full flex-col gap-2 font-mono", className)}>
+    <div
+      className={cn("flex w-full flex-col gap-2 font-mono", className)}
+      style={{
+        "--opencode-source-foreground": colors.foreground,
+        "--opencode-source-muted": colors.muted,
+        "--opencode-source-accent": colors.purple,
+      } as CSSProperties}
+    >
       {visibleQueries.map((query) => (
         <OpencodeActivity
           className={shouldSequence ? ENTER_CLASS : undefined}
@@ -183,7 +193,7 @@ export function OpencodeSources({
               "text-[12px] leading-5",
               shouldSequence && ENTER_CLASS
             )}
-            style={{ color: OPENCODE_COLORS.muted }}
+            style={{ color: "var(--opencode-source-muted)" }}
           >
             {countLabel}
           </p>

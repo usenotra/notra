@@ -5,7 +5,7 @@
       "source": "usenotra/skills",
       "sourceType": "github",
       "skillPath": "skills/brand-logos/SKILL.md",
-      "computedHash": "eb1f7f5453abcb78b83fe442815719d42f85d3305e6275a127d859b0e07f3aa8"
+      "computedHash": "81f6d2cb404eb63806d17cfb31ec018ef007d5ade0a1d6931909a2cce8faf0cc"
     },
     "c15t": {
       "source": "c15t/skills",
@@ -22,25 +22,20 @@
     "eve": {
       "source": "vercel/eve",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
-      "computedHash": "79a1e606ecf33eed33c1f3adc1cc266de391e19aa9237ca37e4f3aa3fba6b228"
-    },
-    "next-best-practices": {
-      "source": "vercel-labs/next-skills",
-      "sourceType": "github",
-      "skillPath": "skills/next-best-practices/SKILL.md",
-      "computedHash": "f4678aef4ffc10a5ea64a91e57abe5a5081af813b06d58d565caf3e8ef56e26c"
+      "skillPath": "skills/eve/SKILL.md",
+      "computedHash": "4833349453c45c606f79202e495b7bbc42ea380f329f3beee36b9927763f19ef"
     },
     "openlogs-server-logs": {
       "source": "charlietlamb/openlogs",
       "sourceType": "github",
+      "skillPath": "skills/openlogs-server-logs/SKILL.md",
       "computedHash": "8f05f0f8c7a0dbdd0b274ae4cb76cb887cc3ca794310907cc15f158c50bfd704"
     },
     "pr-workflow": {
       "source": "mezotv/skills",
       "sourceType": "github",
       "skillPath": "skills/pr-workflow/SKILL.md",
-      "computedHash": "ef2498ea4423919f0b832cde520b71f68bb7b4c300c234eb9c5cca08ea3e3f6a"
+      "computedHash": "61cbd05b5311c63ea63e2b22ea4eaaf17b65fb1ae85d046444b4444f8dc42e0b"
     },
     "satori": {
       "source": "usenotra/skills",
@@ -51,12 +46,14 @@
     "turborepo": {
       "source": "vercel/turborepo",
       "sourceType": "github",
-      "computedHash": "d7be04aa62c17a202bf9f1b4584283b0b77a94dc84dfd7c9dbc5f2725a17a070"
+      "skillPath": "skills/turborepo/SKILL.md",
+      "computedHash": "4289866858fc5314e10ca21584d00c48ddb7e6bc353e262283958f8e4b9bec87"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
-      "computedHash": "43ca6c197f8ec13055079da7053232d477068b03ca443f9ac1bc819b95cdd432"
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "3219a1944e404ffc14d1d9d6aef6dd2e3855b81387ee0a044ccbfe14d34c2357"
     }
   }
 }

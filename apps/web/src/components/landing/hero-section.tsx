@@ -76,7 +76,7 @@ export function HeroSection() {
           </div>
 
           <div className="mt-9 flex w-full flex-1 flex-col items-center overflow-clip py-3.75 sm:mt-16.25">
-            <div className="flex w-full flex-col items-center">
+            <div className="flex w-full flex-col items-center px-3">
               <HeroCollage engine={word.engine} />
             </div>
           </div>

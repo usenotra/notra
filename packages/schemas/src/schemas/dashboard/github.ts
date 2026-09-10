@@ -13,6 +13,7 @@ export const probeRepositoryInputSchema = z.object({
 export const saveGitHubAppRepositoriesInputSchema =
   organizationIdInputSchema.extend({
     repositoryIds: z.array(z.string().min(1)).default([]),
+    preserveExisting: z.boolean().default(false),
   });
 
 export const disconnectGitHubAppInputSchema = organizationIdInputSchema.extend({

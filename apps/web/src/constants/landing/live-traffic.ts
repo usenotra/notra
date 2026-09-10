@@ -16,7 +16,11 @@ export const LIVE_TRAFFIC_PROVIDERS: LiveTrafficProvider[] = [
     engine: "claude",
     purposes: ["search-index"],
   },
-  { provider: "Claude Code", engine: "claude", purposes: ["assistant-browse"] },
+  {
+    provider: "Claude Code",
+    engine: "claude-code",
+    purposes: ["assistant-browse"],
+  },
   {
     provider: "PerplexityBot",
     engine: "perplexity",

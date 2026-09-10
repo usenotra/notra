@@ -20,7 +20,7 @@
     "./hooks/use-mobile": "./src/hooks/use-mobile.tsx"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -74,8 +74,8 @@
     "@types/node": "^22.15.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "postcss": "^8.5.8",
-    "tailwindcss": "^4",
+    "postcss": "8.5.23",
+    "tailwindcss": "4.3.1",
     "typescript": "5.9.2"
   }
 }

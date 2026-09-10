@@ -3,7 +3,6 @@
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -13,10 +12,11 @@ import { PAYWALL_KINDS, PLAN_SURFACES } from "@/constants/analytics-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { toAnalyticsRoute } from "@/lib/analytics/route";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 
 export function SidebarTrialExpired() {
   const { activeOrganization } = useOrganizationsContext();
-  const slug = activeOrganization?.slug ?? "";
+  const { openSettings } = useSettingsModal();
   const { data: customer, isLoading } = useBillingCustomer({
     expand: ["balances.feature", "subscriptions.plan"],
   });
@@ -73,16 +73,15 @@ export function SidebarTrialExpired() {
           </p>
           <Button
             className="w-full"
-            nativeButton={false}
-            onClick={() =>
+            onClick={() => {
               trackEvent(POSTHOG_EVENTS.UPGRADE_CLICKED, {
                 surface: PLAN_SURFACES.SIDEBAR_TRIAL_EXPIRED,
                 target_plan: null,
                 interval: null,
                 zdr: false,
-              })
-            }
-            render={<Link href={`/${slug}/settings/billing`} />}
+              });
+              openSettings("billing");
+            }}
             size="sm"
           >
             Choose a Plan

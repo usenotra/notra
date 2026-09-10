@@ -9,7 +9,7 @@
     "./schemas": "./src/schemas.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
     "@notra/ai": "workspace:*",

@@ -74,6 +74,7 @@ beforeEach(() => {
       inputTokens: 10,
       outputTokens: 5,
       totalTokens: 15,
+      totalUsd: 0.125,
     },
   }));
   sequenceBatch.mockImplementation(async (_context, batch) => ({
@@ -201,12 +202,14 @@ describe("GEO scan workflow orchestration", () => {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     };
     const result = await geoScanWorkflow(payload);
     expect(prepare).toHaveBeenCalledWith("org-test", "project-test", {
       scanId: "pending-scan",
       claimedAt: plan.claimedAt,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
       retried: false,
     });
     expect(taskBatch.mock.calls.map(([, batch]) => batch.length)).toEqual([
@@ -233,6 +236,7 @@ describe("GEO scan workflow orchestration", () => {
           inputTokens: 20,
           outputTokens: 10,
           totalTokens: 30,
+          totalUsd: 0.25,
         },
       },
       "completed",
@@ -402,7 +406,12 @@ describe("GEO scan workflow orchestration", () => {
     });
     expect(finalize).toHaveBeenCalledWith(
       plan.context,
-      { checks: 2, mentions: 1, dropped: 1, usage: EMPTY_AGENT_TOKEN_USAGE },
+      {
+        checks: 2,
+        mentions: 1,
+        dropped: 1,
+        usage: { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 0 },
+      },
       "failed",
       plan.claimedAt,
       { retried: false, failureReason: "Error" }
@@ -429,6 +438,7 @@ describe("GEO scan workflow orchestration", () => {
         claimedAt: "2026-09-01T00:00:00.000Z",
         scanId: "old-scan",
         promptIds: ["prompt-0"],
+        engines: ["openai/gpt-4.1"],
       })
     ).toEqual({ status: "completed", checks: 2, mentions: 0 });
     expect(sleep).toHaveBeenCalledTimes(1);
@@ -449,6 +459,7 @@ describe("GEO scan workflow orchestration", () => {
     expect(prepare.mock.calls[2]?.[2]).toEqual({
       retried: true,
       promptIds: ["prompt-0"],
+      engines: ["openai/gpt-4.1"],
     });
   });
 

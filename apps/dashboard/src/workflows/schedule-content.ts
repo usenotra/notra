@@ -297,6 +297,13 @@ export async function scheduleContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: manual ? "manual" : "schedule",
         title: `Schedule "${automationName}" failed to generate content`,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
         status: "failed",
         errorMessage: contentResult.reason,
       });
@@ -371,6 +378,13 @@ export async function scheduleContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: manual ? "manual" : "schedule",
         title: `Schedule "${automationName}" skipped content generation`,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
         status: "skipped",
         errorMessage: contentResult.reason,
       });
@@ -501,6 +515,13 @@ export async function scheduleContentWorkflow(payload: {
             : `Schedule "${automationName}" created ${createdPosts.length} drafts`,
         status: "success",
         referenceId: postId,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
       });
       await trackContentOutcome({
         kind: "created",
