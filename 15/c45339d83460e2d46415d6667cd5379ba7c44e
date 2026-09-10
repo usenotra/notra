@@ -1,0 +1,74 @@
+apps/dashboard/src/lib/hooks/use-brand-analysis.ts
+  s_ad529e11c6976e::t_ac8c2bd3ac56ba 76-77,79
+  s_ad529e11c6976e::t_1b42f160128b98 21
+apps/dashboard/src/lib/orpc/context.ts
+  s_ad529e11c6976e::t_d6eea129610bdd 2,12-16,25
+apps/dashboard/src/schemas/analytics-flag.ts
+  s_ad529e11c6976e::t_ca835a965b1227 3-12,14
+apps/dashboard/src/constants/analytics.ts
+  s_ad529e11c6976e::t_ca835a965b1227 14
+packages/kiwi/src/fonts/loader.ts
+  s_ad529e11c6976e::t_eb69577036d347 21-25
+apps/dashboard/src/lib/orpc/routers/github.ts
+  s_ad529e11c6976e::t_1bc1e76825434b 12-15,331-333
+apps/dashboard/src/types/components/nav.ts
+  ai_agent 157-159
+apps/dashboard/src/components/evilcharts/ui/lazy-chart-boundary.tsx
+  s_ad529e11c6976e::t_e7f689c8d8fa2d 3,30-31,33-38
+apps/dashboard/src/lib/analytics/flag-client.ts
+  s_ad529e11c6976e::t_ca835a965b1227 14-17,50-56,59
+apps/dashboard/src/lib/orpc/routers/integrations.ts
+  s_ad529e11c6976e::t_1bc1e76825434b 70-73,893-895
+apps/dashboard/src/components/geo/ai-traffic-log-card.tsx
+  s_ad529e11c6976e::t_7541aea0073266 55
+apps/dashboard/src/lib/billing/subscription.ts
+  s_ad529e11c6976e::t_6b0fbe56d4bd36 4,25-31,39-46,58-64,84-90
+apps/dashboard/tests/org-root-redirect.test.ts
+  s_ad529e11c6976e::t_c902a0e6bf0e23 1-49
+apps/dashboard/src/lib/hooks/use-content-plan.ts
+  s_ad529e11c6976e::t_34523036fcbebf 131-133
+  s_ad529e11c6976e::t_272f6d0c5b7549 138
+apps/dashboard/src/constants/nav.ts
+  ai_agent 278-283
+apps/dashboard/src/lib/auth/membership-upsert.ts
+  s_ad529e11c6976e::t_f54d41e7bf7039 47-49
+apps/dashboard/src/components/content/content-detail-document.tsx
+  s_ad529e11c6976e::t_08b6b81d379743 73-76
+apps/dashboard/src/lib/hooks/use-content-chat-history.ts
+  s_ad529e11c6976e::t_74db28a2012c92 79-81
+  s_ad529e11c6976e::t_73f33c0944bfc2 90
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart-impl.tsx
+  s_ad529e11c6976e::t_faad40a5b27eb9 1020-1022,1127
+apps/dashboard/src/utils/nav.ts
+  s_ad529e11c6976e::t_8b13c0ca82acf9 71-101,106-107,112-117
+apps/dashboard/src/components/command-palette/command-palette.tsx
+  s_ad529e11c6976e::t_7541aea0073266 74
+apps/dashboard/src/components/dashboard/restore-sidebar-home.tsx
+  s_ad529e11c6976e::t_92cef48759174a 3,9,12-22,29,37-44
+packages/ai/src/billing/autumn.ts
+  s_ad529e11c6976e::t_98644145a2688e 8-10,12,15
+apps/dashboard/src/lib/nav/org-root-redirect.ts
+  s_ad529e11c6976e::t_464c7fa09c108f 14,18,38
+apps/dashboard/src/lib/auth/organization.ts
+  s_ad529e11c6976e::t_d6eea129610bdd 9,61-84,116
+packages/ai/src/utils/octokit.ts
+  s_ad529e11c6976e::t_0cc6514f5b0957 5-8,10,12-15,18-24
+apps/dashboard/src/lib/geo-shelf/store.ts
+  s_ad529e11c6976e::t_f54d41e7bf7039 72-73,170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "15c45339d83460e2d46415d6667cd5379ba7c44e",
+  "prompts": {},
+  "sessions": {
+    "s_ad529e11c6976e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2f28bc1-837f-4f5f-821a-003f770facab",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
