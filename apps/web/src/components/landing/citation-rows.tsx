@@ -78,7 +78,7 @@ export function CitationRows({
   headers,
 }: CitationRowsProps) {
   return (
-    <Table className="table-fixed">
+    <Table className="min-w-[52rem] table-fixed">
       <TableHeader className="bg-muted sticky top-0 z-10">
         <TableRow>
           <TableHead className={cn(HEADER_CLASS, "w-[11.5rem]")}>

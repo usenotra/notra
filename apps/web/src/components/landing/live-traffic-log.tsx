@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollArea } from "@notra/ui/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@notra/ui/components/ui/scroll-area";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
@@ -40,6 +40,7 @@ export function LiveTrafficLog({ engine }: HeroCollageProps) {
         headers={HERO_COLLAGE_CITATION_HEADERS}
         rows={rows}
       />
+      <ScrollBar orientation="horizontal" />
     </ScrollArea>
   );
 }
