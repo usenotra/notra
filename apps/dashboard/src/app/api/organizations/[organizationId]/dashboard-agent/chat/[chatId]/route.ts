@@ -1,5 +1,7 @@
-import { getChatSession, loadChatHistory } from "@notra/ai/chat/history";
-import { DASHBOARD_AGENT_CHANNEL_SOURCE } from "@notra/ai/constants/dashboard-agent";
+import {
+  getChatSessionForInbox,
+  loadChatHistory,
+} from "@notra/ai/chat/history";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -26,8 +28,12 @@ export async function GET(
     );
   }
 
-  const session = await getChatSession(organizationId, chatIdParse.data);
-  if (session?.externalChannelId?.source !== DASHBOARD_AGENT_CHANNEL_SOURCE) {
+  const session = await getChatSessionForInbox(
+    organizationId,
+    chatIdParse.data,
+    "agent"
+  );
+  if (!session) {
     return NextResponse.json({ error: "Chat not found" }, { status: 404 });
   }
 

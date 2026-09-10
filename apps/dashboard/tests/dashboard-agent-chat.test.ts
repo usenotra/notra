@@ -30,7 +30,7 @@ mock.module("@notra/ai/chat/history", () => ({
     return true;
   },
   getChatSession: async () => ({ externalChannelId: { source } }),
-  listDashboardAgentChatSessions: async () => [],
+  listChatSessions: async () => [],
   loadChatHistory: async () => [...history],
   replaceChatHistory: async (
     _org: string,

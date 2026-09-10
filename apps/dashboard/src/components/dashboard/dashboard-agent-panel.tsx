@@ -13,39 +13,35 @@ import {
   dashboardAgentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
+import { useRouter } from "next/navigation";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
-import { useDashboardAgent } from "@/components/dashboard/dashboard-agent-context";
-import { RightPanelPortal } from "@/components/dashboard/right-panel-portal";
+import { RightPanel } from "@/components/dashboard/right-panel";
+import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DASHBOARD_AGENT_SUGGESTIONS } from "@/constants/chat-suggestions";
 import {
   DASHBOARD_AGENT_CHAT_ERROR_TOAST,
   DASHBOARD_AGENT_CHAT_PLACEHOLDER,
-  DASHBOARD_AGENT_PANEL_CHAT_CLASSNAME,
-  DASHBOARD_AGENT_PANEL_CLASSNAME,
-  DASHBOARD_AGENT_PANEL_FRAME_CLASSNAME,
-  DASHBOARD_AGENT_PANEL_FRAME_CLOSED_CLASSNAME,
-  DASHBOARD_AGENT_PANEL_FRAME_OPEN_CLASSNAME,
-  DASHBOARD_AGENT_PANEL_OPEN_WIDTH_CLASSNAME,
   DASHBOARD_AGENT_TITLE,
 } from "@/constants/dashboard-agent";
 import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
-import { cn } from "@/lib/utils";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
 function DashboardAgentChat({
   organizationId,
   organizationSlug,
   onClose,
 }: DashboardAgentChatProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
@@ -75,7 +71,14 @@ function DashboardAgentChat({
   });
   const sessions = sessionsQuery.data ?? [];
 
-  const { messages, sendMessage, setMessages, status, stop } = useChat({
+  const {
+    messages,
+    sendMessage,
+    setMessages,
+    status,
+    stop,
+    addToolApprovalResponse,
+  } = useChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
     }),
@@ -185,10 +188,50 @@ function DashboardAgentChat({
     setActiveChatId(crypto.randomUUID());
   }, [setMessages]);
 
+  const handleApproveTool = useCallback(
+    (approvalId: string) => {
+      addToolApprovalResponse({
+        id: approvalId,
+        approved: true,
+      });
+    },
+    [addToolApprovalResponse]
+  );
+
+  const handleDenyTool = useCallback(
+    (approvalId: string) => {
+      addToolApprovalResponse({
+        id: approvalId,
+        approved: false,
+        reason: "discard",
+      });
+    },
+    [addToolApprovalResponse]
+  );
+
   const handleSend = useCallback(
     async (instruction: string) => {
       if (!activeChatId || isAgentBusyRef.current) {
         return;
+      }
+      for (const message of messagesRef.current) {
+        if (message.role !== "assistant") {
+          continue;
+        }
+        for (const part of message.parts) {
+          if (!(isToolUIPart(part) && part.state === "approval-requested")) {
+            continue;
+          }
+          const approvalId = part.approval?.id;
+          if (!approvalId) {
+            continue;
+          }
+          addToolApprovalResponse({
+            id: approvalId,
+            approved: false,
+            reason: "discard",
+          });
+        }
       }
       isAgentBusyRef.current = true;
       await sendMessage(
@@ -201,12 +244,26 @@ function DashboardAgentChat({
         }
       );
     },
-    [activeChatId, sendMessage]
+    [activeChatId, addToolApprovalResponse, sendMessage]
   );
 
   const handleSuggestionSelect = useCallback((prompt: string) => {
     setChatInputValue(prompt);
   }, []);
+
+  const handleOpenChat = useCallback(() => {
+    const hasConversation =
+      messagesRef.current.length > 0 ||
+      sessions.some((session) => session.chatId === activeChatId);
+
+    onClose();
+    router.push(
+      dashboardAgentOpenChatPath(organizationSlug, {
+        chatId: activeChatId,
+        hasConversation,
+      })
+    );
+  }, [activeChatId, onClose, organizationSlug, router, sessions]);
 
   const isChatDisabled = isHydratingHistory;
   const showExamplePrompts =
@@ -217,9 +274,13 @@ function DashboardAgentChat({
       activeChatId={activeChatId}
       isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
       messages={messages}
+      onApproveTool={handleApproveTool}
       onClose={onClose}
+      onDenyTool={handleDenyTool}
       onNewChat={handleNewChat}
+      onOpenChat={handleOpenChat}
       onSelectChat={handleSelectChat}
+      organizationSlug={organizationSlug}
       sessions={sessions}
       status={status}
       title={DASHBOARD_AGENT_TITLE}
@@ -259,7 +320,7 @@ function DashboardAgentChat({
 }
 
 export function DashboardAgentHost() {
-  const { open, hasOpened, setOpen } = useDashboardAgent();
+  const { closePanel } = useRightPanel();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const organizationSlug = activeOrganization?.slug ?? "";
@@ -269,35 +330,15 @@ export function DashboardAgentHost() {
   }
 
   return (
-    <RightPanelPortal>
-      <aside
-        aria-hidden={!open}
-        className={cn(
-          DASHBOARD_AGENT_PANEL_CLASSNAME,
-          open ? DASHBOARD_AGENT_PANEL_OPEN_WIDTH_CLASSNAME : "w-0"
-        )}
-        inert={open ? undefined : true}
-      >
-        <div
-          className={cn(
-            DASHBOARD_AGENT_PANEL_FRAME_CLASSNAME,
-            open
-              ? DASHBOARD_AGENT_PANEL_FRAME_OPEN_CLASSNAME
-              : DASHBOARD_AGENT_PANEL_FRAME_CLOSED_CLASSNAME
-          )}
-        >
-          {hasOpened ? (
-            <div className={DASHBOARD_AGENT_PANEL_CHAT_CLASSNAME}>
-              <DashboardAgentChat
-                key={organizationId}
-                onClose={() => setOpen(false)}
-                organizationId={organizationId}
-                organizationSlug={organizationSlug}
-              />
-            </div>
-          ) : null}
-        </div>
-      </aside>
-    </RightPanelPortal>
+    <RightPanel id="agent">
+      <div className="h-full min-h-0">
+        <DashboardAgentChat
+          key={organizationId}
+          onClose={() => closePanel("agent")}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+        />
+      </div>
+    </RightPanel>
   );
 }

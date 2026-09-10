@@ -23,13 +23,15 @@ mock.module("@notra/db/drizzle", () => ({
     }),
   },
 }));
-const { getStandaloneChatSession, getChatSession } = await import("./history");
+const { getStandaloneChatSession, getChatSession, getChatSessionForInbox } =
+  await import("./history");
 
-test("agent sessions are hidden from standalone retrieval but available to the agent", async () => {
+test("agent sessions are hidden from standalone retrieval but available to the agent inbox", async () => {
   source = "agent";
   channelId = null;
   expect(await getStandaloneChatSession("org", "chat")).toBeNull();
   expect(await getChatSession("org", "chat")).not.toBeNull();
+  expect(await getChatSessionForInbox("org", "chat", "agent")).not.toBeNull();
 });
 
 test.each([null, "dashboard", "slack", "discord"])(
@@ -38,5 +40,6 @@ test.each([null, "dashboard", "slack", "discord"])(
     source = channel;
     channelId = channel === "slack" || channel === "discord" ? "channel" : null;
     expect(await getStandaloneChatSession("org", "chat")).not.toBeNull();
+    expect(await getChatSessionForInbox("org", "chat", "agent")).toBeNull();
   }
 );

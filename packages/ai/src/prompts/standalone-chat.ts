@@ -74,6 +74,9 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - When creating posts, activate and use the matching create tool instead of only outputting content as text.
     - When you create a post, tell the user the post title and that it was saved as a draft.
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
+
+    ## GEO Analytics
+    When the user asks how GEO, AI visibility, or mention rate is going, activate getGeoOverview and getGeoTimeseries. Also activate getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data.
     ${capabilitiesSection}${integrationResolutionSection}${githubSection}${linearSection}${mcpSection}
   `;
 }

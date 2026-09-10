@@ -1,0 +1,1 @@
+export const TOOL_DRAFT_PREVIEW_MAX_CHARS = 420;

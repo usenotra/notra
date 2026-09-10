@@ -12,8 +12,10 @@ import type { PostToolConfig } from "@notra/ai/types/posts";
 import { toolDescription } from "@notra/ai/utils/description";
 import {
   createPostRecord,
+  ensureChatPostCollection,
   updatePostRecord,
 } from "@notra/ai/utils/post-service";
+import { getCreatePostToolName } from "@notra/ai/utils/post-tool-name";
 import {
   serializeAvailablePost,
   serializePostDetail,
@@ -25,22 +27,7 @@ import { and, eq, or } from "drizzle-orm";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
-const CREATE_POST_TOOL_NAMES = {
-  changelog: "createChangelog",
-  blog_post: "createBlogPost",
-  twitter_post: "createTwitterPost",
-  linkedin_post: "createLinkedInPost",
-  investor_update: "createInvestorUpdate",
-  image: "createImage",
-} as const;
-
-export function getCreatePostToolName(contentType: string): string {
-  return (
-    CREATE_POST_TOOL_NAMES[
-      contentType as keyof typeof CREATE_POST_TOOL_NAMES
-    ] ?? "createPost"
-  );
-}
+export { getCreatePostToolName };
 
 const postSlugSchema = z
   .string()
@@ -96,9 +83,22 @@ export function createCreatePostTool(
     markdown: string;
     recommendations?: string | null;
   }) => {
-    if (!config.collectionId) {
+    const collectionId =
+      config.collectionId ??
+      (config.chatId
+        ? await ensureChatPostCollection({
+            organizationId: config.organizationId,
+            chatId: config.chatId,
+            contentType,
+          })
+        : undefined);
+    if (!collectionId) {
       throw new Error("Post collection is required to create a post.");
     }
+
+    const sourceMetadata =
+      config.sourceMetadata ??
+      (config.chatId ? { chatId: config.chatId } : null);
 
     if (config.targetPostId) {
       const { status } = await updatePostRecord({
@@ -129,7 +129,7 @@ export function createCreatePostTool(
 
     const { postId } = await createPostRecord({
       organizationId: config.organizationId,
-      collectionId: config.collectionId,
+      collectionId,
       contentType,
       contentSubtype: config.contentSubtype ?? null,
       title: input.title,
@@ -137,7 +137,7 @@ export function createCreatePostTool(
       markdown: input.markdown,
       recommendations: input.recommendations ?? null,
       autoPublish: config.autoPublish,
-      sourceMetadata: config.sourceMetadata ?? null,
+      sourceMetadata,
     });
     result.posts ??= [];
     result.posts.push({

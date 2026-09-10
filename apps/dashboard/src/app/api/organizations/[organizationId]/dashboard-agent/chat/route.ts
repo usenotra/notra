@@ -8,15 +8,12 @@ import { FEATURES } from "@notra/ai/billing/features";
 import {
   clearActiveChatStream,
   getChatSession,
-  listDashboardAgentChatSessions,
+  listChatSessions,
   loadChatHistory,
   replaceChatHistory,
   setActiveChatStream,
 } from "@notra/ai/chat/history";
-import {
-  DASHBOARD_AGENT_CHANNEL_SOURCE,
-  DASHBOARD_AGENT_EXTERNAL_CHANNEL_ID,
-} from "@notra/ai/constants/dashboard-agent";
+import { DASHBOARD_AGENT_EXTERNAL_CHANNEL_ID } from "@notra/ai/constants/dashboard-agent";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getGranolaToolContextByIntegrationId } from "@notra/ai/integrations/granola";
@@ -24,6 +21,7 @@ import { getLinearToolContextByIntegrationId } from "@notra/ai/integrations/line
 import { orchestrateStandaloneChat } from "@notra/ai/orchestration/orchestrate-standalone";
 import { dashboardAgentChatRequestSchema } from "@notra/ai/schemas/chat";
 import { stampUserMessageAuthors } from "@notra/ai/utils/chat";
+import { sessionMatchesInbox } from "@notra/ai/utils/chat-surface";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { nanoid } from "nanoid";
@@ -49,7 +47,7 @@ export async function GET(
     return auth.response;
   }
 
-  const sessions = await listDashboardAgentChatSessions(organizationId);
+  const sessions = await listChatSessions(organizationId, { inbox: "agent" });
   return NextResponse.json({ sessions });
 }
 
@@ -156,11 +154,7 @@ export const POST = withEvlog(async function POST(
       clearActiveChatStream(organizationId, chatId, requestId);
     releaseStream = cleanup;
     const existingSession = await getChatSession(organizationId, chatId);
-    if (
-      existingSession &&
-      existingSession.externalChannelId?.source !==
-        DASHBOARD_AGENT_CHANNEL_SOURCE
-    ) {
+    if (existingSession && !sessionMatchesInbox(existingSession, "agent")) {
       await cleanup();
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }

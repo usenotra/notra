@@ -10,7 +10,7 @@ import {
   CHAT_LAST_STOPPED_TTL_SECONDS,
   CHAT_WORKFLOW_REQUEST_TTL_SECONDS,
 } from "../constants/chat";
-import { DASHBOARD_AGENT_CHANNEL_SOURCE } from "../constants/dashboard-agent";
+import { CHAT_SURFACE } from "../constants/chat-surface";
 import { gateway } from "../gateway";
 import { withGatewayAutomaticCaching } from "../provider-options";
 import { uiMessageSchema } from "../schemas/chat";
@@ -19,7 +19,13 @@ import type {
   ExternalChannelId,
   ExternalChannelLookupSource,
 } from "../types/chat";
+import type { ChatSessionInbox } from "../types/chat-surface";
 import { normalizeChatTitle, sortChatSessions } from "../utils/chat";
+import {
+  chatSurfaceFromSession,
+  isStandaloneInboxSurface,
+  sessionMatchesInbox,
+} from "../utils/chat-surface";
 import { buildExperimentalTelemetry } from "../utils/tcc";
 import { getChatRedis } from "./config";
 
@@ -551,9 +557,20 @@ export async function getStandaloneChatSession(
   chatId: string
 ): Promise<ChatSessionSummary | null> {
   const session = await getChatSession(organizationId, chatId);
-  return session?.externalChannelId?.source === DASHBOARD_AGENT_CHANNEL_SOURCE
-    ? null
-    : session;
+  const surface = chatSurfaceFromSession(session);
+  if (!surface || !isStandaloneInboxSurface(surface)) {
+    return null;
+  }
+  return session;
+}
+
+export async function getChatSessionForInbox(
+  organizationId: string,
+  chatId: string,
+  inbox: ChatSessionInbox
+): Promise<ChatSessionSummary | null> {
+  const session = await getChatSession(organizationId, chatId);
+  return sessionMatchesInbox(session, inbox) ? session : null;
 }
 
 export async function claimChatSessionForExternalChannel(
@@ -621,10 +638,27 @@ export async function getChatSessionByExternalChannel(
   return toSessionSummary(row);
 }
 
+function chatSessionInboxFilter(inbox: ChatSessionInbox) {
+  if (inbox === "agent") {
+    return eq(chatSessions.externalChannelSource, CHAT_SURFACE.agent);
+  }
+
+  return or(
+    isNull(chatSessions.externalChannelSource),
+    ne(chatSessions.externalChannelSource, CHAT_SURFACE.agent)
+  );
+}
+
 export async function listChatSessions(
   organizationId: string,
-  projectId?: string | null
+  options?: {
+    projectId?: string | null;
+    inbox?: ChatSessionInbox;
+  }
 ): Promise<ChatSessionSummary[]> {
+  const projectId = options?.projectId;
+  const inbox = options?.inbox ?? "standalone";
+
   const rows = await db
     .select(chatSessionSummaryColumns)
     .from(chatSessions)
@@ -633,30 +667,8 @@ export async function listChatSessions(
         eq(chatSessions.organizationId, organizationId),
         isNull(chatSessions.contentId),
         isNull(chatSessions.deletedAt),
-        or(
-          isNull(chatSessions.externalChannelSource),
-          ne(chatSessions.externalChannelSource, DASHBOARD_AGENT_CHANNEL_SOURCE)
-        ),
+        chatSessionInboxFilter(inbox),
         projectScopeFilter(chatSessions.projectId, projectId)
-      )
-    );
-
-  const sessions = rows.map(toSessionSummary);
-  return sortChatSessions(sessions);
-}
-
-export async function listDashboardAgentChatSessions(
-  organizationId: string
-): Promise<ChatSessionSummary[]> {
-  const rows = await db
-    .select(chatSessionSummaryColumns)
-    .from(chatSessions)
-    .where(
-      and(
-        eq(chatSessions.organizationId, organizationId),
-        eq(chatSessions.externalChannelSource, DASHBOARD_AGENT_CHANNEL_SOURCE),
-        isNull(chatSessions.contentId),
-        isNull(chatSessions.deletedAt)
       )
     );
 

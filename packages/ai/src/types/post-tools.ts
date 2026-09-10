@@ -7,6 +7,7 @@ import type { PostSummary } from "./posts";
 export interface PostToolsConfig {
   organizationId: string;
   collectionId?: string;
+  chatId?: string;
   contentType: ContentType;
   contentSubtype?: BlogPostSubtype | null;
   sourceMetadata?: PostSourceMetadata;

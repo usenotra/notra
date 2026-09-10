@@ -17,6 +17,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 
   const projectId = request.nextUrl.searchParams.get("projectId");
-  const sessions = await listChatSessions(organizationId, projectId);
+  const sessions = await listChatSessions(organizationId, { projectId });
   return NextResponse.json({ sessions });
 }

@@ -18,6 +18,7 @@ export interface ChatToolBlockProps {
   output?: unknown;
   onApprove?: () => void;
   onDeny?: () => void;
+  editorHref?: string;
   isMcp?: boolean;
   iconUrl?: string;
   mcpLogoDarkUrl?: string | null;

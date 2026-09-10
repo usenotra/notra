@@ -45,6 +45,11 @@ export const SPARKLINE_CHART_OPTIONS: Record<string, unknown> = {
   grid: { left: 1, right: 1, top: 2, bottom: 1, containLabel: false },
 };
 
+export const CHAT_TOOL_CHART_HEIGHT_CLASS = "h-40";
+export const CHAT_TOOL_CHART_OPTIONS: Record<string, unknown> = {
+  grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
+};
+
 export const DONUT_INNER_RADIUS = "58%";
 export const DONUT_OUTER_RADIUS = "82%";
 

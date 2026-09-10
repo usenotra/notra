@@ -18,6 +18,7 @@ import {
 import { getStandaloneChatIntegrations } from "@notra/ai/chat/integrations-cache";
 import type { useLogger } from "@notra/ai/evlog";
 import type { ChatBillingCheck } from "@notra/ai/types/billing";
+import { isRelayChannelSource } from "@notra/ai/utils/chat-surface";
 import type { sendChatMessageRequestSchema } from "@notra/schemas/api/chats";
 import type { UIMessage } from "ai";
 import type { Context } from "hono";
@@ -102,7 +103,7 @@ export async function runChatMessage({
     }
   } else if (
     externalChannelId &&
-    externalChannelId.source !== "dashboard" &&
+    isRelayChannelSource(externalChannelId.source) &&
     externalChannelId.id
   ) {
     const claim = await claimChatSessionForExternalChannel(

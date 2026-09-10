@@ -2,9 +2,9 @@
 
 import { CommandPalette } from "@/components/command-palette/command-palette";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette-context";
-import { DashboardAgentProvider } from "@/components/dashboard/dashboard-agent-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FeedbackProvider } from "@/components/dashboard/feedback-context";
+import { RightPanelProvider } from "@/components/dashboard/right-panel-context";
 import { DatabuddyFlagsProvider } from "@/components/providers/databuddy-flags-provider";
 import {
   type InitialActiveOrganization,
@@ -33,7 +33,7 @@ export function DashboardClientWrapper({
       <DatabuddyFlagsProvider>
         <FeedbackProvider>
           <CommandPaletteProvider>
-            <DashboardAgentProvider>
+            <RightPanelProvider>
               <DashboardShell
                 initialSidebarOpen={initialSidebarOpen}
                 initialSidebarWidth={initialSidebarWidth}
@@ -41,7 +41,7 @@ export function DashboardClientWrapper({
                 {children}
               </DashboardShell>
               <CommandPalette />
-            </DashboardAgentProvider>
+            </RightPanelProvider>
           </CommandPaletteProvider>
         </FeedbackProvider>
       </DatabuddyFlagsProvider>

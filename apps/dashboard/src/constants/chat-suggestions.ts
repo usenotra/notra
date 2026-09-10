@@ -2,6 +2,7 @@ import {
   AiBrowserIcon,
   AnalyticsUpIcon,
   Blockchain04Icon,
+  ChartHistogramIcon,
   Comment01Icon,
   HelpCircleIcon,
   Mail01Icon,
@@ -54,6 +55,13 @@ export const DASHBOARD_AGENT_SUGGESTIONS: ChatSuggestion[] = [
     prompt:
       "Help me write a comparison. Ask me who we're comparing against and what the reader is deciding before drafting.",
     icon: AnalyticsUpIcon,
+  },
+  {
+    title: "How is GEO going?",
+    description: "See mention trends across engines",
+    prompt:
+      "How is our GEO going? Load the overview and mention-rate trend for the last 30 days, then tell me what is improving or slipping.",
+    icon: ChartHistogramIcon,
   },
   {
     title: "Improve GEO visibility",
