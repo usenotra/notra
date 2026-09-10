@@ -1,0 +1,26 @@
+name: Blog
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["apps/web/src/content/blog/**/*.mdx"]
+  pull_request:
+    paths: ["apps/web/src/content/blog/**/*.mdx"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Lint blog links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
+        with:
+          args: >-
+            --no-progress --max-redirects 0 --accept '200..=299'
+            --base-url https://www.usenotra.com/blog/
+            'apps/web/src/content/blog/**/*.mdx'
