@@ -1,34 +1,34 @@
 ---
 title: "How to create a Grok Bot plugin"
-description: "A Grok Bot plugin is a Cursor plugin. Learn how to build one using Context.dev's source and submit it through Cursor's marketplace."
-date: "2026-09-08T04:00:00.000Z"
-updatedAt: "2026-09-08T04:00:00.000Z"
+description: "Grok Bot plugins are a great way to extend the capabilities of Grok Bot and reach a wider audience."
+date: "2026-09-09T04:00:00.000Z"
+updatedAt: "2026-09-09T04:00:00.000Z"
 author: "dominik"
 ---
 
-A Grok Bot plugin is a Cursor plugin. You package the integration in a repository and submit it through [Cursor's marketplace](https://cursor.com/marketplace/publish).
+Grok Bot is a powerful tool that allows you to run specialized agents that can work across apps. We believe that building plugins for Grok Bot is a great way to extend its capabilities and reach a wider audience, which also helps with GEO (Generative Engine Optimization), btw ;)
 
-The same plugin works in both apps. If you already maintain a Cursor plugin, you can use that repository.
+We assume Grok Bot was initially designed for Cursor, hence why it has such a strong integration with the platform. This means that if you already have a Cursor plugin listed on the Cursor Marketplace, congratulations, you can skip this guide! 🎉
 
-## What is Grok Bot? [#what-is-grok-bot]
+## What even is Grok Bot? [#what-even-is-grok-bot]
 
-[Grok Bot](https://x.ai/news/introducing-grok-bot) gives you agents that have their own computer and can work across apps. Give a bot a task, like researching a marketing campaign, and it works through it with you.
+[Grok Bot](https://x.ai/news/introducing-grok-bot) gives you agents that have their own computer and can work across apps. Give a bot a task, like researching a marketing campaign, and it works through it with you. Build another bot and have them work together, kind of like teammates in a real office.
 
 Plugins connect those agents to services. A user adds a plugin, authorizes their account and can ask the bot to work with that service in chat. Cursor documents that flow in its [Grok Bot plugin guide](https://cursor.com/help/grok-bot/connect-plugins).
+
+Grok Bot does not have its own dedicated plugin marketplace *yet*, but you can still build plugins for it by listing them on Cursor's marketplace.
 
 <figure data-width="100" data-align="center"><img className="block dark:hidden" src="/blog/grok-bot-marketplace-light.png" alt="Grok Bot's plugin marketplace showing featured plugins, team plugins and add buttons." /><img className="hidden dark:block" src="/blog/grok-bot-marketplace-dark.png" alt="Grok Bot's plugin marketplace showing featured plugins, team plugins and add buttons." /><figcaption>Grok Bot's marketplace installs the same plugins you build for Cursor.</figcaption></figure>
 
 ## Why you should build one [#why-you-should-build-one]
 
-People can discover your product in the plugin marketplace and use it from their existing Cursor or Grok Bot conversations. Like [building tools for engineers](/blog/engineers-are-great-for-marketing), a plugin gives you another way to reach potential users.
-
-Start with something your users already ask for: creating a database branch or saving a content draft for review.
+We believe that good GEO strategies are all about making your product discoverable and easy to use, especially for agents. Tools like Grok Bot and Cursor are great examples of this. People can discover your product in the plugin marketplace and use it from their existing Grok Bot conversations and even build specialized bots with YOUR tool. Like [building tools for engineers](/blog/engineers-are-great-for-marketing), a plugin gives you another way to reach potential users and their agents.
 
 ## Context.dev is a good example [#context-dev-is-a-good-example]
 
-[Context.dev](https://context.dev/?ref=notra) is [listed in Cursor's marketplace](https://cursor.com/marketplace/context.dev) and its [plugin source is public](https://github.com/context-dot-dev/cursor-plugin).
+Starting with a good example, let's look at [Context.dev](https://context.dev/?ref=notra).
 
-The plugin gives agents tools for live web research, including search and scraping. Its README explains how users connect their Context.dev account through OAuth and gives them tasks to try after installation.
+Context.dev allows agents to search the web and scrape websites, which is super useful for research and analysis. It is [listed on Cursor's marketplace](https://cursor.com/marketplace/context.dev) and its [plugin source is public](https://github.com/context-dot-dev/cursor-plugin). It's a great example of a tool that is easy to use and discover for agents.
 
 <figure data-width="100" data-align="center"><img className="block dark:hidden" src="/blog/grok-bot-gtm-result-light.png" alt="The Notra GTM Bot using Context.dev to research Notra's homepage and return positioning takeaways." /><img className="hidden dark:block" src="/blog/grok-bot-gtm-result-dark.png" alt="The Notra GTM Bot using Context.dev to research Notra's homepage and return positioning takeaways." /><figcaption>The Notra GTM Bot uses Context.dev to read Notra's homepage and summarize its positioning.</figcaption></figure>
 
@@ -42,15 +42,15 @@ For example, the skill tells the agent to scrape a URL supplied by the user inst
 
 ## What you need [#what-you-need]
 
-A Cursor plugin needs a manifest at `.cursor-plugin/plugin.json` and skills that describe how to do a task. An optional MCP configuration connects the agent to your service.
+A Cursor plugin needs a manifest located at `.cursor-plugin/plugin.json` and ideally some skills that describe how to do a task, when to run specific tools and what to do for certain use cases. An optional MCP configuration connects the agent to your service.
 
-Reuse your MCP server if you have one. If you only have an API, you'll need to build and host an MCP server for a remote connector like the example below.
+Reuse your MCP server if you have one. If you only have an API, you'll need to build and host an MCP server for a remote connector like the example below. You should create an MCP server regardless, btw 😉
 
-For documented workflows that don't need account access, a plugin containing only skills may be enough.
+For documented workflows or APIs that don't need account access, a plugin containing only skills may be enough.
 
 ## Create the plugin [#create-the-plugin]
 
-If you are asking an agent to build this, give it the official docs before it starts. The [Cursor plugins overview](https://cursor.com/docs/plugins) covers installation and local testing. The [plugin reference](https://cursor.com/docs/reference/plugins) covers the manifest and submission requirements. Add the [MCP docs](https://cursor.com/docs/mcp) if your plugin connects to a service.
+If you are asking an agent to build this (or you are an agent yourself), give it the official docs before it starts. The [Cursor plugins overview](https://cursor.com/docs/plugins) covers installation and local testing. The [plugin reference](https://cursor.com/docs/reference/plugins) covers the manifest and submission requirements. Add the [MCP docs](https://cursor.com/docs/mcp) if your plugin connects to a service.
 
 You can start with this prompt and add your product's API documentation:
 
@@ -71,10 +71,10 @@ Prepare the repository for review. Submission goes through
 https://cursor.com/marketplace/publish.
 ```
 
-[Cursor's template](https://github.com/cursor/plugin-template) is a starting point. It includes multiple plugins, so simplify it if you only need one. A small repository could look like this:
+[Cursor's template](https://github.com/cursor/plugin-template) is a starting point. It includes multiple plugins, so simplify it if you only need one. A small repository could look something like this:
 
 ```text
-acme-plugin/
+grok-bot-plugin/
 ├── .cursor-plugin/
 │   └── plugin.json
 ├── skills/
@@ -84,15 +84,15 @@ acme-plugin/
 └── README.md
 ```
 
-Acme is a fictional content product for this walkthrough. Put this in `.cursor-plugin/plugin.json`:
+Put this in `.cursor-plugin/plugin.json`:
 
 ```json
 {
-  "name": "acme-content",
+  "name": "grok-bot-example",
   "version": "0.1.0",
-  "description": "Prepare release notes and save drafts in Acme.",
+  "description": "Prepare release notes and save drafts in Example Company.",
   "author": {
-    "name": "Acme"
+    "name": "Example Company"
   },
   "skills": "./skills/",
   "mcpServers": "./mcp.json"
@@ -108,16 +108,16 @@ The skill should explain when to run and what the agent should do. Here's an exa
 ```markdown
 ---
 name: draft-release-note
-description: Prepare a release note from supplied product changes and save it as an Acme draft. Use when the user asks to draft a release announcement.
+description: Prepare a release note from supplied product changes and save it as a draft in Example. Use when the user asks to draft a release announcement.
 ---
 
 # Draft a release note
 
-Read the changes the user supplied. Ask for source material if it is missing.
+Read the changes the user provided. Ask for source material if it is missing or unclear.
 
 Explain what changed and who it affects. Do not invent features or results.
 
-Show the draft to the user. When asked to save it, use the Acme connector's
+Show the draft to the user. When asked to save it, use the example connector's
 draft creation tool. Ask which workspace to use if the destination is unclear.
 
 Return the saved draft's link. Saving a draft does not authorize publication.
@@ -133,26 +133,26 @@ For a Cursor plugin using a remote MCP server, `mcp.json` can look like this:
 ```json
 {
   "mcpServers": {
-    "acme": {
+    "grok-bot": {
       "url": "https://mcp.example.com/mcp"
     }
   }
 }
 ```
 
-That is a placeholder URL. Replace it with your working MCP endpoint. If you are making a skill-only plugin, remove this file and the `mcpServers` field from the manifest.
+That's a placeholder URL, so replace it with your MCP endpoint. If you're making a skill-only plugin, you can remove this file and the `mcpServers` field from the manifest.
 
-For a service with private accounts, the server also needs an authentication flow supported by the client. Follow [Cursor's MCP documentation](https://cursor.com/docs/mcp) for the connection setup. Keep credentials out of the repository and enforce account permissions on the server.
+If your service has private accounts, you'll also need an authentication flow the client supports. [Cursor's MCP documentation](https://cursor.com/docs/mcp) covers the setup. Keep credentials out of the repository and enforce account permissions on the server.
 
-Write a README that explains setup and includes a first task to try. Describe what the tools can change so users know what they are connecting.
+Your README should explain how to connect the plugin and give people a task to try. Explain what the tools can change so users know what they're connecting.
 
 ## Test the plugin [#test-the-plugin]
 
 You can [test a plugin locally in Cursor](https://cursor.com/docs/plugins#test-plugins-locally) by putting the plugin folder under `~/.cursor/plugins/local/`, then reloading Cursor. Open Customize and check that the expected components appear. Team policy can block local imports and an installed marketplace plugin with the same name takes precedence over the local copy.
 
-In a fresh conversation, supply a short list of changes and ask for a release note. Check whether the bot sticks to those changes. Connect a test account, save the draft and open the returned link to verify the result.
+Now try it in a fresh conversation. Give the bot a short list of changes and ask for a release note. Check whether the bot sticks to those changes. Connect a test account, save the draft and open the returned link to verify the result.
 
-Try it with the connector disconnected too. It should explain what failed instead of claiming the draft was saved. Also check what happens when the user has access to more than one workspace.
+Try it with the connector disconnected too. It should explain what failed instead of claiming the draft was saved. If your users can have more than one workspace, test that too.
 
 ## Submit through Cursor's marketplace [#submit-through-cursors-marketplace]
 
@@ -160,6 +160,6 @@ Push the plugin to a public Git repository and submit its link at [cursor.com/ma
 
 <figure data-width="100" data-align="center"><img className="block dark:hidden" src="/blog/grok-bot-submit-light.png" alt="Cursor Marketplace publisher application with organization details and plugin submission instructions." /><img className="hidden dark:block" src="/blog/grok-bot-submit-dark.png" alt="Cursor Marketplace publisher application with organization details and plugin submission instructions." /><figcaption>Submit your plugin through Cursor Marketplace's publisher application.</figcaption></figure>
 
-Before submitting, check that the manifest paths resolve and the README explains any configuration. If you include a logo, commit it to the repository and reference it with a relative path. Cursor's [submission checklist](https://cursor.com/docs/reference/plugins#submission-checklist) covers the requirements.
+Before you submit, check that the paths in your manifest point to the right files and your README explains any configuration. If you include a logo, commit it to the repository and reference it with a relative path. Cursor's [submission checklist](https://cursor.com/docs/reference/plugins#submission-checklist) covers the requirements.
 
-After approval, install the plugin in Grok Bot and run your README's example with a test account. Record that flow for your announcement.
+Once it's approved, install your plugin in Grok Bot and try the example from your README with a test account. You can record that for your announcement (I recommend you do make one btw 😉).
