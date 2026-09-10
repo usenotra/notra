@@ -1,0 +1,19 @@
+apps/dashboard/next.config.ts
+  s_ad529e11c6976e::t_210d1daca476d2 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a1e6f083b8b80f95394b0f05002ad4ba0738f852",
+  "prompts": {},
+  "sessions": {
+    "s_ad529e11c6976e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2f28bc1-837f-4f5f-821a-003f770facab",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": null
+    }
+  }
+}
