@@ -10,6 +10,12 @@ export interface SentimentScoreProps {
   summary: GeoSentimentResponse["summary"];
   comparison?: GeoSentimentResponse["comparison"];
 }
+export interface SentimentSkeletonProps {
+  compact?: boolean;
+}
+export interface SentimentThemeRowProps {
+  theme: SentimentTheme;
+}
 export interface SentimentTrendPlotProps {
   points: GeoSentimentResponse["points"];
   comparison?: GeoSentimentResponse["comparison"];
