@@ -12,6 +12,7 @@ import { BlogCopyArticle } from "@/components/blog-copy-article";
 import { getBlogMDXComponents } from "@/components/blog-mdx-components";
 import { BlogPostPagination } from "@/components/blog-post-pagination";
 import { BlogPostSidebar } from "@/components/blog-post-sidebar";
+import { CtaBanner } from "@/components/landing/cta-banner";
 import {
   formatBlogDate,
   getNotraBlogPostBySlug,
@@ -23,6 +24,7 @@ import {
   buildBlogFaqJsonLd,
 } from "@/utils/blog-jsonld";
 import { blogPostTitleTransitionName } from "@/utils/blog-view-transitions";
+import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
 import { getReadingTimeMinutes } from "@/utils/reading-time";
@@ -150,7 +152,7 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
 
         <div className="col-start-2 row-start-2 self-end justify-self-end lg:col-start-1">
           <BlogCopyArticle
-            markdown={post.markdown}
+            markdown={`${post.markdown.trim()}\n\n${buildCtaBannerMarkdown()}`}
             markdownUrl={markdownUrl}
             title={post.title}
           />
@@ -164,6 +166,9 @@ export default async function BlogEntryPage({ params }: BlogEntryPageProps) {
           <BlogPostPagination next={next} previous={previous} />
         </div>
       </article>
+      <div className="mt-16">
+        <CtaBanner />
+      </div>
     </div>
   );
 }
