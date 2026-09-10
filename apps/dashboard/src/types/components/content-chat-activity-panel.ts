@@ -14,6 +14,7 @@ export interface ContentChatActivityPanelProps {
   onSelectChat: (chatId: string) => void;
   onClose: () => void;
   onOpenChat?: () => void;
+  showHistory?: boolean;
   onApproveTool?: (approvalId: string) => void;
   onDenyTool?: (approvalId: string) => void;
   children?: ReactNode;

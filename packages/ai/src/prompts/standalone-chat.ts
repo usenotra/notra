@@ -1,5 +1,6 @@
 import { renderSkillGuidance } from "@notra/ai/skills/functions/guidance";
 import type { StandaloneChatPromptParams } from "@notra/ai/types/prompts";
+import { sanitizeChatWorkspaceLabel } from "@notra/ai/utils/chat-workspace";
 import { formatCurrentDate } from "@notra/ai/utils/current-date";
 import dedent from "dedent";
 
@@ -14,6 +15,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     hasLinearEnabled,
     hasMcpEnabled,
     timezone,
+    workspace,
   } = params;
 
   const capabilitiesSection = toolDescriptions?.length
@@ -43,13 +45,14 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
   const { formatted: currentDate, timezone: resolvedTimezone } =
     formatCurrentDate(timezone);
   const skillsSection = renderSkillGuidance(skillSummaries);
+  const workspaceSection = formatWorkspaceSection(workspace);
 
   return dedent`
     You are Notra, an AI assistant for content teams. You help users create, edit, and manage content posts, and gather information about brand identities, integrations, GitHub, and Linear.
 
     ## Current Date
     Today is ${currentDate} (${resolvedTimezone}). Use this when users reference relative dates like "today", "yesterday", "this week", or "last month".
-    ${skillsSection ? `\n${skillsSection}` : ""}
+    ${workspaceSection}${skillsSection ? `\n${skillsSection}` : ""}
 
     ## Tool Workflow
     You start with only basic discovery tools and tool provisioning tools.
@@ -76,9 +79,39 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
 
     ## GEO Analytics
-    When the user asks how GEO, AI visibility, or mention rate is going, activate getGeoOverview and getGeoTimeseries. Also activate getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data.
+    When the user asks how GEO, AI visibility, or mention rate is going, activate getGeoOverview and getGeoTimeseries. Also activate getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
     ${capabilitiesSection}${integrationResolutionSection}${githubSection}${linearSection}${mcpSection}
   `;
+}
+
+function formatWorkspaceSection(
+  workspace: StandaloneChatPromptParams["workspace"]
+) {
+  if (!workspace) {
+    return "";
+  }
+
+  const organizationName =
+    sanitizeChatWorkspaceLabel(workspace.organization.name) || "Unknown";
+  const organizationSlug =
+    sanitizeChatWorkspaceLabel(workspace.organization.slug) || "unknown";
+  const lines = [
+    `The user is working in the Notra organization "${organizationName}" (slug: ${organizationSlug}).`,
+  ];
+
+  if (workspace.project) {
+    const projectName =
+      sanitizeChatWorkspaceLabel(workspace.project.name) || "Untitled project";
+    lines.push(
+      `The user's currently selected GEO project is "${projectName}" (projectId: ${workspace.project.id}). Treat this as the default for GEO tools and project-scoped work when the user does not name a different project. It is not the only project. If they name another, call listGeoProjects and use the matching ID. Never invent a project ID.`
+    );
+  } else {
+    lines.push(
+      "No GEO project is currently selected. For project-specific GEO tools, call listGeoProjects first. Omit projectId to query all projects."
+    );
+  }
+
+  return `\n\n## Workspace\n${lines.join("\n")}`;
 }
 
 function formatRepoContext(

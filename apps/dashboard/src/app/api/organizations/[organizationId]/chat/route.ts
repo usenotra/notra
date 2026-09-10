@@ -299,6 +299,7 @@ export const POST = withEvlog(async function POST(
         abortSignal: request.signal,
         telemetryMetadata,
         headers: request.headers,
+        projectId: parseResult.data.projectId,
       });
     }
 
@@ -314,6 +315,7 @@ export const POST = withEvlog(async function POST(
       enableThinking: parseResult.data.enableThinking,
       thinkingLevel: parseResult.data.thinkingLevel,
       timezone: parseResult.data.timezone,
+      projectId: parseResult.data.projectId,
     };
 
     await startStandaloneChatRun(workflowPayload);
@@ -374,6 +376,7 @@ async function createDirectStandaloneChatResponse({
   abortSignal,
   telemetryMetadata,
   headers,
+  projectId,
 }: {
   organizationId: string;
   userId: string;
@@ -392,6 +395,7 @@ async function createDirectStandaloneChatResponse({
   abortSignal?: AbortSignal;
   telemetryMetadata: TccMetadata;
   headers: Headers;
+  projectId?: string;
 }) {
   const autumnClient = autumn;
   const streamId = messages.at(-1)?.id;
@@ -453,6 +457,7 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        projectId,
       },
       {
         preValidatedIntegrations: validatedIntegrations,

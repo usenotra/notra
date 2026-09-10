@@ -101,6 +101,7 @@ export const standaloneChatRequestSchema = z.object({
 
 export const dashboardAgentChatRequestSchema = z.object({
   chatId: chatIdSchema,
+  projectId: z.string().min(1).optional(),
   messages: z.array(uiMessageSchema).min(1).max(UI_MESSAGES_MAX),
   timezone: z.string().min(1).max(100).optional(),
 });
@@ -131,6 +132,7 @@ export const chatWorkflowPayloadSchema = z.object({
   enableThinking: z.boolean().optional(),
   thinkingLevel: thinkingLevelSchema.optional(),
   timezone: z.string().min(1).max(100).optional(),
+  projectId: z.string().min(1).optional(),
 });
 
 export const chatTransportRequestBodySchema = z.object({

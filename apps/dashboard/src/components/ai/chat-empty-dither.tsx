@@ -4,10 +4,13 @@ import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 
 import {
   CHAT_EMPTY_DITHER_COLORS_DARK,
   CHAT_EMPTY_DITHER_COLORS_LIGHT,
+  CHAT_EMPTY_DITHER_DEFER_MS,
+  CHAT_EMPTY_DITHER_REVEAL_FALLBACK_MS,
   CHAT_EMPTY_DITHER_SCALE,
   CHAT_EMPTY_DITHER_SHAPE,
   CHAT_EMPTY_DITHER_SIZE,
@@ -25,10 +28,67 @@ const Dithering = dynamic(
 export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
   const { resolvedTheme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
+  const shaderRef = useRef<HTMLDivElement>(null);
+  const [shaderReady, setShaderReady] = useState(false);
+  const [shaderVisible, setShaderVisible] = useState(false);
+  const instantReveal = shouldReduceMotion === true;
   const colors =
     resolvedTheme === "dark"
       ? CHAT_EMPTY_DITHER_COLORS_DARK
       : CHAT_EMPTY_DITHER_COLORS_LIGHT;
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setShaderReady(true);
+    }, CHAT_EMPTY_DITHER_DEFER_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (!shaderReady) {
+      return;
+    }
+
+    if (instantReveal) {
+      setShaderVisible(true);
+      return;
+    }
+
+    const root = shaderRef.current;
+    if (!root) {
+      return;
+    }
+
+    let frame = 0;
+    const observer = new MutationObserver(() => {
+      if (root.querySelector("canvas")) {
+        observer.disconnect();
+        frame = window.requestAnimationFrame(() => {
+          setShaderVisible(true);
+        });
+      }
+    });
+    const fallback = window.setTimeout(() => {
+      observer.disconnect();
+      setShaderVisible(true);
+    }, CHAT_EMPTY_DITHER_REVEAL_FALLBACK_MS);
+
+    observer.observe(root, { childList: true, subtree: true });
+    if (root.querySelector("canvas")) {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+      frame = window.requestAnimationFrame(() => {
+        setShaderVisible(true);
+      });
+    }
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [instantReveal, shaderReady]);
 
   return (
     <div
@@ -38,16 +98,28 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
         className
       )}
     >
-      <Dithering
-        className="size-full min-h-full min-w-full"
-        colorBack={colors.colorBack}
-        colorFront={colors.colorFront}
-        scale={CHAT_EMPTY_DITHER_SCALE}
-        shape={CHAT_EMPTY_DITHER_SHAPE}
-        size={CHAT_EMPTY_DITHER_SIZE}
-        speed={shouldReduceMotion ? 0 : CHAT_EMPTY_DITHER_SPEED}
-        type={CHAT_EMPTY_DITHER_TYPE}
-      />
+      {shaderReady ? (
+        <div
+          className={cn(
+            "size-full min-h-full min-w-full",
+            !instantReveal &&
+              "duration-slow ease-emphasized transition-opacity",
+            instantReveal || shaderVisible ? "opacity-100" : "opacity-0"
+          )}
+          ref={shaderRef}
+        >
+          <Dithering
+            className="size-full min-h-full min-w-full"
+            colorBack={colors.colorBack}
+            colorFront={colors.colorFront}
+            scale={CHAT_EMPTY_DITHER_SCALE}
+            shape={CHAT_EMPTY_DITHER_SHAPE}
+            size={CHAT_EMPTY_DITHER_SIZE}
+            speed={shouldReduceMotion ? 0 : CHAT_EMPTY_DITHER_SPEED}
+            type={CHAT_EMPTY_DITHER_TYPE}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -14,8 +14,15 @@ import {
 } from "@notra/ai/utils/chat";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
-import { useRouter } from "next/navigation";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
@@ -32,6 +39,7 @@ import {
 } from "@/constants/dashboard-agent";
 import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
+import { useActiveProject } from "@/lib/hooks/use-active-project";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
@@ -43,6 +51,7 @@ function DashboardAgentChat({
   onClose,
 }: DashboardAgentChatProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
@@ -50,6 +59,16 @@ function DashboardAgentChat({
   const [isHydratingHistory, setIsHydratingHistory] = useState(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
+  const activeChatIdRef = useRef(activeChatId);
+  const onCloseRef = useRef(onClose);
+  const closeAfterNavigationRef = useRef(false);
+  onCloseRef.current = onClose;
+  const projectIdRef = useRef<string | undefined>(undefined);
+  const { projectId: activeProjectId, isResolved: isProjectResolved } =
+    useActiveProject();
+  activeChatIdRef.current = activeChatId;
+  projectIdRef.current =
+    isProjectResolved && activeProjectId ? activeProjectId : undefined;
 
   const sessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
@@ -72,6 +91,23 @@ function DashboardAgentChat({
   });
   const sessions = sessionsQuery.data ?? [];
 
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
+        prepareSendMessagesRequest: ({ messages, body }) => ({
+          body: {
+            ...body,
+            chatId: activeChatIdRef.current,
+            projectId: projectIdRef.current,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            messages,
+          },
+        }),
+      }),
+    [organizationId]
+  );
+
   const {
     messages,
     sendMessage,
@@ -80,9 +116,7 @@ function DashboardAgentChat({
     stop,
     addToolApprovalResponse,
   } = useChat({
-    transport: new DefaultChatTransport({
-      api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
-    }),
+    transport,
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
     onFinish: () => {
       emitAutumnRefresh();
@@ -186,6 +220,9 @@ function DashboardAgentChat({
     }
     setChatInputValue("");
     setChatError(null);
+    if (messagesRef.current.length === 0) {
+      return;
+    }
     setMessages([]);
     setActiveChatId(crypto.randomUUID());
   }, [setMessages]);
@@ -236,15 +273,7 @@ function DashboardAgentChat({
         }
       }
       isAgentBusyRef.current = true;
-      await sendMessage(
-        { text: instruction },
-        {
-          body: {
-            chatId: activeChatId,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        }
-      );
+      await sendMessage({ text: instruction });
     },
     [activeChatId, addToolApprovalResponse, sendMessage]
   );
@@ -257,15 +286,28 @@ function DashboardAgentChat({
     const hasConversation =
       messagesRef.current.length > 0 ||
       sessions.some((session) => session.chatId === activeChatId);
+    const path = dashboardAgentOpenChatPath(organizationSlug, {
+      chatId: activeChatId,
+      hasConversation,
+    });
 
-    onClose();
-    router.push(
-      dashboardAgentOpenChatPath(organizationSlug, {
-        chatId: activeChatId,
-        hasConversation,
-      })
-    );
-  }, [activeChatId, onClose, organizationSlug, router, sessions]);
+    if (pathname === path) {
+      onClose();
+      return;
+    }
+
+    closeAfterNavigationRef.current = true;
+    router.prefetch(path);
+    router.push(path, { scroll: false });
+  }, [activeChatId, onClose, organizationSlug, pathname, router, sessions]);
+
+  useEffect(() => {
+    if (!closeAfterNavigationRef.current) {
+      return;
+    }
+    closeAfterNavigationRef.current = false;
+    onCloseRef.current();
+  }, [pathname]);
 
   const isChatDisabled = isHydratingHistory;
   const showExamplePrompts =
@@ -283,6 +325,7 @@ function DashboardAgentChat({
       onOpenChat={handleOpenChat}
       onSelectChat={handleSelectChat}
       organizationSlug={organizationSlug}
+      showHistory={false}
       sessions={sessions}
       status={status}
       title={DASHBOARD_AGENT_TITLE}

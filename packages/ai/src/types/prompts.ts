@@ -1,5 +1,6 @@
 export type { TextSelection } from "./orchestration";
 
+import type { ChatWorkspace } from "./chat-workspace";
 import type { TextSelection } from "./orchestration";
 
 export interface BaseTonePromptInput {
@@ -60,6 +61,7 @@ export interface StandaloneChatPromptParams {
   hasLinearEnabled: boolean;
   hasMcpEnabled: boolean;
   timezone?: string;
+  workspace?: ChatWorkspace | null;
 }
 
 export interface GithubWebhookMemoryPromptParams {

@@ -158,6 +158,7 @@ export async function streamChatResponseStep(
     timezone,
     streamId,
     chargeAiCredits,
+    projectId,
   } = input;
 
   const messages = await loadChatHistory(organizationId, chatId);
@@ -238,6 +239,7 @@ export async function streamChatResponseStep(
         thinkingLevel,
         timezone,
         useMarkup,
+        projectId,
         telemetryMetadata: buildStandaloneChatTelemetryMetadata({
           chatId,
           organizationId,

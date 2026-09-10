@@ -197,6 +197,7 @@ export const POST = withEvlog(async function POST(
         timezone: parseResult.data.timezone,
         abortSignal: request.signal,
         useMarkup,
+        projectId: parseResult.data.projectId,
         telemetryMetadata: {
           chatId,
           feature: "dashboard_agent_chat",

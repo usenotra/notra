@@ -19,6 +19,7 @@ export interface StandaloneChatInput {
   chatId?: string;
   userId?: string;
   messages: UIMessage[];
+  projectId?: string | null;
   context?: StandaloneChatContextItem[];
   maxSteps?: number;
   log?: AILogTarget;

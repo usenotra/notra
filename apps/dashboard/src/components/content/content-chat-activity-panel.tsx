@@ -185,13 +185,16 @@ export function ContentChatActivityPanel({
   onSelectChat,
   onClose,
   onOpenChat,
+  showHistory = true,
   onApproveTool,
   onDenyTool,
   title = "Content Agent",
 }: ContentChatActivityPanelProps) {
   const { expanded, toggleExpanded } = useRightPanel();
   const opensInChat = Boolean(onOpenChat);
-  const historyGroups = getContentChatHistoryGroups(sessions);
+  const historyGroups = showHistory
+    ? getContentChatHistoryGroups(sessions)
+    : [];
   const isAgentBusy = status === "streaming" || status === "submitted";
   const lastMessage = messages.at(-1);
   const lastAssistantHasNoVisibleContent =
@@ -233,73 +236,75 @@ export function ContentChatActivityPanel({
               strokeWidth={1.8}
             />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="inline-flex"
-              disabled={isAgentBusy}
-              render={<Button size="icon-sm" variant="ghost" />}
-            >
-              <span className="sr-only">Open chat history</span>
-              <HugeiconsIcon
-                className="size-4"
-                icon={Clock01Icon}
-                strokeWidth={1.8}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="max-h-72 w-52"
-              sideOffset={6}
-            >
-              {isHistoryLoading ? (
-                <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                  Loading chats...
-                </p>
-              ) : null}
-              {!isHistoryLoading && sessions.length === 0 ? (
-                <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                  No previous chats
-                </p>
-              ) : null}
-              {!isHistoryLoading && sessions.length > 0
-                ? historyGroups.map((group, groupIndex) => (
-                    <Fragment key={group.label}>
-                      {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
-                      <DropdownMenuGroup>
-                        <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                        {group.sessions.map((session) => (
-                          <DropdownMenuItem
-                            className="data-[active=true]:bg-accent/70"
-                            data-active={activeChatId === session.chatId}
-                            disabled={isAgentBusy}
-                            key={session.chatId}
-                            onClick={() => onSelectChat(session.chatId)}
-                            title={session.title}
-                          >
-                            <span className="min-w-0 flex-1 truncate">
-                              {session.title}
-                            </span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuGroup>
-                    </Fragment>
-                  ))
-                : null}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="gap-2"
+          {showHistory ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex"
                 disabled={isAgentBusy}
-                onClick={onNewChat}
+                render={<Button size="icon-sm" variant="ghost" />}
               >
+                <span className="sr-only">Open chat history</span>
                 <HugeiconsIcon
-                  className="size-4 shrink-0"
-                  icon={PlusSignIcon}
+                  className="size-4"
+                  icon={Clock01Icon}
                   strokeWidth={1.8}
                 />
-                <span>New chat</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="max-h-72 w-52"
+                sideOffset={6}
+              >
+                {isHistoryLoading ? (
+                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+                    Loading chats...
+                  </p>
+                ) : null}
+                {!isHistoryLoading && sessions.length === 0 ? (
+                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+                    No previous chats
+                  </p>
+                ) : null}
+                {!isHistoryLoading && sessions.length > 0
+                  ? historyGroups.map((group, groupIndex) => (
+                      <Fragment key={group.label}>
+                        {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                          {group.sessions.map((session) => (
+                            <DropdownMenuItem
+                              className="data-[active=true]:bg-accent/70"
+                              data-active={activeChatId === session.chatId}
+                              disabled={isAgentBusy}
+                              key={session.chatId}
+                              onClick={() => onSelectChat(session.chatId)}
+                              title={session.title}
+                            >
+                              <span className="min-w-0 flex-1 truncate">
+                                {session.title}
+                              </span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuGroup>
+                      </Fragment>
+                    ))
+                  : null}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="gap-2"
+                  disabled={isAgentBusy}
+                  onClick={onNewChat}
+                >
+                  <HugeiconsIcon
+                    className="size-4 shrink-0"
+                    icon={PlusSignIcon}
+                    strokeWidth={1.8}
+                  />
+                  <span>New chat</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
           <Button
             aria-pressed={opensInChat ? undefined : expanded}
             className="cursor-pointer"

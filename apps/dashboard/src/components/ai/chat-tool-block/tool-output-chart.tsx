@@ -9,28 +9,33 @@ import type {
 import { type ReactNode, useMemo } from "react";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
-import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
+import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   CHAT_TOOL_CHART_EMPTY_SERIES,
   CHAT_TOOL_CHART_HEIGHT_CLASS,
   CHAT_TOOL_CHART_OPTIONS,
-  CHART_PRIMARY_COLOR,
+  CHAT_TOOL_RANK_TRACK_CLASS,
+  CHART_SEARCH_FILL_CLASS,
   DONUT_INNER_RADIUS,
   DONUT_OUTER_RADIUS,
 } from "@/constants/charts";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
-import type { ToolOutputChartProps } from "@/types/components/chat-tool-chart";
-import { accountSeriesColors, seriesColors } from "@/utils/chart-colors";
+import type {
+  ToolOutputChartProps,
+  ToolOutputRankRow,
+} from "@/types/components/chat-tool-chart";
+import { accountSeriesColors } from "@/utils/chart-colors";
 import {
   CHART_CATEGORY_KEY,
   chartSeriesDataKey,
   pivotChartSeries,
+  rankBarChartSegments,
 } from "@/utils/chat-tool-chart";
+import { formatChartEngineLabel } from "@/utils/geo-model-display";
 
 const VALUE_KEY = "value";
-const CATEGORY_KEY = "category";
 
 function ChartFrame({
   title,
@@ -69,7 +74,7 @@ function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
     () =>
       series.map((entry, index) => ({
         dataKey: chartSeriesDataKey(entry.name, index),
-        label: entry.name,
+        label: formatChartEngineLabel(entry.name),
       })),
     [series]
   );
@@ -112,45 +117,54 @@ function AreaArtifactChart({ chart }: { chart: AreaChartArtifact }) {
   );
 }
 
-function BarArtifactChart({ chart }: { chart: BarChartArtifact }) {
-  const segments = chart.segments;
-  const data = useMemo(
-    () =>
-      segments.map((segment) => ({
-        [CATEGORY_KEY]: segment.label,
-        [VALUE_KEY]: segment.value,
-      })),
-    [segments]
+function RankMeter({ row }: { row: ToolOutputRankRow }) {
+  return (
+    <li className="flex items-center gap-2">
+      <EngineIcon className="size-4" engine={row.engine} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-xs font-medium">{row.name}</span>
+          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+            {row.valueLabel}
+          </span>
+        </div>
+        <div
+          aria-label={`${row.name} ${row.valueLabel}`}
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={Math.round(row.widthPercent)}
+          className={cn(
+            "mt-1 h-1.5 overflow-hidden rounded-full",
+            CHAT_TOOL_RANK_TRACK_CLASS
+          )}
+          role="meter"
+        >
+          <div
+            className={cn("h-full rounded-full", CHART_SEARCH_FILL_CLASS)}
+            style={{ width: `${row.widthPercent}%` }}
+          />
+        </div>
+      </div>
+    </li>
   );
-  const config = useMemo<ChartConfig>(
-    () => ({
-      [VALUE_KEY]: {
-        label: chart.title,
-        colors: seriesColors(CHART_PRIMARY_COLOR),
-      },
-    }),
-    [chart.title]
+}
+
+function BarArtifactChart({ chart }: { chart: BarChartArtifact }) {
+  const rows = useMemo(
+    () => rankBarChartSegments(chart.segments),
+    [chart.segments]
   );
 
-  if (data.length === 0) {
+  if (rows.length === 0) {
     return null;
   }
 
   return (
-    <EChartsBarChart
-      animation={false}
-      chartOptions={CHAT_TOOL_CHART_OPTIONS}
-      className={cn("w-full px-1 pb-1", CHAT_TOOL_CHART_HEIGHT_CLASS)}
-      config={config}
-      data={data}
-      xDataKey={CATEGORY_KEY}
-    >
-      <EChartsBarChart.Grid />
-      <EChartsBarChart.XAxis dataKey={CATEGORY_KEY} />
-      <EChartsBarChart.YAxis />
-      <EChartsBarChart.Bar dataKey={VALUE_KEY} />
-      <EChartsBarChart.Tooltip />
-    </EChartsBarChart>
+    <ul className="flex flex-col gap-2 px-3 pt-1 pb-3">
+      {rows.map((row) => (
+        <RankMeter key={row.engine} row={row} />
+      ))}
+    </ul>
   );
 }
 

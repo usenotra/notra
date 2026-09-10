@@ -50,6 +50,7 @@ export const CHAT_TOOL_CHART_EMPTY_SERIES = "No data points to plot.";
 export const CHAT_TOOL_CHART_OPTIONS: Record<string, unknown> = {
   grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
 };
+export const CHAT_TOOL_RANK_TRACK_CLASS = "bg-muted";
 
 export const DONUT_INNER_RADIUS = "58%";
 export const DONUT_OUTER_RADIUS = "82%";

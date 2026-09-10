@@ -849,6 +849,10 @@ export default function PageClient({
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
     setChatInputValue("");
+    if (messagesRef.current.length === 0) {
+      processedToolCallsRef.current.clear();
+      return;
+    }
     processedToolCallsRef.current.clear();
     setMessages([]);
     setActiveChatId(crypto.randomUUID());

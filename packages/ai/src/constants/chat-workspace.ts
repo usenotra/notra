@@ -1,0 +1,1 @@
+export const CHAT_WORKSPACE_LABEL_MAX_LENGTH = 200;

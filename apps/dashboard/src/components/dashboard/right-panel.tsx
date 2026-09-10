@@ -9,17 +9,15 @@ import {
   RIGHT_PANEL_EXPANDED_WIDTH_CLASSNAME,
   RIGHT_PANEL_FRAME_CLASSNAME,
   RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME,
-  RIGHT_PANEL_FRAME_ENTERED_CLASSNAME,
-  RIGHT_PANEL_FRAME_EXITED_CLASSNAME,
   RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME,
-  RIGHT_PANEL_FRAME_MOTION_CLASSNAME,
   RIGHT_PANEL_OPEN_WIDTH_CLASSNAME,
+  RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
 } from "@/constants/right-panel";
-import { useRightPanelSlide } from "@/lib/hooks/use-right-panel-slide";
+import { useRightPanelSkipMotion } from "@/lib/hooks/use-right-panel-slide";
 import type { RightPanelProps } from "@/types/components/right-panel";
 
-function panelWidthClass(slotOpen: boolean, expanded: boolean) {
-  if (!slotOpen) {
+function panelWidthClass(open: boolean, expanded: boolean) {
+  if (!open) {
     return "w-0";
   }
   if (expanded) {
@@ -31,7 +29,7 @@ function panelWidthClass(slotOpen: boolean, expanded: boolean) {
 export function RightPanel({ id, children }: RightPanelProps) {
   const { active, expanded, hasOpened } = useRightPanel();
   const open = active === id;
-  const { entered, onFrameTransitionEnd, slotOpen } = useRightPanelSlide(
+  const skipMotion = useRightPanelSkipMotion(
     open,
     expanded,
     active !== null && !open
@@ -43,7 +41,9 @@ export function RightPanel({ id, children }: RightPanelProps) {
         aria-hidden={!open}
         className={cn(
           RIGHT_PANEL_CLASSNAME,
-          panelWidthClass(slotOpen, expanded)
+          RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
+          skipMotion && "transition-none",
+          panelWidthClass(open, expanded)
         )}
         inert={open ? undefined : true}
       >
@@ -51,15 +51,10 @@ export function RightPanel({ id, children }: RightPanelProps) {
           <div
             className={cn(
               RIGHT_PANEL_FRAME_CLASSNAME,
-              RIGHT_PANEL_FRAME_MOTION_CLASSNAME,
               expanded
                 ? RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME
-                : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME,
-              entered || expanded
-                ? RIGHT_PANEL_FRAME_ENTERED_CLASSNAME
-                : RIGHT_PANEL_FRAME_EXITED_CLASSNAME
+                : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME
             )}
-            onTransitionEnd={onFrameTransitionEnd}
           >
             {children}
           </div>

@@ -1,5 +1,12 @@
 import { isToolUIPart, type UIMessage } from "ai";
 
+const TERMINAL_APPROVAL_STEP_STATES = new Set([
+  "output-available",
+  "output-error",
+  "output-denied",
+  "approval-responded",
+]);
+
 export function shouldContinueAfterApprovalResponse({
   messages,
 }: {
@@ -26,11 +33,6 @@ export function shouldContinueAfterApprovalResponse({
   return (
     approvalResponses.length > 0 &&
     approvalResponses.every((part) => part.approval.approved) &&
-    toolParts.every(
-      (part) =>
-        part.state === "output-available" ||
-        part.state === "output-error" ||
-        part.state === "approval-responded"
-    )
+    toolParts.every((part) => TERMINAL_APPROVAL_STEP_STATES.has(part.state))
   );
 }

@@ -15,6 +15,8 @@ import type { ChatSuggestion } from "@/types/components/chat-suggestions";
 
 export const CHAT_SUGGESTION_ROTATE_MS = 4000;
 export const CHAT_SUGGESTION_VISIBLE_COUNT = 3;
+export const CHAT_SUGGESTION_SWAP_DISTANCE_PX = 4;
+export const CHAT_SUGGESTION_SWAP_BLUR_PX = 2;
 
 export const CHAT_SUGGESTIONS: ChatSuggestion[] = [
   {

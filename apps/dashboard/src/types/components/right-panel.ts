@@ -1,4 +1,4 @@
-import type { ReactNode, TransitionEvent } from "react";
+import type { ReactNode } from "react";
 
 export type RightPanelId = "agent" | "content";
 
@@ -15,10 +15,4 @@ export interface RightPanelContextValue {
 export interface RightPanelProps {
   id: RightPanelId;
   children: ReactNode;
-}
-
-export interface RightPanelSlide {
-  slotOpen: boolean;
-  entered: boolean;
-  onFrameTransitionEnd: (event: TransitionEvent<HTMLDivElement>) => void;
 }
