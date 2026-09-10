@@ -10,6 +10,7 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 
+import { FEATURES_TABLE_OPTIONAL_COL } from "@/constants/landing/features";
 import type { ShareRow, ShareRowLogo } from "@/types/landing/geo";
 
 const HEADER_CLASS = "text-muted-foreground text-xs";
@@ -58,18 +59,22 @@ export function ShareOfVoiceRows({
   headers: { brand: string; share: string; mentions: string };
 }) {
   return (
-    <Table>
+    <Table className="table-fixed">
       <TableHeader className="bg-muted/60">
         <TableRow>
           <TableHead className={HEADER_CLASS}>{headers.brand}</TableHead>
-          <TableHead className={HEADER_CLASS}>{headers.share}</TableHead>
-          <TableHead className={HEADER_CLASS}>{headers.mentions}</TableHead>
+          <TableHead className={cn(HEADER_CLASS, "w-[6.75rem] sm:w-auto")}>
+            {headers.share}
+          </TableHead>
+          <TableHead className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}>
+            {headers.mentions}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.id}>
-            <TableCell className="py-2.5">
+            <TableCell className="min-w-0 py-3">
               <span className="flex items-center gap-2 text-sm">
                 <BrandLogo brand={row.brand} logo={row.logo} />
                 <span className={cn("truncate", row.isYou && "font-medium")}>
@@ -77,10 +82,10 @@ export function ShareOfVoiceRows({
                 </span>
               </span>
             </TableCell>
-            <TableCell className="py-2.5">
+            <TableCell className="w-[6.75rem] py-3 sm:w-auto">
               <span className="flex items-center gap-2">
                 <GeoBar
-                  className="h-2 w-16"
+                  className="h-1.5 w-10 sm:w-16"
                   fillColor={row.color}
                   max={SHARE_MAX}
                   value={row.share}
@@ -88,7 +93,12 @@ export function ShareOfVoiceRows({
                 <span className="text-sm tabular-nums">{row.share}%</span>
               </span>
             </TableCell>
-            <TableCell className="text-muted-foreground py-2.5 text-sm tabular-nums">
+            <TableCell
+              className={cn(
+                "text-muted-foreground w-[4.75rem] py-3 text-sm tabular-nums",
+                FEATURES_TABLE_OPTIONAL_COL
+              )}
+            >
               {row.mentions}
             </TableCell>
           </TableRow>

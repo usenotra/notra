@@ -13,12 +13,14 @@ import {
   TableRow,
 } from "@notra/ui/components/ui/table";
 import { GEO_GAPS_METER_STEPS } from "@notra/ui/constants/geo";
+import { cn } from "@notra/ui/lib/utils";
 
 import { MockFrame } from "@/components/landing/mock-frame";
 import {
   FEATURES_GAP_HEADERS,
   FEATURES_GAP_ROWS,
   FEATURES_GAPS_FRAME,
+  FEATURES_TABLE_OPTIONAL_COL,
 } from "@/constants/landing/features";
 import { GEO_ENGINE_NAMES } from "@/constants/landing/geo-engines";
 
@@ -27,7 +29,6 @@ const HEADER_CLASS = "text-muted-foreground text-xs";
 export function FeaturesCardGaps() {
   return (
     <MockFrame
-      className="w-full min-w-[27rem]"
       heading={FEATURES_GAPS_FRAME.heading}
       subhead={FEATURES_GAPS_FRAME.subhead}
     >
@@ -40,10 +41,14 @@ export function FeaturesCardGaps() {
             <TableHead className={HEADER_CLASS}>
               {FEATURES_GAP_HEADERS.opportunity}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            >
               {FEATURES_GAP_HEADERS.missing}
             </TableHead>
-            <TableHead className={HEADER_CLASS} />
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -60,7 +65,7 @@ export function FeaturesCardGaps() {
                   level={row.opportunity}
                 />
               </TableCell>
-              <TableCell className="py-3">
+              <TableCell className={cn("py-3", FEATURES_TABLE_OPTIONAL_COL)}>
                 <LogoStack
                   items={row.missing.map((engine) => ({
                     key: engine,
@@ -71,7 +76,7 @@ export function FeaturesCardGaps() {
                   }))}
                 />
               </TableCell>
-              <TableCell className="py-3">
+              <TableCell className={cn("py-3", FEATURES_TABLE_OPTIONAL_COL)}>
                 <Button size="sm" variant="outline">
                   {FEATURES_GAP_HEADERS.action}
                 </Button>

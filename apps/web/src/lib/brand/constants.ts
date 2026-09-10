@@ -64,7 +64,7 @@ export const BRAND_FONTS: BrandFont[] = [
   },
   {
     name: "Instrument Serif",
-    fontClassName: "font-serif",
+    fontClassName: "font-instrument",
     role: "Display typeface for editorial accents.",
     googleFontsUrl: "https://fonts.google.com/specimen/Instrument+Serif",
   },

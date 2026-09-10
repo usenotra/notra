@@ -9,9 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@notra/ui/components/ui/table";
+import { cn } from "@notra/ui/lib/utils";
 
 import { MockFrame } from "@/components/landing/mock-frame";
 import {
+  FEATURES_TABLE_OPTIONAL_COL,
   FEATURES_TRAFFIC_FRAME,
   FEATURES_TRAFFIC_HEADERS,
   FEATURES_TRAFFIC_KPIS,
@@ -23,7 +25,6 @@ const HEADER_CLASS = "text-muted-foreground text-xs";
 export function FeaturesCardTraffic() {
   return (
     <MockFrame
-      className="w-full min-w-[27rem]"
       heading={FEATURES_TRAFFIC_FRAME.heading}
       subhead={FEATURES_TRAFFIC_FRAME.subhead}
     >
@@ -35,19 +36,23 @@ export function FeaturesCardTraffic() {
           value: kpi.value,
         }))}
       />
-      <Table>
+      <Table className="table-fixed">
         <TableHeader className="bg-muted/60">
           <TableRow>
             <TableHead className={HEADER_CLASS}>
               {FEATURES_TRAFFIC_HEADERS.source}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead className={cn(HEADER_CLASS, "w-[9.75rem] sm:w-auto")}>
               {FEATURES_TRAFFIC_HEADERS.purpose}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            >
               {FEATURES_TRAFFIC_HEADERS.visits}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            >
               {FEATURES_TRAFFIC_HEADERS.lastSeen}
             </TableHead>
           </TableRow>
@@ -55,19 +60,29 @@ export function FeaturesCardTraffic() {
         <TableBody>
           {FEATURES_TRAFFIC_ROWS.map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="py-3">
-                <span className="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
-                  <EngineIcon engine={row.engine} />
-                  {row.source}
+              <TableCell className="min-w-0 py-3">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <EngineIcon className="shrink-0" engine={row.engine} />
+                  <span className="truncate">{row.source}</span>
                 </span>
               </TableCell>
-              <TableCell className="py-3">
+              <TableCell className="w-[9.75rem] py-3 whitespace-nowrap sm:w-auto">
                 <PurposeBadge category={row.purpose} />
               </TableCell>
-              <TableCell className="py-3 text-sm tabular-nums">
+              <TableCell
+                className={cn(
+                  "py-3 text-sm tabular-nums",
+                  FEATURES_TABLE_OPTIONAL_COL
+                )}
+              >
                 {row.visits.toLocaleString()}
               </TableCell>
-              <TableCell className="text-muted-foreground py-3 text-sm whitespace-nowrap">
+              <TableCell
+                className={cn(
+                  "text-muted-foreground py-3 text-sm whitespace-nowrap",
+                  FEATURES_TABLE_OPTIONAL_COL
+                )}
+              >
                 {row.lastSeen}
               </TableCell>
             </TableRow>

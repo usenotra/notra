@@ -92,7 +92,7 @@
   --sidebar-border: oklch(0.258 0 0);
   --sidebar-ring: oklch(0.709 0.1592 293.5412);
   --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-serif: ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
     Courier New, monospace;
@@ -120,7 +120,8 @@
 @theme inline {
   --font-sans: var(--font-inter);
   --font-display: var(--font-satoshi);
-  --font-serif: var(--font-instrument-serif);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-instrument: var(--font-instrument-serif);
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo,
     monospace;

@@ -8,12 +8,14 @@ import {
   TableHeader,
   TableRow,
 } from "@notra/ui/components/ui/table";
+import { cn } from "@notra/ui/lib/utils";
 
 import { MockFrame } from "@/components/landing/mock-frame";
 import {
   FEATURES_ENGINE_HEADERS,
   FEATURES_ENGINE_ROWS,
   FEATURES_ENGINES_FRAME,
+  FEATURES_TABLE_OPTIONAL_COL,
 } from "@/constants/landing/features";
 import { GEO_ENGINE_NAMES } from "@/constants/landing/geo-engines";
 
@@ -23,11 +25,10 @@ const RATE_MAX = 100;
 export function FeaturesCardEngines() {
   return (
     <MockFrame
-      className="w-full min-w-[27rem]"
       heading={FEATURES_ENGINES_FRAME.heading}
       subhead={FEATURES_ENGINES_FRAME.subhead}
     >
-      <Table>
+      <Table className="sm:table-fixed">
         <TableHeader className="bg-muted/60">
           <TableRow>
             <TableHead className={HEADER_CLASS}>
@@ -36,10 +37,14 @@ export function FeaturesCardEngines() {
             <TableHead className={HEADER_CLASS}>
               {FEATURES_ENGINE_HEADERS.mentionRate}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            >
               {FEATURES_ENGINE_HEADERS.avgPosition}
             </TableHead>
-            <TableHead className={HEADER_CLASS}>
+            <TableHead
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+            >
               {FEATURES_ENGINE_HEADERS.lastChecked}
             </TableHead>
           </TableRow>
@@ -47,16 +52,18 @@ export function FeaturesCardEngines() {
         <TableBody>
           {FEATURES_ENGINE_ROWS.map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="py-3">
-                <span className="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
-                  <EngineIcon engine={row.id} />
-                  {GEO_ENGINE_NAMES[row.id]}
+              <TableCell className="min-w-0 py-3">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <EngineIcon className="shrink-0" engine={row.id} />
+                  <span className="sm:truncate">
+                    {GEO_ENGINE_NAMES[row.id]}
+                  </span>
                 </span>
               </TableCell>
-              <TableCell className="py-3">
-                <span className="flex items-center gap-2.5">
+              <TableCell className="w-[1%] py-3 whitespace-nowrap">
+                <span className="flex items-center gap-2 sm:gap-2.5">
                   <GeoBar
-                    className="w-16"
+                    className="h-1.5 w-10 sm:w-16"
                     max={RATE_MAX}
                     value={row.mentionRate}
                   />
@@ -65,10 +72,20 @@ export function FeaturesCardEngines() {
                   </span>
                 </span>
               </TableCell>
-              <TableCell className="text-muted-foreground py-3 text-sm tabular-nums">
+              <TableCell
+                className={cn(
+                  "text-muted-foreground w-[4.5rem] py-3 text-sm tabular-nums",
+                  FEATURES_TABLE_OPTIONAL_COL
+                )}
+              >
                 #{row.avgPosition}
               </TableCell>
-              <TableCell className="text-muted-foreground py-3 text-sm whitespace-nowrap">
+              <TableCell
+                className={cn(
+                  "text-muted-foreground py-3 text-sm whitespace-nowrap",
+                  FEATURES_TABLE_OPTIONAL_COL
+                )}
+              >
                 {row.lastChecked}
               </TableCell>
             </TableRow>

@@ -1,10 +1,8 @@
 "use client";
 
 import {
-  Cancel01Icon,
   Copy01Icon,
   Download01Icon,
-  Menu02Icon,
   PaintBoardIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -31,39 +29,39 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { NavbarChevron, NavbarMenuToggle } from "@/components/navbar-glyphs";
+import { NavbarHref } from "@/components/navbar-href";
+import { NavbarMobileMenu } from "@/components/navbar-mobile-menu";
+import { NotraMark, notraMarkSvgString } from "@/components/notra-mark";
+import { SignedOutLandingRedirect } from "@/components/signed-out-landing-redirect";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
   AUTH_APP_HOTKEY,
   AUTH_DASHBOARD_URL,
   AUTH_SIGNIN_HOTKEY,
   AUTH_SIGNIN_URL,
 } from "@/constants/auth";
-import {
-  NAVBAR_DESKTOP_SIGNUP_SOURCE,
-  NAVBAR_MOBILE_SIGNUP_SOURCE,
-} from "@/constants/navbar";
+import { NAVBAR_DESKTOP_SIGNUP_SOURCE } from "@/constants/navbar";
 import { useDashboardSession } from "@/lib/auth/use-dashboard-session";
 import { useNavbarAuthHotkeys } from "@/lib/auth/use-navbar-auth-hotkeys";
 import { BRAND_ASSETS } from "@/lib/brand/constants";
 import { getNavbarVariantForPath } from "@/lib/navigation/navbar-variant";
+import { useMobileNavMenu } from "@/lib/navigation/use-mobile-nav-menu";
 import type {
   NavbarAuthActionsProps,
   NavbarKbdProps,
   NavbarProps,
-  NavbarVariant,
 } from "@/types/navbar";
 import { copySvgAsset } from "@/utils/copy-svg-asset";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
+import { getNavbarChromePresentation } from "@/utils/navbar-presentation";
 import {
   MARKETING_NAV,
   type MarketingNavCard,
   type MarketingNavGroup,
   type MarketingNavRailItem,
 } from "@/utils/navigation";
-
-import { NotraMark, notraMarkSvgString } from "./notra-mark";
-import { SignedOutLandingRedirect } from "./signed-out-landing-redirect";
-import { ThemeToggle } from "./theme-toggle";
-import { TrackedSignupLink } from "./tracked-signup-link";
 
 const HOVER_CLOSE_DELAY = 120;
 const CONTENT_SLIDE = 48;
@@ -116,10 +114,14 @@ function MegaCard({
   card: MarketingNavCard;
   onSelect: () => void;
 }) {
-  const className =
-    "flex h-52.5 w-52 shrink-0 cursor-pointer flex-col items-stretch justify-between rounded-2xl border border-[#1E1E1E1A] bg-[#C8B2EE40] p-6 shadow-[0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] transition-[background,border-color] hover:bg-[linear-gradient(180deg,#C8B2EE40_0%,#C8B2EE66_100%)] dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10 dark:hover:bg-none";
-  const body = (
-    <>
+  return (
+    <NavbarHref
+      className="flex h-52.5 w-52 shrink-0 cursor-pointer flex-col items-stretch justify-between rounded-2xl border border-[#1E1E1E1A] bg-[#C8B2EE40] p-6 shadow-[0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] transition-[background,border-color] hover:bg-[linear-gradient(180deg,#C8B2EE40_0%,#C8B2EE66_100%)] dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10 dark:hover:bg-none"
+      external={card.external}
+      href={card.href}
+      onClick={onSelect}
+      role="menuitem"
+    >
       <span className="flex size-8 shrink-0 items-center justify-center leading-none [&_svg]:block">
         <HugeiconsIcon
           className="size-8 text-[#1E1E1E] dark:text-white"
@@ -134,33 +136,7 @@ function MegaCard({
           {card.description}
         </span>
       </span>
-    </>
-  );
-
-  if (card.external) {
-    return (
-      <a
-        className={className}
-        href={card.href}
-        onClick={onSelect}
-        rel="noopener noreferrer"
-        role="menuitem"
-        target="_blank"
-      >
-        {body}
-      </a>
-    );
-  }
-
-  return (
-    <Link
-      className={className}
-      href={card.href}
-      onClick={onSelect}
-      role="menuitem"
-    >
-      {body}
-    </Link>
+    </NavbarHref>
   );
 }
 
@@ -171,10 +147,14 @@ function RailItem({
   item: MarketingNavRailItem;
   onSelect: () => void;
 }) {
-  const className =
-    "-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#C8B2EE26] focus-visible:bg-[#C8B2EE26] focus-visible:outline-none dark:hover:bg-white/6 dark:focus-visible:bg-white/6";
-  const body = (
-    <>
+  return (
+    <NavbarHref
+      className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#C8B2EE26] focus-visible:bg-[#C8B2EE26] focus-visible:outline-none dark:hover:bg-white/6 dark:focus-visible:bg-white/6"
+      external={item.external}
+      href={item.href}
+      onClick={onSelect}
+      role="menuitem"
+    >
       <HugeiconsIcon
         className="size-6 shrink-0 text-[#1E1E1E] dark:text-neutral-200"
         icon={item.icon}
@@ -182,33 +162,7 @@ function RailItem({
       <span className="font-sans text-base leading-[1.5625rem] font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-neutral-200">
         {item.label}
       </span>
-    </>
-  );
-
-  if (item.external) {
-    return (
-      <a
-        className={className}
-        href={item.href}
-        onClick={onSelect}
-        rel="noopener noreferrer"
-        role="menuitem"
-        target="_blank"
-      >
-        {body}
-      </a>
-    );
-  }
-
-  return (
-    <Link
-      className={className}
-      href={item.href}
-      onClick={onSelect}
-      role="menuitem"
-    >
-      {body}
-    </Link>
+    </NavbarHref>
   );
 }
 
@@ -260,40 +214,11 @@ function getSlideDirection(
   return currentIndex > previousIndex ? 1 : -1;
 }
 
-function getNavbarPresentation(
-  variant: NavbarVariant,
-  scrolled: boolean,
-  reduceMotion: boolean
-) {
-  const isLanding = variant === "landing";
-  const tracksScroll = variant === "island" || isLanding;
-  const chrome = variant === "pinned" || (tracksScroll && scrolled);
-  const isLandingTop = isLanding && !chrome;
-  let positionClass = "w-full sticky top-4";
-
-  if (isLanding) {
-    positionClass = "fixed inset-x-4 sm:inset-x-6";
-  } else if (variant === "static") {
-    positionClass = "w-full";
-  }
-
+function getNavbarMotion(reduceMotion: boolean) {
   return {
-    chrome,
     contentTransition: reduceMotion ? { duration: 0 } : SWAP_TRANSITION,
     enterExitTransition: reduceMotion ? { duration: 0 } : ENTER_EXIT_TRANSITION,
-    innerPaddingClass: isLandingTop
-      ? "px-7 sm:px-5 lg:px-6 min-[87rem]:px-0"
-      : "px-4 sm:px-6",
-    isLandingTop,
     morphTransition: reduceMotion ? { duration: 0 } : MORPH_TRANSITION,
-    positionClass,
-    rowHeightClass: isLandingTop ? "h-11 lg:h-[2.4375rem]" : "h-16",
-    shellAnimate: isLanding
-      ? {
-          maxWidth: chrome ? "64rem" : "80.9375rem",
-          top: chrome ? "1rem" : "2.5rem",
-        }
-      : { maxWidth: chrome ? "64rem" : "80rem" },
     shellTransition: reduceMotion ? { duration: 0 } : SHELL_TRANSITION,
   };
 }
@@ -303,6 +228,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
   const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
 
   const [isOpen, setIsOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [{ active: activeGroup, previous: previousGroup }, setNavGroup] =
     useState<{ active: string | null; previous: string | null }>({
       active: null,
@@ -391,16 +317,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
 
   const closePanel = useCallback(() => setActiveGroup(null), [setActiveGroup]);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  const closeMobileMenu = useMobileNavMenu(isOpen, setIsOpen, menuButtonRef);
 
   useEffect(
     () => () => {
@@ -415,6 +332,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
     function handleKey(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
         setActiveGroup(null);
+        setIsOpen(false);
       }
     }
     document.addEventListener("keydown", handleKey);
@@ -449,16 +367,18 @@ export function Navbar({ variant }: NavbarProps = {}) {
   const direction = reduceMotion ? 0 : slideDirection;
   const {
     chrome,
-    contentTransition,
-    enterExitTransition,
     innerPaddingClass,
-    isLandingTop,
-    morphTransition,
+    overlayLayout,
     positionClass,
     rowHeightClass,
     shellAnimate,
+  } = getNavbarChromePresentation(resolvedVariant, scrolled);
+  const {
+    contentTransition,
+    enterExitTransition,
+    morphTransition,
     shellTransition,
-  } = getNavbarPresentation(resolvedVariant, scrolled, reduceMotion ?? false);
+  } = getNavbarMotion(reduceMotion ?? false);
   const mutedNavClass =
     "text-[#1E1E1EA6] hover:text-[#1E1E1E] dark:text-neutral-400 dark:hover:text-white";
 
@@ -476,7 +396,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
       >
         <m.header
           animate={{ borderRadius: chrome ? "1rem" : "0rem" }}
-          className={`duration-slow transition-[background-color,box-shadow] ease-out ${
+          className={`duration-slow relative z-50 transition-[background-color,box-shadow] ease-out ${
             chrome ? ISLAND_CHROME : "bg-transparent"
           }`}
           initial={false}
@@ -606,7 +526,10 @@ export function Navbar({ variant }: NavbarProps = {}) {
                       type="button"
                     >
                       {entry.label}
-                      <ChevronIcon flipped={isActive} />
+                      <NavbarChevron
+                        className="duration-normal size-3.5"
+                        flipped={isActive}
+                      />
                     </button>
                   );
                 })}
@@ -699,143 +622,25 @@ export function Navbar({ variant }: NavbarProps = {}) {
                   aria-label={isOpen ? "Close menu" : "Open menu"}
                   className="relative inline-flex size-9 items-center justify-center rounded-md text-[#1E1E1E] hover:bg-[#C8B2EE26] lg:hidden dark:text-white dark:hover:bg-white/6"
                   onClick={() => setIsOpen((prev) => !prev)}
+                  ref={menuButtonRef}
                   type="button"
                 >
-                  <HugeiconsIcon
-                    className="size-5"
-                    icon={isOpen ? Cancel01Icon : Menu02Icon}
-                  />
+                  <NavbarMenuToggle isOpen={isOpen} />
                 </button>
               </div>
             </div>
           </div>
         </m.header>
 
-        <AnimatePresence>
-          {isOpen && (
-            <m.div
-              animate={{ opacity: 1, y: 0 }}
-              className={`absolute top-[calc(100%+0.5rem)] z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto overscroll-contain rounded-2xl bg-white p-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] shadow-[0_0.125rem_2.0625rem_#1E1E1E1A,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] lg:hidden dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10 ${isLandingTop ? "inset-x-6" : "inset-x-4"}`}
-              exit={{ opacity: 0, y: -6 }}
-              id="mobile-navigation"
-              initial={{ opacity: 0, y: -6 }}
-              transition={enterExitTransition}
-            >
-              <MobileNav
-                isAuthenticated={isAuthenticated}
-                isResolved={isResolved}
-                onNavigate={() => setIsOpen(false)}
-              />
-            </m.div>
-          )}
-        </AnimatePresence>
-      </m.div>
-    </LazyMotion>
-  );
-}
-
-function MobileNav({
-  isAuthenticated,
-  isResolved,
-  onNavigate,
-}: NavbarAuthActionsProps & { onNavigate: () => void }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <nav className="flex flex-col gap-1">
-        {MARKETING_NAV.map((entry) => {
-          if (entry.type === "link") {
-            return (
-              <Link
-                className="rounded-md px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-white/6 dark:hover:text-white"
-                href={entry.href}
-                key={entry.href}
-                onClick={onNavigate}
-              >
-                {entry.label}
-              </Link>
-            );
-          }
-          return (
-            <div className="flex flex-col gap-0.5" key={entry.label}>
-              <div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-neutral-500">
-                {entry.label}
-              </div>
-              {[...entry.cards, ...entry.rail].map((item) =>
-                item.external ? (
-                  <a
-                    className="rounded-md px-3 py-2 font-sans text-sm text-[#1E1E1E] hover:bg-[#C8B2EE26] dark:text-neutral-300 dark:hover:bg-white/6"
-                    href={item.href}
-                    key={item.href}
-                    onClick={onNavigate}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link
-                    className="rounded-md px-3 py-2 font-sans text-sm text-[#1E1E1E] hover:bg-[#C8B2EE26] dark:text-neutral-300 dark:hover:bg-white/6"
-                    href={item.href}
-                    key={item.href}
-                    onClick={onNavigate}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              )}
-            </div>
-          );
-        })}
-      </nav>
-      <div className="flex flex-col gap-2 border-t border-[#1E1E1E14] pt-3 dark:border-white/10">
-        <MobileAuthActions
+        <NavbarMobileMenu
           isAuthenticated={isAuthenticated}
           isResolved={isResolved}
-          onNavigate={onNavigate}
+          onNavigate={closeMobileMenu}
+          open={isOpen}
+          overlayLayout={overlayLayout}
         />
-      </div>
-    </div>
-  );
-}
-
-function MobileAuthActions({
-  isAuthenticated,
-  isResolved,
-  onNavigate,
-}: NavbarAuthActionsProps & { onNavigate: () => void }) {
-  if (!isResolved) {
-    return null;
-  }
-
-  if (isAuthenticated) {
-    return (
-      <Link
-        className="cta-gradient-primary font-display rounded-full px-3 py-2.5 text-center text-sm font-medium tracking-[-0.015em] text-white"
-        href={AUTH_DASHBOARD_URL}
-        onClick={onNavigate}
-      >
-        Dashboard
-      </Link>
-    );
-  }
-
-  return (
-    <>
-      <Link
-        className="font-display rounded-md px-3 py-2 text-center text-sm tracking-[-0.015em] text-[#1E1E1E] hover:bg-[#C8B2EE26] dark:text-neutral-300 dark:hover:bg-white/6"
-        href={AUTH_SIGNIN_URL}
-        onClick={onNavigate}
-      >
-        Sign In
-      </Link>
-      <TrackedSignupLink
-        className="cta-gradient-primary font-display rounded-full px-3 py-2.5 text-center text-sm font-medium tracking-[-0.015em] text-white"
-        onClick={onNavigate}
-        source={NAVBAR_MOBILE_SIGNUP_SOURCE}
-      >
-        Sign Up
-      </TrackedSignupLink>
-    </>
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -900,23 +705,5 @@ function NavbarKbd({ children, onLight = false }: NavbarKbdProps) {
     >
       {children}
     </Kbd>
-  );
-}
-
-function ChevronIcon({ flipped }: { flipped: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={`duration-normal size-3.5 transition-transform ${flipped ? "rotate-180" : ""}`}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M6 9l6 6l6 -6" />
-    </svg>
   );
 }

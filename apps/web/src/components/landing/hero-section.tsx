@@ -18,7 +18,7 @@ import {
 } from "@/constants/landing/hero";
 
 const CTA_BUTTON_CLASSNAME =
-  "h-auto rounded-[2.5625rem] px-6 py-3 font-display font-medium text-[1.125rem] leading-[1.14] tracking-[-0.015em]";
+  "h-auto rounded-[2.5625rem] px-4 py-3 font-display font-medium text-[1.125rem] leading-[1.14] tracking-[-0.015em] sm:px-6";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
@@ -55,7 +55,7 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-7 sm:flex-row">
+            <div className="flex flex-row items-center justify-center gap-4 sm:gap-7">
               <CtaButton
                 className={CTA_BUTTON_CLASSNAME}
                 nativeButton={false}

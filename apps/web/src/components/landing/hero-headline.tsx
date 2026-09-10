@@ -52,9 +52,9 @@ function WordContent({ word }: { word: HeroCycleWord }) {
 
 export function HeroHeadline({ word }: HeroHeadlineProps) {
   return (
-    <h1 className="font-display max-w-[20.5rem] text-center text-[clamp(1.5rem,calc(10.1vw-0.42rem),2.0625rem)] leading-[1.08] font-medium tracking-[-0.015em] text-[#1E1E1E] sm:max-w-[56.875rem] sm:text-[3.25rem] sm:font-semibold lg:text-[4.75rem] lg:leading-[1.12] dark:text-white">
-      <span className="block whitespace-nowrap">{HERO_HEADLINE_LINE_ONE} </span>
-      <span className="block whitespace-nowrap">
+    <h1 className="font-display mx-auto w-fit max-w-[20.5rem] text-left text-[clamp(1.5rem,calc(10.1vw-0.42rem),2.0625rem)] leading-[1.08] font-medium tracking-[-0.015em] text-[#1E1E1E] sm:max-w-[56.875rem] sm:text-[3.25rem] sm:font-semibold lg:text-[4.75rem] lg:leading-[1.12] dark:text-white">
+      <span className="block whitespace-nowrap">{HERO_HEADLINE_LINE_ONE}</span>
+      <span className="flex items-center gap-[0.22em] whitespace-nowrap">
         <LazyMotion features={domMax}>
           <m.span
             className="inline-block"
@@ -62,57 +62,59 @@ export function HeroHeadline({ word }: HeroHeadlineProps) {
             transition={WORD_TRANSITION}
           >
             {HERO_HEADLINE_LINE_TWO_PREFIX}
-          </m.span>{" "}
+          </m.span>
           <span className="sr-only">{listEngineNames()}</span>
-          <m.span
-            aria-hidden
-            className={cn(
-              "relative inline-grid h-[1em] items-center overflow-hidden align-middle",
-              "bg-white text-[#1E1E1E] shadow-[0_0.05em_0.22em_rgba(0,0,0,0.1),0_0_0_0.0625rem_rgba(0,0,0,0.04)] dark:bg-white/[0.08] dark:text-white dark:shadow-[0_0_0_0.0625rem_rgba(255,255,255,0.12)]"
-            )}
-            layout
-            style={{ borderRadius: "0.24em" }}
-            transition={WORD_TRANSITION}
-          >
-            <span
+          <span className="inline-flex items-center">
+            <m.span
               aria-hidden
               className={cn(
-                WORD_CONTENT_CLASS,
-                "invisible col-start-1 row-start-1"
+                "relative inline-grid h-[1em] items-center overflow-hidden",
+                "bg-white text-[#1E1E1E] shadow-[0_0.05em_0.22em_rgba(0,0,0,0.1),0_0_0_0.0625rem_rgba(0,0,0,0.04)] dark:bg-white/[0.08] dark:text-white dark:shadow-[0_0_0_0.0625rem_rgba(255,255,255,0.12)]"
               )}
-              style={{ fontSize: `${wordSizeEm(word)}em` }}
+              layout
+              style={{ borderRadius: "0.24em" }}
+              transition={WORD_TRANSITION}
             >
-              <WordContent word={word} />
-            </span>
-            <span
-              className="absolute inset-0"
-              style={{ fontSize: `${wordSizeEm(word)}em` }}
+              <span
+                aria-hidden
+                className={cn(
+                  WORD_CONTENT_CLASS,
+                  "invisible col-start-1 row-start-1"
+                )}
+                style={{ fontSize: `${wordSizeEm(word)}em` }}
+              >
+                <WordContent word={word} />
+              </span>
+              <span
+                className="absolute inset-0"
+                style={{ fontSize: `${wordSizeEm(word)}em` }}
+              >
+                <AnimatePresence initial={false}>
+                  <m.span
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      WORD_CONTENT_CLASS,
+                      "absolute inset-0 justify-center"
+                    )}
+                    exit={{ opacity: 0, y: "-0.3em" }}
+                    initial={{ opacity: 0, y: "0.3em" }}
+                    key={word.text}
+                    layout="position"
+                    transition={WORD_TRANSITION}
+                  >
+                    <WordContent word={word} />
+                  </m.span>
+                </AnimatePresence>
+              </span>
+            </m.span>
+            <m.span
+              className="inline-block"
+              layout="position"
+              transition={WORD_TRANSITION}
             >
-              <AnimatePresence initial={false}>
-                <m.span
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    WORD_CONTENT_CLASS,
-                    "absolute inset-0 justify-center"
-                  )}
-                  exit={{ opacity: 0, y: "-0.3em" }}
-                  initial={{ opacity: 0, y: "0.3em" }}
-                  key={word.text}
-                  layout="position"
-                  transition={WORD_TRANSITION}
-                >
-                  <WordContent word={word} />
-                </m.span>
-              </AnimatePresence>
-            </span>
-          </m.span>
-          <m.span
-            className="inline-block"
-            layout="position"
-            transition={WORD_TRANSITION}
-          >
-            {HERO_HEADLINE_SUFFIX}
-          </m.span>
+              {HERO_HEADLINE_SUFFIX}
+            </m.span>
+          </span>
         </LazyMotion>
       </span>
     </h1>
