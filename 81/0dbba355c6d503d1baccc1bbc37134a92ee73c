@@ -1,0 +1,213 @@
+apps/dashboard/src/constants/chat-empty-dither.ts
+  s_8c1a33c812724a::t_8f6cb3efac81f6 11-12
+  s_8c1a33c812724a::t_d2254834464bc1 1-10,13-15
+apps/dashboard/src/utils/chat-tool-chart.ts
+  s_8c1a33c812724a::t_93a255ee94b6e2 1-11
+apps/dashboard/src/components/ai/chat-tool-block/visuals.ts
+  s_8c1a33c812724a::t_5babde39be9022 1-51,55-73
+  s_8c1a33c812724a::t_35ec3c2ae435de 52-54
+apps/dashboard/src/types/components/chat-empty-dither.ts
+  s_8c1a33c812724a::t_af3125bb681cc2 1-2
+apps/dashboard/src/utils/dashboard-agent-chat-path.ts
+  s_8c1a33c812724a::t_f9072eec542d68 1-10
+apps/dashboard/src/app/(dashboard)/[slug]/content/[id]/page-client.tsx
+  s_8c1a33c812724a::t_5b86c53877260d 1421
+  s_8c1a33c812724a::t_3ffb1bdfc62213 78-79
+  s_8c1a33c812724a::t_7b82611030aacf 220-221
+  s_8c1a33c812724a::t_1b073ec640dcc0 1756-1768,1770-1772
+  s_8c1a33c812724a::t_7d5e795626a8ec 1045
+packages/ai/src/schemas/post.ts
+  ai_agent 1-3,10-20
+apps/dashboard/src/lib/hooks/use-right-panel-state.ts
+  s_8c1a33c812724a::t_f5e6107a651c19 6-9,11-14,16,18,20-23,27-38,41-42
+  s_8c1a33c812724a::t_9387d5dd7c6821 57-60
+  s_8c1a33c812724a::t_f9c1dce22219e7 3
+  s_8c1a33c812724a::t_e53ce2001ffe69 4,19,43-45,47,50-56,61-85
+  s_8c1a33c812724a::t_aa796ccc89a8fb 24-26
+  s_8c1a33c812724a::t_18804183e72f93 17
+  s_8c1a33c812724a::t_a53584d08fec3e 39
+apps/dashboard/src/utils/chat-tool-draft.ts
+  s_8c1a33c812724a::t_c28e121d23aa76 5-11
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/sessions/route.ts
+  s_8c1a33c812724a::t_b9865d85a49e58 20
+packages/ai/src/chat/history.test.ts
+  s_8c1a33c812724a::t_ef88ab93525828 26-27,29,34,43
+apps/dashboard/src/components/ai/chat-tool-block/types.ts
+  ai_agent 21
+packages/ai/src/utils/chart-artifact.test.ts
+  s_8c1a33c812724a::t_8f5b78caf5afb2 1-43
+packages/ai/src/types/post-tools.ts
+  ai_agent 10
+apps/dashboard/src/components/ai/chat-tool-block/tool-draft-preview.tsx
+  s_8c1a33c812724a::t_c80bd7f490c9d0 7
+packages/ai/src/chat/history.ts
+  s_8c1a33c812724a::t_97ac1fd4943a1e 560-573
+  s_8c1a33c812724a::t_89d17d59eca8f4 641-651
+  s_8c1a33c812724a::t_d728df31fc9b7d 13,22,24-28
+  s_8c1a33c812724a::t_079e2f283ec50a 670
+  s_8c1a33c812724a::t_c8de8e110630ea 654-657,659-660
+apps/dashboard/src/constants/charts.ts
+  ai_agent 48-52
+apps/dashboard/src/types/components/chat-tool-draft.ts
+  s_8c1a33c812724a::t_df5c68fe0145b0 1-7
+apps/dashboard/src/types/components/chat-tool-chart.ts
+  s_8c1a33c812724a::t_a63006ff851313 1-4
+packages/ai/src/constants/dashboard-agent.ts
+  s_8c1a33c812724a::t_8f31fa7e8597f6 1,3
+  s_8c1a33c812724a::t_765c28e084964c 2
+apps/dashboard/src/components/dashboard/dashboard-client-wrapper.tsx
+  s_8c1a33c812724a::t_3ba9df5b6b5a3e 36
+  s_8c1a33c812724a::t_0bf22538bf26d5 7
+  s_8c1a33c812724a::t_5076d12ed37669 44
+apps/dashboard/src/components/dashboard/right-panel-context.tsx
+  s_8c1a33c812724a::t_96afbf87e0da1c 5-6,8,11,14,16,20-21,23
+  s_8c1a33c812724a::t_826b62c519f244 10
+  s_8c1a33c812724a::t_0cb7faec5084c4 3
+packages/ai/src/prompts/standalone-chat.ts
+  ai_agent 77-79
+packages/ai/src/utils/post-tool-name.ts
+  s_8c1a33c812724a::t_0cfe78d88d36b0 2-5,15-26,29
+  s_8c1a33c812724a::t_812bcda96dbab7 1,6-14,27-28
+apps/dashboard/src/components/ai/chat-empty-dither.tsx
+  s_8c1a33c812724a::t_7c30cb8fcc671b 1-53
+packages/ai/src/types/chart-artifact.ts
+  s_8c1a33c812724a::t_5259134c93e9c8 6-11
+packages/ai/src/types/chat-surface.ts
+  s_8c1a33c812724a::t_fb55b639a8d6b4 4-5
+  s_8c1a33c812724a::t_135f0abfbdf189 1-3,6-15
+apps/dashboard/src/components/dashboard/dashboard-shell.tsx
+  s_8c1a33c812724a::t_5f9b2b20c52089 161-166
+  s_8c1a33c812724a::t_2dd1713d5f82e6 43
+  s_8c1a33c812724a::t_725ec9d9bc6ed1 15
+apps/dashboard/src/utils/chat-tool-chart.test.ts
+  s_8c1a33c812724a::t_07381c690949b2 1-23
+packages/ai/src/utils/chart-artifact.ts
+  s_8c1a33c812724a::t_712efa508c9d00 46
+apps/api/src/lib/chat/run.ts
+  s_8c1a33c812724a::t_f21630c53cc126 106
+  s_8c1a33c812724a::t_bab0b9a3cd6642 21
+apps/dashboard/src/constants/chat-tool-draft.ts
+  ai_agent 1
+apps/dashboard/src/types/components/content-chat-activity-panel.ts
+  s_8c1a33c812724a::t_6e91a2def57611 16
+packages/ai/src/constants/chart-artifact.ts
+  ai_agent 1-16
+apps/dashboard/src/utils/chat-tool-draft.test.ts
+  s_8c1a33c812724a::t_1f34906538553c 1-8,10
+  s_8c1a33c812724a::t_2d75958f3bec1b 9
+apps/dashboard/src/constants/right-panel.ts
+  s_8c1a33c812724a::t_6ee10550abafb7 7,12-13
+  s_8c1a33c812724a::t_3894b5b94ae25b 3,8-11
+  s_8c1a33c812724a::t_1a54c3e66344e2 2,4,6
+  ai_agent 5
+apps/dashboard/src/components/dashboard/right-panel.tsx
+  s_8c1a33c812724a::t_1592389f58c38e 6
+  s_8c1a33c812724a::t_f2a22216880a7e 12-13,15,18,21-22,34-37,53,56-59,61
+  s_8c1a33c812724a::t_2b8389dafed160 23-30
+  s_8c1a33c812724a::t_74eb7d76b07e0a 1-5,7-8,10,16-17,19-20,31,33,38-42,47-49,65-66
+  s_8c1a33c812724a::t_527c7df9f8a758 9,11,14,32,50-52,54-55,60,62-64
+  ai_agent 43-46
+packages/ai/src/utils/geo-tool-data.ts
+  ai_agent 8-12,102-110,114,119-122,141-152,156-157,219-223,227-231
+apps/dashboard/src/constants/chat-suggestions.ts
+  ai_agent 5,59-64
+packages/ai/src/schemas/chart-artifact.ts
+  s_8c1a33c812724a::t_b19a0a5c6800af 4-56
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  ai_agent 87-93
+packages/ai/src/constants/post-tools.ts
+  s_8c1a33c812724a::t_13b8293db206aa 1-8
+packages/ai/src/constants/chat-surface.ts
+  s_8c1a33c812724a::t_980f8a88f2f4d1 1-12
+apps/dashboard/tests/dashboard-agent-chat.test.ts
+  s_8c1a33c812724a::t_effeb89d62ce81 33
+apps/dashboard/src/types/components/right-panel.ts
+  s_8c1a33c812724a::t_12db83d7d8d61c 3
+  s_8c1a33c812724a::t_4e9e02f5868278 1
+  s_8c1a33c812724a::t_5407597e1bc739 2,17
+  s_8c1a33c812724a::t_d9a2219e483599 4-6,8-11,13-16,18
+  s_8c1a33c812724a::t_c8a25841df6252 7,12
+  s_8c1a33c812724a::t_18cb6dc2004358 19-24
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/route.ts
+  s_8c1a33c812724a::t_b496b3cc5af5d0 50
+  s_8c1a33c812724a::t_3e3306c0422cb6 157
+  s_8c1a33c812724a::t_65f5462282c88a 11,16
+apps/dashboard/src/lib/hooks/use-right-panel-slide.ts
+  s_8c1a33c812724a::t_a50f83bb1c2762 1-83
+apps/dashboard/src/utils/dashboard-agent-chat-path.test.ts
+  s_8c1a33c812724a::t_f5e382d8b4472e 1-21
+apps/dashboard/src/components/content/content-chat-activity-panel.tsx
+  s_8c1a33c812724a::t_c32cc9ec2662c6 346-351,354-356,359-366,371-372
+  s_8c1a33c812724a::t_4b73ca708c1198 344
+  s_8c1a33c812724a::t_8b1f524452cd67 212-214
+  s_8c1a33c812724a::t_5bc2096bc29655 187,193
+  s_8c1a33c812724a::t_cbe4cc3671867a 38
+  s_8c1a33c812724a::t_cf2191e841a80c 192
+  s_8c1a33c812724a::t_b0809cc549e760 27-34
+  s_8c1a33c812724a::t_b756e0293620c6 67-77
+  s_8c1a33c812724a::t_70e7413bc4d8d4 342-343,345
+  s_8c1a33c812724a::t_ffc87fefed08c5 4,7
+  s_8c1a33c812724a::t_8d9d2d7f23a4ee 42
+  s_8c1a33c812724a::t_446b4502e9b940 60,64
+  s_8c1a33c812724a::t_6eafbdd0d7e09a 304,306,311-315,319-321
+  s_8c1a33c812724a::t_c4fbdf0d6c7ef2 305,307-310,316-318,322-324
+apps/dashboard/src/components/ai/chat-tool-block/tool-output-chart.tsx
+  s_8c1a33c812724a::t_2786c3b75651a3 63
+  s_8c1a33c812724a::t_66e4d906f6544a 107
+  s_8c1a33c812724a::t_723fa94c762b57 103
+  s_8c1a33c812724a::t_5e28fe3373a452 61
+  s_8c1a33c812724a::t_6ad80452afa214 66
+  s_8c1a33c812724a::t_5bf6b515625e11 3-8
+  s_8c1a33c812724a::t_3c6fb22fc1ead0 145
+  s_8c1a33c812724a::t_55ec62069042be 149-157
+  s_8c1a33c812724a::t_ca6972b67cda4d 190-198,209
+  s_8c1a33c812724a::t_084dba8c41a178 199-202
+  ai_agent 89
+apps/dashboard/src/components/dashboard/dashboard-agent-panel.tsx
+  s_8c1a33c812724a::t_7f541ac3e4ff76 323,333-342
+  s_8c1a33c812724a::t_f78f2c387c6470 24-25
+  s_8c1a33c812724a::t_3fd5753a832559 37
+  s_8c1a33c812724a::t_604bed39e880fa 254-267
+  s_8c1a33c812724a::t_4942697cea06c9 44
+  s_8c1a33c812724a::t_dc205ec2a0ab13 281
+  s_8c1a33c812724a::t_ebc989d0e48770 17
+apps/dashboard/src/components/dashboard/dashboard-agent-button.tsx
+  s_8c1a33c812724a::t_a27397c9db19de 7,11-12,18
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/[chatId]/route.ts
+  ai_agent 1-4
+  s_8c1a33c812724a::t_48cfad0e23b1aa 31-36
+packages/ai/src/tools/post.ts
+  s_8c1a33c812724a::t_3178e8a53979e8 18
+  s_8c1a33c812724a::t_d8073031713225 30
+apps/dashboard/src/components/ai/chat-tool-block.tsx
+  s_8c1a33c812724a::t_90176e36a07824 793-815
+  s_8c1a33c812724a::t_2dac39b40d41b2 51
+packages/ai/src/utils/chat-surface.ts
+  s_8c1a33c812724a::t_513dea17817854 4,11
+  s_8c1a33c812724a::t_5c8f29f00887b7 59-64
+  s_8c1a33c812724a::t_85a4f07859fd4d 1-3,5-10,12-58,70-72
+  s_8c1a33c812724a::t_f074b8dbfb41f3 65,67-69
+packages/ai/src/utils/chat-surface.test.ts
+  s_8c1a33c812724a::t_a190f778b0a458 44-50
+  s_8c1a33c812724a::t_7f9b1f5030ad3b 4
+  s_8c1a33c812724a::t_d1256db1ae39b2 39-43
+  s_8c1a33c812724a::t_be22abab0b647a 1-3,5,7-32,37-38
+  s_8c1a33c812724a::t_05769a66f21beb 6
+  s_8c1a33c812724a::t_a2eb4423f44dc5 33-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "810dbba355c6d503d1baccc1bbc37134a92ee73c",
+  "prompts": {},
+  "sessions": {
+    "s_8c1a33c812724a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3fde6d95-e9a8-42b9-a44c-be96e9f194d3",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
