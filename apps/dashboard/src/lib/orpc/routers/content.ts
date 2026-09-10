@@ -54,6 +54,7 @@ import {
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
 import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
+import { slugify } from "@notra/utils/slugify";
 import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
 import { and, asc, count, desc, eq, gte, inArray, lt, lte } from "drizzle-orm";
 import { marked } from "marked";
@@ -82,6 +83,7 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
+import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   publishContentDraftPullRequest,
@@ -834,6 +836,7 @@ export const contentRouter = {
       if (!post.markdown) {
         throw badRequest("Save the content before publishing it to GitHub");
       }
+      const savedMarkdown = post.markdown;
       if (!(integration?.owner && integration.repo)) {
         throw notFound("Selected GitHub repository not found");
       }
@@ -901,12 +904,16 @@ export const contentRouter = {
         contentOutput.config
       );
       const directory = outputConfig.success
-        ? outputConfig.data.directory
+        ? (outputConfig.data.directory ??
+          DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType])
         : DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType];
       const path = resolveGitHubContentPath({
         contentId: input.contentId,
         customPath: input.path,
         directory,
+        pathTemplate: outputConfig.success
+          ? outputConfig.data.contentPath
+          : null,
         slug: post.slug,
         title: post.title,
       });
@@ -915,6 +922,9 @@ export const contentRouter = {
           "The configured directory and content slug exceed GitHub's file path limit"
         );
       }
+
+      const contentSlug =
+        slugify(post.slug ?? "") || slugify(post.title) || input.contentId;
 
       const notraBaseUrl = resolveNotraBaseUrl();
       const token = await runOrpcEffect(
@@ -935,7 +945,31 @@ export const contentRouter = {
             defaultBranch: integration.defaultBranch,
             path,
             title: post.title,
-            markdown: post.markdown,
+            markdown: savedMarkdown,
+            pullRequestMarkdown: savedMarkdown,
+            ...(outputConfig.success && outputConfig.data.imagePath
+              ? {
+                  prepareContent: async (contentPath: string) => {
+                    const preparedContent = await prepareR2GitHubContentAssets({
+                      contentPath,
+                      imagePathTemplate: outputConfig.data.imagePath ?? "",
+                      markdown: savedMarkdown,
+                      slug: contentSlug,
+                    });
+                    if (
+                      preparedContent.assets.some(
+                        (asset) =>
+                          asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+                      )
+                    ) {
+                      throw badRequest(
+                        "The configured image path exceeds GitHub's path limit"
+                      );
+                    }
+                    return preparedContent;
+                  },
+                }
+              : {}),
             ...(notraBaseUrl && organization
               ? {
                   badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),

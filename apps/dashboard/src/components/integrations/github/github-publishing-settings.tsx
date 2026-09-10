@@ -13,12 +13,14 @@ import {
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   GitHubContentDirectoryMutationVariables,
+  GitHubContentPathMutationVariables,
   GitHubContentPublishingSettingsProps,
   GitHubOutputMutationVariables,
   GitHubPublishingSettingsProps,
 } from "@/types/integrations/github";
 
 import { GitHubDirectoryPicker } from "./github-directory-picker";
+import { GitHubPublishingPathFields } from "./github-publishing-path-fields";
 
 function GitHubContentPublishingSettings({
   contentLabel,
@@ -97,6 +99,36 @@ function GitHubContentPublishingSettings({
     },
     onError: (error) => {
       toast.error(error.message || `Failed to save ${contentLabel} folder`);
+    },
+  });
+  const pathMutation = useMutation({
+    mutationFn: ({
+      contentPath,
+      imagePath,
+      targetRepositoryId,
+    }: GitHubContentPathMutationVariables) =>
+      dashboardOrpc.integrations.repositories.contentDirectory.update.call({
+        organizationId,
+        repositoryId: targetRepositoryId,
+        contentType,
+        contentPath,
+        imagePath,
+      }),
+    onSuccess: (result, variables) => {
+      queryClient.setQueryData(
+        dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
+          input: {
+            organizationId,
+            repositoryId: variables.targetRepositoryId,
+            contentType,
+          },
+        }),
+        result
+      );
+      toast.success(`${contentLabel} paths saved`);
+    },
+    onError: (error) => {
+      toast.error(error.message || `Failed to save ${contentLabel} paths`);
     },
   });
   const outputMutation = useMutation({
@@ -193,6 +225,23 @@ function GitHubContentPublishingSettings({
           />
         )}
       </div>
+
+      <GitHubPublishingPathFields
+        contentLabel={contentLabel}
+        contentPath={directoryQuery.data?.contentPath ?? null}
+        directory={directory}
+        disabled={disabled || directoryQuery.isLoading}
+        imagePath={directoryQuery.data?.imagePath ?? null}
+        isSaving={pathMutation.isPending}
+        key={`${selectedRepository.id}:${directoryQuery.data?.contentPath ?? ""}:${directoryQuery.data?.imagePath ?? ""}`}
+        onSave={({ contentPath, imagePath }) => {
+          pathMutation.mutate({
+            contentPath,
+            imagePath,
+            targetRepositoryId: selectedRepository.id,
+          });
+        }}
+      />
     </div>
   );
 }

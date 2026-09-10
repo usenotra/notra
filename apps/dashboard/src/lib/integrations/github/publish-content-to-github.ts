@@ -5,12 +5,16 @@ import { slugify } from "@notra/utils/slugify";
 
 import {
   GITHUB_API_VERSION_HEADERS,
+  GITHUB_CONTENT_COMMIT_METADATA_PREFIX,
+  GITHUB_CONTENT_MAX_ASSET_COUNT,
   GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
 } from "@/constants/github";
 
 import type {
   FindExistingGitHubPullRequestParams,
   GitHubClient,
+  GitHubComparisonFile,
+  GitHubContentCommitMetadata,
   GitHubCreateCommitOnBranchResult,
   GitHubPublishContentType,
   GitHubPullRequestOperation,
@@ -20,9 +24,11 @@ import type {
   ValidateExistingGitHubBranchParams,
 } from "../../../types/integrations/github";
 import { hasGitHubStatus } from "../../../utils/github-publish-failure";
+import { expandGitHubPathTemplate } from "./content-assets";
 import {
   buildContentPullRequestBody,
   mergeContentPullRequestBody,
+  parseContentPullRequestAssetPaths,
 } from "./pull-request-body";
 
 export class GitHubContentTargetExistsError extends Error {}
@@ -57,16 +63,94 @@ export class GitHubContentPublishError extends Error {
   }
 }
 
+function renderContentCommitMetadata(
+  params: PublishContentDraftPullRequestParams
+) {
+  const metadata: GitHubContentCommitMetadata = {
+    assetPaths: (params.assets ?? []).map(({ path }) => path).sort(),
+    contentPath: params.path,
+  };
+  return `${GITHUB_CONTENT_COMMIT_METADATA_PREFIX}${Buffer.from(
+    JSON.stringify(metadata)
+  ).toString("base64")}`;
+}
+
+function parseContentCommitMetadata(message: string | undefined) {
+  const metadataLine = message
+    ?.split(/\r?\n/)
+    .find((line) => line.startsWith(GITHUB_CONTENT_COMMIT_METADATA_PREFIX));
+  if (!metadataLine) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(
+      Buffer.from(
+        metadataLine.slice(GITHUB_CONTENT_COMMIT_METADATA_PREFIX.length),
+        "base64"
+      ).toString("utf8")
+    );
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "contentPath" in parsed &&
+      typeof parsed.contentPath === "string" &&
+      "assetPaths" in parsed &&
+      Array.isArray(parsed.assetPaths) &&
+      parsed.assetPaths.every((path) => typeof path === "string")
+    ) {
+      return parsed as GitHubContentCommitMetadata;
+    }
+  } catch {
+    // Invalid metadata cannot authorize branch files.
+  }
+  return null;
+}
+
+function createGitBlobSha(contents: Uint8Array) {
+  const body = Buffer.from(contents);
+  return createHash("sha1")
+    .update(`blob ${body.byteLength}\0`)
+    .update(body)
+    .digest("hex");
+}
+
 export function resolveGitHubContentPath(
   params: ResolveGitHubContentPathParams
 ) {
-  if (params.customPath) {
-    return params.customPath;
-  }
-
   const fileName =
     slugify(params.slug ?? "") || slugify(params.title) || params.contentId;
+  const configuredPath = params.customPath ?? params.pathTemplate;
+  if (configuredPath) {
+    return expandGitHubPathTemplate(configuredPath, fileName);
+  }
+
   return `${params.directory ? `${params.directory}/` : ""}${fileName}.md`;
+}
+
+function buildGitHubContentAdditions(
+  params: PublishContentDraftPullRequestParams
+) {
+  return [
+    {
+      path: params.path,
+      contents: Buffer.from(params.markdown).toString("base64"),
+    },
+    ...(params.assets ?? []).map((asset) => ({
+      path: asset.path,
+      contents: Buffer.from(asset.contents).toString("base64"),
+    })),
+  ];
+}
+
+function buildGitHubContentFileChanges(
+  params: PublishContentDraftPullRequestParams
+) {
+  const deletions = (params.assetPathsToDelete ?? []).map((path) => ({ path }));
+  return {
+    additions: buildGitHubContentAdditions(params),
+    ...(deletions.length > 0 ? { deletions } : {}),
+  };
 }
 
 function createLegacyContentBranchName(
@@ -205,10 +289,12 @@ async function ensurePullRequestBody(params: {
   repo: string;
 }) {
   const body = mergeContentPullRequestBody(params.currentBody, {
+    assetPaths: (params.publishParams.assets ?? []).map(({ path }) => path),
     badgeUrls: params.publishParams.badgeUrls,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
-    markdown: params.publishParams.markdown,
+    markdown:
+      params.publishParams.pullRequestMarkdown ?? params.publishParams.markdown,
     title: params.publishParams.title,
   });
   if ((params.currentBody ?? "") === body) {
@@ -235,21 +321,64 @@ async function isContentOnDefaultBranch(
   params: PublishContentDraftPullRequestParams
 ) {
   try {
-    const { data } = await octokit.request(
-      "GET /repos/{owner}/{repo}/contents/{path}",
+    const { data: defaultBranchRef } = await octokit.request(
+      "GET /repos/{owner}/{repo}/git/ref/{ref}",
       {
         owner: params.owner,
         repo: params.repo,
-        path: params.path,
-        ref: params.defaultBranch,
+        ref: `heads/${params.defaultBranch}`,
         headers: GITHUB_API_VERSION_HEADERS,
       }
     );
-    return (
-      !Array.isArray(data) &&
-      "content" in data &&
-      Buffer.from(data.content, "base64").toString("utf8") === params.markdown
-    );
+    const expectedFiles = [
+      { contents: Buffer.from(params.markdown), path: params.path },
+      ...(params.assets ?? []).map((asset) => ({
+        contents: Buffer.from(asset.contents),
+        path: asset.path,
+      })),
+    ];
+    for (const expectedFile of expectedFiles) {
+      const { data } = await octokit.request(
+        "GET /repos/{owner}/{repo}/contents/{path}",
+        {
+          owner: params.owner,
+          repo: params.repo,
+          path: expectedFile.path,
+          ref: defaultBranchRef.object.sha,
+          headers: {
+            ...GITHUB_API_VERSION_HEADERS,
+            Accept: "application/vnd.github.object+json",
+          },
+        }
+      );
+      if (
+        Array.isArray(data) ||
+        !("sha" in data) ||
+        data.sha !== createGitBlobSha(expectedFile.contents)
+      ) {
+        return false;
+      }
+    }
+    for (const path of params.assetPathsToDelete ?? []) {
+      try {
+        await octokit.request("GET /repos/{owner}/{repo}/contents/{path}", {
+          owner: params.owner,
+          repo: params.repo,
+          path,
+          ref: defaultBranchRef.object.sha,
+          headers: {
+            ...GITHUB_API_VERSION_HEADERS,
+            Accept: "application/vnd.github.object+json",
+          },
+        });
+        return false;
+      } catch (error) {
+        if (!hasGitHubStatus(error, 404)) {
+          throw error;
+        }
+      }
+    }
+    return true;
   } catch (error) {
     if (hasGitHubStatus(error, 404)) {
       return false;
@@ -259,6 +388,35 @@ async function isContentOnDefaultBranch(
       error
     );
   }
+}
+
+function isRecoverableContentFileSet(params: {
+  aheadBy: number;
+  contentPath: string;
+  files: readonly GitHubComparisonFile[];
+  ownedAssetPaths: readonly string[];
+}) {
+  if (params.files.length >= 300) {
+    return false;
+  }
+  if (params.aheadBy === 0 && params.files.length === 0) {
+    return true;
+  }
+
+  const expectedPaths = new Set([
+    params.contentPath,
+    ...params.ownedAssetPaths,
+  ]);
+  return (
+    params.files.filter((file) => /\.mdx?$/i.test(file.filename)).length ===
+      1 &&
+    params.files.every(
+      (file) =>
+        expectedPaths.has(file.filename) &&
+        file.status === "added" &&
+        !("previous_filename" in file)
+    )
+  );
 }
 
 async function assertRecoverableContentBranch(
@@ -309,19 +467,57 @@ async function assertRecoverableContentBranch(
     throw new GitHubContentBranchConflictError(params.branchName, params.path);
   }
 
-  const files = comparison.files ?? [];
-  const branchHasNoChanges = comparison.ahead_by === 0 && files.length === 0;
-  const branchOnlyAddsTarget =
-    files.length === 1 &&
-    files[0]?.filename.toLowerCase().endsWith(".md") &&
-    files[0].status === "added" &&
-    !("previous_filename" in files[0]);
-
-  if (!(branchHasNoChanges || branchOnlyAddsTarget)) {
+  const files = (comparison.files ?? []) as GitHubComparisonFile[];
+  if (files.length >= 300) {
     throw new GitHubContentBranchConflictError(params.branchName, params.path);
   }
+  const contentFiles = files.filter((file) => /\.mdx?$/i.test(file.filename));
+  let commitMessage: string | undefined;
+  if (comparison.ahead_by > 0) {
+    try {
+      const { data: commit } = await params.octokit.request(
+        "GET /repos/{owner}/{repo}/git/commits/{commit_sha}",
+        {
+          owner: params.owner,
+          repo: params.repo,
+          commit_sha: branchHeadSha,
+          headers: GITHUB_API_VERSION_HEADERS,
+        }
+      );
+      commitMessage = commit.message;
+    } catch (error) {
+      throw new GitHubContentPublishError(
+        "Failed to read the existing content commit",
+        error,
+        params.branchName
+      );
+    }
+  }
 
-  return { branchHeadSha, path: files[0]?.filename ?? params.path };
+  return {
+    aheadBy: comparison.ahead_by,
+    branchHeadSha,
+    commitMessage,
+    files,
+    path: contentFiles[0]?.filename ?? params.path,
+  };
+}
+
+async function resolveGitHubPublishParams(
+  requestedParams: PublishContentDraftPullRequestParams,
+  contentPath: string
+) {
+  const preparedContent = requestedParams.prepareContent
+    ? await requestedParams.prepareContent(contentPath)
+    : {
+        assets: requestedParams.assets ?? [],
+        markdown: requestedParams.markdown,
+      };
+  return {
+    ...requestedParams,
+    ...preparedContent,
+    path: contentPath,
+  };
 }
 
 async function commitContentToBranch(
@@ -340,16 +536,12 @@ async function commitContentToBranch(
             repositoryNameWithOwner: `${params.owner}/${params.repo}`,
             branchName,
           },
-          message: { headline: `docs: add ${params.title}` },
-          expectedHeadOid: branchHeadSha,
-          fileChanges: {
-            additions: [
-              {
-                path: params.path,
-                contents: Buffer.from(params.markdown).toString("base64"),
-              },
-            ],
+          message: {
+            headline: `docs: add ${params.title}`,
+            body: renderContentCommitMetadata(params),
           },
+          expectedHeadOid: branchHeadSha,
+          fileChanges: buildGitHubContentFileChanges(params),
         },
       }
     );
@@ -444,34 +636,37 @@ async function assertContentCommitIsBranchHead(params: {
   throw new GitHubContentBranchConflictError(params.branchName, params.path);
 }
 
-async function assertContentDestinationMissing(
+async function assertContentDestinationsMissing(
   octokit: GitHubClient,
   params: PublishContentDraftPullRequestParams,
-  baseSha: string
+  paths: readonly string[],
+  ref: string
 ) {
-  let destinationMissing = false;
-  try {
-    await octokit.request("GET /repos/{owner}/{repo}/contents/{path}", {
-      owner: params.owner,
-      repo: params.repo,
-      path: params.path,
-      ref: baseSha,
-      headers: GITHUB_API_VERSION_HEADERS,
-    });
-  } catch (error) {
-    if (!hasGitHubStatus(error, 404)) {
-      throw new GitHubContentPublishError(
-        "Failed to check the destination path",
-        error
+  for (const path of paths) {
+    let destinationMissing = false;
+    try {
+      await octokit.request("GET /repos/{owner}/{repo}/contents/{path}", {
+        owner: params.owner,
+        repo: params.repo,
+        path,
+        ref,
+        headers: GITHUB_API_VERSION_HEADERS,
+      });
+    } catch (error) {
+      if (!hasGitHubStatus(error, 404)) {
+        throw new GitHubContentPublishError(
+          "Failed to check the destination path",
+          error
+        );
+      }
+      destinationMissing = true;
+    }
+
+    if (!destinationMissing) {
+      throw new GitHubContentTargetExistsError(
+        `${path} already exists in ${params.owner}/${params.repo}`
       );
     }
-    destinationMissing = true;
-  }
-
-  if (!destinationMissing) {
-    throw new GitHubContentTargetExistsError(
-      `${params.path} already exists in ${params.owner}/${params.repo}`
-    );
   }
 }
 
@@ -562,7 +757,12 @@ export async function publishContentDraftPullRequest(
     // A branch left by an earlier attempt may use a different path. Its
     // recorded destination is checked after branch validation below.
     if (!branchExists) {
-      await assertContentDestinationMissing(octokit, requestedParams, baseSha);
+      await assertContentDestinationsMissing(
+        octokit,
+        requestedParams,
+        [requestedParams.path],
+        baseSha
+      );
     }
     try {
       await octokit.request("POST /repos/{owner}/{repo}/git/refs", {
@@ -600,7 +800,13 @@ export async function publishContentDraftPullRequest(
   }
 
   const contentBranch = createdBranch
-    ? { branchHeadSha: baseSha, path: requestedParams.path }
+    ? {
+        aheadBy: 0,
+        branchHeadSha: baseSha,
+        files: [] as GitHubComparisonFile[],
+        commitMessage: undefined,
+        path: requestedParams.path,
+      }
     : await assertRecoverableContentBranch({
         baseSha,
         branchName,
@@ -611,10 +817,89 @@ export async function publishContentDraftPullRequest(
       });
   // The first content commit records the publication path. Keep it even when
   // the post's slug or the repository's configured output directory changes.
-  const params = { ...requestedParams, path: contentBranch.path };
+  const params = await resolveGitHubPublishParams(
+    requestedParams,
+    contentBranch.path
+  );
+  if ((params.assets?.length ?? 0) > GITHUB_CONTENT_MAX_ASSET_COUNT) {
+    throw new GitHubContentPublishError(
+      `A GitHub draft can include at most ${GITHUB_CONTENT_MAX_ASSET_COUNT} images`,
+      new Error("GitHub comparison file limit exceeded"),
+      branchName
+    );
+  }
   const { branchHeadSha } = contentBranch;
+  const commitMetadata = parseContentCommitMetadata(
+    contentBranch.commitMessage
+  );
+  const recordedAssetPaths =
+    commitMetadata?.contentPath === contentBranch.path
+      ? commitMetadata.assetPaths
+      : parseContentPullRequestAssetPaths(existingPullRequest?.body);
+  const addedAssetPaths = new Set(
+    contentBranch.files
+      .filter(
+        (file) =>
+          file.filename !== params.path &&
+          file.status === "added" &&
+          !("previous_filename" in file)
+      )
+      .map(({ filename }) => filename)
+  );
+  const ownedAssetPaths = recordedAssetPaths.filter((path) =>
+    addedAssetPaths.has(path)
+  );
 
-  await assertContentDestinationMissing(octokit, params, baseSha);
+  if (
+    !isRecoverableContentFileSet({
+      aheadBy: contentBranch.aheadBy,
+      contentPath: params.path,
+      files: contentBranch.files,
+      ownedAssetPaths,
+    })
+  ) {
+    throw new GitHubContentBranchConflictError(branchName, params.path);
+  }
+  const currentAssetPaths = new Set(
+    (params.assets ?? []).map(({ path }) => path)
+  );
+  params.assetPathsToDelete = ownedAssetPaths.filter(
+    (path) => !currentAssetPaths.has(path)
+  );
+
+  const destinationPaths = [
+    params.path,
+    ...(params.assets ?? []).map(({ path }) => path),
+  ];
+  await assertContentDestinationsMissing(
+    octokit,
+    params,
+    destinationPaths,
+    baseSha
+  );
+  await assertContentDestinationsMissing(
+    octokit,
+    params,
+    (params.assets ?? [])
+      .map(({ path }) => path)
+      .filter((path) => !ownedAssetPaths.includes(path)),
+    branchHeadSha
+  );
+
+  const pullRequestBodyParams = {
+    assetPaths: (params.assets ?? []).map(({ path }) => path),
+    badgeUrls: params.badgeUrls,
+    contentType: params.contentType,
+    contentUrl: params.contentUrl,
+    markdown: params.pullRequestMarkdown ?? params.markdown,
+    title: params.title,
+  };
+  const pullRequestBody = existingPullRequest
+    ? mergeContentPullRequestBody(
+        existingPullRequest.body,
+        pullRequestBodyParams
+      )
+    : buildContentPullRequestBody(pullRequestBodyParams);
 
   const commitSha = await commitContentToBranch(
     octokit,
@@ -687,13 +972,7 @@ export async function publishContentDraftPullRequest(
         base: params.defaultBranch,
         head: branchName,
         title: `docs: add ${params.title}`,
-        body: buildContentPullRequestBody({
-          badgeUrls: params.badgeUrls,
-          contentType: params.contentType,
-          contentUrl: params.contentUrl,
-          markdown: params.markdown,
-          title: params.title,
-        }),
+        body: pullRequestBody,
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,
       }
