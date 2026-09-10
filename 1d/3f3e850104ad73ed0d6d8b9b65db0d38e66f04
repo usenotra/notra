@@ -1,0 +1,209 @@
+apps/web/src/components/landing/features-card-traffic.tsx
+  s_9c4b8410e74999::t_11b094f733a91b 45
+  s_9c4b8410e74999::t_df68f2d9f32f22 69
+  s_9c4b8410e74999::t_df1a61df278d9f 39
+  s_9c4b8410e74999::t_acf066f6aedebc 63-66,72-77,80-85
+  s_9c4b8410e74999::t_85a99a4b172488 12,16
+  s_9c4b8410e74999::t_80ccbcdc7ebe3d 48-50,53-55
+apps/web/src/utils/dither-pointer-offset.ts
+  s_9c4b8410e74999::t_d14a00f356ea00 1-10,13-15,17,19-21,23-24
+  s_9c4b8410e74999::t_163d4b10e3e7b3 11-12,16,18,22
+apps/web/src/lib/brand/constants.ts
+  s_9c4b8410e74999::t_57a99db141cd40 67
+apps/web/src/components/navbar.tsx
+  s_9c4b8410e74999::t_d316ef55bcbe6b 231
+  s_9c4b8410e74999::t_fa6e9da5d257c3 371,375-379,381
+  s_9c4b8410e74999::t_8db7b0d3bcfc5d 335
+  ai_agent 32-38,45,399
+  s_9c4b8410e74999::t_a5461bd62e1bb3 50
+  s_9c4b8410e74999::t_926be5303f44a9 625
+  s_9c4b8410e74999::t_8f9d61b04dcc99 529-532
+  s_9c4b8410e74999::t_ed79e4ca7d08bc 628
+  s_9c4b8410e74999::t_235c16f8fcd9e4 320
+  s_9c4b8410e74999::t_4b67ef9b0924b5 217
+  s_9c4b8410e74999::t_34dd653cee0f5e 635,639
+  s_9c4b8410e74999::t_3e4ce052a60f73 638
+  s_9c4b8410e74999::t_a22bb83415dc2a 640
+  s_9c4b8410e74999::t_4fdca01291f7de 117-124,139,150-157,165
+  s_9c4b8410e74999::t_de5841ee089ef6 58
+apps/web/src/utils/dither-environment.ts
+  s_9c4b8410e74999::t_9f2dc129d9d0d5 1-4,16-23
+apps/web/src/components/navbar-href.tsx
+  s_9c4b8410e74999::t_c204d72e7a2933 1-33
+apps/web/src/lib/navigation/use-mobile-nav-menu.ts
+  s_9c4b8410e74999::t_99333fceae6903 8,10,14-15,25-26,28-29,48-62,83-84
+  s_9c4b8410e74999::t_6eb0b6c32779db 1-7,9,11-13,16-24,30-47,63-82,85
+  s_9c4b8410e74999::t_ee4e8cfe97a0b9 27
+apps/web/src/app/(site)/layout.tsx
+  s_9c4b8410e74999::t_349d08b22de1c7 13-16
+  s_9c4b8410e74999::t_681401d979e6e6 4,12,17
+apps/web/src/lib/dithering/use-dither-painted.ts
+  s_9c4b8410e74999::t_3581e913782cd2 1-62
+apps/web/src/lib/dithering/use-dither-pointer.ts
+  ai_agent 3-9,95-104,125-129,140-144
+  s_9c4b8410e74999::t_2d367cf57d4d31 57-58
+  s_9c4b8410e74999::t_bc6893a348c393 116-117
+  s_9c4b8410e74999::t_bce5d97b917427 1-2,10-33,35-36,38-56,59-94,105-115,118-124,130-139,145-188
+  s_9c4b8410e74999::t_335befec26ce90 34
+  s_9c4b8410e74999::t_eae121d3466e2a 37
+apps/web/src/components/dithering-shader.tsx
+  s_9c4b8410e74999::t_002c517ebfe9eb 1-48
+apps/web/src/styles/globals.css
+  s_9c4b8410e74999::t_7906908efcc5ec 123-124
+  s_9c4b8410e74999::t_8a88021b771f13 95
+apps/web/src/components/landing/features-card-gaps.tsx
+  s_9c4b8410e74999::t_6f7a7a40f64759 44-46,49-51
+  ai_agent 68,79
+  s_9c4b8410e74999::t_4bafdc96b05ef2 16,23
+apps/web/src/components/mobile-nav-inert.tsx
+  s_9c4b8410e74999::t_68f6ae9f6a87af 1-12
+apps/web/src/components/dithering-canvas.tsx
+  ai_agent 6
+  s_9c4b8410e74999::t_ffc2f114c7d785 1-4,7-8
+  s_9c4b8410e74999::t_140cfae837c4ea 5
+apps/web/src/components/not-found-numeral.tsx
+  s_9c4b8410e74999::t_677cfaf47c3399 61-64,66-67,69-70
+  s_9c4b8410e74999::t_76731632de1ddf 12,34,52,107,115
+  s_9c4b8410e74999::t_52ae6006ccabbc 65,68,80,87-90,93-106,109-114,116-122
+  s_9c4b8410e74999::t_b044ad5ea3af4e 27,29
+  s_9c4b8410e74999::t_350e2019de3717 1-2,15,31,33,53-60,71-73,79
+  s_9c4b8410e74999::t_7b506492e6eab2 32
+  s_9c4b8410e74999::t_9a6d60c3b25dd1 13
+  s_9c4b8410e74999::t_15df833042f507 16-25
+  s_9c4b8410e74999::t_e97b86f70990bf 50
+  s_9c4b8410e74999::t_074166762b7f78 3,11
+  s_9c4b8410e74999::t_33b26acc6e1a90 82-83,85-86,123-124
+  s_9c4b8410e74999::t_b21380c4d60247 36-45,108
+  ai_agent 4-10,91
+  s_9c4b8410e74999::t_99c0e0eb73e040 14,46-49,51
+  s_9c4b8410e74999::t_8f7a011f1c8681 26,30,81,125-127
+  s_9c4b8410e74999::t_44320cff432d41 28,35,74-78,84,92
+apps/web/src/app/not-found.tsx
+  s_9c4b8410e74999::t_590f9936605997 1-2,8,11-17,21
+  s_9c4b8410e74999::t_1e4a0bec0cfa61 9
+  s_9c4b8410e74999::t_5a51e309f96fe4 23,25-40
+  s_9c4b8410e74999::t_52cc955c04ba84 24,41
+  s_9c4b8410e74999::t_e3cb50451ba9b9 6
+apps/web/src/types/navbar.ts
+  s_9c4b8410e74999::t_4a6324a6fc5d9a 32-33
+  s_9c4b8410e74999::t_aae9db4b506c9d 2,6,8,22,38-54
+  s_9c4b8410e74999::t_383e676587f644 1,3-5,7,19-21,23-31
+apps/web/src/components/navbar-glyphs.tsx
+  s_9c4b8410e74999::t_d0105a4e054803 1-72
+apps/web/src/app/(landing)/layout.tsx
+  s_9c4b8410e74999::t_0b7e6b75f93f01 4,12,15
+  s_9c4b8410e74999::t_9664ac07657322 13-14
+apps/web/src/components/landing/hero-collage.tsx
+  s_9c4b8410e74999::t_9a852a2b3237cb 6
+apps/web/src/components/landing/hero-section.tsx
+  s_9c4b8410e74999::t_2c6459df280edf 21
+  s_9c4b8410e74999::t_9c30d337d8b0b2 58
+apps/web/src/constants/not-found.ts
+  s_9c4b8410e74999::t_e1089fd62d0834 22
+  s_9c4b8410e74999::t_17a1bf05c0f8f1 19,23
+  s_9c4b8410e74999::t_b6c27254400a2f 6-18,24
+  s_9c4b8410e74999::t_63dfcc638c913f 1
+  s_9c4b8410e74999::t_222f5e25a17562 20-21
+apps/web/src/components/landing/features-card-engines.tsx
+  ai_agent 58-60
+  s_9c4b8410e74999::t_bf3cb64a2e3830 31,40-42,63,75-80
+  s_9c4b8410e74999::t_3b7a887d49f156 45-47
+  s_9c4b8410e74999::t_36292037fab9f6 84-87
+  s_9c4b8410e74999::t_4c88912ac7406f 18,55-57,64,66,83,88
+  s_9c4b8410e74999::t_1976e69438e564 11
+apps/web/src/components/landing/features-section.tsx
+  s_9c4b8410e74999::t_bb018185146f39 41
+apps/web/src/components/navbar-mobile-menu.tsx
+  s_9c4b8410e74999::t_82b98a604a9c24 267
+  s_9c4b8410e74999::t_8f8d440245f117 293,295,299,303
+  s_9c4b8410e74999::t_65f625c37eed94 222-225
+  s_9c4b8410e74999::t_923623fd2c1377 3,51-53,157
+  s_9c4b8410e74999::t_655c4a9ce6c9a0 113,122,135-137,139-140,146,148,150,162,164-168,170,203-205
+  s_9c4b8410e74999::t_d8b34c7f44dd78 255,259
+  s_9c4b8410e74999::t_3020e9a8d0368c 4-8,25-29,47-48,121,127-132,163,174-185,207-221,226-227,236-237,241,253-254,256-258,381-382
+  s_9c4b8410e74999::t_f02d7e674b3bdd 286-292,307,318-324,332
+  s_9c4b8410e74999::t_aa88f946982425 326,329
+  s_9c4b8410e74999::t_225d8df296513e 10,21-24,37-38
+  s_9c4b8410e74999::t_5a512372202bfb 9,57-62,66-88,90-92,94-96,98-112,123-125,138,145,147,149,151,156,158-161,169,171-173,186-190,195-202,244-245,249-250,261-263,265,268-271,273,275,294,296-298,340-341,348-356,362-379
+  s_9c4b8410e74999::t_3ad9e091246b4f 191-194
+  s_9c4b8410e74999::t_05118f1b411691 118,126
+  s_9c4b8410e74999::t_46d332586e8918 55-56,63-65
+  s_9c4b8410e74999::t_e8a5a1d9001901 18
+  s_9c4b8410e74999::t_c576867af7a775 206
+  s_9c4b8410e74999::t_bbce7e4a1e7d54 152,154-155
+  s_9c4b8410e74999::t_a7d2c2e3f70b96 228-235
+  ai_agent 11-16,153
+  s_9c4b8410e74999::t_ae7691a00724d7 89,93,97
+  s_9c4b8410e74999::t_1a736cffaa6cf0 45-46
+  s_9c4b8410e74999::t_27c841a7a9843d 42
+  s_9c4b8410e74999::t_59eed67b6c337e 134
+  s_9c4b8410e74999::t_71934ff0bd86fd 1-2,17,19-20,30-36,39-41,43-44,49,54,114-117,119-120,133,238-240,242-243,246-248,251-252,260,264,266,272,274,276-285,300-302,304-306,308-317,325,327-328,330-331,333-339,342-347,357-361,380
+  s_9c4b8410e74999::t_afb916b956b998 50
+  s_9c4b8410e74999::t_17c0279f471102 141-144
+apps/web/src/constants/dithering.ts
+  s_9c4b8410e74999::t_742d556df51e26 2
+apps/web/src/constants/navbar.ts
+  s_9c4b8410e74999::t_880269a667eb6c 4-16
+apps/web/src/constants/landing/features.ts
+  s_9c4b8410e74999::t_2d002ad620f4a2 97-104
+  s_9c4b8410e74999::t_5ad1ef16bb61dc 10
+apps/web/src/components/landing/live-traffic-log.tsx
+  s_9c4b8410e74999::t_0ea44c6cf0bf14 35-40
+apps/web/src/components/landing/mock-frame.tsx
+  s_9c4b8410e74999::t_d7c91e5c0ffe70 16
+apps/web/src/types/dithering.ts
+  s_9c4b8410e74999::t_ef5c380f5082fa 24
+  s_9c4b8410e74999::t_3e626d49932427 41
+  s_9c4b8410e74999::t_8dba636568e973 47,53
+  s_9c4b8410e74999::t_82e798ea8e412a 44
+  s_9c4b8410e74999::t_d362d8cdd35f94 21
+  s_9c4b8410e74999::t_ff10a3829ae24c 4,20,22-23
+  s_9c4b8410e74999::t_daecdfe9537c73 2,16-17,33-40,42-43,45-46,48-52,54-59
+apps/web/src/utils/navbar-presentation.ts
+  s_9c4b8410e74999::t_08b4d367a776b8 1-2,4-9,11,80-85,89-91,95,97,100,102-103
+  s_9c4b8410e74999::t_3ada32901cf242 3,10,12-79,86-88,92-94,96,98-99,101
+apps/web/src/components/landing/hero-headline.tsx
+  s_9c4b8410e74999::t_4455121c5f4099 67-68,71-72,74-76,78-113,115-117
+  s_9c4b8410e74999::t_249277c139bad9 55-57,65
+apps/web/src/components/landing/citation-rows.tsx
+  s_9c4b8410e74999::t_86459a608c126d 85
+  ai_agent 109-113,130
+  s_9c4b8410e74999::t_5f5da74510bc12 141-169
+  s_9c4b8410e74999::t_67ade39307645d 94
+  s_9c4b8410e74999::t_3609743b235c4d 22
+  s_9c4b8410e74999::t_f155d059b7058b 33-51,92,108,171-172
+  s_9c4b8410e74999::t_c5e2e2f39627d7 5
+  s_9c4b8410e74999::t_5c1eeee48f268e 21,23-26,52-55,57-62,72,87-88,91,114-123,125-129,131-140,170
+  s_9c4b8410e74999::t_c86e48299d3aef 56
+apps/web/src/components/deferred-dithering.tsx
+  s_9c4b8410e74999::t_64d01dff89fc88 8,26-27,29,31-32,34
+apps/web/src/utils/create-text-mask-data-url.ts
+  s_9c4b8410e74999::t_0b969a1087c4b5 23-27,42
+  s_9c4b8410e74999::t_f099de1cbcf86b 1-22,28-41,43-44
+apps/web/src/types/not-found.ts
+  s_9c4b8410e74999::t_dd638b8dfe3f2a 2-3,6-7,17
+  s_9c4b8410e74999::t_c735c7104a0f14 1
+  s_9c4b8410e74999::t_12853717811fc9 4-5
+  s_9c4b8410e74999::t_99d452c51ebd32 8-16
+apps/web/src/components/landing/share-of-voice-rows.tsx
+  s_9c4b8410e74999::t_2d19207fbd4179 77,85,88,98
+  s_9c4b8410e74999::t_c1c35a4cf8aaea 69-71,96-97,99-101
+  s_9c4b8410e74999::t_87e9e9092f1646 62,66-68
+  s_9c4b8410e74999::t_6ab113eb12236d 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1d3f3e850104ad73ed0d6d8b9b65db0d38e66f04",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
