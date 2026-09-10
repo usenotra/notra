@@ -3,6 +3,7 @@
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -53,11 +54,7 @@ export function BrandSentimentCard({
         <span id={descriptionId} className="sr-only">
           {SENTIMENT_SCORE_HINT}
         </span>
-        {query.isPending ? (
-          <p className="text-muted-foreground text-sm" role="status">
-            Loading sentiment…
-          </p>
-        ) : null}
+        {query.isPending ? <SentimentSkeleton /> : null}
         {query.isError ? (
           <div role="alert">
             <p className="text-sm">Could not load sentiment.</p>
@@ -93,10 +90,32 @@ export function BrandSentimentCard({
           </details>
         ) : null}
       </InstrumentModule>
+      <InstrumentModule eyebrow="Mention distribution" variant="table" className="h-full lg:col-span-5" bodyClassName="flex flex-col gap-5">
+        {query.isPending ? <SentimentSkeleton compact /> : null}
+        {query.isSuccess ? <SentimentDistribution summary={query.data.summary} /> : null}
+        {query.isSuccess ? <SentimentFamilyList engines={query.data.engines} /> : null}
+      </InstrumentModule>
       <SentimentThemes
         organizationId={organizationId}
-        summary={query.isSuccess ? query.data.summary : undefined}
       />
     </InstrumentGrid>
   );
+}
+
+function SentimentSkeleton({ compact = false }: { compact?: boolean }) {
+  return <div className="space-y-4" role="status" aria-label="Loading sentiment">
+    <Skeleton className={compact ? "h-8 w-full" : "h-20 w-32"} />
+    <Skeleton className="h-4 w-3/4" />
+    <Skeleton className={compact ? "h-3 w-full" : "h-48 w-full"} />
+  </div>;
+}
+
+function SentimentDistribution({ summary }: { summary: import("@/types/geo-sentiment").SentimentScoreProps["summary"] }) {
+  const total = summary.classifiedMentions;
+  return <div className="space-y-3">
+    <div className="flex h-3 overflow-hidden rounded-full" aria-label="Sentiment distribution">
+      {(["positive", "neutral", "negative"] as const).map((polarity) => <span key={polarity} className={`h-full ${polarity === "positive" ? "bg-emerald-500" : polarity === "neutral" ? "bg-amber-400" : "bg-rose-500"}`} style={{ width: `${total ? summary[polarity] / total * 100 : 0}%` }} />)}
+    </div>
+    <dl className="grid grid-cols-3 gap-2 text-xs">{(["positive", "neutral", "negative"] as const).map((polarity) => <div key={polarity}><dt className="capitalize text-muted-foreground">{polarity}</dt><dd className="font-medium tabular-nums">{total ? Math.round(summary[polarity] / total * 100) : 0}%</dd></div>)}</dl>
+  </div>;
 }

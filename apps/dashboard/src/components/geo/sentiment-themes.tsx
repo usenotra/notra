@@ -18,7 +18,6 @@ import {
 
 export function SentimentThemes({
   organizationId,
-  summary,
 }: SentimentThemesProps) {
   const { query, isAnalyzing, analyze, mutationError } =
     useGeoSentimentAnalysis(organizationId);
@@ -34,7 +33,7 @@ export function SentimentThemes({
     <InstrumentModule
       eyebrow="Sentiment themes"
       variant="table"
-      className="h-full lg:col-span-5"
+       className="h-full lg:col-span-12"
       bodyClassName="flex flex-col gap-5"
       action={
         <Button
@@ -58,7 +57,6 @@ export function SentimentThemes({
         }}
       />
       {state?.result ? <SentimentThemeResults result={state.result} /> : null}
-      {summary ? <SentimentDistribution summary={summary} /> : null}
     </InstrumentModule>
   );
 }
