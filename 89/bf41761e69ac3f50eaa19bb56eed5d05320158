@@ -1,0 +1,42 @@
+apps/dashboard/src/lib/hooks/use-right-panel-state.ts
+  s_8c1a33c812724a::t_34f78a1bcfcf30 74
+  s_8c1a33c812724a::t_e9a6718dc860c1 19-20,23-35,61
+packages/ai/src/schemas/post.ts
+  s_8c1a33c812724a::t_f941ede1c692e2 16-18
+apps/dashboard/src/components/dashboard/dashboard-agent-panel.tsx
+  s_8c1a33c812724a::t_b915c7411a2675 92-110,115,117
+  s_8c1a33c812724a::t_78629f4b7854d3 303-305,319-326
+apps/dashboard/src/utils/chat-tool-chart.ts
+  ai_agent 64
+apps/dashboard/src/components/ai/chat-tool-block/tool-output-chart.tsx
+  s_8c1a33c812724a::t_d30f54c0a82039 9
+  s_8c1a33c812724a::t_932cbb9325404c 163-173
+  s_8c1a33c812724a::t_79fd07f0c6389e 146
+  s_8c1a33c812724a::t_71250ff49ac92d 72-83
+packages/ai/src/utils/chart-artifact.ts
+  s_8c1a33c812724a::t_91ddd6336122cb 15
+  s_8c1a33c812724a::t_9341474b875188 134
+  s_8c1a33c812724a::t_200f7af2a8e5e0 135-142
+packages/ai/src/schemas/chart-artifact.ts
+  s_8c1a33c812724a::t_9eaa66cb2cb99e 58-60
+apps/dashboard/src/components/ai/chat-empty-dither.tsx
+  s_8c1a33c812724a::t_a4a6910013052e 64,70,78
+  s_8c1a33c812724a::t_394174e2da39b6 33,35
+  s_8c1a33c812724a::t_c83330d4d2501b 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "89bf41761e69ac3f50eaa19bb56eed5d05320158",
+  "prompts": {},
+  "sessions": {
+    "s_8c1a33c812724a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3fde6d95-e9a8-42b9-a44c-be96e9f194d3",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
