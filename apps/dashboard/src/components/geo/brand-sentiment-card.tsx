@@ -17,7 +17,10 @@ import { SentimentThemes } from "@/components/geo/sentiment-themes";
 import { SentimentTrendCard } from "@/components/geo/sentiment-trend-card";
 import { InstrumentGrid } from "@/components/instrument/instrument-grid";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
-import { SENTIMENT_SCORE_HINT } from "@/constants/geo-sentiment";
+import {
+  SENTIMENT_POLARITY_STYLES,
+  SENTIMENT_SCORE_HINT,
+} from "@/constants/geo-sentiment";
 import { useGeoSentiment } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
 
@@ -126,7 +129,7 @@ function SentimentDistribution({
         {(["positive", "neutral", "negative"] as const).map((polarity) => (
           <span
             key={polarity}
-            className={`h-full ${polarity === "positive" ? "bg-emerald-500" : polarity === "neutral" ? "bg-amber-400" : "bg-rose-500"}`}
+            className={`h-full ${SENTIMENT_POLARITY_STYLES[polarity].fill}`}
             style={{
               width: `${total ? (summary[polarity] / total) * 100 : 0}%`,
             }}

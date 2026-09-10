@@ -63,6 +63,13 @@ export function SentimentThemes({
   if (busy) {
     message = "Analyzing saved answers…";
   }
+  let statusText = "";
+  if (busy) {
+    statusText = message;
+  }
+  if (query.isPending) {
+    statusText = "Loading analysis…";
+  }
   const themes = state?.result?.themes ?? [];
   const showResults =
     !query.isPending &&
@@ -156,7 +163,7 @@ export function SentimentThemes({
           query.isPending || busy ? "text-muted-foreground text-xs" : "sr-only"
         }
       >
-        {query.isPending ? "Loading analysis…" : busy ? message : ""}
+        {statusText}
       </p>
       {showResults && state?.result ? (
         <details className="text-muted-foreground text-xs">
