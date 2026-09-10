@@ -11,6 +11,7 @@ export const ANALYTICS_FLAG_FAILURE_CACHE_TTL_MS = 5000;
 export const ANALYTICS_FLAG_CACHE_CAPACITY = 5000;
 export const MAX_PENDING_ANALYTICS_FLAG_EVALUATIONS = 500;
 export const ANALYTICS_FLAGS_API_URL =
+  process.env.DATABUDDY_FLAGS_API_URL ??
   "https://api.databuddy.cc/public/v1/flags/bulk";
 export const ANALYTICS_FLAG_ERROR_REASON = "ERROR";
 export const ANALYTICS_UNAVAILABLE_DESCRIPTION =

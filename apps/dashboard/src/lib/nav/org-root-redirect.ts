@@ -4,19 +4,18 @@ import { redirect } from "next/navigation";
 
 import { DEFAULT_SIDEBAR_ENTRY_MODE } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import type { OrgRootSearchParams } from "@/types/components/nav";
 import {
   getLastVisitedProject,
   getSidebarModeFromCookies,
 } from "@/utils/cookies";
 import { resolveOrgRootRedirect } from "@/utils/nav";
 
-type OrgRootSearchParams = Promise<
-  Record<string, string | string[] | undefined>
->;
+type OrgRootSearchParamsPromise = Promise<OrgRootSearchParams>;
 
 export async function redirectOrgRootToStoredMode(
   slug: string,
-  searchParams: OrgRootSearchParams
+  searchParams: OrgRootSearchParamsPromise
 ): Promise<void> {
   const [cookieStore, requestHeaders, query] = await Promise.all([
     cookies(),
@@ -36,7 +35,7 @@ export async function redirectOrgRootToStoredMode(
       has_project: Boolean(projectId),
     },
   });
-  const path = resolveOrgRootRedirect(slug, storedMode, projectId);
+  const path = resolveOrgRootRedirect(slug, storedMode, projectId, query);
   if (path) {
     redirect(path);
   }

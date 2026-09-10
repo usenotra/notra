@@ -154,3 +154,6 @@ export interface SidebarSwapProps {
   keepMounted?: boolean;
   className?: string;
 }
+
+/** Raw search params of the org root route, as Next.js hands them over. */
+export type OrgRootSearchParams = Record<string, string | string[] | undefined>;

@@ -275,3 +275,9 @@ export const POST_STATUS_DOT_CLASS: Record<PostStatus, string> = {
   draft: "bg-muted-foreground/50",
   published: "bg-success",
 };
+
+/**
+ * Search param that already flows into the GEO redirect target as a path
+ * segment, so it must not be forwarded a second time.
+ */
+export const ORG_ROOT_PROJECT_PARAM = "project";

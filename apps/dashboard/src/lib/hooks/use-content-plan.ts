@@ -128,12 +128,14 @@ export function useContentPlan({
     draft,
     briefQuery,
     update,
-    isDirty,
+    // A plan that is no longer reviewable cannot hold unsaved edits, so a
+    // stale dirty flag must not leak into the writer's completion handling.
+    isDirty: isDirty && isReviewable,
     setIsDirty,
     hasConflict,
     editorVersion,
     status,
-    isWriting: status === "writing" || status === "approved",
+    isWriting: status === "writing",
     isPlanMode,
     isReviewable,
     isChatLocked,

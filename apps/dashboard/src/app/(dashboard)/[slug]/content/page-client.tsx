@@ -1,6 +1,5 @@
 "use client";
 
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { useRouter } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
@@ -47,10 +46,6 @@ export default function PageClient({
     [data?.collections]
   );
   const [createOpen, setCreateOpen] = useState(false);
-
-  useHotkey("C", () => setCreateOpen(true), {
-    enabled: !createOpen && Boolean(organizationId),
-  });
 
   const pageCount = data?.pagination.totalPages ?? 1;
   const pagination: TablePaginationState = {

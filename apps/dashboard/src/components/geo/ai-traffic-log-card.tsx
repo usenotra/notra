@@ -52,7 +52,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     visitorTypes: [],
     categories: [],
   });
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(true);
   const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
     refetchInterval: live ? GEO_CITATIONS_LIVE_INTERVAL_MS : false,
   });

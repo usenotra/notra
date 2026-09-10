@@ -2,16 +2,25 @@ import { createTimeoutFetch } from "@notra/utils/timeout-fetch";
 import { Octokit } from "@octokit/core";
 
 /**
- * GitHub calls happen in loops (repo listings, content preview pagination), so
- * a stalled request must abort instead of holding the caller open.
+ * Budget for GitHub reads that a user is waiting on (repo probe, repository
+ * listings). Publishing, uploads and recursive tree reads stay unbounded: an
+ * aborted write can leave a half-applied commit, and large trees legitimately
+ * take longer than an interactive request.
  */
-const GITHUB_REQUEST_TIMEOUT_MS = 15_000;
+export const GITHUB_INTERACTIVE_READ_TIMEOUT_MS = 15_000;
 
-export function createOctokit(auth?: string) {
+export function createOctokit(
+  auth?: string,
+  options?: { requestTimeoutMs?: number }
+) {
   return new Octokit({
     auth,
-    request: {
-      fetch: createTimeoutFetch(GITHUB_REQUEST_TIMEOUT_MS),
-    },
+    ...(options?.requestTimeoutMs === undefined
+      ? {}
+      : {
+          request: {
+            fetch: createTimeoutFetch(options.requestTimeoutMs),
+          },
+        }),
   });
 }

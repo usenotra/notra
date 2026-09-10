@@ -69,7 +69,8 @@ export async function listPersistedGeoShelfSources(
     .select()
     .from(geoShelfSources)
     .where(scopeWhere(key))
-    .orderBy(desc(geoShelfSources.updatedAt));
+    // `id` breaks ties: batched writes share an `updated_at` timestamp.
+    .orderBy(desc(geoShelfSources.updatedAt), desc(geoShelfSources.id));
   return rows.map(toSource);
 }
 
@@ -166,7 +167,7 @@ export async function updateGeoShelfCitations(
       update ${geoShelfSources} as target
       set citations = incoming.citations,
         title = coalesce(target.title, incoming.title),
-        updated_at = now()
+        updated_at = now() at time zone 'utc'
       from (values ${values}) as incoming(id, citations, title)
       where target.id = incoming.id
         and target.organization_id = ${key.organizationId}

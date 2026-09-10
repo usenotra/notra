@@ -86,7 +86,6 @@ import type {
   TooltipLayout,
   TooltipValueFormatter,
 } from "@/types/charts";
-import { normalizeLineValue } from "@/utils/echarts-line-values";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1018,9 +1017,9 @@ function buildBrushOption(
       type: "line",
       xAxisIndex: 1,
       yAxisIndex: 1,
-      // Same gap semantics as the main series so the overview never draws a
-      // zero where the plot shows a hole.
-      data: data.map((row) => normalizeLineValue(row[key])),
+      // Same value semantics as the main series so the overview never diverges
+      // from the plot.
+      data: data.map((row) => Number(row[key]) || 0),
       smooth: curve.smooth,
       step: curve.step,
       connectNulls: line.connectNulls,
@@ -1125,7 +1124,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     const activeVisible = line.activeDotVariant !== "none";
     const dotOpacity = opacity.dot;
 
-    const values = data.map((row) => normalizeLineValue(row[key]));
+    const values = data.map((row) => Number(row[key]) || 0);
     const n = values.length;
     // Hover-reveal is a root-level mode and owns the whole line rendering, so it
     // takes precedence over a per-line buffer tail (and the glow overlay) when

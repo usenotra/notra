@@ -44,6 +44,9 @@ async function upsertMembershipAtomically(
       set: {
         role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
       },
+      // Skip the UPDATE when the row already matches: every login hits this
+      // path, and owners keep their role regardless of the incoming value.
+      setWhere: sql`${members.role} <> 'owner' AND ${members.role} <> excluded.role`,
     });
 }
 

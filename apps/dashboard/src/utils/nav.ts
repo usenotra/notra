@@ -7,6 +7,7 @@ import {
   GEO_ROUTE_SECTIONS,
   NAV_GEO_IMPROVE_LINKS,
   NAV_MAIN_ITEMS,
+  ORG_ROOT_PROJECT_PARAM,
   SHARED_ROUTE_PREFIXES,
   SIDEBAR_DEFAULT_MODE,
   STUDIO_ROUTE_SECTIONS,
@@ -14,6 +15,7 @@ import {
 import type {
   NavMainItem,
   NavVisibility,
+  OrgRootSearchParams,
   SidebarMode,
 } from "@/types/components/nav";
 
@@ -66,16 +68,53 @@ export function isOrgRootPath(pathname: string, slug: string): boolean {
   return pathname === `/${slug}` || pathname === `/${slug}/`;
 }
 
+function appendForwardedParams(
+  path: string,
+  params: OrgRootSearchParams | undefined
+): string {
+  if (!params) {
+    return path;
+  }
+  const forwarded = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    // `project` is already resolved into the target path (and may come from a
+    // cookie rather than the URL), so it must not be duplicated here.
+    if (key === ORG_ROOT_PROJECT_PARAM) {
+      continue;
+    }
+    if (typeof value === "string") {
+      forwarded.append(key, value);
+      continue;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        forwarded.append(key, entry);
+      }
+    }
+  }
+  const query = forwarded.toString();
+  if (!query) {
+    return path;
+  }
+  return `${path}${path.includes("?") ? "&" : "?"}${query}`;
+}
+
 /** Path to send a bare dashboard open to, or null to stay on Studio home. */
 export function resolveOrgRootRedirect(
   slug: string,
   storedMode: SidebarMode | null,
-  projectId?: string
+  projectId?: string,
+  searchParams?: OrgRootSearchParams
 ): string | null {
   if (storedMode !== "geo") {
     return null;
   }
-  return geoNavHref(slug, GEO_OVERVIEW_NAV_LINK, projectId);
+  // Deep links such as `/{slug}?settings=general` must survive the stored-mode
+  // redirect, otherwise the settings modal never opens for GEO users.
+  return appendForwardedParams(
+    geoNavHref(slug, GEO_OVERVIEW_NAV_LINK, projectId),
+    searchParams
+  );
 }
 
 export function resolveNavItems(

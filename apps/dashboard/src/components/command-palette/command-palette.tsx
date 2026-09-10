@@ -71,7 +71,7 @@ import {
 
 const APPLE_PLATFORM_PATTERN = /Mac|iPhone|iPad|iPod/i;
 const SEARCH_DEBOUNCE_MS = 300;
-const SEARCH_MIN_LENGTH = 3;
+const SEARCH_MIN_LENGTH = 2;
 const REFERENCE_SNIPPET_MAX = 80;
 
 const REFERENCE_TYPE_LABEL: Record<string, string> = {

@@ -18,7 +18,11 @@ async function parseFallbackFont(): Promise<Font> {
 }
 
 export async function loadFallbackFont(): Promise<Font> {
-  fallbackFontPromise ??= parseFallbackFont();
+  fallbackFontPromise ??= parseFallbackFont().catch((error: unknown) => {
+    // Do not memoize a failed chunk load; the next call retries the import.
+    fallbackFontPromise = null;
+    throw error;
+  });
   return fallbackFontPromise;
 }
 

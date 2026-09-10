@@ -11,7 +11,10 @@ import {
   SOCIAL_ANALYTICS_FLAG_KEY,
 } from "@/constants/analytics";
 import { AnalyticsFlagEvaluationError } from "@/lib/analytics/errors";
-import { analyticsFlagsResponseSchema } from "@/schemas/analytics-flag";
+import {
+  analyticsFlagSchema,
+  analyticsFlagsResponseSchema,
+} from "@/schemas/analytics-flag";
 import type { AnalyticsFlagState } from "@/types/analytics";
 
 const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
@@ -44,11 +47,16 @@ const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
     const response = yield* Schema.decodeUnknownEffect(
       analyticsFlagsResponseSchema
     )(json);
-    const result = response.flags[SOCIAL_ANALYTICS_FLAG_KEY];
-    if (result?.reason === ANALYTICS_FLAG_ERROR_REASON) {
+    const entry = response.flags[SOCIAL_ANALYTICS_FLAG_KEY];
+    if (entry === undefined) {
+      return "disabled";
+    }
+    const result =
+      yield* Schema.decodeUnknownEffect(analyticsFlagSchema)(entry);
+    if (result.reason === ANALYTICS_FLAG_ERROR_REASON) {
       return "unavailable";
     }
-    return result?.enabled ? "enabled" : "disabled";
+    return result.enabled ? "enabled" : "disabled";
   },
   Effect.timeout(ANALYTICS_FLAG_REQUEST_TIMEOUT_MS),
   Effect.catch(() => Effect.succeed<AnalyticsFlagState>("unavailable"))

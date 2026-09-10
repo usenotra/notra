@@ -18,6 +18,7 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 import { dashboardOrpc } from "../orpc/query";
 
 const ANALYSIS_POLL_INTERVAL_MS = 1000;
+const INITIAL_POLL_INTERVAL_MS = 2000;
 
 const IDLE_PROGRESS: ProgressResponse["progress"] = {
   status: "idle",
@@ -72,9 +73,10 @@ export function useBrandAnalysisProgress(
     enabled: !!organizationId,
     refetchInterval: (query) => {
       const progress = query.state.data?.progress;
-      // No data yet, or a terminal status: nothing to follow.
+      // No data yet (still loading, or the last request failed): keep polling
+      // so a single transient failure cannot freeze the progress UI.
       if (!progress) {
-        return false;
+        return INITIAL_POLL_INTERVAL_MS;
       }
 
       if (progress.status === "completed" || progress.status === "failed") {

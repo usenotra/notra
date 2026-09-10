@@ -95,10 +95,7 @@ export function toGeoCheckWindow(
   if (input.days === undefined) {
     return;
   }
-  // Anchored to the start of the UTC day, like the `from`/`to` branch: a
-  // millisecond-precise `now` would make every request a distinct cache key.
   const from = new Date();
-  from.setUTCHours(0, 0, 0, 0);
   from.setUTCDate(from.getUTCDate() - input.days);
   return { from };
 }

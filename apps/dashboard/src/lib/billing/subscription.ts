@@ -1,6 +1,7 @@
 import {
   allowUnmeteredAiInDevelopment,
   autumn,
+  AUTUMN_READ_TIMEOUT_MS,
 } from "@notra/ai/billing/autumn";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
@@ -21,10 +22,13 @@ const checkAiAnswersEntitlement = async (organizationId: string) => {
     return null;
   }
 
-  return await autumn.check({
-    customerId: organizationId,
-    featureId: FEATURES.AI_ANSWERS,
-  });
+  return await autumn.check(
+    {
+      customerId: organizationId,
+      featureId: FEATURES.AI_ANSWERS,
+    },
+    { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
+  );
 };
 
 async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
@@ -32,11 +36,14 @@ async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
     return false;
   }
 
-  const data = await autumn.check({
-    customerId: organizationId,
-    featureId: FEATURES.AI_CREDITS,
-    requiredBalance: 1,
-  });
+  const data = await autumn.check(
+    {
+      customerId: organizationId,
+      featureId: FEATURES.AI_CREDITS,
+      requiredBalance: 1,
+    },
+    { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
+  );
 
   return data.allowed === true;
 }
@@ -48,10 +55,13 @@ export async function hasAiCreditsGrant(
     return false;
   }
 
-  const data = await autumn.check({
-    customerId: organizationId,
-    featureId: FEATURES.AI_CREDITS,
-  });
+  const data = await autumn.check(
+    {
+      customerId: organizationId,
+      featureId: FEATURES.AI_CREDITS,
+    },
+    { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
+  );
 
   return data.balance != null;
 }
@@ -71,10 +81,13 @@ export async function resolveZdrEntitlement(
     return process.env.NODE_ENV === "production" ? "not_entitled" : "entitled";
   }
   try {
-    const data = await autumn.check({
-      customerId: organizationId,
-      featureId: FEATURES.ZDR,
-    });
+    const data = await autumn.check(
+      {
+        customerId: organizationId,
+        featureId: FEATURES.ZDR,
+      },
+      { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
+    );
     return data.allowed === true ? "entitled" : "not_entitled";
   } catch {
     return "unknown";

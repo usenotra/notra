@@ -1,4 +1,5 @@
 import type { getServerSession } from "@/lib/auth/session";
+import type { OrganizationMembership } from "@/types/auth/organization";
 
 type SessionData = Awaited<ReturnType<typeof getServerSession>>;
 
@@ -8,6 +9,11 @@ export interface ORPCRequestMemo {
     string,
     Promise<"entitled" | "denied" | "skipped">
   >;
+  /** Keyed by `${userId}:${organizationId}`. */
+  readonly membershipByUserOrganization: Map<
+    string,
+    Promise<OrganizationMembership | undefined>
+  >;
 }
 
 const requestMemosByHeaders = new WeakMap<Headers, ORPCRequestMemo>();
@@ -16,6 +22,7 @@ function createRequestMemo(): ORPCRequestMemo {
   return {
     analyticsEnabledByOrganization: new Map(),
     geoEntitlementByOrganization: new Map(),
+    membershipByUserOrganization: new Map(),
   };
 }
 

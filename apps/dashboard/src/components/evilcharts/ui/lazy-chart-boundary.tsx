@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Suspense, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
@@ -26,8 +27,15 @@ export function LazyChartBoundary({
     getSnapshot,
     getServerSnapshot
   );
+  // The placeholder keeps the caller's sizing classes so swapping it for the
+  // chart never shifts layout.
   const placeholder = (
-    <div className={cn("relative flex flex-col text-xs", className)} />
+    <div
+      aria-hidden="true"
+      className={cn("relative flex flex-col text-xs", className)}
+    >
+      <Skeleton className="size-full min-h-full flex-1" />
+    </div>
   );
 
   return (

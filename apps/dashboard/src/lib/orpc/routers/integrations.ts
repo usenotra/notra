@@ -67,7 +67,10 @@ import {
 } from "@notra/ai/integrations/slack-workspace";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
 import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
-import { createOctokit } from "@notra/ai/utils/octokit";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -887,7 +890,9 @@ export const integrationsRouter = {
           }
 
           try {
-            const octokit = createOctokit(token);
+            const octokit = createOctokit(token, {
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
             const requestOptions = {
               owner: repository.owner,
               repo: repository.repo,

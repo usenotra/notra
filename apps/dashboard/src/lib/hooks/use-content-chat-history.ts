@@ -76,10 +76,9 @@ export function useContentChatHistory({
   });
 
   useEffect(() => {
-    // A failed sessions request must not seed a random chat: the real latest
-    // chat could still arrive on a retry, and `activeChatId` would block its
-    // hydration.
-    if (activeChatId || sessionsQuery.isPending || sessionsQuery.isError) {
+    // A failed sessions request still seeds a fresh chat id so the composer
+    // stays usable; there is simply nothing to hydrate in that case.
+    if (activeChatId || sessionsQuery.isPending) {
       return;
     }
     const latestChatId = sessionsQuery.data?.at(0)?.chatId;
@@ -88,13 +87,7 @@ export function useContentChatHistory({
       chatId: latestChatId ?? crypto.randomUUID(),
       hydrate: Boolean(latestChatId),
     });
-  }, [
-    activeChatId,
-    dispatch,
-    sessionsQuery.data,
-    sessionsQuery.isError,
-    sessionsQuery.isPending,
-  ]);
+  }, [activeChatId, dispatch, sessionsQuery.data, sessionsQuery.isPending]);
 
   return {
     state,
@@ -105,7 +98,6 @@ export function useContentChatHistory({
     isUnavailable:
       !activeChatId ||
       sessionsQuery.isPending ||
-      sessionsQuery.isError ||
       historyQuery.isFetching ||
       historyQuery.isError,
   };
