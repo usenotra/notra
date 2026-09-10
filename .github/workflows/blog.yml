@@ -20,7 +20,9 @@ jobs:
       - name: Lint blog links
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
         with:
+          # X profiles load in browsers but return 403 to GitHub-hosted crawlers.
           args: >-
             --no-progress --max-redirects 0 --accept '200..=299'
+            --exclude '^https://x\.com/'
             --base-url https://www.usenotra.com/blog/
             'apps/web/src/content/blog/**/*.mdx'
