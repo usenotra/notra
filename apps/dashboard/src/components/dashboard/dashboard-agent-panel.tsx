@@ -62,13 +62,11 @@ function DashboardAgentChat({
   const activeChatIdRef = useRef(activeChatId);
   const onCloseRef = useRef(onClose);
   const closeAfterNavigationRef = useRef(false);
-  onCloseRef.current = onClose;
-  const projectIdRef = useRef<string | undefined>(undefined);
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
-  activeChatIdRef.current = activeChatId;
-  projectIdRef.current =
-    isProjectResolved && activeProjectId ? activeProjectId : undefined;
+  const projectIdRef = useRef<string | undefined>(
+    isProjectResolved && activeProjectId ? activeProjectId : undefined
+  );
 
   const sessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
@@ -174,6 +172,12 @@ function DashboardAgentChat({
   });
 
   const isAgentBusy = status === "streaming" || status === "submitted";
+  useLayoutEffect(() => {
+    activeChatIdRef.current = activeChatId;
+    onCloseRef.current = onClose;
+    projectIdRef.current =
+      isProjectResolved && activeProjectId ? activeProjectId : undefined;
+  }, [activeChatId, activeProjectId, isProjectResolved, onClose]);
   useLayoutEffect(() => {
     messagesRef.current = messages;
     isAgentBusyRef.current = isAgentBusy || isHydratingHistory;

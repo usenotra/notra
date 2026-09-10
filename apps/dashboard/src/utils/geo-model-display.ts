@@ -37,7 +37,7 @@ export function splitModelId(modelId: string): ParsedModelId | null {
 
 function modelsDevLogoSlug(provider: string): string {
   const normalized = provider.trim().toLowerCase();
-  return MODELS_DEV_LOGO_ALIASES[normalized] ?? normalized;
+  return ownCatalogLabel(MODELS_DEV_LOGO_ALIASES, normalized) ?? normalized;
 }
 
 export function modelsDevLogoUrl(provider: string): string {
@@ -66,12 +66,24 @@ function chartLabelToEngineId(label: string): string {
   return label;
 }
 
-function catalogEngineLabel(engine: string): string {
+function ownCatalogLabel(
+  catalog: Record<string, string>,
+  key: string
+): string | undefined {
+  return Object.hasOwn(catalog, key) ? catalog[key] : undefined;
+}
+
+function chartEngineModelId(engine: string): string {
   const model = engineModelOf(engine);
+  return typeof model === "string" ? model : engine;
+}
+
+function catalogEngineLabel(engine: string): string {
+  const model = chartEngineModelId(engine);
   return (
-    GEO_ENGINE_LABELS[model] ??
-    GEO_ENGINE_LABELS[engine] ??
-    GEO_ENGINE_LABELS[`${model}-grounded`] ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, model) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, engine) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, `${model}-grounded`) ??
     formatModelLabel(model)
   );
 }
@@ -91,9 +103,9 @@ export function formatChartEngineLabel(label: string): string {
   const trimmed = label.trim();
   const engineId = chartLabelToEngineId(trimmed);
   const catalog =
-    GEO_ENGINE_LABELS[engineId] ??
-    GEO_ENGINE_LABELS[trimmed] ??
-    GEO_ENGINE_LABELS[engineModelOf(engineId)];
+    ownCatalogLabel(GEO_ENGINE_LABELS, engineId) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, trimmed) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, chartEngineModelId(engineId));
   if (catalog) {
     return catalog;
   }
@@ -142,7 +154,7 @@ function formatModelSlug(slug: string): string {
 
 function formatModelToken(token: string): string {
   const lower = token.toLowerCase();
-  const known = MODEL_TOKEN_LABELS[lower];
+  const known = ownCatalogLabel(MODEL_TOKEN_LABELS, lower);
   if (known) {
     return known;
   }
@@ -154,7 +166,7 @@ function formatModelToken(token: string): string {
   const match = ALPHA_PREFIX_WITH_DIGITS.exec(lower);
   if (match) {
     const [, prefix = "", rest = ""] = match;
-    const prefixLabel = MODEL_TOKEN_LABELS[prefix];
+    const prefixLabel = ownCatalogLabel(MODEL_TOKEN_LABELS, prefix);
     if (prefixLabel) {
       return `${prefixLabel}${rest}`;
     }

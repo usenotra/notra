@@ -3,11 +3,11 @@ export function suggestionPageSlice<T>(
   page: number,
   visibleCount: number
 ): T[] {
-  if (items.length === 0 || visibleCount <= 0) {
-    return items;
+  if (visibleCount <= 0) {
+    return [];
   }
 
-  if (items.length <= visibleCount) {
+  if (items.length === 0 || items.length <= visibleCount) {
     return items;
   }
 

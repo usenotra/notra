@@ -19,10 +19,12 @@ export function sanitizeChatWorkspaceLabel(value: string): string {
     sanitized += character;
   }
 
-  return sanitized
-    .replace(WHITESPACE_PATTERN, " ")
-    .trim()
-    .slice(0, CHAT_WORKSPACE_LABEL_MAX_LENGTH);
+  const normalized = sanitized.replace(WHITESPACE_PATTERN, " ").trim();
+  const codePoints = Array.from(normalized);
+  if (codePoints.length <= CHAT_WORKSPACE_LABEL_MAX_LENGTH) {
+    return normalized;
+  }
+  return codePoints.slice(0, CHAT_WORKSPACE_LABEL_MAX_LENGTH).join("");
 }
 
 export async function loadChatWorkspace({

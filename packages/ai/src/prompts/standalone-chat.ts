@@ -1,3 +1,8 @@
+import {
+  CHAT_WORKSPACE_METADATA_PREAMBLE,
+  CHAT_WORKSPACE_NO_PROJECT_GUIDANCE,
+  CHAT_WORKSPACE_PROJECT_GUIDANCE,
+} from "@notra/ai/constants/chat-workspace";
 import { renderSkillGuidance } from "@notra/ai/skills/functions/guidance";
 import type { StandaloneChatPromptParams } from "@notra/ai/types/prompts";
 import { sanitizeChatWorkspaceLabel } from "@notra/ai/utils/chat-workspace";
@@ -91,27 +96,24 @@ function formatWorkspaceSection(
     return "";
   }
 
-  const organizationName =
-    sanitizeChatWorkspaceLabel(workspace.organization.name) || "Unknown";
-  const organizationSlug =
-    sanitizeChatWorkspaceLabel(workspace.organization.slug) || "unknown";
-  const lines = [
-    `The user is working in the Notra organization "${organizationName}" (slug: ${organizationSlug}).`,
-  ];
+  const metadata: Record<string, string> = {
+    organization_name:
+      sanitizeChatWorkspaceLabel(workspace.organization.name) || "Unknown",
+    organization_slug:
+      sanitizeChatWorkspaceLabel(workspace.organization.slug) || "unknown",
+  };
 
   if (workspace.project) {
-    const projectName =
+    metadata.project_name =
       sanitizeChatWorkspaceLabel(workspace.project.name) || "Untitled project";
-    lines.push(
-      `The user's currently selected GEO project is "${projectName}" (projectId: ${workspace.project.id}). Treat this as the default for GEO tools and project-scoped work when the user does not name a different project. It is not the only project. If they name another, call listGeoProjects and use the matching ID. Never invent a project ID.`
-    );
-  } else {
-    lines.push(
-      "No GEO project is currently selected. For project-specific GEO tools, call listGeoProjects first. Omit projectId to query all projects."
-    );
+    metadata.project_id = workspace.project.id;
   }
 
-  return `\n\n## Workspace\n${lines.join("\n")}`;
+  const guidance = workspace.project
+    ? CHAT_WORKSPACE_PROJECT_GUIDANCE
+    : CHAT_WORKSPACE_NO_PROJECT_GUIDANCE;
+
+  return `\n\n## Workspace\n${CHAT_WORKSPACE_METADATA_PREAMBLE}\n${JSON.stringify(metadata)}\n${guidance}`;
 }
 
 function formatRepoContext(

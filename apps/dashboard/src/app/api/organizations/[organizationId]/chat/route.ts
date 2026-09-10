@@ -13,6 +13,7 @@ import {
   clearLastResponseStopped,
   generateAndSetChatTitle,
   generateChatId,
+  getChatProjectId,
   getChatSession,
   isChatDeleted,
   replaceChatHistory,
@@ -103,6 +104,7 @@ export const POST = withEvlog(async function POST(
     );
     const chatId = parseResult.data.chatId ?? generateChatId();
     let projectId: string | null = parseResult.data.projectId ?? null;
+    let bindProjectFromSession = false;
 
     const trackBlocked = (code: string) => {
       trackServerEvent({
@@ -126,15 +128,17 @@ export const POST = withEvlog(async function POST(
           { status: 409 }
         );
       }
-      // The project is only stored when the chat row is first created, so
-      // existing chats skip the validation lookup.
+      // Existing chats keep the project stored at creation. Continuing with a
+      // different active project must not retarget GEO tools or content.
       if (existingSession) {
-        projectId = null;
+        bindProjectFromSession = true;
+        projectId = await getChatProjectId(organizationId, chatId);
       }
     }
 
     if (
       projectId &&
+      !bindProjectFromSession &&
       !(await isProjectInOrganization(organizationId, projectId))
     ) {
       return NextResponse.json({ error: "Project not found" }, { status: 400 });
@@ -299,7 +303,7 @@ export const POST = withEvlog(async function POST(
         abortSignal: request.signal,
         telemetryMetadata,
         headers: request.headers,
-        projectId: parseResult.data.projectId,
+        projectId: projectId ?? undefined,
       });
     }
 
@@ -315,7 +319,7 @@ export const POST = withEvlog(async function POST(
       enableThinking: parseResult.data.enableThinking,
       thinkingLevel: parseResult.data.thinkingLevel,
       timezone: parseResult.data.timezone,
-      projectId: parseResult.data.projectId,
+      projectId: projectId ?? undefined,
     };
 
     await startStandaloneChatRun(workflowPayload);

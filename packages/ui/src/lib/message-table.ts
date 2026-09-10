@@ -1,10 +1,17 @@
+import {
+  CSV_FORMULA_CELL_PREFIX,
+  CSV_FORMULA_TEXT_MARKER,
+} from "@notra/ui/constants/message-table";
 import type {
   MessageTableCopyFormat,
   MessageTableData,
 } from "@notra/ui/types/message-table";
 
 function escapeDelimitedCell(value: string) {
-  return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+  const safe = CSV_FORMULA_CELL_PREFIX.test(value)
+    ? `${CSV_FORMULA_TEXT_MARKER}${value}`
+    : value;
+  return /[",\n\r]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
 function escapeMarkdownTableCell(value: string) {
