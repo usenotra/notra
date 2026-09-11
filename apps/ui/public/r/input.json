@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "input",
+  "title": "Input",
+  "description": "One border at rest. Focus is still a single border, not a ring stack.",
+  "dependencies": ["@base-ui/react"],
+  "registryDependencies": ["utils"],
+  "files": [
+    {
+      "path": "src/components/ui/input.tsx",
+      "content": "import { Input as InputPrimitive } from \"@base-ui/react/input\";\nimport { cva, type VariantProps } from \"class-variance-authority\";\nimport type * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nconst inputVariants = cva(\n  \"w-full min-w-0 border border-input bg-transparent outline-none transition-colors file:inline-flex file:h-6 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:disabled:bg-input/80\",\n  {\n    variants: {\n      size: {\n        default: \"h-8 rounded-lg px-2.5 py-1 text-base\",\n        sm: \"h-7 rounded-[min(var(--radius-md),12px)] px-2 text-sm\",\n        lg: \"h-9 rounded-lg px-3 py-1 text-base\",\n      },\n    },\n    defaultVariants: {\n      size: \"default\",\n    },\n  }\n);\n\nfunction Input({\n  className,\n  type,\n  size = \"default\",\n  ...props\n}: Omit<React.ComponentProps<\"input\">, \"size\"> &\n  VariantProps<typeof inputVariants>) {\n  return (\n    <InputPrimitive\n      className={cn(inputVariants({ size, className }))}\n      data-size={size}\n      data-slot=\"input\"\n      type={type}\n      {...props}\n    />\n  );\n}\n\nexport { Input, inputVariants };\n",
+      "type": "registry:ui",
+      "target": "@ui/input.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

@@ -1,0 +1,31 @@
+---
+title: Badge
+description: Status is color plus a word. Never color alone.
+---
+
+```bash
+npx shadcn@latest add @notra/badge
+```
+
+Live preview of `@notra/ui/components/ui/badge`.
+
+<Component path="badge" />
+
+## API reference
+
+Notra-specific props.
+
+<TypeTable
+  type={{
+    variant: {
+      type: '"default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" | "ghost" | "link"',
+      default: '"default"',
+      description: "Status color plus the word. Destructive, success, warning, and info use tinted fills.",
+    },
+    size: {
+      type: '"sm" | "default"',
+      default: '"default"',
+      description: "Default is 20px. sm is 16px for table cells and dense rows.",
+    },
+  }}
+/>

@@ -1,0 +1,30 @@
+---
+title: Switch
+description: A binary setting next to its label, not a second button.
+---
+
+```bash
+npx shadcn@latest add @notra/switch
+```
+
+Live preview of `@notra/ui/components/ui/switch`.
+
+<Component path="switch" />
+
+## API reference
+
+Notra-specific props. See the source for inherited Base UI props.
+
+<TypeTable
+  type={{
+    size: {
+      type: '"sm" | "default"',
+      default: '"default"',
+      description: "default is 32×18px. sm is 24×14px for dense rows.",
+    },
+    "checked / onCheckedChange": {
+      type: "Base UI Switch.Root props",
+      description: "Control the on/off state. Uncontrolled uses defaultChecked.",
+    },
+  }}
+/>

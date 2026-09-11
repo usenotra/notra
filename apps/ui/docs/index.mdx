@@ -1,10 +1,36 @@
 ---
 title: Introduction
-description: Welcome to the Notra UI docs.
+description: Notra UI is a shadcn registry. Live pages for every primitive.
 ---
 
-# Introduction
+This site is the registry for `@notra` — the same primitives as `@notra/ui`, served so you can install them with the shadcn CLI. Each page mounts the real component, one route per primitive.
 
-Welcome to **Notra UI** — this Blume app will showcase the `@notra/ui` package.
+```bash
+npx shadcn@latest registry add @notra=http://localhost:3006/r/{name}.json
+npx shadcn@latest add @notra/button
+```
 
-Edit `docs/index.mdx` to get started, then run `bun run dev --filter=ui`.
+The catalog lives at [`/r/registry.json`](/r/registry.json). After you add the namespace, `npx shadcn@latest add @notra/input` (or theme, dialog, …) copies the source into your app and rewrites aliases to your `components.json`.
+
+The dashboard still imports `@notra/ui` as a workspace package. The registry is the copy-into-your-app path.
+
+<CardGroup cols={2}>
+  <Card title="Button" href="/button">
+    Variants, sizes, and icon pairing.
+  </Card>
+  <Card title="Input" href="/input">
+    Default, placeholder, disabled, invalid.
+  </Card>
+  <Card title="Badge" href="/badge">
+    Draft, published, scheduled, generating, failed.
+  </Card>
+  <Card title="Alert" href="/alert">
+    Source icon plus copy, not a colored dot.
+  </Card>
+  <Card title="Card" href="/card">
+    Draft, metric, and empty — same surface, no dashed border.
+  </Card>
+  <Card title="Dialog" href="/dialog">
+    Overlay for a single decision.
+  </Card>
+</CardGroup>

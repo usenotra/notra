@@ -1,0 +1,31 @@
+---
+title: Button
+description: One filled action. Everything else stays quiet.
+---
+
+```bash
+npx shadcn@latest add @notra/button
+```
+
+Live preview of `@notra/ui/components/ui/button`. Variants, sizes, and the icon-plus-label pairing.
+
+<Component path="button" />
+
+## API reference
+
+Notra-specific props. See the source for inherited Base UI props.
+
+<TypeTable
+  type={{
+    variant: {
+      type: '"default" | "outline" | "secondary" | "ghost" | "destructive" | "link"',
+      default: '"default"',
+      description: "Filled primary, outline/secondary surfaces, ghost, destructive, or a text link.",
+    },
+    size: {
+      type: '"xs" | "sm" | "default" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg"',
+      default: '"default"',
+      description: "Heights: xs 24px, sm 28px, default 32px, lg 36px. Icon sizes match.",
+    },
+  }}
+/>

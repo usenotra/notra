@@ -1,0 +1,34 @@
+@source "../../../../../packages/ui/src/components/ui";
+
+:root {
+  --blume-accent: oklch(0.55 0.219 292.717);
+  --blume-background: oklch(1 0 0);
+  --blume-muted: oklch(1 0 0);
+  --blume-code-background: oklch(1 0 0);
+  --blume-radius: 0.5rem;
+}
+
+:root[data-theme="dark"] {
+  --blume-accent: oklch(0.55 0.219 292.717);
+  --blume-background: hsl(233 7% 8%);
+  --blume-muted: hsl(240 6% 10%);
+  --blume-code-background: hsl(240 6% 10%);
+  --blume-foreground: hsl(0 0% 98%);
+  --blume-muted-foreground: hsl(0 0% 63.9%);
+  --blume-border: hsl(0 1% 17%);
+}
+
+html,
+body {
+  background-color: var(--blume-background);
+}
+
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation: none !important;
+}
+
+blume-tabs [data-blume-tab-panel] {
+  transition: none !important;
+}

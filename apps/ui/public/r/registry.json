@@ -1,0 +1,300 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "notra",
+  "homepage": "http://localhost:3006",
+  "items": [
+    {
+      "name": "utils",
+      "type": "registry:lib",
+      "title": "Utils",
+      "description": "cn() helper used by every Notra primitive.",
+      "dependencies": ["cnfast"],
+      "files": [
+        {
+          "path": "src/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ]
+    },
+    {
+      "name": "motion",
+      "type": "registry:lib",
+      "title": "Motion",
+      "description": "Shared duration and easing scale for motion/react.",
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "src/lib/motion.ts",
+          "type": "registry:lib",
+          "target": "@lib/motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "theme",
+      "type": "registry:theme",
+      "title": "Notra theme",
+      "description": "Chapel tokens: amethyst on plaster, with matching dark values.",
+      "cssVars": {
+        "theme": {
+          "radius": "0.5rem"
+        },
+        "light": {
+          "background": "hsl(0 0% 100%)",
+          "foreground": "hsl(0 0% 9%)",
+          "card": "hsl(0 0% 100%)",
+          "card-foreground": "hsl(0 0% 9%)",
+          "popover": "hsl(0 0% 100%)",
+          "popover-foreground": "hsl(0 0% 9%)",
+          "primary": "oklch(0.6056 0.2189 292.7172)",
+          "primary-foreground": "oklch(0.997 0 0)",
+          "secondary": "hsl(0 0% 96.1%)",
+          "secondary-foreground": "hsl(0 0% 9%)",
+          "muted": "hsl(0 0% 96.1%)",
+          "muted-foreground": "hsl(0 0% 45.1%)",
+          "accent": "hsl(0 0% 96.1%)",
+          "accent-foreground": "hsl(0 0% 9%)",
+          "destructive": "hsl(0 84.2% 60.2%)",
+          "destructive-foreground": "hsl(0 0% 98%)",
+          "border": "hsl(0 0% 89.8%)",
+          "input": "hsl(0 0% 89.8%)",
+          "ring": "oklch(0.6056 0.2189 292.7172)",
+          "sidebar": "oklch(0.985 0 0)",
+          "sidebar-foreground": "oklch(0.145 0 0)",
+          "sidebar-primary": "oklch(0.205 0 0)",
+          "sidebar-primary-foreground": "oklch(0.985 0 0)",
+          "sidebar-accent": "oklch(0.97 0 0)",
+          "sidebar-accent-foreground": "oklch(0.205 0 0)",
+          "sidebar-border": "oklch(0.922 0 0)",
+          "sidebar-ring": "oklch(0.4907 0.2412 292.5809)",
+          "success": "oklch(0.55 0.109 155)",
+          "success-foreground": "oklch(0.985 0 0)",
+          "warning": "oklch(0.57 0.113 55)",
+          "warning-foreground": "oklch(0.985 0 0)",
+          "info": "oklch(0.55 0.13 250)",
+          "info-foreground": "oklch(0.985 0 0)"
+        },
+        "dark": {
+          "background": "hsl(233 7% 8%)",
+          "foreground": "hsl(0 0% 98%)",
+          "card": "hsl(240 6% 10%)",
+          "card-foreground": "hsl(0 0% 98%)",
+          "popover": "hsl(233 7% 8%)",
+          "popover-foreground": "hsl(0 0% 98%)",
+          "primary": "oklch(0.6056 0.2189 292.7172)",
+          "primary-foreground": "oklch(0.985 0 0)",
+          "secondary": "hsl(0 0% 14.9%)",
+          "secondary-foreground": "hsl(0 0% 98%)",
+          "muted": "hsl(0 0% 14.9%)",
+          "muted-foreground": "hsl(0 0% 63.9%)",
+          "accent": "hsl(0 0% 14.9%)",
+          "accent-foreground": "hsl(0 0% 98%)",
+          "destructive": "hsl(358 100% 50%)",
+          "destructive-foreground": "hsl(0 0% 99%)",
+          "border": "hsl(0 1% 17%)",
+          "input": "hsl(0 0% 14.9%)",
+          "ring": "oklch(0.6056 0.2189 292.7172)",
+          "sidebar": "oklch(0.175 0 0)",
+          "sidebar-foreground": "oklch(0.985 0 0)",
+          "sidebar-primary": "oklch(0.6056 0.2189 292.7172)",
+          "sidebar-primary-foreground": "oklch(0.985 0 0)",
+          "sidebar-accent": "oklch(0.245 0 0)",
+          "sidebar-accent-foreground": "oklch(0.709 0.1592 293.5412)",
+          "sidebar-border": "oklch(0.258 0 0)",
+          "sidebar-ring": "oklch(0.709 0.1592 293.5412)",
+          "success": "oklch(0.7 0.125 155)",
+          "success-foreground": "oklch(0.145 0 0)",
+          "warning": "oklch(0.7 0.125 55)",
+          "warning-foreground": "oklch(0.145 0 0)",
+          "info": "oklch(0.7 0.12 250)",
+          "info-foreground": "oklch(0.145 0 0)"
+        }
+      }
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "title": "Label",
+      "description": "Caption for a field. Same type size as the control it names.",
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "One filled action. Everything else stays quiet.",
+      "dependencies": ["@base-ui/react", "class-variance-authority"],
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "One border at rest. Focus is still a single border, not a ring stack.",
+      "dependencies": ["@base-ui/react"],
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea",
+      "description": "Same field language as Input, for longer copy.",
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "title": "Select",
+      "description": "Channel and status pickers share the same trigger height as Input.",
+      "dependencies": [
+        "@base-ui/react",
+        "@hugeicons/core-free-icons",
+        "@hugeicons/react"
+      ],
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Status is color plus a word. Never color alone.",
+      "dependencies": ["@base-ui/react", "class-variance-authority"],
+      "registryDependencies": ["utils", "theme"],
+      "files": [
+        {
+          "path": "src/components/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:ui",
+      "title": "Alert",
+      "description": "Source and severity are icons, not dots.",
+      "dependencies": ["class-variance-authority"],
+      "registryDependencies": ["utils", "theme"],
+      "files": [
+        {
+          "path": "src/components/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Content sits on white. The page is plaster. Empty is still a card.",
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Selected state lives on the label, not a second filled control.",
+      "dependencies": ["@base-ui/react", "class-variance-authority", "motion"],
+      "registryDependencies": ["utils", "motion"],
+      "files": [
+        {
+          "path": "src/components/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Rows are lanes. Status is a badge, not a colored cell.",
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "One decision on a raised surface. Cancel stays outline.",
+      "dependencies": [
+        "@base-ui/react",
+        "@hugeicons/core-free-icons",
+        "@hugeicons/react"
+      ],
+      "registryDependencies": ["utils", "button"],
+      "files": [
+        {
+          "path": "src/components/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "title": "Switch",
+      "description": "A binary setting next to its label, not a second button.",
+      "dependencies": ["@base-ui/react"],
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "src/components/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        }
+      ]
+    }
+  ]
+}

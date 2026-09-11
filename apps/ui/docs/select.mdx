@@ -1,0 +1,34 @@
+---
+title: Select
+description: Same height as Input. Closed trigger is a field, not a chip.
+---
+
+```bash
+npx shadcn@latest add @notra/select
+```
+
+Channel sits full width. Size rows line up with Input and Button. Live preview of `@notra/ui/components/ui/select`.
+
+<Component path="select" />
+
+## API reference
+
+Notra-specific props. See the source for inherited Base UI props.
+
+<TypeTable
+  type={{
+    "Select.size": {
+      type: '"sm" | "default" | "lg"',
+      default: '"default"',
+      description: "Match Button and Input heights: sm 28px, default 32px, lg 36px. Set on Root or SelectTrigger.",
+    },
+    "value / onValueChange": {
+      type: "Base UI Select.Root props",
+      description: "Control the selected value on the root.",
+    },
+    items: {
+      type: "Record<string, ReactNode> | { value, label }[]",
+      description: "Map stored values to readable labels in the closed trigger.",
+    },
+  }}
+/>

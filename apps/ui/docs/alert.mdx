@@ -1,0 +1,26 @@
+---
+title: Alert
+description: Source and severity are icons, not dots.
+---
+
+```bash
+npx shadcn@latest add @notra/alert
+```
+
+Live preview of `@notra/ui/components/ui/alert`. GitHub uses the official mark; failure uses an alert glyph in destructive.
+
+<Component path="alert" />
+
+## API reference
+
+Notra-specific props. Compose with `AlertTitle`, `AlertDescription`, and `AlertAction`.
+
+<TypeTable
+  type={{
+    variant: {
+      type: '"default" | "destructive" | "info" | "success" | "warning"',
+      default: '"default"',
+      description: "Severity color on the icon and description. Default is a neutral card.",
+    },
+  }}
+/>

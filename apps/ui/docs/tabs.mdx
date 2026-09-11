@@ -1,0 +1,35 @@
+---
+title: Tabs
+description: Selected state lives on the label, not a second filled control.
+---
+
+```bash
+npx shadcn@latest add @notra/tabs
+```
+
+Live preview of `@notra/ui/components/ui/tabs`.
+
+<Component path="tabs" />
+
+## API reference
+
+Notra-specific props. See the source for inherited Base UI props.
+
+<TypeTable
+  type={{
+    "value / onValueChange": {
+      type: "Base UI Tabs.Root props",
+      description: "Control the active tab on the root.",
+    },
+    "TabsList.variant": {
+      type: '"default" | "line"',
+      default: '"default"',
+      description: "default is a muted pill track. line is an underline on the selected label.",
+    },
+    orientation: {
+      type: '"horizontal" | "vertical"',
+      default: '"horizontal"',
+      description: "Layout flow for the list and panels.",
+    },
+  }}
+/>

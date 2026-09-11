@@ -1,0 +1,25 @@
+---
+title: Table
+description: Same surface as Card. Status is a badge, not a colored cell.
+---
+
+```bash
+npx shadcn@latest add @notra/table
+```
+
+Live preview of `@notra/ui/components/ui/table`. White surface, quiet header, one action per row.
+
+<Component path="table" />
+
+## API reference
+
+Notra-specific props. Compose with `TableHeader`, `TableBody`, `TableRow`, `TableHead`, and `TableCell`.
+
+<TypeTable
+  type={{
+    "TableRow data-state": {
+      type: '"selected"',
+      description: "Marks the row. Cells pick up a muted fill.",
+    },
+  }}
+/>

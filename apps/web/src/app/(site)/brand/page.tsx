@@ -174,11 +174,11 @@ export default function BrandPage() {
               Typography
             </h2>
             <p className="text-muted-foreground text-sm leading-6">
-              Inter carries the product and the site. Instrument Serif adds
-              editorial accents. Both are free on Google Fonts.
+              Inter carries UI, body, and the product. Satoshi is the marketing
+              display face. Instrument Serif is a scarce editorial accent.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             {BRAND_FONTS.map((font) => (
               <div
                 className="border-border/70 bg-background flex flex-col gap-4 rounded-2xl border p-6"
@@ -208,7 +208,7 @@ export default function BrandPage() {
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  Get {font.name} on Google Fonts
+                  Get {font.name} on {font.source}
                 </a>
               </div>
             ))}

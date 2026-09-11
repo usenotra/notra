@@ -8,10 +8,24 @@ import {
   UnfoldMoreIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { createContext, useContext } from "react";
 import type * as React from "react";
 import { cn } from "@notra/ui/lib/utils";
 
-const Select = SelectPrimitive.Root;
+type SelectSize = "sm" | "default" | "lg";
+
+const SelectSizeContext = createContext<SelectSize | undefined>(undefined);
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  size,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple> & { size?: SelectSize }) {
+  return (
+    <SelectSizeContext.Provider value={size}>
+      <SelectPrimitive.Root data-slot="select" {...props} />
+    </SelectSizeContext.Provider>
+  );
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -35,16 +49,18 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 
 function SelectTrigger({
   className,
-  size = "default",
+  size: sizeProp,
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default";
+  size?: SelectSize;
 }) {
+  const sizeFromRoot = useContext(SelectSizeContext);
+  const size = sizeProp ?? sizeFromRoot ?? "default";
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex w-fit select-none items-center justify-between gap-1.5 whitespace-nowrap rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "flex w-fit cursor-pointer select-none items-center justify-between gap-1.5 whitespace-nowrap border border-input bg-transparent pr-2 pl-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground data-[size=default]:h-8 data-[size=default]:rounded-lg data-[size=lg]:h-9 data-[size=lg]:rounded-lg data-[size=lg]:px-3 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),12px)] data-[size=sm]:[&_svg:not([class*='size-'])]:size-3.5 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
       )}
       data-size={size}
@@ -55,7 +71,7 @@ function SelectTrigger({
       <SelectPrimitive.Icon
         render={
           <HugeiconsIcon
-            className="pointer-events-none size-4 text-muted-foreground"
+            className="pointer-events-none text-muted-foreground"
             icon={UnfoldMoreIcon}
             strokeWidth={2}
           />
@@ -70,9 +86,9 @@ function SelectContent({
   children,
   side = "bottom",
   sideOffset = 4,
-  align = "center",
+  align = "start",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<

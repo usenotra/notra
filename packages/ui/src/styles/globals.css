@@ -12,7 +12,7 @@
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   --background: hsl(0 0% 100%);
@@ -85,7 +85,8 @@
   --sh-comment: oklch(0.65 0.02 265);
 }
 
-.dark {
+.dark,
+:root[data-theme="dark"] {
   --background: hsl(233 7% 8%);
   --foreground: hsl(0 0% 98%);
   --card: hsl(240 6% 10%);
@@ -212,10 +213,6 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-
-  [data-slot="button"] {
-    @apply corner-squircle;
   }
 
   /* Force text selection to be visible */

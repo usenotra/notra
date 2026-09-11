@@ -1,0 +1,26 @@
+---
+title: Card
+description: Content sits on white. The page is plaster.
+---
+
+```bash
+npx shadcn@latest add @notra/card
+```
+
+Live preview of `@notra/ui/components/ui/card`. Draft, metric, and empty share one surface. Empty is still a card — no dashed border.
+
+<Component path="card" />
+
+## API reference
+
+Notra-specific props. Compose with `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, and `CardAction`.
+
+<TypeTable
+  type={{
+    size: {
+      type: '"sm" | "default"',
+      default: '"default"',
+      description: "sm tightens padding and title size. Footer still sits on muted.",
+    },
+  }}
+/>
