@@ -38,6 +38,10 @@ const WriteDialog = dynamic(() =>
 );
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
+  return <GeoGapsPageContent organizationSlug={organizationSlug} />;
+}
+
+function GeoGapsPageContent({ organizationSlug }: GeoPageClientProps) {
   const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);

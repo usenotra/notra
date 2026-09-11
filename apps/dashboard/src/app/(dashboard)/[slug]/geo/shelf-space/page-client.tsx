@@ -51,6 +51,10 @@ const PAGE_DESCRIPTION =
   "Third-party pages AI engines cite for your prompts, and whether you're on them";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
+  return <GeoShelfPageContent organizationSlug={organizationSlug} />;
+}
+
+function GeoShelfPageContent({ organizationSlug }: GeoPageClientProps) {
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
