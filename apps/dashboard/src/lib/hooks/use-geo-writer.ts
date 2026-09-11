@@ -49,11 +49,15 @@ export function useGeoWriterBrief(
       input: { organizationId, projectId, briefId: briefId ?? "" },
     }),
     enabled: !!organizationId && !!briefId,
+    // Only "writing" is polled: `approveAndStartGeoWriter` claims the brief
+    // straight from "draft"/"failed" to "writing" in the same update that
+    // starts the run, so a brief never sits in "approved" waiting for the
+    // workflow. The status is kept in the UI's busy set for legacy rows only.
     refetchInterval: (query) =>
-      query.state.data?.status === "writing" ||
-      query.state.data?.status === "approved"
+      query.state.data?.status === "writing"
         ? GEO_WRITER_BRIEF_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load the brief" },
   });
 }

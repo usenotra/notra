@@ -6,7 +6,7 @@ import type {
 } from "@notra/geo-core/types/generation-tracking";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { hasShownToast, markToastShown } from "@/utils/toast-dedupe";
@@ -14,7 +14,6 @@ import { hasShownToast, markToastShown } from "@/utils/toast-dedupe";
 import { dashboardOrpc } from "../orpc/query";
 
 const ACTIVE_POLL_INTERVAL = 3000;
-const IDLE_POLL_INTERVAL = 30_000;
 
 interface ActiveGenerationsResponse {
   generations: ActiveGeneration[];
@@ -36,11 +35,13 @@ export function useActiveGenerations(organizationId: string) {
       meta: { errorMessage: "Failed to load active generations" },
       refetchInterval: (query) => {
         const data = query.state.data;
-        if (data && data.generations.length > 0) {
-          return ACTIVE_POLL_INTERVAL;
+        // Scheduled work and other sessions cannot invalidate this browser's cache.
+        if (!data || data.generations.length === 0) {
+          return 15_000;
         }
-        return IDLE_POLL_INTERVAL;
+        return ACTIVE_POLL_INTERVAL;
       },
+      refetchIntervalInBackground: false,
     })
   );
 
@@ -48,71 +49,66 @@ export function useActiveGenerations(organizationId: string) {
     dashboardOrpc.content.activeGenerations.clearCompleted.mutationOptions()
   );
 
+  const clearResultMutate = clearResult.mutate;
+
   useEffect(() => {
     const generations = query.data?.generations ?? [];
     const currentCount = generations.length;
     const previousCount = previousCountRef.current;
+    let shouldRefreshContent =
+      previousCount !== null && previousCount > 0 && currentCount === 0;
+    previousCountRef.current = currentCount;
+    for (const result of query.data?.results ?? []) {
+      const toastKey = `generation-result:${result.runId}`;
 
-    if (previousCount !== null && previousCount > 0 && currentCount === 0) {
-      queryClient.invalidateQueries({
+      if (hasShownToast(toastKey)) {
+        continue;
+      }
+
+      markToastShown(toastKey);
+
+      if (result.status === "success") {
+        shouldRefreshContent = true;
+        toast.success(
+          result.title ? `"${result.title}" generated` : "Content generated",
+          { id: result.runId }
+        );
+      } else if (result.status === "skipped") {
+        toast.info("Content generation skipped", {
+          id: result.runId,
+          action: {
+            label: "View logs",
+            onClick: () => router.push(logsPath),
+          },
+        });
+      } else {
+        toast.error("Content generation failed", {
+          id: result.runId,
+          action: {
+            label: "View logs",
+            onClick: () => router.push(logsPath),
+          },
+        });
+      }
+
+      clearResultMutate({
+        organizationId,
+        runId: result.runId,
+      });
+    }
+    if (shouldRefreshContent) {
+      void queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.list.key(),
       });
     }
-
-    previousCountRef.current = currentCount;
-  }, [query.data?.generations?.length, queryClient, query.data?.generations]);
-
-  const clearResultMutate = clearResult.mutate;
-
-  const processResults = useCallback(
-    (results: GenerationResult[]) => {
-      for (const result of results) {
-        const toastKey = `generation-result:${result.runId}`;
-
-        if (hasShownToast(toastKey)) {
-          continue;
-        }
-
-        markToastShown(toastKey);
-
-        if (result.status === "success") {
-          toast.success(
-            result.title ? `"${result.title}" generated` : "Content generated",
-            { id: result.runId }
-          );
-        } else if (result.status === "skipped") {
-          toast.info("Content generation skipped", {
-            id: result.runId,
-            action: {
-              label: "View logs",
-              onClick: () => router.push(logsPath),
-            },
-          });
-        } else {
-          toast.error("Content generation failed", {
-            id: result.runId,
-            action: {
-              label: "View logs",
-              onClick: () => router.push(logsPath),
-            },
-          });
-        }
-
-        clearResultMutate({
-          organizationId,
-          runId: result.runId,
-        });
-      }
-    },
-    [clearResultMutate, logsPath, organizationId, router]
-  );
-
-  useEffect(() => {
-    const results = query.data?.results ?? [];
-    if (results.length > 0) {
-      processResults(results);
-    }
-  }, [processResults, query.data?.results]);
+  }, [
+    clearResultMutate,
+    logsPath,
+    organizationId,
+    queryClient,
+    query.data,
+    router,
+  ]);
 
   return {
     ...query,

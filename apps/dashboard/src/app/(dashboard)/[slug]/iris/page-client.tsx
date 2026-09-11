@@ -49,12 +49,14 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       initialPageParam: undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       enabled: isReady,
+      // Keep discovering runs started by the scheduler or another session.
       refetchInterval: (query: {
         state: { data?: { pages: IrisListRunsResult[] } };
       }) =>
         isIrisRunOpen(query.state.data?.pages.at(0)?.runs.at(0) ?? null)
           ? IRIS_ACTIVE_POLL_INTERVAL_MS
           : IRIS_IDLE_POLL_INTERVAL_MS,
+      refetchIntervalInBackground: false,
     })
   );
 
@@ -70,6 +72,7 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       input: { organizationId },
       enabled: isReady,
       refetchInterval: pollInterval,
+      refetchIntervalInBackground: false,
     })
   );
 
@@ -81,6 +84,7 @@ export default function PageClient({ organizationSlug }: IrisPageClientProps) {
       input: { organizationId, limit: IRIS_SIGNALS_PREVIEW_LIMIT },
       enabled: isReady && mandate !== null,
       refetchInterval: pollInterval,
+      refetchIntervalInBackground: false,
     })
   );
 
