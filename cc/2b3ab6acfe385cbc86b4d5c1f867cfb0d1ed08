@@ -1,0 +1,251 @@
+packages/ui/src/components/shared/auth/totp-code-input.tsx
+  s_1e325abf04c4e2::t_4a46fe136a217a 25,32,36-39,44-49
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 5,11,43
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-4,6-10,12-24,26-31,33-35,40-42,50-56
+apps/dashboard/src/components/auth/login-form.tsx
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 65-72
+  s_1e325abf04c4e2::t_834f2e4c508581 8,18,63-64,82
+  s_1e325abf04c4e2::t_87e2b694828a2e 10,15,20,53-62,80,85
+apps/dashboard/scripts/mfa-smoke.ts
+  s_1e325abf04c4e2::t_0fd27131e9727d 1-29,33-93
+  s_1e325abf04c4e2::t_684c63bc56effc 30-32
+packages/ui/src/components/shared/security/backup-codes-panel.tsx
+  s_1e325abf04c4e2::t_138143449e170a 114-115,119
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 1-113,116-118,120-156
+apps/dashboard/src/lib/auth/backup-codes.ts
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 1-14,16-19,21-23,25-81
+  s_f46f1695765cc6::t_462743377417bb 15
+  s_f46f1695765cc6::t_cffc11785892bc 20
+  s_f46f1695765cc6::t_1f244616080f68 24
+apps/dashboard/src/lib/auth/passkey-actions.ts
+  s_1e325abf04c4e2::t_109f33b9bf9c39 28,39
+  s_1e325abf04c4e2::t_fa586a61507a52 1-27,29-38,40-41
+packages/schemas/src/schemas/dashboard/auth/workos-error.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 15-20
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_1e325abf04c4e2::t_87e2b694828a2e 83-93
+apps/dashboard/src/types/settings/security.ts
+  s_1e325abf04c4e2::t_112bb74c3a04bf 10,35
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-9,11-34,36-40
+packages/posthog/src/events.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 10-14,17-19
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 15-16
+apps/dashboard/src/types/auth/security.ts
+  s_1e325abf04c4e2::t_fff56f4a3ed245 5
+  s_1e325abf04c4e2::t_fa586a61507a52 1-4,6-22,24-32,49-75,77-123,153-155,161
+  s_1e325abf04c4e2::t_277fe3d3a352bb 76,124-152,156-160
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 23,33-48
+apps/dashboard/src/types/auth/login-form.ts
+  s_1e325abf04c4e2::t_834f2e4c508581 10
+  s_1e325abf04c4e2::t_011373a24b7b09 9,12
+packages/ui/src/components/shared/auth/mfa-challenge-form.tsx
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-7,10-15,17-22,24-25,27,29,31,33-36,45-49,51-79,121,198-249,274-276
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 8-9,16,23,26,30,32,38-44,50,80-83,85-91,93-120,122-197,250,252-273
+  s_1e325abf04c4e2::t_834f2e4c508581 28,37,84,92,251
+apps/dashboard/src/constants/analytics-events.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 38,51,60
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 61
+packages/ui/src/components/shared/auth/login-form.tsx
+  s_1e325abf04c4e2::t_5c2797f3e95470 8,11-12,28,32-33,36,62,67,70,78-82,93-113,115-125,127-130,186-204,236,239,258-275,277-278,280,282-286,291-292,315-322
+  s_1e325abf04c4e2::t_54a3b72182d3d1 114,126,131-166,276,279
+  s_1e325abf04c4e2::t_834f2e4c508581 68,281
+  s_1e325abf04c4e2::t_f7198d1d48034e 41-49,340,360
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_1e325abf04c4e2::t_3e49e602855ba0 229
+  s_1e325abf04c4e2::t_87e2b694828a2e 1762-1764
+apps/dashboard/src/utils/design-system-qr.ts
+  s_1e325abf04c4e2::t_4d11615d70e8e2 1-44
+apps/dashboard/src/lib/auth/workos-widgets.ts
+  s_1e325abf04c4e2::t_fa586a61507a52 1-133
+apps/dashboard/src/lib/auth/errors.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 3-4,25-31
+apps/dashboard/src/components/settings/panes/security-pane.tsx
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-3,5-13,18-65,67-80
+  s_1e325abf04c4e2::t_3e49e602855ba0 4,14-17
+  s_1e325abf04c4e2::t_112bb74c3a04bf 66
+apps/dashboard/src/components/design-system/design-system-nav.tsx
+  s_1e325abf04c4e2::t_87e2b694828a2e 7
+  s_1e325abf04c4e2::t_4d11615d70e8e2 8
+packages/ui/src/components/shared/security/security-method-row.tsx
+  s_1e325abf04c4e2::t_138143449e170a 15-16,18-19,32
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-14,17,20-31,33-35
+packages/ui/src/components/shared/auth/mfa-enrollment-form.tsx
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-2,5-20,33-38,40-42,46,48-71,73,75,77-83
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 3-4,21-32,39,43-45,47,72,74,76
+apps/dashboard/src/lib/auth/elevated-access.ts
+  s_1e325abf04c4e2::t_fa586a61507a52 1-46
+packages/schemas/src/schemas/dashboard/auth/mfa.ts
+  s_1e325abf04c4e2::t_9858dddb54ad75 1-11,16-31,52-79
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 32-44,46-51
+  s_1e325abf04c4e2::t_834f2e4c508581 45
+  s_1e325abf04c4e2::t_3e49e602855ba0 12-15
+apps/dashboard/src/components/design-system/auth-security-demo.tsx
+  s_1e325abf04c4e2::t_4d11615d70e8e2 31,54
+  s_1e325abf04c4e2::t_3e49e602855ba0 86-87,388-390
+  s_1e325abf04c4e2::t_4bf57892197098 1-19,21-30,32-36,55-57,59-85,88-102,114-136,138,141-148,150-153,155-171,173,175-195,197-207,214-225,227-230,233-387,391-458
+  s_1e325abf04c4e2::t_834f2e4c508581 106,140
+  s_1e325abf04c4e2::t_ef4c627e651c63 49-53
+  s_1e325abf04c4e2::t_10fb2edb7bd043 20,37-48,58,103-105,107-113,137,139,149,154,172,174,196,208-213,226,231-232
+apps/dashboard/src/components/settings/settings-modal.tsx
+  s_1e325abf04c4e2::t_87e2b694828a2e 59-65,134-135
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_1e325abf04c4e2::t_53df9afc7b3a45 319-322,345-348
+  s_1e325abf04c4e2::t_74c452cae30594 12-13,18-19,37,72-76,201-220,222,230-232,247-272,277-278
+  s_1e325abf04c4e2::t_c408777e2d9b13 221,223-229
+packages/ui/src/components/shared/security/passkeys-settings.tsx
+  s_1e325abf04c4e2::t_138143449e170a 130,152
+  s_1f73cfa75e503c::t_215be93b94da0c 75,77,79
+  s_1f73cfa75e503c::t_2af6fbd39bef2b 144-149,153
+  s_1f73cfa75e503c::t_b76fee1dceaf49 4
+  s_1e325abf04c4e2::t_5c2797f3e95470 10,116
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-3,5-9,11-74,76,78,80-115,117-129,131-143,150-151,154-164
+packages/ui/src/components/shared/auth/auth-passkey-button.tsx
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-41
+packages/ui/src/components/shared/security/step-up-verification.tsx
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-3,5-10,12-15,20-25,27-28,30-43,54-55,57-71,73-75,78-85,87,89-92,94-96,98-101,103-106,108-115,117-118,120-126
+  s_1e325abf04c4e2::t_138143449e170a 4,11,16-19,26,29,44-53,56,72,76-77,86,88,93,97,102,107,116,119
+apps/dashboard/src/lib/auth/client.ts
+  s_1e325abf04c4e2::t_87e2b694828a2e 7-8,10-17,117-121,123-128
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 9,122
+apps/dashboard/src/lib/auth/security-actions.ts
+  s_1e325abf04c4e2::t_e346de788b8a89 1-269,275-355,357-435,437-485,490-640
+  s_1e325abf04c4e2::t_3e49e602855ba0 270-274,486-489
+apps/dashboard/src/constants/settings.ts
+  s_1e325abf04c4e2::t_87e2b694828a2e 11,24,66-85,262,280
+apps/dashboard/src/utils/query-keys.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 5
+packages/db/src/schema.ts
+  s_1e325abf04c4e2::t_0e9f3c69874bc4 84-103
+apps/dashboard/src/app/(dashboard)/[slug]/settings/security/page.tsx
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-14
+apps/dashboard/src/lib/auth/recovery-token.ts
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 1-71
+apps/dashboard/src/lib/auth/password-actions.ts
+  s_1e325abf04c4e2::t_c408777e2d9b13 3-4,14,16-17,28,36,39-43,47,109-110,147-162,377-391,394,396-463
+  s_1e325abf04c4e2::t_834f2e4c508581 15,21,392-393,395
+  s_1e325abf04c4e2::t_87e2b694828a2e 23,45,172,175,179-223,341-376
+apps/dashboard/scripts/create-dev-auth-account.ts
+  s_1e325abf04c4e2::t_0fd27131e9727d 1-173
+apps/dashboard/src/lib/auth/mfa.ts
+  s_1e325abf04c4e2::t_fa586a61507a52 1-19,21-28,30-108
+  s_f46f1695765cc6::t_9262c39881207d 20
+  s_f46f1695765cc6::t_a529c379217fb0 29
+packages/ui/src/components/ui/input-otp.tsx
+  s_1e325abf04c4e2::t_4a46fe136a217a 3-4,8-11,15,17-20,41,43,49,55
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 31,45-48,50,59
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-2,5-7,12-14,16,21-30,32-40,42,44,51-54,56-58
+apps/dashboard/src/components/settings/passkeys-section.tsx
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-53,57-100,104-152
+  s_1e325abf04c4e2::t_3e49e602855ba0 54-56,101-103
+apps/dashboard/src/components/settings/two-factor-section.tsx
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-4,7-20,22-27,34-36,38-55,57-85,87-99,101,107-112,114-117,127-133,135-138,141-153
+  s_1e325abf04c4e2::t_112bb74c3a04bf 5-6,21,29-33,37,56,86,100,102-106,113,118-126,134,139-140
+  s_1e325abf04c4e2::t_c408777e2d9b13 28
+apps/dashboard/src/lib/auth/webauthn-client.ts
+  s_1e325abf04c4e2::t_277fe3d3a352bb 1-7,9-15,17-34,37-39,42-50,52-71,74,76-78,88,90-98,100-101,111,113-136,139-175,180-184,186-196,198-206,208-209,212-215
+  s_1e325abf04c4e2::t_fa586a61507a52 8,16,35,51,137-138,176-179,185,197,207,210-211,216-218
+  s_f46f1695765cc6::t_83ae9c50075ff2 36
+  s_1e325abf04c4e2::t_fb86abf8b2c872 72-73,75,89,99,112
+  s_1e325abf04c4e2::t_fff56f4a3ed245 40-41
+  s_1e325abf04c4e2::t_087f4e181886d0 79-87,102-110
+apps/dashboard/src/types/design-system/auth-flow.ts
+  s_1e325abf04c4e2::t_c408777e2d9b13 12,46
+  s_1e325abf04c4e2::t_4d11615d70e8e2 1-11,13-45,47-55
+packages/ui/src/components/shared/auth/email-verification-form.tsx
+  s_1e325abf04c4e2::t_5c2797f3e95470 19-20,51-56,58-70,72
+  s_1e325abf04c4e2::t_54a3b72182d3d1 57,71
+apps/dashboard/src/app/auth/social/callback/route.ts
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 31,102,165-167
+  s_1e325abf04c4e2::t_87e2b694828a2e 7-11,14,23-28,30,59-64,66-67,70-101,103-112,157-160,170-173
+apps/dashboard/src/components/settings/security-step-up-dialog.tsx
+  s_1e325abf04c4e2::t_c6f2bcd539ae88 1-73,75-87
+  s_1e325abf04c4e2::t_138143449e170a 74
+apps/dashboard/src/utils/ratelimit.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 187-192,199-204
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 193-198
+apps/dashboard/src/types/settings/modal.ts
+  s_1e325abf04c4e2::t_011373a24b7b09 6
+apps/dashboard/src/app/(auth)/login/page.tsx
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 31,46
+  s_1e325abf04c4e2::t_87e2b694828a2e 3,9-10,29-30,40-45,47-49
+apps/dashboard/src/lib/auth/workos-error.ts
+  s_f46f1695765cc6::t_ce3c34b6ded9c9 14
+  s_1e325abf04c4e2::t_011373a24b7b09 10-11,15-16,29-30,39,43-48
+apps/dashboard/src/constants/security.ts
+  s_1e325abf04c4e2::t_e71bfc808e9f4f 30,32-37
+  s_1e325abf04c4e2::t_fa586a61507a52 1-29,31,38-41
+packages/ui/src/lib/security-types.ts
+  s_1e325abf04c4e2::t_9858dddb54ad75 1-3,6-8,22-31,33-63,65,67-68,71-90
+  s_1e325abf04c4e2::t_8a795ef7cbea20 4-5,9-21,32,64,66,69-70
+packages/ui/src/lib/auth-types.ts
+  s_1e325abf04c4e2::t_9858dddb54ad75 3,10-13,16-20,22-23,36-38,56,79-83,85-93,105-106,110,117,130-137,170-181,187-188,192-196,198-199,202,204-208,210-212,214-215,218-227,242,249,252
+  s_1e325abf04c4e2::t_834f2e4c508581 45,112,203,250
+  s_1e325abf04c4e2::t_8a795ef7cbea20 14-15,21,41-42,46-50,63-70,84,94,107,111,114-116,197,200-201,209,213,216-217
+apps/dashboard/src/app/design-system/auth-flow/page.tsx
+  s_1e325abf04c4e2::t_4d11615d70e8e2 1-5
+packages/ui/src/components/shared/auth/totp-enrollment-panel.tsx
+  s_1e325abf04c4e2::t_7b1f088aff0319 1-9,12-13,16-17,19-24,84-85,101-103,105-107,109-110,112,114-116,118-130,133-136,138-139,144,147-148,160-163,177-178,180-190,192-195,198,207,209,294
+  s_1e325abf04c4e2::t_8d67ba2c49e5ba 10,14-15,25-65,67-73,75-83,104,108,111,113,117,131-132,137,140-143,145-146,166,168-174,221-222,225,230-234,245,253-254,258,260,281,285-287,289
+  s_1e325abf04c4e2::t_138143449e170a 11,18,66,74,86-100,149-159,164-165,167,175-176,179,191,196-197,199-206,208,210-220,223-224,226-229,235-244,246-252,255-257,259,261-280,282-284,288,290-293
+packages/ui/src/components/shared/security/security-load-error.tsx
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-15
+packages/ui/src/components/shared/security/step-transition.tsx
+  s_1e325abf04c4e2::t_138143449e170a 1-48
+packages/ui/src/components/shared/security/format-security-date.ts
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-12
+apps/dashboard/src/components/design-system/auth-flow-playground.tsx
+  s_1e325abf04c4e2::t_ef4c627e651c63 1-35,38-39,44,51-62,69-88,92-120,133-185,187-198,200-209,211-246,255-316,318-332,334-358,360-380,382-383,385-395,397-402,406-430,432-433,435-441,443-450,452-485,487-506,508-553,555,566-575,610-626,636,641,645-671,677-682,684-695,697,701,703-704,713-720,727-732,735-763,767-771,775-790,810,815,824-836,840-864,866-873,878-919,921-941,945-948,951-976,980-987,989-1011,1014-1028
+  s_1e325abf04c4e2::t_49e4f0b242c3ce 36,40-43,89-91,122-132,199,210,247-254,384,434,486,507,554,561-565,576-582,585-594,596-607,609,672-676,683,698-700,702,705-712,726,942-944,949-950,988
+  s_1e325abf04c4e2::t_ccb2096930dd0b 63-68,121,627-635,637-640,643,791-809,811-814,816-823,837-839
+  s_1e325abf04c4e2::t_834f2e4c508581 37,583-584,595,608,920
+  s_1e325abf04c4e2::t_bffc77f6bd6926 45-50,381,403-405,431,442,451,556-560,696,721-725,733-734,772-774,865,977-979
+  s_1e325abf04c4e2::t_cef9f0636d278f 186,317,333,359,396,642,644,764-766,874-877,1012-1013
+packages/ui/src/components/shared/security/two-factor-settings.tsx
+  s_1e325abf04c4e2::t_54a3b72182d3d1 3,6,9,12,15,23,29-56,58,60,62-75,77,82,84-87,89-101,162,165-166,189,191,232-235,238,240-246,248-256
+  s_1e325abf04c4e2::t_138143449e170a 24,57,59,61,223-229,231,236-237,247
+  s_1f73cfa75e503c::t_5eed92b8db11de 139,141,143
+  s_1e325abf04c4e2::t_4e8bb7eadd6d0e 1-2,10-11,13-14,16-22,25-28,102-138,140,142,144-161,163-164,167-182,184-188,190,192-214,216,218,220-222,230,257-258
+  s_1f73cfa75e503c::t_c6d45edc76b3bf 4-5,7-8
+  s_1f73cfa75e503c::t_b6ca4864a1d274 215,217,219
+  s_1e325abf04c4e2::t_5c2797f3e95470 183
+  s_1f73cfa75e503c::t_24f66eb16bdbb7 76,78-81,83,88
+  s_1f73cfa75e503c::t_8982097f305d0c 239
+apps/dashboard/src/lib/auth/dev-totp.ts
+  s_1e325abf04c4e2::t_4d11615d70e8e2 1-17,19-36,38-49,53-93,95-102,104-131
+  s_f46f1695765cc6::t_a16a955302c7ca 103
+  s_f46f1695765cc6::t_2b5f4f22a7652a 18
+  s_f46f1695765cc6::t_784d6f95643583 37
+  s_1e325abf04c4e2::t_cef9f0636d278f 50-52,94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cc2b3ab6acfe385cbc86b4d5c1f867cfb0d1ed08",
+  "prompts": {},
+  "sessions": {
+    "s_1e325abf04c4e2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f98b95b6-a893-4a57-9f87-93bd7c030132",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_1f73cfa75e503c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a51b3fb4-1046-44f7-9fcc-2321f1d0345a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    },
+    "s_f46f1695765cc6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6e409f03ffeNJ2oV1K6erMNMx",
+        "model": "muse-spark-1.3-contributor-free"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
