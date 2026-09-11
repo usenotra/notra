@@ -13,18 +13,37 @@ import type { ReactNode } from "react";
 
 import { GeoAnswerActions } from "@/components/geo/geo-answer-actions";
 import {
-  GEO_ANSWER_MENTION_COMPONENTS,
-  GeoAnswerMentionProvider,
-} from "@/components/geo/geo-answer-mentions";
+  GeoAnswerMentionBlockquote,
+  GeoAnswerMentionHeading1,
+  GeoAnswerMentionHeading2,
+  GeoAnswerMentionHeading3,
+  GeoAnswerMentionListItem,
+  GeoAnswerMentionParagraph,
+  GeoAnswerMentionTableCell,
+  GeoAnswerMentionTableHeaderCell,
+} from "@/components/geo/geo-answer-mention-components";
+import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
+import type { GeoAnswerMentionComponents } from "@/types/geo-answer-mentions";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 
 const ANSWER_MARKDOWN_CLASS =
   "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ol]:my-2.5";
+
+const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
+  p: GeoAnswerMentionParagraph,
+  li: GeoAnswerMentionListItem,
+  td: GeoAnswerMentionTableCell,
+  th: GeoAnswerMentionTableHeaderCell,
+  h1: GeoAnswerMentionHeading1,
+  h2: GeoAnswerMentionHeading2,
+  h3: GeoAnswerMentionHeading3,
+  blockquote: GeoAnswerMentionBlockquote,
+};
 
 function emptyAnswerCopy(mentioned: boolean): string {
   return mentioned

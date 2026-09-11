@@ -1,9 +1,10 @@
 import type {
+  GeoAnswerMentionKind,
   GeoAnswerMentionTerm,
   GeoCompetitor,
   GeoCompetitorKind,
 } from "@notra/geo-core/types/geo";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 export interface GeoAnswerMentionContextValue {
   terms: readonly GeoAnswerMentionTerm[];
@@ -19,6 +20,23 @@ export interface GeoAnswerMentionProviderProps {
   organizationSlug?: string;
   children: ReactNode;
 }
+
+export interface GeoAnswerMentionMarkProps {
+  kind: GeoAnswerMentionKind;
+  phrase: string;
+  children: ReactNode;
+}
+
+export type GeoAnswerMentionComponents = {
+  p: ComponentType;
+  li: ComponentType;
+  td: ComponentType;
+  th: ComponentType;
+  h1: ComponentType;
+  h2: ComponentType;
+  h3: ComponentType;
+  blockquote: ComponentType;
+};
 
 export interface GeoAnswerMentionCompetitorCardProps {
   brand: string;

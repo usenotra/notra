@@ -1,7 +1,6 @@
 "use client";
 
 import { geoAnswerMentionTerms } from "@notra/geo-core/utils/geo-answer-mentions";
-import { useMemo } from "react";
 
 import { useGeoCompetitors, useGeoSettings } from "@/lib/hooks/use-geo";
 import type { GeoAnswerMentionContextValue } from "@/types/geo-answer-mentions";
@@ -18,22 +17,12 @@ export function useGeoAnswerMentionData(
   const { data: competitorsData } = useGeoCompetitors(enabledId);
   const settings = settingsData?.settings;
   const competitors = competitorsData?.competitors ?? EMPTY_TRACKED;
-
-  const terms = useMemo(
-    () =>
-      geoAnswerMentionTerms({
-        companyName: settings?.companyName,
-        aliases: settings?.aliases,
-        mentionedCompetitors,
-        trackedCompetitors: competitors,
-      }),
-    [
-      competitors,
-      mentionedCompetitors,
-      settings?.aliases,
-      settings?.companyName,
-    ]
-  );
+  const terms = geoAnswerMentionTerms({
+    companyName: settings?.companyName,
+    aliases: settings?.aliases,
+    mentionedCompetitors,
+    trackedCompetitors: competitors,
+  });
 
   return { terms, competitors };
 }

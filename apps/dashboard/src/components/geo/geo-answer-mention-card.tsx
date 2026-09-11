@@ -2,7 +2,6 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useMemo } from "react";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { BrandTrackingBadge } from "@/components/geo/share-of-voice-brand-tag";
@@ -43,13 +42,10 @@ export function GeoAnswerMentionCompetitorCard({
   onView,
 }: GeoAnswerMentionCompetitorCardProps) {
   const { data } = useGeoCompetitorDetail(organizationId, open ? brand : null);
-  const summary = useMemo(
-    () =>
-      data?.prompts && data.prompts.length > 0
-        ? competitorPromptSummary(data.prompts)
-        : null,
-    [data]
-  );
+  const summary =
+    data?.prompts && data.prompts.length > 0
+      ? competitorPromptSummary(data.prompts)
+      : null;
 
   return (
     <TrafficBreakdownCard
