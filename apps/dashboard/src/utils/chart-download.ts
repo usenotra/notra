@@ -1,19 +1,14 @@
+import { notraMarkSvg } from "@notra/ui/components/ui/svgs/notra";
+
 import {
   CHART_DOWNLOAD_HEADER,
   CHART_DOWNLOAD_PADDING,
   CHART_DOWNLOAD_PIXEL_RATIO,
   CHART_DOWNLOAD_RADIUS,
   CHART_DOWNLOAD_TITLE_SIZE,
-  CHART_WORDMARK_EXPORT_OPACITY,
-  CHART_WORDMARK_EXPORT_WIDTH_RATIO,
-  NOTRA_MARK_BLOB_PATH,
-  NOTRA_MARK_FILL,
-  NOTRA_MARK_SLASH_PATH,
-  NOTRA_WORDMARK_ASPECT,
-  NOTRA_WORDMARK_HEIGHT,
-  NOTRA_WORDMARK_LETTERS_PATH,
-  NOTRA_WORDMARK_WIDTH,
-} from "@/constants/chart-wordmark";
+  CHART_MARK_EXPORT_OPACITY,
+  CHART_MARK_EXPORT_SIZE_RATIO,
+} from "@/constants/chart-download";
 import type {
   ChartDownloadFrame,
   ChartDownloadRect,
@@ -25,12 +20,6 @@ const TRANSPARENT_BACKGROUNDS = new Set([
   "transparent",
   "rgba(0, 0, 0, 0)",
 ]);
-
-export function chartExportSource(
-  start: HTMLElement | null
-): HTMLElement | null {
-  return start?.closest("[data-chart]") ?? start;
-}
 
 export function chartExportTitle(source: HTMLElement): string {
   const labeled = source.closest("[data-chart-title]");
@@ -52,7 +41,7 @@ export function buildChartDownloadFilename(title: string): string {
   return `${base}.png`;
 }
 
-export function largestCanvas(
+function largestCanvas(
   canvases: readonly Pick<HTMLCanvasElement, "width" | "height">[]
 ): (typeof canvases)[number] | null {
   let best: (typeof canvases)[number] | null = null;
@@ -75,7 +64,7 @@ function exportScale(canvas: HTMLCanvasElement): number {
   return canvas.width / cssWidth;
 }
 
-export function exportFrame(
+function exportFrame(
   chartWidth: number,
   chartHeight: number,
   pixelRatio = CHART_DOWNLOAD_PIXEL_RATIO
@@ -94,46 +83,36 @@ export function exportFrame(
   };
 }
 
-export function exportWordmarkRect(
+function exportMarkRect(
   chartWidth: number,
   chartHeight: number,
   chartX: number,
   chartY: number
 ): ChartDownloadRect {
-  const width = chartWidth * CHART_WORDMARK_EXPORT_WIDTH_RATIO;
-  const height = width * NOTRA_WORDMARK_ASPECT;
+  const size = Math.min(chartWidth, chartHeight) * CHART_MARK_EXPORT_SIZE_RATIO;
   return {
-    x: chartX + (chartWidth - width) / 2,
-    y: chartY + (chartHeight - height) / 2,
-    width,
-    height,
+    x: chartX + (chartWidth - size) / 2,
+    y: chartY + (chartHeight - size) / 2,
+    width: size,
+    height: size,
   };
 }
 
-export function notraWordmarkSvg(color: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${NOTRA_WORDMARK_WIDTH}" height="${NOTRA_WORDMARK_HEIGHT}" viewBox="0 0 ${NOTRA_WORDMARK_WIDTH} ${NOTRA_WORDMARK_HEIGHT}" fill="none">
-  <g transform="translate(40 40) scale(0.25)">
-    <path d="${NOTRA_MARK_BLOB_PATH}" fill="${NOTRA_MARK_FILL}" stroke="${color}" stroke-width="35" stroke-linecap="round"/>
-    <path d="${NOTRA_MARK_SLASH_PATH}" stroke="${color}" stroke-width="75" stroke-linecap="round" fill="none"/>
-  </g>
-  <path d="${NOTRA_WORDMARK_LETTERS_PATH}" fill="${color}"/>
-</svg>`;
-}
-
-export function cssSurfaceColor(
-  source: HTMLElement,
-  property: "backgroundColor" | "color"
-): string {
-  const start =
+function cardSurface(source: HTMLElement): HTMLElement {
+  return (
     source.closest("[data-slot=card-content]") ??
     source.closest("[data-slot=card]") ??
-    source;
+    source
+  );
+}
 
-  if (property === "color") {
-    return getComputedStyle(start).color.trim();
-  }
+function cssForeground(source: HTMLElement): string {
+  return getComputedStyle(cardSurface(source)).color.trim();
+}
 
-  let el: HTMLElement | null = start;
+function cssOpaqueBackground(source: HTMLElement): string {
+  let el: HTMLElement | null = cardSurface(source);
+
   while (el) {
     const value = getComputedStyle(el).backgroundColor.trim();
     if (!TRANSPARENT_BACKGROUNDS.has(value)) {
@@ -166,7 +145,7 @@ async function loadSvgImage(svg: string): Promise<HTMLImageElement> {
   const image = new Image();
   await new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Failed to load chart wordmark"));
+    image.onerror = () => reject(new Error("Failed to load chart mark"));
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });
   return image;
@@ -207,9 +186,10 @@ export async function renderChartPng(
     throw new Error("Failed to create chart export");
   }
 
-  const background = cssSurfaceColor(source, "backgroundColor");
-  const foreground = cssSurfaceColor(source, "color");
+  const background = cssOpaqueBackground(source);
+  const foreground = cssForeground(source);
   const radius = CHART_DOWNLOAD_RADIUS * pixelRatio;
+  const markPromise = loadSvgImage(notraMarkSvg(foreground));
 
   ctx.fillStyle = background;
   roundRect(ctx, 0, 0, frame.width, frame.height, radius);
@@ -217,17 +197,18 @@ export async function renderChartPng(
 
   ctx.drawImage(canvas, frame.chartX, frame.chartY);
 
-  const wordmark = await loadSvgImage(notraWordmarkSvg(foreground));
-  const watermark = exportWordmarkRect(
+  const mark = await markPromise;
+  const watermark = exportMarkRect(
     frame.chartWidth,
     frame.chartHeight,
     frame.chartX,
     frame.chartY
   );
+
   ctx.save();
-  ctx.globalAlpha = CHART_WORDMARK_EXPORT_OPACITY;
+  ctx.globalAlpha = CHART_MARK_EXPORT_OPACITY;
   ctx.drawImage(
-    wordmark,
+    mark,
     watermark.x,
     watermark.y,
     watermark.width,

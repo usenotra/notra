@@ -7,39 +7,37 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import type { MouseEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
-import type { ChartDownloadButtonProps } from "@/types/chart-download";
 import {
   buildChartDownloadFilename,
-  chartExportSource,
   chartExportTitle,
   downloadChartPng,
 } from "@/utils/chart-download";
 
-export function ChartDownloadButton({
-  sourceRef,
-  title,
-  filename,
-  className,
-}: ChartDownloadButtonProps) {
+function chartRoot(start: EventTarget | null): HTMLElement | null {
+  if (!(start instanceof HTMLElement)) {
+    return null;
+  }
+  const root = start.closest("[data-chart]");
+  return root instanceof HTMLElement ? root : null;
+}
+
+export function ChartDownloadButton({ className }: { className?: string }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  function handleDownload() {
-    const source = chartExportSource(sourceRef.current);
+  function handleDownload(event: MouseEvent<HTMLButtonElement>) {
+    const source = chartRoot(event.currentTarget);
     if (!source || isDownloading) {
       return;
     }
 
-    const label = title ?? chartExportTitle(source);
+    const title = chartExportTitle(source);
     setIsDownloading(true);
-    void downloadChartPng(
-      source,
-      label,
-      filename ?? buildChartDownloadFilename(label)
-    )
+    void downloadChartPng(source, title, buildChartDownloadFilename(title))
       .then(
         () => {
           toast.success("Downloaded chart");
