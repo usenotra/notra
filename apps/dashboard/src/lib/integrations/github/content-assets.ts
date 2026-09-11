@@ -1,6 +1,7 @@
 import { posix } from "node:path";
 
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GITHUB_IMAGE_EXTENSION_REGEX } from "@notra/schemas/constants/dashboard/github";
 import { fromMarkdown } from "mdast-util-from-markdown";
 
 import {
@@ -9,7 +10,6 @@ import {
   GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES,
 } from "@/constants/github";
 import type {
-  GitHubMarkdownNode,
   GitHubSourceImageAsset,
   PrepareGitHubContentAssetsParams,
   PreparedGitHubContent,
@@ -17,7 +17,6 @@ import type {
 
 import { getOptionalR2PublicUrl, getR2StorageConfig } from "../../upload/r2";
 
-const IMAGE_EXTENSION_PATTERN = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
 const CONTENT_TYPE_EXTENSIONS: Readonly<Record<string, string>> = {
   "image/avif": ".avif",
   "image/gif": ".gif",
@@ -31,23 +30,33 @@ export function expandGitHubPathTemplate(template: string, slug: string) {
   return template.replaceAll(":slug", slug);
 }
 
+/**
+ * Returns the byte ranges of inline image destinations (`![alt](url)`) in
+ * source order. Only the URL span is reported so alt text, titles, and
+ * angle-bracket destinations are preserved verbatim when the URL is swapped.
+ *
+ * Reference-style images (`![alt][ref]`) and raw `<img>` HTML are left
+ * untouched: Notra's editor and generators only emit inline images.
+ *
+ * The extension overrides mdast-util-from-markdown's default
+ * `resourceDestinationString` handlers, which is the only place the parser
+ * exposes the destination's offsets. The replacement keeps the default
+ * behaviour (`buffer` on enter, `resume` + `node.url` on exit).
+ */
 function findMarkdownImageOccurrences(markdown: string) {
-  const occurrences: Array<{
-    alt?: string;
-    end: number;
-    start: number;
-    title?: string | null;
-    url: string;
-  }> = [];
-  let destination: { end?: number; image: boolean; start?: number } | undefined;
+  const occurrences: Array<{ end: number; start: number; url: string }> = [];
+  let destination: { end: number; image: boolean; start: number } | undefined;
 
-  const tree = fromMarkdown(markdown, {
+  fromMarkdown(markdown, {
     mdastExtensions: [
       {
         enter: {
           resourceDestinationString(token) {
             destination = {
               end: token.end.offset,
+              // A destination belongs to an image when the image node is on
+              // top of the stack and it is not nested inside another image's
+              // alt text (that inner syntax is rendered as plain text).
               image:
                 this.stack.at(-1)?.type === "image" &&
                 !this.stack.slice(0, -1).some((node) => node.type === "image"),
@@ -63,92 +72,17 @@ function findMarkdownImageOccurrences(markdown: string) {
             if (node && "url" in node) {
               node.url = url;
             }
-            if (
-              destination?.image &&
-              destination.start !== undefined &&
-              destination.end !== undefined
-            ) {
-              occurrences.push({
-                end: destination.end,
-                start: destination.start,
-                url,
-              });
+            if (destination?.image) {
+              occurrences.push({ ...destination, url });
             }
             destination = undefined;
           },
         },
       },
     ],
-  }) as GitHubMarkdownNode;
-
-  const definitions = new Map<string, { title?: string | null; url: string }>();
-  const visitDefinitions = (node: GitHubMarkdownNode) => {
-    if (
-      node.type === "definition" &&
-      node.identifier &&
-      node.url !== undefined &&
-      !definitions.has(node.identifier)
-    ) {
-      definitions.set(node.identifier, { title: node.title, url: node.url });
-    }
-    node.children?.forEach(visitDefinitions);
-  };
-  visitDefinitions(tree);
-
-  const visitReferences = (node: GitHubMarkdownNode) => {
-    if (
-      node.type === "imageReference" &&
-      node.identifier &&
-      node.position?.start.offset !== undefined &&
-      node.position.end.offset !== undefined
-    ) {
-      const definition = definitions.get(node.identifier);
-      if (definition) {
-        occurrences.push({
-          alt: node.alt ?? "",
-          end: node.position.end.offset,
-          start: node.position.start.offset,
-          title: definition.title,
-          url: definition.url,
-        });
-      }
-    }
-    node.children?.forEach(visitReferences);
-  };
-  visitReferences(tree);
+  });
 
   return occurrences.sort((left, right) => left.start - right.start);
-}
-
-function renderInlineImage(
-  alt: string,
-  destination: string,
-  title: string | null | undefined
-) {
-  const escapedAlt = [...alt]
-    .map((character) => {
-      if (character === "&") {
-        return "&amp;";
-      }
-      if (character === "\r") {
-        return "&#13;";
-      }
-      if (character === "\n") {
-        return "&#10;";
-      }
-      return /[!"#$%'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(character)
-        ? `\\${character}`
-        : character;
-    })
-    .join("");
-  const escapedTitle = title
-    ?.replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("\r", "&#13;")
-    .replaceAll("\n", "&#10;")
-    .replaceAll("\\", "\\\\");
-  const titleSuffix = escapedTitle === undefined ? "" : ` "${escapedTitle}"`;
-  return `![${escapedAlt}](${destination}${titleSuffix})`;
 }
 
 function getR2Key(imageUrl: string, publicUrl: string) {
@@ -179,7 +113,8 @@ function getR2Key(imageUrl: string, publicUrl: string) {
 }
 
 function resolveImageExtension(key: string, contentType?: string) {
-  const pathExtension = IMAGE_EXTENSION_PATTERN.exec(key)?.[0].toLowerCase();
+  const pathExtension =
+    GITHUB_IMAGE_EXTENSION_REGEX.exec(key)?.[0].toLowerCase();
   return pathExtension ?? CONTENT_TYPE_EXTENSIONS[contentType ?? ""] ?? ".png";
 }
 
@@ -188,15 +123,13 @@ function resolveIndexedImagePath(
   extension: string,
   index: number
 ) {
-  const expanded = template.replaceAll(":index", String(index));
-  const configuredExtension = IMAGE_EXTENSION_PATTERN.exec(expanded)?.[0];
-  const path = configuredExtension ? expanded : `${expanded}${extension}`;
-  if (index === 1 || template.includes(":index")) {
-    return path;
-  }
-
-  const finalExtension = IMAGE_EXTENSION_PATTERN.exec(path)?.[0] ?? "";
-  return `${path.slice(0, -finalExtension.length)}-${index}${finalExtension}`;
+  // The extension always follows the source image; one configured in the
+  // template would mislabel other formats (a JPEG stored as `cover.png`).
+  const base = template
+    .replaceAll(":index", String(index))
+    .replace(GITHUB_IMAGE_EXTENSION_REGEX, "");
+  const suffix = index === 1 || template.includes(":index") ? "" : `-${index}`;
+  return `${base}${suffix}${extension}`;
 }
 
 function encodeMarkdownPath(path: string) {
@@ -315,12 +248,8 @@ async function prepareGitHubContentAssets(
     assets,
     markdown: occurrences.reduceRight((markdown, occurrence) => {
       const destination = replacements.get(occurrence.url);
-      const replacement =
-        destination && occurrence.alt !== undefined
-          ? renderInlineImage(occurrence.alt, destination, occurrence.title)
-          : destination;
-      return replacement
-        ? `${markdown.slice(0, occurrence.start)}${replacement}${markdown.slice(occurrence.end)}`
+      return destination
+        ? `${markdown.slice(0, occurrence.start)}${destination}${markdown.slice(occurrence.end)}`
         : markdown;
     }, params.markdown),
   };

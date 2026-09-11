@@ -28,7 +28,6 @@ import { expandGitHubPathTemplate } from "./content-assets";
 import {
   buildContentPullRequestBody,
   mergeContentPullRequestBody,
-  parseContentPullRequestAssetPaths,
 } from "./pull-request-body";
 
 export class GitHubContentTargetExistsError extends Error {}
@@ -289,7 +288,6 @@ async function ensurePullRequestBody(params: {
   repo: string;
 }) {
   const body = mergeContentPullRequestBody(params.currentBody, {
-    assetPaths: (params.publishParams.assets ?? []).map(({ path }) => path),
     badgeUrls: params.publishParams.badgeUrls,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
@@ -471,7 +469,9 @@ async function assertRecoverableContentBranch(
   if (files.length >= 300) {
     throw new GitHubContentBranchConflictError(params.branchName, params.path);
   }
-  const contentFiles = files.filter((file) => /\.mdx?$/i.test(file.filename));
+  const [contentFile, ...otherContentFiles] = files.filter((file) =>
+    /\.mdx?$/i.test(file.filename)
+  );
   let commitMessage: string | undefined;
   if (comparison.ahead_by > 0) {
     try {
@@ -499,7 +499,10 @@ async function assertRecoverableContentBranch(
     branchHeadSha,
     commitMessage,
     files,
-    path: contentFiles[0]?.filename ?? params.path,
+    path:
+      contentFile && otherContentFiles.length === 0
+        ? contentFile.filename
+        : params.path,
   };
 }
 
@@ -817,30 +820,22 @@ export async function publishContentDraftPullRequest(
       });
   // The first content commit records the publication path. Keep it even when
   // the post's slug or the repository's configured output directory changes.
-  const params = await resolveGitHubPublishParams(
-    requestedParams,
-    contentBranch.path
-  );
-  if ((params.assets?.length ?? 0) > GITHUB_CONTENT_MAX_ASSET_COUNT) {
-    throw new GitHubContentPublishError(
-      `A GitHub draft can include at most ${GITHUB_CONTENT_MAX_ASSET_COUNT} images`,
-      new Error("GitHub comparison file limit exceeded"),
-      branchName
-    );
-  }
+  const contentPath = contentBranch.path;
   const { branchHeadSha } = contentBranch;
+  // Assets are owned only when the last content commit recorded them and the
+  // branch still adds them; anything else on the branch belongs to someone else.
   const commitMetadata = parseContentCommitMetadata(
     contentBranch.commitMessage
   );
   const recordedAssetPaths =
-    commitMetadata?.contentPath === contentBranch.path
+    commitMetadata?.contentPath === contentPath
       ? commitMetadata.assetPaths
-      : parseContentPullRequestAssetPaths(existingPullRequest?.body);
+      : [];
   const addedAssetPaths = new Set(
     contentBranch.files
       .filter(
         (file) =>
-          file.filename !== params.path &&
+          file.filename !== contentPath &&
           file.status === "added" &&
           !("previous_filename" in file)
       )
@@ -849,16 +844,24 @@ export async function publishContentDraftPullRequest(
   const ownedAssetPaths = recordedAssetPaths.filter((path) =>
     addedAssetPaths.has(path)
   );
-
   if (
     !isRecoverableContentFileSet({
       aheadBy: contentBranch.aheadBy,
-      contentPath: params.path,
+      contentPath,
       files: contentBranch.files,
       ownedAssetPaths,
     })
   ) {
-    throw new GitHubContentBranchConflictError(branchName, params.path);
+    throw new GitHubContentBranchConflictError(branchName, contentPath);
+  }
+
+  const params = await resolveGitHubPublishParams(requestedParams, contentPath);
+  if ((params.assets?.length ?? 0) > GITHUB_CONTENT_MAX_ASSET_COUNT) {
+    throw new GitHubContentPublishError(
+      `A GitHub draft can include at most ${GITHUB_CONTENT_MAX_ASSET_COUNT} images`,
+      new Error("GitHub comparison file limit exceeded"),
+      branchName
+    );
   }
   const currentAssetPaths = new Set(
     (params.assets ?? []).map(({ path }) => path)
@@ -885,21 +888,6 @@ export async function publishContentDraftPullRequest(
       .filter((path) => !ownedAssetPaths.includes(path)),
     branchHeadSha
   );
-
-  const pullRequestBodyParams = {
-    assetPaths: (params.assets ?? []).map(({ path }) => path),
-    badgeUrls: params.badgeUrls,
-    contentType: params.contentType,
-    contentUrl: params.contentUrl,
-    markdown: params.pullRequestMarkdown ?? params.markdown,
-    title: params.title,
-  };
-  const pullRequestBody = existingPullRequest
-    ? mergeContentPullRequestBody(
-        existingPullRequest.body,
-        pullRequestBodyParams
-      )
-    : buildContentPullRequestBody(pullRequestBodyParams);
 
   const commitSha = await commitContentToBranch(
     octokit,
@@ -972,7 +960,13 @@ export async function publishContentDraftPullRequest(
         base: params.defaultBranch,
         head: branchName,
         title: `docs: add ${params.title}`,
-        body: pullRequestBody,
+        body: buildContentPullRequestBody({
+          badgeUrls: params.badgeUrls,
+          contentType: params.contentType,
+          contentUrl: params.contentUrl,
+          markdown: params.pullRequestMarkdown ?? params.markdown,
+          title: params.title,
+        }),
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,
       }

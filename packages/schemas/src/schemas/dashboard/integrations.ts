@@ -5,6 +5,7 @@ import * as z from "zod";
 
 import {
   GITHUB_CONTENT_PATH_MAX_LENGTH,
+  GITHUB_IMAGE_EXTENSION_REGEX,
   GITHUB_PATH_INVALID_CHARACTERS_REGEX,
   GITHUB_PUBLISH_CONTENT_TYPES,
   GITHUB_URL_PATTERNS,
@@ -299,7 +300,11 @@ export const repositoryContentPathTemplateSchema =
     "Content path must end in .md or .mdx"
   );
 
-export const repositoryImagePathTemplateSchema = repositoryRelativePathSchema;
+export const repositoryImagePathTemplateSchema =
+  repositoryRelativePathSchema.refine(
+    (path) => !GITHUB_IMAGE_EXTENSION_REGEX.test(path),
+    "Leave out the file extension; it follows the source image"
+  );
 
 export const repositoryContentDirectoryConfigSchema = z.looseObject({
   directory: repositoryContentDirectorySchema.optional(),

@@ -49,11 +49,16 @@ export const GITHUB_PULL_REQUEST_BODY_SECTION_START =
   "<!-- notra:content:start -->";
 export const GITHUB_PULL_REQUEST_BODY_SECTION_END =
   "<!-- notra:content:end -->";
-export const GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX = "<!-- notra:assets:";
+/** Commit message trailer that records the files a Notra publication owns. */
 export const GITHUB_CONTENT_COMMIT_METADATA_PREFIX = "Notra-Publication: ";
 /** Leaves one comparison slot for the content file below GitHub's 300-file cap. */
 export const GITHUB_CONTENT_MAX_ASSET_COUNT = 298;
-export const GITHUB_CONTENT_MAX_ASSET_BYTES = 20 * 1024 * 1024;
+/**
+ * The GraphQL endpoint rejects request bodies of roughly 20 MB and more with
+ * HTTP 499. Assets travel base64-encoded inside that body, so ~12 MB of raw
+ * bytes is the largest total that reliably commits in one request.
+ */
+export const GITHUB_CONTENT_MAX_ASSET_BYTES = 12 * 1024 * 1024;
 export const GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES = 10 * 1024 * 1024;
 
 /** GitHub rejects issue and pull request bodies longer than this. */

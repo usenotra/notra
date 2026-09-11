@@ -1,5 +1,4 @@
 import {
-  GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX,
   GITHUB_PULL_REQUEST_BODY_MAX_LENGTH,
   GITHUB_PULL_REQUEST_BODY_SECTION_END,
   GITHUB_PULL_REQUEST_BODY_SECTION_START,
@@ -23,8 +22,6 @@ const LEADING_HEADING_REGEX = /^#\s+\S/;
 export type { OpenInNotraBadgeUrls };
 
 export interface BuildContentPullRequestBodyParams {
-  /** Repository paths of image assets owned by this publication. */
-  assetPaths?: readonly string[];
   contentType: GitHubPublishContentType;
   /** Deep link to the content in the Notra dashboard. */
   contentUrl?: string;
@@ -100,47 +97,6 @@ function joinParagraphs(parts: string[]) {
   return parts.filter((part) => part.length > 0).join("\n\n");
 }
 
-function renderAssetMetadata(assetPaths: readonly string[]) {
-  const encoded = Buffer.from(JSON.stringify([...assetPaths].sort())).toString(
-    "base64"
-  );
-  return `${GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX}${encoded} -->`;
-}
-
-export function parseContentPullRequestAssetPaths(
-  body: string | null | undefined
-) {
-  if (!body) {
-    return [];
-  }
-  const managedRange = markedSectionRange(body);
-  if (!managedRange) {
-    return [];
-  }
-  const managed = body.slice(managedRange.start, managedRange.end);
-  const start = managed.indexOf(GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX);
-  if (start < 0) {
-    return [];
-  }
-  const encodedStart = start + GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX.length;
-  const end = managed.indexOf(" -->", encodedStart);
-  if (end < 0) {
-    return [];
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(
-      Buffer.from(managed.slice(encodedStart, end), "base64").toString("utf8")
-    );
-    return Array.isArray(parsed) &&
-      parsed.every((path) => typeof path === "string")
-      ? parsed
-      : [];
-  } catch {
-    return [];
-  }
-}
-
 /**
  * Older pull requests only had this summary (and later the Open in Notra
  * button). Keep generating it so republishing can still find and replace
@@ -192,12 +148,11 @@ function wrapManagedSection(managedContent: string) {
 
 function buildManagedContent(params: BuildContentPullRequestBodyParams) {
   const article = formatContentForPullRequest(params);
-  const metadata = renderAssetMetadata(params.assetPaths ?? []);
   if (!article) {
-    return joinParagraphs([metadata, buildManagedIntro(params)]);
+    return buildManagedIntro(params);
   }
 
-  return joinParagraphs([metadata, renderOpenInNotraLink(params), article]);
+  return joinParagraphs([renderOpenInNotraLink(params), article]);
 }
 
 function clampManagedSection(wrapped: string, maxLength: number) {
@@ -222,27 +177,13 @@ function assemblePullRequestBody(
   suffix: string
 ) {
   const maxLength = GITHUB_PULL_REQUEST_BODY_MAX_LENGTH;
-  const metadataStart = managed.indexOf(
-    GITHUB_PULL_REQUEST_ASSET_METADATA_PREFIX
-  );
-  const metadataClosingStart = managed.indexOf(" -->", metadataStart);
-  const metadataEnd = metadataClosingStart + " -->".length;
-  const truncationSuffixLength =
-    `\n\n${PULL_REQUEST_BODY_TRUNCATION_NOTICE}`.length +
-    `\n${GITHUB_PULL_REQUEST_BODY_SECTION_END}`.length;
-  const minimumManagedLength =
-    metadataStart >= 0 && metadataClosingStart >= 0
-      ? metadataEnd + truncationSuffixLength
-      : wrapManagedSection("").length;
-  if (minimumManagedLength > maxLength) {
-    throw new Error(
-      "GitHub asset metadata exceeds the pull request body limit"
-    );
-  }
   let keptPrefix = prefix;
   let keptSuffix = suffix;
   const overflow =
-    keptPrefix.length + minimumManagedLength + keptSuffix.length - maxLength;
+    keptPrefix.length +
+    wrapManagedSection("").length +
+    keptSuffix.length -
+    maxLength;
 
   if (overflow > 0) {
     if (keptPrefix.length >= overflow) {
