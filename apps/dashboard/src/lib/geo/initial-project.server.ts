@@ -4,6 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { retryTransientDbError } from "@/lib/db/retry";
 import { getLastVisitedProject } from "@/utils/cookies";
 
 /**
@@ -24,13 +25,10 @@ export const resolveInitialGeoProjectId = cache(
     requestedProjectId: string | undefined
   ): Promise<string | undefined> => {
     if (requestedProjectId) {
-      const requested = await db.query.projects.findFirst({
-        columns: { id: true },
-        where: and(
-          eq(projects.id, requestedProjectId),
-          eq(projects.organizationId, organizationId)
-        ),
-      });
+      const requested = await findOrgProject(
+        organizationId,
+        requestedProjectId
+      );
       if (requested) {
         return requested.id;
       }
@@ -52,23 +50,34 @@ const resolveFallbackGeoProjectId = cache(
     );
 
     if (lastVisitedProjectId) {
-      const lastVisited = await db.query.projects.findFirst({
-        columns: { id: true },
-        where: and(
-          eq(projects.id, lastVisitedProjectId),
-          eq(projects.organizationId, organizationId)
-        ),
-      });
+      const lastVisited = await findOrgProject(
+        organizationId,
+        lastVisitedProjectId
+      );
       if (lastVisited) {
         return lastVisited.id;
       }
     }
 
-    const oldest = await db.query.projects.findFirst({
-      columns: { id: true },
-      where: eq(projects.organizationId, organizationId),
-      orderBy: [asc(projects.createdAt)],
-    });
+    const oldest = await retryTransientDbError(() =>
+      db.query.projects.findFirst({
+        columns: { id: true },
+        where: eq(projects.organizationId, organizationId),
+        orderBy: [asc(projects.createdAt)],
+      })
+    );
     return oldest?.id;
   }
 );
+
+function findOrgProject(organizationId: string, projectId: string) {
+  return retryTransientDbError(() =>
+    db.query.projects.findFirst({
+      columns: { id: true },
+      where: and(
+        eq(projects.id, projectId),
+        eq(projects.organizationId, organizationId)
+      ),
+    })
+  );
+}
