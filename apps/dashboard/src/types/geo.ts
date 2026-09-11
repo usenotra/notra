@@ -1309,6 +1309,16 @@ export interface PromptReceiptHistoryProps {
   onSelect?: (check: GeoPromptHistoryCheck) => void;
 }
 
+export interface PromptHistoryBrandTokenProps {
+  name: string;
+  competitors: readonly GeoCompetitor[] | undefined;
+}
+
+export interface PromptHistoryNewCompetitorsCellProps {
+  names: readonly string[];
+  competitors: readonly GeoCompetitor[] | undefined;
+}
+
 export interface GeoAnswerActionsProps {
   text: string;
   sources: readonly GeoAnswerSource[];

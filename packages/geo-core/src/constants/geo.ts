@@ -395,6 +395,8 @@ export const GEO_COMPETITOR_SHARE_LIMIT = 50;
 export const GEO_PROMPT_HISTORY_LIMIT = 120;
 export const GEO_PROMPT_HISTORY_SKELETON_ROWS = 4;
 export const GEO_PROMPT_HISTORY_PREVIEW_ROWS = 8;
+/** Named brands shown in the scan-history "Newly recommended" cell before +N. */
+export const GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE = 3;
 export const GEO_PROMPT_HISTORY_EMPTY_POSITION = "\u2013";
 export const GEO_PROMPT_HISTORY_EMPTY_COMPETITORS = "\u2013";
 export const GEO_PROMPT_HISTORY_COLUMN_LABELS = {
