@@ -19,12 +19,14 @@ import {
   FEEDBACK_PROJECT_NOT_FOUND_ERROR,
 } from "../constants/feedback";
 import { ORGANIZATION_SCOPED_API_KEY_ERROR } from "../constants/skills";
+import { submitFeedback as submitFeedbackProgram } from "../programs/feedback";
 import { trackFeedbackReceived } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
 import {
   findOrganizationIdBySlug,
+  getIngestProjectId,
+  runFeedbackProgram,
   serializeFeedback,
-  submitFeedback,
 } from "../utils/feedback";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
@@ -194,25 +196,35 @@ feedbackRoutes.openapi(submitOrganizationFeedbackRoute, async (c) => {
     return organizationLimited;
   }
 
-  const outcome = await submitFeedback(c, organizationId, c.req.valid("json"));
-  if (outcome.kind === "project_not_found") {
-    return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
+  const result = await runFeedbackProgram(
+    submitFeedbackProgram({
+      db: c.get("db"),
+      organizationId,
+      body: c.req.valid("json"),
+      ingestProjectId: getIngestProjectId(c),
+      userAgent: c.req.header("user-agent") ?? null,
+    })
+  );
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "FeedbackProjectNotFoundError") {
+      return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
+    }
+    if (result.failure._tag === "FeedbackNotFoundError") {
+      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    }
+    throw result.failure;
   }
-  if (outcome.kind === "not_found") {
-    return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
-  }
+
+  const feedback = serializeFeedback(result.success.feedback);
 
   trackFeedbackReceived(c, {
     organizationId,
-    feedback: outcome.feedback,
-    deduplicated: outcome.deduplicated,
+    feedback,
+    deduplicated: result.success.deduplicated,
     via: API_FEEDBACK_VIA.PUBLIC_SLUG,
   });
 
-  return c.json(
-    { feedback: outcome.feedback, deduplicated: outcome.deduplicated },
-    202
-  );
+  return c.json({ feedback, deduplicated: result.success.deduplicated }, 202);
 });
 
 feedbackRoutes.openapi(submitFeedbackRoute, async (c) => {
@@ -226,25 +238,35 @@ feedbackRoutes.openapi(submitFeedbackRoute, async (c) => {
     return rateLimited;
   }
 
-  const outcome = await submitFeedback(c, organizationId, c.req.valid("json"));
-  if (outcome.kind === "project_not_found") {
-    return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
+  const result = await runFeedbackProgram(
+    submitFeedbackProgram({
+      db: c.get("db"),
+      organizationId,
+      body: c.req.valid("json"),
+      ingestProjectId: getIngestProjectId(c),
+      userAgent: c.req.header("user-agent") ?? null,
+    })
+  );
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "FeedbackProjectNotFoundError") {
+      return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
+    }
+    if (result.failure._tag === "FeedbackNotFoundError") {
+      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    }
+    throw result.failure;
   }
-  if (outcome.kind === "not_found") {
-    return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
-  }
+
+  const feedback = serializeFeedback(result.success.feedback);
 
   trackFeedbackReceived(c, {
     organizationId,
-    feedback: outcome.feedback,
-    deduplicated: outcome.deduplicated,
+    feedback,
+    deduplicated: result.success.deduplicated,
     via: API_FEEDBACK_VIA.TOKEN,
   });
 
-  return c.json(
-    { feedback: outcome.feedback, deduplicated: outcome.deduplicated },
-    202
-  );
+  return c.json({ feedback, deduplicated: result.success.deduplicated }, 202);
 });
 
 feedbackRoutes.openapi(listFeedbackRoute, async (c) => {
