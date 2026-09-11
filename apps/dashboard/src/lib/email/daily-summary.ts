@@ -258,7 +258,7 @@ async function sendDailySummaryForOrganization({
     isUnchangedDailySummary({
       yesterday,
       previousDay,
-      changes,
+      eventCount: allEvents.length,
     })
   ) {
     return "quiet";

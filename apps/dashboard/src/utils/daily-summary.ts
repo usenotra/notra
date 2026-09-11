@@ -93,25 +93,17 @@ export function isQuietDailySummary({
 export function isUnchangedDailySummary({
   yesterday,
   previousDay,
-  changes,
+  eventCount,
 }: {
   yesterday: DailySummaryMentionTotals;
   previousDay: DailySummaryMentionTotals;
-  changes: GeoChangesSummary;
+  eventCount: number;
 }) {
-  if (formatMentionRateDelta(yesterday.rate, previousDay.rate) !== "unchanged") {
+  if (eventCount > 0) {
     return false;
   }
 
-  if (changes.gained - changes.lost !== 0) {
-    return false;
-  }
-
-  if (changes.citationsAdded > 0 || changes.citationsRemoved > 0) {
-    return false;
-  }
-
-  return true;
+  return formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged";
 }
 
 export function buildDailySummaryHeadline({
