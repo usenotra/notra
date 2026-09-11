@@ -27,28 +27,31 @@ export function ChartDownloadButton({
 }: ChartDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  async function handleDownload() {
+  function handleDownload() {
     const source = chartExportSource(sourceRef.current);
     if (!source || isDownloading) {
       return;
     }
 
     const label = title ?? chartExportTitle(source);
-
     setIsDownloading(true);
-    try {
-      await downloadChartPng(
-        source,
-        label,
-        filename ?? buildChartDownloadFilename(label)
-      );
-      toast.success("Downloaded chart");
-    } catch (error) {
-      console.error("Failed to download chart", error);
-      toast.error("Failed to download chart");
-    } finally {
-      setIsDownloading(false);
-    }
+    void downloadChartPng(
+      source,
+      label,
+      filename ?? buildChartDownloadFilename(label)
+    )
+      .then(
+        () => {
+          toast.success("Downloaded chart");
+        },
+        (error: unknown) => {
+          console.error("Failed to download chart", error);
+          toast.error("Failed to download chart");
+        }
+      )
+      .finally(() => {
+        setIsDownloading(false);
+      });
   }
 
   return (

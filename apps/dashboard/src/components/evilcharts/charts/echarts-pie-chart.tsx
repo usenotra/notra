@@ -8,8 +8,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { motion, useReducedMotion } from "motion/react";
-import { tween } from "@notra/ui/lib/motion";
+import { useReducedMotion } from "motion/react";
 import {
   Children,
   type CSSProperties,
@@ -23,7 +22,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ChartPlotWordmark } from "@/components/charts/chart-wordmark";
+import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   buildChartCss,
   getColorsCount,
@@ -1343,22 +1342,20 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
   };
 
   return (
-    <div
-      className={`group/chart relative flex flex-col text-xs ${className ?? ""}`}
-      data-chart={chartId}
-      ref={containerRef}
-    >
-      <style dangerouslySetInnerHTML={{ __html: css }} />
-
-      <div className="@container relative min-h-0 w-full flex-1">
-        {backgroundSlot.present && !isLoading && (
+    <EChartsPlotFrame
+      chartId={chartId}
+      className={className}
+      containerRef={containerRef}
+      css={css}
+      isLoading={isLoading}
+      mountRef={mountRef}
+      plotBefore={
+        backgroundSlot.present && !isLoading ? (
           <BackgroundLayer variant={backgroundSlot.variant} />
-        )}
-        <div className="relative h-full min-h-0 w-full" ref={mountRef} />
-        <ChartPlotWordmark />
-      </div>
-
-      {legendSlot.present && !isLoading && (
+        ) : null
+      }
+    >
+      {legendSlot.present && !isLoading ? (
         <LegendOverlay
           align={legendSlot.align}
           config={config}
@@ -1371,22 +1368,8 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
           variant={legendSlot.variant}
           verticalAlign={legendSlot.verticalAlign}
         />
-      )}
-
-      {isLoading && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <motion.div
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center justify-center gap-2 rounded-md border bg-background px-2 py-0.5 text-primary text-sm"
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
-            transition={tween("slow")}
-          >
-            <div className="h-3 w-3 animate-spin rounded-full border border-border border-t-primary" />
-            <span>Loading</span>
-          </motion.div>
-        </div>
-      )}
-    </div>
+      ) : null}
+    </EChartsPlotFrame>
   );
 }
 

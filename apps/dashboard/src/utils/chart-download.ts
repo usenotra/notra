@@ -3,6 +3,7 @@ import {
   CHART_DOWNLOAD_PADDING,
   CHART_DOWNLOAD_PIXEL_RATIO,
   CHART_DOWNLOAD_RADIUS,
+  CHART_DOWNLOAD_TITLE_SIZE,
   CHART_WORDMARK_EXPORT_OPACITY,
   CHART_WORDMARK_EXPORT_WIDTH_RATIO,
   NOTRA_MARK_BLOB_PATH,
@@ -141,21 +142,14 @@ function roundRect(
   ctx.closePath();
 }
 
-function loadSvgImage(svg: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load chart wordmark"));
-    };
-    image.src = url;
+async function loadSvgImage(svg: string): Promise<HTMLImageElement> {
+  const image = new Image();
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("Failed to load chart wordmark"));
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });
+  return image;
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -221,9 +215,9 @@ export async function renderChartPng(
   ctx.restore();
 
   ctx.fillStyle = foreground;
-  ctx.font = `600 ${14 * CHART_DOWNLOAD_PIXEL_RATIO}px Inter, ui-sans-serif, system-ui, sans-serif`;
-  ctx.textBaseline = "middle";
-  ctx.fillText(title, frame.padding, frame.padding + frame.header / 2);
+  ctx.font = `600 ${CHART_DOWNLOAD_TITLE_SIZE * CHART_DOWNLOAD_PIXEL_RATIO}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  ctx.textBaseline = "top";
+  ctx.fillText(title, frame.padding, frame.padding);
 
   return canvasToBlob(output);
 }
