@@ -59,6 +59,16 @@ export const trafficLogQuerySchema = z.object({
     "search-index",
     "assistant-browse",
   ]),
+  host: z
+    .string()
+    .trim()
+    .max(GEO_SHORT_FIELD_MAX_LENGTH)
+    .optional()
+    .openapi({
+      param: { name: "host", in: "query" },
+      description:
+        "Hostname to filter on. Subdomains of this host are included. Omit for every host.",
+    }),
 });
 
 export const trafficJourneysQuerySchema = geoWindowQuerySchema.extend({

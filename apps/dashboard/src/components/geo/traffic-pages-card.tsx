@@ -4,7 +4,6 @@ import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_TRAFFIC_HOST_ALL,
-  GEO_TRAFFIC_HOST_PARAM,
   GEO_TRAFFIC_PAGES_PAGE_PARAM,
   GEO_TRAFFIC_PAGES_PATH_PARAM,
 } from "@notra/geo-core/constants/geo";
@@ -12,7 +11,10 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
-import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
+import {
+  formatTrafficLocation,
+  isKnownTrafficHost,
+} from "@notra/geo-core/utils/geo-project-domains";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
@@ -35,6 +37,7 @@ import {
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { GeoTrafficPageGroup, TrafficPagesCardProps } from "@/types/geo";
 import {
@@ -57,10 +60,6 @@ export function TrafficPagesCard({
     GEO_TRAFFIC_PAGES_PATH_PARAM,
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
   );
-  const [hostQuery, setHostQuery] = useQueryState(
-    GEO_TRAFFIC_HOST_PARAM,
-    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
-  );
   const groups = groupTrafficPages(pages);
   const hostSet = new Set<string>();
   for (const group of groups) {
@@ -71,9 +70,12 @@ export function TrafficPagesCard({
   const hosts = [...hostSet].toSorted((left, right) =>
     left.localeCompare(right)
   );
+  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery(hosts, !isPending);
+  const appliedHost =
+    isPending || isKnownTrafficHost(hostQuery, hosts) ? hostQuery : "";
   const filteredGroups = filterTrafficPageGroupsByHost(
     filterTrafficPageGroups(groups, pathQuery),
-    hostQuery
+    appliedHost
   );
   const pagination = useTablePagination({
     key: GEO_TRAFFIC_PAGES_PAGE_PARAM,
@@ -159,7 +161,7 @@ export function TrafficPagesCard({
                   );
                 }
               }}
-              value={hostQuery || GEO_TRAFFIC_HOST_ALL}
+              value={appliedHost || GEO_TRAFFIC_HOST_ALL}
             >
               <SelectTrigger
                 aria-label="Filter pages by domain"

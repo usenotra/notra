@@ -104,3 +104,27 @@ export const GEO_EXCLUDED_SOURCES_SQL = `AND (
             {{String(excluded_sources, '')}} = ''
             OR NOT has(splitByChar(',', {{String(excluded_sources, '')}}), source)
           )`;
+
+export const GEO_HOST_FILTER_PARAMS = {
+  host: p
+    .string()
+    .optional("")
+    .describe("Hostname filter, empty for every host. Subdomains match."),
+};
+
+export const GEO_HOST_FILTER_SQL = `AND (
+            {{String(host, '')}} = ''
+            OR if(
+              startsWith(lowerUTF8(host), 'www.'),
+              substring(lowerUTF8(host), 5),
+              lowerUTF8(host)
+            ) = {{String(host, '')}}
+            OR endsWith(
+              if(
+                startsWith(lowerUTF8(host), 'www.'),
+                substring(lowerUTF8(host), 5),
+                lowerUTF8(host)
+              ),
+              concat('.', {{String(host, '')}})
+            )
+          )`;

@@ -42,6 +42,25 @@ export function matchesProjectHost(
   );
 }
 
+export function trafficLogHostFilter(host: string | undefined): string {
+  const trimmed = host?.trim() ?? "";
+  if (trimmed.length === 0 || trimmed === "all") {
+    return "";
+  }
+  return normalizeProjectDomain(trimmed) ?? trimmed.toLowerCase();
+}
+
+export function isKnownTrafficHost(
+  selected: string,
+  hosts: readonly string[]
+): boolean {
+  const needle = selected.trim();
+  if (needle.length === 0 || needle === "all") {
+    return true;
+  }
+  return hosts.includes(needle);
+}
+
 export function formatTrafficLocation(host: string, path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   if (host.length === 0) {

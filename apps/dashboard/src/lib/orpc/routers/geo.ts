@@ -1008,7 +1008,8 @@ export const geoRouter = {
           input,
           input.limit,
           input.visitorTypes,
-          input.categories
+          input.categories,
+          input.host
         )
       )
     ),

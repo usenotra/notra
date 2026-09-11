@@ -113,7 +113,10 @@ import {
   getGeoModelCatalogEntry,
   isGeoEngineZdrCapable,
 } from "../utils/geo-model-catalog";
-import { normalizeProjectDomains } from "../utils/geo-project-domains";
+import {
+  normalizeProjectDomains,
+  trafficLogHostFilter,
+} from "../utils/geo-project-domains";
 import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
@@ -1160,7 +1163,8 @@ export const loadGeoTrafficLog = Effect.fn("geo.trafficLog")(function* (
   input: GeoScopeInput,
   limit: number | undefined,
   visitorTypes: readonly string[] | undefined,
-  categories: readonly string[] | undefined
+  categories: readonly string[] | undefined,
+  host: string | undefined
 ) {
   const scope = yield* resolveGeoScope(input);
   const rows = yield* geoQuery("traffic log query failed", () =>
@@ -1170,6 +1174,7 @@ export const loadGeoTrafficLog = Effect.fn("geo.trafficLog")(function* (
       limit: limit ?? AI_TRAFFIC_DEFAULT_LOG_LIMIT,
       visitor_type: visitorTypes?.join(",") ?? "",
       category: categories?.join(",") ?? "",
+      host: trafficLogHostFilter(host),
     })
   );
   const data = rows?.data ?? [];

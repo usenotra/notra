@@ -11,7 +11,6 @@ import {
   GEO_CITATIONS_LIVE_INTERVAL_MS,
   GEO_CITATIONS_ROW_HEIGHT,
   GEO_TRAFFIC_CITATIONS_ONLY_LABEL,
-  GEO_TRAFFIC_HOST_PARAM,
   GEO_TRAFFIC_LOG_PAGE_PARAM,
   GEO_TRAFFIC_LOG_PURPOSE_OPTIONS,
   GEO_TRAFFIC_LOG_VISITOR_OPTIONS,
@@ -23,7 +22,6 @@ import {
   toggleGeoTrafficCitationsOnly,
   toggleGeoTrafficFilterValue,
 } from "@notra/geo-core/utils/ai-traffic";
-import { matchesProjectHost } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -32,7 +30,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { parseAsString, useQueryState } from "nuqs";
 import { type ReactNode, useState } from "react";
 
 import { CitationsTable } from "@/components/geo/citations-table";
@@ -44,6 +41,7 @@ import {
 import { TRAFFIC_LOG_FILTER_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoTrafficLog } from "@/lib/hooks/use-geo";
+import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { AiTrafficLogCardProps } from "@/types/geo";
 import { paginatedTableHeightFor } from "@/utils/table";
@@ -56,27 +54,16 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     categories: [],
   });
   const [live, setLive] = useState(true);
-  const [hostQuery] = useQueryState(
-    GEO_TRAFFIC_HOST_PARAM,
-    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
-  );
+  const [hostQuery] = useGeoTrafficHostQuery();
   const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
     refetchInterval: live ? GEO_CITATIONS_LIVE_INTERVAL_MS : false,
+    host: hostQuery,
   });
   const log = data?.log ?? [];
-  const selectedHost = hostQuery.trim();
-  const visibleLog =
-    selectedHost.length === 0
-      ? log
-      : log.filter(
-          (entry) =>
-            entry.host === selectedHost ||
-            matchesProjectHost(entry.host, [selectedHost])
-        );
   const total = data?.total ?? log.length;
   const pagination = useTablePagination({
     key: GEO_TRAFFIC_LOG_PAGE_PARAM,
-    totalItems: visibleLog.length,
+    totalItems: log.length,
     isReady: !isPending,
   });
   const citationsOnly = isGeoTrafficCitationsOnly(filters.categories);
@@ -84,7 +71,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   let body: ReactNode;
   if (isPending) {
     body = <GeoTableSkeleton rows={LOG_SKELETON_ROWS} />;
-  } else if (visibleLog.length === 0) {
+  } else if (log.length === 0) {
     body = (
       <InstrumentEmpty
         message="No visits match these filters"
@@ -94,7 +81,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   } else {
     body = (
       <CitationsTable
-        entries={visibleLog}
+        entries={log}
         height={paginatedTableHeightFor(
           pagination.pageRowCount,
           GEO_CITATIONS_ROW_HEIGHT

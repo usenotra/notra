@@ -2,9 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 import {
   formatTrafficLocation,
+  isKnownTrafficHost,
   matchesProjectHost,
   normalizeProjectDomain,
   normalizeProjectDomains,
+  trafficLogHostFilter,
 } from "../src/utils/geo-project-domains";
 
 describe("normalizeProjectDomain", () => {
@@ -66,5 +68,32 @@ describe("formatTrafficLocation", () => {
       "docs.example.com/blog"
     );
     expect(formatTrafficLocation("", "pricing")).toBe("/pricing");
+  });
+});
+
+describe("trafficLogHostFilter", () => {
+  test("normalizes a URL to a hostname", () => {
+    expect(trafficLogHostFilter("https://www.Docs.Example.com/blog")).toBe(
+      "docs.example.com"
+    );
+  });
+
+  test("treats empty and all as no filter", () => {
+    expect(trafficLogHostFilter("")).toBe("");
+    expect(trafficLogHostFilter("all")).toBe("");
+    expect(trafficLogHostFilter(undefined)).toBe("");
+  });
+});
+
+describe("isKnownTrafficHost", () => {
+  test("keeps a selected host that appears in the list", () => {
+    expect(
+      isKnownTrafficHost("example.com", ["example.com", "docs.example.com"])
+    ).toBe(true);
+  });
+
+  test("rejects a host that is not in the current list", () => {
+    expect(isKnownTrafficHost("example.com", ["docs.example.com"])).toBe(false);
+    expect(isKnownTrafficHost("other.com", ["example.com"])).toBe(false);
   });
 });

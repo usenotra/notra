@@ -16,6 +16,8 @@ import {
   GEO_DAY_WINDOW_SQL,
   GEO_EXCLUDED_SOURCES_PARAMS,
   GEO_EXCLUDED_SOURCES_SQL,
+  GEO_HOST_FILTER_PARAMS,
+  GEO_HOST_FILTER_SQL,
   GEO_PROJECT_SCOPE_PARAMS,
   GEO_PROJECT_SCOPE_SQL,
   GEO_WINDOW_PARAMS,
@@ -234,6 +236,7 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
       .describe(
         "Comma-separated request purpose filter, empty for every purpose"
       ),
+    ...GEO_HOST_FILTER_PARAMS,
   },
   nodes: [
     node({
@@ -264,6 +267,7 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
             {{String(category, '')}} = ''
             OR has(splitByChar(',', {{String(category, '')}}), category)
           )
+          ${GEO_HOST_FILTER_SQL}
         ORDER BY captured_at DESC
         LIMIT {{Int32(limit, 50)}}
       `,

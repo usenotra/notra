@@ -386,6 +386,7 @@ export interface GeoVisitorClassification {
 
 export interface GeoTrafficLogQueryOptions {
   refetchInterval?: number | false;
+  host?: string;
 }
 
 export interface GeoJourneyInput {

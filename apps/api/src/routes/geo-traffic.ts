@@ -93,7 +93,7 @@ const trafficLogRoute = createRoute({
   operationId: "getGeoTrafficLog",
   summary: "Get recent AI traffic events",
   description:
-    "The most recent individual requests from AI crawlers and referrals. This endpoint has no window; use `limit` to bound it.",
+    "The most recent individual requests from AI crawlers and referrals. This endpoint has no window; use `limit` to bound it. Pass `host` to keep the newest events for that hostname and its subdomains.",
   request: { params: projectParamsSchema, query: trafficLogQuerySchema },
   responses: {
     200: {
@@ -235,14 +235,15 @@ geoTrafficRoutes.openapi(trafficLogRoute, async (c) => {
   const base = c.get("geo");
   const { projectId } = c.req.valid("param");
 
-  const { limit, visitorTypes, categories } = c.req.valid("query");
+  const { limit, visitorTypes, categories, host } = c.req.valid("query");
   const outcome = await runGeoEffect(
     "trafficLog",
     loadGeoTrafficLog(
       { organizationId: base.organizationId, projectId },
       limit,
       visitorTypes,
-      categories
+      categories,
+      host
     )
   );
   if (!outcome.ok) {

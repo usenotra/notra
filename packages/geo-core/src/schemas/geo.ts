@@ -451,6 +451,7 @@ export const geoTrafficLogInputSchema = geoOrganizationInputSchema.extend({
   )
     .max(MAX_GEO_TRAFFIC_LOG_FILTER_VALUES)
     .optional(),
+  host: string().trim().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
 });
 
 export const geoRequestPayloadSchema = object({
