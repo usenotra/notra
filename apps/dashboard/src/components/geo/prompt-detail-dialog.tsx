@@ -187,6 +187,7 @@ function PromptAnswerHeader({
 }
 
 function PromptAnswerBody({
+  organizationId,
   detailState,
   view,
   prompt,
@@ -204,6 +205,7 @@ function PromptAnswerBody({
       <>
         <HistoryAnswerBanner check={selectedCheck} onBack={onBackToLatest} />
         <GeoPromptAnswerThread
+          organizationId={organizationId}
           scrollable={false}
           prompt={prompt}
           result={promptResultFromHistoryCheck(
@@ -218,6 +220,7 @@ function PromptAnswerBody({
 
   return (
     <PromptAnswerContent
+      organizationId={organizationId}
       state={detailState}
       view={view}
       onRetry={onRetry}
@@ -399,6 +402,7 @@ function PromptAnswerPage({
                 variants={threadVariants(Boolean(reduceMotion))}
               >
                 <PromptAnswerBody
+                  organizationId={organizationId}
                   competitors={competitors.data?.competitors}
                   detailState={detailState}
                   history={engineHistory}

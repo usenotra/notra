@@ -6,17 +6,15 @@ import type {
   GeoSequenceTurnResult,
 } from "@notra/geo-core/types/geo";
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
-import { geoAnswerThinkingClassName } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 
+import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { AnswerMarkdown } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
+import { useGeoAnswerMentionTerms } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
-import type {
-  AnswerReplayProgress,
-  ConversationReplayThreadProps,
-} from "@/types/geo";
+import type { ConversationReplayThreadProps } from "@/types/geo";
 import {
   answerReplayState,
   conversationReplaySearch,
@@ -25,19 +23,6 @@ import { geoChatSkin } from "@/utils/geo-chat-skin";
 
 function replaySources(turn: GeoSequenceTurnResult): PerplexitySearchSource[] {
   return perplexitySourcesFromStoredOrExcerpt(turn.sources, turn.answer);
-}
-
-function ThinkingIndicator({ skin }: { skin: GeoChatSkin }) {
-  return (
-    <p
-      className={cn(
-        "text-muted-foreground animate-pulse",
-        geoAnswerThinkingClassName(skin)
-      )}
-    >
-      Thinking…
-    </p>
-  );
 }
 
 function SourcePills({ sources }: { sources: PerplexitySearchSource[] }) {
@@ -85,7 +70,7 @@ function ReplayTurn({
 }: {
   turn: GeoSequenceTurnResult;
   skin: GeoChatSkin;
-  progress: AnswerReplayProgress | null;
+  progress: ConversationReplayThreadProps["progress"];
   index: number;
 }) {
   const isReplaying = progress !== null;
@@ -96,11 +81,10 @@ function ReplayTurn({
   const isCurrent = isReplaying && index === progress.index;
   const sources = replaySources(turn);
   const search = conversationReplaySearch(turn, skin);
-  const { answerDone, showThinking, showAssistant, showSearch, answerText } =
+  const { answerDone, showAssistant, showSearch, answerText } =
     answerReplayState(
       turn.answer,
       isCurrent ? progress : null,
-      skin,
       search.hasSearch
     );
 
@@ -124,19 +108,13 @@ function ReplayTurn({
           }
           skin={skin}
         >
-          {showThinking ? (
-            <ThinkingIndicator skin={skin} />
-          ) : (
-            <>
-              <AnswerMarkdown
-                mode={answerDone ? "static" : "streaming"}
-                skin={skin}
-                text={answerText}
-              />
-              {answerDone && !showSearch && <SourcePills sources={sources} />}
-              {answerDone && <MentionPill turn={turn} />}
-            </>
-          )}
+          <AnswerMarkdown
+            mode={answerDone ? "static" : "streaming"}
+            skin={skin}
+            text={answerText}
+          />
+          {answerDone && !showSearch && <SourcePills sources={sources} />}
+          {answerDone && <MentionPill turn={turn} />}
         </GeoSkinMessage>
       )}
     </>
@@ -145,31 +123,35 @@ function ReplayTurn({
 
 export function ConversationReplayThread({
   engine,
+  organizationId,
   turns,
   progress,
 }: ConversationReplayThreadProps) {
   const skin = geoChatSkin(engine);
+  const mentionTerms = useGeoAnswerMentionTerms(organizationId);
 
   return (
-    <div
-      className={cn(
-        "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
-        GEO_CHAT_SKIN_SURFACE[skin]
-      )}
-    >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
-          {turns.map((turn, index) => (
-            <ReplayTurn
-              index={index}
-              key={turn.turn}
-              progress={progress}
-              skin={skin}
-              turn={turn}
-            />
-          ))}
+    <GeoAnswerMentionProvider terms={mentionTerms}>
+      <div
+        className={cn(
+          "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
+          GEO_CHAT_SKIN_SURFACE[skin]
+        )}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
+            {turns.map((turn, index) => (
+              <ReplayTurn
+                index={index}
+                key={turn.turn}
+                progress={progress}
+                skin={skin}
+                turn={turn}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </GeoAnswerMentionProvider>
   );
 }

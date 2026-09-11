@@ -13,6 +13,7 @@ const AnswerThread = dynamic(() =>
 );
 
 export function PromptAnswerContent({
+  organizationId,
   state,
   view,
   onRetry,
@@ -34,6 +35,7 @@ export function PromptAnswerContent({
   if (view === "raw") {
     return (
       <AnswerThread
+        organizationId={organizationId}
         scrollable={scrollable}
         prompt={promptText}
         result={result}

@@ -32,6 +32,7 @@ export interface GeoPromptDetailStatusProps {
 }
 
 export interface PromptAnswerBodyProps {
+  organizationId: string;
   detailState: GeoPromptDetailState;
   view: GeoPromptReceiptView;
   prompt: string;

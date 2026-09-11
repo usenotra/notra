@@ -6,7 +6,6 @@ import {
   GEO_REPLAY_MAX_TYPE_TOTAL_MS,
   GEO_REPLAY_MIN_TYPE_INTERVAL_MS,
   GEO_REPLAY_REDUCED_MOTION_PAUSE_MS,
-  GEO_REPLAY_THINKING_MS,
   GEO_REPLAY_TURN_PAUSE_MS,
   GEO_REPLAY_TYPE_INTERVAL_MS,
   GEO_REPLAY_USER_PAUSE_MS,
@@ -59,11 +58,6 @@ export function useAnswerReplay(
         }
         setProgress({ index, stage: "user", typed: "" });
         await pause(GEO_REPLAY_USER_PAUSE_MS);
-        if (cancelled) {
-          return;
-        }
-        setProgress({ index, stage: "thinking", typed: "" });
-        await pause(GEO_REPLAY_THINKING_MS);
         if (cancelled) {
           return;
         }
