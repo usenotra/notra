@@ -23,6 +23,7 @@ import {
   qstashLayer,
 } from "../lib/qstash";
 import type { QstashEnv } from "../types/qstash";
+import type { DbClient } from "../types/db";
 import type {
   CreateScheduleProgramInput,
   DeleteScheduleProgramInput,
@@ -44,11 +45,136 @@ import {
 } from "../utils/schedules";
 import { deleteQstashScheduleWithRetry } from "../utils/triggers";
 
+const DELETE_CONCURRENCY_ATTEMPTS = 5;
+
 const database = <A>(operation: () => Promise<A>) =>
   Effect.tryPromise({
     try: operation,
     catch: (cause) => new ScheduleDatabaseError({ cause }),
   });
+
+type ScheduleDeleteSnapshot = {
+  qstashScheduleId: string | null;
+  updatedAt: Date;
+};
+
+type ScheduleDeleteCommitResult = "deleted" | "stale" | "gone";
+
+const scheduleDeleteScope = (organizationId: string, scheduleId: string) =>
+  and(
+    eq(contentTriggers.id, scheduleId),
+    eq(contentTriggers.organizationId, organizationId),
+    eq(contentTriggers.sourceType, "cron")
+  );
+
+async function lockScheduleDeleteSnapshot(
+  db: DbClient,
+  organizationId: string,
+  scheduleId: string
+) {
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .select({
+        qstashScheduleId: contentTriggers.qstashScheduleId,
+        updatedAt: contentTriggers.updatedAt,
+      })
+      .from(contentTriggers)
+      .where(scheduleDeleteScope(organizationId, scheduleId))
+      .for("update");
+
+    return row ?? null;
+  });
+}
+
+async function commitScheduleDeleteIfUnchanged(
+  db: DbClient,
+  organizationId: string,
+  scheduleId: string,
+  snapshot: ScheduleDeleteSnapshot
+): Promise<ScheduleDeleteCommitResult> {
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .select({ updatedAt: contentTriggers.updatedAt })
+      .from(contentTriggers)
+      .where(scheduleDeleteScope(organizationId, scheduleId))
+      .for("update");
+
+    if (!row) {
+      return "gone";
+    }
+
+    if (row.updatedAt.getTime() !== snapshot.updatedAt.getTime()) {
+      return "stale";
+    }
+
+    await tx
+      .delete(contentTriggers)
+      .where(scheduleDeleteScope(organizationId, scheduleId));
+
+    return "deleted";
+  });
+}
+
+async function restoreEnabledScheduleQstash(
+  db: DbClient,
+  organizationId: string,
+  scheduleId: string,
+  env: QstashEnv,
+  qstashScheduleId: string
+) {
+  await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(contentTriggers)
+      .where(scheduleDeleteScope(organizationId, scheduleId))
+      .for("update");
+
+    if (!current?.enabled || current.qstashScheduleId !== qstashScheduleId) {
+      return;
+    }
+
+    const config = scheduleSourceConfigSchema.parse(current.sourceConfig);
+    const restoredId = await createQstashSchedule(env, {
+      triggerId: scheduleId,
+      cron: buildCronExpression(config.cron),
+      scheduleId: qstashScheduleId,
+    });
+
+    if (restoredId !== qstashScheduleId) {
+      await deleteQstashScheduleWithRetry(env, restoredId);
+      throw new Error("QStash returned an unexpected restoration ID");
+    }
+  });
+}
+
+function attemptRestoreEnabledScheduleQstash(
+  db: DbClient,
+  organizationId: string,
+  scheduleId: string,
+  env: QstashEnv,
+  qstashScheduleId: string
+) {
+  return Effect.tryPromise({
+    try: () =>
+      restoreEnabledScheduleQstash(
+        db,
+        organizationId,
+        scheduleId,
+        env,
+        qstashScheduleId
+      ),
+    catch: (cause) => cause,
+  }).pipe(
+    Effect.catch((recoveryError) =>
+      Effect.sync(() => {
+        logError(
+          `Failed to restore QStash schedule ${qstashScheduleId} after delete persistence failed for schedule ${scheduleId}`,
+          recoveryError
+        );
+      })
+    )
+  );
+}
 
 function isScheduleDomainError(
   error: unknown
@@ -468,51 +594,59 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
   scheduleId,
   env,
 }: DeleteScheduleProgramInput) {
-  const existing = yield* database(() =>
-    db.transaction(async (tx) => {
-      const [row] = await tx
-        .select({ qstashScheduleId: contentTriggers.qstashScheduleId })
-        .from(contentTriggers)
-        .where(
-          and(
-            eq(contentTriggers.id, scheduleId),
-            eq(contentTriggers.organizationId, organizationId),
-            eq(contentTriggers.sourceType, "cron")
-          )
-        )
-        .for("update");
+  for (let attempt = 0; attempt < DELETE_CONCURRENCY_ATTEMPTS; attempt++) {
+    const snapshot = yield* database(() =>
+      lockScheduleDeleteSnapshot(db, organizationId, scheduleId)
+    );
 
-      return row ?? null;
-    })
-  );
+    if (!snapshot) {
+      if (attempt === 0) {
+        return yield* new ScheduleNotFoundError();
+      }
 
-  if (!existing) {
-    return yield* new ScheduleNotFoundError();
+      return scheduleId;
+    }
+
+    let removedQstashScheduleId: string | null = null;
+    if (snapshot.qstashScheduleId) {
+      removedQstashScheduleId = snapshot.qstashScheduleId;
+      yield* cleanupQstashSchedule(env, snapshot.qstashScheduleId, {
+        failureMessage: `Failed to delete QStash schedule ${snapshot.qstashScheduleId} for schedule ${scheduleId}`,
+        failureMode: "fail",
+        operation: "delete",
+      });
+    }
+
+    const commitResult = yield* database(() =>
+      commitScheduleDeleteIfUnchanged(
+        db,
+        organizationId,
+        scheduleId,
+        snapshot
+      )
+    ).pipe(
+      Effect.catchTag("ScheduleDatabaseError", (dbError) =>
+        removedQstashScheduleId
+          ? attemptRestoreEnabledScheduleQstash(
+              db,
+              organizationId,
+              scheduleId,
+              env,
+              removedQstashScheduleId
+            ).pipe(Effect.flatMap(() => Effect.fail(dbError)))
+          : Effect.fail(dbError)
+      )
+    );
+
+    if (commitResult === "deleted" || commitResult === "gone") {
+      return scheduleId;
+    }
   }
 
-  if (existing.qstashScheduleId) {
-    yield* cleanupQstashSchedule(env, existing.qstashScheduleId, {
-      failureMessage: `Failed to delete QStash schedule ${existing.qstashScheduleId} for schedule ${scheduleId}`,
-      failureMode: "fail",
-      operation: "delete",
-    });
-  }
-
-  yield* database(() =>
-    db.transaction(async (tx) => {
-      await tx
-        .delete(contentTriggers)
-        .where(
-          and(
-            eq(contentTriggers.id, scheduleId),
-            eq(contentTriggers.organizationId, organizationId),
-            eq(contentTriggers.sourceType, "cron")
-          )
-        );
-    })
-  );
-
-  return scheduleId;
+  return yield* new ScheduleQstashError({
+    message: "Failed to delete schedule",
+    status: 500,
+  });
 });
 
 export const patchSchedule = Effect.fn("schedules.patch")(function* ({
