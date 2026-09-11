@@ -27,8 +27,10 @@ import { formatChartInteger, formatUsageShare } from "@/utils/geo-charts";
 import { findOwnBrandDomain } from "@/utils/geo-competitors";
 import { buildShareOfVoiceChartModel } from "@/utils/geo-share-of-voice";
 
-const RANKING_ROW_GRID =
-  "grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_auto] items-center gap-x-3 @sm:grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_3.5rem_auto]";
+const RANKING_GRID =
+  "grid grid-cols-[1.5rem_minmax(0,1fr)_auto_auto] items-center gap-x-3 @sm:grid-cols-[1.5rem_minmax(0,1fr)_auto_auto_auto]";
+const RANKING_SUBGRID = "col-span-full grid grid-cols-subgrid items-center";
+const RANKING_MAIN_SPAN = "col-span-3 grid grid-cols-subgrid @sm:col-span-4";
 
 function RankingBrandMark({
   row,
@@ -89,14 +91,17 @@ function ShareOfVoiceRankingRow({
   return (
     <li
       className={cn(
-        RANKING_ROW_GRID,
-        "border-border min-h-12 border-b px-2 last:border-b-0",
+        RANKING_SUBGRID,
+        "border-border min-h-12 border-b last:border-b-0",
         row.own && "bg-primary/5 rounded-lg border-b-0"
       )}
     >
       {onOpen ? (
         <button
-          className="hover:bg-muted/50 col-span-3 grid min-h-12 cursor-pointer grid-cols-subgrid rounded-lg text-left transition-colors @sm:col-span-4"
+          className={cn(
+            RANKING_MAIN_SPAN,
+            "hover:bg-muted/50 min-h-12 cursor-pointer rounded-lg border-0 bg-transparent p-0 text-left transition-colors"
+          )}
           onClick={() => onOpen(row)}
           onFocus={() => onPrefetch?.(row)}
           onPointerEnter={() => onPrefetch?.(row)}
@@ -105,9 +110,7 @@ function ShareOfVoiceRankingRow({
           {content}
         </button>
       ) : (
-        <div className="col-span-3 grid min-h-12 grid-cols-subgrid @sm:col-span-4">
-          {content}
-        </div>
+        <div className={cn(RANKING_MAIN_SPAN, "min-h-12")}>{content}</div>
       )}
       <span className="flex justify-end">
         {row.own ? (
@@ -254,32 +257,37 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   : "No mentions recorded"}
               </span>
             </div>
-            <div
-              aria-hidden="true"
-              className={cn(
-                RANKING_ROW_GRID,
-                "text-muted-foreground border-border border-b px-2 pb-2 text-[0.6875rem]"
-              )}
-            >
-              <span />
-              <span>Brand</span>
-              <span className="text-right">Share</span>
-              <span className="hidden text-right @sm:block">Mentions</span>
-              <span />
+            <div className={cn(RANKING_GRID, "mb-4 w-full")}>
+              <div
+                aria-hidden="true"
+                className={cn(
+                  RANKING_SUBGRID,
+                  "text-muted-foreground border-border border-b pb-2 text-[0.6875rem]"
+                )}
+              >
+                <span />
+                <span>Brand</span>
+                <span className="text-right">Share</span>
+                <span className="hidden text-right @sm:block">Mentions</span>
+                <span />
+              </div>
+              <ol
+                aria-label="Brand ranking by share of voice"
+                className={cn(RANKING_SUBGRID, "list-none p-0")}
+              >
+                {ranking.map((row) => (
+                  <ShareOfVoiceRankingRow
+                    competitors={competitors}
+                    key={row.id}
+                    onOpen={onSliceClick}
+                    onPrefetch={onSlicePointerEnter}
+                    onTrack={organizationId ? setTrackBrand : undefined}
+                    ownDomain={ownDomain}
+                    row={row}
+                  />
+                ))}
+              </ol>
             </div>
-            <ol aria-label="Brand ranking by share of voice" className="mb-4">
-              {ranking.map((row) => (
-                <ShareOfVoiceRankingRow
-                  competitors={competitors}
-                  key={row.id}
-                  onOpen={onSliceClick}
-                  onPrefetch={onSlicePointerEnter}
-                  onTrack={organizationId ? setTrackBrand : undefined}
-                  ownDomain={ownDomain}
-                  row={row}
-                />
-              ))}
-            </ol>
             {other ? (
               <div className="mt-auto flex justify-end pt-2">
                 <Button
