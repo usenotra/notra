@@ -1617,6 +1617,8 @@ function legendOverlayStyle(
   }
   return { ...base, top: "50%", transform: "translateY(-50%)" };
 }
+
+function resolveBarCategoryKey(
   categorySlotDataKey: string | undefined,
   xDataKey: string | undefined,
   data: readonly Record<string, unknown>[],

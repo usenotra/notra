@@ -21,7 +21,7 @@ if [ -s "$files" ]; then
   ' sh < "$files"
 
   xargs -0 bun x --no-install oxlint --fix --threads=4 --no-error-on-unmatched-pattern -- < "$files"
-  xargs -0 bun x --no-install oxfmt --write -- < "$files"
+  xargs -0 bun x --no-install oxfmt --write --no-error-on-unmatched-pattern -- < "$files"
 
   # Include fixes only for the paths selected before formatting.
   git --literal-pathspecs add --pathspec-from-file="$files" --pathspec-file-nul
