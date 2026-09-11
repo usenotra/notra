@@ -23,18 +23,41 @@ import { geoChatSkin } from "@/utils/geo-chat-skin";
 
 type AnswerMarkdownComponent =
   (typeof import("@/components/geo/geo-prompt-answer-thread"))["AnswerMarkdown"];
+type MarkdownLoadStatus = "loading" | "ready" | "error";
 
 let answerMarkdownPromise: Promise<AnswerMarkdownComponent> | null = null;
 let AnswerMarkdownImpl: AnswerMarkdownComponent | null = null;
+let markdownStatus: MarkdownLoadStatus = "loading";
+const markdownListeners = new Set<(status: MarkdownLoadStatus) => void>();
+
+function notifyMarkdownStatus(status: MarkdownLoadStatus): void {
+  markdownStatus = status;
+  for (const listener of markdownListeners) {
+    listener(status);
+  }
+}
 
 function loadAnswerMarkdown(): Promise<AnswerMarkdownComponent> {
   answerMarkdownPromise ??= import("@/components/geo/geo-prompt-answer-thread")
-    .then((module) => module.AnswerMarkdown)
+    .then((module) => {
+      AnswerMarkdownImpl = module.AnswerMarkdown;
+      notifyMarkdownStatus("ready");
+      return module.AnswerMarkdown;
+    })
     .catch((error: unknown) => {
       answerMarkdownPromise = null;
+      notifyMarkdownStatus("error");
       throw error;
     });
   return answerMarkdownPromise;
+}
+
+function retryAnswerMarkdown(): void {
+  if (AnswerMarkdownImpl) {
+    return;
+  }
+  notifyMarkdownStatus("loading");
+  void loadAnswerMarkdown().catch(() => undefined);
 }
 
 const answerMarkdownFallback = (
@@ -50,36 +73,24 @@ function AnswerMarkdown({
   skin: GeoChatSkin;
   text: string;
 }) {
-  const [retryKey, setRetryKey] = useState(0);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    AnswerMarkdownImpl ? "ready" : "loading"
+  const [status, setStatus] = useState<MarkdownLoadStatus>(
+    AnswerMarkdownImpl ? "ready" : markdownStatus
   );
 
   useEffect(() => {
+    markdownListeners.add(setStatus);
     if (AnswerMarkdownImpl) {
       setStatus("ready");
-      return;
+    } else {
+      setStatus(markdownStatus);
+      if (markdownStatus !== "error") {
+        void loadAnswerMarkdown().catch(() => undefined);
+      }
     }
-
-    let active = true;
-    setStatus("loading");
-    loadAnswerMarkdown()
-      .then((loaded) => {
-        AnswerMarkdownImpl = loaded;
-        if (active) {
-          setStatus("ready");
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setStatus("error");
-        }
-      });
-
     return () => {
-      active = false;
+      markdownListeners.delete(setStatus);
     };
-  }, [retryKey]);
+  }, []);
 
   if (status === "error") {
     return (
@@ -87,7 +98,7 @@ function AnswerMarkdown({
         Could not load the answer.{" "}
         <button
           className="underline underline-offset-4"
-          onClick={() => setRetryKey((key) => key + 1)}
+          onClick={retryAnswerMarkdown}
           type="button"
         >
           Retry

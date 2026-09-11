@@ -8,6 +8,7 @@
     "@/*": ["./src/*"]
   },
   "ignore": ["src/**/*.test.ts"],
+  "ignoreMembers": ["resetPostHogForTests"],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],

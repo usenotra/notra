@@ -15,17 +15,25 @@ import { POSTHOG_CONFIG, POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
  * identity provider cannot pull the chunk in before idle, and a failed idle
  * attempt does not permanently skip identify.
  */
+type PostHogJsModule = typeof import("posthog-js");
+
 let clientPromise: Promise<PostHog | null> | null = null;
 let readyClient: PostHog | null = null;
+let initGeneration = 0;
 const readyWaiters: Array<(client: PostHog) => void> = [];
+let importPostHogJs = (): Promise<PostHogJsModule> => import("posthog-js");
 
-async function loadAndInit(): Promise<PostHog | null> {
+async function loadAndInit(attempt: number): Promise<PostHog | null> {
   if (!POSTHOG_PROJECT_TOKEN) {
     return null;
   }
 
   const hostname = globalThis.window.location.hostname;
-  const { default: posthog } = await import("posthog-js");
+  const { default: posthog } = await importPostHogJs();
+
+  if (attempt !== initGeneration) {
+    return null;
+  }
 
   posthog.init(POSTHOG_PROJECT_TOKEN, {
     ...POSTHOG_CONFIG,
@@ -44,18 +52,26 @@ function notifyReady(client: PostHog): void {
 }
 
 function ensureClient(): Promise<PostHog | null> {
-  clientPromise ??= loadAndInit()
-    .then((client) => {
-      if (client) {
-        notifyReady(client);
-      }
-      return client;
-    })
-    .catch((error) => {
-      clientPromise = null;
-      console.error("Failed to initialize PostHog", error);
-      return null;
-    });
+  if (!clientPromise) {
+    const attempt = initGeneration;
+    clientPromise = loadAndInit(attempt)
+      .then((client) => {
+        if (attempt !== initGeneration) {
+          return null;
+        }
+        if (client) {
+          notifyReady(client);
+        }
+        return client;
+      })
+      .catch((error) => {
+        if (attempt === initGeneration) {
+          clientPromise = null;
+        }
+        console.error("Failed to initialize PostHog", error);
+        return null;
+      });
+  }
   return clientPromise;
 }
 
@@ -67,6 +83,35 @@ function waitForClient(): Promise<PostHog> {
   return new Promise((resolve) => {
     readyWaiters.push(resolve);
   });
+}
+
+/**
+ * Drops a still-pending init so the next `withPostHog` starts a new attempt.
+ * A late resolve from the abandoned import cannot identify or capture.
+ */
+export function abandonPendingPostHogInit(): void {
+  if (readyClient || !clientPromise) {
+    return;
+  }
+
+  initGeneration += 1;
+  clientPromise = null;
+}
+
+type TestPostHogImport = () => Promise<{
+  default: { init: (...args: never[]) => unknown };
+}>;
+
+/** Test-only: drop client state so a later case can start a fresh init. */
+export function resetPostHogForTests(nextImport?: TestPostHogImport): void {
+  initGeneration += 1;
+  clientPromise = null;
+  readyClient = null;
+  readyWaiters.length = 0;
+  importPostHogJs =
+    nextImport === undefined
+      ? () => import("posthog-js")
+      : () => nextImport() as Promise<PostHogJsModule>;
 }
 
 /** Starts loading and initialising posthog-js if it has not started yet. */

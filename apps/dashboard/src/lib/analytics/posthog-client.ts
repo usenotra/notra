@@ -3,7 +3,10 @@
 import type { PostHogEventName } from "@notra/posthog/events";
 import type { PostHogProperties } from "@notra/posthog/types/posthog";
 
-import { withPostHog } from "@/lib/analytics/posthog-lazy";
+import {
+  abandonPendingPostHogInit,
+  withPostHog,
+} from "@/lib/analytics/posthog-lazy";
 
 /** Cap so logout/checkout cannot wait on a hung PostHog chunk load. */
 const FLUSH_TRACK_EVENT_TIMEOUT_MS = 400;
@@ -17,7 +20,8 @@ export function trackEvent(
 
 /**
  * Best-effort capture before a navigation. Starts init if needed, but never
- * blocks longer than `FLUSH_TRACK_EVENT_TIMEOUT_MS`.
+ * blocks longer than `FLUSH_TRACK_EVENT_TIMEOUT_MS`. A timed-out init is
+ * abandoned so later events are not stuck on the hung promise.
  */
 export async function flushTrackEvent(
   event: PostHogEventName,
@@ -27,12 +31,22 @@ export async function flushTrackEvent(
     return;
   }
 
-  await Promise.race([
-    withPostHog((posthog) => posthog.capture(event, properties)),
-    new Promise<void>((resolve) => {
-      globalThis.window.setTimeout(resolve, FLUSH_TRACK_EVENT_TIMEOUT_MS);
-    }),
-  ]);
+  let timeoutId = 0;
+  const timeout = new Promise<void>((resolve) => {
+    timeoutId = globalThis.window.setTimeout(() => {
+      abandonPendingPostHogInit();
+      resolve();
+    }, FLUSH_TRACK_EVENT_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([
+      withPostHog((posthog) => posthog.capture(event, properties)),
+      timeout,
+    ]);
+  } finally {
+    globalThis.window.clearTimeout(timeoutId);
+  }
 }
 
 export function trackClientException(
