@@ -1,0 +1,29 @@
+apps/web/src/constants/landing/features.ts
+  s_9c4b8410e74999::t_1b12c4f18ccd1b 10
+apps/web/src/lib/dithering/use-dither-painted.ts
+  s_9c4b8410e74999::t_6a768b1985b3f5 8,11-15
+  s_9c4b8410e74999::t_7f9e7c48ce28a7 67
+apps/web/src/components/landing/share-of-voice-rows.tsx
+  s_9c4b8410e74999::t_27b243c76a9560 96
+apps/web/src/components/landing/features-card-engines.tsx
+  s_9c4b8410e74999::t_99956fa8128423 75
+apps/web/src/components/deferred-dithering.tsx
+  s_9c4b8410e74999::t_1090ff7a95ded8 4
+  s_9c4b8410e74999::t_8d201de1ba31ac 24-26,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "79764503eccc38393828a6f9b9fe1c3ce1da8234",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
