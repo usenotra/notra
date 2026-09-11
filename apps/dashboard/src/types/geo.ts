@@ -1047,6 +1047,7 @@ export interface ShareOfVoiceTableProps {
   onRowPointerEnter?: (row: ShareOfVoiceRow) => void;
   companyName?: string | null;
   aliases?: readonly string[];
+  ownDomain?: string | null;
 }
 
 export interface BrandTrackingBadgeProps {
@@ -1068,6 +1069,7 @@ export interface ShareOfVoiceBrandsDialogProps {
   competitors?: GeoCompetitor[];
   companyName?: string | null;
   aliases?: readonly string[];
+  ownDomain?: string | null;
   onBrandClick?: (row: ShareOfVoiceRow) => void;
   onBrandPointerEnter?: (row: ShareOfVoiceRow) => void;
   onTrackBrand?: (brand: string) => void;
@@ -1079,6 +1081,7 @@ export interface ShareOfVoiceBrandRowProps {
   row: ShareOfVoiceRow;
   own: boolean;
   competitors?: GeoCompetitor[];
+  ownDomain?: string | null;
   onOpen?: (row: ShareOfVoiceRow) => void;
   onPrefetch?: (row: ShareOfVoiceRow) => void;
   onTrack?: (brand: string) => void;
@@ -1104,6 +1107,7 @@ export interface ShareOfVoiceRankingRow extends ShareOfVoiceRow {
 export interface ShareOfVoiceRankingRowProps {
   row: ShareOfVoiceRankingRow;
   competitors?: GeoCompetitor[];
+  ownDomain?: string | null;
   onOpen?: (row: ShareOfVoiceRow) => void;
   onPrefetch?: (row: ShareOfVoiceRow) => void;
   onTrack?: (brand: string) => void;

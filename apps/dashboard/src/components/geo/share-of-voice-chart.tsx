@@ -10,55 +10,93 @@ import { ChartColorScope } from "@/components/charts/chart-color-scope";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
+import { ProjectLogo } from "@/components/geo/project-logo";
 import { TrackBrandButton } from "@/components/geo/share-of-voice-brand-tag";
 import { ShareOfVoiceBrandsDialog } from "@/components/geo/share-of-voice-brands-dialog";
 import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { cn } from "@/lib/utils";
 import type {
   ShareOfVoiceChartProps,
   ShareOfVoiceRankingRowProps,
 } from "@/types/geo";
 import { formatChartInteger, formatUsageShare } from "@/utils/geo-charts";
+import { findOwnBrandDomain } from "@/utils/geo-competitors";
 import { buildShareOfVoiceChartModel } from "@/utils/geo-share-of-voice";
+
+const RANKING_ROW_GRID =
+  "grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_auto] items-center gap-x-3 @sm:grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_3.5rem_auto]";
+
+function RankingBrandMark({
+  row,
+  competitors,
+  ownDomain,
+}: Pick<ShareOfVoiceRankingRowProps, "row" | "competitors" | "ownDomain">) {
+  if (row.own) {
+    return (
+      <ProjectLogo
+        className="size-6 shrink-0 rounded-md"
+        domain={ownDomain ?? null}
+        fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
+        name={row.brand}
+      />
+    );
+  }
+  return (
+    <CompetitorLogo
+      className="size-6 shrink-0 rounded-md"
+      competitors={competitors}
+      name={row.brand}
+    />
+  );
+}
 
 function ShareOfVoiceRankingRow({
   row,
   competitors,
+  ownDomain,
   onOpen,
   onPrefetch,
   onTrack,
 }: ShareOfVoiceRankingRowProps) {
   const content = (
     <>
-      <span className="text-muted-foreground w-6 shrink-0 text-xs tabular-nums">
+      <span className="text-muted-foreground text-xs tabular-nums">
         {row.rank ?? "—"}
       </span>
-      <CompetitorLogo
-        className="size-5 shrink-0"
-        competitors={competitors}
-        name={row.brand}
-      />
-      <span className="min-w-0 flex-1 truncate text-sm" title={row.brand}>
-        {row.brand}
+      <span className="flex min-w-0 items-center gap-2.5">
+        <RankingBrandMark
+          competitors={competitors}
+          ownDomain={ownDomain}
+          row={row}
+        />
+        <span className="min-w-0 truncate text-sm" title={row.brand}>
+          {row.brand}
+        </span>
       </span>
-      <span className="w-14 shrink-0 text-right text-sm tabular-nums">
+      <span className="text-right text-sm tabular-nums">
         {formatUsageShare(row.share)}
+      </span>
+      <span className="text-muted-foreground hidden text-right text-xs tabular-nums @sm:block">
+        {formatChartInteger(row.mentions)}
+        <span className="sr-only"> mentions</span>
       </span>
     </>
   );
   return (
     <li
       className={cn(
-        "border-border flex items-center gap-2 border-b last:border-b-0",
+        RANKING_ROW_GRID,
+        "border-border min-h-12 border-b px-2 last:border-b-0",
         row.own && "bg-primary/5 rounded-lg border-b-0"
       )}
     >
       {onOpen ? (
         <button
-          className="hover:bg-muted/50 flex min-h-12 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-2 text-left transition-colors"
+          className="hover:bg-muted/50 col-span-3 grid min-h-12 cursor-pointer grid-cols-subgrid rounded-lg text-left transition-colors @sm:col-span-4"
           onClick={() => onOpen(row)}
           onFocus={() => onPrefetch?.(row)}
           onPointerEnter={() => onPrefetch?.(row)}
@@ -67,15 +105,11 @@ function ShareOfVoiceRankingRow({
           {content}
         </button>
       ) : (
-        <div className="flex min-h-12 min-w-0 flex-1 items-center gap-2 px-2">
+        <div className="col-span-3 grid min-h-12 grid-cols-subgrid @sm:col-span-4">
           {content}
         </div>
       )}
-      <span className="text-muted-foreground hidden w-12 shrink-0 text-right text-xs tabular-nums @sm:block">
-        {formatChartInteger(row.mentions)}
-        <span className="sr-only"> mentions</span>
-      </span>
-      <span className="flex w-8 shrink-0 justify-end @sm:w-16">
+      <span className="flex justify-end">
         {row.own ? (
           <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[0.6875rem]">
             You
@@ -105,6 +139,8 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
   } = props;
   const [otherOpen, setOtherOpen] = useState(false);
   const [trackBrand, setTrackBrand] = useState<string | null>(null);
+  const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
+  const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const { ranking, own, slices, others, other, config, totalMentions } =
     buildShareOfVoiceChartModel(props);
   const summary = own ?? ranking[0];
@@ -220,11 +256,16 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             </div>
             <div
               aria-hidden="true"
-              className="text-muted-foreground border-border flex gap-2 border-b px-2 pr-10 pb-2 text-[0.6875rem] @sm:pr-18"
+              className={cn(
+                RANKING_ROW_GRID,
+                "text-muted-foreground border-border border-b px-2 pb-2 text-[0.6875rem]"
+              )}
             >
-              <span className="min-w-0 flex-1">Brand</span>
-              <span className="w-14 text-right">Share</span>
-              <span className="hidden w-12 text-right @sm:block">Mentions</span>
+              <span />
+              <span>Brand</span>
+              <span className="text-right">Share</span>
+              <span className="hidden text-right @sm:block">Mentions</span>
+              <span />
             </div>
             <ol aria-label="Brand ranking by share of voice" className="mb-4">
               {ranking.map((row) => (
@@ -234,6 +275,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   onOpen={onSliceClick}
                   onPrefetch={onSlicePointerEnter}
                   onTrack={organizationId ? setTrackBrand : undefined}
+                  ownDomain={ownDomain}
                   row={row}
                 />
               ))}
@@ -276,6 +318,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
           open={otherOpen}
           other={other}
           others={others}
+          ownDomain={ownDomain}
         />
       ) : null}
       {organizationId ? (

@@ -22,6 +22,7 @@ import { useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
+import { ProjectLogo } from "@/components/geo/project-logo";
 import { TrackBrandButton } from "@/components/geo/share-of-voice-brand-tag";
 import type {
   ShareOfVoiceBrandFilter,
@@ -35,6 +36,7 @@ function ShareOfVoiceBrandRow({
   row,
   own,
   competitors,
+  ownDomain,
   onOpen,
   onPrefetch,
   onTrack,
@@ -42,11 +44,20 @@ function ShareOfVoiceBrandRow({
   const tracked = own || row.tracked;
   const brand = (
     <>
-      <CompetitorLogo
-        className="size-6 shrink-0 rounded-md"
-        competitors={competitors}
-        name={row.brand}
-      />
+      {own ? (
+        <ProjectLogo
+          className="size-6 shrink-0 rounded-md"
+          domain={ownDomain ?? null}
+          fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
+          name={row.brand}
+        />
+      ) : (
+        <CompetitorLogo
+          className="size-6 shrink-0 rounded-md"
+          competitors={competitors}
+          name={row.brand}
+        />
+      )}
       <span className="min-w-0">
         <span className="block truncate text-sm" title={row.brand}>
           {row.brand}
@@ -112,6 +123,7 @@ function ShareOfVoiceBrandsContent({
   competitors,
   companyName,
   aliases,
+  ownDomain,
   onBrandClick,
   onBrandPointerEnter,
   onTrackBrand,
@@ -255,6 +267,7 @@ function ShareOfVoiceBrandsContent({
                       : undefined
                   }
                   own={isOwnBrandName(row.brand, companyName, aliases)}
+                  ownDomain={ownDomain}
                   row={row}
                 />
               ))}
