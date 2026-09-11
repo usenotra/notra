@@ -276,7 +276,7 @@ export function BlogChangelogPreview({
                 <TabsContent className="mt-2" value="markdown">
                   <textarea
                     aria-label="Post content"
-                    className="border-border bg-background focus-visible:ring-ring min-h-72 w-full resize-y rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2"
+                    className="border-border bg-background focus-visible:ring-ring field-sizing-content max-h-80 min-h-72 w-full resize-none overflow-y-auto rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2"
                     onChange={(event) =>
                       dispatch({
                         type: "draftMarkdownChanged",

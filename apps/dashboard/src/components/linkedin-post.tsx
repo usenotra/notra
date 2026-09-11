@@ -353,7 +353,7 @@ function LinkedInPost({
               {"\u200b"}
             </div>
             <Textarea
-              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
               onChange={(e) => {
                 const value = e.target.value;
                 setLocalValue(value);
