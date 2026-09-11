@@ -44,6 +44,31 @@ describe("findBrandMention", () => {
     expect(findBrandMention("Pick Notra.", "Notra", [])).toBe("Notra");
   });
 
+  test("treats combining marks and supplementary-plane letters as word characters", () => {
+    expect(
+      findBrandMention("Notra\u0301 is unrelated.", "Notra", [])
+    ).toBeNull();
+    expect(
+      findBrandMention("\u{1D400}Notra is unrelated.", "Notra", [])
+    ).toBeNull();
+    expect(
+      findBrandMention("Notra\u{1D400} is unrelated.", "Notra", [])
+    ).toBeNull();
+  });
+
+  test("matches a Latin brand embedded in unspaced scripts", () => {
+    expect(findBrandMention("メール送信にはResendを使う", "Resend", [])).toBe(
+      "Resend"
+    );
+    expect(findBrandMention("ใช้Resendสำหรับอีเมล", "Resend", [])).toBe("Resend");
+  });
+
+  test("matches decomposed and composed forms of the same name", () => {
+    expect(findBrandMention("Try Cafe\u0301 today.", "Caf\u00e9", [])).toBe(
+      "Caf\u00e9"
+    );
+  });
+
   test("ignores empty aliases", () => {
     expect(findBrandMention("Nothing here.", "Acme", ["", "  "])).toBeNull();
   });
