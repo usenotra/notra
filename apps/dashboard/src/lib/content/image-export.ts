@@ -37,7 +37,7 @@ function loadCopyAsPaper(): Promise<CopyAsPaper> {
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */
 export function preloadImageExportCopy(target: ImageExportTarget): void {
-  if (typeof window === "undefined") {
+  if (globalThis.window === undefined) {
     return;
   }
   if (target === "figma") {

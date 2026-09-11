@@ -86,16 +86,23 @@ function waitForClient(): Promise<PostHog> {
 }
 
 /**
- * Drops a still-pending init so the next `withPostHog` starts a new attempt.
- * A late resolve from the abandoned import cannot identify or capture.
+ * Drops the in-flight init for `attempt` so the next `withPostHog` retries.
+ * A later flush's generation is left alone if this timeout is stale.
  */
-export function abandonPendingPostHogInit(): void {
+export function abandonPendingPostHogInit(attempt: number): void {
   if (readyClient || !clientPromise) {
+    return;
+  }
+  if (attempt !== initGeneration) {
     return;
   }
 
   initGeneration += 1;
   clientPromise = null;
+}
+
+export function getPostHogInitGeneration(): number {
+  return initGeneration;
 }
 
 type TestPostHogImport = () => Promise<{

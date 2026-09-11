@@ -8,7 +8,6 @@
     "@/*": ["./src/*"]
   },
   "ignore": ["src/**/*.test.ts"],
-  "ignoreMembers": ["resetPostHogForTests"],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],
@@ -34,6 +33,7 @@
     "src/components/motion/**/*.{ts,tsx}": ["exports", "types"],
     "src/lib/ease.ts": ["exports", "types"],
     "src/lib/geo-ingest/**/*.ts": ["exports", "types"],
-    "src/lib/geo-shelf/preview.ts": ["exports"]
+    "src/lib/geo-shelf/preview.ts": ["exports"],
+    "src/lib/analytics/posthog-lazy.ts": ["exports"]
   }
 }

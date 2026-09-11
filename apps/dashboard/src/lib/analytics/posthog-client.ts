@@ -5,6 +5,7 @@ import type { PostHogProperties } from "@notra/posthog/types/posthog";
 
 import {
   abandonPendingPostHogInit,
+  getPostHogInitGeneration,
   withPostHog,
 } from "@/lib/analytics/posthog-lazy";
 
@@ -31,19 +32,19 @@ export async function flushTrackEvent(
     return;
   }
 
+  const capture = withPostHog((posthog) => posthog.capture(event, properties));
+  const attempt = getPostHogInitGeneration();
+
   let timeoutId = 0;
   const timeout = new Promise<void>((resolve) => {
     timeoutId = globalThis.window.setTimeout(() => {
-      abandonPendingPostHogInit();
+      abandonPendingPostHogInit(attempt);
       resolve();
     }, FLUSH_TRACK_EVENT_TIMEOUT_MS);
   });
 
   try {
-    await Promise.race([
-      withPostHog((posthog) => posthog.capture(event, properties)),
-      timeout,
-    ]);
+    await Promise.race([capture, timeout]);
   } finally {
     globalThis.window.clearTimeout(timeoutId);
   }

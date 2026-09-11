@@ -1,4 +1,4 @@
-import { expect, mock, spyOn, test } from "bun:test";
+import { beforeEach, expect, mock, spyOn, test } from "bun:test";
 
 let initAttempts = 0;
 const init = mock(() => {
@@ -13,8 +13,14 @@ mock.module("@/constants/posthog", () => ({
   POSTHOG_CONFIG: {},
 }));
 
-const { initPostHog, resetPostHogForTests, whenPostHogReady, withPostHog } =
-  await import("./posthog-lazy");
+const {
+  abandonPendingPostHogInit,
+  getPostHogInitGeneration,
+  initPostHog,
+  resetPostHogForTests,
+  whenPostHogReady,
+  withPostHog,
+} = await import("./posthog-lazy");
 const { flushTrackEvent } = await import("./posthog-client");
 
 type TimeoutHandle = number;
@@ -26,6 +32,10 @@ function restoreWindow(previousWindow: PropertyDescriptor | undefined): void {
     Reflect.deleteProperty(globalThis, "window");
   }
 }
+
+beforeEach(() => {
+  initAttempts = 0;
+});
 
 test("idle identity waits without starting init, then a failed init retries", async () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
@@ -119,6 +129,68 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
     await Promise.resolve();
     expect(staleInit).not.toHaveBeenCalled();
     expect(liveInit).toHaveBeenCalledTimes(1);
+  } finally {
+    restoreWindow(previousWindow);
+    resetPostHogForTests();
+  }
+});
+
+test("a timed-out flush does not abandon a newer init", async () => {
+  const liveInit = mock(() => undefined);
+  let importCalls = 0;
+  let resolveLive:
+    | ((module: { default: { init: typeof liveInit } }) => void)
+    | undefined;
+
+  resetPostHogForTests(() => {
+    importCalls += 1;
+    if (importCalls === 1) {
+      return new Promise(() => undefined);
+    }
+    return new Promise((resolve) => {
+      resolveLive = resolve;
+    });
+  });
+
+  const pending = new Map<TimeoutHandle, () => void>();
+  let nextId = 1;
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      location: { hostname: "localhost" },
+      setTimeout(callback: TimerHandler): TimeoutHandle {
+        const id = nextId;
+        nextId += 1;
+        if (typeof callback === "function") {
+          pending.set(id, callback as () => void);
+        }
+        return id;
+      },
+      clearTimeout(id?: TimeoutHandle) {
+        if (typeof id === "number") {
+          pending.delete(id);
+        }
+      },
+    },
+  });
+
+  try {
+    const hungFlush = flushTrackEvent("$pageview");
+    const staleAttempt = getPostHogInitGeneration();
+    const staleTimeout = pending.values().next().value as () => void;
+    staleTimeout();
+    await hungFlush;
+
+    const retried = mock(() => undefined);
+    const newer = withPostHog(retried);
+    abandonPendingPostHogInit(staleAttempt);
+    resolveLive?.({ default: { init: liveInit } });
+    await newer;
+
+    expect(importCalls).toBe(2);
+    expect(liveInit).toHaveBeenCalledTimes(1);
+    expect(retried).toHaveBeenCalledTimes(1);
   } finally {
     restoreWindow(previousWindow);
     resetPostHogForTests();
