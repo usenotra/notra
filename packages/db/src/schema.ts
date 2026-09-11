@@ -1233,7 +1233,7 @@ export const brandSitemapPages = pgTable(
     index("brandSitemapPages_sitemap_category_wordCount_idx").on(
       table.sitemapId,
       table.category,
-      table.wordCount.desc()
+      table.wordCount.desc().nullsLast()
     ),
     uniqueIndex("brandSitemapPages_sitemap_url_uidx").on(
       table.sitemapId,
@@ -1726,19 +1726,17 @@ export const geoMentionChecks = pgTable(
     // while the table averages ~900 B/row because of answer/grounding/excerpt.
     // drizzle-orm 0.45 has no `INCLUDE` support, so the payload columns are
     // trailing key columns instead of index-only payload.
-    index("geoMentionChecks_project_captured_cover_idx")
-      .on(
-        table.projectId,
-        table.capturedAt,
-        table.organizationId,
-        table.language,
-        table.engine,
-        table.promptId,
-        table.mentioned,
-        table.position,
-        table.sentiment
-      )
-      .where(sql`${table.sequenceId} IS NULL`),
+    index("geoMentionChecks_project_captured_cover_idx").on(
+      table.projectId,
+      table.capturedAt,
+      table.organizationId,
+      table.language,
+      table.engine,
+      table.promptId,
+      table.mentioned,
+      table.position,
+      table.sentiment
+    ),
     // Matches the `distinct on (prompt_id, engine) ... order by captured_at desc`
     // shape used by promptResultSummaries/promptResults/competitorDetail/gaps;
     // the existing projectEnginePrompt index has the leading columns swapped.

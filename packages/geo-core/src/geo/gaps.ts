@@ -353,7 +353,7 @@ const loadCollisionCandidates = Effect.fn("geo.gaps.collisionCandidates")(
                 eq(brandSitemapPages.category, "crawled")
               )
             )
-            .orderBy(desc(brandSitemapPages.wordCount))
+            .orderBy(sql`${brandSitemapPages.wordCount} desc nulls last`)
             .limit(GEO_COLLISION_SITEMAP_PAGE_LIMIT)
         )
       : [];

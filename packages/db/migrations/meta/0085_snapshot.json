@@ -1,5 +1,5 @@
 {
-  "id": "e981e7dc-d7c0-4ff5-b0f0-f29fd425ba0d",
+  "id": "1e2571b8-6d0d-4ee6-9f5d-9f8bae08abd0",
   "prevId": "2af30101-d3f7-47ba-822d-79ee7e9ba8b2",
   "version": "7",
   "dialect": "postgresql",
@@ -5362,7 +5362,6 @@
             }
           ],
           "isUnique": false,
-          "where": "\"geo_mention_checks\".\"sequence_id\" IS NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}

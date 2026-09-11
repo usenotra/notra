@@ -10,16 +10,15 @@ import type {
 
 /** Postgres `invalid_column_reference`: no unique index matches ON CONFLICT. */
 const MISSING_CONFLICT_TARGET_CODE = "42P10";
+/** Postgres `unique_violation`: concurrent insert for the same membership key. */
+const UNIQUE_VIOLATION_CODE = "23505";
 
 let conflictTargetRetryAt = 0;
 
-function hasMissingConflictTargetCode(error: unknown): boolean {
+function hasPostgresErrorCode(error: unknown, code: string): boolean {
   let current: unknown = error;
   while (current && typeof current === "object") {
-    if (
-      "code" in current &&
-      (current as { code?: unknown }).code === MISSING_CONFLICT_TARGET_CODE
-    ) {
+    if ("code" in current && (current as { code?: unknown }).code === code) {
       return true;
     }
     current = (current as { cause?: unknown }).cause;
@@ -27,49 +26,78 @@ function hasMissingConflictTargetCode(error: unknown): boolean {
   return false;
 }
 
+function hasMissingConflictTargetCode(error: unknown): boolean {
+  return hasPostgresErrorCode(error, MISSING_CONFLICT_TARGET_CODE);
+}
+
+async function withMembershipAdvisoryLock<T>(
+  input: MembershipUpsertInput,
+  run: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>
+): Promise<T> {
+  return db.transaction(
+    async (tx) => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${input.organizationId}), hashtext(${input.userId}))`
+      );
+      return run(tx);
+    },
+    { isolationLevel: "read committed" }
+  );
+}
+
 async function upsertMembershipAtomically(
   input: MembershipUpsertInput
 ): Promise<void> {
-  await db
-    .insert(members)
-    .values({
-      id: crypto.randomUUID(),
-      organizationId: input.organizationId,
-      userId: input.userId,
-      role: input.role,
-      createdAt: input.createdAt,
-    })
-    .onConflictDoUpdate({
-      target: [members.organizationId, members.userId],
-      set: {
-        role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
-      },
-      // Skip the UPDATE when the row already matches: every login hits this
-      // path, and owners keep their role regardless of the incoming value.
-      setWhere: sql`${members.role} <> 'owner' AND ${members.role} <> excluded.role`,
-    });
+  await withMembershipAdvisoryLock(input, async (tx) => {
+    await tx
+      .insert(members)
+      .values({
+        id: crypto.randomUUID(),
+        organizationId: input.organizationId,
+        userId: input.userId,
+        role: input.role,
+        createdAt: input.createdAt,
+      })
+      .onConflictDoUpdate({
+        target: [members.organizationId, members.userId],
+        set: {
+          role: sql`CASE WHEN ${members.role} = 'owner' THEN ${members.role} ELSE excluded.role END`,
+        },
+        // Skip the UPDATE when the row already matches: every login hits this
+        // path, and owners keep their role regardless of the incoming value.
+        setWhere: sql`${members.role} <> 'owner' AND ${members.role} <> excluded.role`,
+      });
+  });
+}
+
+async function updateMembershipRoleIfNeeded(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  input: MembershipUpsertInput,
+  existing: { id: string; role: string }
+): Promise<void> {
+  if (existing.role !== input.role && existing.role !== "owner") {
+    await tx
+      .update(members)
+      .set({ role: input.role })
+      .where(eq(members.id, existing.id));
+  }
 }
 
 /** Pre-0085 path: serialize reads and writes for each membership. */
 async function upsertMembershipReadThenWrite(
   input: MembershipUpsertInput
 ): Promise<void> {
-  await db.transaction(
-    async (tx) => {
-      // Lock even when no row exists; a row lock cannot protect the first insert.
-      await tx.execute(
-        sql`SELECT pg_advisory_xact_lock(hashtext(${input.organizationId}), hashtext(${input.userId}))`
-      );
+  await withMembershipAdvisoryLock(input, async (tx) => {
+    const existing = await tx.query.members.findFirst({
+      where: and(
+        eq(members.userId, input.userId),
+        eq(members.organizationId, input.organizationId)
+      ),
+      columns: { id: true, role: true },
+    });
 
-      const existing = await tx.query.members.findFirst({
-        where: and(
-          eq(members.userId, input.userId),
-          eq(members.organizationId, input.organizationId)
-        ),
-        columns: { id: true, role: true },
-      });
-
-      if (!existing) {
+    if (!existing) {
+      try {
         await tx.insert(members).values({
           id: crypto.randomUUID(),
           organizationId: input.organizationId,
@@ -77,18 +105,26 @@ async function upsertMembershipReadThenWrite(
           role: input.role,
           createdAt: input.createdAt,
         });
-        return;
+      } catch (error) {
+        if (!hasPostgresErrorCode(error, UNIQUE_VIOLATION_CODE)) {
+          throw error;
+        }
+        const raced = await tx.query.members.findFirst({
+          where: and(
+            eq(members.userId, input.userId),
+            eq(members.organizationId, input.organizationId)
+          ),
+          columns: { id: true, role: true },
+        });
+        if (raced) {
+          await updateMembershipRoleIfNeeded(tx, input, raced);
+        }
       }
+      return;
+    }
 
-      if (existing.role !== input.role && existing.role !== "owner") {
-        await tx
-          .update(members)
-          .set({ role: input.role })
-          .where(eq(members.id, existing.id));
-      }
-    },
-    { isolationLevel: "read committed" }
-  );
+    await updateMembershipRoleIfNeeded(tx, input, existing);
+  });
 }
 
 /**
