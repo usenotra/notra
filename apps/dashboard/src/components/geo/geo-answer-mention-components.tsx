@@ -3,6 +3,10 @@
 import type { GeoAnswerMentionTerm } from "@notra/geo-core/types/geo";
 import { geoAnswerMentionSpans } from "@notra/geo-core/utils/geo-answer-mentions";
 import {
+  MessageTableCell,
+  MessageTableHeaderCell,
+} from "@notra/ui/components/ai-elements/message";
+import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
@@ -11,6 +15,7 @@ import {
   createElement,
   isValidElement,
   type ComponentPropsWithoutRef,
+  type ComponentType,
   type ReactNode,
   use,
   useState,
@@ -89,13 +94,13 @@ function highlightMentionChildren(
     if (typeof child === "string" || typeof child === "number") {
       return mentionMarks(String(child), terms);
     }
-    if (!isValidElement<{ children?: ReactNode }>(child)) {
+    if (!isValidElement<{ children?: ReactNode; node?: unknown }>(child)) {
       return child;
     }
     if (shouldSkipElement(child.type) || child.props.children == null) {
       return child;
     }
-    const { children: nested, ...rest } = child.props;
+    const { children: nested, node: _node, ...rest } = child.props;
     return createElement(
       child.type,
       { ...rest, key: child.key },
@@ -177,20 +182,48 @@ function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
 }
 
 function mentionHost<Tag extends keyof HTMLElementTagNameMap>(tag: Tag) {
-  function MentionHost(props: ComponentPropsWithoutRef<Tag>) {
+  function MentionHost({
+    children,
+    node: _node,
+    ...rest
+  }: ComponentPropsWithoutRef<Tag> & { node?: unknown }) {
     const { terms } = use(GeoAnswerMentionContext);
-    const { children, ...rest } = props;
     return createElement(tag, rest, highlightMentionChildren(children, terms));
   }
   MentionHost.displayName = `${MENTION_HOST_PREFIX}${tag}`;
   return MentionHost;
 }
 
+function mentionComponent<Props extends { children?: ReactNode }>(
+  Component: ComponentType<Props>,
+  name: string
+) {
+  function MentionHost(props: Props) {
+    const { terms } = use(GeoAnswerMentionContext);
+    return (
+      <Component {...props}>
+        {highlightMentionChildren(props.children, terms)}
+      </Component>
+    );
+  }
+  MentionHost.displayName = `${MENTION_HOST_PREFIX}${name}`;
+  return MentionHost;
+}
+
 export const GeoAnswerMentionParagraph = mentionHost("p");
 export const GeoAnswerMentionListItem = mentionHost("li");
-export const GeoAnswerMentionTableCell = mentionHost("td");
-export const GeoAnswerMentionTableHeaderCell = mentionHost("th");
+export const GeoAnswerMentionTableCell = mentionComponent(
+  MessageTableCell,
+  "td"
+);
+export const GeoAnswerMentionTableHeaderCell = mentionComponent(
+  MessageTableHeaderCell,
+  "th"
+);
 export const GeoAnswerMentionHeading1 = mentionHost("h1");
 export const GeoAnswerMentionHeading2 = mentionHost("h2");
 export const GeoAnswerMentionHeading3 = mentionHost("h3");
+export const GeoAnswerMentionHeading4 = mentionHost("h4");
+export const GeoAnswerMentionHeading5 = mentionHost("h5");
+export const GeoAnswerMentionHeading6 = mentionHost("h6");
 export const GeoAnswerMentionBlockquote = mentionHost("blockquote");

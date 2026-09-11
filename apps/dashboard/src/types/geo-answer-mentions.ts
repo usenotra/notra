@@ -35,6 +35,9 @@ export type GeoAnswerMentionComponents = {
   h1: ComponentType;
   h2: ComponentType;
   h3: ComponentType;
+  h4: ComponentType;
+  h5: ComponentType;
+  h6: ComponentType;
   blockquote: ComponentType;
 };
 

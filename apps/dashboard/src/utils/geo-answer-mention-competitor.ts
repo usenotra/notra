@@ -10,12 +10,14 @@ export function findMentionedCompetitor(
     return undefined;
   }
 
-  return competitors.find((competitor) => {
-    if (competitorKey(competitor.name) === key) {
-      return true;
-    }
-    return competitor.synonyms.some(
-      (synonym) => competitorKey(synonym) === key
-    );
-  });
+  const byName = competitors.find(
+    (competitor) => competitorKey(competitor.name) === key
+  );
+  if (byName) {
+    return byName;
+  }
+
+  return competitors.find((competitor) =>
+    competitor.synonyms.some((synonym) => competitorKey(synonym) === key)
+  );
 }

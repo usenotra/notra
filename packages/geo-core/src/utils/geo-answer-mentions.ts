@@ -8,6 +8,7 @@ import type {
 
 const MIN_MENTION_PHRASE_LENGTH = 2;
 const REGEXP_ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
+const MENTION_WORD_CHAR = "[\\p{L}\\p{N}\\p{M}_]";
 
 function escapeRegExp(value: string): string {
   return value.replace(REGEXP_ESCAPE_REGEX, "\\$&");
@@ -15,7 +16,7 @@ function escapeRegExp(value: string): string {
 
 function mentionPattern(phrase: string): RegExp {
   return new RegExp(
-    `(?<![\\p{L}\\p{N}_])${escapeRegExp(phrase)}(?![\\p{L}\\p{N}_])`,
+    `(?<!${MENTION_WORD_CHAR})${escapeRegExp(phrase)}(?!${MENTION_WORD_CHAR})`,
     "giu"
   );
 }

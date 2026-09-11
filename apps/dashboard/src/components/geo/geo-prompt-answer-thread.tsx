@@ -17,6 +17,9 @@ import {
   GeoAnswerMentionHeading1,
   GeoAnswerMentionHeading2,
   GeoAnswerMentionHeading3,
+  GeoAnswerMentionHeading4,
+  GeoAnswerMentionHeading5,
+  GeoAnswerMentionHeading6,
   GeoAnswerMentionListItem,
   GeoAnswerMentionParagraph,
   GeoAnswerMentionTableCell,
@@ -32,7 +35,7 @@ import type { GeoAnswerMentionComponents } from "@/types/geo-answer-mentions";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 
 const ANSWER_MARKDOWN_CLASS =
-  "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ol]:my-2.5";
+  "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_h4]:mt-3 [&_h4]:mb-1 [&_h4]:text-[0.95em] [&_h4]:font-semibold [&_h5]:mt-2.5 [&_h5]:mb-1 [&_h5]:text-[0.9em] [&_h5]:font-semibold [&_h6]:mt-2.5 [&_h6]:mb-1 [&_h6]:text-[0.85em] [&_h6]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ol]:my-2.5";
 
 const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   p: GeoAnswerMentionParagraph,
@@ -42,6 +45,9 @@ const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   h1: GeoAnswerMentionHeading1,
   h2: GeoAnswerMentionHeading2,
   h3: GeoAnswerMentionHeading3,
+  h4: GeoAnswerMentionHeading4,
+  h5: GeoAnswerMentionHeading5,
+  h6: GeoAnswerMentionHeading6,
   blockquote: GeoAnswerMentionBlockquote,
 };
 
