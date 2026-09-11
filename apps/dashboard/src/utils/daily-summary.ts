@@ -90,6 +90,30 @@ export function isQuietDailySummary({
   return scansCompleted === 0 && yesterdayChecks === 0;
 }
 
+export function isUnchangedDailySummary({
+  yesterday,
+  previousDay,
+  changes,
+}: {
+  yesterday: DailySummaryMentionTotals;
+  previousDay: DailySummaryMentionTotals;
+  changes: GeoChangesSummary;
+}) {
+  if (formatMentionRateDelta(yesterday.rate, previousDay.rate) !== "unchanged") {
+    return false;
+  }
+
+  if (changes.gained - changes.lost !== 0) {
+    return false;
+  }
+
+  if (changes.citationsAdded > 0 || changes.citationsRemoved > 0) {
+    return false;
+  }
+
+  return true;
+}
+
 export function buildDailySummaryHeadline({
   gained,
   lost,

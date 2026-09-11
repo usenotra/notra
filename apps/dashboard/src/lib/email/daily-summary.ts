@@ -38,6 +38,7 @@ import {
   buildDailySummary,
   getPreviousUtcDayWindow,
   isQuietDailySummary,
+  isUnchangedDailySummary,
   mergeChangesSummaries,
   truncatePrompt,
   utcDateKey,
@@ -251,13 +252,25 @@ async function sendDailySummaryForOrganization({
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
+  const previousDay = aggregateMentionTotals(previousOverview);
+  const changes = mergeChangesSummaries(summaries);
+  if (
+    isUnchangedDailySummary({
+      yesterday,
+      previousDay,
+      changes,
+    })
+  ) {
+    return "quiet";
+  }
+
   const visibleItems = allEvents.slice(0, DAILY_SUMMARY_MAX_ITEMS);
   const summary = buildDailySummary({
     windowStart: start,
     scansCompleted: finishedScans.length,
     yesterday,
-    previousDay: aggregateMentionTotals(previousOverview),
-    changes: mergeChangesSummaries(summaries),
+    previousDay,
+    changes,
     items: visibleItems,
     remainingCount: Math.max(allEvents.length - visibleItems.length, 0),
   });
