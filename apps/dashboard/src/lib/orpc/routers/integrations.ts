@@ -865,6 +865,7 @@ export const integrationsRouter = {
           try {
             token = await getTokenForIntegrationId(input.repositoryId, {
               organizationId: input.organizationId,
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
             });
           } catch (error) {
             if (

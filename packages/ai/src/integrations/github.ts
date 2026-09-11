@@ -178,34 +178,40 @@ async function createGitHubAppInstallationToken(installationId: string) {
   );
 }
 
-const createGitHubAppInstallationTokenEffect = Effect.fn(
-  "GitHub.createInstallationToken"
-)(function* (installationId: string) {
-  const jwt = yield* Effect.try({
-    try: createGitHubAppJwt,
-    catch: (cause) => new GitHubAppConfigurationError({ cause }),
-  });
-  const octokit = createOctokit(jwt);
-  const { data } = yield* Effect.tryPromise({
-    try: () =>
-      octokit.request(
-        "POST /app/installations/{installation_id}/access_tokens",
-        {
-          installation_id: Number(installationId),
-          headers: { "X-GitHub-Api-Version": "2022-11-28" },
-        }
-      ),
-    catch: (cause) =>
-      getErrorStatus(cause) === 401
-        ? new GitHubAppConfigurationError({ cause })
-        : new GitHubRequestError({
-            operation: "createInstallationToken",
-            status: getErrorStatus(cause) ?? undefined,
-            cause,
-          }),
-  });
-  return data.token;
-});
+function createGitHubAppInstallationTokenEffect(
+  installationId: string,
+  requestTimeoutMs?: number
+) {
+  return Effect.gen(function* () {
+    const jwt = yield* Effect.try({
+      try: createGitHubAppJwt,
+      catch: (cause) => new GitHubAppConfigurationError({ cause }),
+    });
+    const octokit = createOctokit(
+      jwt,
+      requestTimeoutMs === undefined ? undefined : { requestTimeoutMs }
+    );
+    const { data } = yield* Effect.tryPromise({
+      try: () =>
+        octokit.request(
+          "POST /app/installations/{installation_id}/access_tokens",
+          {
+            installation_id: Number(installationId),
+            headers: { "X-GitHub-Api-Version": "2022-11-28" },
+          }
+        ),
+      catch: (cause) =>
+        getErrorStatus(cause) === 401
+          ? new GitHubAppConfigurationError({ cause })
+          : new GitHubRequestError({
+              operation: "createInstallationToken",
+              status: getErrorStatus(cause) ?? undefined,
+              cause,
+            }),
+    });
+    return data.token;
+  }).pipe(Effect.withSpan("GitHub.createInstallationToken"));
+}
 
 async function getGitHubAppInstallation(installationId: string) {
   const octokit = createOctokit(createGitHubAppJwt());
@@ -1462,12 +1468,21 @@ export function createGitHubAppInstallationTokenForRecordEffect(
 
 export function getTokenForIntegrationIdEffect(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return resolveGitHubToken(
     { integrationId, organizationId: options?.organizationId },
     {
       ...githubCredentialDependencies,
+      ...(options?.requestTimeoutMs === undefined
+        ? {}
+        : {
+            createInstallationToken: (installationId: string) =>
+              createGitHubAppInstallationTokenEffect(
+                installationId,
+                options.requestTimeoutMs
+              ),
+          }),
       findIntegration: (params) =>
         Effect.tryPromise({
           try: () =>
@@ -1502,7 +1517,7 @@ export function getTokenForIntegrationIdEffect(
 
 export function getTokenForIntegrationId(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return runGitHubEffect(
     getTokenForIntegrationIdEffect(integrationId, options).pipe(
