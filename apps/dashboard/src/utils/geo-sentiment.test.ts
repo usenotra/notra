@@ -6,7 +6,58 @@ import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 import {
   hasIsolatedSentimentPoint,
   sentimentFamilyRows,
+  sentimentEmptyMessage,
+  sentimentThemesState,
 } from "./geo-sentiment";
+
+test("lookup failures never render pending ghosts and configuration explanations survive empty aggregates", () => {
+  const base = {
+    summary: summarizeSentiment([]),
+    isAnalyzing: false,
+    isPending: false,
+    isError: false,
+    aggregatePending: false,
+  };
+  const unavailable = sentimentThemesState({
+    ...base,
+    state: {
+      status: "unavailable",
+      message: "Configure a company name in GEO settings.",
+      result: null,
+    },
+  });
+  expect(unavailable.message).toBe("Configure a company name in GEO settings.");
+  expect(unavailable.canAnalyze).toBe(false);
+  const failed = sentimentThemesState({
+    ...base,
+    isError: true,
+    aggregatePending: true,
+    state: { status: "pending", message: null, result: null },
+  });
+  expect(failed.pending).toBe(false);
+  expect(failed.showEmpty).toBe(false);
+  expect(failed.showResults).toBe(false);
+});
+
+test("empty copy distinguishes absent answers from saved but unrated mentions", () => {
+  expect(sentimentEmptyMessage(summarizeSentiment([]))).toBe(
+    "No saved answers. Run a scan or change the date range."
+  );
+  expect(
+    sentimentEmptyMessage(
+      summarizeSentiment([
+        {
+          positive: 0,
+          neutral: 0,
+          negative: 0,
+          mentions: 2,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ])
+    )
+  ).toBe("No rated mentions in this period.");
+});
 
 test("markers preserve isolated observations while contiguous series stay clean", () => {
   for (const scores of [

@@ -779,11 +779,14 @@ function fillPaint(
 function curveConfig(curveType: CurveType): {
   smooth: boolean;
   step: "middle" | false;
+  smoothMonotone?: "x" | "y";
 } {
   // Recharts "step" is d3's curveStep: the transition happens at the MIDPOINT
   // between points, so each dot sits centered on its plateau.
   if (curveType === "step") return { smooth: false, step: "middle" };
   if (curveType === "linear") return { smooth: false, step: false };
+  if (curveType === "monotoneX") return { smooth: true, step: false, smoothMonotone: "x" };
+  if (curveType === "monotoneY") return { smooth: true, step: false, smoothMonotone: "y" };
   return { smooth: true, step: false };
 }
 
@@ -1307,6 +1310,7 @@ function buildBrushOption(
       data: data.map((row) => areaPointValue(row, key, area.gapMissing)),
       stack: isStacked ? "__mini-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       silent: true,
@@ -1359,6 +1363,7 @@ function buildLoadingOption(
         type: "line",
         data: ctx.loadingData(),
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         showSymbol: false,
         silent: true,
@@ -1538,6 +1543,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(mainValues),
       stack: isStacked ? "total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       cursor: area.isClickable && !isHidden ? "pointer" : "default",
@@ -1638,6 +1644,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         // reproduces the same cumulative shape in a separate layer.
         stack: isStacked ? "__reveal-total" : undefined,
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         connectNulls: false,
         silent: true,
@@ -1676,6 +1683,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // order give the identical cumulative height, so the dash lines up.
       stack: isStacked ? "__buffer-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,
@@ -1727,6 +1735,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(bufferValues),
       stack: isStacked ? "__bufferfill-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,
