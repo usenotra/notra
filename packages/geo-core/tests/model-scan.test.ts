@@ -271,6 +271,45 @@ describe("model service in real scan batches", () => {
     expect(row?.answer).toBe("The selected brand is a good choice.");
   });
 
+  test("judge mention is rejected when the brand never appears in the answer", async () => {
+    const scope = await seedProject("absent");
+    await testDb.insert(geoScans).values({ id: "scan-test", ...scope });
+    const result = await Effect.runPromise(
+      runGeoScanTaskBatch(
+        {
+          ...scope,
+          scanId: "scan-test",
+          runId: "test-run",
+          companyName: "Email SDK",
+          aliases: ["@opencoredev/email-sdk"],
+          gate: testBillingGate,
+          startedAtMs: Date.now(),
+        },
+        [
+          {
+            engine: "openai/gpt-4o-mini",
+            groundedKey: null,
+            prompt: {
+              id: "custom-absent",
+              text: "Which tools should I choose?",
+            },
+            language: "English",
+            zdr: "none",
+          },
+        ]
+      ).pipe(
+        Effect.provideService(GeoModelService, fakeModels),
+        Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
+      )
+    );
+    expect(result.checks).toBe(1);
+    expect(result.mentions).toBe(0);
+    const [row] = await testDb.select().from(geoMentionChecks);
+    expect(row?.mentioned).toBe(false);
+    expect(row?.position).toBeNull();
+    expect(row?.sentiment).toBeNull();
+  });
+
   test("typed provider refusal drops the check without a domain retry", async () => {
     const scope = await seedProject("selected");
     let attempts = 0;
