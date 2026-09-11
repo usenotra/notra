@@ -116,18 +116,14 @@ function ShareOfVoiceRankingRow({
         {formatChartInteger(row.mentions)}
         <span className="sr-only"> mentions</span>
       </td>
-      <td className="py-3 text-right align-middle">
+      <td className="w-24 py-3 text-right align-middle whitespace-nowrap">
         {row.own ? (
           <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[0.6875rem]">
             You
           </span>
         ) : null}
         {!row.own && !row.tracked && onTrack ? (
-          <TrackBrandButton
-            brand={row.brand}
-            className="[&_[data-track-label]]:hidden @sm:[&_[data-track-label]]:inline"
-            onTrack={onTrack}
-          />
+          <TrackBrandButton brand={row.brand} onTrack={onTrack} />
         ) : null}
       </td>
     </tr>
@@ -279,7 +275,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
                     Mentions
                   </th>
-                  <th className="w-14 py-0 pb-2 font-normal">
+                  <th className="w-24 py-0 pb-2 font-normal">
                     <span className="sr-only">Tracking</span>
                   </th>
                 </tr>
