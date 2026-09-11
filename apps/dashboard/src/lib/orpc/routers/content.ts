@@ -13,6 +13,7 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import { recordContentPublication } from "@notra/ai/utils/content-publication";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
@@ -948,6 +949,17 @@ export const contentRouter = {
           organizationId: input.organizationId,
           outputType: input.contentType,
           repositoryId: integration.id,
+        });
+        await recordContentPublication({
+          organizationId: input.organizationId,
+          postId: input.contentId,
+          repositoryId: integration.id,
+          owner: integration.owner,
+          repo: integration.repo,
+          path: result.path,
+          branch: result.branchName,
+          pullRequestNumber: result.pullRequestNumber,
+          pullRequestUrl: result.pullRequestUrl,
         });
         return result;
       } catch (error) {

@@ -105,6 +105,7 @@ export const GITHUB_RECOVERY_COPY = {
 export const GITHUB_APP_PERMISSIONS = [
   "Read repository metadata, branches, and releases",
   "Create branches, commits, and draft pull requests",
+  "Comment on issues and pull requests when mentioned",
   "Receive webhook events for the repositories you choose",
   "Access only the repositories you grant during installation",
 ] as const;

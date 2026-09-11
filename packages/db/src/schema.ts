@@ -20,7 +20,10 @@ import {
   AGENT_FEEDBACK_SOURCES,
   AGENT_FEEDBACK_STATUSES,
 } from "./constants/agent-feedback";
-import { BLOG_POST_SUBTYPES } from "./constants/content";
+import {
+  BLOG_POST_SUBTYPES,
+  CONTENT_PUBLICATION_STATUSES,
+} from "./constants/content";
 import { GEO_PROSPECT_REPORT_STATUSES } from "./constants/geo-prospect-reports";
 import {
   GEO_CONTENT_BRIEF_STATUSES,
@@ -131,7 +134,7 @@ export const chatSessions = pgTable(
         table.externalChannelId
       )
       .where(
-        sql`${table.externalChannelSource} IN ('discord', 'slack') AND ${table.externalChannelId} IS NOT NULL AND ${table.deletedAt} IS NULL`
+        sql`${table.externalChannelSource} IN ('discord', 'slack', 'github') AND ${table.externalChannelId} IS NOT NULL AND ${table.deletedAt} IS NULL`
       ),
   ]
 );
@@ -217,6 +220,10 @@ export const socialConnections = pgTable(
       table.provider
     ),
     index("socialConnections_userId_idx").on(table.userId),
+    index("socialConnections_provider_providerAccountId_idx").on(
+      table.provider,
+      table.providerAccountId
+    ),
   ]
 );
 
@@ -2029,6 +2036,54 @@ export const posts = pgTable(
   ]
 );
 
+export const contentPublications = pgTable(
+  "content_publications",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    repositoryId: text("repository_id")
+      .notNull()
+      .references(() => githubIntegrations.id, { onDelete: "cascade" }),
+    owner: text("owner").notNull(),
+    repo: text("repo").notNull(),
+    path: text("path").notNull(),
+    branch: text("branch").notNull(),
+    pullRequestNumber: integer("pull_request_number").notNull(),
+    pullRequestUrl: text("pull_request_url").notNull(),
+    headSha: text("head_sha"),
+    status: text("status", { enum: CONTENT_PUBLICATION_STATUSES })
+      .notNull()
+      .default("open"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("contentPublications_organizationId_idx").on(table.organizationId),
+    index("contentPublications_postId_idx").on(table.postId),
+    uniqueIndex("contentPublications_repository_pullRequest_uidx").on(
+      table.repositoryId,
+      table.pullRequestNumber
+    ),
+    uniqueIndex("contentPublications_open_post_uidx")
+      .on(table.postId)
+      .where(sql`${table.status} = 'open'`),
+    index("contentPublications_org_owner_repo_pr_idx").on(
+      table.organizationId,
+      table.owner,
+      table.repo,
+      table.pullRequestNumber
+    ),
+  ]
+);
+
 export const skills = pgTable(
   "skills",
   {
@@ -2645,6 +2700,7 @@ export const organizationsRelations = relations(
     connectedSocialAccounts: many(connectedSocialAccounts),
     postCollections: many(postCollections),
     posts: many(posts),
+    contentPublications: many(contentPublications),
     skills: many(skills),
     geoProspectReports: many(geoProspectReports),
     chatSessions: many(chatSessions),
@@ -2696,6 +2752,7 @@ export const githubIntegrationsRelations = relations(
       references: [users.id],
     }),
     outputs: many(repositoryOutputs),
+    contentPublications: many(contentPublications),
   })
 );
 
@@ -3206,7 +3263,26 @@ export const postsRelations = relations(posts, ({ many, one }) => ({
     references: [postCollections.id],
   }),
   chatSessions: many(chatSessions),
+  contentPublications: many(contentPublications),
 }));
+
+export const contentPublicationsRelations = relations(
+  contentPublications,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [contentPublications.organizationId],
+      references: [organizations.id],
+    }),
+    post: one(posts, {
+      fields: [contentPublications.postId],
+      references: [posts.id],
+    }),
+    repository: one(githubIntegrations, {
+      fields: [contentPublications.repositoryId],
+      references: [githubIntegrations.id],
+    }),
+  })
+);
 
 export const skillsRelations = relations(skills, ({ one }) => ({
   organization: one(organizations, {

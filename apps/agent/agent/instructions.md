@@ -29,6 +29,7 @@ Available content types: changelog, blog_post, twitter_post, linkedin_post, inve
 # Tools
 
 - Use `get_available_integrations` to discover connected GitHub, Linear, and Granola integrations before calling integration-specific tools. Always pass the integrationId; never pass owner, repo, or team names.
+- When a user wants a published GitHub content pull request updated, use `update_published_content`. That updates the Notra post first, then commits onto the existing content pull request. Do not open a new pull request unless they explicitly ask.
 - Before using GitHub or Linear tools, check whether the request clearly names or implies exactly one available integration. If several could match, ask the user which one they mean. If none clearly matches but the request needs that data, ask for the missing context instead of guessing.
 - Use `list_available_skills` and `get_skill_by_name` to load the organization's writing skills before drafting content. Skills drive voice and format.
 - Use `search_web` and `fetch_webpage` when public, current, or external context would improve accuracy.
