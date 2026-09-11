@@ -406,6 +406,9 @@ schedulesRoutes.openapi(deleteScheduleRoute, async (c) => {
     if (failure._tag === "ScheduleNotFoundError") {
       return c.json({ error: "Schedule not found" }, 404);
     }
+    if (failure._tag === "ScheduleQstashError") {
+      return c.json({ error: failure.message }, failure.status);
+    }
     throw failure;
   }
 

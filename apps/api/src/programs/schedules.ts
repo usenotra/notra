@@ -70,10 +70,14 @@ function isScheduleDomainError(
 
 function scheduleQstashFailureMessage(
   mapped: ReturnType<typeof mapQstashError>,
-  operation: "create" | "update"
+  operation: "create" | "update" | "delete"
 ) {
   if (mapped.status === 400 || operation === "create") {
     return mapped.error;
+  }
+
+  if (operation === "delete") {
+    return "Failed to delete schedule";
   }
 
   return "Failed to update schedule";
@@ -81,7 +85,7 @@ function scheduleQstashFailureMessage(
 
 function scheduleQstashFailure(
   error: unknown,
-  operation: "create" | "update"
+  operation: "create" | "update" | "delete"
 ): ScheduleQstashError {
   const mapped = mapQstashError(
     error instanceof QstashError ? new Error(error.message) : error
@@ -93,36 +97,28 @@ function scheduleQstashFailure(
   });
 }
 
-function cleanupCreatedQstashSchedule(
+function cleanupQstashSchedule(
   env: QstashEnv,
   qstashScheduleId: string,
-  triggerId: string
+  {
+    failureMessage,
+    failureMode,
+    operation,
+  }: {
+    failureMessage: string;
+    failureMode: "log" | "fail";
+    operation: "create" | "update" | "delete";
+  }
 ) {
   return deleteQstashWithRetry(qstashScheduleId).pipe(
     Effect.provide(qstashLayer(env)),
     Effect.catch((cleanupError) => {
-      logError(
-        `Failed to clean up replacement QStash schedule ${qstashScheduleId} for new schedule ${triggerId}`,
-        cleanupError
-      );
-      return Effect.void;
-    })
-  );
-}
+      logError(failureMessage, cleanupError);
+      if (failureMode === "log") {
+        return Effect.void;
+      }
 
-function cleanupDeletedQstashSchedule(
-  env: QstashEnv,
-  qstashScheduleId: string,
-  scheduleId: string
-) {
-  return deleteQstashWithRetry(qstashScheduleId).pipe(
-    Effect.provide(qstashLayer(env)),
-    Effect.catch((cleanupError) => {
-      logError(
-        `Failed to delete QStash schedule ${qstashScheduleId} after schedule ${scheduleId} was removed`,
-        cleanupError
-      );
-      return Effect.void;
+      return Effect.fail(scheduleQstashFailure(cleanupError, operation));
     })
   );
 }
@@ -451,7 +447,11 @@ export const createSchedule = Effect.fn("schedules.create")(function* ({
     Effect.catch((dbError: ScheduleDatabaseError) =>
       Effect.gen(function* () {
         if (qstashScheduleId) {
-          yield* cleanupCreatedQstashSchedule(env, qstashScheduleId, triggerId);
+          yield* cleanupQstashSchedule(env, qstashScheduleId, {
+            failureMessage: `Failed to clean up replacement QStash schedule ${qstashScheduleId} for new schedule ${triggerId}`,
+            failureMode: "log",
+            operation: "create",
+          });
         }
 
         return yield* Effect.fail(dbError);
@@ -510,7 +510,11 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
   });
 
   if (qstashScheduleId) {
-    yield* cleanupDeletedQstashSchedule(env, qstashScheduleId, scheduleId);
+    yield* cleanupQstashSchedule(env, qstashScheduleId, {
+      failureMessage: `Failed to delete QStash schedule ${qstashScheduleId} after schedule ${scheduleId} was removed`,
+      failureMode: "fail",
+      operation: "delete",
+    });
   }
 
   return scheduleId;
