@@ -17,8 +17,8 @@ import {
   callDashboardInternal,
   InternalDashboardError,
   InternalDashboardTimeoutError,
-} from "./internal-workflow";
-import { logError } from "./logging";
+} from "../utils/internal-workflow";
+import { logError } from "../utils/logging";
 
 /**
  * Maps a tagged GEO failure onto an HTTP status and a client-safe message.
