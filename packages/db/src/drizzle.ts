@@ -22,7 +22,11 @@ export function createDb(databaseUrl: string): NodePgDatabase<typeof schema> {
         ? upstashCache({
             url: upstashUrl,
             token: upstashToken,
-            global: true,
+            // Opt-in only: with `global: true` every select builder query paid a
+            // Redis GET plus a write-back pipeline for a 1 s default TTL, i.e.
+            // three round trips instead of one with practically no hits.
+            // Expensive, slowly changing queries opt in via `.$withCache(...)`.
+            global: false,
           })
         : undefined,
     schema,
