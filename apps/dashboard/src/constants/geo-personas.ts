@@ -7,6 +7,7 @@ import type { PersonaDialogView } from "@/types/geo-personas-ui";
 
 export const GEO_PERSONAS_PAGE_TITLE = "Personas";
 export const GEO_PERSONA_EMPTY_TURNS = [] as const;
+export const GEO_PERSONA_RESULTS_POLL_MS = 15_000;
 export const GEO_PERSONA_FORECAST_DAYS = 7;
 export const GEO_PERSONA_FORECAST_SAMPLE_DAYS = 7;
 export const GEO_PERSONAS_PAGE_DESCRIPTION =

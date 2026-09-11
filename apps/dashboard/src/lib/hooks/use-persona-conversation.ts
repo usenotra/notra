@@ -18,7 +18,8 @@ export function usePersonaConversation(
 ) {
   const { data, isLoading, isFetching, refetch } = useGeoPersonaResults(
     organizationId,
-    open ? persona?.id : undefined
+    open ? persona?.id : undefined,
+    open && showConversation
   );
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);

@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GEO_PERSONA_RESULTS_POLL_MS } from "@/constants/geo-personas";
 import { PERSONA_GENERATION_POLL_MS } from "@/constants/persona-generation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
@@ -171,7 +172,8 @@ export function useGeoPersonaDelete(organizationId: string) {
 
 export function useGeoPersonaResults(
   organizationId: string,
-  personaId?: string
+  personaId?: string,
+  poll = false
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPersonaResultsResponse>({
@@ -179,6 +181,7 @@ export function useGeoPersonaResults(
       input: { organizationId, projectId, personaId },
     }),
     enabled: Boolean(organizationId && personaId),
+    refetchInterval: poll && personaId ? GEO_PERSONA_RESULTS_POLL_MS : false,
     meta: { errorMessage: "Failed to load persona results" },
   });
 }

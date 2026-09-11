@@ -363,11 +363,19 @@ const replacePersonas = Effect.fn("geo.personas.replace")(function* (
             target ? eq(geoPersonas.id, target.id) : undefined
           )
         )
-        .returning({ id: geoPersonas.id });
+        .returning({ id: geoPersonas.id, enabled: geoPersonas.enabled });
       if (target && deleted.length !== 1) {
         throw new GeoPersonaNotFoundError({ personaId: target.id });
       }
-      await tx.insert(geoPersonas).values(personaRows);
+      const currentTarget = deleted.at(0);
+      await tx.insert(geoPersonas).values(
+        target && currentTarget
+          ? personaRows.map((row) => ({
+              ...row,
+              enabled: currentTarget.enabled,
+            }))
+          : personaRows
+      );
       await tx.insert(geoPersonaMemories).values(memoryRows);
       return deleted;
     })

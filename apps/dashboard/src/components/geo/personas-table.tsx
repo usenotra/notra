@@ -38,6 +38,7 @@ import {
   geoPersonaUpdateMutationKey,
   useGeoPersonaDelete,
   useGeoPersonasGenerate,
+  useGeoPersonaUpdate,
 } from "@/lib/hooks/use-geo-personas";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
 import type { PersonasTableProps } from "@/types/geo-personas-ui";
@@ -51,6 +52,7 @@ export function PersonasTable({
 }: PersonasTableProps) {
   const { projectId } = useGeoProjectScope();
   const deletePersona = useGeoPersonaDelete(organizationId);
+  const updatePersona = useGeoPersonaUpdate(organizationId);
   const generatePersona = useGeoPersonasGenerate(organizationId);
   const generationPending = generatePersona.isPending;
   const generatingPersonaId = generatePersona.generatingPersonaId;
@@ -240,9 +242,29 @@ export function PersonasTable({
         resizable
         renderRowContextMenu={(row) => (
           <>
-            <ContextMenuItem onClick={() => setViewing(row)}>
+            <ContextMenuItem
+              onClick={() => {
+                trackEvent(POSTHOG_EVENTS.GEO_PERSONA_DETAIL_OPENED, {
+                  personaId: row.id,
+                });
+                setViewing(row);
+              }}
+            >
               <HugeiconsIcon icon={ViewIcon} />
               View persona
+            </ContextMenuItem>
+            <ContextMenuItem
+              disabled={
+                deletePersona.isPending || pendingPersonaIds.includes(row.id)
+              }
+              onClick={() =>
+                updatePersona.mutate({
+                  personaId: row.id,
+                  enabled: !row.enabled,
+                })
+              }
+            >
+              {row.enabled ? "Pause scans" : "Include in scans"}
             </ContextMenuItem>
             <ContextMenuItem
               disabled={

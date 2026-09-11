@@ -2,6 +2,7 @@
 
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_PERSONA_FIELD_MAX_LENGTH } from "@notra/geo-core/constants/geo-personas";
 import { geoPersonaEditableDetailsSchema } from "@notra/geo-core/schemas/geo-personas";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
@@ -86,7 +87,7 @@ export function PersonaProfileEditor({
             id={`${id}-name`}
             name="name"
             defaultValue={persona.name}
-            maxLength={50}
+            maxLength={GEO_PERSONA_FIELD_MAX_LENGTH}
             required
           />
         </div>

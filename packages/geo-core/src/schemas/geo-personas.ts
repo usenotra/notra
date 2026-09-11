@@ -3,6 +3,7 @@ import { array, boolean, enum as enumType, object, string } from "zod";
 
 import {
   GEO_PERSONA_MIN_COUNT,
+  GEO_PERSONA_FIELD_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MIN,
 } from "../constants/geo-personas";
 import { geoOrganizationInputSchema } from "./geo";
@@ -55,7 +56,7 @@ export const geoPersonasGenerateInputSchema = geoOrganizationInputSchema.extend(
 const editableList = array(string().trim().min(1).max(200)).max(6);
 
 export const geoPersonaEditableDetailsSchema = object({
-  name: string().trim().min(1).max(50),
+  name: string().trim().min(1).max(GEO_PERSONA_FIELD_MAX_LENGTH),
   role: string()
     .trim()
     .min(1)

@@ -474,7 +474,7 @@ async function seedProjectActivity(
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = new Date(today.getTime() - offset * 86_400_000);
     const dayString = toDayString(day);
-    const scanId = `${SCAN_ID_PREFIX}${projectId.slice(0, 8)}-${dayString}`;
+    const scanId = `${SCAN_ID_PREFIX}${projectId}-${dayString}`;
 
     const existingScan = await db.query.geoScans.findFirst({
       where: eq(geoScans.id, scanId),

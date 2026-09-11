@@ -262,6 +262,7 @@ function LinkedInPost({
     accountSelector !== undefined && accountSelector.accounts.length > 1;
 
   const [localValue, setLocalValue] = useState(() => content ?? "");
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   const authorName = (
     <span className="truncate text-sm leading-tight font-semibold">
@@ -343,17 +344,26 @@ function LinkedInPost({
 
       <div className="px-4 pb-2">
         {isEditable ? (
-          <div className="grid w-full grid-cols-1">
+          <div className="relative grid w-full grid-cols-1">
             <div
               aria-hidden
-              className="pointer-events-none col-start-1 row-start-1 min-h-[6.5rem] min-w-0"
+              ref={highlightRef}
+              className="pointer-events-none absolute inset-0 min-w-0 overflow-hidden [scrollbar-gutter:stable]"
               style={LINKEDIN_EDITOR_TEXT_STYLE}
             >
               {formatContentWithHashtagsAndLinks(localValue)}
               {"\u200b"}
             </div>
             <Textarea
-              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
+              onScroll={(event) => {
+                if (highlightRef.current) {
+                  highlightRef.current.scrollTop =
+                    event.currentTarget.scrollTop;
+                  highlightRef.current.scrollLeft =
+                    event.currentTarget.scrollLeft;
+                }
+              }}
               onChange={(e) => {
                 const value = e.target.value;
                 setLocalValue(value);
