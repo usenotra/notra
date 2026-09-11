@@ -29,7 +29,7 @@ export function EChartsPlotFrame({
       <div className="@container relative min-h-0 w-full flex-1">
         {plotBefore}
         <div className="relative h-full min-h-0 w-full" ref={mountRef} />
-        <ChartPlotWordmark />
+        {isLoading ? null : <ChartPlotWordmark />}
       </div>
       {children}
       {isLoading ? (

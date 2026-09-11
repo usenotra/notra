@@ -67,12 +67,21 @@ export function largestCanvas(
   return best;
 }
 
+function exportScale(canvas: HTMLCanvasElement): number {
+  const cssWidth = canvas.clientWidth;
+  if (cssWidth <= 0) {
+    return CHART_DOWNLOAD_PIXEL_RATIO;
+  }
+  return canvas.width / cssWidth;
+}
+
 export function exportFrame(
   chartWidth: number,
-  chartHeight: number
+  chartHeight: number,
+  pixelRatio = CHART_DOWNLOAD_PIXEL_RATIO
 ): ChartDownloadFrame {
-  const padding = CHART_DOWNLOAD_PADDING * CHART_DOWNLOAD_PIXEL_RATIO;
-  const header = CHART_DOWNLOAD_HEADER * CHART_DOWNLOAD_PIXEL_RATIO;
+  const padding = CHART_DOWNLOAD_PADDING * pixelRatio;
+  const header = CHART_DOWNLOAD_HEADER * pixelRatio;
   return {
     width: chartWidth + padding * 2,
     height: chartHeight + padding * 2 + header,
@@ -115,13 +124,24 @@ export function cssSurfaceColor(
   source: HTMLElement,
   property: "backgroundColor" | "color"
 ): string {
-  const content = source.querySelector("[data-slot=card-content]");
-  const el = content instanceof HTMLElement ? content : source;
-  const value = getComputedStyle(el)[property].trim();
-  if (property === "backgroundColor" && TRANSPARENT_BACKGROUNDS.has(value)) {
-    return getComputedStyle(document.body).backgroundColor;
+  const start =
+    source.closest("[data-slot=card-content]") ??
+    source.closest("[data-slot=card]") ??
+    source;
+
+  if (property === "color") {
+    return getComputedStyle(start).color.trim();
   }
-  return value;
+
+  let el: HTMLElement | null = start;
+  while (el) {
+    const value = getComputedStyle(el).backgroundColor.trim();
+    if (!TRANSPARENT_BACKGROUNDS.has(value)) {
+      return value;
+    }
+    el = el.parentElement;
+  }
+  return getComputedStyle(document.body).backgroundColor;
 }
 
 function roundRect(
@@ -177,7 +197,8 @@ export async function renderChartPng(
     throw new Error("Chart is not ready");
   }
 
-  const frame = exportFrame(canvas.width, canvas.height);
+  const pixelRatio = exportScale(canvas);
+  const frame = exportFrame(canvas.width, canvas.height, pixelRatio);
   const output = document.createElement("canvas");
   output.width = frame.width;
   output.height = frame.height;
@@ -188,7 +209,7 @@ export async function renderChartPng(
 
   const background = cssSurfaceColor(source, "backgroundColor");
   const foreground = cssSurfaceColor(source, "color");
-  const radius = CHART_DOWNLOAD_RADIUS * CHART_DOWNLOAD_PIXEL_RATIO;
+  const radius = CHART_DOWNLOAD_RADIUS * pixelRatio;
 
   ctx.fillStyle = background;
   roundRect(ctx, 0, 0, frame.width, frame.height, radius);
@@ -215,7 +236,7 @@ export async function renderChartPng(
   ctx.restore();
 
   ctx.fillStyle = foreground;
-  ctx.font = `600 ${CHART_DOWNLOAD_TITLE_SIZE * CHART_DOWNLOAD_PIXEL_RATIO}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  ctx.font = `600 ${CHART_DOWNLOAD_TITLE_SIZE * pixelRatio}px Inter, ui-sans-serif, system-ui, sans-serif`;
   ctx.textBaseline = "top";
   ctx.fillText(title, frame.padding, frame.padding);
 

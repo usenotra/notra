@@ -1,9 +1,12 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useRef } from "react";
 
 import { ChartDownloadButton } from "@/components/charts/chart-download-button";
 import {
+  CHART_WORDMARK_LIVE_DARK_OPACITY,
+  CHART_WORDMARK_LIVE_OPACITY,
   NOTRA_MARK_BLOB_PATH,
   NOTRA_MARK_FILL,
   NOTRA_MARK_SLASH_PATH,
@@ -12,6 +15,17 @@ import {
   NOTRA_WORDMARK_WIDTH,
 } from "@/constants/chart-wordmark";
 import { cn } from "@/lib/utils";
+
+const WORDMARK_OPACITY_STYLE = {
+  "--chart-wordmark-opacity": CHART_WORDMARK_LIVE_OPACITY,
+  "--chart-wordmark-opacity-dark": CHART_WORDMARK_LIVE_DARK_OPACITY,
+} as CSSProperties;
+
+const WORDMARK_FADE =
+  "opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/chart:opacity-100 group-focus-within/chart:opacity-100 motion-reduce:transition-none";
+
+const EXPORT_REVEAL =
+  "pointer-events-none opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/chart:opacity-100 group-focus-within/chart:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 group-hover/chart:pointer-events-auto group-focus-within/chart:pointer-events-auto motion-reduce:transition-none";
 
 export function ChartWordmark({ className }: { className?: string }) {
   return (
@@ -42,9 +56,6 @@ export function ChartWordmark({ className }: { className?: string }) {
   );
 }
 
-const HOVER_FADE =
-  "opacity-0 transition-opacity duration-200 group-hover/chart:opacity-100 group-focus-within/chart:opacity-100 motion-reduce:transition-none";
-
 export function ChartPlotWordmark() {
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -55,17 +66,12 @@ export function ChartPlotWordmark() {
     >
       <div
         aria-hidden="true"
-        className={cn("flex h-full items-center justify-center", HOVER_FADE)}
+        className={cn("flex h-full items-center justify-center", WORDMARK_FADE)}
+        style={WORDMARK_OPACITY_STYLE}
       >
-        <ChartWordmark className="h-[42%] max-h-40 w-auto opacity-[0.08] dark:opacity-[0.12]" />
+        <ChartWordmark className="h-[42%] max-h-40 w-auto [opacity:var(--chart-wordmark-opacity)] dark:[opacity:var(--chart-wordmark-opacity-dark)]" />
       </div>
-      <div
-        className={cn(
-          "pointer-events-none absolute top-1 right-1",
-          HOVER_FADE,
-          "group-focus-within/chart:pointer-events-auto group-hover/chart:pointer-events-auto"
-        )}
-      >
+      <div className={cn("absolute top-1 right-1", EXPORT_REVEAL)}>
         <ChartDownloadButton
           className="bg-background/80 hover:bg-background"
           sourceRef={overlayRef}
