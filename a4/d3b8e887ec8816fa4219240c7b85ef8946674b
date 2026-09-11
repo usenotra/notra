@@ -1,0 +1,24 @@
+packages/ui/src/lib/notra-mark.ts
+  s_d4520a086db350::t_fbee0b2c41d702 1-23
+packages/ui/src/components/ui/svgs/notra.tsx
+  s_d4520a086db350::t_674e31e0c4c5dd 1
+  s_d4520a086db350::t_c9269778b34bc0 2,14,18-19,25
+apps/dashboard/src/utils/chart-download.ts
+  s_d4520a086db350::t_dfd06caa39caf9 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a4d3b8e887ec8816fa4219240c7b85ef8946674b",
+  "prompts": {},
+  "sessions": {
+    "s_d4520a086db350": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "48d7e7b2-3d11-4e57-a68d-8e21028d9122",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
