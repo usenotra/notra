@@ -148,19 +148,29 @@ async function latestReadinessReports(
     eq(geoAgentReadinessReports.projectId, projectId),
     inArray(geoAgentReadinessReports.targetUrl, targetUrls)
   );
+  const latestBranch = db
+    .select({
+      ...readinessReportColumns,
+      isLatest: sql<boolean>`true`.as("is_latest"),
+    })
+    .from(geoAgentReadinessReports)
+    .where(scoped)
+    .orderBy(desc(geoAgentReadinessReports.createdAt))
+    .limit(1)
+    .as("latest_readiness_report");
+  const completedBranch = db
+    .select({
+      ...readinessReportColumns,
+      isLatest: sql<boolean>`false`.as("is_latest"),
+    })
+    .from(geoAgentReadinessReports)
+    .where(and(scoped, eq(geoAgentReadinessReports.status, "completed")))
+    .orderBy(desc(geoAgentReadinessReports.createdAt))
+    .limit(1)
+    .as("completed_readiness_report");
   const rows = await unionAll(
-    db
-      .select({ ...readinessReportColumns, isLatest: sql<boolean>`true` })
-      .from(geoAgentReadinessReports)
-      .where(scoped)
-      .orderBy(desc(geoAgentReadinessReports.createdAt))
-      .limit(1),
-    db
-      .select({ ...readinessReportColumns, isLatest: sql<boolean>`false` })
-      .from(geoAgentReadinessReports)
-      .where(and(scoped, eq(geoAgentReadinessReports.status, "completed")))
-      .orderBy(desc(geoAgentReadinessReports.createdAt))
-      .limit(1)
+    db.select().from(latestBranch),
+    db.select().from(completedBranch)
   );
   return {
     latest: rows.find((row) => row.isLatest),

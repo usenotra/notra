@@ -410,7 +410,7 @@ export async function queryGeoCheckPromptHistory(
     return [];
   }
 
-  const rows = await db
+  const rowsQuery = db
     .select({
       id: geoMentionChecks.id,
       scanId: geoMentionChecks.scanId,
@@ -431,14 +431,15 @@ export async function queryGeoCheckPromptHistory(
       and(
         mentionFilters(scope, undefined, {
           sequences: "single",
-          englishOnly: true,
+          englishOnly: !query.scanId,
         }),
         inArray(geoMentionChecks.promptId, query.promptIds),
+        query.scanId ? eq(geoMentionChecks.scanId, query.scanId) : undefined,
         eq(geoMentionChecks.turn, 0)
       )
     )
-    .orderBy(desc(geoMentionChecks.capturedAt))
-    .limit(query.limit);
+    .orderBy(desc(geoMentionChecks.capturedAt));
+  const rows = await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
 
   return rows.map((row) => ({
     id: row.id,

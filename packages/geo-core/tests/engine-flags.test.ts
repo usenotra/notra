@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect";
 
 import { GeoFeatureFlagService } from "../src/deps";
 import { loadGeoEngineFlags } from "../src/geo/engine-flags";
+import { GeoFlagEvaluationError } from "../src/geo/errors";
 
 interface CountingFlagProvider {
   readonly layer: Layer.Layer<GeoFeatureFlagService>;
@@ -14,13 +15,18 @@ function countingFlagProvider(options?: {
   readonly failOnce?: boolean;
 }): CountingFlagProvider {
   let calls = 0;
-  let failuresLeft = options?.failOnce ? 1 : 0;
+  let failuresLeft = options?.failOnce ? 2 : 0;
   const evaluate = () =>
     Effect.suspend(() => {
       calls += 1;
       if (failuresLeft > 0) {
         failuresLeft -= 1;
-        return Effect.die(new Error("flag provider unavailable"));
+        return Effect.fail(
+          new GeoFlagEvaluationError({
+            message: "flag provider unavailable",
+            cause: new Error("flag provider unavailable"),
+          })
+        );
       }
       return Effect.succeed(true);
     });
@@ -107,11 +113,14 @@ describe("engine flag cache", () => {
     const scope = organizationId();
 
     const failed = await Effect.runPromise(
-      Effect.exit(
-        loadGeoEngineFlags(scope).pipe(Effect.provide(provider.layer))
-      )
+      loadGeoEngineFlags(scope).pipe(Effect.provide(provider.layer))
     );
-    expect(failed._tag).toBe("Failure");
+    expect(failed).toEqual({
+      cursorEnabled: false,
+      openCodeEnabled: false,
+      available: false,
+    });
+    expect(provider.calls()).toBe(2);
 
     const recovered = await Effect.runPromise(
       loadGeoEngineFlags(scope).pipe(Effect.provide(provider.layer))
@@ -121,5 +130,6 @@ describe("engine flag cache", () => {
       openCodeEnabled: true,
       available: true,
     });
+    expect(provider.calls()).toBe(4);
   });
 });

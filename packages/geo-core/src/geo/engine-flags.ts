@@ -26,7 +26,9 @@ const evaluateFlag = (
 ): Effect.Effect<{ readonly enabled: boolean; readonly available: boolean }> =>
   flag.pipe(
     Effect.map((enabled) => ({ enabled, available: true })),
-    Effect.catch(() => Effect.succeed({ enabled: false, available: false }))
+    Effect.catchTag("GeoFlagEvaluationError", () =>
+      Effect.succeed({ enabled: false, available: false })
+    )
   );
 
 const evaluateGeoEngineFlags = Effect.fn("geo.engineFlags.evaluate")(

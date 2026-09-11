@@ -153,26 +153,37 @@ export async function updateGeoShelfCitations(
   if (updates.length === 0) {
     return;
   }
-  // One statement instead of one UPDATE per changed source: this runs on the
-  // shelf read path, where every source's citation counts usually moved.
-  const values = sql.join(
-    updates.map(
-      (update) =>
-        sql`(${update.id}::text, ${JSON.stringify(update.citations)}::jsonb, ${update.title}::text)`
-    ),
-    sql`, `
-  );
+  // One statement per chunk instead of one UPDATE per changed source. Chunking
+  // keeps us under Postgres's bind-parameter limit (~21k rows at 3 params each).
   await db.transaction(async (tx) => {
-    await tx.execute(sql`
-      update ${geoShelfSources} as target
-      set citations = incoming.citations,
-        title = coalesce(target.title, incoming.title),
-        updated_at = now() at time zone 'utc'
-      from (values ${values}) as incoming(id, citations, title)
-      where target.id = incoming.id
-        and target.organization_id = ${key.organizationId}
-        and target.project_id = ${key.projectId}
-    `);
+    for (
+      let index = 0;
+      index < updates.length;
+      index += GEO_SHELF_CITATION_INSERT_CHUNK
+    ) {
+      const chunk = updates.slice(
+        index,
+        index + GEO_SHELF_CITATION_INSERT_CHUNK
+      );
+      const values = sql.join(
+        chunk.map(
+          (update) =>
+            sql`(${update.id}::text, ${JSON.stringify(update.citations)}::jsonb, ${update.title}::text)`
+        ),
+        sql`, `
+      );
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- one transaction connection executes queries serially
+      await tx.execute(sql`
+        update ${geoShelfSources} as target
+        set citations = incoming.citations,
+          title = coalesce(target.title, incoming.title),
+          updated_at = now() at time zone 'utc'
+        from (values ${values}) as incoming(id, citations, title)
+        where target.id = incoming.id
+          and target.organization_id = ${key.organizationId}
+          and target.project_id = ${key.projectId}
+      `);
+    }
   });
 }
 
