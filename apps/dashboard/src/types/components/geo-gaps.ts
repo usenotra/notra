@@ -106,10 +106,6 @@ export interface GeoGapsFiltersProps {
   engineFamilies: readonly string[];
 }
 
-export interface GeoGapsPageContentProps {
-  organizationSlug: string;
-}
-
 export interface GeoGapOpportunityCellProps {
   row: GeoPromptGapRow;
   maxOpportunity: number;

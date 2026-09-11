@@ -18,28 +18,16 @@ import { AgentReadinessScanningNotice } from "@/components/geo/agent-readiness/r
 import { AgentReadinessScoreCard } from "@/components/geo/agent-readiness/readiness-score-card";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PageContainer } from "@/components/layout/container";
-import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useAgentReadiness,
   useAgentReadinessScan,
   useGeoSettings,
 } from "@/lib/hooks/use-geo";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type { AgentReadinessBodyProps } from "@/types/agent-readiness";
 import type { GeoPageClientProps } from "@/types/geo";
 
 import { AgentReadinessSkeleton } from "./skeleton";
-
-export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <AgentReadinessPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
 
 function ReadinessBody({
   data,
@@ -112,7 +100,7 @@ function ReadinessBody({
   );
 }
 
-function AgentReadinessPageContent({ organizationSlug }: GeoPageClientProps) {
+export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =

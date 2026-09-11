@@ -17,10 +17,7 @@ import { ShelfDetailDialog } from "@/components/geo/shelf/shelf-detail-dialog";
 import { ShelfPageControls } from "@/components/geo/shelf/shelf-page-controls";
 import { ShelfView } from "@/components/geo/shelf/shelf-view";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -37,13 +34,9 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb, useGeoShelfDb } from "@/lib/hooks/use-geo-db";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoShelfMembers } from "@/lib/hooks/use-geo-shelf";
 import type { GeoPageClientProps } from "@/types/geo";
-import type {
-  GeoShelfPageContentProps,
-  GeoShelfSelection,
-} from "@/types/geo-shelf";
+import type { GeoShelfSelection } from "@/types/geo-shelf";
 import { withGeoProject } from "@/utils/geo-paths";
 import {
   buildOptimisticShelfSource,
@@ -58,16 +51,6 @@ const PAGE_DESCRIPTION =
   "Third-party pages AI engines cite for your prompts, and whether you're on them";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoShelfPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
