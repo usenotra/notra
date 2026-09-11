@@ -178,7 +178,7 @@ export function GeoPromptAnswerThread({
         className={cn(
           scrollable
             ? "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden"
-            : "relative flex min-h-full flex-col",
+            : "relative flex min-h-full flex-1 flex-col",
           GEO_CHAT_SKIN_SURFACE[skin]
         )}
       >

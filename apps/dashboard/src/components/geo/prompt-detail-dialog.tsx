@@ -3,6 +3,7 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GEO_CHAT_SKIN_SURFACE,
   GEO_PROMPT_HISTORY_ANSWER_LABELS,
   GEO_PROMPT_MAX_TAGS,
 } from "@notra/geo-core/constants/geo";
@@ -47,6 +48,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoCompetitors } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
+import { cn } from "@/lib/utils";
 import type {
   PromptAnswerPageProps,
   PromptDetailDialogProps,
@@ -56,6 +58,7 @@ import type {
   PromptAnswerHeaderProps,
 } from "@/types/geo-prompt-detail";
 import { sharedEngineAnswerMode } from "@/utils/geo-charts";
+import { geoChatSkin } from "@/utils/geo-chat-skin";
 import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
@@ -388,7 +391,14 @@ function PromptAnswerPage({
         </div>
       ) : null}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div
+          className={cn(
+            "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            view === "raw" && active
+              ? GEO_CHAT_SKIN_SURFACE[geoChatSkin(active.engine)]
+              : undefined
+          )}
+        >
           <AnimatePresence custom={direction} initial={false} mode="popLayout">
             {active ? (
               <motion.div
