@@ -48,3 +48,17 @@ export function formatGitHubRepositoryLabel(
 ) {
   return `${repository.owner}/${repository.repo}`;
 }
+
+export function resolveGitHubPublishRepositoryId(
+  preferredId: string | null | undefined,
+  repositories: readonly Pick<GitHubRepository, "id">[]
+) {
+  if (
+    preferredId &&
+    repositories.some((repository) => repository.id === preferredId)
+  ) {
+    return preferredId;
+  }
+
+  return repositories[0]?.id ?? "";
+}

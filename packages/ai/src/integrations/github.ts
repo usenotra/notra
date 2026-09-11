@@ -45,6 +45,7 @@ import type {
   WebhookConfig,
 } from "../types/integrations";
 import type { GitHubToolRepositoryContext } from "../types/tools";
+import type { GitHubAppPublishAccess } from "../utils/github-app-publish-access";
 import { createOctokit } from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";
@@ -220,6 +221,30 @@ async function getGitHubAppInstallation(installationId: string) {
   );
 
   return Effect.runPromise(decodeGitHubAppInstallationResponse(data));
+}
+
+export async function getGitHubAppInstallationPublishAccess(
+  installationId: string
+): Promise<GitHubAppPublishAccess | null> {
+  try {
+    const octokit = createOctokit(createGitHubAppJwt());
+    const { data } = await octokit.request(
+      "GET /app/installations/{installation_id}",
+      {
+        installation_id: Number(installationId),
+        headers: {
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    );
+
+    return {
+      contents: data.permissions?.contents,
+      pullRequests: data.permissions?.pull_requests,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function getInstallationOrgMembership(params: {

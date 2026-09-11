@@ -105,7 +105,8 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
           GitHub App
         </h2>
         <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          Manage connected accounts and repository access.
+          Manage connected accounts, repository access, and GitHub write
+          permissions for draft pull requests.
         </p>
       </div>
       <div className="min-w-0 space-y-4">

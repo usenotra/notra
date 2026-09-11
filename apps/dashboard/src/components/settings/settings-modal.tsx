@@ -105,6 +105,13 @@ const CreditsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const IntegrationsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/integrations-pane").then((mod) => ({
+      default: mod.IntegrationsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const LogsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/logs-pane").then((mod) => ({
@@ -138,6 +145,8 @@ function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
       return <UsageSettingsPane />;
     case "credits":
       return <CreditsSettingsPane />;
+    case "integrations":
+      return <IntegrationsSettingsPane />;
     case "logs":
       return <LogsSettingsPane />;
     case "geo":

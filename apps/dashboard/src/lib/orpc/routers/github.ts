@@ -1,5 +1,6 @@
 import {
   deleteGitHubAppInstallationForOrganization,
+  getGitHubAppInstallationPublishAccess,
   GitHubAppNotConfiguredError,
   getGitHubAppInstallUrl,
   getSelectedGitHubAppRepositoryIds,
@@ -9,6 +10,7 @@ import {
   setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
 import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
+import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { redis } from "@notra/ai/utils/redis";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -211,14 +213,24 @@ export const githubRouter = {
           ),
           toGitHubOperationOrpcError
         );
+        const accounts = await Promise.all(
+          installations.map(async (installation) => {
+            const publishAccess = await getGitHubAppInstallationPublishAccess(
+              installation.installationId
+            );
+            return {
+              id: installation.accountId,
+              installationId: installation.installationId,
+              login: installation.accountLogin,
+              name: installation.accountName,
+              avatarUrl: installation.accountAvatarUrl,
+              type: toGitHubAccountType(installation.accountType),
+              canPublish: githubAppInstallationCanPublishContent(publishAccess),
+            };
+          })
+        );
         return {
-          accounts: installations.map((installation) => ({
-            id: installation.accountId,
-            login: installation.accountLogin,
-            name: installation.accountName,
-            avatarUrl: installation.accountAvatarUrl,
-            type: toGitHubAccountType(installation.accountType),
-          })),
+          accounts,
           repositories,
           selectedRepositoryIds,
         };

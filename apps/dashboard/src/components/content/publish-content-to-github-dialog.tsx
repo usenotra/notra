@@ -30,7 +30,12 @@ import {
   formatGitHubRepositoryLabel,
   getGitHubPublishRepositoryLists,
   isGitHubContentPublishingEnabled,
+  resolveGitHubPublishRepositoryId,
 } from "@/utils/github-publish-repositories";
+import {
+  readStoredGitHubPublishRepositoryId,
+  writeStoredGitHubPublishRepositoryId,
+} from "@/utils/github-publish-repository-preference";
 
 function GitHubPublishDialogBody({
   contentLabel,
@@ -94,7 +99,9 @@ export function PublishContentToGitHubDialog({
 }: PublishContentToGitHubDialogProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [repositoryId, setRepositoryId] = useState("");
+  const [repositoryId, setRepositoryId] = useState(
+    () => readStoredGitHubPublishRepositoryId(organizationId) ?? ""
+  );
   const contentLabel = contentType === "changelog" ? "changelog" : "blog post";
 
   const integrationsQuery = useQuery(
@@ -108,9 +115,13 @@ export function PublishContentToGitHubDialog({
     getGitHubPublishRepositoryLists(integrationsQuery.data?.integrations ?? []);
   const integrationsLoadFailed =
     integrationsQuery.isError && !integrationsQuery.data;
-  const selectedRepository =
-    repositories.find((repository) => repository.id === repositoryId) ??
-    repositories[0];
+  const selectedRepositoryId = resolveGitHubPublishRepositoryId(
+    repositoryId,
+    repositories
+  );
+  const selectedRepository = repositories.find(
+    (repository) => repository.id === selectedRepositoryId
+  );
   const selectedPublishingEnabled = selectedRepository
     ? isGitHubContentPublishingEnabled(selectedRepository, contentType)
     : false;
@@ -166,9 +177,23 @@ export function PublishContentToGitHubDialog({
     }
   };
 
+  const rememberRepository = (nextRepositoryId: string) => {
+    setRepositoryId(nextRepositoryId);
+    writeStoredGitHubPublishRepositoryId(organizationId, nextRepositoryId);
+  };
+
+  const handleRepositoryChange = (nextRepositoryId: string) => {
+    if (nextRepositoryId === selectedRepositoryId) {
+      return;
+    }
+    rememberRepository(nextRepositoryId);
+    publishMutation.reset();
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (selectedRepository) {
+      rememberRepository(selectedRepository.id);
       publishMutation.mutate(selectedRepository.id);
     }
   };
@@ -180,7 +205,7 @@ export function PublishContentToGitHubDialog({
         Create GitHub PR
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="min-w-0 sm:max-w-[600px]">
-        <form className="min-w-0" onSubmit={handleSubmit}>
+        <form className="contents" onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{copy.title}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
@@ -188,22 +213,24 @@ export function PublishContentToGitHubDialog({
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <GitHubPublishDialogBody
-            contentLabel={contentLabel}
-            connectedRepositoryCount={connected.length}
-            integrationsLoadFailed={integrationsLoadFailed}
-            isLoadingIntegrations={integrationsQuery.isLoading}
-            isPublishing={publishMutation.isPending}
-            onRepositoryChange={setRepositoryId}
-            onRetryIntegrations={() => integrationsQuery.refetch()}
-            organizationSlug={organizationSlug}
-            publishRecovery={publishRecovery}
-            pullRequest={pullRequest}
-            repositories={repositories}
-            selectedPublishingEnabled={selectedPublishingEnabled}
-            selectedRepository={selectedRepository}
-            title={title}
-          />
+          <div className="min-w-0 space-y-4">
+            <GitHubPublishDialogBody
+              contentLabel={contentLabel}
+              connectedRepositoryCount={connected.length}
+              integrationsLoadFailed={integrationsLoadFailed}
+              isLoadingIntegrations={integrationsQuery.isLoading}
+              isPublishing={publishMutation.isPending}
+              onRepositoryChange={handleRepositoryChange}
+              onRetryIntegrations={() => integrationsQuery.refetch()}
+              organizationSlug={organizationSlug}
+              publishRecovery={publishRecovery}
+              pullRequest={pullRequest}
+              repositories={repositories}
+              selectedPublishingEnabled={selectedPublishingEnabled}
+              selectedRepository={selectedRepository}
+              title={title}
+            />
+          </div>
 
           <ResponsiveDialogFooter>
             <GitHubPublishDialogFooter
