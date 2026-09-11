@@ -1,11 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SIDEBAR_MODE_HOME_LINKS } from "@/constants/nav";
+import type { SidebarMode } from "@/types/components/nav";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import { geoNavHref } from "@/utils/geo-paths";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
 import { NavGeo } from "./nav-geo";
@@ -17,6 +19,7 @@ import { SidebarSwap } from "./sidebar-swap";
 export function NavMain() {
   const { activeOrganization } = useOrganizationsContext();
   const pathname = usePathname();
+  const router = useRouter();
   const [projectParam] = useGeoProjectQueryState();
   const route = sidebarRouteFromPathname(pathname);
   const { mode, setMode, pendingMode } = useSidebarMode(route);
@@ -36,11 +39,16 @@ export function NavMain() {
     ? `/${slug}${SIDEBAR_MODE_HOME_LINKS[pendingMode]}`
     : pathname;
 
+  const handleModeChange = (next: SidebarMode) => {
+    setMode(next);
+    router.push(geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[next], projectId));
+  };
+
   return (
     <>
       <NavModeSwitch
         mode={mode}
-        onModeChange={setMode}
+        onModeChange={handleModeChange}
         projectId={projectId}
         slug={slug}
       />
