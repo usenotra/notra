@@ -110,6 +110,23 @@ function cleanupCreatedQstashSchedule(
   );
 }
 
+function cleanupDeletedQstashSchedule(
+  env: QstashEnv,
+  qstashScheduleId: string,
+  scheduleId: string
+) {
+  return deleteQstashWithRetry(qstashScheduleId).pipe(
+    Effect.provide(qstashLayer(env)),
+    Effect.catch((cleanupError) => {
+      logError(
+        `Failed to delete QStash schedule ${qstashScheduleId} after schedule ${scheduleId} was removed`,
+        cleanupError
+      );
+      return Effect.void;
+    })
+  );
+}
+
 function withQstashLayer<A, E>(
   env: QstashEnv,
   effect: Effect.Effect<A, E, QstashService>
@@ -451,7 +468,7 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
   scheduleId,
   env,
 }: DeleteScheduleProgramInput) {
-  return yield* Effect.tryPromise({
+  const qstashScheduleId = yield* Effect.tryPromise({
     try: () =>
       db.transaction(async (tx) => {
         const [existing] = await tx
@@ -470,9 +487,7 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
           throw new ScheduleNotFoundError();
         }
 
-        if (existing.qstashScheduleId) {
-          await deleteQstashScheduleWithRetry(env, existing.qstashScheduleId);
-        }
+        const removedQstashScheduleId = existing.qstashScheduleId;
 
         await tx
           .delete(contentTriggers)
@@ -483,7 +498,7 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
             )
           );
 
-        return scheduleId;
+        return removedQstashScheduleId;
       }),
     catch: (cause) => {
       if (isScheduleDomainError(cause)) {
@@ -493,6 +508,12 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
       return new ScheduleDatabaseError({ cause });
     },
   });
+
+  if (qstashScheduleId) {
+    yield* cleanupDeletedQstashSchedule(env, qstashScheduleId, scheduleId);
+  }
+
+  return scheduleId;
 });
 
 export const patchSchedule = Effect.fn("schedules.patch")(function* ({
