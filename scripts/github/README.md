@@ -1,6 +1,9 @@
 # PR triage
 
-The `PR triage` workflow uses `pull_request` for same-repository PRs. Forks and
+The `PR triage` workflow runs once when a same-repository PR is opened, including
+draft PRs. Commits, title/description edits, reopening, and marking ready for review
+do not trigger another scan. Labels describe the initial PR and are not refreshed
+automatically as its scope changes. Forks and
 Dependabot runs are skipped because they lack the required secret/write token.
 It checks out only scripts from the same-repository PR head SHA, installs no
 dependencies, and fetches changed files through GitHub's API. Contributors who
@@ -12,6 +15,8 @@ The workflow sends the PR title, description, filenames, and bounded patches to
 OpenAI's `gpt-5.6-luna`, with no tools and response storage disabled. Without the
 secret, path labeling still runs and adds `needs-triage`. API errors, incomplete
 file lists, invalid model output, and uncertain classifications also require triage.
+If the head/base commit, title, or description changes during the model call, the
+run skips label writes; manually label that PR instead.
 
 Area labels are limited to app and package workspaces and reflect directly changed
 paths, including both sides of renames; they do not infer downstream package
@@ -20,7 +25,9 @@ Actions, PR automation, and supporting scripts use `type/ci`, including when the
 introduce new automation capabilities. Edit `constants/labels.mjs` when adding
 workspaces. Priority means review urgency, not change size or deployment risk.
 Existing type/priority labels always win, including those from earlier bot runs.
-To reclassify, remove those labels and edit the PR description to trigger a run.
+To change a classification later, edit the labels manually. A maintainer can
+explicitly retry the initial run from Actions; retries are skipped if the PR head
+has changed since the original event.
 Other labels are preserved; area labels and `needs-triage` are managed by the bot.
 Reasons appear in workflow logs. No PR comments are posted.
 

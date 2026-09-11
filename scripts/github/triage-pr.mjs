@@ -95,12 +95,14 @@ try {
   );
 }
 
-// Re-fetch after the model call so a superseded run cannot label a newer diff.
+// Re-fetch after the model call so labels use the same diff and PR text.
 const latest = await github(`pulls/${number}`);
 if (
   latest.state !== "open" ||
   latest.head.sha !== pr.head.sha ||
-  latest.base.sha !== pr.base.sha
+  latest.base.sha !== pr.base.sha ||
+  latest.title !== pr.title ||
+  latest.body !== pr.body
 ) {
   console.log("PR changed during triage; skipping label writes.");
   process.exit(0);

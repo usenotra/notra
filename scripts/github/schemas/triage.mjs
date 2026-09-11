@@ -15,6 +15,10 @@ export const triageSchema = {
 export function validateTriage(value) {
   if (
     !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    Object.keys(value).length !== triageSchema.required.length ||
+    !triageSchema.required.every((key) => Object.hasOwn(value, key)) ||
     !types.includes(value.type) ||
     !priorities.includes(value.priority) ||
     typeof value.needs_triage !== "boolean" ||
