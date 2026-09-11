@@ -115,12 +115,11 @@ async function commitScheduleDeleteIfUnchanged(
   });
 }
 
-async function restoreEnabledScheduleQstash(
+async function ensureEnabledScheduleQstash(
   db: DbClient,
   organizationId: string,
   scheduleId: string,
-  env: QstashEnv,
-  qstashScheduleId: string
+  env: QstashEnv
 ) {
   await db.transaction(async (tx) => {
     const [current] = await tx
@@ -129,7 +128,7 @@ async function restoreEnabledScheduleQstash(
       .where(scheduleDeleteScope(organizationId, scheduleId))
       .for("update");
 
-    if (!current?.enabled || current.qstashScheduleId !== qstashScheduleId) {
+    if (!current?.enabled || !current.qstashScheduleId) {
       return;
     }
 
@@ -137,38 +136,30 @@ async function restoreEnabledScheduleQstash(
     const restoredId = await createQstashSchedule(env, {
       triggerId: scheduleId,
       cron: buildCronExpression(config.cron),
-      scheduleId: qstashScheduleId,
+      scheduleId: current.qstashScheduleId,
     });
 
-    if (restoredId !== qstashScheduleId) {
+    if (restoredId !== current.qstashScheduleId) {
       await deleteQstashScheduleWithRetry(env, restoredId);
       throw new Error("QStash returned an unexpected restoration ID");
     }
   });
 }
 
-function attemptRestoreEnabledScheduleQstash(
+function attemptEnsureEnabledScheduleQstash(
   db: DbClient,
   organizationId: string,
   scheduleId: string,
-  env: QstashEnv,
-  qstashScheduleId: string
+  env: QstashEnv
 ) {
   return Effect.tryPromise({
-    try: () =>
-      restoreEnabledScheduleQstash(
-        db,
-        organizationId,
-        scheduleId,
-        env,
-        qstashScheduleId
-      ),
+    try: () => ensureEnabledScheduleQstash(db, organizationId, scheduleId, env),
     catch: (cause) => cause,
   }).pipe(
     Effect.catch((recoveryError) =>
       Effect.sync(() => {
         logError(
-          `Failed to restore QStash schedule ${qstashScheduleId} after delete persistence failed for schedule ${scheduleId}`,
+          `Failed to ensure QStash schedule for schedule ${scheduleId} after delete reconciliation`,
           recoveryError
         );
       })
@@ -627,12 +618,11 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
     ).pipe(
       Effect.catchTag("ScheduleDatabaseError", (dbError) =>
         removedQstashScheduleId
-          ? attemptRestoreEnabledScheduleQstash(
+          ? attemptEnsureEnabledScheduleQstash(
               db,
               organizationId,
               scheduleId,
-              env,
-              removedQstashScheduleId
+              env
             ).pipe(Effect.flatMap(() => Effect.fail(dbError)))
           : Effect.fail(dbError)
       )
@@ -641,7 +631,18 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
     if (commitResult === "deleted" || commitResult === "gone") {
       return scheduleId;
     }
+
+    if (commitResult === "stale" && removedQstashScheduleId) {
+      yield* attemptEnsureEnabledScheduleQstash(
+        db,
+        organizationId,
+        scheduleId,
+        env
+      );
+    }
   }
+
+  yield* attemptEnsureEnabledScheduleQstash(db, organizationId, scheduleId, env);
 
   return yield* new ScheduleQstashError({
     message: "Failed to delete schedule",
