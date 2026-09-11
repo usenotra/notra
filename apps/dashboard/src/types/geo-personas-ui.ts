@@ -10,13 +10,6 @@ export interface PersonasTableProps {
   personas: GeoPersona[];
 }
 
-export interface PersonaRowActionsProps {
-  persona: GeoPersona;
-  isPending: boolean;
-  onToggle: (enabled: boolean) => void;
-  onDelete: () => void;
-}
-
 export interface PersonaDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -45,6 +38,11 @@ export interface PersonaProfileProps {
   persona: GeoPersona;
 }
 
+export interface PersonaProfileEditorProps extends PersonaProfileProps {
+  organizationId: string;
+  onCancel: () => void;
+}
+
 /** Memories of one kind, ready to render as a labelled group. */
 export interface PersonaMemoryGroup {
   kind: GeoPersonaMemoryKind;
@@ -70,4 +68,18 @@ export interface GeneratePersonasButtonProps {
   hasPersonas: boolean;
   progress: PersonaGenerationProgress | null;
   onClick: () => void;
+}
+import type {
+  AnswerReplayProgress,
+  GeoSequenceEngineThread,
+} from "@/types/geo";
+
+export interface PersonaConversationProps {
+  active: GeoSequenceEngineThread | null;
+  progress: AnswerReplayProgress | null;
+  isLoading: boolean;
+  isWaitingForScan: boolean;
+  enabled: boolean;
+  isScanning: boolean;
+  onRunScan: () => void;
 }

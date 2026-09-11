@@ -6,11 +6,14 @@ import type {
 import type { PersonaDialogView } from "@/types/geo-personas-ui";
 
 export const GEO_PERSONAS_PAGE_TITLE = "Personas";
+export const GEO_PERSONA_EMPTY_TURNS = [] as const;
+export const GEO_PERSONA_FORECAST_DAYS = 7;
+export const GEO_PERSONA_FORECAST_SAMPLE_DAYS = 7;
 export const GEO_PERSONAS_PAGE_DESCRIPTION =
-  "Simulated buyers researching your category in AI engines";
+  "Distinct buyer types researching your category in AI engines";
 export const GEO_PERSONAS_EMPTY_TITLE = "No personas yet";
 export const GEO_PERSONAS_EMPTY_DESCRIPTION =
-  "Up to five ideal customers, written from your site. Each one talks to every AI engine during a scan.";
+  "Generate five buyer types from your site and audience, each with its own priorities, tool stack, and buying criteria. They research your category in your selected AI engines.";
 export const GEO_PERSONA_DIALOG_VIEWS = [
   { value: "conversation", label: "Conversation" },
   { value: "profile", label: "Profile" },
@@ -37,10 +40,10 @@ export const GEO_PERSONA_GENERATION_STEPS = [
 export const GEO_PERSONA_GENERATION_TICK_MS = 500;
 
 export const GEO_PERSONAS_MEMORIES_COLUMN_WIDTH = "6.5rem";
-export const GEO_PERSONAS_TURNS_COLUMN_WIDTH = "5rem";
-export const GEO_PERSONAS_ACTIONS_COLUMN_WIDTH = "7rem";
+export const GEO_PERSONAS_TURNS_COLUMN_WIDTH = "9rem";
+export const GEO_PERSONAS_ACTIONS_COLUMN_WIDTH = "6rem";
 
-export const GEO_PERSONA_SKELETON_ROW_COUNT = 4;
+export const GEO_PERSONA_SKELETON_ROW_COUNT = 5;
 
 /** Render size of the DiceBear SVG; it scales down crisply to any avatar size. */
 export const GEO_PERSONA_AVATAR_SIZE = 96;

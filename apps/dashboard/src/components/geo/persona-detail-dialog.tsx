@@ -8,49 +8,40 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
-import { Badge } from "@notra/ui/components/ui/badge";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
+import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
+import { GeoConversationSkeleton } from "@/components/geo/skeleton-parts";
 import {
   GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION,
   GEO_PERSONA_CONVERSATION_EMPTY_TITLE,
   GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION,
   GEO_PERSONA_DIALOG_VIEWS,
-  GEO_PERSONA_PROFILE_SECTIONS,
 } from "@/constants/geo-personas";
-import { useAnswerReplay } from "@/lib/hooks/use-answer-replay";
-import { useGeoStartScan, useIsGeoScanning } from "@/lib/hooks/use-geo";
-import { useGeoPersonaResults } from "@/lib/hooks/use-geo-personas";
+import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
-  PersonaBulletListProps,
   PersonaDetailDialogProps,
+  PersonaConversationProps,
   PersonaDialogView,
-  PersonaProfileProps,
-  PersonaSectionProps,
 } from "@/types/geo-personas-ui";
 import {
-  groupPersonaMemories,
-  personaProfilePoints,
-  toPersonaEngineThreads,
-} from "@/utils/geo-personas";
+  adjacentPromptEngine,
+  promptEngineArrowDelta,
+} from "@/utils/geo-prompt-engines";
 
-const EMPTY_TURNS: GeoSequenceEngineThread["turns"] = [];
-const STACK_SECTION_KEY = "currentStack";
-const DEFAULT_VIEW: PersonaDialogView = "conversation";
+const DEFAULT_VIEW: PersonaDialogView = "profile";
 
 function latestCheckAt(threads: GeoSequenceEngineThread[]): string | null {
   let latest: string | null = null;
@@ -62,113 +53,6 @@ function latestCheckAt(threads: GeoSequenceEngineThread[]): string | null {
     }
   }
   return latest;
-}
-
-function Section({ title, children }: PersonaSectionProps) {
-  return (
-    <section className="space-y-2">
-      <h3 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function BulletList({ items }: PersonaBulletListProps) {
-  return (
-    <ul className="space-y-1.5">
-      {items.map((item) => (
-        <li
-          className="flex gap-2.5 text-sm leading-snug text-pretty"
-          key={item}
-        >
-          <span
-            aria-hidden="true"
-            className="bg-muted-foreground/50 mt-[0.55em] size-1 shrink-0 rounded-full"
-          />
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ChipList({ items }: PersonaBulletListProps) {
-  return (
-    <ul className="flex flex-wrap gap-1.5">
-      {items.map((item) => (
-        <li key={item}>
-          <Badge className="font-normal" variant="outline">
-            {item}
-          </Badge>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function PersonaProfile({ persona }: PersonaProfileProps) {
-  const memoryGroups = groupPersonaMemories(persona.memories);
-  const stack = persona.profile.currentStack;
-
-  return (
-    <div className="space-y-8 px-6 py-5">
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="space-y-6">
-          <Section title="Overview">
-            <BulletList items={personaProfilePoints(persona.summary)} />
-          </Section>
-          <Section title="How they search">
-            <BulletList items={personaProfilePoints(persona.searchStyle)} />
-          </Section>
-          {stack.length > 0 ? (
-            <Section title="Current stack">
-              <ChipList items={stack} />
-            </Section>
-          ) : null}
-        </div>
-        <div className="space-y-6">
-          {GEO_PERSONA_PROFILE_SECTIONS.map((section) => {
-            const items = persona.profile[section.key];
-            if (section.key === STACK_SECTION_KEY || items.length === 0) {
-              return null;
-            }
-            return (
-              <Section key={section.key} title={section.label}>
-                <BulletList items={items} />
-              </Section>
-            );
-          })}
-        </div>
-      </div>
-
-      {memoryGroups.length > 0 ? (
-        <Section title="Memory">
-          <ul className="divide-border/60 divide-y rounded-xl border">
-            {memoryGroups.flatMap((group) =>
-              group.memories.map((memory) => (
-                <li
-                  className="flex items-start gap-3 px-3 py-2.5"
-                  key={memory.id}
-                >
-                  <Badge
-                    className="mt-px shrink-0 font-normal"
-                    variant="secondary"
-                  >
-                    {group.label}
-                  </Badge>
-                  <p className="text-sm leading-snug text-pretty">
-                    {memory.content}
-                  </p>
-                </li>
-              ))
-            )}
-          </ul>
-        </Section>
-      ) : null}
-    </div>
-  );
 }
 
 function ConversationEmpty({
@@ -209,48 +93,69 @@ function ConversationEmpty({
   );
 }
 
+function PersonaConversation({
+  active,
+  progress,
+  isLoading,
+  isWaitingForScan,
+  enabled,
+  isScanning,
+  onRunScan,
+}: PersonaConversationProps) {
+  if (active) {
+    return (
+      <ConversationReplayThread
+        engine={active.engine}
+        key={active.engine}
+        progress={progress}
+        turns={active.turns}
+      />
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="h-full overflow-y-auto" aria-busy="true">
+        <p
+          role="status"
+          className="text-muted-foreground mx-auto w-full max-w-3xl px-6 pt-6 text-sm"
+        >
+          {isWaitingForScan
+            ? "Scan in progress. This persona’s conversation will appear when results are ready."
+            : "Loading conversation…"}
+        </p>
+        <GeoConversationSkeleton />
+      </div>
+    );
+  }
+  return (
+    <ConversationEmpty
+      enabled={enabled}
+      isScanning={isScanning}
+      onRunScan={onRunScan}
+    />
+  );
+}
+
 export function PersonaDetailDialog({
   open,
   onOpenChange,
   organizationId,
   persona,
 }: PersonaDetailDialogProps) {
-  const { data, isLoading, refetch } = useGeoPersonaResults(
-    organizationId,
-    open ? persona?.id : undefined
-  );
-  const startScan = useGeoStartScan(organizationId);
-  const isScanning = useIsGeoScanning(organizationId);
-  const wasScanning = useRef(isScanning);
-
-  // A scan started from this dialog writes the conversation in the
-  // background; pull it in once the scan ends instead of making the user
-  // close and reopen the dialog.
-  useEffect(() => {
-    if (wasScanning.current && !isScanning && open) {
-      void refetch();
-    }
-    wasScanning.current = isScanning;
-  }, [isScanning, open, refetch]);
   const [view, setView] = useState<PersonaDialogView>(DEFAULT_VIEW);
-  const [engine, setEngine] = useState<string | null>(null);
-  const [playToken, setPlayToken] = useState(1);
-  const [skipReplay, setSkipReplay] = useState(false);
-  const reducedMotion = useReducedMotion();
-
-  const threads = useMemo(
-    () => toPersonaEngineThreads(data?.results ?? [], persona?.id),
-    [data, persona]
-  );
-  const active =
-    threads.find((thread) => thread.engine === engine) ?? threads[0] ?? null;
   const showConversation = view === "conversation";
-  const progress = useAnswerReplay(
-    showConversation && active ? active.turns : EMPTY_TURNS,
-    playToken,
-    Boolean(reducedMotion),
-    skipReplay
-  );
+  const {
+    startScan,
+    isScanning,
+    threads,
+    active,
+    progress,
+    isWaitingForScan,
+    isConversationLoading: showConversationLoading,
+    setEngine,
+    setPlayToken,
+    setSkipReplay,
+  } = usePersonaConversation(organizationId, persona, open, showConversation);
   const isReplaying = progress !== null;
   const latestCheck = latestCheckAt(threads);
 
@@ -259,24 +164,46 @@ export function PersonaDetailDialog({
   }
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent
-        className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] w-full max-w-[min(calc(100vw-2rem),72rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),72rem)]"
-        drawerClassName="h-[94svh] max-h-[94svh]"
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent
+        onKeyDown={(event) => {
+          if (!showConversation || !active || event.defaultPrevented) {return;}
+          if (
+            event.target instanceof HTMLElement &&
+            event.target.closest(
+              '[role="tablist"], [role="menu"], [role="listbox"]'
+            )
+          )
+            {return;}
+          const delta = promptEngineArrowDelta(event, threads.length);
+          if (delta === null) {return;}
+          event.preventDefault();
+          setEngine(
+            adjacentPromptEngine(
+              threads.map((thread) => thread.engine),
+              active.engine,
+              delta
+            )
+          );
+          setSkipReplay(false);
+          setPlayToken((token) => token + 1);
+        }}
+        side="right"
+        className="flex flex-col gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),40rem)]"
       >
-        <ResponsiveDialogHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
+        <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
           <div className="flex items-center gap-3">
             <PersonaAvatar className="size-12" persona={persona} size="lg" />
             <div className="min-w-0 space-y-0.5">
-              <ResponsiveDialogTitle className="text-xl leading-snug font-semibold text-balance">
+              <SheetTitle className="text-xl leading-snug font-semibold text-balance">
                 {persona.name}
-              </ResponsiveDialogTitle>
-              <ResponsiveDialogDescription className="text-muted-foreground text-sm">
+              </SheetTitle>
+              <SheetDescription className="text-muted-foreground text-sm">
                 {persona.role} · {persona.company}
                 {latestCheck
                   ? ` · ${formatAiTrafficTimestamp(latestCheck)}`
                   : null}
-              </ResponsiveDialogDescription>
+              </SheetDescription>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -334,39 +261,30 @@ export function PersonaDetailDialog({
               results={threads}
             />
           ) : null}
-        </ResponsiveDialogHeader>
+        </SheetHeader>
 
         <div className="relative min-h-0 flex-1 overflow-hidden border-t">
           {showConversation ? (
-            <>
-              {isLoading && (
-                <div className="px-6 py-8">
-                  <Skeleton className="h-40 w-full" />
-                </div>
-              )}
-              {!isLoading && active && (
-                <ConversationReplayThread
-                  engine={active.engine}
-                  key={active.engine}
-                  progress={progress}
-                  turns={active.turns}
-                />
-              )}
-              {!(isLoading || active) && (
-                <ConversationEmpty
-                  enabled={persona.enabled}
-                  isScanning={isScanning}
-                  onRunScan={() => startScan.mutate("personas_empty")}
-                />
-              )}
-            </>
-          ) : (
-            <div className="h-full overflow-y-auto">
-              <PersonaProfile persona={persona} />
-            </div>
-          )}
+            <PersonaConversation
+              active={active}
+              progress={progress}
+              isLoading={showConversationLoading}
+              isWaitingForScan={isWaitingForScan}
+              enabled={persona.enabled}
+              isScanning={isScanning}
+              onRunScan={() => startScan.mutate("personas_empty")}
+            />
+          ) : null}
+          <div hidden={showConversation} className="h-full">
+            <PersonaProfileEditor
+              key={persona.id}
+              persona={persona}
+              organizationId={organizationId}
+              onCancel={() => onOpenChange(false)}
+            />
+          </div>
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </SheetContent>
+    </Sheet>
   );
 }

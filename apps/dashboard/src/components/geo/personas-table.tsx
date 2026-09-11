@@ -1,11 +1,18 @@
 "use client";
 
-import { Delete02Icon } from "@hugeicons/core-free-icons";
+import {
+  Delete02Icon,
+  RefreshIcon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_PERSONA_MAX_TURNS } from "@notra/geo-core/constants/geo-personas";
 import type { GeoPersona } from "@notra/geo-core/types/geo-personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { Switch } from "@notra/ui/components/ui/switch";
+import {
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "@notra/ui/components/ui/context-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -30,83 +37,28 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   geoPersonaUpdateMutationKey,
   useGeoPersonaDelete,
-  useGeoPersonaUpdate,
+  useGeoPersonasGenerate,
 } from "@/lib/hooks/use-geo-personas";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
-import type {
-  PersonaRowActionsProps,
-  PersonasTableProps,
-} from "@/types/geo-personas-ui";
+import type { PersonasTableProps } from "@/types/geo-personas-ui";
 import { tableHeightFor } from "@/utils/table";
 
 const MIN_TABLE_ROWS = 3;
-
-function PersonaRowActions({
-  persona,
-  isPending,
-  onToggle,
-  onDelete,
-}: PersonaRowActionsProps) {
-  return (
-    <div className="flex items-center justify-end gap-1">
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Switch
-              aria-label={
-                persona.enabled
-                  ? `Pause ${persona.name}`
-                  : `Include ${persona.name} in scans`
-              }
-              checked={persona.enabled}
-              className="mx-2"
-              disabled={isPending}
-              onCheckedChange={onToggle}
-              onClick={(event) => event.stopPropagation()}
-              onPointerDown={(event) => event.stopPropagation()}
-              size="sm"
-            />
-          }
-        />
-        <TooltipContent>
-          {persona.enabled ? "Included in scans" : "Paused — skipped in scans"}
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              aria-label={`Delete ${persona.name}`}
-              disabled={isPending}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete();
-              }}
-              size="icon"
-              variant="ghost"
-            />
-          }
-        >
-          <HugeiconsIcon icon={Delete02Icon} size={14} />
-        </TooltipTrigger>
-        <TooltipContent>Delete</TooltipContent>
-      </Tooltip>
-    </div>
-  );
-}
 
 export function PersonasTable({
   organizationId,
   personas,
 }: PersonasTableProps) {
   const { projectId } = useGeoProjectScope();
-  const updatePersona = useGeoPersonaUpdate(organizationId);
   const deletePersona = useGeoPersonaDelete(organizationId);
+  const generatePersona = useGeoPersonasGenerate(organizationId);
+  const generationPending = generatePersona.isPending;
+  const generatingPersonaId = generatePersona.generatingPersonaId;
+  const regenerate = generatePersona.mutate;
   const [viewing, setViewing] = useState<GeoPersona | null>(null);
   const [removing, setRemoving] = useState<GeoPersona | null>(null);
 
-  // Every in-flight toggle, not just the latest: a row must stay locked until
-  // its own request settles, or a second toggle could flip it back.
+  // Prevent deleting a persona while its profile is being saved.
   const pendingPersonaIds = useMutationState({
     filters: {
       mutationKey: geoPersonaUpdateMutationKey(organizationId, projectId),
@@ -142,7 +94,9 @@ export function PersonasTable({
                 {row.name}
               </span>
               <span className="text-muted-foreground truncate text-xs">
-                {row.role} · {row.company}
+                {generationPending && generatingPersonaId === row.id
+                  ? "Regenerating…"
+                  : `${row.role} · ${row.company}`}
               </span>
             </span>
           </span>
@@ -151,11 +105,21 @@ export function PersonasTable({
       },
       {
         key: "memories",
-        header: "Memories",
+        header: (
+          <Tooltip>
+            <TooltipTrigger render={<span className="cursor-help" />}>
+              Memories
+            </TooltipTrigger>
+            <TooltipContent>
+              Background facts and preferences this persona uses in
+              conversations
+            </TooltipContent>
+          </Tooltip>
+        ),
         width: GEO_PERSONAS_MEMORIES_COLUMN_WIDTH,
         minWidth: GEO_PERSONAS_MEMORIES_COLUMN_WIDTH,
         sortable: true,
-        align: "right",
+        align: "center",
         cell: (row) => (
           <span className="text-muted-foreground tabular-nums">
             {row.memories.length}
@@ -165,10 +129,22 @@ export function PersonasTable({
       },
       {
         key: "turns",
-        header: "Turns",
+        header: (
+          <Tooltip>
+            <TooltipTrigger
+              render={<button className="cursor-help" type="button" />}
+            >
+              Max. messages
+            </TooltipTrigger>
+            <TooltipContent>
+              Maximum messages this persona asks each AI engine per scan, not
+              completed activity
+            </TooltipContent>
+          </Tooltip>
+        ),
         width: GEO_PERSONAS_TURNS_COLUMN_WIDTH,
         minWidth: GEO_PERSONAS_TURNS_COLUMN_WIDTH,
-        align: "right",
+        align: "center",
         cell: () => (
           <span className="text-muted-foreground tabular-nums">
             {GEO_PERSONA_MAX_TURNS}
@@ -177,25 +153,72 @@ export function PersonasTable({
       },
       {
         key: "actions",
-        header: "",
+        header: <span className="sr-only">Actions</span>,
         width: GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
         minWidth: GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
         align: "right",
         cell: (row) => (
-          <PersonaRowActions
-            isPending={
-              pendingPersonaIds.includes(row.id) || deletingPersonaId === row.id
-            }
-            onDelete={() => setRemoving(row)}
-            onToggle={(enabled) =>
-              updatePersona.mutate({ personaId: row.id, enabled })
-            }
-            persona={row}
-          />
+          <div className="flex items-center justify-end gap-1">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    aria-label={`Regenerate ${row.name}`}
+                    type="button"
+                    disabled={
+                      pendingPersonaIds.includes(row.id) ||
+                      generationPending ||
+                      deletingPersonaId !== null
+                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      regenerate(row.id);
+                    }}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <HugeiconsIcon icon={RefreshIcon} size={16} />
+                  </Button>
+                }
+              />
+              <TooltipContent>Regenerate persona</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    aria-label={`Delete ${row.name}`}
+                    type="button"
+                    disabled={
+                      pendingPersonaIds.includes(row.id) ||
+                      generationPending ||
+                      deletingPersonaId !== null
+                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRemoving(row);
+                    }}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={16} />
+                  </Button>
+                }
+              />
+              <TooltipContent>Delete persona</TooltipContent>
+            </Tooltip>
+          </div>
         ),
       },
     ],
-    [deletingPersonaId, pendingPersonaIds, personas.length, updatePersona]
+    [
+      deletingPersonaId,
+      pendingPersonaIds,
+      personas.length,
+      generationPending,
+      generatingPersonaId,
+      regenerate,
+    ]
   );
 
   return (
@@ -215,6 +238,38 @@ export function PersonasTable({
           setViewing(row);
         }}
         resizable
+        renderRowContextMenu={(row) => (
+          <>
+            <ContextMenuItem onClick={() => setViewing(row)}>
+              <HugeiconsIcon icon={ViewIcon} />
+              View persona
+            </ContextMenuItem>
+            <ContextMenuItem
+              disabled={
+                generationPending ||
+                deletePersona.isPending ||
+                pendingPersonaIds.includes(row.id)
+              }
+              onClick={() => generatePersona.mutate(row.id)}
+            >
+              <HugeiconsIcon icon={RefreshIcon} />
+              Regenerate persona
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              variant="destructive"
+              disabled={
+                generationPending ||
+                deletePersona.isPending ||
+                pendingPersonaIds.includes(row.id)
+              }
+              onClick={() => setRemoving(row)}
+            >
+              <HugeiconsIcon icon={Delete02Icon} />
+              Delete persona
+            </ContextMenuItem>
+          </>
+        )}
         rowHeight={TABLE_ROW_HEIGHT}
       />
 
@@ -226,7 +281,9 @@ export function PersonasTable({
         }}
         open={viewing !== null}
         organizationId={organizationId}
-        persona={viewing}
+        persona={
+          personas.find((persona) => persona.id === viewing?.id) ?? viewing
+        }
       />
       <GeoRemoveDialog
         description="Their memories and past conversations are removed with them. Scans will stop running this persona."

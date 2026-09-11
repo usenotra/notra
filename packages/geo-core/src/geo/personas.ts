@@ -17,7 +17,11 @@ import {
   geoPrompts,
   geoSettings,
 } from "@notra/db/schema";
-import { queryGeoCheckPersonaResults } from "@notra/db/utils/geo-checks";
+import {
+  queryGeoCheckPersonaResults,
+  queryGeoCheckPersonaActivity,
+  toGeoCheckWindow,
+} from "@notra/db/utils/geo-checks";
 import { generateText, Output } from "ai";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
@@ -29,20 +33,24 @@ import {
   GEO_PERSONA_GENERATION_MODEL,
   GEO_PERSONA_GENERATION_SYSTEM_PROMPT,
   GEO_PERSONA_GENERATION_TRIGGER_ID,
-  GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
   GEO_PERSONA_MIN_COUNT,
+  GEO_PERSONA_ACTIVITY_DAYS,
   GEO_PERSONA_MIN_MEMORIES,
 } from "../constants/geo-personas";
 import { GeoContentBillingService } from "../deps";
-import { geoPersonaGenerationSchema } from "../schemas/geo-personas";
-import type { GeoScopeInput } from "../types/geo";
+import {
+  geoPersonaGenerationSchema,
+  geoPersonaRegenerationSchema,
+} from "../schemas/geo-personas";
+import type { GeoScopeInput, GeoWindowInput } from "../types/geo";
 import type {
   GeoPersona,
   GeoPersonaGenerateResponse,
   GeoPersonaGeneration,
   GeoPersonaMemoryRow,
   GeoPersonaResultsResponse,
+  GeoPersonaActivityResponse,
   GeoPersonaRow,
   GeoPersonasResponse,
   GeoPersonaUpdateInput,
@@ -77,7 +85,9 @@ function bulletList(items: readonly string[]): string {
 }
 
 function buildPersonaGenerationPrompt(
-  context: PersonaGenerationContext
+  context: PersonaGenerationContext,
+  target?: GeoPersona,
+  peers: GeoPersona[] = []
 ): string {
   return `Company: ${context.companyName}
 Website: ${context.websiteUrl ?? "unknown"}
@@ -97,17 +107,27 @@ ${bulletList(context.pages.map((page) => `${page.title ?? "(untitled)"} — ${pa
 Questions it already tracks in AI assistants:
 ${bulletList(context.prompts)}
 
-Create between ${GEO_PERSONA_MIN_COUNT} and ${GEO_PERSONA_MAX_COUNT} ideal customer profiles for this company. Each one is a specific person who would realistically open ChatGPT, Perplexity, or Claude to research the category this company plays in. They do not know this company yet.
+${target ? `Create exactly one replacement buyer archetype for ${JSON.stringify({ name: target.name, summary: target.summary })}. Refresh its profile and memories while retaining its primary buying priority. Keep it distinct from these other personas, which will stay unchanged: ${JSON.stringify(peers.map((persona) => ({ name: persona.name, summary: persona.summary })))}.` : `Create exactly ${GEO_PERSONA_MIN_COUNT} distinct buyer archetypes for this company.`} Each archetype represents a recognizable way of choosing a product in this category, backed by a concrete customer profile that can research it in ChatGPT, Perplexity, or Claude. They do not know this company yet.
+
+Use these buying priorities as guidance${target ? " for the replacement" : " to design the set"}:
+1. Value: affordable pricing, clear ROI, and avoiding unnecessary spend.
+2. Innovation: new capabilities and getting ahead, with a willingness to try newer tools.
+3. Trust: proven reliability, continuity, and low risk when changing vendors.
+4. Discovery: exploring alternatives and finding a better fit for an unmet need.
+5. Balance: weighing practical trade-offs across features, effort, cost, and team needs.
+
+Adapt these priorities to the company's actual audience and category. Names such as "Budgeter", "Trendsetter", "Loyalist", "Explorer", and "Balancer" illustrate the level of clarity; choose more category-specific names when useful, such as "Digital Trendsetter". These are decision styles, not demographic stereotypes. Every persona must be a plausible prospective buyer, including the trust-oriented buyer, who may prefer their existing vendor but has a concrete reason to consider alternatives.
 
 Rules for each persona:
-- name: a realistic full name matching the likely market and language of the company.
-- role: their job title. company: the kind of company they work at, with size and industry, for example "45-person B2B SaaS startup, fintech".
-- summary: two to four short key points about their situation and why they are researching now. Return a single string with one point per newline, without bullet markers. Use concise phrases, not a paragraph.
+- name: a unique, short archetype label of one to three words in English, suitable for a table row or chart legend. Do not use a person's first or last name, a company name, or just a job title.
+- role: a concise job title of at most two words, such as "Marketing Lead", "Founder", or "IT Manager". Use a complete short title, not a longer title cut off mid-phrase. Put seniority or department details in the summary when needed.
+- company: the kind of company they work at, with size and industry, for example "45-person B2B SaaS startup, fintech".
+- summary: two to four short key points. Lead with their defining buying priority and the trade-off they are willing to make, followed by their situation and why they are researching now. Return a single string with one point per newline, without bullet markers. Use concise phrases, not a paragraph.
 - searchStyle: short key points covering how they type into AI chats: tone, length, jargon, and details they always include. Return a single string with one point per newline, without bullet markers.
 - goals, painPoints, currentStack, buyingTriggers, objections: concise, concrete phrases, one idea per item, not full paragraphs or generic phrases. Keep profile points brief and put supporting detail in memories. currentStack must name real tools they plausibly use today, including at least one tracked competitor or adjacent tool where that fits.
 - memories: between ${GEO_PERSONA_MIN_MEMORIES} and ${GEO_PERSONA_MAX_MEMORIES} first-person facts this person would remember. Use kind "background" for career and company facts, "experience" for specific things that happened with tools or vendors, "preference" for how they like to work and buy, and "constraint" for budget, compliance, or team limits. Each memory is one or two sentences, specific enough that the person could refer back to it in a conversation.
 
-Make the personas clearly different from each other in seniority, company size, urgency, and the angle from which they enter the category. Never mention ${context.companyName} inside a persona; they have not heard of it yet.`;
+Make the personas clearly different in what they optimize for, what they reject, and the questions they ask. Reflect each archetype's buying priority consistently in its stack, goals, objections, search style, and memories, while keeping the profile realistic rather than a caricature. Vary seniority, company size, and urgency where the supplied audience supports it; do not invent unrelated customer segments just to fill the set. Never mention ${context.companyName} inside a persona; they have not heard of it yet.`;
 }
 
 const loadPersonaRows = Effect.fn("geo.personas.load")(function* (
@@ -245,15 +265,21 @@ const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
 
 const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
   organizationId: string,
-  context: PersonaGenerationContext
+  context: PersonaGenerationContext,
+  target?: GeoPersona,
+  peers: GeoPersona[] = []
 ) {
   const result = yield* Effect.tryPromise({
     try: (signal) =>
       generateText({
         model: gateway(GEO_PERSONA_GENERATION_MODEL, { organizationId }),
-        output: Output.object({ schema: geoPersonaGenerationSchema }),
+        output: Output.object({
+          schema: target
+            ? geoPersonaRegenerationSchema
+            : geoPersonaGenerationSchema,
+        }),
         system: GEO_PERSONA_GENERATION_SYSTEM_PROMPT,
-        prompt: buildPersonaGenerationPrompt(context),
+        prompt: buildPersonaGenerationPrompt(context, target, peers),
         maxOutputTokens: GEO_PERSONA_GENERATION_MAX_TOKENS,
         abortSignal: signal,
       }),
@@ -285,7 +311,8 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
 const replacePersonas = Effect.fn("geo.personas.replace")(function* (
   organizationId: string,
   projectId: string,
-  generation: GeoPersonaGeneration
+  generation: GeoPersonaGeneration,
+  target?: GeoPersona
 ) {
   const now = new Date();
   const personaRows: (typeof geoPersonas.$inferInsert)[] = [];
@@ -308,7 +335,7 @@ const replacePersonas = Effect.fn("geo.personas.replace")(function* (
         buyingTriggers: persona.buyingTriggers,
         objections: persona.objections,
       },
-      enabled: true,
+      enabled: target?.enabled ?? true,
       createdAt: now,
     });
     for (const memory of persona.memories) {
@@ -329,8 +356,17 @@ const replacePersonas = Effect.fn("geo.personas.replace")(function* (
       await Effect.runPromise(lockGeoProject(tx, projectId));
       const deleted = await tx
         .delete(geoPersonas)
-        .where(eq(geoPersonas.projectId, projectId))
+        .where(
+          and(
+            eq(geoPersonas.projectId, projectId),
+            eq(geoPersonas.organizationId, organizationId),
+            target ? eq(geoPersonas.id, target.id) : undefined
+          )
+        )
         .returning({ id: geoPersonas.id });
+      if (target && deleted.length !== 1) {
+        throw new GeoPersonaNotFoundError({ personaId: target.id });
+      }
       await tx.insert(geoPersonas).values(personaRows);
       await tx.insert(geoPersonaMemories).values(memoryRows);
       return deleted;
@@ -367,10 +403,16 @@ const replacePersonas = Effect.fn("geo.personas.replace")(function* (
  * there. Charged against AI credits like a writer plan.
  */
 export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
-  input: GeoScopeInput
+  input: GeoScopeInput,
+  personaId?: string
 ) {
   const billing = yield* GeoContentBillingService;
   const scope = yield* requireGeoProject(input);
+  const existing = personaId ? yield* loadPersonaRows(scope.projectId) : [];
+  const target = existing.find((persona) => persona.id === personaId);
+  if (personaId && !target) {
+    return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
+  }
   const context = yield* loadGenerationContext(
     scope.projectId,
     scope.brandSettingsId
@@ -426,13 +468,16 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
 
   const generated = yield* generatePersonaSet(
     scope.organizationId,
-    context
+    context,
+    target,
+    existing.filter((persona) => persona.id !== personaId)
   ).pipe(Effect.tapError(() => settle("release")));
 
   yield* replacePersonas(
     scope.organizationId,
     scope.projectId,
-    generated.generation
+    generated.generation,
+    target
   ).pipe(Effect.tapError(() => settle("release")));
 
   // The set is committed at this point, so the credits are spent no matter
@@ -482,6 +527,8 @@ export const updateGeoPersona = Effect.fn("geo.personaUpdate")(function* (
       .update(geoPersonas)
       .set({
         ...(update.enabled === undefined ? {} : { enabled: update.enabled }),
+        ...update.details,
+        updatedAt: new Date(),
       })
       .where(
         and(
@@ -578,3 +625,30 @@ export const loadGeoPersonaResults = Effect.fn("geo.personaResults")(function* (
   };
   return response;
 });
+
+export const loadGeoPersonaActivity = Effect.fn("geo.personaActivity")(
+  function* (input: GeoScopeInput & GeoWindowInput) {
+    const scope = yield* resolveGeoScope(input);
+    const from = new Date();
+    from.setUTCHours(0, 0, 0, 0);
+    from.setUTCDate(
+      from.getUTCDate() - (input.days ?? GEO_PERSONA_ACTIVITY_DAYS) + 1
+    );
+    const to = new Date();
+    to.setUTCHours(24, 0, 0, 0);
+    const window = toGeoCheckWindow(input);
+    const rangeFrom = input.from && window?.from ? window.from : from;
+    const rangeTo = window?.toExclusive ?? to;
+    const rows = yield* geoDb("persona activity query failed", () =>
+      queryGeoCheckPersonaActivity(geoCheckScope(scope), rangeFrom, rangeTo)
+    );
+    const response: GeoPersonaActivityResponse = {
+      from: rangeFrom.toISOString().slice(0, 10),
+      to: rangeTo.toISOString().slice(0, 10),
+      points: rows.flatMap((row) =>
+        row.personaId ? [{ ...row, personaId: row.personaId }] : []
+      ),
+    };
+    return response;
+  }
+);

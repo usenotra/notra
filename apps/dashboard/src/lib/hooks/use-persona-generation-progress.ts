@@ -23,7 +23,8 @@ function stepForElapsed(elapsedMs: number): number {
  * idle; otherwise the current step (1-based), the total, and its label.
  */
 export function usePersonaGenerationProgress(
-  active: boolean
+  active: boolean,
+  generationStartedAt?: string
 ): PersonaGenerationProgress | null {
   const [step, setStep] = useState(0);
 
@@ -32,12 +33,15 @@ export function usePersonaGenerationProgress(
       setStep(0);
       return;
     }
-    const startedAt = Date.now();
+    const startedAt = generationStartedAt
+      ? Date.parse(generationStartedAt)
+      : Date.now();
+    setStep(stepForElapsed(Date.now() - startedAt));
     const timer = setInterval(() => {
       setStep(stepForElapsed(Date.now() - startedAt));
     }, GEO_PERSONA_GENERATION_TICK_MS);
     return () => clearInterval(timer);
-  }, [active]);
+  }, [active, generationStartedAt]);
 
   if (!active) {
     return null;

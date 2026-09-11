@@ -43,6 +43,25 @@ export interface GeoPersonaGenerateResponse {
 export interface GeoPersonaUpdateInput {
   personaId: string;
   enabled?: boolean;
+  details?: GeoPersonaEditableDetails;
+}
+
+export type GeoPersonaEditableDetails = Pick<
+  GeoPersona,
+  "name" | "role" | "company" | "summary" | "searchStyle" | "profile"
+>;
+
+export interface GeoPersonaActivityPoint {
+  personaId: string;
+  day: string;
+  checks: number;
+  mentions: number;
+}
+
+export interface GeoPersonaActivityResponse {
+  points: GeoPersonaActivityPoint[];
+  from: string;
+  to: string;
 }
 
 export interface GeoPersonaTurnResult {

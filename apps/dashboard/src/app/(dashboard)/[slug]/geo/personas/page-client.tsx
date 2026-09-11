@@ -2,6 +2,7 @@
 
 import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Counter from "@notra/ui/components/shared/counter";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -12,13 +13,14 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonasTable } from "@/components/geo/personas-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
@@ -56,8 +58,6 @@ import type {
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
-
-const COUNTER_SLIDE_PX = 8;
 
 function PageHeader({ action }: { action?: ReactNode }) {
   return (
@@ -114,21 +114,22 @@ function GenerationCounter({
 }) {
   const reducedMotion = useReducedMotion();
   return (
-    <span className="inline-flex items-center leading-none tabular-nums">
-      <span className="relative inline-block h-[1em] w-[1ch] overflow-hidden">
-        <AnimatePresence initial={false} mode="popLayout">
-          <motion.span
-            animate={{ y: 0, opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center leading-none"
-            exit={{ y: reducedMotion ? 0 : -COUNTER_SLIDE_PX, opacity: 0 }}
-            initial={{ y: reducedMotion ? 0 : COUNTER_SLIDE_PX, opacity: 0 }}
-            key={progress.step}
-            transition={{ duration: reducedMotion ? 0 : 0.25, ease: "easeOut" }}
-          >
-            {progress.step}
-          </motion.span>
-        </AnimatePresence>
-      </span>
+    <span
+      aria-hidden="true"
+      className="inline-flex items-center leading-none tabular-nums"
+    >
+      {reducedMotion ? (
+        <span>{progress.step}</span>
+      ) : (
+        <Counter
+          borderRadius={0}
+          fontSize={14}
+          gap={0}
+          gradientHeight={0}
+          horizontalPadding={0}
+          value={progress.step}
+        />
+      )}
       <span className="leading-none">/{progress.total}</span>
     </span>
   );
@@ -142,36 +143,36 @@ function GeneratePersonasButton({
   const label = hasPersonas ? "Regenerate personas" : "Generate personas";
   const isGenerating = progress !== null;
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-start gap-2 sm:items-end">
+      <span aria-live="polite" aria-atomic="true" className="sr-only">
+        {progress
+          ? `${progress.label}, step ${progress.step} of ${progress.total}`
+          : ""}
+      </span>
       <Button
         aria-label={
           progress
-            ? `Generating personas, step ${progress.step} of ${progress.total}`
+            ? `${progress.label}, step ${progress.step} of ${progress.total}`
             : label
         }
-        className="gap-1.5"
+        className="h-9 gap-2 px-3"
         disabled={isGenerating}
         onClick={onClick}
       >
         <HugeiconsIcon
-          className={isGenerating ? "animate-spin" : undefined}
+          className={isGenerating ? "motion-safe:animate-spin" : undefined}
           icon={isGenerating ? Loading03Icon : UserGroupIcon}
           size={16}
         />
         {progress ? (
-          <span className="inline-flex items-center gap-1 leading-none">
-            <span>Generating</span>
+          <span className="inline-flex items-center gap-1.5 leading-none">
+            <span>{progress.label}</span>
             <GenerationCounter progress={progress} />
           </span>
         ) : (
           label
         )}
       </Button>
-      {progress ? (
-        <p aria-live="polite" className="text-muted-foreground text-xs">
-          {progress.label}
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -206,7 +207,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   const personas = personasData?.personas ?? [];
   const hasPersonas = personas.length > 0;
   const isGenerating = generatePersonas.isPending;
-  const progress = usePersonaGenerationProgress(isGenerating);
+  const progress = usePersonaGenerationProgress(
+    isGenerating,
+    generatePersonas.startedAt
+  );
 
   if (isSettingsPending) {
     return <GeoPersonasSkeleton />;
@@ -271,11 +275,22 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeader action={headerAction} />
+        {generatePersonas.generationError ? (
+          <p role="alert" className="text-destructive text-sm">
+            {generatePersonas.generationError}
+          </p>
+        ) : null}
 
         {isLoadingPersonas ? (
           <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
         ) : null}
 
+        {hasPersonas ? (
+          <PersonaActivityCard
+            organizationId={organizationId}
+            personas={personas}
+          />
+        ) : null}
         {hasPersonas ? (
           <PersonasTable organizationId={organizationId} personas={personas} />
         ) : null}

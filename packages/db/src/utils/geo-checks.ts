@@ -895,6 +895,35 @@ export async function queryGeoCheckPersonaResults(
   });
 }
 
+export async function queryGeoCheckPersonaActivity(
+  scope: GeoCheckScope,
+  from: Date,
+  to: Date
+) {
+  const day = sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD')`;
+  return db
+    .select({
+      personaId: geoMentionChecks.personaId,
+      day,
+      checks: sql<number>`count(*)`.mapWith(Number),
+      mentions:
+        sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
+          Number
+        ),
+    })
+    .from(geoMentionChecks)
+    .where(
+      and(
+        scopeWhere(scope),
+        sql`${geoMentionChecks.personaId} is not null`,
+        gte(geoMentionChecks.capturedAt, from),
+        lt(geoMentionChecks.capturedAt, to)
+      )
+    )
+    .groupBy(geoMentionChecks.personaId, day)
+    .orderBy(day);
+}
+
 const SCAN_COMPARISON_SCAN_COUNT = 2;
 
 export async function queryGeoScanComparison(

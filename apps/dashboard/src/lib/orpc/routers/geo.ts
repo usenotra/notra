@@ -60,9 +60,9 @@ import {
 import { runGeoPersonaNow } from "@notra/geo-core/geo/persona-scan";
 import {
   deleteGeoPersona,
-  generateGeoPersonas,
   listGeoPersonas,
   loadGeoPersonaResults,
+  loadGeoPersonaActivity,
   updateGeoPersona,
 } from "@notra/geo-core/geo/personas";
 import {
@@ -252,6 +252,10 @@ import {
   updateGeoShelfSource,
 } from "@/lib/geo-shelf/service";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import {
+  getPersonaGeneration,
+  startPersonaGeneration,
+} from "@/lib/geo/persona-generation";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
@@ -1340,6 +1344,9 @@ export const geoRouter = {
   personasList: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoHandler((input) => listGeoPersonas(input))),
+  personasActivity: authorizedProcedure
+    .input(geoTimeseriesInputSchema)
+    .handler(geoHandler((input) => loadGeoPersonaActivity(input))),
   personasGenerate: authorizedProcedure
     .input(geoPersonasGenerateInputSchema)
     .handler(async ({ context, input }) => {
@@ -1358,17 +1365,29 @@ export const geoRouter = {
         );
       }
 
-      const result = await runOrpcEffect(
-        generateGeoPersonas(input).pipe(Effect.provide(geoCoreDashboardLayer)),
+      const scope = await runOrpcEffect(
+        requireGeoProject(input).pipe(Effect.provide(geoCoreDashboardLayer)),
         toGeoOrpcError
       );
-      trackGeoRouterEvent({
-        context,
-        input,
-        event: POSTHOG_EVENTS.GEO_PERSONAS_GENERATED,
-        properties: { persona_count: result.personas.length },
+      return startPersonaGeneration(
+        scope.organizationId,
+        scope.projectId,
+        input.personaId
+      );
+    }),
+  personasGenerationStatus: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
       });
-      return result;
+      const scope = await runOrpcEffect(
+        requireGeoProject(input).pipe(Effect.provide(geoCoreDashboardLayer)),
+        toGeoOrpcError
+      );
+      return getPersonaGeneration(scope.organizationId, scope.projectId);
     }),
   personaUpdate: authorizedProcedure.input(geoPersonaUpdateInputSchema).handler(
     geoHandler(
