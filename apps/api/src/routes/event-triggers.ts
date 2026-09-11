@@ -23,6 +23,7 @@ import {
   safeSerializeEventTrigger,
   serializeEventTrigger,
 } from "../utils/event-triggers";
+import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
@@ -237,9 +238,12 @@ const deleteEventTriggerRoute = createRoute({
   },
 });
 
-async function requireOrganization(c: {
-  get: (key: "db") => DbClient;
-}, orgId: string) {
+async function requireOrganization(
+  c: {
+    get: (key: "db") => DbClient;
+  },
+  orgId: string
+) {
   const organization = await getOrganizationResponse(c.get("db"), orgId);
   return organization ?? null;
 }
@@ -268,6 +272,10 @@ eventTriggersRoutes.openapi(getEventTriggersRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
+    if (result.failure._tag === "EventTriggerDatabaseError") {
+      logError("Failed to list event triggers", result.failure.cause);
+      return c.json({ error: "Failed to list event triggers" }, 500);
+    }
     throw result.failure;
   }
 
@@ -299,6 +307,10 @@ eventTriggersRoutes.openapi(createEventTriggerRoute, async (c) => {
     }
     if (result.failure._tag === "EventTriggerTargetsNotFoundError") {
       return c.json({ error: result.failure.message }, 400);
+    }
+    if (result.failure._tag === "EventTriggerDatabaseError") {
+      logError("Failed to create event trigger", result.failure.cause);
+      return c.json({ error: "Failed to create event trigger" }, 500);
     }
     throw result.failure;
   }
@@ -380,6 +392,10 @@ eventTriggersRoutes.openapi(patchEventTriggerRoute, async (c) => {
     }
     if (result.failure._tag === "EventTriggerTargetsNotFoundError") {
       return c.json({ error: result.failure.message }, 400);
+    }
+    if (result.failure._tag === "EventTriggerDatabaseError") {
+      logError("Failed to update event trigger", result.failure.cause);
+      return c.json({ error: "Failed to update event trigger" }, 500);
     }
     throw result.failure;
   }
