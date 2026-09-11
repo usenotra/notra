@@ -101,6 +101,14 @@ export function abandonPendingPostHogInit(attempt: number): void {
   clientPromise = null;
 }
 
+/**
+ * True when idle `initPostHog` or an earlier `withPostHog` already owns
+ * `clientPromise`. A flush must not abandon that shared load.
+ */
+export function hasSharedPostHogInit(): boolean {
+  return readyClient !== null || clientPromise !== null;
+}
+
 export function getPostHogInitGeneration(): number {
   return initGeneration;
 }

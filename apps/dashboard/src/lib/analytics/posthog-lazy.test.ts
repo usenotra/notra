@@ -135,6 +135,69 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
   }
 });
 
+test("flush timeout does not abandon an idle init already in flight", async () => {
+  const liveInit = mock(() => undefined);
+  let importCalls = 0;
+  let resolveIdle:
+    | ((module: { default: { init: typeof liveInit } }) => void)
+    | undefined;
+
+  resetPostHogForTests(() => {
+    importCalls += 1;
+    return new Promise((resolve) => {
+      resolveIdle = resolve;
+    });
+  });
+
+  const pending = new Map<TimeoutHandle, () => void>();
+  let nextId = 1;
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      location: { hostname: "localhost" },
+      setTimeout(callback: TimerHandler): TimeoutHandle {
+        const id = nextId;
+        nextId += 1;
+        if (typeof callback === "function") {
+          pending.set(id, callback as () => void);
+        }
+        return id;
+      },
+      clearTimeout(id?: TimeoutHandle) {
+        if (typeof id === "number") {
+          pending.delete(id);
+        }
+      },
+    },
+  });
+
+  try {
+    initPostHog();
+    const flush = flushTrackEvent("$pageview");
+    expect(pending.size).toBe(1);
+    for (const callback of pending.values()) {
+      callback();
+    }
+    await flush;
+
+    resolveIdle?.({ default: { init: liveInit } });
+    const identified = mock(() => undefined);
+    const captured = mock(() => undefined);
+    const ready = whenPostHogReady(identified);
+    await withPostHog(captured);
+    await ready;
+
+    expect(importCalls).toBe(1);
+    expect(liveInit).toHaveBeenCalledTimes(1);
+    expect(captured).toHaveBeenCalledTimes(1);
+    expect(identified).toHaveBeenCalledTimes(1);
+  } finally {
+    restoreWindow(previousWindow);
+    resetPostHogForTests();
+  }
+});
+
 test("a timed-out flush does not abandon a newer init", async () => {
   const liveInit = mock(() => undefined);
   let importCalls = 0;

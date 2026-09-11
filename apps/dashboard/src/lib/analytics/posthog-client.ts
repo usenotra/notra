@@ -6,6 +6,7 @@ import type { PostHogProperties } from "@notra/posthog/types/posthog";
 import {
   abandonPendingPostHogInit,
   getPostHogInitGeneration,
+  hasSharedPostHogInit,
   withPostHog,
 } from "@/lib/analytics/posthog-lazy";
 
@@ -21,8 +22,9 @@ export function trackEvent(
 
 /**
  * Best-effort capture before a navigation. Starts init if needed, but never
- * blocks longer than `FLUSH_TRACK_EVENT_TIMEOUT_MS`. A timed-out init is
- * abandoned so later events are not stuck on the hung promise.
+ * blocks longer than `FLUSH_TRACK_EVENT_TIMEOUT_MS`. Only an init this flush
+ * started is abandoned on timeout; a shared idle `clientPromise` is left
+ * running so identify and later events can still complete.
  */
 export async function flushTrackEvent(
   event: PostHogEventName,
@@ -32,13 +34,16 @@ export async function flushTrackEvent(
     return;
   }
 
+  const joinedSharedInit = hasSharedPostHogInit();
   const capture = withPostHog((posthog) => posthog.capture(event, properties));
   const attempt = getPostHogInitGeneration();
 
   let timeoutId = 0;
   const timeout = new Promise<void>((resolve) => {
     timeoutId = globalThis.window.setTimeout(() => {
-      abandonPendingPostHogInit(attempt);
+      if (!joinedSharedInit) {
+        abandonPendingPostHogInit(attempt);
+      }
       resolve();
     }, FLUSH_TRACK_EVENT_TIMEOUT_MS);
   });
