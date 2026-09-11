@@ -193,6 +193,7 @@ export const journeyDetailResponseSchema = z
 
 const trafficPageSchema = z.object({
   path: z.string(),
+  host: z.string(),
   source: z.string(),
   visitorType: visitorTypeSchema,
   visits: z.number().int(),

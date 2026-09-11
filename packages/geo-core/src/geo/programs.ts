@@ -113,6 +113,7 @@ import {
   getGeoModelCatalogEntry,
   isGeoEngineZdrCapable,
 } from "../utils/geo-model-catalog";
+import { normalizeProjectDomains } from "../utils/geo-project-domains";
 import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
@@ -656,6 +657,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         engines: true,
         nonZdrApprovedEngines: true,
         conversionPaths: true,
+        domains: true,
         pausedAutoPromptIds: true,
         removedAutoPromptIds: true,
         enabled: true,
@@ -672,6 +674,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     input.removedAutoPromptIds ?? existingSettings?.removedAutoPromptIds ?? [];
   const conversionPaths = normalizeConversionPaths(
     input.conversionPaths ?? existingSettings?.conversionPaths ?? []
+  );
+  const domains = normalizeProjectDomains(
+    input.domains ?? existingSettings?.domains ?? []
   );
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
@@ -724,6 +729,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         aliases: input.aliases,
         competitors: [],
         conversionPaths,
+        domains,
         languages: input.languages,
         engines,
         enforceZdr,
@@ -740,6 +746,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           companyName: input.companyName,
           aliases: input.aliases,
           conversionPaths,
+          domains,
           languages: input.languages,
           engines,
           enforceZdr,
@@ -1261,6 +1268,7 @@ export const loadGeoTrafficPages = Effect.fn("geo.trafficPages")(function* (
   const response: GeoTrafficPagesResponse = {
     configured: isTinybirdConfigured(),
     pages: (pages?.data ?? []).map((row) => ({
+      host: row.host ?? "",
       path: row.path,
       source: row.source,
       visitorType: toGeoVisitorType(row.visitor_type),

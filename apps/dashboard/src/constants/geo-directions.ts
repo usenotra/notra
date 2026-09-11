@@ -288,6 +288,7 @@ export const GEO_DIRECTIONS_SOURCES: readonly GeoDirectionSourceRow[] = [
 
 export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
   {
+    host: "usenotra.com",
     path: "/changelog",
     source: "chatgpt",
     visitorType: "ai_referral",
@@ -296,6 +297,7 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
     lastSeenAt: "2026-08-04T08:12:00Z",
   },
   {
+    host: "usenotra.com",
     path: "/blog/geo-guide",
     source: "perplexity",
     visitorType: "ai_referral",
@@ -304,6 +306,7 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
     lastSeenAt: "2026-08-04T07:48:00Z",
   },
   {
+    host: "docs.usenotra.com",
     path: "/docs/sdk",
     source: "claude",
     visitorType: "ai_referral",
@@ -312,6 +315,7 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
     lastSeenAt: "2026-08-03T22:05:00Z",
   },
   {
+    host: "usenotra.com",
     path: "/pricing",
     source: "chatgpt",
     visitorType: "ai_referral",

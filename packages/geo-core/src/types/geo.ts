@@ -65,6 +65,7 @@ export interface GeoSettings {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[];
   engines: string[];
   /** ZDR add-on: request zero data retention from every model host. */
@@ -95,6 +96,7 @@ export interface GeoSettingsRow {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[] | null;
   engines: string[] | null;
   enforceZdr: boolean;
@@ -377,6 +379,7 @@ export interface GeoSettingsUpsertInput {
   aliases: string[];
   competitors: string[];
   conversionPaths?: string[];
+  domains?: string[];
   languages: string[];
   engines: string[];
   enforceZdr: boolean;
@@ -976,6 +979,7 @@ export interface AiTrafficResponse {
 }
 
 export interface GeoTrafficPage {
+  host: string;
   path: string;
   source: string;
   visitorType: GeoVisitorType;

@@ -1424,6 +1424,10 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    domains: text("domains")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     languages: text("languages").array(),
     // null = track the default engine set; otherwise a subset of GEO_ENGINES.
     engines: text("engines").array(),

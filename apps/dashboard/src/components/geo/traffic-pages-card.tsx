@@ -3,6 +3,8 @@
 import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GEO_TRAFFIC_HOST_ALL,
+  GEO_TRAFFIC_HOST_PARAM,
   GEO_TRAFFIC_PAGES_PAGE_PARAM,
   GEO_TRAFFIC_PAGES_PATH_PARAM,
 } from "@notra/geo-core/constants/geo";
@@ -10,9 +12,17 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
+import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
 import { parseAsString, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 
@@ -29,6 +39,7 @@ import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { GeoTrafficPageGroup, TrafficPagesCardProps } from "@/types/geo";
 import {
   filterTrafficPageGroups,
+  filterTrafficPageGroupsByHost,
   groupTrafficPages,
 } from "@/utils/ai-traffic-pages";
 import { paginatedTableHeightFor } from "@/utils/table";
@@ -46,8 +57,24 @@ export function TrafficPagesCard({
     GEO_TRAFFIC_PAGES_PATH_PARAM,
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
   );
+  const [hostQuery, setHostQuery] = useQueryState(
+    GEO_TRAFFIC_HOST_PARAM,
+    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
+  );
   const groups = groupTrafficPages(pages);
-  const filteredGroups = filterTrafficPageGroups(groups, pathQuery);
+  const hostSet = new Set<string>();
+  for (const group of groups) {
+    if (group.host.length > 0) {
+      hostSet.add(group.host);
+    }
+  }
+  const hosts = [...hostSet].toSorted((left, right) =>
+    left.localeCompare(right)
+  );
+  const filteredGroups = filterTrafficPageGroupsByHost(
+    filterTrafficPageGroups(groups, pathQuery),
+    hostQuery
+  );
   const pagination = useTablePagination({
     key: GEO_TRAFFIC_PAGES_PAGE_PARAM,
     totalItems: filteredGroups.length,
@@ -57,6 +84,10 @@ export function TrafficPagesCard({
     pagination.setPage(1);
     setPathQuery(value);
   };
+  const handleHostQueryChange = (value: string) => {
+    pagination.setPage(1);
+    setHostQuery(value);
+  };
   const columns: TableColumn<GeoTrafficPageGroup>[] = [
     {
       key: "path",
@@ -65,9 +96,10 @@ export function TrafficPagesCard({
       sortable: true,
       cell: (row) => (
         <TruncateWithTooltip className="font-mono text-xs">
-          {row.path}
+          {formatTrafficLocation(row.host, row.path)}
         </TruncateWithTooltip>
       ),
+      sortValue: (row) => formatTrafficLocation(row.host, row.path),
     },
     {
       key: "sources",
@@ -117,19 +149,51 @@ export function TrafficPagesCard({
   } else {
     body = (
       <div className="flex flex-col gap-2">
-        <div className="relative max-w-xs">
-          <HugeiconsIcon
-            className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
-            icon={SearchIcon}
-            size={15}
-          />
-          <Input
-            aria-label="Filter pages by path"
-            className="pl-9"
-            onChange={(event) => handlePathQueryChange(event.target.value)}
-            placeholder="Filter by path..."
-            value={pathQuery}
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          {hosts.length > 1 ? (
+            <Select
+              onValueChange={(value) => {
+                if (value) {
+                  handleHostQueryChange(
+                    value === GEO_TRAFFIC_HOST_ALL ? "" : value
+                  );
+                }
+              }}
+              value={hostQuery || GEO_TRAFFIC_HOST_ALL}
+            >
+              <SelectTrigger
+                aria-label="Filter pages by domain"
+                className="w-full sm:w-52"
+                size="sm"
+              >
+                <SelectValue placeholder="All domains" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={GEO_TRAFFIC_HOST_ALL}>
+                  All domains
+                </SelectItem>
+                {hosts.map((host) => (
+                  <SelectItem key={host} value={host}>
+                    {host}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+          <div className="relative max-w-xs min-w-40 flex-1">
+            <HugeiconsIcon
+              className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
+              icon={SearchIcon}
+              size={15}
+            />
+            <Input
+              aria-label="Filter pages by path"
+              className="pl-9"
+              onChange={(event) => handlePathQueryChange(event.target.value)}
+              placeholder="Filter by path..."
+              value={pathQuery}
+            />
+          </div>
         </div>
         {filteredGroups.length === 0 ? (
           <InstrumentEmpty
@@ -144,7 +208,7 @@ export function TrafficPagesCard({
             defaultSort={{ key: "visits", direction: "desc" }}
             emptyState="No pages match this filter"
             footer={<TablePagination {...pagination} itemLabel="pages" />}
-            getRowId={(row) => row.path}
+            getRowId={(row) => `${row.host}\n${row.path}`}
             height={paginatedTableHeightFor(pagination.pageRowCount)}
             onSortChange={() => pagination.setPage(1)}
             page={pagination.page}

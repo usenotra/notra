@@ -600,6 +600,8 @@ export const GEO_TRAFFIC_MARKDOWN_COLUMN_KEY = "markdownVisits";
 export const GEO_TRAFFIC_PAGES_PAGE_PARAM = "topPagesPage";
 export const GEO_TRAFFIC_PAGES_PATH_PARAM = "pagePath";
 export const GEO_TRAFFIC_LOG_PAGE_PARAM = "logPage";
+export const GEO_TRAFFIC_HOST_PARAM = "host";
+export const GEO_TRAFFIC_HOST_ALL = "all";
 export const GEO_CITATIONS_ROW_HEIGHT = 40;
 export const GEO_PURPOSE_COLUMN_WIDTH = "12.5rem";
 export const GEO_CITATIONS_LIVE_INTERVAL_MS = 5000;
@@ -1141,6 +1143,11 @@ export const GEO_CONVERSION_PATHS_LABEL = "Conversion paths";
 export const GEO_CONVERSION_PATHS_DESCRIPTION =
   "Paths that count as a conversion when an AI referral reaches them, for example /signup or /pricing. Prefix match; /pricing also counts /pricing/teams.";
 export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";
+export const GEO_MAX_DOMAINS = 20;
+export const GEO_PROJECT_DOMAINS_LABEL = "Tracked domains";
+export const GEO_PROJECT_DOMAINS_DESCRIPTION =
+  "Other sites that send AI traffic to this project, besides the brand website. Install the same ingest token on each. Subdomains of a listed domain are included.";
+export const GEO_PROJECT_DOMAINS_PLACEHOLDER = "docs.example.com";
 export const GEO_COMPETITOR_MAX_SYNONYMS = 8;
 export const GEO_SHORT_FIELD_MAX_LENGTH = 128;
 export const GEO_DOMAIN_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;

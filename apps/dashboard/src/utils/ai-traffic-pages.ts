@@ -1,8 +1,16 @@
 import type { GeoTrafficPage } from "@notra/geo-core/types/geo";
 import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
+import {
+  formatTrafficLocation,
+  matchesProjectHost,
+} from "@notra/geo-core/utils/geo-project-domains";
 
 import type { GeoTrafficPageGroup, GeoTrafficPageSource } from "@/types/geo";
 import { laterTrafficTimestamp } from "@/utils/ai-traffic-groups";
+
+function pageGroupKey(page: Pick<GeoTrafficPage, "host" | "path">): string {
+  return `${page.host}\n${page.path}`;
+}
 
 function pageSourceKey(page: GeoTrafficPage): string {
   return `${page.visitorType}:${formatGeoSource(page.source).toLowerCase()}`;
@@ -22,16 +30,18 @@ export function groupTrafficPages(
   const sourcesByGroup = new Map<string, Map<string, GeoTrafficPageSource>>();
 
   for (const page of pages) {
-    const existing = groups.get(page.path);
+    const key = pageGroupKey(page);
+    const existing = groups.get(key);
     const group: GeoTrafficPageGroup = existing ?? {
+      host: page.host,
       path: page.path,
       visits: 0,
       lastSeenAt: page.lastSeenAt,
       sources: [],
     };
     if (existing === undefined) {
-      groups.set(page.path, group);
-      sourcesByGroup.set(page.path, new Map());
+      groups.set(key, group);
+      sourcesByGroup.set(key, new Map());
     }
 
     group.visits += page.visits;
@@ -40,11 +50,11 @@ export function groupTrafficPages(
     }
     group.lastSeenAt = laterTrafficTimestamp(group.lastSeenAt, page.lastSeenAt);
 
-    const sources = sourcesByGroup.get(page.path);
-    const key = pageSourceKey(page);
-    const source = sources?.get(key);
+    const sources = sourcesByGroup.get(key);
+    const sourceKey = pageSourceKey(page);
+    const source = sources?.get(sourceKey);
     if (source === undefined) {
-      sources?.set(key, {
+      sources?.set(sourceKey, {
         source: page.source,
         visitorType: page.visitorType,
         visits: page.visits,
@@ -62,7 +72,7 @@ export function groupTrafficPages(
   const result = [...groups.values()];
   for (const group of result) {
     group.sources = Array.from(
-      sourcesByGroup.get(group.path)?.values() ?? []
+      sourcesByGroup.get(pageGroupKey(group))?.values() ?? []
     ).sort(byVisitsDesc);
   }
   return result;
@@ -81,5 +91,25 @@ export function filterTrafficPageGroups(
   if (needle.length === 0) {
     return [...groups];
   }
-  return groups.filter((group) => group.path.toLowerCase().includes(needle));
+  return groups.filter((group) => {
+    const haystack = formatTrafficLocation(
+      group.host,
+      group.path
+    ).toLowerCase();
+    return haystack.includes(needle);
+  });
+}
+
+export function filterTrafficPageGroupsByHost(
+  groups: readonly GeoTrafficPageGroup[],
+  host: string
+): GeoTrafficPageGroup[] {
+  const selected = host.trim();
+  if (selected.length === 0 || selected === "all") {
+    return [...groups];
+  }
+  return groups.filter(
+    (group) =>
+      group.host === selected || matchesProjectHost(group.host, [selected])
+  );
 }

@@ -7,6 +7,8 @@ import {
 } from "@tinybirdco/sdk";
 
 import {
+  GEO_CAPTURED_CURRENT_CONDITION,
+  GEO_CAPTURED_PREVIOUS_CONDITION,
   GEO_CAPTURED_WINDOW_SQL,
   GEO_DAY_COMPARISON_WINDOW_SQL,
   GEO_DAY_CURRENT_CONDITION,
@@ -181,27 +183,29 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
       name: "top_pages",
       sql: `
         SELECT
+          host,
           path,
           source,
           visitor_type,
-          countMergeIf(visits_state, (${GEO_DAY_CURRENT_CONDITION})) AS visits,
-          countMergeIf(visits_state, (${GEO_DAY_PREVIOUS_CONDITION})) AS previous_visits,
-          maxMergeIf(last_seen_state, (${GEO_DAY_CURRENT_CONDITION})) AS last_seen_at
-        FROM geo_traffic_pages_daily
+          countIf(${GEO_CAPTURED_CURRENT_CONDITION}) AS visits,
+          countIf(${GEO_CAPTURED_PREVIOUS_CONDITION}) AS previous_visits,
+          maxIf(captured_at, (${GEO_CAPTURED_CURRENT_CONDITION})) AS last_seen_at
+        FROM geo_traffic_events
         WHERE organization_id = {{String(organization_id)}}
           ${GEO_PROJECT_SCOPE_SQL}
           ${GEO_EXCLUDED_SOURCES_SQL}
-          ${GEO_DAY_COMPARISON_WINDOW_SQL}
           AND visitor_type IN ('crawler', 'ai_referral')
           AND ({{String(visitor, '')}} = '' OR visitor_type = {{String(visitor, '')}})
-        GROUP BY path, source, visitor_type
+          AND ((${GEO_CAPTURED_CURRENT_CONDITION}) OR (${GEO_CAPTURED_PREVIOUS_CONDITION}))
+        GROUP BY host, path, source, visitor_type
         HAVING visits > 0
-        ORDER BY visits DESC, path ASC
+        ORDER BY visits DESC, host ASC, path ASC
         LIMIT {{Int32(limit, 20)}}
       `,
     }),
   ],
   output: {
+    host: t.string(),
     path: t.string(),
     source: t.string(),
     visitor_type: t.string(),

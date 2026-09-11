@@ -57,5 +57,5 @@ export function citationRowId(
   entry: GeoTrafficLogEntry,
   index: number
 ): string {
-  return `${entry.capturedAt}-${entry.source}-${entry.path}-${index}`;
+  return `${entry.capturedAt}-${entry.source}-${entry.host}-${entry.path}-${index}`;
 }

@@ -69,6 +69,31 @@ export const GEO_CAPTURED_WINDOW_SQL = `AND if(
           )
           AND ({{String(date_to, '')}} = '' OR toDate(captured_at) <= toDateOrNull({{String(date_to, '')}}))`;
 
+export const GEO_CAPTURED_CURRENT_CONDITION = `if(
+            {{String(date_from, '')}} = '',
+            toDate(captured_at) >= toDate(now() - toIntervalDay({{Int32(days, 30)}})),
+            toDate(captured_at) >= toDateOrNull({{String(date_from, '')}})
+          )
+          AND ({{String(date_to, '')}} = '' OR toDate(captured_at) <= toDateOrNull({{String(date_to, '')}}))`;
+
+export const GEO_CAPTURED_PREVIOUS_CONDITION = `if(
+            {{String(date_from, '')}} = '',
+            toDate(captured_at) >= toDate(now() - toIntervalDay({{Int32(days, 30)}} * 2))
+              AND toDate(captured_at) < toDate(now() - toIntervalDay({{Int32(days, 30)}})),
+            toDate(captured_at) >= toDateOrNull({{String(date_from, '')}}) - toIntervalDay(
+              dateDiff(
+                'day',
+                toDateOrNull({{String(date_from, '')}}),
+                if(
+                  {{String(date_to, '')}} = '',
+                  toDate(now()),
+                  toDateOrNull({{String(date_to, '')}})
+                )
+              ) + 1
+            )
+            AND toDate(captured_at) < toDateOrNull({{String(date_from, '')}})
+          )`;
+
 export const GEO_PROJECT_SCOPE_SQL = `AND (
             {{String(project_id, '')}} = ''
             OR project_id = {{String(project_id, '')}}

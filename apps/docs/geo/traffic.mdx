@@ -63,7 +63,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
       -H "Authorization: Bearer $NOTRA_API_KEY"
     ```
 
-    Both return `ingestUrl`, `snippet` (the Next.js snippet), and `snippets` with `next`, `nuxt`, and `netlify` keys. The token endpoint adds `token`. The ingest routes are organization-level; pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier.
+    Both return `ingestUrl`, `snippet` (the Next.js snippet), and `snippets` with `next`, `nuxt`, and `netlify` keys. The token endpoint adds `token`. The ingest routes are organization-level; pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier. Install the same project token on every domain the project tracks; add extra hostnames under **Tracked domains** in GEO settings.
   </Step>
   <Step title="Install the package">
     ```bash
@@ -171,7 +171,7 @@ Once events arrive the page shows three sections, each honouring the range picke
 
 - A hero row with **Crawlers**, **Referrals**, and **Total** visit counts, each compared "vs. previous period", and a daily trend chart.
 - **Sources**: a table with **Source**, **Purpose**, **Visits**, **Markdown** (visits that asked for Markdown), **Pages**, and **Last seen** columns. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Amazon, Apple, ByteDance, and Common Crawl.
-- **Top pages by AI source**: **Page**, **Sources**, and **Visits**.
+- **Top pages by AI source**: **Page** (host and path), **Sources**, and **Visits**. When a project tracks more than one domain, a domain filter narrows the table.
 - **Recent citations**: the live event log with **All visitors** (AI crawler, AI referral) and **All purposes** (Model training, Search index, Cited in answer) filters. Live updates refresh every few seconds and can be paused.
 
 ## Reading traffic from the API
@@ -184,7 +184,7 @@ All paths below are prefixed with `/v1/projects/{projectId}` and need `traffic.r
 | `GET /geo/traffic/log` | `limit` (1 to 200), `visitorTypes`, `categories` | `log[]` with `capturedAt`, `visitorType`, `source`, `agent`, `category`, `confidence`, `path`, `host`, `country`, `ua`, `journeyId`, `wantsMarkdown`, plus `total`. No window; bound it with `limit` |
 | `GET /geo/traffic/journeys` | window plus `limit` (1 to 100) | `journeys[]` with `journeyId`, `source`, `visitorType`, `pages`, `distinctPaths`, `firstSeenAt`, `lastSeenAt`, `samplePaths[]` |
 | `GET /geo/traffic/journeys/{journeyId}` | window | `events[]` with `capturedAt`, `path`, `host`, `method`, `referer`, `country`, `agent`, `category` |
-| `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`) | `pages[]` with `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt` |
+| `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`) | `pages[]` with `host`, `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt` |
 
 `visitorTypes` and `categories` on the log endpoint are comma-separated lists. `categories` accepts `training-crawler`, `search-index`, and `assistant-browse`.
 

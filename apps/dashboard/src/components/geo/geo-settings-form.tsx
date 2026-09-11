@@ -6,6 +6,10 @@ import {
   GEO_CONVERSION_PATHS_PLACEHOLDER,
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
+  GEO_MAX_DOMAINS,
+  GEO_PROJECT_DOMAINS_DESCRIPTION,
+  GEO_PROJECT_DOMAINS_LABEL,
+  GEO_PROJECT_DOMAINS_PLACEHOLDER,
   GEO_SCAN_DEFAULT_INTERVAL_HOURS,
   GEO_SCAN_SIZE_MESSAGES,
   GEO_SETTINGS_AUTO_SAVE_MS,
@@ -14,6 +18,7 @@ import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
 import { normalizeConversionPaths } from "@notra/geo-core/utils/geo-conversion-paths";
 import { resolveTrackedEngines } from "@notra/geo-core/utils/geo-engines";
 import { trackedGeoLanguages } from "@notra/geo-core/utils/geo-language-rows";
+import { normalizeProjectDomains } from "@notra/geo-core/utils/geo-project-domains";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
@@ -55,6 +60,9 @@ export function GeoSettingsForm({
   const [conversionPaths, setConversionPaths] = useState(() =>
     normalizeConversionPaths(settings?.conversionPaths ?? [])
   );
+  const [domains, setDomains] = useState(() =>
+    normalizeProjectDomains(settings?.domains ?? [])
+  );
   const [competitors] = useState(() => settings?.competitors ?? []);
   const [languages, setLanguages] = useState(() =>
     trackedGeoLanguages(settings?.languages ?? [])
@@ -82,6 +90,7 @@ export function GeoSettingsForm({
     companyName,
     competitors,
     conversionPaths,
+    domains,
     enabled,
     engines,
     enforceZdr,
@@ -133,12 +142,16 @@ export function GeoSettingsForm({
             aliases={aliases}
             companyName={companyName}
             conversionPaths={conversionPaths}
+            domains={domains}
             id={id}
             nameMissing={nameMissing}
             onAliasesChange={setAliases}
             onCompanyNameChange={setCompanyName}
             onConversionPathsChange={(values) =>
               setConversionPaths(normalizeConversionPaths(values))
+            }
+            onDomainsChange={(values) =>
+              setDomains(normalizeProjectDomains(values))
             }
             savedAt={savedAt}
           />
@@ -180,6 +193,7 @@ function useGeoSettingsAutosave({
   companyName,
   competitors,
   conversionPaths,
+  domains,
   enabled,
   engines,
   enforceZdr,
@@ -227,6 +241,7 @@ function useGeoSettingsAutosave({
       aliases,
       competitors,
       conversionPaths,
+      domains,
       languages,
       engines,
       enforceZdr,
@@ -248,6 +263,7 @@ function useGeoSettingsAutosave({
           conversionPaths: normalizeConversionPaths(
             settings?.conversionPaths ?? []
           ),
+          domains: normalizeProjectDomains(settings?.domains ?? []),
           languages: trackedGeoLanguages(settings?.languages ?? []),
           engines: resolveTrackedEngines(catalog, settings?.engines),
           enforceZdr: settings?.enforceZdr ?? true,
@@ -277,6 +293,7 @@ function useGeoSettingsAutosave({
     companyName,
     competitors,
     conversionPaths,
+    domains,
     enabled,
     engines,
     enforceZdr,
@@ -339,11 +356,13 @@ function GeoBrandSection({
   aliases,
   companyName,
   conversionPaths,
+  domains,
   id,
   nameMissing,
   onAliasesChange,
   onCompanyNameChange,
   onConversionPathsChange,
+  onDomainsChange,
   savedAt,
 }: GeoBrandSectionProps) {
   return (
@@ -374,6 +393,20 @@ function GeoBrandSection({
           />
         </div>
       </TitleCard>
+      <SettingsSection
+        description={GEO_PROJECT_DOMAINS_DESCRIPTION}
+        title={GEO_PROJECT_DOMAINS_LABEL}
+      >
+        <GeoTagList
+          id={`${id}-domains`}
+          label={GEO_PROJECT_DOMAINS_LABEL}
+          labeled={false}
+          max={GEO_MAX_DOMAINS}
+          onChange={onDomainsChange}
+          placeholder={GEO_PROJECT_DOMAINS_PLACEHOLDER}
+          values={domains}
+        />
+      </SettingsSection>
       <SettingsSection
         description={GEO_CONVERSION_PATHS_DESCRIPTION}
         title={GEO_CONVERSION_PATHS_LABEL}

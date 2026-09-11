@@ -538,6 +538,7 @@ export interface GeoTrafficPageSource {
 }
 
 export interface GeoTrafficPageGroup {
+  host: string;
   path: string;
   visits: number;
   previousVisits?: number;
@@ -879,6 +880,8 @@ export interface GeoBrandSectionProps {
   onAliasesChange: (values: string[]) => void;
   conversionPaths: string[];
   onConversionPathsChange: (values: string[]) => void;
+  domains: string[];
+  onDomainsChange: (values: string[]) => void;
   nameMissing: boolean;
   savedAt: Date | null;
 }
@@ -912,6 +915,7 @@ export interface GeoSettingsAutosaveInput {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[];
   engines: string[];
   enforceZdr: boolean;
