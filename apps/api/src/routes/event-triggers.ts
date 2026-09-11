@@ -23,7 +23,6 @@ import {
   safeSerializeEventTrigger,
   serializeEventTrigger,
 } from "../utils/event-triggers";
-import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
@@ -269,8 +268,7 @@ eventTriggersRoutes.openapi(getEventTriggersRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
-    logError("Failed to list event triggers", result.failure);
-    return c.json({ error: "Failed to list event triggers" }, 500);
+    throw result.failure;
   }
 
   return c.json({ ...result.success, organization }, 200);
