@@ -1,10 +1,12 @@
-import { getChatSession, loadChatHistory } from "@notra/ai/chat/history";
+import { getChatSession } from "@notra/ai/chat/history";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { RouteContext } from "@/types/api/routes";
+
+import { GET as getChatHistory } from "../../../chat/[chatId]/route";
 
 export async function GET(
   request: NextRequest,
@@ -33,6 +35,5 @@ export async function GET(
     return NextResponse.json({ error: "Chat not found" }, { status: 404 });
   }
 
-  const messages = await loadChatHistory(organizationId, parsedChatId.data);
-  return NextResponse.json({ chatId: parsedChatId.data, messages });
+  return getChatHistory(request, { params });
 }
