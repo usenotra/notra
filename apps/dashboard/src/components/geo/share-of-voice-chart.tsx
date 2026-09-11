@@ -27,11 +27,6 @@ import { formatChartInteger, formatUsageShare } from "@/utils/geo-charts";
 import { findOwnBrandDomain } from "@/utils/geo-competitors";
 import { buildShareOfVoiceChartModel } from "@/utils/geo-share-of-voice";
 
-const RANKING_GRID =
-  "grid grid-cols-[1.5rem_minmax(0,1fr)_auto_auto] items-center gap-x-3 @sm:grid-cols-[1.5rem_minmax(0,1fr)_auto_auto_auto]";
-const RANKING_SUBGRID = "col-span-full grid grid-cols-subgrid items-center";
-const RANKING_MAIN_SPAN = "col-span-3 grid grid-cols-subgrid @sm:col-span-4";
-
 function RankingBrandMark({
   row,
   competitors,
@@ -64,55 +59,64 @@ function ShareOfVoiceRankingRow({
   onPrefetch,
   onTrack,
 }: ShareOfVoiceRankingRowProps) {
-  const content = (
-    <>
-      <span className="text-muted-foreground text-xs tabular-nums">
+  return (
+    <tr
+      className={cn(
+        "border-border min-h-12 border-b last:border-b-0",
+        row.own &&
+          "bg-primary/5 [&>td:first-child]:rounded-l-lg [&>td:last-child]:rounded-r-lg",
+        onOpen && "hover:bg-muted/50 cursor-pointer"
+      )}
+      onClick={
+        onOpen
+          ? (event) => {
+              if (
+                event.target instanceof Element &&
+                event.target.closest("button")
+              ) {
+                return;
+              }
+              onOpen(row);
+            }
+          : undefined
+      }
+      onFocus={onOpen ? () => onPrefetch?.(row) : undefined}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen(row);
+              }
+            }
+          : undefined
+      }
+      onPointerEnter={onOpen ? () => onPrefetch?.(row) : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+    >
+      <td className="text-muted-foreground w-6 py-3 pr-3 align-middle text-xs tabular-nums">
         {row.rank ?? "—"}
-      </span>
-      <span className="flex min-w-0 items-center gap-2.5">
-        <RankingBrandMark
-          competitors={competitors}
-          ownDomain={ownDomain}
-          row={row}
-        />
-        <span className="min-w-0 truncate text-sm" title={row.brand}>
-          {row.brand}
+      </td>
+      <td className="min-w-0 py-3 pr-3 align-middle">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <RankingBrandMark
+            competitors={competitors}
+            ownDomain={ownDomain}
+            row={row}
+          />
+          <span className="min-w-0 truncate text-sm" title={row.brand}>
+            {row.brand}
+          </span>
         </span>
-      </span>
-      <span className="text-right text-sm tabular-nums">
+      </td>
+      <td className="py-3 pr-3 text-right align-middle text-sm whitespace-nowrap tabular-nums">
         {formatUsageShare(row.share)}
-      </span>
-      <span className="text-muted-foreground hidden text-right text-xs tabular-nums @sm:block">
+      </td>
+      <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @sm:table-cell">
         {formatChartInteger(row.mentions)}
         <span className="sr-only"> mentions</span>
-      </span>
-    </>
-  );
-  return (
-    <li
-      className={cn(
-        RANKING_SUBGRID,
-        "border-border min-h-12 border-b last:border-b-0",
-        row.own && "bg-primary/5 rounded-lg border-b-0"
-      )}
-    >
-      {onOpen ? (
-        <button
-          className={cn(
-            RANKING_MAIN_SPAN,
-            "hover:bg-muted/50 min-h-12 cursor-pointer rounded-lg border-0 bg-transparent p-0 text-left transition-colors"
-          )}
-          onClick={() => onOpen(row)}
-          onFocus={() => onPrefetch?.(row)}
-          onPointerEnter={() => onPrefetch?.(row)}
-          type="button"
-        >
-          {content}
-        </button>
-      ) : (
-        <div className={cn(RANKING_MAIN_SPAN, "min-h-12")}>{content}</div>
-      )}
-      <span className="flex justify-end">
+      </td>
+      <td className="py-3 text-right align-middle">
         {row.own ? (
           <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[0.6875rem]">
             You
@@ -125,8 +129,8 @@ function ShareOfVoiceRankingRow({
             onTrack={onTrack}
           />
         ) : null}
-      </span>
-    </li>
+      </td>
+    </tr>
   );
 }
 
@@ -257,24 +261,30 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   : "No mentions recorded"}
               </span>
             </div>
-            <div className={cn(RANKING_GRID, "mb-4 w-full")}>
-              <div
-                aria-hidden="true"
-                className={cn(
-                  RANKING_SUBGRID,
-                  "text-muted-foreground border-border border-b pb-2 text-[0.6875rem]"
-                )}
-              >
-                <span />
-                <span>Brand</span>
-                <span className="text-right">Share</span>
-                <span className="hidden text-right @sm:block">Mentions</span>
-                <span />
-              </div>
-              <ol
-                aria-label="Brand ranking by share of voice"
-                className={cn(RANKING_SUBGRID, "list-none p-0")}
-              >
+            <table
+              aria-label="Brand ranking by share of voice"
+              className="mb-4 w-full border-collapse"
+            >
+              <thead>
+                <tr className="text-muted-foreground border-border border-b text-[0.6875rem]">
+                  <th className="w-6 py-0 pr-3 pb-2 font-normal">
+                    <span className="sr-only">Rank</span>
+                  </th>
+                  <th className="min-w-0 py-0 pr-3 pb-2 text-left font-normal">
+                    Brand
+                  </th>
+                  <th className="py-0 pr-3 pb-2 text-right font-normal">
+                    Share
+                  </th>
+                  <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
+                    Mentions
+                  </th>
+                  <th className="w-14 py-0 pb-2 font-normal">
+                    <span className="sr-only">Tracking</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
                 {ranking.map((row) => (
                   <ShareOfVoiceRankingRow
                     competitors={competitors}
@@ -286,8 +296,8 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                     row={row}
                   />
                 ))}
-              </ol>
-            </div>
+              </tbody>
+            </table>
             {other ? (
               <div className="mt-auto flex justify-end pt-2">
                 <Button
