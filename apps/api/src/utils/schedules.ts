@@ -9,6 +9,7 @@ import {
   scheduleTargetsRepositoryIdsSchema,
   scheduleTargetsSchema,
 } from "@notra/schemas/api/schedules";
+import { QstashError } from "@notra/schemas/api/qstash";
 import { and, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
@@ -171,6 +172,21 @@ export function safeSerializeSchedule(
     logError(`Skipping malformed schedule ${trigger.id}`, error);
     return null;
   }
+}
+
+export function isQstashScheduleError(error: unknown) {
+  if (error instanceof QstashError) {
+    return true;
+  }
+
+  const message = error instanceof Error ? error.message : "Unknown error";
+
+  return (
+    message.includes("invalid destination") ||
+    message.includes("unable to resolve host") ||
+    message.includes("WORKFLOW_BASE_URL is not configured") ||
+    message.includes("QStash returned an unexpected")
+  );
 }
 
 export function mapQstashError(error: unknown) {

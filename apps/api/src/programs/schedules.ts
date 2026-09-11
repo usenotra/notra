@@ -26,6 +26,7 @@ import {
   ensureScheduleTargetsExist,
   filterSchedulesByRepositoryIds,
   hashSchedule,
+  isQstashScheduleError,
   mapQstashError,
   normalizeSchedule,
   safeSerializeSchedule,
@@ -336,15 +337,19 @@ export const patchSchedule = Effect.fn("schedules.patch")(function* ({
         return cause;
       }
 
-      logError("Failed to update schedule", cause);
-      const mapped = mapQstashError(cause);
-      return new ScheduleQstashError({
-        message:
-          mapped.status === 400
-            ? mapped.error
-            : "Failed to update schedule",
-        status: mapped.status,
-      });
+      if (isQstashScheduleError(cause)) {
+        logError("Failed to update schedule", cause);
+        const mapped = mapQstashError(cause);
+        return new ScheduleQstashError({
+          message:
+            mapped.status === 400
+              ? mapped.error
+              : "Failed to update schedule",
+          status: mapped.status,
+        });
+      }
+
+      return new ScheduleDatabaseError({ cause });
     },
   });
 });
