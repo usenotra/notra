@@ -11,6 +11,12 @@ export type OnboardingWorkspaceInput = z.infer<
   typeof onboardingWorkspaceSchema
 >;
 
+/** Response of `onboarding.companyLogo`, also the cached representation. */
+export interface CompanyLogoResult {
+  domain: string | null;
+  url: string | null;
+}
+
 export interface PricingClientProps {
   slug: string;
 }
