@@ -1,0 +1,23 @@
+apps/web/src/lib/dithering/use-dither-pointer.ts
+  s_9c4b8410e74999::t_c9caa298f5313d 55
+  s_9c4b8410e74999::t_e978c27d29ce16 74-82
+apps/web/src/components/landing/hero-headline.tsx
+  s_9c4b8410e74999::t_c169b25d6615de 35-42,44
+  s_9c4b8410e74999::t_76379107b27ead 34,43,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "113d015f0ca150fe42a78d9492dd5ddb349c81dc",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
