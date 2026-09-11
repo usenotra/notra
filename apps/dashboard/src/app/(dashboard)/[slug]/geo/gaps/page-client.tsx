@@ -1,36 +1,16 @@
 "use client";
 
-import { GEO_SEARCH_GAP_DISMISSED_TOAST } from "@notra/geo-core/constants/geo";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { PageContainer } from "@/components/layout/container";
 import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
-import {
-  useGeoCompetitors,
-  useGeoRescanPrompt,
-  useGeoSettings,
-  useGeoStartScan,
-  useGeoSuggestionDismiss,
-  useIsGeoScanning,
-} from "@/lib/hooks/use-geo";
+import { useGeoGapsPage } from "@/lib/hooks/use-geo-gaps-page";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
-import { useGeoWriterGaps } from "@/lib/hooks/use-geo-writer";
-import type { GeoGapsPageContentProps } from "@/types/components/geo-gaps";
-import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type { GeoPageClientProps } from "@/types/geo";
-import {
-  emptyWriteDialogState,
-  geoContentPath,
-  writeDialogStateFromGap,
-} from "@/utils/geo-write-entry";
 
 import { GeoGapsSkeleton } from "./skeleton";
 
@@ -50,38 +30,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   );
 }
 
-function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
-  const router = useRouter();
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  const orgFromList = getOrganization(organizationSlug);
-  const organization =
-    activeOrganization?.slug === organizationSlug
-      ? activeOrganization
-      : orgFromList;
-  const organizationId = organization?.id ?? "";
+function GeoGapsPageContent({ organizationSlug }: GeoPageClientProps) {
+  const page = useGeoGapsPage(organizationSlug);
 
-  const settingsQuery = useGeoSettings(organizationId);
-  const { data: settingsData, isPending: isSettingsPending } = settingsQuery;
-  const gapsQuery = useGeoWriterGaps(organizationId);
-  const competitorsQuery = useGeoCompetitors(organizationId);
-  const startScan = useGeoStartScan(organizationId);
-  const rescanPrompt = useGeoRescanPrompt(organizationId);
-  const isScanning = useIsGeoScanning(organizationId);
-  const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
-
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogInitial, setDialogInitial] =
-    useState<WriteDialogInitialState | null>(null);
-
-  const openDialog = useCallback((initial?: WriteDialogInitialState) => {
-    setDialogInitial(initial ?? emptyWriteDialogState());
-    setDialogOpen(true);
-  }, []);
-
-  if (
-    (settingsQuery.isError && !settingsData) ||
-    (settingsData?.settings && gapsQuery.isError && !gapsQuery.data)
-  ) {
+  if (page.status === "error") {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:py-6">
         <div className="space-y-4 px-4 lg:px-6" role="alert">
@@ -90,15 +42,8 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
             We couldn&apos;t load content gaps. Try again.
           </p>
           <Button
-            disabled={settingsQuery.isFetching || gapsQuery.isFetching}
-            onClick={() => {
-              if (settingsQuery.isError) {
-                void settingsQuery.refetch();
-              }
-              if (gapsQuery.isError) {
-                void gapsQuery.refetch();
-              }
-            }}
+            disabled={page.isRetrying}
+            onClick={page.retry}
             variant="outline"
           >
             Retry
@@ -108,17 +53,17 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
     );
   }
 
-  if (!(isSettingsPending || settingsData?.settings)) {
+  if (page.status === "setup") {
     return (
       <GeoWriterNeedsSetup
         description="Questions engines answer without mentioning you"
-        organizationId={organizationId}
+        organizationId={page.organizationId}
         title="Content Gaps"
       />
     );
   }
 
-  if (isSettingsPending && !gapsQuery.data) {
+  if (page.status === "loading") {
     return <GeoGapsSkeleton />;
   }
 
@@ -137,70 +82,39 @@ function GeoGapsPageContent({ organizationSlug }: GeoGapsPageContentProps) {
           </div>
         </header>
 
-        {gapsQuery.isPending ? (
+        {page.gapsQuery.isPending ? (
           <GeoGapsSkeleton embedded />
         ) : (
           <GeoGapsTable
-            competitors={competitorsQuery.data?.competitors ?? []}
-            hasScanData={gapsQuery.data?.hasScanData ?? false}
-            isScanning={isScanning}
-            onOpenPost={(postId) => {
-              router.push(geoContentPath(organizationSlug, postId));
-            }}
-            onRescanPrompt={(row) => rescanPrompt.mutate(row.id)}
-            onRunScan={() => startScan.mutate("gaps_empty")}
-            onWritePrompt={(row) => {
-              openDialog(
-                writeDialogStateFromGap({
-                  promptId: row.id,
-                  prompt: row.prompt,
-                  mentionedEngines: row.mentionedEngines,
-                  missingEngines: row.engines,
-                  mentionedCompetitors: [
-                    ...row.competitors,
-                    ...row.discoveredCompetitors,
-                  ],
-                })
-              );
-            }}
+            competitors={page.competitors}
             dismissingSearchId={
-              dismissSuggestion.isPending
-                ? (dismissSuggestion.variables?.suggestionId ?? null)
+              page.dismissSuggestion.isPending
+                ? (page.dismissSuggestion.variables?.suggestionId ?? null)
                 : null
             }
-            onDismissSearch={(row) => {
-              dismissSuggestion.mutate(
-                { suggestionId: row.id },
-                {
-                  onSuccess: () => {
-                    toast.success(GEO_SEARCH_GAP_DISMISSED_TOAST);
-                  },
-                }
-              );
-            }}
-            onWriteSearch={(row, existingPageUrl) => {
-              openDialog({
-                sourceKind: "search_console",
-                sourceId: row.id,
-                topic: row.prompt,
-                existingPageUrl,
-              });
-            }}
-            organizationSlug={organizationSlug}
-            promptGaps={gapsQuery.data?.promptGaps ?? []}
-            searchGaps={gapsQuery.data?.searchGaps ?? []}
+            hasScanData={page.gapsQuery.data?.hasScanData ?? false}
+            isScanning={page.isScanning}
+            onDismissSearch={(row) => page.dismissSearch(row.id)}
+            onOpenPost={page.openPost}
+            onRescanPrompt={(row) => page.rescanPromptRow(row.id)}
+            onRunScan={page.runScan}
+            onWritePrompt={page.writePrompt}
+            onWriteSearch={page.writeSearch}
+            organizationSlug={page.organizationSlug}
+            promptGaps={page.gapsQuery.data?.promptGaps ?? []}
+            searchGaps={page.gapsQuery.data?.searchGaps ?? []}
           />
         )}
       </div>
 
-      {organizationId && dialogInitial ? (
+      {page.dialogInitial ? (
         <WriteDialog
           entry={GEO_WRITE_DIALOG_ENTRIES.GAP}
-          initial={dialogInitial}
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-          organizationId={organizationId}
-          organizationSlug={organizationSlug}
+          initial={page.dialogInitial}
+          onOpenChange={page.setDialogOpen}
+          open={page.dialogOpen}
+          organizationId={page.organizationId}
+          organizationSlug={page.organizationSlug}
         />
       ) : null}
     </PageContainer>

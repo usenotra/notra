@@ -378,7 +378,8 @@ export function useGeoChanges(organizationId: string) {
 export function useGeoCompetitorShare(
   organizationId: string,
   range?: GeoRangeQuery,
-  summaryOnly = false
+  summaryOnly = false,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoCompetitorShareResponse>({
@@ -390,7 +391,7 @@ export function useGeoCompetitorShare(
         summaryOnly: summaryOnly || undefined,
       },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load competitor share" },
   });
@@ -502,14 +503,15 @@ export function useGeoCompetitors(organizationId: string) {
 
 export function useGeoLanguageShare(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoLanguageShareResponse>({
     ...dashboardOrpc.geo.languageShare.queryOptions({
       input: { organizationId, projectId, ...toGeoWindowInput(range) },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load language performance" },
   });

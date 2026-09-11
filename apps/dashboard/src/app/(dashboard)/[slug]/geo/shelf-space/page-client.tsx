@@ -2,12 +2,9 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import Link from "next/link";
-import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
-import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -17,11 +14,7 @@ import { ShelfDetailDialog } from "@/components/geo/shelf/shelf-detail-dialog";
 import { ShelfPageControls } from "@/components/geo/shelf/shelf-page-controls";
 import { ShelfView } from "@/components/geo/shelf/shelf-view";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -29,27 +22,12 @@ import {
 import {
   GEO_SHELF_ADD_HOTKEY,
   GEO_SHELF_ADD_LABEL,
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTERS,
-  GEO_SHELF_VIEWS,
 } from "@/constants/geo-shelf";
-import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoSettings } from "@/lib/hooks/use-geo";
-import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
-import { useGeoCompetitorsDb, useGeoShelfDb } from "@/lib/hooks/use-geo-db";
+import { useGeoShelfPage } from "@/lib/hooks/use-geo-shelf-page";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
-import { useGeoShelfMembers } from "@/lib/hooks/use-geo-shelf";
 import type { GeoPageClientProps } from "@/types/geo";
-import type {
-  GeoShelfPageContentProps,
-  GeoShelfSelection,
-} from "@/types/geo-shelf";
 import { withGeoProject } from "@/utils/geo-paths";
-import {
-  buildOptimisticShelfSource,
-  filterShelfRows,
-  toShelfRows,
-} from "@/utils/geo-shelf";
+import { buildOptimisticShelfSource } from "@/utils/geo-shelf";
 
 import { GeoShelfSkeleton } from "./skeleton";
 
@@ -67,83 +45,14 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   );
 }
 
-function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
-  const { projectId } = useGeoProjectScope();
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  const orgFromList = getOrganization(organizationSlug);
-  const organization =
-    activeOrganization?.slug === organizationSlug
-      ? activeOrganization
-      : orgFromList;
-  const organizationId = organization?.id ?? "";
+function GeoShelfPageContent({ organizationSlug }: GeoPageClientProps) {
+  const page = useGeoShelfPage(organizationSlug);
 
-  const { data: settingsData, isPending: isSettingsPending } =
-    useGeoSettings(organizationId);
-  const { competitors } = useGeoCompetitorsDb(organizationId);
-  const { domain: ownDomain } = useGeoActiveProject(organizationId);
-  const membersQuery = useGeoShelfMembers(organizationId);
-  const shelf = useGeoShelfDb(organizationId);
-
-  const [search, setSearch] = useQueryState(
-    "q",
-    parseAsString.withDefault("").withOptions({ clearOnDefault: true })
-  );
-  const [shelfFilter, setShelfFilter] = useQueryState(
-    "shelf",
-    parseAsStringLiteral(GEO_SHELF_SHELF_FILTERS)
-      .withDefault("all")
-      .withOptions({ clearOnDefault: true })
-  );
-  const [ticketFilter, setTicketFilter] = useQueryState(
-    "ticket",
-    parseAsStringLiteral(GEO_SHELF_TICKET_FILTERS)
-      .withDefault("any")
-      .withOptions({ clearOnDefault: true })
-  );
-  const [view, setView] = useQueryState(
-    "view",
-    parseAsStringLiteral(GEO_SHELF_VIEWS)
-      .withDefault("table")
-      .withOptions({ clearOnDefault: true })
-  );
-  const [addOpen, setAddOpen] = useState(false);
-  const [selected, setSelected] = useState<GeoShelfSelection | null>(null);
-
-  useHotkey(GEO_SHELF_ADD_HOTKEY, () => setAddOpen(true), {
-    enabled: !addOpen && selected === null,
-  });
-
-  const settings = settingsData?.settings ?? null;
-  const hasSettings = settings !== null;
-  const shelfCount = shelf.sources.length;
-  const { isSampleData } = shelf;
-  const viewedRef = useRef(false);
-
-  useEffect(() => {
-    if (viewedRef.current || isSettingsPending || shelf.isLoading) {
-      return;
-    }
-    viewedRef.current = true;
-    trackEvent(POSTHOG_EVENTS.GEO_SHELF_VIEWED, {
-      view,
-      has_settings: hasSettings,
-      shelf_count: shelfCount,
-      is_sample_data: isSampleData,
-    });
-  }, [
-    isSettingsPending,
-    shelf.isLoading,
-    hasSettings,
-    shelfCount,
-    isSampleData,
-    view,
-  ]);
-
-  if (isSettingsPending || (hasSettings && shelf.isLoading)) {
+  if (page.status === "loading") {
     return <GeoShelfSkeleton />;
   }
 
-  if (!settings) {
+  if (page.status === "setup") {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
@@ -157,7 +66,10 @@ function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
                 nativeButton={false}
                 render={
                   <Link
-                    href={withGeoProject(`/${organizationSlug}/geo`, projectId)}
+                    href={withGeoProject(
+                      `/${page.organizationSlug}/geo`,
+                      page.projectId
+                    )}
                   />
                 }
               >
@@ -178,27 +90,20 @@ function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
     );
   }
 
-  const members = membersQuery.data?.members ?? [];
-  const currentMemberId = membersQuery.data?.currentMemberId ?? null;
-  const currentMember =
-    members.find((member) => member.id === currentMemberId) ?? null;
-  const ownBrandName = settings.companyName;
-  const rows = toShelfRows(shelf.sources, members);
-  const filters = {
-    search,
-    shelf: shelfFilter,
-    ticket: ticketFilter,
-    currentMemberId,
-  };
-  const filteredRows = filterShelfRows(rows, filters);
-  // A freshly created row swaps its optimistic id for the server id on refetch:
-  // fall back to the canonical URL so the open dialog survives that swap.
-  const selectedRow =
-    rows.find((row) => row.id === selected?.id) ??
-    rows.find((row) => row.url === selected?.url) ??
-    null;
-  const openRow = (row: (typeof rows)[number]) =>
-    setSelected({ id: row.id, url: row.url });
+  return <GeoShelfReadyContent page={page} />;
+}
+
+function GeoShelfReadyContent({
+  page,
+}: {
+  page: Extract<
+    ReturnType<typeof useGeoShelfPage>,
+    { status: "ready" }
+  >;
+}) {
+  useHotkey(GEO_SHELF_ADD_HOTKEY, () => page.setAddOpen(true), {
+    enabled: !page.addOpen && page.selectedRow === null,
+  });
 
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -208,7 +113,7 @@ function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
             <h1 className="text-3xl font-bold tracking-tight">{PAGE_TITLE}</h1>
             <p className="text-muted-foreground">{PAGE_DESCRIPTION}</p>
           </div>
-          <Button className="gap-1.5" onClick={() => setAddOpen(true)}>
+          <Button className="gap-1.5" onClick={() => page.setAddOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
             {GEO_SHELF_ADD_LABEL}
             <Kbd className="ml-1 hidden sm:inline-flex">
@@ -218,72 +123,74 @@ function GeoShelfPageContent({ organizationSlug }: GeoShelfPageContentProps) {
         </header>
 
         <div className="space-y-3">
-          {rows.length > 0 ? (
+          {page.rows.length > 0 ? (
             <ShelfPageControls
-              filters={filters}
+              filters={page.filters}
               hasRows
-              onSearchChange={setSearch}
-              onShelfFilterChange={setShelfFilter}
-              onTicketFilterChange={setTicketFilter}
-              onViewChange={setView}
-              view={view}
+              onSearchChange={page.setSearch}
+              onShelfFilterChange={page.setShelfFilter}
+              onTicketFilterChange={page.setTicketFilter}
+              onViewChange={page.setView}
+              view={page.view}
             />
           ) : null}
           <ShelfView
-            currentMemberId={currentMemberId}
-            hasScanData={shelf.sources.some(
+            currentMemberId={page.currentMemberId}
+            hasScanData={page.shelf.sources.some(
               (source) => source.origin === "scan"
             )}
-            onAddShelf={() => setAddOpen(true)}
-            onRowClick={openRow}
-            onSetPlacementStatus={shelf.setPlacementStatus}
-            onUpdateOpportunity={shelf.updateOpportunity}
-            pendingSourceIds={shelf.pendingSourceIds}
-            rows={filteredRows}
-            ticketFilter={ticketFilter}
-            totalCount={rows.length}
-            view={view}
+            onAddShelf={() => page.setAddOpen(true)}
+            onRowClick={page.openRow}
+            onSetPlacementStatus={page.shelf.setPlacementStatus}
+            onUpdateOpportunity={page.shelf.updateOpportunity}
+            pendingSourceIds={page.shelf.pendingSourceIds}
+            rows={page.filteredRows}
+            ticketFilter={page.ticketFilter}
+            totalCount={page.rows.length}
+            view={page.view}
           />
         </div>
       </div>
 
       <ShelfDetailDialog
-        currentMemberId={currentMemberId}
+        currentMemberId={page.currentMemberId}
         isPending={
-          selectedRow ? shelf.pendingSourceIds.has(selectedRow.id) : false
+          page.selectedRow
+            ? page.shelf.pendingSourceIds.has(page.selectedRow.id)
+            : false
         }
-        members={members}
+        members={page.members}
         onOpenChange={(open) => {
           if (!open) {
-            setSelected(null);
+            page.setSelected(null);
           }
         }}
-        onSetPlacementStatus={shelf.setPlacementStatus}
-        onUpdateOpportunity={shelf.updateOpportunity}
-        open={selectedRow !== null}
-        ownBrandName={ownBrandName}
-        row={selectedRow}
+        onSetPlacementStatus={page.shelf.setPlacementStatus}
+        onUpdateOpportunity={page.shelf.updateOpportunity}
+        open={page.selectedRow !== null}
+        ownBrandName={page.ownBrandName}
+        row={page.selectedRow}
       />
 
       <ShelfAddDialog
-        competitors={competitors}
-        currentMemberId={currentMemberId}
-        existingUrls={rows.map((row) => row.url)}
-        members={members}
-        onOpenChange={setAddOpen}
-        organizationId={organizationId}
+        competitors={page.competitors}
+        currentMemberId={page.currentMemberId}
+        existingUrls={page.rows.map((row) => row.url)}
+        members={page.members}
+        onOpenChange={page.setAddOpen}
+        organizationId={page.organizationId}
         onSubmit={(draft) => {
-          shelf.addSource(
+          page.shelf.addSource(
             buildOptimisticShelfSource(draft, {
-              ownBrandName,
-              ownDomain,
-              competitors,
-              createdByUserId: currentMember?.userId ?? null,
+              ownBrandName: page.ownBrandName,
+              ownDomain: page.ownDomain,
+              competitors: page.competitors,
+              createdByUserId: page.currentMember?.userId ?? null,
             })
           );
         }}
-        open={addOpen}
-        ownBrandName={ownBrandName}
+        open={page.addOpen}
+        ownBrandName={page.ownBrandName}
       />
     </PageContainer>
   );
