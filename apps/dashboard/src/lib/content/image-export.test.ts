@@ -12,17 +12,121 @@ mock.module("sonner", () => ({
   },
 }));
 
-const { copyImageAsFigma, copyImageAsPaper, preloadImageExportCopy } =
-  await import("./image-export");
+const {
+  copyImageAsFigma,
+  copyImageAsPaper,
+  preloadImageExportCopy,
+  resetImageExportCopyForTests,
+} = await import("./image-export");
 
 const exportElement = {} as HTMLElement;
+
+function withWindow<T>(run: () => T | Promise<T>): T | Promise<T> {
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: previousWindow?.value ?? {},
+  });
+  const restore = () => {
+    if (previousWindow) {
+      Object.defineProperty(globalThis, "window", previousWindow);
+    } else {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+  };
+  try {
+    const result = run();
+    if (result instanceof Promise) {
+      return result.finally(restore);
+    }
+    restore();
+    return result;
+  } catch (error) {
+    restore();
+    throw error;
+  }
+}
+
+test("preload with window warms the kiwi chunk without copying", async () => {
+  let paperImports = 0;
+  let figmaImports = 0;
+  copyAsPaper.mockClear();
+  copyAsFigma.mockClear();
+  resetImageExportCopyForTests({
+    paper: async () => {
+      paperImports += 1;
+      return (await import("@notra/kiwi/paper")).copyAsPaper;
+    },
+    figma: async () => {
+      figmaImports += 1;
+      return (await import("@notra/kiwi")).copyAsFigma;
+    },
+  });
+
+  try {
+    await withWindow(async () => {
+      preloadImageExportCopy("paper");
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(copyAsPaper).not.toHaveBeenCalled();
+      expect(copyAsFigma).not.toHaveBeenCalled();
+      expect(paperImports).toBe(1);
+      expect(figmaImports).toBe(0);
+
+      preloadImageExportCopy("paper");
+      await Promise.resolve();
+      expect(paperImports).toBe(1);
+
+      await copyImageAsPaper(exportElement, "Card");
+      expect(copyAsPaper).toHaveBeenCalledTimes(1);
+      expect(paperImports).toBe(1);
+
+      preloadImageExportCopy("figma");
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(copyAsFigma).not.toHaveBeenCalled();
+      expect(figmaImports).toBe(1);
+    });
+  } finally {
+    resetImageExportCopyForTests();
+  }
+});
+
+test("preload with window swallows a failed paper import and click retries", async () => {
+  let paperImports = 0;
+  copyAsPaper.mockClear();
+  resetImageExportCopyForTests({
+    paper: async () => {
+      paperImports += 1;
+      if (paperImports === 1) {
+        throw new Error("paper chunk failed");
+      }
+      return (await import("@notra/kiwi/paper")).copyAsPaper;
+    },
+  });
+
+  try {
+    await withWindow(async () => {
+      expect(() => preloadImageExportCopy("paper")).not.toThrow();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(copyAsPaper).not.toHaveBeenCalled();
+      expect(paperImports).toBe(1);
+
+      await copyImageAsPaper(exportElement, "Card");
+      expect(copyAsPaper).toHaveBeenCalledTimes(1);
+      expect(paperImports).toBe(2);
+    });
+  } finally {
+    resetImageExportCopyForTests();
+  }
+});
 
 test("Paper and Figma copy call separate kiwi functions", async () => {
   copyAsFigma.mockClear();
   copyAsPaper.mockClear();
 
   await copyImageAsPaper(exportElement, "Card");
-  expect(copyAsPaper).toHaveBeenCalledTimes(1);
   expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
     label: "Card",
     name: "Card",
@@ -35,7 +139,6 @@ test("Paper and Figma copy call separate kiwi functions", async () => {
     label: "Card",
     name: "Card",
   });
-  expect(copyAsPaper).toHaveBeenCalledTimes(1);
 });
 
 test("preload is a no-op without window and does not copy", () => {

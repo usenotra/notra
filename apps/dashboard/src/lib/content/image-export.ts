@@ -10,29 +10,45 @@ import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
 
 type CopyAsFigma = (typeof import("@notra/kiwi"))["copyAsFigma"];
 type CopyAsPaper = (typeof import("@notra/kiwi/paper"))["copyAsPaper"];
+type CopyAsFigmaImport = () => Promise<CopyAsFigma>;
+type CopyAsPaperImport = () => Promise<CopyAsPaper>;
+
+const defaultImportCopyAsFigma: CopyAsFigmaImport = () =>
+  import("@notra/kiwi").then((module) => module.copyAsFigma);
+const defaultImportCopyAsPaper: CopyAsPaperImport = () =>
+  import("@notra/kiwi/paper").then((module) => module.copyAsPaper);
 
 // Kiwi (Figma/Paper paste + Inter payload) stays off `/content/[id]` initial JS.
+let importCopyAsFigma = defaultImportCopyAsFigma;
+let importCopyAsPaper = defaultImportCopyAsPaper;
 let copyAsFigmaPromise: Promise<CopyAsFigma> | null = null;
 let copyAsPaperPromise: Promise<CopyAsPaper> | null = null;
 
 function loadCopyAsFigma(): Promise<CopyAsFigma> {
-  copyAsFigmaPromise ??= import("@notra/kiwi")
-    .then((module) => module.copyAsFigma)
-    .catch((error: unknown) => {
-      copyAsFigmaPromise = null;
-      throw error;
-    });
+  copyAsFigmaPromise ??= importCopyAsFigma().catch((error: unknown) => {
+    copyAsFigmaPromise = null;
+    throw error;
+  });
   return copyAsFigmaPromise;
 }
 
 function loadCopyAsPaper(): Promise<CopyAsPaper> {
-  copyAsPaperPromise ??= import("@notra/kiwi/paper")
-    .then((module) => module.copyAsPaper)
-    .catch((error: unknown) => {
-      copyAsPaperPromise = null;
-      throw error;
-    });
+  copyAsPaperPromise ??= importCopyAsPaper().catch((error: unknown) => {
+    copyAsPaperPromise = null;
+    throw error;
+  });
   return copyAsPaperPromise;
+}
+
+/** Test-only: drop copy caches so a later case can start a fresh import. */
+export function resetImageExportCopyForTests(next?: {
+  figma?: CopyAsFigmaImport;
+  paper?: CopyAsPaperImport;
+}): void {
+  copyAsFigmaPromise = null;
+  copyAsPaperPromise = null;
+  importCopyAsFigma = next?.figma ?? defaultImportCopyAsFigma;
+  importCopyAsPaper = next?.paper ?? defaultImportCopyAsPaper;
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */

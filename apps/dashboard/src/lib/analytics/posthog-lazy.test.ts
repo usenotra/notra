@@ -33,6 +33,43 @@ function restoreWindow(previousWindow: PropertyDescriptor | undefined): void {
   }
 }
 
+function installMockTimers() {
+  const pending = new Map<TimeoutHandle, () => void>();
+  let nextId = 1;
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      location: { hostname: "localhost" },
+      setTimeout(callback: TimerHandler): TimeoutHandle {
+        const id = nextId;
+        nextId += 1;
+        if (typeof callback === "function") {
+          pending.set(id, callback as () => void);
+        }
+        return id;
+      },
+      clearTimeout(id?: TimeoutHandle) {
+        if (typeof id === "number") {
+          pending.delete(id);
+        }
+      },
+    },
+  });
+
+  return {
+    pending,
+    runPending() {
+      for (const callback of pending.values()) {
+        callback();
+      }
+    },
+    restore() {
+      restoreWindow(previousWindow);
+    },
+  };
+}
+
 beforeEach(() => {
   initAttempts = 0;
 });
@@ -87,35 +124,11 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
     return Promise.resolve({ default: { init: liveInit } });
   });
 
-  const pending = new Map<TimeoutHandle, () => void>();
-  let nextId = 1;
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: {
-      location: { hostname: "localhost" },
-      setTimeout(callback: TimerHandler): TimeoutHandle {
-        const id = nextId;
-        nextId += 1;
-        if (typeof callback === "function") {
-          pending.set(id, callback as () => void);
-        }
-        return id;
-      },
-      clearTimeout(id?: TimeoutHandle) {
-        if (typeof id === "number") {
-          pending.delete(id);
-        }
-      },
-    },
-  });
-
+  const timers = installMockTimers();
   try {
     const hungFlush = flushTrackEvent("$pageview");
-    expect(pending.size).toBe(1);
-    for (const callback of pending.values()) {
-      callback();
-    }
+    expect(timers.pending.size).toBe(1);
+    timers.runPending();
     await hungFlush;
 
     const retried = mock(() => undefined);
@@ -130,7 +143,7 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
     expect(staleInit).not.toHaveBeenCalled();
     expect(liveInit).toHaveBeenCalledTimes(1);
   } finally {
-    restoreWindow(previousWindow);
+    timers.restore();
     resetPostHogForTests();
   }
 });
@@ -149,36 +162,12 @@ test("flush timeout does not abandon an idle init already in flight", async () =
     });
   });
 
-  const pending = new Map<TimeoutHandle, () => void>();
-  let nextId = 1;
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: {
-      location: { hostname: "localhost" },
-      setTimeout(callback: TimerHandler): TimeoutHandle {
-        const id = nextId;
-        nextId += 1;
-        if (typeof callback === "function") {
-          pending.set(id, callback as () => void);
-        }
-        return id;
-      },
-      clearTimeout(id?: TimeoutHandle) {
-        if (typeof id === "number") {
-          pending.delete(id);
-        }
-      },
-    },
-  });
-
+  const timers = installMockTimers();
   try {
     initPostHog();
     const flush = flushTrackEvent("$pageview");
-    expect(pending.size).toBe(1);
-    for (const callback of pending.values()) {
-      callback();
-    }
+    expect(timers.pending.size).toBe(1);
+    timers.runPending();
     await flush;
 
     resolveIdle?.({ default: { init: liveInit } });
@@ -193,7 +182,7 @@ test("flush timeout does not abandon an idle init already in flight", async () =
     expect(captured).toHaveBeenCalledTimes(1);
     expect(identified).toHaveBeenCalledTimes(1);
   } finally {
-    restoreWindow(previousWindow);
+    timers.restore();
     resetPostHogForTests();
   }
 });
@@ -215,33 +204,11 @@ test("a timed-out flush does not abandon a newer init", async () => {
     });
   });
 
-  const pending = new Map<TimeoutHandle, () => void>();
-  let nextId = 1;
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: {
-      location: { hostname: "localhost" },
-      setTimeout(callback: TimerHandler): TimeoutHandle {
-        const id = nextId;
-        nextId += 1;
-        if (typeof callback === "function") {
-          pending.set(id, callback as () => void);
-        }
-        return id;
-      },
-      clearTimeout(id?: TimeoutHandle) {
-        if (typeof id === "number") {
-          pending.delete(id);
-        }
-      },
-    },
-  });
-
+  const timers = installMockTimers();
   try {
     const hungFlush = flushTrackEvent("$pageview");
     const staleAttempt = getPostHogInitGeneration();
-    const staleTimeout = pending.values().next().value as () => void;
+    const staleTimeout = timers.pending.values().next().value as () => void;
     staleTimeout();
     await hungFlush;
 
@@ -255,7 +222,7 @@ test("a timed-out flush does not abandon a newer init", async () => {
     expect(liveInit).toHaveBeenCalledTimes(1);
     expect(retried).toHaveBeenCalledTimes(1);
   } finally {
-    restoreWindow(previousWindow);
+    timers.restore();
     resetPostHogForTests();
   }
 });
