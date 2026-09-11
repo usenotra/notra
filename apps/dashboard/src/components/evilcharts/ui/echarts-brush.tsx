@@ -1,6 +1,5 @@
 import type { DataZoomComponentOption } from "echarts/components";
 import * as echarts from "echarts/core";
-import type { FC } from "react";
 import {
   type ResolvedColors,
   withAlpha,
@@ -18,14 +17,8 @@ const BRUSH_BORDER_OPACITY = 1; // brush frame, × border alpha (evil-brush uses
 // so every cartesian chart attaches the SAME component to its root.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface BrushProps {
-  height?: number; // brush preview strip height in px (default 56)
-  formatLabel?: (value: string, index: number) => string; // formats the range-handle labels
-  onChange?: (range: { startIndex: number; endIndex: number }) => void; // fires as the range moves
-}
-
-/** Declares the zoom brush below the chart. Presence renders it; renders nothing itself. */
-export const Brush: FC<BrushProps> = () => null;
+export type { BrushProps } from "@/components/evilcharts/ui/echarts-brush-part";
+export { Brush } from "@/components/evilcharts/ui/echarts-brush-part";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Brush overlays — the evil-brush look: a rounded border around the SELECTED
