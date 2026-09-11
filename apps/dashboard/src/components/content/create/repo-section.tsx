@@ -2,11 +2,11 @@
 
 import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ContentDataPointSettings } from "@notra/schemas/dashboard/content";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { cn } from "@notra/ui/lib/utils";
 import { useMemo } from "react";
 
-import type { ContentDataPointSettings } from "@/schemas/content";
 import type { RepositoryPreview } from "@/types/content/preview";
 import {
   formatEventDate,

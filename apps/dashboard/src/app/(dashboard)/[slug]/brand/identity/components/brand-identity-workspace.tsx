@@ -1,6 +1,7 @@
 "use client";
 
 import type { ToneProfile } from "@notra/ai/schemas/tone";
+import { getValidLanguage } from "@notra/schemas/dashboard/brand";
 import {
   Alert,
   AlertDescription,
@@ -9,7 +10,6 @@ import {
 import { useEffect } from "react";
 
 import { PageContainer } from "@/components/layout/container";
-import { getValidLanguage } from "@/schemas/brand";
 import type {
   BrandFormInitialData,
   BrandIdentityWorkspaceProps,

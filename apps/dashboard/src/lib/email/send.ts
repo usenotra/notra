@@ -13,7 +13,6 @@ import { FEEDBACK_SENTIMENT_META } from "@notra/email/utils/feedback";
 import type { Resend } from "resend";
 
 import type {
-  EmailResult,
   SendAiCreditsDepletedEmailProps,
   SendDailySummaryEmailProps,
   SendFeedbackEmailProps,
@@ -22,90 +21,7 @@ import type {
   SendScheduledContentSkippedEmailProps,
   SendWorkflowPausedEmailProps,
 } from "@/types/email/send";
-
-// --- Retry & Idempotency ---
-
-const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 1000;
-const MAX_DELAY_MS = 30_000;
-
-function isRetryable(error: { name: string; message: string }): boolean {
-  const name = error.name.toLowerCase();
-  const msg = error.message.toLowerCase();
-  return (
-    name.includes("rate_limit") ||
-    name.includes("internal_server") ||
-    msg.includes("429") ||
-    msg.includes("500") ||
-    msg.includes("502") ||
-    msg.includes("503") ||
-    msg.includes("504") ||
-    msg.includes("timeout") ||
-    msg.includes("network") ||
-    msg.includes("econnreset") ||
-    msg.includes("econnrefused")
-  );
-}
-
-function retryDelay(attempt: number): Promise<void> {
-  const ms = Math.min(
-    BASE_DELAY_MS * 2 ** attempt + Math.random() * 1000,
-    MAX_DELAY_MS
-  );
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function sendWithRetry(
-  resend: Resend,
-  payload: Parameters<Resend["emails"]["send"]>[0],
-  idempotencyKey: string
-): Promise<EmailResult> {
-  let lastError: EmailResult["error"] = null;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const { data, error } = await resend.emails.send(payload, {
-        idempotencyKey,
-      });
-
-      if (data) {
-        return { data, error: null };
-      }
-
-      if (error) {
-        lastError = error;
-        if (attempt < MAX_RETRIES && isRetryable(error)) {
-          await retryDelay(attempt);
-          continue;
-        }
-        return { data: null, error };
-      }
-
-      return {
-        data: null,
-        error: {
-          name: "unknown_error",
-          message: "No data or error returned from Resend",
-        },
-      };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      lastError = { name: "network_error", message };
-
-      if (attempt < MAX_RETRIES) {
-        await retryDelay(attempt);
-      }
-    }
-  }
-
-  return {
-    data: null,
-    error: lastError ?? {
-      name: "unknown_error",
-      message: "Email send failed after retries",
-    },
-  };
-}
+import { sendEmailWithRetry } from "@/utils/email/send-with-retry";
 
 // --- Send Functions ---
 
@@ -117,7 +33,7 @@ export async function sendWelcomeEmail(
     userEmail: string;
   }
 ) {
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: "Dominik from Notra <dominik@hello.usenotra.com>",
@@ -144,7 +60,7 @@ export async function sendScheduledContentFailedEmail(
 ) {
   const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -178,7 +94,7 @@ export async function sendScheduledContentSkippedEmail(
 ) {
   const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -224,7 +140,7 @@ export async function sendAiCreditsDepletedEmail(
     .digest("hex")
     .slice(0, 32);
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -265,7 +181,7 @@ export async function sendWorkflowPausedEmail(
     .digest("hex")
     .slice(0, 32);
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -308,7 +224,7 @@ export async function sendFeedbackEmail(
     ? `${FEEDBACK_SENTIMENT_META[sentiment].emoji} `
     : "";
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -352,7 +268,7 @@ export async function sendScheduledContentCreatedEmail(
     .digest("hex")
     .slice(0, 32);
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,
@@ -398,7 +314,7 @@ export async function sendDailySummaryEmail(
     .digest("hex")
     .slice(0, 32);
 
-  return sendWithRetry(
+  return sendEmailWithRetry(
     resend,
     {
       from: EMAIL_CONFIG.from,

@@ -1,11 +1,4 @@
 import type { GeoCompetitor, GeoSettings } from "@notra/geo-core/types/geo";
-import type { z } from "zod";
-
-import type {
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTERS,
-  GEO_SHELF_VIEWS,
-} from "@/constants/geo-shelf";
 import type {
   geoShelfCitationSummarySchema,
   geoShelfCreateInputSchema,
@@ -27,7 +20,14 @@ import type {
   geoShelfSourceKindSchema,
   geoShelfSourceSchema,
   geoShelfUpdateInputSchema,
-} from "@/schemas/geo-shelf";
+} from "@notra/schemas/dashboard/geo-shelf";
+import type { z } from "zod";
+
+import type {
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_TICKET_FILTERS,
+  GEO_SHELF_VIEWS,
+} from "@/constants/geo-shelf";
 
 export type GeoShelfSourceKind = z.infer<typeof geoShelfSourceKindSchema>;
 export type GeoShelfOwnership = z.infer<typeof geoShelfOwnershipSchema>;

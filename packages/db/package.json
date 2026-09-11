@@ -12,8 +12,9 @@
     "./utils/*": "./src/utils/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
-    "seed:brand-identity": "bun run src/scripts/seed-brand-identity.ts"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
+    "seed:brand-identity": "bun run src/scripts/seed-brand-identity.ts",
+    "seed:chat-attachments": "bun run src/scripts/seed-chat-attachments.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -25,7 +26,7 @@
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "drizzle-kit": "^0.31.8",
-    "effect": "4.0.0-beta.93",
+    "effect": "4.0.0-rc.112",
     "typescript": "5.9.2"
   }
 }

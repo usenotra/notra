@@ -1,9 +1,11 @@
 import type { createDb } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
+import { Effect } from "effect";
 
+import { deleteQstashWithRetry, qstashLayer } from "../lib/qstash";
 import { logError } from "./logging";
-import { deleteQstashSchedule } from "./qstash";
+import { runServiceEffect } from "./run-service-effect";
 
 type DbClient = ReturnType<typeof createDb>;
 type DbTransaction = Parameters<Parameters<DbClient["transaction"]>[0]>[0];
@@ -103,6 +105,18 @@ export async function disableTriggersAndDeleteIntegration(
   });
 }
 
+export async function deleteQstashScheduleWithRetry(
+  runtimeEnv: { QSTASH_TOKEN?: string; WORKFLOW_BASE_URL?: string },
+  scheduleId: string,
+  attempts = 3
+) {
+  return runServiceEffect(
+    deleteQstashWithRetry(scheduleId, attempts).pipe(
+      Effect.provide(qstashLayer(runtimeEnv))
+    )
+  );
+}
+
 export async function deleteQstashSchedulesForTriggers(
   runtimeEnv: { QSTASH_TOKEN?: string; WORKFLOW_BASE_URL?: string },
   affectedTriggers: readonly { qstashScheduleId: string | null }[]
@@ -112,13 +126,13 @@ export async function deleteQstashSchedulesForTriggers(
       continue;
     }
 
-    await deleteQstashSchedule(runtimeEnv, trigger.qstashScheduleId).catch(
-      (error) => {
-        logError(
-          `Failed to delete qstash schedule ${trigger.qstashScheduleId}`,
-          error
-        );
-      }
-    );
+    try {
+      await deleteQstashScheduleWithRetry(runtimeEnv, trigger.qstashScheduleId);
+    } catch (error) {
+      logError(
+        `Failed to delete qstash schedule ${trigger.qstashScheduleId}`,
+        error
+      );
+    }
   }
 }

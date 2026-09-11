@@ -7,7 +7,7 @@ const GREEN = "#2f9d63";
 
 export function CodexHeader({
   version = "0.92.0",
-  model = "gpt-5.4-codex",
+  model = "gpt-6-astra",
   cwd = "~/acme/web",
   className,
 }: {

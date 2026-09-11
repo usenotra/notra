@@ -1,42 +1,22 @@
-import { getGitHubIntegrationById } from "@notra/ai/integrations/github";
-import type { Metadata } from "next";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { validateOrganizationAccess } from "@/lib/auth/actions";
+import type { GitHubLegacyPageProps } from "@/types/integrations/github";
 
-import Loading from "../loading";
-import PageClient from "./page-client";
-
-interface PageProps {
-  params: Promise<{
-    slug: string;
-    id: string;
-  }>;
-}
-
-export async function generateMetadata({
+export default async function Page({
   params,
-}: PageProps): Promise<Metadata> {
-  const { slug, id } = await params;
-  const { organization } = await validateOrganizationAccess(slug);
-  const integration = await getGitHubIntegrationById(id);
-
-  if (!integration || integration.organizationId !== organization.id) {
-    return { title: "Integration" };
+  searchParams,
+}: GitHubLegacyPageProps) {
+  const [{ slug, id }, query] = await Promise.all([params, searchParams]);
+  const nextQuery = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item !== undefined) {
+        nextQuery.append(key, item);
+      }
+    }
   }
-
-  return {
-    title: `${integration.displayName} Integration`,
-  };
-}
-
-async function Page({ params }: PageProps) {
-  const { id } = await params;
-
-  return (
-    <Suspense fallback={<Loading />}>
-      <PageClient integrationId={id} />
-    </Suspense>
+  const suffix = nextQuery.size ? `?${nextQuery.toString()}` : "";
+  redirect(
+    `/${encodeURIComponent(slug)}/integrations/github${suffix}#repository-${encodeURIComponent(id)}`
   );
 }
-export default Page;

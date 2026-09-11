@@ -14,6 +14,15 @@ import {
   githubIntegrations,
 } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  configureEventTriggerBodySchema,
+  configureScheduleBodySchema,
+  type LookbackWindow,
+  schedulesListInputSchema,
+  triggerInputSchema,
+  triggerTargetsSchema,
+} from "@notra/schemas/dashboard/integrations";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 
@@ -26,15 +35,6 @@ import {
   ManualTriggerRunError,
   triggerManualAutomationRun,
 } from "@/lib/triggers/manual-run";
-import { organizationIdInputSchema } from "@/schemas/auth/organization";
-import {
-  configureEventTriggerBodySchema,
-  configureScheduleBodySchema,
-  type LookbackWindow,
-  schedulesListInputSchema,
-  triggerInputSchema,
-  triggerTargetsSchema,
-} from "@/schemas/integrations";
 import type { Trigger } from "@/types/triggers/triggers";
 
 import {

@@ -23,6 +23,7 @@ import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { chatRequestSchema } from "@notra/schemas/dashboard/content";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
@@ -31,7 +32,6 @@ import { NextResponse } from "next/server";
 import { AI_CREDITS_SOURCE_CONTENT_CHAT } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { withOrganizationAuth } from "@/lib/auth/organization";
-import { chatRequestSchema } from "@/schemas/content";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 
@@ -67,8 +67,8 @@ export const POST = withEvlog(async function POST(
   request: NextRequest,
   { params }: RouteContext<{ organizationId: string; contentId: string }>
 ) {
-  const requestId = nanoid(10);
   const log = getLogger();
+  const requestId = String(log.getContext().requestId);
 
   try {
     const { organizationId, contentId } = await params;
@@ -77,7 +77,6 @@ export const POST = withEvlog(async function POST(
       feature: "content_chat",
       organizationId,
       contentId,
-      requestId,
     });
 
     const auth = await withOrganizationAuth(request, organizationId);

@@ -2,6 +2,8 @@
 
 import { ChatgptMessage } from "@notra/ui/components/brainless/chatgpt/chatgpt-message";
 import { ClaudeChatMessage } from "@notra/ui/components/brainless/claude-chat/claude-chat-message";
+import { ClaudeMessage } from "@notra/ui/components/brainless/claude/claude-message";
+import { CodexMessage } from "@notra/ui/components/brainless/codex/codex-message";
 import { GeminiMessage } from "@notra/ui/components/brainless/gemini/gemini-message";
 import { OpencodeMessage } from "@notra/ui/components/brainless/opencode/opencode-message";
 import { PerplexityMessage } from "@notra/ui/components/brainless/perplexity/perplexity-message";
@@ -41,6 +43,30 @@ export function GeoSkinMessage({
       <OpencodeMessage actions={actions} from={from} search={search}>
         {children}
       </OpencodeMessage>
+    );
+  }
+  if (skin === "claude-code") {
+    if (from === "user") {
+      return <ClaudeMessage from={from}>{children}</ClaudeMessage>;
+    }
+    return (
+      <div className="flex w-full flex-col items-start gap-3">
+        {search}
+        <ClaudeMessage from={from}>{children}</ClaudeMessage>
+        {actions}
+      </div>
+    );
+  }
+  if (skin === "codex") {
+    if (from === "user") {
+      return <CodexMessage from={from}>{children}</CodexMessage>;
+    }
+    return (
+      <div className="flex w-full flex-col items-start gap-3">
+        {search}
+        <CodexMessage from={from}>{children}</CodexMessage>
+        {actions}
+      </div>
     );
   }
   return (

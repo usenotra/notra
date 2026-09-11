@@ -12,6 +12,7 @@ import {
   HTTP_PAYMENT_REQUIRED,
   HTTP_SERVER_ERROR_MIN,
   OPENROUTER_NO_ZDR_ENDPOINT_PATTERN,
+  NO_TRAINING_PROVIDER_ERROR_PATTERN,
   RETRYABLE_STATUS_CODES,
   ROUTED_MODEL_PROVIDER,
   ROUTER_METADATA_KEY,
@@ -27,6 +28,8 @@ import type {
   RoutedModelContext,
   RouteMetadata,
 } from "@notra/ai/types/router";
+import { createModelCallTelemetry } from "@notra/ai/utils/model-call-telemetry";
+import { observeModelStream } from "@notra/ai/utils/observe-model-stream";
 
 import { otherGateway } from "./policy";
 import {
@@ -100,6 +103,9 @@ export function classifyUpstreamFailure(
   const status = readStatusCode(error);
   if (status === HTTP_PAYMENT_REQUIRED) {
     return "no-credits";
+  }
+  if (NO_TRAINING_PROVIDER_ERROR_PATTERN.test(readMessage(error))) {
+    return "non-compliant";
   }
   if (
     status !== undefined &&
@@ -254,28 +260,60 @@ export class RoutedLanguageModel implements LanguageModelV3 {
     };
   }
 
-  doGenerate(
+  async doGenerate(
     options: LanguageModelV3CallOptions
   ): Promise<LanguageModelV3GenerateResult> {
-    return this.execute(options, async (route, params) => {
-      const result = await route.model.doGenerate(params);
-      return {
-        ...result,
-        providerMetadata: annotateProviderMetadata(
-          result.providerMetadata,
-          route
-        ),
-      };
+    const telemetry = createModelCallTelemetry({
+      logger: this.context.logger,
+      request: this.context.request,
+      operation: "generate",
+      signal: options.abortSignal,
     });
+    try {
+      const result = await this.execute(options, async (route, params) => {
+        telemetry.attempt(route);
+        const generated = await route.model.doGenerate(params);
+        return {
+          ...generated,
+          providerMetadata: annotateProviderMetadata(
+            generated.providerMetadata,
+            route
+          ),
+        };
+      });
+      telemetry.complete({ ...result, responseId: result.response?.id });
+      return result;
+    } catch (error) {
+      telemetry.fail(error);
+      throw error;
+    }
   }
 
-  doStream(
+  async doStream(
     options: LanguageModelV3CallOptions
   ): Promise<LanguageModelV3StreamResult> {
-    return this.execute(options, async (route, params) => {
-      const result = await route.model.doStream(params);
-      return { ...result, stream: annotateStream(result.stream, route) };
+    const telemetry = createModelCallTelemetry({
+      logger: this.context.logger,
+      request: this.context.request,
+      operation: "stream",
+      signal: options.abortSignal,
     });
+    try {
+      return await this.execute(options, async (route, params) => {
+        telemetry.attempt(route);
+        const result = await route.model.doStream(params);
+        return {
+          ...result,
+          stream: observeModelStream(
+            annotateStream(result.stream, route),
+            telemetry
+          ),
+        };
+      });
+    } catch (error) {
+      telemetry.fail(error);
+      throw error;
+    }
   }
 
   private getRoute(): Promise<ResolvedRoute> {

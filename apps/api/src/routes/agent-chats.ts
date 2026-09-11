@@ -7,9 +7,6 @@ import {
   getAgentSessionMapping,
   listAgentSessionMappings,
 } from "@notra/ai/utils/agent-proxy";
-import type { Context } from "hono";
-
-import { createAgentClient, isAgentApiEnabled } from "../lib/agent/client";
 import {
   agentSessionParamsSchema,
   createAgentSessionRequestSchema,
@@ -17,7 +14,10 @@ import {
   listAgentChatsQuerySchema,
   listAgentChatsResponseSchema,
   sendAgentMessageRequestSchema,
-} from "../schemas/agent-chats";
+} from "@notra/schemas/api/agent-chats";
+import type { Context } from "hono";
+
+import { createAgentClient, isAgentApiEnabled } from "../lib/agent/client";
 import { checkAgentAiCredits } from "../utils/agent-credits";
 import { getOrganizationId } from "../utils/auth";
 import { createOpenApiApp } from "../utils/openapi-app";

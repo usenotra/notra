@@ -12,9 +12,6 @@ import {
 import { postCollections, posts } from "@notra/db/schema";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { requestGeoRescanForPost } from "@notra/geo-core/geo/rescan";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
-import { nanoid } from "nanoid";
-
 import {
   ALL_POST_CONTENT_TYPES,
   ALL_POST_STATUSES,
@@ -31,7 +28,10 @@ import {
   getPostsResponseSchema,
   patchPostRequestSchema,
   patchPostResponseSchema,
-} from "../schemas/content";
+} from "@notra/schemas/api/content";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
+
 import { addActiveGeneration } from "../utils/active-generations";
 import { getOrganizationId } from "../utils/auth";
 import {

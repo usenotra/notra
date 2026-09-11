@@ -1,14 +1,5 @@
 import { createRoute } from "@hono/zod-openapi";
 import { agentFeedback } from "@notra/db/schema";
-import { and, count, desc, eq } from "drizzle-orm";
-
-import { API_FEEDBACK_VIA } from "../constants/analytics";
-import {
-  FEEDBACK_NOT_FOUND_ERROR,
-  FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR,
-  FEEDBACK_PROJECT_NOT_FOUND_ERROR,
-} from "../constants/feedback";
-import { ORGANIZATION_SCOPED_API_KEY_ERROR } from "../constants/skills";
 import {
   feedbackOrganizationParamsSchema,
   feedbackParamsSchema,
@@ -18,7 +9,16 @@ import {
   submitFeedbackRequestSchema,
   submitFeedbackResponseSchema,
   updateFeedbackRequestSchema,
-} from "../schemas/feedback";
+} from "@notra/schemas/api/feedback";
+import { and, count, desc, eq } from "drizzle-orm";
+
+import { API_FEEDBACK_VIA } from "../constants/analytics";
+import {
+  FEEDBACK_NOT_FOUND_ERROR,
+  FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR,
+  FEEDBACK_PROJECT_NOT_FOUND_ERROR,
+} from "../constants/feedback";
+import { ORGANIZATION_SCOPED_API_KEY_ERROR } from "../constants/skills";
 import { trackFeedbackReceived } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
 import {

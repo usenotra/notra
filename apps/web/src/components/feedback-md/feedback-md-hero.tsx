@@ -7,7 +7,7 @@ export function FeedbackMdHero() {
     <section className="w-full px-6 pt-2 antialiased [font-synthesis:none] sm:pt-6">
       <div className="relative isolate overflow-clip rounded-3xl bg-[#EFEAFA] dark:bg-[#2a2140]">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither className="absolute -top-1.25 -left-10.75 h-[66.125rem] w-[calc(100%+21.5rem)] min-w-[100.8125rem] bg-[#00000000]" />
+          <HeroDither />
         </div>
 
         <div className="relative flex w-full flex-col items-center gap-10 px-6 pt-20 pb-20 lg:pt-24">

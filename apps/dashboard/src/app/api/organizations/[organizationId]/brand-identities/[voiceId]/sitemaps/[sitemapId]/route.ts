@@ -1,9 +1,9 @@
+import { deleteSitemapSchema } from "@notra/schemas/dashboard/sitemap";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { deleteStoredSitemap } from "@/lib/sitemap/storage";
-import { deleteSitemapSchema } from "@/schemas/sitemap";
 
 interface RouteContext {
   params: Promise<{

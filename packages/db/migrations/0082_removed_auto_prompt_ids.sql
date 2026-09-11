@@ -1,0 +1,1 @@
+ALTER TABLE "geo_settings" ADD COLUMN "removed_auto_prompt_ids" text[] DEFAULT ARRAY[]::text[] NOT NULL;

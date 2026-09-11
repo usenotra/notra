@@ -17,19 +17,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@notra/ui/components/ui/pagination";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 
+import { Table, type TableColumn } from "@/components/motion/table";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useSitemapPages } from "@/lib/hooks/use-brand-sitemaps";
 import {
   formatTextRatio,
@@ -46,6 +39,7 @@ import type {
   SitemapPageCategory,
   SitemapPagesTableProps,
 } from "@/types/hooks/brand-sitemaps";
+import { paginatedTableHeightFor } from "@/utils/table";
 
 import {
   PAGE_FILTER_TABS,
@@ -122,16 +116,6 @@ export function SitemapPagesTable({
     currentPage * SITEMAP_PAGES_PER_PAGE
   );
 
-  if (isPending) {
-    return (
-      <div className="space-y-3">
-        {SITEMAP_PAGE_SKELETON_KEYS.map((key) => (
-          <Skeleton className="h-12 w-full" key={key} />
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -172,34 +156,21 @@ export function SitemapPagesTable({
         </div>
       </div>
 
-      {visiblePages.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground text-sm">
-            {search.trim()
-              ? "No URLs match your search."
-              : "No URLs in this view yet."}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>URL</TableHead>
-                <TableHead className="w-24">Status</TableHead>
-                <TableHead className="w-40">Content</TableHead>
-                <TableHead className="w-28">Links</TableHead>
-                <TableHead className="w-28">Crawled</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedPages.map((page) => (
-                <PageRow key={page.id} page={page} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <Table
+        columns={columns}
+        data={paginatedPages}
+        emptyState={
+          search.trim()
+            ? "No URLs match your search."
+            : "No URLs in this view yet."
+        }
+        getRowId={(page) => page.id}
+        height={paginatedTableHeightFor(
+          isPending ? SITEMAP_PAGE_SKELETON_KEYS.length : paginatedPages.length
+        )}
+        loading={isPending}
+        rowHeight={TABLE_ROW_HEIGHT}
+      />
 
       {totalPages > 1 && (
         <Pagination>
@@ -253,69 +224,102 @@ export function SitemapPagesTable({
   );
 }
 
-function PageRow({ page }: { page: SitemapPage }) {
-  const textRatio = formatTextRatio(page.textRatio);
+function PageUrlCell({ page }: { page: SitemapPage }) {
   const safeUrl = getSafeHttpUrl(page.url);
 
   return (
-    <TableRow>
-      <TableCell className="max-w-0">
-        <div className="flex items-start gap-2">
-          <HugeiconsIcon
-            className="text-muted-foreground mt-0.5 size-3.5 shrink-0"
-            icon={LinkSquare02Icon}
-          />
-          <div className="min-w-0">
-            {safeUrl ? (
-              <a
-                className="text-primary block truncate text-sm font-medium hover:underline"
-                href={safeUrl}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {page.path}
-              </a>
-            ) : (
-              <span className="block truncate text-sm font-medium">
-                {page.path}
-              </span>
-            )}
-            <p className="text-muted-foreground truncate text-xs">
-              {page.category === "redirect" && page.redirectTarget
-                ? `→ ${page.redirectTarget}`
-                : (page.title ?? page.url)}
-            </p>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        {page.statusCode === null ? (
-          <Badge variant="secondary">Queued</Badge>
-        ) : (
-          <span
-            className={cn(
-              "text-sm font-medium tabular-nums",
-              getStatusCodeClassName(page.statusCode)
-            )}
+    <div className="flex items-start gap-2">
+      <HugeiconsIcon
+        className="text-muted-foreground mt-0.5 size-3.5 shrink-0"
+        icon={LinkSquare02Icon}
+      />
+      <div className="min-w-0">
+        {safeUrl ? (
+          <a
+            className="text-primary block truncate text-sm font-medium hover:underline"
+            href={safeUrl}
+            rel="noopener noreferrer"
+            target="_blank"
           >
-            {page.statusCode}
+            {page.path}
+          </a>
+        ) : (
+          <span className="block truncate text-sm font-medium">
+            {page.path}
           </span>
         )}
-      </TableCell>
-      <TableCell>
-        <div className="text-sm">{formatWordCount(page.wordCount)}</div>
-        {textRatio ? (
-          <div className="text-muted-foreground text-xs">{textRatio}</div>
-        ) : null}
-      </TableCell>
-      <TableCell className="text-muted-foreground text-sm tabular-nums">
+        <p className="text-muted-foreground truncate text-xs">
+          {page.category === "redirect" && page.redirectTarget
+            ? `→ ${page.redirectTarget}`
+            : (page.title ?? page.url)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const columns: TableColumn<SitemapPage>[] = [
+  {
+    key: "url",
+    header: "URL",
+    width: "1fr",
+    minWidth: "16rem",
+    cell: (page) => <PageUrlCell page={page} />,
+  },
+  {
+    key: "statusCode",
+    header: "Status",
+    width: "6rem",
+    cell: (page) =>
+      page.statusCode === null ? (
+        <Badge variant="secondary">Queued</Badge>
+      ) : (
+        <span
+          className={cn(
+            "text-sm font-medium tabular-nums",
+            getStatusCodeClassName(page.statusCode)
+          )}
+        >
+          {page.statusCode}
+        </span>
+      ),
+  },
+  {
+    key: "content",
+    header: "Content",
+    width: "10rem",
+    cell: (page) => {
+      const textRatio = formatTextRatio(page.textRatio);
+      return (
+        <>
+          <div className="text-sm">{formatWordCount(page.wordCount)}</div>
+          {textRatio ? (
+            <div className="text-muted-foreground text-xs">{textRatio}</div>
+          ) : null}
+        </>
+      );
+    },
+  },
+  {
+    key: "links",
+    header: "Links",
+    width: "9rem",
+    cell: (page) => (
+      <span className="text-muted-foreground text-sm tabular-nums">
         {page.internalLinks === null && page.externalLinks === null
           ? "—"
           : `${page.internalLinks ?? 0} int / ${page.externalLinks ?? 0} ext`}
-      </TableCell>
-      <TableCell className="text-muted-foreground text-sm">
+      </span>
+    ),
+  },
+  {
+    key: "crawledAt",
+    header: "Crawled",
+    width: "9rem",
+    cell: (page) => (
+      <span className="text-muted-foreground text-sm">
         {formatRelativeCrawlTime(page.crawledAt)}
-      </TableCell>
-    </TableRow>
-  );
-}
+      </span>
+    ),
+  },
+];

@@ -1,4 +1,4 @@
-import { jsonError } from "@/utils/revalidate-route";
+import { jsonError } from "@/utils/api-response";
 
 export const runtime = "nodejs";
 

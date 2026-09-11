@@ -17,7 +17,7 @@ export function ConsoleCallout() {
     <section className="w-[min(100%-3rem,80rem)] pt-14 antialiased [font-synthesis:none]">
       <div className="relative isolate flex w-full flex-col items-center gap-12 overflow-clip rounded-3xl bg-[#EFEAFA] px-8 py-16 lg:flex-row lg:justify-between lg:gap-16 lg:px-20 lg:py-20 dark:bg-[#2a2140]">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither className="absolute -top-15 -left-27.5 h-[66.125rem] w-[calc(100%+21.5rem)] min-w-[100.8125rem] bg-[#00000000]" />
+          <HeroDither />
         </div>
         <div className="relative flex w-full max-w-[31.25rem] flex-col items-start gap-5">
           <h2 className="font-sans text-[2.25rem] leading-[1.13] font-medium tracking-[-0.02em] text-[#1E1E1E] sm:text-[2.875rem] dark:text-white">

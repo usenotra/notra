@@ -10,7 +10,7 @@ import {
   loadCrawlerIpLists,
 } from "@/lib/ip-checker/sources";
 import { ipCheckRequestSchema } from "@/schemas/ip-checker";
-import { jsonError } from "@/utils/revalidate-route";
+import { jsonError } from "@/utils/api-response";
 
 export const runtime = "nodejs";
 

@@ -4,15 +4,15 @@ import {
   linearIntegrations,
   repositoryOutputs,
 } from "@notra/db/schema";
-import { and, asc, eq } from "drizzle-orm";
-
 import {
   createGitHubIntegrationRequestSchema,
   createGitHubIntegrationResponseSchema,
   deleteIntegrationResponseSchema,
   getIntegrationParamsSchema,
   getIntegrationsResponseSchema,
-} from "../schemas/content";
+} from "@notra/schemas/api/content";
+import { and, asc, eq } from "drizzle-orm";
+
 import { getOrganizationId } from "../utils/auth";
 import {
   encryptGitHubIntegrationToken,

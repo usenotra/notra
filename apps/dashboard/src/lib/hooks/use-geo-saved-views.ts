@@ -1,9 +1,9 @@
 "use client";
 
+import { GEO_PROMPT_SAVED_VIEWS_MAX } from "@notra/schemas/constants/dashboard/geo-prompts";
 import { useSyncExternalStore } from "react";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import { GEO_PROMPT_SAVED_VIEWS_MAX } from "@/constants/geo-prompts";
 import { localStorageKeys } from "@/constants/storage";
 import type {
   GeoPromptTableFilters,

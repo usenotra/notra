@@ -9,6 +9,7 @@ import {
   McpOAuthRefreshTokenRequiredError,
 } from "@notra/ai/integrations/mcp-oauth-errors";
 import { refreshMcpToolIndexForIntegration } from "@notra/ai/integrations/mcp-tool-index";
+import { mcpOAuthCallbackQuerySchema } from "@notra/schemas/dashboard/integrations";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { createMcpOAuthPopupCompletionResponse } from "@notra/utils/oauth-popup";
 import { Effect } from "effect";
@@ -23,7 +24,6 @@ import {
   trackIntegrationConnected,
   trackIntegrationConnectFailed,
 } from "@/lib/integrations/connect-events";
-import { mcpOAuthCallbackQuerySchema } from "@/schemas/integrations";
 
 export async function GET(request: NextRequest) {
   const baseUrl =

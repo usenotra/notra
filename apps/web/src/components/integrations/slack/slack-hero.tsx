@@ -19,7 +19,7 @@ export function SlackHero() {
     <section className="w-full px-6 pt-6 antialiased [font-synthesis:none]">
       <div className="relative isolate overflow-clip rounded-3xl">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither className="absolute -top-3.5 -left-27.5 h-[66.125rem] w-[calc(100%+21.5rem)] min-w-[100.8125rem]" />
+          <HeroDither />
         </div>
 
         <div className="relative flex flex-col items-center gap-8 px-6 pt-28 pb-22 sm:gap-9 lg:pt-[8.5rem]">

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export class McpUnauthorizedError extends Schema.TaggedErrorClass<McpUnauthorizedError>()(
+export class McpUnauthorizedError extends Schema.TaggedError<McpUnauthorizedError>()(
   "McpUnauthorizedError",
   {
     message: Schema.String,

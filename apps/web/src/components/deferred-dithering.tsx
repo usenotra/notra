@@ -22,9 +22,12 @@ const Dithering = dynamic(
 export function DeferredDithering({
   className,
   speed,
+  maxPixelCount,
+  unmountOffscreen = false,
   ...shaderProps
 }: DeferredDitheringProps) {
-  const { containerRef, shouldRender, isAnimating } = useDitherVisibility();
+  const { containerRef, shouldRender, isAnimating } =
+    useDitherVisibility(unmountOffscreen);
   const isMobile = useSyncExternalStore(
     subscribeToDitherViewport,
     getDitherMobileSnapshot,
@@ -41,7 +44,9 @@ export function DeferredDithering({
         <Dithering
           {...shaderProps}
           className="h-full w-full"
-          maxPixelCount={isMobile ? DITHER_MOBILE_MAX_PIXELS : undefined}
+          maxPixelCount={
+            maxPixelCount ?? (isMobile ? DITHER_MOBILE_MAX_PIXELS : undefined)
+          }
           minPixelRatio={isMobile ? 1 : undefined}
           speed={isAnimating ? speed : 0}
         />

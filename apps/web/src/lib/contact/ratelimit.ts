@@ -161,6 +161,15 @@ const enforceLimit = Effect.fn("enforceContactMessageLimit")(function* (
       }),
   });
 
+  if (result.reason === "timeout") {
+    return yield* Effect.fail(
+      new ContactMessageRateLimitError({
+        message: "Rate limit service timed out",
+        cause: new Error("Contact rate limit could not be confirmed"),
+      })
+    );
+  }
+
   if (!result.success) {
     return yield* Effect.fail(
       new ContactMessageRateLimitExceeded({
@@ -176,6 +185,13 @@ const enforceLimit = Effect.fn("enforceContactMessageLimit")(function* (
     remaining: result.remaining,
     reset: result.reset,
   };
+});
+
+export const enforceContactVerificationRateLimit = Effect.fn(
+  "enforceContactVerificationRateLimit"
+)(function* (request: NextRequest) {
+  yield* enforceLimit("verificationIpMinute", getIpRateLimitKey(request));
+  yield* enforceLimit("verificationGlobalMinute", "global");
 });
 
 export const enforceContactMessageRateLimit = Effect.fn(

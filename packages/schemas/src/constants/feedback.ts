@@ -1,0 +1,2 @@
+export const FEEDBACK_LIST_DEFAULT_LIMIT = 25;
+export const FEEDBACK_LIST_MAX_LIMIT = 100;

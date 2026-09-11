@@ -1,9 +1,8 @@
-import type * as z from "zod";
-
 import type {
   linkedInSelectionStashSchema,
   SocialConnectPlatform,
-} from "@/schemas/social-accounts";
+} from "@notra/schemas/dashboard/social-accounts";
+import type * as z from "zod";
 
 export interface BeginSocialConnectParams {
   organizationId: string;

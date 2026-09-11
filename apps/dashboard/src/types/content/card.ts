@@ -1,4 +1,4 @@
-import type { PostStatus } from "@/schemas/content";
+import type { PostStatus } from "@notra/schemas/dashboard/content";
 
 export type ContentCardType =
   | "changelog"

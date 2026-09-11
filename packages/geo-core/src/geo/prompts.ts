@@ -14,6 +14,86 @@ import {
 const CUSTOM_PROMPT_SCAN_ID_PREFIX = "custom-";
 const SEQUENCE_PROMPT_SCAN_ID_PREFIX = "sequence-";
 
+const GEO_AUTO_PROMPT_IDS = [
+  "best-tools",
+  "alternatives",
+  "recommendation",
+  "comparison",
+  "what-is",
+  "how-to-choose",
+  "top-list",
+  "audience-specific",
+] as const;
+
+const GEO_AUTO_PROMPT_ID_SET = new Set<string>(GEO_AUTO_PROMPT_IDS);
+
+export function isGeoAutoPromptId(promptId: string): boolean {
+  return GEO_AUTO_PROMPT_ID_SET.has(promptId);
+}
+
+type AutoPromptChange = "pause" | "resume" | "remove";
+
+export function applyAutoPromptChange(
+  pausedAutoPromptIds: readonly string[],
+  removedAutoPromptIds: readonly string[],
+  promptId: string,
+  change: AutoPromptChange
+): {
+  pausedAutoPromptIds: string[];
+  removedAutoPromptIds: string[];
+} {
+  const paused = new Set(pausedAutoPromptIds);
+  const removed = new Set(removedAutoPromptIds);
+  if (change === "remove") {
+    removed.add(promptId);
+    paused.delete(promptId);
+  } else if (change === "pause") {
+    if (!removed.has(promptId)) {
+      paused.add(promptId);
+    }
+  } else {
+    paused.delete(promptId);
+  }
+  return {
+    pausedAutoPromptIds: [...paused],
+    removedAutoPromptIds: [...removed],
+  };
+}
+
+export function toAutoTrackedPrompts(
+  autoPrompts: readonly GeoPromptDefinition[],
+  pausedAutoPromptIds: readonly string[],
+  removedAutoPromptIds: readonly string[]
+): GeoTrackedPrompt[] {
+  const paused = new Set(pausedAutoPromptIds);
+  const removed = new Set(removedAutoPromptIds);
+  const prompts: GeoTrackedPrompt[] = [];
+  for (const autoPrompt of autoPrompts) {
+    if (removed.has(autoPrompt.id)) {
+      continue;
+    }
+    prompts.push({
+      id: autoPrompt.id,
+      prompt: autoPrompt.text,
+      enabled: !paused.has(autoPrompt.id),
+      source: "auto",
+      tags: [],
+      createdAt: null,
+    });
+  }
+  return prompts;
+}
+
+export function isAutoPromptScanned(
+  promptId: string,
+  pausedAutoPromptIds: ReadonlySet<string>,
+  removedAutoPromptIds: ReadonlySet<string>
+): boolean {
+  return (
+    !pausedAutoPromptIds.has(promptId) && !removedAutoPromptIds.has(promptId)
+  );
+}
+
 /**
  * Scan results are recorded under a namespaced prompt id for custom prompts
  * (`custom-<uuid>`) so they never collide with the slug ids of auto prompts.
@@ -35,6 +115,19 @@ export function isCustomPromptScanId(promptId: string): boolean {
 
 export function isConversationScanPromptId(promptId: string): boolean {
   return promptId.startsWith(SEQUENCE_PROMPT_SCAN_ID_PREFIX);
+}
+
+export function shouldSkipUnmatchedGapScan(
+  scanId: string,
+  matchedScanIds: ReadonlySet<string>,
+  removedAutoPromptIds: ReadonlySet<string>
+): boolean {
+  return (
+    matchedScanIds.has(scanId) ||
+    isConversationScanPromptId(scanId) ||
+    isCustomPromptScanId(scanId) ||
+    removedAutoPromptIds.has(scanId)
+  );
 }
 
 export function promptIdFromScanId(scanId: string): string {
@@ -221,8 +314,15 @@ function deriveAudience(
   return condensed;
 }
 
+export function generatedAutoPromptIds(
+  settings: Pick<GeoSettings, "companyName" | "aliases">,
+  brand: GeoBrandContext | null
+): Set<string> {
+  return new Set(buildGeoPrompts(settings, brand).map((prompt) => prompt.id));
+}
+
 export function buildGeoPrompts(
-  settings: GeoSettings,
+  settings: Pick<GeoSettings, "companyName" | "aliases">,
   brand: GeoBrandContext | null
 ): GeoPromptDefinition[] {
   const brandTerms = buildBrandTerms(settings);

@@ -1,4 +1,5 @@
-import type { PostCollectionSummary } from "@/schemas/content";
+import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
+
 import type { TablePaginationState } from "@/types/table";
 
 export interface CollectionPageProps {

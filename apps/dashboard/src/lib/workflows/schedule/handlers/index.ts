@@ -1,7 +1,8 @@
+import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
+
 import { AGENT_CONTENT_TASK_TYPES } from "@/constants/agent-content";
 import { generateContentViaAgentTask } from "@/lib/agent/content-task";
 import { isAgentContentGenerationEnabled } from "@/lib/agent/flag";
-import type { ScheduleOutputType } from "@/schemas/integrations";
 
 import type {
   ContentGenerationContext,

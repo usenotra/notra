@@ -7,6 +7,8 @@ import {
   Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_PROMPT_VIEW_NAME_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-prompts";
+import { geoPromptViewNameSchema } from "@notra/schemas/dashboard/geo-prompt-views";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -29,11 +31,7 @@ import { Label } from "@notra/ui/components/ui/label";
 import { type FormEvent, useId, useState } from "react";
 
 import { Button } from "@/components/button";
-import {
-  GEO_PROMPT_VIEW_NAME_MAX_LENGTH,
-  GEO_PROMPT_VIEWS_COPY,
-} from "@/constants/geo-prompts";
-import { geoPromptViewNameSchema } from "@/schemas/geo-prompt-views";
+import { GEO_PROMPT_VIEWS_COPY } from "@/constants/geo-prompts";
 import type {
   PromptSavedViewsMenuProps,
   PromptSaveViewDialogProps,

@@ -2,6 +2,8 @@ import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { FinishReason, LanguageModelUsage } from "ai";
 import { Data } from "effect";
 
+import type { GeoSuggestionNotFoundError } from "../schemas/suggestion-errors";
+
 export class GeoScanError extends Data.TaggedError("GeoScanError")<{
   readonly message: string;
   readonly timedOut?: boolean;
@@ -106,6 +108,12 @@ export class GeoScanStartError extends Data.TaggedError("GeoScanStartError")<{
  */
 export class GeoScanAlreadyRunningError extends Data.TaggedError(
   "GeoScanAlreadyRunningError"
+)<{
+  readonly projectId: string;
+}> {}
+
+export class GeoScanEnginesEmptyError extends Data.TaggedError(
+  "GeoScanEnginesEmptyError"
 )<{
   readonly projectId: string;
 }> {}
@@ -220,6 +228,7 @@ export class GeoWriterStartError extends Data.TaggedError(
 }> {}
 
 export type GeoRouterError =
+  | GeoSuggestionNotFoundError
   | GeoBrandIdentityMissingError
   | GeoBrandIdentityNotFoundError
   | GeoCompetitorLimitError
@@ -235,6 +244,7 @@ export type GeoRouterError =
   | GeoPromptNotFoundError
   | GeoSampleDataDisabledError
   | GeoScanAlreadyRunningError
+  | GeoScanEnginesEmptyError
   | GeoScanStartError
   | GeoSequenceCreateFailedError
   | GeoSequenceNotFoundError

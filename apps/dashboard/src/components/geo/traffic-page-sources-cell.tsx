@@ -26,15 +26,6 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
     return null;
   }
 
-  if (group.sources.length === 1) {
-    return (
-      <span className="flex min-w-0 items-center gap-2 text-sm">
-        <EngineIcon engine={first.source} />
-        <span className="truncate">{formatGeoSource(first.source)}</span>
-      </span>
-    );
-  }
-
   const visible = group.sources.slice(0, GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT);
   const overflow = group.sources.length - visible.length;
   const sourcesLabel = trafficPageSourcesLabel(group);
@@ -66,9 +57,6 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
               +{overflow}
             </span>
           ) : null}
-        </span>
-        <span className="text-muted-foreground truncate text-sm">
-          {sourcesLabel}
         </span>
       </HoverCardTrigger>
       <TrafficBreakdownCard

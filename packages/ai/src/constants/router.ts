@@ -119,3 +119,6 @@ export const ROUTER_POLICY = {
   allowNonZdr: process.env.NODE_ENV === "development",
   crossGatewayFallback: true,
 } satisfies RouterPolicyConfig;
+
+export const NO_TRAINING_PROVIDER_ERROR_PATTERN =
+  /No providers that disallow prompt training available for model:/i;

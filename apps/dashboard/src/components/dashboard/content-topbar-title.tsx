@@ -13,7 +13,7 @@ export function ContentTopbarTitle({ contentId }: ContentTopbarTitleProps) {
   const title = data?.content.title;
 
   return (
-    <BreadcrumbPage className="block min-w-0 truncate">
+    <BreadcrumbPage className="block min-w-0 truncate font-medium">
       {title ?? "Content"}
     </BreadcrumbPage>
   );

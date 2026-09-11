@@ -9,6 +9,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
+  SidebarRail,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
@@ -21,7 +22,6 @@ import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-ha
 import { ChatHistoryNav } from "./chat-history-nav";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
-import { NavSettings } from "./nav-settings";
 import { NavUtility } from "./nav-utility";
 import { OrgSelector } from "./org-selector";
 import { SidebarLabel } from "./sidebar-label";
@@ -68,10 +68,7 @@ export function DashboardSidebar({
   const slug = pathnameSegments[0] ?? activeOrganization?.slug ?? "";
 
   const section = pathnameSegments[1];
-  const panelId =
-    section === "settings" || section === "chat" || section === "brand"
-      ? section
-      : "main";
+  const panelId = section === "chat" || section === "brand" ? section : "main";
   const isSubpage = panelId !== "main";
 
   const hasVisitedMainRef = useRef(false);
@@ -131,16 +128,6 @@ export function DashboardSidebar({
               ),
             },
             {
-              id: "settings",
-              side: "right",
-              children: (
-                <>
-                  <SidebarBackButton onBack={handleBack} />
-                  <NavSettings slug={slug} />
-                </>
-              ),
-            },
-            {
               id: "brand",
               side: "right",
               children: (
@@ -162,6 +149,7 @@ export function DashboardSidebar({
       <SidebarFooter>
         <OrgSelector />
       </SidebarFooter>
+      <SidebarRail />
       <SidebarResizeHandle
         onWidthChange={onWidthChange}
         onWidthChangeEnd={onWidthChangeEnd}

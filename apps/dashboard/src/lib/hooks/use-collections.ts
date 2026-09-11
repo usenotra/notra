@@ -1,11 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-
 import type {
   PostCollectionDetail,
   PostCollectionListResponse,
-} from "@/schemas/content";
+} from "@notra/schemas/dashboard/content";
+import { useQuery } from "@tanstack/react-query";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";

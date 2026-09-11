@@ -1,0 +1,37 @@
+---
+title: "Integration API, Billing, and Analytics"
+description: "Integration deletion via API, billing trials with credit top-ups, customer portal access, and analytics tracking for generation modes."
+date: "2026-04-07T09:01:07.589Z"
+updatedAt: "2026-06-07T21:24:15.245Z"
+author: "notra"
+---
+
+This week brought three major additions to Notra: the ability to delete integrations via API, a restructured billing model with trial periods and credit top-ups, and better analytics tracking for content generation workflows. Development teams can now manage their GitHub and Linear connections programmatically, while teams exploring Notra have access to a 14-day trial on the new Basic plan. Analytics improvements let us track whether content is being generated automatically or manually, helping teams understand their usage patterns.
+
+## Highlights
+
+### Programmatic integration deletion
+
+You can now delete GitHub or Linear integrations directly via API with a new `DELETE /integrations/{integrationId}` endpoint that automatically disables and unschedules any related automation triggers. (Author: [@mezotv](https://github.com/mezotv/))
+
+### Billing restructure with trial periods and credit top-ups
+
+The free plan is now Basic, available as a 14-day trial with options to purchase additional AI credits in preset amounts. This gives new teams time to evaluate Notra before committing to a paid plan. (Author: [@mezotv](https://github.com/mezotv/))
+
+### Customer portal access for subscription management
+
+Users can now manage their active subscriptions directly from the billing page without leaving Notra, improving the self-service experience for teams on paid plans.
+
+### Analytics tracking for content generation modes
+
+We now distinguish between automatic (scheduled or event-driven) and manual content generation in our analytics, helping you understand which workflows your team relies on most. (Author: [@mezotv](https://github.com/mezotv/))
+
+## More Updates
+
+### Features & Enhancements
+
+- **Add customer portal button to billing page** [#224](https://github.com/usenotra/notra/pull/224) - Allows subscription management without leaving the app. (Author: [@mezotv](https://github.com/mezotv/))
+
+### Infrastructure
+
+- **Disable routine Dependabot updates** - Reduces noise in the repository while keeping security updates on schedule.

@@ -2,6 +2,7 @@
 
 import { Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { userNameSchema } from "@notra/schemas/dashboard/auth/user-actions";
 import {
   Avatar,
   AvatarFallback,
@@ -19,7 +20,6 @@ import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
 import { uploadFile } from "@/lib/upload/client";
 import { errorMessageOr } from "@/lib/utils";
-import { userNameSchema } from "@/schemas/auth/user-actions";
 import type { ProfileSectionProps } from "@/types/settings/account";
 import { getUserAvatarUrl } from "@/utils/avatar";
 

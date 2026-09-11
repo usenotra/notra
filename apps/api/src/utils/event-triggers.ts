@@ -1,14 +1,14 @@
 import { githubIntegrations } from "@notra/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
-// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import * as z from "zod";
-
 import {
   createEventTriggerRequestSchema,
   eventTriggerOutputConfigSchema,
   eventTriggerSourceConfigSchema,
   eventTriggerTargetsSchema,
-} from "../schemas/event-triggers";
+} from "@notra/schemas/api/event-triggers";
+import { and, eq, inArray } from "drizzle-orm";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
+import * as z from "zod";
+
 import type { DbClient } from "../types/db";
 import type { EventTriggerRow } from "../types/event-triggers";
 import { logError } from "./logging";

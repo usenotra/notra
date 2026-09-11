@@ -28,8 +28,6 @@ export const AGENT_FEEDBACK_API_PATH = "/v1/feedback";
 export const AGENT_FEEDBACK_API_URL_ENV = "FEEDBACK_API_URL";
 export const AGENT_FEEDBACK_PACKAGE = "@usenotra/geo";
 export const AGENT_FEEDBACK_PACKAGE_ENTRY = `${AGENT_FEEDBACK_PACKAGE}/feedback`;
-export const AGENT_FEEDBACK_PAGE_SIZE = 50;
-
 export const AGENT_FEEDBACK_STATUS_FILTERS: {
   value: AgentFeedbackStatusFilter;
   label: string;

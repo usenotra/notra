@@ -7,7 +7,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1009.0",
@@ -15,7 +15,7 @@
     "@notra/analytics": "workspace:*",
     "@notra/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-beta.93",
+    "effect": "4.0.0-rc.112",
     "eve": "0.19.0",
     "post-for-me": "^2.7.0",
     "zod": "^4.4.3"

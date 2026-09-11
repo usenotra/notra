@@ -3,12 +3,10 @@ import {
   PlugSocketIcon,
   SourceCodeIcon,
 } from "@hugeicons/core-free-icons";
+import { API_KEY_GRANULAR_PERMISSIONS } from "@notra/schemas/constants/dashboard/api-keys";
 import type { ConnectedCardItem } from "@notra/ui/components/shared/connected-cards";
 
-import {
-  API_KEY_GRANULAR_PERMISSIONS,
-  API_KEY_GRANULAR_READ_PERMISSIONS,
-} from "@/constants/api-keys";
+import { API_KEY_GRANULAR_READ_PERMISSIONS } from "@/constants/api-keys";
 import type { ApiKeyPreset } from "@/types/api-keys";
 
 const DOCS_BASE_URL = "https://docs.usenotra.com";

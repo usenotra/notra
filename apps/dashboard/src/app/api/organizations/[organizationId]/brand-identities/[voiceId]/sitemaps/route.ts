@@ -1,4 +1,5 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { createSitemapSchema } from "@notra/schemas/dashboard/sitemap";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,6 @@ import { getSitemapBrandIdentity } from "@/lib/sitemap/brand-identity";
 import { getContextDevSitemap } from "@/lib/sitemap/context-dev";
 import { readJsonRequest } from "@/lib/sitemap/request";
 import { listStoredSitemaps, saveStoredSitemap } from "@/lib/sitemap/storage";
-import { createSitemapSchema } from "@/schemas/sitemap";
 
 interface RouteContext {
   params: Promise<{ organizationId: string; voiceId: string }>;

@@ -33,12 +33,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useCustomer } from "autumn-js/react";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import {
   useConnectedAccounts,
   useDisconnectAccount,
@@ -63,7 +63,7 @@ function pluralSuffix(count: number) {
 }
 
 function useReferenceBalance() {
-  const { check, data: customer } = useCustomer();
+  const { check, data: customer } = useBillingCustomer();
   return (() => {
     if (!customer) {
       return {

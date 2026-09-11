@@ -1,17 +1,17 @@
 import { Schema } from "effect";
 import { z } from "zod";
 
-export class SlackConfigurationError extends Schema.TaggedErrorClass<SlackConfigurationError>()(
+export class SlackConfigurationError extends Schema.TaggedError<SlackConfigurationError>()(
   "SlackConfigurationError",
   { variable: Schema.String }
 ) {}
 
-export class SlackInputError extends Schema.TaggedErrorClass<SlackInputError>()(
+export class SlackInputError extends Schema.TaggedError<SlackInputError>()(
   "SlackInputError",
   { message: Schema.String }
 ) {}
 
-export class SlackRequestError extends Schema.TaggedErrorClass<SlackRequestError>()(
+export class SlackRequestError extends Schema.TaggedError<SlackRequestError>()(
   "SlackRequestError",
   {
     cause: Schema.Defect(),
@@ -20,7 +20,7 @@ export class SlackRequestError extends Schema.TaggedErrorClass<SlackRequestError
   }
 ) {}
 
-export class SlackResponseError extends Schema.TaggedErrorClass<SlackResponseError>()(
+export class SlackResponseError extends Schema.TaggedError<SlackResponseError>()(
   "SlackResponseError",
   {
     cause: Schema.Defect(),
@@ -28,7 +28,7 @@ export class SlackResponseError extends Schema.TaggedErrorClass<SlackResponseErr
   }
 ) {}
 
-export class SlackApiError extends Schema.TaggedErrorClass<SlackApiError>()(
+export class SlackApiError extends Schema.TaggedError<SlackApiError>()(
   "SlackApiError",
   {
     code: Schema.String,
@@ -36,7 +36,7 @@ export class SlackApiError extends Schema.TaggedErrorClass<SlackApiError>()(
   }
 ) {}
 
-export class SlackSetupError extends Schema.TaggedErrorClass<SlackSetupError>()(
+export class SlackSetupError extends Schema.TaggedError<SlackSetupError>()(
   "SlackSetupError",
   {
     archiveCause: Schema.optional(Schema.Defect()),

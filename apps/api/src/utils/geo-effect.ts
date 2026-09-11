@@ -3,10 +3,10 @@ import {
   type GeoFailureWire,
   toGeoFailureWire,
 } from "@notra/geo-core/geo/failure-wire";
+import { remoteGeoFailureBodySchema } from "@notra/schemas/api/internal-geo";
 import { Effect } from "effect";
 
 import { geoCoreApiLayer } from "../lib/geo/configure";
-import { remoteGeoFailureBodySchema } from "../schemas/internal-geo";
 import type {
   GeoApiRuntime,
   GeoFailure,
@@ -32,6 +32,8 @@ import { logError } from "./logging";
  */
 function toGeoFailure(failure: GeoFailureWire): GeoFailure {
   switch (failure._tag) {
+    case "GeoSuggestionNotFoundError":
+      return { status: 404, error: "Suggestion not found" };
     case "GeoProjectNotFoundError":
       return { status: 404, error: "Project not found" };
     case "GeoProjectDeleteBlockedError":
@@ -69,6 +71,11 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
       return {
         status: 409,
         error: "A scan is already running for this project",
+      };
+    case "GeoScanEnginesEmptyError":
+      return {
+        status: 400,
+        error: "Select at least one tracked engine to scan",
       };
     case "GeoCompetitorLimitError":
       return {

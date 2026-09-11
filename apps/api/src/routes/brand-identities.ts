@@ -7,8 +7,6 @@ import {
   updateBrandAnalysisJob,
 } from "@notra/ai/jobs/brand-analysis";
 import { brandSettings, contentTriggers } from "@notra/db/schema";
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
-
 import {
   createBrandIdentityRequestSchema,
   createBrandIdentityResponseSchema,
@@ -20,7 +18,9 @@ import {
   getBrandIdentityResponseSchema,
   patchBrandIdentityRequestSchema,
   patchBrandIdentityResponseSchema,
-} from "../schemas/content";
+} from "@notra/schemas/api/content";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+
 import { getOrganizationId } from "../utils/auth";
 import {
   isBrandAnalysisConfigured,

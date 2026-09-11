@@ -1,6 +1,5 @@
 import type { CustomIntervalCron } from "@notra/ai/types/schedule-interval";
-
-import { triggerSourceConfigSchema } from "@/schemas/integrations";
+import { triggerSourceConfigSchema } from "@notra/schemas/dashboard/integrations";
 
 /**
  * Reads the "every N days" settings out of a stored trigger source config.

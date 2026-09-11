@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export class ChatMirrorError extends Schema.TaggedErrorClass<ChatMirrorError>()(
+export class ChatMirrorError extends Schema.TaggedError<ChatMirrorError>()(
   "ChatMirrorError",
   {
     cause: Schema.Defect(),

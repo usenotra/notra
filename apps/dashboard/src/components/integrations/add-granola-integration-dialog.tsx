@@ -1,6 +1,7 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { addGranolaIntegrationFormSchema } from "@notra/schemas/dashboard/granola";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -25,7 +26,6 @@ import { GRANOLA_API_KEYS_DOCS_URL } from "@/constants/granola";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import { addGranolaIntegrationFormSchema } from "@/schemas/granola";
 import type { AddGranolaIntegrationDialogProps } from "@/types/integrations";
 
 export function AddGranolaIntegrationDialog({

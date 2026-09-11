@@ -25,17 +25,16 @@ export function GeoTrafficSkeleton() {
         </header>
         <div className="flex flex-col gap-6">
           <div className="border-border bg-card overflow-hidden rounded-2xl border">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-muted/40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {GEO_TRAFFIC_FUNNEL_STAGES.map((stage) => (
                 <div
-                  className="border-border space-y-2 border-b px-5 py-4 last:border-b-0 sm:odd:border-r sm:nth-[n+3]:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0"
+                  className="border-border space-y-3 border-b px-5 py-5 last:border-b-0 sm:px-6 sm:odd:border-r sm:nth-[n+3]:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0"
                   key={stage.key}
                 >
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-2.5 w-40" />
-                  <div className="flex items-baseline gap-2">
-                    <Skeleton className="h-9 w-16" />
-                    <Skeleton className="h-5 w-10 rounded-full" />
+                  <Skeleton className="h-6 w-32" />
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-9 w-20" />
+                    <Skeleton className="h-7 w-12 rounded-md" />
                   </div>
                 </div>
               ))}

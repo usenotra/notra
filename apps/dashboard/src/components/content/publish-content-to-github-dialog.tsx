@@ -179,8 +179,8 @@ export function PublishContentToGitHubDialog({
         <Github className="size-4" />
         Create GitHub PR
       </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="sm:max-w-[600px]">
-        <form onSubmit={handleSubmit}>
+      <ResponsiveDialogContent className="min-w-0 sm:max-w-[600px]">
+        <form className="min-w-0" onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{copy.title}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>

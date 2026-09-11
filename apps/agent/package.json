@@ -8,7 +8,7 @@
     "agent:dev": "dotenv -e ../../.env -- eve dev",
     "agent:build": "eve build",
     "agent:start": "eve start",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "agent:dev:devtools": "AI_SDK_DEVTOOLS=true dotenv -e ../../.env -- eve dev",
     "devtools": "bun x @ai-sdk/devtools"
   },
@@ -28,7 +28,7 @@
     "@vercel/oidc": "^3.8.0",
     "ai": "^7.0.38",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-beta.93",
+    "effect": "4.0.0-rc.112",
     "eve": "0.27.13",
     "marked": "^17.0.1",
     "pg": "^8.20.0",

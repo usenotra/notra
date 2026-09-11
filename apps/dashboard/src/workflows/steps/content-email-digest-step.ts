@@ -1,5 +1,6 @@
+import type { ContentEmailDigestPayload } from "@notra/schemas/dashboard/workflows";
+
 import { flushContentEmailDigest } from "@/lib/workflows/shared/content-email-digest";
-import type { ContentEmailDigestPayload } from "@/schemas/workflows";
 
 export async function flushContentEmailDigestStep(
   payload: ContentEmailDigestPayload

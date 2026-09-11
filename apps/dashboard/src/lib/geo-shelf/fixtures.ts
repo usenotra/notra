@@ -1,4 +1,7 @@
-import { canonicalizeShelfUrl, shelfDomainFromUrl } from "@/lib/geo-shelf/url";
+import {
+  canonicalizeShelfUrl,
+  shelfDomainFromUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
 
 import type {
   GeoShelfFixtureContext,

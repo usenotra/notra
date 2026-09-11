@@ -45,3 +45,34 @@ After adding a shared UI import while the dev server is running, run
 with the import change. `bun run styles:check` verifies that the source list is
 current. `bun run build` runs this check before Next.js and fails if the committed
 source list is stale, rather than silently regenerating it.
+
+## Blog and product changelog
+
+Published content lives in `src/content/blog/*.mdx` and
+`src/content/notra-changelog/*.mdx`. Each filename is its public URL slug.
+Add a post with this frontmatter, followed by its Markdown/MDX body:
+
+```yaml
+---
+title: "Post title"
+description: "Summary used on cards and in search metadata."
+date: "2026-06-03T00:00:00.000Z"
+updatedAt: "2026-06-03T00:00:00.000Z"
+author: "dominik"
+---
+```
+
+Author profiles and social links are in `src/constants/blog-authors.ts`.
+Store article images and author avatars in `public/blog/` and reference them
+with `/blog/...` paths. Dates and author slugs are validated during the build.
+Only add files here when they are ready to publish: every entry is published
+on deployment. Posts are ordered by publication date, newest first.
+
+Fumadocs compiles the MDX at build time, with Shiki syntax highlighting in
+GitHub light/dark themes and copy buttons for fenced code blocks. Keep the
+explicit `[#heading-id]` annotations on migrated headings to preserve links. The same content supplies the blog,
+author pages, product changelog, RSS, sitemap, and `.md` endpoints. Changes
+ship with the web app; there are no content API keys or publishing webhooks.
+
+Run `bun run build --filter=web` from the repository root to validate all
+content and generate the site.

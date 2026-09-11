@@ -1,0 +1,20 @@
+{
+  "name": "ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "blume dev --port 3006",
+    "build": "blume build",
+    "preview": "blume preview --port 3006",
+    "check-types": "blume check",
+    "doctor": "blume doctor"
+  },
+  "dependencies": {
+    "@hugeicons/core-free-icons": "^4.1.1",
+    "@tanstack/hotkeys": "^0.8.0",
+    "blume": "1.5.3"
+  },
+  "devDependencies": {
+    "astro": "7.2.10"
+  }
+}

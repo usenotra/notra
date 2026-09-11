@@ -87,15 +87,21 @@ function createRetrySchedule(
   );
 
   return Schedule.passthrough(exponentialSchedule).pipe(
-    Schedule.modifyDelay((error: ToolOperationError, delay) =>
+    Schedule.modifyDelay(({ input, duration }) =>
       Effect.succeed(
         Duration.millis(
-          Math.min(error.retryAfterMs ?? Duration.toMillis(delay), maxDelayMs)
+          Math.max(
+            Math.min(Duration.toMillis(duration), maxDelayMs),
+            input.retryAfterMs ?? 0
+          )
         )
       )
     ),
-    Schedule.take(Math.max(0, maxAttempts - 1)),
-    Schedule.while(({ input }) => Effect.succeed(input.retryable)),
+    Schedule.upTo({ times: Math.max(0, maxAttempts - 1) }),
+    // Surface long provider cooldowns instead of blocking the caller or retrying early.
+    Schedule.while(({ input }) =>
+      Effect.succeed(input.retryable && (input.retryAfterMs ?? 0) <= maxDelayMs)
+    ),
     Schedule.tap(({ attempt, duration }) =>
       Effect.logWarning(
         `[retry] ${operationName} failed transiently; retrying attempt ${attempt + 1}/${maxAttempts} in ${Math.round(Duration.toMillis(duration))}ms`

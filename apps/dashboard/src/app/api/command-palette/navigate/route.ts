@@ -12,6 +12,10 @@ import {
   organizations,
   posts,
 } from "@notra/db/schema";
+import {
+  commandPaletteNavigateRequestSchema,
+  commandPaletteNavigateResultSchema,
+} from "@notra/schemas/dashboard/command-palette";
 import { generateObject } from "ai";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { createRequestLogger } from "evlog";
@@ -20,10 +24,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { commandRoutesForAI } from "@/components/command-palette/registry";
 import { getServerSession } from "@/lib/auth/session";
 import { hasAiCreditsGrant } from "@/lib/billing/subscription";
-import {
-  commandPaletteNavigateRequestSchema,
-  commandPaletteNavigateResultSchema,
-} from "@/schemas/command-palette";
 import { getClientIp, ratelimit } from "@/utils/ratelimit";
 
 export const maxDuration = 15;

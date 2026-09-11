@@ -13,7 +13,7 @@
     "./csv/*": "./src/csv/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "test": "bun test tests"
   },
   "dependencies": {
@@ -29,7 +29,7 @@
     "@usenotra/geo": "npm:@usenotra/geo@^0.3.0",
     "ai": "6.0.206",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-beta.93",
+    "effect": "4.0.0-rc.112",
     "evlog": "2.13.0",
     "zod": "^4.4.3"
   },

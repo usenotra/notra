@@ -3,6 +3,7 @@ import {
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_CATALOG_STATIC,
   GEO_MODEL_EXCLUDED_ID_PATTERN,
+  GEO_MODEL_EXCLUDED_IDS,
   GEO_MODEL_EXCLUDED_SLUG_PATTERN,
   GEO_MODEL_EXCLUDED_TAGS,
   GEO_MODEL_PROVIDERS,
@@ -25,6 +26,7 @@ function isEligibleFeedModel(model: GeoGatewayModel): boolean {
     return false;
   }
   if (
+    GEO_MODEL_EXCLUDED_IDS.has(model.id) ||
     GEO_MODEL_EXCLUDED_ID_PATTERN.test(model.id) ||
     GEO_MODEL_EXCLUDED_SLUG_PATTERN.test(model.id)
   ) {
@@ -155,13 +157,24 @@ export function isGeoEngineZdrCapable(
   return entry ? entry.zdr !== "none" : false;
 }
 
+const STATIC_ENGINE_IDS = new Set(
+  GEO_MODEL_CATALOG_STATIC.map((entry) => entry.id)
+);
+
 export function geoModelsForProvider(
   catalog: GeoModelCatalog,
   providerId: GeoModelProviderId
 ): GeoModelCatalogEntry[] {
   return catalog.models
     .filter((model) => model.provider === providerId)
-    .sort((left, right) => right.released.localeCompare(left.released));
+    .sort((left, right) => {
+      const leftStatic = STATIC_ENGINE_IDS.has(left.id);
+      const rightStatic = STATIC_ENGINE_IDS.has(right.id);
+      if (leftStatic !== rightStatic) {
+        return leftStatic ? -1 : 1;
+      }
+      return right.released.localeCompare(left.released);
+    });
 }
 
 export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {

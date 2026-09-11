@@ -2,6 +2,14 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { db } from "@notra/db/drizzle";
 import { members } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { SVG_MIME_TYPE } from "@notra/schemas/constants/dashboard/upload";
+import {
+  deleteChatUploadSchema,
+  recordChatAttachmentSchema,
+  uploadLogoFromUrlSchema,
+  uploadSchema,
+  uploadSvgSchema,
+} from "@notra/schemas/dashboard/upload";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -9,7 +17,6 @@ import {
   COMPANY_LOGO_FETCH_TIMEOUT_MS,
   COMPANY_LOGO_SOURCE_HOSTS,
 } from "@/constants/company-logo";
-import { SVG_MIME_TYPE } from "@/constants/upload";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getChatAttachmentSizeBucket } from "@/lib/analytics/studio-events";
 import { authorizedProcedure } from "@/lib/orpc/base";
@@ -21,14 +28,7 @@ import {
   deleteChatUpload,
   recordChatAttachment,
 } from "@/lib/upload/server";
-import {
-  deleteChatUploadSchema,
-  recordChatAttachmentSchema,
-  uploadLogoFromUrlSchema,
-  uploadSchema,
-  uploadSvgSchema,
-  validateUpload,
-} from "@/schemas/upload";
+import { validateUpload } from "@/lib/upload/validate";
 
 import { badRequest, forbidden, unauthorized } from "../utils/errors";
 

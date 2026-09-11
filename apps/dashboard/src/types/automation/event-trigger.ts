@@ -1,9 +1,10 @@
+import type { WebhookEventType } from "@notra/schemas/dashboard/integrations";
+
 import type { useEventTriggerForm } from "@/lib/hooks/use-event-trigger-form";
-import type { WebhookEventType } from "@/schemas/integrations";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
 
-export type { EventTriggerFormValues } from "@/schemas/automation/event-trigger-form";
+export type { EventTriggerFormValues } from "@notra/schemas/dashboard/automation/event-trigger-form";
 
 export interface CreateEventTriggerDialogProps {
   organizationId: string;

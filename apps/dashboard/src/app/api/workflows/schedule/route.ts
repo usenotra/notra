@@ -1,8 +1,8 @@
 import { getBaseUrl } from "@notra/ai/qstash/triggers";
+import { scheduleWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 
 import { verifyQstashSignature } from "@/lib/workflows/qstash-verify";
 import { startScheduleRun } from "@/lib/workflows/start";
-import { scheduleWorkflowPayloadSchema } from "@/schemas/workflows";
 
 export async function POST(request: Request) {
   const messageId = request.headers.get("upstash-message-id");

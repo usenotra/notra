@@ -1,5 +1,6 @@
 "use server";
 
+import { startSocialSignInInputSchema } from "@notra/schemas/dashboard/auth/social";
 import type { StartSocialSignInInput } from "@notra/ui/lib/auth-types";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { cookies, headers } from "next/headers";
@@ -12,7 +13,6 @@ import {
   SOCIAL_AUTH_STATE_MAX_AGE_SECONDS,
 } from "@/constants/social-auth";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
-import { startSocialSignInInputSchema } from "@/schemas/auth/social";
 import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
 
 export async function startSocialSignInAction(

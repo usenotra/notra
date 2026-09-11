@@ -3,6 +3,16 @@ import type { ContactResourceLink } from "@/types/contact";
 export const CONTACT_RECIPIENT = "hello@usenotra.com";
 
 export const CONTACT_RATE_LIMITS = {
+  verificationIpMinute: {
+    requests: 10,
+    window: "1m",
+    windowMs: 60 * 1000,
+  },
+  verificationGlobalMinute: {
+    requests: 100,
+    window: "1m",
+    windowMs: 60 * 1000,
+  },
   ipHourly: {
     requests: 2,
     window: "1h",

@@ -1,11 +1,11 @@
 import { getAppUrl } from "@notra/ai/qstash/triggers";
+import { irisWakeDeliverySchema } from "@notra/schemas/dashboard/workflows/iris";
 import { flattenError } from "zod";
 
 import { IRIS_WAKE_ROUTE_PATH } from "@/constants/iris";
 import { buildIrisWakeExecutionId } from "@/lib/iris/wake-schedule";
 import { verifyQstashSignature } from "@/lib/workflows/qstash-verify";
 import { startIrisRun } from "@/lib/workflows/start";
-import { irisWakeDeliverySchema } from "@/schemas/workflows/iris";
 
 export async function POST(request: Request) {
   const messageId = request.headers.get("upstash-message-id");

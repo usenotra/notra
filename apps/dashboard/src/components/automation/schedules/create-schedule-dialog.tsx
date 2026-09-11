@@ -10,6 +10,16 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
 import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
 import {
+  type ScheduleFormValues,
+  scheduleFormSchema,
+} from "@notra/schemas/dashboard/automation/schedule-form";
+import {
+  LOOKBACK_WINDOWS,
+  type LookbackWindow,
+  MAX_SCHEDULE_INSTRUCTIONS_LENGTH,
+  MAX_SCHEDULE_NAME_LENGTH,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
@@ -62,16 +72,6 @@ import { LegacyAddIntegrationDialog as AddIntegrationDialog } from "@/components
 import { FORMAT_CARD_META, FORMAT_ORDER } from "@/constants/content-formats";
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  type ScheduleFormValues,
-  scheduleFormSchema,
-} from "@/schemas/automation/schedule-form";
-import {
-  LOOKBACK_WINDOWS,
-  type LookbackWindow,
-  MAX_SCHEDULE_INSTRUCTIONS_LENGTH,
-  MAX_SCHEDULE_NAME_LENGTH,
-} from "@/schemas/integrations";
 import type {
   CreateScheduleDialogProps,
   ScheduleCron,

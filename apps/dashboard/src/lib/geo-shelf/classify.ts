@@ -1,8 +1,12 @@
 import {
+  isAllowedShelfUrl,
+  shelfDomainFromUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
+
+import {
   GEO_SHELF_DOCS_HOSTNAME_PREFIX,
   GEO_SHELF_KIND_BY_DOMAIN,
 } from "@/constants/geo-shelf";
-import { isAllowedShelfUrl, shelfDomainFromUrl } from "@/lib/geo-shelf/url";
 
 import type {
   GeoShelfOwnership,

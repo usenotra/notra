@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
+import { socialConnectPlatformSchema } from "@notra/schemas/dashboard/social-accounts";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { SocialAccount } from "post-for-me/resources/social-accounts";
@@ -15,7 +16,6 @@ import {
   SocialConnectConfigError,
   SocialConnectRequestError,
 } from "@/lib/social-connect/errors";
-import { socialConnectPlatformSchema } from "@/schemas/social-accounts";
 import type { RefreshedAccountStatus } from "@/types/services/social-connect";
 import { fetchTwitterVerification } from "@/utils/twitter-fetcher";
 

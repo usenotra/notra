@@ -2,14 +2,13 @@
 
 import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { createColumnHelper } from "@tanstack/react-table";
 
+import type { TableColumn } from "@/components/motion/table";
 import type { InvitationSummary } from "@/types/organizations/actions";
 
 import { InvitationActions } from "./invitation-actions";
-
-const columnHelper = createColumnHelper<InvitationSummary>();
 
 function RoleBadge({ role }: { role: string | null | undefined }) {
   const variants: Record<string, "default" | "secondary" | "outline"> = {
@@ -27,42 +26,54 @@ function RoleBadge({ role }: { role: string | null | undefined }) {
   );
 }
 
-export const invitationColumns = [
-  columnHelper.accessor("email", {
+export const invitationColumns: TableColumn<InvitationSummary>[] = [
+  {
+    key: "email",
     header: "Email",
-    cell: (info) => {
-      const email = info.getValue();
-      return (
-        <div className="flex items-center gap-3">
-          <div className="bg-muted flex size-8 items-center justify-center rounded-full">
-            <HugeiconsIcon
-              className="text-muted-foreground size-4"
-              icon={Mail01Icon}
-            />
-          </div>
-          <span className="font-medium">{email}</span>
-        </div>
-      );
-    },
-  }),
-  columnHelper.accessor("role", {
-    header: "Role",
-    cell: (info) => <RoleBadge role={info.getValue()} />,
-  }),
-  columnHelper.accessor("expiresAt", {
-    header: "Expires",
-    cell: (info) => {
-      const expiresAt = info.getValue();
-      return (
-        <span className="text-muted-foreground text-sm">
-          {new Date(expiresAt).toLocaleDateString()}
+    width: "1fr",
+    minWidth: "12rem",
+    sortValue: (invitation) => invitation.email,
+    cell: (invitation) => (
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-full">
+          <HugeiconsIcon
+            className="text-muted-foreground size-4"
+            icon={Mail01Icon}
+          />
         </span>
-      );
-    },
-  }),
-  columnHelper.display({
-    id: "actions",
+        <TruncateWithTooltip className="font-medium">
+          {invitation.email}
+        </TruncateWithTooltip>
+      </span>
+    ),
+  },
+  {
+    key: "role",
+    header: "Role",
+    width: "7rem",
+    sortable: true,
+    sortValue: (invitation) => invitation.role ?? "member",
+    cell: (invitation) => <RoleBadge role={invitation.role} />,
+  },
+  {
+    key: "expiresAt",
+    header: "Expires",
+    width: "8rem",
+    sortable: true,
+    sortValue: (invitation) =>
+      new Date(invitation.expiresAt).getTime() || Number.MAX_SAFE_INTEGER,
+    cell: (invitation) => (
+      <span className="text-muted-foreground text-sm whitespace-nowrap tabular-nums">
+        {new Date(invitation.expiresAt).toLocaleDateString()}
+      </span>
+    ),
+  },
+  {
+    key: "actions",
     header: "",
-    cell: (info) => <InvitationActions invitation={info.row.original} />,
-  }),
+    align: "right",
+    width: "3.5rem",
+    minWidth: "3.5rem",
+    cell: (invitation) => <InvitationActions invitation={invitation} />,
+  },
 ];

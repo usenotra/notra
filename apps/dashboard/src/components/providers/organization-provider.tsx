@@ -14,7 +14,13 @@ import {
 } from "react";
 
 import { authClient } from "@/lib/auth/client";
+import type { ClientSessionData } from "@/types/auth/session";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+import { getOrganizationSlugFromPathname } from "@/utils/organization-pathname";
+import {
+  activeOrganizationQueryOptions,
+  organizationSummaryQueryOptions,
+} from "@/utils/organization-query";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
 export type Organization = NonNullable<
@@ -50,9 +56,8 @@ export function OrganizationsProvider({
 }) {
   const queryClient = useQueryClient();
   const pathname = usePathname();
+  const slugFromPath = getOrganizationSlugFromPathname(pathname);
   const hasAutoSelectedRef = useRef(false);
-  const lastSyncedSlugRef = useRef<string | null>(null);
-  const syncInProgressRef = useRef(false);
   const [optimisticActiveOrg, setOptimisticActiveOrg] =
     useState<Organization | null>(null);
 
@@ -70,31 +75,18 @@ export function OrganizationsProvider({
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
       },
-      {
-        queryKey: QUERY_KEYS.AUTH.activeOrganization,
-        queryFn: async () => {
-          const result = await authClient.organization.getFullOrganization();
-          return result.data ?? null;
-        },
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-      },
+      slugFromPath
+        ? organizationSummaryQueryOptions(
+            slugFromPath,
+            initialActiveOrganization
+          )
+        : activeOrganizationQueryOptions(),
     ],
   });
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
   const isLoading = isLoadingOrgs || isLoadingActive;
-  const slugFromPath = useMemo(() => {
-    const segments = pathname.split("/").filter(Boolean);
-    if (segments.length === 0) {
-      return null;
-    }
-    if (segments[0] === "account") {
-      return null;
-    }
-    return segments[0] ?? null;
-  }, [pathname]);
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
@@ -114,17 +106,10 @@ export function OrganizationsProvider({
     return initialActiveOrganization;
   }, [initialActiveOrganization, slugFromPath]);
   const activeOrganizationForPath =
-    !slugFromPath || activeOrganization?.slug === slugFromPath
-      ? activeOrganization
-      : null;
-  const optimisticActiveOrgForPath =
-    !slugFromPath || optimisticActiveOrg?.slug === slugFromPath
-      ? optimisticActiveOrg
-      : null;
+    activeOrganization?.slug === slugFromPath ? activeOrganization : null;
   const resolvedActiveOrganization = slugFromPath
     ? (organizationFromPath ??
       activeOrganizationForPath ??
-      optimisticActiveOrgForPath ??
       seededActiveOrganization)
     : (activeOrganization ?? optimisticActiveOrg ?? seededActiveOrganization);
 
@@ -138,74 +123,34 @@ export function OrganizationsProvider({
     }
   }
 
+  // Sole mechanism that points the server session at the organization in the
+  // URL: `getAuthSession` resolves the active organization from this cookie, so
+  // writing it is equivalent to (and cheaper than) `organization.setActive`.
   useEffect(() => {
-    if (resolvedActiveOrganization?.slug !== slugFromPath) {
+    if (!slugFromPath || resolvedActiveOrganization?.slug !== slugFromPath) {
       return;
     }
+    const activeId = resolvedActiveOrganization.id;
 
-    setLastVisitedOrganization(slugFromPath).catch(() => {
-      // The active server session is still synchronized below if cookies fail.
-    });
-  }, [resolvedActiveOrganization?.slug, slugFromPath]);
-
-  useEffect(() => {
-    if (isLoadingOrgs || isLoadingActive) {
-      return;
-    }
-    if (!slugFromPath) {
-      lastSyncedSlugRef.current = null;
-      return;
-    }
-    if (activeOrganization?.slug === slugFromPath) {
-      lastSyncedSlugRef.current = slugFromPath;
-      return;
-    }
-    if (syncInProgressRef.current) {
-      return;
-    }
-
-    if (!organizationFromPath) {
-      return;
-    }
-    if (lastSyncedSlugRef.current === slugFromPath) {
-      return;
-    }
-
-    lastSyncedSlugRef.current = slugFromPath;
-    syncInProgressRef.current = true;
-    setOptimisticActiveOrg(organizationFromPath);
-    authClient.organization
-      .setActive({ organizationId: organizationFromPath.id })
-      .then((result) => {
-        if (result.error) {
-          console.error("Failed to sync organization:", result.error);
-          setOptimisticActiveOrg(null);
-          lastSyncedSlugRef.current = null;
-        } else {
-          queryClient.invalidateQueries({ refetchType: "none" });
-          queryClient.invalidateQueries({
-            queryKey: QUERY_KEYS.AUTH.activeOrganization,
-          });
-          queryClient.invalidateQueries({
+    setLastVisitedOrganization(slugFromPath)
+      .then(() => {
+        const session = queryClient.getQueryData<ClientSessionData | null>(
+          QUERY_KEYS.AUTH.session
+        );
+        if (session && session.session.activeOrganizationId !== activeId) {
+          return queryClient.invalidateQueries({
             queryKey: QUERY_KEYS.AUTH.session,
           });
         }
       })
-      .catch((error) => {
-        console.error("Error syncing organization:", error);
-        setOptimisticActiveOrg(null);
-        lastSyncedSlugRef.current = null;
-      })
-      .finally(() => {
-        syncInProgressRef.current = false;
+      .catch(() => {
+        // Non-fatal: the session keeps its previous active organization.
       });
   }, [
-    activeOrganization?.slug,
-    isLoadingActive,
-    isLoadingOrgs,
-    organizationFromPath,
-    queryClient,
+    resolvedActiveOrganization?.slug,
+    resolvedActiveOrganization?.id,
     slugFromPath,
+    queryClient,
   ]);
 
   // Auto-select first organization if no active organization is set

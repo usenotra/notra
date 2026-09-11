@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  type AddRepositoryFormValues,
+  addRepositoryFormSchema,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
@@ -23,10 +27,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseGitHubUrl } from "@/lib/utils/github";
-import {
-  type AddRepositoryFormValues,
-  addRepositoryFormSchema,
-} from "@/schemas/integrations";
 import type {
   AddRepositoryDialogProps,
   AvailableRepo,

@@ -2,6 +2,11 @@
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
+  type AddGitHubIntegrationFormValues,
+  addGitHubIntegrationFormSchema,
+  githubPersonalAccessTokenSchema,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
@@ -34,11 +39,6 @@ import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseGitHubUrl } from "@/lib/utils/github";
-import {
-  type AddGitHubIntegrationFormValues,
-  addGitHubIntegrationFormSchema,
-  githubPersonalAccessTokenSchema,
-} from "@/schemas/integrations";
 import type {
   AddIntegrationDialogProps,
   GitHubIntegration,

@@ -78,8 +78,8 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:slug/settings",
-        destination: "/:slug/settings/general",
-        permanent: true,
+        destination: "/:slug?settings=general",
+        permanent: false,
       },
       {
         source: "/:slug/schedules",
@@ -93,8 +93,8 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:slug/logs",
-        destination: "/:slug/settings/logs",
-        permanent: true,
+        destination: "/:slug?settings=logs",
+        permanent: false,
       },
     ];
   },

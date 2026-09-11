@@ -1,5 +1,10 @@
-const TRANSIENT_DB_MESSAGES = ["Control plane request failed"];
-const TRANSIENT_DB_CODES = new Set(["XX000", "UND_ERR_DESTROYED"]);
+import { Effect, Schedule } from "effect";
+
+import {
+  TRANSIENT_DB_CODES,
+  TRANSIENT_DB_MESSAGES,
+  TRANSIENT_DB_RETRY_DELAYS_MS,
+} from "@/constants/db-retry";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -48,29 +53,26 @@ function isTransientDbError(error: unknown): boolean {
   return false;
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const retryTransientDbEffect = Effect.fn("db.retryTransient")(function* <T>(
+  operation: () => Promise<T>
+) {
+  return yield* Effect.tryPromise({
+    try: operation,
+    catch: (cause) => cause,
+  }).pipe(
+    Effect.retry({
+      schedule: Schedule.recurs(TRANSIENT_DB_RETRY_DELAYS_MS.length).pipe(
+        Schedule.modifyDelay(({ attempt }) =>
+          Effect.succeed(TRANSIENT_DB_RETRY_DELAYS_MS[attempt - 1] ?? 0)
+        )
+      ),
+      while: isTransientDbError,
+    })
+  );
+});
 
-export async function retryTransientDbError<T>(
+export function retryTransientDbError<T>(
   operation: () => Promise<T>
 ): Promise<T> {
-  const delays = [250, 750, 1500];
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt <= delays.length; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error;
-
-      if (!(attempt < delays.length && isTransientDbError(error))) {
-        throw error;
-      }
-
-      await delay(delays[attempt] ?? 0);
-    }
-  }
-
-  throw lastError;
+  return Effect.runPromise(retryTransientDbEffect(operation));
 }

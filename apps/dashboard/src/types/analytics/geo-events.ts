@@ -6,6 +6,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import type { PostHogEventName } from "@notra/posthog/events";
 import type { PostHogProperties } from "@notra/posthog/types/posthog";
+import type { GEO_SCAN_TRIGGERS } from "@notra/schemas/constants/dashboard/geo-analytics";
 
 import type {
   AGENT_READINESS_ERROR_KINDS,
@@ -14,7 +15,6 @@ import type {
   GEO_COMPETITOR_SOURCES,
   GEO_PROMPT_DETAIL_SURFACES,
   GEO_PROMPT_SOURCES,
-  GEO_SCAN_TRIGGERS,
   GEO_WRITE_DIALOG_ENTRIES,
   GEO_WRITER_FAILURE_REASONS,
   TRAFFIC_INSTALL_COPY_KINDS,

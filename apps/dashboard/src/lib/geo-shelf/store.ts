@@ -1,9 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { geoShelfSources } from "@notra/db/schema";
+import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { GEO_SHELF_CITATION_INSERT_CHUNK } from "@/constants/geo-shelf";
-import { geoShelfSourceSchema } from "@/schemas/geo-shelf";
 
 import type {
   GeoShelfCitationSummary,

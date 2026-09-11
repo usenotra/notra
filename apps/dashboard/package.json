@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "knip": "knip",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -45,6 +45,7 @@
     "@notra/geo-core": "workspace:*",
     "@notra/kiwi": "workspace:*",
     "@notra/posthog": "workspace:*",
+    "@notra/schemas": "workspace:*",
     "@notra/ui": "workspace:*",
     "@notra/utils": "workspace:*",
     "@orpc/client": "^1.13.9",
@@ -58,7 +59,6 @@
     "@tanstack/react-pacer": "^0.19.0",
     "@tanstack/react-query": "^5.102.4",
     "@tanstack/react-query-devtools": "^5.102.4",
-    "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.14",
     "@unkey/api": "^2.3.0",
     "@upstash/qstash": "2.9.0-rc",
@@ -79,7 +79,7 @@
     "dompurify": "3.4.13",
     "drizzle-orm": "^0.45.2",
     "echarts": "^6.1.0",
-    "effect": "4.0.0-beta.93",
+    "effect": "4.0.0-rc.112",
     "eve": "0.19.0",
     "evlog": "2.13.0",
     "free-email-domains-list": "^1.0.16",
@@ -123,7 +123,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-kit": "^0.31.8",
     "knip": "^6.12.1",
-    "postcss": "^8.5.8",
+    "postcss": "8.5.23",
     "typescript": "^5"
   }
 }

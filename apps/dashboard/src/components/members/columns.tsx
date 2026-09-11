@@ -1,13 +1,14 @@
 "use client";
 
+import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { createColumnHelper } from "@tanstack/react-table";
 
+import type { TableColumn } from "@/components/motion/table";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
 import { MemberActions } from "./member-actions";
@@ -24,8 +25,6 @@ export interface Member {
   };
 }
 
-const columnHelper = createColumnHelper<Member>();
-
 function RoleBadge({ role }: { role: string }) {
   const variants: Record<string, "default" | "secondary" | "outline"> = {
     owner: "default",
@@ -40,38 +39,56 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-export const columns = [
-  columnHelper.accessor("user", {
+export const memberColumns: TableColumn<Member>[] = [
+  {
+    key: "user",
     header: "User",
-    cell: (info) => {
-      const user = info.getValue();
-      return (
-        <div className="flex items-center gap-3">
-          <Avatar className="size-8">
-            <AvatarImage
-              alt={user.name}
-              src={getUserAvatarUrl(user.image, user.email)}
-            />
-            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <span className="font-medium">{user.name}</span>
-        </div>
-      );
-    },
-  }),
-  columnHelper.accessor("user.email", {
-    header: "Email",
-    cell: (info) => (
-      <span className="text-muted-foreground">{info.getValue()}</span>
+    width: "1fr",
+    minWidth: "12rem",
+    sortValue: (member) => member.user.name,
+    cell: (member) => (
+      <span className="flex min-w-0 items-center gap-3">
+        <Avatar className="size-8 shrink-0">
+          <AvatarImage
+            alt={member.user.name}
+            src={getUserAvatarUrl(member.user.image, member.user.email)}
+          />
+          <AvatarFallback>
+            {member.user.name.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <TruncateWithTooltip className="font-medium">
+          {member.user.name}
+        </TruncateWithTooltip>
+      </span>
     ),
-  }),
-  columnHelper.accessor("role", {
+  },
+  {
+    key: "email",
+    header: "Email",
+    width: "1fr",
+    minWidth: "12rem",
+    sortValue: (member) => member.user.email,
+    cell: (member) => (
+      <TruncateWithTooltip className="text-muted-foreground">
+        {member.user.email}
+      </TruncateWithTooltip>
+    ),
+  },
+  {
+    key: "role",
     header: "Role",
-    cell: (info) => <RoleBadge role={info.getValue()} />,
-  }),
-  columnHelper.display({
-    id: "actions",
+    width: "7rem",
+    sortable: true,
+    sortValue: (member) => member.role,
+    cell: (member) => <RoleBadge role={member.role} />,
+  },
+  {
+    key: "actions",
     header: "",
-    cell: (info) => <MemberActions member={info.row.original} />,
-  }),
+    align: "right",
+    width: "3.5rem",
+    minWidth: "3.5rem",
+    cell: (member) => <MemberActions member={member} />,
+  },
 ];

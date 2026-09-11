@@ -2,6 +2,7 @@ import {
   getLiveMcpStoreIntegrationById,
   getLiveMcpStoreIntegrationBySlug,
 } from "@notra/ai/integrations/mcp-store";
+import { storeIntegrationDeeplinkSlugSchema } from "@notra/schemas/dashboard/integrations";
 import { Effect } from "effect";
 
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
@@ -11,7 +12,6 @@ import {
   buildOrganizationIntegrationsPath,
   decodeIntegrationSlugParam,
 } from "@/lib/integrations/deeplink";
-import { storeIntegrationDeeplinkSlugSchema } from "@/schemas/integrations";
 import type {
   IntegrationConnectResolution,
   OrganizationIntegrationConnectParams,

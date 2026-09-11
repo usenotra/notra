@@ -25,6 +25,8 @@ const EMPTY_SELECTED_REPOSITORY_IDS: string[] = [];
 
 export function SelectRepositoriesDialog({
   repositories,
+  error,
+  onRetry,
   onSave,
   initialSelected = EMPTY_SELECTED_REPOSITORY_IDS,
   isLoading = false,
@@ -69,12 +71,29 @@ export function SelectRepositoriesDialog({
         <ResponsiveDialogHeader className="shrink-0 p-4 pb-0">
           <ResponsiveDialogTitle>Select repositories</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Choose which repositories Notra should generate content from. Only
-            repositories granted to the GitHub App appear here.
+            Save your selection to finish connecting repositories to Notra. Only
+            repositories granted to the GitHub App appear here. Existing
+            publishing settings will be kept.
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4">
           <div className="space-y-3 py-4">
+            {error ? (
+              <div className="space-y-2">
+                <p className="text-destructive text-sm" role="alert">
+                  {error}
+                </p>
+                {onRetry ? (
+                  <Button
+                    disabled={isLoading}
+                    onClick={onRetry}
+                    variant="outline"
+                  >
+                    Retry loading repositories
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
             <Field>
               <FieldLabel>Repositories</FieldLabel>
               <RepositoryMultiSelect
@@ -108,7 +127,7 @@ export function SelectRepositoriesDialog({
             Cancel
           </ResponsiveDialogClose>
           <Button
-            disabled={isSaving || isLoading}
+            disabled={isSaving || isLoading || Boolean(error)}
             onClick={() => onSave(selected)}
           >
             {isSaving ? "Saving…" : "Save repositories"}

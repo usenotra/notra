@@ -1,7 +1,6 @@
 import "server-only";
+import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 import PostForMe from "post-for-me";
-
-import type { SocialConnectPlatform } from "@/schemas/social-accounts";
 
 const clients = new Map<string, PostForMe>();
 

@@ -15,7 +15,12 @@ export function getGitHubPublishRecovery(
   const publishingPaused =
     "publishingPaused" in data && data.publishingPaused === true;
 
-  if (data.code === "github_authentication_required") {
+  if (
+    data.code === "github_authentication_required" ||
+    data.code === "github_repository_connection_required" ||
+    data.code === "github_token_authentication_required" ||
+    data.code === "github_token_permissions_required"
+  ) {
     return { code: data.code, publishingPaused };
   }
 

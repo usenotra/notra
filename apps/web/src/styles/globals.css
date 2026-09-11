@@ -253,6 +253,15 @@
   border: 0.0625rem solid var(--border);
 }
 
+.prose .shiki,
+.prose .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+  font-style: var(--shiki-light-font-style) !important;
+  font-weight: var(--shiki-light-font-weight) !important;
+  text-decoration: var(--shiki-light-text-decoration) !important;
+}
+
 .dark .prose .shiki,
 .dark .prose .shiki span {
   color: var(--shiki-dark) !important;

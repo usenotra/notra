@@ -92,107 +92,117 @@ const callSlackApi = Effect.fn("iris.slack.request")(function* (input: {
   token: string;
   body: SlackApiRequestBody;
 }) {
-  const response = yield* Effect.tryPromise({
-    try: () =>
-      fetch(`${SLACK_API_BASE_URL}/${input.operation}`, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${input.token}`,
-          "content-type": "application/json; charset=utf-8",
-        },
-        body: JSON.stringify(input.body),
-        signal: AbortSignal.timeout(SLACK_REQUEST_TIMEOUT_MS),
+  return yield* Effect.acquireUseRelease(
+    Effect.sync(() => new AbortController()),
+    (controller) =>
+      Effect.gen(function* () {
+        const response = yield* Effect.tryPromise({
+          try: () =>
+            fetch(`${SLACK_API_BASE_URL}/${input.operation}`, {
+              method: "POST",
+              headers: {
+                authorization: `Bearer ${input.token}`,
+                "content-type": "application/json; charset=utf-8",
+              },
+              body: JSON.stringify(input.body),
+              signal: AbortSignal.any([
+                controller.signal,
+                AbortSignal.timeout(SLACK_REQUEST_TIMEOUT_MS),
+              ]),
+            }),
+          catch: (cause) =>
+            new SlackDeliveryRetryableError({
+              code: SLACK_NETWORK_ERROR_CODE,
+              operation: input.operation,
+              organizationId: input.organizationId,
+              retryAfterSeconds: null,
+              cause,
+            }),
+        });
+
+        if (
+          response.status === SLACK_RATE_LIMITED_STATUS ||
+          response.status >= SLACK_SERVER_ERROR_MIN_STATUS
+        ) {
+          return yield* Effect.fail(
+            new SlackDeliveryRetryableError({
+              code:
+                response.status === SLACK_RATE_LIMITED_STATUS
+                  ? SLACK_RATE_LIMITED_ERROR_CODE
+                  : `http_${response.status}`,
+              operation: input.operation,
+              organizationId: input.organizationId,
+              retryAfterSeconds: parseRetryAfterSeconds(response),
+              cause: null,
+            })
+          );
+        }
+
+        if (!response.ok) {
+          return yield* Effect.fail(
+            new SlackDeliveryTerminalError({
+              code: `http_${response.status}`,
+              operation: input.operation,
+              organizationId: input.organizationId,
+            })
+          );
+        }
+
+        const body = yield* Effect.tryPromise({
+          try: () => response.json(),
+          catch: (cause) =>
+            new SlackDeliveryRetryableError({
+              code: SLACK_INVALID_RESPONSE_ERROR_CODE,
+              operation: input.operation,
+              organizationId: input.organizationId,
+              retryAfterSeconds: null,
+              cause,
+            }),
+        });
+
+        const parsed = slackApiResponseSchema.safeParse(body);
+        if (!parsed.success) {
+          return yield* Effect.fail(
+            new SlackDeliveryRetryableError({
+              code: SLACK_INVALID_RESPONSE_ERROR_CODE,
+              operation: input.operation,
+              organizationId: input.organizationId,
+              retryAfterSeconds: null,
+              cause: parsed.error,
+            })
+          );
+        }
+
+        if (!parsed.data.ok) {
+          const code = parsed.data.error ?? SLACK_UNKNOWN_ERROR_CODE;
+          if (
+            SLACK_RETRYABLE_ERROR_CODES.has(code) &&
+            !SLACK_TERMINAL_ERROR_CODES.has(code)
+          ) {
+            return yield* Effect.fail(
+              new SlackDeliveryRetryableError({
+                code,
+                operation: input.operation,
+                organizationId: input.organizationId,
+                retryAfterSeconds: null,
+                cause: null,
+              })
+            );
+          }
+
+          return yield* Effect.fail(
+            new SlackDeliveryTerminalError({
+              code,
+              operation: input.operation,
+              organizationId: input.organizationId,
+            })
+          );
+        }
+
+        return parsed.data;
       }),
-    catch: (cause) =>
-      new SlackDeliveryRetryableError({
-        code: SLACK_NETWORK_ERROR_CODE,
-        operation: input.operation,
-        organizationId: input.organizationId,
-        retryAfterSeconds: null,
-        cause,
-      }),
-  });
-
-  if (
-    response.status === SLACK_RATE_LIMITED_STATUS ||
-    response.status >= SLACK_SERVER_ERROR_MIN_STATUS
-  ) {
-    return yield* Effect.fail(
-      new SlackDeliveryRetryableError({
-        code:
-          response.status === SLACK_RATE_LIMITED_STATUS
-            ? SLACK_RATE_LIMITED_ERROR_CODE
-            : `http_${response.status}`,
-        operation: input.operation,
-        organizationId: input.organizationId,
-        retryAfterSeconds: parseRetryAfterSeconds(response),
-        cause: null,
-      })
-    );
-  }
-
-  if (!response.ok) {
-    return yield* Effect.fail(
-      new SlackDeliveryTerminalError({
-        code: `http_${response.status}`,
-        operation: input.operation,
-        organizationId: input.organizationId,
-      })
-    );
-  }
-
-  const body = yield* Effect.tryPromise({
-    try: () => response.json(),
-    catch: (cause) =>
-      new SlackDeliveryRetryableError({
-        code: SLACK_INVALID_RESPONSE_ERROR_CODE,
-        operation: input.operation,
-        organizationId: input.organizationId,
-        retryAfterSeconds: null,
-        cause,
-      }),
-  });
-
-  const parsed = slackApiResponseSchema.safeParse(body);
-  if (!parsed.success) {
-    return yield* Effect.fail(
-      new SlackDeliveryRetryableError({
-        code: SLACK_INVALID_RESPONSE_ERROR_CODE,
-        operation: input.operation,
-        organizationId: input.organizationId,
-        retryAfterSeconds: null,
-        cause: parsed.error,
-      })
-    );
-  }
-
-  if (!parsed.data.ok) {
-    const code = parsed.data.error ?? SLACK_UNKNOWN_ERROR_CODE;
-    if (
-      SLACK_RETRYABLE_ERROR_CODES.has(code) &&
-      !SLACK_TERMINAL_ERROR_CODES.has(code)
-    ) {
-      return yield* Effect.fail(
-        new SlackDeliveryRetryableError({
-          code,
-          operation: input.operation,
-          organizationId: input.organizationId,
-          retryAfterSeconds: null,
-          cause: null,
-        })
-      );
-    }
-
-    return yield* Effect.fail(
-      new SlackDeliveryTerminalError({
-        code,
-        operation: input.operation,
-        organizationId: input.organizationId,
-      })
-    );
-  }
-
-  return parsed.data;
+    (controller) => Effect.sync(() => controller.abort())
+  );
 });
 
 export const postSlackMessage = Effect.fn("iris.slack.postMessage")(function* (

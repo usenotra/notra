@@ -1,8 +1,10 @@
 import { GEO_DIRECT_GROUNDED_PROVIDERS } from "../constants/geo";
+import { GEO_MODEL_REPLACED_IDS } from "../constants/geo-model-catalog";
 import type {
   GeoGroundedEngine,
   GeoModelCatalog,
   GeoModelGateway,
+  GeoScanSkipReason,
   GeoZdrMode,
   GeoZdrPolicy,
 } from "../types/geo";
@@ -23,6 +25,64 @@ export function sortKnownEngines(
     .map((model) => model.id);
 }
 
+/** Swap retired catalog ids for the engine that replaced them. */
+export function remapRetiredGeoEngineIds(ids: Iterable<string>): string[] {
+  const seen = new Set<string>();
+  const next: string[] = [];
+  for (const id of ids) {
+    const mapped = GEO_MODEL_REPLACED_IDS[id] ?? id;
+    if (seen.has(mapped)) {
+      continue;
+    }
+    seen.add(mapped);
+    next.push(mapped);
+  }
+  return next;
+}
+
+/**
+ * Intersect a this-run engine subset with the project's tracked engines.
+ * Unknown ids are dropped. `undefined` keeps the full tracked set.
+ */
+export function scopeGeoScanEngines(
+  tracked: readonly string[],
+  requested?: readonly string[]
+): string[] {
+  if (!requested) {
+    return [...tracked];
+  }
+  const allowed = new Set(tracked);
+  const scoped: string[] = [];
+  const seen = new Set<string>();
+  for (const engine of requested) {
+    if (!allowed.has(engine) || seen.has(engine)) {
+      continue;
+    }
+    seen.add(engine);
+    scoped.push(engine);
+  }
+  return scoped;
+}
+
+/**
+ * Empty engine scope must not become a successful zero-check scan. A requested
+ * subset that no longer intersects the project, or a set that ZDR rejects in
+ * full, is a skip — not a completed pollable run.
+ */
+export function geoScanEmptyEngineSkipReason(
+  scanEngines: readonly string[],
+  runnableEngineCount: number,
+  requestedEngines?: readonly string[]
+): GeoScanSkipReason | null {
+  if (requestedEngines !== undefined && scanEngines.length === 0) {
+    return "scoped_engines_missing";
+  }
+  if (scanEngines.length > 0 && runnableEngineCount === 0) {
+    return "zdr";
+  }
+  return null;
+}
+
 /**
  * Maps a project's stored engine selection onto the engines the scan should
  * run. Unknown ids (models that left the catalog) are dropped; `null` or an
@@ -32,7 +92,10 @@ export function resolveTrackedEngines(
   catalog: GeoModelCatalog,
   stored: readonly string[] | null | undefined
 ): string[] {
-  const selected = sortKnownEngines(catalog, stored ?? []);
+  const selected = sortKnownEngines(
+    catalog,
+    remapRetiredGeoEngineIds(stored ?? [])
+  );
   return selected.length === 0 ? geoDefaultEngines(catalog) : selected;
 }
 
@@ -101,10 +164,10 @@ export function applyGeoZdrEngineFallback(
   policy: GeoZdrPolicy
 ): string[] {
   if (!policy.enforceZdr) {
-    return sortKnownEngines(catalog, selected);
+    return sortKnownEngines(catalog, remapRetiredGeoEngineIds(selected));
   }
 
-  const next = selected.filter(
+  const next = remapRetiredGeoEngineIds(selected).filter(
     (engine) => resolveGeoZdrMode(catalog, engine, policy) !== null
   );
 

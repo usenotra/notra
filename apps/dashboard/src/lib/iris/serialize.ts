@@ -1,8 +1,8 @@
 import { mandatePolicySchema } from "@notra/ai/schemas/autonomy/mandate";
 import type { IrisOutboxArtifact } from "@notra/ai/schemas/autonomy/outbox";
+import { irisPlannerDecisionPreviewSchema } from "@notra/schemas/dashboard/iris";
 
 import { IRIS_DEFAULT_POLICY } from "@/constants/iris";
-import { irisPlannerDecisionPreviewSchema } from "@/schemas/iris";
 import type {
   IrisMandateRow,
   IrisMandateView,

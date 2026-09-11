@@ -94,10 +94,10 @@ export function TrafficPagesCard({
 
         return (
           <span className="flex items-center justify-end gap-2">
-            <GeoStatDelta delta={delta} />
             <span className="text-sm tabular-nums">
               {row.visits.toLocaleString()}
             </span>
+            <GeoStatDelta delta={delta} />
           </span>
         );
       },

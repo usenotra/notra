@@ -1,4 +1,5 @@
 import type { OnboardingAgentWorkflowPayload } from "@notra/ai/types/onboarding-agent";
+import { onboardingAgentWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows/onboarding-agent-payload";
 import { sleep } from "workflow";
 import { flattenError } from "zod";
 
@@ -12,7 +13,6 @@ import {
   WORKFLOW_OUTCOMES,
   WORKFLOW_UNEXPECTED_FAILURE_REASON,
 } from "@/constants/workflow-analytics";
-import { onboardingAgentWorkflowPayloadSchema } from "@/schemas/workflows/onboarding-agent-payload";
 import type { OnboardingAgentWorkflowResult } from "@/types/workflows/onboarding-agent";
 
 import {

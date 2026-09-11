@@ -6,13 +6,6 @@ import {
   listGeoContentBriefs,
 } from "@notra/geo-core/geo/writer";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-
-import { API_TRIGGER_SOURCE } from "../constants/analytics";
-import { GEO_WRITER_PLAN_INTERNAL_PATH } from "../constants/geo";
-import {
-  GEO_COMMON_ERROR_RESPONSES,
-  GEO_OPENAPI_TAG,
-} from "../constants/geo-openapi";
 import {
   approveBriefResponseSchema,
   briefParamsSchema,
@@ -21,9 +14,16 @@ import {
   listBriefsResponseSchema,
   planBriefRequestSchema,
   planBriefResponseSchema,
-} from "../schemas/geo-content";
-import { projectParamsSchema } from "../schemas/geo-params";
-import { internalGeoWriterPlanResponseSchema } from "../schemas/internal-geo";
+} from "@notra/schemas/api/geo-content";
+import { projectParamsSchema } from "@notra/schemas/api/geo-params";
+import { internalGeoWriterPlanResponseSchema } from "@notra/schemas/api/internal-geo";
+
+import { API_TRIGGER_SOURCE } from "../constants/analytics";
+import { GEO_WRITER_PLAN_INTERNAL_PATH } from "../constants/geo";
+import {
+  GEO_COMMON_ERROR_RESPONSES,
+  GEO_OPENAPI_TAG,
+} from "../constants/geo-openapi";
 import { trackApiEvent } from "../utils/analytics";
 import { geoErrorResponse } from "../utils/geo";
 import { runGeoEffect, runRemoteGeoEffect } from "../utils/geo-effect";

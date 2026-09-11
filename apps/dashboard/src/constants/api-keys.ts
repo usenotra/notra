@@ -1,6 +1,4 @@
 import {
-  API_ACCEPTED_SCOPES,
-  API_GRANULAR_SCOPES,
   API_READ_SCOPES,
   API_SCOPE_RESOURCES,
   API_WRITE_SCOPES,
@@ -19,25 +17,13 @@ export const API_KEY_GRANULAR_READ_PERMISSIONS = API_READ_SCOPES;
 
 export const API_KEY_GRANULAR_WRITE_PERMISSIONS = API_WRITE_SCOPES;
 
-export const API_KEY_GRANULAR_PERMISSIONS = API_GRANULAR_SCOPES;
-
 export const API_KEY_LEGACY_PERMISSIONS = LEGACY_API_SCOPES;
-
-export const API_KEY_ACCEPTED_PERMISSIONS = API_ACCEPTED_SCOPES;
-
-export const API_KEY_DEFAULT_SCOPES = API_READ_SCOPES;
 
 export const API_KEY_GEO_SCOPES = API_SCOPE_RESOURCES.flatMap((resource) =>
   resource.openApiTag === "GEO"
     ? [getApiScopeId(resource.id, "read"), getApiScopeId(resource.id, "write")]
     : []
 );
-
-export const API_KEY_ACCESS_MODE_VALUES = [
-  "full",
-  "geo",
-  "restricted",
-] as const;
 
 export const API_KEY_ACCESS_MODE_OPTIONS = [
   {
@@ -78,14 +64,6 @@ export const API_KEY_SCOPE_RESOURCES = API_SCOPE_RESOURCES.map((resource) => ({
 }));
 
 export const API_KEY_PRESET_IDS = ["mcp", "sdk", "cli"] as const;
-
-export const API_KEY_EXPIRATION_VALUES = [
-  "never",
-  "7d",
-  "30d",
-  "60d",
-  "90d",
-] as const;
 
 export const API_KEY_EXPIRATION_OPTIONS = [
   { label: "No expiry", value: "never" },

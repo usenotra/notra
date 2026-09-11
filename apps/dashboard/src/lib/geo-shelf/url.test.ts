@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { canonicalizeShelfUrl, isAllowedShelfUrl, shelfFetchUrl } from "./url";
+import {
+  canonicalizeShelfUrl,
+  isAllowedShelfUrl,
+  shelfFetchUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
 
 describe("shelf URL validation", () => {
   test("rejects URLs containing credentials", () => {

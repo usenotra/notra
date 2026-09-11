@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  onboardingWorkspaceFormFieldsSchema,
+  onboardingWorkspaceFormSchema,
+} from "@notra/schemas/dashboard/onboarding/workspace";
+import { slugSchema } from "@notra/schemas/dashboard/organization";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
@@ -35,11 +40,6 @@ import {
   validateLogoFile,
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
-import {
-  onboardingWorkspaceFormFieldsSchema,
-  onboardingWorkspaceFormSchema,
-} from "@/schemas/onboarding/workspace";
-import { slugSchema } from "@/schemas/organization";
 import type { WorkspaceFormProps } from "@/types/onboarding";
 import {
   getHeardAboutNotraLabel,

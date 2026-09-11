@@ -33,6 +33,7 @@ import type {
 } from "./types/agent-readiness";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type { GeoProspectReportJson } from "./types/geo-prospect-report";
+import type { GeoScanPlanSnapshot } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 
@@ -1437,6 +1438,10 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    removedAutoPromptIds: text("removed_auto_prompt_ids")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
     scanIntervalHours: integer("scan_interval_hours").notNull().default(24),
     nextScanAt: timestamp("next_scan_at"),
@@ -1621,6 +1626,7 @@ export const geoScans = pgTable(
     status: text("status", { enum: ["running", "completed", "failed"] })
       .notNull()
       .default("running"),
+    plan: jsonb("plan").$type<GeoScanPlanSnapshot>(),
     startedAt: timestamp("started_at").defaultNow().notNull(),
     finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

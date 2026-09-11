@@ -3,6 +3,10 @@
 import { Image01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ALLOWED_MIME_TYPES,
+  MAX_BRAND_ASSET_FILE_SIZE,
+} from "@notra/schemas/constants/dashboard/upload";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
@@ -28,10 +32,6 @@ import {
   ASSET_KIND_OPTIONS,
   ASSET_VARIANT_OPTIONS,
 } from "@/constants/brand-guideline-ui";
-import {
-  ALLOWED_MIME_TYPES,
-  MAX_BRAND_ASSET_FILE_SIZE,
-} from "@/constants/upload";
 import {
   useCreateGuidelineAsset,
   useUpdateGuidelineAsset,

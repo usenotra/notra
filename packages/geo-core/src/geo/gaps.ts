@@ -53,8 +53,7 @@ import { requireGeoProject } from "./projects";
 import {
   customPromptScanId,
   findPromptMentionEntry,
-  isConversationScanPromptId,
-  isCustomPromptScanId,
+  shouldSkipUnmatchedGapScan,
 } from "./prompts";
 
 const MS_PER_DAY = 86_400_000;
@@ -136,7 +135,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
   projectId: string
 ) {
   const since = lookbackSince();
-  return yield* Effect.all([
+  const [checks, prompts, settingsRow] = yield* Effect.all([
     geoDb("mention checks lookup failed", () =>
       db
         .selectDistinctOn(
@@ -177,7 +176,18 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
         )
         .orderBy(desc(geoPrompts.createdAt))
     ),
+    geoDb("settings lookup failed", () =>
+      db.query.geoSettings.findFirst({
+        columns: { removedAutoPromptIds: true },
+        where: eq(geoSettings.projectId, projectId),
+      })
+    ),
   ]);
+  return {
+    checks,
+    prompts,
+    removedAutoPromptIds: new Set(settingsRow?.removedAutoPromptIds ?? []),
+  };
 });
 
 function aggregateMentionChecks(
@@ -215,6 +225,7 @@ function aggregateMentionChecks(
 function forEachMissingMajorityGap(
   prompts: Array<{ id: string; prompt: string; title: string | null }>,
   byPrompt: Map<string, PromptGapAgg>,
+  removedAutoPromptIds: ReadonlySet<string>,
   onGap: (
     id: string,
     prompt: string,
@@ -236,9 +247,7 @@ function forEachMissingMajorityGap(
   }
   for (const [scanId, entry] of byPrompt) {
     if (
-      matchedScanIds.has(scanId) ||
-      isConversationScanPromptId(scanId) ||
-      isCustomPromptScanId(scanId)
+      shouldSkipUnmatchedGapScan(scanId, matchedScanIds, removedAutoPromptIds)
     ) {
       continue;
     }
@@ -275,15 +284,21 @@ function forEachWonGapWithBrief(
 export const loadPlannerGapPrompts = Effect.fn("geo.plannerGaps")(function* (
   projectId: string
 ) {
-  const [checks, prompts] = yield* loadMentionGapInputs(projectId);
+  const { checks, prompts, removedAutoPromptIds } =
+    yield* loadMentionGapInputs(projectId);
   const byPrompt = aggregateMentionChecks(checks);
   const gaps: GeoPlannerGapPrompt[] = [];
-  forEachMissingMajorityGap(prompts, byPrompt, (_id, prompt, _title, entry) => {
-    if (gaps.length >= GEO_WRITER_PLANNER_GAP_LIMIT) {
-      return;
+  forEachMissingMajorityGap(
+    prompts,
+    byPrompt,
+    removedAutoPromptIds,
+    (_id, prompt, _title, entry) => {
+      if (gaps.length >= GEO_WRITER_PLANNER_GAP_LIMIT) {
+        return;
+      }
+      gaps.push({ prompt, engines: entry.missing });
     }
-    gaps.push({ prompt, engines: entry.missing });
-  });
+  );
   return { gaps };
 });
 
@@ -471,7 +486,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     ),
     loadCollisionCandidates(scope),
   ]);
-  const [checks, prompts] = mentionInputs;
+  const { checks, prompts, removedAutoPromptIds } = mentionInputs;
 
   const trackedAliases = competitorCanonicalMap([
     ...competitorRows,
@@ -525,9 +540,14 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
       brief: toBriefRef(briefBySource.get(sourceKey("gap", id))),
     });
   };
-  forEachMissingMajorityGap(prompts, byPrompt, (id, prompt, title, entry) => {
-    pushPromptGap(id, prompt, title, entry, false);
-  });
+  forEachMissingMajorityGap(
+    prompts,
+    byPrompt,
+    removedAutoPromptIds,
+    (id, prompt, title, entry) => {
+      pushPromptGap(id, prompt, title, entry, false);
+    }
+  );
   forEachWonGapWithBrief(
     prompts,
     byPrompt,

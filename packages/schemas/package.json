@@ -1,0 +1,32 @@
+{
+  "name": "@notra/schemas",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./dashboard/*": "./src/schemas/dashboard/*.ts",
+    "./api/*": "./src/schemas/api/*.ts",
+    "./shared/*": "./src/schemas/shared/*.ts",
+    "./constants/*": "./src/constants/*.ts",
+    "./types/*": "./src/types/*.ts",
+    "./utils/*": "./src/utils/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "^1.2.2",
+    "@notra/ai": "workspace:*",
+    "@notra/content-generation": "workspace:*",
+    "@notra/db": "workspace:*",
+    "@notra/geo-core": "workspace:*",
+    "@notra/utils": "workspace:*",
+    "effect": "4.0.0-rc.112",
+    "zod": "^4.5.0"
+  },
+  "devDependencies": {
+    "@notra/typescript-config": "workspace:*",
+    "@types/node": "24.13.2",
+    "typescript": "^5"
+  }
+}

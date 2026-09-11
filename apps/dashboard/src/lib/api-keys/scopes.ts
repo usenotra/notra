@@ -1,13 +1,15 @@
 import {
+  API_KEY_ACCESS_MODE_VALUES,
+  API_KEY_GRANULAR_PERMISSIONS,
+} from "@notra/schemas/constants/dashboard/api-keys";
+import {
   expandLegacyApiScopes,
   getUnknownApiScopes,
   sortApiScopes,
 } from "@notra/utils/api-scopes";
 
 import {
-  API_KEY_ACCESS_MODE_VALUES,
   API_KEY_GEO_SCOPES,
-  API_KEY_GRANULAR_PERMISSIONS,
   API_KEY_PERMISSIONS,
   API_KEY_SCOPE_LEVEL,
   API_KEY_SCOPE_LEVEL_LABELS,

@@ -1,16 +1,16 @@
 "use client";
 
 import { FEATURES } from "@notra/ai/billing/features";
-import { useCustomer } from "autumn-js/react";
 
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 
 export function useCreditBalance() {
   const {
     data: customer,
     isLoading,
     refetch,
-  } = useCustomer({
+  } = useBillingCustomer({
     expand: ["balances.feature", "subscriptions.plan"],
   });
 

@@ -1,10 +1,8 @@
 import { ONBOARDING_WEBSITE_PREFIX_REGEX } from "@notra/geo-core/constants/website-url";
+import { ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES } from "@notra/schemas/constants/dashboard/onboarding";
+import type { OnboardingHeardAboutNotraSource } from "@notra/schemas/types/dashboard/onboarding";
 
-import {
-  ONBOARDING_HEARD_ABOUT_NOTRA_LABELS,
-  ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES,
-} from "@/constants/onboarding";
-import type { OnboardingHeardAboutNotraSource } from "@/types/onboarding";
+import { ONBOARDING_HEARD_ABOUT_NOTRA_LABELS } from "@/constants/onboarding";
 
 export function isHeardAboutNotraSource(
   value: string | null | undefined

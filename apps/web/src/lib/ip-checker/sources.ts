@@ -37,7 +37,7 @@ const fetchCrawlerIpList = Effect.fn("fetchCrawlerIpList")(function* (
   source: CrawlerIpSource
 ) {
   const payload = yield* Effect.tryPromise({
-    try: async () => {
+    try: async (signal) => {
       const cached = await readPayloadFromRedis(source.id);
       if (cached) {
         return cached;
@@ -48,7 +48,10 @@ const fetchCrawlerIpList = Effect.fn("fetchCrawlerIpList")(function* (
           "user-agent": IP_CHECKER_FETCH_USER_AGENT,
         },
         next: { revalidate: IP_CHECKER_LIST_REVALIDATE_SECONDS },
-        signal: AbortSignal.timeout(IP_CHECKER_FETCH_TIMEOUT_MS),
+        signal: AbortSignal.any([
+          signal,
+          AbortSignal.timeout(IP_CHECKER_FETCH_TIMEOUT_MS),
+        ]),
       });
       if (!response.ok) {
         throw new Error(`Unexpected status ${response.status}`);

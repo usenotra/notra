@@ -1,5 +1,6 @@
 "use client";
 
+import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
@@ -36,7 +37,6 @@ import {
   INTEGRATION_TAB_VALUES,
 } from "@/lib/integrations/constants";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { IntegrationType } from "@/schemas/integrations";
 import type {
   IntegrationConfig,
   IntegrationsPageClientProps,

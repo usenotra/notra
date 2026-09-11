@@ -15,6 +15,12 @@ import {
   ButtonGroupText,
 } from "@notra/ui/components/ui/button-group";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@notra/ui/components/ui/context-menu";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -29,11 +35,19 @@ import {
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
 import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@notra/ui/components/ui/table";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { TABLE_CHROME_CLASS } from "@notra/ui/constants/table";
 import { DownloadIcon, Maximize2Icon } from "lucide-react";
 import type { FileUIPart, UIMessage } from "ai";
 import Image from "next/image";
@@ -51,6 +65,19 @@ import {
   useState,
 } from "react";
 import { Streamdown } from "streamdown";
+import {
+  MESSAGE_TABLE_COPY_FORMATS,
+  MESSAGE_TABLE_COPY_RESET_MS,
+} from "@notra/ui/constants/message-table";
+import {
+  tableDataToCopyFormat,
+  tableDataToCsv,
+  tableDataToMarkdown,
+} from "@notra/ui/lib/message-table";
+import type {
+  MessageTableCopyFormat,
+  MessageTableData,
+} from "@notra/ui/types/message-table";
 import { cn } from "@notra/ui/lib/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -335,12 +362,7 @@ type MarkdownTableProps = ComponentProps<"table"> & {
   node?: unknown;
 };
 
-type TableData = {
-  headers: string[];
-  rows: string[][];
-};
-
-function readTableData(table: HTMLTableElement): TableData {
+function readTableData(table: HTMLTableElement): MessageTableData {
   const headers = Array.from(table.querySelectorAll("thead th")).map((cell) =>
     cell.textContent?.trim() ?? ""
   );
@@ -364,41 +386,6 @@ function readTableData(table: HTMLTableElement): TableData {
     headers: firstRow ?? [],
     rows: remainingRows,
   };
-}
-
-function escapeDelimitedCell(value: string) {
-  return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
-}
-
-function tableDataToCsv(data: TableData) {
-  return [data.headers, ...data.rows]
-    .filter((row) => row.length > 0)
-    .map((row) => row.map(escapeDelimitedCell).join(","))
-    .join("\n");
-}
-
-function escapeMarkdownTableCell(value: string) {
-  return value.replaceAll("\\", "\\\\").replaceAll("|", "\\|");
-}
-
-function tableDataToMarkdown(data: TableData) {
-  const columnCount = Math.max(
-    data.headers.length,
-    ...data.rows.map((row) => row.length),
-    1
-  );
-  const headers = Array.from(
-    { length: columnCount },
-    (_, index) => data.headers[index] ?? ""
-  );
-  const divider = Array.from({ length: columnCount }, () => "---");
-  const rows = data.rows.map((row) =>
-    Array.from({ length: columnCount }, (_, index) => row[index] ?? "")
-  );
-
-  return [headers, divider, ...rows]
-    .map((row) => `| ${row.map(escapeMarkdownTableCell).join(" | ")} |`)
-    .join("\n");
 }
 
 async function writeClipboard(value: string) {
@@ -429,7 +416,9 @@ function MessageMarkdownTable({
   const tableRef = useRef<HTMLTableElement>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyMenuOpen, setCopyMenuOpen] = useState(false);
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
+  const toolbarOpen = copyMenuOpen || downloadMenuOpen || copied;
 
   useEffect(
     () => () => {
@@ -447,13 +436,24 @@ function MessageMarkdownTable({
     return readTableData(tableRef.current);
   };
 
-  const copyMarkdown = async () => {
-    await writeClipboard(tableDataToMarkdown(getData()));
+  const markCopied = () => {
     setCopied(true);
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
     }
-    copyTimeoutRef.current = setTimeout(() => setCopied(false), 1500);
+    copyTimeoutRef.current = setTimeout(
+      () => setCopied(false),
+      MESSAGE_TABLE_COPY_RESET_MS
+    );
+  };
+
+  const copyAs = async (format: MessageTableCopyFormat) => {
+    await writeClipboard(tableDataToCopyFormat(getData(), format));
+    markCopied();
+  };
+
+  const copyMarkdown = async () => {
+    await copyAs("markdown");
   };
 
   const downloadCsv = () => {
@@ -472,7 +472,7 @@ function MessageMarkdownTable({
     <div className="max-w-full overflow-x-auto">
       <table
         className={cn(
-          "w-full min-w-max caption-bottom border-collapse text-sm [&_thead_th:last-child]:pr-24",
+          "w-full min-w-max caption-bottom border-separate border-spacing-0 text-sm [&_thead_th:last-child]:pr-24",
           className
         )}
         ref={tableRef}
@@ -486,39 +486,66 @@ function MessageMarkdownTable({
   return (
     <div
       className={cn(
-        "group/table relative max-w-full rounded-lg border bg-background",
-        downloadMenuOpen && "is-menu-open"
+        "group/table relative max-w-full",
+        TABLE_CHROME_CLASS,
+        toolbarOpen && "is-menu-open"
       )}
     >
       <div className="absolute top-1 right-1.5 z-10">
         <div
           className={cn(
             "flex items-center gap-1 rounded-md border bg-background/90 p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within/table:opacity-100 group-hover/table:opacity-100 supports-[backdrop-filter]:bg-background/75 supports-[backdrop-filter]:backdrop-blur",
-            (downloadMenuOpen || copied) && "opacity-100"
+            toolbarOpen && "opacity-100"
           )}
         >
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  onClick={() => {
-                    copyMarkdown().catch(() => undefined);
-                  }}
-                  size="icon-xs"
-                  variant="ghost"
+          <ContextMenu onOpenChange={setCopyMenuOpen}>
+            <Tooltip>
+              <ContextMenuTrigger
+                render={
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        onClick={() => {
+                          copyMarkdown().catch(() => undefined);
+                        }}
+                        size="icon-xs"
+                        variant="ghost"
+                      />
+                    }
+                  />
+                }
+              >
+                <HugeiconsIcon
+                  className="size-3.5"
+                  icon={copied ? Tick01Icon : Copy01Icon}
                 />
-              }
-            >
-              <HugeiconsIcon
-                className="size-3.5"
-                icon={copied ? Tick01Icon : Copy01Icon}
-              />
-              <span className="sr-only">Copy table as Markdown</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {copied ? "Copied" : "Copy table as Markdown"}
-            </TooltipContent>
-          </Tooltip>
+                <span className="sr-only">Copy table as Markdown</span>
+              </ContextMenuTrigger>
+              {copyMenuOpen ? null : (
+                <TooltipContent>
+                  {copied ? "Copied" : "Copy table as Markdown"}
+                </TooltipContent>
+              )}
+            </Tooltip>
+            <ContextMenuContent className="w-44 min-w-44">
+              {MESSAGE_TABLE_COPY_FORMATS.map((format) => (
+                <ContextMenuItem
+                  className="whitespace-nowrap"
+                  key={format.id}
+                  onClick={() => {
+                    copyAs(format.id).catch(() => undefined);
+                  }}
+                >
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={format.icon}
+                    strokeWidth={2}
+                  />
+                  {format.label}
+                </ContextMenuItem>
+              ))}
+            </ContextMenuContent>
+          </ContextMenu>
           <DropdownMenu
             onOpenChange={setDownloadMenuOpen}
             open={downloadMenuOpen}
@@ -583,7 +610,7 @@ function MessageMarkdownTable({
                 </ResponsiveDialogClose>
               </ResponsiveDialogHeader>
               <div className="min-h-0 flex-1 overflow-auto p-4">
-                {renderTable()}
+                <div className={TABLE_CHROME_CLASS}>{renderTable()}</div>
               </div>
             </ResponsiveDialogContent>
           </ResponsiveDialog>
@@ -601,12 +628,9 @@ function MessageTableHead({
   ...props
 }: ComponentProps<"thead"> & { node?: unknown }) {
   return (
-    <thead
-      className={cn("border-b bg-muted/80", className)}
-      {...props}
-    >
+    <TableHeader className={cn("[&_tr]:hover:bg-transparent", className)} {...props}>
       {children}
-    </thead>
+    </TableHeader>
   );
 }
 
@@ -617,9 +641,9 @@ function MessageTableBody({
   ...props
 }: ComponentProps<"tbody"> & { node?: unknown }) {
   return (
-    <tbody className={cn("divide-y divide-border", className)} {...props}>
+    <TableBody className={className} {...props}>
       {children}
-    </tbody>
+    </TableBody>
   );
 }
 
@@ -630,9 +654,9 @@ function MessageTableRow({
   ...props
 }: ComponentProps<"tr"> & { node?: unknown }) {
   return (
-    <tr className={cn("border-border", className)} {...props}>
+    <TableRow className={className} {...props}>
       {children}
-    </tr>
+    </TableRow>
   );
 }
 
@@ -643,15 +667,9 @@ function MessageTableHeaderCell({
   ...props
 }: ComponentProps<"th"> & { node?: unknown }) {
   return (
-    <th
-      className={cn(
-        "h-9 whitespace-nowrap px-3 py-2 text-left align-middle font-medium text-foreground",
-        className
-      )}
-      {...props}
-    >
+    <TableHead className={className} {...props}>
       {children}
-    </th>
+    </TableHead>
   );
 }
 
@@ -662,12 +680,9 @@ function MessageTableCell({
   ...props
 }: ComponentProps<"td"> & { node?: unknown }) {
   return (
-    <td
-      className={cn("whitespace-nowrap px-3 py-2 align-middle", className)}
-      {...props}
-    >
+    <TableCell className={className} {...props}>
       {children}
-    </td>
+    </TableCell>
   );
 }
 

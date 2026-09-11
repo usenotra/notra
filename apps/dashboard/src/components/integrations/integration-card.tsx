@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  AffectedTriggersData,
+  DeleteResourceResponse,
+} from "@notra/schemas/dashboard/integrations";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Card,
@@ -25,10 +29,6 @@ import { Button } from "@/components/button";
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { LegacyEditTokenDialog as EditTokenDialog } from "@/components/integrations/legacy/edit-token-dialog";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type {
-  AffectedTriggersData,
-  DeleteResourceResponse,
-} from "@/schemas/integrations";
 import type { IntegrationCardProps } from "@/types/integrations";
 
 export function IntegrationCard({
@@ -139,6 +139,14 @@ export function IntegrationCard({
         <CardHeader>
           <CardTitle>{integration.displayName}</CardTitle>
           <CardDescription>
+            {integration.connectionMethod === "unauthenticated" ? (
+              <span className="block">
+                No saved credentials. Connect the GitHub App to publish.
+              </span>
+            ) : null}
+            {integration.connectionMethod === "personal-access-token" ? (
+              <span className="block">Personal access token</span>
+            ) : null}
             {integration.createdByUser ? (
               <>
                 Added by {integration.createdByUser.name} on{" "}
@@ -195,7 +203,9 @@ export function IntegrationCard({
                       setIsEditTokenDialogOpen(true);
                     }}
                   >
-                    Edit Personal Access Token
+                    {integration.connectionMethod === "unauthenticated"
+                      ? "Add personal access token"
+                      : "Edit personal access token"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"

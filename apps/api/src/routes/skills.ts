@@ -1,14 +1,4 @@
 import { createRoute } from "@hono/zod-openapi";
-import { skills } from "@notra/db/schema";
-import { and, asc, eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
-
-import {
-  ORGANIZATION_SCOPED_API_KEY_ERROR,
-  SKILL_NOT_FOUND_ERROR,
-  SYSTEM_SKILL_DELETE_ERROR,
-  SYSTEM_SKILL_RENAME_ERROR,
-} from "../constants/skills";
 import {
   createSkillRequestSchema,
   createSkillResponseSchema,
@@ -18,12 +8,26 @@ import {
   patchSkillResponseSchema,
   skillParamsSchema,
   skillResponseSchema,
-} from "../schemas/skills";
+} from "@notra/schemas/api/skills";
+
+import {
+  ORGANIZATION_SCOPED_API_KEY_ERROR,
+  SKILL_NOT_FOUND_ERROR,
+  SYSTEM_SKILL_DELETE_ERROR,
+  SYSTEM_SKILL_RENAME_ERROR,
+} from "../constants/skills";
+import {
+  createSkill,
+  deleteSkill,
+  getSkill,
+  listSkills,
+  patchSkill,
+} from "../programs/skills";
+import { getOrganizationId } from "../utils/auth";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse } from "../utils/openapi-responses";
-import { isPgUniqueViolation } from "../utils/pg-errors";
 import {
-  getScopedOrganizationId,
+  runSkillProgram,
   serializeSkill,
   serializeSkillSummary,
 } from "../utils/skills";
@@ -147,171 +151,97 @@ const deleteSkillRoute = createRoute({
 });
 
 skillsRoutes.openapi(listSkillsRoute, async (c) => {
-  const organizationId = getScopedOrganizationId(c);
+  const organizationId = getOrganizationId(c);
   if (!organizationId) {
     return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
   }
 
-  const rows = await c
-    .get("db")
-    .select({
-      id: skills.id,
-      name: skills.name,
-      description: skills.description,
-      isSystem: skills.isSystem,
-      updatedAt: skills.updatedAt,
-    })
-    .from(skills)
-    .where(eq(skills.organizationId, organizationId))
-    .orderBy(asc(skills.name));
+  const rows = await runSkillProgram(
+    listSkills({ db: c.get("db"), organizationId })
+  );
+  if (rows._tag === "Failure") {
+    throw rows.failure;
+  }
 
-  return c.json({ skills: rows.map(serializeSkillSummary) }, 200);
+  return c.json({ skills: rows.success.map(serializeSkillSummary) }, 200);
 });
 
 skillsRoutes.openapi(getSkillRoute, async (c) => {
-  const organizationId = getScopedOrganizationId(c);
+  const organizationId = getOrganizationId(c);
   if (!organizationId) {
     return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
   }
 
   const { name } = c.req.valid("param");
-  const skill = await c.get("db").query.skills.findFirst({
-    where: and(
-      eq(skills.organizationId, organizationId),
-      eq(skills.name, name)
-    ),
-  });
-
-  if (!skill) {
+  const result = await runSkillProgram(
+    getSkill({ db: c.get("db"), organizationId, name })
+  );
+  if (result._tag === "Failure") {
     return c.json({ error: SKILL_NOT_FOUND_ERROR }, 404);
   }
 
-  return c.json({ skill: serializeSkill(skill) }, 200);
+  return c.json({ skill: serializeSkill(result.success) }, 200);
 });
 
 skillsRoutes.openapi(createSkillRoute, async (c) => {
-  const organizationId = getScopedOrganizationId(c);
+  const organizationId = getOrganizationId(c);
   if (!organizationId) {
     return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
   }
 
   const body = c.req.valid("json");
-
-  try {
-    const [created] = await c
-      .get("db")
-      .insert(skills)
-      .values({
-        id: nanoid(),
-        organizationId,
-        name: body.name,
-        description: body.description,
-        content: body.content,
-        isSystem: false,
-      })
-      .returning();
-
-    if (!created) {
-      throw new Error("Failed to create skill");
-    }
-
-    return c.json({ skill: serializeSkill(created) }, 201);
-  } catch (error) {
-    if (isPgUniqueViolation(error)) {
-      return c.json(
-        { error: `A skill named "${body.name}" already exists` },
-        409
-      );
-    }
-    throw error;
+  const result = await runSkillProgram(
+    createSkill({ db: c.get("db"), organizationId, body })
+  );
+  if (result._tag === "Failure") {
+    return c.json(
+      { error: `A skill named "${result.failure.name}" already exists` },
+      409
+    );
   }
+  return c.json({ skill: serializeSkill(result.success) }, 201);
 });
 
 skillsRoutes.openapi(patchSkillRoute, async (c) => {
-  const organizationId = getScopedOrganizationId(c);
+  const organizationId = getOrganizationId(c);
   if (!organizationId) {
     return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
   }
 
   const { name } = c.req.valid("param");
   const body = c.req.valid("json");
-  const existing = await c.get("db").query.skills.findFirst({
-    where: and(
-      eq(skills.organizationId, organizationId),
-      eq(skills.name, name)
-    ),
-    columns: { id: true, isSystem: true },
-  });
-
-  if (!existing) {
-    return c.json({ error: SKILL_NOT_FOUND_ERROR }, 404);
-  }
-
-  const nextName = body.name ?? name;
-  if (existing.isSystem && nextName !== name) {
-    return c.json({ error: SYSTEM_SKILL_RENAME_ERROR }, 403);
-  }
-
-  try {
-    const [updated] = await c
-      .get("db")
-      .update(skills)
-      .set({
-        name: nextName,
-        description: body.description,
-        content: body.content,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(skills.organizationId, organizationId), eq(skills.name, name))
-      )
-      .returning();
-
-    if (!updated) {
+  const result = await runSkillProgram(
+    patchSkill({ db: c.get("db"), organizationId, name, body })
+  );
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "SkillNotFoundError") {
       return c.json({ error: SKILL_NOT_FOUND_ERROR }, 404);
     }
-
-    return c.json({ skill: serializeSkill(updated) }, 200);
-  } catch (error) {
-    if (isPgUniqueViolation(error)) {
-      return c.json(
-        { error: `A skill named "${nextName}" already exists` },
-        409
-      );
+    if (result.failure._tag === "SystemSkillRenameError") {
+      return c.json({ error: SYSTEM_SKILL_RENAME_ERROR }, 403);
     }
-    throw error;
+    return c.json(
+      { error: `A skill named "${result.failure.name}" already exists` },
+      409
+    );
   }
+  return c.json({ skill: serializeSkill(result.success) }, 200);
 });
 
 skillsRoutes.openapi(deleteSkillRoute, async (c) => {
-  const organizationId = getScopedOrganizationId(c);
+  const organizationId = getOrganizationId(c);
   if (!organizationId) {
     return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
   }
 
   const { name } = c.req.valid("param");
-  const existing = await c.get("db").query.skills.findFirst({
-    where: and(
-      eq(skills.organizationId, organizationId),
-      eq(skills.name, name)
-    ),
-    columns: { id: true, isSystem: true },
-  });
-
-  if (!existing) {
-    return c.json({ error: SKILL_NOT_FOUND_ERROR }, 404);
+  const result = await runSkillProgram(
+    deleteSkill({ db: c.get("db"), organizationId, name })
+  );
+  if (result._tag === "Failure") {
+    return result.failure._tag === "SkillNotFoundError"
+      ? c.json({ error: SKILL_NOT_FOUND_ERROR }, 404)
+      : c.json({ error: SYSTEM_SKILL_DELETE_ERROR }, 403);
   }
-
-  if (existing.isSystem) {
-    return c.json({ error: SYSTEM_SKILL_DELETE_ERROR }, 403);
-  }
-
-  await c
-    .get("db")
-    .delete(skills)
-    .where(
-      and(eq(skills.organizationId, organizationId), eq(skills.name, name))
-    );
-
   return c.json({ success: true as const }, 200);
 });

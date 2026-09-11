@@ -1,8 +1,9 @@
+import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
+
 import {
   COLLECTION_SOURCE_LABELS,
   COLLECTION_STATUS_LABELS,
 } from "@/constants/content-collections";
-import type { PostCollectionSummary } from "@/schemas/content";
 import type { CollectionStatus } from "@/types/content/collection";
 
 function pluralizePosts(count: number): string {

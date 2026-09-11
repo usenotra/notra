@@ -2,9 +2,8 @@
 
 import { Calendar03Icon, SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-
-import type { AffectedTrigger } from "@/schemas/integrations";
 
 interface AffectedTriggersWarningProps {
   schedules: AffectedTrigger[];

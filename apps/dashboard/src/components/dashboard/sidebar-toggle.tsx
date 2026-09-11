@@ -22,7 +22,10 @@ export function SidebarToggle({
     <Button
       aria-expanded={isOpen}
       aria-label={isOpen ? "Hide sidebar" : "Show sidebar"}
-      className={cn("cursor-pointer", className)}
+      className={cn(
+        "hover:bg-muted aria-expanded:hover:bg-muted dark:hover:bg-muted/50 dark:aria-expanded:hover:bg-muted/50 cursor-pointer bg-transparent aria-expanded:bg-transparent",
+        className
+      )}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       onClick={(event) => {

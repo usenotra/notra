@@ -10,11 +10,6 @@ import {
   upsertGeoCompetitor,
 } from "@notra/geo-core/geo/programs";
 import type { GeoCompetitorImportRow } from "@notra/geo-core/types/geo-import";
-
-import {
-  GEO_COMMON_ERROR_RESPONSES,
-  GEO_OPENAPI_TAG,
-} from "../constants/geo-openapi";
 import {
   competitorSuggestionsQuerySchema,
   competitorSuggestionsResponseSchema,
@@ -22,11 +17,16 @@ import {
   importCompetitorsResponseSchema,
   listCompetitorsResponseSchema,
   putCompetitorRequestSchema,
-} from "../schemas/geo-competitors";
+} from "@notra/schemas/api/geo-competitors";
 import {
   competitorParamsSchema,
   projectParamsSchema,
-} from "../schemas/geo-params";
+} from "@notra/schemas/api/geo-params";
+
+import {
+  GEO_COMMON_ERROR_RESPONSES,
+  GEO_OPENAPI_TAG,
+} from "../constants/geo-openapi";
 import { geoErrorResponse } from "../utils/geo";
 import { runGeoEffect } from "../utils/geo-effect";
 import { createOpenApiApp } from "../utils/openapi-app";

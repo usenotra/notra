@@ -23,7 +23,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { GeoProjectCreateDialog } from "@/components/geo/project-create-dialog";
@@ -38,12 +37,12 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useGeoProjects } from "@/lib/hooks/use-geo";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { getWebsiteDomain } from "@/utils/brand";
 import {
   getLastVisitedProjectFromClient,
   setLastVisitedProject,
 } from "@/utils/cookies";
-import { geoNavHref } from "@/utils/geo-paths";
 import { resolveNavItems } from "@/utils/nav";
 
 import { SidebarBrandHeader } from "./sidebar-brand-header";
@@ -52,11 +51,11 @@ import { SidebarLabel } from "./sidebar-label";
 const GEO_SETTINGS_ITEM = resolveNavItems([GEO_SETTINGS_NAV_LINK]).at(0);
 
 export function SidebarProjectSwitcher() {
-  const router = useRouter();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const slug = activeOrganization?.slug ?? "";
   const [projectParam, setProjectParam] = useGeoProjectQueryState();
+  const { openSettings } = useSettingsModal();
   const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isPending } = useGeoProjects(organizationId);
@@ -117,11 +116,6 @@ export function SidebarProjectSwitcher() {
   }
 
   const activeDomain = projectDomain(activeProject.brandSettingsId);
-  const settingsHref = geoNavHref(
-    slug,
-    GEO_SETTINGS_NAV_LINK,
-    activeProject.id
-  );
 
   return (
     <>
@@ -138,11 +132,11 @@ export function SidebarProjectSwitcher() {
                   <ProjectLogo
                     className="size-7 rounded-lg"
                     domain={activeDomain}
-                    fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
+                    fallbackClassName="bg-sidebar-accent rounded-lg"
                     name={activeProject.name}
                   />
                   <div className="grid min-w-0 flex-1 leading-tight">
-                    <SidebarLabel className="truncate text-sm font-semibold">
+                    <SidebarLabel className="truncate text-sm font-medium">
                       {activeProject.name}
                     </SidebarLabel>
                     {activeDomain ? (
@@ -205,7 +199,7 @@ export function SidebarProjectSwitcher() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer gap-2"
-                onClick={() => router.push(settingsHref)}
+                onClick={() => openSettings("geo-brand")}
               >
                 <HugeiconsIcon
                   icon={GEO_SETTINGS_ITEM?.icon ?? Settings01Icon}

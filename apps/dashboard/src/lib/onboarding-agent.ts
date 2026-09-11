@@ -10,6 +10,11 @@ import {
 import { buildExternalChannelName } from "@notra/ai/utils/slack";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, organizations } from "@notra/db/schema";
+import {
+  eveCreateSessionResponseSchema,
+  OnboardingAgentCompensationError,
+  OnboardingAgentTriggerError,
+} from "@notra/schemas/dashboard/onboarding-agent";
 import { getVercelOidcToken } from "@vercel/oidc";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { Effect } from "effect";
@@ -30,11 +35,6 @@ import {
 import { isEduEmail } from "@/lib/onboarding/edu-email";
 import { buildOnboardingAgentMessage } from "@/lib/onboarding/onboarding-agent-message";
 import { startOnboardingAgentRun } from "@/lib/workflows/start";
-import {
-  eveCreateSessionResponseSchema,
-  OnboardingAgentCompensationError,
-  OnboardingAgentTriggerError,
-} from "@/schemas/onboarding-agent";
 import type {
   EnsureDefaultBrandIdentityInput,
   LaunchReservedOnboardingAgentInput,

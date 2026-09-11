@@ -10,6 +10,7 @@ import {
   Share01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { TextSelection } from "@notra/schemas/dashboard/content";
 import {
   Avatar,
   AvatarFallback,
@@ -38,7 +39,6 @@ import {
   TWEET_COUNTER_WARNING_REMAINING,
 } from "@/constants/twitter";
 import { cn } from "@/lib/utils";
-import type { TextSelection } from "@/schemas/content";
 import type { TwitterPostProps } from "@/types/content/twitter-post";
 import { formatTweetContent } from "@/utils/format-tweet-content";
 import {

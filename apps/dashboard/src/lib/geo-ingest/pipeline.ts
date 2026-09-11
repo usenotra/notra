@@ -54,9 +54,10 @@ const authenticate = Effect.fn("geoIngest.authenticate")(function* (
 const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
   organizationId: string
 ) {
-  const { success } = yield* Effect.promise(() =>
-    ratelimit.geoIngest.limit(organizationId)
-  );
+  const { success } = yield* Effect.tryPromise({
+    try: () => ratelimit.geoIngest.limit(organizationId),
+    catch: (cause) => new GeoIngestFailedError({ cause }),
+  });
   if (!success) {
     return yield* Effect.fail(
       new GeoIngestRateLimitedError({ organizationId })

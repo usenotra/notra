@@ -31,7 +31,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { useCustomer } from "autumn-js/react";
 import Link from "next/link";
 import {
   useCallback,
@@ -48,6 +47,7 @@ import { ChatContextOptionContent } from "@/components/chat/chat-context-option-
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
 import { Composer } from "@/components/composer/composer-shell";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   ChatInputProps,
@@ -89,7 +89,11 @@ const ChatInput = ({
   const [internalValue, setInternalValue] = useState("");
   const [internalError, setInternalError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { check, data: customer, refetch: refetchCustomer } = useCustomer();
+  const {
+    check,
+    data: customer,
+    refetch: refetchCustomer,
+  } = useBillingCustomer();
 
   useAutumnRefreshListener(refetchCustomer);
 

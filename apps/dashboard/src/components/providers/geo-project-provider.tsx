@@ -18,7 +18,7 @@ export function GeoProjectProvider({
 }: GeoProjectProviderProps) {
   const value = useMemo(() => ({ projectId }), [projectId]);
   return (
-    <GeoProjectContext.Provider value={value}>
+    <GeoProjectContext.Provider key={projectId ?? ""} value={value}>
       {children}
     </GeoProjectContext.Provider>
   );

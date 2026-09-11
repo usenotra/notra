@@ -1,4 +1,8 @@
-import { CRON_FREQUENCIES, type CronFrequency } from "@/schemas/integrations";
+import {
+  CRON_FREQUENCIES,
+  type CronFrequency,
+} from "@notra/schemas/dashboard/integrations";
+
 import type { ScheduleCron } from "@/types/automation/schedule";
 
 export const DEFAULT_SCHEDULE: ScheduleCron = {

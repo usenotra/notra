@@ -1,5 +1,5 @@
 {
-  "id": "123aaac7-9880-4086-9e86-ba7e31615e5c",
+  "id": "a01d75ab-137a-4696-9fcd-560c91f7a525",
   "prevId": "d9cc9fdb-bcc0-4493-96b2-5f86d9122433",
   "version": "7",
   "dialect": "postgresql",
@@ -6111,6 +6111,13 @@
           "notNull": true,
           "default": "ARRAY[]::text[]"
         },
+        "removed_auto_prompt_ids": {
+          "name": "removed_auto_prompt_ids",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
+        },
         "enabled": {
           "name": "enabled",
           "type": "boolean",
@@ -6127,12 +6134,6 @@
         },
         "next_scan_at": {
           "name": "next_scan_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "scan_lease_until": {
-          "name": "scan_lease_until",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false

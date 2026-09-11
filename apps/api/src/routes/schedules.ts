@@ -8,10 +8,6 @@ import {
   contentTriggers,
   githubIntegrations,
 } from "@notra/db/schema";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
-// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import * as z from "zod";
-
 import {
   createScheduleRequestSchema,
   scheduleTargetsRepositoryIdsSchema,
@@ -24,7 +20,11 @@ import {
   scheduleResponseSchema,
   scheduleSourceConfigSchema,
   scheduleTargetsSchema,
-} from "../schemas/schedules";
+} from "@notra/schemas/api/schedules";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
+import * as z from "zod";
+
 import type {
   ScheduleTriggerRow,
   ScheduleTriggerWithLookbackWindow,
@@ -34,15 +34,12 @@ import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
-import {
-  buildCronExpression,
-  createQstashSchedule,
-  deleteQstashSchedule,
-} from "../utils/qstash";
+import { buildCronExpression, createQstashSchedule } from "../utils/qstash";
 import {
   ORGANIZATION_SCHEDULE_PATH_REGEX,
   ORGANIZATION_SCHEDULES_PATH_REGEX,
 } from "../utils/regex";
+import { deleteQstashScheduleWithRetry } from "../utils/triggers";
 
 export const schedulesRoutes = createOpenApiApp();
 
@@ -628,7 +625,14 @@ schedulesRoutes.openapi(createScheduleRoute, async (c) => {
     return c.json({ schedule, organization }, 201);
   } catch (error) {
     if (qstashScheduleId) {
-      await deleteQstashSchedule(env, qstashScheduleId).catch(() => null);
+      try {
+        await deleteQstashScheduleWithRetry(env, qstashScheduleId);
+      } catch (cleanupError) {
+        logError(
+          `Failed to clean up replacement QStash schedule ${qstashScheduleId} for new schedule ${triggerId}`,
+          cleanupError
+        );
+      }
     }
 
     logError("Failed to create schedule", error);
@@ -672,18 +676,6 @@ schedulesRoutes.openapi(patchScheduleRoute, async (c) => {
     return c.json({ error: "Duplicate schedule" }, 409);
   }
 
-  const existing = await db.query.contentTriggers.findFirst({
-    where: and(
-      eq(contentTriggers.id, scheduleId),
-      eq(contentTriggers.organizationId, orgId),
-      eq(contentTriggers.sourceType, "cron")
-    ),
-  });
-
-  if (!existing) {
-    return c.json({ error: "Schedule not found" }, 404);
-  }
-
   if (input.enabled) {
     const missingTargets = await ensureScheduleTargetsExist(
       db,
@@ -697,34 +689,51 @@ schedulesRoutes.openapi(patchScheduleRoute, async (c) => {
     }
   }
 
-  const persistedName =
-    input.name.trim() || existing.name || DEFAULT_SCHEDULE_NAME;
-  const cronExpression = buildCronExpression(normalized.sourceConfig.cron);
-  const previousQstashScheduleId = existing.qstashScheduleId ?? null;
-  let qstashScheduleId: string | null = null;
+  const affectedQstashIds = new Set<string>();
+  let committed = false;
+  try {
+    const response = await db.transaction(async (tx) => {
+      // Lock before reading or changing remote state. Concurrent PATCHes must
+      // observe the preceding request's committed configuration.
+      const [existing] = await tx
+        .select()
+        .from(contentTriggers)
+        .where(
+          and(
+            eq(contentTriggers.id, scheduleId),
+            eq(contentTriggers.organizationId, orgId),
+            eq(contentTriggers.sourceType, "cron")
+          )
+        )
+        .for("update");
 
-  if (input.enabled) {
-    try {
-      qstashScheduleId = await createQstashSchedule(env, {
-        triggerId: scheduleId,
-        cron: cronExpression,
-      });
-    } catch (error) {
-      const mapped = mapQstashError(error);
-      if (mapped.status === 400) {
-        return c.json({ error: mapped.error }, 400);
+      if (!existing) {
+        return c.json({ error: "Schedule not found" }, 404);
       }
 
-      return c.json({ error: mapped.error }, 500);
-    }
-  }
+      let qstashScheduleId: string | null = null;
+      if (input.enabled) {
+        // Choose the ID before sending so even a lost response is recoverable.
+        qstashScheduleId = existing.qstashScheduleId ?? crypto.randomUUID();
+        affectedQstashIds.add(qstashScheduleId);
+        const returnedId = await createQstashSchedule(env, {
+          triggerId: scheduleId,
+          cron: buildCronExpression(normalized.sourceConfig.cron),
+          scheduleId: qstashScheduleId,
+        });
+        affectedQstashIds.add(returnedId);
+        if (returnedId !== qstashScheduleId) {
+          throw new Error("QStash returned an unexpected schedule ID");
+        }
+      } else if (existing.qstashScheduleId) {
+        affectedQstashIds.add(existing.qstashScheduleId);
+        await deleteQstashScheduleWithRetry(env, existing.qstashScheduleId);
+      }
 
-  try {
-    const schedule = await db.transaction(async (tx) => {
       const [updatedTrigger] = await tx
         .update(contentTriggers)
         .set({
-          name: persistedName,
+          name: input.name.trim() || existing.name || DEFAULT_SCHEDULE_NAME,
           sourceType: "cron",
           sourceConfig: normalized.sourceConfig,
           targets: normalized.targets,
@@ -762,23 +771,69 @@ schedulesRoutes.openapi(patchScheduleRoute, async (c) => {
           },
         });
 
-      return serializeSchedule({
+      const schedule = serializeSchedule({
         ...updatedTrigger,
         lookbackWindow: input.lookbackWindow,
       });
+      return c.json({ schedule, organization }, 200);
     });
-
-    if (previousQstashScheduleId) {
-      await deleteQstashSchedule(env, previousQstashScheduleId);
-    }
-
-    return c.json({ schedule, organization }, 200);
+    committed = true;
+    return response;
   } catch (error) {
-    if (qstashScheduleId) {
-      await deleteQstashSchedule(env, qstashScheduleId).catch(() => null);
+    if (!committed && affectedQstashIds.size > 0) {
+      try {
+        await db.transaction(async (tx) => {
+          // The failed transaction released its lock. Re-read under a new lock:
+          // another request may have committed while recovery was waiting.
+          const [current] = await tx
+            .select()
+            .from(contentTriggers)
+            .where(
+              and(
+                eq(contentTriggers.id, scheduleId),
+                eq(contentTriggers.organizationId, orgId),
+                eq(contentTriggers.sourceType, "cron")
+              )
+            )
+            .for("update");
+          const currentQstashId = current?.enabled
+            ? current.qstashScheduleId
+            : null;
+
+          if (currentQstashId && current) {
+            const config = scheduleSourceConfigSchema.parse(
+              current.sourceConfig
+            );
+            const restoredId = await createQstashSchedule(env, {
+              triggerId: scheduleId,
+              cron: buildCronExpression(config.cron),
+              scheduleId: currentQstashId,
+            });
+            if (restoredId !== currentQstashId) {
+              await deleteQstashScheduleWithRetry(env, restoredId);
+              throw new Error("QStash returned an unexpected restoration ID");
+            }
+          }
+
+          for (const affectedId of affectedQstashIds) {
+            if (affectedId !== currentQstashId) {
+              await deleteQstashScheduleWithRetry(env, affectedId);
+            }
+          }
+        });
+      } catch (recoveryError) {
+        logError(
+          `Failed to reconcile QStash schedules ${[...affectedQstashIds].join(", ")} for schedule ${scheduleId}; retry PATCH to heal`,
+          recoveryError
+        );
+      }
     }
 
     logError("Failed to update schedule", error);
+    const mapped = mapQstashError(error);
+    if (mapped.status === 400) {
+      return c.json({ error: mapped.error }, 400);
+    }
     return c.json({ error: "Failed to update schedule" }, 500);
   }
 });
@@ -804,30 +859,36 @@ schedulesRoutes.openapi(deleteScheduleRoute, async (c) => {
     QSTASH_TOKEN?: string;
     WORKFLOW_BASE_URL?: string;
   };
-  const existing = await db.query.contentTriggers.findFirst({
-    where: and(
-      eq(contentTriggers.id, scheduleId),
-      eq(contentTriggers.organizationId, orgId),
-      eq(contentTriggers.sourceType, "cron")
-    ),
-  });
-
-  if (!existing) {
-    return c.json({ error: "Schedule not found" }, 404);
-  }
-
-  if (existing.qstashScheduleId) {
-    await deleteQstashSchedule(env, existing.qstashScheduleId);
-  }
-
-  await db
-    .delete(contentTriggers)
-    .where(
-      and(
-        eq(contentTriggers.id, scheduleId),
-        eq(contentTriggers.organizationId, orgId)
+  return db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select()
+      .from(contentTriggers)
+      .where(
+        and(
+          eq(contentTriggers.id, scheduleId),
+          eq(contentTriggers.organizationId, orgId),
+          eq(contentTriggers.sourceType, "cron")
+        )
       )
-    );
+      .for("update");
 
-  return c.json({ id: scheduleId, organization }, 200);
+    if (!existing) {
+      return c.json({ error: "Schedule not found" }, 404);
+    }
+
+    if (existing.qstashScheduleId) {
+      await deleteQstashScheduleWithRetry(env, existing.qstashScheduleId);
+    }
+
+    await tx
+      .delete(contentTriggers)
+      .where(
+        and(
+          eq(contentTriggers.id, scheduleId),
+          eq(contentTriggers.organizationId, orgId)
+        )
+      );
+
+    return c.json({ id: scheduleId, organization }, 200);
+  });
 });

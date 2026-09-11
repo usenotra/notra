@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { slackAuthorizeQuerySchema } from "@notra/schemas/dashboard/slack-integration";
 import { ORPCError } from "@orpc/server";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -8,7 +9,6 @@ import {
 } from "@/constants/slack-integration";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { slackOAuthErrorParam } from "@/lib/integrations/slack/oauth-errors";
-import { slackAuthorizeQuerySchema } from "@/schemas/slack-integration";
 import { ratelimit } from "@/utils/ratelimit";
 
 // react-doctor-disable-next-line nextjs-no-side-effect-in-get-handler

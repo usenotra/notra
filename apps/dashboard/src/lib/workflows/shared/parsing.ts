@@ -1,12 +1,13 @@
-import { DEFAULT_LOOKBACK_WINDOW } from "@/constants/workflows";
 import {
   type LookbackWindow,
   triggerTargetsSchema,
-} from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/integrations";
 import {
   nullableTriggerOutputConfigSchema,
   workflowLookbackWindowSchema,
-} from "@/schemas/workflows";
+} from "@notra/schemas/dashboard/workflows";
+
+import { DEFAULT_LOOKBACK_WINDOW } from "@/constants/workflows";
 
 export function parseLookbackWindow(value: unknown): LookbackWindow {
   const parsedLookbackWindow = workflowLookbackWindowSchema.safeParse(value);

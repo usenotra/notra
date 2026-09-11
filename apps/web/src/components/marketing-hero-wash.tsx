@@ -13,7 +13,7 @@ export function MarketingHeroWash({
     <section className={cn("w-full px-6 pt-6", className)}>
       <div className="relative isolate overflow-clip rounded-3xl bg-[#C8B2EE40] dark:bg-[#2a2140]">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither className="absolute -top-1.25 -left-10.75 h-[66.125rem] w-[calc(100%+21.5rem)] min-w-[100.8125rem] bg-[#00000000]" />
+          <HeroDither />
         </div>
         <div className="relative flex flex-col items-center gap-5 px-6 pt-28 pb-16 text-center md:px-24 lg:pt-[9.5rem] lg:pb-24">
           <h1 className="font-display max-w-[56.875rem] text-[2.5rem] leading-[1.08] font-medium tracking-[-0.015em] text-balance text-[#1E1E1E] sm:text-[3.25rem] lg:text-[4rem] lg:leading-[1.12] dark:text-white">

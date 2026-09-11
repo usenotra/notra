@@ -1,5 +1,5 @@
-import { errorResponseSchema } from "../schemas/content";
-import { rateLimitResponseSchema } from "../schemas/responses";
+import { errorResponseSchema } from "@notra/schemas/api/content";
+import { rateLimitResponseSchema } from "@notra/schemas/api/responses";
 
 export function errorResponse(description: string) {
   return {

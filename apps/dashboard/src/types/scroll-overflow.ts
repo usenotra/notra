@@ -1,13 +1,6 @@
 import type { RefObject } from "react";
 
-export interface ScrollOverflowState {
-  hiddenBelow: number;
-  atEnd: boolean;
-}
-
-export interface ScrollOverflow<
-  T extends HTMLElement,
-> extends ScrollOverflowState {
+export interface ScrollOverflow<T extends HTMLElement> {
   ref: RefObject<T | null>;
-  scrollToEnd: (smooth: boolean) => void;
+  atEnd: boolean;
 }

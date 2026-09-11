@@ -6,17 +6,10 @@ import {
   updateGeoSequence,
 } from "@notra/geo-core/geo/sequences";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-
-import { API_TRIGGER_SOURCE } from "../constants/analytics";
-import { GEO_SEQUENCE_RUN_INTERNAL_PATH } from "../constants/geo";
-import {
-  GEO_COMMON_ERROR_RESPONSES,
-  GEO_OPENAPI_TAG,
-} from "../constants/geo-openapi";
 import {
   projectParamsSchema,
   sequenceParamsSchema,
-} from "../schemas/geo-params";
+} from "@notra/schemas/api/geo-params";
 import {
   createSequenceRequestSchema,
   deleteSequenceResponseSchema,
@@ -24,8 +17,15 @@ import {
   patchSequenceRequestSchema,
   runSequenceResponseSchema,
   sequenceResponseSchema,
-} from "../schemas/geo-sequences";
-import { internalGeoSequenceRunResponseSchema } from "../schemas/internal-geo";
+} from "@notra/schemas/api/geo-sequences";
+import { internalGeoSequenceRunResponseSchema } from "@notra/schemas/api/internal-geo";
+
+import { API_TRIGGER_SOURCE } from "../constants/analytics";
+import { GEO_SEQUENCE_RUN_INTERNAL_PATH } from "../constants/geo";
+import {
+  GEO_COMMON_ERROR_RESPONSES,
+  GEO_OPENAPI_TAG,
+} from "../constants/geo-openapi";
 import { trackApiEvent } from "../utils/analytics";
 import { geoErrorResponse } from "../utils/geo";
 import { runGeoEffect, runRemoteGeoEffect } from "../utils/geo-effect";

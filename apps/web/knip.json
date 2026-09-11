@@ -5,12 +5,21 @@
   "ignoreIssues": {
     "mdx-components.tsx": ["exports"],
     "source.config.ts": ["files", "exports"],
+    "src/schemas/content.ts": ["files", "exports"],
+    "src/constants/content.ts": ["exports"],
+    "src/app/(site)/(blog)/blog/[slug]/page.tsx": ["unresolved"],
     "src/app/(site)/(changelog)/changelog/[name]/[slug]/page.tsx": [
       "unresolved"
     ],
     "src/app/(site)/(changelog)/changelog/[name]/page.tsx": ["unresolved"],
     "src/app/(site)/(changelog)/changelog/page.tsx": ["unresolved"],
+    "src/app/(site)/(changelog)/changelog/notra/[slug]/page.tsx": [
+      "unresolved"
+    ],
     "src/app/sitemap.ts": ["unresolved"],
+    "src/utils/authors.ts": ["unresolved"],
+    "src/utils/blog.ts": ["unresolved"],
+    "src/utils/changelog.ts": ["unresolved"],
     "src/utils/llms.ts": ["unresolved"],
     "src/utils/markdown-twins.ts": ["unresolved"]
   }

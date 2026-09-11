@@ -4,6 +4,7 @@ import { Moon02Icon, Sun02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import { SPRING } from "@notra/ui/lib/motion";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import {
   AnimatePresence,
   domAnimation,
@@ -72,6 +73,8 @@ export function ThemeToggle() {
     setTheme(isDark ? "light" : "dark");
   }
 
+  useHotkey("D", handleToggle, { enabled: mounted });
+
   let ariaLabel = "Toggle theme";
   if (mounted && isDark) {
     ariaLabel = "Switch to light mode";
@@ -82,6 +85,7 @@ export function ThemeToggle() {
   return (
     <LazyMotion features={domAnimation} strict>
       <Button
+        aria-keyshortcuts="d"
         aria-label={ariaLabel}
         aria-pressed={mounted ? isDark : undefined}
         className="text-foreground h-9 w-9 overflow-visible rounded-lg p-0"

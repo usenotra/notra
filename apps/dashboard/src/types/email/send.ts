@@ -1,11 +1,19 @@
 import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
 import type { FeedbackSentiment } from "@notra/email/types/feedback";
 import type { WorkflowPausedReason } from "@notra/email/types/workflow-paused";
+import type { Resend } from "resend";
 
 export interface EmailResult {
   data: { id: string } | null;
   error: { name: string; message: string } | null;
 }
+
+export interface EmailRetryFailure {
+  result: EmailResult;
+  retryable: boolean;
+}
+
+export type EmailPayload = Parameters<Resend["emails"]["send"]>[0];
 
 export interface SendFeedbackEmailProps {
   to: string;

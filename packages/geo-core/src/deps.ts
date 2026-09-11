@@ -1,12 +1,31 @@
 import { Context } from "effect";
 
+import type { AgentReadinessNetworkShape } from "./types/agent-readiness";
 import type {
   GeoContentBillingServiceShape,
   GeoEntitlementServiceShape,
   GeoFeatureFlagServiceShape,
   GeoGenerationServiceShape,
   GeoWorkflowServiceShape,
+  GeoSearchConsoleServiceShape,
 } from "./types/deps";
+import type { GeoModelServiceShape } from "./types/model";
+
+export class AgentReadinessNetwork extends Context.Service<
+  AgentReadinessNetwork,
+  AgentReadinessNetworkShape
+>()("@notra/geo-core/AgentReadinessNetwork") {}
+
+/** Paid model I/O. Host runtimes supply the live adapter; tests supply answers. */
+export class GeoModelService extends Context.Service<
+  GeoModelService,
+  GeoModelServiceShape
+>()("@notra/geo-core/GeoModelService") {}
+
+export class GeoSearchConsoleService extends Context.Service<
+  GeoSearchConsoleService,
+  GeoSearchConsoleServiceShape
+>()("@notra/geo-core/GeoSearchConsoleService") {}
 
 /** Host-owned workflow starters used by GEO domain programs. */
 export class GeoWorkflowService extends Context.Service<

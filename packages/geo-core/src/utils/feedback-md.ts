@@ -106,13 +106,15 @@ async function readFeedbackMarkdown(response: Response): Promise<string> {
 }
 
 export async function checkFeedbackMarkdown(
-  targetUrl: string
+  targetUrl: string,
+  signal?: AbortSignal
 ): Promise<AgentReadinessIssue | null> {
   const feedbackUrl = new URL(FEEDBACK_MD_PATH, targetUrl);
   try {
     const response = await fetchPublicUrl(
       feedbackUrl,
       {
+        signal,
         headers: {
           Accept: `${FEEDBACK_MD_CONTENT_TYPE},text/plain;q=0.9`,
           "User-Agent": AGENT_READINESS_USER_AGENT,

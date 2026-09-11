@@ -1,13 +1,13 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef } from "react";
-
-import type { UpdateBrandSettingsInput } from "@/schemas/brand";
+import type { UpdateBrandSettingsInput } from "@notra/schemas/dashboard/brand";
 import type {
   AffectedTriggersData,
   DeleteResourceResponse,
-} from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/integrations";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef } from "react";
+
 import type {
   BrandSettings,
   BrandSettingsResponse,

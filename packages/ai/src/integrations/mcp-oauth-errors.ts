@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export class McpOAuthAuthorizationError extends Schema.TaggedErrorClass<McpOAuthAuthorizationError>()(
+export class McpOAuthAuthorizationError extends Schema.TaggedError<McpOAuthAuthorizationError>()(
   "McpOAuthAuthorizationError",
   {
     message: Schema.String,
@@ -12,7 +12,7 @@ export class McpOAuthAuthorizationError extends Schema.TaggedErrorClass<McpOAuth
   }
 }
 
-export class McpOAuthRefreshTokenRequiredError extends Schema.TaggedErrorClass<McpOAuthRefreshTokenRequiredError>()(
+export class McpOAuthRefreshTokenRequiredError extends Schema.TaggedError<McpOAuthRefreshTokenRequiredError>()(
   "McpOAuthRefreshTokenRequiredError",
   { message: Schema.String }
 ) {
@@ -24,7 +24,7 @@ export class McpOAuthRefreshTokenRequiredError extends Schema.TaggedErrorClass<M
   }
 }
 
-export class McpOAuthReauthorizationRequiredError extends Schema.TaggedErrorClass<McpOAuthReauthorizationRequiredError>()(
+export class McpOAuthReauthorizationRequiredError extends Schema.TaggedError<McpOAuthReauthorizationRequiredError>()(
   "McpOAuthReauthorizationRequiredError",
   { message: Schema.String }
 ) {
@@ -33,7 +33,7 @@ export class McpOAuthReauthorizationRequiredError extends Schema.TaggedErrorClas
   }
 }
 
-export class McpOAuthNameConflictError extends Schema.TaggedErrorClass<McpOAuthNameConflictError>()(
+export class McpOAuthNameConflictError extends Schema.TaggedError<McpOAuthNameConflictError>()(
   "McpOAuthNameConflictError",
   { message: Schema.String }
 ) {

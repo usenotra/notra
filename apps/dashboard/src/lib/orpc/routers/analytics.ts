@@ -1,4 +1,13 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  analyticsOrganizationInputSchema,
+  analyticsPostingPerformanceInputSchema,
+  analyticsTimeseriesInputSchema,
+  analyticsTopPostsInputSchema,
+  leaderboardInputSchema,
+  trackAccountInputSchema,
+  untrackAccountInputSchema,
+} from "@notra/schemas/dashboard/analytics";
 
 import { assertAnalyticsEnabled } from "@/lib/analytics/access";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -18,15 +27,6 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import { toAnalyticsOrpcError } from "@/lib/orpc/utils/analytics-errors";
-import {
-  analyticsOrganizationInputSchema,
-  analyticsPostingPerformanceInputSchema,
-  analyticsTimeseriesInputSchema,
-  analyticsTopPostsInputSchema,
-  leaderboardInputSchema,
-  trackAccountInputSchema,
-  untrackAccountInputSchema,
-} from "@/schemas/analytics";
 import type {
   EngagementTimeseriesResponse,
   FollowerGrowthResponse,

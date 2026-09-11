@@ -92,7 +92,11 @@ export default async function Image({ params }: BlogAuthorPageProps) {
           alt=""
           height={180}
           src={authorImage}
-          style={{ borderRadius: "9999px" }}
+          style={{
+            borderRadius: authorImageDataUrl ? "9999px" : 0,
+            objectFit: authorImageDataUrl ? "cover" : "contain",
+            flexShrink: 0,
+          }}
           width={180}
         />
         <div style={{ display: "flex", flexDirection: "column" }}>

@@ -1,10 +1,10 @@
 "use client";
 
+import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Loader2Icon } from "lucide-react";
 
-import { GEO_SHELF_TITLE_MAX_LENGTH } from "@/constants/geo-shelf";
 import type { GeoShelfTitleFieldProps } from "@/types/geo-shelf";
 
 export function ShelfTitleField({

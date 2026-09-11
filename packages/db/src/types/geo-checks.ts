@@ -89,9 +89,22 @@ export interface GeoCheckPromptResultRow {
 }
 
 export interface GeoCheckPromptHistoryQuery {
+  scanId?: string;
   promptIds: string[];
   limit: number;
 }
+
+export type GeoCheckPromptSummaryRow = Pick<
+  GeoCheckPromptResultRow,
+  | "promptId"
+  | "engine"
+  | "prompt"
+  | "mentioned"
+  | "position"
+  | "sentiment"
+  | "competitors"
+  | "lastCheckedAt"
+> & { checkId: string };
 
 export interface GeoCheckPromptHistoryRow {
   id: string;

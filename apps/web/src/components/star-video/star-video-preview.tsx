@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 
 import { normalizeHex } from "@/lib/star-video/color";
+import { fetchRepoStarData } from "@/lib/star-video/fetch-repo";
 import {
   getGithubLogin,
   getServerGithubLogin,
@@ -86,45 +87,37 @@ export function StarVideoPreview() {
     }
     hasMounted.current = true;
 
-    if (!githubConnected) {
+    if (!githubConnected || !parsed) {
       setData(null);
       setIsLoading(false);
       return;
     }
 
-    if (!parsed) {
-      return;
-    }
-
     const controller = new AbortController();
+    setData(null);
     setIsLoading(true);
 
-    (async () => {
-      try {
-        const response = await fetch(
-          `/api/star-video/repo?owner=${encodeURIComponent(parsed.owner)}&repo=${encodeURIComponent(parsed.repo)}`,
-          { signal: controller.signal }
-        );
-        if (response.ok) {
-          const json: RepoStarData = await response.json();
-          setData(json);
-        } else {
-          const json: { error?: string } = await response
-            .json()
-            .catch(() => ({}));
-          setData(null);
-          toast.error(json.error ?? "Could not load that repository.");
+    fetchRepoStarData(parsed.owner, parsed.repo, controller.signal)
+      .then((result) => {
+        if (controller.signal.aborted) {
+          return;
         }
-      } catch {
+        setData(result.data);
+        if (result.error) {
+          toast.error(result.error);
+        }
+      })
+      .catch(() => {
         if (!controller.signal.aborted) {
           setData(null);
           toast.error("Something went wrong loading that repository.");
         }
-      }
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    })();
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
 
     return () => controller.abort();
   }, [repoParam, githubConnected]);

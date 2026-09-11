@@ -2,6 +2,21 @@
 
 import { ArrowDown01Icon, CpuIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  commitsByTimeframeInputSchema,
+  type MemoryToolInput,
+  memoryIdentifierInputSchema,
+  memoryIdentifierOutputSchema,
+  memoryToolInputSchema,
+  pullRequestInputSchema,
+  pullRequestOutputSchema,
+  releaseInputSchema,
+  releaseOutputSchema,
+  type StringToolField,
+  stringToolFieldsSchema,
+  webSearchInputSchema,
+  webSearchOutputSchema,
+} from "@notra/schemas/dashboard/ai/chat-tool-block";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Avatar,
@@ -21,21 +36,6 @@ import { type ReactNode, useState } from "react";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
-import {
-  commitsByTimeframeInputSchema,
-  type MemoryToolInput,
-  memoryIdentifierInputSchema,
-  memoryIdentifierOutputSchema,
-  memoryToolInputSchema,
-  pullRequestInputSchema,
-  pullRequestOutputSchema,
-  releaseInputSchema,
-  releaseOutputSchema,
-  type StringToolField,
-  stringToolFieldsSchema,
-  webSearchInputSchema,
-  webSearchOutputSchema,
-} from "@/schemas/ai/chat-tool-block";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 
 import {
@@ -44,9 +44,11 @@ import {
   getMcpToolLabel,
   isMcpToolName,
 } from "./chat-tool-block/mcp/utils";
+import { ToolDraftPreview } from "./chat-tool-block/tool-draft-preview";
+import { ToolOutputChart } from "./chat-tool-block/tool-output-chart";
 import { ToolOutputImages } from "./chat-tool-block/tool-output-images";
-import { collectToolOutputImages } from "./chat-tool-block/tool-output-images/utils";
 import type { ChatToolBlockProps, ToolCopy } from "./chat-tool-block/types";
+import { resolveChatToolBlockVisuals } from "./chat-tool-block/visuals";
 
 const TOOL_DETAILS_PANEL_CLASSNAME =
   "h-[var(--collapsible-panel-height)] overflow-hidden outline-none transition-[height,opacity] duration-normal ease-emphasized data-[ending-style]:h-0 data-[starting-style]:h-0 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-none";
@@ -429,6 +431,31 @@ const TOOL_COPY: Record<string, ToolCopy> = {
       isStreaming ? "Generating image — usually 3–8 minutes" : undefined,
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
+  createBlogPost: {
+    verbs: ["Drafting", "Drafted"],
+    noun: "blog post",
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
+  createChangelog: {
+    verbs: ["Drafting", "Drafted"],
+    noun: "changelog",
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
+  createTwitterPost: {
+    verbs: ["Drafting", "Drafted"],
+    noun: "Twitter post",
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
+  createLinkedInPost: {
+    verbs: ["Drafting", "Drafted"],
+    noun: "LinkedIn post",
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
+  createInvestorUpdate: {
+    verbs: ["Drafting", "Drafted"],
+    noun: "investor update",
+    suffix: (input) => quotedSuffix(input, ["title"]),
+  },
   reviseImage: {
     verbs: ["Revising", "Revised"],
     noun: "image",
@@ -728,6 +755,7 @@ export function ChatToolBlock({
   output,
   onApprove,
   onDeny,
+  editorHref,
   isMcp = false,
   iconUrl,
   mcpLogoDarkUrl,
@@ -762,9 +790,29 @@ export function ChatToolBlock({
     : defaultSubtitle;
   const hasInput = input != null;
   const hasOutput = output != null;
-  const hasApprovalActions = isAwaitingApproval && (onApprove || onDeny);
-  const showJsonDetails = hasInput || hasOutput;
-  const hasDetails = showJsonDetails || hasApprovalActions;
+  const {
+    chart,
+    draft,
+    showDraftPreview,
+    hasApprovalActions,
+    showJsonInput,
+    showJsonOutput,
+    showJsonDetails,
+    hasDetails,
+    outputImages,
+  } = resolveChatToolBlockVisuals({
+    toolName,
+    input,
+    output,
+    hasInput,
+    hasOutput,
+    isError,
+    isStreaming,
+    isAwaitingApproval,
+    editorHref,
+    onApprove,
+    onDeny,
+  });
   const detailsOutput =
     toolName === "editMarkdown" &&
     output !== null &&
@@ -776,10 +824,6 @@ export function ChatToolBlock({
           )
         )
       : output;
-  const outputImages =
-    hasOutput && !isError && !isStreaming
-      ? collectToolOutputImages(output)
-      : [];
   let toolIcon: ReactNode = null;
 
   if (isMcp) {
@@ -840,12 +884,22 @@ export function ChatToolBlock({
         />
       </CollapsibleTrigger>
       <ToolOutputImages images={outputImages} />
+      {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
+      {showDraftPreview && draft ? (
+        <ToolDraftPreview
+          editorHref={editorHref}
+          markdown={draft.markdown}
+          onApprove={isAwaitingApproval ? onApprove : undefined}
+          onDeny={isAwaitingApproval ? onDeny : undefined}
+          title={draft.title}
+        />
+      ) : null}
       <CollapsibleContent className={TOOL_DETAILS_PANEL_CLASSNAME}>
         <div className="mt-3 space-y-4">
-          {showJsonDetails && hasInput ? (
+          {showJsonDetails && showJsonInput ? (
             <ToolDataSection label="Input" value={input} />
           ) : null}
-          {showJsonDetails && hasOutput ? (
+          {showJsonDetails && showJsonOutput ? (
             <ToolDataSection label="Output" value={detailsOutput} />
           ) : null}
           {hasApprovalActions ? (

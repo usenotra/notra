@@ -16,6 +16,7 @@ import {
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
+import { Button } from "@notra/ui/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -48,7 +49,7 @@ const HERO_CHART_OPTIONS = {
 const TRAFFIC_TREND_STROKE_WIDTH = 1.5;
 
 const HERO_METRIC_CELL_CLASS =
-  "border-border border-b px-5 py-4 last:border-b-0 sm:odd:border-r sm:nth-[n+3]:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0";
+  "border-border flex min-w-0 flex-col gap-3 border-b px-5 py-5 last:border-b-0 sm:px-6 sm:odd:border-r sm:nth-[n+3]:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0";
 
 function metricDelta(
   current: number | null,
@@ -63,29 +64,38 @@ function metricDelta(
 function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
   return (
     <div className={HERO_METRIC_CELL_CLASS}>
-      <p className="text-muted-foreground text-xs">{metric.label}</p>
-      <p className="text-muted-foreground/70 text-[0.6875rem] leading-snug">
-        {metric.description}
+      <p className="text-foreground/75 text-base leading-6 font-semibold tracking-tight">
+        {metric.label}
       </p>
       {metric.value === null ? (
-        <div className="mt-2 flex flex-col gap-1">
-          <span className="text-muted-foreground text-lg leading-none font-medium">
+        <div className="flex items-center gap-3 self-start">
+          <span
+            aria-hidden="true"
+            className="text-muted-foreground text-4xl leading-none font-semibold tracking-tight"
+            title={GEO_TRAFFIC_CONVERSIONS_NOT_CONFIGURED_LABEL}
+          >
+            —
+          </span>
+          <span className="sr-only">
             {GEO_TRAFFIC_CONVERSIONS_NOT_CONFIGURED_LABEL}
           </span>
-          <Link
-            className="text-primary text-xs underline-offset-4 hover:underline"
-            href={settingsHref}
+          <Button
+            nativeButton={false}
+            render={<Link href={settingsHref} />}
+            size="sm"
+            title={GEO_TRAFFIC_CONVERSIONS_SETUP_LABEL}
+            variant="outline"
           >
-            {GEO_TRAFFIC_CONVERSIONS_SETUP_LABEL}
-          </Link>
+            Set up
+          </Button>
         </div>
       ) : (
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 self-start">
+          <span className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
             {metric.value.toLocaleString()}
           </span>
           <GeoStatDelta
-            className="mb-0.5"
+            className="rounded-md px-2 py-1.5 text-xs leading-4 [&>span]:hidden"
             delta={metric.delta}
             hint={GEO_TRAFFIC_STAT_TREND_HINT}
             label={metric.label}
@@ -180,13 +190,11 @@ export function TrafficHero({
   const anyVisible = providerSeries.some((entry) => !hiddenKeys.has(entry.key));
 
   return (
-    <div>
+    <div className="border-border bg-card overflow-hidden rounded-2xl border">
       <div
         className={cn(
           "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
-          showTrend
-            ? "border-border bg-muted rounded-t-2xl border border-b-0 pb-5"
-            : "border-border bg-card overflow-hidden rounded-2xl border"
+          showTrend && "bg-muted/40"
         )}
       >
         {metrics.map((metric) => (
@@ -198,7 +206,7 @@ export function TrafficHero({
         ))}
       </div>
       {showTrend ? (
-        <div className="border-border bg-card -mt-5 rounded-2xl border p-4">
+        <div className="border-border border-t p-4">
           <EChartsAreaChart
             animation={false}
             chartOptions={HERO_CHART_OPTIONS}
@@ -232,6 +240,7 @@ export function TrafficHero({
               <EChartsAreaChart.ActiveDot variant="border" />
             </EChartsAreaChart.Area>
             <EChartsAreaChart.Tooltip
+              confine={false}
               hideZeros
               layout="bars"
               position="fixed"

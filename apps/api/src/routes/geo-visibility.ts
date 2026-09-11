@@ -8,12 +8,7 @@ import {
   loadGeoTimeseries,
 } from "@notra/geo-core/geo/programs";
 import { geoWindow } from "@notra/geo-core/geo/window";
-
-import {
-  GEO_COMMON_ERROR_RESPONSES,
-  GEO_OPENAPI_TAG,
-} from "../constants/geo-openapi";
-import { projectParamsSchema } from "../schemas/geo-params";
+import { projectParamsSchema } from "@notra/schemas/api/geo-params";
 import {
   competitorDetailParamsSchema,
   geoWindowQuerySchema,
@@ -23,7 +18,12 @@ import {
   visibilityOverviewResponseSchema,
   visibilityPromptResultsResponseSchema,
   visibilityTimeseriesResponseSchema,
-} from "../schemas/geo-visibility";
+} from "@notra/schemas/api/geo-visibility";
+
+import {
+  GEO_COMMON_ERROR_RESPONSES,
+  GEO_OPENAPI_TAG,
+} from "../constants/geo-openapi";
 import { geoErrorResponse } from "../utils/geo";
 import { runGeoEffect } from "../utils/geo-effect";
 import { createOpenApiApp } from "../utils/openapi-app";

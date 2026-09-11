@@ -10,6 +10,18 @@ import { seedSystemSkills } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { organizationSlugParamSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  createOrganizationInputSchema,
+  invitationActionInputSchema,
+  inviteMemberInputSchema,
+  organizationLookupQueryInputSchema,
+  organizationScopedQueryInputSchema,
+  removeMemberInputSchema,
+  setActiveOrganizationInputSchema,
+  updateMemberRoleInputSchema,
+  updateOrganizationInputSchema,
+} from "@notra/schemas/dashboard/organizations/actions";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Invitation } from "@workos-inc/node";
 import { and, count, desc, eq } from "drizzle-orm";
@@ -43,17 +55,6 @@ import {
   syncOrganizationNameToWorkOS,
   updateMembershipRoleInWorkOS,
 } from "@/lib/organizations/workos-sync";
-import {
-  createOrganizationInputSchema,
-  invitationActionInputSchema,
-  inviteMemberInputSchema,
-  organizationLookupQueryInputSchema,
-  organizationScopedQueryInputSchema,
-  removeMemberInputSchema,
-  setActiveOrganizationInputSchema,
-  updateMemberRoleInputSchema,
-  updateOrganizationInputSchema,
-} from "@/schemas/organizations/actions";
 import type {
   ActionResult,
   CreateOrganizationInput,
@@ -390,7 +391,10 @@ export async function createOrganizationAction(
           () => cookies(),
           "Failed to access cookies"
         );
-        cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, slug, { path: "/" });
+        cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, slug, {
+          path: "/",
+          maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
+        });
       }
 
       return organization;
@@ -470,6 +474,7 @@ export async function updateOrganizationAction(
         ) {
           cookieStore.set(LAST_VISITED_ORGANIZATION_COOKIE, organization.slug, {
             path: "/",
+            maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
           });
         }
       }
@@ -551,6 +556,43 @@ export async function setActiveOrganizationAction(
         path: "/",
         maxAge: LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
       });
+
+      return organization;
+    })
+  );
+}
+
+/**
+ * Organization row for a `/[slug]` route, without the member join. Unlike
+ * `validateOrganizationAccess` this never redirects, so it is safe to call from
+ * a client query.
+ */
+export async function getOrganizationSummaryAction(
+  rawSlug: string
+): Promise<ActionResult<OrganizationRow>> {
+  return runOrganizationAction(
+    Effect.gen(function* () {
+      const session = yield* requireSession();
+      const slug = yield* validateActionInput(
+        organizationSlugParamSchema,
+        rawSlug
+      );
+
+      const organization = yield* tryDb(
+        () =>
+          db.query.organizations.findFirst({
+            where: eq(organizations.slug, slug),
+          }),
+        "Failed to load organization"
+      );
+
+      if (!organization) {
+        return yield* Effect.fail(
+          new OrganizationActionError({ message: "Organization not found" })
+        );
+      }
+
+      yield* requireMembership(session, organization.id);
 
       return organization;
     })

@@ -66,42 +66,16 @@ import {
   updateSlackIntegration,
 } from "@notra/ai/integrations/slack-workspace";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
+import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { PublicUrlValidationError } from "@notra/utils/url";
-import { and, eq } from "drizzle-orm";
-import { Effect } from "effect";
-// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import * as z from "zod";
-
-import { GITHUB_API_VERSION_HEADERS } from "@/constants/github";
-import {
-  INTEGRATION_AUTH_KINDS,
-  INTEGRATION_PROVIDERS,
-  MCP_CONNECTION_TEST_OUTCOMES,
-  SLACK_CHANNEL_KINDS,
-} from "@/constants/integration-analytics";
-import { trackServerEvent } from "@/lib/analytics/posthog-server";
-import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { assertActiveSubscription } from "@/lib/billing/subscription";
-import { isUniqueConstraintError } from "@/lib/db/errors";
-import { toMcpIntegrationAuthKind } from "@/lib/integrations/auth-kind";
-import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
-import { hasGitHubStatus } from "@/lib/integrations/github/publish-content-to-github";
-import {
-  clearCachedSlackChannels,
-  getCachedSlackChannels,
-  setCachedSlackChannels,
-} from "@/lib/integrations/slack/channel-cache";
-import { baseProcedure } from "@/lib/orpc/base";
-import { getIntegrationsByOrganization } from "@/lib/services/integrations";
-import { organizationIdInputSchema } from "@/schemas/auth/organization";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   createGranolaIntegrationRequestSchema,
   updateGranolaIntegrationBodySchema,
-} from "@/schemas/granola";
+} from "@notra/schemas/dashboard/granola";
 import {
   addRepositoryRequestSchema,
   beginMcpOAuthRequestSchema,
@@ -128,20 +102,46 @@ import {
   updateOutputBodySchema,
   updateRepositoryBodySchema,
   updateRepositoryContentDirectoryBodySchema,
-} from "@/schemas/integrations";
-import { updateLinearIntegrationBodySchema } from "@/schemas/linear";
+} from "@notra/schemas/dashboard/integrations";
+import { updateLinearIntegrationBodySchema } from "@notra/schemas/dashboard/linear";
 import {
   slackChannelListResponseSchema,
   slackListChannelsOptionsSchema,
   updateSlackIntegrationBodySchema,
-} from "@/schemas/slack-integration";
+} from "@notra/schemas/dashboard/slack-integration";
+import { PublicUrlValidationError } from "@notra/utils/url";
+import { and, eq } from "drizzle-orm";
+import { Effect } from "effect";
+// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
+import * as z from "zod";
+
+import { GITHUB_API_VERSION_HEADERS } from "@/constants/github";
+import {
+  INTEGRATION_AUTH_KINDS,
+  INTEGRATION_PROVIDERS,
+  MCP_CONNECTION_TEST_OUTCOMES,
+  SLACK_CHANNEL_KINDS,
+} from "@/constants/integration-analytics";
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { isUniqueConstraintError } from "@/lib/db/errors";
+import { toMcpIntegrationAuthKind } from "@/lib/integrations/auth-kind";
+import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
+import {
+  clearCachedSlackChannels,
+  getCachedSlackChannels,
+  setCachedSlackChannels,
+} from "@/lib/integrations/slack/channel-cache";
+import { baseProcedure } from "@/lib/orpc/base";
+import { getIntegrationsByOrganization } from "@/lib/services/integrations";
 import type {
   GitHubIntegration,
   GitHubRepository,
   RepositoryOutput,
 } from "@/types/integrations";
-import type { GitHubConnectionMethod } from "@/types/services/integrations";
 import type { SlackChannelOption } from "@/types/slack-integration";
+import { hasGitHubStatus } from "@/utils/github-publish-failure";
 import { ratelimit } from "@/utils/ratelimit";
 
 import {
@@ -546,6 +546,7 @@ export const integrationsRouter = {
         if (input.enabled !== undefined || input.displayName !== undefined) {
           await updateGitHubIntegration(input.integrationId, {
             enabled: input.enabled,
+            repositoryEnabled: input.enabled,
             displayName: input.displayName,
           });
         }

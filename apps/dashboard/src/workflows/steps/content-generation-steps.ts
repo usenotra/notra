@@ -18,6 +18,7 @@ import {
 } from "@notra/db/schema";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import type { LookbackWindow } from "@notra/schemas/dashboard/integrations";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { WORKFLOW_OUTCOMES } from "@/constants/workflow-analytics";
@@ -49,7 +50,6 @@ import {
   parseTriggerOutputConfig,
   parseTriggerTargets,
 } from "@/lib/workflows/shared/parsing";
-import type { LookbackWindow } from "@/schemas/integrations";
 import type { LogRetentionDays } from "@/types/webhooks/webhooks";
 import type {
   AppendAutomationLogInput,
@@ -466,6 +466,7 @@ export async function appendAutomationLog(
 ): Promise<void> {
   "use step";
   await appendWebhookLog({
+    payload: input.payload,
     organizationId: input.organizationId,
     integrationId: input.integrationId,
     integrationType: input.integrationType,
@@ -476,6 +477,26 @@ export async function appendAutomationLog(
     ...(input.referenceId ? { referenceId: input.referenceId } : {}),
     ...(input.retentionDays ? { retentionDays: input.retentionDays } : {}),
   });
+}
+
+/**
+ * Best-effort variant of appendAutomationLog for workflow outcome logging.
+ * Recording activity must never change the outcome of the underlying
+ * workflow: a Redis hiccup goes to stderr, not into a failed
+ * scan/sync/generation (or a broad catch that would mark a successful run as
+ * failed). Intentionally not a step itself so the rejection is swallowed at
+ * the workflow level after the step's own retries are exhausted.
+ */
+export async function appendAutomationLogBestEffort(
+  input: AppendAutomationLogInput
+): Promise<void> {
+  const [result] = await Promise.allSettled([appendAutomationLog(input)]);
+  if (result?.status === "rejected") {
+    console.error(
+      "[ActivityLog] Failed to record activity log:",
+      result.reason
+    );
+  }
 }
 
 export async function trackContentOutcome(

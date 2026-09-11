@@ -9,6 +9,7 @@ import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
   GeoScanProjectContext,
+  GeoScanProjectPlan,
   GeoScanProjectTotals,
   GeoScanResult,
 } from "@notra/geo-core/types/geo";
@@ -24,7 +25,12 @@ import { FatalError, sleep } from "workflow";
 import { flattenError } from "zod";
 
 import type { GeoScanPayload } from "@/types/geo";
+import type { LogRetentionDays } from "@/types/webhooks/webhooks";
 
+import {
+  appendAutomationLogBestEffort,
+  fetchLogRetention,
+} from "./steps/content-generation-steps";
 import {
   finalizeGeoScanProjectStep,
   listGeoScanProjectsStep,
@@ -95,12 +101,20 @@ async function runGeoScanBatchWindow<T>(
     while (hasPendingBatches() && inFlight.size < GEO_SCAN_BATCH_CONCURRENCY) {
       const now = Date.now();
       if (isClaimRenewalDue(state.claimedAt, now)) {
-        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- each renewal depends on the previous claim token
-        state.claimedAt = await renewGeoScanClaimStep(
-          context.projectId,
-          state.claimedAt,
-          nextClaimRenewalToken(state.claimedAt, now)
-        );
+        try {
+          // react-doctor-disable-next-line react-doctor/async-await-in-loop -- each renewal depends on the previous claim token
+          state.claimedAt = await renewGeoScanClaimStep(
+            context.projectId,
+            state.claimedAt,
+            nextClaimRenewalToken(state.claimedAt, now)
+          );
+        } catch (error) {
+          // A failed renewal stops new work, not the batches already running.
+          // Drain those before finalizing or releasing their claim.
+          failed = true;
+          failure = error;
+          break;
+        }
       }
       const index = nextIndex;
       nextIndex += 1;
@@ -111,6 +125,9 @@ async function runGeoScanBatchWindow<T>(
           (error: unknown) => ({ index, error })
         )
       );
+    }
+    if (inFlight.size === 0) {
+      break;
     }
     const settled = await Promise.race(inFlight.values());
     inFlight.delete(settled.index);
@@ -124,6 +141,57 @@ async function runGeoScanBatchWindow<T>(
   if (failed) {
     throw failure;
   }
+}
+
+/**
+ * Persists the project outcome and records it in the organization activity
+ * log, so a finished scan stays visible (with checks, mentions, and the
+ * failure reason) after the live job tracking has disappeared.
+ */
+async function finalizeProjectRun(
+  plan: GeoScanProjectPlan,
+  totals: GeoScanProjectTotals,
+  status: "completed" | "failed",
+  claimedAt: string,
+  options: {
+    retried: boolean;
+    failureReason?: string;
+    retentionDays?: LogRetentionDays;
+  }
+): Promise<void> {
+  await finalizeGeoScanProjectStep(plan.context, totals, status, claimedAt, {
+    retried: options.retried,
+    ...(options.failureReason ? { failureReason: options.failureReason } : {}),
+  });
+  const { context } = plan;
+  const errorMessage =
+    status === "failed"
+      ? (options.failureReason ?? "No successful checks")
+      : undefined;
+  await appendAutomationLogBestEffort({
+    organizationId: context.organizationId,
+    integrationId: context.projectId,
+    integrationType: "geo",
+    title:
+      status === "completed"
+        ? `GEO scan completed for ${context.companyName}`
+        : `GEO scan failed for ${context.companyName}`,
+    status: status === "completed" ? "success" : "failed",
+    referenceId: context.runId,
+    payload: {
+      companyName: context.companyName,
+      scanId: context.scanId,
+      runId: context.runId,
+      checks: totals.checks,
+      mentions: totals.mentions,
+      dropped: totals.dropped,
+      prompts: plan.promptCount,
+      engines: plan.engines.join(", "),
+      retried: options.retried,
+    },
+    ...(errorMessage ? { errorMessage } : {}),
+    ...(options.retentionDays ? { retentionDays: options.retentionDays } : {}),
+  });
 }
 
 /**
@@ -145,12 +213,15 @@ async function runGeoScanProjectRun(
     scanId?: string;
     retried: boolean;
     promptIds?: string[];
+    engines?: string[];
+    retentionDays?: LogRetentionDays;
   }
 ): Promise<GeoScanProjectOutcome | null> {
+  const { retentionDays, ...prepareOptions } = options;
   const planResult = await prepareGeoScanProjectStep(
     organizationId,
     projectId,
-    options
+    prepareOptions
   );
   if (planResult.status === "skipped") {
     return null;
@@ -185,41 +256,26 @@ async function runGeoScanProjectRun(
       state
     );
   } catch (error) {
-    await finalizeGeoScanProjectStep(
-      plan.context,
-      totals,
-      "failed",
-      state.claimedAt,
-      {
-        retried: options.retried,
-        failureReason: describeGeoScanFailure(error),
-      }
-    );
+    await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
+      retried: options.retried,
+      failureReason: describeGeoScanFailure(error),
+      ...(retentionDays ? { retentionDays } : {}),
+    });
     return { totals, attempted, noSuccessfulChecks: totals.checks === 0 };
   }
 
   if (totals.checks === 0 && attempted > 0) {
-    await finalizeGeoScanProjectStep(
-      plan.context,
-      totals,
-      "failed",
-      state.claimedAt,
-      {
-        retried: options.retried,
-      }
-    );
+    await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
+      retried: options.retried,
+      ...(retentionDays ? { retentionDays } : {}),
+    });
     return { totals, attempted, noSuccessfulChecks: true };
   }
 
-  await finalizeGeoScanProjectStep(
-    plan.context,
-    totals,
-    "completed",
-    state.claimedAt,
-    {
-      retried: options.retried,
-    }
-  );
+  await finalizeProjectRun(plan, totals, "completed", state.claimedAt, {
+    retried: options.retried,
+    ...(retentionDays ? { retentionDays } : {}),
+  });
   return { totals, attempted, noSuccessfulChecks: false };
 }
 
@@ -234,7 +290,7 @@ export async function geoScanWorkflow(
     console.error("[GEO] Invalid payload:", flattenError(parseResult.error));
     return { status: "invalid_payload" };
   }
-  const { organizationId, projectId, claimedAt, scanId, promptIds } =
+  const { organizationId, projectId, claimedAt, scanId, promptIds, engines } =
     parseResult.data;
 
   const projectIds = await listGeoScanProjectsStep(organizationId, {
@@ -244,6 +300,7 @@ export async function geoScanWorkflow(
   if (projectIds.length === 0) {
     return { status: "skipped" };
   }
+  const retentionDays = await fetchLogRetention(organizationId);
   const orderedProjectIds =
     projectId && projectIds.includes(projectId)
       ? [projectId, ...projectIds.filter((id) => id !== projectId)]
@@ -265,6 +322,8 @@ export async function geoScanWorkflow(
       scanId: claimed ? scanId : undefined,
       retried: false,
       promptIds,
+      engines,
+      retentionDays,
     });
     if (!outcome) {
       continue;
@@ -297,6 +356,8 @@ export async function geoScanWorkflow(
     const outcome = await runGeoScanProjectRun(organizationId, retryProjectId, {
       retried: true,
       promptIds,
+      engines,
+      retentionDays,
     });
     if (!outcome) {
       continue;

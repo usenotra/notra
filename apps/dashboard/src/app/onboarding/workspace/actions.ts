@@ -5,6 +5,14 @@ import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
 import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  type OnboardingBrandAnalysisInput,
+  onboardingBrandAnalysisSchema,
+} from "@notra/schemas/dashboard/brand-analysis";
+import { onboardingNotificationPrefsSchema } from "@notra/schemas/dashboard/notification-settings";
+import { triggerOnboardingAgentSetupSchema } from "@notra/schemas/dashboard/onboarding-agent";
+import { onboardingWorkspaceAttributionSchema } from "@notra/schemas/dashboard/onboarding/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
@@ -33,14 +41,6 @@ import {
   resolveReachableWebsiteUrl,
 } from "@/lib/onboarding/company-domain";
 import { upsertOnboardingNotificationSettings } from "@/lib/onboarding/notification-settings";
-import { organizationIdSchema } from "@/schemas/auth/organization";
-import {
-  type OnboardingBrandAnalysisInput,
-  onboardingBrandAnalysisSchema,
-} from "@/schemas/brand-analysis";
-import { onboardingNotificationPrefsSchema } from "@/schemas/notification-settings";
-import { triggerOnboardingAgentSetupSchema } from "@/schemas/onboarding-agent";
-import { onboardingWorkspaceAttributionSchema } from "@/schemas/onboarding/workspace";
 import type {
   SaveOnboardingAttributionInput,
   SaveOnboardingAttributionResult,

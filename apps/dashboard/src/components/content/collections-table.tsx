@@ -1,5 +1,6 @@
 "use client";
 
+import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -10,7 +11,6 @@ import {
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
-import type { PostCollectionSummary } from "@/schemas/content";
 import type {
   CollectionStatus,
   CollectionsTableProps,

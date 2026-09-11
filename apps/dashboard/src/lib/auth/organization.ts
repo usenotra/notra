@@ -1,11 +1,11 @@
 import { db } from "@notra/db/drizzle";
 import { members } from "@notra/db/schema";
+import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { retryTransientDbError } from "@/lib/db/retry";
-import { organizationIdSchema } from "@/schemas/auth/organization";
 import type {
   AuthenticatedUser,
   AuthSession,

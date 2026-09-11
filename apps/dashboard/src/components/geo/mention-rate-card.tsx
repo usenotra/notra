@@ -1,14 +1,13 @@
 "use client";
 
-import { ArrowDown01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
   GEO_FAMILY_STAT_TREND_HINT,
   GEO_MAX_ENGINES,
-  GEO_MENTION_HINT_BLEED_REM,
-  GEO_MENTION_HINT_HEIGHT_REM,
+  GEO_MENTION_FADE_HEIGHT_REM,
   GEO_MENTION_ROW_HEIGHT_REM,
   GEO_MENTION_SUMMARY_VISIBLE,
   GEO_MENTION_UNTRACKED_HINT,
@@ -33,13 +32,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import {
-  AnimatePresence,
-  domAnimation,
-  LazyMotion,
-  m,
-  useReducedMotion,
-} from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -55,7 +47,6 @@ import {
 } from "@/components/instrument/instrument-module";
 import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { EASE_OUT } from "@/lib/ease";
 import {
   useGeoModelCatalog,
   useGeoSettingsEngineAdd,
@@ -63,32 +54,19 @@ import {
 import { useScrollOverflow } from "@/lib/hooks/use-scroll-overflow";
 import { cn } from "@/lib/utils";
 import type {
-  MentionMoreModelsHintProps,
   MentionProviderRowProps,
   MentionRateCardProps,
 } from "@/types/geo";
 import {
   buildMentionProviderRows,
-  mentionMoreModelsLabel,
   mentionOverviewTotals,
   mentionStatTrends,
   withTrackedMentionEngines,
 } from "@/utils/geo-charts";
 
-const HINT_TRANSITION = { duration: 0.2, ease: EASE_OUT } as const;
-const HINT_HIDDEN = { opacity: 0 } as const;
-const HINT_VISIBLE = { opacity: 1 } as const;
-const HINT_ROW_CLASS =
-  "group border-border bg-card text-foreground/70 hover:text-foreground focus-visible:ring-ring absolute inset-x-0 flex w-full cursor-pointer items-center justify-center gap-1.5 border-t text-xs transition-colors outline-none focus-visible:ring-2";
-const HINT_ROW_HOVER_CLASS =
-  "group-hover:bg-muted/50 pointer-events-none absolute inset-0 transition-colors";
 const ROW_STYLE = { height: `${GEO_MENTION_ROW_HEIGHT_REM}rem` } as const;
-const HINT_ROW_STYLE = {
-  top: `calc(${GEO_MENTION_SUMMARY_VISIBLE * GEO_MENTION_ROW_HEIGHT_REM}rem - 1px)`,
-  bottom: `-${GEO_MENTION_HINT_BLEED_REM}rem`,
-} as const;
 const LIST_STYLE = {
-  maxHeight: `${GEO_MENTION_SUMMARY_VISIBLE * GEO_MENTION_ROW_HEIGHT_REM + GEO_MENTION_HINT_HEIGHT_REM}rem`,
+  maxHeight: `${GEO_MENTION_SUMMARY_VISIBLE * GEO_MENTION_ROW_HEIGHT_REM + GEO_MENTION_FADE_HEIGHT_REM}rem`,
   scrollbarWidth: "none",
 } as const;
 
@@ -191,49 +169,6 @@ function ProviderRow({
   );
 }
 
-function MoreModelsHint({
-  count,
-  visible,
-  onClick,
-}: MentionMoreModelsHintProps) {
-  const reduceMotion = useReducedMotion();
-  const row = (
-    <button
-      aria-label={`Show ${mentionMoreModelsLabel(count)}`}
-      className={HINT_ROW_CLASS}
-      onClick={onClick}
-      style={HINT_ROW_STYLE}
-      type="button"
-    >
-      <span aria-hidden="true" className={HINT_ROW_HOVER_CLASS} />
-      <span className="relative">{mentionMoreModelsLabel(count)}</span>
-      <HugeiconsIcon className="relative" icon={ArrowDown01Icon} size={12} />
-    </button>
-  );
-
-  if (reduceMotion) {
-    return visible ? row : null;
-  }
-
-  return (
-    <LazyMotion features={domAnimation}>
-      <AnimatePresence initial={false}>
-        {visible ? (
-          <m.div
-            animate={HINT_VISIBLE}
-            exit={HINT_HIDDEN}
-            initial={HINT_HIDDEN}
-            key="more-models"
-            transition={HINT_TRANSITION}
-          >
-            {row}
-          </m.div>
-        ) : null}
-      </AnimatePresence>
-    </LazyMotion>
-  );
-}
-
 export function MentionRateCard({
   engines,
   settings,
@@ -297,7 +232,6 @@ export function MentionRateCard({
   );
   const overviewDelta = mentionStatTrends(timeseriesPoints).mentionDelta;
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
-  const reduceMotion = useReducedMotion();
   const openFamily = (family: GeoEngineFamily) => {
     const row = ranked.find((entry) => entry.family.family === family.family);
     trackEvent(POSTHOG_EVENTS.GEO_ENGINE_FAMILY_OPENED, {
@@ -316,11 +250,7 @@ export function MentionRateCard({
       onSuccess: () => toast.success(`${name} added to tracking`),
     });
   };
-  const { ref, hiddenBelow, atEnd, scrollToEnd } =
-    useScrollOverflow<HTMLDivElement>(
-      ranked.length,
-      GEO_MENTION_HINT_HEIGHT_REM
-    );
+  const { ref, atEnd } = useScrollOverflow<HTMLDivElement>(ranked.length);
 
   return (
     <div className="relative h-full">
@@ -355,11 +285,15 @@ export function MentionRateCard({
                 <span>{GEO_PROVIDER_COLUMN_LABEL}</span>
                 <span>{GEO_PROVIDER_MENTIONS_COLUMN_LABEL}</span>
               </div>
-              <div className="relative flex-1">
+              <div className="relative">
                 <div
-                  className="border-border relative overflow-y-auto [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
+                  aria-label="Mentions by provider"
+                  className="border-border focus-visible:ring-ring relative overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
                   ref={ref}
+                  role="region"
                   style={LIST_STYLE}
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The scroll region must support keyboard scrolling, including when every row is disabled.
+                  tabIndex={0}
                 >
                   {ranked.map((row, index) => (
                     <ProviderRow
@@ -374,10 +308,13 @@ export function MentionRateCard({
                     />
                   ))}
                 </div>
-                <MoreModelsHint
-                  count={hiddenBelow}
-                  onClick={() => scrollToEnd(!reduceMotion)}
-                  visible={!atEnd && hiddenBelow > 0}
+                <div
+                  aria-hidden="true"
+                  className={cn(
+                    "from-card pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t to-transparent transition-opacity duration-200 motion-reduce:transition-none",
+                    atEnd ? "opacity-0" : "opacity-100"
+                  )}
+                  style={{ height: `${GEO_MENTION_FADE_HEIGHT_REM}rem` }}
                 />
               </div>
             </div>

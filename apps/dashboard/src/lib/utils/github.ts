@@ -1,4 +1,5 @@
-import { GITHUB_URL_PATTERNS } from "@/constants/github";
+import { GITHUB_URL_PATTERNS } from "@notra/schemas/constants/dashboard/github";
+
 import type { GitHubRepoInfo } from "@/types/integrations";
 
 const GITHUB_OWNER_REGEX = /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i;

@@ -6,8 +6,6 @@ import {
   normalizeTriggerConfig,
 } from "@notra/ai/utils/trigger-hash";
 import { contentTriggers, githubIntegrations } from "@notra/db/schema";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
-
 import {
   createEventTriggerRequestSchema,
   deleteEventTriggerResponseSchema,
@@ -16,7 +14,9 @@ import {
   getEventTriggersQuerySchema,
   getEventTriggersResponseSchema,
   patchEventTriggerRequestSchema,
-} from "../schemas/event-triggers";
+} from "@notra/schemas/api/event-triggers";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
+
 import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
 import {

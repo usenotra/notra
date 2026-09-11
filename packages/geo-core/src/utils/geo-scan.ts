@@ -1,11 +1,27 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
+
 import {
+  GEO_OPENCODE_ENGINE_ID,
+  GEO_GROUNDED_MAX_PROMPTS,
+  GEO_LANGUAGE_MAX_PROMPTS,
+  GEO_LANGUAGE_GROUNDED_MAX_PROMPTS,
+  GEO_MAX_LANGUAGES,
+  GEO_MAX_SEQUENCES,
+  GEO_SEQUENCE_MAX_TURNS,
   GEO_SCAN_HOURS_PER_DAY,
   GEO_SCAN_INTERVAL_FALLBACK_NOUN,
   GEO_SCAN_INTERVAL_LABEL_PREFIX,
   GEO_SCAN_INTERVAL_OPTIONS,
+  GEO_SCAN_SIZE_DANGER_THRESHOLD,
+  GEO_SCAN_SIZE_WARN_THRESHOLD,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
-import type { GeoEngineAttemptSummary } from "../types/geo";
+import type {
+  GeoEngineAttemptSummary,
+  GeoScanSizeInput,
+  GeoScanSizeSeverity,
+} from "../types/geo";
+import { isGeoBoxCodingAgent } from "./geo-coding-agents";
 
 function toTimestamp(value: Date | string | null | undefined): number | null {
   if (!value) {
@@ -192,4 +208,65 @@ export function summarizeGeoEngineAttempts(
     byEngine.set(task.engine, summary);
   }
   return [...byEngine.values()];
+}
+
+/**
+ * Counts prompt checks and sequence turns using the scan planner's limits.
+ * ZDR filtering and failed translations can reduce the actual number of checks.
+ */
+export function calcGeoScanSize(input: GeoScanSizeInput): number {
+  if (!Number.isFinite(input.promptCount) || input.promptCount < 0) {
+    return 0;
+  }
+  const engines = [...new Set(input.engines)];
+  const groundedCount = engines.filter((engine) =>
+    input.catalog.models.some(
+      (model) => model.id === engine && model.supportsGroundedChecks
+    )
+  ).length;
+  const scanEnglish = input.languages.includes(DEFAULT_LANGUAGE);
+  const extraLanguages = input.languages
+    .filter((language) => language !== DEFAULT_LANGUAGE)
+    .slice(0, GEO_MAX_LANGUAGES).length;
+  const englishChecks = scanEnglish
+    ? input.promptCount * engines.length +
+      Math.min(input.promptCount, GEO_GROUNDED_MAX_PROMPTS) * groundedCount
+    : 0;
+  const localizedChecks =
+    extraLanguages *
+    (Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) * engines.length +
+      Math.min(
+        input.promptCount,
+        GEO_LANGUAGE_MAX_PROMPTS,
+        GEO_LANGUAGE_GROUNDED_MAX_PROMPTS
+      ) *
+        groundedCount);
+  const sequenceEngines =
+    groundedCount +
+    engines.filter(
+      (engine) =>
+        engine === GEO_OPENCODE_ENGINE_ID || isGeoBoxCodingAgent(engine)
+    ).length;
+  const sequenceTurns = scanEnglish
+    ? input.sequences
+        .filter((sequence) => sequence.enabled)
+        .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .slice(0, GEO_MAX_SEQUENCES)
+        .reduce(
+          (total, sequence) =>
+            total + Math.min(sequence.steps.length, GEO_SEQUENCE_MAX_TURNS),
+          0
+        )
+    : 0;
+  return englishChecks + localizedChecks + sequenceTurns * sequenceEngines;
+}
+
+export function geoScanSizeSeverity(total: number): GeoScanSizeSeverity {
+  if (total >= GEO_SCAN_SIZE_DANGER_THRESHOLD) {
+    return "danger";
+  }
+  if (total >= GEO_SCAN_SIZE_WARN_THRESHOLD) {
+    return "warn";
+  }
+  return "ok";
 }

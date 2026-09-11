@@ -1,8 +1,7 @@
 import type { z } from "@hono/zod-openapi";
 import type { agentFeedback } from "@notra/db/schema";
+import type { submitFeedbackRequestSchema } from "@notra/schemas/api/feedback";
 import type { IngestTokenIdentity } from "@notra/utils/types/ingest-token";
-
-import type { submitFeedbackRequestSchema } from "../schemas/feedback";
 
 export type AgentFeedbackRow = typeof agentFeedback.$inferSelect;
 

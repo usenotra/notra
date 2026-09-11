@@ -38,8 +38,8 @@ export type RouterErrorCode =
  * How strictly zero data retention is required for a request.
  * - `required` (default): fail closed, never send a non-ZDR request.
  * - `preferred`: try with ZDR; when no gateway has a ZDR host for the model,
- *   run without it (no-training stays on).
- * - `none`: never send the ZDR flag (no-training stays on).
+ *   relax ZDR and no-training defaults.
+ * - `none`: relax ZDR and no-training defaults immediately.
  */
 export type ZdrMode = "required" | "preferred" | "none";
 
@@ -145,9 +145,8 @@ export interface BuildProviderOptionsInput {
   /** When true privacy flags may be relaxed by the caller (dev only). */
   allowNonZdr: boolean;
   /**
-   * When true the ZDR flag is dropped for this call because the caller
-   * requested `zdr: "preferred"` and the gateway rejected ZDR for the model.
-   * No-training stays enforced.
+   * Relax privacy defaults for `zdr: "none"` or an accepted best-effort
+   * fallback from `zdr: "preferred"`. Explicit no-training options remain.
    */
   relaxZdr?: boolean;
 }
@@ -168,7 +167,13 @@ export interface RouterPolicyConfig {
 }
 
 export interface RouterLogFields {
-  [key: string]: string | number | boolean | undefined | null;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | null
+    | Record<string, string | number | boolean | undefined | null>;
 }
 
 export interface RouterLogger {

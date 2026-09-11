@@ -1,6 +1,5 @@
+import { workosErrorSchema } from "@notra/schemas/dashboard/auth/workos-error";
 import { NotFoundException } from "@workos-inc/node";
-
-import { workosErrorSchema } from "@/schemas/auth/workos-error";
 
 export interface WorkOSErrorInfo {
   code: string | null;

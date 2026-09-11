@@ -4,11 +4,13 @@ import { NextResponse } from "next/server";
 
 import {
   enforceContactMessageRateLimit,
+  enforceContactVerificationRateLimit,
   getContactRateLimitHeaders,
 } from "@/lib/contact/ratelimit";
 import { sendContactMessageEmail } from "@/lib/contact/send-message-email";
+import { verifyContactTurnstile } from "@/lib/contact/verify-turnstile";
 import { contactMessageSchema } from "@/schemas/contact";
-import { jsonError } from "@/utils/revalidate-route";
+import { jsonError } from "@/utils/api-response";
 
 export const runtime = "nodejs";
 
@@ -27,8 +29,18 @@ export async function POST(request: NextRequest) {
     return jsonError("Invalid contact message", 400);
   }
 
+  const token = (body as Record<string, unknown>)["cf-turnstile-response"];
+
   return Effect.runPromise(
     Effect.gen(function* () {
+      yield* enforceContactVerificationRateLimit(request);
+      const verified = yield* Effect.promise(() =>
+        verifyContactTurnstile(token)
+      );
+      if (!verified) {
+        return jsonError("Verification failed. Please try again.", 403);
+      }
+
       const rateLimit = yield* enforceContactMessageRateLimit(
         request,
         parsed.data.email

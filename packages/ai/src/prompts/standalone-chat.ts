@@ -1,5 +1,11 @@
+import {
+  CHAT_WORKSPACE_METADATA_PREAMBLE,
+  CHAT_WORKSPACE_NO_PROJECT_GUIDANCE,
+  CHAT_WORKSPACE_PROJECT_GUIDANCE,
+} from "@notra/ai/constants/chat-workspace";
 import { renderSkillGuidance } from "@notra/ai/skills/functions/guidance";
 import type { StandaloneChatPromptParams } from "@notra/ai/types/prompts";
+import { sanitizeChatWorkspaceLabel } from "@notra/ai/utils/chat-workspace";
 import { formatCurrentDate } from "@notra/ai/utils/current-date";
 import dedent from "dedent";
 
@@ -14,6 +20,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     hasLinearEnabled,
     hasMcpEnabled,
     timezone,
+    workspace,
   } = params;
 
   const capabilitiesSection = toolDescriptions?.length
@@ -43,13 +50,14 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
   const { formatted: currentDate, timezone: resolvedTimezone } =
     formatCurrentDate(timezone);
   const skillsSection = renderSkillGuidance(skillSummaries);
+  const workspaceSection = formatWorkspaceSection(workspace);
 
   return dedent`
     You are Notra, an AI assistant for content teams. You help users create, edit, and manage content posts, and gather information about brand identities, integrations, GitHub, and Linear.
 
     ## Current Date
     Today is ${currentDate} (${resolvedTimezone}). Use this when users reference relative dates like "today", "yesterday", "this week", or "last month".
-    ${skillsSection ? `\n${skillsSection}` : ""}
+    ${workspaceSection}${skillsSection ? `\n${skillsSection}` : ""}
 
     ## Tool Workflow
     You start with only basic discovery tools and tool provisioning tools.
@@ -74,8 +82,38 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - When creating posts, activate and use the matching create tool instead of only outputting content as text.
     - When you create a post, tell the user the post title and that it was saved as a draft.
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
+
+    ## GEO Analytics
+    When the user asks how GEO, AI visibility, or mention rate is going, activate getGeoOverview and getGeoTimeseries. Also activate getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
     ${capabilitiesSection}${integrationResolutionSection}${githubSection}${linearSection}${mcpSection}
   `;
+}
+
+function formatWorkspaceSection(
+  workspace: StandaloneChatPromptParams["workspace"]
+) {
+  if (!workspace) {
+    return "";
+  }
+
+  const metadata: Record<string, string> = {
+    organization_name:
+      sanitizeChatWorkspaceLabel(workspace.organization.name) || "Unknown",
+    organization_slug:
+      sanitizeChatWorkspaceLabel(workspace.organization.slug) || "unknown",
+  };
+
+  if (workspace.project) {
+    metadata.project_name =
+      sanitizeChatWorkspaceLabel(workspace.project.name) || "Untitled project";
+    metadata.project_id = workspace.project.id;
+  }
+
+  const guidance = workspace.project
+    ? CHAT_WORKSPACE_PROJECT_GUIDANCE
+    : CHAT_WORKSPACE_NO_PROJECT_GUIDANCE;
+
+  return `\n\n## Workspace\n${CHAT_WORKSPACE_METADATA_PREAMBLE}\n${JSON.stringify(metadata)}\n${guidance}`;
 }
 
 function formatRepoContext(

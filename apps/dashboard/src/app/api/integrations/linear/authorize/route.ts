@@ -1,11 +1,11 @@
 import { redis } from "@notra/ai/utils/redis";
+import { linearAuthorizeQuerySchema } from "@notra/schemas/dashboard/linear";
 import { ORPCError } from "@orpc/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { LINEAR_OAUTH_STATE_TTL_SECONDS } from "@/constants/linear";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { linearOAuthErrorParam } from "@/lib/integrations/linear/oauth-errors";
-import { linearAuthorizeQuerySchema } from "@/schemas/linear";
 
 // react-doctor-disable-next-line nextjs-no-side-effect-in-get-handler
 export async function GET(request: NextRequest) {

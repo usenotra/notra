@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export class SlackApiError extends Schema.TaggedErrorClass<SlackApiError>()(
+export class SlackApiError extends Schema.TaggedError<SlackApiError>()(
   "SlackApiError",
   {
     cause: Schema.Defect(),

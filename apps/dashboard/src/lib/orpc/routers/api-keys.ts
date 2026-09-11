@@ -1,4 +1,10 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  createApiKeySchema,
+  deleteKeyInputSchema,
+  updateKeyInputSchema,
+} from "@notra/schemas/dashboard/api-keys";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import type {
   KeyResponseData,
   V2ApisListKeysResponseBody,
@@ -17,12 +23,6 @@ import { unkey } from "@/lib/api-keys/unkey";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { authorizedProcedure } from "@/lib/orpc/base";
-import {
-  createApiKeySchema,
-  deleteKeyInputSchema,
-  updateKeyInputSchema,
-} from "@/schemas/api-keys";
-import { organizationIdInputSchema } from "@/schemas/auth/organization";
 
 import {
   badRequest,

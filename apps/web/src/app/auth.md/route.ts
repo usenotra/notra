@@ -2,7 +2,7 @@ import { markdownResponse } from "@/utils/http";
 
 const AUTH_MD = `# Notra Agent Authentication
 
-Notra exposes an authenticated API and MCP server for agents that generate, read, and manage product content. Use this guide to discover the supported auth metadata, request an OAuth or API-key credential, and recover from common errors.
+Notra exposes an authenticated API and MCP server for agents that track AI visibility, manage GEO projects and prompts, analyze competitors and AI traffic, and create content in a saved brand voice. Use this guide to discover the supported auth metadata, request an OAuth or API-key credential, and recover from common errors.
 
 ## Discover
 
@@ -14,7 +14,7 @@ OAuth-capable clients should follow the authorization server advertised by the p
 
 ## Register
 
-Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Agents should request the least privileged resource scopes, such as \`posts.read\`, \`posts.write\`, \`skills.read\`, \`skills.write\`, \`integrations.read\`, and \`integrations.write\`. Include \`offline_access\` when a refresh token is needed.
+Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Agents should request the least privileged resource scopes, such as \`projects.read\`, \`prompts.read\`, \`scans.read\`, \`scans.write\`, \`visibility.read\`, \`briefs.read\`, and \`traffic.read\`. Request both \`scans.write\` to start a scan and \`scans.read\` to poll its status and read results. GEO tools also require a plan that includes GEO. Include \`offline_access\` when a refresh token is needed.
 
 ## Authorize
 

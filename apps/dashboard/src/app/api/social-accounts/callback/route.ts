@@ -1,4 +1,5 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { socialConnectCallbackQuerySchema } from "@notra/schemas/dashboard/social-accounts";
 import { Effect } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -15,7 +16,6 @@ import {
 } from "@/lib/integrations/connect-events";
 import { fromProviderPlatform } from "@/lib/social-connect/client";
 import { completeSocialConnect } from "@/lib/social-connect/connect";
-import { socialConnectCallbackQuerySchema } from "@/schemas/social-accounts";
 
 function readAccountIds(searchParams: URLSearchParams): string[] {
   const accountIds: string[] = [];

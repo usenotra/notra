@@ -10,6 +10,8 @@ import {
 
 export function toGeoOrpcError(failure: GeoRouterError): Error {
   switch (failure._tag) {
+    case "GeoSuggestionNotFoundError":
+      return notFound("Suggestion not found");
     case "GeoPromptDuplicateError":
       return badRequest("This prompt is already tracked");
     case "GeoPromptNotFoundError":
@@ -56,6 +58,8 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return toUnexpectedError(failure.cause, "Failed to start the scan");
     case "GeoScanAlreadyRunningError":
       return badRequest("A scan is already running for this project");
+    case "GeoScanEnginesEmptyError":
+      return badRequest("Select at least one tracked engine to scan");
     case "GeoWriterCreditsExhaustedError":
       return paymentRequired(failure.message);
     case "GeoContentBriefNotFoundError":

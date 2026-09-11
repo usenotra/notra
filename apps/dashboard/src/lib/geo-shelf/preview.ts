@@ -2,19 +2,19 @@ import { lookup } from "node:dns/promises";
 import { BlockList } from "node:net";
 
 import { fetchWebpage } from "@notra/ai/utils/context-dev";
+import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
+import {
+  canonicalizeShelfUrl,
+  shelfDomainFromUrl,
+  shelfFetchUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
 
 import {
   GEO_SHELF_BLOCKED_IPV4_SUBNETS,
   GEO_SHELF_BLOCKED_IPV6_SUBNETS,
   GEO_SHELF_PREVIEW_CACHE_MS,
   GEO_SHELF_PREVIEW_TIMEOUT_MS,
-  GEO_SHELF_TITLE_MAX_LENGTH,
 } from "@/constants/geo-shelf";
-import {
-  canonicalizeShelfUrl,
-  shelfDomainFromUrl,
-  shelfFetchUrl,
-} from "@/lib/geo-shelf/url";
 
 import type { GeoShelfPreview } from "../../types/geo-shelf";
 

@@ -4,6 +4,7 @@ import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { sendDevEmail } from "@notra/email/utils/dev";
 import { getResend } from "@notra/email/utils/resend";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { submitFeedbackInputSchema } from "@notra/schemas/dashboard/feedback";
 import { eq } from "drizzle-orm";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -11,7 +12,6 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { sendFeedbackEmail } from "@/lib/email/send";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { internalServerError } from "@/lib/orpc/utils/errors";
-import { submitFeedbackInputSchema } from "@/schemas/feedback";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 

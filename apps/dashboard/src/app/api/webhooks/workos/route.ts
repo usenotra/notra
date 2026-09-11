@@ -1,3 +1,4 @@
+import { workosWebhookPayloadSchema } from "@notra/schemas/dashboard/workos-webhook";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { Event as WorkOSEvent } from "@workos-inc/node";
 import { Effect } from "effect";
@@ -7,7 +8,6 @@ import {
   removeMembershipFromWebhook,
   upsertMembershipFromWebhook,
 } from "@/lib/auth/webhook-sync";
-import { workosWebhookPayloadSchema } from "@/schemas/workos-webhook";
 
 function handleMembershipEvent(event: WorkOSEvent) {
   switch (event.event) {

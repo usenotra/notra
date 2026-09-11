@@ -2,10 +2,10 @@
 
 import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { OnDemandContentType } from "@notra/schemas/dashboard/content";
 import { cn } from "@notra/ui/lib/utils";
 
 import { FORMAT_CARD_META } from "@/constants/content-formats";
-import type { OnDemandContentType } from "@/schemas/content";
 import { OutputTypeIcon } from "@/utils/output-types";
 
 interface FormatCardProps {

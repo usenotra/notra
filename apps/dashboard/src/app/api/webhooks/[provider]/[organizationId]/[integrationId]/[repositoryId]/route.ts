@@ -3,12 +3,12 @@ import {
   getRepositoryById,
 } from "@notra/ai/integrations/github";
 import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
+import type { InputIntegrationType } from "@notra/schemas/dashboard/integrations";
+import { webhookParamsWithRepoSchema } from "@notra/schemas/dashboard/webhooks";
 import type { NextRequest } from "next/server";
 
 import { handleGitHubWebhook } from "@/lib/webhooks/github";
 import { handleLinearWebhook } from "@/lib/webhooks/linear";
-import type { InputIntegrationType } from "@/schemas/integrations";
-import { webhookParamsWithRepoSchema } from "@/schemas/webhooks";
 import type { WebhookContext, WebhookHandler } from "@/types/webhooks/webhooks";
 
 interface RouteContext {

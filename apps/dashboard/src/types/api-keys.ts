@@ -1,10 +1,12 @@
 import type { IconSvgElement } from "@hugeicons/react";
-import type { PermissionTone } from "@notra/ui/components/ui/permission-selector";
-
 import type {
   API_KEY_ACCESS_MODE_VALUES,
   API_KEY_EXPIRATION_VALUES,
   API_KEY_GRANULAR_PERMISSIONS,
+} from "@notra/schemas/constants/dashboard/api-keys";
+import type { PermissionTone } from "@notra/ui/components/ui/permission-selector";
+
+import type {
   API_KEY_PERMISSIONS,
   API_KEY_PRESET_IDS,
 } from "@/constants/api-keys";

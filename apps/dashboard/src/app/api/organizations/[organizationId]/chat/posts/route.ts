@@ -8,13 +8,13 @@ import {
   buildPostCollectionName,
   isLegacyPostCollectionName,
 } from "@notra/db/utils/post-collections";
+import { createChatPostSchema } from "@notra/schemas/dashboard/content";
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { marked } from "marked";
 import { nanoid } from "nanoid";
 import { after, NextResponse } from "next/server";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { createChatPostSchema } from "@/schemas/content";
 import type { RouteContext } from "@/types/api/routes";
 
 export async function POST(

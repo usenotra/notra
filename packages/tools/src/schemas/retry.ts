@@ -6,7 +6,7 @@ export const retryErrorSchema = z.looseObject({
   status: z.number().optional(),
 });
 
-export class ToolOperationError extends Schema.TaggedErrorClass<ToolOperationError>()(
+export class ToolOperationError extends Schema.TaggedError<ToolOperationError>()(
   "ToolOperationError",
   {
     cause: Schema.Defect(),

@@ -1,13 +1,13 @@
 "use client";
 
+import type {
+  SocialConnectPlatform,
+  SocialPublishSurface,
+} from "@notra/schemas/dashboard/social-accounts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { SOCIAL_PLATFORM_LABELS } from "@/constants/social-connect";
-import type {
-  SocialConnectPlatform,
-  SocialPublishSurface,
-} from "@/schemas/social-accounts";
 import type { ConnectedAccount } from "@/types/hooks/connected-accounts";
 
 import { dashboardOrpc } from "../orpc/query";

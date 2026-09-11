@@ -2,6 +2,16 @@ import { createRoute } from "@hono/zod-openapi";
 import { geoScans } from "@notra/db/schema";
 import { startGeoScan } from "@notra/geo-core/geo/programs";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  projectParamsSchema,
+  scanParamsSchema,
+} from "@notra/schemas/api/geo-params";
+import {
+  createScanResponseSchema,
+  listScansQuerySchema,
+  listScansResponseSchema,
+  scanResponseSchema,
+} from "@notra/schemas/api/geo-scans";
 import { and, count, desc, eq } from "drizzle-orm";
 
 import { API_TRIGGER_SOURCE } from "../constants/analytics";
@@ -9,13 +19,6 @@ import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
-import { projectParamsSchema, scanParamsSchema } from "../schemas/geo-params";
-import {
-  createScanResponseSchema,
-  listScansQuerySchema,
-  listScansResponseSchema,
-  scanResponseSchema,
-} from "../schemas/geo-scans";
 import { trackApiEvent } from "../utils/analytics";
 import { geoErrorResponse } from "../utils/geo";
 import { runGeoEffect } from "../utils/geo-effect";

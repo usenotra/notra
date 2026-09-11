@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  type EditGitHubTokenFormValues,
+  editGitHubTokenFormSchema,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
@@ -20,10 +24,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  type EditGitHubTokenFormValues,
-  editGitHubTokenFormSchema,
-} from "@/schemas/integrations";
 import type { EditTokenDialogProps } from "@/types/integrations";
 
 export function LegacyEditTokenDialog({

@@ -8,6 +8,12 @@ import {
   onboardingSuggestions,
   organizations,
 } from "@notra/db/schema";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  dismissSuggestionInputSchema,
+  listSuggestionsInputSchema,
+} from "@notra/schemas/dashboard/onboarding-agent";
+import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -20,14 +26,11 @@ import {
   getOnboardingAgentState,
   startSelfServeOnboardingAgent,
 } from "@/lib/onboarding-agent";
-import { pickCompanyLogoUrl } from "@/lib/onboarding/company-logo";
-import { authorizedProcedure } from "@/lib/orpc/base";
-import { organizationIdInputSchema } from "@/schemas/auth/organization";
 import {
-  dismissSuggestionInputSchema,
-  listSuggestionsInputSchema,
-} from "@/schemas/onboarding-agent";
-import { companyLogoInputSchema } from "@/schemas/onboarding/company-logo";
+  pickBrandSearchResult,
+  pickCompanyLogoUrl,
+} from "@/lib/onboarding/company-logo";
+import { authorizedProcedure } from "@/lib/orpc/base";
 import { ratelimit } from "@/utils/ratelimit";
 
 export const onboardingRouter = {
@@ -53,14 +56,7 @@ export const onboardingRouter = {
         }
 
         const response = await searchBrands(input.query);
-        const key = input.query.toLowerCase();
-        const brand =
-          response.results.find(
-            (result) => result.name.trim().toLowerCase() === key
-          ) ??
-          response.results.find(
-            (result) => result.domain.trim().toLowerCase() === key
-          );
+        const brand = pickBrandSearchResult(response.results, input.query);
         return {
           domain: brand?.domain ?? null,
           url: brand?.logo || null,

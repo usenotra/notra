@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  createOrganizationSchema,
+  slugSchema,
+} from "@notra/schemas/dashboard/organization";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -19,7 +23,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
 import { errorMessageOr, generateOrganizationAvatar } from "@/lib/utils";
-import { createOrganizationSchema, slugSchema } from "@/schemas/organization";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { QUERY_KEYS } from "@/utils/query-keys";
 
