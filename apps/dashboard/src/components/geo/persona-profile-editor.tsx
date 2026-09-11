@@ -24,7 +24,9 @@ export function PersonaProfileEditor({
   const id = useId();
   const update = useGeoPersonaUpdate(organizationId);
   const [error, setError] = useState<string | null>(null);
-  const [stack, setStack] = useState(persona.profile.currentStack);
+  const [stack, setStack] = useState(() => [
+    ...new Set(persona.profile.currentStack),
+  ]);
   const [stackDraft, setStackDraft] = useState("");
   const stackInput = useRef<HTMLInputElement>(null);
   return (
@@ -35,7 +37,7 @@ export function PersonaProfileEditor({
         const form = new FormData(event.currentTarget);
         form.set(
           "currentStack",
-          [...stack, stackDraft.trim()].filter(Boolean).join("\n")
+          [...new Set([...stack, stackDraft.trim()])].filter(Boolean).join("\n")
         );
         const profile = Object.fromEntries(
           GEO_PERSONA_PROFILE_SECTIONS.map(({ key }) => [
@@ -67,7 +69,7 @@ export function PersonaProfileEditor({
           { personaId: persona.id, details: parsed.data },
           {
             onSuccess: () => {
-              setStack(parsed.data.profile.currentStack);
+              setStack([...new Set(parsed.data.profile.currentStack)]);
               setStackDraft("");
               toast.success("Persona saved");
             },
@@ -164,11 +166,11 @@ export function PersonaProfileEditor({
               </label>
               {section.key === "currentStack" ? (
                 <div className="border-input flex flex-wrap items-center gap-1.5 rounded-lg border p-2">
-                  {stack.map((tool, index) => (
+                  {stack.map((tool) => (
                     <Badge
                       className="max-w-full gap-1 pr-0.5 font-normal"
                       variant="secondary"
-                      key={`${tool}-${index}`}
+                      key={tool}
                     >
                       <span className="min-w-0 wrap-anywhere">{tool}</span>
                       <button
@@ -177,7 +179,7 @@ export function PersonaProfileEditor({
                         aria-label={`Remove ${tool}`}
                         onClick={() => {
                           setStack((items) =>
-                            items.filter((_, itemIndex) => itemIndex !== index)
+                            items.filter((item) => item !== tool)
                           );
                           stackInput.current?.focus();
                         }}
@@ -203,6 +205,10 @@ export function PersonaProfileEditor({
                       }
                       event.preventDefault();
                       const tool = stackDraft.trim();
+                      if (stack.includes(tool)) {
+                        setStackDraft("");
+                        return;
+                      }
                       if (!tool) {
                         return;
                       }

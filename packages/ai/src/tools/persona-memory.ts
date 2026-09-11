@@ -23,9 +23,11 @@ export function createListPersonaMemoriesTool(
     }),
     inputSchema: listPersonaMemoriesInputSchema,
     execute: ({ kind }) => ({
-      memories: config.memories
-        .filter((memory) => !kind || memory.kind === kind)
-        .map((memory) => ({ kind: memory.kind, content: memory.content })),
+      memories: config.memories.flatMap((memory) =>
+        !kind || memory.kind === kind
+          ? [{ kind: memory.kind, content: memory.content }]
+          : []
+      ),
     }),
   });
 }

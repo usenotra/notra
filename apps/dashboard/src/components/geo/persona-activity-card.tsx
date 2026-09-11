@@ -34,6 +34,7 @@ export function PersonaActivityCard({
   personas,
 }: PersonasTableProps) {
   const [hiddenPersonas, setHiddenPersonas] = useState<string[]>([]);
+  const hiddenPersonaIds = new Set(hiddenPersonas);
   const range = useGeoRange();
   const { data, isPending, isError, refetch } = useGeoPersonaActivity(
     organizationId,
@@ -88,7 +89,7 @@ export function PersonaActivityCard({
             {personas.map((persona, index) => {
               const { rate } = personaMentionRate(data, persona.id);
               const color = accountSeriesColorPair(index);
-              const visible = !hiddenPersonas.includes(persona.id);
+              const visible = !hiddenPersonaIds.has(persona.id);
               return (
                 <div className="min-w-0 space-y-1" key={persona.id}>
                   <button
@@ -148,7 +149,7 @@ export function PersonaActivityCard({
                 key={persona.id}
                 dataKey={chartKey(persona.id)}
                 variant="gradient"
-                visible={!hiddenPersonas.includes(persona.id)}
+                visible={!hiddenPersonaIds.has(persona.id)}
                 strokeVariant="solid"
                 gapMissing
                 strokeWidth={2}
@@ -164,7 +165,7 @@ export function PersonaActivityCard({
                 key={personaForecastKey(persona.id)}
                 dataKey={personaForecastKey(persona.id)}
                 variant="none"
-                visible={!hiddenPersonas.includes(persona.id)}
+                visible={!hiddenPersonaIds.has(persona.id)}
                 strokeVariant="dashed"
                 strokeWidth={1.5}
                 gapMissing

@@ -53,6 +53,8 @@ export async function upsertPersonaMemories(
   if (!index || memories.length === 0) {
     return false;
   }
+  // Each project uploads batches sequentially so concurrent persona jobs cannot
+  // fan out into an unbounded number of embedding requests.
   for (
     let offset = 0;
     offset < memories.length;
