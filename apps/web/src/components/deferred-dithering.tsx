@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useDitherVisibility } from "@/lib/dithering/use-dither-visibility";
 import type {
@@ -18,6 +18,9 @@ function DeferredDitherLayer({
   ...shaderProps
 }: DitheringCanvasProps) {
   const [painted, setPainted] = useState(false);
+  const onPaintedRef = useRef(onPainted);
+  const didNotify = useRef(false);
+  onPaintedRef.current = onPainted;
 
   return (
     <DitheringCanvas
@@ -28,8 +31,12 @@ function DeferredDitherLayer({
       )}
       maxPixelCount={maxPixelCount}
       onPainted={() => {
+        if (didNotify.current) {
+          return;
+        }
+        didNotify.current = true;
         setPainted(true);
-        onPainted?.();
+        onPaintedRef.current?.();
       }}
       speed={speed}
     />

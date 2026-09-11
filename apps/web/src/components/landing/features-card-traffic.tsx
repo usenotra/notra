@@ -21,6 +21,8 @@ import {
 } from "@/constants/landing/features";
 
 const HEADER_CLASS = "text-muted-foreground text-xs";
+const VISITS_COL = "w-16";
+const LAST_SEEN_COL = "w-[5.5rem]";
 
 export function FeaturesCardTraffic() {
   return (
@@ -46,7 +48,11 @@ export function FeaturesCardTraffic() {
               {FEATURES_TRAFFIC_HEADERS.purpose}
             </TableHead>
             <TableHead
-              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL, "w-14")}
+              className={cn(
+                HEADER_CLASS,
+                FEATURES_TABLE_OPTIONAL_COL,
+                VISITS_COL
+              )}
             >
               {FEATURES_TRAFFIC_HEADERS.visits}
             </TableHead>
@@ -54,7 +60,7 @@ export function FeaturesCardTraffic() {
               className={cn(
                 HEADER_CLASS,
                 FEATURES_TABLE_OPTIONAL_COL,
-                "w-[4.75rem]"
+                LAST_SEEN_COL
               )}
             >
               {FEATURES_TRAFFIC_HEADERS.lastSeen}
@@ -76,7 +82,8 @@ export function FeaturesCardTraffic() {
               <TableCell
                 className={cn(
                   "py-3 text-sm tabular-nums",
-                  FEATURES_TABLE_OPTIONAL_COL
+                  FEATURES_TABLE_OPTIONAL_COL,
+                  VISITS_COL
                 )}
               >
                 {row.visits.toLocaleString()}
@@ -84,7 +91,8 @@ export function FeaturesCardTraffic() {
               <TableCell
                 className={cn(
                   "text-muted-foreground py-3 text-sm",
-                  FEATURES_TABLE_OPTIONAL_COL
+                  FEATURES_TABLE_OPTIONAL_COL,
+                  LAST_SEEN_COL
                 )}
               >
                 {row.lastSeen}

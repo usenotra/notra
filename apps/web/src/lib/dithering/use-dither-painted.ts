@@ -4,9 +4,11 @@ import { useEffect, useRef } from "react";
 
 export function useDitherPainted(onPainted?: () => void) {
   const ref = useRef<HTMLDivElement>(null);
+  const onPaintedRef = useRef(onPainted);
+  onPaintedRef.current = onPainted;
 
   useEffect(() => {
-    if (!onPainted) {
+    if (!onPaintedRef.current) {
       return;
     }
     const root = ref.current;
@@ -17,12 +19,14 @@ export function useDitherPainted(onPainted?: () => void) {
     let cancelled = false;
     let frameA = 0;
     let frameB = 0;
+    let fired = false;
 
     const finish = () => {
-      if (cancelled) {
+      if (cancelled || fired) {
         return;
       }
-      onPainted();
+      fired = true;
+      onPaintedRef.current?.();
     };
 
     const arm = () => {
@@ -56,7 +60,7 @@ export function useDitherPainted(onPainted?: () => void) {
       cancelAnimationFrame(frameA);
       cancelAnimationFrame(frameB);
     };
-  }, [onPainted]);
+  }, []);
 
   return ref;
 }

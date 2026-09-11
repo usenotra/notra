@@ -5,6 +5,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useTheme } from "next-themes";
+import { useSyncExternalStore } from "react";
+
+function subscribeIsClient() {
+  return () => {};
+}
 
 function ThemeToggleGlyph() {
   return (
@@ -20,8 +25,12 @@ function ThemeToggleGlyph() {
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const themeReady = resolvedTheme !== undefined;
-  const isDark = resolvedTheme === "dark";
+  const themeReady = useSyncExternalStore(
+    subscribeIsClient,
+    () => true,
+    () => false
+  );
+  const isDark = themeReady && resolvedTheme === "dark";
 
   function handleToggle() {
     const dark = document.documentElement.classList.contains("dark");
