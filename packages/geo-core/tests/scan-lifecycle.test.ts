@@ -493,6 +493,41 @@ describe("scheduled GEO scans", () => {
     expect(settings?.scanLeaseUntil).toBeNull();
   });
 
+  test("a failed slot update preserves its error without reporting a lost lease", async () => {
+    const { geoLog } = await import("@notra/ai/evlog");
+    const anchor = wholeMinutesAgo(60);
+    await seedProject("advance-error", { nextScanAt: anchor });
+    await database.postgres.exec(`
+      ALTER TABLE geo_settings ADD CONSTRAINT reject_slot_advance
+      CHECK (project_id <> 'advance-error' OR scan_lease_until IS NOT NULL
+        OR next_scan_at = '${anchor.toISOString()}'::timestamp)
+    `);
+    try {
+      expect(await sweep()).toMatchObject({ started: 1, advanceLost: 0 });
+      expect(geoLog.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "geo.scan.slot_advance_failed",
+          projectId: "advance-error",
+          errorName: "GeoDatabaseError",
+          causeMessage: expect.stringContaining("Failed query"),
+        })
+      );
+      expect(geoLog.warn).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "geo.scan.slot_advance_lost",
+          projectId: "advance-error",
+        })
+      );
+      const settings = await settingsFor("advance-error");
+      expect(settings?.nextScanAt).toEqual(anchor);
+      expect(settings?.scanLeaseUntil).toBeInstanceOf(Date);
+    } finally {
+      await database.postgres.exec(
+        "ALTER TABLE geo_settings DROP CONSTRAINT reject_slot_advance"
+      );
+    }
+  });
+
   test("a stale lease cannot overwrite the slot another sweep advanced", async () => {
     const anchor = wholeMinutesAgo(60);
     await seedProject("stolen", { nextScanAt: anchor });

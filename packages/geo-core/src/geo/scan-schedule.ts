@@ -290,7 +290,18 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
           row,
           leaseUntil,
           coveredAt
-        ).pipe(geoSkip("scan slot advance failed"));
+        ).pipe(
+          geoSkip("scan slot advance failed", {
+            event: "geo.scan.slot_advance_failed",
+            organizationId: row.organizationId,
+            projectId: row.projectId,
+          })
+        );
+        // A database error was logged above; only a successful zero-row
+        // update proves that another sweep took ownership of the lease.
+        if (advanced === null) {
+          return null;
+        }
         if (advanced) {
           return true;
         }
