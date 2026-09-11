@@ -388,16 +388,16 @@ function PromptAnswerPage({
         </div>
       ) : null}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="relative grid">
-          <AnimatePresence custom={direction} initial={false}>
+        <div className="relative overflow-hidden">
+          <AnimatePresence custom={direction} initial={false} mode="popLayout">
             {active ? (
               <motion.div
                 animate="center"
-                className="col-start-1 row-start-1 flex min-w-0 flex-col"
+                className="flex min-w-0 flex-col"
                 custom={direction}
                 exit="exit"
                 initial="enter"
-                key={`${active.engine}-${view}-${selectedCheck?.id ?? "latest"}`}
+                key={active.engine}
                 transition={threadTransition}
                 variants={threadVariants(Boolean(reduceMotion))}
               >
