@@ -344,19 +344,6 @@ export interface PreparedGitHubContent {
   markdown: string;
 }
 
-export interface GitHubMarkdownNode {
-  alt?: string;
-  children?: GitHubMarkdownNode[];
-  identifier?: string;
-  position?: {
-    end: { offset?: number };
-    start: { offset?: number };
-  };
-  title?: string | null;
-  type: string;
-  url?: string;
-}
-
 export type GitHubPullRequestOperation = "created" | "updated";
 
 export interface GitHubPublishPullRequestResult {
@@ -400,7 +387,6 @@ export interface PublishContentDraftPullRequestParams {
 }
 
 export interface GitHubPullRequestSummary {
-  body?: string | null;
   number: number;
   html_url: string;
 }

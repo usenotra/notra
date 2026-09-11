@@ -84,9 +84,9 @@ export function GitHubPublishingPathFields({
           placeholder="public/blog/:slug/image"
         />
         <FieldDescription>
-          Optional. Notra CDN images are copied into the pull request and their
-          Markdown URLs are rewritten. Additional images receive a numbered
-          suffix; <code>:index</code> is also supported.
+          Optional, without file extension. Notra CDN images are copied into the
+          pull request and their Markdown URLs are rewritten. Additional images
+          receive a numbered suffix; <code>:index</code> is also supported.
         </FieldDescription>
       </Field>
 
