@@ -138,6 +138,12 @@ export function isGitHubAppConfigured() {
   return Boolean(appId && privateKey && slug);
 }
 
+/** Login GitHub assigns to commits made with an installation token. */
+export function getGitHubAppBotLogin() {
+  const { slug } = readGitHubAppConfig();
+  return isGitHubAppConfigured() && slug ? `${slug}[bot]` : null;
+}
+
 function getGitHubAppConfig() {
   const { appId, privateKey, slug } = readGitHubAppConfig();
 

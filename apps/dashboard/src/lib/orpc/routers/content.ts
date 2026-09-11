@@ -3,6 +3,7 @@ import {
   describeContentBillingDenial,
 } from "@notra/ai/billing/content-billing";
 import {
+  getGitHubAppBotLogin,
   getTokenForIntegrationId,
   isGitHubAppConfigured,
 } from "@notra/ai/integrations/github";
@@ -932,50 +933,56 @@ export const contentRouter = {
         toGitHubOperationOrpcError
       );
 
+      const octokit = createOctokit(token);
+      const publisherLogin =
+        getGitHubAppBotLogin() ??
+        (await octokit
+          .request("GET /user")
+          .then(({ data }) => data.login)
+          .catch(() => undefined));
+
       try {
-        const result = await publishContentDraftPullRequest(
-          createOctokit(token),
-          {
-            contentId: input.contentId,
-            contentType: input.contentType,
-            owner: integration.owner,
-            repo: integration.repo,
-            defaultBranch: integration.defaultBranch,
-            path,
-            title: post.title,
-            markdown: savedMarkdown,
-            pullRequestMarkdown: savedMarkdown,
-            ...(outputConfig.success && outputConfig.data.imagePath
-              ? {
-                  prepareContent: async (contentPath: string) => {
-                    const preparedContent = await prepareR2GitHubContentAssets({
-                      contentPath,
-                      imagePathTemplate: outputConfig.data.imagePath ?? "",
-                      markdown: savedMarkdown,
-                      slug: contentSlug,
-                    });
-                    if (
-                      preparedContent.assets.some(
-                        (asset) =>
-                          asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
-                      )
-                    ) {
-                      throw badRequest(
-                        "The configured image path exceeds GitHub's path limit"
-                      );
-                    }
-                    return preparedContent;
-                  },
-                }
-              : {}),
-            ...(notraBaseUrl && organization
-              ? {
-                  badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
-                  contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
-                }
-              : {}),
-          }
-        );
+        const result = await publishContentDraftPullRequest(octokit, {
+          contentId: input.contentId,
+          contentType: input.contentType,
+          owner: integration.owner,
+          repo: integration.repo,
+          defaultBranch: integration.defaultBranch,
+          path,
+          title: post.title,
+          markdown: savedMarkdown,
+          pullRequestMarkdown: savedMarkdown,
+          ...(publisherLogin ? { publisherLogin } : {}),
+          ...(outputConfig.success && outputConfig.data.imagePath
+            ? {
+                prepareContent: async (contentPath: string) => {
+                  const preparedContent = await prepareR2GitHubContentAssets({
+                    contentPath,
+                    imagePathTemplate: outputConfig.data.imagePath ?? "",
+                    markdown: savedMarkdown,
+                    slug: contentSlug,
+                  });
+                  if (
+                    preparedContent.assets.some(
+                      (asset) =>
+                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+                    )
+                  ) {
+                    throw badRequest(
+                      "The configured image path exceeds GitHub's path limit"
+                    );
+                  }
+                  return preparedContent;
+                },
+              }
+            : {}),
+          ...(notraBaseUrl && organization
+            ? {
+                badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
+                contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
+              }
+            : {}),
+        });
         await clearGitHubPublishFailures({
           organizationId: input.organizationId,
           outputType: input.contentType,

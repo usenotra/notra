@@ -476,15 +476,23 @@ async function assertRecoverableContentBranch(
   if (comparison.ahead_by > 0) {
     try {
       const { data: commit } = await params.octokit.request(
-        "GET /repos/{owner}/{repo}/git/commits/{commit_sha}",
+        "GET /repos/{owner}/{repo}/commits/{ref}",
         {
           owner: params.owner,
           repo: params.repo,
-          commit_sha: branchHeadSha,
+          ref: branchHeadSha,
           headers: GITHUB_API_VERSION_HEADERS,
         }
       );
-      commitMessage = commit.message;
+      // GitHub signs commits it creates through its API for the authenticated
+      // identity. A commit hand-built through the git data API with a spoofed
+      // author is unsigned, so only signed commits by the publisher can vouch
+      // for the files a publication owns.
+      const trusted =
+        params.publisherLogin !== null &&
+        commit.author?.login === params.publisherLogin &&
+        commit.commit.verification?.verified === true;
+      commitMessage = trusted ? commit.commit.message : undefined;
     } catch (error) {
       throw new GitHubContentPublishError(
         "Failed to read the existing content commit",
@@ -816,16 +824,15 @@ export async function publishContentDraftPullRequest(
         octokit,
         owner: requestedParams.owner,
         path: requestedParams.path,
+        publisherLogin: requestedParams.publisherLogin ?? null,
         repo: requestedParams.repo,
       });
   // The first content commit records the publication path. Keep it even when
   // the post's slug or the repository's configured output directory changes.
   const contentPath = contentBranch.path;
   const { branchHeadSha } = contentBranch;
-  // Assets are owned only when the last content commit recorded them and the
-  // branch still adds them; anything else on the branch belongs to someone else.
-  // A forged trailer can therefore only claim files its author added to this
-  // draft branch; deletions never reach files that exist on the base branch.
+  // Assets are owned only when the publisher's last signed commit recorded
+  // them and the branch still adds them; anything else belongs to someone else.
   const commitMetadata = parseContentCommitMetadata(
     contentBranch.commitMessage
   );

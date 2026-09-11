@@ -260,6 +260,8 @@ export interface ValidateExistingGitHubBranchParams {
   octokit: GitHubClient;
   owner: string;
   path: string;
+  /** Login whose GitHub-signed commits may carry trusted publication metadata. */
+  publisherLogin: string | null;
   repo: string;
 }
 
@@ -334,6 +336,11 @@ export interface PublishContentDraftPullRequestParams {
   pullRequestMarkdown?: string;
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */
   prepareContent?: (contentPath: string) => Promise<PreparedGitHubContent>;
+  /**
+   * Login the octokit token commits as (`{app}[bot]` or the token's user).
+   * Publication metadata is only trusted on GitHub-signed commits by this login.
+   */
+  publisherLogin?: string;
   /** Deep link to the content in the Notra dashboard, rendered as an "Open in Notra" button. */
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
