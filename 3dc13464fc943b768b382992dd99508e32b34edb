@@ -1,0 +1,19 @@
+apps/api/src/utils/env.ts
+  s_da528f773db618::t_37ffcacd91c77d 4-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "3dc13464fc943b768b382992dd99508e32b34edb",
+  "prompts": {},
+  "sessions": {
+    "s_da528f773db618": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f1002230ffe5RJBs62fcx7PDg",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}

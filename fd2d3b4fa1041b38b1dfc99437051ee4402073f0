@@ -1,0 +1,22 @@
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_b64934d6391afc::t_e5804556b51b17 1832
+  s_b64934d6391afc::t_d9720825630fda 1807
+packages/ui/src/components/ui/popover.tsx
+  s_b64934d6391afc::t_b604f4880b2544 20,28-30,33-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "fd2d3b4fa1041b38b1dfc99437051ee4402073f0",
+  "prompts": {},
+  "sessions": {
+    "s_b64934d6391afc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f5684fcdffeorq6yrhHKij56y",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}

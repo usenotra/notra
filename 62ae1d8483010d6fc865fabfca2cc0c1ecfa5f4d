@@ -1,0 +1,19 @@
+apps/dashboard/src/components/dashboard/nav-settings.tsx
+  s_57a38c8b0ea133::t_cc314aa0e647c9 90,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "62ae1d8483010d6fc865fabfca2cc0c1ecfa5f4d",
+  "prompts": {},
+  "sessions": {
+    "s_57a38c8b0ea133": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f5bf993bffe0lpSUESXjSbOdT",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}

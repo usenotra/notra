@@ -1,0 +1,21 @@
+apps/web/src/proxy.ts
+  s_ff4b263c325dd0::t_a7fa449b5ca16f 7-12
+  s_ff4b263c325dd0::t_e1546977446770 56-60,67-71
+  s_ff4b263c325dd0::t_a99b08c02abf84 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "c8b14beb9d11370f48e847c6b644938f748e3e98",
+  "prompts": {},
+  "sessions": {
+    "s_ff4b263c325dd0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f5a4ada6ffeRbY2P0gawW5Yy9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
