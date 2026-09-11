@@ -16,9 +16,9 @@ export function createDb(databaseUrl: string) {
         ? upstashCache({
             url: upstashUrl,
             token: upstashToken,
-            // Opt-in only: with `global: true` every select builder query paid a
-            // Redis GET plus a write-back pipeline for a 1 s default TTL, i.e.
-            // three round trips instead of one with practically no hits.
+            // Opt-in only: with `global: true` a cache miss paid 2 Upstash HTTP
+            // round trips (HGET, then a write-back pipeline of HSET + HEXPIRE +
+            // SADD) for a 1 s TTL. Query hashing is local, not a Redis RT.
             // Expensive, slowly changing queries opt in via `.$withCache(...)`.
             global: false,
           })
