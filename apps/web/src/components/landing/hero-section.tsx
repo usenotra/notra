@@ -43,7 +43,7 @@ export function HeroSection() {
     <section className="w-full px-6 pt-6 antialiased [font-synthesis:none]">
       <div className="relative isolate overflow-clip rounded-3xl bg-[#C8B2EE40] lg:h-[59.9375rem] dark:bg-[#2a2140]">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither />
+          <HeroDither eager />
         </div>
 
         <div className="relative flex h-full w-full flex-col items-center">

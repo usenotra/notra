@@ -92,6 +92,7 @@ export function CitationRows({
   base,
   animated,
   enteringId,
+  onEntered,
   headers,
 }: CitationRowsProps) {
   return (
@@ -136,6 +137,15 @@ export function CitationRows({
                     animated && row.id === enteringId ? ROW_ENTER_CLASS : null
                   )}
                   key={row.id}
+                  onAnimationEnd={
+                    animated && row.id === enteringId
+                      ? (event) => {
+                          if (event.target === event.currentTarget) {
+                            onEntered?.(row.id);
+                          }
+                        }
+                      : undefined
+                  }
                 >
                   <CitationCells base={base} row={row} />
                 </TableRow>

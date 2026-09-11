@@ -39,6 +39,9 @@ export function LiveTrafficLog({ engine }: HeroCollageProps) {
       base={base}
       enteringId={enteringId}
       headers={HERO_COLLAGE_CITATION_HEADERS}
+      onEntered={(id) => {
+        setEnteringId((current) => (current === id ? null : current));
+      }}
       rows={rows}
     />
   );

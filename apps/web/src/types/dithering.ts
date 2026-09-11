@@ -26,6 +26,10 @@ export type DeferredDitheringProps = Omit<DitheringCanvasProps, "animate"> & {
   eager?: boolean;
 };
 
+export interface HeroDitherProps {
+  eager?: boolean;
+}
+
 export interface DitherVisibilityState {
   containerRef: RefObject<HTMLDivElement | null>;
   shouldRender: boolean;

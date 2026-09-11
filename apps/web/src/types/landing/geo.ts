@@ -68,6 +68,7 @@ export interface CitationRowsProps {
   base: number | null;
   animated: boolean;
   enteringId?: string | null;
+  onEntered?: (id: string) => void;
   headers: { when: string; provider: string; path: string; purpose: string };
 }
 

@@ -1,12 +1,40 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useDitherVisibility } from "@/lib/dithering/use-dither-visibility";
-import type { DeferredDitheringProps } from "@/types/dithering";
+import type {
+  DeferredDitheringProps,
+  DitheringCanvasProps,
+} from "@/types/dithering";
 
 import { DitheringCanvas } from "./dithering-canvas";
+
+function DeferredDitherLayer({
+  speed,
+  maxPixelCount,
+  onPainted,
+  ...shaderProps
+}: DitheringCanvasProps) {
+  const [painted, setPainted] = useState(false);
+
+  return (
+    <DitheringCanvas
+      {...shaderProps}
+      className={cn(
+        "h-full w-full transition-opacity duration-300",
+        painted ? "opacity-100" : "opacity-0"
+      )}
+      maxPixelCount={maxPixelCount}
+      onPainted={() => {
+        setPainted(true);
+        onPainted?.();
+      }}
+      speed={speed}
+    />
+  );
+}
 
 export function DeferredDithering({
   className,
@@ -14,22 +42,13 @@ export function DeferredDithering({
   maxPixelCount,
   unmountOffscreen = false,
   eager = false,
+  onPainted,
   ...shaderProps
 }: DeferredDitheringProps) {
   const { containerRef, shouldRender, isAnimating } = useDitherVisibility(
     unmountOffscreen,
     eager
   );
-  const [painted, setPainted] = useState(false);
-  const handlePainted = useCallback(() => {
-    setPainted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!shouldRender) {
-      setPainted(false);
-    }
-  }, [shouldRender]);
 
   return (
     <div
@@ -38,15 +57,11 @@ export function DeferredDithering({
       ref={containerRef}
     >
       {shouldRender ? (
-        <DitheringCanvas
+        <DeferredDitherLayer
           {...shaderProps}
           animate={isAnimating}
-          className={cn(
-            "h-full w-full transition-opacity duration-300",
-            painted ? "opacity-100" : "opacity-0"
-          )}
           maxPixelCount={maxPixelCount}
-          onPainted={handlePainted}
+          onPainted={onPainted}
           speed={speed}
         />
       ) : null}
