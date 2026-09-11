@@ -1,6 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { projects } from "@notra/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { GEO_PROJECTS_OLDEST_ORDER } from "@notra/geo-core/constants/geo-projects";
+import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -63,7 +64,7 @@ const resolveFallbackGeoProjectId = cache(
       db.query.projects.findFirst({
         columns: { id: true },
         where: eq(projects.organizationId, organizationId),
-        orderBy: [asc(projects.createdAt)],
+        orderBy: GEO_PROJECTS_OLDEST_ORDER,
       })
     );
     return oldest?.id;

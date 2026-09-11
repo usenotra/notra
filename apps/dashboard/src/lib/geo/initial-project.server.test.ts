@@ -4,7 +4,12 @@ import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
 
 const findFirst =
-  mock<(query: { where: SQL }) => Promise<{ id: string } | undefined>>();
+  mock<
+    (query: {
+      where: SQL;
+      orderBy?: readonly SQL[];
+    }) => Promise<{ id: string } | undefined>
+  >();
 mock.module("@notra/db/drizzle", () => ({
   db: { query: { projects: { findFirst } } },
 }));
@@ -46,4 +51,9 @@ test("invalid requested projects fall back to the validated cookie then oldest p
   expect(
     await resolveInitialGeoProjectId("org-1", "org", "deleted-project")
   ).toBe("oldest-project");
+  const oldestQuery = findFirst.mock.calls[2]?.[0];
+  const dialect = new PgDialect();
+  expect(
+    oldestQuery?.orderBy?.map((clause) => dialect.sqlToQuery(clause).sql)
+  ).toEqual(['"projects"."created_at" asc', '"projects"."id" asc']);
 });
