@@ -332,7 +332,10 @@ eventTriggersRoutes.openapi(getEventTriggerRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
-    return c.json({ error: "Event trigger not found" }, 404);
+    if (result.failure._tag === "EventTriggerNotFoundError") {
+      return c.json({ error: "Event trigger not found" }, 404);
+    }
+    throw result.failure;
   }
 
   const eventTrigger = safeSerializeEventTrigger(result.success);
@@ -410,7 +413,10 @@ eventTriggersRoutes.openapi(deleteEventTriggerRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
-    return c.json({ error: "Event trigger not found" }, 404);
+    if (result.failure._tag === "EventTriggerNotFoundError") {
+      return c.json({ error: "Event trigger not found" }, 404);
+    }
+    throw result.failure;
   }
 
   return c.json({ id: result.success, organization }, 200);

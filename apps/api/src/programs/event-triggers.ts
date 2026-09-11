@@ -272,33 +272,32 @@ export const updateEventTrigger = Effect.fn("eventTriggers.update")(function* (
       .returning()
   );
 
-  return (
-    updatedTrigger ??
-    (yield* new EventTriggerDatabaseError({
-      cause: new Error("Failed to update event trigger"),
-    }))
-  );
+  if (!updatedTrigger) {
+    return yield* new EventTriggerNotFoundError();
+  }
+
+  return updatedTrigger;
 });
 
 export const deleteEventTrigger = Effect.fn("eventTriggers.delete")(function* (
   input: NamedEventTriggerProgramInput
 ) {
-  const existing = yield* findGithubWebhookTrigger(input);
-
-  if (!existing) {
-    return yield* new EventTriggerNotFoundError();
-  }
-
-  yield* database(() =>
+  const [deleted] = yield* database(() =>
     input.db
       .delete(contentTriggers)
       .where(
         and(
           eq(contentTriggers.id, input.triggerId),
-          eq(contentTriggers.organizationId, input.organizationId)
+          eq(contentTriggers.organizationId, input.organizationId),
+          eq(contentTriggers.sourceType, GITHUB_WEBHOOK_SOURCE)
         )
       )
+      .returning({ id: contentTriggers.id })
   );
 
-  return input.triggerId;
+  if (!deleted) {
+    return yield* new EventTriggerNotFoundError();
+  }
+
+  return deleted.id;
 });
