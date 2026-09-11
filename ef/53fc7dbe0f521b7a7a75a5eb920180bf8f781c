@@ -1,0 +1,35 @@
+packages/ai/src/integrations/github-publish-auth.ts
+  s_147c9d2b26b125::t_0975a039288dfb 20
+apps/dashboard/src/components/content/github-publish-dialog-footer.tsx
+  s_147c9d2b26b125::t_4fca4a7b58942e 81
+  s_147c9d2b26b125::t_5f4e6fb9c5c4a5 29
+apps/dashboard/src/components/integrations/github/github-publishing-settings.tsx
+  s_147c9d2b26b125::t_c4e82e85b53080 141
+apps/dashboard/src/components/content/publish-content-to-github-dialog.tsx
+  s_147c9d2b26b125::t_438bcd8a2a94f6 14
+  s_147c9d2b26b125::t_763fb4a2462b1e 107-110
+apps/dashboard/src/utils/github-publish-recovery.ts
+  s_147c9d2b26b125::t_a2dcfc1acb19c1 28
+apps/dashboard/src/components/settings/panes/integrations-pane.tsx
+  s_147c9d2b26b125::t_35c9633fcf0764 78
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_147c9d2b26b125::t_b5a493ea32ff0d 9,11-14
+  s_147c9d2b26b125::t_59391577a01a66 996-998
+  s_147c9d2b26b125::t_75d3cedde971a7 927-942,944,948-950
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ef53fc7dbe0f521b7a7a75a5eb920180bf8f781c",
+  "prompts": {},
+  "sessions": {
+    "s_147c9d2b26b125": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "eeed3135-babd-4e3e-a49c-16bf479b004e",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
