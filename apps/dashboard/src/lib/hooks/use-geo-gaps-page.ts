@@ -2,7 +2,7 @@
 
 import { GEO_SEARCH_GAP_DISMISSED_TOAST } from "@notra/geo-core/constants/geo";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -50,19 +50,19 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
   const [dialogInitial, setDialogInitial] =
     useState<WriteDialogInitialState | null>(null);
 
-  const openDialog = useCallback((initial?: WriteDialogInitialState) => {
+  const openDialog = (initial?: WriteDialogInitialState) => {
     setDialogInitial(initial ?? emptyWriteDialogState());
     setDialogOpen(true);
-  }, []);
+  };
 
-  const onRetry = useCallback(() => {
+  const onRetry = () => {
     if (settingsQuery.isError) {
       void settingsQuery.refetch();
     }
     if (gapsQuery.isError) {
       void gapsQuery.refetch();
     }
-  }, [gapsQuery, settingsQuery]);
+  };
 
   return toGeoGapsPageModel({
     status: resolveGeoGapsPageStatus({
