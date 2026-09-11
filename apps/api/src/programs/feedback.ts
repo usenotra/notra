@@ -1,6 +1,6 @@
 import { classifyAgentFeedback } from "@notra/ai/jobs/feedback-classifier";
 import { agentFeedback, projects } from "@notra/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { nanoid } from "nanoid";
 
@@ -10,8 +10,12 @@ import {
   FeedbackProjectNotFoundError,
 } from "../errors/feedback";
 import type {
+  ListFeedbackProgramInput,
+  ListFeedbackProgramSuccess,
+  NamedFeedbackProgramInput,
   SubmitFeedbackProgramInput,
   SubmitFeedbackProgramSuccess,
+  UpdateFeedbackProgramInput,
 } from "../types/feedback";
 
 const database = <A>(operation: () => Promise<A>) =>
@@ -56,6 +60,111 @@ const findByIdempotencyKey = (
       ),
     })
   );
+
+const findByOrganizationAndId = (
+  db: NamedFeedbackProgramInput["db"],
+  organizationId: string,
+  feedbackId: string
+) =>
+  database(() =>
+    db.query.agentFeedback.findFirst({
+      where: and(
+        eq(agentFeedback.organizationId, organizationId),
+        eq(agentFeedback.id, feedbackId)
+      ),
+    })
+  );
+
+export const listFeedback = Effect.fn("feedback.list")(function* ({
+  db,
+  organizationId,
+  query,
+}: ListFeedbackProgramInput) {
+  const conditions = [eq(agentFeedback.organizationId, organizationId)];
+  if (query.status) {
+    conditions.push(eq(agentFeedback.status, query.status));
+  }
+  if (query.kind) {
+    conditions.push(eq(agentFeedback.kind, query.kind));
+  }
+  if (query.projectId) {
+    conditions.push(eq(agentFeedback.projectId, query.projectId));
+  }
+  const where = and(...conditions);
+
+  const [[totals], rows] = yield* database(() =>
+    Promise.all([
+      db.select({ total: count() }).from(agentFeedback).where(where),
+      db
+        .select()
+        .from(agentFeedback)
+        .where(where)
+        .orderBy(desc(agentFeedback.createdAt))
+        .limit(query.limit)
+        .offset((query.page - 1) * query.limit),
+    ])
+  );
+
+  const totalItems = totals?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / query.limit));
+
+  return {
+    feedback: rows,
+    pagination: {
+      limit: query.limit,
+      currentPage: query.page,
+      nextPage: query.page < totalPages ? query.page + 1 : null,
+      previousPage: query.page > 1 ? query.page - 1 : null,
+      totalPages,
+      totalItems,
+    },
+  } satisfies ListFeedbackProgramSuccess;
+});
+
+export const getFeedback = Effect.fn("feedback.get")(function* (
+  input: NamedFeedbackProgramInput
+) {
+  const row = yield* findByOrganizationAndId(
+    input.db,
+    input.organizationId,
+    input.feedbackId
+  );
+
+  if (!row) {
+    return yield* new FeedbackNotFoundError();
+  }
+
+  return row;
+});
+
+export const updateFeedback = Effect.fn("feedback.update")(function* ({
+  db,
+  organizationId,
+  feedbackId,
+  body,
+}: UpdateFeedbackProgramInput) {
+  const [updated] = yield* database(() =>
+    db
+      .update(agentFeedback)
+      .set({
+        status: body.status,
+        resolvedAt: body.status === "resolved" ? new Date() : null,
+      })
+      .where(
+        and(
+          eq(agentFeedback.organizationId, organizationId),
+          eq(agentFeedback.id, feedbackId)
+        )
+      )
+      .returning()
+  );
+
+  if (!updated) {
+    return yield* new FeedbackNotFoundError();
+  }
+
+  return updated;
+});
 
 export const submitFeedback = Effect.fn("feedback.submit")(function* ({
   db,
