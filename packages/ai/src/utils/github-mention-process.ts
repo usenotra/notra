@@ -7,6 +7,7 @@ import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-aut
 import type { GitHubAppWebhookPayload } from "@notra/ai/schemas/github-mention";
 import type {
   GitHubMentionContext,
+  GitHubMentionLogTarget,
   GitHubMentionProcessResult,
   GitHubMentionPullRequest,
   GitHubMentionResolveResult,
@@ -154,7 +155,7 @@ export async function resolveGitHubMentionContext(params: {
   }
 
   if (!resolved) {
-    let logTarget: GitHubMentionResolveResult["logTarget"];
+    let logTarget: GitHubMentionLogTarget | undefined;
     for (const organization of organizations) {
       const integration = await findGitHubIntegrationForMention({
         organizationId: organization.organizationId,
