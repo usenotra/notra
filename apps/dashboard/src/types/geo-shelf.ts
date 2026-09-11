@@ -347,3 +347,59 @@ export interface GeoShelfPlacementsTableProps {
   onSetPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
   disabled: boolean;
 }
+
+export interface GeoShelfPageStatusInput {
+  isSettingsPending: boolean;
+  hasSettings: boolean;
+  isShelfLoading: boolean;
+}
+
+export interface GeoShelfPageEmpty {
+  status: "empty";
+  organizationSlug: string;
+  projectId: string | undefined;
+}
+
+export interface GeoShelfPageReady {
+  status: "ready";
+  organizationId: string;
+  organizationSlug: string;
+  ownBrandName: string;
+  ownDomain: string | null;
+  competitors: GeoCompetitor[];
+  members: GeoShelfMember[];
+  currentMemberId: string | null;
+  currentMember: GeoShelfMember | null;
+  rows: GeoShelfRow[];
+  filteredRows: GeoShelfRow[];
+  filters: GeoShelfFilterState;
+  view: GeoShelfView;
+  hasScanData: boolean;
+  selectedRow: GeoShelfRow | null;
+  addOpen: boolean;
+  pendingSourceIds: ReadonlySet<string>;
+  onSearchChange: (value: string) => void;
+  onShelfFilterChange: (value: GeoShelfShelfFilter) => void;
+  onTicketFilterChange: (value: GeoShelfTicketFilter) => void;
+  onViewChange: (value: GeoShelfView) => void;
+  onAddOpenChange: (open: boolean) => void;
+  onRowClick: (row: GeoShelfRow) => void;
+  onSelectedOpenChange: (open: boolean) => void;
+  addSource: GeoShelfDbApi["addSource"];
+  updateOpportunity: GeoShelfDbApi["updateOpportunity"];
+  setPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
+}
+
+export type GeoShelfPageModel =
+  | { status: "loading" }
+  | GeoShelfPageEmpty
+  | GeoShelfPageReady;
+
+export interface GeoShelfLoadedProps {
+  page: GeoShelfPageReady;
+}
+
+export interface GeoShelfNotSetupProps {
+  organizationSlug: string;
+  projectId: string | undefined;
+}
