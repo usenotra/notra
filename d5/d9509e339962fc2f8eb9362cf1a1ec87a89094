@@ -1,0 +1,27 @@
+apps/dashboard/src/components/charts/echarts-plot-frame.tsx
+  s_d4520a086db350::t_89d123ce9e672c 12
+  s_d4520a086db350::t_f05fef0da30d7d 36-41
+apps/dashboard/src/utils/chart-download.ts
+  s_d4520a086db350::t_7e950bf82583a9 214-217
+  s_d4520a086db350::t_bb35a1733349c3 9,12-13
+  s_d4520a086db350::t_25ca4cc436d6d2 86-89,94-111
+  s_d4520a086db350::t_84837a539da85b 15
+apps/dashboard/src/constants/chart-download.ts
+  s_d4520a086db350::t_2bdf50f9342403 1,5-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d5d9509e339962fc2f8eb9362cf1a1ec87a89094",
+  "prompts": {},
+  "sessions": {
+    "s_d4520a086db350": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "48d7e7b2-3d11-4e57-a68d-8e21028d9122",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
