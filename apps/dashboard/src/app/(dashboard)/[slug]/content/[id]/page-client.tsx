@@ -96,6 +96,7 @@ import {
   copyImageAsFigma,
   copyImageAsPaper,
   downloadImage,
+  preloadImageExportCopy,
 } from "@/lib/content/image-export";
 import {
   useGeoWriterBrief,
@@ -133,6 +134,11 @@ function formatDate(date: Date): string {
     month: "long",
     day: "numeric",
   }).format(date);
+}
+
+function preloadFigmaAndPaperExport() {
+  preloadImageExportCopy("figma");
+  preloadImageExportCopy("paper");
 }
 
 function extractTitleFromMarkdown(markdown: string): string {
@@ -1682,6 +1688,12 @@ export default function PageClient({
                     <ButtonGroup>
                       <Button
                         onClick={handleCopyImageExport}
+                        onFocus={() =>
+                          preloadImageExportCopy(imageExportTarget)
+                        }
+                        onMouseEnter={() =>
+                          preloadImageExportCopy(imageExportTarget)
+                        }
                         size="sm"
                         variant="outline"
                       >
@@ -1693,7 +1705,14 @@ export default function PageClient({
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          render={<Button size="icon-sm" variant="outline" />}
+                          render={
+                            <Button
+                              onFocus={preloadFigmaAndPaperExport}
+                              onMouseEnter={preloadFigmaAndPaperExport}
+                              size="icon-sm"
+                              variant="outline"
+                            />
+                          }
                         >
                           <span className="sr-only">Select export target</span>
                           <HugeiconsIcon
@@ -1718,6 +1737,10 @@ export default function PageClient({
                                   closeOnClick
                                   disabled={isWonder}
                                   key={target}
+                                  onFocus={() => preloadImageExportCopy(target)}
+                                  onMouseEnter={() =>
+                                    preloadImageExportCopy(target)
+                                  }
                                   value={target}
                                 >
                                   <ImageExportTargetIcon

@@ -1,6 +1,6 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import type { AttachPlanParams, AttachPlanResult } from "@/types/billing/plan";
 import { zdrAddonPlanId } from "@/utils/billing-plans";
 
@@ -20,7 +20,7 @@ export async function attachPlanWithAddons({
       successUrl,
     });
     if (result.paymentUrl) {
-      trackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
+      await flushTrackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
         plan_id: planId,
         zdr: true,
       });
@@ -34,7 +34,7 @@ export async function attachPlanWithAddons({
     successUrl,
   });
   if (result.paymentUrl) {
-    trackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
+    await flushTrackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
       plan_id: planId,
       zdr: false,
     });

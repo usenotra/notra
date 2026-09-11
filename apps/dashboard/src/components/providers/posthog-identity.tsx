@@ -4,7 +4,7 @@ import { POSTHOG_GROUP_TYPES } from "@notra/posthog/constants/posthog";
 import { useEffect } from "react";
 
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
-import { withPostHog } from "@/lib/analytics/posthog-lazy";
+import { whenPostHogReady } from "@/lib/analytics/posthog-lazy";
 import { authClient } from "@/lib/auth/client";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 
@@ -24,7 +24,7 @@ export function PostHogIdentity() {
     }
 
     let active = true;
-    void withPostHog((posthog) => {
+    void whenPostHogReady((posthog) => {
       if (!active) {
         return;
       }
@@ -57,7 +57,7 @@ export function PostHogIdentity() {
     }
 
     let active = true;
-    void withPostHog((posthog) => {
+    void whenPostHogReady((posthog) => {
       if (!active) {
         return;
       }

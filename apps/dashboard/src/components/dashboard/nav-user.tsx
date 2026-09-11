@@ -23,7 +23,7 @@ import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useHidePersonalData } from "@/lib/hooks/use-privacy-preferences";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
@@ -51,7 +51,7 @@ export function NavUser() {
 
   async function handleSignOut() {
     setIsSigningOut(true);
-    trackEvent(POSTHOG_EVENTS.LOGOUT);
+    await flushTrackEvent(POSTHOG_EVENTS.LOGOUT);
     try {
       await authClient.signOut({
         fetchOptions: {

@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 
 function formatDollars(cents: number) {
@@ -98,7 +98,7 @@ export function CreditTopupContent({ onSuccess }: CreditTopupContentProps) {
       });
 
       if (result.paymentUrl) {
-        trackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
+        await flushTrackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
           plan_id: ADDONS.AI_CREDITS_TOPUP,
           amount_dollars: amountDollars,
           is_preset: isPreset,

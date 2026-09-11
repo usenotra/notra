@@ -11,9 +11,10 @@ mock.module("@/constants/posthog", () => ({
   POSTHOG_CONFIG: {},
 }));
 
-const { initPostHog, withPostHog } = await import("./posthog-lazy");
+const { initPostHog, whenPostHogReady, withPostHog } =
+  await import("./posthog-lazy");
 
-test("a failed deferred initialization is handled and the next call retries", async () => {
+test("idle identity waits without starting init, then a failed init retries", async () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   Object.defineProperty(globalThis, "window", {
     configurable: true,
@@ -21,14 +22,21 @@ test("a failed deferred initialization is handled and the next call retries", as
   });
   const errorLog = spyOn(console, "error").mockImplementation(() => undefined);
   try {
-    const callback = mock(() => undefined);
+    const idleCallback = mock(() => undefined);
+    const actionCallback = mock(() => undefined);
+    const ready = whenPostHogReady(idleCallback);
+    await Promise.resolve();
+    expect(init).toHaveBeenCalledTimes(0);
+    expect(idleCallback).not.toHaveBeenCalled();
+
     initPostHog();
-    await withPostHog(callback);
+    await ready;
     expect(init).toHaveBeenCalledTimes(1);
-    expect(callback).not.toHaveBeenCalled();
-    await withPostHog(callback);
+    expect(idleCallback).not.toHaveBeenCalled();
+
+    await withPostHog(actionCallback);
     expect(init).toHaveBeenCalledTimes(2);
-    expect(callback).toHaveBeenCalledTimes(1);
+    expect(actionCallback).toHaveBeenCalledTimes(1);
   } finally {
     errorLog.mockRestore();
     if (previousWindow) {

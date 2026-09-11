@@ -7,10 +7,15 @@ import { POSTHOG_CONFIG, POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
 /**
  * posthog-js is loaded lazily so its ~70 kB gz bundle stays off the
  * render-blocking app shell. Calls made before `init()` are silently dropped by
- * the SDK (no queueing), so every consumer must go through `withPostHog`, which
- * awaits the same readiness promise the deferred initialisation uses.
+ * the SDK (no queueing), so every consumer must go through `withPostHog` or
+ * `whenPostHogReady`.
+ *
+ * `withPostHog` starts the idle-shared init (user actions, including redirects).
+ * `whenPostHogReady` only runs after `initPostHog` (or another starter) so the
+ * always-mounted identity provider cannot pull the chunk in before idle.
  */
 let clientPromise: Promise<PostHog | null> | null = null;
+const readyWaiters: Array<(client: PostHog | null) => void> = [];
 
 async function loadAndInit(): Promise<PostHog | null> {
   if (!POSTHOG_PROJECT_TOKEN) {
@@ -27,13 +32,31 @@ async function loadAndInit(): Promise<PostHog | null> {
   return posthog;
 }
 
+function resolveReadyWaiters(promise: Promise<PostHog | null>): void {
+  const waiters = readyWaiters.splice(0);
+  for (const resolve of waiters) {
+    void promise.then(resolve);
+  }
+}
+
 function ensureClient(): Promise<PostHog | null> {
   clientPromise ??= loadAndInit().catch((error) => {
     clientPromise = null;
     console.error("Failed to initialize PostHog", error);
     return null;
   });
+  resolveReadyWaiters(clientPromise);
   return clientPromise;
+}
+
+function waitForClient(): Promise<PostHog | null> {
+  if (clientPromise) {
+    return clientPromise;
+  }
+
+  return new Promise((resolve) => {
+    readyWaiters.push(resolve);
+  });
 }
 
 /** Starts loading and initialising posthog-js if it has not started yet. */
@@ -45,7 +68,7 @@ export function initPostHog(): void {
   void ensureClient();
 }
 
-/** Runs `callback` once posthog-js is loaded and initialised. */
+/** Runs `callback` once posthog-js is loaded. Starts init if idle has not. */
 export async function withPostHog(
   callback: (posthog: PostHog) => void
 ): Promise<void> {
@@ -54,6 +77,23 @@ export async function withPostHog(
   }
 
   const posthog = await ensureClient();
+  if (posthog) {
+    callback(posthog);
+  }
+}
+
+/**
+ * Like `withPostHog`, but never starts the dynamic import. Identity sync waits
+ * for the idle `initPostHog` path (or a later user-action `withPostHog`).
+ */
+export async function whenPostHogReady(
+  callback: (posthog: PostHog) => void
+): Promise<void> {
+  if (!POSTHOG_PROJECT_TOKEN || typeof window === "undefined") {
+    return;
+  }
+
+  const posthog = await waitForClient();
   if (posthog) {
     callback(posthog);
   }

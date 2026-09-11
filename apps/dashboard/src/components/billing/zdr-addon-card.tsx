@@ -22,7 +22,7 @@ import {
   ZDR_ADDON_TITLE,
   ZDR_ADDON_UNAVAILABLE,
 } from "@/constants/billing";
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent, trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import {
@@ -74,7 +74,7 @@ export function ZdrAddonCard() {
         successUrl,
       });
       if (result.paymentUrl) {
-        trackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
+        await flushTrackEvent(POSTHOG_EVENTS.CHECKOUT_REDIRECTED, {
           plan_id: addonPlanId,
           zdr: true,
         });

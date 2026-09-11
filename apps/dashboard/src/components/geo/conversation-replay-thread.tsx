@@ -21,13 +21,17 @@ import {
 } from "@/utils/geo-answer-replay";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 
+const answerMarkdownFallback = (
+  <p className="text-muted-foreground animate-pulse">Thinking…</p>
+);
+
 // Markdown rendering (~138 kB gz) is only needed once a replay is on screen.
 const AnswerMarkdown = dynamic(
   () =>
     import("@/components/geo/geo-prompt-answer-thread").then(
       (module) => module.AnswerMarkdown
     ),
-  { ssr: false }
+  { ssr: false, loading: () => answerMarkdownFallback }
 );
 
 function replaySources(turn: GeoSequenceTurnResult): PerplexitySearchSource[] {

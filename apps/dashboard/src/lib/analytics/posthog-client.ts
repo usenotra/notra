@@ -12,6 +12,14 @@ export function trackEvent(
   void withPostHog((posthog) => posthog.capture(event, properties));
 }
 
+/** Await before logout/checkout redirects so capture is not dropped mid-init. */
+export async function flushTrackEvent(
+  event: PostHogEventName,
+  properties?: PostHogProperties
+): Promise<void> {
+  await withPostHog((posthog) => posthog.capture(event, properties));
+}
+
 export function trackClientException(
   error: unknown,
   properties?: PostHogProperties
