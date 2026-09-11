@@ -32,6 +32,18 @@ export const LOG_CONTEXT_FIELDS = {
   url: "URL",
   stage: "Stage",
   runId: "Run ID",
+  repository: "Repository",
+  issueNumber: "Issue",
+  senderLogin: "Commenter",
+  destinationMode: "Destination",
+  commitSha: "Commit",
+  commentUrl: "Comment URL",
+  commentSnippet: "Comment",
+  replySnippet: "Reply",
+  postId: "Post",
+  pullRequestUrl: "Pull request",
+  mentionStatus: "Mention result",
+  durationMs: "Duration (ms)",
 } as const;
 
 export const LOG_CONTEXT_ALIASES: Record<string, string> = {
