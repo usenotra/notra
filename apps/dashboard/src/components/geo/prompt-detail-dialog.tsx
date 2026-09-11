@@ -29,6 +29,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
+import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
 import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
@@ -337,19 +338,23 @@ function PromptAnswerPage({
     );
   }
 
-  const emptyAnswer =
-    detailState.status === "loading" || detailState.status === "error" ? (
+  let emptyAnswer = (
+    <div className="flex min-h-48 items-center justify-center px-6">
+      <p className="text-muted-foreground text-center text-sm text-pretty">
+        {geoScanEmptyMessage(
+          isScanning,
+          "Run a scan to see how engines answer this"
+        )}
+      </p>
+    </div>
+  );
+  if (detailState.status === "loading") {
+    emptyAnswer = <GeoPromptAnswerSkeleton view={view} />;
+  } else if (detailState.status === "error") {
+    emptyAnswer = (
       <PromptDetailStatus onRetry={onRetry} status={detailState.status} />
-    ) : (
-      <div className="flex min-h-48 items-center justify-center px-6">
-        <p className="text-muted-foreground text-center text-sm text-pretty">
-          {geoScanEmptyMessage(
-            isScanning,
-            "Run a scan to see how engines answer this"
-          )}
-        </p>
-      </div>
     );
+  }
 
   return (
     <SheetContent

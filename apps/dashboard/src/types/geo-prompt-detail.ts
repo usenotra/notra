@@ -31,6 +31,10 @@ export interface GeoPromptDetailStatusProps {
   onRetry: () => void;
 }
 
+export interface GeoPromptAnswerSkeletonProps {
+  view: GeoPromptReceiptView;
+}
+
 export interface PromptAnswerBodyProps {
   organizationId: string;
   detailState: GeoPromptDetailState;
