@@ -31,22 +31,18 @@ function EngineMark({
 }: Pick<HeroCycleWord, "engine"> & { animated: boolean }) {
   return (
     <span className={ICON_SLOT_CLASS}>
-      {animated ? (
-        <AnimatePresence initial={false}>
-          <m.span
-            animate={{ opacity: 1 }}
-            className="absolute inset-0"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
-            key={engine}
-            transition={ICON_SWAP}
-          >
-            <EngineIcon className="size-full" engine={engine} />
-          </m.span>
-        </AnimatePresence>
-      ) : (
-        <EngineIcon className="size-full" engine={engine} />
-      )}
+      <AnimatePresence initial={false}>
+        <m.span
+          animate={{ opacity: 1 }}
+          className="absolute inset-0"
+          exit={animated ? { opacity: 0 } : undefined}
+          initial={animated ? { opacity: 0 } : false}
+          key={engine}
+          transition={animated ? ICON_SWAP : { duration: 0 }}
+        >
+          <EngineIcon className="size-full" engine={engine} />
+        </m.span>
+      </AnimatePresence>
     </span>
   );
 }
