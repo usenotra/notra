@@ -44,4 +44,14 @@ export interface PatchScheduleProgramInput extends ScheduleProgramInput {
   env: QstashEnv;
 }
 
+export interface CreateScheduleProgramInput extends ScheduleProgramInput {
+  body: z.infer<typeof createScheduleRequestSchema>;
+  env: QstashEnv;
+}
+
+export interface DeleteScheduleProgramInput extends ScheduleProgramInput {
+  scheduleId: string;
+  env: QstashEnv;
+}
+
 export type CreateScheduleBody = z.infer<typeof createScheduleRequestSchema>;
