@@ -1,0 +1,35 @@
+packages/schemas/src/schemas/dashboard/integrations.ts
+  s_aa8229cd889ec7::t_abc99e0f3c0a3c 8,303-307
+apps/dashboard/src/lib/integrations/github/pull-request-body.ts
+  s_aa8229cd889ec7::t_16c731a760303b 152,155,183-186
+packages/schemas/src/constants/dashboard/github.ts
+  s_aa8229cd889ec7::t_abc99e0f3c0a3c 9-10
+apps/dashboard/src/lib/integrations/github/publish-content-to-github.ts
+  s_aa8229cd889ec7::t_7e33cd0ebc0404 831,833
+  s_aa8229cd889ec7::t_3ff0cfb57b6210 472-474,502-505
+  s_aa8229cd889ec7::t_fcc4292ff3a184 823,825-826,838,850,855-864,963-969
+apps/dashboard/src/components/integrations/github/github-publishing-path-fields.tsx
+  s_aa8229cd889ec7::t_715f54ca06517c 87-89
+apps/dashboard/src/lib/integrations/github/content-assets.ts
+  s_aa8229cd889ec7::t_0fd4d7cb942afb 33-45,47-48,50,57-59,75-76,83,126-129,131-132,251-252
+  s_aa8229cd889ec7::t_7e33cd0ebc0404 116-117
+  s_aa8229cd889ec7::t_abc99e0f3c0a3c 4,130
+apps/dashboard/src/constants/github.ts
+  s_aa8229cd889ec7::t_167d755d7bad27 52,56-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d1f1719502837f4d13f8554c37b0b72f9e88396a",
+  "prompts": {},
+  "sessions": {
+    "s_aa8229cd889ec7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1f0df977-ca0c-4496-bc00-88a14c552ab7",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
