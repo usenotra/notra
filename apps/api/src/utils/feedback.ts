@@ -3,6 +3,10 @@ import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { Context } from "hono";
 
+import {
+  FEEDBACK_NOT_FOUND_ERROR,
+  FEEDBACK_PROJECT_NOT_FOUND_ERROR,
+} from "../constants/feedback";
 import type { FeedbackDatabaseError } from "../errors/feedback";
 import { isIngestAuth } from "../types/auth";
 import type {
@@ -64,4 +68,16 @@ export function runFeedbackProgram<A, E extends FeedbackDomainError>(
       )
     )
   );
+}
+
+export function respondToFeedbackFailure(
+  c: Context,
+  failure: FeedbackDomainError
+) {
+  if (failure._tag === "FeedbackProjectNotFoundError") {
+    return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
+  }
+  if (failure._tag === "FeedbackNotFoundError") {
+    return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+  }
 }

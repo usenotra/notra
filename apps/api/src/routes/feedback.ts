@@ -28,6 +28,7 @@ import { getOrganizationId } from "../utils/auth";
 import {
   findOrganizationIdBySlug,
   getIngestProjectId,
+  respondToFeedbackFailure,
   runFeedbackProgram,
   serializeFeedback,
 } from "../utils/feedback";
@@ -209,11 +210,9 @@ feedbackRoutes.openapi(submitOrganizationFeedbackRoute, async (c) => {
     })
   );
   if (result._tag === "Failure") {
-    if (result.failure._tag === "FeedbackProjectNotFoundError") {
-      return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
-    }
-    if (result.failure._tag === "FeedbackNotFoundError") {
-      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    const response = respondToFeedbackFailure(c, result.failure);
+    if (response) {
+      return response;
     }
     throw result.failure;
   }
@@ -251,11 +250,9 @@ feedbackRoutes.openapi(submitFeedbackRoute, async (c) => {
     })
   );
   if (result._tag === "Failure") {
-    if (result.failure._tag === "FeedbackProjectNotFoundError") {
-      return c.json({ error: FEEDBACK_PROJECT_NOT_FOUND_ERROR }, 404);
-    }
-    if (result.failure._tag === "FeedbackNotFoundError") {
-      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    const response = respondToFeedbackFailure(c, result.failure);
+    if (response) {
+      return response;
     }
     throw result.failure;
   }
@@ -315,8 +312,9 @@ feedbackRoutes.openapi(getFeedbackRoute, async (c) => {
     })
   );
   if (result._tag === "Failure") {
-    if (result.failure._tag === "FeedbackNotFoundError") {
-      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    const response = respondToFeedbackFailure(c, result.failure);
+    if (response) {
+      return response;
     }
     throw result.failure;
   }
@@ -340,8 +338,9 @@ feedbackRoutes.openapi(updateFeedbackRoute, async (c) => {
     })
   );
   if (result._tag === "Failure") {
-    if (result.failure._tag === "FeedbackNotFoundError") {
-      return c.json({ error: FEEDBACK_NOT_FOUND_ERROR }, 404);
+    const response = respondToFeedbackFailure(c, result.failure);
+    if (response) {
+      return response;
     }
     throw result.failure;
   }
