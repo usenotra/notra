@@ -59,14 +59,10 @@ function DashboardAgentChat({
   const [isHydratingHistory, setIsHydratingHistory] = useState(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
-  const activeChatIdRef = useRef(activeChatId);
   const onCloseRef = useRef(onClose);
   const closeAfterNavigationRef = useRef(false);
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
-  const projectIdRef = useRef<string | undefined>(
-    isProjectResolved && activeProjectId ? activeProjectId : undefined
-  );
 
   const sessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
@@ -103,13 +99,14 @@ function DashboardAgentChat({
     }) => ({
       body: {
         ...body,
-        chatId: activeChatIdRef.current,
-        projectId: projectIdRef.current,
+        chatId: activeChatId,
+        projectId:
+          isProjectResolved && activeProjectId ? activeProjectId : undefined,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         messages,
       },
     }),
-    []
+    [activeChatId, activeProjectId, isProjectResolved]
   );
 
   const transport = useMemo(
@@ -194,11 +191,8 @@ function DashboardAgentChat({
 
   const isAgentBusy = status === "streaming" || status === "submitted";
   useLayoutEffect(() => {
-    activeChatIdRef.current = activeChatId;
     onCloseRef.current = onClose;
-    projectIdRef.current =
-      isProjectResolved && activeProjectId ? activeProjectId : undefined;
-  }, [activeChatId, activeProjectId, isProjectResolved, onClose]);
+  }, [onClose]);
   useLayoutEffect(() => {
     messagesRef.current = messages;
     isAgentBusyRef.current = isAgentBusy || isHydratingHistory;
