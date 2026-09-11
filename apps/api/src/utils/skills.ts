@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
 import type { SkillDatabaseError } from "../errors/skills";
+import { runProgram } from "../runtime/run-program";
 import type {
   SerializedSkill,
   SerializedSkillSummary,
@@ -13,12 +14,10 @@ import type {
 export function runSkillProgram<A, E extends SkillDomainError>(
   program: Effect.Effect<A, E | SkillDatabaseError>
 ) {
-  return Effect.runPromise(
-    Effect.result(
-      program.pipe(
-        Effect.catchTag("SkillDatabaseError", (failure) =>
-          Effect.die(failure.cause)
-        )
+  return runProgram(program, (effect) =>
+    effect.pipe(
+      Effect.catchTag("SkillDatabaseError", (failure) =>
+        Effect.die(failure.cause)
       )
     )
   );

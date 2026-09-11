@@ -1,3 +1,4 @@
 {
-  "$schema": "https://unpkg.com/knip@6/schema.json"
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["src/http/map-error.ts"]
 }
