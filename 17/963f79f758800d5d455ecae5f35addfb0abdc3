@@ -1,0 +1,35 @@
+apps/web/src/constants/not-found.ts
+  s_9c4b8410e74999::t_dde7f2e2633879 10,12
+  s_9c4b8410e74999::t_5cce38965f4475 42,44
+  s_9c4b8410e74999::t_e73b88e557a6a9 27,29
+  s_9c4b8410e74999::t_bbe65060c8dd5c 11,13-21
+  ai_agent 1
+apps/web/src/components/landing/hero-headline.tsx
+  ai_agent 58-67,69-70,103-104
+  s_9c4b8410e74999::t_8edfbe645dbc58 68,84,114
+  s_9c4b8410e74999::t_e09dd145d553c3 6-12,26,42,101
+  s_9c4b8410e74999::t_1fd9bb4cabfc86 4,24,28-31,34-41,43-49,83,98
+  s_9c4b8410e74999::t_28cd8ba8fe7adb 106-112,115
+  s_9c4b8410e74999::t_b0c6e95de5a673 113
+  s_9c4b8410e74999::t_7880ff36cac782 117-118
+  s_9c4b8410e74999::t_2a5b52739b7fc7 102
+  s_9c4b8410e74999::t_02ff592615655f 81
+apps/web/src/types/not-found.ts
+  s_9c4b8410e74999::t_f719cc821771d7 8-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "17963f79f758800d5d455ecae5f35addfb0abdc3",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
