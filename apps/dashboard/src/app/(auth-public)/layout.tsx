@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import PixelBlast from "@/components/PixelBlast";
+import { PixelBlastBackground } from "@/components/auth/pixel-blast-background";
 
 export default function AuthPublicLayout({
   children,
@@ -12,13 +12,7 @@ export default function AuthPublicLayout({
       <div className="relative hidden lg:flex">
         <div className="absolute inset-0 flex items-center justify-center p-8">
           <div className="corner-squircle relative h-full w-full overflow-hidden rounded-xl supports-[corner-shape:squircle]:rounded-2xl">
-            <PixelBlast
-              color="#8b5cf6"
-              edgeFade={0}
-              patternDensity={1.5}
-              patternScale={1}
-              speed={0.5}
-            />
+            <PixelBlastBackground />
           </div>
         </div>
       </div>

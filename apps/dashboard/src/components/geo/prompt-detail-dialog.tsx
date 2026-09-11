@@ -26,11 +26,11 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { tween } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import dynamic from "next/dynamic";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
-import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
@@ -69,6 +69,16 @@ import {
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
 import { promptResultFromHistoryCheck } from "@/utils/geo-prompt-history";
+
+// The answer thread pulls in the markdown renderer (~138 kB gz) and only ever
+// renders once this dialog is open, so it loads on demand.
+const GeoPromptAnswerThread = dynamic(
+  () =>
+    import("@/components/geo/geo-prompt-answer-thread").then(
+      (module) => module.GeoPromptAnswerThread
+    ),
+  { ssr: false }
+);
 
 const INSTANT = { duration: 0 } as const;
 const SLIDE_PX = 18;

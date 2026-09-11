@@ -25,7 +25,13 @@ export const POSTHOG_CONFIG = {
   capture_pageview: "history_change",
   defaults: "2026-05-30",
   disable_capture_url_hashes: true,
-  disable_session_recording: false,
+  // Replays were fully masked (every text node, all inputs, all media), so
+  // they showed wireframes only, while rrweb cost ~65 kB gz plus a DOM
+  // mutation observer on every page. Surveys are not used. Re-enable
+  // recording via PostHog's sampling/trigger config if replays are wanted;
+  // the `session_recording` masking below then applies again.
+  disable_session_recording: true,
+  disable_surveys: true,
   enable_recording_console_log: false,
   person_profiles: "identified_only",
   save_campaign_params: false,
