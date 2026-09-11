@@ -1,0 +1,24 @@
+packages/db/src/scripts/seed-persona-visibility.ts
+  s_779efc0cb8a504::t_2035ca2635f317 271,274,278-280,282
+  s_779efc0cb8a504::t_9cec561d7feed5 268-270,272-273,275-277,281,283-287,297-303
+  s_779efc0cb8a504::t_420b757287d4b0 1-35,40-90,95-130,136-171,176-209,214-267,288-296,304-396,403-457,466-506,508-572,574-598
+  s_779efc0cb8a504::t_e1377b6a7222df 36-39,91-94,131-135,172-175,210-213,397-402,458-465,507,573
+packages/db/package.json
+  s_779efc0cb8a504::t_744382f42be369 16-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a04dbf21a55c89fd43956ab7d1d3110d5d01d102",
+  "prompts": {},
+  "sessions": {
+    "s_779efc0cb8a504": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7344aae3ffeX2ul5zBP8A0bm3",
+        "model": "muse-spark-1.3-contributor-free"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
