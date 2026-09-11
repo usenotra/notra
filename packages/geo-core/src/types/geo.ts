@@ -262,6 +262,7 @@ export interface GeoAnswerMentionSpan {
   start: number;
   end: number;
   kind: GeoAnswerMentionKind;
+  phrase: string;
 }
 
 export interface GeoAnswerMentionInput {

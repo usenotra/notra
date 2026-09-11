@@ -97,7 +97,7 @@ export function geoAnswerMentionSpans(
       for (let index = start; index < end; index += 1) {
         occupied[index] = true;
       }
-      spans.push({ start, end, kind: term.kind });
+      spans.push({ start, end, kind: term.kind, phrase: term.phrase });
     }
   }
 

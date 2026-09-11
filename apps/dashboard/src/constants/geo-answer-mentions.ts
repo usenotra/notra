@@ -7,3 +7,13 @@ export const GEO_ANSWER_MENTION_LABEL = {
   own: "Your brand",
   competitor: "Competitor",
 } as const;
+
+export const GEO_ANSWER_MENTION_TRIGGER_CLASS =
+  "inline cursor-pointer border-0 align-baseline font-[inherit] outline-hidden hover:bg-geo-mid/30 focus-visible:ring-ring/50 focus-visible:ring-2";
+
+export const GEO_ANSWER_MENTION_VIEW_COMPETITOR = "View competitor";
+export const GEO_ANSWER_MENTION_DOMAIN_LABEL = "Domain";
+export const GEO_ANSWER_MENTION_KIND_LABEL = "Type";
+export const GEO_ANSWER_MENTION_ALSO_KNOWN_AS = "Also known as";
+export const GEO_ANSWER_MENTION_MENTIONS_LABEL = "Mentions";
+export const GEO_ANSWER_MENTION_BEST_POSITION_LABEL = "Best position";

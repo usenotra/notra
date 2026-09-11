@@ -387,13 +387,13 @@ function PromptAnswerPage({
           ))}
         </div>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="relative overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <AnimatePresence custom={direction} initial={false} mode="popLayout">
             {active ? (
               <motion.div
                 animate="center"
-                className="flex min-w-0 flex-col"
+                className="flex min-h-full min-w-0 flex-col"
                 custom={direction}
                 exit="exit"
                 initial="enter"
@@ -421,34 +421,36 @@ function PromptAnswerPage({
             )}
           </AnimatePresence>
         </div>
-        <section
-          className="bg-muted/20 space-y-3 px-4 pt-0 pb-4"
-          aria-labelledby={`${tagsInputId}-heading`}
-        >
-          <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
-            Tags
-          </h3>
-          {row.source === "auto" ? (
-            <p className="text-sm break-words">
-              {tags.length > 0 ? tags.join(", ") : "No tags"}
-            </p>
-          ) : (
-            <GeoTagList
-              disabled={pendingPromptIds.has(row.id)}
-              id={tagsInputId}
-              inline
-              inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
-              label={GEO_PROMPT_TAGS_COPY.label}
-              labeled={false}
-              max={GEO_PROMPT_MAX_TAGS}
-              onChange={(nextTags) =>
-                setPromptTags(row.id, normalizePromptTags(nextTags))
-              }
-              placeholder="Add a tag…"
-              values={tags}
-            />
-          )}
-        </section>
+        {view === "analysis" ? (
+          <section
+            className="bg-muted/20 shrink-0 space-y-3 border-t px-4 pt-3 pb-4"
+            aria-labelledby={`${tagsInputId}-heading`}
+          >
+            <h3 className="text-sm font-medium" id={`${tagsInputId}-heading`}>
+              Tags
+            </h3>
+            {row.source === "auto" ? (
+              <p className="text-sm break-words">
+                {tags.length > 0 ? tags.join(", ") : "No tags"}
+              </p>
+            ) : (
+              <GeoTagList
+                disabled={pendingPromptIds.has(row.id)}
+                id={tagsInputId}
+                inline
+                inputClassName="h-7 min-w-24 flex-1 basis-24 rounded-none border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
+                label={GEO_PROMPT_TAGS_COPY.label}
+                labeled={false}
+                max={GEO_PROMPT_MAX_TAGS}
+                onChange={(nextTags) =>
+                  setPromptTags(row.id, normalizePromptTags(nextTags))
+                }
+                placeholder="Add a tag…"
+                values={tags}
+              />
+            )}
+          </section>
+        ) : null}
       </div>
     </SheetContent>
   );

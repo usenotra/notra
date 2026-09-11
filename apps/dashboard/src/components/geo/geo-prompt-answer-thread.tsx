@@ -18,7 +18,7 @@ import {
 } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
-import { useGeoAnswerMentionTerms } from "@/lib/hooks/use-geo-answer-mentions";
+import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
@@ -153,7 +153,7 @@ export function GeoPromptAnswerThread({
 }: GeoPromptAnswerThreadProps) {
   const skin = geoChatSkin(result.engine);
   const answer = displayAnswer(result);
-  const mentionTerms = useGeoAnswerMentionTerms(
+  const { terms: mentionTerms, competitors } = useGeoAnswerMentionData(
     organizationId,
     result.competitors
   );
@@ -169,12 +169,16 @@ export function GeoPromptAnswerThread({
   ) : undefined;
 
   return (
-    <GeoAnswerMentionProvider terms={mentionTerms}>
+    <GeoAnswerMentionProvider
+      competitors={competitors}
+      organizationId={organizationId}
+      terms={mentionTerms}
+    >
       <div
         className={cn(
           scrollable
             ? "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden"
-            : "relative flex flex-col",
+            : "relative flex min-h-full flex-col",
           GEO_CHAT_SKIN_SURFACE[skin]
         )}
       >

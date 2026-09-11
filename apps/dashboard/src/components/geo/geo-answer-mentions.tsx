@@ -6,6 +6,10 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { geoAnswerMentionSpans } from "@notra/geo-core/utils/geo-answer-mentions";
 import {
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
+import {
   Children,
   createContext,
   createElement,
@@ -13,19 +17,41 @@ import {
   type ComponentPropsWithoutRef,
   type ReactNode,
   use,
+  useMemo,
+  useState,
 } from "react";
 
+import { GeoAnswerMentionCompetitorCard } from "@/components/geo/geo-answer-mention-card";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   GEO_ANSWER_MENTION_CLASS,
   GEO_ANSWER_MENTION_LABEL,
+  GEO_ANSWER_MENTION_TRIGGER_CLASS,
 } from "@/constants/geo-answer-mentions";
+import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
+import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
+import { cn } from "@/lib/utils";
+import type {
+  GeoAnswerMentionContextValue,
+  GeoAnswerMentionProviderProps,
+} from "@/types/geo-answer-mentions";
+import { findMentionedCompetitor } from "@/utils/geo-answer-mention-competitor";
 
 const EMPTY_MENTION_TERMS: readonly GeoAnswerMentionTerm[] = [];
+const EMPTY_COMPETITORS: GeoAnswerMentionContextValue["competitors"] = [];
 const MENTION_HOST_PREFIX = "GeoAnswerMention.";
-const SKIP_TAGS = new Set(["code", "pre", "mark", "kbd", "samp"]);
+const SKIP_TAGS = new Set(["code", "pre", "mark", "kbd", "samp", "button"]);
 
-const GeoAnswerMentionContext =
-  createContext<readonly GeoAnswerMentionTerm[]>(EMPTY_MENTION_TERMS);
+const EMPTY_MENTION_CONTEXT: GeoAnswerMentionContextValue = {
+  terms: EMPTY_MENTION_TERMS,
+  competitors: EMPTY_COMPETITORS,
+  organizationId: "",
+  organizationSlug: "",
+};
+
+const GeoAnswerMentionContext = createContext<GeoAnswerMentionContextValue>(
+  EMPTY_MENTION_CONTEXT
+);
 
 function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
   const spans = geoAnswerMentionSpans(text, terms);
@@ -40,7 +66,11 @@ function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
       nodes.push(text.slice(cursor, span.start));
     }
     nodes.push(
-      <MentionMark key={`${span.start}-${span.end}`} kind={span.kind}>
+      <MentionMark
+        key={`${span.start}-${span.end}`}
+        kind={span.kind}
+        phrase={span.phrase}
+      >
         {text.slice(span.start, span.end)}
       </MentionMark>
     );
@@ -53,7 +83,7 @@ function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
 }
 
 function shouldSkipElement(type: unknown): boolean {
-  if (type === MentionMark) {
+  if (type === MentionMark || type === CompetitorMentionMark) {
     return true;
   }
   if (typeof type === "string") {
@@ -95,13 +125,79 @@ function highlightMentionChildren(
   });
 }
 
+function CompetitorMentionMark({
+  phrase,
+  children,
+}: {
+  phrase: string;
+  children: ReactNode;
+}) {
+  const { competitors, organizationId, organizationSlug } = use(
+    GeoAnswerMentionContext
+  );
+  const competitor = findMentionedCompetitor(competitors, phrase);
+  const brand = competitor?.name ?? phrase;
+  const [open, setOpen] = useState(false);
+  const { openRow, prefetchRow } = useGeoCompetitorRowNavigation(
+    organizationSlug || undefined,
+    organizationId
+  );
+
+  return (
+    <HoverCard
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) {
+          prefetchRow(brand);
+        }
+      }}
+      open={open}
+    >
+      <HoverCardTrigger
+        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
+        render={
+          <button
+            aria-label={`${brand}, ${GEO_ANSWER_MENTION_LABEL.competitor} details`}
+            className={cn(
+              GEO_ANSWER_MENTION_CLASS.competitor,
+              GEO_ANSWER_MENTION_TRIGGER_CLASS
+            )}
+            type="button"
+          />
+        }
+      >
+        {children}
+      </HoverCardTrigger>
+      <GeoAnswerMentionCompetitorCard
+        brand={brand}
+        domain={competitor?.domain ?? null}
+        kind={competitor?.kind ?? null}
+        onView={() => openRow(brand)}
+        open={open}
+        organizationId={organizationId}
+        showView={organizationSlug.length > 0}
+        synonyms={competitor?.synonyms ?? []}
+        tracked={competitor !== undefined}
+      />
+    </HoverCard>
+  );
+}
+
 function MentionMark({
   kind,
+  phrase,
   children,
 }: {
   kind: GeoAnswerMentionKind;
+  phrase: string;
   children: ReactNode;
 }) {
+  if (kind === "competitor") {
+    return (
+      <CompetitorMentionMark phrase={phrase}>{children}</CompetitorMentionMark>
+    );
+  }
+
   return (
     <mark
       className={GEO_ANSWER_MENTION_CLASS[kind]}
@@ -114,7 +210,7 @@ function MentionMark({
 
 function mentionHost<Tag extends keyof HTMLElementTagNameMap>(tag: Tag) {
   function MentionHost(props: ComponentPropsWithoutRef<Tag>) {
-    const terms = use(GeoAnswerMentionContext);
+    const { terms } = use(GeoAnswerMentionContext);
     const { children, ...rest } = props;
     return createElement(tag, rest, highlightMentionChildren(children, terms));
   }
@@ -135,12 +231,24 @@ export const GEO_ANSWER_MENTION_COMPONENTS = {
 
 export function GeoAnswerMentionProvider({
   terms,
+  competitors = EMPTY_COMPETITORS,
+  organizationId = "",
+  organizationSlug,
   children,
-}: {
-  terms: readonly GeoAnswerMentionTerm[];
-  children: ReactNode;
-}) {
+}: GeoAnswerMentionProviderProps) {
+  const { activeOrganization } = useOrganizationsContext();
+  const resolvedSlug = organizationSlug ?? activeOrganization?.slug ?? "";
+  const value = useMemo(
+    () => ({
+      terms,
+      competitors,
+      organizationId,
+      organizationSlug: resolvedSlug,
+    }),
+    [competitors, organizationId, resolvedSlug, terms]
+  );
+
   return (
-    <GeoAnswerMentionContext value={terms}>{children}</GeoAnswerMentionContext>
+    <GeoAnswerMentionContext value={value}>{children}</GeoAnswerMentionContext>
   );
 }
