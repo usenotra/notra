@@ -22,8 +22,8 @@ import {
   QstashService,
   qstashLayer,
 } from "../lib/qstash";
-import type { QstashEnv } from "../types/qstash";
 import type { DbClient } from "../types/db";
+import type { QstashEnv } from "../types/qstash";
 import type {
   CreateScheduleProgramInput,
   DeleteScheduleProgramInput,
@@ -609,12 +609,7 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
     }
 
     const commitResult = yield* database(() =>
-      commitScheduleDeleteIfUnchanged(
-        db,
-        organizationId,
-        scheduleId,
-        snapshot
-      )
+      commitScheduleDeleteIfUnchanged(db, organizationId, scheduleId, snapshot)
     ).pipe(
       Effect.catchTag("ScheduleDatabaseError", (dbError) =>
         removedQstashScheduleId
@@ -642,7 +637,12 @@ export const deleteSchedule = Effect.fn("schedules.delete")(function* ({
     }
   }
 
-  yield* attemptEnsureEnabledScheduleQstash(db, organizationId, scheduleId, env);
+  yield* attemptEnsureEnabledScheduleQstash(
+    db,
+    organizationId,
+    scheduleId,
+    env
+  );
 
   return yield* new ScheduleQstashError({
     message: "Failed to delete schedule",
@@ -710,9 +710,7 @@ export const patchSchedule = Effect.fn("schedules.patch")(function* ({
         const mapped = mapQstashError(cause);
         return new ScheduleQstashError({
           message:
-            mapped.status === 400
-              ? mapped.error
-              : "Failed to update schedule",
+            mapped.status === 400 ? mapped.error : "Failed to update schedule",
           status: mapped.status,
         });
       }

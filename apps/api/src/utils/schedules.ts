@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
 import { githubIntegrations } from "@notra/db/schema";
+import { QstashError } from "@notra/schemas/api/qstash";
 import {
   createScheduleRequestSchema,
   scheduleOutputConfigSchema,
@@ -9,7 +10,6 @@ import {
   scheduleTargetsRepositoryIdsSchema,
   scheduleTargetsSchema,
 } from "@notra/schemas/api/schedules";
-import { QstashError } from "@notra/schemas/api/qstash";
 import { and, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
