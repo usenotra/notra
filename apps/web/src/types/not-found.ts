@@ -5,6 +5,11 @@ interface NotFoundDitherHoverConfig {
   visibleYRatio: number;
 }
 
+export interface NotFoundLink {
+  label: string;
+  href: string;
+}
+
 export interface NotFoundDitheringConfig {
   speed: number;
   shape: "wave";
