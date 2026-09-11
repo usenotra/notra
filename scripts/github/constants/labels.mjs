@@ -1,6 +1,4 @@
 export const areas = [
-  ".github",
-  "scripts",
   "apps/agent",
   "apps/api",
   "apps/dashboard",
@@ -23,7 +21,7 @@ export const areas = [
   "packages/ui",
   "packages/utils",
 ];
-export const types = ["type/bug", "type/feature", "type/chore"];
+export const types = ["type/bug", "type/feature", "type/chore", "type/ci"];
 export const priorities = ["priority/high", "priority/normal", "priority/low"];
 export const labels = [
   ...areas.map((name) => ({

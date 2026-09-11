@@ -13,8 +13,11 @@ OpenAI's `gpt-5.6-luna`, with no tools and response storage disabled. Without th
 secret, path labeling still runs and adds `needs-triage`. API errors, incomplete
 file lists, invalid model output, and uncertain classifications also require triage.
 
-Area labels reflect directly changed paths, including both sides of renames; they
-do not infer downstream package consumers. Edit `constants/labels.mjs` when adding
+Area labels are limited to app and package workspaces and reflect directly changed
+paths, including both sides of renames; they do not infer downstream package
+consumers. Generic `.github` and `scripts` area labels are not used. CI/CD, GitHub
+Actions, PR automation, and supporting scripts use `type/ci`, including when they
+introduce new automation capabilities. Edit `constants/labels.mjs` when adding
 workspaces. Priority means review urgency, not change size or deployment risk.
 Existing type/priority labels always win, including those from earlier bot runs.
 To reclassify, remove those labels and edit the PR description to trigger a run.
