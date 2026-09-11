@@ -43,6 +43,20 @@ const projectExists = (
     })
   ).pipe(Effect.map((project) => project !== undefined));
 
+const findByIdempotencyKey = (
+  db: SubmitFeedbackProgramInput["db"],
+  organizationId: string,
+  idempotencyKey: string
+) =>
+  database(() =>
+    db.query.agentFeedback.findFirst({
+      where: and(
+        eq(agentFeedback.organizationId, organizationId),
+        eq(agentFeedback.idempotencyKey, idempotencyKey)
+      ),
+    })
+  );
+
 export const submitFeedback = Effect.fn("feedback.submit")(function* ({
   db,
   organizationId,
@@ -50,6 +64,21 @@ export const submitFeedback = Effect.fn("feedback.submit")(function* ({
   ingestProjectId,
   userAgent,
 }: SubmitFeedbackProgramInput) {
+  const idempotencyKey = body.idempotencyKey;
+  if (idempotencyKey) {
+    const existing = yield* findByIdempotencyKey(
+      db,
+      organizationId,
+      idempotencyKey
+    );
+    if (existing) {
+      return {
+        feedback: existing,
+        deduplicated: true,
+      } satisfies SubmitFeedbackProgramSuccess;
+    }
+  }
+
   const projectId =
     ingestProjectId === undefined ? (body.projectId ?? null) : ingestProjectId;
 
@@ -108,16 +137,8 @@ export const submitFeedback = Effect.fn("feedback.submit")(function* ({
     } satisfies SubmitFeedbackProgramSuccess;
   }
 
-  const idempotencyKey = body.idempotencyKey;
   const existing = idempotencyKey
-    ? yield* database(() =>
-        db.query.agentFeedback.findFirst({
-          where: and(
-            eq(agentFeedback.organizationId, organizationId),
-            eq(agentFeedback.idempotencyKey, idempotencyKey)
-          ),
-        })
-      )
+    ? yield* findByIdempotencyKey(db, organizationId, idempotencyKey)
     : undefined;
 
   if (!existing) {

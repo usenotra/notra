@@ -24,9 +24,13 @@ export function serializeFeedback(
   };
 }
 
-export function getIngestProjectId(c: Context): string | null | undefined {
+export function getIngestProjectId(c: Context): string | undefined {
   const auth = c.get("auth");
-  return auth && isIngestAuth(auth) ? auth.projectId : undefined;
+  if (!auth || !isIngestAuth(auth)) {
+    return undefined;
+  }
+  // Unbound org-scoped ingest tokens use null; fall back to body.projectId.
+  return auth.projectId ?? undefined;
 }
 
 export function isPublicFeedbackIngestRequest(

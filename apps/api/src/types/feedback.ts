@@ -21,8 +21,8 @@ export interface SubmitFeedbackProgramInput {
   db: DbClient;
   organizationId: string;
   body: SubmitFeedbackBody;
-  /** Set when the request is authenticated with a feedback ingest token. */
-  ingestProjectId?: string | null;
+  /** Set when the request is authenticated with a project-bound ingest token. */
+  ingestProjectId?: string;
   userAgent?: string | null;
 }
 
