@@ -1735,7 +1735,8 @@ export const geoMentionChecks = pgTable(
       table.promptId,
       table.mentioned,
       table.position,
-      table.sentiment
+      table.sentiment,
+      table.sequenceId
     ),
     // Matches the `distinct on (prompt_id, engine) ... order by captured_at desc`
     // shape used by promptResultSummaries/promptResults/competitorDetail/gaps;

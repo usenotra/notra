@@ -97,6 +97,7 @@ async function upsertMembershipReadThenWrite(
     });
 
     if (!existing) {
+      await tx.execute(sql`SAVEPOINT membership_insert`);
       try {
         await tx.insert(members).values({
           id: crypto.randomUUID(),
@@ -105,7 +106,9 @@ async function upsertMembershipReadThenWrite(
           role: input.role,
           createdAt: input.createdAt,
         });
+        await tx.execute(sql`RELEASE SAVEPOINT membership_insert`);
       } catch (error) {
+        await tx.execute(sql`ROLLBACK TO SAVEPOINT membership_insert`);
         if (!hasPostgresErrorCode(error, UNIQUE_VIOLATION_CODE)) {
           throw error;
         }

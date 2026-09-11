@@ -1,5 +1,5 @@
 {
-  "id": "1e2571b8-6d0d-4ee6-9f5d-9f8bae08abd0",
+  "id": "55ad6f8c-2b75-4768-86b7-3a1515462c12",
   "prevId": "2af30101-d3f7-47ba-822d-79ee7e9ba8b2",
   "version": "7",
   "dialect": "postgresql",
@@ -5356,6 +5356,12 @@
             },
             {
               "expression": "sentiment",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sequence_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
