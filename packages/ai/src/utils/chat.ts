@@ -154,7 +154,7 @@ export function contentChatHistoryPath(
 }
 
 export function dashboardAgentChatSessionsQueryKey(organizationId: string) {
-  return ["dashboard-agent-chat-sessions", organizationId] as const;
+  return chatSessionsQueryKey(organizationId);
 }
 
 export function dashboardAgentChatHistoryQueryKey(
@@ -165,14 +165,14 @@ export function dashboardAgentChatHistoryQueryKey(
 }
 
 export function dashboardAgentChatSessionsPath(organizationId: string) {
-  return `/api/organizations/${organizationId}/dashboard-agent/chat`;
+  return chatSessionsPath(organizationId);
 }
 
 export function dashboardAgentChatHistoryPath(
   organizationId: string,
   chatId: string
 ) {
-  return `/api/organizations/${organizationId}/dashboard-agent/chat/${encodeURIComponent(chatId)}`;
+  return chatSessionPath(organizationId, chatId);
 }
 
 export function sortChatSessions(sessions: ChatSessionSummary[]) {

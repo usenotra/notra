@@ -87,7 +87,11 @@ function DashboardAgentChat({
     },
     staleTime: 60_000,
   });
-  const sessions = sessionsQuery.data ?? [];
+  const sessions = (sessionsQuery.data ?? []).filter(
+    (session) =>
+      !session.externalChannelId ||
+      session.externalChannelId.source === "agent"
+  );
 
   const prepareSendMessagesRequest = useCallback(
     ({
@@ -111,7 +115,7 @@ function DashboardAgentChat({
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
+        api: `/api/organizations/${organizationId}/chat`,
         prepareSendMessagesRequest,
       }),
     [organizationId, prepareSendMessagesRequest]
@@ -135,30 +139,36 @@ function DashboardAgentChat({
           messagesRef.current
         );
       }
-      queryClient
-        .invalidateQueries({
-          queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
-        })
-        .catch((invalidateError) => {
-          console.error(
-            "Failed to refresh agent chat sessions",
-            invalidateError
-          );
-        });
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["chat-history", organizationId, activeChatId],
+        }),
+      ]).catch((invalidateError) => {
+        console.error(
+          "Failed to refresh agent chat sessions",
+          invalidateError
+        );
+      });
       isAgentBusyRef.current = false;
     },
     onError: (err) => {
       isAgentBusyRef.current = false;
-      queryClient
-        .invalidateQueries({
-          queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
-        })
-        .catch((invalidateError) => {
-          console.error(
-            "Failed to refresh agent chat sessions",
-            invalidateError
-          );
-        });
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["chat-history", organizationId, activeChatId],
+        }),
+      ]).catch((invalidateError) => {
+        console.error(
+          "Failed to refresh agent chat sessions",
+          invalidateError
+        );
+      });
       queryClient
         .invalidateQueries({
           queryKey: dashboardAgentChatHistoryQueryKey(
