@@ -1,11 +1,5 @@
-import crypto from "node:crypto";
-
 import { createRoute } from "@hono/zod-openapi";
 import type { createDb } from "@notra/db/drizzle";
-import {
-  contentTriggerLookbackWindows,
-  contentTriggers,
-} from "@notra/db/schema";
 import {
   createScheduleRequestSchema,
   deleteScheduleResponseSchema,
@@ -15,36 +9,26 @@ import {
   scheduleParamsSchema,
   scheduleResponseSchema,
 } from "@notra/schemas/api/schedules";
-import { and, eq } from "drizzle-orm";
-// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import * as z from "zod";
 
-import { listSchedules, patchSchedule } from "../programs/schedules";
+import {
+  createSchedule,
+  deleteSchedule,
+  listSchedules,
+  patchSchedule,
+} from "../programs/schedules";
 import { getOrganizationId } from "../utils/auth";
-import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
-import { buildCronExpression, createQstashSchedule } from "../utils/qstash";
 import {
   ORGANIZATION_SCHEDULE_PATH_REGEX,
   ORGANIZATION_SCHEDULES_PATH_REGEX,
 } from "../utils/regex";
-import {
-  DEFAULT_SCHEDULE_NAME,
-  ensureScheduleTargetsExist,
-  hashSchedule,
-  mapQstashError,
-  normalizeSchedule,
-  runScheduleProgram,
-  serializeSchedule,
-} from "../utils/schedules";
-import { deleteQstashScheduleWithRetry } from "../utils/triggers";
+import { runScheduleProgram } from "../utils/schedules";
 
 export const schedulesRoutes = createOpenApiApp();
 
 type DbClient = ReturnType<typeof createDb>;
-type CreateScheduleBody = z.infer<typeof createScheduleRequestSchema>;
 
 schedulesRoutes.get("/:organizationId/schedules", async (c) => {
   const orgId = getOrganizationId(c);
@@ -264,6 +248,7 @@ const deleteScheduleRoute = createRoute({
     401: errorResponse("Missing or invalid API key"),
     403: errorResponse("Forbidden"),
     404: errorResponse("Schedule or organization not found"),
+    500: errorResponse("Failed to delete schedule"),
     503: errorResponse("Authentication service unavailable"),
   },
 });
@@ -293,10 +278,7 @@ schedulesRoutes.openapi(getSchedulesRoute, async (c) => {
     throw result.failure;
   }
 
-  return c.json(
-    { ...result.success, organization },
-    200
-  );
+  return c.json({ ...result.success, organization }, 200);
 });
 
 schedulesRoutes.openapi(createScheduleRoute, async (c) => {
@@ -315,109 +297,30 @@ schedulesRoutes.openapi(createScheduleRoute, async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const input = c.req.valid("json");
+  const body = c.req.valid("json");
   const env = (c.env ?? {}) as {
     QSTASH_TOKEN?: string;
     WORKFLOW_BASE_URL?: string;
   };
-  const normalized = normalizeSchedule(input);
-  const dedupeHash = hashSchedule(input);
-  const existing = await db.query.contentTriggers.findFirst({
-    where: and(
-      eq(contentTriggers.organizationId, orgId),
-      eq(contentTriggers.dedupeHash, dedupeHash)
-    ),
-  });
+  const result = await runScheduleProgram(
+    createSchedule({ db, organizationId: orgId, body, env })
+  );
 
-  if (existing) {
-    return c.json({ error: "Duplicate schedule" }, 409);
-  }
-
-  if (input.enabled) {
-    const missingTargets = await ensureScheduleTargetsExist(
-      db,
-      orgId,
-      normalized.targets.repositoryIds,
-      "Cannot create enabled schedule: one or more integrations not found"
-    );
-
-    if (missingTargets) {
-      return c.json({ error: missingTargets.error }, 400);
+  if (result._tag === "Failure") {
+    const failure = result.failure;
+    if (failure._tag === "ScheduleDuplicateError") {
+      return c.json({ error: "Duplicate schedule" }, 409);
     }
-  }
-
-  const triggerId = crypto.randomUUID();
-  const persistedName = input.name.trim() || DEFAULT_SCHEDULE_NAME;
-  const cronExpression = buildCronExpression(normalized.sourceConfig.cron);
-  let qstashScheduleId: string | null = null;
-
-  if (input.enabled) {
-    try {
-      qstashScheduleId = await createQstashSchedule(env, {
-        triggerId,
-        cron: cronExpression,
-      });
-    } catch (error) {
-      const mapped = mapQstashError(error);
-      if (mapped.status === 400) {
-        return c.json({ error: mapped.error }, 400);
-      }
-
-      return c.json({ error: mapped.error }, 500);
+    if (failure._tag === "ScheduleMissingTargetsError") {
+      return c.json({ error: failure.message }, 400);
     }
-  }
-
-  try {
-    const schedule = await db.transaction(async (tx) => {
-      const [createdTrigger] = await tx
-        .insert(contentTriggers)
-        .values({
-          id: triggerId,
-          organizationId: orgId,
-          name: persistedName,
-          sourceType: "cron",
-          sourceConfig: normalized.sourceConfig,
-          targets: normalized.targets,
-          outputType: input.outputType,
-          outputConfig: input.outputConfig ?? null,
-          dedupeHash,
-          enabled: input.enabled,
-          autoPublish: input.autoPublish,
-          qstashScheduleId,
-        })
-        .returning();
-
-      if (!createdTrigger) {
-        throw new Error("Failed to create schedule");
-      }
-
-      await tx.insert(contentTriggerLookbackWindows).values({
-        triggerId,
-        window: input.lookbackWindow,
-      });
-
-      return serializeSchedule({
-        ...createdTrigger,
-        lookbackWindow: input.lookbackWindow,
-      });
-    });
-
-    return c.json({ schedule, organization }, 201);
-  } catch (error) {
-    if (qstashScheduleId) {
-      try {
-        await deleteQstashScheduleWithRetry(env, qstashScheduleId);
-      } catch (cleanupError) {
-        logError(
-          `Failed to clean up replacement QStash schedule ${qstashScheduleId} for new schedule ${triggerId}`,
-          cleanupError
-        );
-      }
+    if (failure._tag === "ScheduleQstashError") {
+      return c.json({ error: failure.message }, failure.status);
     }
-
-    logError("Failed to create schedule", error);
-    return c.json({ error: "Failed to create schedule" }, 500);
+    throw failure;
   }
+
+  return c.json({ schedule: result.success, organization }, 201);
 });
 
 schedulesRoutes.openapi(patchScheduleRoute, async (c) => {
@@ -494,36 +397,17 @@ schedulesRoutes.openapi(deleteScheduleRoute, async (c) => {
     QSTASH_TOKEN?: string;
     WORKFLOW_BASE_URL?: string;
   };
-  return db.transaction(async (tx) => {
-    const [existing] = await tx
-      .select()
-      .from(contentTriggers)
-      .where(
-        and(
-          eq(contentTriggers.id, scheduleId),
-          eq(contentTriggers.organizationId, orgId),
-          eq(contentTriggers.sourceType, "cron")
-        )
-      )
-      .for("update");
+  const result = await runScheduleProgram(
+    deleteSchedule({ db, organizationId: orgId, scheduleId, env })
+  );
 
-    if (!existing) {
+  if (result._tag === "Failure") {
+    const failure = result.failure;
+    if (failure._tag === "ScheduleNotFoundError") {
       return c.json({ error: "Schedule not found" }, 404);
     }
+    throw failure;
+  }
 
-    if (existing.qstashScheduleId) {
-      await deleteQstashScheduleWithRetry(env, existing.qstashScheduleId);
-    }
-
-    await tx
-      .delete(contentTriggers)
-      .where(
-        and(
-          eq(contentTriggers.id, scheduleId),
-          eq(contentTriggers.organizationId, orgId)
-        )
-      );
-
-    return c.json({ id: scheduleId, organization }, 200);
-  });
+  return c.json({ id: result.success, organization }, 200);
 });

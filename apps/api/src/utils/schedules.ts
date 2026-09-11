@@ -16,13 +16,13 @@ import { Effect } from "effect";
 import * as z from "zod";
 
 import type { ScheduleDatabaseError } from "../errors/schedules";
+import type { DbClient } from "../types/db";
 import type {
   CreateScheduleBody,
   ScheduleDomainError,
   ScheduleTriggerRow,
   ScheduleTriggerWithLookbackWindow,
 } from "../types/schedules";
-import type { DbClient } from "../types/db";
 import { logError } from "./logging";
 
 export const DEFAULT_SCHEDULE_NAME = "Untitled Schedule";
