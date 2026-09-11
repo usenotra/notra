@@ -306,7 +306,10 @@ function GitHubContentPublishingSettings({
           contentLabel={contentLabel}
           contentPath={directoryQuery.data?.contentPath ?? null}
           directory={directory}
-          disabled={directoryQuery.isLoading}
+          disabled={
+            directoryQuery.isLoading ||
+            (directoryQuery.isError && !directoryQuery.data)
+          }
           imagePath={directoryQuery.data?.imagePath ?? null}
           isSaving={pathMutation.isPending}
           key={`${selectedRepository.id}:${directoryQuery.data?.contentPath ?? ""}:${directoryQuery.data?.imagePath ?? ""}`}

@@ -824,6 +824,8 @@ export async function publishContentDraftPullRequest(
   const { branchHeadSha } = contentBranch;
   // Assets are owned only when the last content commit recorded them and the
   // branch still adds them; anything else on the branch belongs to someone else.
+  // A forged trailer can therefore only claim files its author added to this
+  // draft branch; deletions never reach files that exist on the base branch.
   const commitMetadata = parseContentCommitMetadata(
     contentBranch.commitMessage
   );

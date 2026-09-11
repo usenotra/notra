@@ -66,7 +66,7 @@ export function GitHubPublishingPathFields({
           disabled={disabled || isSaving}
           id={contentPathId}
           name="contentPath"
-          placeholder={`${directory}/:slug.md`}
+          placeholder={`${directory ? `${directory}/` : ""}:slug.md`}
         />
         <FieldDescription>
           Optional repository-relative path. Use <code>:slug</code> as a

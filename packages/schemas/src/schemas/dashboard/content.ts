@@ -18,7 +18,7 @@ import * as z from "zod";
 import { GITHUB_PUBLISH_CONTENT_TYPES } from "../../constants/dashboard/github";
 import {
   LOOKBACK_WINDOWS,
-  repositoryContentPathTemplateSchema,
+  repositoryContentFilePathSchema,
   repositoryRelativePathSchema,
   SUPPORTED_AUTOMATION_OUTPUT_TYPES,
 } from "./integrations";
@@ -344,7 +344,7 @@ export type UpdateContentInput = z.infer<typeof updateContentSchema>;
 
 const githubMarkdownPathSchema = repositoryRelativePathSchema
   .transform((path) => (/\.(?:md|mdx)$/i.test(path) ? path : `${path}.md`))
-  .pipe(repositoryContentPathTemplateSchema);
+  .pipe(repositoryContentFilePathSchema);
 
 export const publishContentToGitHubSchema = z.object({
   contentType: z.enum(GITHUB_PUBLISH_CONTENT_TYPES).default("changelog"),

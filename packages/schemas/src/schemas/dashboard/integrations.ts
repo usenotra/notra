@@ -5,7 +5,6 @@ import * as z from "zod";
 
 import {
   GITHUB_CONTENT_PATH_MAX_LENGTH,
-  GITHUB_IMAGE_EXTENSION_REGEX,
   GITHUB_PATH_INVALID_CHARACTERS_REGEX,
   GITHUB_PUBLISH_CONTENT_TYPES,
   GITHUB_URL_PATTERNS,
@@ -294,15 +293,27 @@ export const repositoryRelativePathSchema = z
     "File path contains an invalid segment"
   );
 
-export const repositoryContentPathTemplateSchema =
+/** A single content file, e.g. the custom path chosen when publishing one post. */
+export const repositoryContentFilePathSchema =
   repositoryRelativePathSchema.refine(
     (path) => /\.(?:md|mdx)$/i.test(path),
     "Content path must end in .md or .mdx"
   );
 
-export const repositoryImagePathTemplateSchema =
-  repositoryRelativePathSchema.refine(
-    (path) => !GITHUB_IMAGE_EXTENSION_REGEX.test(path),
+/**
+ * Templates apply to every post, so they need `:slug` to keep posts from
+ * resolving to the same repository file.
+ */
+export const repositoryContentPathTemplateSchema =
+  repositoryContentFilePathSchema.refine(
+    (path) => path.includes(":slug"),
+    "Content path must include :slug"
+  );
+
+export const repositoryImagePathTemplateSchema = repositoryRelativePathSchema
+  .refine((path) => path.includes(":slug"), "Image path must include :slug")
+  .refine(
+    (path) => !(path.split("/").at(-1) ?? "").includes("."),
     "Leave out the file extension; it follows the source image"
   );
 
