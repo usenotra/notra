@@ -62,6 +62,8 @@ export function useDitherPointer({
     current.current = REST_OFFSET;
     cancelAnimationFrame(frame.current);
     frame.current = 0;
+    setOffset(REST_OFFSET);
+    setIsHovering(false);
   }, [enabled]);
 
   useEffect(
@@ -70,15 +72,6 @@ export function useDitherPointer({
     },
     []
   );
-
-  if (!enabled) {
-    if (offset.offsetX !== 0 || offset.offsetY !== 0) {
-      setOffset(REST_OFFSET);
-    }
-    if (isHovering) {
-      setIsHovering(false);
-    }
-  }
 
   function tick() {
     const { lerp: follow } = optionsRef.current;

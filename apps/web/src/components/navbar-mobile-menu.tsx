@@ -15,7 +15,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { AUTH_DASHBOARD_URL, AUTH_SIGNIN_URL } from "@/constants/auth";
 import {
@@ -123,6 +123,13 @@ export function NavbarMobileMenu({
   const stagger = reduceMotion ? reducedItemVariants : staggerVariants;
   const item = reduceMotion ? reducedItemVariants : itemVariants;
   const layout = NAVBAR_MOBILE_OVERLAY_LAYOUT[overlayLayout];
+  const overlaySession = useRef(0);
+  const wasOpen = useRef(open);
+
+  if (open && !wasOpen.current) {
+    overlaySession.current += 1;
+  }
+  wasOpen.current = open;
 
   return (
     <AnimatePresence mode="wait">
@@ -131,6 +138,7 @@ export function NavbarMobileMenu({
           isAuthenticated={isAuthenticated}
           isResolved={isResolved}
           item={item}
+          key={overlaySession.current}
           layout={layout}
           onNavigate={onNavigate}
           overlay={overlay}
