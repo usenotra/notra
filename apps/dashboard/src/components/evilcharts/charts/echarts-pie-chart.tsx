@@ -23,6 +23,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ChartPlotWordmark } from "@/components/charts/chart-wordmark";
 import {
   buildChartCss,
   getColorsCount,
@@ -1343,17 +1344,18 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
 
   return (
     <div
-      className={`relative flex flex-col text-xs ${className ?? ""}`}
+      className={`group/chart relative flex flex-col text-xs ${className ?? ""}`}
       data-chart={chartId}
       ref={containerRef}
     >
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
-      <div className="relative min-h-0 w-full flex-1">
+      <div className="@container relative min-h-0 w-full flex-1">
         {backgroundSlot.present && !isLoading && (
           <BackgroundLayer variant={backgroundSlot.variant} />
         )}
         <div className="relative h-full min-h-0 w-full" ref={mountRef} />
+        <ChartPlotWordmark />
       </div>
 
       {legendSlot.present && !isLoading && (
