@@ -35,7 +35,11 @@ import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";
 import { LINKEDIN_TRUNCATION_LIMIT } from "@/constants/linkedin";
 import { cn } from "@/lib/utils";
-import type { LinkedInPostProps } from "@/types/content/linkedin-post";
+import type {
+  LinkedInPostProps,
+  LinkedInPostHeaderProps,
+  LinkedInPostEngagementProps,
+} from "@/types/content/linkedin-post";
 
 const reactionColors: Record<string, string> = {
   like: "#378FE9",
@@ -100,10 +104,13 @@ const LINKEDIN_EDITOR_OVERLAY_STYLE: React.CSSProperties = {
   color: "transparent",
 };
 
-function formatContentWithHashtagsAndLinks(text: string): React.ReactNode[] {
+function formatContentWithHashtagsAndLinks(
+  text: string,
+  shortenUrls = true
+): React.ReactNode[] {
   const parts = text.split(COMBINED_REGEX);
   return parts.map((part, index) => {
-    if (part.startsWith("#")) {
+    if (part.startsWith("#") || (!shortenUrls && part.match(URL_REGEX))) {
       return (
         <span
           className="hover:decoration-foreground cursor-pointer text-blue-600 hover:underline hover:underline-offset-2"
@@ -232,6 +239,114 @@ function PostContent({
   );
 }
 
+function LinkedInPostHeader({
+  author,
+  accountSelector,
+  timestamp,
+  onClose,
+}: LinkedInPostHeaderProps) {
+  const hasAccountSelector =
+    accountSelector !== undefined && accountSelector.accounts.length > 1;
+  return (
+    <div className="flex items-start gap-2 px-4 pt-3 pb-1">
+      <Avatar className="size-12" size="lg">
+        {author.avatar && <AvatarImage src={author.avatar} />}
+        <AvatarFallback>
+          {author.fallback ?? author.name.slice(0, 2).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        {hasAccountSelector ? (
+          <SocialAccountSelector
+            accounts={accountSelector.accounts}
+            className="-mx-1 max-w-full px-1"
+            onSelect={accountSelector.onSelect}
+            trigger={
+              <>
+                <span className="truncate text-sm leading-tight font-semibold">
+                  {author.name}
+                </span>
+                <HugeiconsIcon
+                  className="text-muted-foreground size-3.5 shrink-0"
+                  icon={ArrowDown01Icon}
+                />
+              </>
+            }
+          />
+        ) : (
+          <p className="text-sm leading-tight font-semibold">{author.name}</p>
+        )}
+        {author.headline && (
+          <p className="text-muted-foreground truncate text-xs leading-tight">
+            {author.headline}
+          </p>
+        )}
+        <div className="text-muted-foreground flex items-center gap-1 text-xs">
+          {timestamp && (
+            <>
+              <span>{timestamp}</span>
+              <span>·</span>
+            </>
+          )}
+          <HugeiconsIcon className="size-3" icon={GlobalIcon} />
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center">
+        <Button
+          aria-label="Post actions"
+          className="text-muted-foreground"
+          size="icon-sm"
+          variant="ghost"
+        >
+          <HugeiconsIcon className="size-5" icon={MoreHorizontalIcon} />
+        </Button>
+        <Button
+          aria-label="Close post"
+          className="text-muted-foreground"
+          onClick={onClose}
+          size="icon-sm"
+          variant="ghost"
+        >
+          <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function LinkedInPostEngagement({
+  reactions,
+  comments = 0,
+  reposts = 0,
+}: LinkedInPostEngagementProps) {
+  const count = reactions?.count ?? 0;
+  if (count <= 0 && comments <= 0 && reposts <= 0) {
+    return null;
+  }
+  return (
+    <div className="flex items-center justify-between px-4 py-1.5">
+      <div className="flex items-center gap-1">
+        {count > 0 && (
+          <>
+            <div className="flex -space-x-0.5">
+              {(reactions?.types ?? ["like"]).map((type) => (
+                <ReactionDot key={type} type={type} />
+              ))}
+            </div>
+            <span className="text-muted-foreground text-xs">
+              {count.toLocaleString()}
+            </span>
+          </>
+        )}
+      </div>
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        {comments > 0 && <span>{comments.toLocaleString()} comments</span>}
+        {reposts > 0 && <span>{reposts.toLocaleString()} reposts</span>}
+      </div>
+    </div>
+  );
+}
+
 function LinkedInPost({
   author,
   accountSelector,
@@ -254,20 +369,9 @@ function LinkedInPost({
   className,
   ...props
 }: LinkedInPostProps) {
-  const reactionTypes = reactions?.types ?? ["like"];
-  const hasEngagement =
-    (reactions?.count ?? 0) > 0 || (comments ?? 0) > 0 || (reposts ?? 0) > 0;
   const isEditable = Boolean(onContentChange);
-  const hasAccountSelector =
-    accountSelector !== undefined && accountSelector.accounts.length > 1;
 
   const [localValue, setLocalValue] = useState(() => content ?? "");
-
-  const authorName = (
-    <span className="truncate text-sm leading-tight font-semibold">
-      {author.name}
-    </span>
-  );
 
   const readOnlyContent = content ? (
     <PostContent
@@ -285,85 +389,38 @@ function LinkedInPost({
 
   return (
     <Card className={cn("grid h-fit gap-0 py-0", className)} {...props}>
-      <div className="flex items-start gap-2 px-4 pt-3 pb-1">
-        <Avatar className="size-12" size="lg">
-          {author.avatar && <AvatarImage src={author.avatar} />}
-          <AvatarFallback>
-            {author.fallback ?? author.name.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          {hasAccountSelector ? (
-            <SocialAccountSelector
-              accounts={accountSelector.accounts}
-              className="-mx-1 max-w-full px-1"
-              onSelect={accountSelector.onSelect}
-              trigger={
-                <>
-                  {authorName}
-                  <HugeiconsIcon
-                    className="text-muted-foreground size-3.5 shrink-0"
-                    icon={ArrowDown01Icon}
-                  />
-                </>
-              }
-            />
-          ) : (
-            <p className="text-sm leading-tight font-semibold">{author.name}</p>
-          )}
-          {author.headline && (
-            <p className="text-muted-foreground truncate text-xs leading-tight">
-              {author.headline}
-            </p>
-          )}
-          <div className="text-muted-foreground flex items-center gap-1 text-xs">
-            {timestamp && <span>{timestamp}</span>}
-            {timestamp && <span>·</span>}
-            <HugeiconsIcon className="size-3" icon={GlobalIcon} />
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center">
-          <Button
-            className="text-muted-foreground"
-            size="icon-sm"
-            variant="ghost"
-          >
-            <HugeiconsIcon className="size-5" icon={MoreHorizontalIcon} />
-          </Button>
-          <Button
-            className="text-muted-foreground"
-            onClick={onClose}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
-          </Button>
-        </div>
-      </div>
+      <LinkedInPostHeader
+        author={author}
+        accountSelector={accountSelector}
+        timestamp={timestamp}
+        onClose={onClose}
+      />
 
       <div className="px-4 pb-2">
         {isEditable ? (
-          <div className="grid w-full grid-cols-1">
-            <div
-              aria-hidden
-              className="pointer-events-none col-start-1 row-start-1 min-h-[6.5rem] min-w-0"
-              style={LINKEDIN_EDITOR_TEXT_STYLE}
-            >
-              {formatContentWithHashtagsAndLinks(localValue)}
-              {"\u200b"}
+          <div className="max-h-80 overflow-y-auto [scrollbar-gutter:stable]">
+            <div className="relative grid w-full grid-cols-1">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 min-w-0 overflow-hidden"
+                style={LINKEDIN_EDITOR_TEXT_STYLE}
+              >
+                {formatContentWithHashtagsAndLinks(localValue, false)}
+                {"\u200b"}
+              </div>
+              <Textarea
+                className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-none min-h-[6.5rem] min-w-0 resize-none overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setLocalValue(value);
+                  onContentChange?.(value);
+                }}
+                placeholder="What do you want to talk about?"
+                spellCheck={false}
+                style={LINKEDIN_EDITOR_OVERLAY_STYLE}
+                value={localValue}
+              />
             </div>
-            <Textarea
-              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
-              onChange={(e) => {
-                const value = e.target.value;
-                setLocalValue(value);
-                onContentChange?.(value);
-              }}
-              placeholder="What do you want to talk about?"
-              spellCheck={false}
-              style={LINKEDIN_EDITOR_OVERLAY_STYLE}
-              value={localValue}
-            />
           </div>
         ) : (
           readOnlyContent
@@ -382,32 +439,11 @@ function LinkedInPost({
         </div>
       )}
 
-      {hasEngagement && (
-        <div className="flex items-center justify-between px-4 py-1.5">
-          <div className="flex items-center gap-1">
-            {reactions?.count && reactions.count > 0 && (
-              <>
-                <div className="flex -space-x-0.5">
-                  {reactionTypes.map((type) => (
-                    <ReactionDot key={type} type={type} />
-                  ))}
-                </div>
-                <span className="text-muted-foreground text-xs">
-                  {reactions.count.toLocaleString()}
-                </span>
-              </>
-            )}
-          </div>
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-            {(comments ?? 0) > 0 && (
-              <span>{comments?.toLocaleString()} comments</span>
-            )}
-            {(reposts ?? 0) > 0 && (
-              <span>{reposts?.toLocaleString()} reposts</span>
-            )}
-          </div>
-        </div>
-      )}
+      <LinkedInPostEngagement
+        reactions={reactions}
+        comments={comments}
+        reposts={reposts}
+      />
 
       <div className="grid gap-2 py-2">
         <Separator className="mx-4" />

@@ -136,6 +136,18 @@ export const ratelimit = {
     prefix: "ratelimit:geo-sequence-run",
     limiter: Ratelimit.slidingWindow(10, "10m"),
   }),
+  geoPersonasGenerate: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:geo-personas-generate",
+    limiter: Ratelimit.slidingWindow(5, "10m"),
+  }),
+  geoPersonaRun: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:geo-persona-run",
+    limiter: Ratelimit.slidingWindow(10, "10m"),
+  }),
   geoCompetitorSuggestions: new Ratelimit({
     redis,
     analytics: true,

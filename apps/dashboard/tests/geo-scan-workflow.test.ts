@@ -18,6 +18,7 @@ const listProjects = mock<typeof Steps.listGeoScanProjectsStep>();
 const prepare = mock<typeof Steps.prepareGeoScanProjectStep>();
 const taskBatch = mock<typeof Steps.runGeoScanTaskBatchStep>();
 const sequenceBatch = mock<typeof Steps.runGeoScanSequenceBatchStep>();
+const personaBatch = mock<typeof Steps.runGeoScanPersonaBatchStep>();
 const renewClaim = mock<typeof Steps.renewGeoScanClaimStep>();
 const finalize = mock<typeof Steps.finalizeGeoScanProjectStep>();
 const trackRetry = mock<typeof Steps.trackGeoScanRetryScheduledStep>();
@@ -47,6 +48,7 @@ mock.module("../src/workflows/steps/geo-scan-steps", () => ({
   prepareGeoScanProjectStep: prepare,
   runGeoScanTaskBatchStep: taskBatch,
   runGeoScanSequenceBatchStep: sequenceBatch,
+  runGeoScanPersonaBatchStep: personaBatch,
   renewGeoScanClaimStep: renewClaim,
   finalizeGeoScanProjectStep: finalize,
   trackGeoScanRetryScheduledStep: trackRetry,
@@ -70,6 +72,7 @@ beforeEach(() => {
     prepare,
     taskBatch,
     sequenceBatch,
+    personaBatch,
     renewClaim,
     finalize,
     trackRetry,
@@ -106,11 +109,42 @@ beforeEach(() => {
     usage: EMPTY_AGENT_TOKEN_USAGE,
   }));
   finalize.mockResolvedValue(undefined);
+  personaBatch.mockImplementation(async (_context, batch) => ({
+    checks: batch.length,
+    mentions: 0,
+    dropped: 0,
+    usage: EMPTY_AGENT_TOKEN_USAGE,
+  }));
   trackRetry.mockResolvedValue(undefined);
   sleep.mockResolvedValue(undefined);
 });
 
 describe("GEO scan workflow orchestration", () => {
+  test("persona-only scans execute and contribute to finalization", async () => {
+    const plan = scanPlan("project-test", 0, 0);
+    plan.personas = [
+      {
+        personaId: "persona-test",
+        engine: "test/engine",
+        groundedKey: "test/engine",
+        zdr: "none",
+      },
+    ];
+    prepare.mockResolvedValue({ status: "planned", plan });
+
+    await geoScanWorkflow({ organizationId: "org-test" });
+
+    expect(personaBatch).toHaveBeenCalledWith(plan.context, plan.personas);
+    expect(finalize).toHaveBeenCalledWith(
+      plan.context,
+      { checks: 1, mentions: 0, dropped: 0, usage: EMPTY_AGENT_TOKEN_USAGE },
+      "completed",
+      plan.claimedAt,
+      { retried: false }
+    );
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
   test("invalid payloads do not reach project discovery", async () => {
     expect(await geoScanWorkflow({ organizationId: "" })).toEqual({
       status: "invalid_payload",

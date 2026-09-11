@@ -36,9 +36,12 @@ import { LexicalEditor } from "@/components/content/editor/lexical-editor";
 import type {
   BlogChangelogPreviewAction,
   BlogChangelogPreviewState,
-  PreviewEffectiveState,
   PreviewIncomingState,
 } from "@/types/content/ai-preview";
+import {
+  blogPreviewEffectiveState,
+  isBlogPreviewBusy,
+} from "@/utils/blog-preview-state";
 import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
 
 function blogChangelogPreviewReducer(
@@ -126,29 +129,10 @@ export function BlogChangelogPreview({
     dispatch({ type: "draftMarkdownChanged", draftMarkdown: markdown });
   }, [markdown]);
 
-  const effectiveState: PreviewEffectiveState = (() => {
-    if (incomingState === "finished") {
-      return "finished";
-    }
-    if (
-      userAction === "saving" ||
-      userAction === "publishing" ||
-      userAction === "generating"
-    ) {
-      return "loading";
-    }
-    if (userAction === "save-failed") {
-      return "finished";
-    }
-    return "draft";
-  })();
+  const effectiveState = blogPreviewEffectiveState(incomingState, userAction);
 
   useEffect(() => {
-    if (
-      userAction !== "saving" &&
-      userAction !== "publishing" &&
-      userAction !== "generating"
-    ) {
+    if (!isBlogPreviewBusy(userAction)) {
       return;
     }
     const timer = window.setTimeout(() => {
@@ -220,6 +204,7 @@ export function BlogChangelogPreview({
   }, [draftMarkdown, draftTitle, onRegenerate, regenerateInstructions]);
 
   const isFinished = effectiveState === "finished";
+  const isEditable = !isFinished && !readOnly;
   const showStatusBadge = isFinished && userAction !== "save-failed";
 
   return (
@@ -255,7 +240,7 @@ export function BlogChangelogPreview({
 
           <CollapsibleContent>
             <div className="mx-2 mb-2 space-y-2">
-              {!isFinished && !readOnly && (
+              {isEditable && (
                 <input
                   aria-label="Post title"
                   className="border-border bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2"
@@ -276,21 +261,21 @@ export function BlogChangelogPreview({
                 <TabsContent className="mt-2" value="markdown">
                   <textarea
                     aria-label="Post content"
-                    className="border-border bg-background focus-visible:ring-ring min-h-72 w-full resize-y rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2"
+                    className="border-border bg-background focus-visible:ring-ring field-sizing-content max-h-80 min-h-72 w-full resize-none overflow-y-auto rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2"
                     onChange={(event) =>
                       dispatch({
                         type: "draftMarkdownChanged",
                         draftMarkdown: event.target.value,
                       })
                     }
-                    readOnly={isFinished || readOnly}
+                    readOnly={!isEditable}
                     value={draftMarkdown}
                   />
                 </TabsContent>
                 <TabsContent className="mt-2" value="preview">
                   <div className="border-border/80 bg-background max-h-[24rem] overflow-y-auto rounded-lg border px-4 py-3">
                     <LexicalEditor
-                      editable={!(isFinished || readOnly)}
+                      editable={isEditable}
                       initialMarkdown={draftMarkdown}
                       onChange={(value) =>
                         dispatch({
@@ -303,7 +288,7 @@ export function BlogChangelogPreview({
                   </div>
                 </TabsContent>
               </Tabs>
-              {regenerateOpen && !(isFinished || readOnly) && (
+              {regenerateOpen && isEditable && (
                 <input
                   aria-label="Regeneration instructions"
                   autoFocus
@@ -326,7 +311,7 @@ export function BlogChangelogPreview({
             </div>
           </CollapsibleContent>
 
-          {!isFinished && !readOnly && isOpen && (
+          {isEditable && isOpen && (
             <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
               {userAction === "generating" && (
                 <div className="text-muted-foreground mr-auto flex min-w-0 items-center gap-2 text-xs">

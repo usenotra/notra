@@ -179,6 +179,34 @@ export class GeoSequenceRunError extends Data.TaggedError(
   readonly cause?: unknown;
 }> {}
 
+export class GeoPersonaNotFoundError extends Data.TaggedError(
+  "GeoPersonaNotFoundError"
+)<{
+  readonly personaId: string;
+}> {}
+
+export class GeoPersonaGenerateError extends Data.TaggedError(
+  "GeoPersonaGenerateError"
+)<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+export class GeoPersonaEmptyError extends Data.TaggedError(
+  "GeoPersonaEmptyError"
+)<{
+  readonly usage: AgentTokenUsage;
+}> {}
+
+export class GeoPersonaRunUnavailableError extends Data.TaggedError(
+  "GeoPersonaRunUnavailableError"
+)<Record<string, never>> {}
+
+export class GeoPersonaRunError extends Data.TaggedError("GeoPersonaRunError")<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
 export class GeoSampleDataDisabledError extends Data.TaggedError(
   "GeoSampleDataDisabledError"
 )<Record<string, never>> {}
@@ -237,6 +265,10 @@ export type GeoRouterError =
   | GeoContentBriefStateError
   | GeoDatabaseError
   | GeoDiscoveryError
+  | GeoPersonaGenerateError
+  | GeoPersonaNotFoundError
+  | GeoPersonaRunError
+  | GeoPersonaRunUnavailableError
   | GeoProjectCreateFailedError
   | GeoProjectDeleteBlockedError
   | GeoProjectNotFoundError

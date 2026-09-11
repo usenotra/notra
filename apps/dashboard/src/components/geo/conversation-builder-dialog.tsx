@@ -111,7 +111,7 @@ export function ConversationBuilderDialog({
                   </span>
                   <div className="border-border bg-muted/40 min-w-0 flex-1 rounded-lg border px-3 py-2">
                     <textarea
-                      className="placeholder:text-muted-foreground block w-full resize-none bg-transparent text-sm outline-none"
+                      className="placeholder:text-muted-foreground block field-sizing-content max-h-80 w-full resize-none overflow-y-auto bg-transparent text-sm outline-none"
                       onChange={(event) =>
                         setSteps((previous) =>
                           previous.map((item) =>

@@ -556,6 +556,13 @@ export interface GeoScanPlannedSequence {
   zdr: GeoZdrMode;
 }
 
+export interface GeoScanPlannedPersona {
+  personaId: string;
+  engine: string;
+  groundedKey: string;
+  zdr: GeoZdrMode;
+}
+
 export interface GeoScanProjectContext {
   organizationId: string;
   projectId: string;
@@ -573,6 +580,7 @@ export interface GeoScanProjectPlan {
   claimedAt: string;
   tasks: GeoScanPlannedTask[];
   sequences: GeoScanPlannedSequence[];
+  personas: GeoScanPlannedPersona[];
   promptCount: number;
   languages: string[];
   engines: string[];
@@ -631,6 +639,7 @@ export interface GeoScanZdrPolicyFields {
   projectId: string;
   scanId?: string;
   sequenceId?: string;
+  personaId?: string;
 }
 
 /** Per-project ZDR inputs needed to decide how an engine may run. */

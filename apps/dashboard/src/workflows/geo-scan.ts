@@ -5,6 +5,7 @@ import {
   GEO_SCAN_SEQUENCE_BATCH_SIZE,
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
+import { GEO_SCAN_PERSONA_BATCH_SIZE } from "@notra/geo-core/constants/geo-personas";
 import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
@@ -36,6 +37,7 @@ import {
   listGeoScanProjectsStep,
   prepareGeoScanProjectStep,
   renewGeoScanClaimStep,
+  runGeoScanPersonaBatchStep,
   runGeoScanSequenceBatchStep,
   runGeoScanTaskBatchStep,
   trackGeoScanRetryScheduledStep,
@@ -196,7 +198,7 @@ async function finalizeProjectRun(
 
 /**
  * One project scan as a chain of small steps: plan → task batches →
- * sequence batches → finalize. Each batch persists its own results, so a
+ * sequence batches → persona batches → finalize. Each batch persists its own results, so a
  * killed invocation costs one batch, not the scan — the previous single-step
  * design was killed wholesale by the function timeout once an organization
  * tracked enough engines, leaving the scan on "running" forever with zero
@@ -238,7 +240,8 @@ async function runGeoScanProjectRun(
     } satisfies GeoScanProjectTotals,
   };
   const { totals } = state;
-  const attempted = plan.tasks.length + plan.sequences.length;
+  const attempted =
+    plan.tasks.length + plan.sequences.length + plan.personas.length;
 
   try {
     await runGeoScanBatchWindow(
@@ -253,6 +256,13 @@ async function runGeoScanProjectRun(
       plan.sequences,
       GEO_SCAN_SEQUENCE_BATCH_SIZE,
       runGeoScanSequenceBatchStep,
+      state
+    );
+    await runGeoScanBatchWindow(
+      plan.context,
+      plan.personas,
+      GEO_SCAN_PERSONA_BATCH_SIZE,
+      runGeoScanPersonaBatchStep,
       state
     );
   } catch (error) {
