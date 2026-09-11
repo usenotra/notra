@@ -9,7 +9,10 @@ import {
   setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
 import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
-import { createOctokit } from "@notra/ai/utils/octokit";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "@notra/ai/utils/octokit";
 import { redis } from "@notra/ai/utils/redis";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -236,7 +239,6 @@ export const githubRouter = {
             organizationId: input.organizationId,
             userId: auth.user.id,
             repositoryIds: input.repositoryIds,
-            preserveExisting: input.preserveExisting,
           }),
           toGitHubOperationOrpcError
         );
@@ -326,7 +328,9 @@ export const githubRouter = {
         );
       }
 
-      const octokit = createOctokit(input.token || undefined);
+      const octokit = createOctokit(input.token || undefined, {
+        requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+      });
 
       return Effect.runPromise(
         Effect.tryPromise({
