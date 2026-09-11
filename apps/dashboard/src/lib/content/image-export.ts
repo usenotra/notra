@@ -41,11 +41,11 @@ export function preloadImageExportCopy(target: ImageExportTarget): void {
     return;
   }
   if (target === "figma") {
-    void loadCopyAsFigma();
+    void loadCopyAsFigma().catch(() => undefined);
     return;
   }
   if (target === "paper") {
-    void loadCopyAsPaper();
+    void loadCopyAsPaper().catch(() => undefined);
   }
 }
 

@@ -7,7 +7,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
@@ -21,18 +21,87 @@ import {
 } from "@/utils/geo-answer-replay";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 
+type AnswerMarkdownComponent =
+  (typeof import("@/components/geo/geo-prompt-answer-thread"))["AnswerMarkdown"];
+
+let answerMarkdownPromise: Promise<AnswerMarkdownComponent> | null = null;
+let AnswerMarkdownImpl: AnswerMarkdownComponent | null = null;
+
+function loadAnswerMarkdown(): Promise<AnswerMarkdownComponent> {
+  answerMarkdownPromise ??= import("@/components/geo/geo-prompt-answer-thread")
+    .then((module) => module.AnswerMarkdown)
+    .catch((error: unknown) => {
+      answerMarkdownPromise = null;
+      throw error;
+    });
+  return answerMarkdownPromise;
+}
+
 const answerMarkdownFallback = (
   <p className="text-muted-foreground animate-pulse">Thinking…</p>
 );
 
-// Markdown rendering (~138 kB gz) is only needed once a replay is on screen.
-const AnswerMarkdown = dynamic(
-  () =>
-    import("@/components/geo/geo-prompt-answer-thread").then(
-      (module) => module.AnswerMarkdown
-    ),
-  { ssr: false, loading: () => answerMarkdownFallback }
-);
+function AnswerMarkdown({
+  mode,
+  skin,
+  text,
+}: {
+  mode: "static" | "streaming";
+  skin: GeoChatSkin;
+  text: string;
+}) {
+  const [retryKey, setRetryKey] = useState(0);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    AnswerMarkdownImpl ? "ready" : "loading"
+  );
+
+  useEffect(() => {
+    if (AnswerMarkdownImpl) {
+      setStatus("ready");
+      return;
+    }
+
+    let active = true;
+    setStatus("loading");
+    loadAnswerMarkdown()
+      .then((loaded) => {
+        AnswerMarkdownImpl = loaded;
+        if (active) {
+          setStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setStatus("error");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [retryKey]);
+
+  if (status === "error") {
+    return (
+      <p className="text-muted-foreground">
+        Could not load the answer.{" "}
+        <button
+          className="underline underline-offset-4"
+          onClick={() => setRetryKey((key) => key + 1)}
+          type="button"
+        >
+          Retry
+        </button>
+      </p>
+    );
+  }
+
+  if (status !== "ready" || !AnswerMarkdownImpl) {
+    return answerMarkdownFallback;
+  }
+
+  return <AnswerMarkdownImpl mode={mode} skin={skin} text={text} />;
+}
 
 function replaySources(turn: GeoSequenceTurnResult): PerplexitySearchSource[] {
   return perplexitySourcesFromStoredOrExcerpt(turn.sources, turn.answer);

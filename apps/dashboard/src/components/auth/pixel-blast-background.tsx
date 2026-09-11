@@ -4,9 +4,9 @@ import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-// Matches the auth layout `hidden lg:flex` column so Three never mounts in a
-// `display: none` ancestor (phones and tablets below the lg breakpoint).
-const AUTH_PIXEL_BLAST_MIN_WIDTH_PX = 1024;
+// Matches the auth layout `hidden lg:flex` column (`lg` is 64rem in this
+// Tailwind theme) so Three never mounts in a `display: none` ancestor.
+const AUTH_PIXEL_BLAST_MIN_WIDTH = "64rem";
 
 // three.js + postprocessing (~128 kB gz) for a decorative background: client-only
 // and never on the critical path of the auth forms.
@@ -25,7 +25,7 @@ export function PixelBlastBackground() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(
-      `(min-width: ${AUTH_PIXEL_BLAST_MIN_WIDTH_PX}px)`
+      `(min-width: ${AUTH_PIXEL_BLAST_MIN_WIDTH})`
     );
     const onChange = () => {
       setIsDesktopLg(mediaQuery.matches);

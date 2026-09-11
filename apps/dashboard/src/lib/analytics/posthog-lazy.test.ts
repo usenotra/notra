@@ -1,7 +1,9 @@
 import { expect, mock, spyOn, test } from "bun:test";
 
+let initAttempts = 0;
 const init = mock(() => {
-  if (init.mock.calls.length === 1) {
+  initAttempts += 1;
+  if (initAttempts === 1) {
     throw new Error("transient initialization failure");
   }
 });
@@ -26,17 +28,19 @@ test("idle identity waits without starting init, then a failed init retries", as
     const actionCallback = mock(() => undefined);
     const ready = whenPostHogReady(idleCallback);
     await Promise.resolve();
-    expect(init).toHaveBeenCalledTimes(0);
+    expect(initAttempts).toBe(0);
     expect(idleCallback).not.toHaveBeenCalled();
 
     initPostHog();
-    await ready;
-    expect(init).toHaveBeenCalledTimes(1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(initAttempts).toBe(1);
     expect(idleCallback).not.toHaveBeenCalled();
 
     await withPostHog(actionCallback);
-    expect(init).toHaveBeenCalledTimes(2);
+    await ready;
+    expect(initAttempts).toBe(2);
     expect(actionCallback).toHaveBeenCalledTimes(1);
+    expect(idleCallback).toHaveBeenCalledTimes(1);
   } finally {
     errorLog.mockRestore();
     if (previousWindow) {
