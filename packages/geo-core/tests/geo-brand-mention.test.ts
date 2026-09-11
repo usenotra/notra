@@ -44,29 +44,22 @@ describe("findBrandMention", () => {
     expect(findBrandMention("Pick Notra.", "Notra", [])).toBe("Notra");
   });
 
-  test("treats combining marks and supplementary-plane letters as word characters", () => {
-    expect(
-      findBrandMention("Notra\u0301 is unrelated.", "Notra", [])
-    ).toBeNull();
-    expect(
-      findBrandMention("\u{1D400}Notra is unrelated.", "Notra", [])
-    ).toBeNull();
-    expect(
-      findBrandMention("Notra\u{1D400} is unrelated.", "Notra", [])
-    ).toBeNull();
-  });
-
-  test("matches a Latin brand embedded in unspaced scripts", () => {
-    expect(findBrandMention("メール送信にはResendを使う", "Resend", [])).toBe(
-      "Resend"
-    );
-    expect(findBrandMention("ใช้Resendสำหรับอีเมล", "Resend", [])).toBe("Resend");
-  });
-
-  test("matches decomposed and composed forms of the same name", () => {
-    expect(findBrandMention("Try Cafe\u0301 today.", "Caf\u00e9", [])).toBe(
+  test("compares names after NFC normalization", () => {
+    expect(findBrandMention("Try cafe\u0301 today.", "Caf\u00e9", [])).toBe(
       "Caf\u00e9"
     );
+  });
+
+  test("treats combining marks and supplementary-plane letters as word characters", () => {
+    expect(findBrandMention("Try cafe\u0305 today.", "cafe", [])).toBeNull();
+    expect(findBrandMention("Try foo\u{1D400} today.", "foo", [])).toBeNull();
+    expect(findBrandMention("\u{1D400}foo today.", "foo", [])).toBeNull();
+  });
+
+  test("matches brands inside scripts written without spaces", () => {
+    expect(findBrandMention("推荐腾讯云和相关产品。", "腾讯", [])).toBe("腾讯");
+    expect(findBrandMention("推荐Notra给团队。", "Notra", [])).toBe("Notra");
+    expect(findBrandMention("ใช้Notraสำหรับอีเมล", "Notra", [])).toBe("Notra");
   });
 
   test("ignores empty aliases", () => {
