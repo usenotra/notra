@@ -1,4 +1,4 @@
-import { notraMarkSvg } from "@notra/ui/components/ui/svgs/notra";
+import { notraMarkSvg } from "@notra/ui/lib/notra-mark";
 
 import {
   CHART_DOWNLOAD_HEADER,
