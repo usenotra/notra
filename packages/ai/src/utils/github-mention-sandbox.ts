@@ -1,9 +1,13 @@
-import { GITHUB_MENTION_SANDBOX_TIMEOUT_MS } from "@notra/ai/constants/github-mention";
+import {
+  GITHUB_MENTION_LOG_EVENTS,
+  GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
+} from "@notra/ai/constants/github-mention";
 import { getGitHubCloneTokenForOrganization } from "@notra/ai/integrations/github";
 import type {
   GitHubMentionContext,
   GitHubMentionOctokit,
 } from "@notra/ai/types/github-mention";
+import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import { commitFilesToPullRequest } from "@notra/ai/utils/github-pr-commit";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
 import { Agent, Box } from "@upstash/box";
@@ -112,6 +116,16 @@ export async function runGitHubMentionSandbox(params: {
     timeout: GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
   } satisfies BoxConfig);
 
+  const startedAt = Date.now();
+  logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.sandboxStarted, {
+    organizationId: params.context.organizationId,
+    integrationId: params.context.integrationId,
+    deliveryId: params.context.deliveryId,
+    repository: `${params.context.owner}/${params.context.repo}`,
+    issueNumber: params.context.issueNumber,
+    branch: params.branch,
+  });
+
   try {
     await clonePullRequestBranch({
       box,
@@ -130,9 +144,7 @@ export async function runGitHubMentionSandbox(params: {
       timeout: GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
     });
     for await (const chunk of stream) {
-      if (chunk.type === "tool-call") {
-        console.log(`[github-mention] sandbox tool: ${chunk.toolName}`);
-      }
+      void chunk;
     }
     const diffList = await listChangedSandboxFiles(box);
     const files = [];
@@ -143,6 +155,13 @@ export async function runGitHubMentionSandbox(params: {
       }
     }
     if (files.length === 0) {
+      logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.sandboxCompleted, {
+        organizationId: params.context.organizationId,
+        deliveryId: params.context.deliveryId,
+        commitSha: null,
+        files: [],
+        durationMs: Date.now() - startedAt,
+      });
       return { available: true as const, commitSha: null, files: [] };
     }
     const commitSha = await commitFilesToPullRequest({
@@ -154,11 +173,32 @@ export async function runGitHubMentionSandbox(params: {
       headline: "docs: apply mention sandbox edits",
       files,
     });
+    logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.sandboxCompleted, {
+      organizationId: params.context.organizationId,
+      deliveryId: params.context.deliveryId,
+      commitSha,
+      files: files.map((file) => file.path),
+      durationMs: Date.now() - startedAt,
+    });
     return {
       available: true as const,
       commitSha,
       files: files.map((file) => file.path),
     };
+  } catch (error) {
+    logGitHubMentionEvent(
+      GITHUB_MENTION_LOG_EVENTS.sandboxCompleted,
+      {
+        organizationId: params.context.organizationId,
+        deliveryId: params.context.deliveryId,
+        commitSha: null,
+        files: [],
+        durationMs: Date.now() - startedAt,
+        reason: error instanceof Error ? error.message : String(error),
+      },
+      "error"
+    );
+    throw error;
   } finally {
     await box.delete().catch(() => undefined);
   }

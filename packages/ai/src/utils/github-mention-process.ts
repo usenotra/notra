@@ -1,11 +1,15 @@
 import { runGitHubMentionAgent } from "@notra/ai/agents/github-mention";
-import { GITHUB_MENTION_COMMENT_MAX_LENGTH } from "@notra/ai/constants/github-mention";
+import {
+  GITHUB_MENTION_COMMENT_MAX_LENGTH,
+  GITHUB_MENTION_LOG_EVENTS,
+} from "@notra/ai/constants/github-mention";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import type { GitHubAppWebhookPayload } from "@notra/ai/schemas/github-mention";
 import type {
   GitHubMentionContext,
   GitHubMentionProcessResult,
   GitHubMentionPullRequest,
+  GitHubMentionResolveResult,
 } from "@notra/ai/types/github-mention";
 import { findContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
 import {
@@ -18,6 +22,7 @@ import {
   resolveGitHubMentionAuth,
 } from "@notra/ai/utils/github-mention-auth";
 import { resolveGitHubMentionDestination } from "@notra/ai/utils/github-mention-destination";
+import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import {
   addGitHubIssueReaction,
   getPullRequestHead,
@@ -35,10 +40,7 @@ function clipComment(body: string) {
 export async function resolveGitHubMentionContext(params: {
   payload: GitHubAppWebhookPayload;
   deliveryId: string | null;
-}): Promise<
-  | { status: "ignored" | "unauthorized"; reason: string }
-  | { status: "ready"; context: GitHubMentionContext }
-> {
+}): Promise<GitHubMentionResolveResult> {
   const sender = params.payload.sender;
   const repository = params.payload.repository;
   const comment = params.payload.comment;
@@ -152,7 +154,25 @@ export async function resolveGitHubMentionContext(params: {
   }
 
   if (!resolved) {
-    return { status: "unauthorized", reason: "not_org_member" };
+    let logTarget: GitHubMentionResolveResult["logTarget"];
+    for (const organization of organizations) {
+      const integration = await findGitHubIntegrationForMention({
+        organizationId: organization.organizationId,
+        githubRepositoryId: String(repository.id),
+        owner: repository.owner.login,
+        repo: repository.name,
+      });
+      if (integration?.owner && integration.repo) {
+        logTarget = {
+          organizationId: organization.organizationId,
+          integrationId: integration.id,
+          owner: integration.owner,
+          repo: integration.repo,
+        };
+        break;
+      }
+    }
+    return { status: "unauthorized", reason: "not_org_member", logTarget };
   }
   return { status: "ready", context: resolved };
 }
@@ -160,14 +180,41 @@ export async function resolveGitHubMentionContext(params: {
 export async function processGitHubMention(
   context: GitHubMentionContext
 ): Promise<GitHubMentionProcessResult> {
+  const startedAt = Date.now();
+  logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.processing, {
+    organizationId: context.organizationId,
+    integrationId: context.integrationId,
+    deliveryId: context.deliveryId,
+    repository: `${context.owner}/${context.repo}`,
+    issueNumber: context.issueNumber,
+    senderLogin: context.sender.login,
+    destinationMode: context.destination.mode,
+    postId: context.publication?.postId ?? null,
+  });
+
   const token = await getGitHubPublishToken(context.integrationId, {
     organizationId: context.organizationId,
   });
   if (!token) {
-    return {
-      status: "failed",
+    const result = {
+      status: "failed" as const,
       reason: "github_token_unavailable",
     };
+    logGitHubMentionEvent(
+      GITHUB_MENTION_LOG_EVENTS.completed,
+      {
+        organizationId: context.organizationId,
+        integrationId: context.integrationId,
+        deliveryId: context.deliveryId,
+        repository: `${context.owner}/${context.repo}`,
+        issueNumber: context.issueNumber,
+        mentionStatus: result.status,
+        reason: result.reason,
+        durationMs: Date.now() - startedAt,
+      },
+      "error"
+    );
+    return result;
   }
   const octokit = createOctokit(token);
 
@@ -180,11 +227,11 @@ export async function processGitHubMention(
   }).catch(() => undefined);
 
   try {
-    const result = await runGitHubMentionAgent({ octokit, context });
+    const agentResult = await runGitHubMentionAgent({ octokit, context });
     const reply = clipComment(
-      result.reply ||
-        (result.committed
-          ? `Updated this pull request in ${result.commitSha}.`
+      agentResult.reply ||
+        (agentResult.committed
+          ? `Updated this pull request in ${agentResult.commitSha}.`
           : "I looked at this, but I do not have anything to change.")
     );
     await postGitHubIssueComment({
@@ -194,12 +241,26 @@ export async function processGitHubMention(
       issueNumber: context.issueNumber,
       body: reply,
     });
-    return {
-      status: result.committed ? "committed" : "replied",
+    const result = {
+      status: agentResult.committed
+        ? ("committed" as const)
+        : ("replied" as const),
       reply,
+      commitSha: agentResult.commitSha,
+      pullRequestUrl: agentResult.pullRequestUrl,
+    };
+    logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.completed, {
+      organizationId: context.organizationId,
+      integrationId: context.integrationId,
+      deliveryId: context.deliveryId,
+      repository: `${context.owner}/${context.repo}`,
+      issueNumber: context.issueNumber,
+      mentionStatus: result.status,
       commitSha: result.commitSha,
       pullRequestUrl: result.pullRequestUrl,
-    };
+      durationMs: Date.now() - startedAt,
+    });
+    return result;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     await postGitHubIssueComment({
@@ -209,6 +270,20 @@ export async function processGitHubMention(
       issueNumber: context.issueNumber,
       body: "I could not finish that mention. Please try again from the dashboard if this keeps happening.",
     }).catch(() => undefined);
+    logGitHubMentionEvent(
+      GITHUB_MENTION_LOG_EVENTS.completed,
+      {
+        organizationId: context.organizationId,
+        integrationId: context.integrationId,
+        deliveryId: context.deliveryId,
+        repository: `${context.owner}/${context.repo}`,
+        issueNumber: context.issueNumber,
+        mentionStatus: "failed",
+        reason,
+        durationMs: Date.now() - startedAt,
+      },
+      "error"
+    );
     return { status: "failed", reason };
   }
 }

@@ -101,6 +101,38 @@ export interface GitHubMentionProcessResult {
   pullRequestUrl?: string | null;
 }
 
+export interface GitHubMentionLogTarget {
+  organizationId: string;
+  integrationId: string;
+  owner: string;
+  repo: string;
+}
+
+export type GitHubMentionWebhookLogStatus =
+  | "pending"
+  | "success"
+  | "failed"
+  | "skipped";
+
+export interface GitHubMentionWebhookLog {
+  organizationId: string;
+  integrationId: string;
+  title: string;
+  status: GitHubMentionWebhookLogStatus;
+  statusCode: number;
+  errorMessage?: string | null;
+  payload: Record<string, unknown>;
+}
+
+export type GitHubMentionResolveResult =
+  | { status: "ignored"; reason: string }
+  | {
+      status: "unauthorized";
+      reason: string;
+      logTarget?: GitHubMentionLogTarget;
+    }
+  | { status: "ready"; context: GitHubMentionContext };
+
 export interface GitHubMentionWriteTarget {
   branch: string;
   expectedHeadOid: string;

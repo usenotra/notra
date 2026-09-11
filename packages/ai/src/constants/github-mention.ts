@@ -21,6 +21,19 @@ export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
   }
 `;
 
+export const GITHUB_MENTION_LOG_COMMENT_MAX_LENGTH = 280;
+
+export const GITHUB_MENTION_LOG_EVENTS = {
+  ingestRejected: "github.mention.ingest_rejected",
+  ignored: "github.mention.ignored",
+  unauthorized: "github.mention.unauthorized",
+  accepted: "github.mention.accepted",
+  processing: "github.mention.processing",
+  completed: "github.mention.completed",
+  sandboxStarted: "github.mention.sandbox.started",
+  sandboxCompleted: "github.mention.sandbox.completed",
+} as const;
+
 export const GITHUB_MENTION_SEPARATE_PR_PATTERNS = [
   /\bopen (?:a |an )?(?:new |separate |own |different )(?:draft )?pr\b/i,
   /\b(?:new|separate|own|different) pull request\b/i,

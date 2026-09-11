@@ -102,12 +102,27 @@ describe("ingestGitHubAppMentionWebhook", () => {
       reason: "not_org_member",
     });
     expect(result.run).toBeUndefined();
+    expect(result.log).toBeUndefined();
   });
 
   test("accepts authorized mentions for background processing", async () => {
     resolveGitHubMentionContext.mockResolvedValue({
       status: "ready",
-      context: { organizationId: "org_1", issueNumber: 42 },
+      context: {
+        organizationId: "org_1",
+        integrationId: "int_1",
+        issueNumber: 42,
+        owner: "acme",
+        repo: "app",
+        sender: { id: 7, login: "alice" },
+        destination: { mode: "same_pull_request" },
+        publication: { postId: "post_1" },
+        comment: {
+          htmlUrl: "https://github.com/acme/app/pull/42#issuecomment-1",
+          body: "@notra shorten the intro",
+        },
+        pullRequest: { htmlUrl: "https://github.com/acme/app/pull/42" },
+      },
     });
     const result = await ingestGitHubAppMentionWebhook({
       event: "issue_comment",
@@ -122,5 +137,34 @@ describe("ingestGitHubAppMentionWebhook", () => {
       issue: 42,
     });
     expect(result.run).toBeTypeOf("function");
+    expect(result.log).toMatchObject({
+      status: "pending",
+      title: "@notra mention on acme/app#42",
+    });
+  });
+
+  test("attaches a skipped log for unauthorized mentions when the repo is known", async () => {
+    resolveGitHubMentionContext.mockResolvedValue({
+      status: "unauthorized",
+      reason: "not_org_member",
+      logTarget: {
+        organizationId: "org_1",
+        integrationId: "int_1",
+        owner: "acme",
+        repo: "app",
+      },
+    });
+    const result = await ingestGitHubAppMentionWebhook({
+      event: "issue_comment",
+      signature: sign(mentionPayload),
+      deliveryId: "unauth-2",
+      rawBody: mentionPayload,
+    });
+    expect(result.httpStatus).toBe(200);
+    expect(result.log).toMatchObject({
+      status: "skipped",
+      organizationId: "org_1",
+      integrationId: "int_1",
+    });
   });
 });
