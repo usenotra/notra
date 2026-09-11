@@ -9,10 +9,14 @@ import { AuthOrDivider } from "@notra/ui/components/shared/auth/auth-or-divider"
 import { AuthPasswordField } from "@notra/ui/components/shared/auth/auth-password-field";
 import { AuthSocialButtons } from "@notra/ui/components/shared/auth/auth-social-buttons";
 import { EmailVerificationForm } from "@notra/ui/components/shared/auth/email-verification-form";
+import { MfaChallengeForm } from "@notra/ui/components/shared/auth/mfa-challenge-form";
+import { MfaEnrollmentForm } from "@notra/ui/components/shared/auth/mfa-enrollment-form";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Separator } from "@notra/ui/components/ui/separator";
 import type {
   AuthMethod,
+  PendingMfaChallenge,
+  PendingMfaEnrollment,
   PendingVerification,
   SocialProvider,
 } from "@notra/ui/lib/auth-types";
@@ -30,6 +34,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   signUpWithPasswordAction,
   verifyEmailCodeAction,
+  verifyMfaCodeAction,
 } from "@/lib/auth/password-actions";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
@@ -64,6 +69,11 @@ export function SignupForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [pendingVerification, setPendingVerification] =
     useState<PendingVerification | null>(null);
+  const [pendingMfa, setPendingMfa] = useState<PendingMfaChallenge | null>(
+    null
+  );
+  const [pendingEnrollment, setPendingEnrollment] =
+    useState<PendingMfaEnrollment | null>(null);
   const authInFlightRef = useRef(false);
   const [attributionParams] = useQueryStates(marketingAttributionSearchParams, {
     history: "replace",
@@ -188,6 +198,38 @@ export function SignupForm({
           return;
         }
 
+        if (result.status === "mfa-required") {
+          authInFlightRef.current = false;
+          setAuthMethod(null);
+          setPendingMfa({
+            pendingAuthenticationToken: result.pendingAuthenticationToken,
+            authenticationChallengeId: result.authenticationChallengeId,
+            email: result.email,
+          });
+          return;
+        }
+
+        if (result.status === "mfa-enrollment-required") {
+          authInFlightRef.current = false;
+          setAuthMethod(null);
+          setPendingEnrollment({
+            pendingAuthenticationToken: result.pendingAuthenticationToken,
+            authenticationChallengeId: result.authenticationChallengeId,
+            email: result.email,
+            qrCode: result.qrCode,
+            secret: result.secret,
+            otpauthUri: result.otpauthUri,
+          });
+          return;
+        }
+
+        if (result.status === "recovered") {
+          // Backup codes are a sign-in concern; a fresh signup never gets here.
+          authInFlightRef.current = false;
+          setAuthMethod(null);
+          return;
+        }
+
         if (onSuccess) {
           onSuccess();
         } else {
@@ -202,10 +244,38 @@ export function SignupForm({
     },
   });
 
+  if (pendingEnrollment) {
+    return (
+      <MfaEnrollmentForm
+        enrollment={pendingEnrollment}
+        onBack={() => setPendingEnrollment(null)}
+        onSuccess={onSuccess}
+        returnTo={buildCallbackUrl("email")}
+        verifyMfaCode={verifyMfaCodeAction}
+      />
+    );
+  }
+
+  if (pendingMfa) {
+    return (
+      <MfaChallengeForm
+        authenticationChallengeId={pendingMfa.authenticationChallengeId}
+        email={pendingMfa.email}
+        onBack={() => setPendingMfa(null)}
+        onSuccess={onSuccess}
+        pendingAuthenticationToken={pendingMfa.pendingAuthenticationToken}
+        returnTo={buildCallbackUrl("email")}
+        verifyMfaCode={verifyMfaCodeAction}
+      />
+    );
+  }
+
   if (pendingVerification) {
     return (
       <EmailVerificationForm
         email={pendingVerification.email}
+        onMfaEnrollmentRequired={setPendingEnrollment}
+        onMfaRequired={setPendingMfa}
         onSuccess={onSuccess}
         pendingAuthenticationToken={
           pendingVerification.pendingAuthenticationToken
@@ -246,8 +316,10 @@ export function SignupForm({
               name="email"
               validators={{
                 onBlur: ({ value }) =>
-                  signupSchema.shape.email.safeParse(value).error?.issues[0]
-                    ?.message,
+                  value.length > 0
+                    ? signupSchema.shape.email.safeParse(value).error?.issues[0]
+                        ?.message
+                    : undefined,
                 onSubmit: ({ value }) =>
                   signupSchema.shape.email.safeParse(value).error?.issues[0]
                     ?.message,
@@ -270,8 +342,10 @@ export function SignupForm({
               name="password"
               validators={{
                 onBlur: ({ value }) =>
-                  signupSchema.shape.password.safeParse(value).error?.issues[0]
-                    ?.message,
+                  value.length > 0
+                    ? signupSchema.shape.password.safeParse(value).error
+                        ?.issues[0]?.message
+                    : undefined,
                 onSubmit: ({ value }) =>
                   signupSchema.shape.password.safeParse(value).error?.issues[0]
                     ?.message,

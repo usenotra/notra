@@ -226,6 +226,7 @@ import { DesignSystemOpencodeCatalog } from "@/app/design-system/opencode/page-c
 import { DesignSystemPerplexityCatalog } from "@/app/design-system/perplexity/page-client";
 import { Button, buttonVariants } from "@/components/button";
 import ChatInput from "@/components/chat-input";
+import { DesignSystemAuthSecurityDemo } from "@/components/design-system/auth-security-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
@@ -1757,6 +1758,10 @@ export default function DesignSystemClientPage() {
           </div>
         </div>
       </section>
+
+      <Separator />
+
+      <DesignSystemAuthSecurityDemo />
 
       <DesignSystemWriteDialogDemo />
       <DesignSystemClaudeCatalog />

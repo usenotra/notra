@@ -5,8 +5,11 @@ import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
 import type {
+  AuthFlowResult,
   AuthMethod,
   LoginFormProps,
+  PendingMfaChallenge,
+  PendingMfaEnrollment,
   PendingVerification,
   SocialProvider,
 } from "../../../lib/auth-types";
@@ -22,15 +25,28 @@ import { AuthEmailField } from "./auth-email-field";
 import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { AuthOrDivider } from "./auth-or-divider";
+import { AuthPasskeyButton } from "./auth-passkey-button";
 import { AuthPasswordField } from "./auth-password-field";
 import { AuthSocialButtons } from "./auth-social-buttons";
 import { EmailVerificationForm } from "./email-verification-form";
+import { MfaChallengeForm } from "./mfa-challenge-form";
+import { MfaEnrollmentForm } from "./mfa-enrollment-form";
 
 const LOGIN_ERROR_FALLBACK = "Failed to sign in. Please try again.";
+const PASSKEY_ERROR_FALLBACK = "Passkey sign-in failed. Please try again.";
 
 const noop = () => {
   return;
 };
+
+/**
+ * Leaving an untouched field (for example by clicking a social or passkey
+ * button) should not flag it as missing; "required" surfaces on submit.
+ */
+const validateFilledField = (
+  validate: (value: string) => string | undefined,
+  value: string
+) => (value.length > 0 ? validate(value) : undefined);
 const subscribeToNothing = () => noop;
 const returnNull = () => null;
 
@@ -43,11 +59,15 @@ export function LoginForm({
   showForgotPasswordLink = true,
   initialError,
   initialPendingVerification,
+  initialPendingMfa,
   callbackPath,
   validators,
   signInWithPassword,
   verifyEmailCode,
+  verifyMfaCode,
+  redeemBackupCode,
   startSocialSignIn,
+  startPasskeySignIn,
 }: LoginFormProps) {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(
@@ -55,6 +75,11 @@ export function LoginForm({
   );
   const [pendingVerification, setPendingVerification] =
     useState<PendingVerification | null>(initialPendingVerification ?? null);
+  const [pendingMfa, setPendingMfa] = useState<PendingMfaChallenge | null>(
+    initialPendingMfa ?? null
+  );
+  const [pendingEnrollment, setPendingEnrollment] =
+    useState<PendingMfaEnrollment | null>(null);
   const authInFlightRef = useRef(false);
   const lastMethod = useSyncExternalStore(
     subscribeToNothing,
@@ -64,6 +89,80 @@ export function LoginForm({
   const isAuthLoading = authMethod !== null;
 
   const callbackURL = returnTo ?? callbackPath;
+
+  function resetToSignIn() {
+    setPendingVerification(null);
+    setPendingMfa(null);
+    setPendingEnrollment(null);
+    setFormError(null);
+  }
+
+  function handlePendingResult(result: AuthFlowResult) {
+    if (result.status === "verification-required") {
+      setPendingVerification({
+        pendingAuthenticationToken: result.pendingAuthenticationToken,
+        email: result.email,
+      });
+      return;
+    }
+
+    if (result.status === "mfa-required") {
+      setPendingMfa({
+        pendingAuthenticationToken: result.pendingAuthenticationToken,
+        authenticationChallengeId: result.authenticationChallengeId,
+        email: result.email,
+        recoveryToken: result.recoveryToken,
+      });
+      return;
+    }
+
+    if (result.status === "mfa-enrollment-required") {
+      setPendingEnrollment({
+        pendingAuthenticationToken: result.pendingAuthenticationToken,
+        authenticationChallengeId: result.authenticationChallengeId,
+        email: result.email,
+        qrCode: result.qrCode,
+        secret: result.secret,
+        otpauthUri: result.otpauthUri,
+      });
+    }
+  }
+
+  /**
+   * A backup code removed the authenticator. If the password is still in the
+   * form, sign in again right away; otherwise ask the user to sign in.
+   */
+  async function handleRecovered(recoveredEmail: string) {
+    setPendingMfa(null);
+    const { email, password } = form.state.values;
+    if (email && password && !authInFlightRef.current) {
+      authInFlightRef.current = true;
+      setAuthMethod("email");
+      try {
+        const result = await signInWithPassword({
+          email,
+          password,
+          returnTo: callbackURL,
+        });
+        if (result.status === "success") {
+          setLastUsedLoginMethod("email");
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            window.location.assign(result.redirectTo);
+          }
+          return;
+        }
+      } catch {
+        // fall through to the manual sign-in prompt
+      }
+      authInFlightRef.current = false;
+      setAuthMethod(null);
+    }
+    setFormError(
+      `Backup code accepted. Two-factor authentication was turned off for ${recoveredEmail}. Sign in again to continue.`
+    );
+  }
 
   function handleSocialLogin(provider: SocialProvider) {
     if (authInFlightRef.current) {
@@ -81,6 +180,25 @@ export function LoginForm({
       authInFlightRef.current = false;
       setAuthMethod(null);
       setFormError("Social sign-in failed. Please try again.");
+    });
+  }
+
+  function handlePasskeyLogin() {
+    if (!startPasskeySignIn || authInFlightRef.current) {
+      return;
+    }
+
+    setFormError(null);
+    authInFlightRef.current = true;
+    setAuthMethod("passkey");
+    setLastUsedLoginMethod("passkey");
+    startPasskeySignIn({ returnTo: callbackURL }).catch((error) => {
+      if (isNextRedirectError(error)) {
+        return;
+      }
+      authInFlightRef.current = false;
+      setAuthMethod(null);
+      setFormError(PASSKEY_ERROR_FALLBACK);
     });
   }
 
@@ -115,13 +233,10 @@ export function LoginForm({
           return;
         }
 
-        if (result.status === "verification-required") {
+        if (result.status !== "success") {
           authInFlightRef.current = false;
           setAuthMethod(null);
-          setPendingVerification({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            email: result.email,
-          });
+          handlePendingResult(result);
           return;
         }
 
@@ -140,10 +255,41 @@ export function LoginForm({
     },
   });
 
+  if (pendingEnrollment) {
+    return (
+      <MfaEnrollmentForm
+        enrollment={pendingEnrollment}
+        onBack={resetToSignIn}
+        onSuccess={onSuccess}
+        returnTo={callbackURL}
+        verifyMfaCode={verifyMfaCode}
+      />
+    );
+  }
+
+  if (pendingMfa) {
+    return (
+      <MfaChallengeForm
+        authenticationChallengeId={pendingMfa.authenticationChallengeId}
+        email={pendingMfa.email}
+        onBack={resetToSignIn}
+        onRecovered={handleRecovered}
+        onSuccess={onSuccess}
+        pendingAuthenticationToken={pendingMfa.pendingAuthenticationToken}
+        recoveryToken={pendingMfa.recoveryToken}
+        returnTo={callbackURL}
+        redeemBackupCode={redeemBackupCode}
+        verifyMfaCode={verifyMfaCode}
+      />
+    );
+  }
+
   if (pendingVerification) {
     return (
       <EmailVerificationForm
         email={pendingVerification.email}
+        onMfaEnrollmentRequired={setPendingEnrollment}
+        onMfaRequired={setPendingMfa}
         onSuccess={onSuccess}
         pendingAuthenticationToken={
           pendingVerification.pendingAuthenticationToken
@@ -166,6 +312,15 @@ export function LoginForm({
           onSelect={handleSocialLogin}
         />
 
+        {startPasskeySignIn && (
+          <AuthPasskeyButton
+            disabled={isAuthLoading}
+            lastUsed={lastMethod === "passkey"}
+            loading={authMethod === "passkey"}
+            onClick={handlePasskeyLogin}
+          />
+        )}
+
         <AuthOrDivider />
 
         <form
@@ -182,7 +337,7 @@ export function LoginForm({
             <form.Field
               name="email"
               validators={{
-                onBlur: ({ value }) => validators.email(value),
+                onBlur: ({ value }) => validateFilledField(validators.email, value),
                 onSubmit: ({ value }) => validators.email(value),
               }}
             >
@@ -202,7 +357,7 @@ export function LoginForm({
             <form.Field
               name="password"
               validators={{
-                onBlur: ({ value }) => validators.password(value),
+                onBlur: ({ value }) => validateFilledField(validators.password, value),
                 onSubmit: ({ value }) => validators.password(value),
               }}
             >

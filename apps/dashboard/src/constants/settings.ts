@@ -8,6 +8,7 @@ import {
   Globe02Icon,
   Notification01Icon,
   Settings01Icon,
+  ShieldKeyIcon,
   UserCircleIcon,
   UserGroupIcon,
   Wallet01Icon,
@@ -20,6 +21,7 @@ import type {
 
 export const SETTINGS_SECTION_IDS = [
   "account",
+  "security",
   "general",
   "members",
   "notifications",
@@ -59,6 +61,26 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
           "github",
           "name",
           "delete account",
+        ],
+      },
+      {
+        id: "security",
+        label: "Security",
+        description: "Two-factor authentication and passkeys",
+        icon: ShieldKeyIcon,
+        keywords: [
+          "security",
+          "2fa",
+          "mfa",
+          "two-factor",
+          "two factor",
+          "authenticator",
+          "totp",
+          "passkey",
+          "passkeys",
+          "webauthn",
+          "face id",
+          "touch id",
         ],
       },
     ],
@@ -237,6 +259,7 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
 
 export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   account: "Account",
+  security: "Security",
   general: "General",
   members: "Members",
   notifications: "Notifications",
@@ -254,6 +277,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
 export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
   {
     account: "Manage your profile and account settings",
+    security: "Two-factor authentication and passkeys for your account",
     general: "Manage your organization settings",
     members: "Manage who has access to this organization",
     notifications: "Configure email notifications for your organization",

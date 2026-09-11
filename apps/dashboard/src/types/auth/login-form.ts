@@ -6,5 +6,8 @@ export type LoginFormProps = Omit<
   | "validators"
   | "signInWithPassword"
   | "verifyEmailCode"
+  | "verifyMfaCode"
+  | "redeemBackupCode"
   | "startSocialSignIn"
+  | "startPasskeySignIn"
 >;

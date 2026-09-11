@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 export type SettingsSectionId =
   | "account"
+  | "security"
   | "general"
   | "members"
   | "notifications"

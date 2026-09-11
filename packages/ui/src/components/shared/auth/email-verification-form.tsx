@@ -16,6 +16,8 @@ export function EmailVerificationForm({
   email,
   returnTo,
   onSuccess,
+  onMfaRequired,
+  onMfaEnrollmentRequired,
   verifyEmailCode,
 }: EmailVerificationFormProps) {
   const [code, setCode] = useState("");
@@ -42,6 +44,32 @@ export function EmailVerificationForm({
         } else {
           window.location.assign(result.redirectTo);
         }
+      }
+      return;
+    }
+
+    if (result?.status === "mfa-required" && onMfaRequired) {
+      if (requestIdRef.current === requestId) {
+        onMfaRequired({
+          pendingAuthenticationToken: result.pendingAuthenticationToken,
+          authenticationChallengeId: result.authenticationChallengeId,
+          email: result.email || email,
+          recoveryToken: result.recoveryToken,
+        });
+      }
+      return;
+    }
+
+    if (result?.status === "mfa-enrollment-required" && onMfaEnrollmentRequired) {
+      if (requestIdRef.current === requestId) {
+        onMfaEnrollmentRequired({
+          pendingAuthenticationToken: result.pendingAuthenticationToken,
+          authenticationChallengeId: result.authenticationChallengeId,
+          email: result.email || email,
+          qrCode: result.qrCode,
+          secret: result.secret,
+          otpauthUri: result.otpauthUri,
+        });
       }
       return;
     }

@@ -4,8 +4,14 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 
+import {
+  LOGIN_ERROR_KEYS,
+  LOGIN_MFA_QUERY_KEYS,
+  MFA_ERROR_CODES,
+} from "@/constants/security";
 import { SOCIAL_AUTH_STATE_COOKIE } from "@/constants/social-auth";
 import { UserSyncError, WorkOSAuthError } from "@/lib/auth/errors";
+import { resolveMfaFlow } from "@/lib/auth/mfa";
 import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
@@ -14,8 +20,15 @@ import { readWorkOSError } from "@/lib/auth/workos-error";
 const VERIFICATION_REQUIRED_CODE = "email_verification_required";
 
 interface SocialCallbackOutcome {
-  kind: "success" | "failed" | "verification-required";
+  kind:
+    | "success"
+    | "failed"
+    | "verification-required"
+    | "mfa-required"
+    | "mfa-enrollment-required";
   pendingAuthenticationToken?: string;
+  authenticationChallengeId?: string;
+  recoveryToken?: string;
   email?: string;
 }
 
@@ -43,32 +56,60 @@ const exchangeSocialCode = Effect.fn("auth.social.exchangeCode")(function* (
   });
 });
 
-const mapFailure = (error: WorkOSAuthError | UserSyncError) => {
-  if (error instanceof WorkOSAuthError) {
-    const info = readWorkOSError(error.error);
-
-    if (
-      info.code === VERIFICATION_REQUIRED_CODE &&
-      info.pendingAuthenticationToken
-    ) {
-      const outcome: SocialCallbackOutcome = {
-        kind: "verification-required",
-        pendingAuthenticationToken: info.pendingAuthenticationToken,
-        email: info.email ?? undefined,
-      };
-      return Effect.succeed(outcome);
-    }
-  }
-
-  return Effect.logWarning("Social sign-in failed").pipe(
-    Effect.annotateLogs({
-      error:
-        error instanceof WorkOSAuthError
-          ? readWorkOSError(error.error).message
-          : error.message,
-    }),
+const logFailure = (message: string) =>
+  Effect.logWarning("Social sign-in failed").pipe(
+    Effect.annotateLogs({ error: message }),
     Effect.as<SocialCallbackOutcome>({ kind: "failed" })
   );
+
+const mapFailure = (error: WorkOSAuthError | UserSyncError) => {
+  if (!(error instanceof WorkOSAuthError)) {
+    return logFailure(error.message);
+  }
+
+  const info = readWorkOSError(error.error);
+
+  if (
+    info.code === VERIFICATION_REQUIRED_CODE &&
+    info.pendingAuthenticationToken
+  ) {
+    const outcome: SocialCallbackOutcome = {
+      kind: "verification-required",
+      pendingAuthenticationToken: info.pendingAuthenticationToken,
+      email: info.email ?? undefined,
+    };
+    return Effect.succeed(outcome);
+  }
+
+  if (info.code === MFA_ERROR_CODES.ENROLLMENT) {
+    // Enrollment needs a QR code round-trip that does not survive a redirect,
+    // so social sign-ins fall back to the password form for first-time setup.
+    return Effect.succeed<SocialCallbackOutcome>({
+      kind: "mfa-enrollment-required",
+    });
+  }
+
+  if (info.code === MFA_ERROR_CODES.CHALLENGE) {
+    return resolveMfaFlow(info, info.email ?? "").pipe(
+      Effect.flatMap((mfaResult) => {
+        if (mfaResult?.status !== "mfa-required") {
+          return logFailure(info.message);
+        }
+        return Effect.succeed<SocialCallbackOutcome>({
+          kind: "mfa-required",
+          pendingAuthenticationToken: mfaResult.pendingAuthenticationToken,
+          authenticationChallengeId: mfaResult.authenticationChallengeId,
+          recoveryToken: mfaResult.recoveryToken,
+          email: mfaResult.email || undefined,
+        });
+      }),
+      Effect.catch((mfaError) =>
+        logFailure(readWorkOSError(mfaError.error).message)
+      )
+    );
+  }
+
+  return logFailure(info.message);
 };
 
 export async function GET(request: NextRequest) {
@@ -111,6 +152,25 @@ export async function GET(request: NextRequest) {
       params.set("email", outcome.email);
     }
     redirect(`/login?${params.toString()}`);
+  }
+
+  if (outcome.kind === "mfa-required") {
+    const params = new URLSearchParams({
+      [LOGIN_MFA_QUERY_KEYS.token]: outcome.pendingAuthenticationToken ?? "",
+      [LOGIN_MFA_QUERY_KEYS.challenge]: outcome.authenticationChallengeId ?? "",
+      returnTo,
+    });
+    if (outcome.email) {
+      params.set("email", outcome.email);
+    }
+    if (outcome.recoveryToken) {
+      params.set(LOGIN_MFA_QUERY_KEYS.recovery, outcome.recoveryToken);
+    }
+    redirect(`/login?${params.toString()}`);
+  }
+
+  if (outcome.kind === "mfa-enrollment-required") {
+    redirect(`/login?error=${LOGIN_ERROR_KEYS.MFA_ENROLLMENT_REQUIRED}`);
   }
 
   if (outcome.kind === "failed") {

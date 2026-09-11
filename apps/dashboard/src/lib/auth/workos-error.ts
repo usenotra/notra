@@ -7,6 +7,13 @@ export interface WorkOSErrorInfo {
   email: string | null;
   pendingAuthenticationToken: string | null;
   organizationIds: string[];
+  authenticationFactors: WorkOSAuthenticationFactorRef[];
+  userId: string | null;
+}
+
+interface WorkOSAuthenticationFactorRef {
+  id: string;
+  type: string;
 }
 
 export function readWorkOSError(error: unknown): WorkOSErrorInfo {
@@ -19,6 +26,8 @@ export function readWorkOSError(error: unknown): WorkOSErrorInfo {
       email: null,
       pendingAuthenticationToken: null,
       organizationIds: [],
+      authenticationFactors: [],
+      userId: null,
     };
   }
 
@@ -27,10 +36,16 @@ export function readWorkOSError(error: unknown): WorkOSErrorInfo {
   return {
     code: rawData?.code ?? code ?? null,
     message: rawData?.message ?? message ?? "Something went wrong",
-    email: rawData?.email ?? null,
+    email: rawData?.email ?? rawData?.user?.email ?? null,
     pendingAuthenticationToken: rawData?.pending_authentication_token ?? null,
     organizationIds:
       rawData?.organizations?.map((organization) => organization.id) ?? [],
+    authenticationFactors:
+      rawData?.authentication_factors?.map((factor) => ({
+        id: factor.id,
+        type: factor.type,
+      })) ?? [],
+    userId: rawData?.user?.id ?? null,
   };
 }
 

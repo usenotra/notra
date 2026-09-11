@@ -56,6 +56,13 @@ const AccountSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const SecuritySettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/security-pane").then((mod) => ({
+      default: mod.SecuritySettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const GeneralSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/general-pane").then((mod) => ({
@@ -124,6 +131,8 @@ function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
   switch (section) {
     case "account":
       return <AccountSettingsPane />;
+    case "security":
+      return <SecuritySettingsPane />;
     case "general":
       return <GeneralSettingsPane />;
     case "members":

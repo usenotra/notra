@@ -5,14 +5,19 @@ import { loginSchema } from "@notra/schemas/dashboard/auth/credentials";
 import { LoginForm as SharedLoginForm } from "@notra/ui/components/shared/auth/login-form";
 import type {
   SignInWithPasswordInput,
+  RedeemBackupCodeInput,
   VerifyEmailCodeInput,
+  VerifyMfaCodeInput,
 } from "@notra/ui/lib/auth-types";
 
 import { LOGIN_ERROR_CODES } from "@/constants/analytics-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import { startPasskeySignInAction } from "@/lib/auth/passkey-actions";
 import {
   signInWithPasswordAction,
+  redeemBackupCodeAction,
   verifyEmailCodeAction,
+  verifyMfaCodeAction,
 } from "@/lib/auth/password-actions";
 import { buildPostAuthRedirectPath } from "@/lib/auth/return-to";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
@@ -45,6 +50,26 @@ async function verifyEmailCodeTracked(input: VerifyEmailCodeInput) {
   return result;
 }
 
+async function verifyMfaCodeTracked(input: VerifyMfaCodeInput) {
+  const result = await verifyMfaCodeAction(input);
+  if (result.status === "error") {
+    trackEvent(POSTHOG_EVENTS.LOGIN_FAILED, {
+      error_code: LOGIN_ERROR_CODES.MFA_REJECTED,
+    });
+  }
+  return result;
+}
+
+async function redeemBackupCodeTracked(input: RedeemBackupCodeInput) {
+  const result = await redeemBackupCodeAction(input);
+  if (result.status === "error") {
+    trackEvent(POSTHOG_EVENTS.LOGIN_FAILED, {
+      error_code: LOGIN_ERROR_CODES.BACKUP_CODE_REJECTED,
+    });
+  }
+  return result;
+}
+
 export function LoginForm({ returnTo, ...props }: LoginFormProps) {
   return (
     <SharedLoginForm
@@ -52,9 +77,12 @@ export function LoginForm({ returnTo, ...props }: LoginFormProps) {
       callbackPath="/callback"
       returnTo={returnTo ? buildPostAuthRedirectPath(returnTo) : undefined}
       signInWithPassword={signInWithPasswordTracked}
+      startPasskeySignIn={startPasskeySignInAction}
       startSocialSignIn={startSocialSignInAction}
+      redeemBackupCode={redeemBackupCodeTracked}
       validators={validators}
       verifyEmailCode={verifyEmailCodeTracked}
+      verifyMfaCode={verifyMfaCodeTracked}
     />
   );
 }
