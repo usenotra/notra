@@ -9,9 +9,27 @@ import { and, eq, inArray } from "drizzle-orm";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
 import * as z from "zod";
 
+import { Effect } from "effect";
+
+import type { EventTriggerDatabaseError } from "../errors/event-triggers";
 import type { DbClient } from "../types/db";
-import type { EventTriggerRow } from "../types/event-triggers";
+import type { EventTriggerDomainError, EventTriggerRow } from "../types/event-triggers";
 import { logError } from "./logging";
+
+/** Leave unexpected database errors to Hono's central error handler. */
+export function runEventTriggerProgram<A, E extends EventTriggerDomainError>(
+  program: Effect.Effect<A, E | EventTriggerDatabaseError>
+) {
+  return Effect.runPromise(
+    Effect.result(
+      program.pipe(
+        Effect.catchTag("EventTriggerDatabaseError", (failure) =>
+          Effect.die(failure.cause)
+        )
+      )
+    )
+  );
+}
 
 export async function ensureEventTriggerTargetsExist(
   db: DbClient,
