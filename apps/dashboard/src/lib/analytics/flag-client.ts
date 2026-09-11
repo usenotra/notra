@@ -22,10 +22,6 @@ interface AnalyticsFlagEvaluation {
   readonly reason?: string;
 }
 
-/**
- * Maps a decoded provider answer onto the surface state. Exported so tests can
- * assert the fail-closed mapping without a live Databuddy client.
- */
 function mapAnalyticsFlagEvaluation(
   result: AnalyticsFlagEvaluation
 ): AnalyticsFlagState {
@@ -35,25 +31,7 @@ function mapAnalyticsFlagEvaluation(
   return result.enabled ? "enabled" : "disabled";
 }
 
-/**
- * Bounds one evaluation and collapses every non-answer onto `unavailable`. A
- * timeout, an SDK rejection, and the provider's own error reason all mean "we
- * do not know", and the surface treats them identically.
- */
-export function boundAnalyticsFlagEvaluation(
-  evaluation: Effect.Effect<
-    AnalyticsFlagEvaluation,
-    AnalyticsFlagEvaluationError
-  >
-): Effect.Effect<AnalyticsFlagState> {
-  return evaluation.pipe(
-    Effect.timeout(ANALYTICS_FLAG_REQUEST_TIMEOUT_MS),
-    Effect.map(mapAnalyticsFlagEvaluation),
-    Effect.catch(() => Effect.succeed<AnalyticsFlagState>("unavailable"))
-  );
-}
-
-const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
+export const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
   function* (clientId: string, organizationId: string) {
     const params = new URLSearchParams({
       clientId,

@@ -1,4 +1,4 @@
-import { redis } from "@notra/ai/utils/redis";
+import { Redis } from "@upstash/redis";
 import { Effect } from "effect";
 
 import { RedisUnavailableError } from "@/lib/onboarding/errors";
@@ -23,6 +23,24 @@ interface CompanyLogoCacheKeyInput {
   query: string;
   searchByName: boolean;
 }
+
+function createBoundedRedisClient(timeoutMs: number): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!(url && token)) {
+    return null;
+  }
+
+  // Upstash accepts a signal factory so each REST call gets its own timeout.
+  return new Redis({
+    url,
+    token,
+    signal: () => AbortSignal.timeout(timeoutMs),
+  });
+}
+
+const readRedis = createBoundedRedisClient(REDIS_READ_TIMEOUT_MS);
+const writeRedis = createBoundedRedisClient(REDIS_WRITE_TIMEOUT_MS);
 
 function buildCacheKey({ query, searchByName }: CompanyLogoCacheKeyInput) {
   const mode = searchByName ? "name" : "domain";
@@ -55,7 +73,7 @@ function logCacheSkip(operation: "read" | "write", cause: unknown): void {
  */
 const readCompanyLogo = Effect.fn("onboarding.companyLogoCache.read")(
   function* (input: CompanyLogoCacheKeyInput) {
-    const client = redis;
+    const client = readRedis;
     if (!client) {
       return null;
     }
@@ -64,7 +82,6 @@ const readCompanyLogo = Effect.fn("onboarding.companyLogoCache.read")(
       try: () => client.get<unknown>(buildCacheKey(input)),
       catch: (cause) => new RedisUnavailableError({ operation: "read", cause }),
     }).pipe(
-      Effect.timeout(REDIS_READ_TIMEOUT_MS),
       Effect.map((cached): CompanyLogoResult | null =>
         isCompanyLogoResult(cached) ? cached : null
       ),
@@ -78,7 +95,7 @@ const readCompanyLogo = Effect.fn("onboarding.companyLogoCache.read")(
 
 const writeCompanyLogo = Effect.fn("onboarding.companyLogoCache.write")(
   function* (input: CompanyLogoCacheKeyInput, result: CompanyLogoResult) {
-    const client = redis;
+    const client = writeRedis;
     if (!client) {
       return;
     }
@@ -91,7 +108,6 @@ const writeCompanyLogo = Effect.fn("onboarding.companyLogoCache.write")(
       catch: (cause) =>
         new RedisUnavailableError({ operation: "write", cause }),
     }).pipe(
-      Effect.timeout(REDIS_WRITE_TIMEOUT_MS),
       Effect.asVoid,
       Effect.catchCause((cause) => {
         logCacheSkip("write", cause);
