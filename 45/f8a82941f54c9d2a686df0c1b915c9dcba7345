@@ -1,0 +1,39 @@
+apps/web/src/components/deferred-dithering.tsx
+  s_9c4b8410e74999::t_b576f6ff2b1c4a 45
+  s_9c4b8410e74999::t_078dd464c5a53c 4,7-10,14-38,60,64
+apps/web/src/components/navbar-mobile-menu.tsx
+  s_9c4b8410e74999::t_e7ae196eaa7b12 126-133
+  s_9c4b8410e74999::t_47abaa32c463b6 143
+  s_9c4b8410e74999::t_7bdfb81f37ffa3 18
+apps/web/src/components/landing/citation-rows.tsx
+  s_9c4b8410e74999::t_7dda39f7f7d025 140-148
+  s_9c4b8410e74999::t_b10f42c548a2f5 95
+apps/web/src/components/landing/hero-section.tsx
+  s_9c4b8410e74999::t_4261f123560f7d 46
+apps/web/src/components/landing/live-traffic-log.tsx
+  s_9c4b8410e74999::t_e33ba92f43fc38 42-44
+apps/web/src/types/landing/geo.ts
+  s_9c4b8410e74999::t_d620fe59efdf3f 71
+apps/web/src/lib/dithering/use-dither-pointer.ts
+  s_9c4b8410e74999::t_08d9b61207d52c 74-81
+apps/web/src/types/dithering.ts
+  s_9c4b8410e74999::t_19996cc5398aea 29-32
+apps/web/src/components/landing/hero-dither.tsx
+  s_9c4b8410e74999::t_e6af878b292f2a 2,4,10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "45f8a82941f54c9d2a686df0c1b915c9dcba7345",
+  "prompts": {},
+  "sessions": {
+    "s_9c4b8410e74999": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05a0742e-553b-439f-8513-58d98b0292b9",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
