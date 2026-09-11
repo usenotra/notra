@@ -93,7 +93,7 @@ export function ShareOfVoiceRows({
             <TableCell className={cn("py-3", SHARE_COL)}>
               <span className="flex items-center gap-2">
                 <GeoBar
-                  className="h-1.5 w-10 @2xl:w-16"
+                  className="h-1.5 w-10 @lg:w-16"
                   fillColor={row.color}
                   max={SHARE_MAX}
                   value={row.share}

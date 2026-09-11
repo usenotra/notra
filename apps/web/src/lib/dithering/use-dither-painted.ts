@@ -5,10 +5,14 @@ import { useEffect, useRef } from "react";
 export function useDitherPainted(onPainted?: () => void) {
   const ref = useRef<HTMLDivElement>(null);
   const onPaintedRef = useRef(onPainted);
-  onPaintedRef.current = onPainted;
+  const hasPaintedCallback = Boolean(onPainted);
 
   useEffect(() => {
-    if (!onPaintedRef.current) {
+    onPaintedRef.current = onPainted;
+  }, [onPainted]);
+
+  useEffect(() => {
+    if (!hasPaintedCallback) {
       return;
     }
     const root = ref.current;
@@ -60,7 +64,7 @@ export function useDitherPainted(onPainted?: () => void) {
       cancelAnimationFrame(frameA);
       cancelAnimationFrame(frameB);
     };
-  }, []);
+  }, [hasPaintedCallback]);
 
   return ref;
 }

@@ -7,7 +7,7 @@ import type {
   TrafficSourceRow,
 } from "@/types/landing/geo";
 
-export const FEATURES_TABLE_OPTIONAL_COL = "hidden @2xl:table-cell";
+export const FEATURES_TABLE_OPTIONAL_COL = "hidden @lg:table-cell";
 
 export const FEATURES_HEADING = "Every number the dashboard shows you.";
 
