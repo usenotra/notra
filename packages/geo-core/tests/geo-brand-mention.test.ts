@@ -44,6 +44,28 @@ describe("findBrandMention", () => {
     expect(findBrandMention("Pick Notra.", "Notra", [])).toBe("Notra");
   });
 
+  test("does not match when a combining mark continues the word", () => {
+    expect(
+      findBrandMention("Notra\u0301xyz is unrelated.", "Notra", [])
+    ).toBeNull();
+    expect(findBrandMention("Pick Notra\u0301.", "Notra", [])).toBeNull();
+  });
+
+  test("does not match when a supplementary-plane letter continues the word", () => {
+    expect(
+      findBrandMention("Notra\u{1D400} is unrelated.", "Notra", [])
+    ).toBeNull();
+    expect(
+      findBrandMention("\u{1D400}Notra is unrelated.", "Notra", [])
+    ).toBeNull();
+  });
+
+  test("still matches when a supplementary-plane letter is a separate word", () => {
+    expect(findBrandMention("Pick Notra \u{1D400}.", "Notra", [])).toBe(
+      "Notra"
+    );
+  });
+
   test("ignores empty aliases", () => {
     expect(findBrandMention("Nothing here.", "Acme", ["", "  "])).toBeNull();
   });
