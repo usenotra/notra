@@ -1,0 +1,26 @@
+packages/ai/src/integrations/github.ts
+  s_aa8229cd889ec7::t_55facc85cebc15 141-146
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_aa8229cd889ec7::t_bc51b098d94264 946-985
+  s_aa8229cd889ec7::t_55facc85cebc15 6,936-943,945
+apps/dashboard/src/types/integrations/github.ts
+  s_aa8229cd889ec7::t_55facc85cebc15 263-264,339-343
+apps/dashboard/src/lib/integrations/github/publish-content-to-github.ts
+  s_aa8229cd889ec7::t_55facc85cebc15 479,483,487-495,827,834-835
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "600a5f55155d4208eeb7260c8a71de9de4bfbb24",
+  "prompts": {},
+  "sessions": {
+    "s_aa8229cd889ec7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1f0df977-ca0c-4496-bc00-88a14c552ab7",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
