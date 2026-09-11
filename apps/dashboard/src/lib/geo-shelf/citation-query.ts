@@ -38,6 +38,11 @@ function toStringList(value: string[] | null | undefined): string[] {
 /**
  * Unique cited pages for a project: one row per mention-check URL, counting
  * a check once even when the same URL is in both `sources` and grounding.
+ *
+ * The lateral JSONB unnest scans the project's whole mention-check history
+ * because `total_count` is shown as "All time". The cost grows linearly with
+ * history; materialising a per-source all-time counter in the scan-completion
+ * job would let this query be bounded to the citation window.
  */
 export async function queryCitedShelfPages(
   key: GeoShelfStoreKey
