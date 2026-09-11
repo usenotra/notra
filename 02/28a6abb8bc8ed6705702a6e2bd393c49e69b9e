@@ -1,0 +1,21 @@
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart.tsx
+  s_d4520a086db350::t_1832b24fdc428c 1620-1621
+.husky/pre-commit
+  s_d4520a086db350::t_d6c43576bca0a9 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0228a6abb8bc8ed6705702a6e2bd393c49e69b9e",
+  "prompts": {},
+  "sessions": {
+    "s_d4520a086db350": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "48d7e7b2-3d11-4e57-a68d-8e21028d9122",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
