@@ -1,7 +1,6 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { MouseEvent } from "react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   SidebarGroup,
@@ -10,6 +9,7 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import type { MouseEvent } from "react";
 
 import {
   SIDEBAR_MODE_HOME_LINKS,

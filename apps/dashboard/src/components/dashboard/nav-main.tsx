@@ -4,9 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SIDEBAR_MODE_HOME_LINKS } from "@/constants/nav";
-import type { SidebarMode } from "@/types/components/nav";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import type { SidebarMode } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
 import { sidebarRouteFromPathname } from "@/utils/nav";
 
