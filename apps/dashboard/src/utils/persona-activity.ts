@@ -35,7 +35,9 @@ export function buildPersonaActivityRows(
     date.setUTCDate(date.getUTCDate() + 1);
   }
   const last = rows.at(-1);
-  if (last?.day !== today) {return rows;}
+  if (last?.day !== today) {
+    return rows;
+  }
   const forecasts = new Map<string, number>();
   for (const persona of personas) {
     const samples = activity.points
@@ -54,12 +56,16 @@ export function buildPersonaActivityRows(
       checks += sample.checks;
       mentions += sample.mentions;
     }
-    if (!checks) {continue;}
+    if (!checks) {
+      continue;
+    }
     const key = personaForecastKey(persona.id);
     forecasts.set(key, Math.max(0, Math.min(100, (mentions / checks) * 100)));
     last[key] = last[chartKey(persona.id)] ?? 0;
   }
-  if (!forecasts.size) {return rows;}
+  if (!forecasts.size) {
+    return rows;
+  }
   for (let offset = 0; offset < GEO_PERSONA_FORECAST_DAYS; offset++) {
     const row: Record<string, string | number | null> = {
       day: date.toISOString().slice(0, 10),

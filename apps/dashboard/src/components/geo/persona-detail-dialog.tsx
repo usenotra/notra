@@ -167,16 +167,21 @@ export function PersonaDetailDialog({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent
         onKeyDown={(event) => {
-          if (!showConversation || !active || event.defaultPrevented) {return;}
+          if (!showConversation || !active || event.defaultPrevented) {
+            return;
+          }
           if (
             event.target instanceof HTMLElement &&
             event.target.closest(
               '[role="tablist"], [role="menu"], [role="listbox"]'
             )
-          )
-            {return;}
+          ) {
+            return;
+          }
           const delta = promptEngineArrowDelta(event, threads.length);
-          if (delta === null) {return;}
+          if (delta === null) {
+            return;
+          }
           event.preventDefault();
           setEngine(
             adjacentPromptEngine(
