@@ -169,9 +169,7 @@ export default defineConfig({
     {
       // Effect's TaggedError is a curried schema class factory, not an Error constructor.
       files: [
-        "apps/api/src/errors/billing.ts",
-        "apps/api/src/errors/event-triggers.ts",
-        "apps/api/src/errors/skills.ts",
+        "apps/api/src/errors/**/*.ts",
         "apps/agent/agent/lib/schemas/chat-mirror.ts",
         "apps/agent/agent/lib/schemas/slack.ts",
         "packages/schemas/src/schemas/dashboard/onboarding-agent.ts",
@@ -183,7 +181,6 @@ export default defineConfig({
         "packages/ai/src/schemas/github-operations.ts",
         "packages/tools/src/schemas/retry.ts",
         "packages/tools/src/schemas/social.ts",
-        "apps/api/src/errors/**/*.ts",
       ],
       rules: {
         "unicorn/throw-new-error": "off",
