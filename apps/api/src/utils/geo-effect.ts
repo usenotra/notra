@@ -32,6 +32,8 @@ import { logError } from "./logging";
  */
 function toGeoFailure(failure: GeoFailureWire): GeoFailure {
   switch (failure._tag) {
+    case "GeoSuggestionNotFoundError":
+      return { status: 404, error: "Suggestion not found" };
     case "GeoProjectNotFoundError":
       return { status: 404, error: "Project not found" };
     case "GeoProjectDeleteBlockedError":

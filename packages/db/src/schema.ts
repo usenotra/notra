@@ -35,6 +35,7 @@ import type {
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type { GeoPersonaProfile } from "./types/geo-personas";
 import type { GeoProspectReportJson } from "./types/geo-prospect-report";
+import type { GeoScanPlanSnapshot } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 
@@ -1675,6 +1676,7 @@ export const geoScans = pgTable(
     status: text("status", { enum: ["running", "completed", "failed"] })
       .notNull()
       .default("running"),
+    plan: jsonb("plan").$type<GeoScanPlanSnapshot>(),
     startedAt: timestamp("started_at").defaultNow().notNull(),
     finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

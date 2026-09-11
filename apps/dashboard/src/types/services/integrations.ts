@@ -1,11 +1,10 @@
+import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import type {
   IntegrationType,
   OutputContentType,
 } from "@notra/schemas/dashboard/integrations";
 
 import type { RepositoryOutput } from "@/types/integrations";
-
-export type GitHubConnectionMethod = "github-app" | "personal-access-token";
 
 export interface CreateGitHubIntegrationParams {
   organizationId: string;

@@ -1,10 +1,16 @@
-# Version control
+# Build context is the monorepo root:
+#   docker build -f apps/api/Dockerfile -t notra-api .
+# Keep exceptions in sync with COPY lines in apps/api/Dockerfile.
+
+# VCS
 .git
 .gitignore
 
-# Node modules (reinstalled inside Docker)
+# Dependencies & caches (reinstalled in the image)
 node_modules
 **/node_modules
+.turbo
+**/.turbo
 
 # Build outputs
 dist
@@ -12,46 +18,61 @@ dist
 **/.vercel
 **/.wrangler
 
-# Environment files
+# Secrets / env
 .env
 .env.*
 **/.env
 **/.env.*
 **/.dev.vars
 
-# Turbo cache
-.turbo
-**/.turbo
-
-# Test & coverage
+# Tests
 coverage
 **/*.test.ts
 **/*.spec.ts
 
-# Misc dev tooling
+# Local tooling (not used to build the API)
 .vscode
 .idea
 .cursor
 .claude
 .agents
-.opencode
-.stagewise
+.eve
+.deepsec
+.repos
+.output
+.workflow-data
+.openlogs
+.github
+scripts
 
-# OS
+# OS / logs
 .DS_Store
 Thumbs.db
-
-# Logs
 *.log
 logs/
 
-# Docs & non-essential apps (not needed to build the API)
-apps/dashboard
-apps/web
-apps/docs
+# Apps not copied as source — keep package.json for bun workspaces
+apps/agent/**
+!apps/agent/package.json
+apps/dashboard/**
 !apps/dashboard/package.json
-!apps/web/package.json
+apps/docs/**
 !apps/docs/package.json
+apps/onboarding-agent/**
+!apps/onboarding-agent/package.json
+apps/ui/**
+!apps/ui/package.json
+apps/web/**
+!apps/web/package.json
 
-# Openlogs
-.openlogs/
+# Packages copied as package.json only (not source)
+packages/email/**
+!packages/email/package.json
+packages/geo/**
+!packages/geo/package.json
+packages/kiwi/**
+!packages/kiwi/package.json
+packages/tools/**
+!packages/tools/package.json
+packages/ui/**
+!packages/ui/package.json

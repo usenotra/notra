@@ -10,6 +10,8 @@ import {
 
 export function toGeoOrpcError(failure: GeoRouterError): Error {
   switch (failure._tag) {
+    case "GeoSuggestionNotFoundError":
+      return notFound("Suggestion not found");
     case "GeoPromptDuplicateError":
       return badRequest("This prompt is already tracked");
     case "GeoPromptNotFoundError":

@@ -4,9 +4,13 @@ import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { ChatgptActions } from "@notra/ui/components/brainless/chatgpt/chatgpt-actions";
 import { ChatgptComposer } from "@notra/ui/components/brainless/chatgpt/chatgpt-composer";
 import { ChatgptMessage } from "@notra/ui/components/brainless/chatgpt/chatgpt-message";
+import { ClaudeMessage } from "@notra/ui/components/brainless/claude/claude-message";
+import { ClaudePrompt } from "@notra/ui/components/brainless/claude/claude-prompt";
 import { ClaudeChatActions } from "@notra/ui/components/brainless/claude-chat/claude-chat-actions";
 import { ClaudeChatComposer } from "@notra/ui/components/brainless/claude-chat/claude-chat-composer";
 import { ClaudeChatMessage } from "@notra/ui/components/brainless/claude-chat/claude-chat-message";
+import { CodexComposer } from "@notra/ui/components/brainless/codex/codex-composer";
+import { CodexMessage } from "@notra/ui/components/brainless/codex/codex-message";
 import { GeminiActions } from "@notra/ui/components/brainless/gemini/gemini-actions";
 import { GeminiComposer } from "@notra/ui/components/brainless/gemini/gemini-composer";
 import { GeminiMessage } from "@notra/ui/components/brainless/gemini/gemini-message";
@@ -41,6 +45,8 @@ const SKIN_SURFACE: Record<GeoChatSkin, string> = {
   gemini: "bg-white dark:bg-[#1f1f1f]",
   perplexity: "bg-white dark:bg-[#111]",
   opencode: "bg-[#fdfdfd]",
+  "claude-code": "bg-[#1a1a1a]",
+  codex: "bg-[#1a1a1a]",
 };
 
 function ignoreFollowUp(_text: string): void {
@@ -230,6 +236,62 @@ function OpencodeAnswerThread({
   );
 }
 
+function ClaudeCodeAnswerThread({
+  prompt,
+  excerpt,
+  mentioned,
+}: {
+  prompt: string;
+  excerpt: string;
+  mentioned: boolean;
+}) {
+  const sources = perplexitySourcesFromExcerpt(excerpt);
+
+  return (
+    <>
+      <ClaudeMessage from="user">{prompt}</ClaudeMessage>
+      <div className="flex w-full flex-col items-start gap-3">
+        {sources.length > 0 ? (
+          <OpencodeSources darkSurface queries={[prompt]} sources={sources} />
+        ) : null}
+        <ClaudeMessage from="assistant">
+          <AssistantBody
+            excerpt={excerpt}
+            mentioned={mentioned}
+            skin="claude-code"
+          />
+        </ClaudeMessage>
+      </div>
+    </>
+  );
+}
+
+function CodexAnswerThread({
+  prompt,
+  excerpt,
+  mentioned,
+}: {
+  prompt: string;
+  excerpt: string;
+  mentioned: boolean;
+}) {
+  const sources = perplexitySourcesFromExcerpt(excerpt);
+
+  return (
+    <>
+      <CodexMessage from="user">{prompt}</CodexMessage>
+      <div className="flex w-full flex-col items-start gap-3">
+        {sources.length > 0 ? (
+          <OpencodeSources darkSurface queries={[prompt]} sources={sources} />
+        ) : null}
+        <CodexMessage from="assistant">
+          <AssistantBody excerpt={excerpt} mentioned={mentioned} skin="codex" />
+        </CodexMessage>
+      </div>
+    </>
+  );
+}
+
 function SkinComposer({ engine, skin }: { engine: string; skin: GeoChatSkin }) {
   if (skin === "claude") {
     return (
@@ -263,6 +325,17 @@ function SkinComposer({ engine, skin }: { engine: string; skin: GeoChatSkin }) {
   }
   if (skin === "opencode") {
     return <OpencodeComposer placeholder='Ask anything... "Draft a launch post"' />;
+  }
+  if (skin === "claude-code") {
+    return <ClaudePrompt placeholder="Ask Claude Code" />;
+  }
+  if (skin === "codex") {
+    const model = engine.startsWith("codex/")
+      ? engine.slice("codex/".length)
+      : engine;
+    return (
+      <CodexComposer model={model} placeholder="Ask Codex to do anything" />
+    );
   }
   return (
     <ChatgptComposer
@@ -317,6 +390,24 @@ function ThreadMessages({
   if (skin === "opencode") {
     return (
       <OpencodeAnswerThread
+        excerpt={excerpt}
+        mentioned={mentioned}
+        prompt={prompt}
+      />
+    );
+  }
+  if (skin === "claude-code") {
+    return (
+      <ClaudeCodeAnswerThread
+        excerpt={excerpt}
+        mentioned={mentioned}
+        prompt={prompt}
+      />
+    );
+  }
+  if (skin === "codex") {
+    return (
+      <CodexAnswerThread
         excerpt={excerpt}
         mentioned={mentioned}
         prompt={prompt}

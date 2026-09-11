@@ -143,6 +143,39 @@ NEXT_PUBLIC_APP_URL=https://your-public-tunnel-url
 If you need a stable or custom URL, use a locally managed tunnel setup from the official docs:
 https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/create-local-tunnel/
 
+## Build performance
+
+The web and dashboard apps enable incremental TypeScript checking in their
+`tsconfig.json` files, overriding the shared base config. Keep this enabled:
+Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
+Vercel restores on subsequent builds. A cold build still checks the whole project;
+warm builds reuse unchanged checks without disabling type errors.
+
+Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
+`.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
+task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
+the incremental compiler state used when a task needs to run again.
+
+When comparing deployments, measure compilation, TypeScript, static generation,
+and output deployment separately. Vercel's `Creating build cache` phase occurs
+after `Deployment completed`; it is not additional time until the app is live.
+Both projects use filtered Turbo build commands and skip unaffected projects.
+Preserve those settings when changing the Vercel configuration.
+
+Standalone `check-types` scripts that run `tsc` enable incremental checking with
+command-line flags and write to `.cache/typecheck.tsbuildinfo` within each
+package. Run them through `bun run check-types` (optionally with `--filter`) to
+reuse this state. These flags override the shared base config for type checks
+without changing Eve or tsup builds. The files are already ignored by Git's
+`*.tsbuildinfo` rule and are declared as Turbo task outputs.
+
+The code-quality workflow restores these files using a cache key scoped to the
+runner platform, dependencies, configuration, and commit. A matching prefix can
+restore state from an earlier commit; TypeScript still checks changed source and
+its affected dependents. The workflow retains its existing package selection.
+Blume's `ui` app uses its own checker and does not produce this cache file.
+Next.js production builds continue to use their separate `.next/cache` state.
+
 ## Database Workflow
 
 Common Drizzle commands from the repo root:
@@ -216,6 +249,28 @@ We keep both in sync so the website and markdown endpoint (`/markdown`) say the 
 Open an issue or start a discussion in the repo.
 
 Thanks for helping improve Notra.
+
+## Vercel build selection
+
+Keep Vercel's **Skip unaffected projects** setting enabled for all five deployed
+apps (`web`, `dashboard`, `agent`, `onboarding-agent`, and `ui`). Vercel uses the
+workspace dependency graph to skip projects whose source and dependencies have
+not changed. Each workspace must have a unique package name and explicitly
+declare its internal dependencies in `package.json`.
+
+The app configs do not set an `ignoreCommand`; build selection relies on
+[Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
+instead of the deprecated `turbo-ignore` secondary check. Keep the project's
+Ignored Build Step setting at its default so it does not run an old custom
+command after the repository override is removed.
+
+Changes outside the workspace definitions, such as root documentation, can
+trigger deployments for all apps. Built-in skipping may also select builds that
+the previous secondary check skipped for unrelated Bun lockfile changes.
+
+Root install configuration and the prepare script remain declared in
+`turbo.json#globalDependencies` for build cache invalidation. Declare any new
+shared build inputs there too.
 
 ## Automated tests
 

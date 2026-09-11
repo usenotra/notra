@@ -10,9 +10,11 @@ import { ORPCError } from "@orpc/server";
 import { and, desc, eq, inArray, lt, notInArray, or } from "drizzle-orm";
 
 import { authorizedProcedure } from "@/lib/orpc/base";
-import { getR2Config, getR2PublicUrl } from "@/lib/upload/r2";
-
-const TRAILING_SLASH_REGEX = /\/$/;
+import {
+  getOptionalR2PublicUrl,
+  getR2StorageConfig,
+  isR2StorageConfigured,
+} from "@/lib/upload/r2";
 
 const IMAGE_MIME_TYPES = [
   "image/jpeg",
@@ -62,10 +64,10 @@ function buildFilterCondition(
 }
 
 async function deleteR2Keys(keys: string[]) {
-  if (keys.length === 0) {
+  if (keys.length === 0 || !isR2StorageConfigured()) {
     return;
   }
-  const { client, bucketName } = getR2Config();
+  const { client, bucketName } = getR2StorageConfig();
   const MAX = 1000;
   for (let i = 0; i < keys.length; i += MAX) {
     const chunk = keys.slice(i, i + MAX);
@@ -82,8 +84,8 @@ async function deleteR2Keys(keys: string[]) {
 }
 
 function buildPublicUrl(key: string) {
-  const base = getR2PublicUrl().replace(TRAILING_SLASH_REGEX, "");
-  return `${base}/${key}`;
+  const base = getOptionalR2PublicUrl();
+  return base ? `${base}/${key}` : "";
 }
 
 async function requireOrganizationAccess(
@@ -145,7 +147,8 @@ export const attachmentsRouter = {
             : filterCondition
         )
         .orderBy(desc(chatAttachments.createdAt), desc(chatAttachments.id))
-        .limit(LIST_PAGE_SIZE + 1);
+        .limit(LIST_PAGE_SIZE + 1)
+        .$withCache(false);
 
       const hasMore = rows.length > LIST_PAGE_SIZE;
       const page = hasMore ? rows.slice(0, LIST_PAGE_SIZE) : rows;
@@ -162,7 +165,7 @@ export const attachmentsRouter = {
           filename: row.filename,
           mediaType: row.mediaType,
           size: row.size,
-          createdAt: row.createdAt,
+          createdAt: row.createdAt.toISOString(),
           url: buildPublicUrl(row.key),
         })),
         nextCursor,
@@ -191,6 +194,7 @@ export const attachmentsRouter = {
         return { success: true, deleted: 0 };
       }
 
+      await deleteR2Keys(ownedKeys);
       await db
         .delete(chatAttachments)
         .where(
@@ -199,7 +203,6 @@ export const attachmentsRouter = {
             inArray(chatAttachments.key, ownedKeys)
           )
         );
-      await deleteR2Keys(ownedKeys);
 
       return { success: true, deleted: ownedKeys.length };
     }),

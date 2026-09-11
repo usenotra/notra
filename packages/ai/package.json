@@ -35,7 +35,7 @@
     "./crypto/*": "./src/crypto/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "test": "bun test src && bun test tests"
   },
   "dependencies": {

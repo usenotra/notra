@@ -50,6 +50,7 @@ export interface FinishGenerationInput extends WorkflowLifecycleFields {
 }
 
 export interface AppendAutomationLogInput {
+  payload?: Record<string, unknown>;
   organizationId: string;
   integrationId: string;
   integrationType: IntegrationType;

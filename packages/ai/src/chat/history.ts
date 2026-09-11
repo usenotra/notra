@@ -2,7 +2,7 @@ import { db } from "@notra/db/drizzle";
 import { chatSessions } from "@notra/db/schema";
 import { projectScopeFilter } from "@notra/db/utils/projects";
 import { generateText, type UIMessage } from "ai";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
 
 import {
   CHAT_ABORT_FLAG_TTL_SECONDS,
@@ -10,6 +10,7 @@ import {
   CHAT_LAST_STOPPED_TTL_SECONDS,
   CHAT_WORKFLOW_REQUEST_TTL_SECONDS,
 } from "../constants/chat";
+import { CHAT_SURFACE } from "../constants/chat-surface";
 import { gateway } from "../gateway";
 import { withGatewayAutomaticCaching } from "../provider-options";
 import { uiMessageSchema } from "../schemas/chat";
@@ -18,7 +19,13 @@ import type {
   ExternalChannelId,
   ExternalChannelLookupSource,
 } from "../types/chat";
+import type { ChatSessionInbox } from "../types/chat-surface";
 import { normalizeChatTitle, sortChatSessions } from "../utils/chat";
+import {
+  chatSurfaceFromSession,
+  isStandaloneInboxSurface,
+  sessionMatchesInbox,
+} from "../utils/chat-surface";
 import { buildExperimentalTelemetry } from "../utils/tcc";
 import { getChatRedis } from "./config";
 
@@ -66,7 +73,7 @@ function toExternalChannelId(
   if (!source) {
     return null;
   }
-  if (source === "dashboard") {
+  if (source === "dashboard" || source === "agent") {
     return { source };
   }
   if ((source === "discord" || source === "slack") && id) {
@@ -139,7 +146,7 @@ async function upsertChatSession(
   messages: UIMessage[],
   mode: "append" | "replace",
   externalChannelId?: ExternalChannelId | null,
-  expectedLastMessageId?: string,
+  expectedLastMessageId?: string | null,
   contentId?: string,
   projectId?: string | null
 ) {
@@ -211,6 +218,12 @@ async function upsertChatSession(
       : [...(existingRow.messages as UIMessage[]), ...messages];
 
   if (existingRow) {
+    let expectedHistory;
+    if (expectedLastMessageId === null) {
+      expectedHistory = sql`jsonb_array_length(${chatSessions.messages}) = 0`;
+    } else if (expectedLastMessageId !== undefined) {
+      expectedHistory = sql`${chatSessions.messages}->-1->>'id' = ${expectedLastMessageId}`;
+    }
     const updated = await db
       .update(chatSessions)
       .set({
@@ -225,9 +238,7 @@ async function upsertChatSession(
           contentId
             ? eq(chatSessions.contentId, contentId)
             : isNull(chatSessions.contentId),
-          expectedLastMessageId
-            ? sql`${chatSessions.messages}->-1->>'id' = ${expectedLastMessageId}`
-            : undefined
+          expectedHistory
         )
       )
       .returning({ id: chatSessions.id });
@@ -236,16 +247,21 @@ async function upsertChatSession(
       return false;
     }
   } else {
-    await db.insert(chatSessions).values({
-      id: chatId,
-      organizationId,
-      contentId,
-      projectId: projectId ?? null,
-      title,
-      messages: messages as unknown as Record<string, unknown>,
-      externalChannelSource: externalChannelId?.source ?? null,
-      externalChannelId: externalChannelId?.id ?? null,
-    });
+    const inserted = await db
+      .insert(chatSessions)
+      .values({
+        id: chatId,
+        organizationId,
+        contentId,
+        projectId: projectId ?? null,
+        title,
+        messages: messages as unknown as Record<string, unknown>,
+        externalChannelSource: externalChannelId?.source ?? null,
+        externalChannelId: externalChannelId?.id ?? null,
+      })
+      .onConflictDoNothing()
+      .returning({ id: chatSessions.id });
+    return inserted.length > 0;
   }
 
   return true;
@@ -369,7 +385,7 @@ export async function replaceChatHistory(
   chatId: string,
   messages: UIMessage[],
   externalChannelId?: ExternalChannelId | null,
-  expectedLastMessageId?: string,
+  expectedLastMessageId?: string | null,
   projectId?: string | null
 ): Promise<boolean> {
   return upsertChatSession(
@@ -536,6 +552,27 @@ export async function getChatSession(
   return toSessionSummary(row);
 }
 
+export async function getStandaloneChatSession(
+  organizationId: string,
+  chatId: string
+): Promise<ChatSessionSummary | null> {
+  const session = await getChatSession(organizationId, chatId);
+  const surface = chatSurfaceFromSession(session);
+  if (!surface || !isStandaloneInboxSurface(surface)) {
+    return null;
+  }
+  return session;
+}
+
+export async function getChatSessionForInbox(
+  organizationId: string,
+  chatId: string,
+  inbox: ChatSessionInbox
+): Promise<ChatSessionSummary | null> {
+  const session = await getChatSession(organizationId, chatId);
+  return sessionMatchesInbox(session, inbox) ? session : null;
+}
+
 export async function claimChatSessionForExternalChannel(
   organizationId: string,
   source: ExternalChannelLookupSource,
@@ -601,10 +638,27 @@ export async function getChatSessionByExternalChannel(
   return toSessionSummary(row);
 }
 
+function chatSessionInboxFilter(inbox: ChatSessionInbox) {
+  if (inbox === "agent") {
+    return eq(chatSessions.externalChannelSource, CHAT_SURFACE.agent);
+  }
+
+  return or(
+    isNull(chatSessions.externalChannelSource),
+    ne(chatSessions.externalChannelSource, CHAT_SURFACE.agent)
+  );
+}
+
 export async function listChatSessions(
   organizationId: string,
-  projectId?: string | null
+  options?: {
+    projectId?: string | null;
+    inbox?: ChatSessionInbox;
+  }
 ): Promise<ChatSessionSummary[]> {
+  const projectId = options?.projectId;
+  const inbox = options?.inbox ?? "standalone";
+
   const rows = await db
     .select(chatSessionSummaryColumns)
     .from(chatSessions)
@@ -613,12 +667,12 @@ export async function listChatSessions(
         eq(chatSessions.organizationId, organizationId),
         isNull(chatSessions.contentId),
         isNull(chatSessions.deletedAt),
+        chatSessionInboxFilter(inbox),
         projectScopeFilter(chatSessions.projectId, projectId)
       )
     );
 
-  const sessions = rows.map(toSessionSummary);
-  return sortChatSessions(sessions);
+  return sortChatSessions(rows.map(toSessionSummary));
 }
 
 export async function listContentChatSessions(

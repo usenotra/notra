@@ -5,9 +5,10 @@ import {
   getSelectedGitHubAppRepositoryIds,
   isGitHubAccountConnectionRequired,
   listGitHubAppInstallationsByOrganization,
-  listGitHubAppRepositories,
-  setSelectedGitHubAppRepositories,
+  listGitHubAppRepositoriesEffect,
+  setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
+import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { redis } from "@notra/ai/utils/redis";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -29,6 +30,7 @@ import {
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
   badRequest,
   internalServerError,
@@ -36,6 +38,7 @@ import {
   tooManyRequests,
 } from "@/lib/orpc/utils/errors";
 import type { GitHubAccountType } from "@/types/integrations/github";
+import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
 import { ratelimit } from "@/utils/ratelimit";
 
 class GitHubAppInstallPreparationError extends Data.TaggedError(
@@ -50,31 +53,6 @@ class GitHubRepositoryProbeError extends Data.TaggedError(
 )<{
   readonly cause: unknown;
 }> {}
-
-class GitHubAppRequestError extends Data.TaggedError("GitHubAppRequestError")<{
-  readonly message: string;
-  readonly cause: unknown;
-}> {}
-
-function toGitHubAppRequestError(cause: unknown) {
-  return new GitHubAppRequestError({
-    message:
-      cause instanceof Error ? cause.message : "GitHub App request failed",
-    cause,
-  });
-}
-
-function mapGitHubAppRequestError(error: GitHubAppRequestError): never {
-  if (error.cause instanceof GitHubAppNotConfiguredError) {
-    throw badRequest("GitHub App is not configured");
-  }
-
-  if (error.cause instanceof Error) {
-    throw internalServerError("GitHub App request failed", error.cause);
-  }
-
-  throw internalServerError(error.message, error.cause);
-}
 
 function mapGitHubAppInstallPreparationError(
   error: GitHubAppInstallPreparationError
@@ -209,37 +187,41 @@ export const githubRouter = {
           );
         }
 
-        return Effect.runPromise(
-          Effect.tryPromise({
-            try: async () => {
-              const [repositories, selectedRepositoryIds] = await Promise.all([
-                listGitHubAppRepositories(input.organizationId, installations),
-                getSelectedGitHubAppRepositoryIds(
-                  input.organizationId,
-                  installations.map((installation) => installation.id)
-                ),
-              ]);
-
-              return {
-                accounts: installations.map((installation) => ({
-                  id: installation.accountId,
-                  login: installation.accountLogin,
-                  name: installation.accountName,
-                  avatarUrl: installation.accountAvatarUrl,
-                  type: toGitHubAccountType(installation.accountType),
-                })),
-                repositories,
-                selectedRepositoryIds,
-              };
+        const { repositories, selectedRepositoryIds } = await runOrpcEffect(
+          Effect.all(
+            {
+              repositories: listGitHubAppRepositoriesEffect(
+                input.organizationId,
+                installations
+              ),
+              selectedRepositoryIds: Effect.tryPromise({
+                try: () =>
+                  getSelectedGitHubAppRepositoryIds(
+                    input.organizationId,
+                    installations.map((installation) => installation.id)
+                  ),
+                catch: (cause) =>
+                  new GitHubPersistenceError({
+                    operation: "getSelectedRepositories",
+                    cause,
+                  }),
+              }),
             },
-            catch: toGitHubAppRequestError,
-          }).pipe(
-            Effect.match({
-              onFailure: mapGitHubAppRequestError,
-              onSuccess: (githubApp) => githubApp,
-            })
-          )
+            { concurrency: "unbounded" }
+          ),
+          toGitHubOperationOrpcError
         );
+        return {
+          accounts: installations.map((installation) => ({
+            id: installation.accountId,
+            login: installation.accountLogin,
+            name: installation.accountName,
+            avatarUrl: installation.accountAvatarUrl,
+            type: toGitHubAccountType(installation.accountType),
+          })),
+          repositories,
+          selectedRepositoryIds,
+        };
       }),
     saveRepositories: authorizedProcedure
       .input(saveGitHubAppRepositoriesInputSchema)
@@ -249,21 +231,14 @@ export const githubRouter = {
           organizationId: input.organizationId,
         });
 
-        const selection = await Effect.runPromise(
-          Effect.tryPromise({
-            try: () =>
-              setSelectedGitHubAppRepositories({
-                organizationId: input.organizationId,
-                userId: auth.user.id,
-                repositoryIds: input.repositoryIds,
-              }),
-            catch: toGitHubAppRequestError,
-          }).pipe(
-            Effect.match({
-              onFailure: mapGitHubAppRequestError,
-              onSuccess: (result) => result,
-            })
-          )
+        const selection = await runOrpcEffect(
+          setSelectedGitHubAppRepositoriesEffect({
+            organizationId: input.organizationId,
+            userId: auth.user.id,
+            repositoryIds: input.repositoryIds,
+            preserveExisting: input.preserveExisting,
+          }),
+          toGitHubOperationOrpcError
         );
 
         trackServerEvent({

@@ -22,7 +22,6 @@ import type {
   GeoDiscoverWebsiteResult,
   GeoJourneyDetailResponse,
   GeoLanguageShareResponse,
-  GeoModelCatalog,
   GeoOnboardingBrandInput,
   GeoOnboardingBrandResult,
   GeoOverviewResponse,
@@ -31,6 +30,7 @@ import type {
   GeoIngestSetupResponse,
   GeoPromptHistoryResponse,
   GeoPromptResultSummariesResponse,
+  GeoPromptRescanInput,
   GeoSequenceResultsResponse,
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
@@ -144,6 +144,12 @@ async function invalidatePromptQueries(
 async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
   await Promise.all([
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.scanRuns.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.scanRun.key(),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.overview.key(),
     }),
     queryClient.invalidateQueries({
@@ -178,7 +184,7 @@ function geoStartScanMutationKey(
 }
 
 export function useGeoModelCatalog(organizationId: string) {
-  return useQuery<GeoModelCatalog>({
+  return useQuery({
     ...dashboardOrpc.geo.modelCatalog.queryOptions({
       input: { organizationId },
     }),
@@ -340,12 +346,17 @@ export function useGeoPromptResultDetail(
 export function useGeoPromptHistory(
   organizationId: string,
   promptId: string,
-  options: { enabled: boolean }
+  options: { enabled: boolean; scanId?: string }
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPromptHistoryResponse>({
     ...dashboardOrpc.geo.promptHistory.queryOptions({
-      input: { organizationId, projectId, promptId },
+      input: {
+        organizationId,
+        projectId,
+        promptId,
+        ...(options.scanId ? { scanId: options.scanId } : {}),
+      },
     }),
     enabled: options.enabled && !!organizationId && !!promptId,
     meta: { errorMessage: "Failed to load prompt history" },
@@ -656,6 +667,11 @@ export function useGeoStartScan(organizationId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+          input: { organizationId, projectId },
+        }),
+      });
+      await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.settings.queryKey({
           input: { organizationId, projectId },
         }),
@@ -672,13 +688,23 @@ export function useGeoRescanPrompt(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: geoStartScanMutationKey(organizationId, projectId),
-    mutationFn: (promptId: string) =>
-      dashboardOrpc.geo.rescanPrompt.call({
+    mutationFn: (
+      input: string | Pick<GeoPromptRescanInput, "promptId" | "engines">
+    ) => {
+      const payload = typeof input === "string" ? { promptId: input } : input;
+      return dashboardOrpc.geo.rescanPrompt.call({
         organizationId,
         projectId,
-        promptId,
-      }),
+        promptId: payload.promptId,
+        engines: payload.engines ? [...payload.engines] : undefined,
+      });
+    },
     onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+          input: { organizationId, projectId },
+        }),
+      });
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.settings.queryKey({
           input: { organizationId, projectId },
@@ -1113,10 +1139,15 @@ function useInvalidateSuggestionQueries(organizationId: string) {
 }
 
 export function useGeoSuggestionAccept(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateSuggestionQueries(organizationId);
   return useMutation({
     mutationFn: (input: GeoSuggestionIdInput) =>
-      dashboardOrpc.geo.suggestionAccept.call({ ...input, organizationId }),
+      dashboardOrpc.geo.suggestionAccept.call({
+        ...input,
+        organizationId,
+        projectId,
+      }),
     onSuccess: async () => {
       await invalidate();
       toast.success("Prompt added to tracking");
@@ -1128,10 +1159,14 @@ export function useGeoSuggestionAccept(organizationId: string) {
 }
 
 export function useGeoSuggestionsAcceptAll(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateSuggestionQueries(organizationId);
   return useMutation({
     mutationFn: () =>
-      dashboardOrpc.geo.suggestionsAcceptAll.call({ organizationId }),
+      dashboardOrpc.geo.suggestionsAcceptAll.call({
+        organizationId,
+        projectId,
+      }),
     onSuccess: async (result) => {
       await invalidate();
       toast.success(

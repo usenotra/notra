@@ -12,6 +12,7 @@ import {
   HTTP_PAYMENT_REQUIRED,
   HTTP_SERVER_ERROR_MIN,
   OPENROUTER_NO_ZDR_ENDPOINT_PATTERN,
+  NO_TRAINING_PROVIDER_ERROR_PATTERN,
   RETRYABLE_STATUS_CODES,
   ROUTED_MODEL_PROVIDER,
   ROUTER_METADATA_KEY,
@@ -102,6 +103,9 @@ export function classifyUpstreamFailure(
   const status = readStatusCode(error);
   if (status === HTTP_PAYMENT_REQUIRED) {
     return "no-credits";
+  }
+  if (NO_TRAINING_PROVIDER_ERROR_PATTERN.test(readMessage(error))) {
+    return "non-compliant";
   }
   if (
     status !== undefined &&

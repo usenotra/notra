@@ -12,15 +12,14 @@ import type {
   FindExistingGitHubPullRequestParams,
   GitHubClient,
   GitHubCreateCommitOnBranchResult,
-  GitHubErrorHeaders,
   GitHubPublishContentType,
-  GitHubPublishFailureKind,
   GitHubPullRequestOperation,
   GitHubPullRequestSummary,
   PublishContentDraftPullRequestParams,
   ResolveGitHubContentPathParams,
   ValidateExistingGitHubBranchParams,
 } from "../../../types/integrations/github";
+import { hasGitHubStatus } from "../../../utils/github-publish-failure";
 import {
   buildContentPullRequestBody,
   mergeContentPullRequestBody,
@@ -56,113 +55,6 @@ export class GitHubContentPublishError extends Error {
     this.branchName = branchName;
     this.cause = cause;
   }
-}
-
-export function hasGitHubStatus(error: unknown, status: number) {
-  return (
-    error instanceof Error &&
-    "status" in error &&
-    typeof error.status === "number" &&
-    error.status === status
-  );
-}
-
-function getGitHubErrorHeaders(error: unknown): GitHubErrorHeaders | undefined {
-  if (!(error instanceof Error)) {
-    return undefined;
-  }
-
-  if (
-    "headers" in error &&
-    error.headers &&
-    typeof error.headers === "object"
-  ) {
-    return error.headers as GitHubErrorHeaders;
-  }
-
-  if (!("response" in error)) {
-    return undefined;
-  }
-
-  const response = error.response;
-  if (!response || typeof response !== "object" || !("headers" in response)) {
-    return undefined;
-  }
-
-  const { headers } = response;
-  return headers && typeof headers === "object"
-    ? (headers as GitHubErrorHeaders)
-    : undefined;
-}
-
-function hasGitHubGraphQLErrorType(error: unknown, type: string) {
-  if (!(error instanceof Error) || !("errors" in error)) {
-    return false;
-  }
-
-  return (
-    Array.isArray(error.errors) &&
-    error.errors.some(
-      (graphQLError) =>
-        graphQLError &&
-        typeof graphQLError === "object" &&
-        "type" in graphQLError &&
-        graphQLError.type === type
-    )
-  );
-}
-
-function getHeaderCaseInsensitive(
-  headers: GitHubErrorHeaders | undefined,
-  name: string
-) {
-  const key = Object.keys(headers ?? {}).find(
-    (headerName) => headerName.toLowerCase() === name.toLowerCase()
-  );
-  return key ? headers?.[key] : undefined;
-}
-
-export function classifyGitHubPublishFailure(
-  error: unknown
-): GitHubPublishFailureKind {
-  if (
-    hasGitHubStatus(error, 401) ||
-    hasGitHubGraphQLErrorType(error, "UNAUTHORIZED")
-  ) {
-    return "authentication";
-  }
-
-  const message = error instanceof Error ? error.message.toLowerCase() : "";
-  const isForbidden =
-    hasGitHubStatus(error, 403) ||
-    hasGitHubGraphQLErrorType(error, "FORBIDDEN");
-  const remaining = getHeaderCaseInsensitive(
-    getGitHubErrorHeaders(error),
-    "x-ratelimit-remaining"
-  );
-
-  if (
-    hasGitHubStatus(error, 429) ||
-    String(remaining ?? "") === "0" ||
-    hasGitHubGraphQLErrorType(error, "RATE_LIMITED") ||
-    message.includes("secondary rate limit")
-  ) {
-    return "rate_limit";
-  }
-
-  if (
-    message.includes("resource not accessible by integration") ||
-    message.includes("permission to the resource") ||
-    message.includes("insufficient scope")
-  ) {
-    return "permissions";
-  }
-
-  if (isForbidden) {
-    return "forbidden";
-  }
-
-  return "unknown";
 }
 
 export function resolveGitHubContentPath(
@@ -299,9 +191,10 @@ async function getPullRequestAfterCommit(params: {
 }
 
 /**
- * Older pull requests were created before the "Open in Notra" button existed.
- * When republishing to an open pull request, refresh its body so it picks up
- * the button. Failures are non-fatal: the content commit already landed.
+ * Older pull requests were created before the article and "Open in Notra"
+ * button were part of the description. When republishing to an open pull
+ * request, refresh its body so it picks up the latest draft. Failures are
+ * non-fatal: the content commit already landed.
  */
 async function ensurePullRequestBody(params: {
   currentBody: string | null | undefined;
@@ -315,6 +208,8 @@ async function ensurePullRequestBody(params: {
     badgeUrls: params.publishParams.badgeUrls,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
+    markdown: params.publishParams.markdown,
+    title: params.publishParams.title,
   });
   if ((params.currentBody ?? "") === body) {
     return;
@@ -435,6 +330,7 @@ async function commitContentToBranch(
   branchName: string,
   branchHeadSha: string
 ) {
+  // Authored by the GitHub App bot when the caller uses an installation token.
   try {
     const result = await octokit.graphql<GitHubCreateCommitOnBranchResult>(
       GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
@@ -795,6 +691,8 @@ export async function publishContentDraftPullRequest(
           badgeUrls: params.badgeUrls,
           contentType: params.contentType,
           contentUrl: params.contentUrl,
+          markdown: params.markdown,
+          title: params.title,
         }),
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,

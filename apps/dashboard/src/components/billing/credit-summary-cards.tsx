@@ -16,6 +16,7 @@ export function CreditSummaryCards({
   isLoading,
   totalUsage,
   range,
+  balanceAction,
 }: CreditSummaryCardsProps) {
   const aiCredits = customer?.balances?.[FEATURES.AI_CREDITS];
   const balance =
@@ -39,7 +40,11 @@ export function CreditSummaryCards({
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      <TitleCard accentColor="#10b981" heading="Current Balance">
+      <TitleCard
+        accentColor="#10b981"
+        action={balanceAction}
+        heading="Current Balance"
+      >
         <div>
           <p className="text-3xl font-bold tracking-tight tabular-nums">
             {balance !== null ? formatDollars(balance) : "-"}

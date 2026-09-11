@@ -90,6 +90,7 @@ export interface GeoCheckPromptResultRow {
 }
 
 export interface GeoCheckPromptHistoryQuery {
+  scanId?: string;
   promptIds: string[];
   limit: number;
 }

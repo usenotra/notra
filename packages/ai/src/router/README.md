@@ -34,32 +34,25 @@ one explicitly; other environments enforce ZDR.
 
 ## Privacy
 
-Outside development, every request forces zero data retention and no training:
+Strict requests (`zdr: "required"`) enforce zero data retention and no training:
 
-- OpenRouter: `provider: { zdr: true, data_collection: "deny" }` — set on the
-  provider, on the model and on every call (`providerOptions.openrouter`).
+- OpenRouter: `provider: { zdr: true, data_collection: "deny" }`.
 - Vercel: `gateway: { zeroDataRetention: true, disallowPromptTraining: true }`.
 
-If the preferred gateway cannot serve a compliant request (not configured,
-model unsupported, credits exhausted, upstream outage, or the gateway rejects
-the ZDR requirement — Vercel ZDR is Pro/Enterprise only) the router retries on
-the other gateway **with the same privacy flags**. When no compliant route is
-left it throws `NoCompliantRouteError` instead of downgrading.
+If no compliant route is available, strict requests fail closed.
 
-Callers that may run without ZDR (e.g. GEO scans of a project that disabled
-"Enforce ZDR", or a model the user explicitly approved without a ZDR host)
-pass `zdr: "preferred"`:
+Callers that accept best-effort privacy pass `zdr: "preferred"`. The router
+tries a compliant route first. If providers reject the privacy requirements
+and no compliant fallback exists, it retries with ZDR and no-training defaults
+relaxed. This includes Muse Spark's "No providers that disallow prompt training"
+error. The result is logged as `ai.router.zdr_bypassed` with `zdrEnforced: false`.
 
-```ts
-gateway("meta/muse-spark-1.2", { organizationId, zdr: "preferred" });
-```
+Requests with `zdr: "none"` relax both defaults immediately. These modes work
+outside development and do not depend on the development-only `allowNonZdr`
+policy. Explicit caller no-training restrictions remain in effect.
 
-The first attempt still carries the ZDR flags. Only when the gateway rejects
-ZDR for that model (Vercel 403, OpenRouter 404 "no endpoints matching your
-data policy") the same route is retried without the ZDR flag — no-training
-stays on, the gateway is not marked unavailable for strict requests, and the
-result is logged as `ai.router.zdr_bypassed` (`bypassReason: caller-preferred`)
-with `zdrEnforced: false` in the route metadata.
+OpenRouter receives `zdr: false` on relaxed calls to override the strict
+provider and model defaults.
 
 ## Gateway coverage
 

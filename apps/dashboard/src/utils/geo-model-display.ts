@@ -1,4 +1,12 @@
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
+import {
+  GEO_ENGINE_LABELS,
+  GEO_SEARCH_LABEL,
+} from "@notra/geo-core/constants/geo";
+import {
+  engineFamilyLabel,
+  engineModelOf,
+} from "@notra/geo-core/utils/geo-engine-family";
+import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 
 import {
   MODEL_HYPHEN_PREFIXES,
@@ -7,6 +15,9 @@ import {
   MODELS_DEV_LOGO_BASE,
 } from "@/constants/geo-models";
 import type { ParsedModelId } from "@/types/geo";
+
+const CHART_DIRECT_LABEL_SUFFIX = " (direct)";
+const CHART_GROUNDED_LABEL_SUFFIX = " (grounded)";
 
 const VERSION_TOKEN = /^v?\d/i;
 const ALPHA_TOKEN = /^[a-z]+$/i;
@@ -26,7 +37,7 @@ export function splitModelId(modelId: string): ParsedModelId | null {
 
 function modelsDevLogoSlug(provider: string): string {
   const normalized = provider.trim().toLowerCase();
-  return MODELS_DEV_LOGO_ALIASES[normalized] ?? normalized;
+  return ownCatalogLabel(MODELS_DEV_LOGO_ALIASES, normalized) ?? normalized;
 }
 
 export function modelsDevLogoUrl(provider: string): string {
@@ -43,6 +54,78 @@ export function formatModelLabel(modelId: string): string {
   }
   const parsed = splitModelId(trimmed);
   return formatModelSlug(parsed?.slug ?? trimmed);
+}
+
+function chartLabelToEngineId(label: string): string {
+  if (label.endsWith(CHART_DIRECT_LABEL_SUFFIX)) {
+    return `${label.slice(0, -CHART_DIRECT_LABEL_SUFFIX.length)}-direct-grounded`;
+  }
+  if (label.endsWith(CHART_GROUNDED_LABEL_SUFFIX)) {
+    return `${label.slice(0, -CHART_GROUNDED_LABEL_SUFFIX.length)}-grounded`;
+  }
+  return label;
+}
+
+function ownCatalogLabel(
+  catalog: Record<string, string>,
+  key: string
+): string | undefined {
+  return Object.hasOwn(catalog, key) ? catalog[key] : undefined;
+}
+
+function chartEngineModelId(engine: string): string {
+  const model = engineModelOf(engine);
+  return typeof model === "string" ? model : engine;
+}
+
+function catalogEngineLabel(engine: string): string {
+  const model = chartEngineModelId(engine);
+  return (
+    ownCatalogLabel(GEO_ENGINE_LABELS, model) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, engine) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, `${model}-grounded`) ??
+    formatModelLabel(model)
+  );
+}
+
+function isDisplayLabel(label: string): boolean {
+  return /[A-Z]/.test(label) || /\s/.test(label);
+}
+
+export function resolveChartEngineId(label: string): string {
+  return chartLabelToEngineId(label.trim());
+}
+
+// Agent/studio GEO charts store either a raw engine id or the older
+// `provider/slug (grounded)` axis label. Catalog keys (including slash-less
+// legacy ids like `perplexity-sonar`) win before any display-label passthrough.
+export function formatChartEngineLabel(label: string): string {
+  const trimmed = label.trim();
+  const engineId = chartLabelToEngineId(trimmed);
+  const catalog =
+    ownCatalogLabel(GEO_ENGINE_LABELS, engineId) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, trimmed) ??
+    ownCatalogLabel(GEO_ENGINE_LABELS, chartEngineModelId(engineId));
+  if (catalog) {
+    return catalog;
+  }
+  if (isDisplayLabel(trimmed) && splitModelId(engineId) === null) {
+    return trimmed;
+  }
+  return catalogEngineLabel(engineId);
+}
+
+export function formatChartEngineRankLabel(
+  label: string,
+  showSearchMode: boolean
+): string {
+  const name = formatChartEngineLabel(label);
+  if (!showSearchMode) {
+    return name;
+  }
+  return isGroundedEngine(resolveChartEngineId(label))
+    ? `${name} ${GEO_SEARCH_LABEL}`
+    : name;
 }
 
 function formatModelSlug(slug: string): string {
@@ -71,7 +154,7 @@ function formatModelSlug(slug: string): string {
 
 function formatModelToken(token: string): string {
   const lower = token.toLowerCase();
-  const known = MODEL_TOKEN_LABELS[lower];
+  const known = ownCatalogLabel(MODEL_TOKEN_LABELS, lower);
   if (known) {
     return known;
   }
@@ -83,7 +166,7 @@ function formatModelToken(token: string): string {
   const match = ALPHA_PREFIX_WITH_DIGITS.exec(lower);
   if (match) {
     const [, prefix = "", rest = ""] = match;
-    const prefixLabel = MODEL_TOKEN_LABELS[prefix];
+    const prefixLabel = ownCatalogLabel(MODEL_TOKEN_LABELS, prefix);
     if (prefixLabel) {
       return `${prefixLabel}${rest}`;
     }

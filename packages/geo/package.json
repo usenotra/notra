@@ -74,7 +74,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {

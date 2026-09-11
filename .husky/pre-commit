@@ -1,2 +1,30 @@
-bun format
+set -eu
+
+files=$(mktemp)
+trap 'rm -f "$files"' EXIT
+trap 'exit 1' HUP INT TERM
+
+# NUL separators preserve spaces and newlines in staged filenames.
+git diff --cached --name-only --diff-filter=ACMR -z -- \
+  '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs' '*.mts' '*.cts' \
+  '*.json' '*.jsonc' '*.css' '*.scss' '*.less' '*.html' '*.vue' '*.svelte' > "$files"
+
+if [ -s "$files" ]; then
+  # Reject partial staging before formatting so unrelated hunks cannot enter the commit.
+  xargs -0 sh -c '
+    for file do
+      if ! git --literal-pathspecs diff --quiet -- "$file"; then
+        printf "Cannot format partially staged file: %s\nStage the entire file, or unstage it before committing.\n" "$file" >&2
+        exit 255 # Stop xargs immediately, including any remaining batches.
+      fi
+    done
+  ' sh < "$files"
+
+  xargs -0 bun x --no-install oxlint --fix --threads=4 --no-error-on-unmatched-pattern -- < "$files"
+  xargs -0 bun x --no-install oxfmt --write -- < "$files"
+
+  # Include fixes only for the paths selected before formatting.
+  git --literal-pathspecs add --pathspec-from-file="$files" --pathspec-file-nul
+fi
+
 bun knip

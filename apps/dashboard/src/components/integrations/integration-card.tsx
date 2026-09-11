@@ -139,6 +139,14 @@ export function IntegrationCard({
         <CardHeader>
           <CardTitle>{integration.displayName}</CardTitle>
           <CardDescription>
+            {integration.connectionMethod === "unauthenticated" ? (
+              <span className="block">
+                No saved credentials. Connect the GitHub App to publish.
+              </span>
+            ) : null}
+            {integration.connectionMethod === "personal-access-token" ? (
+              <span className="block">Personal access token</span>
+            ) : null}
             {integration.createdByUser ? (
               <>
                 Added by {integration.createdByUser.name} on{" "}
@@ -195,7 +203,9 @@ export function IntegrationCard({
                       setIsEditTokenDialogOpen(true);
                     }}
                   >
-                    Edit Personal Access Token
+                    {integration.connectionMethod === "unauthenticated"
+                      ? "Add personal access token"
+                      : "Edit personal access token"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"

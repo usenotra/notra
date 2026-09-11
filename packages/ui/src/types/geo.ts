@@ -42,6 +42,8 @@ export type EngineIconKey =
   | "tencent"
   | "xiaomi"
   | "cursor"
+  | "claude-code"
+  | "codex"
   | "apple"
   | "duckduckgo"
   | "cloudflare"
@@ -93,7 +95,9 @@ export type GeoChatSkin =
   | "chatgpt"
   | "gemini"
   | "perplexity"
-  | "opencode";
+  | "opencode"
+  | "claude-code"
+  | "codex";
 
 export interface GeoAnswerResult {
   engine: string;

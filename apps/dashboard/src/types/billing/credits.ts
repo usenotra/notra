@@ -1,4 +1,5 @@
 import type { IAutumnClient, useAggregateEvents } from "autumn-js/react";
+import type { ReactNode } from "react";
 
 import type { BillingCustomer } from "@/types/billing/plan";
 
@@ -25,6 +26,7 @@ export interface CreditSummaryCardsProps {
   isLoading: boolean;
   totalUsage: number;
   range: CreditRangeOption;
+  balanceAction?: ReactNode;
 }
 
 export interface CreditUsageChartProps {

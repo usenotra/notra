@@ -32,6 +32,7 @@ import { errorMessageOr } from "@/lib/utils";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { getHeardAboutNotraLabel } from "@/utils/onboarding";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { settingsPath } from "@/utils/settings-path";
 
 export function OrganizationsSection() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export function OrganizationsSection() {
         queryKey: QUERY_KEYS.AUTH.activeOrganization,
       });
 
-      router.push(`/${org.slug}/settings/account`);
+      router.push(settingsPath(org.slug, "account"));
     } catch (error) {
       toast.error("Failed to switch organization");
       console.error(error);
@@ -138,7 +139,7 @@ export function OrganizationsSection() {
           await queryClient.invalidateQueries({
             queryKey: QUERY_KEYS.AUTH.activeOrganization,
           });
-          router.push(`/${firstOrg.slug}/settings/account`);
+          router.push(settingsPath(firstOrg.slug, "account"));
         }
       }
     } catch (error) {

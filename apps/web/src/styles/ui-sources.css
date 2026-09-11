@@ -13,6 +13,8 @@
 @source "../../../../packages/ui/src/components/brainless/claude/claude-prompt.tsx";
 @source "../../../../packages/ui/src/components/brainless/claude/claude-todo-list.tsx";
 @source "../../../../packages/ui/src/components/brainless/claude/claude-tool-call.tsx";
+@source "../../../../packages/ui/src/components/brainless/codex/codex-composer.tsx";
+@source "../../../../packages/ui/src/components/brainless/codex/codex-message.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-actions.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-composer.tsx";
 @source "../../../../packages/ui/src/components/brainless/gemini/gemini-message.tsx";
@@ -95,6 +97,7 @@
 @source "../../../../packages/ui/src/components/ui/svgs/google.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/grok.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/grokDark.tsx";
+@source "../../../../packages/ui/src/components/ui/svgs/hexclave.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/huawei.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/inth.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/kagi.tsx";
@@ -119,7 +122,6 @@
 @source "../../../../packages/ui/src/components/ui/svgs/qwenDark.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/reddit.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/slack.tsx";
-@source "../../../../packages/ui/src/components/ui/svgs/stack-auth.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tavily.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tencent.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tikTok.tsx";

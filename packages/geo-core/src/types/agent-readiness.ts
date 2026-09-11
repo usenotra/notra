@@ -4,9 +4,11 @@ import type {
   AgentReadinessReportStatus,
   AgentReadinessScoreBreakdown,
 } from "@notra/db/types/agent-readiness";
+import type { Effect } from "effect";
 import type { infer as ZodInfer } from "zod";
 
 import type { agentReadinessApiReportSchema } from "../schemas/agent-readiness";
+import type { AgentReadinessApiError } from "../schemas/agent-readiness-errors";
 
 export type AgentReadinessApiReport = ZodInfer<
   typeof agentReadinessApiReportSchema
@@ -106,4 +108,20 @@ export interface AgentReadinessSseFrameBoundary {
 export interface AgentReadinessRunningScan {
   createdAt: Date;
   targetUrl: string;
+}
+export type AgentReadinessFetch = (
+  url: URL,
+  init: RequestInit
+) => Promise<Response>;
+
+export interface AgentReadinessNetworkShape {
+  readonly report: (
+    targetUrl: string
+  ) => Effect.Effect<AgentReadinessParsedReport | null, AgentReadinessApiError>;
+  readonly scan: (
+    targetUrl: string
+  ) => Effect.Effect<void, AgentReadinessApiError>;
+  readonly feedback: (
+    targetUrl: string
+  ) => Effect.Effect<AgentReadinessIssue | null, AgentReadinessApiError>;
 }

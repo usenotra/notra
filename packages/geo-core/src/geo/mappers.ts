@@ -20,7 +20,10 @@ import type {
   GeoPersonaRow,
 } from "../types/geo-personas";
 import { toGeoVisitorType } from "../utils/ai-traffic";
-import { resolveTrackedEngines } from "../utils/geo-engines";
+import {
+  remapRetiredGeoEngineIds,
+  resolveTrackedEngines,
+} from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import { isGeoScanRunning } from "../utils/geo-scan";
 
@@ -50,7 +53,7 @@ export function toGeoSettings(
     languages: trackedGeoLanguages(row.languages ?? []),
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,
-    nonZdrApprovedEngines: row.nonZdrApprovedEngines,
+    nonZdrApprovedEngines: remapRetiredGeoEngineIds(row.nonZdrApprovedEngines),
     pausedAutoPromptIds: row.pausedAutoPromptIds,
     removedAutoPromptIds: row.removedAutoPromptIds,
     enabled: row.enabled,

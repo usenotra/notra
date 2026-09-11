@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
-import { geoScans } from "@notra/db/schema";
+import { brandSettings, geoScans } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Exit } from "effect";
 
@@ -19,30 +19,20 @@ import {
   GEO_SCAN_STALE_MS,
 } from "../src/constants/geo";
 import { GeoWorkflowService } from "../src/deps";
+import { buildGeoPrompts } from "../src/geo/prompts";
 import type { GeoWorkflowServiceShape } from "../src/types/deps";
 import {
   initializeDatabase,
-  postgres,
+  database,
   resetDatabase,
   seedProject,
   settingsFor,
   testDb,
 } from "./utils/database";
-
-// Replace only infrastructure boundaries; scheduling, SQL predicates, hand-off,
-// ownership checks and finalizers below are the production implementations.
-mock.module("@notra/db/drizzle", () => ({ db: testDb }));
-mock.module("@notra/ai/evlog", () => ({
-  geoLog: { info: mock(), warn: mock(), error: mock() },
-  geoLogDrainEnabled: true,
-  flushGeoLog: async () => undefined,
-}));
-const cleanupBoxes = mock(async () => undefined);
-mock.module("@notra/ai/utils/geo-opencode-box", () => ({
-  deleteStaleGeoOpenCodeBoxes: cleanupBoxes,
-}));
+import { cleanupBoxes } from "./utils/infrastructure";
 
 const { runGeoScanCronSweep } = await import("../src/geo/scan-schedule");
+const { loadGeoProjectBrand } = await import("../src/geo/project-brand");
 const { startClaimedGeoScanRun } = await import("../src/geo/scan-handoff");
 const {
   claimGeoScanRun,
@@ -73,7 +63,7 @@ const sweep = () =>
   );
 
 beforeAll(initializeDatabase, 30_000);
-afterAll(() => postgres.close());
+afterAll(() => database.postgres.close());
 beforeEach(async () => {
   await resetDatabase();
   startWorkflow.mockReset();
@@ -82,6 +72,80 @@ beforeEach(async () => {
   );
   cleanupBoxes.mockReset();
   cleanupBoxes.mockImplementation(async () => undefined);
+});
+
+describe("scan project brand context", () => {
+  test("generates prompts from the selected project's brand, not the default brand", async () => {
+    const emailScope = await seedProject("email-sdk");
+    const botScope = await seedProject("akeru-bot");
+    await testDb
+      .update(brandSettings)
+      .set({
+        isDefault: true,
+        companyDescription: "sending transactional emails",
+        audience: "email developers",
+      })
+      .where(eq(brandSettings.id, "brand-email-sdk"));
+    await testDb
+      .update(brandSettings)
+      .set({
+        companyDescription: "moderating Discord communities",
+        audience: "community moderators",
+      })
+      .where(eq(brandSettings.id, "brand-akeru-bot"));
+
+    const emailBrand = await Effect.runPromise(loadGeoProjectBrand(emailScope));
+    const botBrand = await Effect.runPromise(loadGeoProjectBrand(botScope));
+    expect(emailBrand?.companyDescription).toBe("sending transactional emails");
+    expect(botBrand).toEqual({
+      companyDescription: "moderating Discord communities",
+      audience: "community moderators",
+    });
+    const prompts = buildGeoPrompts(
+      { companyName: "Akeru Bot", aliases: [] },
+      botBrand
+    );
+    expect(prompts.length).toBeGreaterThan(0);
+    for (const prompt of prompts) {
+      expect(prompt.text).toContain("discord");
+      expect(prompt.text).not.toContain("email");
+    }
+    expect(
+      prompts.find((prompt) => prompt.id === "audience-specific")?.text
+    ).toContain("community moderators");
+  });
+
+  test("never falls back to another brand for missing context or a foreign project", async () => {
+    const scope = await seedProject("selected");
+    await seedProject("default");
+    await testDb
+      .update(brandSettings)
+      .set({
+        isDefault: true,
+        companyDescription: "sending transactional emails",
+      })
+      .where(eq(brandSettings.id, "brand-default"));
+    expect(await Effect.runPromise(loadGeoProjectBrand(scope))).toEqual({
+      companyDescription: null,
+      audience: null,
+    });
+    expect(
+      await Effect.runPromise(
+        loadGeoProjectBrand({
+          organizationId: "other-org",
+          projectId: scope.projectId,
+        })
+      )
+    ).toBeNull();
+    expect(
+      await Effect.runPromise(
+        loadGeoProjectBrand({
+          organizationId: scope.organizationId,
+          projectId: "missing",
+        })
+      )
+    ).toBeNull();
+  });
 });
 
 describe("scheduled GEO scans", () => {

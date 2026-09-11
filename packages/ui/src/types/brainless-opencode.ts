@@ -64,6 +64,7 @@ export interface OpencodeSource {
 }
 
 export interface OpencodeSourcesProps {
+  darkSurface?: boolean;
   sources: readonly OpencodeSource[];
   queries?: readonly string[];
   sequential?: boolean;

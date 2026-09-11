@@ -17,7 +17,7 @@ export function OpencodeActivity({
         "flex min-w-0 items-start gap-2 font-mono text-[12px] leading-[1.55]",
         className
       )}
-      style={{ color: thought ? OPENCODE_COLORS.orange : OPENCODE_COLORS.muted }}
+      style={{ color: thought ? OPENCODE_COLORS.orange : `var(--opencode-source-muted, ${OPENCODE_COLORS.muted})` }}
     >
       <span aria-hidden className="shrink-0">
         {thought ? "+" : "⚙"}

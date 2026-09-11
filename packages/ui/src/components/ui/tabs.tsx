@@ -61,7 +61,7 @@ function TabsList({
       >
         {children}
         {variant === "default" ? (
-          <TabsPrimitive.Indicator className="pointer-events-none absolute top-0 left-0 z-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) translate-y-(--active-tab-top) rounded-md bg-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[width,translate] duration-normal ease-in-out dark:bg-foreground/10" />
+          <TabsPrimitive.Indicator className="pointer-events-none absolute top-0 left-0 z-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) translate-y-(--active-tab-top) rounded-md bg-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[width,height,translate] duration-slow ease-emphasized dark:bg-foreground/10" />
         ) : null}
       </TabsPrimitive.List>
     </TabsLayoutIdContext.Provider>

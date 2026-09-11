@@ -142,7 +142,7 @@ export async function geoWriterWorkflow(
       await appendAutomationLog({
         organizationId,
         integrationId: GEO_WRITER_TRIGGER_ID,
-        integrationType: "manual",
+        integrationType: "geo",
         title: `GEO writer created "${result.title}"`,
         status: "success",
         referenceId: result.postId,
@@ -181,7 +181,7 @@ export async function geoWriterWorkflow(
       appendAutomationLog({
         organizationId,
         integrationId: GEO_WRITER_TRIGGER_ID,
-        integrationType: "manual",
+        integrationType: "geo",
         title: "GEO writer failed",
         status: "failed",
         errorMessage: reason,

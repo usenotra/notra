@@ -53,7 +53,7 @@ function BillingSuccessPageContent() {
     });
     try {
       await openCustomerPortal({
-        returnUrl: `${window.location.origin}/${slug}/settings/billing`,
+        returnUrl: `${window.location.origin}/${slug}?settings=billing`,
       });
     } catch (err) {
       toast.error(
@@ -115,7 +115,7 @@ function BillingSuccessPageContent() {
 
         <Link
           className="text-muted-foreground hover:text-foreground mt-6 text-sm underline underline-offset-4 transition-colors"
-          href={`/${slug}/settings/billing`}
+          href={`/${slug}?settings=billing`}
         >
           View invoices & usage
         </Link>

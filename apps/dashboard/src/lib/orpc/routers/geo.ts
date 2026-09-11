@@ -20,12 +20,7 @@ import {
   withGscIntegrationLock,
 } from "@notra/ai/utils/gsc-integration-lock";
 import { db } from "@notra/db/drizzle";
-import {
-  geoAgentReadinessReports,
-  geoPromptSuggestions,
-  geoPrompts,
-  projects,
-} from "@notra/db/schema";
+import { geoAgentReadinessReports } from "@notra/db/schema";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
 import {
   GSC_SCHEDULE_ID_PREFIX,
@@ -33,8 +28,6 @@ import {
   GSC_SYNC_WORKFLOW_PATH,
 } from "@notra/geo-core/constants/google-search-console";
 import {
-  AgentReadinessApiError,
-  AgentReadinessTargetMissingError,
   loadAgentReadiness,
   startAgentReadinessScan,
 } from "@notra/geo-core/geo/agent-readiness";
@@ -49,8 +42,6 @@ import {
   issueGeoIngestSetupResponse,
   rotateGeoIngestSetupResponse,
 } from "@notra/geo-core/geo/ingest";
-import { lockGeoProject } from "@notra/geo-core/geo/lock";
-import { toTrackedPrompt } from "@notra/geo-core/geo/mappers";
 import { loadGeoModelCatalog } from "@notra/geo-core/geo/model-catalog";
 import {
   saveGeoOnboardingBrand,
@@ -89,6 +80,7 @@ import {
   loadGeoTrafficLog,
   loadGeoTrafficPages,
   startGeoPromptRescan,
+  loadGeoScanStatus,
   startGeoScan,
   toggleGeoAutoPrompt,
   toggleGeoPrompt,
@@ -102,7 +94,6 @@ import {
   requireBrandIdentity,
   requireGeoProject,
 } from "@notra/geo-core/geo/projects";
-import { promptKey } from "@notra/geo-core/geo/prompt-key";
 import {
   loadGeoPromptResultDetail,
   loadGeoPromptResultSummaries,
@@ -112,6 +103,10 @@ import {
   seedGeoSampleData,
 } from "@notra/geo-core/geo/sample-data";
 import { runGeoSequenceNow } from "@notra/geo-core/geo/scan";
+import {
+  loadGeoScanRun,
+  loadGeoScanRuns,
+} from "@notra/geo-core/geo/scan-history";
 import {
   selectGscSiteAndSyncSuggestions,
   syncGscSuggestions,
@@ -123,6 +118,12 @@ import {
   loadGeoSequenceResults,
   updateGeoSequence,
 } from "@notra/geo-core/geo/sequences";
+import {
+  acceptSuggestion,
+  acceptAllSuggestions,
+  dismissSuggestion,
+  listSuggestions,
+} from "@notra/geo-core/geo/suggestions";
 import { geoWindow } from "@notra/geo-core/geo/window";
 import {
   approveAndStartGeoWriter,
@@ -131,6 +132,10 @@ import {
   planGeoContentBrief,
   updateGeoContentBrief,
 } from "@notra/geo-core/geo/writer";
+import {
+  AgentReadinessApiError,
+  AgentReadinessTargetMissingError,
+} from "@notra/geo-core/schemas/agent-readiness-errors";
 import {
   aiTrafficInputSchema,
   geoBrandSearchInputSchema,
@@ -151,6 +156,7 @@ import {
   geoPromptHistoryInputSchema,
   geoPromptResultDetailInputSchema,
   geoPromptRescanInputSchema,
+  geoScanStatusInputSchema,
   geoPromptsImportInputSchema,
   geoPromptDeleteInputSchema,
   geoPromptToggleInputSchema,
@@ -180,12 +186,16 @@ import {
   geoPersonaUpdateInputSchema,
   geoPersonasGenerateInputSchema,
 } from "@notra/geo-core/schemas/geo-personas";
+import {
+  geoScanRunInputSchema,
+  geoScanRunsInputSchema,
+} from "@notra/geo-core/schemas/geo-scan-history";
 import { gscSelectSiteInputSchema } from "@notra/geo-core/schemas/google-search-console";
+import { GeoSearchConsoleError } from "@notra/geo-core/schemas/search-console-errors";
 import type {
   AgentReadinessResponse,
   AgentReadinessScanResponse,
 } from "@notra/geo-core/types/agent-readiness";
-import type { DbTransaction } from "@notra/geo-core/types/db";
 import type {
   GeoIngestSetupResponse,
   GeoTrackedPrompt,
@@ -209,7 +219,7 @@ import {
   geoShelfUpdateInputSchema,
 } from "@notra/schemas/dashboard/geo-shelf";
 import { QstashError } from "@upstash/qstash";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -270,8 +280,6 @@ import type { AuthenticatedUser } from "@/types/auth/organization";
 import type {
   GeoBrandSearchHandlerInput,
   GeoCompetitorSuggestionsHandlerInput,
-  GeoPromptSuggestion,
-  GeoPromptSuggestionRow,
   GeoPromptSuggestionsResponse,
 } from "@/types/geo";
 import type { GeoDashboardRuntime } from "@/types/geo-runtime";
@@ -344,17 +352,15 @@ function geoHandler<
   };
 }
 
-function toPromptSuggestion(row: GeoPromptSuggestionRow): GeoPromptSuggestion {
-  return {
-    id: row.id,
-    prompt: row.prompt,
-    source: row.source,
-    keywords: row.sourceKeywords,
-    createdAt: row.createdAt.toISOString(),
-  };
-}
-
 function toGscErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof GeoSearchConsoleError) {
+    if (error.reauthRequired) {
+      return "Google Search Console access expired. Please reconnect.";
+    }
+    return error.status === 403
+      ? "Google denied access to this property. Reconnect or pick another one."
+      : fallback;
+  }
   if (error instanceof GscReauthRequiredError) {
     return "Google Search Console access expired. Please reconnect.";
   }
@@ -386,7 +392,11 @@ async function runGscSyncOrBadRequest(
   organizationId: string
 ): Promise<GscSyncResult> {
   try {
-    return await syncGscSuggestions(organizationId);
+    return await Effect.runPromise(
+      syncGscSuggestions(organizationId).pipe(
+        Effect.provide(geoCoreDashboardLayer)
+      )
+    );
   } catch (error) {
     throw badRequest(
       toGscErrorMessage(error, "Failed to sync Search Console keywords")
@@ -621,58 +631,6 @@ function getGscScheduleIdsForDisconnect(
   ];
 }
 
-async function requireDefaultProjectId(
-  organizationId: string
-): Promise<string> {
-  const row = await db.query.projects.findFirst({
-    columns: { id: true },
-    where: eq(projects.organizationId, organizationId),
-    orderBy: [asc(projects.createdAt)],
-  });
-  if (!row) {
-    throw badRequest("Configure your brand tracking settings first");
-  }
-  return row.id;
-}
-
-async function acceptSuggestionInTx(
-  tx: DbTransaction,
-  organizationId: string,
-  projectId: string,
-  suggestion: Pick<GeoPromptSuggestionRow, "id" | "prompt" | "title">
-): Promise<GeoTrackedPrompt> {
-  await Effect.runPromise(lockGeoProject(tx, projectId));
-  // Reuse an identical tracked prompt instead of creating a duplicate.
-  const existing = await tx.query.geoPrompts.findFirst({
-    where: and(
-      eq(geoPrompts.organizationId, organizationId),
-      eq(geoPrompts.projectId, projectId),
-      sql`lower(trim(${geoPrompts.prompt})) = ${promptKey(suggestion.prompt)}`
-    ),
-  });
-  const promptRow =
-    existing ??
-    (
-      await tx
-        .insert(geoPrompts)
-        .values({
-          id: crypto.randomUUID(),
-          organizationId,
-          projectId,
-          prompt: suggestion.prompt,
-          title: suggestion.title,
-        })
-        .returning()
-    )[0];
-  if (!promptRow) {
-    throw badRequest("Failed to create prompt");
-  }
-  await tx
-    .update(geoPromptSuggestions)
-    .set({ status: "accepted", acceptedPromptId: promptRow.id })
-    .where(eq(geoPromptSuggestions.id, suggestion.id));
-  return toTrackedPrompt(promptRow);
-}
 async function loadGeoShelfSeed(
   context: GeoHandlerOptions<unknown>["context"],
   input: { organizationId: string; projectId?: string },
@@ -1016,7 +974,7 @@ export const geoRouter = {
         toGeoOrpcError
       );
       return await runAgentReadinessOrBadRequest(() =>
-        loadAgentReadiness(scope)
+        Effect.runPromise(loadAgentReadiness(scope))
       );
     }),
   agentReadinessScan: authorizedProcedure
@@ -1611,6 +1569,15 @@ export const geoRouter = {
   rescanPrompt: authorizedProcedure
     .input(geoPromptRescanInputSchema)
     .handler(geoHandler((input) => startGeoPromptRescan(input))),
+  scanStatus: authorizedProcedure
+    .input(geoScanStatusInputSchema)
+    .handler(geoHandler((input) => loadGeoScanStatus(input, input.scanId))),
+  scanRuns: authorizedProcedure
+    .input(geoScanRunsInputSchema)
+    .handler(geoHandler((input) => loadGeoScanRuns(input))),
+  scanRun: authorizedProcedure
+    .input(geoScanRunInputSchema)
+    .handler(geoHandler((input) => loadGeoScanRun(input))),
   writerGaps: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoHandler((input) => loadGeoContentGaps(input))),
@@ -1866,9 +1833,10 @@ export const geoRouter = {
 
       let synced: GscSyncResult;
       try {
-        synced = await selectGscSiteAndSyncSuggestions(
-          integration,
-          input.siteUrl
+        synced = await Effect.runPromise(
+          selectGscSiteAndSyncSuggestions(integration, input.siteUrl).pipe(
+            Effect.provide(geoCoreDashboardLayer)
+          )
         );
       } catch (error) {
         console.error(
@@ -2039,15 +2007,7 @@ export const geoRouter = {
           user: context.user,
         });
 
-        const rows = await db.query.geoPromptSuggestions.findMany({
-          where: and(
-            eq(geoPromptSuggestions.organizationId, input.organizationId),
-            eq(geoPromptSuggestions.status, "pending")
-          ),
-          orderBy: [desc(geoPromptSuggestions.createdAt)],
-        });
-
-        return { suggestions: rows.map(toPromptSuggestion) };
+        return await runOrpcEffect(listSuggestions(input), toGeoOrpcError);
       }
     ),
   suggestionAccept: authorizedProcedure
@@ -2059,21 +2019,11 @@ export const geoRouter = {
         user: context.user,
       });
 
-      const suggestion = await db.query.geoPromptSuggestions.findFirst({
-        where: and(
-          eq(geoPromptSuggestions.id, input.suggestionId),
-          eq(geoPromptSuggestions.organizationId, input.organizationId),
-          eq(geoPromptSuggestions.status, "pending")
-        ),
-      });
-      if (!suggestion) {
-        throw notFound("Suggestion not found");
-      }
-
-      const projectId = await requireDefaultProjectId(input.organizationId);
-      const accepted = await db.transaction((tx) =>
-        acceptSuggestionInTx(tx, input.organizationId, projectId, suggestion)
-      );
+      const {
+        projectId,
+        prompt: accepted,
+        suggestion,
+      } = await runOrpcEffect(acceptSuggestion(input), toGeoOrpcError);
       const keywordSummary = summarizeSuggestionKeywords(
         suggestion.sourceKeywords
       );
@@ -2111,23 +2061,14 @@ export const geoRouter = {
         user: context.user,
       });
 
-      const rows = await db.query.geoPromptSuggestions.findMany({
-        where: and(
-          eq(geoPromptSuggestions.organizationId, input.organizationId),
-          eq(geoPromptSuggestions.status, "pending")
-        ),
-        orderBy: [asc(geoPromptSuggestions.createdAt)],
-      });
+      const { projectId, suggestions: rows } = await runOrpcEffect(
+        acceptAllSuggestions(input),
+        toGeoOrpcError
+      );
       if (rows.length === 0) {
         return { accepted: 0 };
       }
 
-      const projectId = await requireDefaultProjectId(input.organizationId);
-      await db.transaction(async (tx) => {
-        for (const row of rows) {
-          await acceptSuggestionInTx(tx, input.organizationId, projectId, row);
-        }
-      });
       const keywordSummary = summarizeSuggestionKeywords(
         rows.flatMap((row) => row.sourceKeywords)
       );
@@ -2154,25 +2095,15 @@ export const geoRouter = {
         user: context.user,
       });
 
-      const [row] = await db
-        .update(geoPromptSuggestions)
-        .set({ status: "dismissed" })
-        .where(
-          and(
-            eq(geoPromptSuggestions.id, input.suggestionId),
-            eq(geoPromptSuggestions.organizationId, input.organizationId),
-            eq(geoPromptSuggestions.status, "pending")
-          )
-        )
-        .returning({ id: geoPromptSuggestions.id });
-      if (!row) {
-        throw notFound("Suggestion not found");
-      }
+      const result = await runOrpcEffect(
+        dismissSuggestion(input),
+        toGeoOrpcError
+      );
       trackGeoRouterEvent({
         context,
         input,
         event: POSTHOG_EVENTS.GEO_SUGGESTION_DISMISSED,
-        properties: { count: 1, suggestion_id: row.id },
+        properties: { count: 1, suggestion_id: result.suggestionId },
       });
       return { dismissed: true };
     }),

@@ -1,97 +1,14 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { settingsPath } from "@/utils/settings-path";
 
-import { PageContainer } from "@/components/layout/container";
-import { ChatSection } from "@/components/settings/chat-section";
-import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
-import { DeleteAccountSection } from "@/components/settings/delete-account";
-import { LoginDetailsSection } from "@/components/settings/login-details-section";
-import { OrganizationsSection } from "@/components/settings/organizations-section";
-import { PrivacySection } from "@/components/settings/privacy-section";
-import { ProfileSection } from "@/components/settings/profile-section";
-import { authClient } from "@/lib/auth/client";
+export const instant = true;
 
-import { AccountPageSkeleton } from "./skeleton";
-
-export default function SettingsAccountPage() {
-  const router = useRouter();
-  const {
-    data: session,
-    isPending: isSessionPending,
-    refetch: refetchSession,
-  } = authClient.useSession();
-  const user = session?.user;
-
-  const {
-    data: accounts,
-    refetch: refetchAccounts,
-    isError: isAccountsError,
-  } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: async () => {
-      const result = await authClient.listAccounts();
-      if (result.error) {
-        throw new Error(result.error.message ?? "Failed to load accounts");
-      }
-      return result.data ?? [];
-    },
-    enabled: !!user,
-  });
-
-  if (!user && isSessionPending) {
-    return <AccountPageSkeleton />;
-  }
-
-  if (!user) {
-    router.push("/login");
-    return null;
-  }
-
-  const hasGoogleLinked = accounts?.some((a) => a.providerId === "google");
-  const hasGithubLinked = accounts?.some((a) => a.providerId === "github");
-  const hasPasswordAccount = accounts?.some(
-    (a) => a.providerId === "credential"
-  );
-
-  return (
-    <PageContainer
-      className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6"
-      variant="default"
-    >
-      <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Account</h1>
-          <p className="text-muted-foreground">
-            Manage your profile and account settings
-          </p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ProfileSection
-            onSessionRefetch={async () => {
-              await refetchSession();
-            }}
-            user={user}
-          />
-          <LoginDetailsSection
-            email={user.email}
-            hasPasswordAccount={hasPasswordAccount ?? false}
-          />
-          <ConnectedAccountsSection
-            accounts={accounts ?? []}
-            hasGithubLinked={hasGithubLinked ?? false}
-            hasGoogleLinked={hasGoogleLinked ?? false}
-            isError={isAccountsError}
-            onAccountsChange={refetchAccounts}
-          />
-          <OrganizationsSection />
-          <PrivacySection />
-          <ChatSection />
-          <DeleteAccountSection />
-        </div>
-      </div>
-    </PageContainer>
-  );
+export default async function SettingsAccountRedirect({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  redirect(settingsPath(slug, "account"));
 }

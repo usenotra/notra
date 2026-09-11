@@ -14,6 +14,10 @@ export const webhookLogSourceFilterSchema = z.enum([
   "manual",
   "schedule",
   "events",
+  "geo",
+  "agent-readiness",
+  "search-console",
+  "brand",
 ]);
 
 export const webhookLogStatusFilterSchema = z.enum([
@@ -36,6 +40,10 @@ export const webhookLogsQuerySchema = z.object({
       "manual",
       "schedule",
       "events",
+      "geo",
+      "agent-readiness",
+      "search-console",
+      "brand",
     ])
     .default("github"),
   integrationId: z.string().nullish(),

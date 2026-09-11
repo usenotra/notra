@@ -10,6 +10,7 @@ import {
   claimChatWorkflowRequest,
   clearActiveChatStream,
   clearChatAbortFlag,
+  getChatProjectId,
   getChatStreamChannelName,
   loadChatHistory,
   replaceChatHistory,
@@ -166,6 +167,8 @@ export async function streamChatResponseStep(
     return { status: "empty_history" };
   }
 
+  const projectId = await getChatProjectId(organizationId, chatId);
+
   const channelName = getChatStreamChannelName(
     organizationId,
     chatId,
@@ -238,6 +241,7 @@ export async function streamChatResponseStep(
         thinkingLevel,
         timezone,
         useMarkup,
+        projectId,
         telemetryMetadata: buildStandaloneChatTelemetryMetadata({
           chatId,
           organizationId,

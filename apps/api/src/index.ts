@@ -1,5 +1,6 @@
 import "./tcc";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { flushLogs } from "@notra/ai/evlog";
 import { createDb } from "@notra/db/drizzle";
 import { shutdownPostHogServer } from "@notra/posthog/server";
 import { publicStatusResponseSchema } from "@notra/schemas/api/status";
@@ -22,6 +23,7 @@ import {
   geoProjectContextMiddleware,
 } from "./middleware/geo-context";
 import { geoEntitlementMiddleware } from "./middleware/geo-entitlement";
+import { apiObservabilityMiddleware } from "./middleware/observability";
 import { subscriptionMiddleware } from "./middleware/subscription";
 import { agentChatsRoutes } from "./routes/agent-chats";
 import { brandIdentitiesRoutes } from "./routes/brand-identities";
@@ -44,6 +46,7 @@ import { postsRoutes } from "./routes/posts";
 import { schedulesRoutes } from "./routes/schedules";
 import { skillsRoutes } from "./routes/skills";
 import type { ApiEnv } from "./types/env";
+import type { ApiServerControl } from "./types/shutdown";
 import {
   API_URL,
   AUTH_GUIDE_URL,
@@ -56,6 +59,7 @@ import { trackApiException } from "./utils/analytics";
 import { assertRequiredEnv } from "./utils/env";
 import { isPublicFeedbackIngestRequest } from "./utils/feedback";
 import { logError } from "./utils/logging";
+import { createApiShutdown } from "./utils/shutdown";
 
 const FRAMER_PLUGIN_ID = "8d4wmwtko6960jsu3ojmalvqm";
 
@@ -138,6 +142,7 @@ const securityHeadersMiddleware = async (
   await next();
 };
 
+app.use("*", apiObservabilityMiddleware);
 app.use("/v1/*", securityHeadersMiddleware);
 app.use("/v2/*", securityHeadersMiddleware);
 
@@ -318,9 +323,13 @@ app.onError((error, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
+const apiShutdown = createApiShutdown(() =>
+  Promise.allSettled([shutdownPostHogServer(), flushLogs()])
+);
+
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
-    void shutdownPostHogServer().finally(() => process.exit(0));
+    void apiShutdown.shutdown().finally(() => process.exit(0));
   });
 }
 
@@ -334,5 +343,8 @@ export default {
   // so the client always gets a real answer first. Not 0/disabled: a wedged
   // upstream should not hold sockets forever.
   idleTimeout: 255,
-  fetch: (request: Request) => app.fetch(request, process.env),
+  fetch: (request: Request, server: ApiServerControl) => {
+    apiShutdown.attachServer(server);
+    return apiShutdown.handleRequest(() => app.fetch(request, process.env));
+  },
 };

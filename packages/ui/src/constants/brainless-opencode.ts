@@ -17,3 +17,9 @@ export const OPENCODE_SEARCH_QUERY_MS = 280;
 export const OPENCODE_SEARCH_STAGGER_MS = 56;
 /** Pause after the last query before the sources block. */
 export const OPENCODE_SEARCH_SOURCES_MS = 160;
+
+export const OPENCODE_DARK_SOURCE_COLORS = {
+  foreground: "#ececec",
+  muted: "#a1a1a1",
+  purple: "#bb9af7",
+} as const;

@@ -1,6 +1,7 @@
 {
-  "$schema": "https://v2-10-11.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-12.turborepo.dev/schema.json",
   "ui": "tui",
+  "globalDependencies": [".npmrc", "bunfig.toml", "scripts/prepare-effect.sh"],
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
     "APP_URL",
@@ -118,7 +119,13 @@
     "build": {
       "dependsOn": ["transit"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vercel/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "dist/**",
+        ".vercel/**"
+      ]
     },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],
@@ -130,7 +137,12 @@
       ]
     },
     "check-types": {
-      "dependsOn": ["transit"]
+      "dependsOn": ["transit"],
+      "outputs": [".cache/typecheck.tsbuildinfo"]
+    },
+    "ui#check-types": {
+      "dependsOn": ["transit"],
+      "outputs": []
     },
     "knip": {
       "dependsOn": ["transit"]

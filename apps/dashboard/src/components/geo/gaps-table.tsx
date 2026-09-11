@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshIcon, SearchIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { RefreshIcon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_COMPETITOR_KIND_DETAIL,
@@ -796,14 +796,6 @@ export function GeoGapsTable({
       minWidth: "12.5rem",
       cell: (row) => (
         <span className="inline-flex items-center gap-1">
-          <Button
-            aria-label={`Open gap details: ${row.prompt}`}
-            onClick={() => setDetail({ kind: "prompt", id: row.id })}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <HugeiconsIcon aria-hidden="true" icon={ViewIcon} size={15} />
-          </Button>
           <WriteCell
             action={gapWriteAction(row.brief)}
             onOpenPost={onOpenPost}

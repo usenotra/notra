@@ -204,7 +204,7 @@ export function CreateContentDialog({
   const { data: brandResponse, isLoading: isLoadingVoices } = useQuery(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
-      enabled: !!organizationId,
+      enabled: open && !!organizationId,
     })
   );
   const brandVoices = brandResponse?.voices ?? [];
@@ -212,7 +212,7 @@ export function CreateContentDialog({
   const { data: integrationsResponse, isLoading: isLoadingRepos } = useQuery(
     dashboardOrpc.integrations.list.queryOptions({
       input: { organizationId },
-      enabled: !!organizationId,
+      enabled: open && !!organizationId,
     })
   );
 

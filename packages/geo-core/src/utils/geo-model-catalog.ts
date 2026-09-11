@@ -3,6 +3,7 @@ import {
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_CATALOG_STATIC,
   GEO_MODEL_EXCLUDED_ID_PATTERN,
+  GEO_MODEL_EXCLUDED_IDS,
   GEO_MODEL_EXCLUDED_SLUG_PATTERN,
   GEO_MODEL_EXCLUDED_TAGS,
   GEO_MODEL_PROVIDERS,
@@ -25,6 +26,7 @@ function isEligibleFeedModel(model: GeoGatewayModel): boolean {
     return false;
   }
   if (
+    GEO_MODEL_EXCLUDED_IDS.has(model.id) ||
     GEO_MODEL_EXCLUDED_ID_PATTERN.test(model.id) ||
     GEO_MODEL_EXCLUDED_SLUG_PATTERN.test(model.id)
   ) {

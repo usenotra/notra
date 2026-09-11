@@ -5,8 +5,15 @@ import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
 export function geoPromptDetailState(
   checkId: string | null,
   data: GeoPromptResultDetailResponse | undefined,
-  isError: boolean
+  isError: boolean,
+  historyStatus?: "pending" | "error" | "success"
 ): GeoPromptDetailState {
+  if (historyStatus === "pending") {
+    return { status: "loading" };
+  }
+  if (historyStatus === "error") {
+    return { status: "error" };
+  }
   if (!checkId) {
     return { status: "missing" };
   }

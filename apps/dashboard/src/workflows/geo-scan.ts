@@ -10,6 +10,7 @@ import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
   GeoScanProjectContext,
+  GeoScanProjectPlan,
   GeoScanProjectTotals,
   GeoScanResult,
 } from "@notra/geo-core/types/geo";
@@ -25,7 +26,12 @@ import { FatalError, sleep } from "workflow";
 import { flattenError } from "zod";
 
 import type { GeoScanPayload } from "@/types/geo";
+import type { LogRetentionDays } from "@/types/webhooks/webhooks";
 
+import {
+  appendAutomationLogBestEffort,
+  fetchLogRetention,
+} from "./steps/content-generation-steps";
 import {
   finalizeGeoScanProjectStep,
   listGeoScanProjectsStep,
@@ -140,6 +146,57 @@ async function runGeoScanBatchWindow<T>(
 }
 
 /**
+ * Persists the project outcome and records it in the organization activity
+ * log, so a finished scan stays visible (with checks, mentions, and the
+ * failure reason) after the live job tracking has disappeared.
+ */
+async function finalizeProjectRun(
+  plan: GeoScanProjectPlan,
+  totals: GeoScanProjectTotals,
+  status: "completed" | "failed",
+  claimedAt: string,
+  options: {
+    retried: boolean;
+    failureReason?: string;
+    retentionDays?: LogRetentionDays;
+  }
+): Promise<void> {
+  await finalizeGeoScanProjectStep(plan.context, totals, status, claimedAt, {
+    retried: options.retried,
+    ...(options.failureReason ? { failureReason: options.failureReason } : {}),
+  });
+  const { context } = plan;
+  const errorMessage =
+    status === "failed"
+      ? (options.failureReason ?? "No successful checks")
+      : undefined;
+  await appendAutomationLogBestEffort({
+    organizationId: context.organizationId,
+    integrationId: context.projectId,
+    integrationType: "geo",
+    title:
+      status === "completed"
+        ? `GEO scan completed for ${context.companyName}`
+        : `GEO scan failed for ${context.companyName}`,
+    status: status === "completed" ? "success" : "failed",
+    referenceId: context.runId,
+    payload: {
+      companyName: context.companyName,
+      scanId: context.scanId,
+      runId: context.runId,
+      checks: totals.checks,
+      mentions: totals.mentions,
+      dropped: totals.dropped,
+      prompts: plan.promptCount,
+      engines: plan.engines.join(", "),
+      retried: options.retried,
+    },
+    ...(errorMessage ? { errorMessage } : {}),
+    ...(options.retentionDays ? { retentionDays: options.retentionDays } : {}),
+  });
+}
+
+/**
  * One project scan as a chain of small steps: plan → task batches →
  * sequence batches → persona batches → finalize. Each batch persists its own results, so a
  * killed invocation costs one batch, not the scan — the previous single-step
@@ -159,12 +216,14 @@ async function runGeoScanProjectRun(
     retried: boolean;
     promptIds?: string[];
     engines?: string[];
+    retentionDays?: LogRetentionDays;
   }
 ): Promise<GeoScanProjectOutcome | null> {
+  const { retentionDays, ...prepareOptions } = options;
   const planResult = await prepareGeoScanProjectStep(
     organizationId,
     projectId,
-    options
+    prepareOptions
   );
   if (planResult.status === "skipped") {
     return null;
@@ -207,41 +266,26 @@ async function runGeoScanProjectRun(
       state
     );
   } catch (error) {
-    await finalizeGeoScanProjectStep(
-      plan.context,
-      totals,
-      "failed",
-      state.claimedAt,
-      {
-        retried: options.retried,
-        failureReason: describeGeoScanFailure(error),
-      }
-    );
+    await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
+      retried: options.retried,
+      failureReason: describeGeoScanFailure(error),
+      ...(retentionDays ? { retentionDays } : {}),
+    });
     return { totals, attempted, noSuccessfulChecks: totals.checks === 0 };
   }
 
   if (totals.checks === 0 && attempted > 0) {
-    await finalizeGeoScanProjectStep(
-      plan.context,
-      totals,
-      "failed",
-      state.claimedAt,
-      {
-        retried: options.retried,
-      }
-    );
+    await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
+      retried: options.retried,
+      ...(retentionDays ? { retentionDays } : {}),
+    });
     return { totals, attempted, noSuccessfulChecks: true };
   }
 
-  await finalizeGeoScanProjectStep(
-    plan.context,
-    totals,
-    "completed",
-    state.claimedAt,
-    {
-      retried: options.retried,
-    }
-  );
+  await finalizeProjectRun(plan, totals, "completed", state.claimedAt, {
+    retried: options.retried,
+    ...(retentionDays ? { retentionDays } : {}),
+  });
   return { totals, attempted, noSuccessfulChecks: false };
 }
 
@@ -266,6 +310,7 @@ export async function geoScanWorkflow(
   if (projectIds.length === 0) {
     return { status: "skipped" };
   }
+  const retentionDays = await fetchLogRetention(organizationId);
   const orderedProjectIds =
     projectId && projectIds.includes(projectId)
       ? [projectId, ...projectIds.filter((id) => id !== projectId)]
@@ -288,6 +333,7 @@ export async function geoScanWorkflow(
       retried: false,
       promptIds,
       engines,
+      retentionDays,
     });
     if (!outcome) {
       continue;
@@ -321,6 +367,7 @@ export async function geoScanWorkflow(
       retried: true,
       promptIds,
       engines,
+      retentionDays,
     });
     if (!outcome) {
       continue;

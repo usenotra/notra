@@ -1,5 +1,5 @@
 {
-  "id": "f344f4ee-2062-4eb8-8cb8-eb9810e25901",
+  "id": "1da2e5df-7a0b-49b7-9edd-7c7bd73f937d",
   "prevId": "a01d75ab-137a-4696-9fcd-560c91f7a525",
   "version": "7",
   "dialect": "postgresql",
@@ -5051,12 +5051,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "persona_id": {
-          "name": "persona_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "turn": {
           "name": "turn",
           "type": "integer",
@@ -5264,27 +5258,6 @@
           "method": "btree",
           "with": {}
         },
-        "geoMentionChecks_personaId_capturedAt_idx": {
-          "name": "geoMentionChecks_personaId_capturedAt_idx",
-          "columns": [
-            {
-              "expression": "persona_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "captured_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "geoMentionChecks_scanEnginePromptTurnLanguage_uidx": {
           "name": "geoMentionChecks_scanEnginePromptTurnLanguage_uidx",
           "columns": [
@@ -5358,292 +5331,6 @@
           "tableTo": "geo_scans",
           "columnsFrom": [
             "scan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "geo_mention_checks_persona_id_geo_personas_id_fk": {
-          "name": "geo_mention_checks_persona_id_geo_personas_id_fk",
-          "tableFrom": "geo_mention_checks",
-          "tableTo": "geo_personas",
-          "columnsFrom": [
-            "persona_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.geo_persona_memories": {
-      "name": "geo_persona_memories",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "persona_id": {
-          "name": "persona_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "geoPersonaMemories_personaId_idx": {
-          "name": "geoPersonaMemories_personaId_idx",
-          "columns": [
-            {
-              "expression": "persona_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "geoPersonaMemories_projectId_idx": {
-          "name": "geoPersonaMemories_projectId_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "geo_persona_memories_persona_id_geo_personas_id_fk": {
-          "name": "geo_persona_memories_persona_id_geo_personas_id_fk",
-          "tableFrom": "geo_persona_memories",
-          "tableTo": "geo_personas",
-          "columnsFrom": [
-            "persona_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "geo_persona_memories_organization_id_organizations_id_fk": {
-          "name": "geo_persona_memories_organization_id_organizations_id_fk",
-          "tableFrom": "geo_persona_memories",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "geo_persona_memories_project_id_projects_id_fk": {
-          "name": "geo_persona_memories_project_id_projects_id_fk",
-          "tableFrom": "geo_persona_memories",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.geo_personas": {
-      "name": "geo_personas",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "company": {
-          "name": "company",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "search_style": {
-          "name": "search_style",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "profile": {
-          "name": "profile",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "geoPersonas_organizationId_idx": {
-          "name": "geoPersonas_organizationId_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "geoPersonas_projectId_idx": {
-          "name": "geoPersonas_projectId_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "geo_personas_organization_id_organizations_id_fk": {
-          "name": "geo_personas_organization_id_organizations_id_fk",
-          "tableFrom": "geo_personas",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "geo_personas_project_id_projects_id_fk": {
-          "name": "geo_personas_project_id_projects_id_fk",
-          "tableFrom": "geo_personas",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
           ],
           "columnsTo": [
             "id"
@@ -6248,6 +5935,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'running'"
+        },
+        "plan": {
+          "name": "plan",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "started_at": {
           "name": "started_at",

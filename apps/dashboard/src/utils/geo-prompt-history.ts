@@ -7,6 +7,7 @@ import {
 import type {
   GeoPromptHistoryCheck,
   GeoPromptResult,
+  GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 
 import type { PromptHistoryChange, PromptHistoryEntry } from "@/types/geo";
@@ -18,6 +19,24 @@ export function promptHistoryForEngine(
   return checks
     .filter((check) => check.engine === engine)
     .sort((left, right) => right.capturedAt.localeCompare(left.capturedAt));
+}
+
+export function promptHistoryForScanLanguage(
+  checks: readonly GeoPromptHistoryCheck[],
+  scanId: string | undefined,
+  language: string
+) {
+  const scanChecks = checks.filter(
+    (check) => !scanId || check.scanId === scanId
+  );
+  const languages = [...new Set(scanChecks.map((check) => check.language))];
+  const selectedLanguage = languages.includes(language)
+    ? language
+    : languages[0];
+  const visibleChecks = scanId
+    ? scanChecks.filter((check) => check.language === selectedLanguage)
+    : scanChecks;
+  return { languages, selectedLanguage, visibleChecks };
 }
 
 export function promptPositionLabel(position: number | null): string {
@@ -146,6 +165,32 @@ export function promptResultFromHistoryCheck(
     truncated: null,
     lastCheckedAt: check.capturedAt,
   };
+}
+
+export function latestPromptResults(
+  results: readonly GeoPromptResultSummary[],
+  checks: readonly GeoPromptHistoryCheck[],
+  promptId: string,
+  prompt: string
+): GeoPromptResultSummary[] {
+  const latest = new Map(results.map((result) => [result.engine, result]));
+  for (const check of checks) {
+    const previous = latest.get(check.engine);
+    if (!previous || check.capturedAt > previous.lastCheckedAt) {
+      latest.set(check.engine, {
+        checkId: check.id,
+        promptId,
+        prompt,
+        engine: check.engine,
+        mentioned: check.mentioned,
+        position: check.position,
+        sentiment: check.sentiment,
+        competitors: check.competitors,
+        lastCheckedAt: check.capturedAt,
+      });
+    }
+  }
+  return [...latest.values()];
 }
 
 export function promptSentimentLabel(sentiment: string | null): string {

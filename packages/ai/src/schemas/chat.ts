@@ -24,6 +24,7 @@ export const externalChannelSourceSchema = z.enum([
   "discord",
   "slack",
   "dashboard",
+  "agent",
 ]);
 
 export const externalChannelLookupSourceSchema = z.enum(["discord", "slack"]);
@@ -36,6 +37,7 @@ export const externalChannelIdSchema = z
   .refine(
     (value) =>
       value.source === "dashboard" ||
+      value.source === "agent" ||
       (typeof value.id === "string" && value.id.length > 0),
     { message: "id is required for discord and slack sources" }
   );
@@ -97,6 +99,13 @@ export const standaloneChatRequestSchema = z.object({
   timezone: z.string().min(1).max(100).optional(),
 });
 
+export const dashboardAgentChatRequestSchema = z.object({
+  chatId: chatIdSchema,
+  projectId: z.string().min(1).optional(),
+  messages: z.array(uiMessageSchema).min(1).max(UI_MESSAGES_MAX),
+  timezone: z.string().min(1).max(100).optional(),
+});
+
 export const updateChatSessionSchema = z
   .object({
     title: z.string().trim().min(1).max(CHAT_TITLE_MAX_LENGTH).optional(),
@@ -123,6 +132,7 @@ export const chatWorkflowPayloadSchema = z.object({
   enableThinking: z.boolean().optional(),
   thinkingLevel: thinkingLevelSchema.optional(),
   timezone: z.string().min(1).max(100).optional(),
+  projectId: z.string().min(1).optional(),
 });
 
 export const chatTransportRequestBodySchema = z.object({
