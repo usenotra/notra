@@ -234,6 +234,7 @@ const deleteEventTriggerRoute = createRoute({
     401: errorResponse("Missing or invalid API key"),
     403: errorResponse("Forbidden"),
     404: errorResponse("Event trigger or organization not found"),
+    500: errorResponse("Failed to delete event trigger"),
     503: errorResponse("Authentication service unavailable"),
   },
 });
@@ -347,6 +348,10 @@ eventTriggersRoutes.openapi(getEventTriggerRoute, async (c) => {
     if (result.failure._tag === "EventTriggerNotFoundError") {
       return c.json({ error: "Event trigger not found" }, 404);
     }
+    if (result.failure._tag === "EventTriggerDatabaseError") {
+      logError("Failed to fetch event trigger", result.failure.cause);
+      return c.json({ error: "Failed to fetch event trigger" }, 500);
+    }
     throw result.failure;
   }
 
@@ -431,6 +436,10 @@ eventTriggersRoutes.openapi(deleteEventTriggerRoute, async (c) => {
   if (result._tag === "Failure") {
     if (result.failure._tag === "EventTriggerNotFoundError") {
       return c.json({ error: "Event trigger not found" }, 404);
+    }
+    if (result.failure._tag === "EventTriggerDatabaseError") {
+      logError("Failed to delete event trigger", result.failure.cause);
+      return c.json({ error: "Failed to delete event trigger" }, 500);
     }
     throw result.failure;
   }
