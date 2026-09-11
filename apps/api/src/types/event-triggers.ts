@@ -19,7 +19,7 @@ export type EventTriggerDomainError =
   | EventTriggerDuplicateError
   | EventTriggerTargetsNotFoundError;
 
-export interface EventTriggerProgramInput {
+interface EventTriggerProgramInput {
   db: ReturnType<typeof createDb>;
   organizationId: string;
 }
@@ -38,11 +38,4 @@ export interface CreateEventTriggerProgramInput extends EventTriggerProgramInput
 
 export interface UpdateEventTriggerProgramInput extends NamedEventTriggerProgramInput {
   body: z.infer<typeof patchEventTriggerRequestSchema>;
-}
-
-export interface ListEventTriggersResult {
-  eventTriggers: ReturnType<
-    typeof import("../utils/event-triggers").serializeEventTrigger
-  >[];
-  repositoryMap: Record<string, string>;
 }

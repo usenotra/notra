@@ -180,6 +180,7 @@ export default defineConfig({
         "packages/ai/src/schemas/github-operations.ts",
         "packages/tools/src/schemas/retry.ts",
         "packages/tools/src/schemas/social.ts",
+        "apps/api/src/errors/**/*.ts",
       ],
       rules: {
         "unicorn/throw-new-error": "off",
