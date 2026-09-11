@@ -93,6 +93,11 @@ import { IMAGE_EXPORT_DOWNLOAD_TARGET } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import {
+  copyImageAsFigma,
+  copyImageAsPaper,
+  downloadImage,
+} from "@/lib/content/image-export";
+import {
   useGeoWriterBrief,
   useGeoWriterUpdate,
 } from "@/lib/hooks/use-geo-writer";
@@ -120,8 +125,6 @@ import { shakeElements } from "@/utils/shake-element";
 
 import { useContent } from "../../../../../lib/hooks/use-content";
 import { ContentDetailSkeleton } from "./skeleton";
-
-const loadImageExport = () => import("@/lib/content/image-export");
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -1239,21 +1242,13 @@ export default function PageClient({
     content.contentType === "image" && isHttpImageContent(content.content)
       ? content.content
       : null;
-  const copyImageExportFor = async (target: ImageExportTarget) => {
+  const copyImageExportFor = (target: ImageExportTarget) => {
     trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
       content_id: contentId,
       target,
     });
-    const imageExport = await loadImageExport().catch(() => {
-      toast.error(`Failed to copy for ${getImageExportTargetLabel(target)}`);
-      return null;
-    });
-    if (!imageExport) {
-      return;
-    }
-    const { copyImageAsFigma, copyImageAsPaper } = imageExport;
     if (target === "figma") {
-      await copyImageAsFigma(
+      copyImageAsFigma(
         imageExportRef.current,
         title,
         imageExportHtml,
@@ -1262,16 +1257,14 @@ export default function PageClient({
       return;
     }
 
-    await copyImageAsPaper(
+    copyImageAsPaper(
       imageExportRef.current,
       title,
       imageExportHtml,
       imageExportHtmlUrl
     );
   };
-  const handleCopyImageExport = () => {
-    void copyImageExportFor(imageExportTarget);
-  };
+  const handleCopyImageExport = () => copyImageExportFor(imageExportTarget);
   const handleImageExportTargetSelect = (value: string) => {
     if (!isImageExportTarget(value) || value === "wonder") {
       return;
@@ -1279,7 +1272,7 @@ export default function PageClient({
 
     setImageExportTarget(value);
     window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
-    void copyImageExportFor(value);
+    copyImageExportFor(value);
   };
   const collection = data.collection;
   const backHref = collection
@@ -1678,11 +1671,7 @@ export default function PageClient({
                           content_id: contentId,
                           target: IMAGE_EXPORT_DOWNLOAD_TARGET,
                         });
-                        void loadImageExport()
-                          .then(({ downloadImage }) =>
-                            downloadImage(imageDownloadUrl, title)
-                          )
-                          .catch(() => toast.error("Failed to download image"));
+                        downloadImage(imageDownloadUrl, title);
                       }}
                       size="sm"
                       variant="outline"

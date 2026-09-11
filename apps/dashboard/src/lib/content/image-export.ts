@@ -1,5 +1,3 @@
-import { copyAsFigma } from "@notra/kiwi";
-import { copyAsPaper } from "@notra/kiwi/paper";
 import { toast } from "sonner";
 
 import {
@@ -8,6 +6,12 @@ import {
   sanitizeDownloadFilename,
 } from "@/utils/download";
 import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
+
+// Kiwi (Figma/Paper paste + Inter payload) stays off `/content/[id]` initial JS.
+const loadCopyAsFigma = () =>
+  import("@notra/kiwi").then((module) => module.copyAsFigma);
+const loadCopyAsPaper = () =>
+  import("@notra/kiwi/paper").then((module) => module.copyAsPaper);
 
 function createExportElement(html: string): HTMLDivElement {
   const container = document.createElement("div");
@@ -71,6 +75,7 @@ export async function copyImageAsFigma(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
+    const copyAsFigma = await loadCopyAsFigma();
     const copied = await withExportElement(
       element,
       html,
@@ -95,6 +100,7 @@ export async function copyImageAsPaper(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
+    const copyAsPaper = await loadCopyAsPaper();
     const copied = await withExportElement(
       element,
       html,
