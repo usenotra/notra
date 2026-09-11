@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -103,6 +103,10 @@ export function PublishContentToGitHubDialog({
     () => readStoredGitHubPublishRepositoryId(organizationId) ?? ""
   );
   const contentLabel = contentType === "changelog" ? "changelog" : "blog post";
+
+  useEffect(() => {
+    setRepositoryId(readStoredGitHubPublishRepositoryId(organizationId) ?? "");
+  }, [organizationId]);
 
   const integrationsQuery = useQuery(
     dashboardOrpc.integrations.list.queryOptions({

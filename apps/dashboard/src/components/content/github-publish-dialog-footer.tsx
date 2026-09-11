@@ -26,6 +26,7 @@ export function GitHubPublishDialogFooter({
       publishRecovery.code !== "github_app_permissions_required" ||
       !publishRecovery.permissionsUrl)
   );
+  const publishingPaused = Boolean(publishRecovery?.publishingPaused);
   let submitLabel = "Create draft PR";
   if (isPublishing) {
     submitLabel = "Creating draft PR…";
@@ -77,7 +78,7 @@ export function GitHubPublishDialogFooter({
           }
         />
       ) : null}
-      {pullRequest ? null : (
+      {pullRequest || publishingPaused ? null : (
         <Button
           disabled={
             isPublishing || !hasSelectedRepository || !selectedPublishingEnabled

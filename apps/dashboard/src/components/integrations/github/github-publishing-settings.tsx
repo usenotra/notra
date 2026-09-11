@@ -138,6 +138,7 @@ function GitHubContentPublishingSettings({
       <div className="flex items-center gap-2">
         <Switch
           id={publishingSwitchId}
+          nativeButton
           aria-label={`Publish ${pluralLabel} to ${selectedRepository.owner}/${selectedRepository.repo}`}
           checked={publishingEnabled}
           disabled={disabled || outputMutation.isPending}

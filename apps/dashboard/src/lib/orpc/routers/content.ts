@@ -6,8 +6,12 @@ import {
   getGitHubAppInstallationPublishAccess,
   getTokenForIntegrationId,
   isGitHubAppConfigured,
+  listGitHubAppInstallationsByOrganization,
 } from "@notra/ai/integrations/github";
-import { getGitHubPublishTokenEffect } from "@notra/ai/integrations/github-publish-auth";
+import {
+  getGitHubPublishTokenEffect,
+  selectGitHubAppInstallationForOwner,
+} from "@notra/ai/integrations/github-publish-auth";
 import {
   getDecryptedLinearToken,
   getLinearIntegrationsByOrganization,
@@ -920,15 +924,30 @@ export const contentRouter = {
       }
 
       const notraBaseUrl = resolveNotraBaseUrl();
-      if (connectionMethod === "github-app" && integration.installationId) {
+      let publishInstallationId = integration.installationId ?? null;
+      let publishInstallationAccountType = integration.installationAccountType;
+      let publishInstallationAccountLogin =
+        integration.installationAccountLogin;
+      if (connectionMethod === "github-app" && !publishInstallationId) {
+        const fallback = selectGitHubAppInstallationForOwner(
+          await listGitHubAppInstallationsByOrganization(input.organizationId),
+          integration.owner
+        );
+        if (fallback) {
+          publishInstallationId = fallback.installationId;
+          publishInstallationAccountType = fallback.accountType;
+          publishInstallationAccountLogin = fallback.accountLogin;
+        }
+      }
+      if (connectionMethod === "github-app" && publishInstallationId) {
         const publishAccess = await getGitHubAppInstallationPublishAccess(
-          integration.installationId
+          publishInstallationId
         );
         if (githubAppInstallationCanPublishContent(publishAccess) === false) {
           const recovery = getGitHubAppPermissionsRecovery({
-            installationId: integration.installationId,
-            installationAccountType: integration.installationAccountType,
-            installationAccountLogin: integration.installationAccountLogin,
+            installationId: publishInstallationId,
+            installationAccountType: publishInstallationAccountType,
+            installationAccountLogin: publishInstallationAccountLogin,
           });
           throw forbidden(recovery.message, recovery.data);
         }
@@ -974,9 +993,9 @@ export const contentRouter = {
           outputId: contentOutput.id,
           outputType: input.contentType,
           connectionMethod,
-          installationId: integration.installationId,
-          installationAccountType: integration.installationAccountType,
-          installationAccountLogin: integration.installationAccountLogin,
+          installationId: publishInstallationId,
+          installationAccountType: publishInstallationAccountType,
+          installationAccountLogin: publishInstallationAccountLogin,
         });
       }
     }),

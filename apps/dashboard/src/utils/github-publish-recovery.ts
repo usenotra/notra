@@ -25,7 +25,7 @@ export function getGitHubPublishRecovery(
   }
 
   if (data.code === "github_content_publishing_paused") {
-    return { code: data.code, publishingPaused };
+    return { code: data.code, publishingPaused: true };
   }
 
   if (data.code !== "github_app_permissions_required") {

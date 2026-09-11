@@ -75,8 +75,7 @@ export function IntegrationsSettingsPane() {
   ).map((integration) => (
     <IntegrationsSettingsRow
       connectedCount={
-        connected.filter((item) => item.type === integration.id && item.enabled)
-          .length
+        connected.filter((item) => item.type === integration.id).length
       }
       integration={integration}
       key={integration.id}
