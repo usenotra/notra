@@ -104,10 +104,13 @@ const LINKEDIN_EDITOR_OVERLAY_STYLE: React.CSSProperties = {
   color: "transparent",
 };
 
-function formatContentWithHashtagsAndLinks(text: string): React.ReactNode[] {
+function formatContentWithHashtagsAndLinks(
+  text: string,
+  shortenUrls = true
+): React.ReactNode[] {
   const parts = text.split(COMBINED_REGEX);
   return parts.map((part, index) => {
-    if (part.startsWith("#")) {
+    if (part.startsWith("#") || (!shortenUrls && part.match(URL_REGEX))) {
       return (
         <span
           className="hover:decoration-foreground cursor-pointer text-blue-600 hover:underline hover:underline-offset-2"
@@ -369,7 +372,6 @@ function LinkedInPost({
   const isEditable = Boolean(onContentChange);
 
   const [localValue, setLocalValue] = useState(() => content ?? "");
-  const highlightRef = useRef<HTMLDivElement>(null);
 
   const readOnlyContent = content ? (
     <PostContent
@@ -396,36 +398,29 @@ function LinkedInPost({
 
       <div className="px-4 pb-2">
         {isEditable ? (
-          <div className="relative grid w-full grid-cols-1">
-            <div
-              aria-hidden
-              ref={highlightRef}
-              className="pointer-events-none absolute inset-0 min-w-0 overflow-hidden [scrollbar-gutter:stable]"
-              style={LINKEDIN_EDITOR_TEXT_STYLE}
-            >
-              {formatContentWithHashtagsAndLinks(localValue)}
-              {"\u200b"}
+          <div className="max-h-80 overflow-y-auto [scrollbar-gutter:stable]">
+            <div className="relative grid w-full grid-cols-1">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 min-w-0 overflow-hidden"
+                style={LINKEDIN_EDITOR_TEXT_STYLE}
+              >
+                {formatContentWithHashtagsAndLinks(localValue, false)}
+                {"\u200b"}
+              </div>
+              <Textarea
+                className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-none min-h-[6.5rem] min-w-0 resize-none overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setLocalValue(value);
+                  onContentChange?.(value);
+                }}
+                placeholder="What do you want to talk about?"
+                spellCheck={false}
+                style={LINKEDIN_EDITOR_OVERLAY_STYLE}
+                value={localValue}
+              />
             </div>
-            <Textarea
-              className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[6.5rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
-              onScroll={(event) => {
-                if (highlightRef.current) {
-                  highlightRef.current.scrollTop =
-                    event.currentTarget.scrollTop;
-                  highlightRef.current.scrollLeft =
-                    event.currentTarget.scrollLeft;
-                }
-              }}
-              onChange={(e) => {
-                const value = e.target.value;
-                setLocalValue(value);
-                onContentChange?.(value);
-              }}
-              placeholder="What do you want to talk about?"
-              spellCheck={false}
-              style={LINKEDIN_EDITOR_OVERLAY_STYLE}
-              value={localValue}
-            />
           </div>
         ) : (
           readOnlyContent

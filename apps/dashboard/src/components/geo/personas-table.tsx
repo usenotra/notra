@@ -255,7 +255,9 @@ export function PersonasTable({
             </ContextMenuItem>
             <ContextMenuItem
               disabled={
-                deletePersona.isPending || pendingPersonaIds.includes(row.id)
+                generationPending ||
+                deletePersona.isPending ||
+                pendingPersonaIds.includes(row.id)
               }
               onClick={() =>
                 updatePersona.mutate({
