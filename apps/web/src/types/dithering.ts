@@ -23,6 +23,7 @@ export type DitheringCanvasProps = Pick<
 
 export type DeferredDitheringProps = Omit<DitheringCanvasProps, "animate"> & {
   unmountOffscreen?: boolean;
+  eager?: boolean;
 };
 
 export interface DitherVisibilityState {

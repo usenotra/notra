@@ -383,7 +383,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
     "text-[#1E1E1EA6] hover:text-[#1E1E1E] dark:text-neutral-400 dark:hover:text-white";
 
   return (
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={domAnimation}>
       <SignedOutLandingRedirect
         isAuthenticated={isAuthenticated}
         isResolved={isResolved}

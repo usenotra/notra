@@ -10,20 +10,33 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { createElement, type HTMLAttributes, type ReactNode } from "react";
+import { createElement, useSyncExternalStore, type ReactNode } from "react";
 
 import {
   HERO_HEADLINE_LINE_ONE,
   HERO_HEADLINE_LINE_TWO_PREFIX,
   HERO_HEADLINE_SUFFIX,
-  HERO_HEADLINE_WIDTH_WORD,
 } from "@/constants/landing/hero";
 import type { HeroCycleWord, HeroHeadlineProps } from "@/types/landing/hero";
 
 const ICON_SLOT_CLASS =
-  "relative ml-[0.22em] inline-block size-[0.75em] overflow-visible align-baseline [&_svg]:size-full";
+  "relative ml-[0.22em] inline-flex size-[1cap] shrink-0 items-center justify-center overflow-visible align-baseline";
 
-const ICON_SWAP = tween("slower", "emphasized");
+const ICON_SWAP = tween("slower", "emphasizedInOut");
+const ICON_HIDDEN = { opacity: 0, transform: "scale(0.94)" } as const;
+const ICON_SHOWN = { opacity: 1, transform: "scale(1)" } as const;
+
+function subscribeIsClient() {
+  return () => {};
+}
+
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribeIsClient,
+    () => true,
+    () => false
+  );
+}
 
 function EngineMark({
   engine,
@@ -33,10 +46,10 @@ function EngineMark({
     <span className={ICON_SLOT_CLASS}>
       <AnimatePresence initial={false}>
         <m.span
-          animate={{ opacity: 1 }}
-          className="absolute inset-0"
-          exit={animated ? { opacity: 0 } : undefined}
-          initial={animated ? { opacity: 0 } : false}
+          animate={ICON_SHOWN}
+          className="absolute inset-0 flex items-center justify-center [&_svg]:size-full"
+          exit={animated ? ICON_HIDDEN : undefined}
+          initial={animated ? ICON_HIDDEN : false}
           key={engine}
           transition={animated ? ICON_SWAP : { duration: 0 }}
         >
@@ -47,23 +60,14 @@ function EngineMark({
   );
 }
 
-function ScrittoFlow({
+function HeadlineFlow({
   children,
-  ...props
-}: HTMLAttributes<HTMLElement> & { children?: ReactNode }) {
-  return createElement(
-    "scritto-flow",
-    {
-      ...props,
-      ref: (el: HTMLElement | null) => {
-        if (el) {
-          el.style.display = "inline-flex";
-          el.style.alignItems = "baseline";
-        }
-      },
-    },
-    children
-  );
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return createElement("scritto-flow", { className }, children);
 }
 
 function HeadlineLineTwo({
@@ -73,25 +77,34 @@ function HeadlineLineTwo({
   word: HeroCycleWord;
   animated: boolean;
 }) {
-  return (
-    <span className="flex items-baseline whitespace-nowrap">
+  const morph = useIsClient();
+  const name = morph ? (
+    <Scritto
+      animated={animated}
+      className="ml-[0.16em] align-baseline"
+      value={word.text}
+    />
+  ) : (
+    <span className="ml-[0.16em]">{word.text}</span>
+  );
+  const line = (
+    <>
       {HERO_HEADLINE_LINE_TWO_PREFIX}
       <EngineMark animated={animated} engine={word.engine} />
-      <ScrittoFlow className="ml-[0.16em]">
-        <Scritto
-          animated={animated}
-          className="align-baseline leading-none"
-          value={word.text}
-        />
-      </ScrittoFlow>
+      {name}
       {HERO_HEADLINE_SUFFIX}
-    </span>
+    </>
   );
+
+  if (!morph) {
+    return <span className="block whitespace-nowrap">{line}</span>;
+  }
+
+  return <HeadlineFlow className="whitespace-nowrap">{line}</HeadlineFlow>;
 }
 
 export function HeroHeadline({ word }: HeroHeadlineProps) {
-  const reduceMotion = useReducedMotion();
-  const animated = !reduceMotion;
+  const animated = useReducedMotion() === false;
 
   return (
     <LazyMotion features={domAnimation}>
@@ -99,17 +112,7 @@ export function HeroHeadline({ word }: HeroHeadlineProps) {
         <span className="block whitespace-nowrap">
           {HERO_HEADLINE_LINE_ONE}
         </span>
-        <span className="relative mx-auto block w-fit">
-          <span aria-hidden className="invisible whitespace-nowrap">
-            {HERO_HEADLINE_LINE_TWO_PREFIX}
-            <span className={ICON_SLOT_CLASS} />
-            <span className="ml-[0.16em]">{HERO_HEADLINE_WIDTH_WORD.text}</span>
-            {HERO_HEADLINE_SUFFIX}
-          </span>
-          <span className="absolute inset-0 flex justify-center">
-            <HeadlineLineTwo animated={animated} word={word} />
-          </span>
-        </span>
+        <HeadlineLineTwo animated={animated} word={word} />
       </h1>
     </LazyMotion>
   );

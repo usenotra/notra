@@ -13,7 +13,7 @@ export function MockFrame({
     <div
       aria-hidden
       className={cn(
-        "border-border bg-background pointer-events-none h-full w-full min-w-0 rounded-2xl border p-4 text-left shadow-[0_0.125rem_1.4375rem_#0000001A,0_0.0625rem_0.125rem_#0000000A] select-none dark:shadow-none",
+        "border-border bg-background @container pointer-events-none h-full w-full min-w-0 rounded-2xl border p-4 text-left shadow-[0_0.125rem_1.4375rem_#0000001A,0_0.0625rem_0.125rem_#0000000A] select-none dark:shadow-none",
         className
       )}
     >

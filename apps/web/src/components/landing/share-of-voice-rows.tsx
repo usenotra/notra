@@ -15,6 +15,8 @@ import type { ShareRow, ShareRowLogo } from "@/types/landing/geo";
 
 const HEADER_CLASS = "text-muted-foreground text-xs";
 const SHARE_MAX = 100;
+const SHARE_COL = "w-[8.25rem]";
+const MENTIONS_COL = "w-[4.75rem]";
 const LOGO_SIZE_PX = 40;
 const LOGO_CLASS = "size-5 shrink-0 rounded-sm object-contain";
 
@@ -63,10 +65,16 @@ export function ShareOfVoiceRows({
       <TableHeader className="bg-muted/60">
         <TableRow>
           <TableHead className={HEADER_CLASS}>{headers.brand}</TableHead>
-          <TableHead className={cn(HEADER_CLASS, "w-[6.75rem] sm:w-auto")}>
+          <TableHead className={cn(HEADER_CLASS, SHARE_COL)}>
             {headers.share}
           </TableHead>
-          <TableHead className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}>
+          <TableHead
+            className={cn(
+              HEADER_CLASS,
+              FEATURES_TABLE_OPTIONAL_COL,
+              MENTIONS_COL
+            )}
+          >
             {headers.mentions}
           </TableHead>
         </TableRow>
@@ -74,18 +82,18 @@ export function ShareOfVoiceRows({
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.id}>
-            <TableCell className="min-w-0 py-3">
-              <span className="flex items-center gap-2 text-sm">
+            <TableCell className="min-w-0 overflow-hidden py-3">
+              <span className="flex min-w-0 items-center gap-2 text-sm">
                 <BrandLogo brand={row.brand} logo={row.logo} />
                 <span className={cn("truncate", row.isYou && "font-medium")}>
                   {row.brand}
                 </span>
               </span>
             </TableCell>
-            <TableCell className="w-[6.75rem] py-3 sm:w-auto">
+            <TableCell className={cn("py-3", SHARE_COL)}>
               <span className="flex items-center gap-2">
                 <GeoBar
-                  className="h-1.5 w-10 sm:w-16"
+                  className="h-1.5 w-10 @2xl:w-16"
                   fillColor={row.color}
                   max={SHARE_MAX}
                   value={row.share}
@@ -95,8 +103,9 @@ export function ShareOfVoiceRows({
             </TableCell>
             <TableCell
               className={cn(
-                "text-muted-foreground w-[4.75rem] py-3 text-sm tabular-nums",
-                FEATURES_TABLE_OPTIONAL_COL
+                "text-muted-foreground py-3 text-sm tabular-nums",
+                FEATURES_TABLE_OPTIONAL_COL,
+                MENTIONS_COL
               )}
             >
               {row.mentions}

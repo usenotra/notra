@@ -42,16 +42,20 @@ export function FeaturesCardTraffic() {
             <TableHead className={HEADER_CLASS}>
               {FEATURES_TRAFFIC_HEADERS.source}
             </TableHead>
-            <TableHead className={cn(HEADER_CLASS, "w-[9.75rem] sm:w-auto")}>
+            <TableHead className={cn(HEADER_CLASS, "w-[11.5rem]")}>
               {FEATURES_TRAFFIC_HEADERS.purpose}
             </TableHead>
             <TableHead
-              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL, "w-14")}
             >
               {FEATURES_TRAFFIC_HEADERS.visits}
             </TableHead>
             <TableHead
-              className={cn(HEADER_CLASS, FEATURES_TABLE_OPTIONAL_COL)}
+              className={cn(
+                HEADER_CLASS,
+                FEATURES_TABLE_OPTIONAL_COL,
+                "w-[4.75rem]"
+              )}
             >
               {FEATURES_TRAFFIC_HEADERS.lastSeen}
             </TableHead>
@@ -60,13 +64,13 @@ export function FeaturesCardTraffic() {
         <TableBody>
           {FEATURES_TRAFFIC_ROWS.map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="min-w-0 py-3">
-                <span className="flex items-center gap-2 text-sm font-medium">
+              <TableCell className="min-w-0 overflow-hidden py-3">
+                <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
                   <EngineIcon className="shrink-0" engine={row.engine} />
                   <span className="truncate">{row.source}</span>
                 </span>
               </TableCell>
-              <TableCell className="w-[9.75rem] py-3 whitespace-nowrap sm:w-auto">
+              <TableCell className="w-[11.5rem] overflow-hidden py-3">
                 <PurposeBadge category={row.purpose} />
               </TableCell>
               <TableCell
@@ -79,7 +83,7 @@ export function FeaturesCardTraffic() {
               </TableCell>
               <TableCell
                 className={cn(
-                  "text-muted-foreground py-3 text-sm whitespace-nowrap",
+                  "text-muted-foreground py-3 text-sm",
                   FEATURES_TABLE_OPTIONAL_COL
                 )}
               >

@@ -15,6 +15,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --background: hsl(0 0% 100%);
   --foreground: hsl(0 0% 9%);
   --card: hsl(0 0% 100%);
@@ -59,6 +60,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: hsl(233 7% 8%);
   --foreground: hsl(0 0% 98%);
   --card: hsl(240 6% 10%);

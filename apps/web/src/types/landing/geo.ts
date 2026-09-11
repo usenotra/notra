@@ -67,6 +67,7 @@ export interface CitationRowsProps {
   rows: LiveCitationRow[];
   base: number | null;
   animated: boolean;
+  enteringId?: string | null;
   headers: { when: string; provider: string; path: string; purpose: string };
 }
 

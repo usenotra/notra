@@ -26,7 +26,7 @@ export function HeroSection() {
   const word = HERO_HEADLINE_CYCLE[index] ?? HERO_HEADLINE_CYCLE[0];
 
   useEffect(() => {
-    if (reduceMotion) {
+    if (reduceMotion !== false) {
       return;
     }
     const interval = window.setInterval(() => {
