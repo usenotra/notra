@@ -1,10 +1,3 @@
-export interface ChartDownloadRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface ChartDownloadFrame {
   width: number;
   height: number;

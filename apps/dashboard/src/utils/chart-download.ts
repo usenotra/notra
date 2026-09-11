@@ -6,13 +6,13 @@ import {
   CHART_DOWNLOAD_PIXEL_RATIO,
   CHART_DOWNLOAD_RADIUS,
   CHART_DOWNLOAD_TITLE_SIZE,
+  CHART_MARK_EXPORT_GAP_RATIO,
   CHART_MARK_EXPORT_OPACITY,
   CHART_MARK_EXPORT_SIZE_RATIO,
+  CHART_MARK_EXPORT_WORD_SIZE_RATIO,
+  CHART_MARK_WORD,
 } from "@/constants/chart-download";
-import type {
-  ChartDownloadFrame,
-  ChartDownloadRect,
-} from "@/types/chart-download";
+import type { ChartDownloadFrame } from "@/types/chart-download";
 import { downloadBlob, sanitizeDownloadFilename } from "@/utils/download";
 
 const TRANSPARENT_BACKGROUNDS = new Set([
@@ -83,19 +83,32 @@ function exportFrame(
   };
 }
 
-function exportMarkRect(
+function paintExportLockup(
+  ctx: CanvasRenderingContext2D,
+  mark: HTMLImageElement,
+  color: string,
   chartWidth: number,
   chartHeight: number,
   chartX: number,
   chartY: number
-): ChartDownloadRect {
-  const size = Math.min(chartWidth, chartHeight) * CHART_MARK_EXPORT_SIZE_RATIO;
-  return {
-    x: chartX + (chartWidth - size) / 2,
-    y: chartY + (chartHeight - size) / 2,
-    width: size,
-    height: size,
-  };
+) {
+  const markSize =
+    Math.min(chartWidth, chartHeight) * CHART_MARK_EXPORT_SIZE_RATIO;
+  const fontSize = markSize * CHART_MARK_EXPORT_WORD_SIZE_RATIO;
+  const gap = markSize * CHART_MARK_EXPORT_GAP_RATIO;
+  ctx.font = `600 ${fontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  const wordWidth = ctx.measureText(CHART_MARK_WORD).width;
+  const x = chartX + (chartWidth - markSize - gap - wordWidth) / 2;
+  const y = chartY + (chartHeight - markSize) / 2;
+
+  ctx.save();
+  ctx.globalAlpha = CHART_MARK_EXPORT_OPACITY;
+  ctx.drawImage(mark, x, y, markSize, markSize);
+  ctx.fillStyle = color;
+  ctx.fillText(CHART_MARK_WORD, x + markSize + gap, y + markSize / 2);
+  ctx.restore();
 }
 
 function cardSurface(source: HTMLElement): HTMLElement {
@@ -198,23 +211,15 @@ export async function renderChartPng(
   ctx.drawImage(canvas, frame.chartX, frame.chartY);
 
   const mark = await markPromise;
-  const watermark = exportMarkRect(
+  paintExportLockup(
+    ctx,
+    mark,
+    foreground,
     frame.chartWidth,
     frame.chartHeight,
     frame.chartX,
     frame.chartY
   );
-
-  ctx.save();
-  ctx.globalAlpha = CHART_MARK_EXPORT_OPACITY;
-  ctx.drawImage(
-    mark,
-    watermark.x,
-    watermark.y,
-    watermark.width,
-    watermark.height
-  );
-  ctx.restore();
 
   ctx.fillStyle = foreground;
   ctx.font = `600 ${CHART_DOWNLOAD_TITLE_SIZE * pixelRatio}px Inter, ui-sans-serif, system-ui, sans-serif`;

@@ -9,6 +9,7 @@ import { ChartDownloadButton } from "@/components/charts/chart-download-button";
 import {
   CHART_MARK_LIVE_DARK_OPACITY,
   CHART_MARK_LIVE_OPACITY,
+  CHART_MARK_WORD,
 } from "@/constants/chart-download";
 import { cn } from "@/lib/utils";
 import type { EChartsPlotFrameProps } from "@/types/charts";
@@ -32,7 +33,12 @@ function ChartPlotChrome() {
         className={cn("flex h-full items-center justify-center", HOVER_FADE)}
         style={MARK_OPACITY_STYLE}
       >
-        <Notra className="h-[42%] max-h-40 w-auto [opacity:var(--chart-mark-opacity)] dark:[opacity:var(--chart-mark-opacity-dark)] [&_path]:stroke-current" />
+        <div className="flex items-center gap-[0.28em] text-[length:min(28cqh,7rem)] leading-none font-semibold tracking-tight [opacity:var(--chart-mark-opacity)] dark:[opacity:var(--chart-mark-opacity-dark)]">
+          <Notra className="h-[1em] w-auto shrink-0 [&_path]:stroke-current" />
+          <span className="text-foreground text-[0.62em] leading-none">
+            {CHART_MARK_WORD}
+          </span>
+        </div>
       </div>
       <div className={cn("absolute top-1 right-1", EXPORT_REVEAL)}>
         <ChartDownloadButton className="bg-background/80 hover:bg-background" />

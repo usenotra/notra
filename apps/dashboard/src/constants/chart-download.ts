@@ -1,7 +1,10 @@
+export const CHART_MARK_WORD = "Notra";
 export const CHART_MARK_LIVE_OPACITY = 0.08;
 export const CHART_MARK_LIVE_DARK_OPACITY = 0.12;
 export const CHART_MARK_EXPORT_OPACITY = 0.1;
-export const CHART_MARK_EXPORT_SIZE_RATIO = 0.42;
+export const CHART_MARK_EXPORT_SIZE_RATIO = 0.26;
+export const CHART_MARK_EXPORT_WORD_SIZE_RATIO = 0.55;
+export const CHART_MARK_EXPORT_GAP_RATIO = 0.22;
 
 export const CHART_DOWNLOAD_PIXEL_RATIO = 2;
 export const CHART_DOWNLOAD_PADDING = 16;
