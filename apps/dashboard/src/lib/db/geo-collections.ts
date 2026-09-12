@@ -1,6 +1,7 @@
 import { isGeoAutoPromptId } from "@notra/geo-core/geo/prompts";
 import type {
   GeoCompetitor,
+  GeoProject,
   GeoPromptSequence,
   GeoScopeInput,
   GeoTrackedPrompt,
@@ -151,6 +152,35 @@ export const geoPromptsCollection = createCollectionFactory<GeoTrackedPrompt>({
         queryKey: dashboardOrpc.geo.settings.queryKey({ input: scope }),
       }),
     ]),
+});
+
+export const geoProjectsCollection = createCollectionFactory<GeoProject>({
+  name: "projects",
+  errorMessage: "Failed to load projects",
+  fetch: async (scope) => {
+    const response = await dashboardOrpc.geo.projectsList.call({
+      organizationId: scope.organizationId,
+    });
+    return response.projects;
+  },
+  getKey: (item) => item.id,
+  insert: (scope, item) =>
+    dashboardOrpc.geo.projectsCreate.call({
+      organizationId: scope.organizationId,
+      name: item.name,
+      brandSettingsId: item.brandSettingsId,
+    }),
+  remove: (scope, original) =>
+    dashboardOrpc.geo.projectsDelete.call({
+      organizationId: scope.organizationId,
+      projectId: original.id,
+    }),
+  invalidateLegacy: (queryClient, scope) =>
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.projectsList.queryKey({
+        input: { organizationId: scope.organizationId },
+      }),
+    }),
 });
 
 export const geoCompetitorsCollection = createCollectionFactory<GeoCompetitor>({

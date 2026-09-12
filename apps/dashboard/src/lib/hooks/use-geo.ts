@@ -895,6 +895,7 @@ export function useGeoIngestTokenRotate(organizationId: string) {
   });
 }
 
+/** @deprecated Use {@link useGeoProjectsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoProjects(organizationId: string) {
   return useQuery<GeoProjectsResponse>({
     ...dashboardOrpc.geo.projectsList.queryOptions({
@@ -909,6 +910,7 @@ export function useGeoProjects(organizationId: string) {
   });
 }
 
+/** @deprecated Use {@link useGeoProjectsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoProjectCreate(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -928,6 +930,7 @@ export function useGeoProjectCreate(organizationId: string) {
   });
 }
 
+/** @deprecated Use {@link useGeoProjectsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoProjectDelete(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({
