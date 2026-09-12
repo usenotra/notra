@@ -6,6 +6,7 @@ import {
   GEO_SCAN_PREFLIGHT_BODY,
   GEO_SCAN_PREFLIGHT_CANCEL,
   GEO_SCAN_PREFLIGHT_CONFIRM,
+  GEO_SCAN_PREFLIGHT_DESELECT_ALL,
   GEO_SCAN_PREFLIGHT_ENGINES_LABEL,
   GEO_SCAN_PREFLIGHT_LAST_SCAN_LABEL,
   GEO_SCAN_PREFLIGHT_NEED_ENGINE,
@@ -169,6 +170,7 @@ export function ScanPreflightDialog({
   const [deselected, setDeselected] = useState<Set<string>>(() => new Set());
   const selected = engines.filter((engine) => !deselected.has(engine));
   const selectedCount = selected.length;
+  const allSelected = selectedCount === engines.length;
   const canRun = selectedCount > 0;
 
   const { scanSize, warningSeverity } = useGeoScanEstimate({
@@ -249,13 +251,19 @@ export function ScanPreflightDialog({
             </p>
             {selectable ? (
               <Button
-                disabled={isPending || selectedCount === engines.length}
-                onClick={() => setDeselected(new Set())}
+                disabled={isPending}
+                onClick={() =>
+                  setDeselected(
+                    allSelected ? new Set(engines) : new Set<string>()
+                  )
+                }
                 size="xs"
                 type="button"
                 variant="ghost"
               >
-                {GEO_SCAN_PREFLIGHT_SELECT_ALL}
+                {allSelected
+                  ? GEO_SCAN_PREFLIGHT_DESELECT_ALL
+                  : GEO_SCAN_PREFLIGHT_SELECT_ALL}
               </Button>
             ) : null}
           </div>
