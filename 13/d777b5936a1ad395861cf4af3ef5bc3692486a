@@ -1,0 +1,21 @@
+apps/dashboard/src/components/integrations/github/github-publishing-settings.tsx
+  s_aa8229cd889ec7::t_16bbc6fe87003b 58-64,68-70,82-83,85-86,111-115,201-203
+  s_aa8229cd889ec7::t_89fbbd704d9d3f 227
+  s_aa8229cd889ec7::t_0a2976dd8676a8 65-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "13d777b5936a1ad395861cf4af3ef5bc3692486a",
+  "prompts": {},
+  "sessions": {
+    "s_aa8229cd889ec7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1f0df977-ca0c-4496-bc00-88a14c552ab7",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
