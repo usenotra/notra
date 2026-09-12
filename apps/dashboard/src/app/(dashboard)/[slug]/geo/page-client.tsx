@@ -9,7 +9,6 @@ import { GeoSetupEmpty } from "@/components/geo/geo-setup-empty";
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoOverviewPage } from "@/lib/hooks/use-geo-overview-page";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { cn } from "@/lib/utils";
 import type {
   GeoOverviewLoadedProps,

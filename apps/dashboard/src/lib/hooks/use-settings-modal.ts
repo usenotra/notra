@@ -28,7 +28,9 @@ export function useSettingsModal() {
   );
 
   useEffect(() => {
-    if (legacyTab === null) {
+    // nuqs broadcasts updates for a shared key across hooks, even when their
+    // parsers differ. Only consume billing aliases, never another page's tab.
+    if (legacyTab === null || !LEGACY_BILLING_TAB_VALUES.includes(legacyTab)) {
       return;
     }
     if (legacyTab === "usage" && section === "billing") {
