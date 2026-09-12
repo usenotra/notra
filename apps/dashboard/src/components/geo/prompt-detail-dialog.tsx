@@ -46,8 +46,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoCompetitors } from "@/lib/hooks/use-geo";
-import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import { cn } from "@/lib/utils";
 import type {
@@ -390,15 +389,19 @@ function PromptAnswerPage({
     initialEngine,
   });
   const tagsInputId = useId();
-  const { prompts, pendingPromptIds, setPromptTags } =
-    useGeoPromptsDb(organizationId);
+  const { prompts, pendingPromptIds, setPromptTags } = useGeoPromptsDb(
+    organizationId,
+    { enabled: open }
+  );
   const tags = prompts.find((prompt) => prompt.id === row.id)?.tags ?? row.tags;
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
   const [direction, setDirection] = useState(1);
   const reduceMotion = useReducedMotion();
-  const competitors = useGeoCompetitors(organizationId);
+  const { competitors } = useGeoCompetitorsDb(organizationId, {
+    enabled: open,
+  });
   const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
   const showLanguageBar = Boolean(scanId) && languages.length > 1;
 
@@ -494,7 +497,7 @@ function PromptAnswerPage({
               >
                 <PromptAnswerBody
                   organizationId={organizationId}
-                  competitors={competitors.data?.competitors}
+                  competitors={competitors}
                   detailState={detailState}
                   history={engineHistory}
                   isHistoryLoading={history.isPending}

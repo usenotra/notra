@@ -21,6 +21,7 @@ export function useGitHubRepositoryActions({
     ...dashboardOrpc.integrations.affectedSchedules.queryOptions({
       input: { organizationId, integrationId: integration.id },
     }),
+    staleTime: 60 * 1000,
     enabled: dialog === "delete",
   });
   const invalidate = () =>

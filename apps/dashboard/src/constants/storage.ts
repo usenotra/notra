@@ -23,6 +23,8 @@ export const localStorageKeys = {
     "notra:dashboard-agent-suggestions-dismissed:v2",
   geoPromptViews: (organizationId: string, projectId: string | undefined) =>
     `notra:geo-prompt-views:v1:${organizationId}:${projectId ?? "all"}`,
+  githubPublishRepository: (organizationId: string) =>
+    `notra:github-publish-repository:v1:${organizationId}`,
 } as const;
 
 export const sessionStorageKeys = {

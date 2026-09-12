@@ -10,9 +10,9 @@ import { SettingsPane } from "@/components/settings/settings-pane";
 import {
   useGeoModelCatalog,
   useGeoProjects,
-  useGeoPrompts,
   useGeoSettings,
 } from "@/lib/hooks/use-geo";
+import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type { GeoSettingsFormSection } from "@/types/geo";
 import { countEnabledGeoPrompts } from "@/utils/geo-overview-page";
@@ -46,7 +46,7 @@ function GeoSettingsPaneContent({
   const { data: settingsData, isPending } = useGeoSettings(organizationId);
   const { data: catalog } = useGeoModelCatalog(organizationId);
   const { data: projectsData } = useGeoProjects(organizationId);
-  const { data: promptsData } = useGeoPrompts(organizationId);
+  const { prompts } = useGeoPromptsDb(organizationId);
   const projects = projectsData?.projects ?? [];
   const activeProjectId =
     settingsData?.settings?.projectId ?? projectParam ?? projects.at(0)?.id;
@@ -74,9 +74,7 @@ function GeoSettingsPaneContent({
         hideHeader
         key={activeProjectId}
         organizationId={organizationId}
-        promptCount={
-          promptsData ? countEnabledGeoPrompts(promptsData.prompts) : undefined
-        }
+        promptCount={countEnabledGeoPrompts(prompts)}
         section={section}
         settings={settingsData?.settings ?? null}
       />

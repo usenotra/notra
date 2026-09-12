@@ -17,7 +17,7 @@ import {
   listGitHubAppInstallationsByOrganization,
 } from "./github";
 
-function selectGitHubAppInstallationForOwner<
+export function selectGitHubAppInstallationForOwner<
   T extends { accountLogin: string },
 >(installations: readonly T[], owner: string | null | undefined) {
   const normalizedOwner = owner?.trim().toLowerCase();

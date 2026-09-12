@@ -493,6 +493,7 @@ export function useGeoCompetitorRowNavigation(
   return { openRow, prefetchRow };
 }
 
+/** @deprecated Use {@link useGeoCompetitorsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoCompetitors(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoCompetitorsResponse>({
@@ -520,6 +521,7 @@ export function useGeoLanguageShare(
   });
 }
 
+/** @deprecated Use {@link useGeoPromptsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoPrompts(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrackedPromptsResponse>({

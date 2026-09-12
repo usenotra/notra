@@ -80,8 +80,8 @@ export const GITHUB_INSTALLATION_ID_REGEX = /^\d+$/;
 export const GITHUB_RECOVERY_COPY = {
   github_app_permissions_required: {
     description:
-      "Allow read and write access to Contents and Pull requests. An organization admin may need to approve this.",
-    title: "GitHub permissions needed",
+      "Notra needs write access to Contents and Pull requests. Review the installation on GitHub and accept any pending permission request. Reconnecting the repository does not grant write access.",
+    title: "GitHub write access needed",
   },
   github_authentication_required: {
     description:
