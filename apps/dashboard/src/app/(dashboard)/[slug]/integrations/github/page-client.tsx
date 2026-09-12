@@ -50,7 +50,9 @@ export default function PageClient({
           ) : null}
         </div>
         <GitHubRepositoriesSection {...settings} />
-        <GitHubAppSection {...settings} />
+        {githubIntegrations.length > 0 || isConnected ? (
+          <GitHubAppSection {...settings} />
+        ) : null}
       </div>
       <ConnectGitHubDialog
         isConnecting={false}
