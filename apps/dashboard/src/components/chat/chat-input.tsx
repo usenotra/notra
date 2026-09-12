@@ -96,7 +96,6 @@ import {
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
-import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
 import {
   CHAT_INPUT_LIMIT_MESSAGE,
   contextItemKey,
@@ -656,10 +655,6 @@ export function ChatInputAdvanced({
     externalError ??
     internalError ??
     (isUsageBlocked ? CHAT_INPUT_LIMIT_MESSAGE : null);
-  const showUpgradeAction =
-    isUsageBlocked ||
-    internalError === CHAT_INPUT_LIMIT_MESSAGE ||
-    externalError === CHAT_USAGE_LIMIT_MESSAGE;
 
   const clearError = useCallback(() => {
     setInternalError(null);
@@ -1618,7 +1613,7 @@ export function ChatInputAdvanced({
             showComposerNudge ? (
               <Composer.Nudge
                 action={
-                  showUpgradeAction && organizationSlug ? (
+                  usageLimitError && organizationSlug ? (
                     <Button
                       nativeButton={false}
                       render={
@@ -1711,14 +1706,12 @@ export function ChatInputAdvanced({
                   </>
                 ) : null}
                 {usageLimitError ? (
-                  <span className="flex min-w-0 items-start gap-1.5 text-sm">
+                  <span className="flex min-w-0 items-center gap-1.5 text-sm">
                     <HugeiconsIcon
-                      className="text-warning mt-0.5 size-4 shrink-0"
+                      className="text-warning size-4 shrink-0"
                       icon={Alert02Icon}
                     />
-                    <span className="min-w-0 flex-1 leading-5 break-words whitespace-normal">
-                      {usageLimitError}
-                    </span>
+                    <span className="truncate">{usageLimitError}</span>
                   </span>
                 ) : null}
               </Composer.Nudge>

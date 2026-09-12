@@ -52,6 +52,7 @@ import { useActiveProject } from "@/lib/hooks/use-active-project";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
 function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
@@ -403,7 +404,11 @@ function DashboardAgentChat({
           onStop={handleStop}
           onValueChange={setChatInputValue}
           organizationId={organizationId}
-          organizationSlug={organizationSlug}
+          organizationSlug={
+            chatError && chatError !== CHAT_USAGE_LIMIT_MESSAGE
+              ? ""
+              : organizationSlug
+          }
           placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
           value={chatInputValue}
         />
