@@ -79,7 +79,15 @@ const COUNTRIES = ["US", "DE", "GB", "FR"] as const;
 const MAX_JUDGE_COMPETITORS = 4;
 const TREND_GAIN = 0.12;
 const SCAN_DURATION_MS = 60_000;
-const SAMPLE_TRAFFIC_HOST = "www.example.com";
+const SAMPLE_TRAFFIC_HOSTS = [
+  "www.example.com",
+  "docs.example.com",
+  "app.example.com",
+] as const;
+const SAMPLE_TRAFFIC_EXTRA_DOMAINS = [
+  "docs.example.com",
+  "app.example.com",
+] as const;
 const HASH_MODULUS = 2_147_483_647;
 
 function hashInt(seed: string): number {
@@ -358,7 +366,6 @@ function buildMentionChecks(input: {
 function buildTrafficEvents(input: {
   organizationId: string;
   projectId: string;
-  host: string;
   now: Date;
 }): GeoTrafficEventRow[] {
   const rows: GeoTrafficEventRow[] = [];
@@ -384,7 +391,7 @@ function buildTrafficEvents(input: {
           category: crawler.category,
           confidence: "verified",
           path: pick(GEO_SAMPLE_TRAFFIC_PATHS, `${journeyId}-${pageIndex}`),
-          host: input.host,
+          host: pick(SAMPLE_TRAFFIC_HOSTS, `${journeyId}-${pageIndex}`),
           method: "GET",
           referer: "",
           ua: `${crawler.agent}/1.0`,
@@ -418,7 +425,7 @@ function buildTrafficEvents(input: {
           category: "assistant-referral",
           confidence: "reported",
           path,
-          host: input.host,
+          host: pick(SAMPLE_TRAFFIC_HOSTS, `${seed}-${visitIndex}`),
           method: "GET",
           referer: referral.referer,
           ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -565,6 +572,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
           // scans on the freshly seeded project until it went stale.
           scanStartedAt: null,
           lastScanAt: scanFinishedAt,
+          domains: [...SAMPLE_TRAFFIC_EXTRA_DOMAINS],
         })
         .where(eq(geoSettings.projectId, projectId))
     );
@@ -577,6 +585,7 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
         companyName,
         aliases,
         competitors: competitorNames(),
+        domains: [...SAMPLE_TRAFFIC_EXTRA_DOMAINS],
         languages: [...GEO_SAMPLE_LANGUAGES],
         enabled: true,
         lastScanAt: scanFinishedAt,
@@ -675,7 +684,6 @@ export const seedGeoSampleData = Effect.fn("geo.sampleData")(function* (
   const trafficEvents = buildTrafficEvents({
     organizationId: input.organizationId,
     projectId,
-    host: SAMPLE_TRAFFIC_HOST,
     now,
   });
 

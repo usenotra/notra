@@ -323,6 +323,15 @@ export const GEO_DIRECTIONS_PAGES: readonly GeoTrafficPage[] = [
     previousVisits: 2100,
     lastSeenAt: "2026-08-03T19:33:00Z",
   },
+  {
+    host: "app.usenotra.com",
+    path: "/login",
+    source: "chatgpt",
+    visitorType: "ai_referral",
+    visits: 1520,
+    previousVisits: 1280,
+    lastSeenAt: "2026-08-03T18:11:00Z",
+  },
 ];
 
 export const GEO_DIRECTIONS_KPIS: readonly GeoDirectionKpi[] = [
