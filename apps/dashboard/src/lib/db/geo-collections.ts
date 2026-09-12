@@ -22,6 +22,9 @@ import {
   toShelfPlacementWrites,
 } from "@/utils/geo-shelf";
 
+// Bounded retries instead of an unbounded error poll on every dashboard page.
+const GEO_PROJECTS_RETRY_COUNT = 3;
+
 function scopeKey(scope: GeoScopeInput): string {
   return `${scope.organizationId}:${scope.projectId ?? "all"}`;
 }
@@ -54,13 +57,25 @@ function buildScopedCollection<T extends object>(
       id,
       queryKey: geoDbQueryKey(spec.name, scope),
       queryClient,
+      ...(spec.retry !== undefined ? { retry: spec.retry } : {}),
+      ...(spec.showRetryAction
+        ? {
+            meta: {
+              errorMessage: spec.errorMessage,
+              showRetryAction: true,
+            },
+          }
+        : {}),
       queryFn: async () => {
         try {
           return await spec.fetch(scope);
         } catch (error) {
           // The upgrade gate handles entitlement denials, not load-error toasts.
           if (
-            !(error instanceof ORPCError && error.code === "PAYMENT_REQUIRED")
+            !(
+              error instanceof ORPCError && error.code === "PAYMENT_REQUIRED"
+            ) &&
+            !spec.showRetryAction
           ) {
             toast.error(spec.errorMessage, { id });
           }
@@ -157,6 +172,8 @@ export const geoPromptsCollection = createCollectionFactory<GeoTrackedPrompt>({
 export const geoProjectsCollection = createCollectionFactory<GeoProject>({
   name: "projects",
   errorMessage: "Failed to load projects",
+  showRetryAction: true,
+  retry: GEO_PROJECTS_RETRY_COUNT,
   fetch: async (scope) => {
     const response = await dashboardOrpc.geo.projectsList.call({
       organizationId: scope.organizationId,

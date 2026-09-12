@@ -4,6 +4,10 @@ import type { QueryClient } from "@tanstack/react-query";
 export interface GeoCollectionSpec<T extends object> {
   name: string;
   errorMessage: string;
+  /** When set, defers load-error toasts to the global QueryCache retry UI. */
+  showRetryAction?: boolean;
+  /** Bounded retries for transient load failures (React Query observer option). */
+  retry?: number;
   fetch: (scope: GeoScopeInput) => Promise<T[]>;
   getKey: (item: T) => string;
   insert?: (scope: GeoScopeInput, item: T) => Promise<unknown>;

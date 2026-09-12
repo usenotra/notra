@@ -18,6 +18,7 @@ import { useGeoProjectScope } from "@/components/providers/geo-project-provider"
 import {
   geoCollectionId,
   geoCompetitorsCollection,
+  geoDbQueryKey,
   geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
@@ -186,6 +187,33 @@ export function useGeoProjectsDb(
 
   const projects: GeoProject[] = data ?? [];
 
+  const resolveCreatedProject = async (
+    tempId: string,
+    trimmedName: string,
+    brandSettingsId: string
+  ): Promise<GeoProject | null> => {
+    const matchesCreated = (project: GeoProject) =>
+      project.id !== tempId &&
+      project.name === trimmedName &&
+      project.brandSettingsId === brandSettingsId;
+
+    const cached =
+      queryClient.getQueryData<GeoProject[]>(
+        geoDbQueryKey("projects", scope)
+      ) ?? [];
+    const fromCache = cached.find(matchesCreated) ?? null;
+    if (fromCache) {
+      return fromCache;
+    }
+
+    const response = await queryClient.fetchQuery(
+      dashboardOrpc.geo.projectsList.queryOptions({
+        input: { organizationId },
+      })
+    );
+    return response.projects.find(matchesCreated) ?? null;
+  };
+
   const createProject = async (
     input: GeoProjectCreateInput
   ): Promise<GeoProject> => {
@@ -201,22 +229,24 @@ export function useGeoProjectsDb(
     track(tempId, transaction, "Failed to create project");
     try {
       await transaction.isPersisted.promise;
-      toast.success("Project created");
-      const response = await queryClient.fetchQuery(
-        dashboardOrpc.geo.projectsList.queryOptions({
-          input: { organizationId },
-        })
+      const created = await resolveCreatedProject(
+        tempId,
+        trimmedName,
+        input.brandSettingsId
       );
-      const created =
-        response.projects.findLast(
-          (project) =>
-            project.name === trimmedName &&
-            project.brandSettingsId === input.brandSettingsId
-        ) ?? null;
       if (!created) {
         throw new Error("Failed to resolve created project");
       }
+      toast.success("Project created");
       return created;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "Failed to resolve created project"
+      ) {
+        toast.error(toErrorMessage(error, "Failed to create project"));
+      }
+      throw error;
     } finally {
       setIsCreating(false);
     }
