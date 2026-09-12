@@ -15,14 +15,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
@@ -59,14 +52,10 @@ function DashboardAgentChat({
   const [isHydratingHistory, setIsHydratingHistory] = useState(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
-  const activeChatIdRef = useRef(activeChatId);
   const onCloseRef = useRef(onClose);
   const closeAfterNavigationRef = useRef(false);
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
-  const projectIdRef = useRef<string | undefined>(
-    isProjectResolved && activeProjectId ? activeProjectId : undefined
-  );
 
   const sessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
@@ -87,35 +76,24 @@ function DashboardAgentChat({
     },
     staleTime: 60_000,
   });
-  const sessions = sessionsQuery.data ?? [];
+  const sessions = (sessionsQuery.data ?? []).filter(
+    (session) =>
+      !session.externalChannelId || session.externalChannelId.source === "agent"
+  );
 
-  const prepareSendMessagesRequest = useCallback(
-    ({
-      messages,
-      body,
-    }: {
-      messages: UIMessage[];
-      body?: Record<string, unknown>;
-    }) => ({
+  const transport = new DefaultChatTransport({
+    api: `/api/organizations/${organizationId}/chat`,
+    prepareSendMessagesRequest: ({ messages, body }) => ({
       body: {
         ...body,
-        chatId: activeChatIdRef.current,
-        projectId: projectIdRef.current,
+        chatId: activeChatId,
+        projectId:
+          isProjectResolved && activeProjectId ? activeProjectId : undefined,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         messages,
       },
     }),
-    []
-  );
-
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: `/api/organizations/${organizationId}/dashboard-agent/chat`,
-        prepareSendMessagesRequest,
-      }),
-    [organizationId, prepareSendMessagesRequest]
-  );
+  });
 
   const {
     messages,
@@ -135,30 +113,30 @@ function DashboardAgentChat({
           messagesRef.current
         );
       }
-      queryClient
-        .invalidateQueries({
-          queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
-        })
-        .catch((invalidateError) => {
-          console.error(
-            "Failed to refresh agent chat sessions",
-            invalidateError
-          );
-        });
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["chat-history", organizationId, activeChatId],
+        }),
+      ]).catch((invalidateError) => {
+        console.error("Failed to refresh agent chat sessions", invalidateError);
+      });
       isAgentBusyRef.current = false;
     },
     onError: (err) => {
       isAgentBusyRef.current = false;
-      queryClient
-        .invalidateQueries({
-          queryKey: dashboardAgentChatSessionsQueryKey(organizationId),
-        })
-        .catch((invalidateError) => {
-          console.error(
-            "Failed to refresh agent chat sessions",
-            invalidateError
-          );
-        });
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["chat-history", organizationId, activeChatId],
+        }),
+      ]).catch((invalidateError) => {
+        console.error("Failed to refresh agent chat sessions", invalidateError);
+      });
       queryClient
         .invalidateQueries({
           queryKey: dashboardAgentChatHistoryQueryKey(
@@ -184,52 +162,46 @@ function DashboardAgentChat({
 
   const isAgentBusy = status === "streaming" || status === "submitted";
   useLayoutEffect(() => {
-    activeChatIdRef.current = activeChatId;
     onCloseRef.current = onClose;
-    projectIdRef.current =
-      isProjectResolved && activeProjectId ? activeProjectId : undefined;
-  }, [activeChatId, activeProjectId, isProjectResolved, onClose]);
+  }, [onClose]);
   useLayoutEffect(() => {
     messagesRef.current = messages;
     isAgentBusyRef.current = isAgentBusy || isHydratingHistory;
   }, [isAgentBusy, isHydratingHistory, messages]);
 
-  const handleSelectChat = useCallback(
-    async (chatId: string) => {
-      if (isAgentBusyRef.current || chatId === activeChatId) {
-        return;
-      }
-      isAgentBusyRef.current = true;
-      setIsHydratingHistory(true);
-      try {
-        const history = await queryClient.fetchQuery({
-          queryKey: dashboardAgentChatHistoryQueryKey(organizationId, chatId),
-          queryFn: async () => {
-            const response = await fetch(
-              dashboardAgentChatHistoryPath(organizationId, chatId)
-            );
-            if (!response.ok) {
-              throw new Error("Failed to load agent chat history");
-            }
-            const payload = await response.json();
-            return uiMessageSchema.array().parse(payload?.messages);
-          },
-          staleTime: 0,
-        });
-        setChatInputValue("");
-        setChatError(null);
-        setMessages(history);
-        setActiveChatId(chatId);
-      } catch {
-        toast.error("Failed to load agent chat history. Try again.");
-      }
-      setIsHydratingHistory(false);
-      isAgentBusyRef.current = false;
-    },
-    [activeChatId, organizationId, queryClient, setMessages]
-  );
+  const handleSelectChat = async (chatId: string) => {
+    if (isAgentBusyRef.current || chatId === activeChatId) {
+      return;
+    }
+    isAgentBusyRef.current = true;
+    setIsHydratingHistory(true);
+    try {
+      const history = await queryClient.fetchQuery({
+        queryKey: dashboardAgentChatHistoryQueryKey(organizationId, chatId),
+        queryFn: async () => {
+          const response = await fetch(
+            dashboardAgentChatHistoryPath(organizationId, chatId)
+          );
+          if (!response.ok) {
+            throw new Error("Failed to load agent chat history");
+          }
+          const payload = await response.json();
+          return uiMessageSchema.array().parse(payload?.messages);
+        },
+        staleTime: 0,
+      });
+      setChatInputValue("");
+      setChatError(null);
+      setMessages(history);
+      setActiveChatId(chatId);
+    } catch {
+      toast.error("Failed to load agent chat history. Try again.");
+    }
+    setIsHydratingHistory(false);
+    isAgentBusyRef.current = false;
+  };
 
-  const handleNewChat = useCallback(() => {
+  const handleNewChat = () => {
     if (isAgentBusyRef.current) {
       return;
     }
@@ -240,64 +212,55 @@ function DashboardAgentChat({
     }
     setMessages([]);
     setActiveChatId(crypto.randomUUID());
-  }, [setMessages]);
+  };
 
-  const handleApproveTool = useCallback(
-    (approvalId: string) => {
-      addToolApprovalResponse({
-        id: approvalId,
-        approved: true,
-      });
-    },
-    [addToolApprovalResponse]
-  );
+  const handleApproveTool = (approvalId: string) => {
+    addToolApprovalResponse({
+      id: approvalId,
+      approved: true,
+    });
+  };
 
-  const handleDenyTool = useCallback(
-    (approvalId: string) => {
-      addToolApprovalResponse({
-        id: approvalId,
-        approved: false,
-        reason: "discard",
-      });
-    },
-    [addToolApprovalResponse]
-  );
+  const handleDenyTool = (approvalId: string) => {
+    addToolApprovalResponse({
+      id: approvalId,
+      approved: false,
+      reason: "discard",
+    });
+  };
 
-  const handleSend = useCallback(
-    async (instruction: string) => {
-      if (!activeChatId || isAgentBusyRef.current) {
-        return;
+  const handleSend = async (instruction: string) => {
+    if (!activeChatId || isAgentBusyRef.current) {
+      return;
+    }
+    for (const message of messagesRef.current) {
+      if (message.role !== "assistant") {
+        continue;
       }
-      for (const message of messagesRef.current) {
-        if (message.role !== "assistant") {
+      for (const part of message.parts) {
+        if (!(isToolUIPart(part) && part.state === "approval-requested")) {
           continue;
         }
-        for (const part of message.parts) {
-          if (!(isToolUIPart(part) && part.state === "approval-requested")) {
-            continue;
-          }
-          const approvalId = part.approval?.id;
-          if (!approvalId) {
-            continue;
-          }
-          addToolApprovalResponse({
-            id: approvalId,
-            approved: false,
-            reason: "discard",
-          });
+        const approvalId = part.approval?.id;
+        if (!approvalId) {
+          continue;
         }
+        addToolApprovalResponse({
+          id: approvalId,
+          approved: false,
+          reason: "discard",
+        });
       }
-      isAgentBusyRef.current = true;
-      await sendMessage({ text: instruction });
-    },
-    [activeChatId, addToolApprovalResponse, sendMessage]
-  );
+    }
+    isAgentBusyRef.current = true;
+    await sendMessage({ text: instruction });
+  };
 
-  const handleSuggestionSelect = useCallback((prompt: string) => {
+  const handleSuggestionSelect = (prompt: string) => {
     setChatInputValue(prompt);
-  }, []);
+  };
 
-  const handleOpenChat = useCallback(() => {
+  const handleOpenChat = () => {
     const hasConversation =
       messagesRef.current.length > 0 ||
       Boolean(
@@ -316,14 +279,7 @@ function DashboardAgentChat({
     closeAfterNavigationRef.current = true;
     router.prefetch(path);
     router.push(path, { scroll: false });
-  }, [
-    activeChatId,
-    onClose,
-    organizationSlug,
-    pathname,
-    router,
-    sessionsQuery.data,
-  ]);
+  };
 
   useEffect(() => {
     if (!closeAfterNavigationRef.current) {

@@ -22,10 +22,6 @@ export interface GeoWriterNeedsSetupProps {
   description: string;
 }
 
-export interface GeoWriterPageContentProps {
-  organizationSlug: string;
-}
-
 export type WriteDialogSectionId =
   | "prompt"
   | "type"

@@ -94,6 +94,8 @@ export const GEO_PROMPT_TAGS_COPY = {
   none: "No tags",
 } as const;
 
+export const GEO_PROMPT_ANSWER_LOADING_LABEL = "Loading answer";
+
 export const GEO_PROMPT_LABEL_PILL_CLASS =
   "inline-flex h-6 max-w-full items-center gap-1.5 rounded-full border px-2 text-xs font-medium whitespace-nowrap";
 

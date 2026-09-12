@@ -1,5 +1,6 @@
 import {
   deleteGitHubAppInstallationForOrganization,
+  getGitHubAppInstallationPublishAccess,
   GitHubAppNotConfiguredError,
   getGitHubAppInstallUrl,
   getSelectedGitHubAppRepositoryIds,
@@ -9,7 +10,11 @@ import {
   setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
 import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
-import { createOctokit } from "@notra/ai/utils/octokit";
+import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "@notra/ai/utils/octokit";
 import { redis } from "@notra/ai/utils/redis";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -211,14 +216,24 @@ export const githubRouter = {
           ),
           toGitHubOperationOrpcError
         );
+        const accounts = await Promise.all(
+          installations.map(async (installation) => {
+            const publishAccess = await getGitHubAppInstallationPublishAccess(
+              installation.installationId
+            );
+            return {
+              id: installation.accountId,
+              installationId: installation.installationId,
+              login: installation.accountLogin,
+              name: installation.accountName,
+              avatarUrl: installation.accountAvatarUrl,
+              type: toGitHubAccountType(installation.accountType),
+              canPublish: githubAppInstallationCanPublishContent(publishAccess),
+            };
+          })
+        );
         return {
-          accounts: installations.map((installation) => ({
-            id: installation.accountId,
-            login: installation.accountLogin,
-            name: installation.accountName,
-            avatarUrl: installation.accountAvatarUrl,
-            type: toGitHubAccountType(installation.accountType),
-          })),
+          accounts,
           repositories,
           selectedRepositoryIds,
         };
@@ -236,7 +251,6 @@ export const githubRouter = {
             organizationId: input.organizationId,
             userId: auth.user.id,
             repositoryIds: input.repositoryIds,
-            preserveExisting: input.preserveExisting,
           }),
           toGitHubOperationOrpcError
         );
@@ -326,7 +340,9 @@ export const githubRouter = {
         );
       }
 
-      const octokit = createOctokit(input.token || undefined);
+      const octokit = createOctokit(input.token || undefined, {
+        requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+      });
 
       return Effect.runPromise(
         Effect.tryPromise({

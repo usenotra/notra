@@ -128,7 +128,10 @@ export function TableBodyRow<T>({
       {columns.map((column) => (
         <td
           className={cn(
-            "text-foreground max-w-0 overflow-hidden px-4",
+            "text-foreground max-w-0 px-4",
+            rowSizing === "content"
+              ? "overflow-visible align-top"
+              : "overflow-hidden",
             cellBorder,
             alignText(column.align)
           )}

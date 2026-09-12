@@ -1,7 +1,8 @@
 import { db } from "@notra/db/drizzle";
 import { geoSettings, projects } from "@notra/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
+import { GEO_PROJECTS_OLDEST_ORDER } from "../constants/geo-projects";
 import type { GeoOnboardingStage } from "../types/geo";
 
 export async function getGeoOnboardingStage(
@@ -19,7 +20,7 @@ export async function getGeoOnboardingStage(
     : await db.query.projects.findFirst({
         columns: { id: true },
         where: eq(projects.organizationId, organizationId),
-        orderBy: [asc(projects.createdAt)],
+        orderBy: GEO_PROJECTS_OLDEST_ORDER,
       });
 
   if (!scoped) {

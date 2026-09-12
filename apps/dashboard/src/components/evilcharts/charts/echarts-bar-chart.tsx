@@ -29,6 +29,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
   type BrushGeometry,
@@ -1594,6 +1595,316 @@ function createInitialLiveState(): LiveState {
 }
 
 
+function legendOverlayStyle(
+  verticalAlign: string | undefined,
+  brushEnabled: boolean,
+  brushHeight: number
+): CSSProperties {
+  const base: CSSProperties = {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    pointerEvents: "auto",
+  };
+  if (verticalAlign === "top") {
+    return { ...base, top: 12 };
+  }
+  if (verticalAlign === "bottom") {
+    return {
+      ...base,
+      bottom: brushEnabled ? brushHeight + 16 : 12,
+    };
+  }
+  return { ...base, top: "50%", transform: "translateY(-50%)" };
+}
+
+function resolveBarCategoryKey(
+  categorySlotDataKey: string | undefined,
+  xDataKey: string | undefined,
+  data: readonly Record<string, unknown>[],
+  seriesKeys: readonly string[]
+): string {
+  if (categorySlotDataKey) {
+    return categorySlotDataKey;
+  }
+  if (xDataKey) {
+    return xDataKey;
+  }
+  const firstRow = data[0];
+  if (!firstRow) {
+    return "";
+  }
+  const claimed = new Set(seriesKeys);
+  return Object.keys(firstRow).find((key) => !claimed.has(key)) ?? "";
+}
+
+function resolveMaxHighlightIndex(
+  enabled: boolean,
+  data: readonly Record<string, unknown>[],
+  seriesKeys: readonly string[]
+): number | null {
+  if (!enabled || data.length === 0 || seriesKeys.length === 0) {
+    return null;
+  }
+  let best = 0;
+  let bestTotal = Number.NEGATIVE_INFINITY;
+  data.forEach((row, i) => {
+    const total = seriesKeys.reduce(
+      (sum, key) => sum + (Number(row[key]) || 0),
+      0
+    );
+    if (total > bestTotal) {
+      bestTotal = total;
+      best = i;
+    }
+  });
+  return best;
+}
+
+function bindBarChartInstance({
+  mount,
+  live,
+  echartsRef,
+  setHoveredDataKey,
+  toggleSelection,
+  syncBrushOverlayNow,
+}: {
+  mount: HTMLDivElement;
+  live: LiveState;
+  echartsRef: { current: EChartsInstance | null };
+  setHoveredDataKey: (key: string | null) => void;
+  toggleSelection: (key: string) => void;
+  syncBrushOverlayNow: () => void;
+}): () => void {
+  const chart = echarts.init(mount);
+  echartsRef.current = chart;
+
+  live.applyHoverKey = (key) => {
+    if (live.hoverClearRaf) {
+      cancelAnimationFrame(live.hoverClearRaf);
+      live.hoverClearRaf = 0;
+    }
+    if (live.hoveredKey === key) {
+      return;
+    }
+    live.hoveredKey = key;
+    setHoveredDataKey(key);
+    live.handlers.onHoverChange?.(key);
+    chart.dispatchAction({ type: "downplay" });
+    if (key) {
+      chart.dispatchAction({ type: "highlight", seriesId: key });
+    }
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (
+      mount.clientWidth === chart.getWidth() &&
+      mount.clientHeight === chart.getHeight()
+    ) {
+      return;
+    }
+    chart.resize();
+    live.repush();
+  });
+  resizeObserver.observe(mount);
+
+  const themeObserver = new MutationObserver(() => {
+    live.repush();
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  const onExpandMove = (event: { offsetX: number; offsetY: number }) => {
+    const { expandableKey } = live.handlers;
+    if (!expandableKey) {
+      return;
+    }
+    const point = [event.offsetX, event.offsetY];
+    if (!chart.containPixel({ gridIndex: 0 }, point)) {
+      live.animateExpand(expandableKey, null);
+      return;
+    }
+    const converted = chart.convertFromPixel({ gridIndex: 0 }, point);
+    const index = Array.isArray(converted) ? converted[0] : converted;
+    live.animateExpand(
+      expandableKey,
+      typeof index === "number" ? Math.round(index) : null
+    );
+  };
+  const onExpandOut = () => {
+    const { expandableKey } = live.handlers;
+    if (expandableKey) {
+      live.animateExpand(expandableKey, null);
+    }
+    if (live.handlers.enableHoverHighlight) {
+      live.applyHoverKey(null);
+    }
+  };
+  chart.getZr().on("mousemove", onExpandMove);
+  chart.getZr().on("globalout", onExpandOut);
+
+  chart.on("mouseover", (params) => {
+    if (!live.handlers.enableHoverHighlight) {
+      return;
+    }
+    if (live.handlers.selectedDataKey !== null) {
+      return;
+    }
+    const p = params as { seriesId?: string; componentType?: string };
+    if (p.componentType !== "series") {
+      return;
+    }
+    const key = String(p.seriesId ?? "");
+    if (!key || key.startsWith("__")) {
+      return;
+    }
+    live.applyHoverKey(key);
+  });
+  chart.on("mouseout", (params) => {
+    if (!live.handlers.enableHoverHighlight) {
+      return;
+    }
+    if (live.handlers.selectedDataKey !== null) {
+      return;
+    }
+    const p = params as { seriesId?: string; componentType?: string };
+    if (p.componentType !== "series") {
+      return;
+    }
+    const key = String(p.seriesId ?? "");
+    if (!key || key.startsWith("__")) {
+      return;
+    }
+    if (live.hoverClearRaf) {
+      cancelAnimationFrame(live.hoverClearRaf);
+    }
+    live.hoverClearRaf = requestAnimationFrame(() => {
+      live.hoverClearRaf = 0;
+      live.applyHoverKey(null);
+    });
+  });
+
+  chart.on("click", (params) => {
+    const { clickableKeys: clickable, seriesKeys: keys } = live.handlers;
+    const p = params as { seriesId?: string; seriesIndex?: number };
+    const id =
+      p.seriesId ??
+      (typeof p.seriesIndex === "number" ? keys[p.seriesIndex] : undefined);
+    if (typeof id === "string" && clickable.has(id)) {
+      toggleSelection(id);
+    }
+  });
+
+  chart.on("datazoom", () => {
+    const option = chart.getOption() as {
+      dataZoom?: { start?: number; end?: number }[];
+    };
+    const zoom = option.dataZoom?.[0];
+    if (!zoom) {
+      return;
+    }
+
+    live.brushRange = { start: zoom.start ?? 0, end: zoom.end ?? 100 };
+    syncBrushOverlayNow();
+
+    const { onBrushChange: onChange } = live.handlers;
+    if (!onChange) {
+      return;
+    }
+    const len = live.dataLength;
+    const startIndex = Math.round(((zoom.start ?? 0) / 100) * (len - 1));
+    const endIndex = Math.round(((zoom.end ?? 100) / 100) * (len - 1));
+    onChange({ startIndex, endIndex });
+  });
+
+  chart.on("finished", () => {
+    const { hasStripped, isHorizontal: horiz } = live.handlers;
+    if (!hasStripped || performance.now() < live.revealEndsAt) {
+      return;
+    }
+    const measured = measureValuePxPerUnit(chart, horiz);
+    if (measured == null) {
+      return;
+    }
+    if (
+      live.valuePxPerUnit != null &&
+      Math.abs(measured - live.valuePxPerUnit) < 0.5
+    ) {
+      return;
+    }
+    live.valuePxPerUnit = measured;
+    live.patchStrippedCaps();
+  });
+
+  const zr = chart.getZr();
+  const applyHover = (next: {
+    inside: boolean;
+    left: boolean;
+    right: boolean;
+  }) => {
+    const prev = live.brushHover;
+    if (
+      prev.inside === next.inside &&
+      prev.left === next.left &&
+      prev.right === next.right
+    ) {
+      return;
+    }
+    live.brushHover = next;
+    syncBrushOverlayNow();
+  };
+  const onZrMove = (event: { offsetX?: number; offsetY?: number }) => {
+    const geom = live.brushGeom;
+    if (!geom) {
+      return;
+    }
+    const x = event.offsetX ?? -1;
+    const y = event.offsetY ?? -1;
+    const top = chart.getHeight() - geom.bottom - geom.height;
+    const inside = y >= top - 4 && y <= top + geom.height + 4;
+    const trackLeft = 8;
+    const trackWidth = Math.max(chart.getWidth() - 16, 1);
+    const { start, end } = live.brushRange;
+    const selectionLeft = trackLeft + (trackWidth * start) / 100;
+    const selectionRight = trackLeft + (trackWidth * end) / 100;
+    applyHover({
+      inside,
+      left: inside && Math.abs(x - selectionLeft) <= 8,
+      right: inside && Math.abs(x - selectionRight) <= 8,
+    });
+  };
+  const onZrOut = () =>
+    applyHover({ inside: false, left: false, right: false });
+  zr.on("mousemove", onZrMove);
+  zr.on("globalout", onZrOut);
+
+  return () => {
+    zr.off("mousemove", onExpandMove);
+    zr.off("globalout", onExpandOut);
+    zr.off("mousemove", onZrMove);
+    zr.off("globalout", onZrOut);
+    chart.off("mouseover");
+    chart.off("mouseout");
+    chart.off("click");
+    chart.off("datazoom");
+    chart.off("finished");
+    resizeObserver.disconnect();
+    themeObserver.disconnect();
+    chart.dispose();
+    echartsRef.current = null;
+    live.brushOverlay = null;
+    live.hasRevealed = false;
+    live.hoveredKey = null;
+    if (live.hoverClearRaf) {
+      cancelAnimationFrame(live.hoverClearRaf);
+      live.hoverClearRaf = 0;
+    }
+    live.applyHoverKey = () => {};
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1686,41 +1997,26 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
 
   const seriesKeys = useMemo(() => bars.map((bar) => bar.dataKey), [bars]);
 
-  // category key: category axis dataKey → root xDataKey → first data column no <Bar> claims.
-  const categoryKey = useMemo(() => {
-    if (categorySlot.dataKey) return categorySlot.dataKey;
-    if (xDataKey) return xDataKey as string;
-    const firstRow = data[0];
-    if (firstRow) {
-      const claimed = new Set(seriesKeys);
-      const found = Object.keys(firstRow).find((key) => !claimed.has(key));
-      if (found) return found;
-    }
-    return "";
-  }, [categorySlot.dataKey, xDataKey, data, seriesKeys]);
+  const categoryKey = useMemo(
+    () =>
+      resolveBarCategoryKey(
+        categorySlot.dataKey,
+        xDataKey as string | undefined,
+        data,
+        seriesKeys
+      ),
+    [categorySlot.dataKey, xDataKey, data, seriesKeys]
+  );
 
   // The intro grow-in follows the first bar's setting, falling back to the root default.
   const effectiveAnimation = bars[0]?.animationType ?? animationType;
 
   // The tallest COLUMN, comparing totals across every series so a stack or group
   // wins together rather than one bar inside it. Null when the flag is off.
-  const maxHighlightIndex = useMemo(() => {
-    if (!enableMaxValueHighlight || !data.length || !seriesKeys.length)
-      return null;
-    let best = 0;
-    let bestTotal = Number.NEGATIVE_INFINITY;
-    data.forEach((row, i) => {
-      const total = seriesKeys.reduce(
-        (sum, key) => sum + (Number(row[key]) || 0),
-        0
-      );
-      if (total > bestTotal) {
-        bestTotal = total;
-        best = i;
-      }
-    });
-    return best;
-  }, [enableMaxValueHighlight, data, seriesKeys]);
+  const maxHighlightIndex = useMemo(
+    () => resolveMaxHighlightIndex(enableMaxValueHighlight, data, seriesKeys),
+    [enableMaxValueHighlight, data, seriesKeys]
+  );
 
   const css = useMemo(() => buildChartCss(chartId, config), [chartId, config]);
 
@@ -1905,248 +2201,17 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
   // ── Init + resize + theme observer (once) ────────────────────────────────────
   useEffect(() => {
     const mount = mountRef.current;
-    const container = containerRef.current;
-    if (!mount || !container) return;
-
-    const chart = echarts.init(mount);
-    echartsRef.current = chart;
-
-    live.applyHoverKey = (key) => {
-      if (live.hoverClearRaf) {
-        cancelAnimationFrame(live.hoverClearRaf);
-        live.hoverClearRaf = 0;
-      }
-      if (live.hoveredKey === key) {
-        return;
-      }
-      live.hoveredKey = key;
-      setHoveredDataKey(key);
-      live.handlers.onHoverChange?.(key);
-      chart.dispatchAction({ type: "downplay" });
-      if (key) {
-        chart.dispatchAction({ type: "highlight", seriesId: key });
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(() => {
-      // Observers always fire once right after observe(). Repushing on that
-      // no-op fire would land one frame into the intro and stomp the grow-in —
-      // only react when the renderer size actually changed.
-      if (
-        mount.clientWidth === chart.getWidth() &&
-        mount.clientHeight === chart.getHeight()
-      ) {
-        return;
-      }
-      chart.resize();
-      live.repush();
+    if (!mount) {
+      return;
+    }
+    return bindBarChartInstance({
+      echartsRef,
+      live,
+      mount,
+      setHoveredDataKey,
+      syncBrushOverlayNow,
+      toggleSelection,
     });
-    resizeObserver.observe(mount);
-
-    // Light/dark flips change no React state — re-resolve and push directly.
-    const themeObserver = new MutationObserver(() => {
-      live.repush();
-    });
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    // Expandable hover, driven by the pointer's COLUMN rather than the bar element.
-    // An expandable bar is a hairline at rest, so element hover would only catch a
-    // couple of pixels — and hovering the empty space above a bar (where the axis
-    // tooltip still responds) would highlight it without expanding it. Converting
-    // the pointer's x back to a category index makes the whole column the target,
-    // matching what the tooltip already does. Registered ONCE here rather than in
-    // the sync effect, which re-runs on every prop/theme change and would stack
-    // duplicate listeners; it calls through live.animateExpand, always the current one.
-    const onExpandMove = (event: { offsetX: number; offsetY: number }) => {
-      const { expandableKey } = live.handlers;
-      if (!expandableKey) return;
-      const point = [event.offsetX, event.offsetY];
-      if (!chart.containPixel({ gridIndex: 0 }, point)) {
-        live.animateExpand(expandableKey, null);
-        return;
-      }
-      // A grid finder returns [xValue, yValue]; on a category axis the x value IS
-      // the index. An xAxisIndex finder returns null for a 2D point.
-      const converted = chart.convertFromPixel({ gridIndex: 0 }, point);
-      const index = Array.isArray(converted) ? converted[0] : converted;
-      live.animateExpand(
-        expandableKey,
-        typeof index === "number" ? Math.round(index) : null
-      );
-    };
-    const onExpandOut = () => {
-      const { expandableKey } = live.handlers;
-      if (expandableKey) live.animateExpand(expandableKey, null);
-      if (live.handlers.enableHoverHighlight) {
-        live.applyHoverKey(null);
-      }
-    };
-    chart.getZr().on("mousemove", onExpandMove);
-    chart.getZr().on("globalout", onExpandOut);
-
-    chart.on("mouseover", (params) => {
-      if (!live.handlers.enableHoverHighlight) {
-        return;
-      }
-      if (live.handlers.selectedDataKey !== null) {
-        return;
-      }
-      const p = params as { seriesId?: string; componentType?: string };
-      if (p.componentType !== "series") {
-        return;
-      }
-      const key = String(p.seriesId ?? "");
-      if (!key || key.startsWith("__")) {
-        return;
-      }
-      live.applyHoverKey(key);
-    });
-    chart.on("mouseout", (params) => {
-      if (!live.handlers.enableHoverHighlight) {
-        return;
-      }
-      if (live.handlers.selectedDataKey !== null) {
-        return;
-      }
-      const p = params as { seriesId?: string; componentType?: string };
-      if (p.componentType !== "series") {
-        return;
-      }
-      const key = String(p.seriesId ?? "");
-      if (!key || key.startsWith("__")) {
-        return;
-      }
-      if (live.hoverClearRaf) {
-        cancelAnimationFrame(live.hoverClearRaf);
-      }
-      live.hoverClearRaf = requestAnimationFrame(() => {
-        live.hoverClearRaf = 0;
-        live.applyHoverKey(null);
-      });
-    });
-
-    chart.on("click", (params) => {
-      const { clickableKeys: clickable, seriesKeys: keys } = live.handlers;
-      const p = params as { seriesId?: string; seriesIndex?: number };
-      // Bar clicks carry seriesId; keep the seriesIndex fallback for safety. Main
-      // series come first in the series array, so the index maps directly.
-      const id =
-        p.seriesId ??
-        (typeof p.seriesIndex === "number" ? keys[p.seriesIndex] : undefined);
-      if (typeof id === "string" && clickable.has(id)) toggleSelection(id);
-    });
-
-    chart.on("datazoom", () => {
-      const option = chart.getOption() as {
-        dataZoom?: { start?: number; end?: number }[];
-      };
-      const zoom = option.dataZoom?.[0];
-      if (!zoom) return;
-
-      // Ride the selection — pure zrender updates, so the drag stays 1:1.
-      live.brushRange = { start: zoom.start ?? 0, end: zoom.end ?? 100 };
-      syncBrushOverlayNow();
-
-      const { onBrushChange: onChange } = live.handlers;
-      if (!onChange) return;
-      const len = live.dataLength;
-      const startIndex = Math.round(((zoom.start ?? 0) / 100) * (len - 1));
-      const endIndex = Math.round(((zoom.end ?? 100) / 100) * (len - 1));
-      onChange({ startIndex, endIndex });
-    });
-
-    // Every push measures the axis scale and corrects stripped caps before it
-    // paints, so this only catches rescales that BYPASS push — a dataZoom drag
-    // narrowing the window until the value axis re-ranges. The correction is a
-    // SILENT series-only merge (patchStrippedCaps), so it can't reset a dataZoom
-    // drag. Held off until the entrance finishes (revealEndsAt) so it never lands
-    // mid-grow; guarded by an epsilon so a stable measurement doesn't loop.
-    chart.on("finished", () => {
-      const { hasStripped, isHorizontal: horiz } = live.handlers;
-      if (!hasStripped || performance.now() < live.revealEndsAt) return;
-      const measured = measureValuePxPerUnit(chart, horiz);
-      if (measured == null) return;
-      if (
-        live.valuePxPerUnit != null &&
-        Math.abs(measured - live.valuePxPerUnit) < 0.5
-      )
-        return;
-      live.valuePxPerUnit = measured;
-      live.patchStrippedCaps();
-    });
-
-    // Hover tracking for the overlay: labels show while the pointer is over the
-    // brush, and each pill brightens when the pointer is near its edge.
-    const zr = chart.getZr();
-    const applyHover = (next: {
-      inside: boolean;
-      left: boolean;
-      right: boolean;
-    }) => {
-      const prev = live.brushHover;
-      if (
-        prev.inside === next.inside &&
-        prev.left === next.left &&
-        prev.right === next.right
-      ) {
-        return;
-      }
-      live.brushHover = next;
-      syncBrushOverlayNow();
-    };
-    const onZrMove = (event: { offsetX?: number; offsetY?: number }) => {
-      const geom = live.brushGeom;
-      if (!geom) return;
-      const x = event.offsetX ?? -1;
-      const y = event.offsetY ?? -1;
-      const top = chart.getHeight() - geom.bottom - geom.height;
-      const inside = y >= top - 4 && y <= top + geom.height + 4;
-      const trackLeft = 8;
-      const trackWidth = Math.max(chart.getWidth() - 16, 1);
-      const { start, end } = live.brushRange;
-      const selectionLeft = trackLeft + (trackWidth * start) / 100;
-      const selectionRight = trackLeft + (trackWidth * end) / 100;
-      applyHover({
-        inside,
-        left: inside && Math.abs(x - selectionLeft) <= 8,
-        right: inside && Math.abs(x - selectionRight) <= 8,
-      });
-    };
-    const onZrOut = () =>
-      applyHover({ inside: false, left: false, right: false });
-    zr.on("mousemove", onZrMove);
-    zr.on("globalout", onZrOut);
-
-    return () => {
-      zr.off("mousemove", onExpandMove);
-      zr.off("globalout", onExpandOut);
-      zr.off("mousemove", onZrMove);
-      zr.off("globalout", onZrOut);
-      chart.off("mouseover");
-      chart.off("mouseout");
-      chart.off("click");
-      chart.off("datazoom");
-      chart.off("finished");
-      resizeObserver.disconnect();
-      themeObserver.disconnect();
-      chart.dispose();
-      echartsRef.current = null;
-      // The overlay elements died with the zrender instance.
-      live.brushOverlay = null;
-      // The reveal guard belongs to the chart instance it guarded. Without this
-      // reset, StrictMode's dev-only mount→unmount→remount plays the entrance on
-      // the throwaway instance and the surviving one renders without it.
-      live.hasRevealed = false;
-      live.hoveredKey = null;
-      if (live.hoverClearRaf) {
-        cancelAnimationFrame(live.hoverClearRaf);
-        live.hoverClearRaf = 0;
-      }
-      live.applyHoverKey = () => {};
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2461,33 +2526,22 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
     return () => cancelAnimationFrame(raf);
   }, [live, isLoading, loadingBars, loadingData]);
 
-  // ── Legend overlay position ──────────────────────────────────────────────────
-  // Insets match the Recharts legend's breathing room inside the plot frame.
-  const legendStyle: CSSProperties = {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    pointerEvents: "auto",
-    ...(legendSlot.verticalAlign === "top"
-      ? { top: 12 }
-      : legendSlot.verticalAlign === "bottom"
-        ? { bottom: brushEnabled ? brushHeight + 16 : 12 }
-        : { top: "50%", transform: "translateY(-50%)" }),
-  };
+  const legendStyle = legendOverlayStyle(
+    legendSlot.verticalAlign,
+    brushEnabled,
+    brushHeight
+  );
 
   return (
-    <div
-      className={`relative flex flex-col text-xs ${className ?? ""}`}
-      data-chart={chartId}
-      ref={containerRef}
+    <EChartsPlotFrame
+      chartId={chartId}
+      className={className}
+      containerRef={containerRef}
+      css={css}
+      isLoading={isLoading}
+      mountRef={mountRef}
     >
-      <style dangerouslySetInnerHTML={{ __html: css }} />
-
-      <div className="relative min-h-0 w-full flex-1">
-        <div className="h-full min-h-0 w-full" ref={mountRef} />
-      </div>
-
-      {legendSlot.present && !isLoading && (
+      {legendSlot.present && !isLoading ? (
         <LegendOverlay
           align={legendSlot.align}
           config={config}
@@ -2500,22 +2554,8 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
           variant={legendSlot.variant}
           verticalAlign={legendSlot.verticalAlign}
         />
-      )}
-
-      {isLoading && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <motion.div
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center justify-center gap-2 rounded-md border bg-background px-2 py-0.5 text-primary text-sm"
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
-            transition={tween("slow")}
-          >
-            <div className="h-3 w-3 animate-spin rounded-full border border-border border-t-primary" />
-            <span>Loading</span>
-          </motion.div>
-        </div>
-      )}
-    </div>
+      ) : null}
+    </EChartsPlotFrame>
   );
 }
 

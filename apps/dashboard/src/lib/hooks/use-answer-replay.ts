@@ -6,7 +6,6 @@ import {
   GEO_REPLAY_MAX_TYPE_TOTAL_MS,
   GEO_REPLAY_MIN_TYPE_INTERVAL_MS,
   GEO_REPLAY_REDUCED_MOTION_PAUSE_MS,
-  GEO_REPLAY_THINKING_MS,
   GEO_REPLAY_TURN_PAUSE_MS,
   GEO_REPLAY_TYPE_INTERVAL_MS,
   GEO_REPLAY_USER_PAUSE_MS,
@@ -14,10 +13,6 @@ import {
 import type { AnswerReplayProgress, AnswerReplayTurn } from "@/types/geo";
 
 const WHITESPACE_SPLIT = /(\s+)/;
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function typeInterval(tokenCount: number): number {
   if (tokenCount === 0) {
@@ -30,6 +25,10 @@ function typeInterval(tokenCount: number): number {
       Math.round(GEO_REPLAY_MAX_TYPE_TOTAL_MS / tokenCount)
     )
   );
+}
+
+function pauseMs(ms: number, reducedMotion: boolean): number {
+  return reducedMotion ? GEO_REPLAY_REDUCED_MOTION_PAUSE_MS : ms;
 }
 
 export function useAnswerReplay(
@@ -48,51 +47,60 @@ export function useAnswerReplay(
     if (playToken === 0 || turns.length === 0 || skipReplay) {
       return;
     }
-    let cancelled = false;
-    const pause = (ms: number) =>
-      wait(reducedMotion ? GEO_REPLAY_REDUCED_MOTION_PAUSE_MS : ms);
 
-    async function play() {
-      for (let index = 0; index < turns.length; index += 1) {
-        if (cancelled) {
-          return;
-        }
-        setProgress({ index, stage: "user", typed: "" });
-        await pause(GEO_REPLAY_USER_PAUSE_MS);
-        if (cancelled) {
-          return;
-        }
-        setProgress({ index, stage: "thinking", typed: "" });
-        await pause(GEO_REPLAY_THINKING_MS);
-        if (cancelled) {
-          return;
-        }
-        const answer = turns[index]?.answer ?? "";
-        if (reducedMotion) {
-          setProgress({ index, stage: "typing", typed: answer });
-        } else {
-          const tokens = answer.split(WHITESPACE_SPLIT);
-          const interval = typeInterval(tokens.length);
-          let typed = "";
-          for (const token of tokens) {
-            typed += token;
-            if (cancelled) {
-              return;
-            }
-            setProgress({ index, stage: "typing", typed });
-            await wait(interval);
-          }
-        }
-        await pause(GEO_REPLAY_TURN_PAUSE_MS);
-      }
-      if (!cancelled) {
-        setProgress(null);
-      }
+    let index = 0;
+    let typed = "";
+    let tokens: string[] = [];
+    let tokenAt = 0;
+    let timeoutId = 0;
+
+    function later(ms: number, next: () => void) {
+      timeoutId = window.setTimeout(next, ms);
     }
 
-    play();
+    function showUser() {
+      typed = "";
+      setProgress({ index, stage: "user", typed: "" });
+      later(pauseMs(GEO_REPLAY_USER_PAUSE_MS, reducedMotion), startTyping);
+    }
+
+    function startTyping() {
+      const answer = turns[index]?.answer ?? "";
+      if (reducedMotion) {
+        setProgress({ index, stage: "typing", typed: answer });
+        later(pauseMs(GEO_REPLAY_TURN_PAUSE_MS, reducedMotion), advance);
+        return;
+      }
+      tokens = answer.split(WHITESPACE_SPLIT);
+      tokenAt = 0;
+      typed = "";
+      typeNext();
+    }
+
+    function typeNext() {
+      const token = tokens[tokenAt];
+      if (token === undefined) {
+        later(pauseMs(GEO_REPLAY_TURN_PAUSE_MS, reducedMotion), advance);
+        return;
+      }
+      typed += token;
+      tokenAt += 1;
+      setProgress({ index, stage: "typing", typed });
+      later(typeInterval(tokens.length), typeNext);
+    }
+
+    function advance() {
+      index += 1;
+      if (index >= turns.length) {
+        setProgress(null);
+        return;
+      }
+      showUser();
+    }
+
+    showUser();
     return () => {
-      cancelled = true;
+      window.clearTimeout(timeoutId);
     };
   }, [playToken, reducedMotion, skipReplay, turns]);
 

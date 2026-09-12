@@ -87,6 +87,12 @@ export interface GeoProjectProviderProps {
   children: ReactNode;
 }
 
+export interface GeoProjectQueryProviderProps {
+  /** Server-resolved project used until the URL carries `?project=`. */
+  initialProjectId?: string;
+  children: ReactNode;
+}
+
 export interface GeoProjectCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -119,8 +125,9 @@ export interface GeoLayoutProps {
   params: Promise<{ slug: string }>;
 }
 
-export interface GeoPageContentProps {
-  organizationSlug: string;
+export interface GeoProjectScopeProps {
+  slug: string;
+  children: ReactNode;
 }
 
 export interface GeoOverviewPageEmpty {
@@ -303,11 +310,12 @@ export interface GeoSequenceEngineThread {
 
 export interface ConversationReplayThreadProps {
   engine: string;
+  organizationId: string;
   turns: GeoSequenceTurnResult[];
   progress: AnswerReplayProgress | null;
 }
 
-export type AnswerReplayStage = "user" | "thinking" | "typing";
+export type AnswerReplayStage = "user" | "typing";
 
 export interface AnswerReplayProgress {
   index: number;
@@ -1040,6 +1048,7 @@ export interface ShareOfVoiceTableProps {
   onRowPointerEnter?: (row: ShareOfVoiceRow) => void;
   companyName?: string | null;
   aliases?: readonly string[];
+  ownDomain?: string | null;
 }
 
 export interface BrandTrackingBadgeProps {
@@ -1061,6 +1070,7 @@ export interface ShareOfVoiceBrandsDialogProps {
   competitors?: GeoCompetitor[];
   companyName?: string | null;
   aliases?: readonly string[];
+  ownDomain?: string | null;
   onBrandClick?: (row: ShareOfVoiceRow) => void;
   onBrandPointerEnter?: (row: ShareOfVoiceRow) => void;
   onTrackBrand?: (brand: string) => void;
@@ -1072,6 +1082,7 @@ export interface ShareOfVoiceBrandRowProps {
   row: ShareOfVoiceRow;
   own: boolean;
   competitors?: GeoCompetitor[];
+  ownDomain?: string | null;
   onOpen?: (row: ShareOfVoiceRow) => void;
   onPrefetch?: (row: ShareOfVoiceRow) => void;
   onTrack?: (brand: string) => void;
@@ -1097,6 +1108,7 @@ export interface ShareOfVoiceRankingRow extends ShareOfVoiceRow {
 export interface ShareOfVoiceRankingRowProps {
   row: ShareOfVoiceRankingRow;
   competitors?: GeoCompetitor[];
+  ownDomain?: string | null;
   onOpen?: (row: ShareOfVoiceRow) => void;
   onPrefetch?: (row: ShareOfVoiceRow) => void;
   onTrack?: (brand: string) => void;
@@ -1292,6 +1304,7 @@ export interface PromptAnswerContentProps extends Omit<
   PromptReceiptAnalysisProps,
   "result" | "prompt"
 > {
+  organizationId?: string;
   state: GeoPromptDetailState;
   view: GeoPromptReceiptView;
   onRetry: () => void;
@@ -1307,6 +1320,16 @@ export interface PromptReceiptHistoryProps {
   onSelect?: (check: GeoPromptHistoryCheck) => void;
 }
 
+export interface PromptHistoryBrandTokenProps {
+  name: string;
+  competitors: readonly GeoCompetitor[] | undefined;
+}
+
+export interface PromptHistoryNewCompetitorsCellProps {
+  names: readonly string[];
+  competitors: readonly GeoCompetitor[] | undefined;
+}
+
 export interface GeoAnswerActionsProps {
   text: string;
   sources: readonly GeoAnswerSource[];
@@ -1314,6 +1337,7 @@ export interface GeoAnswerActionsProps {
 
 export interface GeoPromptAnswerThreadProps {
   scrollable?: boolean;
+  organizationId?: string;
   prompt: string;
   result: GeoPromptResult;
 }

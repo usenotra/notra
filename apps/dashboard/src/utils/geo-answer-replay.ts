@@ -12,20 +12,16 @@ function isTerminalChatSkin(skin: GeoChatSkin) {
 export function answerReplayState(
   answer: string,
   progress: AnswerReplayProgress | null,
-  skin: GeoChatSkin,
   hasSearch: boolean
 ) {
   const stage = progress?.stage ?? null;
   const answerDone = progress === null;
-  const showThinking = stage === "thinking";
   const showAnswer = answerDone || stage === "typing";
 
   return {
     answerDone,
-    showThinking,
-    showAssistant: showThinking || showAnswer,
-    showSearch:
-      hasSearch && (showAnswer || (isTerminalChatSkin(skin) && showThinking)),
+    showAssistant: showAnswer,
+    showSearch: hasSearch && showAnswer,
     answerText: progress?.stage === "typing" ? progress.typed : answer,
   };
 }

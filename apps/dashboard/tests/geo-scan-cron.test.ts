@@ -3,12 +3,29 @@ import { readFile } from "node:fs/promises";
 
 import { Effect, Layer } from "effect";
 
-const sweepResult = { due: 3, started: 1, skipped: 2, staleScansFailed: 4 };
+const sweepResult = {
+  due: 3,
+  started: 1,
+  covered: 1,
+  leaseLost: 0,
+  alreadyRunning: 1,
+  failed: 0,
+  advanceLost: 0,
+  staleScansFailed: 4,
+};
 const sweep = mock((): Effect.Effect<typeof sweepResult, Error> =>
   Effect.succeed(sweepResult)
 );
 mock.module("@notra/geo-core/geo/scan-schedule", () => ({
   runGeoScanCronSweep: sweep,
+}));
+const flushGeoLog = mock(async () => undefined);
+// The whole evlog surface is stubbed, not just `flushGeoLog`: a partial module
+// mock is process-wide and would break every other suite importing it.
+mock.module("@notra/ai/evlog", () => ({
+  flushGeoLog,
+  geoLog: { info: mock(), warn: mock(), error: mock() },
+  geoLogDrainEnabled: true,
 }));
 mock.module("@/lib/geo/configure", () => ({
   geoCoreDashboardLayer: Layer.empty,
@@ -27,6 +44,7 @@ beforeEach(() => {
   process.env.CRON_SECRET = "cron-test-secret";
   sweep.mockReset();
   sweep.mockImplementation(() => Effect.succeed(sweepResult));
+  flushGeoLog.mockClear();
 });
 
 describe("GET /api/cron/geo-scan", () => {
@@ -68,6 +86,8 @@ describe("GET /api/cron/geo-scan", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(sweepResult);
     expect(sweep).toHaveBeenCalledTimes(1);
+    // The buffered sweep log has to reach the drain before the function ends.
+    expect(flushGeoLog).toHaveBeenCalledTimes(1);
   });
 
   test("does not report success when the sweep fails", async () => {
@@ -81,6 +101,7 @@ describe("GET /api/cron/geo-scan", () => {
         })
       )
     ).rejects.toThrow("Database unavailable");
+    expect(flushGeoLog).toHaveBeenCalledTimes(1);
   });
 
   test("Vercel actually registers the tested endpoint as a recurring cron", async () => {

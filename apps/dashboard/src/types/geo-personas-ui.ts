@@ -5,6 +5,8 @@ import type {
 } from "@notra/geo-core/types/geo-personas";
 import type { ReactNode } from "react";
 
+import type { GeoSequenceEngineThread } from "@/types/geo";
+
 export interface PersonasTableProps {
   organizationId: string;
   personas: GeoPersona[];
@@ -62,14 +64,9 @@ export interface GeneratePersonasButtonProps {
   progress: PersonaGenerationProgress | null;
   onClick: () => void;
 }
-import type {
-  AnswerReplayProgress,
-  GeoSequenceEngineThread,
-} from "@/types/geo";
-
 export interface PersonaConversationProps {
+  organizationId: string;
   active: GeoSequenceEngineThread | null;
-  progress: AnswerReplayProgress | null;
   isLoading: boolean;
   isWaitingForScan: boolean;
   enabled: boolean;

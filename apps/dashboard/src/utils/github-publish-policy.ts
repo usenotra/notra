@@ -1,10 +1,33 @@
-import { GITHUB_INSTALLATION_ID_REGEX } from "@/constants/github";
 import type {
   GitHubPublishFailureContext,
   GitHubPublishFailurePolicy,
 } from "@/types/integrations/github-publish-policy";
 
+import { getGitHubInstallationPermissionsUrl } from "./github-installation-url";
 import { classifyGitHubPublishFailure } from "./github-publish-failure";
+
+export function getGitHubAppPermissionsRecovery({
+  installationId,
+  installationAccountType,
+  installationAccountLogin,
+}: Pick<
+  GitHubPublishFailureContext,
+  "installationId" | "installationAccountType" | "installationAccountLogin"
+>) {
+  const permissionsUrl = getGitHubInstallationPermissionsUrl({
+    installationId,
+    accountType: installationAccountType,
+    accountLogin: installationAccountLogin,
+  });
+
+  return {
+    message: "The GitHub App needs write access to Contents and Pull requests.",
+    data: {
+      code: "github_app_permissions_required" as const,
+      ...(permissionsUrl ? { permissionsUrl } : {}),
+    },
+  };
+}
 
 export function getGitHubPublishFailurePolicy(
   cause: unknown,
@@ -51,24 +74,14 @@ export function getGitHubPublishFailurePolicy(
         },
       };
     }
-    let permissionsUrl: string | undefined;
-    if (installationId && GITHUB_INSTALLATION_ID_REGEX.test(installationId)) {
-      permissionsUrl =
-        installationAccountType === "Organization" && installationAccountLogin
-          ? `https://github.com/organizations/${encodeURIComponent(installationAccountLogin)}/settings/installations/${installationId}`
-          : `https://github.com/settings/installations/${installationId}/permissions`;
-    }
     return {
       failureKind,
       recordFailure: false,
-      recovery: {
-        message:
-          "The GitHub App needs read and write access to Contents and Pull requests.",
-        data: {
-          code: "github_app_permissions_required",
-          ...(permissionsUrl ? { permissionsUrl } : {}),
-        },
-      },
+      recovery: getGitHubAppPermissionsRecovery({
+        installationId,
+        installationAccountType,
+        installationAccountLogin,
+      }),
     };
   }
   return failureKind === "rate_limit"

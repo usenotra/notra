@@ -94,8 +94,8 @@ function ConversationEmpty({
 }
 
 function PersonaConversation({
+  organizationId,
   active,
-  progress,
   isLoading,
   isWaitingForScan,
   enabled,
@@ -107,7 +107,8 @@ function PersonaConversation({
       <ConversationReplayThread
         engine={active.engine}
         key={active.engine}
-        progress={progress}
+        organizationId={organizationId}
+        progress={null}
         turns={active.turns}
       />
     );
@@ -145,18 +146,13 @@ export function PersonaDetailDialog({
   const [view, setView] = useState<PersonaDialogView>(DEFAULT_VIEW);
   const showConversation = view === "conversation";
   const {
-    startScan,
-    isScanning,
+    runPersona,
     threads,
     active,
-    progress,
     isWaitingForScan,
     isConversationLoading: showConversationLoading,
     setEngine,
-    setPlayToken,
-    setSkipReplay,
   } = usePersonaConversation(organizationId, persona, open, showConversation);
-  const isReplaying = progress !== null;
   const latestCheck = latestCheckAt(threads);
 
   if (!persona) {
@@ -190,8 +186,6 @@ export function PersonaDetailDialog({
               delta
             )
           );
-          setSkipReplay(false);
-          setPlayToken((token) => token + 1);
         }}
         side="right"
         className="flex flex-col gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),40rem)]"
@@ -229,39 +223,12 @@ export function PersonaDetailDialog({
                 ))}
               </TabsList>
             </Tabs>
-            {showConversation && active ? (
-              <div className="flex items-center gap-2">
-                {isReplaying ? (
-                  <Button
-                    onClick={() => setSkipReplay(true)}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Skip
-                  </Button>
-                ) : null}
-                <Button
-                  aria-label="Replay this conversation"
-                  onClick={() => {
-                    setSkipReplay(false);
-                    setPlayToken((token) => token + 1);
-                  }}
-                  size="sm"
-                  variant="outline"
-                >
-                  <HugeiconsIcon icon={PlayIcon} size={14} />
-                  Replay
-                </Button>
-              </div>
-            ) : null}
           </div>
           {showConversation && active ? (
             <PromptEngineSwitcher
               active={active}
               onChange={(next) => {
                 setEngine(next);
-                setSkipReplay(false);
-                setPlayToken((token) => token + 1);
               }}
               results={threads}
             />
@@ -271,13 +238,13 @@ export function PersonaDetailDialog({
         <div className="relative min-h-0 flex-1 overflow-hidden border-t">
           {showConversation ? (
             <PersonaConversation
+              organizationId={organizationId}
               active={active}
-              progress={progress}
               isLoading={showConversationLoading}
               isWaitingForScan={isWaitingForScan}
               enabled={persona.enabled}
-              isScanning={isScanning}
-              onRunScan={() => startScan.mutate("personas_empty")}
+              isScanning={runPersona.isPending}
+              onRunScan={() => runPersona.mutate(persona.id)}
             />
           ) : null}
           <div hidden={showConversation} className="h-full">

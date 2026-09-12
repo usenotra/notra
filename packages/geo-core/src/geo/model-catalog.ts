@@ -9,7 +9,6 @@ import {
   GEO_MODEL_FEED_REVALIDATE_SECONDS,
   GEO_MODEL_FEED_URL,
 } from "../constants/geo-model-catalog";
-import { GeoFeatureFlagService } from "../deps";
 import { geoModelFeedSchema } from "../schemas/geo-model-feed";
 import type { GeoModelCatalog, GeoResolvedModelCatalog } from "../types/geo";
 import { resolveGroundedEngines } from "../utils/geo-grounded-engines";
@@ -18,6 +17,7 @@ import {
   seedGeoModelCatalog,
   withoutGeoModelCatalogEntries,
 } from "../utils/geo-model-catalog";
+import { loadGeoEngineFlags } from "./engine-flags";
 
 const MS_PER_SECOND = 1000;
 
@@ -72,12 +72,13 @@ async function loadSharedGeoModelCatalog(): Promise<GeoModelCatalog> {
 export const loadGeoModelCatalog = Effect.fn("geo.modelCatalog")(function* (
   organizationId: string
 ) {
-  const featureFlags = yield* GeoFeatureFlagService;
-  const [catalog, cursorEnabled, openCodeEnabled] = yield* Effect.all([
-    Effect.promise(loadSharedGeoModelCatalog),
-    featureFlags.isCursorEngineEnabledForOrganization(organizationId),
-    featureFlags.isOpenCodeEngineEnabledForOrganization(organizationId),
-  ]);
+  const [catalog, { cursorEnabled, openCodeEnabled }] = yield* Effect.all(
+    [
+      Effect.promise(loadSharedGeoModelCatalog),
+      loadGeoEngineFlags(organizationId),
+    ],
+    { concurrency: "unbounded" }
+  );
   const available = withoutGeoModelCatalogEntries(catalog, [
     ...(cursorEnabled ? [] : [GEO_CURSOR_ENGINE_ID]),
     ...(openCodeEnabled

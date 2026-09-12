@@ -1,1 +1,0 @@
-ALTER TABLE "geo_mention_checks" ADD COLUMN "persona_snapshot" jsonb;

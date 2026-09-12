@@ -24,6 +24,7 @@ CREATE TABLE "geo_personas" (
 );
 --> statement-breakpoint
 ALTER TABLE "geo_mention_checks" ADD COLUMN "persona_id" text;--> statement-breakpoint
+ALTER TABLE "geo_mention_checks" ADD COLUMN "persona_snapshot" jsonb;--> statement-breakpoint
 ALTER TABLE "geo_persona_memories" ADD CONSTRAINT "geo_persona_memories_persona_id_geo_personas_id_fk" FOREIGN KEY ("persona_id") REFERENCES "public"."geo_personas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "geo_persona_memories" ADD CONSTRAINT "geo_persona_memories_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "geo_persona_memories" ADD CONSTRAINT "geo_persona_memories_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

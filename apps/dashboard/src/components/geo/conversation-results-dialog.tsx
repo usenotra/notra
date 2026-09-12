@@ -74,7 +74,7 @@ export function ConversationResultsDialog({
   );
   const [engine, setEngine] = useState<string | null>(null);
   const [playToken, setPlayToken] = useState(1);
-  const [skipReplay, setSkipReplay] = useState(false);
+  const [skipReplay, setSkipReplay] = useState(true);
   const reducedMotion = useReducedMotion();
 
   const threads = useMemo(
@@ -120,8 +120,7 @@ export function ConversationResultsDialog({
                 active={active}
                 onChange={(next) => {
                   setEngine(next);
-                  setSkipReplay(false);
-                  setPlayToken((token) => token + 1);
+                  setSkipReplay(true);
                 }}
                 results={threads}
               />
@@ -162,6 +161,7 @@ export function ConversationResultsDialog({
             <ConversationReplayThread
               engine={active.engine}
               key={active.engine}
+              organizationId={organizationId}
               progress={progress}
               turns={active.turns}
             />

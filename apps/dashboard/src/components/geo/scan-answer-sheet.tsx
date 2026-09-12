@@ -95,6 +95,7 @@ export function ScanAnswerSheet({
           ) : null}
         </SheetHeader>
         <PromptAnswerContent
+          organizationId={organizationId}
           history={[]}
           isHistoryLoading={false}
           showHistory={false}

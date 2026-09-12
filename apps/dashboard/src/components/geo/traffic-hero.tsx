@@ -206,7 +206,10 @@ export function TrafficHero({
         ))}
       </div>
       {showTrend ? (
-        <div className="border-border border-t p-4">
+        <div
+          className="border-border border-t p-4"
+          data-chart-title="AI traffic"
+        >
           <EChartsAreaChart
             animation={false}
             chartOptions={HERO_CHART_OPTIONS}

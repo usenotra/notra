@@ -169,6 +169,7 @@ export default defineConfig({
     {
       // Effect's TaggedError is a curried schema class factory, not an Error constructor.
       files: [
+        "apps/api/src/errors/**/*.ts",
         "apps/agent/agent/lib/schemas/chat-mirror.ts",
         "apps/agent/agent/lib/schemas/slack.ts",
         "packages/schemas/src/schemas/dashboard/onboarding-agent.ts",

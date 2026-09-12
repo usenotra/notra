@@ -1,5 +1,3 @@
-import { FEATURES } from "@notra/ai/billing/features";
-import { Autumn } from "autumn-js";
 import { Effect } from "effect";
 import type { Context, Next } from "hono";
 
@@ -8,26 +6,13 @@ import {
   GEO_PLAN_REQUIRED_MESSAGE,
   ORGANIZATION_SCOPED_API_KEY_ERROR,
 } from "../constants/geo";
+import { billingLayer, type BillingMiddlewareOptions } from "../lib/billing";
 import { checkGeoEntitlement } from "../programs/geo-entitlement";
-import type {
-  GeoEntitlementChecker,
-  GeoEntitlementMiddlewareOptions,
-} from "../types/billing";
 import { trackApiPaywalled } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
 import { logError } from "../utils/logging";
 
-const checkAutumnGeoEntitlement: GeoEntitlementChecker = async ({
-  organizationId,
-  secretKey,
-}) => {
-  const autumn = new Autumn({ secretKey });
-  const data = await autumn.check({
-    customerId: organizationId,
-    featureId: FEATURES.AI_ANSWERS,
-  });
-  return data.balance != null;
-};
+export type GeoEntitlementMiddlewareOptions = BillingMiddlewareOptions;
 
 /**
  * Requires the GEO plan entitlement on every GEO endpoint, reads included.
@@ -49,9 +34,6 @@ const checkAutumnGeoEntitlement: GeoEntitlementChecker = async ({
 export function geoEntitlementMiddleware(
   options: GeoEntitlementMiddlewareOptions = {}
 ) {
-  const checkEntitlement =
-    options.checkEntitlement ?? checkAutumnGeoEntitlement;
-
   return async (c: Context, next: Next) => {
     const secretKey = c.env.AUTUMN_SECRET_KEY as string | undefined;
     if (!secretKey) {
@@ -75,11 +57,11 @@ export function geoEntitlementMiddleware(
       return c.json({ error: ORGANIZATION_SCOPED_API_KEY_ERROR }, 403);
     }
 
+    const layer = options.billingLayer ?? billingLayer(secretKey);
     const entitlement = await Effect.runPromise(
       Effect.result(
-        checkGeoEntitlement(
-          { organizationId: orgId, secretKey },
-          checkEntitlement
+        checkGeoEntitlement({ organizationId: orgId, secretKey }).pipe(
+          Effect.provide(layer)
         )
       )
     );

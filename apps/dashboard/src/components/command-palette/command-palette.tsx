@@ -70,7 +70,7 @@ import {
 } from "./registry";
 
 const APPLE_PLATFORM_PATTERN = /Mac|iPhone|iPad|iPod/i;
-const SEARCH_DEBOUNCE_MS = 150;
+const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
 const REFERENCE_SNIPPET_MAX = 80;
 

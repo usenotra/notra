@@ -4,6 +4,7 @@ import type { GeoCheckScope } from "@notra/db/types/geo-checks";
 import { and, asc, count, desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { GEO_PROJECTS_OLDEST_ORDER } from "../constants/geo-projects";
 import type {
   GeoProjectScope,
   GeoProjectsResponse,
@@ -28,7 +29,7 @@ export const listGeoProjects = Effect.fn("geo.projectsList")(function* (
   const rows = yield* geoDb("projects lookup failed", () =>
     db.query.projects.findMany({
       where: eq(projects.organizationId, organizationId),
-      orderBy: [asc(projects.createdAt)],
+      orderBy: GEO_PROJECTS_OLDEST_ORDER,
     })
   );
 
@@ -87,7 +88,7 @@ const findOldestProjectId = Effect.fn("geo.oldestProject")(function* (
     db.query.projects.findFirst({
       columns: { id: true },
       where: eq(projects.organizationId, organizationId),
-      orderBy: [asc(projects.createdAt)],
+      orderBy: GEO_PROJECTS_OLDEST_ORDER,
     })
   );
 
@@ -300,7 +301,7 @@ export const resolveGeoScope = Effect.fn("geo.resolveScope")(function* (
     db.query.projects.findFirst({
       columns: { id: true, brandSettingsId: true },
       where: eq(projects.organizationId, input.organizationId),
-      orderBy: [asc(projects.createdAt)],
+      orderBy: GEO_PROJECTS_OLDEST_ORDER,
     })
   );
 

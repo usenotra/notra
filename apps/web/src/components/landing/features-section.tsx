@@ -38,7 +38,7 @@ function FeaturesCard({
           {copy.description}
         </p>
       </div>
-      <div className="relative z-10 -mx-6 mt-2 h-[24.5rem] min-w-0 self-stretch overflow-hidden [mask-image:linear-gradient(to_bottom,black_78%,transparent)] px-6 pt-6">
+      <div className="relative z-10 -mx-6 mt-2 flex h-[24.5rem] min-w-0 flex-col self-stretch overflow-hidden [mask-image:linear-gradient(to_bottom,black_78%,transparent)] px-6 pt-6">
         {children}
       </div>
       {footnote ? (

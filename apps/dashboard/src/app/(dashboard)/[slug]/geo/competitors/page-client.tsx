@@ -18,7 +18,6 @@ import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
-import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -31,7 +30,6 @@ import {
 } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 
 import { GeoPageSkeleton } from "../skeleton";
@@ -56,16 +54,6 @@ interface PageClientProps {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoCompetitorsPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoCompetitorsPageContent({ organizationSlug }: PageClientProps) {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =

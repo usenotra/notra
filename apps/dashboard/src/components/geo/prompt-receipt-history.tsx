@@ -6,13 +6,18 @@ import {
   GEO_PROMPT_HISTORY_COLUMN_LABELS,
   GEO_PROMPT_HISTORY_EMPTY_COMPETITORS,
   GEO_PROMPT_HISTORY_EMPTY_POSITION,
+  GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE,
   GEO_PROMPT_HISTORY_PREVIEW_ROWS,
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
   GEO_PROMPT_RECEIPT_LABELS,
 } from "@notra/geo-core/constants/geo";
-import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { type ReactNode, useState } from "react";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
@@ -21,8 +26,10 @@ import { Table } from "@/components/motion/table";
 import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
+  PromptHistoryBrandTokenProps,
   PromptHistoryChange,
   PromptHistoryEntry,
+  PromptHistoryNewCompetitorsCellProps,
   PromptReceiptHistoryProps,
 } from "@/types/geo";
 import {
@@ -64,15 +71,14 @@ function PositionChip({
   );
 }
 
-function BrandToken({
-  name,
-  competitors,
-}: {
-  name: string;
-  competitors: readonly GeoCompetitor[] | undefined;
-}) {
+function BrandToken({ name, competitors }: PromptHistoryBrandTokenProps) {
   return (
-    <span className={cn(HISTORY_LINE_CLASS, "min-w-0 gap-1.5 font-medium")}>
+    <span
+      className={cn(
+        HISTORY_LINE_CLASS,
+        "max-w-full shrink-0 gap-1.5 font-medium"
+      )}
+    >
       <CompetitorLogo
         className="size-4 shrink-0 rounded-[4px]"
         competitors={competitors}
@@ -146,13 +152,42 @@ function ChangesCell({ entry }: { entry: PromptHistoryEntry }) {
   );
 }
 
+function MoreCompetitors({
+  names,
+  competitors,
+}: PromptHistoryNewCompetitorsCellProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        aria-label={`${names.length} more: ${names.join(", ")}`}
+        render={
+          <span
+            className={cn(
+              HISTORY_LINE_CLASS,
+              "text-muted-foreground cursor-default tabular-nums"
+            )}
+          />
+        }
+      >
+        +{names.length}
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">
+        <ul className="flex flex-col gap-1.5">
+          {names.map((name) => (
+            <li key={name}>
+              <BrandToken competitors={competitors} name={name} />
+            </li>
+          ))}
+        </ul>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 function NewCompetitorsCell({
   names,
   competitors,
-}: {
-  names: readonly string[];
-  competitors: readonly GeoCompetitor[] | undefined;
-}) {
+}: PromptHistoryNewCompetitorsCellProps) {
   if (names.length === 0) {
     return (
       <span className={cn(HISTORY_LINE_CLASS, "text-muted-foreground/60")}>
@@ -160,13 +195,22 @@ function NewCompetitorsCell({
       </span>
     );
   }
+
+  const visible = names.slice(0, GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE);
+  const hidden = names.slice(GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE);
+
   return (
-    <ul className="flex min-w-0 flex-col gap-1.5">
-      {names.map((name) => (
-        <li className="min-w-0" key={name}>
+    <ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+      {visible.map((name) => (
+        <li className="max-w-full" key={name}>
           <BrandToken competitors={competitors} name={name} />
         </li>
       ))}
+      {hidden.length > 0 ? (
+        <li>
+          <MoreCompetitors competitors={competitors} names={hidden} />
+        </li>
+      ) : null}
     </ul>
   );
 }
@@ -198,6 +242,7 @@ export function PromptReceiptHistory({
         pageRowCount={pageRowCount(page, HISTORY_PAGE_SIZE, totalItems)}
         pageSize={HISTORY_PAGE_SIZE}
         setPage={setPage}
+        showPageNumbers={false}
         totalItems={totalItems}
       />
     );

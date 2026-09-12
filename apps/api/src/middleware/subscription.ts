@@ -1,20 +1,15 @@
-import { Autumn } from "autumn-js";
 import { Effect } from "effect";
 import type { Context, Next } from "hono";
 
 import { API_PAYWALL_FEATURES } from "../constants/analytics";
-import {
-  AI_CREDITS_FEATURE_ID,
-  RESTRICTED_BILLING_METHODS,
-} from "../constants/billing";
+import { RESTRICTED_BILLING_METHODS } from "../constants/billing";
+import { billingLayer, type BillingMiddlewareOptions } from "../lib/billing";
 import { checkSubscriptionAccess } from "../programs/subscription";
 import { isIngestAuth } from "../types/auth";
-import type {
-  SubscriptionBillingChecker,
-  SubscriptionMiddlewareOptions,
-} from "../types/billing";
 import { trackApiPaywalled } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
+
+export type SubscriptionMiddlewareOptions = BillingMiddlewareOptions;
 
 // DELETE and GET are intentionally unrestricted so lapsed/unsubscribed orgs
 // retain read access and data-deletion rights (GDPR / data portability).
@@ -54,11 +49,12 @@ export function subscriptionMiddleware(
       );
     }
 
-    const billing: SubscriptionBillingChecker =
-      options.billing ?? createAutumnBillingChecker(secretKey);
+    const layer = options.billingLayer ?? billingLayer(secretKey);
     const access = await Effect.runPromise(
       Effect.result(
-        checkSubscriptionAccess({ organizationId: orgId, secretKey }, billing)
+        checkSubscriptionAccess({ organizationId: orgId, secretKey }).pipe(
+          Effect.provide(layer)
+        )
       )
     );
 
@@ -75,25 +71,5 @@ export function subscriptionMiddleware(
     }
 
     return next();
-  };
-}
-
-function createAutumnBillingChecker(
-  secretKey: string
-): SubscriptionBillingChecker {
-  const autumn = new Autumn({ secretKey });
-  return {
-    getCustomer: ({ organizationId }) =>
-      autumn.customers.getOrCreate({
-        customerId: organizationId,
-      }),
-    checkCredits: async ({ organizationId }) => {
-      const check = await autumn.check({
-        customerId: organizationId,
-        featureId: AI_CREDITS_FEATURE_ID,
-        requiredBalance: 1,
-      });
-      return check.allowed === true;
-    },
   };
 }

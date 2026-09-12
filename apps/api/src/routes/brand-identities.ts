@@ -1,13 +1,5 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
-  createBrandAnalysisJob,
-  createBrandAnalysisJobId,
-  getBrandAnalysisJob,
-  setBrandAnalysisJobStatus,
-  updateBrandAnalysisJob,
-} from "@notra/ai/jobs/brand-analysis";
-import { brandSettings, contentTriggers } from "@notra/db/schema";
-import {
   createBrandIdentityRequestSchema,
   createBrandIdentityResponseSchema,
   deleteBrandIdentityResponseSchema,
@@ -19,27 +11,29 @@ import {
   patchBrandIdentityRequestSchema,
   patchBrandIdentityResponseSchema,
 } from "@notra/schemas/api/content";
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
+import {
+  createBrandIdentity,
+  deleteBrandIdentity,
+  findBrandIdentityNameDuplicate,
+  getBrandAnalysisJobStatus,
+  getBrandIdentity,
+  listBrandIdentities,
+  patchBrandIdentity,
+} from "../programs/brand-identities";
+import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
+import { isBrandAnalysisConfigured } from "../utils/brand-analysis";
 import {
-  isBrandAnalysisConfigured,
-  triggerBrandAnalysisWorkflow,
-} from "../utils/brand-analysis";
-import {
-  selectBrandIdentityColumns,
+  respondToBrandIdentityFailure,
+  runBrandIdentityProgram,
   serializeBrandIdentity,
 } from "../utils/brand-identities";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
-import { isConstraintViolation, isPgUniqueViolation } from "../utils/pg-errors";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
-import {
-  deleteQstashSchedulesForTriggers,
-  getTriggersForBrandIdentity,
-} from "../utils/triggers";
 
 export const brandIdentitiesRoutes = createOpenApiApp();
 
@@ -252,9 +246,22 @@ const deleteBrandIdentityRoute = createRoute({
     401: errorResponse("Missing or invalid API key"),
     403: errorResponse("Forbidden"),
     404: errorResponse("Brand identity not found"),
+    409: errorResponse(
+      "Brand identity is in use by a project or content brief"
+    ),
     503: errorResponse("Authentication service unavailable"),
   },
 });
+
+async function requireOrganization(
+  c: {
+    get: (key: "db") => DbClient;
+  },
+  orgId: string
+) {
+  const organization = await getOrganizationResponse(c.get("db"), orgId);
+  return organization ?? null;
+}
 
 brandIdentitiesRoutes.openapi(getBrandIdentitiesRoute, async (c) => {
   const orgId = getOrganizationId(c);
@@ -265,36 +272,24 @@ brandIdentitiesRoutes.openapi(getBrandIdentitiesRoute, async (c) => {
     );
   }
 
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
-
+  const organization = await requireOrganization(c, orgId);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const brandIdentities = await db.query.brandSettings.findMany({
-    where: eq(brandSettings.organizationId, orgId),
-    orderBy: [desc(brandSettings.isDefault), asc(brandSettings.createdAt)],
-    columns: {
-      id: true,
-      name: true,
-      isDefault: true,
-      websiteUrl: true,
-      companyName: true,
-      companyDescription: true,
-      toneProfile: true,
-      customTone: true,
-      customInstructions: true,
-      audience: true,
-      language: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const result = await runBrandIdentityProgram(
+    listBrandIdentities({ db: c.get("db"), organizationId: orgId })
+  );
+
+  if (result._tag === "Failure") {
+    throw result.failure;
+  }
 
   return c.json(
     {
-      brandIdentities: brandIdentities.map(serializeBrandIdentity),
+      brandIdentities: result.success.brandIdentities.map(
+        serializeBrandIdentity
+      ),
       organization,
     },
     200
@@ -313,8 +308,7 @@ brandIdentitiesRoutes.openapi(createBrandIdentityRoute, async (c) => {
   const body = c.req.valid("json");
   const runtimeEnv = c.env ?? {};
   const redis = getRedis(runtimeEnv);
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
@@ -325,24 +319,21 @@ brandIdentitiesRoutes.openapi(createBrandIdentityRoute, async (c) => {
   }
 
   const name = body.name?.trim() || "Untitled Brand Voice";
-  const websiteUrl = body.websiteUrl;
-  const newBrandIdentityId = crypto.randomUUID();
-  const now = new Date().toISOString();
-  const jobId = createBrandAnalysisJobId();
 
-  const existingBrandIdentityWithName = await db.query.brandSettings.findFirst({
-    where: and(
-      eq(brandSettings.organizationId, orgId),
-      eq(brandSettings.name, name)
-    ),
-    columns: { id: true },
-  });
+  const duplicateCheck = await runBrandIdentityProgram(
+    findBrandIdentityNameDuplicate({
+      db: c.get("db"),
+      organizationId: orgId,
+      name,
+    })
+  );
 
-  if (existingBrandIdentityWithName) {
-    return c.json(
-      { error: "A brand identity with this name already exists" },
-      409
-    );
+  if (duplicateCheck._tag === "Failure") {
+    const response = respondToBrandIdentityFailure(c, duplicateCheck.failure);
+    if (response) {
+      return response;
+    }
+    throw duplicateCheck.failure;
   }
 
   // Charged immediately before the brand analysis workflow is queued: the 404,
@@ -352,115 +343,25 @@ brandIdentitiesRoutes.openapi(createBrandIdentityRoute, async (c) => {
     return rateLimited;
   }
 
-  try {
-    const hasAnyBrandIdentity = await db.query.brandSettings.findFirst({
-      where: eq(brandSettings.organizationId, orgId),
-      columns: { id: true },
-    });
+  const result = await runBrandIdentityProgram(
+    createBrandIdentity({
+      db: c.get("db"),
+      organizationId: orgId,
+      body,
+      redis,
+      runtimeEnv,
+    })
+  );
 
-    const [brandIdentity] = await (async () => {
-      try {
-        return await db
-          .insert(brandSettings)
-          .values({
-            id: newBrandIdentityId,
-            organizationId: orgId,
-            name,
-            isDefault: !hasAnyBrandIdentity,
-            websiteUrl,
-          })
-          .returning(selectBrandIdentityColumns());
-      } catch (error) {
-        if (!isConstraintViolation(error, "brandSettings_org_default_uidx")) {
-          throw error;
-        }
-
-        return db
-          .insert(brandSettings)
-          .values({
-            id: newBrandIdentityId,
-            organizationId: orgId,
-            name,
-            isDefault: false,
-            websiteUrl,
-          })
-          .returning(selectBrandIdentityColumns());
-      }
-    })();
-
-    if (!brandIdentity) {
-      throw new Error("Failed to create brand identity");
+  if (result._tag === "Failure") {
+    const response = respondToBrandIdentityFailure(c, result.failure);
+    if (response) {
+      return response;
     }
-
-    try {
-      const job = await createBrandAnalysisJob(redis, {
-        id: jobId,
-        organizationId: orgId,
-        brandIdentityId: brandIdentity.id,
-        status: "queued",
-        step: null,
-        currentStep: 0,
-        totalSteps: 3,
-        workflowRunId: null,
-        error: null,
-        createdAt: now,
-        updatedAt: now,
-        completedAt: null,
-      });
-
-      const workflowRunId = await triggerBrandAnalysisWorkflow(runtimeEnv, {
-        organizationId: orgId,
-        url: websiteUrl,
-        voiceId: brandIdentity.id,
-        jobId,
-      });
-
-      const updatedJob = await updateBrandAnalysisJob(redis, jobId, {
-        workflowRunId,
-      });
-
-      return c.json({ job: updatedJob ?? job, organization }, 202);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to trigger workflow";
-
-      await setBrandAnalysisJobStatus(redis, jobId, "failed", {
-        step: null,
-        currentStep: 0,
-        totalSteps: 3,
-        error: message,
-      });
-
-      await db
-        .delete(brandSettings)
-        .where(
-          and(
-            eq(brandSettings.id, brandIdentity.id),
-            eq(brandSettings.organizationId, orgId)
-          )
-        );
-
-      return c.json(
-        {
-          error: "Failed to queue brand identity analysis",
-        },
-        503
-      );
-    }
-  } catch (error) {
-    if (isPgUniqueViolation(error)) {
-      if (isConstraintViolation(error, "brandSettings_org_name_uidx")) {
-        return c.json(
-          { error: "A brand identity with this name already exists" },
-          409
-        );
-      }
-
-      return c.json({ error: "Failed to create brand identity" }, 409);
-    }
-
-    throw error;
+    throw result.failure;
   }
+
+  return c.json({ job: result.success.job, organization }, 202);
 });
 
 brandIdentitiesRoutes.openapi(getBrandAnalysisJobRoute, async (c) => {
@@ -475,8 +376,7 @@ brandIdentitiesRoutes.openapi(getBrandAnalysisJobRoute, async (c) => {
   const { jobId } = c.req.valid("param");
   const runtimeEnv = c.env ?? {};
   const redis = getRedis(runtimeEnv);
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
@@ -486,13 +386,23 @@ brandIdentitiesRoutes.openapi(getBrandAnalysisJobRoute, async (c) => {
     return c.json({ error: "Brand analysis is unavailable" }, 503);
   }
 
-  const job = await getBrandAnalysisJob(redis, jobId);
+  const result = await runBrandIdentityProgram(
+    getBrandAnalysisJobStatus({
+      db: c.get("db"),
+      organizationId: orgId,
+      jobId,
+      redis,
+    })
+  );
 
-  if (!job || job.organizationId !== orgId) {
-    return c.json({ error: "Brand identity analysis job not found" }, 404);
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "BrandAnalysisJobNotFoundError") {
+      return c.json({ error: "Brand identity analysis job not found" }, 404);
+    }
+    throw result.failure;
   }
 
-  return c.json({ job, organization }, 200);
+  return c.json({ job: result.success.job, organization }, 200);
 });
 
 brandIdentitiesRoutes.openapi(getBrandIdentityRoute, async (c) => {
@@ -505,39 +415,28 @@ brandIdentitiesRoutes.openapi(getBrandIdentityRoute, async (c) => {
   }
 
   const { brandIdentityId } = c.req.valid("param");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const brandIdentity = await db.query.brandSettings.findFirst({
-    where: and(
-      eq(brandSettings.id, brandIdentityId),
-      eq(brandSettings.organizationId, orgId)
-    ),
-    columns: {
-      id: true,
-      name: true,
-      isDefault: true,
-      websiteUrl: true,
-      companyName: true,
-      companyDescription: true,
-      toneProfile: true,
-      customTone: true,
-      customInstructions: true,
-      audience: true,
-      language: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const result = await runBrandIdentityProgram(
+    getBrandIdentity({
+      db: c.get("db"),
+      organizationId: orgId,
+      brandIdentityId,
+    })
+  );
+
+  if (result._tag === "Failure") {
+    throw result.failure;
+  }
 
   return c.json(
     {
-      brandIdentity: brandIdentity
-        ? serializeBrandIdentity(brandIdentity)
+      brandIdentity: result.success.brandIdentity
+        ? serializeBrandIdentity(result.success.brandIdentity)
         : null,
       organization,
     },
@@ -556,137 +455,36 @@ brandIdentitiesRoutes.openapi(patchBrandIdentityRoute, async (c) => {
 
   const { brandIdentityId } = c.req.valid("param");
   const body = c.req.valid("json");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const existingBrandIdentity = await db.query.brandSettings.findFirst({
-    where: and(
-      eq(brandSettings.id, brandIdentityId),
-      eq(brandSettings.organizationId, orgId)
-    ),
-    columns: { id: true },
-  });
+  const result = await runBrandIdentityProgram(
+    patchBrandIdentity({
+      db: c.get("db"),
+      organizationId: orgId,
+      brandIdentityId,
+      body,
+    })
+  );
 
-  if (!existingBrandIdentity) {
-    return c.json({ error: "Brand identity not found" }, 404);
-  }
-
-  const updateData: Partial<typeof brandSettings.$inferInsert> = {
-    updatedAt: new Date(),
-  };
-  const shouldSetDefault = body.isDefault === true;
-
-  if (body.name !== undefined) {
-    updateData.name = body.name;
-  }
-
-  if (body.websiteUrl !== undefined) {
-    updateData.websiteUrl = body.websiteUrl;
-  }
-
-  if (body.companyName !== undefined) {
-    updateData.companyName = body.companyName;
-  }
-
-  if (body.companyDescription !== undefined) {
-    updateData.companyDescription = body.companyDescription;
-  }
-
-  if (body.toneProfile !== undefined) {
-    updateData.toneProfile = body.toneProfile;
-    if (body.customTone === undefined) {
-      updateData.customTone = null;
+  if (result._tag === "Failure") {
+    const response = respondToBrandIdentityFailure(c, result.failure);
+    if (response) {
+      return response;
     }
+    throw result.failure;
   }
 
-  if (body.customTone !== undefined) {
-    updateData.customTone = body.customTone?.trim() ? body.customTone : null;
-  }
-
-  if (body.customInstructions !== undefined) {
-    updateData.customInstructions = body.customInstructions;
-  }
-
-  if (body.audience !== undefined) {
-    updateData.audience = body.audience;
-  }
-
-  if (body.language !== undefined) {
-    updateData.language = body.language;
-  }
-
-  try {
-    const [brandIdentity] = shouldSetDefault
-      ? await db.transaction(async (tx) => {
-          const { updatedAt, ...targetUpdateData } = updateData;
-
-          if (Object.keys(targetUpdateData).length > 0) {
-            await tx
-              .update(brandSettings)
-              .set(targetUpdateData)
-              .where(
-                and(
-                  eq(brandSettings.id, brandIdentityId),
-                  eq(brandSettings.organizationId, orgId)
-                )
-              );
-          }
-
-          await tx
-            .update(brandSettings)
-            .set({ isDefault: false })
-            .where(
-              and(
-                eq(brandSettings.organizationId, orgId),
-                eq(brandSettings.isDefault, true),
-                ne(brandSettings.id, brandIdentityId)
-              )
-            );
-
-          return tx
-            .update(brandSettings)
-            .set({ isDefault: true, updatedAt })
-            .where(
-              and(
-                eq(brandSettings.id, brandIdentityId),
-                eq(brandSettings.organizationId, orgId)
-              )
-            )
-            .returning(selectBrandIdentityColumns());
-        })
-      : await db
-          .update(brandSettings)
-          .set(updateData)
-          .where(
-            and(
-              eq(brandSettings.id, brandIdentityId),
-              eq(brandSettings.organizationId, orgId)
-            )
-          )
-          .returning(selectBrandIdentityColumns());
-
-    if (!brandIdentity) {
-      return c.json({ error: "Brand identity not found" }, 404);
-    }
-
-    return c.json(
-      { brandIdentity: serializeBrandIdentity(brandIdentity), organization },
-      200
-    );
-  } catch (error) {
-    if (isPgUniqueViolation(error)) {
-      return c.json(
-        { error: "A brand identity with this name already exists" },
-        409
-      );
-    }
-
-    throw error;
-  }
+  return c.json(
+    {
+      brandIdentity: serializeBrandIdentity(result.success.brandIdentity),
+      organization,
+    },
+    200
+  );
 });
 
 brandIdentitiesRoutes.openapi(deleteBrandIdentityRoute, async (c) => {
@@ -700,80 +498,33 @@ brandIdentitiesRoutes.openapi(deleteBrandIdentityRoute, async (c) => {
 
   const { brandIdentityId } = c.req.valid("param");
   const runtimeEnv = c.env ?? {};
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const brandIdentity = await db.query.brandSettings.findFirst({
-    where: and(
-      eq(brandSettings.id, brandIdentityId),
-      eq(brandSettings.organizationId, orgId)
-    ),
-    columns: {
-      id: true,
-      isDefault: true,
-    },
-  });
-
-  if (!brandIdentity) {
-    return c.json({ error: "Brand identity not found" }, 404);
-  }
-
-  if (brandIdentity.isDefault) {
-    return c.json({ error: "Cannot delete the default brand identity" }, 400);
-  }
-
-  const affectedTriggers = await getTriggersForBrandIdentity(
-    db,
-    orgId,
-    brandIdentityId
+  const result = await runBrandIdentityProgram(
+    deleteBrandIdentity({
+      db: c.get("db"),
+      organizationId: orgId,
+      brandIdentityId,
+      runtimeEnv,
+    })
   );
 
-  await db.transaction(async (tx) => {
-    if (affectedTriggers.length > 0) {
-      await tx
-        .update(contentTriggers)
-        .set({
-          enabled: false,
-          qstashScheduleId: null,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(contentTriggers.organizationId, orgId),
-            inArray(
-              contentTriggers.id,
-              affectedTriggers.map((trigger) => trigger.id)
-            )
-          )
-        );
+  if (result._tag === "Failure") {
+    const response = respondToBrandIdentityFailure(c, result.failure);
+    if (response) {
+      return response;
     }
-
-    await tx
-      .delete(brandSettings)
-      .where(
-        and(
-          eq(brandSettings.id, brandIdentityId),
-          eq(brandSettings.organizationId, orgId)
-        )
-      );
-  });
-
-  await deleteQstashSchedulesForTriggers(runtimeEnv, affectedTriggers);
+    throw result.failure;
+  }
 
   return c.json(
     {
-      id: brandIdentityId,
+      ...result.success,
       organization,
-      disabledSchedules: affectedTriggers
-        .filter((trigger) => trigger.sourceType === "cron")
-        .map((trigger) => ({ id: trigger.id, name: trigger.name })),
-      disabledEvents: affectedTriggers
-        .filter((trigger) => trigger.sourceType !== "cron")
-        .map((trigger) => ({ id: trigger.id, name: trigger.name })),
     },
     200
   );

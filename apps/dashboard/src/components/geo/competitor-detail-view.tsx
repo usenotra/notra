@@ -40,11 +40,8 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import {
-  useGeoCompetitorDetail,
-  useGeoCompetitors,
-  useGeoSettings,
-} from "@/lib/hooks/use-geo";
+import { useGeoCompetitorDetail, useGeoSettings } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type {
@@ -243,10 +240,10 @@ export function CompetitorDetailView({
     });
   }, [variant]);
 
-  const { data: competitorList } = useGeoCompetitors(organizationId);
+  const { competitors } = useGeoCompetitorsDb(organizationId);
   const { data: settingsData } = useGeoSettings(organizationId);
   const entry =
-    competitorList?.competitors.find(
+    competitors.find(
       (item) => item.name.toLowerCase() === competitor.toLowerCase()
     ) ?? null;
   const ownBrand = isOwnBrandName(

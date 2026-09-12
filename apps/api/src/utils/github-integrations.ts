@@ -7,7 +7,7 @@ import {
   decodeIntegrationEncryptionKey,
   encryptIntegrationSecret,
 } from "@notra/db/utils/integration-encryption";
-import { and, asc, eq, ilike } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 type DbClient = ReturnType<typeof createDb>;
 
@@ -70,8 +70,8 @@ export async function findMatchingGitHubIntegration(
   return db.query.githubIntegrations.findFirst({
     where: and(
       eq(githubIntegrations.organizationId, organizationId),
-      ilike(githubIntegrations.owner, owner),
-      ilike(githubIntegrations.repo, repo)
+      sql`lower(${githubIntegrations.owner}) = lower(${owner})`,
+      sql`lower(${githubIntegrations.repo}) = lower(${repo})`
     ),
     columns: {
       id: true,

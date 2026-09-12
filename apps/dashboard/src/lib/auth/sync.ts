@@ -1,10 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import {
-  members,
-  organizations,
-  socialConnections,
-  users,
-} from "@notra/db/schema";
+import { organizations, socialConnections, users } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import type { User } from "@workos-inc/node";
@@ -21,6 +16,7 @@ import {
 } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { SocialConnectionError, UserSyncError } from "@/lib/auth/errors";
+import { upsertMembership } from "@/lib/auth/membership-upsert";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
 import { sendWelcomeEmailAction } from "@/lib/email/actions";
 import type {
@@ -354,33 +350,13 @@ const reconcileWorkOSMemberships = Effect.fn("auth.sync.reconcileMemberships")(
       const role = membership.role.slug || "member";
 
       yield* Effect.tryPromise({
-        try: async () => {
-          const existing = await db.query.members.findFirst({
-            where: and(
-              eq(members.userId, localUserId),
-              eq(members.organizationId, localOrgId)
-            ),
-            columns: { id: true, role: true },
-          });
-
-          if (!existing) {
-            await db.insert(members).values({
-              id: crypto.randomUUID(),
-              organizationId: localOrgId,
-              userId: localUserId,
-              role,
-              createdAt: new Date(membership.createdAt),
-            });
-            return;
-          }
-
-          if (existing.role !== role && existing.role !== "owner") {
-            await db
-              .update(members)
-              .set({ role })
-              .where(eq(members.id, existing.id));
-          }
-        },
+        try: () =>
+          upsertMembership({
+            organizationId: localOrgId,
+            userId: localUserId,
+            role,
+            createdAt: new Date(membership.createdAt),
+          }),
         catch: (cause) =>
           new UserSyncError({ message: "Failed to sync membership", cause }),
       });

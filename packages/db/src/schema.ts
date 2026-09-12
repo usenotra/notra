@@ -253,8 +253,10 @@ export const organizations = pgTable(
       .notNull(),
     onboardingAgentStartedAt: timestamp("onboarding_agent_started_at"),
     workosOrgId: text("workos_org_id").unique(),
-  },
-  (table) => [uniqueIndex("organizations_slug_uidx").on(table.slug)]
+  }
+  // No extra indexes: `slug` already carries a unique constraint
+  // (`organizations_slug_unique`) that Postgres backs with a unique index, so a
+  // second identical index would only double index maintenance on every write.
 );
 
 export const members = pgTable(
@@ -273,6 +275,12 @@ export const members = pgTable(
   (table) => [
     index("members_organizationId_idx").on(table.organizationId),
     index("members_userId_idx").on(table.userId),
+    // Serves the membership lookup that runs on every authenticated request and
+    // enforces one membership row per (organization, user).
+    uniqueIndex("members_organizationId_userId_uidx").on(
+      table.organizationId,
+      table.userId
+    ),
   ]
 );
 
@@ -1226,6 +1234,12 @@ export const brandSitemapPages = pgTable(
       table.sitemapId,
       table.category
     ),
+    // The gaps program takes the top pages by word count per crawled sitemap.
+    index("brandSitemapPages_sitemap_category_wordCount_idx").on(
+      table.sitemapId,
+      table.category,
+      table.wordCount.desc().nullsLast()
+    ),
     uniqueIndex("brandSitemapPages_sitemap_url_uidx").on(
       table.sitemapId,
       table.url
@@ -1450,6 +1464,10 @@ export const geoSettings = pgTable(
     enabled: boolean("enabled").notNull().default(true),
     scanIntervalHours: integer("scan_interval_hours").notNull().default(24),
     nextScanAt: timestamp("next_scan_at"),
+    // Cron-sweep lease: while set and in the future the row is off limits to
+    // other sweeps. Kept separate from `next_scan_at` so a retried tick never
+    // loses the slot it is scanning for.
+    scanLeaseUntil: timestamp("scan_lease_until"),
     scanStartedAt: timestamp("scan_started_at"),
     lastScanAt: timestamp("last_scan_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1490,6 +1508,12 @@ export const geoPrompts = pgTable(
   (table) => [
     index("geoPrompts_organizationId_idx").on(table.organizationId),
     index("geoPrompts_projectId_idx").on(table.projectId),
+    // The prompt list and the gaps program both read a project's prompts in
+    // `created_at desc` order, which currently costs a heap sort.
+    index("geoPrompts_projectId_createdAt_idx").on(
+      table.projectId,
+      table.createdAt.desc()
+    ),
   ]
 );
 
@@ -1760,6 +1784,37 @@ export const geoMentionChecks = pgTable(
       table.promptId,
       table.capturedAt
     ),
+    // Covering index for the GEO analytics window: the aggregate procedures
+    // (overview, timeseries, competitor/language share) read only these columns,
+    // while the table averages ~900 B/row because of answer/grounding/excerpt.
+    // drizzle-orm 0.45 has no `INCLUDE` support, so the payload columns are
+    // trailing key columns instead of index-only payload.
+    index("geoMentionChecks_project_captured_cover_idx").on(
+      table.projectId,
+      table.capturedAt,
+      table.organizationId,
+      table.language,
+      table.engine,
+      table.promptId,
+      table.mentioned,
+      table.position,
+      table.sentiment,
+      table.sequenceId
+    ),
+    // Matches the `distinct on (prompt_id, engine) ... order by captured_at desc`
+    // shape used by promptResultSummaries/promptResults/competitorDetail/gaps;
+    // the existing projectEnginePrompt index has the leading columns swapped.
+    index("geoMentionChecks_project_prompt_engine_captured_idx").on(
+      table.projectId,
+      table.promptId,
+      table.engine,
+      table.capturedAt.desc()
+    ),
+    // sequenceResults orders by exactly this tuple; `sequence_id` appears in no
+    // other index.
+    index("geoMentionChecks_sequence_turn_engine_captured_idx")
+      .on(table.sequenceId, table.turn, table.engine, table.capturedAt.desc())
+      .where(sql`${table.sequenceId} IS NOT NULL`),
     index("geoMentionChecks_scanId_idx").on(table.scanId),
     index("geoMentionChecks_personaId_capturedAt_idx").on(
       table.personaId,
@@ -1968,6 +2023,15 @@ export const geoContentBriefs = pgTable(
       table.projectId,
       table.status
     ),
+    // Serves the `distinct on (source_kind, source_id) ... order by updated_at
+    // desc` read in the gaps program; the partial unique index below excludes
+    // published/archived briefs and so cannot serve it.
+    index("geoContentBriefs_project_source_updated_idx").on(
+      table.projectId,
+      table.sourceKind,
+      table.sourceId,
+      table.updatedAt.desc()
+    ),
     uniqueIndex("geoContentBriefs_open_source_uidx")
       .on(table.projectId, table.sourceKind, table.sourceId)
       .where(
@@ -2089,6 +2153,23 @@ export const posts = pgTable(
       table.id
     ),
     index("posts_collection_id_idx").on(table.collectionId),
+    // content.metrics.get aggregates a year of posts by (created_at, status);
+    // posts_org_createdAt_id_idx lacks `status` and forces a heap fetch per row.
+    index("posts_org_createdAt_status_idx").on(
+      table.organizationId,
+      table.createdAt,
+      table.status
+    ),
+    // Adoption analytics looks up the org's first published post.
+    index("posts_org_published_createdAt_idx")
+      .on(table.organizationId, table.createdAt)
+      .where(sql`${table.status} = 'published'`),
+    // The gaps program reads the newest posts of one content type per org.
+    index("posts_org_content_type_updated_at_idx").on(
+      table.organizationId,
+      table.contentType,
+      table.updatedAt.desc()
+    ),
   ]
 );
 

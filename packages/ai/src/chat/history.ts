@@ -2,7 +2,7 @@ import { db } from "@notra/db/drizzle";
 import { chatSessions } from "@notra/db/schema";
 import { projectScopeFilter } from "@notra/db/utils/projects";
 import { generateText, type UIMessage } from "ai";
-import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import {
   CHAT_ABORT_FLAG_TTL_SECONDS,
@@ -10,7 +10,6 @@ import {
   CHAT_LAST_STOPPED_TTL_SECONDS,
   CHAT_WORKFLOW_REQUEST_TTL_SECONDS,
 } from "../constants/chat";
-import { CHAT_SURFACE } from "../constants/chat-surface";
 import { gateway } from "../gateway";
 import { withGatewayAutomaticCaching } from "../provider-options";
 import { uiMessageSchema } from "../schemas/chat";
@@ -19,12 +18,10 @@ import type {
   ExternalChannelId,
   ExternalChannelLookupSource,
 } from "../types/chat";
-import type { ChatSessionInbox } from "../types/chat-surface";
 import { normalizeChatTitle, sortChatSessions } from "../utils/chat";
 import {
   chatSurfaceFromSession,
   isStandaloneInboxSurface,
-  sessionMatchesInbox,
 } from "../utils/chat-surface";
 import { buildExperimentalTelemetry } from "../utils/tcc";
 import { getChatRedis } from "./config";
@@ -564,15 +561,6 @@ export async function getStandaloneChatSession(
   return session;
 }
 
-export async function getChatSessionForInbox(
-  organizationId: string,
-  chatId: string,
-  inbox: ChatSessionInbox
-): Promise<ChatSessionSummary | null> {
-  const session = await getChatSession(organizationId, chatId);
-  return sessionMatchesInbox(session, inbox) ? session : null;
-}
-
 export async function claimChatSessionForExternalChannel(
   organizationId: string,
   source: ExternalChannelLookupSource,
@@ -638,26 +626,13 @@ export async function getChatSessionByExternalChannel(
   return toSessionSummary(row);
 }
 
-function chatSessionInboxFilter(inbox: ChatSessionInbox) {
-  if (inbox === "agent") {
-    return eq(chatSessions.externalChannelSource, CHAT_SURFACE.agent);
-  }
-
-  return or(
-    isNull(chatSessions.externalChannelSource),
-    ne(chatSessions.externalChannelSource, CHAT_SURFACE.agent)
-  );
-}
-
 export async function listChatSessions(
   organizationId: string,
   options?: {
     projectId?: string | null;
-    inbox?: ChatSessionInbox;
   }
 ): Promise<ChatSessionSummary[]> {
   const projectId = options?.projectId;
-  const inbox = options?.inbox ?? "standalone";
 
   const rows = await db
     .select(chatSessionSummaryColumns)
@@ -667,7 +642,6 @@ export async function listChatSessions(
         eq(chatSessions.organizationId, organizationId),
         isNull(chatSessions.contentId),
         isNull(chatSessions.deletedAt),
-        chatSessionInboxFilter(inbox),
         projectScopeFilter(chatSessions.projectId, projectId)
       )
     );

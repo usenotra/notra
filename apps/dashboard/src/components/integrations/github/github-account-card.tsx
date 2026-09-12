@@ -16,6 +16,7 @@ import {
 
 import { Button } from "@/components/button";
 import type { GitHubAccountCardProps } from "@/types/integrations/github";
+import { getGitHubInstallationPermissionsUrl } from "@/utils/github-installation-url";
 
 export function GitHubAccountCard({
   account,
@@ -29,6 +30,31 @@ export function GitHubAccountCard({
   const count = repositories.filter((repository) =>
     selectedIds.has(repository.id)
   ).length;
+  const permissionsUrl = getGitHubInstallationPermissionsUrl({
+    installationId: account.installationId,
+    accountType: account.type,
+    accountLogin: account.login,
+  });
+  const needsWriteAccess = account.canPublish === false;
+  const publishAccessCopy =
+    "Write access needed for draft pull requests. Review permissions on GitHub.";
+  let publishAccessNotice = null;
+  if (needsWriteAccess && permissionsUrl) {
+    publishAccessNotice = (
+      <a
+        className="text-destructive mt-1 block text-xs underline underline-offset-4"
+        href={permissionsUrl}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {publishAccessCopy}
+      </a>
+    );
+  } else if (needsWriteAccess) {
+    publishAccessNotice = (
+      <p className="text-destructive mt-1 text-xs">{publishAccessCopy}</p>
+    );
+  }
   return (
     <div className="flex items-center gap-3 py-3">
       <Avatar className="size-8">
@@ -43,6 +69,7 @@ export function GitHubAccountCard({
             : "Personal account"}{" "}
           · {count} {count === 1 ? "repository" : "repositories"}
         </p>
+        {publishAccessNotice}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -61,6 +88,20 @@ export function GitHubAccountCard({
           <DropdownMenuItem onClick={onAddRepositories}>
             Manage repositories
           </DropdownMenuItem>
+          {permissionsUrl ? (
+            <DropdownMenuItem
+              nativeButton={false}
+              render={
+                <a
+                  href={permissionsUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Review permissions on GitHub
+                </a>
+              }
+            />
+          ) : null}
           <DropdownMenuItem onClick={onDisconnect} variant="destructive">
             Disconnect account
           </DropdownMenuItem>

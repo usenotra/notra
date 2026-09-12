@@ -178,6 +178,36 @@ export function useGeoPersonaDelete(organizationId: string) {
   });
 }
 
+export function useGeoPersonaRun(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (personaId: string) =>
+      dashboardOrpc.geo.personaRun.call({
+        organizationId,
+        projectId,
+        personaId,
+      }),
+    onSuccess: async (result) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.geo.personaResults.key(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.geo.personasActivity.key(),
+        }),
+      ]);
+      const engineCount = result.engines.length;
+      toast.success(
+        `Persona scanned across ${engineCount} engine${engineCount === 1 ? "" : "s"}`
+      );
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, "Failed to run the persona scan"));
+    },
+  });
+}
+
 export function useGeoPersonaResults(
   organizationId: string,
   personaId?: string,

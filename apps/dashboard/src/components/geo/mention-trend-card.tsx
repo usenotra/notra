@@ -9,6 +9,7 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { MentionTrendRow } from "@notra/geo-core/types/geo";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
+import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { useState } from "react";
 
@@ -30,7 +31,6 @@ import {
   buildMentionTrendRows,
   fitMentionTrendLine,
   formatChartInteger,
-  formatEngineFamily,
   mentionTrendEmptyLabel,
 } from "@/utils/geo-charts";
 
@@ -42,7 +42,7 @@ function mentionTrendSeries(engines: readonly string[]): MentionTrendSeries[] {
   return engines.map((engine) => ({
     key: chartKey(engine),
     engine,
-    label: formatEngineFamily(engine),
+    label: engineFamilyLabel(engine),
   }));
 }
 
@@ -198,7 +198,6 @@ export function MentionTrendCard({
           />
           <EChartsAreaChart.Tooltip
             confine={false}
-            hideZeros={false}
             emptyLabel={(row) => mentionTrendEmptyLabel(row, allKeys)}
             labelFormatter={formatFullDayLabel}
             labelKey="rawDay"

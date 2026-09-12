@@ -261,6 +261,7 @@ import {
   loadGeoShelfContext,
   updateGeoShelfSource,
 } from "@/lib/geo-shelf/service";
+import { assertGeoAccess } from "@/lib/geo/access";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import {
   getPersonaGeneration,
@@ -289,13 +290,6 @@ import { ratelimit } from "@/utils/ratelimit";
 interface GeoHandlerOptions<TInput> {
   context: { headers: Headers; user?: AuthenticatedUser };
   input: TInput;
-}
-
-async function assertGeoAccess(
-  params: Parameters<typeof assertOrganizationAccess>[0]
-): Promise<void> {
-  await assertOrganizationAccess(params);
-  await assertGeoEntitlement(params.organizationId);
 }
 
 function geoOpenHandler<
@@ -1246,12 +1240,13 @@ export const geoRouter = {
   sequenceRun: authorizedProcedure
     .input(geoSequenceRunInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       const [, , rate] = await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
         ratelimit.geoSequenceRun.limit(input.organizationId),
       ]);
@@ -1521,6 +1516,11 @@ export const geoRouter = {
   competitorSuggestions: authorizedProcedure
     .input(geoCompetitorSuggestionsInputSchema)
     .handler(async (options) => {
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
       const rate = await ratelimit.geoCompetitorSuggestions.limit(
         options.input.organizationId
       );
@@ -1534,6 +1534,11 @@ export const geoRouter = {
   brandSearch: authorizedProcedure
     .input(geoBrandSearchInputSchema)
     .handler(async (options) => {
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
       const rate = await ratelimit.geoBrandSearch.limit(
         options.input.organizationId
       );
@@ -1591,12 +1596,13 @@ export const geoRouter = {
   writerPlan: authorizedProcedure
     .input(geoWriterPlanInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       const [, , rate] = await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
         ratelimit.geoWriterPlan.limit(input.organizationId),
       ]);
@@ -1641,12 +1647,13 @@ export const geoRouter = {
   writerStart: authorizedProcedure
     .input(geoWriterBriefIdInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
       ]);
 
@@ -1667,12 +1674,13 @@ export const geoRouter = {
   writerUpdate: authorizedProcedure
     .input(geoWriterUpdateInputSchema)
     .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
       await Promise.all([
-        assertGeoAccess({
-          headers: context.headers,
-          organizationId: input.organizationId,
-          user: context.user,
-        }),
+        assertGeoEntitlement(input.organizationId, context.headers),
         assertActiveSubscription(input.organizationId),
       ]);
 

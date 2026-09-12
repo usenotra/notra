@@ -155,7 +155,7 @@ import {
   toAutoTrackedPrompts,
 } from "./prompts";
 import { startClaimedGeoScanRun } from "./scan-handoff";
-import { nextGeoScanAt } from "./scan-schedule";
+import { rearmedGeoScanAt } from "./scan-schedule";
 import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
 
@@ -660,6 +660,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         removedAutoPromptIds: true,
         enabled: true,
         nextScanAt: true,
+        lastScanAt: true,
         scanIntervalHours: true,
       },
       where: eq(geoSettings.projectId, projectId),
@@ -688,20 +689,29 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     ]),
   ].filter((engine) => engineSet.has(engine));
 
-  // The schedule is a plain due stamp the cron sweep polls. A fresh enable or
-  // an interval change re-arms it a full interval out (matching the old
-  // delayed-message behaviour); an unchanged enabled row keeps its pending
-  // due time, and disabling clears it.
+  // The schedule is a plain due stamp the cron sweep polls. An unchanged
+  // enabled row keeps its pending due time (a still-null stamp stays null and
+  // is picked up by the next sweep), disabling clears it, and a fresh enable
+  // or an interval change re-arms it from the last finished scan — not a full
+  // interval out from now, which used to push the next scan a whole day away
+  // every time settings were saved.
   const keepNextScanAt =
     input.enabled &&
     existingSettings?.enabled === true &&
     existingSettings.scanIntervalHours === input.scanIntervalHours;
   let nextScanAt: Date | null = null;
-  if (input.enabled) {
-    nextScanAt = keepNextScanAt
-      ? (existingSettings?.nextScanAt ?? nextGeoScanAt(input.scanIntervalHours))
-      : nextGeoScanAt(input.scanIntervalHours);
+  if (keepNextScanAt) {
+    nextScanAt = existingSettings?.nextScanAt ?? null;
+  } else if (input.enabled) {
+    nextScanAt = rearmedGeoScanAt(
+      input.scanIntervalHours,
+      existingSettings?.lastScanAt ?? null
+    );
   }
+  // A re-armed or cleared schedule must not stay leased by the sweep that was
+  // mid-tick, or the new stamp would be ignored until the lease expires. An
+  // untouched schedule keeps whatever lease that sweep holds.
+  const clearedLease = keepNextScanAt ? {} : { scanLeaseUntil: null };
 
   yield* geoDb("settings upsert failed", () =>
     db
@@ -739,6 +749,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           enabled: input.enabled,
           scanIntervalHours: input.scanIntervalHours,
           nextScanAt,
+          ...clearedLease,
         },
       })
   );

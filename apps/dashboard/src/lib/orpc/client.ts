@@ -17,16 +17,19 @@ function getBaseUrl() {
   );
 }
 
+/**
+ * Batch responses are buffered per item, so anything that streams or carries a
+ * binary/FormData payload has to stay on its own request. The plugin already
+ * skips `Blob`/`FormData`/async-iterator bodies; these namespaces are excluded
+ * on top because they exist to move files around.
+ */
+const NON_BATCHABLE_ROOT_PATHS = new Set(["attachments", "upload"]);
+
 const link = new RPCLink({
   plugins: [
     new BatchLinkPlugin({
-      groups: [
-        {
-          condition: ({ path }) =>
-            path[0] === "onboarding" && path[1] === "companyLogo",
-          context: {},
-        },
-      ],
+      exclude: ({ path }) => NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? ""),
+      groups: [{ condition: () => true, context: {} }],
     }),
   ],
   url: `${getBaseUrl()}/rpc`,

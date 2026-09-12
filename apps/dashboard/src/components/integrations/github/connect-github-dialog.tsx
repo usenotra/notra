@@ -45,16 +45,14 @@ export function ConnectGitHubDialog({
             <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
               <Github className="size-6" />
             </span>
-            <div className="space-y-1">
-              <ResponsiveDialogTitle className="text-xl">
-                Connect GitHub
-              </ResponsiveDialogTitle>
-              <ResponsiveDialogDescription>
-                Install the Notra GitHub App to turn your commits and releases
-                into changelogs, blog posts, and more.
-              </ResponsiveDialogDescription>
-            </div>
+            <ResponsiveDialogTitle className="text-xl">
+              Connect GitHub
+            </ResponsiveDialogTitle>
           </div>
+          <ResponsiveDialogDescription>
+            Install the Notra GitHub App to turn your commits and releases into
+            changelogs, blog posts, and more.
+          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="space-y-4 py-2">
           <p className="text-muted-foreground text-sm">

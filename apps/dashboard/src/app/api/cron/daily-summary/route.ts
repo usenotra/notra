@@ -3,8 +3,8 @@ import { runDailySummaryCron } from "@/lib/email/daily-summary";
 export const maxDuration = 60;
 
 /**
- * Vercel Cron entry point for opt-in GEO daily summary emails. Quiet days
- * are skipped so owners only hear from us when a scan ran or mentions moved.
+ * Vercel Cron entry point for opt-in GEO daily summary emails. Quiet or
+ * unchanged days are skipped so owners only hear from us when GEO moved.
  */
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;

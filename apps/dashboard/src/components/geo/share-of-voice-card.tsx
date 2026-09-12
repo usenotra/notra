@@ -11,8 +11,9 @@ import { ShareOfVoiceTable } from "@/components/geo/share-of-voice-table";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import type { ShareOfVoiceCardProps } from "@/types/geo";
-import { isOwnBrandName } from "@/utils/geo-competitors";
+import { findOwnBrandDomain, isOwnBrandName } from "@/utils/geo-competitors";
 
 export function ShareOfVoiceCard({
   points,
@@ -28,6 +29,8 @@ export function ShareOfVoiceCard({
     organizationSlug,
     organizationId
   );
+  const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
+  const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const openRow = (row: ShareOfVoiceRow) => {
     trackEvent(POSTHOG_EVENTS.GEO_SHARE_OF_VOICE_SLICE_CLICKED, {
       is_own_brand:
@@ -55,6 +58,7 @@ export function ShareOfVoiceCard({
         isScanning={isScanning}
         onRowClick={organizationSlug ? openRow : undefined}
         onRowPointerEnter={organizationSlug ? prefetchRow : undefined}
+        ownDomain={ownDomain}
         points={points}
         timeseries={timeseries}
       />

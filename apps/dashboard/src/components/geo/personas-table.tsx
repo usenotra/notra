@@ -2,6 +2,8 @@
 
 import {
   Delete02Icon,
+  PauseIcon,
+  PlayIcon,
   RefreshIcon,
   ViewIcon,
 } from "@hugeicons/core-free-icons";
@@ -37,6 +39,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   geoPersonaUpdateMutationKey,
   useGeoPersonaDelete,
+  useGeoPersonaRun,
   useGeoPersonasGenerate,
   useGeoPersonaUpdate,
 } from "@/lib/hooks/use-geo-personas";
@@ -54,6 +57,7 @@ export function PersonasTable({
   const deletePersona = useGeoPersonaDelete(organizationId);
   const updatePersona = useGeoPersonaUpdate(organizationId);
   const generatePersona = useGeoPersonasGenerate(organizationId);
+  const runPersona = useGeoPersonaRun(organizationId);
   const generationPending = generatePersona.isPending;
   const generatingPersonaId = generatePersona.generatingPersonaId;
   const regenerate = generatePersona.mutate;
@@ -255,6 +259,18 @@ export function PersonasTable({
             </ContextMenuItem>
             <ContextMenuItem
               disabled={
+                runPersona.isPending ||
+                generationPending ||
+                deletePersona.isPending ||
+                pendingPersonaIds.includes(row.id)
+              }
+              onClick={() => runPersona.mutate(row.id)}
+            >
+              <HugeiconsIcon icon={PlayIcon} />
+              Run scan
+            </ContextMenuItem>
+            <ContextMenuItem
+              disabled={
                 generationPending ||
                 deletePersona.isPending ||
                 pendingPersonaIds.includes(row.id)
@@ -266,6 +282,7 @@ export function PersonasTable({
                 })
               }
             >
+              <HugeiconsIcon icon={row.enabled ? PauseIcon : PlayIcon} />
               {row.enabled ? "Pause scans" : "Include in scans"}
             </ContextMenuItem>
             <ContextMenuItem

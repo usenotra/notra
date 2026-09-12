@@ -5,6 +5,7 @@ import type {
 } from "@notra/ai/types/google-search-console";
 import type { Effect } from "effect";
 
+import type { GeoFlagEvaluationError } from "../geo/errors";
 import type { GeoSearchConsoleError } from "../schemas/search-console-errors";
 import type { AgentReadinessWorkflowPayload } from "./agent-readiness";
 import type {
@@ -53,13 +54,17 @@ export interface GeoEntitlementServiceShape {
   ) => Effect.Effect<GeoZdrEntitlement>;
 }
 
+/**
+ * A provider that cannot answer fails with `GeoFlagEvaluationError`; callers
+ * treat that as "not entitled" for this request without caching the answer.
+ */
 export interface GeoFeatureFlagServiceShape {
   readonly isCursorEngineEnabledForOrganization: (
     organizationId: string
-  ) => Effect.Effect<boolean>;
+  ) => Effect.Effect<boolean, GeoFlagEvaluationError>;
   readonly isOpenCodeEngineEnabledForOrganization: (
     organizationId: string
-  ) => Effect.Effect<boolean>;
+  ) => Effect.Effect<boolean, GeoFlagEvaluationError>;
 }
 
 export interface GeoGenerationServiceShape {

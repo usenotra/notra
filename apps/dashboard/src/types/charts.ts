@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType, ReactNode, RefObject } from "react";
 
 export interface ChartColorPair {
   light: string;
@@ -87,4 +87,15 @@ export interface TooltipRowGroup {
 export interface TooltipBodyGroup {
   heading: TooltipBodyItem;
   items: TooltipBodyItem[];
+}
+
+export interface EChartsPlotFrameProps {
+  chartId: string;
+  className?: string;
+  containerRef: RefObject<HTMLDivElement | null>;
+  css: string;
+  isLoading: boolean;
+  mountRef: RefObject<HTMLDivElement | null>;
+  plotBefore?: ReactNode;
+  children?: ReactNode;
 }

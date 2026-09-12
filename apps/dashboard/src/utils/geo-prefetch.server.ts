@@ -14,10 +14,11 @@ import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
  */
 export async function dehydrateGeoOverviewQueries(
   organizationId: string,
+  projectId: string | undefined,
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
-  const input = geoHydrationInputs(organizationId, search);
+  const input = geoHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { geo: geoRouter },
     { context: () => createORPCContext({ headers: requestHeaders }) }
@@ -32,6 +33,52 @@ export async function dehydrateGeoOverviewQueries(
     ...dashboardOrpc.geo.overview.queryOptions({ input: input.overview }),
     queryFn: () => client.geo.overview(input.overview),
   });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.timeseries.queryOptions({ input: input.timeseries }),
+    queryFn: () => client.geo.timeseries(input.timeseries),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.promptsList.queryOptions({ input: input.prompts }),
+    queryFn: () => client.geo.promptsList(input.prompts),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.competitors.queryOptions({ input: input.competitors }),
+    queryFn: () => client.geo.competitors(input.competitors),
+  });
+
+  // The remaining queries only mount on specific tabs (see
+  // `useGeoOverviewPage`); prefetching them for another tab would be wasted.
+  if (input.activeTab === "journeys") {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.trafficJourneys.queryOptions({
+        input: input.trafficJourneys,
+      }),
+      queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
+    });
+  }
+  if (input.activeTab === "visibility" || input.activeTab === "prompts") {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.promptResultSummaries.queryOptions({
+        input: input.promptResultSummaries,
+      }),
+      queryFn: () =>
+        client.geo.promptResultSummaries(input.promptResultSummaries),
+    });
+  }
+  if (input.activeTab === "visibility") {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.competitorShare.queryOptions({
+        input: input.competitorShare,
+      }),
+      queryFn: () => client.geo.competitorShare(input.competitorShare),
+    });
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.languageShare.queryOptions({
+        input: input.languageShare,
+      }),
+      queryFn: () => client.geo.languageShare(input.languageShare),
+    });
+  }
 
   return dehydrate(queryClient);
 }

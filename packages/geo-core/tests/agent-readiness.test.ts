@@ -55,6 +55,41 @@ describe("Agent Readiness Effect boundaries", () => {
     expect(loaded.scan).toBeNull();
   });
 
+  test("a newer running report does not displace the completed one", async () => {
+    const scope = await seedProject("readiness-split");
+    const targetUrl = "https://example.com";
+    await testDb.insert(geoAgentReadinessReports).values([
+      {
+        id: "report-completed",
+        ...scope,
+        targetUrl,
+        status: "completed",
+        score: 71,
+        scoreLabel: "Good",
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
+      {
+        id: "report-running",
+        ...scope,
+        targetUrl,
+        status: "running",
+        createdAt: new Date("2026-01-02T00:00:00.000Z"),
+      },
+    ]);
+
+    const loaded = await Effect.runPromise(
+      loadAgentReadiness({
+        ...scope,
+        brandSettingsId: "brand-readiness-split",
+      })
+    );
+
+    // The completed half feeds the report; the newest half feeds the scan.
+    expect(loaded.report?.id).toBe("report-completed");
+    expect(loaded.report?.score).toBe(71);
+    expect(loaded.scan?.id).toBe("report-running");
+  });
+
   test("failed handoff plus failed stamping retains the original handoff", async () => {
     const scope = await seedProject("handoff-stamp");
     const cause = new Error("test rejected handoff");

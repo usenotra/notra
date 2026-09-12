@@ -18,7 +18,8 @@ const VIEWPORT_MARGIN = "200px";
 const IDLE_FALLBACK_MS = 1500;
 
 export function useDitherVisibility(
-  unmountOffscreen = false
+  unmountOffscreen = false,
+  eager = false
 ): DitherVisibilityState {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isIdle, setIsIdle] = useState(false);
@@ -69,7 +70,8 @@ export function useDitherVisibility(
   return {
     containerRef,
     shouldRender:
-      isIdle && (unmountOffscreen ? isInView && isPageVisible : hasEntered),
+      (eager || isIdle) &&
+      (eager || (unmountOffscreen ? isInView && isPageVisible : hasEntered)),
     isAnimating: isInView && isPageVisible && !prefersReducedMotion,
   };
 }

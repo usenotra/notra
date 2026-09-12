@@ -18,7 +18,7 @@ import {
 } from "@/constants/landing/hero";
 
 const CTA_BUTTON_CLASSNAME =
-  "h-auto rounded-[2.5625rem] px-6 py-3 font-display font-medium text-[1.125rem] leading-[1.14] tracking-[-0.015em]";
+  "h-auto rounded-[2.5625rem] px-4 py-3 font-display font-medium text-[1.125rem] leading-[1.14] tracking-[-0.015em] sm:px-6";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
@@ -26,7 +26,7 @@ export function HeroSection() {
   const word = HERO_HEADLINE_CYCLE[index] ?? HERO_HEADLINE_CYCLE[0];
 
   useEffect(() => {
-    if (reduceMotion) {
+    if (reduceMotion !== false) {
       return;
     }
     const interval = window.setInterval(() => {
@@ -43,7 +43,7 @@ export function HeroSection() {
     <section className="w-full px-6 pt-6 antialiased [font-synthesis:none]">
       <div className="relative isolate overflow-clip rounded-3xl bg-[#C8B2EE40] lg:h-[59.9375rem] dark:bg-[#2a2140]">
         <div className="pointer-events-none absolute inset-0 overflow-clip rounded-3xl">
-          <HeroDither />
+          <HeroDither eager />
         </div>
 
         <div className="relative flex h-full w-full flex-col items-center">
@@ -55,7 +55,7 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-7 sm:flex-row">
+            <div className="flex flex-row items-center justify-center gap-4 sm:gap-7">
               <CtaButton
                 className={CTA_BUTTON_CLASSNAME}
                 nativeButton={false}

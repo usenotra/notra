@@ -9,6 +9,7 @@ import type { GitHubAppSectionProps } from "@/types/integrations/github-settings
 function GitHubAccounts({
   githubAppQuery,
   isLoading,
+  isLoadingLegacyIntegrations,
   isConnected,
   accounts,
   repositories,
@@ -61,6 +62,9 @@ function GitHubAccounts({
       </section>
     );
   }
+  if (isLoadingLegacyIntegrations) {
+    return <GitHubIntegrationSkeleton />;
+  }
   return (
     <div className="bg-muted/40 space-y-3 rounded-2xl p-5">
       <h3 className="text-sm font-medium">Connect the GitHub App</h3>
@@ -80,21 +84,7 @@ function GitHubAccounts({
 }
 
 export function GitHubAppSection(props: GitHubAppSectionProps) {
-  const {
-    githubAppQuery,
-    isLoading,
-    isLoadingLegacyIntegrations,
-    isConnected,
-    handleOpenConnect,
-    setLegacyOpen,
-  } = props;
-  const hasAccountContent =
-    isLoading ||
-    (githubAppQuery.isError && !githubAppQuery.data) ||
-    isConnected;
-  if (!hasAccountContent && isLoadingLegacyIntegrations) {
-    return null;
-  }
+  const { isConnected, handleOpenConnect, setLegacyOpen } = props;
   return (
     <section
       aria-labelledby="github-app-heading"
@@ -105,7 +95,8 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
           GitHub App
         </h2>
         <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          Manage connected accounts and repository access.
+          Manage connected accounts, repository access, and GitHub write
+          permissions for draft pull requests.
         </p>
       </div>
       <div className="min-w-0 space-y-4">

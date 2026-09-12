@@ -25,27 +25,28 @@ docolin:
   next: ./linear.mdx
 ---
 
-The GitHub integration reads activity from your repositories so Notra can generate changelogs, blog posts, and social posts. Since August 2026 the primary way to connect is the **Notra GitHub App**. The older personal access token flow still works and is labelled **Legacy** in the dashboard.
+The GitHub integration reads activity from your repositories so Notra can generate changelogs, blog posts, and social posts. It can also **publish a draft pull request** back to the repository. Since August 2026 the primary way to connect is the **Notra GitHub App**. The older personal access token flow still works and is labelled **Legacy** in the dashboard.
 
 ## What Notra accesses
 
 The GitHub App asks for:
 
 * Read access to repository metadata, branches, and releases
+* Write access to Contents and Pull requests, so Notra can open a draft pull request with the generated Markdown
 * Webhook events for the repositories you choose
 * Access only to the repositories you grant during installation
 
-From that access Notra reads commits on the branch you track, merged pull requests, and published releases.
+From that access Notra reads commits on the branch you track, merged pull requests, and published releases. Publishing a changelog or blog post creates a branch and a **draft** pull request — it does not merge or change repository settings.
 
-<Warning>
-  Notra never writes to your repositories. It does not open issues or pull requests, push commits, or change settings.
-</Warning>
+<Note>
+  Existing installations stay read-only until you accept the updated permissions on GitHub. Reconnecting a repository in Notra does not grant write access. Open **Integrations**, then **GitHub**, and choose **Review permissions on GitHub**.
+</Note>
 
 ## Install the GitHub App
 
 <Steps>
   <Step title="Open the GitHub page">
-    In the dashboard sidebar, click **Integrations**, then the **GitHub** card. Click **Connect GitHub** (or press `C`).
+    In the dashboard, open **Settings**, then **Integrations**, then **GitHub**. You can also use the sidebar: **Integrations**, then the **GitHub** card. Click **Connect GitHub** (or press `C`).
   </Step>
 
   <Step title="Install on GitHub">
@@ -122,6 +123,7 @@ To remove a GitHub account, click **Disconnect** on its card. This disables the 
 
 | Message in Notra                                                            | What it means                                                                       |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| GitHub write access needed / GitHub still shows read-only | The GitHub App installation has not accepted Contents and Pull requests **write**. Reconnecting the repository is not enough. On GitHub, open the installation and accept any pending permission request. In Notra: **Settings → Integrations → GitHub**, then **Review permissions on GitHub**. |
 | The GitHub installation was cancelled.                                      | You left the GitHub install screen. Start again from **Connect GitHub**.            |
 | The GitHub installation link expired.                                       | Install links are valid for 30 minutes. Start again.                                |
 | You need to be an admin of the GitHub account that owns this installation.  | Ask an owner of the GitHub organization to run the installation, or make you admin. |

@@ -42,7 +42,7 @@ export function PersonaAddDialog({
               and memories.
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm font-medium" htmlFor={id}>
               Who should this persona represent?
             </label>

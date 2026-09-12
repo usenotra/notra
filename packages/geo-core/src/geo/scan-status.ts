@@ -1,6 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
-import { and, eq, gte, isNull, lt, notExists, or } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, lte, notExists, or } from "drizzle-orm";
 import { Effect, Exit, Schedule } from "effect";
 
 import {
@@ -42,10 +42,22 @@ import {
  * comparison arm is no longer needed.
  */
 export const claimGeoScanRun = Effect.fn("geo.claimScanRun")(function* (
-  projectId: string
+  projectId: string,
+  options: { unlessFinishedAfter?: Date } = {}
 ) {
   const now = new Date();
   const staleBefore = new Date(now.getTime() - GEO_SCAN_STALE_MS);
+  // The scheduled sweep passes the slot it is about to serve. Folding "no
+  // attempt finished after that slot" into the same statement keeps the
+  // coverage check and the claim atomic: a scan that finishes between the
+  // sweep reading `last_scan_at` and claiming would otherwise free the slot
+  // and let a second paid scan start for the slot it just covered.
+  const notCovered = options.unlessFinishedAfter
+    ? or(
+        isNull(geoSettings.lastScanAt),
+        lte(geoSettings.lastScanAt, options.unlessFinishedAfter)
+      )
+    : undefined;
   const claimed = yield* geoDb("scan claim failed", () =>
     db
       .update(geoSettings)
@@ -56,7 +68,8 @@ export const claimGeoScanRun = Effect.fn("geo.claimScanRun")(function* (
           or(
             isNull(geoSettings.scanStartedAt),
             lt(geoSettings.scanStartedAt, staleBefore)
-          )
+          ),
+          notCovered
         )
       )
       .returning({ id: geoSettings.id })
@@ -176,9 +189,15 @@ export const releaseGeoScanRun = Effect.fn("geo.releaseScanRun")(function* (
 });
 
 /**
- * Stamps a completed run: records `last_scan_at` *and* frees the slot in one
+ * Stamps a finished run: records `last_scan_at` *and* frees the slot in one
  * statement, so the row can never sit in the half-state where the scan is over
  * but `scan_started_at` still reads as owned.
+ *
+ * `last_scan_at` is the last *attempt*, not the last success — a failed run
+ * stamps it too. That is deliberate: the cron sweep treats a slot as covered
+ * once an attempt finished after it came due, which caps a schedule slot at
+ * one paid scan. A run that is worth retrying retries inside the workflow
+ * (see `GEO_SCAN_NO_RESULTS_RETRY_DELAY`), not by burning a second slot.
  *
  * With a `claimedAt` token the write is compare-and-set on it, so a straggler
  * whose claim already went stale cannot stamp over a run that started since.

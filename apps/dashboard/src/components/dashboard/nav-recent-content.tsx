@@ -32,8 +32,14 @@ export function NavRecentContent({
   enabled = true,
 }: NavRecentContentProps) {
   const pathname = usePathname();
-  const { data, isPending } = usePosts(organizationId, 1, enabled);
-  const posts = (data?.posts ?? []).slice(0, NAV_RECENT_LIMIT);
+  // Request only what the sidebar shows — a full page ships every post body.
+  const { data, isPending } = usePosts(
+    organizationId,
+    1,
+    enabled,
+    NAV_RECENT_LIMIT
+  );
+  const posts = data?.posts ?? [];
 
   if (!enabled || (!isPending && posts.length === 0)) {
     return null;

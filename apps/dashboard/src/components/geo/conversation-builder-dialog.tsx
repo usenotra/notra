@@ -45,7 +45,9 @@ export function ConversationBuilderDialog({
   sequence,
 }: ConversationBuilderDialogProps) {
   const nameId = useId();
-  const { addSequence, updateSequence } = useGeoSequencesDb(organizationId);
+  const { addSequence, updateSequence } = useGeoSequencesDb(organizationId, {
+    enabled: open,
+  });
   const [name, setName] = useState(sequence?.name ?? "");
   const [steps, setSteps] = useState<ConversationTurnDraft[]>(() =>
     turnsFromSequence(sequence)
