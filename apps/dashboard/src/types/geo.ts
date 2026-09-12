@@ -560,6 +560,8 @@ export interface TrafficPageSourcesCellProps {
 export interface TrafficPagesCardProps {
   pages: GeoTrafficPage[];
   isPending?: boolean;
+  hosts?: readonly string[];
+  isHostReady?: boolean;
 }
 
 export interface PresenceBadgeProps {

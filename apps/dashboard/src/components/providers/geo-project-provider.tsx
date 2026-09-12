@@ -55,7 +55,10 @@ export function GeoProjectQueryProvider({
   // starting from the server-resolved value keeps the scope (and every query
   // key derived from it) stable across that rewrite. An empty `?project=` is
   // normalised away so the client falls back exactly like the server does.
-  const projectId = normalizeGeoProjectId(projectParam) ?? initialProjectId;
+  // Layouts cannot read search params, so the first client render may replace
+  // `initialProjectId` with `?project=` — that is hydration, not a switch.
+  const urlProjectId = normalizeGeoProjectId(projectParam);
+  const projectId = urlProjectId ?? initialProjectId;
   const [hostQuery, setHostQuery] = useQueryState(
     GEO_TRAFFIC_HOST_PARAM,
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
@@ -68,10 +71,19 @@ export function GeoProjectQueryProvider({
   );
   const [hostScopeProjectId, setHostScopeProjectId] = useState(projectId);
   const [hostSuppressed, setHostSuppressed] = useState(false);
+  const [seenUrlProject, setSeenUrlProject] = useState(
+    () => urlProjectId !== undefined
+  );
 
   if (projectId !== hostScopeProjectId) {
+    const isHydrationAlignment = urlProjectId !== undefined && !seenUrlProject;
     setHostScopeProjectId(projectId);
-    setHostSuppressed(hostQuery.length > 0);
+    if (urlProjectId !== undefined) {
+      setSeenUrlProject(true);
+    }
+    if (!isHydrationAlignment && hostQuery.length > 0) {
+      setHostSuppressed(true);
+    }
   }
 
   useEffect(() => {

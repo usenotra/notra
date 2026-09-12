@@ -6,6 +6,7 @@ import {
   filterTrafficPageGroups,
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
+  trafficHostSelectOptions,
   trafficHostsFromPages,
 } from "../src/utils/ai-traffic-pages";
 
@@ -85,6 +86,20 @@ describe("trafficHostsFromPages", () => {
         page({ host: "docs.example.com", path: "/blog" }),
         page({ host: "", path: "/" }),
       ])
+    ).toEqual(["docs.example.com", "example.com"]);
+  });
+});
+
+describe("trafficHostSelectOptions", () => {
+  test("does not add a second all option", () => {
+    expect(
+      trafficHostSelectOptions(["example.com", "docs.example.com"], "all")
+    ).toEqual(["docs.example.com", "example.com"]);
+  });
+
+  test("keeps a selected host that is missing from the current page set", () => {
+    expect(
+      trafficHostSelectOptions(["docs.example.com"], "example.com")
     ).toEqual(["docs.example.com", "example.com"]);
   });
 });

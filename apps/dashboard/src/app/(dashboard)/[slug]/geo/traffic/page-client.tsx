@@ -58,11 +58,14 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   );
   const { data: ingestSetup, isPending: isIngestPending } =
     useGeoIngestSetup(organizationId);
+  const inventoryPages = useGeoTrafficPages(organizationId, geoRange.query);
   const { data: trafficPages, isPending: isPagesPending } = useGeoTrafficPages(
     organizationId,
     geoRange.query,
     hostQuery
   );
+  const knownHosts = trafficHostsFromPages(inventoryPages.data?.pages ?? []);
+  const isHostReady = inventoryPages.isSuccess;
 
   const settings = settingsData?.settings ?? null;
   const sources = traffic?.sources ?? [];
@@ -178,14 +181,16 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
           </InstrumentReveal>
           <InstrumentReveal active={revealActive} order={1}>
             <TrafficPagesCard
+              hosts={knownHosts}
+              isHostReady={isHostReady}
               isPending={isPagesPending}
               pages={trafficPages?.pages ?? []}
             />
           </InstrumentReveal>
           <InstrumentReveal active={revealActive} order={2}>
             <AiTrafficLogCard
-              isHostReady={!isPagesPending}
-              knownHosts={trafficHostsFromPages(trafficPages?.pages ?? [])}
+              isHostReady={isHostReady}
+              knownHosts={knownHosts}
               organizationId={organizationId}
             />
           </InstrumentReveal>

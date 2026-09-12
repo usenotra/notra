@@ -117,10 +117,11 @@ describe("isKnownTrafficHost", () => {
 });
 
 describe("trafficQueryHost", () => {
-  test("sends a host before known hosts are ready", () => {
+  test("preserves the host until readiness is confirmed", () => {
     expect(trafficQueryHost("www.Docs.Example.com", [], false)).toBe(
       "docs.example.com"
     );
+    expect(trafficQueryHost("other.com", ["example.com"])).toBe("other.com");
   });
 
   test("drops a host that is not in the current project list", () => {

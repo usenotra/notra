@@ -73,16 +73,15 @@ export function AiTrafficLogCard({
     isReady: !isPending,
   });
   const previousHostRef = useRef(hostQuery);
-  const setLogPageRef = useRef(pagination.setPage);
-  setLogPageRef.current = pagination.setPage;
+  const setLogPage = pagination.setPage;
 
   useEffect(() => {
     if (previousHostRef.current === hostQuery) {
       return;
     }
     previousHostRef.current = hostQuery;
-    setLogPageRef.current(1);
-  }, [hostQuery]);
+    setLogPage(1);
+  }, [hostQuery, setLogPage]);
 
   const citationsOnly = isGeoTrafficCitationsOnly(filters.categories);
 

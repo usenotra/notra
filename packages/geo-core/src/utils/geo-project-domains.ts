@@ -73,7 +73,7 @@ export function isKnownTrafficHost(
 export function trafficQueryHost(
   host: string | undefined,
   knownHosts?: readonly string[],
-  isReady = true
+  isReady = false
 ): string {
   const filtered = trafficLogHostFilter(host);
   if (filtered.length === 0) {

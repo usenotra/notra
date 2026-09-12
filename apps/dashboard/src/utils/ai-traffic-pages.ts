@@ -1,3 +1,4 @@
+import { GEO_TRAFFIC_HOST_ALL } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficPage } from "@notra/geo-core/types/geo";
 import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
 import {
@@ -124,4 +125,22 @@ export function trafficHostsFromPages(
     }
   }
   return [...hostSet].toSorted((left, right) => left.localeCompare(right));
+}
+
+export function trafficHostSelectOptions(
+  hosts: readonly string[],
+  selected: string
+): string[] {
+  const selectedHost = selected.trim();
+  const unique = new Set(
+    hosts.filter((host) => host.length > 0 && host !== GEO_TRAFFIC_HOST_ALL)
+  );
+  if (
+    selectedHost.length > 0 &&
+    selectedHost !== GEO_TRAFFIC_HOST_ALL &&
+    !unique.has(selectedHost)
+  ) {
+    unique.add(selectedHost);
+  }
+  return [...unique].toSorted((left, right) => left.localeCompare(right));
 }

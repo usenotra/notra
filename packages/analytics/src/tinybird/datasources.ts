@@ -288,7 +288,37 @@ export const geoTrafficPagesDaily = defineDatasource(
   "geo_traffic_pages_daily",
   {
     description:
-      "Daily rollup of geo_traffic_events per organization, visitor type, source, host and path; read with countMerge/maxMerge. Adding host to the sorting key requires recreating this datasource and its MV, then backfilling from geo_traffic_events.",
+      "Daily rollup of geo_traffic_events per organization, visitor type, source and path; read with countMerge/maxMerge",
+    schema: {
+      day: t.date(),
+      organization_id: t.string(),
+      project_id: t.string().lowCardinality(),
+      visitor_type: t.string().lowCardinality(),
+      source: t.string().lowCardinality(),
+      path: t.string(),
+      visits_state: t.aggregateFunction("count"),
+      last_seen_state: t.aggregateFunction("max", t.dateTime()),
+    },
+    engine: engine.aggregatingMergeTree({
+      sortingKey: [
+        "organization_id",
+        "project_id",
+        "visitor_type",
+        "source",
+        "day",
+        "path",
+      ],
+      partitionKey: "toYYYYMM(day)",
+    }),
+    jsonPaths: false,
+  }
+);
+
+export const geoTrafficPagesByHostDaily = defineDatasource(
+  "geo_traffic_pages_by_host_daily",
+  {
+    description:
+      "Daily rollup of geo_traffic_events per organization, visitor type, source, host and path; read with countMerge/maxMerge. Populate with geo_traffic_pages_by_host_daily_backfill before switching readers off geo_traffic_events.",
     schema: {
       day: t.date(),
       organization_id: t.string(),

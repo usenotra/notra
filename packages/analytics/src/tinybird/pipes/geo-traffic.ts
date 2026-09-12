@@ -1,4 +1,5 @@
 import {
+  defineCopyPipe,
   defineEndpoint,
   defineMaterializedView,
   node,
@@ -7,6 +8,8 @@ import {
 } from "@tinybirdco/sdk";
 
 import {
+  GEO_CAPTURED_CURRENT_CONDITION,
+  GEO_CAPTURED_PREVIOUS_CONDITION,
   GEO_CAPTURED_WINDOW_SQL,
   GEO_DAY_COMPARISON_WINDOW_SQL,
   GEO_DAY_CURRENT_CONDITION,
@@ -20,7 +23,26 @@ import {
   GEO_PROJECT_SCOPE_SQL,
   GEO_WINDOW_PARAMS,
 } from "../../constants/geo-queries";
-import { geoTrafficDaily, geoTrafficPagesDaily } from "../datasources";
+import {
+  geoTrafficDaily,
+  geoTrafficPagesByHostDaily,
+  geoTrafficPagesDaily,
+} from "../datasources";
+
+const GEO_TRAFFIC_PAGES_BY_HOST_DAILY_SQL = `
+          SELECT
+            toDate(captured_at) AS day,
+            organization_id,
+            project_id,
+            visitor_type,
+            source,
+            host,
+            path,
+            countState() AS visits_state,
+            maxState(captured_at) AS last_seen_state
+          FROM geo_traffic_events
+          GROUP BY day, organization_id, project_id, visitor_type, source, host, path
+        `;
 
 export const geoTrafficDailyMv = defineMaterializedView(
   "geo_traffic_daily_mv",
@@ -69,13 +91,44 @@ export const geoTrafficPagesDailyMv = defineMaterializedView(
             project_id,
             visitor_type,
             source,
-            host,
             path,
             countState() AS visits_state,
             maxState(captured_at) AS last_seen_state
           FROM geo_traffic_events
-          GROUP BY day, organization_id, project_id, visitor_type, source, host, path
+          GROUP BY day, organization_id, project_id, visitor_type, source, path
         `,
+      }),
+    ],
+  }
+);
+
+export const geoTrafficPagesByHostDailyMv = defineMaterializedView(
+  "geo_traffic_pages_by_host_daily_mv",
+  {
+    description:
+      "Rolls geo_traffic_events into geo_traffic_pages_by_host_daily on every ingest",
+    datasource: geoTrafficPagesByHostDaily,
+    nodes: [
+      node({
+        name: "traffic_pages_by_host_daily",
+        sql: GEO_TRAFFIC_PAGES_BY_HOST_DAILY_SQL,
+      }),
+    ],
+  }
+);
+
+export const geoTrafficPagesByHostDailyBackfill = defineCopyPipe(
+  "geo_traffic_pages_by_host_daily_backfill",
+  {
+    description:
+      "On-demand replace of geo_traffic_pages_by_host_daily from geo_traffic_events. Run once after deploy, before switching geo_traffic_pages off the raw event table.",
+    datasource: geoTrafficPagesByHostDaily,
+    copy_mode: "replace",
+    copy_schedule: "@on-demand",
+    nodes: [
+      node({
+        name: "traffic_pages_by_host_backfill",
+        sql: GEO_TRAFFIC_PAGES_BY_HOST_DAILY_SQL,
       }),
     ],
   }
@@ -183,22 +236,24 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
   nodes: [
     node({
       name: "top_pages",
+      // Keep the host filter on geo_traffic_events until
+      // geo_traffic_pages_by_host_daily_backfill has replaced the rollup.
       sql: `
         SELECT
           host,
           path,
           source,
           visitor_type,
-          countMergeIf(visits_state, (${GEO_DAY_CURRENT_CONDITION})) AS visits,
-          countMergeIf(visits_state, (${GEO_DAY_PREVIOUS_CONDITION})) AS previous_visits,
-          maxMergeIf(last_seen_state, (${GEO_DAY_CURRENT_CONDITION})) AS last_seen_at
-        FROM geo_traffic_pages_daily
+          countIf(${GEO_CAPTURED_CURRENT_CONDITION}) AS visits,
+          countIf(${GEO_CAPTURED_PREVIOUS_CONDITION}) AS previous_visits,
+          maxIf(captured_at, (${GEO_CAPTURED_CURRENT_CONDITION})) AS last_seen_at
+        FROM geo_traffic_events
         WHERE organization_id = {{String(organization_id)}}
           ${GEO_PROJECT_SCOPE_SQL}
           ${GEO_EXCLUDED_SOURCES_SQL}
           AND visitor_type IN ('crawler', 'ai_referral')
           AND ({{String(visitor, '')}} = '' OR visitor_type = {{String(visitor, '')}})
-          ${GEO_DAY_COMPARISON_WINDOW_SQL}
+          AND ((${GEO_CAPTURED_CURRENT_CONDITION}) OR (${GEO_CAPTURED_PREVIOUS_CONDITION}))
           ${GEO_HOST_FILTER_SQL}
         GROUP BY host, path, source, visitor_type
         HAVING visits > 0

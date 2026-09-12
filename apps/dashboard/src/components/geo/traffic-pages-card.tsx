@@ -44,6 +44,7 @@ import {
   filterTrafficPageGroups,
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
+  trafficHostSelectOptions,
   trafficHostsFromPages,
 } from "@/utils/ai-traffic-pages";
 import { paginatedTableHeightFor } from "@/utils/table";
@@ -56,22 +57,28 @@ const VISITS_COLUMN_WIDTH = "9.5rem";
 export function TrafficPagesCard({
   pages,
   isPending = false,
+  hosts,
+  isHostReady,
 }: TrafficPagesCardProps) {
   const [pathQuery, setPathQuery] = useQueryState(
     GEO_TRAFFIC_PAGES_PATH_PARAM,
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
   );
   const groups = groupTrafficPages(pages);
-  const hosts = trafficHostsFromPages(pages);
-  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery(hosts, !isPending);
-  const appliedHost =
-    isPending || isKnownTrafficHost(hostQuery, hosts) ? hostQuery : "";
-  const hostOptions =
-    appliedHost.length > 0 && !hosts.includes(appliedHost)
-      ? [...hosts, appliedHost].toSorted((left, right) =>
-          left.localeCompare(right)
-        )
-      : hosts;
+  const observedHosts = hosts ?? trafficHostsFromPages(pages);
+  const hostReady = isHostReady ?? !isPending;
+  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery(
+    observedHosts,
+    hostReady
+  );
+  let appliedHost = hostQuery;
+  if (
+    hostQuery === GEO_TRAFFIC_HOST_ALL ||
+    (hostReady && !isKnownTrafficHost(hostQuery, observedHosts))
+  ) {
+    appliedHost = "";
+  }
+  const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
   const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
   const filteredGroups = filterTrafficPageGroupsByHost(
     filterTrafficPageGroups(groups, pathQuery),
