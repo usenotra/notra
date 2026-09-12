@@ -41,7 +41,7 @@ import {
   buildIrisImageReviewPrompt,
   buildIrisSocialPostPrompt,
 } from "@notra/ai/prompts/iris-content";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import {
   type IrisSocialPlatform,
   irisAnalyticsReadTaskParamsSchema,
@@ -211,7 +211,7 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
           prompt: params.prompt,
           temperature: CONTENT_TEMPERATURE,
           maxOutputTokens: params.maxOutputTokens,
-          providerOptions: withGatewayDefaults(undefined, {
+          providerOptions: withRouterDefaults(undefined, {
             modelId: IRIS_CONTENT_MODEL_ID,
           }),
         }),
@@ -480,7 +480,7 @@ const reviewIrisImage = Effect.fn("iris.capabilities.reviewImage")(
             },
           ],
           maxOutputTokens: IMAGE_REVIEW_MAX_OUTPUT_TOKENS,
-          providerOptions: withGatewayDefaults(undefined, {
+          providerOptions: withRouterDefaults(undefined, {
             modelId: IMAGE_REVIEW_MODEL_ID,
           }),
         }),

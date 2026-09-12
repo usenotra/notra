@@ -22,7 +22,7 @@ import {
   buildMarketingAssetMissingOutputPrompt,
   buildMarketingAssetRevisionPrompt,
 } from "@notra/ai/prompts/marketing-assets";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import type {
   GenerateRepoImageInput,
   GenerateRepoImageResult,
@@ -265,7 +265,7 @@ async function reviewRenderedRepoImageForLogoIssues(params: {
       },
     ],
     maxOutputTokens: 700,
-    providerOptions: withGatewayDefaults(undefined, {
+    providerOptions: withRouterDefaults(undefined, {
       modelId: IMAGE_REVIEW_MODEL_ID,
     }),
   });

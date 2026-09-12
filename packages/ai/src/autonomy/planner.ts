@@ -7,7 +7,7 @@ import {
   buildIrisPlannerSystemPrompt,
   buildIrisPlannerUserPrompt,
 } from "@notra/ai/prompts/iris-planner";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import { irisTaskParamSchemas } from "@notra/ai/schemas/autonomy/capability-params";
 import {
   type PlannerOutput,
@@ -61,7 +61,7 @@ const generatePlannerDraft = Effect.fn("iris.planner.generate")(function* (
         prompt,
         temperature: PLANNER_TEMPERATURE,
         maxOutputTokens: PLANNER_MAX_OUTPUT_TOKENS,
-        providerOptions: withGatewayDefaults(undefined, {
+        providerOptions: withRouterDefaults(undefined, {
           modelId: IRIS_PLANNER_MODEL_ID,
         }),
       });

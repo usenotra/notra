@@ -4,7 +4,7 @@ import {
   wrapModelWithObservability,
 } from "@notra/ai/observability";
 import { ROUTING_PROMPT } from "@notra/ai/prompts/router";
-import { withGatewayAutomaticCaching } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import { routingDecisionSchema } from "@notra/ai/schemas/orchestration";
 import type {
   AutoSelection,
@@ -135,7 +135,7 @@ export async function routeMessage(
       prompt: `Classify this user message:
 
 "${userMessage}"${contextHint}`,
-      providerOptions: withGatewayAutomaticCaching(undefined, {
+      providerOptions: withRouterDefaults(undefined, {
         modelId: MODELS.router,
       }),
       experimental_repairText: async ({ text, error }) => {
@@ -168,7 +168,7 @@ export async function routeMessage(
               error.message,
             ].join("\n"),
             maxOutputTokens: 200,
-            providerOptions: withGatewayAutomaticCaching(undefined, {
+            providerOptions: withRouterDefaults(undefined, {
               modelId: MODELS.router,
             }),
             experimental_telemetry:

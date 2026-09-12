@@ -1,6 +1,6 @@
 import { createModel } from "@notra/ai/model";
 import { getContentEditorChatPrompt } from "@notra/ai/prompts/content-editor";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import type {
   OrchestrateDeps,
   OrchestrateInput,
@@ -129,7 +129,7 @@ export async function orchestrateChat(
     }),
     tools,
     stopWhen: stepCountIs(maxSteps),
-    providerOptions: withGatewayDefaults(
+    providerOptions: withRouterDefaults(
       getThinkingProviderOptions(
         routingDecision.model,
         true,
