@@ -9,6 +9,8 @@ import { buildSceneFromElement } from "./converters/dom-to-scene";
 import { getSchemaBytes } from "./schemas/figma";
 import type { BuildFigmaPasteHtmlOptions } from "./types/figma";
 
+export { loadFallbackFont } from "./fonts/loader";
+
 export async function buildFigmaPasteHtml(
   element: HTMLElement,
   options: BuildFigmaPasteHtmlOptions = {}

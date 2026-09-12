@@ -7,10 +7,10 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
+import { useSyncExternalStore } from "react";
 
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
-import { AnswerMarkdown } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,105 @@ import {
   conversationReplaySearch,
 } from "@/utils/geo-answer-replay";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
+
+type AnswerMarkdownComponent =
+  (typeof import("@/components/geo/geo-prompt-answer-thread"))["AnswerMarkdown"];
+type MarkdownLoadStatus = "loading" | "ready" | "error";
+
+let answerMarkdownPromise: Promise<AnswerMarkdownComponent> | null = null;
+let AnswerMarkdownImpl: AnswerMarkdownComponent | null = null;
+let markdownStatus: MarkdownLoadStatus = "loading";
+const markdownListeners = new Set<() => void>();
+
+function notifyMarkdownStatus(status: MarkdownLoadStatus): void {
+  markdownStatus = status;
+  for (const listener of markdownListeners) {
+    listener();
+  }
+}
+
+function subscribeMarkdownStatus(onStoreChange: () => void): () => void {
+  markdownListeners.add(onStoreChange);
+  return () => {
+    markdownListeners.delete(onStoreChange);
+  };
+}
+
+function getMarkdownStatusSnapshot(): MarkdownLoadStatus {
+  return AnswerMarkdownImpl ? "ready" : markdownStatus;
+}
+
+function getMarkdownStatusServerSnapshot(): MarkdownLoadStatus {
+  return "loading";
+}
+
+function loadAnswerMarkdown(): Promise<AnswerMarkdownComponent> {
+  answerMarkdownPromise ??= import("@/components/geo/geo-prompt-answer-thread")
+    .then((module) => {
+      AnswerMarkdownImpl = module.AnswerMarkdown;
+      notifyMarkdownStatus("ready");
+      return module.AnswerMarkdown;
+    })
+    .catch((error: unknown) => {
+      answerMarkdownPromise = null;
+      notifyMarkdownStatus("error");
+      throw error;
+    });
+  return answerMarkdownPromise;
+}
+
+function retryAnswerMarkdown(): void {
+  if (AnswerMarkdownImpl) {
+    return;
+  }
+  notifyMarkdownStatus("loading");
+  void loadAnswerMarkdown().catch(() => undefined);
+}
+
+const answerMarkdownFallback = (
+  <p className="text-muted-foreground animate-pulse">Thinking…</p>
+);
+
+function AnswerMarkdown({
+  mode,
+  skin,
+  text,
+}: {
+  mode: "static" | "streaming";
+  skin: GeoChatSkin;
+  text: string;
+}) {
+  const status = useSyncExternalStore(
+    subscribeMarkdownStatus,
+    getMarkdownStatusSnapshot,
+    getMarkdownStatusServerSnapshot
+  );
+
+  if (status !== "error" && status !== "ready") {
+    void loadAnswerMarkdown().catch(() => undefined);
+  }
+
+  if (status === "error") {
+    return (
+      <p className="text-muted-foreground">
+        Could not load the answer.{" "}
+        <button
+          className="underline underline-offset-4"
+          onClick={retryAnswerMarkdown}
+          type="button"
+        >
+          Retry
+        </button>
+      </p>
+    );
+  }
+
+  if (status !== "ready" || !AnswerMarkdownImpl) {
+    return answerMarkdownFallback;
+  }
+
+  return <AnswerMarkdownImpl mode={mode} skin={skin} text={text} />;
+}
 
 function replaySources(turn: GeoSequenceTurnResult): PerplexitySearchSource[] {
   return perplexitySourcesFromStoredOrExcerpt(turn.sources, turn.answer);
