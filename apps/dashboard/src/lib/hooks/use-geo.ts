@@ -18,7 +18,6 @@ import type {
   GeoCompetitorDetailResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorSuggestionsResponse,
-  GeoCompetitorsResponse,
   GeoDiscoverWebsiteResult,
   GeoJourneyDetailResponse,
   GeoLanguageShareResponse,
@@ -35,7 +34,6 @@ import type {
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
   GeoTimeseriesResponse,
-  GeoTrackedPromptsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogFilters,
   GeoTrafficLogResponse,
@@ -493,18 +491,6 @@ export function useGeoCompetitorRowNavigation(
   return { openRow, prefetchRow };
 }
 
-/** @deprecated Use {@link useGeoCompetitorsDb} from `@/lib/hooks/use-geo-db` instead. */
-export function useGeoCompetitors(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
-  return useQuery<GeoCompetitorsResponse>({
-    ...dashboardOrpc.geo.competitors.queryOptions({
-      input: { organizationId, projectId },
-    }),
-    enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load competitors" },
-  });
-}
-
 export function useGeoLanguageShare(
   organizationId: string,
   range?: GeoRangeQuery,
@@ -518,18 +504,6 @@ export function useGeoLanguageShare(
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load language performance" },
-  });
-}
-
-/** @deprecated Use {@link useGeoPromptsDb} from `@/lib/hooks/use-geo-db` instead. */
-export function useGeoPrompts(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
-  return useQuery<GeoTrackedPromptsResponse>({
-    ...dashboardOrpc.geo.promptsList.queryOptions({
-      input: { organizationId, projectId },
-    }),
-    enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load tracked prompts" },
   });
 }
 
