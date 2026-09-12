@@ -10,6 +10,7 @@ import type {
 import { mergePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import type { Transaction } from "@tanstack/react-db";
 import { useDbClient, useLiveQuery } from "@tanstack/react-db";
+import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
@@ -76,6 +77,35 @@ function usePendingRows(name: string, scope: GeoScopeInput) {
   );
 
   return { pendingIds, track };
+}
+
+async function resolveCreatedGeoProject(
+  queryClient: QueryClient,
+  organizationId: string,
+  tempId: string,
+  trimmedName: string,
+  brandSettingsId: string
+): Promise<GeoProject | null> {
+  const scope = { organizationId };
+  const matchesCreated = (project: GeoProject) =>
+    project.id !== tempId &&
+    project.name === trimmedName &&
+    project.brandSettingsId === brandSettingsId;
+
+  const cached =
+    queryClient.getQueryData<GeoProject[]>(geoDbQueryKey("projects", scope)) ??
+    [];
+  const fromCache = cached.find(matchesCreated) ?? null;
+  if (fromCache) {
+    return fromCache;
+  }
+
+  const response = await queryClient.fetchQuery(
+    dashboardOrpc.geo.projectsList.queryOptions({
+      input: { organizationId },
+    })
+  );
+  return response.projects.find(matchesCreated) ?? null;
 }
 
 export function useGeoPromptsDb(
@@ -187,33 +217,6 @@ export function useGeoProjectsDb(
 
   const projects: GeoProject[] = data ?? [];
 
-  const resolveCreatedProject = async (
-    tempId: string,
-    trimmedName: string,
-    brandSettingsId: string
-  ): Promise<GeoProject | null> => {
-    const matchesCreated = (project: GeoProject) =>
-      project.id !== tempId &&
-      project.name === trimmedName &&
-      project.brandSettingsId === brandSettingsId;
-
-    const cached =
-      queryClient.getQueryData<GeoProject[]>(
-        geoDbQueryKey("projects", scope)
-      ) ?? [];
-    const fromCache = cached.find(matchesCreated) ?? null;
-    if (fromCache) {
-      return fromCache;
-    }
-
-    const response = await queryClient.fetchQuery(
-      dashboardOrpc.geo.projectsList.queryOptions({
-        input: { organizationId },
-      })
-    );
-    return response.projects.find(matchesCreated) ?? null;
-  };
-
   const createProject = async (
     input: GeoProjectCreateInput
   ): Promise<GeoProject> => {
@@ -227,41 +230,40 @@ export function useGeoProjectsDb(
       createdAt: new Date().toISOString(),
     });
     track(tempId, transaction, "Failed to create project");
-    try {
-      await transaction.isPersisted.promise;
-      const created = await resolveCreatedProject(
-        tempId,
-        trimmedName,
-        input.brandSettingsId
-      );
-      if (!created) {
-        throw new Error("Failed to resolve created project");
-      }
-      toast.success("Project created");
-      return created;
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "Failed to resolve created project"
-      ) {
-        toast.error(toErrorMessage(error, "Failed to create project"));
-      }
+
+    let created: GeoProject | null = null;
+    await transaction.isPersisted.promise
+      .then(async () => {
+        created = await resolveCreatedGeoProject(
+          queryClient,
+          organizationId,
+          tempId,
+          trimmedName,
+          input.brandSettingsId
+        );
+      })
+      .finally(() => {
+        setIsCreating(false);
+      });
+
+    if (!created) {
+      const error = new Error("Failed to resolve created project");
+      toast.error(toErrorMessage(error, "Failed to create project"));
       throw error;
-    } finally {
-      setIsCreating(false);
     }
+
+    toast.success("Project created");
+    return created;
   };
 
   const deleteProject = async (projectId: string) => {
     setIsDeleting(true);
     const transaction = collection.delete(projectId);
     track(projectId, transaction, "Failed to delete project");
-    try {
-      await transaction.isPersisted.promise;
-      toast.success("Project deleted");
-    } finally {
+    await transaction.isPersisted.promise.finally(() => {
       setIsDeleting(false);
-    }
+    });
+    toast.success("Project deleted");
   };
 
   return {
