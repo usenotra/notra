@@ -894,6 +894,7 @@ export interface GeoBrandSectionProps {
   onConversionPathsChange: (values: string[]) => void;
   domains: string[];
   onDomainsChange: (values: string[]) => void;
+  brandDomain: string | null;
   nameMissing: boolean;
   savedAt: Date | null;
 }
@@ -938,6 +939,7 @@ export interface GeoSettingsAutosaveInput {
   planLoading: boolean;
   catalog: GeoModelCatalog;
   settings: GeoSettings | null;
+  brandDomain: string | null;
 }
 
 export interface GeoTagListProps {

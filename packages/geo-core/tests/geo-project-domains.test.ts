@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   acceptsIngestHost,
+  extraProjectDomains,
   formatTrafficLocation,
   ingestAllowedHosts,
   isKnownTrafficHost,
@@ -24,6 +25,21 @@ describe("normalizeProjectDomain", () => {
     expect(normalizeProjectDomain("")).toBeNull();
     expect(normalizeProjectDomain("localhost")).toBeNull();
     expect(normalizeProjectDomain("not a domain")).toBeNull();
+  });
+});
+
+describe("extraProjectDomains", () => {
+  test("drops the brand website from extra tracked domains", () => {
+    expect(
+      extraProjectDomains(
+        ["https://www.example.com", "docs.example.com"],
+        "https://example.com/about"
+      )
+    ).toEqual(["docs.example.com"]);
+  });
+
+  test("keeps extras when no brand host is set", () => {
+    expect(extraProjectDomains(["example.com"], null)).toEqual(["example.com"]);
   });
 });
 

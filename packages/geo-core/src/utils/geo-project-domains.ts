@@ -9,6 +9,19 @@ export function normalizeProjectDomain(value: string): string | null {
   return domain;
 }
 
+export function extraProjectDomains(
+  values: readonly string[],
+  brandHost: string | null | undefined,
+  max = GEO_MAX_DOMAINS
+): string[] {
+  const extras = normalizeProjectDomains(values, max);
+  const brand = brandHost ? normalizeProjectDomain(brandHost) : null;
+  if (!brand) {
+    return extras;
+  }
+  return extras.filter((domain) => domain !== brand);
+}
+
 export function normalizeProjectDomains(
   values: readonly string[],
   max = GEO_MAX_DOMAINS

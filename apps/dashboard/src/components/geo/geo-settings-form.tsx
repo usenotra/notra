@@ -7,6 +7,8 @@ import {
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
   GEO_MAX_DOMAINS,
+  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT,
+  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL,
   GEO_PROJECT_DOMAINS_DESCRIPTION,
   GEO_PROJECT_DOMAINS_LABEL,
   GEO_PROJECT_DOMAINS_PLACEHOLDER,
@@ -18,7 +20,8 @@ import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
 import { normalizeConversionPaths } from "@notra/geo-core/utils/geo-conversion-paths";
 import { resolveTrackedEngines } from "@notra/geo-core/utils/geo-engines";
 import { trackedGeoLanguages } from "@notra/geo-core/utils/geo-language-rows";
-import { normalizeProjectDomains } from "@notra/geo-core/utils/geo-project-domains";
+import { extraProjectDomains } from "@notra/geo-core/utils/geo-project-domains";
+import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
@@ -33,6 +36,7 @@ import {
 } from "@/components/geo/geo-scan-schedule";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
 import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { cn } from "@/lib/utils";
@@ -60,9 +64,11 @@ export function GeoSettingsForm({
   const [conversionPaths, setConversionPaths] = useState(() =>
     normalizeConversionPaths(settings?.conversionPaths ?? [])
   );
+  const { domain: brandDomain } = useGeoActiveProject(organizationId);
   const [domains, setDomains] = useState(() =>
-    normalizeProjectDomains(settings?.domains ?? [])
+    extraProjectDomains(settings?.domains ?? [], brandDomain)
   );
+  const extraDomains = extraProjectDomains(domains, brandDomain);
   const [competitors] = useState(() => settings?.competitors ?? []);
   const [languages, setLanguages] = useState(() =>
     trackedGeoLanguages(settings?.languages ?? [])
@@ -85,12 +91,13 @@ export function GeoSettingsForm({
   const nameMissing = companyName.trim().length === 0;
   const { savedAt } = useGeoSettingsAutosave({
     aliases,
+    brandDomain,
     canEnforceZdr,
     catalog,
     companyName,
     competitors,
     conversionPaths,
-    domains,
+    domains: extraDomains,
     enabled,
     engines,
     enforceZdr,
@@ -140,9 +147,10 @@ export function GeoSettingsForm({
         {showBrand ? (
           <GeoBrandSection
             aliases={aliases}
+            brandDomain={brandDomain}
             companyName={companyName}
             conversionPaths={conversionPaths}
-            domains={domains}
+            domains={extraDomains}
             id={id}
             nameMissing={nameMissing}
             onAliasesChange={setAliases}
@@ -151,7 +159,7 @@ export function GeoSettingsForm({
               setConversionPaths(normalizeConversionPaths(values))
             }
             onDomainsChange={(values) =>
-              setDomains(normalizeProjectDomains(values))
+              setDomains(extraProjectDomains(values, brandDomain))
             }
             savedAt={savedAt}
           />
@@ -188,6 +196,7 @@ export function GeoSettingsForm({
 
 function useGeoSettingsAutosave({
   aliases,
+  brandDomain,
   canEnforceZdr,
   catalog,
   companyName,
@@ -263,7 +272,7 @@ function useGeoSettingsAutosave({
           conversionPaths: normalizeConversionPaths(
             settings?.conversionPaths ?? []
           ),
-          domains: normalizeProjectDomains(settings?.domains ?? []),
+          domains: extraProjectDomains(settings?.domains ?? [], brandDomain),
           languages: trackedGeoLanguages(settings?.languages ?? []),
           engines: resolveTrackedEngines(catalog, settings?.engines),
           enforceZdr: settings?.enforceZdr ?? true,
@@ -289,6 +298,7 @@ function useGeoSettingsAutosave({
     runner.maybeExecute(input).catch(() => undefined);
   }, [
     aliases,
+    brandDomain,
     catalog,
     companyName,
     competitors,
@@ -354,6 +364,7 @@ function SettingsSection({
 
 function GeoBrandSection({
   aliases,
+  brandDomain,
   companyName,
   conversionPaths,
   domains,
@@ -397,6 +408,21 @@ function GeoBrandSection({
         description={GEO_PROJECT_DOMAINS_DESCRIPTION}
         title={GEO_PROJECT_DOMAINS_LABEL}
       >
+        {brandDomain ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              aria-label={`${GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}: ${brandDomain}`}
+              className="h-7 max-w-full text-xs"
+              variant="secondary"
+            >
+              <span className="truncate">{brandDomain}</span>
+            </Badge>
+            <p className="text-muted-foreground text-xs">
+              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}.{" "}
+              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT}
+            </p>
+          </div>
+        ) : null}
         <GeoTagList
           id={`${id}-domains`}
           label={GEO_PROJECT_DOMAINS_LABEL}

@@ -1150,6 +1150,9 @@ export const GEO_MAX_DOMAINS = 20;
 export const GEO_PROJECT_DOMAINS_LABEL = "Tracked domains";
 export const GEO_PROJECT_DOMAINS_DESCRIPTION =
   "Other sites besides the brand website. Same ingest token; only listed domains and their subdomains are recorded.";
+export const GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL = "Brand website";
+export const GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT =
+  "Always recorded. Change it in Brand → Identity.";
 export const GEO_PROJECT_DOMAINS_PLACEHOLDER = "docs.example.com";
 export const GEO_COMPETITOR_MAX_SYNONYMS = 8;
 export const GEO_SHORT_FIELD_MAX_LENGTH = 128;

@@ -92,15 +92,15 @@ export function GeoProjectQueryProvider({
     }
   }
 
-  useEffect(() => {
-    if (!hostSuppressed) {
-      return;
-    }
-    if (hostQuery.length > 0) {
-      void setHostQuery("");
-      return;
-    }
+  if (hostSuppressed && hostQuery.length === 0) {
     setHostSuppressed(false);
+  }
+
+  useEffect(() => {
+    if (!hostSuppressed || hostQuery.length === 0) {
+      return;
+    }
+    void setHostQuery("");
   }, [hostQuery, hostSuppressed, setHostQuery]);
 
   const trafficHost = hostSuppressed ? "" : hostQuery;

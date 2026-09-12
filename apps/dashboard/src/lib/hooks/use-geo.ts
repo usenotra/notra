@@ -800,7 +800,7 @@ export function useGeoTrafficLog(
         host: trafficQueryHost(
           options?.host,
           options?.knownHosts,
-          options?.isHostReady
+          options?.isHostReady ?? false
         ),
       },
     }),
