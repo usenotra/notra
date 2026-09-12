@@ -7,6 +7,8 @@ import type {
   TrafficSourceRow,
 } from "@/types/landing/geo";
 
+export const FEATURES_TABLE_OPTIONAL_COL = "hidden @lg:table-cell";
+
 export const FEATURES_HEADING = "Every number the dashboard shows you.";
 
 export const FEATURES_SUBCOPY_LINE_ONE =
@@ -90,6 +92,14 @@ export const FEATURES_ENGINE_ROWS: EngineRateRow[] = [
     mentions: 9,
     checks: 28,
     avgPosition: 3.8,
+    lastChecked: "3h ago",
+  },
+  {
+    id: "kimi",
+    mentionRate: 21,
+    mentions: 6,
+    checks: 28,
+    avgPosition: 4.4,
     lastChecked: "3h ago",
   },
 ];

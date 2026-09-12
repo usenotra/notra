@@ -1,0 +1,1 @@
+ALTER TABLE "geo_scans" ADD COLUMN "plan" jsonb;

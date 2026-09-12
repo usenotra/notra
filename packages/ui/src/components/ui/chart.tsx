@@ -346,11 +346,26 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config]
 }
 
+const {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Rectangle,
+  XAxis,
+  YAxis,
+} = RechartsPrimitive
+
 export {
+  Bar,
+  BarChart,
+  CartesianGrid,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  ChartTooltip,
+  ChartTooltipContent,
+  Rectangle,
+  XAxis,
+  YAxis,
 }

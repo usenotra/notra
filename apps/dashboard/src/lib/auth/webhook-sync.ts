@@ -5,6 +5,8 @@ import type { OrganizationMembership } from "@workos-inc/node";
 import { and, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
+import { upsertMembership } from "@/lib/auth/membership-upsert";
+
 class WebhookSyncError extends Data.TaggedError("WebhookSyncError")<{
   readonly message: string;
   readonly cause?: unknown;
@@ -104,33 +106,13 @@ export const upsertMembershipFromWebhook = Effect.fn(
   const role = membership.role.slug || "member";
 
   yield* Effect.tryPromise({
-    try: async () => {
-      const existing = await db.query.members.findFirst({
-        where: and(
-          eq(members.userId, userId),
-          eq(members.organizationId, organizationId)
-        ),
-        columns: { id: true, role: true },
-      });
-
-      if (!existing) {
-        await db.insert(members).values({
-          id: crypto.randomUUID(),
-          organizationId,
-          userId,
-          role,
-          createdAt: new Date(membership.createdAt),
-        });
-        return;
-      }
-
-      if (existing.role !== role && existing.role !== "owner") {
-        await db
-          .update(members)
-          .set({ role })
-          .where(eq(members.id, existing.id));
-      }
-    },
+    try: () =>
+      upsertMembership({
+        organizationId,
+        userId,
+        role,
+        createdAt: new Date(membership.createdAt),
+      }),
     catch: (cause) =>
       new WebhookSyncError({ message: "Failed to upsert membership", cause }),
   });

@@ -1,4 +1,5 @@
-export const CTA_BANNER_HEADING = "Find out what agents say about you";
+export const CTA_BANNER_HEADING =
+  "Find out what agents say about you. Then change it.";
 
 export const CTA_BANNER_SUBCOPY =
   "Add a few prompts, run a scan, read the answers. Free to start.";

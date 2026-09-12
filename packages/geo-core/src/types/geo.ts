@@ -251,6 +251,30 @@ export interface GeoAnswerSource {
   domain: string;
 }
 
+export type GeoAnswerMentionKind = "own" | "competitor";
+
+export interface GeoAnswerMentionTerm {
+  phrase: string;
+  kind: GeoAnswerMentionKind;
+}
+
+export interface GeoAnswerMentionSpan {
+  start: number;
+  end: number;
+  kind: GeoAnswerMentionKind;
+  phrase: string;
+}
+
+export interface GeoAnswerMentionInput {
+  companyName?: string | null;
+  aliases?: readonly string[];
+  mentionedCompetitors?: readonly string[];
+  trackedCompetitors?: readonly {
+    name: string;
+    synonyms?: readonly string[];
+  }[];
+}
+
 export interface GeoPromptResult {
   promptId: string;
   engine: string;
@@ -307,11 +331,13 @@ export interface GeoPromptResultDetailResponse {
 }
 
 export interface GeoPromptHistoryInput extends GeoScopeInput {
+  scanId?: string;
   promptId: string;
 }
 
 export interface GeoPromptRescanInput extends GeoScopeInput {
   promptId: string;
+  engines?: readonly string[];
 }
 
 export interface GeoRescanForPostInput {
@@ -393,10 +419,28 @@ export interface GeoSettingsLanguageAddInput extends GeoScopeInput {
   language: string;
 }
 
+export interface DueGeoScanRow {
+  id: string;
+  organizationId: string;
+  projectId: string;
+  scanIntervalHours: number;
+  nextScanAt: Date | null;
+  lastScanAt: Date | null;
+}
+
 export interface GeoScanCronSweepResult {
   due: number;
   started: number;
-  skipped: number;
+  /** Due slots an attempt that finished after they came due already answered. */
+  covered: number;
+  /** Rows another sweep already holds the lease on. */
+  leaseLost: number;
+  /** Rows whose project scan slot is still claimed by a running scan. */
+  alreadyRunning: number;
+  /** Hand-offs that failed; their row keeps its lease and is retried. */
+  failed: number;
+  /** Slots another sweep advanced while this one held a stale lease. */
+  advanceLost: number;
   staleScansFailed: number;
 }
 
@@ -563,6 +607,8 @@ export interface GeoScanProjectContext {
   aliases: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
+  /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
+  scoped?: boolean;
 }
 
 export interface GeoScanProjectPlan {

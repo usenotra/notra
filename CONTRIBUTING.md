@@ -252,28 +252,25 @@ Thanks for helping improve Notra.
 
 ## Vercel build selection
 
-Keep Vercel's **Skip unaffected projects** setting enabled. Each deployed app
-also has a version-pinned `ignoreCommand` in its `vercel.json` to check its
-workspace and transitive dependencies before installing dependencies or building.
-This catches unnecessary builds triggered by root documentation changes and
-unrelated workspaces' Bun lockfile changes. Root install configuration and the
-prepare script are declared in `turbo.json#globalDependencies` so changes to
-those files still trigger builds. Declare any new shared build inputs there too.
+Keep Vercel's **Skip unaffected projects** setting enabled for all five deployed
+apps (`web`, `dashboard`, `agent`, `onboarding-agent`, and `ui`). Vercel uses the
+workspace dependency graph to skip projects whose source and dependencies have
+not changed. Each workspace must have a unique package name and explicitly
+declare its internal dependencies in `package.json`.
 
-The check uses `VERCEL_GIT_PREVIOUS_SHA`, the last successful deployment for
-that project and branch. There is deliberately no `HEAD^` fallback: first
-deployments and unavailable history must build, and multiple commits since the
-last deployment must be considered together. Errors also allow the build.
+The app configs do not set an `ignoreCommand`; build selection relies on
+[Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
+instead of the deprecated `turbo-ignore` secondary check. Keep the project's
+Ignored Build Step setting at its default so it does not run an old custom
+command after the repository override is removed.
 
-`turbo-ignore` is deprecated in favor of Vercel's built-in skipping, but the
-pinned version remains a secondary check because built-in skipping currently
-deploys unrelated apps for these changes. Update its version and `--turbo-version`
-across all five app configs together when upgrading, and verify both skipped
-and required builds. Ignored builds still create canceled deployment records
-and briefly occupy a build slot; they avoid the install and full build.
+Changes outside the workspace definitions, such as root documentation, can
+trigger deployments for all apps. Built-in skipping may also select builds that
+the previous secondary check skipped for unrelated Bun lockfile changes.
 
-For a deliberate redeploy after an environment or project-setting change,
-uncheck **Use project's Ignore Build Step** in Vercel's Redeploy dialog.
+Root install configuration and the prepare script remain declared in
+`turbo.json#globalDependencies` for build cache invalidation. Declare any new
+shared build inputs there too.
 
 ## Automated tests
 

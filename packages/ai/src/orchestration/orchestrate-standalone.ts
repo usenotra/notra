@@ -17,6 +17,7 @@ import type {
   StandaloneChatDeps,
   StandaloneChatInput,
 } from "@notra/ai/types/standalone-chat";
+import { loadChatWorkspace } from "@notra/ai/utils/chat-workspace";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
@@ -90,6 +91,7 @@ export async function orchestrateStandaloneChat(
     timezone,
     telemetryMetadata,
     useMarkup,
+    projectId,
   } = input;
 
   const log = deps?.log ?? inputLog;
@@ -208,8 +210,12 @@ export async function orchestrateStandaloneChat(
   const linearContext = hasLinearToolsActive
     ? getLinearContextFromIntegrations(validatedIntegrations)
     : [];
+  const [skillSummaries, workspace] = await Promise.all([
+    getStandaloneSkillSummaries(organizationId),
+    loadChatWorkspace({ organizationId, projectId }),
+  ]);
   const systemPrompt = getStandaloneChatPrompt({
-    skillSummaries: await getStandaloneSkillSummaries(organizationId),
+    skillSummaries,
     repoContext,
     linearContext,
     mcpContext,
@@ -218,6 +224,7 @@ export async function orchestrateStandaloneChat(
     hasLinearEnabled: hasLinearToolsActive,
     hasMcpEnabled: hasMcp,
     timezone,
+    workspace,
   });
 
   const effectiveThinkingLevel = autoThinkingLevel ?? thinkingLevel;

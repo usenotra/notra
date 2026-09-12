@@ -25,11 +25,15 @@ export function GeoTagList({
   disabled = false,
   labeled = true,
   inputClassName,
+  inline = false,
 }: GeoTagListProps) {
   const [draft, setDraft] = useState("");
   const atLimit = values.length >= max;
 
   const commitDraft = () => {
+    if (disabled) {
+      return;
+    }
     if (atLimit) {
       setDraft("");
       return;
@@ -41,10 +45,42 @@ export function GeoTagList({
     setDraft("");
   };
 
+  const badges =
+    values.length > 0 ? (
+      <div
+        className={inline ? "contents" : "flex flex-wrap items-center gap-1.5"}
+      >
+        {values.map((value) => (
+          <Badge
+            className="h-7 max-w-full gap-1 pr-1 text-xs"
+            key={value}
+            variant="secondary"
+          >
+            <span className="truncate">{value}</span>
+            <button
+              aria-label={`Remove ${value}`}
+              className="hover:bg-background focus-visible:ring-ring flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
+              disabled={disabled}
+              onClick={() => onChange(removeValue(values, value))}
+              type="button"
+            >
+              <HugeiconsIcon aria-hidden="true" icon={Cancel01Icon} size={12} />
+            </button>
+          </Badge>
+        ))}
+      </div>
+    ) : null;
+
   return (
-    <div className="w-full min-w-0 space-y-2">
+    <div
+      className={
+        inline
+          ? "bg-background focus-within:border-ring focus-within:ring-ring/50 flex min-h-10 w-full min-w-0 flex-wrap items-center gap-1.5 rounded-lg border px-2 py-1.5 focus-within:ring-2"
+          : "w-full min-w-0 space-y-2"
+      }
+    >
       {labeled ? (
-        <div className="space-y-1">
+        <div className="w-full space-y-1">
           <Label className="flex items-center gap-2" htmlFor={id}>
             {label}
             <span className="text-muted-foreground font-normal tabular-nums">
@@ -56,14 +92,19 @@ export function GeoTagList({
           ) : null}
         </div>
       ) : null}
+      {inline ? badges : null}
       <Input
         aria-label={labeled ? undefined : label}
         className={inputClassName}
-        disabled={disabled || atLimit}
+        disabled={atLimit}
+        readOnly={disabled}
         id={id}
         onBlur={commitDraft}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
+          if (disabled) {
+            return;
+          }
           if (event.key === "Enter") {
             event.preventDefault();
             commitDraft();
@@ -81,6 +122,9 @@ export function GeoTagList({
           }
         }}
         onPaste={(event) => {
+          if (disabled) {
+            return;
+          }
           const text = event.clipboardData.getData("text");
           if (!LINE_BREAK_REGEX.test(text)) {
             return;
@@ -92,24 +136,7 @@ export function GeoTagList({
         placeholder={atLimit ? undefined : placeholder}
         value={draft}
       />
-      {values.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {values.map((value) => (
-            <Badge className="gap-1 pr-1" key={value} variant="secondary">
-              {value}
-              <button
-                aria-label={`Remove ${value}`}
-                className="hover:bg-background cursor-pointer rounded-sm p-0.5 disabled:cursor-not-allowed"
-                disabled={disabled}
-                onClick={() => onChange(removeValue(values, value))}
-                type="button"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={12} />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      ) : null}
+      {!inline ? badges : null}
     </div>
   );
 }

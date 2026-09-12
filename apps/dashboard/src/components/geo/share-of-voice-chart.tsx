@@ -10,86 +10,126 @@ import { ChartColorScope } from "@/components/charts/chart-color-scope";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
+import { ProjectLogo } from "@/components/geo/project-logo";
 import { TrackBrandButton } from "@/components/geo/share-of-voice-brand-tag";
 import { ShareOfVoiceBrandsDialog } from "@/components/geo/share-of-voice-brands-dialog";
 import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { cn } from "@/lib/utils";
 import type {
   ShareOfVoiceChartProps,
   ShareOfVoiceRankingRowProps,
 } from "@/types/geo";
 import { formatChartInteger, formatUsageShare } from "@/utils/geo-charts";
+import { findOwnBrandDomain } from "@/utils/geo-competitors";
 import { buildShareOfVoiceChartModel } from "@/utils/geo-share-of-voice";
+
+function RankingBrandMark({
+  row,
+  competitors,
+  ownDomain,
+}: Pick<ShareOfVoiceRankingRowProps, "row" | "competitors" | "ownDomain">) {
+  if (row.own) {
+    return (
+      <ProjectLogo
+        className="size-6 shrink-0 rounded-md"
+        domain={ownDomain ?? null}
+        fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
+        name={row.brand}
+      />
+    );
+  }
+  return (
+    <CompetitorLogo
+      className="size-6 shrink-0 rounded-md"
+      competitors={competitors}
+      name={row.brand}
+    />
+  );
+}
 
 function ShareOfVoiceRankingRow({
   row,
   competitors,
+  ownDomain,
   onOpen,
   onPrefetch,
   onTrack,
 }: ShareOfVoiceRankingRowProps) {
-  const content = (
-    <>
-      <span className="text-muted-foreground w-6 shrink-0 text-xs tabular-nums">
-        {row.rank ?? "—"}
-      </span>
-      <CompetitorLogo
-        className="size-5 shrink-0"
-        competitors={competitors}
-        name={row.brand}
-      />
-      <span className="min-w-0 flex-1 truncate text-sm" title={row.brand}>
-        {row.brand}
-      </span>
-      <span className="w-14 shrink-0 text-right text-sm tabular-nums">
-        {formatUsageShare(row.share)}
-      </span>
-    </>
-  );
   return (
-    <li
+    <tr
       className={cn(
-        "border-border flex items-center gap-2 border-b last:border-b-0",
-        row.own && "bg-primary/5 rounded-lg border-b-0"
+        "border-border min-h-12 border-b last:border-b-0",
+        row.own &&
+          "bg-primary/5 [&>td:first-child]:rounded-l-lg [&>td:last-child]:rounded-r-lg",
+        onOpen && "hover:bg-muted/50 cursor-pointer"
       )}
+      onClick={
+        onOpen
+          ? (event) => {
+              if (
+                event.target instanceof Element &&
+                event.target.closest("button")
+              ) {
+                return;
+              }
+              onOpen(row);
+            }
+          : undefined
+      }
+      onFocus={onOpen ? () => onPrefetch?.(row) : undefined}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.target !== event.currentTarget) {
+                return;
+              }
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen(row);
+              }
+            }
+          : undefined
+      }
+      onPointerEnter={onOpen ? () => onPrefetch?.(row) : undefined}
+      tabIndex={onOpen ? 0 : undefined}
     >
-      {onOpen ? (
-        <button
-          className="hover:bg-muted/50 flex min-h-12 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-2 text-left transition-colors"
-          onClick={() => onOpen(row)}
-          onFocus={() => onPrefetch?.(row)}
-          onPointerEnter={() => onPrefetch?.(row)}
-          type="button"
-        >
-          {content}
-        </button>
-      ) : (
-        <div className="flex min-h-12 min-w-0 flex-1 items-center gap-2 px-2">
-          {content}
-        </div>
-      )}
-      <span className="text-muted-foreground hidden w-12 shrink-0 text-right text-xs tabular-nums @sm:block">
+      <td className="text-muted-foreground w-6 py-3 pr-3 align-middle text-xs tabular-nums">
+        {row.rank ?? "—"}
+      </td>
+      <td className="min-w-0 py-3 pr-3 align-middle">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <RankingBrandMark
+            competitors={competitors}
+            ownDomain={ownDomain}
+            row={row}
+          />
+          <span className="min-w-0 truncate text-sm" title={row.brand}>
+            {row.brand}
+          </span>
+        </span>
+      </td>
+      <td className="py-3 pr-3 text-right align-middle text-sm whitespace-nowrap tabular-nums">
+        {formatUsageShare(row.share)}
+      </td>
+      <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @sm:table-cell">
         {formatChartInteger(row.mentions)}
         <span className="sr-only"> mentions</span>
-      </span>
-      <span className="flex w-8 shrink-0 justify-end @sm:w-16">
+      </td>
+      <td className="w-24 py-3 text-right align-middle whitespace-nowrap">
         {row.own ? (
           <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[0.6875rem]">
             You
           </span>
         ) : null}
         {!row.own && !row.tracked && onTrack ? (
-          <TrackBrandButton
-            brand={row.brand}
-            className="[&_[data-track-label]]:hidden @sm:[&_[data-track-label]]:inline"
-            onTrack={onTrack}
-          />
+          <TrackBrandButton brand={row.brand} onTrack={onTrack} />
         ) : null}
-      </span>
-    </li>
+      </td>
+    </tr>
   );
 }
 
@@ -105,6 +145,8 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
   } = props;
   const [otherOpen, setOtherOpen] = useState(false);
   const [trackBrand, setTrackBrand] = useState<string | null>(null);
+  const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
+  const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const { ranking, own, slices, others, other, config, totalMentions } =
     buildShareOfVoiceChartModel(props);
   const summary = own ?? ranking[0];
@@ -218,26 +260,43 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   : "No mentions recorded"}
               </span>
             </div>
-            <div
-              aria-hidden="true"
-              className="text-muted-foreground border-border flex gap-2 border-b px-2 pr-10 pb-2 text-[0.6875rem] @sm:pr-18"
+            <table
+              aria-label="Brand ranking by share of voice"
+              className="mb-4 w-full border-collapse"
             >
-              <span className="min-w-0 flex-1">Brand</span>
-              <span className="w-14 text-right">Share</span>
-              <span className="hidden w-12 text-right @sm:block">Mentions</span>
-            </div>
-            <ol aria-label="Brand ranking by share of voice" className="mb-4">
-              {ranking.map((row) => (
-                <ShareOfVoiceRankingRow
-                  competitors={competitors}
-                  key={row.id}
-                  onOpen={onSliceClick}
-                  onPrefetch={onSlicePointerEnter}
-                  onTrack={organizationId ? setTrackBrand : undefined}
-                  row={row}
-                />
-              ))}
-            </ol>
+              <thead>
+                <tr className="text-muted-foreground border-border border-b text-[0.6875rem]">
+                  <th className="w-6 py-0 pr-3 pb-2 font-normal">
+                    <span className="sr-only">Rank</span>
+                  </th>
+                  <th className="min-w-0 py-0 pr-3 pb-2 text-left font-normal">
+                    Brand
+                  </th>
+                  <th className="py-0 pr-3 pb-2 text-right font-normal">
+                    Share
+                  </th>
+                  <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
+                    Mentions
+                  </th>
+                  <th className="w-24 py-0 pb-2 font-normal">
+                    <span className="sr-only">Tracking</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {ranking.map((row) => (
+                  <ShareOfVoiceRankingRow
+                    competitors={competitors}
+                    key={row.id}
+                    onOpen={onSliceClick}
+                    onPrefetch={onSlicePointerEnter}
+                    onTrack={organizationId ? setTrackBrand : undefined}
+                    ownDomain={ownDomain}
+                    row={row}
+                  />
+                ))}
+              </tbody>
+            </table>
             {other ? (
               <div className="mt-auto flex justify-end pt-2">
                 <Button
@@ -276,6 +335,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
           open={otherOpen}
           other={other}
           others={others}
+          ownDomain={ownDomain}
         />
       ) : null}
       {organizationId ? (

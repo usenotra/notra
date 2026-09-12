@@ -3,7 +3,51 @@ import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
 import type React from "react";
 
-import type { GitHubRepository } from "../integrations";
+import type { GitHubIntegration, GitHubRepository } from "../integrations";
+
+export interface GitHubRepositoryRowProps {
+  integration: GitHubIntegration;
+  organizationId: string;
+  onMigrate: (integration: GitHubIntegration) => void;
+  isMigrating: boolean;
+  onManageRepositories: () => void;
+}
+
+export interface GitHubRepositoryActionsProps {
+  onMigrate: () => void;
+  isMigrating: boolean;
+  onToggleWebhooks: () => void;
+  webhooksOpen: boolean;
+  integration: GitHubIntegration;
+  organizationId: string;
+  onManageRepositories: () => void;
+}
+
+export type GitHubRepositoryDialog = "edit" | "token" | "delete" | null;
+
+export interface GitHubRepositoryMenuProps extends GitHubRepositoryActionsProps {
+  isEnabled: boolean;
+  isPending: boolean;
+  onToggle: () => void;
+  onDialog: (dialog: GitHubRepositoryDialog) => void;
+}
+
+export interface GitHubLegacyPageProps {
+  params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export interface GitHubWebhookSettingsProps {
+  repository: GitHubRepository;
+  organizationId: string;
+}
+
+export interface GitHubWebhookRotationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}
 
 export type GitHubClient = ReturnType<typeof createOctokit>;
 export type GitHubPublishContentType = "blog_post" | "changelog";
@@ -114,6 +158,7 @@ export interface GitHubIntegrationDialogProps {
 }
 
 export interface GitHubAccountCardProps {
+  isDisconnecting?: boolean;
   account: GitHubAppAccount;
   repositories: GitHubAppRepository[];
   selectedRepositoryIds: string[];
@@ -123,7 +168,8 @@ export interface GitHubAccountCardProps {
 
 export interface GitHubPublishingSettingsProps {
   organizationId: string;
-  repositories: GitHubRepository[];
+  repository: GitHubRepository;
+  disabled?: boolean;
 }
 
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {

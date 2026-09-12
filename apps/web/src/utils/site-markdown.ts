@@ -2,10 +2,6 @@ import {
   ANSWER_EXAMPLE_HEADING,
   ANSWER_EXAMPLE_SUBCOPY,
 } from "@/constants/landing/answer-example";
-import {
-  CTA_BANNER_HEADING,
-  CTA_BANNER_SUBCOPY,
-} from "@/constants/landing/cta-banner";
 import { FAQ_CONTENT } from "@/constants/landing/faq";
 import {
   FEATURES_ENGINES_COPY,
@@ -35,6 +31,7 @@ import {
   PRICING_PLANS,
   SOCIAL_PROOF_LOGOS,
 } from "@/utils/constants";
+import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { markdownSection } from "@/utils/markdown";
 import { SITE_DESCRIPTION, SITE_TAGLINE } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
@@ -261,12 +258,7 @@ export function buildLandingMarkdown() {
         "",
       ])
     ),
-    markdownSection("Call to Action", [
-      CTA_BANNER_HEADING,
-      CTA_BANNER_SUBCOPY,
-      "",
-      "[Start for free](https://app.usenotra.com/signup)",
-    ]),
+    buildCtaBannerMarkdown(),
   ].join("\n");
 }
 

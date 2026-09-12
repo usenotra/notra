@@ -90,6 +90,24 @@ export function isQuietDailySummary({
   return scansCompleted === 0 && yesterdayChecks === 0;
 }
 
+export function isUnchangedDailySummary({
+  yesterday,
+  previousDay,
+  eventCount,
+}: {
+  yesterday: DailySummaryMentionTotals;
+  previousDay: DailySummaryMentionTotals;
+  eventCount: number;
+}) {
+  if (eventCount > 0) {
+    return false;
+  }
+
+  return (
+    formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged"
+  );
+}
+
 export function buildDailySummaryHeadline({
   gained,
   lost,

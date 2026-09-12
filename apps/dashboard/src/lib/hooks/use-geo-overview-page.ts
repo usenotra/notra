@@ -121,12 +121,15 @@ export function useGeoOverviewPage(
   );
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
-    geoRange.query
+    geoRange.query,
+    false,
+    activeTab === "visibility"
   );
   const { data: competitorList } = useGeoCompetitors(organizationId);
   const { data: languageShare } = useGeoLanguageShare(
     organizationId,
-    geoRange.query
+    geoRange.query,
+    activeTab === "visibility"
   );
   const { data: trafficJourneys } = useGeoTrafficJourneys(
     organizationId,

@@ -5,13 +5,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
-import { Badge } from "@notra/ui/components/ui/badge";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
@@ -56,18 +55,13 @@ export function ShelfDetailDialog({
   const citations = row.citations;
   const stats = [
     {
-      label: `Last ${GEO_SHELF_CITATION_WINDOW_DAYS}d`,
+      label: `Last ${GEO_SHELF_CITATION_WINDOW_DAYS} days`,
       value: citations.windowCount.toLocaleString(),
     },
     { label: "All time", value: citations.totalCount.toLocaleString() },
     { label: "Prompts", value: citations.promptCount.toLocaleString() },
-    { label: "First cited", value: formatShelfDate(citations.firstCitedAt) },
-    { label: "Last cited", value: formatShelfDate(citations.lastCitedAt) },
   ];
   const pageLabel = stripWebsiteProtocol(row.url);
-  const checkedMeta = row.lastFetchedAt
-    ? `Checked ${formatRelative(row.lastFetchedAt)}`
-    : null;
   const ticketMeta = row.opportunity
     ? `Opened ${formatRelative(row.opportunity.createdAt)}${
         row.opportunity.resolvedAt
@@ -77,16 +71,13 @@ export function ShelfDetailDialog({
     : null;
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent
-        className="max-h-[90vh] gap-8 overflow-x-hidden overflow-y-auto p-5 sm:max-w-3xl sm:p-6"
-        style={{ scrollbarGutter: "stable" }}
-      >
-        <ResponsiveDialogHeader className="gap-2">
-          <ResponsiveDialogTitle className="text-xl font-semibold tracking-tight text-pretty">
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
+        <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
+          <SheetTitle className="text-xl font-semibold tracking-tight text-pretty wrap-break-word">
             {row.title ?? row.domain}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription className="min-w-0">
+          </SheetTitle>
+          <SheetDescription className="min-w-0">
             <a
               className="text-muted-foreground hover:text-foreground inline-flex max-w-full items-center gap-1.5 text-sm underline-offset-4 hover:underline"
               href={row.url}
@@ -100,44 +91,59 @@ export function ShelfDetailDialog({
                 icon={ArrowUpRight01Icon}
               />
             </a>
-          </ResponsiveDialogDescription>
-        </ResponsiveDialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <div className="space-y-8">
+        <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
           <section className="space-y-3">
             <SectionHeader title="Citations" />
-            <div className="overflow-hidden rounded-xl border">
-              <dl className="divide-border grid grid-cols-2 divide-y sm:grid-cols-5 sm:divide-x sm:divide-y-0">
+            <div className="space-y-5">
+              <dl className="grid grid-cols-3 gap-4 py-1">
                 {stats.map((stat) => (
                   <div
-                    className="flex min-w-0 flex-col gap-1 px-4 py-3"
+                    className="flex min-w-0 flex-col gap-1.5"
                     key={stat.label}
                   >
                     <dt className="text-muted-foreground text-xs">
                       {stat.label}
                     </dt>
-                    <dd className="m-0 text-base font-semibold tabular-nums">
+                    <dd className="m-0 text-2xl font-semibold tracking-tight tabular-nums">
                       {stat.value}
                     </dd>
                   </div>
                 ))}
               </dl>
+              <div className="text-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                <span>
+                  First cited{" "}
+                  <span className="text-foreground">
+                    {formatShelfDate(citations.firstCitedAt)}
+                  </span>
+                </span>
+                <span>
+                  Last cited{" "}
+                  <span className="text-foreground">
+                    {formatShelfDate(citations.lastCitedAt)}
+                  </span>
+                </span>
+              </div>
               {citations.engines.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5 border-t px-4 py-2.5">
-                  {citations.engines.map((engine) => (
-                    <Badge
-                      className="gap-1.5"
-                      key={engine}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      <EngineIcon className="size-3" engine={engine} />
-                      {engineFamilyLabel(engine)}
-                    </Badge>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-xs">Cited by</p>
+                  <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {citations.engines.map((engine) => (
+                      <li
+                        className="flex items-center gap-1.5 text-xs"
+                        key={engine}
+                      >
+                        <EngineIcon className="size-4" engine={engine} />
+                        {engineFamilyLabel(engine)}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ) : (
-                <p className="text-muted-foreground border-t px-4 py-2.5 text-xs">
+                <p className="text-muted-foreground text-xs">
                   No engine has cited this page for your prompts yet.
                 </p>
               )}
@@ -145,7 +151,7 @@ export function ShelfDetailDialog({
           </section>
 
           <section className="space-y-3">
-            <SectionHeader meta={checkedMeta} title="Who is on the shelf" />
+            <SectionHeader title="Who is on the shelf" />
             <ShelfPlacementsTable
               disabled={isPending}
               onSetPlacementStatus={onSetPlacementStatus}
@@ -189,7 +195,7 @@ export function ShelfDetailDialog({
             )}
           </section>
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </SheetContent>
+    </Sheet>
   );
 }

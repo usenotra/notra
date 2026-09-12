@@ -23,6 +23,7 @@ export interface GitHubInstallationReference {
 }
 
 export interface SelectGitHubRepositoriesParams {
+  preserveExisting?: boolean;
   organizationId: string;
   userId: string;
   repositoryIds: string[];
@@ -34,6 +35,7 @@ export interface SelectedGitHubRepository {
 }
 
 export interface SaveGitHubRepositorySelectionParams {
+  preserveExisting?: boolean;
   organizationId: string;
   userId: string;
   installationRecordIds: string[];

@@ -25,6 +25,7 @@ export interface TablePaginationState {
 export interface TablePaginationProps extends TablePaginationState {
   itemLabel?: string;
   className?: string;
+  showPageNumbers?: boolean;
 }
 
 export interface TableSkeletonProps {

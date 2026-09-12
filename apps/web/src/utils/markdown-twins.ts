@@ -11,6 +11,7 @@ import {
   getChangelogPostHref,
   listNotraChangelogPosts,
 } from "@/utils/changelog";
+import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
 import {
   getShowcaseCompany,
@@ -126,7 +127,7 @@ async function getBlogEntries(): Promise<MarkdownTwinEntry[]> {
       dateLabel: post.createdAt,
       publishedDate: new Date(post.createdAt),
     },
-    body: post.markdown,
+    body: `${post.markdown.trim()}\n\n${buildCtaBannerMarkdown()}`,
   }));
 }
 

@@ -1,6 +1,6 @@
 import { DatabuddyWordmark } from "@notra/ui/components/ui/svgs/databuddyWordmark";
+import { Hexclave } from "@notra/ui/components/ui/svgs/hexclave";
 import { Inth } from "@notra/ui/components/ui/svgs/inth";
-import { StackAuth } from "@notra/ui/components/ui/svgs/stack-auth";
 import type { ComponentType, SVGProps } from "react";
 
 export const NOTRA_LOGO_PATH = "/notra-mark.svg";
@@ -258,9 +258,9 @@ export const SOCIAL_PROOF_LOGOS: {
     className: "h-8",
   },
   {
-    name: "Stack Auth",
-    Component: StackAuth,
-    href: "https://stack-auth.com?utm_source=notra",
-    className: "h-8",
+    name: "Hexclave",
+    Component: Hexclave,
+    href: "https://hexclave.com?utm_source=notra",
+    className: "h-8 text-[#49423d] dark:text-[#f3eeea]",
   },
 ];

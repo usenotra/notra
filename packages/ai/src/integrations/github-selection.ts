@@ -56,6 +56,7 @@ export const selectGitHubRepositories = Effect.fn("GitHub.selectRepositories")(
     }
 
     yield* dependencies.saveSelection({
+      preserveExisting: params.preserveExisting,
       organizationId: params.organizationId,
       userId: params.userId,
       installationRecordIds: installations.map(

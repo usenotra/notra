@@ -1,6 +1,5 @@
 "use client";
 
-import { ScrollArea } from "@notra/ui/components/ui/scroll-area";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
@@ -21,7 +20,8 @@ export function LiveTrafficLog({ engine }: HeroCollageProps) {
   const [rows, setRows] = useState(() =>
     seedLiveRows(HERO_COLLAGE_CITATION_ROWS)
   );
-  const live = !reduceMotion;
+  const [enteringId, setEnteringId] = useState<string | null>(null);
+  const live = reduceMotion === false;
 
   useEffect(() => {
     if (!live || previousEngine.current === engine) {
@@ -29,17 +29,20 @@ export function LiveTrafficLog({ engine }: HeroCollageProps) {
     }
     previousEngine.current = engine;
     const row = randomLiveRow(pageClockElapsedMs(), engine);
+    setEnteringId(row.id);
     setRows((previous) => [row, ...previous].slice(0, LIVE_TRAFFIC_MAX_ROWS));
   }, [engine, live]);
 
   return (
-    <ScrollArea className="h-full [&_[data-slot=table-container]]:overflow-visible">
-      <CitationRows
-        animated={live}
-        base={base}
-        headers={HERO_COLLAGE_CITATION_HEADERS}
-        rows={rows}
-      />
-    </ScrollArea>
+    <CitationRows
+      animated={live}
+      base={base}
+      enteringId={enteringId}
+      headers={HERO_COLLAGE_CITATION_HEADERS}
+      onEntered={(id) => {
+        setEnteringId((current) => (current === id ? null : current));
+      }}
+      rows={rows}
+    />
   );
 }

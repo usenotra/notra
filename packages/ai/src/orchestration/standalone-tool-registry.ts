@@ -84,7 +84,13 @@ export function buildStandaloneToolSet(
       continue;
     }
     tools[getCreatePostToolName(contentType)] = createCreatePostTool(
-      { organizationId, contentType, needsApproval: true },
+      {
+        organizationId,
+        contentType,
+        needsApproval: true,
+        chatId,
+        sourceMetadata: chatId ? { chatId } : undefined,
+      },
       postResult
     );
   }

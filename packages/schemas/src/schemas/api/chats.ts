@@ -8,6 +8,25 @@ import {
 } from "@notra/ai/schemas/chat";
 import { standaloneChatContextSchema } from "@notra/ai/schemas/standalone-chat";
 
+const publicExternalChannelSourceSchema = z.enum([
+  "discord",
+  "slack",
+  "dashboard",
+]);
+
+const publicExternalChannelIdSchema = z
+  .object({
+    source: publicExternalChannelSourceSchema,
+    id: z.string().max(200).optional(),
+  })
+  .refine(
+    (value) =>
+      value.source === "dashboard" ||
+      (typeof value.id === "string" && value.id.length > 0),
+    { message: "id is required for discord and slack sources" }
+  )
+  .openapi("PublicExternalChannelId");
+
 const externalChannelIdSchema = z
   .object({
     source: externalChannelSourceSchema,
@@ -16,6 +35,7 @@ const externalChannelIdSchema = z
   .refine(
     (value) =>
       value.source === "dashboard" ||
+      value.source === "agent" ||
       (typeof value.id === "string" && value.id.length > 0),
     { message: "id is required for discord and slack sources" }
   )
@@ -73,7 +93,7 @@ export const sendChatMessageRequestSchema = z
       description:
         "Integrations the assistant may use as tools in this chat: connected GitHub repositories, Linear teams, or MCP servers.",
     }),
-    externalChannelId: externalChannelIdSchema.optional().openapi({
+    externalChannelId: publicExternalChannelIdSchema.optional().openapi({
       description:
         "Link the chat to a Discord or Slack channel so it can be found later with GET /v1/chats/by-external.",
     }),

@@ -3,6 +3,8 @@ import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
 import type { GitHubPublishContentType, GitHubPublishRecovery } from "./github";
 
 export interface GitHubPublishFailureContext {
+  installationAccountType?: string | null;
+  installationAccountLogin?: string | null;
   organizationId: string;
   repositoryId: string;
   outputId: string;

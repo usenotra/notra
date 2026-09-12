@@ -153,6 +153,28 @@ export function contentChatHistoryPath(
   return `/api/organizations/${organizationId}/content/${contentId}/chat/${encodeURIComponent(chatId)}`;
 }
 
+export function dashboardAgentChatSessionsQueryKey(organizationId: string) {
+  return chatSessionsQueryKey(organizationId);
+}
+
+export function dashboardAgentChatHistoryQueryKey(
+  organizationId: string,
+  chatId: string | null
+) {
+  return ["dashboard-agent-chat-history", organizationId, chatId] as const;
+}
+
+export function dashboardAgentChatSessionsPath(organizationId: string) {
+  return chatSessionsPath(organizationId);
+}
+
+export function dashboardAgentChatHistoryPath(
+  organizationId: string,
+  chatId: string
+) {
+  return chatSessionPath(organizationId, chatId);
+}
+
 export function sortChatSessions(sessions: ChatSessionSummary[]) {
   return [...sessions].sort((left, right) => {
     const leftPinnedAt = left.pinnedAt ? Date.parse(left.pinnedAt) : Number.NaN;

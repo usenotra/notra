@@ -80,7 +80,7 @@ export const saveGitHubRepositorySelection = Effect.fn(
           existing,
           params
         );
-        if (deselectedIds.length > 0) {
+        if (!params.preserveExisting && deselectedIds.length > 0) {
           await tx
             .update(githubIntegrations)
             .set({ enabled: false, repositoryEnabled: false })
@@ -125,16 +125,15 @@ export const saveGitHubRepositorySelection = Effect.fn(
           .onConflictDoUpdate({
             target: githubIntegrations.id,
             set: {
-              displayName: sql`excluded.display_name`,
               owner: sql`excluded.owner`,
               repo: sql`excluded.repo`,
-              defaultBranch: sql`excluded.default_branch`,
               encryptedToken: null,
               githubAppInstallationId: sql`excluded.github_app_installation_id`,
               githubRepositoryId: sql`excluded.github_repository_id`,
               githubRepositoryPrivate: sql`excluded.github_repository_private`,
-              repositoryEnabled: true,
-              enabled: true,
+              ...(!params.preserveExisting
+                ? { repositoryEnabled: true, enabled: true }
+                : {}),
             },
             setWhere: eq(
               githubIntegrations.organizationId,
@@ -156,7 +155,7 @@ export const saveGitHubRepositorySelection = Effect.fn(
                   id: nanoid(),
                   repositoryId: id,
                   outputType: "blog_post",
-                  enabled: false,
+                  enabled: true,
                   config: null,
                 },
                 {

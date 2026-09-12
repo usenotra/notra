@@ -2,6 +2,7 @@ import {
   AiBrowserIcon,
   AnalyticsUpIcon,
   Attachment01Icon,
+  ChartAnalysisIcon,
   CorporateIcon,
   CreditCardIcon,
   Globe02Icon,
@@ -24,6 +25,7 @@ export const SETTINGS_SECTION_IDS = [
   "notifications",
   "attachments",
   "billing",
+  "usage",
   "credits",
   "logs",
   "geo",
@@ -122,18 +124,32 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "billing",
-        label: "Billing & Usage",
-        description: "Plans, invoices, and usage",
+        label: "Billing",
+        description: "Plans, invoices, and subscription",
         icon: CreditCardIcon,
         keywords: [
           "subscription",
           "plan",
           "invoice",
           "payment",
-          "usage",
           "stripe",
           "trial",
           "upgrade",
+        ],
+      },
+      {
+        id: "usage",
+        label: "Usage",
+        description: "Remaining quotas and usage",
+        icon: ChartAnalysisIcon,
+        keywords: [
+          "usage",
+          "remaining",
+          "limits",
+          "quota",
+          "answers",
+          "cycle",
+          "breakdown",
         ],
       },
       {
@@ -225,7 +241,8 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   members: "Members",
   notifications: "Notifications",
   attachments: "Attachments",
-  billing: "Billing & Usage",
+  billing: "Billing",
+  usage: "Usage",
   credits: "Credits",
   logs: "Logs",
   geo: "Brand",
@@ -241,7 +258,8 @@ export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
     members: "Manage who has access to this organization",
     notifications: "Configure email notifications for your organization",
     attachments: "Manage your uploaded files and attachments",
-    billing: "Manage your plan, invoices, and feature usage",
+    billing: "Manage your plan, invoices, and subscription",
+    usage: "See remaining quotas and usage over time",
     credits: "Monitor your AI credit balance and usage",
     logs: "View integration events and their delivery status",
     geo: "How your brand is identified in answers",
@@ -260,4 +278,4 @@ export const LOGS_SETTINGS_SEARCH_KEYS = [
   "page",
 ] as const;
 
-export const BILLING_SETTINGS_SEARCH_KEYS = ["tab"] as const;
+export const LEGACY_BILLING_TAB_VALUES = ["billing", "usage"] as const;

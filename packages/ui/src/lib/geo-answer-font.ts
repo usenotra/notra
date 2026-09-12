@@ -35,16 +35,3 @@ export function geoAnswerEmptyClassName(skin: GeoChatSkin): string {
   }
   return "text-[15px] leading-7";
 }
-
-export function geoAnswerThinkingClassName(skin: GeoChatSkin): string {
-  if (skin === "claude") {
-    return "font-serif text-[17px]";
-  }
-  if (skin === "perplexity") {
-    return "font-sans text-[17.5px]";
-  }
-  if (isTerminalSkin(skin)) {
-    return "font-mono text-[13px]";
-  }
-  return "text-[15px]";
-}

@@ -47,7 +47,7 @@ export function geoSettingsPath(
   return `/${slug}/geo${settingsQuery(DEFAULT_GEO_SETTINGS_SECTION, extra)}`;
 }
 
-function firstSearchParamValue(
+export function firstSearchParamValue(
   value: string | string[] | undefined
 ): string | undefined {
   if (typeof value === "string" && value.length > 0) {

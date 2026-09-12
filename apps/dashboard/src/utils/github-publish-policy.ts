@@ -11,7 +11,15 @@ export function getGitHubPublishFailurePolicy(
   {
     connectionMethod,
     installationId,
-  }: Pick<GitHubPublishFailureContext, "connectionMethod" | "installationId">
+    installationAccountType,
+    installationAccountLogin,
+  }: Pick<
+    GitHubPublishFailureContext,
+    | "connectionMethod"
+    | "installationId"
+    | "installationAccountType"
+    | "installationAccountLogin"
+  >
 ): GitHubPublishFailurePolicy {
   const failureKind = classifyGitHubPublishFailure(cause);
   const usesToken = connectionMethod === "personal-access-token";
@@ -43,10 +51,13 @@ export function getGitHubPublishFailurePolicy(
         },
       };
     }
-    const permissionsUrl =
-      installationId && GITHUB_INSTALLATION_ID_REGEX.test(installationId)
-        ? `https://github.com/settings/installations/${installationId}/permissions`
-        : undefined;
+    let permissionsUrl: string | undefined;
+    if (installationId && GITHUB_INSTALLATION_ID_REGEX.test(installationId)) {
+      permissionsUrl =
+        installationAccountType === "Organization" && installationAccountLogin
+          ? `https://github.com/organizations/${encodeURIComponent(installationAccountLogin)}/settings/installations/${installationId}`
+          : `https://github.com/settings/installations/${installationId}/permissions`;
+    }
     return {
       failureKind,
       recordFailure: false,

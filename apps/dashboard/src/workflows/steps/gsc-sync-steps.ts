@@ -22,8 +22,9 @@ export async function runGscSyncStep(
     properties: {
       status: result.status,
       reason: result.reason ?? null,
-      keywords: result.keywords ?? 0,
-      suggestions_created: result.suggestionsAdded ?? 0,
+      keywords: result.status === "completed" ? result.keywords : 0,
+      suggestions_created:
+        result.status === "completed" ? result.suggestionsAdded : 0,
       duration_ms: Date.now() - startedAt,
     },
   });

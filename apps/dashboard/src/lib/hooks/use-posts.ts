@@ -10,7 +10,12 @@ import { useActiveProject } from "./use-active-project";
 
 const DEFAULT_PAGE_SIZE = 12;
 
-export function usePosts(organizationId: string, page: number, enabled = true) {
+export function usePosts(
+  organizationId: string,
+  page: number,
+  enabled = true,
+  pageSize: number = DEFAULT_PAGE_SIZE
+) {
   const { projectId, isResolved } = useActiveProject();
   return useQuery<PostsResponse>({
     ...dashboardOrpc.content.list.queryOptions({
@@ -18,7 +23,7 @@ export function usePosts(organizationId: string, page: number, enabled = true) {
         organizationId,
         projectId: projectId ?? undefined,
         page,
-        pageSize: DEFAULT_PAGE_SIZE,
+        pageSize,
       },
     }),
     enabled: enabled && !!organizationId && isResolved,

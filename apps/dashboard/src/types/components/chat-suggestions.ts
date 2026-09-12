@@ -11,6 +11,12 @@ export interface ChatSuggestionsProps {
   onSelect: (prompt: string) => void;
   disabled?: boolean;
   hidden?: boolean;
+  suggestions?: ChatSuggestion[];
+  dismissStorageKey?: string;
+  layout?: "grid" | "list";
+  rotate?: boolean;
+  rotateIntervalMs?: number;
+  visibleCount?: number;
 }
 
 export interface SuggestionCardProps {
@@ -18,4 +24,7 @@ export interface SuggestionCardProps {
   disabled?: boolean;
   hidden: boolean;
   onSelect: (prompt: string) => void;
+  layout: "grid" | "list";
+  slotIndex: number;
+  reduceMotion: boolean;
 }

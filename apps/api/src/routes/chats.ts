@@ -1,6 +1,6 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
-  getChatSession,
+  getStandaloneChatSession,
   getChatSessionByExternalChannel,
   listChatSessions,
   loadChatHistory,
@@ -131,7 +131,7 @@ chatsRoutes.openapi(getChatRoute, async (c) => {
   }
 
   const { chatId } = c.req.valid("param");
-  const chat = await getChatSession(orgId, chatId);
+  const chat = await getStandaloneChatSession(orgId, chatId);
 
   if (!chat) {
     return c.json({ error: "Chat not found" }, 404);

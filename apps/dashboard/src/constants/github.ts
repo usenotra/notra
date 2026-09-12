@@ -38,7 +38,7 @@ export const DEFAULT_GITHUB_CONTENT_DIRECTORIES = {
 
 export const DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED = {
   changelog: true,
-  blog_post: false,
+  blog_post: true,
 } as const satisfies Record<GitHubPublishContentType, boolean>;
 
 export const GITHUB_API_VERSION_HEADERS = {

@@ -283,12 +283,21 @@ export const COMMAND_ROUTES: CommandRoute[] = [
   },
   {
     id: "settings-billing",
-    label: "Billing & Usage",
+    label: "Billing",
     keywords: ["subscription", "plan", "invoice", "payment"],
     icon: CreditCardIcon,
     section: "Settings",
     path: (slug) => `/${slug}?settings=billing`,
     settingsSection: "billing",
+  },
+  {
+    id: "settings-usage",
+    label: "Usage",
+    keywords: ["usage", "remaining", "limits", "quota", "answers"],
+    icon: ChartAnalysisIcon,
+    section: "Settings",
+    path: (slug) => `/${slug}?settings=usage`,
+    settingsSection: "usage",
   },
   {
     id: "settings-credits",

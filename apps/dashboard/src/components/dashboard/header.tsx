@@ -32,6 +32,7 @@ import { useCommandPalette } from "@/components/command-palette/command-palette-
 import { BrandTopbarIdentitySelector } from "@/components/dashboard/brand-topbar-identity-selector";
 import { ChatTopbarTitle } from "@/components/dashboard/chat-topbar-title";
 import { ContentTopbarTitle } from "@/components/dashboard/content-topbar-title";
+import { DashboardAgentButton } from "@/components/dashboard/dashboard-agent-button";
 import { useFeedback } from "@/components/dashboard/feedback-context";
 import { FeedbackForm } from "@/components/dashboard/feedback-popover";
 import { NavUser } from "@/components/dashboard/nav-user";
@@ -51,7 +52,8 @@ function triggerScheduleDemo() {
 
 const SEGMENT_CONFIG: Record<string, { label?: string; href?: null }> = {
   collection: { label: "Collections" },
-  billing: { label: "Billing & Usage" },
+  billing: { label: "Billing" },
+  usage: { label: "Usage" },
   automation: { href: null },
   brand: { href: null },
   "api-keys": { label: "API Keys" },
@@ -142,6 +144,7 @@ export function SiteHeader() {
             tabIndex={-1}
             type="button"
           />
+          <DashboardAgentButton />
           <NavUser />
           <ResponsiveDialog onOpenChange={setFeedbackOpen} open={feedbackOpen}>
             <ResponsiveDialogContent

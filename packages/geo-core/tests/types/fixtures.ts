@@ -7,6 +7,7 @@ export type ScanSettingsInput = Partial<
     | "enabled"
     | "scanIntervalHours"
     | "nextScanAt"
+    | "scanLeaseUntil"
     | "scanStartedAt"
     | "lastScanAt"
   >

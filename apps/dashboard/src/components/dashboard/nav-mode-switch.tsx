@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import type { MouseEvent } from "react";
 
 import {
   SIDEBAR_MODE_HOME_LINKS,
@@ -28,7 +29,11 @@ export function NavModeSwitch({
   projectId,
   onModeChange,
 }: NavModeSwitchProps) {
-  const handleModeSelect = (next: SidebarMode) => {
+  const handleModeSelect = (
+    next: SidebarMode,
+    event: MouseEvent<HTMLAnchorElement>
+  ) => {
+    event.preventDefault();
     if (next !== mode) {
       trackEvent(POSTHOG_EVENTS.SIDEBAR_MODE_SWITCHED, {
         from: mode,
@@ -67,7 +72,7 @@ export function NavModeSwitch({
                   projectId
                 )}
                 key={option.id}
-                onClick={() => handleModeSelect(option.id)}
+                onClick={(event) => handleModeSelect(option.id, event)}
               >
                 <HugeiconsIcon className="size-3.5" icon={option.icon} />
                 {option.label}
@@ -88,7 +93,7 @@ export function NavModeSwitch({
                     SIDEBAR_MODE_HOME_LINKS[option.id],
                     projectId
                   )}
-                  onClick={() => handleModeSelect(option.id)}
+                  onClick={(event) => handleModeSelect(option.id, event)}
                 >
                   <HugeiconsIcon icon={option.icon} />
                   <SidebarLabel>{option.label}</SidebarLabel>

@@ -75,7 +75,7 @@ export function GeoSettingsForm({
   const { hasZdr: canEnforceZdr, isLoading: planLoading } =
     useHasZdrEntitlement();
   const nameMissing = companyName.trim().length === 0;
-  const { isSaving, savedAt } = useGeoSettingsAutosave({
+  const { savedAt } = useGeoSettingsAutosave({
     aliases,
     canEnforceZdr,
     catalog,
@@ -92,8 +92,6 @@ export function GeoSettingsForm({
     scanIntervalHours,
     settings,
   });
-
-  const saveStatus = geoSaveStatus(nameMissing, isSaving, savedAt);
 
   const { scanSize, warningSeverity } = useGeoScanEstimate({
     organizationId,
@@ -117,20 +115,8 @@ export function GeoSettingsForm({
   const showLanguages = section === undefined || section === "languages";
   const showModels = section === undefined || section === "models";
 
-  const saveStatusText = saveStatus ? (
-    <p
-      aria-live="polite"
-      className="text-muted-foreground text-xs tabular-nums"
-    >
-      {saveStatus}
-    </p>
-  ) : null;
-
   return (
     <div className="w-full space-y-6">
-      {hideHeader && saveStatusText ? (
-        <div className="text-right">{saveStatusText}</div>
-      ) : null}
       {hideHeader ? null : (
         <header className="flex items-start justify-between gap-3">
           <div className="space-y-1">
@@ -139,7 +125,6 @@ export function GeoSettingsForm({
               How your brand is identified and where prompts are scanned.
             </p>
           </div>
-          {saveStatusText ? <div className="pt-2">{saveStatusText}</div> : null}
         </header>
       )}
       <div className="space-y-6">
@@ -186,23 +171,6 @@ export function GeoSettingsForm({
       </div>
     </div>
   );
-}
-
-function geoSaveStatus(
-  nameMissing: boolean,
-  isSaving: boolean,
-  savedAt: Date | null
-): string | null {
-  if (nameMissing && savedAt) {
-    return "Add a company name to save";
-  }
-  if (isSaving) {
-    return "Saving...";
-  }
-  if (savedAt) {
-    return "Saved";
-  }
-  return null;
 }
 
 function useGeoSettingsAutosave({

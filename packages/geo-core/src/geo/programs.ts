@@ -12,6 +12,7 @@ import {
   brandSettings,
   geoCompetitors,
   geoPrompts,
+  geoScans,
   geoSettings,
 } from "@notra/db/schema";
 import {
@@ -154,8 +155,8 @@ import {
   toAutoTrackedPrompts,
 } from "./prompts";
 import { startClaimedGeoScanRun } from "./scan-handoff";
-import { nextGeoScanAt } from "./scan-schedule";
-import { claimGeoScanRun } from "./scan-status";
+import { rearmedGeoScanAt } from "./scan-schedule";
+import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
 
 function mergeLegacyCompetitors(
@@ -659,6 +660,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         removedAutoPromptIds: true,
         enabled: true,
         nextScanAt: true,
+        lastScanAt: true,
         scanIntervalHours: true,
       },
       where: eq(geoSettings.projectId, projectId),
@@ -687,20 +689,29 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     ]),
   ].filter((engine) => engineSet.has(engine));
 
-  // The schedule is a plain due stamp the cron sweep polls. A fresh enable or
-  // an interval change re-arms it a full interval out (matching the old
-  // delayed-message behaviour); an unchanged enabled row keeps its pending
-  // due time, and disabling clears it.
+  // The schedule is a plain due stamp the cron sweep polls. An unchanged
+  // enabled row keeps its pending due time (a still-null stamp stays null and
+  // is picked up by the next sweep), disabling clears it, and a fresh enable
+  // or an interval change re-arms it from the last finished scan — not a full
+  // interval out from now, which used to push the next scan a whole day away
+  // every time settings were saved.
   const keepNextScanAt =
     input.enabled &&
     existingSettings?.enabled === true &&
     existingSettings.scanIntervalHours === input.scanIntervalHours;
   let nextScanAt: Date | null = null;
-  if (input.enabled) {
-    nextScanAt = keepNextScanAt
-      ? (existingSettings?.nextScanAt ?? nextGeoScanAt(input.scanIntervalHours))
-      : nextGeoScanAt(input.scanIntervalHours);
+  if (keepNextScanAt) {
+    nextScanAt = existingSettings?.nextScanAt ?? null;
+  } else if (input.enabled) {
+    nextScanAt = rearmedGeoScanAt(
+      input.scanIntervalHours,
+      existingSettings?.lastScanAt ?? null
+    );
   }
+  // A re-armed or cleared schedule must not stay leased by the sweep that was
+  // mid-tick, or the new stamp would be ignored until the lease expires. An
+  // untouched schedule keeps whatever lease that sweep holds.
+  const clearedLease = keepNextScanAt ? {} : { scanLeaseUntil: null };
 
   yield* geoDb("settings upsert failed", () =>
     db
@@ -738,6 +749,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           enabled: input.enabled,
           scanIntervalHours: input.scanIntervalHours,
           nextScanAt,
+          ...clearedLease,
         },
       })
   );
@@ -871,6 +883,7 @@ export const loadGeoPromptHistory = Effect.fn("geo.promptHistory")(function* (
   const rows = yield* geoDb("prompt history query failed", () =>
     queryGeoCheckPromptHistory(geoCheckScope(scope), {
       promptIds: promptHistoryScanIds(input.promptId),
+      scanId: input.scanId,
       limit: GEO_PROMPT_HISTORY_LIMIT,
     })
   );
@@ -1800,5 +1813,42 @@ export const startGeoScan = Effect.fn("geo.startScan")(function* (
 export const startGeoPromptRescan = Effect.fn("geo.rescanPrompt")(function* (
   input: GeoPromptRescanInput
 ) {
-  return yield* startGeoScanScoped(input, [input.promptId]);
+  const { prompts } = yield* listGeoPrompts(input);
+  const prompt = prompts.find(
+    (candidate) =>
+      candidate.enabled &&
+      (candidate.id === input.promptId ||
+        customPromptScanId(candidate.id) === input.promptId)
+  );
+  if (!prompt) {
+    return yield* Effect.fail(
+      new GeoPromptNotFoundError({ promptId: input.promptId })
+    );
+  }
+  return yield* startGeoScanScoped(input, [prompt.id], input.engines);
+});
+
+export const loadGeoScanStatus = Effect.fn("geo.scanStatus")(function* (
+  input: GeoScopeInput,
+  scanId: string
+) {
+  const scope = yield* requireGeoProject(input);
+  yield* sweepStaleGeoScanRows(scope);
+  const scan = yield* geoDb("scan status lookup failed", () =>
+    db.query.geoScans.findFirst({
+      columns: { id: true, status: true, startedAt: true, finishedAt: true },
+      where: and(
+        eq(geoScans.id, scanId),
+        eq(geoScans.projectId, scope.projectId),
+        eq(geoScans.organizationId, scope.organizationId)
+      ),
+    })
+  );
+  return scan
+    ? {
+        ...scan,
+        startedAt: scan.startedAt.toISOString(),
+        finishedAt: scan.finishedAt?.toISOString() ?? null,
+      }
+    : null;
 });

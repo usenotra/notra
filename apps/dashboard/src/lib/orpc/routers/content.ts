@@ -57,7 +57,19 @@ import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generat
 import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
 import { slugify } from "@notra/utils/slugify";
 import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
-import { and, asc, count, desc, eq, gte, inArray, lt, lte } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lt,
+  lte,
+  ne,
+  sql,
+} from "drizzle-orm";
 import { marked } from "marked";
 import { nanoid } from "nanoid";
 import { after } from "next/server";
@@ -121,6 +133,10 @@ import {
 } from "../utils/errors";
 
 const TITLE_REGEX = /^#\s+(.+)$/m;
+
+// Upper bound for the sibling rail on the content detail response; matches the
+// maximum page size of the content list.
+const CONTENT_SIBLING_LIMIT = 100;
 
 const postReadColumns = {
   id: true,
@@ -589,7 +605,11 @@ export const contentRouter = {
               contentType: true,
               status: true,
             },
+            // The current post is excluded in SQL, and the rail is bounded: a
+            // collection can hold hundreds of posts.
+            where: ne(posts.id, post.id),
             orderBy: [asc(posts.createdAt), asc(posts.id)],
+            limit: CONTENT_SIBLING_LIMIT,
           },
         },
       });
@@ -601,14 +621,12 @@ export const contentRouter = {
               id: collection.id,
               name: collection.name,
               source: collection.source,
-              siblings: collection.posts
-                .filter((sibling) => sibling.id !== post.id)
-                .map((sibling) => ({
-                  id: sibling.id,
-                  title: sibling.title,
-                  contentType: normalizeContentType(sibling.contentType),
-                  status: sibling.status,
-                })),
+              siblings: collection.posts.map((sibling) => ({
+                id: sibling.id,
+                title: sibling.title,
+                contentType: normalizeContentType(sibling.contentType),
+                status: sibling.status,
+              })),
             }
           : null,
       };
@@ -1077,40 +1095,36 @@ export const contentRouter = {
         ]);
 
         const collectionIds = collectionRows.map((collection) => collection.id);
-        const postRows =
+        // One row per collection: counting and de-duplicating the content types
+        // in Postgres avoids shipping every post of every listed collection.
+        const aggregateRows =
           collectionIds.length > 0
             ? await db
                 .select({
                   collectionId: posts.collectionId,
-                  contentType: posts.contentType,
-                  status: posts.status,
+                  total: sql<number>`count(*)::int`,
+                  draft: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
+                  published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
+                  types: sql<
+                    string[] | null
+                  >`array_agg(distinct ${posts.contentType})`,
                 })
                 .from(posts)
                 .where(inArray(posts.collectionId, collectionIds))
+                .groupBy(posts.collectionId)
             : [];
 
-        const aggregates = new Map<
-          string,
-          { total: number; draft: number; published: number; types: string[] }
-        >();
-        for (const post of postRows) {
-          const aggregate = aggregates.get(post.collectionId) ?? {
-            total: 0,
-            draft: 0,
-            published: 0,
-            types: [],
-          };
-          aggregate.total += 1;
-          if (post.status === "published") {
-            aggregate.published += 1;
-          } else {
-            aggregate.draft += 1;
-          }
-          if (!aggregate.types.includes(post.contentType)) {
-            aggregate.types.push(post.contentType);
-          }
-          aggregates.set(post.collectionId, aggregate);
-        }
+        const aggregates = new Map(
+          aggregateRows.map((row) => [
+            row.collectionId,
+            {
+              total: Number(row.total),
+              draft: Number(row.draft),
+              published: Number(row.published),
+              types: row.types ?? [],
+            },
+          ])
+        );
 
         const collections = collectionRows.map((collection) => {
           const aggregate = aggregates.get(collection.id);
@@ -1356,10 +1370,16 @@ export const contentRouter = {
         const yearStart = startOfYear(now);
         const yearEnd = endOfYear(now);
 
-        const allPosts = await db
+        // One row per day instead of one row per post. `drafts` counts every
+        // non-published status (matching the previous JS bucketing), while
+        // `strictDrafts` feeds the `drafts` total, which only ever counted the
+        // literal "draft" status.
+        const dailyCounts = await db
           .select({
-            status: posts.status,
-            createdAt: posts.createdAt,
+            day: sql<string>`to_char(${posts.createdAt}, 'YYYY-MM-DD')`,
+            drafts: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
+            strictDrafts: sql<number>`count(*) filter (where ${posts.status} = 'draft')::int`,
+            published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
           })
           .from(posts)
           .where(
@@ -1369,43 +1389,30 @@ export const contentRouter = {
               lte(posts.createdAt, yearEnd)
             )
           )
-          .orderBy(posts.createdAt);
+          .groupBy(sql`to_char(${posts.createdAt}, 'YYYY-MM-DD')`);
 
-        const totalDrafts = allPosts.filter(
-          (post) => post.status === "draft"
-        ).length;
-        const totalPublished = allPosts.filter(
-          (post) => post.status === "published"
-        ).length;
         const dateMap = new Map<
           string,
           { drafts: number; published: number }
         >();
+        let totalDrafts = 0;
+        let totalPublished = 0;
+        let maxCount = 1;
 
-        for (const post of allPosts) {
-          const dateKey = format(post.createdAt, "yyyy-MM-dd");
-          const entry = dateMap.get(dateKey) ?? { drafts: 0, published: 0 };
+        for (const row of dailyCounts) {
+          const drafts = Number(row.drafts);
+          const published = Number(row.published);
 
-          if (post.status === "published") {
-            entry.published += 1;
-          } else {
-            entry.drafts += 1;
-          }
-
-          dateMap.set(dateKey, entry);
+          totalDrafts += Number(row.strictDrafts);
+          totalPublished += published;
+          maxCount = Math.max(maxCount, drafts + published);
+          dateMap.set(row.day, { drafts, published });
         }
 
         const allDaysInYear = eachDayOfInterval({
           start: yearStart,
           end: yearEnd,
         });
-
-        const maxCount = Math.max(
-          ...Array.from(dateMap.values()).map(
-            (value) => value.drafts + value.published
-          ),
-          1
-        );
 
         const activityData = allDaysInYear.map((date) => {
           const dateKey = format(date, "yyyy-MM-dd");

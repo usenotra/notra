@@ -30,6 +30,7 @@ import type {
   GeoIngestSetupResponse,
   GeoPromptHistoryResponse,
   GeoPromptResultSummariesResponse,
+  GeoPromptRescanInput,
   GeoSequenceResultsResponse,
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
@@ -96,6 +97,8 @@ import { toGeoWindowInput } from "@/utils/geo-range";
 import { dashboardOrpc } from "../orpc/query";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
+// Bounded retries instead of an unbounded 30 s error poll on every dashboard page.
+const GEO_PROJECTS_RETRY_COUNT = 3;
 
 function gscAnalyzeMutationKey(organizationId: string) {
   return [GSC_ANALYZE_MUTATION_KEY, organizationId] as const;
@@ -142,6 +145,12 @@ async function invalidatePromptQueries(
 
 async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
   await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.scanRuns.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.scanRun.key(),
+    }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.overview.key(),
     }),
@@ -201,6 +210,7 @@ export function useGeoSettings(organizationId: string) {
       current.state.data?.settings?.isScanning
         ? GEO_SCAN_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI visibility settings" },
   });
 
@@ -339,12 +349,17 @@ export function useGeoPromptResultDetail(
 export function useGeoPromptHistory(
   organizationId: string,
   promptId: string,
-  options: { enabled: boolean }
+  options: { enabled: boolean; scanId?: string }
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPromptHistoryResponse>({
     ...dashboardOrpc.geo.promptHistory.queryOptions({
-      input: { organizationId, projectId, promptId },
+      input: {
+        organizationId,
+        projectId,
+        promptId,
+        ...(options.scanId ? { scanId: options.scanId } : {}),
+      },
     }),
     enabled: options.enabled && !!organizationId && !!promptId,
     meta: { errorMessage: "Failed to load prompt history" },
@@ -366,7 +381,8 @@ export function useGeoChanges(organizationId: string) {
 export function useGeoCompetitorShare(
   organizationId: string,
   range?: GeoRangeQuery,
-  summaryOnly = false
+  summaryOnly = false,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoCompetitorShareResponse>({
@@ -378,7 +394,7 @@ export function useGeoCompetitorShare(
         summaryOnly: summaryOnly || undefined,
       },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load competitor share" },
   });
@@ -490,14 +506,15 @@ export function useGeoCompetitors(organizationId: string) {
 
 export function useGeoLanguageShare(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoLanguageShareResponse>({
     ...dashboardOrpc.geo.languageShare.queryOptions({
       input: { organizationId, projectId, ...toGeoWindowInput(range) },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load language performance" },
   });
@@ -655,6 +672,11 @@ export function useGeoStartScan(organizationId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+          input: { organizationId, projectId },
+        }),
+      });
+      await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.settings.queryKey({
           input: { organizationId, projectId },
         }),
@@ -671,13 +693,23 @@ export function useGeoRescanPrompt(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: geoStartScanMutationKey(organizationId, projectId),
-    mutationFn: (promptId: string) =>
-      dashboardOrpc.geo.rescanPrompt.call({
+    mutationFn: (
+      input: string | Pick<GeoPromptRescanInput, "promptId" | "engines">
+    ) => {
+      const payload = typeof input === "string" ? { promptId: input } : input;
+      return dashboardOrpc.geo.rescanPrompt.call({
         organizationId,
         projectId,
-        promptId,
-      }),
+        promptId: payload.promptId,
+        engines: payload.engines ? [...payload.engines] : undefined,
+      });
+    },
     onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.geo.scanRuns.queryKey({
+          input: { organizationId, projectId },
+        }),
+      });
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.settings.queryKey({
           input: { organizationId, projectId },
@@ -710,6 +742,7 @@ export function useAgentReadiness(organizationId: string) {
       query.state.data?.scan?.status === "running"
         ? AGENT_READINESS_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load agent readiness" },
   });
 }
@@ -763,6 +796,7 @@ export function useGeoTrafficLog(
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
     refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI tracking log" },
   });
 }
@@ -869,8 +903,7 @@ export function useGeoProjects(organizationId: string) {
       errorMessage: "Failed to load projects",
       showRetryAction: true,
     },
-    refetchInterval: (query) =>
-      query.state.status === "error" ? 30_000 : false,
+    retry: GEO_PROJECTS_RETRY_COUNT,
   });
 }
 

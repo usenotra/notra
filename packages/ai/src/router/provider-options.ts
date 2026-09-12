@@ -99,18 +99,16 @@ export function buildVercelProviderOptions(
     toVercelModelId
   );
 
-  // Production: ZDR + no-training are always forced. Development bypass
-  // (allowNonZdr): ZDR is only sent when the caller asks for it explicitly,
-  // no-training stays on unless the caller opts out. relaxZdr (caller asked
-  // for zdr: "preferred" and the gateway rejected ZDR) drops only the ZDR flag.
+  // Relaxed routes accept providers without ZDR or no-training guarantees.
+  // Explicit caller no-training restrictions still apply.
   const zeroDataRetention = resolveZdrFlag(
     relaxZdr,
     allowNonZdr,
     existing.zeroDataRetention
   );
-  const disallowPromptTraining = !(
-    allowNonZdr && existing.disallowPromptTraining === false
-  );
+  const disallowPromptTraining = relaxZdr
+    ? existing.disallowPromptTraining === true
+    : !(allowNonZdr && existing.disallowPromptTraining === false);
 
   const { zeroDataRetention: _ignoredZdr, ...existingWithoutZdr } = existing;
   const gatewayOptions: Record<string, unknown> = {
@@ -176,14 +174,15 @@ export function buildOpenRouterProviderOptions(
 
   const zdr = resolveZdrFlag(relaxZdr, allowNonZdr, existingProvider.zdr);
   const dataCollection =
-    allowNonZdr && existingProvider.data_collection === "allow"
+    (relaxZdr && existingProvider.data_collection !== "deny") ||
+    (allowNonZdr && existingProvider.data_collection === "allow")
       ? "allow"
       : "deny";
 
   const { zdr: _ignoredZdr, ...existingProviderWithoutZdr } = existingProvider;
   const provider: Record<string, unknown> = {
     ...existingProviderWithoutZdr,
-    ...(zdr ? { zdr: true } : {}),
+    ...(relaxZdr || zdr ? { zdr } : {}),
     data_collection: dataCollection,
   };
 

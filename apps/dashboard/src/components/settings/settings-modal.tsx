@@ -91,6 +91,13 @@ const BillingSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const UsageSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/usage-pane").then((mod) => ({
+      default: mod.UsageSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const CreditsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/credits-pane").then((mod) => ({
@@ -127,6 +134,8 @@ function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
       return <AttachmentsSettingsPane />;
     case "billing":
       return <BillingSettingsPane />;
+    case "usage":
+      return <UsageSettingsPane />;
     case "credits":
       return <CreditsSettingsPane />;
     case "logs":

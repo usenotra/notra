@@ -56,6 +56,7 @@
 @source "../../../../packages/ui/src/components/ui/carousel-progress.tsx";
 @source "../../../../packages/ui/src/components/ui/collapsible.tsx";
 @source "../../../../packages/ui/src/components/ui/command-tabs.tsx";
+@source "../../../../packages/ui/src/components/ui/context-menu.tsx";
 @source "../../../../packages/ui/src/components/ui/dialog.tsx";
 @source "../../../../packages/ui/src/components/ui/dropdown-menu.tsx";
 @source "../../../../packages/ui/src/components/ui/expandable-tabs.tsx";
@@ -97,6 +98,7 @@
 @source "../../../../packages/ui/src/components/ui/svgs/google.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/grok.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/grokDark.tsx";
+@source "../../../../packages/ui/src/components/ui/svgs/hexclave.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/huawei.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/inth.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/kagi.tsx";
@@ -121,7 +123,6 @@
 @source "../../../../packages/ui/src/components/ui/svgs/qwenDark.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/reddit.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/slack.tsx";
-@source "../../../../packages/ui/src/components/ui/svgs/stack-auth.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tavily.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tencent.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/tikTok.tsx";
@@ -145,7 +146,9 @@
 @source "../../../../packages/ui/src/constants/command-tabs.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
+@source "../../../../packages/ui/src/constants/message-table.ts";
 @source "../../../../packages/ui/src/constants/perplexity-models.ts";
+@source "../../../../packages/ui/src/constants/table.ts";
 @source "../../../../packages/ui/src/hooks/use-mobile.tsx";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";
 @source "../../../../packages/ui/src/lib/claude-chat-model.ts";
@@ -159,6 +162,7 @@
 @source "../../../../packages/ui/src/lib/geo-model-display.ts";
 @source "../../../../packages/ui/src/lib/geo-perplexity-sources.ts";
 @source "../../../../packages/ui/src/lib/geo-prompt-engines.ts";
+@source "../../../../packages/ui/src/lib/message-table.ts";
 @source "../../../../packages/ui/src/lib/motion.ts";
 @source "../../../../packages/ui/src/lib/perplexity-model.ts";
 @source "../../../../packages/ui/src/lib/utils.ts";
@@ -168,4 +172,5 @@
 @source "../../../../packages/ui/src/types/gemini.ts";
 @source "../../../../packages/ui/src/types/geo.ts";
 @source "../../../../packages/ui/src/types/instrument.ts";
+@source "../../../../packages/ui/src/types/message-table.ts";
 @source "../../../../packages/ui/src/types/perplexity.ts";

@@ -30,13 +30,30 @@ import {
   pickBrandSearchResult,
   pickCompanyLogoUrl,
 } from "@/lib/onboarding/company-logo";
+import {
+  readCachedCompanyLogo,
+  writeCachedCompanyLogo,
+} from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import type { CompanyLogoResult } from "@/types/onboarding";
 import { ratelimit } from "@/utils/ratelimit";
 
 export const onboardingRouter = {
   companyLogo: authorizedProcedure
     .input(companyLogoInputSchema)
-    .handler(async ({ context, input }) => {
+    .handler(async ({ context, input }): Promise<CompanyLogoResult> => {
+      const cacheKeyInput = {
+        query: input.query,
+        searchByName: input.searchByName,
+      };
+
+      // Ahead of the rate limiter: a cached logo costs nothing upstream, and
+      // repeat navigation used to burn the per-query budget on every page view.
+      const cached = await readCachedCompanyLogo(cacheKeyInput);
+      if (cached) {
+        return cached;
+      }
+
       const { success: withinLimit } = await ratelimit.companyLogo.limit(
         `${context.user.id}:${input.query.toLowerCase()}`
       );
@@ -47,21 +64,26 @@ export const onboardingRouter = {
       }
 
       try {
-        if (!input.searchByName) {
+        let result: CompanyLogoResult;
+        if (input.searchByName) {
+          const response = await searchBrands(input.query);
+          const brand = pickBrandSearchResult(response.results, input.query);
+          result = {
+            domain: brand?.domain ?? null,
+            url: brand?.logo || null,
+          };
+        } else {
           const response = await retrieveBrand(input.query);
-          return {
+          result = {
             domain: response.brand?.domain ?? input.query,
             url: pickCompanyLogoUrl(response.brand?.logos),
           };
         }
 
-        const response = await searchBrands(input.query);
-        const brand = pickBrandSearchResult(response.results, input.query);
-        return {
-          domain: brand?.domain ?? null,
-          url: brand?.logo || null,
-        };
+        await writeCachedCompanyLogo(cacheKeyInput, result);
+        return result;
       } catch {
+        // A failed lookup is not cached; only its empty answer is returned.
         return {
           domain: input.searchByName ? null : input.query,
           url: null,
