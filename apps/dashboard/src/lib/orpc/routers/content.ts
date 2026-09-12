@@ -3,16 +3,22 @@ import {
   describeContentBillingDenial,
 } from "@notra/ai/billing/content-billing";
 import {
+  getGitHubAppInstallationPublishAccess,
   getTokenForIntegrationId,
   isGitHubAppConfigured,
+  listGitHubAppInstallationsByOrganization,
 } from "@notra/ai/integrations/github";
-import { getGitHubPublishTokenEffect } from "@notra/ai/integrations/github-publish-auth";
+import {
+  getGitHubPublishTokenEffect,
+  selectGitHubAppInstallationForOwner,
+} from "@notra/ai/integrations/github-publish-auth";
 import {
   getDecryptedLinearToken,
   getLinearIntegrationsByOrganization,
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
@@ -116,6 +122,7 @@ import type {
   RepositoryPreviewFailure,
 } from "@/types/content/preview";
 import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
+import { getGitHubAppPermissionsRecovery } from "@/utils/github-publish-policy";
 import { resolveLookbackRange } from "@/utils/lookback";
 import { ratelimit } from "@/utils/ratelimit";
 
@@ -801,6 +808,8 @@ export const contentRouter = {
             repo: githubIntegrations.repo,
             defaultBranch: githubIntegrations.defaultBranch,
             installationId: githubAppInstallations.installationId,
+            installationAccountType: githubAppInstallations.accountType,
+            installationAccountLogin: githubAppInstallations.accountLogin,
             githubAppInstallationId: githubIntegrations.githubAppInstallationId,
             encryptedToken: githubIntegrations.encryptedToken,
             outputConfig: repositoryOutputs.config,
@@ -933,6 +942,35 @@ export const contentRouter = {
       }
 
       const notraBaseUrl = resolveNotraBaseUrl();
+      let publishInstallationId = integration.installationId ?? null;
+      let publishInstallationAccountType = integration.installationAccountType;
+      let publishInstallationAccountLogin =
+        integration.installationAccountLogin;
+      if (connectionMethod === "github-app" && !publishInstallationId) {
+        const fallback = selectGitHubAppInstallationForOwner(
+          await listGitHubAppInstallationsByOrganization(input.organizationId),
+          integration.owner
+        );
+        if (fallback) {
+          publishInstallationId = fallback.installationId;
+          publishInstallationAccountType = fallback.accountType;
+          publishInstallationAccountLogin = fallback.accountLogin;
+        }
+      }
+      if (connectionMethod === "github-app" && publishInstallationId) {
+        const publishAccess = await getGitHubAppInstallationPublishAccess(
+          publishInstallationId
+        );
+        if (githubAppInstallationCanPublishContent(publishAccess) === false) {
+          const recovery = getGitHubAppPermissionsRecovery({
+            installationId: publishInstallationId,
+            installationAccountType: publishInstallationAccountType,
+            installationAccountLogin: publishInstallationAccountLogin,
+          });
+          throw forbidden(recovery.message, recovery.data);
+        }
+      }
+
       const token = await runOrpcEffect(
         getGitHubPublishTokenEffect(integration.id, {
           organizationId: input.organizationId,
@@ -973,7 +1011,9 @@ export const contentRouter = {
           outputId: contentOutput.id,
           outputType: input.contentType,
           connectionMethod,
-          installationId: integration.installationId,
+          installationId: publishInstallationId,
+          installationAccountType: publishInstallationAccountType,
+          installationAccountLogin: publishInstallationAccountLogin,
         });
       }
     }),

@@ -16,7 +16,7 @@ export function GitHubPublishResultCard({
   const pathLabel = `${wasCreated ? "Added" : "Updated"} ${pullRequest.path}`;
 
   return (
-    <div className="bg-muted/20 my-4 max-w-full min-w-0 overflow-hidden rounded-lg border">
+    <div className="bg-muted/20 max-w-full min-w-0 overflow-hidden rounded-lg border">
       <div className="flex min-w-0 items-start gap-3 p-3">
         <div className="ring-foreground/10 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f3f1] p-1 ring-1">
           <Notra className="size-full" />

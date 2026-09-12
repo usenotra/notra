@@ -15,7 +15,7 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
     id: "github",
     name: "GitHub",
     description:
-      "Connect GitHub repositories for AI-powered changelogs, blog posts, and tweets",
+      "Connect GitHub repositories for changelogs, blog posts, and draft pull requests",
     icon: <Github />,
     accentColor: "#238636",
     href: "github",

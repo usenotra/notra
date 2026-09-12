@@ -68,10 +68,12 @@ export type GitHubAccountType = "User" | "Organization";
 
 export interface GitHubAppAccount {
   id: string;
+  installationId: string;
   login: string;
   name: string | null;
   avatarUrl: string;
   type: GitHubAccountType;
+  canPublish: boolean | null;
 }
 
 export interface GitHubAppRepository {
