@@ -24,9 +24,6 @@ export const GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION =
   "Personas talk to every engine during a scan.";
 export const GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION =
   "This persona is paused. Include it in scans to start a conversation.";
-export const GEO_PERSONAS_REGENERATE_TITLE = "Replace your personas?";
-export const GEO_PERSONAS_REGENERATE_DESCRIPTION =
-  "The current personas, their memories and their conversations are removed. This cannot be undone.";
 
 /**
  * Generation is one model call with no server-side progress, so the counter

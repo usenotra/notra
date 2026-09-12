@@ -44,7 +44,8 @@ export async function getPersonaGeneration(
 export async function startPersonaGeneration(
   organizationId: string,
   projectId: string,
-  personaId?: string
+  personaId?: string,
+  brief?: string
 ) {
   await getPersonaGeneration(organizationId, projectId);
   const requested: PersonaGenerationJob = {
@@ -52,6 +53,7 @@ export async function startPersonaGeneration(
     organizationId,
     projectId,
     personaId,
+    brief,
     status: "queued",
     startedAt: new Date().toISOString(),
     runId: null,

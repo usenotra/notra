@@ -343,7 +343,6 @@
         "@upstash/qstash": "2.9.0-rc",
         "@upstash/realtime": "^1.0.3",
         "@upstash/redis": "^1.35.8",
-        "@upstash/vector": "^1.2.3",
         "ai": "6.0.206",
         "autumn-js": "^1.2.7",
         "dedent": "^1.7.1",
@@ -2488,8 +2487,6 @@
     "@upstash/realtime": ["@upstash/realtime@1.0.3", "", { "peerDependencies": { "@upstash/redis": ">=1.35.4", "react": ">=16.8.0", "react-dom": ">=16.8.0", "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["react", "react-dom"] }, "sha512-cF5O0GqTW+yfb1PUzAQTvC0LZccLg8kgFHMc4MxTpQxSV5SKSHr3jl5xogLd772CCO0of9awZdWnbtyH2FHhQg=="],
 
     "@upstash/redis": ["@upstash/redis@1.38.0", "", { "dependencies": { "uncrypto": "^0.1.3" } }, "sha512-wu+dZBptlLy0+MCUEoHmzrY/TnmgDey3+c7EbIGwrLqAvkP8yi5MWZHYGIFtAygmL4Bkz2TdFu+eU0vFPncIcg=="],
-
-    "@upstash/vector": ["@upstash/vector@1.2.3", "", {}, "sha512-yXsWKeuHNYyH72BcSZd3bV5ZD5MybAoTvKxkMaeV2UzuGfNzbHBVh5eO+ysTWTFAf8I9XcOueF4tZfAGjCa4Iw=="],
 
     "@usenotra/geo": ["@usenotra/geo@workspace:packages/geo"],
 

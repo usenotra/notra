@@ -1,5 +1,4 @@
 import {
-  GEO_PERSONA_AGENT_MAX_STEPS,
   GEO_PERSONA_AGENT_MAX_TOKENS,
   GEO_PERSONA_AGENT_MODEL,
 } from "@notra/ai/constants/geo-personas";
@@ -9,43 +8,33 @@ import {
   buildPersonaTurnPrompt,
 } from "@notra/ai/prompts/geo-persona";
 import { personaNextTurnOutputSchema } from "@notra/ai/schemas/geo-personas";
-import {
-  createListPersonaMemoriesTool,
-  createSearchPersonaMemoriesTool,
-} from "@notra/ai/tools/persona-memory";
 import type {
   PersonaNextTurnInput,
   PersonaNextTurnResult,
 } from "@notra/ai/types/geo-personas";
-import { generateText, Output, stepCountIs } from "ai";
+import { createPersonaSnapshot } from "@notra/ai/utils/persona-snapshot";
+import { generateText, Output } from "ai";
 
 /**
- * Plays one turn of a simulated buyer: the persona recalls its memories through
- * the two read-only tools and then types the next message, or stops.
+ * Plays one turn with the complete profile and memories available each time.
  */
 export async function generatePersonaNextTurn(
   input: PersonaNextTurnInput,
   abortSignal?: AbortSignal
 ): Promise<PersonaNextTurnResult> {
-  const memoryConfig = {
-    personaId: input.persona.id,
-    memories: input.memories,
-  };
+  const system = buildPersonaSystemPrompt(
+    input.persona,
+    input.engineLabel,
+    input.maxTurns,
+    input.memories
+  );
+  const snapshot = createPersonaSnapshot(input, system);
   const result = await generateText({
     model: gateway(GEO_PERSONA_AGENT_MODEL, {
       organizationId: input.organizationId,
     }),
-    tools: {
-      listMemories: createListPersonaMemoriesTool(memoryConfig),
-      searchMemories: createSearchPersonaMemoriesTool(memoryConfig),
-    },
-    stopWhen: stepCountIs(GEO_PERSONA_AGENT_MAX_STEPS),
     output: Output.object({ schema: personaNextTurnOutputSchema }),
-    system: buildPersonaSystemPrompt(
-      input.persona,
-      input.engineLabel,
-      input.maxTurns
-    ),
+    system,
     prompt: buildPersonaTurnPrompt(
       input.transcript,
       input.turnIndex,
@@ -60,5 +49,6 @@ export async function generatePersonaNextTurn(
   return {
     message: output.done || message.length === 0 ? null : message,
     usage: result.totalUsage,
+    snapshot,
   };
 }

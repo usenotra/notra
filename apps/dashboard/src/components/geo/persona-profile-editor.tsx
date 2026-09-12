@@ -105,11 +105,7 @@ export function PersonaProfileEditor({
               defaultValue={persona.role}
               maxLength={200}
               required
-              aria-describedby={`${id}-role-hint`}
             />
-            <p className="text-muted-foreground text-xs" id={`${id}-role-hint`}>
-              Up to two words, e.g. Marketing Lead.
-            </p>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor={`${id}-company`}>

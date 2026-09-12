@@ -50,6 +50,7 @@ export const geoPersonaRegenerationSchema = object({
 export const geoPersonasGenerateInputSchema = geoOrganizationInputSchema.extend(
   {
     personaId: string().min(1).optional(),
+    brief: string().trim().min(1).max(2000).optional(),
   }
 );
 

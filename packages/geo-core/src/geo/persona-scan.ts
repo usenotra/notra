@@ -119,7 +119,10 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
     try: () =>
       db.query.geoPersonaMemories.findMany({
         where: eq(geoPersonaMemories.personaId, personaId),
-        orderBy: [asc(geoPersonaMemories.createdAt)],
+        orderBy: [
+          asc(geoPersonaMemories.createdAt),
+          asc(geoPersonaMemories.id),
+        ],
       }),
     catch: (cause) =>
       new GeoScanError({ message: "Failed to load persona memories", cause }),
@@ -269,6 +272,7 @@ export const runGeoPersonaConversation = Effect.fn(
       sequenceId: null,
       personaId,
       turn: index + 1,
+      personaSnapshot: next.snapshot,
       prompt: next.message,
       answer: answerText,
       capturedAt: context.capturedAt,

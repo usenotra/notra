@@ -3,16 +3,6 @@
 import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Counter from "@notra/ui/components/shared/counter";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
 import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
@@ -21,6 +11,7 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
+import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
@@ -39,8 +30,6 @@ import {
   GEO_PERSONAS_EMPTY_TITLE,
   GEO_PERSONAS_PAGE_DESCRIPTION,
   GEO_PERSONAS_PAGE_TITLE,
-  GEO_PERSONAS_REGENERATE_DESCRIPTION,
-  GEO_PERSONAS_REGENERATE_TITLE,
 } from "@/constants/geo-personas";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import {
@@ -53,7 +42,6 @@ import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
   PersonaGenerationProgress,
-  PersonasRegenerateDialogProps,
 } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -70,40 +58,6 @@ function PageHeader({ action }: { action?: ReactNode }) {
       </div>
       {action}
     </header>
-  );
-}
-
-function PersonasRegenerateDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  isPending,
-}: PersonasRegenerateDialogProps) {
-  return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {GEO_PERSONAS_REGENERATE_TITLE}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {GEO_PERSONAS_REGENERATE_DESCRIPTION}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            Cancel
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isPending}
-            onClick={onConfirm}
-            variant="destructive"
-          >
-            {isPending ? "Generating…" : "Replace personas"}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
   );
 }
 
@@ -140,7 +94,7 @@ function GeneratePersonasButton({
   progress,
   onClick,
 }: GeneratePersonasButtonProps) {
-  const label = hasPersonas ? "Regenerate personas" : "Generate personas";
+  const label = hasPersonas ? "Add personas" : "Generate personas";
   const isGenerating = progress !== null;
   return (
     <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -202,10 +156,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   const { data: personasData, isPending: isPersonasPending } =
     useGeoPersonas(organizationId);
   const generatePersonas = useGeoPersonasGenerate(organizationId);
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const personas = personasData?.personas ?? [];
   const hasPersonas = personas.length > 0;
+  const [addOpen, setAddOpen] = useState(false);
   const isGenerating = generatePersonas.isPending;
   const progress = usePersonaGenerationProgress(
     isGenerating,
@@ -250,7 +204,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
 
   const onGenerateClick = () => {
     if (hasPersonas) {
-      setConfirmOpen(true);
+      setAddOpen(true);
       return;
     }
     generatePersonas.mutate();
@@ -258,10 +212,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
 
   const isLoadingPersonas = isPersonasPending && !hasPersonas;
   const showEmptyState = !(isLoadingPersonas || hasPersonas);
-  // The empty state already carries the primary call to action, so the header
-  // only offers one once there is a set to replace. While the list is still
-  // loading we do not know whether a set exists, so the button waits too:
-  // otherwise it could replace personas without the confirmation dialog.
+  // The empty state carries the primary action until personas exist.
   const headerAction =
     showEmptyState || isLoadingPersonas ? null : (
       <GeneratePersonasButton
@@ -315,15 +266,16 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
           />
         ) : null}
       </div>
-
-      <PersonasRegenerateDialog
-        isPending={isGenerating}
-        onConfirm={() => {
-          setConfirmOpen(false);
-          generatePersonas.mutate();
-        }}
-        onOpenChange={setConfirmOpen}
-        open={confirmOpen}
+      <PersonaAddDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        isPending={generatePersonas.isPending}
+        onSubmit={(brief) =>
+          generatePersonas.mutate(
+            { brief },
+            { onSuccess: () => setAddOpen(false) }
+          )
+        }
       />
     </PageContainer>
   );

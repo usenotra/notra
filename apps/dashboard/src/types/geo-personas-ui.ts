@@ -50,13 +50,6 @@ export interface PersonaMemoryGroup {
   memories: GeoPersonaMemory[];
 }
 
-export interface PersonasRegenerateDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  isPending: boolean;
-}
-
 export interface PersonaGenerationProgress {
   /** 1-based step shown to the user. */
   step: number;
@@ -82,4 +75,10 @@ export interface PersonaConversationProps {
   enabled: boolean;
   isScanning: boolean;
   onRunScan: () => void;
+}
+export interface PersonaAddDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (brief: string) => void;
+  isPending: boolean;
 }

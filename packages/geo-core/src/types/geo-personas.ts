@@ -4,6 +4,7 @@ import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import type {
   GeoPersonaMemoryKind,
   GeoPersonaProfile,
+  GeoPersonaSnapshot,
 } from "@notra/db/types/geo-personas";
 import type { InferSelectModel } from "drizzle-orm";
 
@@ -66,6 +67,7 @@ export interface GeoPersonaActivityResponse {
 
 export interface GeoPersonaTurnResult {
   personaId: string;
+  personaSnapshot: GeoPersonaSnapshot | null;
   turn: number;
   engine: string;
   prompt: string;

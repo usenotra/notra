@@ -167,6 +167,7 @@ export async function insertGeoMentionChecks(
       promptId: row.promptId,
       sequenceId: row.sequenceId ?? null,
       personaId: row.personaId ?? null,
+      personaSnapshot: row.personaSnapshot ?? null,
       turn: row.turn ?? 0,
       prompt: row.prompt,
       answer: row.answer,
@@ -841,6 +842,7 @@ export async function queryGeoCheckPersonaResults(
       ],
       {
         personaId: geoMentionChecks.personaId,
+        personaSnapshot: geoMentionChecks.personaSnapshot,
         turn: geoMentionChecks.turn,
         engine: geoMentionChecks.engine,
         prompt: geoMentionChecks.prompt,
@@ -874,6 +876,7 @@ export async function queryGeoCheckPersonaResults(
     return [
       {
         personaId: row.personaId,
+        personaSnapshot: row.personaSnapshot,
         turn: row.turn,
         engine: row.engine,
         prompt: row.prompt,

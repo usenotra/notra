@@ -33,7 +33,10 @@ import type {
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
 import type { GeoCheckGrounding } from "./types/geo-checks";
-import type { GeoPersonaProfile } from "./types/geo-personas";
+import type {
+  GeoPersonaProfile,
+  GeoPersonaSnapshot,
+} from "./types/geo-personas";
 import type { GeoProspectReportJson } from "./types/geo-prospect-report";
 import type { GeoScanPlanSnapshot } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
@@ -1711,6 +1714,7 @@ export const geoMentionChecks = pgTable(
     personaId: text("persona_id").references(() => geoPersonas.id, {
       onDelete: "cascade",
     }),
+    personaSnapshot: jsonb("persona_snapshot").$type<GeoPersonaSnapshot>(),
     turn: integer("turn").notNull().default(0),
     prompt: text("prompt").notNull(),
     answer: text("answer").notNull(),

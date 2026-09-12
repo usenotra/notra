@@ -16,7 +16,10 @@ import { GEO_PERSONA_RESULTS_POLL_MS } from "@/constants/geo-personas";
 import { PERSONA_GENERATION_POLL_MS } from "@/constants/persona-generation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
-import type { PersonaGenerationJob } from "@/types/persona-generation";
+import type {
+  PersonaGenerationJob,
+  PersonaGenerationRequest,
+} from "@/types/persona-generation";
 import { toErrorMessage } from "@/utils/error-message";
 
 export function geoPersonaUpdateMutationKey(
@@ -98,12 +101,17 @@ export function useGeoPersonasGenerate(organizationId: string) {
     }
   }, [job, queryClient, organizationId, projectId]);
 
-  const mutation = useMutation<PersonaGenerationJob, Error, string | void>({
-    mutationFn: (personaId) =>
+  const mutation = useMutation<
+    PersonaGenerationJob,
+    Error,
+    PersonaGenerationRequest
+  >({
+    mutationFn: (request) =>
       dashboardOrpc.geo.personasGenerate.call({
         organizationId,
         projectId,
-        personaId: personaId || undefined,
+        personaId: typeof request === "string" ? request : undefined,
+        brief: typeof request === "object" ? request.brief : undefined,
       }),
     onSuccess: (started) => {
       queryClient.setQueryData(statusOptions.queryKey, started);
