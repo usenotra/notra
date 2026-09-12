@@ -514,20 +514,9 @@ brandIdentitiesRoutes.openapi(deleteBrandIdentityRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
-    if (result.failure._tag === "BrandIdentityNotFoundError") {
-      return c.json({ error: "Brand identity not found" }, 404);
-    }
-    if (result.failure._tag === "BrandIdentityDefaultDeleteError") {
-      return c.json({ error: "Cannot delete the default brand identity" }, 400);
-    }
-    if (result.failure._tag === "BrandIdentityInUseError") {
-      return c.json(
-        {
-          error:
-            "Brand identity is in use by a project or content brief and cannot be deleted",
-        },
-        409
-      );
+    const response = respondToBrandIdentityFailure(c, result.failure);
+    if (response) {
+      return response;
     }
     throw result.failure;
   }

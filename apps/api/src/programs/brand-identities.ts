@@ -101,11 +101,20 @@ function queueFailureMessage(error: unknown) {
     : "Failed to queue brand identity analysis";
 }
 
-function rollbackBrandAnalysisQueue(
+function getBrandAnalysisJobKey(jobId: string) {
+  return `brand-analysis:job:${jobId}`;
+}
+
+function failBrandAnalysisQueue(
   input: CreateBrandIdentityProgramInput,
   brandIdentityId: string,
   jobId: string,
-  options: { markJobFailed: boolean; errorMessage: string }
+  options: {
+    deleteBrandIdentity: boolean;
+    cleanupJobKey: boolean;
+    markJobFailed: boolean;
+    errorMessage: string;
+  }
 ) {
   return Effect.gen(function* () {
     if (options.markJobFailed) {
@@ -121,33 +130,48 @@ function rollbackBrandAnalysisQueue(
       }).pipe(Effect.ignore);
     }
 
-    yield* database(() =>
-      input.db
-        .delete(brandSettings)
-        .where(
-          and(
-            eq(brandSettings.id, brandIdentityId),
-            eq(brandSettings.organizationId, input.organizationId)
+    if (options.cleanupJobKey) {
+      yield* Effect.tryPromise({
+        try: () => input.redis.del(getBrandAnalysisJobKey(jobId)),
+        catch: () => undefined,
+      }).pipe(Effect.ignore);
+    }
+
+    if (options.deleteBrandIdentity) {
+      yield* database(() =>
+        input.db
+          .delete(brandSettings)
+          .where(
+            and(
+              eq(brandSettings.id, brandIdentityId),
+              eq(brandSettings.organizationId, input.organizationId)
+            )
           )
-        )
-    );
+      );
+    }
 
     return yield* new BrandAnalysisQueueFailedError();
   });
 }
 
-function recoverBrandAnalysisQueueFailure<A>(
+function recoverBeforeWorkflowAccepted(
   input: CreateBrandIdentityProgramInput,
   brandIdentityId: string,
   jobId: string,
-  options: { markJobFailed: boolean }
+  options: { cleanupJobKey: boolean; markJobFailed: boolean }
 ) {
   return Effect.catch((error: unknown) =>
-    rollbackBrandAnalysisQueue(input, brandIdentityId, jobId, {
+    failBrandAnalysisQueue(input, brandIdentityId, jobId, {
+      deleteBrandIdentity: true,
+      cleanupJobKey: options.cleanupJobKey,
       markJobFailed: options.markJobFailed,
       errorMessage: queueFailureMessage(error),
     })
   );
+}
+
+function recoverAfterWorkflowAccepted() {
+  return Effect.catch(() => Effect.fail(new BrandAnalysisQueueFailedError()));
 }
 
 async function isBrandIdentityInUse(
@@ -244,7 +268,8 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
         }),
       catch: (cause) => cause,
     }).pipe(
-      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
+      recoverBeforeWorkflowAccepted(input, brandIdentity.id, jobId, {
+        cleanupJobKey: true,
         markJobFailed: false,
       })
     );
@@ -259,7 +284,8 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
         }),
       catch: (cause) => cause,
     }).pipe(
-      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
+      recoverBeforeWorkflowAccepted(input, brandIdentity.id, jobId, {
+        cleanupJobKey: false,
         markJobFailed: true,
       })
     );
@@ -270,11 +296,7 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
           workflowRunId,
         }),
       catch: (cause) => cause,
-    }).pipe(
-      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
-        markJobFailed: true,
-      })
-    );
+    }).pipe(recoverAfterWorkflowAccepted());
 
     return {
       job: updatedJob ?? job,
