@@ -210,7 +210,7 @@ export const createGitHubIntegration = Effect.fn("integrations.createGitHub")(
           });
 
         if (!createdIntegration) {
-          throw new Error("Failed to create GitHub integration record");
+          return undefined;
         }
 
         await tx.insert(repositoryOutputs).values([
