@@ -25,26 +25,41 @@ export function validateSentimentThemes(
   const parsed = sentimentThemeOutputSchema.parse(output);
   const checks = new Map(sample.map((check) => [check.id, check]));
   return parsed.themes.map((theme) => {
-    const seen = new Set<string>();
-    const evidence = theme.evidence.map((reference) => {
-      const check = checks.get(reference.checkId);
-      if (
-        !check ||
-        check.sentiment !== theme.polarity ||
-        !reference.quote.trim() ||
-        !check.answer.includes(reference.quote) ||
-        seen.has(check.id)
-      ) {
-        throw new Error("Invalid sentiment evidence");
-      }
-      seen.add(check.id);
-      return {
-        ...reference,
-        prompt: check.prompt,
-        engine: check.engine,
-        capturedAt: check.capturedAt,
-      };
+    const statements = new Set<string>();
+    const claims = theme.claims.map((claim) => {
+      const normalized = claim.statement.toLowerCase().replace(/\s+/g, " ");
+      if (statements.has(normalized))
+        {throw new Error("Duplicate sentiment claim");}
+      statements.add(normalized);
+      const seen = new Set<string>();
+      const evidence = claim.evidence.map((reference) => {
+        const check = checks.get(reference.checkId);
+        if (
+          !check ||
+          check.sentiment !== theme.polarity ||
+          !reference.quote.trim() ||
+          !check.answer.includes(reference.quote) ||
+          seen.has(check.id)
+        ) {
+          throw new Error("Invalid sentiment evidence");
+        }
+        seen.add(check.id);
+        return {
+          ...reference,
+          prompt: check.prompt,
+          engine: check.engine,
+          capturedAt: check.capturedAt,
+        };
+      });
+      return { statement: claim.statement, evidence };
     });
-    return { title: theme.title, polarity: theme.polarity, evidence };
+    const evidence = [
+      ...new Map(
+        claims
+          .flatMap((claim) => claim.evidence)
+          .map((item) => [`${item.checkId}-${item.quote}`, item])
+      ).values(),
+    ];
+    return { title: theme.title, polarity: theme.polarity, evidence, claims };
   });
 }

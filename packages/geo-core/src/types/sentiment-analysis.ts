@@ -25,6 +25,7 @@ export interface SentimentAnalysisSample {
   capturedAt: string;
 }
 export interface SentimentTheme {
+  claims?: { statement: string; evidence: SentimentTheme["evidence"] }[];
   title: string;
   polarity: "positive" | "negative";
   evidence: {

@@ -22,17 +22,27 @@ export const sentimentThemeOutputSchema = z
           .object({
             title: z.string().trim().min(1).max(100),
             polarity: z.enum(["positive", "negative"]),
-            evidence: z
+            claims: z
               .array(
                 z
                   .object({
-                    checkId: z.string().min(1).max(200),
-                    quote: z.string().min(8).max(500),
+                    statement: z.string().trim().min(1).max(240),
+                    evidence: z
+                      .array(
+                        z
+                          .object({
+                            checkId: z.string().min(1).max(200),
+                            quote: z.string().min(8).max(500),
+                          })
+                          .strict()
+                      )
+                      .min(1)
+                      .max(6),
                   })
                   .strict()
               )
               .min(1)
-              .max(6),
+              .max(4),
           })
           .strict()
       )
