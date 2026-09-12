@@ -39,7 +39,10 @@ import type {
   PatchBrandIdentityProgramSuccess,
 } from "../types/brand-identities";
 import type { DbClient } from "../types/db";
-import { triggerBrandAnalysisWorkflow } from "../utils/brand-analysis";
+import {
+  isConfirmedWorkflowTriggerRejection,
+  triggerBrandAnalysisWorkflow,
+} from "../utils/brand-analysis";
 import {
   brandIdentityQueryColumns,
   selectBrandIdentityColumns,
@@ -170,6 +173,21 @@ function recoverBeforeWorkflowAccepted(
   );
 }
 
+function recoverWorkflowTriggerFailure(
+  input: CreateBrandIdentityProgramInput,
+  brandIdentityId: string,
+  jobId: string
+) {
+  return Effect.catch((error: unknown) =>
+    failBrandAnalysisQueue(input, brandIdentityId, jobId, {
+      deleteBrandIdentity: isConfirmedWorkflowTriggerRejection(error),
+      cleanupJobKey: false,
+      markJobFailed: true,
+      errorMessage: queueFailureMessage(error),
+    })
+  );
+}
+
 function recoverAfterWorkflowAccepted() {
   return Effect.catch(() => Effect.fail(new BrandAnalysisQueueFailedError()));
 }
@@ -283,12 +301,7 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
           jobId,
         }),
       catch: (cause) => cause,
-    }).pipe(
-      recoverBeforeWorkflowAccepted(input, brandIdentity.id, jobId, {
-        cleanupJobKey: false,
-        markJobFailed: true,
-      })
-    );
+    }).pipe(recoverWorkflowTriggerFailure(input, brandIdentity.id, jobId));
 
     const updatedJob = yield* Effect.tryPromise({
       try: () =>
