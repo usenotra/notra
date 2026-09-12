@@ -323,19 +323,25 @@ function DashboardAgentChat({
   };
 
   const handleStop = useCallback(async () => {
-    try {
-      const response = await fetch(
-        `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stop`,
-        { method: "POST" }
-      );
-      if (!response.ok) {
-        throw new Error(`Stop request failed with status ${response.status}`);
-      }
-      stop();
-    } catch (stopError) {
+    const response = await fetch(
+      `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stop`,
+      { method: "POST" }
+    ).catch((stopError) => {
       console.error("Failed to stop dashboard agent response", stopError);
+      return null;
+    });
+
+    if (!response?.ok) {
+      if (response) {
+        console.error(
+          `Failed to stop dashboard agent response: status ${response.status}`
+        );
+      }
       toast.error(DASHBOARD_AGENT_STOP_ERROR_TOAST);
+      return;
     }
+
+    stop();
   }, [activeChatId, organizationId, stop]);
 
   const handleSuggestionSelect = (prompt: string) => {
