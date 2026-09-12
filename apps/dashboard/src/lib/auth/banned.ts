@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { unstable_rethrow } from "next/navigation";
 
 import type { BannedStatusUser } from "@/types/auth/banned";
+import { isLocalDevAuthEnabled } from "@/utils/local-dev-auth";
 
 export function isUserBanned(user: BannedStatusUser) {
   if (!user.banned) {
@@ -14,6 +15,10 @@ export function isUserBanned(user: BannedStatusUser) {
 }
 
 export async function isSessionBanned(): Promise<boolean> {
+  if (isLocalDevAuthEnabled()) {
+    return false;
+  }
+
   try {
     const { user } = await withAuth();
 

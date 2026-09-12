@@ -1,6 +1,15 @@
 import { authkitProxy } from "@workos-inc/authkit-nextjs";
+import { NextResponse, type NextRequest } from "next/server";
 
-export default authkitProxy();
+import { isLocalDevAuthEnabled } from "@/utils/local-dev-auth";
+
+// AuthKit reads `process.env[name]` (dynamic), so Edge never sees WORKOS_*.
+// Skip the proxy in local dev until a live API key is configured.
+export default isLocalDevAuthEnabled()
+  ? function proxy(_request: NextRequest) {
+      return NextResponse.next();
+    }
+  : authkitProxy();
 
 export const config = {
   matcher: [

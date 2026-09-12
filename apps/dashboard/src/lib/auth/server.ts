@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
-import { members, organizations } from "@notra/db/schema";
+import { members, organizations, users } from "@notra/db/schema";
 import { withAuth } from "@workos-inc/authkit-nextjs";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
@@ -13,6 +13,7 @@ import { isUserBanned } from "@/lib/auth/banned";
 import { AuthSessionError } from "@/lib/auth/errors";
 import { ensureLocalUser } from "@/lib/auth/sync";
 import type { AuthIdentityData, AuthSessionData } from "@/types/auth/session";
+import { isLocalDevAuthEnabled } from "@/utils/local-dev-auth";
 
 const readLastVisitedOrganizationSlug = Effect.fn(
   "auth.session.readLastVisitedSlug"
@@ -99,9 +100,60 @@ const buildAuthIdentity = Effect.fn("auth.identity.build")(function* (
   return identity;
 });
 
+const loadLocalDevIdentity = Effect.fn("auth.identity.localDev")(function* () {
+  const email = process.env.DEV_AUTH_EMAIL?.trim();
+  const user = yield* Effect.tryPromise({
+    try: () =>
+      email
+        ? db.query.users.findFirst({
+            where: eq(users.email, email),
+          })
+        : db.query.users.findFirst({
+            orderBy: [desc(users.createdAt)],
+          }),
+    catch: (cause) =>
+      new AuthSessionError({
+        message: "Failed to load local development user",
+        cause,
+      }),
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  if (isUserBanned(user)) {
+    return yield* Effect.fail(
+      new AuthSessionError({
+        message: "User is banned",
+        cause: null,
+      })
+    );
+  }
+
+  const identity: AuthIdentityData = {
+    impersonatedBy: null,
+    user,
+  };
+  return identity;
+});
+
 export const getAuthIdentity = cache(
   async (): Promise<AuthIdentityData | null> => {
     await connection();
+
+    if (isLocalDevAuthEnabled()) {
+      return Effect.runPromise(
+        loadLocalDevIdentity().pipe(
+          Effect.catch((error) =>
+            Effect.logWarning("Failed to build local dev session").pipe(
+              Effect.annotateLogs({ error: error.message }),
+              Effect.as(null)
+            )
+          )
+        )
+      );
+    }
 
     let authResult: Awaited<ReturnType<typeof withAuth>>;
 
