@@ -59,6 +59,7 @@ import type {
 } from "@/types/geo";
 import {
   buildMentionProviderRows,
+  engineFamilyMentionTotals,
   mentionOverviewTotals,
   mentionStatTrends,
   withTrackedMentionEngines,
@@ -234,10 +235,11 @@ export function MentionRateCard({
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
   const openFamily = (family: GeoEngineFamily) => {
     const row = ranked.find((entry) => entry.family.family === family.family);
+    const mentionTotals = engineFamilyMentionTotals(family);
     trackEvent(POSTHOG_EVENTS.GEO_ENGINE_FAMILY_OPENED, {
       engine_family: family.family,
-      mention_rate: row?.totals.rate ?? null,
-      mentions: row?.totals.mentions ?? null,
+      mention_rate: mentionTotals?.rate ?? null,
+      mentions: mentionTotals?.mentions ?? null,
       visibility_rate: row?.totals.rate ?? null,
       visible: row?.totals.mentions ?? null,
       tracked: row?.tracked ?? null,

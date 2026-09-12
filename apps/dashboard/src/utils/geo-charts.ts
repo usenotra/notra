@@ -531,6 +531,18 @@ export function engineFamilyTotals(
   return totalsForEngines(engineFamilySources(family));
 }
 
+export function engineFamilyMentionTotals(
+  family: GeoEngineFamily
+): GeoEngineFamilyTotals | null {
+  const sources = engineFamilySources(family);
+  if (sources.length === 0) {
+    return null;
+  }
+  const mentions = sources.reduce((sum, engine) => sum + engine.mentions, 0);
+  const checks = sources.reduce((sum, engine) => sum + engine.checks, 0);
+  return { mentions, checks, rate: checks === 0 ? 0 : mentions / checks };
+}
+
 export function engineFamilyCitationTotal(family: GeoEngineFamily): number {
   return engineFamilySources(family).reduce(
     (sum, engine) => sum + (engine.citations ?? 0),
