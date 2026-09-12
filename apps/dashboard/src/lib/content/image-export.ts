@@ -13,8 +13,13 @@ type CopyAsPaper = (typeof import("@notra/kiwi/paper"))["copyAsPaper"];
 type CopyAsFigmaImport = () => Promise<CopyAsFigma>;
 type CopyAsPaperImport = () => Promise<CopyAsPaper>;
 
-const defaultImportCopyAsFigma: CopyAsFigmaImport = () =>
-  import("@notra/kiwi").then((module) => module.copyAsFigma);
+const defaultImportCopyAsFigma: CopyAsFigmaImport = async () => {
+  const kiwi = await import("@notra/kiwi");
+  // Inter (~1.17 MB) is a nested dynamic import. Warm it here so copy-ready
+  // means the click path will not wait on the font before clipboard.write.
+  await kiwi.loadFallbackFont();
+  return kiwi.copyAsFigma;
+};
 const defaultImportCopyAsPaper: CopyAsPaperImport = () =>
   import("@notra/kiwi/paper").then((module) => module.copyAsPaper);
 

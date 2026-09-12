@@ -2,8 +2,11 @@ import { expect, mock, test } from "bun:test";
 
 const copyAsFigma = mock(async () => undefined);
 const copyAsPaper = mock(async () => undefined);
+const loadFallbackFont = mock(async () => {
+  /* Inter payload is mocked as already loaded */
+});
 
-mock.module("@notra/kiwi", () => ({ copyAsFigma }));
+mock.module("@notra/kiwi", () => ({ copyAsFigma, loadFallbackFont }));
 mock.module("@notra/kiwi/paper", () => ({ copyAsPaper }));
 mock.module("sonner", () => ({
   toast: {
@@ -16,6 +19,7 @@ const { toast } = await import("sonner");
 const {
   copyImageAsFigma,
   copyImageAsPaper,
+  isImageExportCopyReady,
   preloadImageExportCopy,
   resetImageExportCopyForTests,
 } = await import("./image-export");
@@ -127,11 +131,13 @@ test("preload with window swallows a failed paper import and click retries", asy
 test("Paper and Figma copy call separate kiwi functions", async () => {
   copyAsFigma.mockClear();
   copyAsPaper.mockClear();
+  loadFallbackFont.mockClear();
   resetImageExportCopyForTests();
 
   await withWindow(async () => {
     expect(await preloadImageExportCopy("paper")).toBe(true);
     expect(await preloadImageExportCopy("figma")).toBe(true);
+    expect(loadFallbackFont).toHaveBeenCalledTimes(1);
 
     await copyImageAsPaper(exportElement, "Card");
     expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
@@ -147,6 +153,37 @@ test("Paper and Figma copy call separate kiwi functions", async () => {
       name: "Card",
     });
   });
+});
+
+test("Figma copy is not ready until the Inter font chunk loads", async () => {
+  let resolveFont: () => void = () => {
+    /* assigned when fontReady is constructed */
+  };
+  const fontReady = new Promise<void>((resolve) => {
+    resolveFont = resolve;
+  });
+  loadFallbackFont.mockImplementation(() => fontReady);
+  copyAsFigma.mockClear();
+  resetImageExportCopyForTests();
+
+  try {
+    await withWindow(async () => {
+      const pending = preloadImageExportCopy("figma");
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(isImageExportCopyReady("figma")).toBe(false);
+      expect(copyAsFigma).not.toHaveBeenCalled();
+
+      resolveFont();
+      expect(await pending).toBe(true);
+      expect(isImageExportCopyReady("figma")).toBe(true);
+    });
+  } finally {
+    loadFallbackFont.mockImplementation(async () => {
+      /* Inter payload is mocked as already loaded */
+    });
+    resetImageExportCopyForTests();
+  }
 });
 
 test("preload is a no-op without window and does not copy", () => {

@@ -51,6 +51,8 @@ export async function flushTrackEvent(
 
   try {
     await Promise.race([capture, timeout]);
+  } catch {
+    // Best-effort: logout/checkout must proceed even if capture() throws.
   } finally {
     globalThis.window.clearTimeout(timeoutId);
   }

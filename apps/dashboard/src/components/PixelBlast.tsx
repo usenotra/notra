@@ -452,6 +452,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     let pointerCanvas: HTMLCanvasElement | undefined;
     let onPointerDown: ((event: PointerEvent) => void) | undefined;
     let onPointerMove: ((event: PointerEvent) => void) | undefined;
+    let raf = 0;
     if (container) {
       const canvas = document.createElement("canvas");
       let renderer: THREE.WebGLRenderer | undefined;
@@ -635,10 +636,12 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         pointerCanvas.addEventListener("pointermove", onPointerMove, {
           passive: true,
         });
-        let raf = 0;
         const animate = () => {
           if (autoPauseOffscreenRef.current && !visibilityRef.current.visible) {
             raf = requestAnimationFrame(animate);
+            if (threeRef.current) {
+              threeRef.current.raf = raf;
+            }
             return;
           }
           uniforms.uTime.value =
@@ -676,6 +679,9 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
             renderer.render(scene, camera);
           }
           raf = requestAnimationFrame(animate);
+          if (threeRef.current) {
+            threeRef.current.raf = raf;
+          }
         };
         raf = requestAnimationFrame(animate);
         threeRef.current = {
@@ -697,6 +703,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       }
     }
     return () => {
+      cancelAnimationFrame(raf);
       resizeObserver?.disconnect();
       if (pointerCanvas && onPointerDown) {
         pointerCanvas.removeEventListener("pointerdown", onPointerDown);

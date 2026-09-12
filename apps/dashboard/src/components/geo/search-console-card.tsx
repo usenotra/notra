@@ -59,6 +59,7 @@ import {
   formatGscSiteUrl,
   getGscSiteDomain,
 } from "@/utils/gsc-site-url";
+import { handleTrackedAnchorClick } from "@/utils/tracked-anchor-click";
 
 function buildAuthorizeUrl(organizationId: string, callbackPath: string) {
   const params = new URLSearchParams({ organizationId, callbackPath });
@@ -69,13 +70,11 @@ function onConnectClick(
   event: MouseEvent<HTMLAnchorElement>,
   isReconnect: boolean
 ) {
-  event.preventDefault();
-  const href = event.currentTarget.href;
-  void flushTrackEvent(POSTHOG_EVENTS.GSC_CONNECT_STARTED, {
-    is_reconnect: isReconnect,
-  }).finally(() => {
-    window.location.assign(href);
-  });
+  handleTrackedAnchorClick(event, () =>
+    flushTrackEvent(POSTHOG_EVENTS.GSC_CONNECT_STARTED, {
+      is_reconnect: isReconnect,
+    })
+  );
 }
 
 function HeaderRow({

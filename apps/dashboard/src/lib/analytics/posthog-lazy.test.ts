@@ -283,3 +283,26 @@ test("flushTrackEvent captures with sendBeacon so navigation can still deliver",
     resetPostHogForTests();
   }
 });
+
+test("flushTrackEvent does not reject when capture throws", async () => {
+  const capture = mock(() => {
+    throw new Error("capture failed");
+  });
+  resetPostHogForTests(() =>
+    Promise.resolve({
+      default: {
+        init: mock(() => undefined),
+        capture,
+      },
+    })
+  );
+
+  const timers = installMockTimers();
+  try {
+    await expect(flushTrackEvent("$pageview")).resolves.toBeUndefined();
+    expect(capture).toHaveBeenCalled();
+  } finally {
+    timers.restore();
+    resetPostHogForTests();
+  }
+});
