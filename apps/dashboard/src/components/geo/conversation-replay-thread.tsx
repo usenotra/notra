@@ -7,7 +7,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { perplexitySourcesFromStoredOrExcerpt } from "@notra/geo-core/utils/geo-perplexity-sources";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
@@ -28,13 +28,28 @@ type MarkdownLoadStatus = "loading" | "ready" | "error";
 let answerMarkdownPromise: Promise<AnswerMarkdownComponent> | null = null;
 let AnswerMarkdownImpl: AnswerMarkdownComponent | null = null;
 let markdownStatus: MarkdownLoadStatus = "loading";
-const markdownListeners = new Set<(status: MarkdownLoadStatus) => void>();
+const markdownListeners = new Set<() => void>();
 
 function notifyMarkdownStatus(status: MarkdownLoadStatus): void {
   markdownStatus = status;
   for (const listener of markdownListeners) {
-    listener(status);
+    listener();
   }
+}
+
+function subscribeMarkdownStatus(onStoreChange: () => void): () => void {
+  markdownListeners.add(onStoreChange);
+  return () => {
+    markdownListeners.delete(onStoreChange);
+  };
+}
+
+function getMarkdownStatusSnapshot(): MarkdownLoadStatus {
+  return AnswerMarkdownImpl ? "ready" : markdownStatus;
+}
+
+function getMarkdownStatusServerSnapshot(): MarkdownLoadStatus {
+  return "loading";
 }
 
 function loadAnswerMarkdown(): Promise<AnswerMarkdownComponent> {
@@ -73,24 +88,15 @@ function AnswerMarkdown({
   skin: GeoChatSkin;
   text: string;
 }) {
-  const [status, setStatus] = useState<MarkdownLoadStatus>(
-    AnswerMarkdownImpl ? "ready" : markdownStatus
+  const status = useSyncExternalStore(
+    subscribeMarkdownStatus,
+    getMarkdownStatusSnapshot,
+    getMarkdownStatusServerSnapshot
   );
 
-  useEffect(() => {
-    markdownListeners.add(setStatus);
-    if (AnswerMarkdownImpl) {
-      setStatus("ready");
-    } else {
-      setStatus(markdownStatus);
-      if (markdownStatus !== "error") {
-        void loadAnswerMarkdown().catch(() => undefined);
-      }
-    }
-    return () => {
-      markdownListeners.delete(setStatus);
-    };
-  }, []);
+  if (status !== "error" && status !== "ready") {
+    void loadAnswerMarkdown().catch(() => undefined);
+  }
 
   if (status === "error") {
     return (
