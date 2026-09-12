@@ -5,6 +5,7 @@ import { verifyGeoIngestToken } from "@notra/geo-core/geo/ingest";
 import { geoRequestPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
+import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import { Effect } from "effect";
 import type { NextRequest } from "next/server";
@@ -20,6 +21,7 @@ import {
   GeoIngestUnparseableUrlError,
 } from "@/lib/geo-ingest/errors";
 import { buildGeoTrafficEvent, toCapturedDate } from "@/lib/geo-ingest/event";
+import { loadIngestAllowedHosts } from "@/lib/geo-ingest/hosts";
 import { isGeoIngestIdentityActive } from "@/lib/geo-ingest/identity";
 import { resolveJourneyId } from "@/lib/geo-ingest/journey";
 import { ratelimit } from "@/utils/ratelimit";
@@ -90,6 +92,12 @@ const buildEvent = Effect.fn("geoIngest.buildEvent")(function* (
   payload: GeoRequestPayload
 ) {
   const url = yield* parseUrl(payload.url);
+  const allowedHosts = yield* Effect.promise(() =>
+    loadIngestAllowedHosts(identity)
+  );
+  if (!acceptsIngestHost(url.hostname, allowedHosts)) {
+    return null;
+  }
   const classification = classifyVisitor({
     userAgent: payload.userAgent,
     referer: payload.referer,

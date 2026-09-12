@@ -134,6 +134,11 @@ winget install --id Cloudflare.cloudflared
 cloudflared tunnel --url http://localhost:3000
 ```
 
+Leave `DEV_AUTH_ENABLED` unset (or `false`) before exposing the app. Local-dev
+impersonation only works on loopback and requires both `DEV_AUTH_ENABLED` and
+`DEV_AUTH_EMAIL`. A public tunnel must use a live WorkOS API key so visitors
+are not signed in as a database user.
+
 - Copy the HTTPS tunnel URL and set:
 
 ```bash

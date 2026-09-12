@@ -113,6 +113,10 @@ import {
   getGeoModelCatalogEntry,
   isGeoEngineZdrCapable,
 } from "../utils/geo-model-catalog";
+import {
+  normalizeProjectDomains,
+  trafficLogHostFilter,
+} from "../utils/geo-project-domains";
 import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
@@ -129,6 +133,7 @@ import {
   GeoSettingsTrackingError,
 } from "./errors";
 import { geoHiddenSourceParams } from "./hidden-sources";
+import { invalidateGeoIngestHostsCache } from "./ingest";
 import { lockGeoProject } from "./lock";
 import {
   toGeoCompetitor,
@@ -656,6 +661,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         engines: true,
         nonZdrApprovedEngines: true,
         conversionPaths: true,
+        domains: true,
         pausedAutoPromptIds: true,
         removedAutoPromptIds: true,
         enabled: true,
@@ -672,6 +678,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     input.removedAutoPromptIds ?? existingSettings?.removedAutoPromptIds ?? [];
   const conversionPaths = normalizeConversionPaths(
     input.conversionPaths ?? existingSettings?.conversionPaths ?? []
+  );
+  const domains = normalizeProjectDomains(
+    input.domains ?? existingSettings?.domains ?? []
   );
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
@@ -724,6 +733,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         aliases: input.aliases,
         competitors: [],
         conversionPaths,
+        domains,
         languages: input.languages,
         engines,
         enforceZdr,
@@ -740,6 +750,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           companyName: input.companyName,
           aliases: input.aliases,
           conversionPaths,
+          domains,
           languages: input.languages,
           engines,
           enforceZdr,
@@ -752,6 +763,10 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           ...clearedLease,
         },
       })
+  );
+
+  yield* Effect.promise(() =>
+    invalidateGeoIngestHostsCache(input.organizationId, projectId)
   );
 
   yield* reconcileGeoCompetitors(
@@ -1153,7 +1168,8 @@ export const loadGeoTrafficLog = Effect.fn("geo.trafficLog")(function* (
   input: GeoScopeInput,
   limit: number | undefined,
   visitorTypes: readonly string[] | undefined,
-  categories: readonly string[] | undefined
+  categories: readonly string[] | undefined,
+  host: string | undefined
 ) {
   const scope = yield* resolveGeoScope(input);
   const rows = yield* geoQuery("traffic log query failed", () =>
@@ -1163,6 +1179,7 @@ export const loadGeoTrafficLog = Effect.fn("geo.trafficLog")(function* (
       limit: limit ?? AI_TRAFFIC_DEFAULT_LOG_LIMIT,
       visitor_type: visitorTypes?.join(",") ?? "",
       category: categories?.join(",") ?? "",
+      host: trafficLogHostFilter(host),
     })
   );
   const data = rows?.data ?? [];
@@ -1245,7 +1262,8 @@ export const loadGeoTrafficPages = Effect.fn("geo.trafficPages")(function* (
   input: GeoScopeInput,
   window: GeoWindowInput,
   limit: number | undefined,
-  visitorType: string | undefined
+  visitorType: string | undefined,
+  host: string | undefined
 ) {
   const scope = yield* resolveGeoScope(input);
   const pages = yield* geoQuery("traffic pages query failed", () =>
@@ -1255,12 +1273,14 @@ export const loadGeoTrafficPages = Effect.fn("geo.trafficPages")(function* (
       ...geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS),
       limit: limit ?? AI_TRAFFIC_DEFAULT_PAGES_LIMIT,
       visitor: visitorType ?? "",
+      host: trafficLogHostFilter(host),
     })
   );
 
   const response: GeoTrafficPagesResponse = {
     configured: isTinybirdConfigured(),
     pages: (pages?.data ?? []).map((row) => ({
+      host: row.host ?? "",
       path: row.path,
       source: row.source,
       visitorType: toGeoVisitorType(row.visitor_type),

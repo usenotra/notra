@@ -8,12 +8,15 @@ How AI traffic flows from a customer's site into the journeys you see on the GEO
 customer middleware (@usenotra/geo)          notra dashboard app
   every GET page request                       POST /api/geo/ingest
   -> request envelope ------------------------> token auth (orgId.hmac bearer)
-     url, ip, geo headers, referer,            classify visitor
-     user agent, accept-language               resolve journey id
-     (no body, no cookies)                     -> Tinybird geo_traffic_events
+     url, ip, geo headers, referer,            allowlist host (brand + extras)
+     user agent, accept-language               classify visitor
+     (no body, no cookies)                     resolve journey id
+                                               -> Tinybird geo_traffic_events
 ```
 
 The ingest route is a thin adapter: every step (auth, rate limit, payload validation, event build, Tinybird write) is an Effect composed into one program in `pipeline.ts` (`runGeoIngest`), and each way it can fail is a tagged error in `errors.ts` (`GeoIngestMissingToken`, `GeoIngestInvalidToken`, `GeoIngestRateLimited`, `GeoIngestInvalidPayload`, `GeoIngestUnparseableUrl`, `GeoIngestFailed`). The route runs the program with `Effect.result` and maps the failure channel to a status in `response.ts`, so no HTTP concern leaks into the Effect itself.
+
+A valid token is not enough to write an event. After the URL parses, ingest loads the project's brand website plus `geo_settings.domains` and drops the request (same silent 202 as an untracked visitor) when the host is not on that list. Org-scoped tokens union every project in the organization. An empty allowlist drops everything. A lookup outage fails open so a database blip does not discard real traffic. Saving GEO settings clears the cached allowlist immediately. The token stays an HMAC of org/project/generation — binding hosts in the signature would rotate on every settings edit.
 
 The SDK is deliberately dumb: it forwards a neutral envelope and never classifies anything. All intelligence lives here, so signature updates ship instantly without customers bumping a package.
 

@@ -75,6 +75,8 @@ export interface GeoProjectCreateInput {
 
 export interface GeoProjectContextValue {
   projectId: string | undefined;
+  trafficHost: string;
+  setTrafficHost: (value: string) => void;
 }
 
 export interface GeoActiveProject {
@@ -85,6 +87,8 @@ export interface GeoActiveProject {
 export interface GeoProjectProviderProps {
   projectId: string | undefined;
   children: ReactNode;
+  trafficHost?: string;
+  setTrafficHost?: (value: string) => void;
 }
 
 export interface GeoProjectQueryProviderProps {
@@ -387,6 +391,7 @@ export interface GeoVisitorClassification {
 
 export interface GeoTrafficLogQueryOptions {
   refetchInterval?: number | false;
+  host?: string;
 }
 
 export interface GeoJourneyInput {
@@ -539,6 +544,7 @@ export interface GeoTrafficPageSource {
 }
 
 export interface GeoTrafficPageGroup {
+  host: string;
   path: string;
   visits: number;
   previousVisits?: number;
@@ -553,6 +559,7 @@ export interface TrafficPageSourcesCellProps {
 export interface TrafficPagesCardProps {
   pages: GeoTrafficPage[];
   isPending?: boolean;
+  hosts?: readonly string[];
 }
 
 export interface PresenceBadgeProps {
@@ -771,8 +778,11 @@ export interface PurposeBadgeProps {
   tooltip?: boolean;
 }
 
+export type GeoTrafficSourceBand = "crawler" | "cited" | "ai_referral";
+
 export interface GeoTrafficSourceGroup extends GeoTrafficSourceGroupDefinition {
   visitorType: GeoVisitorType;
+  band: GeoTrafficSourceBand;
   visits: number;
   markdownVisits: number;
   paths: number;
@@ -880,6 +890,9 @@ export interface GeoBrandSectionProps {
   onAliasesChange: (values: string[]) => void;
   conversionPaths: string[];
   onConversionPathsChange: (values: string[]) => void;
+  domains: string[];
+  onDomainsChange: (values: string[]) => void;
+  brandDomain: string | null;
   nameMissing: boolean;
   savedAt: Date | null;
 }
@@ -913,6 +926,7 @@ export interface GeoSettingsAutosaveInput {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[];
   engines: string[];
   enforceZdr: boolean;
@@ -923,6 +937,7 @@ export interface GeoSettingsAutosaveInput {
   planLoading: boolean;
   catalog: GeoModelCatalog;
   settings: GeoSettings | null;
+  brandDomain: string | null;
 }
 
 export interface GeoTagListProps {
@@ -1506,7 +1521,7 @@ export interface TrafficProviderLegendProps {
 }
 
 export interface TrafficSourcesGroupProps {
-  visitorType: GeoVisitorType;
+  band: GeoTrafficSourceBand;
   groups: GeoTrafficSourceGroup[];
   columns: TableColumn<GeoTrafficSourceGroup>[];
   collapsed: boolean;

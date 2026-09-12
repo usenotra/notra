@@ -6,6 +6,7 @@ import { scrapeWebsiteForBrandAnalysis } from "@notra/ai/utils/context-dev";
 import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import { flushPostHogServer } from "@notra/posthog/server";
 import {
   brandSettingsSchema,
@@ -144,6 +145,10 @@ export async function saveBrandSettingsFromAnalysis(
         .update(brandSettings)
         .set(brandData)
         .where(eq(brandSettings.id, input.voiceId));
+      await invalidateGeoIngestHostsCacheForBrand(
+        input.organizationId,
+        input.voiceId
+      );
       return;
     }
   }

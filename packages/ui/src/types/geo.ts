@@ -36,6 +36,7 @@ export type EngineIconKey =
   | "mistral"
   | "deepseek"
   | "meta"
+  | "instagram"
   | "grok"
   | "qwen"
   | "copilot"

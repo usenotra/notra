@@ -9,6 +9,7 @@ import {
   GEO_PURPOSE_COLUMN_WIDTH,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogEntry } from "@notra/geo-core/types/geo";
+import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -185,13 +186,13 @@ const CITATIONS_COLUMNS: TableColumn<GeoTrafficLogEntry>[] = [
   },
   {
     key: "path",
-    header: "Path",
+    header: "Page",
     width: "1fr",
     cell: (entry) => (
       <span className="flex min-w-0 items-center gap-2">
         <span className="min-w-0 flex-1">
           <TruncateWithTooltip className="font-mono text-xs">
-            {entry.path}
+            {formatTrafficLocation(entry.host, entry.path)}
           </TruncateWithTooltip>
         </span>
       </span>

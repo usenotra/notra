@@ -56,6 +56,7 @@ import {
   toGeoTrafficLogPurposeFilter,
   toGeoTrafficLogVisitorFilter,
 } from "@notra/geo-core/utils/ai-traffic";
+import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -793,6 +794,7 @@ export function useGeoTrafficLog(
         limit: AI_TRAFFIC_LOG_FETCH_LIMIT,
         visitorTypes: toGeoTrafficLogVisitorFilter(filters.visitorTypes),
         categories: toGeoTrafficLogPurposeFilter(filters.categories),
+        host: trafficLogHostFilter(options?.host),
       },
     }),
     enabled: !!organizationId,
@@ -805,7 +807,8 @@ export function useGeoTrafficLog(
 
 export function useGeoTrafficPages(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  host?: string
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficPagesResponse>({
@@ -815,6 +818,7 @@ export function useGeoTrafficPages(
         projectId,
         limit: AI_TRAFFIC_PAGES_FETCH_LIMIT,
         ...toGeoWindowInput(range),
+        host: trafficLogHostFilter(host),
       },
     }),
     enabled: !!organizationId,

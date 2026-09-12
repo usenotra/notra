@@ -27,6 +27,12 @@ import type {
 import { geoDb } from "./effect";
 import { resolveGeoScope } from "./projects";
 
+export {
+  geoIngestHostsCacheKey,
+  invalidateGeoIngestHostsCache,
+  invalidateGeoIngestHostsCacheForBrand,
+} from "./ingest-hosts-cache";
+
 /**
  * Tracking-token issuing, revocation and install snippets.
  *
