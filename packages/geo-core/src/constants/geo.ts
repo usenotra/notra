@@ -1072,6 +1072,7 @@ export const GEO_SCAN_SIZE_MESSAGES = {
   danger: GEO_SCAN_SIZE_DANGER,
 };
 export const GEO_SCAN_PREFLIGHT_SELECT_ALL = "Select all";
+export const GEO_SCAN_PREFLIGHT_DESELECT_ALL = "Deselect all";
 export const GEO_SCAN_PREFLIGHT_NEED_ENGINE = "Pick at least one engine.";
 export const GEO_RANGE_PRESETS = [
   { value: "today", label: "Today" },
