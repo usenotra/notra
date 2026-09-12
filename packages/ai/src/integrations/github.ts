@@ -45,6 +45,7 @@ import type {
   WebhookConfig,
 } from "../types/integrations";
 import type { GitHubToolRepositoryContext } from "../types/tools";
+import type { GitHubAppPublishAccess } from "../utils/github-app-publish-access";
 import { createOctokit } from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";
@@ -178,34 +179,40 @@ async function createGitHubAppInstallationToken(installationId: string) {
   );
 }
 
-const createGitHubAppInstallationTokenEffect = Effect.fn(
-  "GitHub.createInstallationToken"
-)(function* (installationId: string) {
-  const jwt = yield* Effect.try({
-    try: createGitHubAppJwt,
-    catch: (cause) => new GitHubAppConfigurationError({ cause }),
-  });
-  const octokit = createOctokit(jwt);
-  const { data } = yield* Effect.tryPromise({
-    try: () =>
-      octokit.request(
-        "POST /app/installations/{installation_id}/access_tokens",
-        {
-          installation_id: Number(installationId),
-          headers: { "X-GitHub-Api-Version": "2022-11-28" },
-        }
-      ),
-    catch: (cause) =>
-      getErrorStatus(cause) === 401
-        ? new GitHubAppConfigurationError({ cause })
-        : new GitHubRequestError({
-            operation: "createInstallationToken",
-            status: getErrorStatus(cause) ?? undefined,
-            cause,
-          }),
-  });
-  return data.token;
-});
+function createGitHubAppInstallationTokenEffect(
+  installationId: string,
+  requestTimeoutMs?: number
+) {
+  return Effect.gen(function* () {
+    const jwt = yield* Effect.try({
+      try: createGitHubAppJwt,
+      catch: (cause) => new GitHubAppConfigurationError({ cause }),
+    });
+    const octokit = createOctokit(
+      jwt,
+      requestTimeoutMs === undefined ? undefined : { requestTimeoutMs }
+    );
+    const { data } = yield* Effect.tryPromise({
+      try: () =>
+        octokit.request(
+          "POST /app/installations/{installation_id}/access_tokens",
+          {
+            installation_id: Number(installationId),
+            headers: { "X-GitHub-Api-Version": "2022-11-28" },
+          }
+        ),
+      catch: (cause) =>
+        getErrorStatus(cause) === 401
+          ? new GitHubAppConfigurationError({ cause })
+          : new GitHubRequestError({
+              operation: "createInstallationToken",
+              status: getErrorStatus(cause) ?? undefined,
+              cause,
+            }),
+    });
+    return data.token;
+  }).pipe(Effect.withSpan("GitHub.createInstallationToken"));
+}
 
 async function getGitHubAppInstallation(installationId: string) {
   const octokit = createOctokit(createGitHubAppJwt());
@@ -220,6 +227,30 @@ async function getGitHubAppInstallation(installationId: string) {
   );
 
   return Effect.runPromise(decodeGitHubAppInstallationResponse(data));
+}
+
+export async function getGitHubAppInstallationPublishAccess(
+  installationId: string
+): Promise<GitHubAppPublishAccess | null> {
+  try {
+    const octokit = createOctokit(createGitHubAppJwt());
+    const { data } = await octokit.request(
+      "GET /app/installations/{installation_id}",
+      {
+        installation_id: Number(installationId),
+        headers: {
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    );
+
+    return {
+      contents: data.permissions?.contents,
+      pullRequests: data.permissions?.pull_requests,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function getInstallationOrgMembership(params: {
@@ -1462,12 +1493,21 @@ export function createGitHubAppInstallationTokenForRecordEffect(
 
 export function getTokenForIntegrationIdEffect(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return resolveGitHubToken(
     { integrationId, organizationId: options?.organizationId },
     {
       ...githubCredentialDependencies,
+      ...(options?.requestTimeoutMs === undefined
+        ? {}
+        : {
+            createInstallationToken: (installationId: string) =>
+              createGitHubAppInstallationTokenEffect(
+                installationId,
+                options.requestTimeoutMs
+              ),
+          }),
       findIntegration: (params) =>
         Effect.tryPromise({
           try: () =>
@@ -1502,7 +1542,7 @@ export function getTokenForIntegrationIdEffect(
 
 export function getTokenForIntegrationId(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return runGitHubEffect(
     getTokenForIntegrationIdEffect(integrationId, options).pipe(

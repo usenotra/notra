@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId } from "react";
@@ -137,6 +138,7 @@ function GitHubContentPublishingSettings({
       <div className="flex items-center gap-2">
         <Switch
           id={publishingSwitchId}
+          nativeButton
           aria-label={`Publish ${pluralLabel} to ${selectedRepository.owner}/${selectedRepository.repo}`}
           checked={publishingEnabled}
           disabled={disabled || outputMutation.isPending}
@@ -147,12 +149,12 @@ function GitHubContentPublishingSettings({
             });
           }}
         />
-        <label
+        <Label
           className="cursor-pointer text-xs font-medium"
           htmlFor={publishingSwitchId}
         >
           {contentLabel}
-        </label>
+        </Label>
       </div>
 
       <div className="min-w-0">
