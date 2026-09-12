@@ -275,6 +275,7 @@
         "@remotion/fonts": "4.0.487",
         "@remotion/player": "4.0.487",
         "@remotion/renderer": "4.0.487",
+        "@scritto/react": "^0.1.0",
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/react-form": "^1.33.5",
         "@tanstack/react-hotkeys": "^0.3.0",
@@ -370,6 +371,7 @@
       "name": "@notra/analytics",
       "version": "0.0.1",
       "dependencies": {
+        "@notra/utils": "workspace:*",
         "@tinybirdco/sdk": "^0.0.82",
         "@upstash/redis": "^1.35.8",
         "effect": "4.0.0-rc.112",
@@ -2043,6 +2045,10 @@
     "@scalar/types": ["@scalar/types@0.18.3", "", { "dependencies": { "@scalar/helpers": "0.11.2", "nanoid": "^5.1.6", "type-fest": "^5.8.0", "zod": "^4.4.3" } }, "sha512-hPLLxVt/ah4RpCVp5UrLEpnBEgTwf+RvPtRiSEty3QqfBJUfADMXHz+oWK6UAa/vALg2AWuJLCD8hRlyQ2ET9w=="],
 
     "@scalar/validation": ["@scalar/validation@0.6.3", "", {}, "sha512-j3s9XPv8Wo1EG5/naBi4XGF0uXYQ2A3QZNI0NKWgCMxRHVrDJGlZEYymcHDHY7fquRm73P8U3c8xqJqB5yad6w=="],
+
+    "@scritto/core": ["@scritto/core@0.1.0", "", {}, "sha512-8itfD3jc+DvoDcMYAcWJHyLXZvBNaorlL091Fp/4Toe4trGErbQOtyptO9Qexyb/qvGO0S1WRWDrGO/2KURnxg=="],
+
+    "@scritto/react": ["@scritto/react@0.1.0", "", { "dependencies": { "@scritto/core": "0.1.0" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-fNeX/ZjXUBtNMo/aQ03t1AG9+5vbitfEDfrLbO5qVCAcus7xq8kWhuv1LNuGGcBLA6pngo5otymCCkZDNRY84Q=="],
 
     "@sec-ant/readable-stream": ["@sec-ant/readable-stream@0.4.1", "", {}, "sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg=="],
 

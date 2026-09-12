@@ -18,10 +18,7 @@ import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
 import { ScanActivity } from "@/components/geo/scan-activity";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GeoScanControlsProvider } from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -34,7 +31,6 @@ import {
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -45,16 +41,6 @@ interface PageClientProps {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoPromptsPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoPromptsPageContent({ organizationSlug }: PageClientProps) {
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);

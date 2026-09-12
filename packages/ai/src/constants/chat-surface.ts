@@ -7,6 +7,7 @@ export const CHAT_SURFACE = {
 
 export const STANDALONE_INBOX_SURFACES = [
   CHAT_SURFACE.studio,
+  CHAT_SURFACE.agent,
   CHAT_SURFACE.slack,
   CHAT_SURFACE.discord,
 ] as const;

@@ -251,6 +251,30 @@ export interface GeoAnswerSource {
   domain: string;
 }
 
+export type GeoAnswerMentionKind = "own" | "competitor";
+
+export interface GeoAnswerMentionTerm {
+  phrase: string;
+  kind: GeoAnswerMentionKind;
+}
+
+export interface GeoAnswerMentionSpan {
+  start: number;
+  end: number;
+  kind: GeoAnswerMentionKind;
+  phrase: string;
+}
+
+export interface GeoAnswerMentionInput {
+  companyName?: string | null;
+  aliases?: readonly string[];
+  mentionedCompetitors?: readonly string[];
+  trackedCompetitors?: readonly {
+    name: string;
+    synonyms?: readonly string[];
+  }[];
+}
+
 export interface GeoPromptResult {
   promptId: string;
   engine: string;

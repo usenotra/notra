@@ -22,9 +22,9 @@ import {
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
 import { geoCoreApiLayer } from "../lib/geo/configure";
+import { runGeoEffect } from "../runtime/geo";
 import { trackApiEvent } from "../utils/analytics";
 import { geoErrorResponse } from "../utils/geo";
-import { runGeoEffect } from "../utils/geo-effect";
 import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { rateLimitResponse } from "../utils/openapi-responses";

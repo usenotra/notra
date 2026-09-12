@@ -334,13 +334,15 @@ export function buildMentionTrendRows(
 ): MentionTrend {
   const byDay = new Map<string, Map<string, GeoTimeseriesPoint>>();
   for (const point of points) {
-    const model = engineModelOf(point.engine);
+    // Hover/picker series are provider families (ChatGPT, Claude), not every
+    // model variant — a day can otherwise list a dozen near-duplicate rows.
+    const family = engineFamilyOf(point.engine);
     const dayPoints: Map<string, GeoTimeseriesPoint> =
       byDay.get(point.day) ?? new Map();
-    const existing = dayPoints.get(model);
-    dayPoints.set(model, {
+    const existing = dayPoints.get(family);
+    dayPoints.set(family, {
       day: point.day,
-      engine: model,
+      engine: family,
       checks: (existing?.checks ?? 0) + point.checks,
       mentions: (existing?.mentions ?? 0) + point.mentions,
     });
@@ -350,7 +352,7 @@ export function buildMentionTrendRows(
   const knownDays = [...byDay.keys()].sort();
   const usageWindow = daysWithSettledUsage(knownDays);
   const engines = [
-    ...new Set(points.map((point) => engineModelOf(point.engine))),
+    ...new Set(points.map((point) => engineFamilyOf(point.engine))),
   ];
   const firstDay = knownDays.at(0);
   const lastDay = knownDays.at(-1);

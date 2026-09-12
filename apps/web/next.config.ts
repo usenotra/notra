@@ -22,7 +22,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
-  transpilePackages: ["@notra/ui", "@notra/email", "@notra/kiwi"],
+  transpilePackages: [
+    "@notra/ui",
+    "@notra/email",
+    "@notra/kiwi",
+    "@scritto/react",
+    "@scritto/core",
+  ],
   serverExternalPackages: ["@remotion/bundler", "@remotion/renderer"],
   outputFileTracingIncludes: {
     "/blog/**/opengraph-image*": [

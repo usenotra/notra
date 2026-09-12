@@ -16,10 +16,7 @@ import { TrafficEmpty } from "@/components/geo/traffic-empty";
 import { TrafficPagesCard } from "@/components/geo/traffic-pages-card";
 import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -32,7 +29,6 @@ import {
   useGeoSettings,
   useGeoTrafficPages,
 } from "@/lib/hooks/use-geo";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import type { GeoPageClientProps } from "@/types/geo";
 import { withGeoProject } from "@/utils/geo-paths";
@@ -41,16 +37,6 @@ import { geoSettingsPath } from "@/utils/settings-path";
 import { GeoTrafficSkeleton } from "./skeleton";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <TrafficPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function TrafficPageContent({ organizationSlug }: GeoPageClientProps) {
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);

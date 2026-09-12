@@ -1,4 +1,5 @@
 export const DITHER_MOBILE_QUERY = "(width < 640px)";
+export const DITHER_FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
 export const DITHER_MOBILE_MAX_PIXELS = 1_000_000;
 
 export const BLOG_CARD_DITHER_MAX_PIXELS = 200_000;

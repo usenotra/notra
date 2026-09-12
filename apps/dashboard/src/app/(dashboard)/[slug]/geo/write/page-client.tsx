@@ -14,10 +14,7 @@ import { BriefHistory } from "@/components/geo/writer/brief-history";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -25,12 +22,8 @@ import {
 } from "@/constants/empty-state";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoWriterBriefs } from "@/lib/hooks/use-geo-writer";
-import type {
-  GeoWriterPageContentProps,
-  WriteDialogInitialState,
-} from "@/types/components/geo-writer";
+import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type { GeoPageClientProps } from "@/types/geo";
 import { withGeoProject } from "@/utils/geo-paths";
 import { emptyWriteDialogState, geoContentPath } from "@/utils/geo-write-entry";
@@ -38,16 +31,6 @@ import { emptyWriteDialogState, geoContentPath } from "@/utils/geo-write-entry";
 import { GeoWriterSkeleton } from "./skeleton";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoWriterPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoWriterPageContent({ organizationSlug }: GeoWriterPageContentProps) {
   const router = useRouter();
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();

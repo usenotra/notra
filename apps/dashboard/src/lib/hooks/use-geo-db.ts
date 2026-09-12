@@ -37,6 +37,15 @@ import type {
 import { toErrorMessage } from "@/utils/error-message";
 import { mergeShelfOpportunity } from "@/utils/geo-shelf";
 
+/**
+ * Dialogs that stay mounted while closed pass `enabled: false` so the collection
+ * does not start a full-table sync before the user opens them. A disabled live
+ * query returns no data but leaves the collection handle usable for mutations.
+ */
+interface GeoDbOptions {
+  enabled?: boolean;
+}
+
 function usePendingRows(name: string, scope: GeoScopeInput) {
   const collectionId = geoCollectionId(name, scope);
 
@@ -63,7 +72,11 @@ function usePendingRows(name: string, scope: GeoScopeInput) {
   return { pendingIds, track };
 }
 
-export function useGeoPromptsDb(organizationId: string) {
+export function useGeoPromptsDb(
+  organizationId: string,
+  options?: GeoDbOptions
+) {
+  const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
   const definition = geoPromptsCollection({ organizationId, projectId });
@@ -73,9 +86,10 @@ export function useGeoPromptsDb(organizationId: string) {
     projectId,
   });
 
-  const { data } = useLiveQuery({
-    query: (q) => q.from({ prompt: definition }),
-  });
+  const { data } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ prompt: definition }) : undefined),
+    [definition, isEnabled]
+  );
 
   const prompts: GeoTrackedPrompt[] = data ?? [];
 
@@ -144,7 +158,11 @@ export function useGeoPromptsDb(organizationId: string) {
   };
 }
 
-export function useGeoCompetitorsDb(organizationId: string) {
+export function useGeoCompetitorsDb(
+  organizationId: string,
+  options?: GeoDbOptions
+) {
+  const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
   const definition = geoCompetitorsCollection({ organizationId, projectId });
@@ -154,9 +172,10 @@ export function useGeoCompetitorsDb(organizationId: string) {
     projectId,
   });
 
-  const { data } = useLiveQuery({
-    query: (q) => q.from({ competitor: definition }),
-  });
+  const { data } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ competitor: definition }) : undefined),
+    [definition, isEnabled]
+  );
 
   const competitors: GeoCompetitor[] = data ?? [];
 
@@ -186,7 +205,11 @@ export function useGeoCompetitorsDb(organizationId: string) {
   };
 }
 
-export function useGeoSequencesDb(organizationId: string) {
+export function useGeoSequencesDb(
+  organizationId: string,
+  options?: GeoDbOptions
+) {
+  const isEnabled = options?.enabled ?? true;
   const { projectId } = useGeoProjectScope();
   const dbClient = useDbClient();
   const definition = geoSequencesCollection({ organizationId, projectId });
@@ -196,9 +219,10 @@ export function useGeoSequencesDb(organizationId: string) {
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery({
-    query: (q) => q.from({ sequence: definition }),
-  });
+  const { data, isLoading } = useLiveQuery(
+    (q) => (isEnabled ? q.from({ sequence: definition }) : undefined),
+    [definition, isEnabled]
+  );
 
   const sequences: GeoPromptSequence[] = data ?? [];
 

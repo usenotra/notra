@@ -70,6 +70,7 @@ import type {
   GeoSkipFields,
   GeoZdrMode,
 } from "../types/geo";
+import { findBrandMention } from "../utils/geo-brand-mention";
 import {
   geoBoxAgentForEngine,
   isGeoBoxCodingAgent,
@@ -231,7 +232,7 @@ ${answer}
 """
 
 Analyze the answer and report:
-- mentioned: true if the company or any alias appears in the answer.
+- mentioned: true only if the company name or an alias appears in the answer as the name of that specific company or product. Generic phrases that share words with the name (for example "an email SDK" when the company is "Email SDK") are not mentions.
 - position: the 1-based rank of the company among the recommended brands if the answer contains an ordered or bulleted list of brands, otherwise null.
 - sentiment: the sentiment expressed toward the company ("positive", "neutral" or "negative"), or null if it is not mentioned.
 - competitors: up to ${MAX_JUDGE_COMPETITORS} other brand or product names mentioned in the answer, excluding the company and its aliases.
@@ -416,10 +417,29 @@ const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
   answer: string
 ) {
   const models = yield* GeoModelService;
-  return yield* models.judge({
+  const judged = yield* models.judge({
     organizationId: context.organizationId,
     prompt: buildJudgePrompt(context, promptText, answer),
   });
+  const mentioned =
+    findBrandMention(answer, context.companyName, context.aliases) !== null;
+  if (judged.mentioned !== mentioned) {
+    yield* geoLogWarn({
+      event: "geo.check.judge_mention_mismatch",
+      organizationId: context.organizationId,
+      projectId: context.projectId,
+      scanId: context.scanId,
+      companyName: context.companyName,
+      judgeMentioned: judged.mentioned,
+      excerpt: judged.excerpt,
+    });
+  }
+  return {
+    ...judged,
+    mentioned,
+    position: mentioned ? judged.position : null,
+    sentiment: mentioned ? judged.sentiment : null,
+  };
 });
 
 const translatePrompts = Effect.fn("geo.translatePrompts")(function* (

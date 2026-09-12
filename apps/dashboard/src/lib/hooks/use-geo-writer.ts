@@ -49,11 +49,15 @@ export function useGeoWriterBrief(
       input: { organizationId, projectId, briefId: briefId ?? "" },
     }),
     enabled: !!organizationId && !!briefId,
-    refetchInterval: (query) =>
-      query.state.data?.status === "writing" ||
-      query.state.data?.status === "approved"
+    // Poll while the writer is running. New runs skip "approved" (draft/failed
+    // go straight to "writing"), but legacy rows can still sit in "approved".
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "writing" || status === "approved"
         ? GEO_WRITER_BRIEF_POLL_INTERVAL_MS
-        : false,
+        : false;
+    },
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load the brief" },
   });
 }

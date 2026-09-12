@@ -24,9 +24,9 @@ import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
+import { runGeoEffect, runRemoteGeoEffect } from "../runtime/geo";
 import { trackApiEvent } from "../utils/analytics";
 import { geoErrorResponse } from "../utils/geo";
-import { runGeoEffect, runRemoteGeoEffect } from "../utils/geo-effect";
 import {
   getInternalWorkflowUrl,
   SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,

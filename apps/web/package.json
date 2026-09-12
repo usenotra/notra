@@ -34,6 +34,7 @@
     "@remotion/fonts": "4.0.487",
     "@remotion/player": "4.0.487",
     "@remotion/renderer": "4.0.487",
+    "@scritto/react": "^0.1.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-hotkeys": "^0.3.0",

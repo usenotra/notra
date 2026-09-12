@@ -281,7 +281,7 @@ const loadSitemapPages = Effect.fn("geo.writer.sitemap")(function* (
           eq(brandSitemapPages.category, "crawled")
         )
       )
-      .orderBy(desc(brandSitemapPages.wordCount))
+      .orderBy(sql`${brandSitemapPages.wordCount} desc nulls last`)
       .limit(GEO_WRITER_SITEMAP_PAGE_LIMIT)
   );
 

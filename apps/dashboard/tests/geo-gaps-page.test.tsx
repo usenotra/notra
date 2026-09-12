@@ -19,9 +19,6 @@ mock.module("@/components/providers/organization-provider", () => ({
     getOrganization: () => undefined,
   }),
 }));
-mock.module("@/lib/hooks/use-geo-project-query", () => ({
-  useGeoProjectQueryState: () => ["project-fixture"],
-}));
 mock.module("@/lib/hooks/use-geo", () => ({
   useGeoSettings: () => ({
     data: settingsFails

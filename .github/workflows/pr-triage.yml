@@ -7,13 +7,8 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: pr-triage-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   triage:
-    # Forks and Dependabot do not receive the required secrets/write token.
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -22,18 +17,11 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - name: Checkout triage scripts
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
           sparse-checkout: scripts/github
-      - name: Ensure repository labels exist
-        run: node scripts/github/ensure-labels.mjs
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-      - name: Triage PR
-        run: node scripts/github/triage-pr.mjs
+      - run: node scripts/github/triage-pr.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
