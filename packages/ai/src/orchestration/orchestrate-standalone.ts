@@ -64,8 +64,17 @@ const DEFAULT_STANDALONE_TOOL_NAMES = [
   "webSearch",
 ] as const;
 
+const DASHBOARD_AGENT_DEFAULT_TOOL_NAMES = [
+  "listGeoProjects",
+  "getGeoOverview",
+  "getGeoTimeseries",
+  "getGeoPromptResults",
+  "getGeoCompetitorShare",
+  "getGeoProjectContext",
+] as const;
+
 const NOTRA_TOOLING_DESCRIPTION =
-  "Notra app tools are available through lazy discovery. Use searchNotraTools to find built-in content, brand, GEO analytics, GitHub, Linear, Granola, and post tools by intent, then activateNotraTools before calling them. Basic skills, integration discovery, web search, and webpage fetch tools are exposed by default. Context.dev tools require API configuration when called.";
+  "Most Notra app tools are available through lazy discovery. Use searchNotraTools to find built-in content, brand, GEO analytics, GitHub, Linear, Granola, and post tools that are not currently active, then activateNotraTools before calling them. Basic skills, integration discovery, web search, and webpage fetch tools are exposed by default. Context.dev tools require API configuration when called.";
 const WHITESPACE_REGEX = /\s+/;
 const LEGACY_NOTRA_TOOL_ALIASES: Record<string, string> = {
   getBrandReferences: "getAvailableBrandReferences",
@@ -92,6 +101,7 @@ export async function orchestrateStandaloneChat(
     telemetryMetadata,
     useMarkup,
     projectId,
+    surface = "chat",
   } = input;
 
   const log = deps?.log ?? inputLog;
@@ -175,6 +185,7 @@ export async function orchestrateStandaloneChat(
     defaultActiveToolNames: getDefaultStandaloneActiveToolNames({
       tools: baseToolSet.tools,
       context,
+      surface,
     }),
   });
   const tools = notraToolRuntime.tools;
@@ -194,9 +205,13 @@ export async function orchestrateStandaloneChat(
               : undefined,
         });
 
+  const toolingDescription =
+    surface === "dashboard-agent"
+      ? `${NOTRA_TOOLING_DESCRIPTION} GEO analytics tools are already active here; call them directly for AI Traffic, visibility, trend, prompt, engine, and competitor questions.`
+      : NOTRA_TOOLING_DESCRIPTION;
   const descriptions = lazyMcpRuntime
-    ? [NOTRA_TOOLING_DESCRIPTION, ...lazyMcpRuntime.descriptions]
-    : [NOTRA_TOOLING_DESCRIPTION];
+    ? [toolingDescription, ...lazyMcpRuntime.descriptions]
+    : [toolingDescription];
 
   const hasGitHubToolsActive = notraToolRuntime
     .getActiveToolNames()
@@ -497,13 +512,23 @@ function createStandaloneToolProvisioningRuntime({
 function getDefaultStandaloneActiveToolNames({
   tools,
   context,
+  surface,
 }: {
   tools: Record<string, Tool>;
   context: StandaloneChatContextItem[];
+  surface: StandaloneChatInput["surface"];
 }) {
   const active = new Set<string>(
     DEFAULT_STANDALONE_TOOL_NAMES.filter((name) => name in tools)
   );
+
+  if (surface === "dashboard-agent") {
+    for (const toolName of DASHBOARD_AGENT_DEFAULT_TOOL_NAMES) {
+      if (toolName in tools) {
+        active.add(toolName);
+      }
+    }
+  }
 
   if (context.some((item) => item.type === "github-repo")) {
     for (const toolName of [

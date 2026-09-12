@@ -303,6 +303,7 @@ export const POST = withEvlog(async function POST(
         telemetryMetadata,
         headers: request.headers,
         projectId: projectId ?? undefined,
+        surface: parseResult.data.surface,
       });
     }
 
@@ -319,6 +320,7 @@ export const POST = withEvlog(async function POST(
       thinkingLevel: parseResult.data.thinkingLevel,
       timezone: parseResult.data.timezone,
       projectId: projectId ?? undefined,
+      surface: parseResult.data.surface,
     };
 
     await startStandaloneChatRun(workflowPayload);
@@ -380,6 +382,7 @@ async function createDirectStandaloneChatResponse({
   telemetryMetadata,
   headers,
   projectId,
+  surface,
 }: {
   organizationId: string;
   userId: string;
@@ -399,6 +402,7 @@ async function createDirectStandaloneChatResponse({
   telemetryMetadata: TccMetadata;
   headers: Headers;
   projectId?: string;
+  surface?: ChatWorkflowPayload["surface"];
 }) {
   const autumnClient = autumn;
   const streamId = messages.at(-1)?.id;
@@ -461,6 +465,7 @@ async function createDirectStandaloneChatResponse({
         telemetryMetadata,
         useMarkup,
         projectId,
+        surface,
       },
       {
         preValidatedIntegrations: validatedIntegrations,
