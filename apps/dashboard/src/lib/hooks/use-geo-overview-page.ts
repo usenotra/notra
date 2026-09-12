@@ -178,7 +178,7 @@ export function useGeoOverviewPage(
     competitors,
     languagePoints: languageShare?.points,
     promptResults: promptResults?.results,
-    promptCount: isPromptsLoading ? undefined : prompts.length,
+    promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
     isScanning,
     revealActive,
