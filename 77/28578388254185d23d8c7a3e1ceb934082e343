@@ -1,0 +1,29 @@
+packages/ui/src/components/ui/svgs/github.tsx
+  s_147c9d2b26b125::t_5e9e2985121f68 9
+apps/dashboard/src/components/integrations/github/connect-github-dialog.tsx
+  s_147c9d2b26b125::t_3244776bc3a76c 48-50,52-55
+apps/dashboard/src/components/integrations/github/github-repository-menu.tsx
+  s_147c9d2b26b125::t_0768fbcfc06f95 1-12,18,51,54,60,64,68,73-76,83-86,89,94
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/page-client.tsx
+  s_147c9d2b26b125::t_9c54d4bc20b85b 53-55
+apps/dashboard/src/components/affected-triggers-warning.tsx
+  s_147c9d2b26b125::t_3eb3e612e6a693 21
+apps/dashboard/src/hooks/use-github-repository-actions.ts
+  s_147c9d2b26b125::t_7e906d63be8646 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7728578388254185d23d8c7a3e1ceb934082e343",
+  "prompts": {},
+  "sessions": {
+    "s_147c9d2b26b125": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "eeed3135-babd-4e3e-a49c-16bf479b004e",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
