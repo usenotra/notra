@@ -140,9 +140,123 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 - **Share of voice**: your brand against tracked competitors, as a donut and a table, with the top five brands broken out and the rest grouped under Other.
 - **Performance by language**: **Language**, **Mention rate**, and **Trend** for each tracked language.
 
-### Prompts
+### Brand Sentiment
 
-The latest answer per prompt and engine, with the presence badge, the excerpt, and a link to **All prompts** and to Content Gaps.
+The **Brand Sentiment** dashboard tab uses one compact dualtone card:
+score and current-period chart on the left, positive/negative themes and sentiment distribution on the right.
+The summary shows **Current sentiment score**, its change from the previous period,
+and a 0–100 score-position scale. Hover or focus the black marker to see the current
+score. Unrated answers and answers without a brand mention are excluded.
+The chart and summary stack on mobile. Loading uses layout-preserving skeletons;
+empty states distinguish no saved answers, no rated mentions and no supported themes.
+
+Below, a single Feedback-style table lists claims with their theme beneath the claim,
+sentiment, models and distinct supporting-answer counts. It shows the analyzed evidence
+sample, not all responses in the selected period. Select a row to open that claim's
+original quotes, prompts, models and timestamps. On mobile, sentiment appears within
+the claim cell and model details remain available in the sheet.
+The trend uses the Mention Activity chart with monotone curves and a subtle current-period
+fill on a fixed 0–100 scale with gaps for missing
+ratings. Point markers appear when a rated day has no rated neighbor, so isolated
+observations remain visible. Contiguous series use a clean line. If the selected window
+ends with missing days, a dashed line extends the last observed
+score for up to three days, using the same linear-trend calculation as Mention Activity.
+It requires at least three completed observed days and stays within 0–100. Internal
+gaps remain empty. Tooltips label the estimates separately; they do not affect scores,
+comparisons, mention counts or saved data.
+The previous period covers the same number of UTC calendar days immediately before the
+selected inclusive window. The shared dashboard date filter controls the chart;
+the previous period is used for the score comparison rather than a second plotted line.
+Focus or hover the score comparison to see both full date windows.
+The delta is in **score points**, not a percent change. It is unavailable when either
+period has no classified mentions. Unspecified windows default to 30 UTC calendar days
+including today. Explicit windows support up to 366 days.
+It replaces the dashboard's former Prompts tab. Open it directly with `?tab=brand-sentiment`.
+Existing `?tab=sentiment` links open the same view and update to the canonical tab name.
+Legacy `?tab=prompts` links fall back to **Visibility**. Prompt management remains
+on the standalone `/geo/prompts` page.
+
+Brand sentiment uses saved **English, single-turn answers** for the active organization,
+project and date range. It describes the AI-assessed tone toward your brand, not the
+overall mood of an answer or customer satisfaction.
+
+The score is **(positive × 100 + neutral × 50) / classified mentions**.
+All positive mentions score 100, all neutral mentions score 50, and all negative mentions
+score 0. Three positive, two neutral and one negative mention produce a score of 66.7,
+displayed as **67 / 100**. It is a descriptive rating, not a percentage or model confidence.
+
+Only mentions with an exact positive, neutral or negative label enter the denominator.
+Unknown labels and answers that do not mention your brand are excluded. With no classified
+mentions, the score is unavailable, shown as **—**, rather than zero. The existing
+`positiveShare` response field remains positive / classified mentions, which is 50% in
+the example above. It is distinct from the score.
+
+Daily buckets use UTC. Counts across engines are combined before calculating the
+score, rather than averaging model scores. Days without classified
+mentions remain gaps. The date picker's final day is included; internally the window ends
+at the start of the following UTC day.
+
+Each saved answer has equal weight. Repeated manual scans count again, and partial results
+from unfinished scans may appear.
+Changes to the prompt mix, engine mix or judge can change the distribution without showing
+a real change in brand perception. This is not NPS, a confidence score or a causal trend.
+
+Answer details show a compact sentiment label. An emphasized excerpt appears only when
+it is an exact, contiguous substring of the saved answer. Paraphrased or combined excerpts
+are not emphasized. The original answer renderer is preserved. Viewing sentiment uses
+existing labels and does not run new AI calls or reclassify older answers.
+
+#### Agent-extracted themes
+
+Select **Find themes** in the themes empty state to extract themes from saved positive
+and negative answers. The action appears when analysis is missing or stale, with a usage
+notice before the paid action. Failed analysis offers a retry; ready results have no
+persistent generation button. Configuration problems show the server's explanation.
+This is a separate structured model call through the organization's existing model router,
+using `zai/glm-5.3-flash`. It has no browsing or other tools. Each attempted call uses
+one AI-answer quota unit or the existing AI-credit billing path, including failed output
+validation. The existing sentiment judge and its labels are unchanged.
+
+Sampling is deterministic: up to 12 checks per polarity, ordered by a hash of the saved
+check ID, with the first 2,000 answer characters and up to 500 prompt characters per check.
+The model may return up to six themes with one to four concrete claims per theme,
+each with up to six evidence references. Every quote must be an exact contiguous substring
+of the supplied historical answer and match the theme's saved polarity. Foreign IDs,
+paraphrased quotes, duplicate sources and mismatched polarities invalidate the result.
+Answers and brand metadata are treated as untrusted data, never instructions.
+
+Select a claim to see its saved quotes, engines, dates and prompts. **Recurring** means
+at least two distinct sampled checks support it. **Single source** means one check.
+These evidence counts are not population prevalence or counts of independent users.
+The classified-mention distribution uses all scoped saved counts, not the theme sample;
+neutral is never combined with negative, and displayed percentages are rounded.
+
+Analysis reads never generate content or write the cache. An authorized POST mutation
+awaits the bounded extraction, with a 60-second model timeout and no automatic model retries.
+Redis stores results for seven days under organization, resolved project, UTC window,
+model, brand name and historical-input fingerprint. The fingerprint includes
+the canonical project's `geo_settings.companyName`, matching the scan and judge context,
+rather than the linked content brand identity's name. It also includes
+all eligible answer content, even outside the bounded sample. A finalized scan invalidates
+the client's analysis query; changed inputs show an analysis action on the next read.
+That lookup is marked stale and the themes section offers **Find themes** again.
+Completed dashboard scans start a separate background workflow for the last 30 days.
+It generates only when new eligible answers exist and no fresh result is available.
+A persisted atomic timestamp allows at most one automatic attempt per project in 24 hours.
+This is always enabled; manual analysis for other date windows still requires confirmation.
+
+The UI handles ready, pending, stale, failed and unavailable states. A 180-second Redis
+lease prevents concurrent extraction for the same project and window, even if inputs change. The worker checks ownership after
+billing reservation and uses an atomic token check when publishing. Old results cannot
+overwrite another worker's result or appear under a newer input fingerprint. Expired work
+can be retried. Missing Redis, provider configuration or a project brand name makes analysis
+unavailable. Migration `0086_geo_auto_sentiment` adds the persisted attempt timestamp;
+`0087_remove_sentiment_opt_in` removes the obsolete opt-in flag. Cached results are not
+permanent Postgres records. Older results for the same window can remain visible while a
+refresh is pending, but are not treated as fresh.
+
+Quotes are mechanically validated; theme interpretation still depends on the model and
+the saved judge labels. A bounded sample can miss themes or repeat similar answers.
 
 ### Journeys
 

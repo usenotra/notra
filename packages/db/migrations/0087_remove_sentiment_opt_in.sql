@@ -1,0 +1,1 @@
+ALTER TABLE "geo_settings" DROP COLUMN "auto_sentiment";

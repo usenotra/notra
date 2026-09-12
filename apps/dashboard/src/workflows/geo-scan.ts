@@ -164,6 +164,14 @@ async function finalizeProjectRun(
     ...(options.failureReason ? { failureReason: options.failureReason } : {}),
   });
   const { context } = plan;
+  if (status === "completed" && totals.checks > 0) {
+    await Promise.allSettled([
+      startGeoSentimentStep({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      }),
+    ]);
+  }
   const errorMessage =
     status === "failed"
       ? (options.failureReason ?? "No successful checks")
@@ -373,3 +381,4 @@ export async function geoScanWorkflow(
   }
   return { status: "completed", checks, mentions };
 }
+import { startGeoSentimentStep } from "./steps/start-geo-sentiment";

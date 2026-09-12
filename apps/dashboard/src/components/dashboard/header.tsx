@@ -1,9 +1,6 @@
 import { ArrowRight01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_DEFAULT_TAB,
-  GEO_TAB_BREADCRUMB_LABELS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_TAB_BREADCRUMB_LABELS } from "@notra/geo-core/constants/geo";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -40,6 +37,7 @@ import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { withGeoProject } from "@/utils/geo-paths";
+import { toGeoTab } from "@/utils/geo-tabs";
 
 const NON_ORG_PATHS: string[] = [];
 
@@ -379,9 +377,7 @@ function geoHeaderBreadcrumbs({
 }) {
   const geoSectionSegments = breadcrumbSegments.slice(1);
   const geoTabLabel =
-    GEO_TAB_BREADCRUMB_LABELS[searchParams.get("tab") ?? GEO_DEFAULT_TAB] ??
-    GEO_TAB_BREADCRUMB_LABELS[GEO_DEFAULT_TAB] ??
-    "Visibility";
+    GEO_TAB_BREADCRUMB_LABELS[toGeoTab(searchParams.get("tab"))];
 
   const geoSectionBreadcrumbs =
     geoSectionSegments.length > 0

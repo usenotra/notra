@@ -11,6 +11,7 @@ import {
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
 import type { ReactNode } from "react";
 
+import { AnswerSentiment } from "@/components/geo/answer-sentiment";
 import { GeoAnswerActions } from "@/components/geo/geo-answer-actions";
 import {
   GeoAnswerMentionBlockquote,
@@ -215,6 +216,7 @@ export function GeoPromptAnswerThread({
           }
         >
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
+            <AnswerSentiment result={result} />
             <ThreadMessages
               answer={answer}
               mentioned={result.mentioned}

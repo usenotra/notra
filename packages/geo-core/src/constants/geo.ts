@@ -1158,7 +1158,7 @@ export const COPY_FEEDBACK_MS = 2000;
 
 export const GEO_TAB_VALUES = [
   "visibility",
-  "prompts",
+  "brand-sentiment",
   "journeys",
 ] as const satisfies readonly GeoTab[];
 
@@ -1176,11 +1176,11 @@ export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
   codex: "bg-[#1a1a1a]",
 };
 
-export const GEO_TAB_BREADCRUMB_LABELS: Record<string, string> = {
+export const GEO_TAB_BREADCRUMB_LABELS = {
   visibility: "Visibility",
-  prompts: "Prompts",
+  "brand-sentiment": "Brand sentiment",
   journeys: "Journeys",
-};
+} satisfies Record<GeoTab, string>;
 
 export const GEO_AVATAR_FALLBACK_BASE =
   "https://api.dicebear.com/9.x/glass/svg";

@@ -603,6 +603,20 @@
       "when": 1789159869899,
       "tag": "0085_red_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1789242928861,
+      "tag": "0086_geo_auto_sentiment",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1789245170233,
+      "tag": "0087_remove_sentiment_opt_in",
+      "breakpoints": true
     }
   ]
 }

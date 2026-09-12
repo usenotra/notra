@@ -1,0 +1,176 @@
+import { expect, test } from "bun:test";
+
+import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
+import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
+
+import {
+  hasIsolatedSentimentPoint,
+  sentimentFamilyRows,
+  sentimentEmptyMessage,
+  sentimentThemesState,
+} from "./geo-sentiment";
+
+test("lookup failures never render pending ghosts and configuration explanations survive empty aggregates", () => {
+  const base = {
+    summary: summarizeSentiment([]),
+    isAnalyzing: false,
+    isPending: false,
+    isError: false,
+    aggregatePending: false,
+  };
+  const unavailable = sentimentThemesState({
+    ...base,
+    state: {
+      status: "unavailable",
+      message: "Configure a company name in GEO settings.",
+      result: null,
+    },
+  });
+  expect(unavailable.message).toBe("Configure a company name in GEO settings.");
+  expect(unavailable.canAnalyze).toBe(false);
+  const failed = sentimentThemesState({
+    ...base,
+    isError: true,
+    aggregatePending: true,
+    state: { status: "pending", message: null, result: null },
+  });
+  expect(failed.pending).toBe(false);
+  expect(failed.showEmpty).toBe(false);
+  expect(failed.showResults).toBe(false);
+});
+
+test("empty copy distinguishes absent answers from saved but unrated mentions", () => {
+  expect(sentimentEmptyMessage(summarizeSentiment([]))).toBe(
+    "No saved answers. Run a scan or change the date range."
+  );
+  expect(
+    sentimentEmptyMessage(
+      summarizeSentiment([
+        {
+          positive: 0,
+          neutral: 0,
+          negative: 0,
+          mentions: 2,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ])
+    )
+  ).toBe("No rated mentions in this period.");
+});
+
+test("markers preserve isolated observations while contiguous series stay clean", () => {
+  for (const scores of [
+    [70, null, 80],
+    [70, null, 80, 90],
+    [70, 80, null, 90],
+    [null, 70, null],
+    [null, 0, null, 80, null],
+    [70],
+  ]) {
+    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
+      true
+    );
+  }
+  for (const scores of [
+    [],
+    [null, null],
+    [70, 80, 90],
+    [null, 70, 80, null],
+    [0, 0],
+  ]) {
+    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
+      false
+    );
+  }
+});
+
+test("family rows weight counts across models and search modes, preserving brand order", () => {
+  const engines = [
+    {
+      engine: "google/gemini-2.5-flash-lite",
+      positive: 10,
+      neutral: 0,
+      negative: 0,
+    },
+    { engine: "openai/gpt-4.1-nano", positive: 9, neutral: 0, negative: 1 },
+    {
+      engine: "openai/gpt-4.1-nano-grounded",
+      positive: 0,
+      neutral: 0,
+      negative: 1,
+    },
+    {
+      engine: "anthropic/claude-sonnet-4",
+      positive: 0,
+      neutral: 1,
+      negative: 0,
+    },
+  ].map(({ engine, ...counts }) => ({
+    engine,
+    ...summarizeSentiment([
+      { ...counts, mentions: 10, totalChecks: 10, lastCheckedAt: null },
+    ]),
+  }));
+  const rows = sentimentFamilyRows(engines);
+  expect(rows.map((row) => row.label)).toEqual(["ChatGPT", "Claude", "Gemini"]);
+  expect(rows.map((row) => row.score)).toEqual([900 / 11, 50, 100]);
+  expect(sentimentFamilyRows(engines.toReversed())).toEqual(rows);
+});
+
+test("unknown families sort by name, unrated is null and genuine negative is zero", () => {
+  const empty = summarizeSentiment([
+    {
+      positive: 0,
+      neutral: 0,
+      negative: 0,
+      mentions: 2,
+      totalChecks: 3,
+      lastCheckedAt: null,
+    },
+  ]);
+  const negative = summarizeSentiment([
+    {
+      positive: 0,
+      neutral: 0,
+      negative: 1,
+      mentions: 1,
+      totalChecks: 1,
+      lastCheckedAt: null,
+    },
+  ]);
+  expect(
+    sentimentFamilyRows([
+      { ...negative, engine: "zzz-family" },
+      { ...empty, engine: "aaa-family" },
+    ])
+  ).toEqual([
+    {
+      family: "aaa-family",
+      iconEngine: "aaa-family",
+      label: "aaa-family",
+      score: null,
+    },
+    {
+      family: "zzz-family",
+      iconEngine: "zzz-family",
+      label: "zzz-family",
+      score: 0,
+    },
+  ]);
+  expect(sentimentFamilyRows([])).toEqual([]);
+});
+
+test("Google search surfaces and Gemini keep distinct families and matching icons", () => {
+  const counts = summarizeSentiment([]);
+  const rows = sentimentFamilyRows([
+    { ...counts, engine: "google-ai-overview" },
+    { ...counts, engine: "google/gemini-2.5-flash" },
+    { ...counts, engine: "google/gemini-2.5-flash-grounded" },
+  ]);
+  expect(rows.map((row) => row.label)).toEqual(["Gemini", "Google"]);
+  expect(rows.map((row) => resolveEngineIconKey(row.iconEngine))).toEqual([
+    "gemini",
+    "google",
+  ]);
+});

@@ -6,6 +6,7 @@ import {
   inArray,
   isNull,
   lt,
+  or,
   type SQL,
   sql,
 } from "drizzle-orm";
@@ -13,7 +14,7 @@ import {
 import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
 import { db } from "../drizzle";
-import { geoMentionChecks, geoScans } from "../schema";
+import { geoMentionChecks, geoScans, geoSettings } from "../schema";
 import type {
   GeoCheckCompetitorPromptRow,
   GeoCheckCompetitorShareRow,
@@ -38,7 +39,161 @@ import type {
   GeoCheckWindowInput,
   GeoCheckWrite,
 } from "../types/geo-checks";
+import type {
+  GeoSentimentCursor,
+  GeoSentimentRow,
+} from "../types/geo-sentiment";
 import { parseGeoCheckGrounding } from "./geo-grounding";
+
+export async function queryGeoCheckSentiment(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined
+): Promise<GeoSentimentRow[]> {
+  // captured_at is timestamp without time zone; writers persist UTC wall time.
+  const day = sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD')`;
+  const rows = await db
+    .select({
+      day,
+      engine: geoMentionChecks.engine,
+      totalChecks: sql<number>`count(*)::int`,
+      mentions: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})::int`,
+      positive: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.sentiment} = 'positive')::int`,
+      neutral: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.sentiment} = 'neutral')::int`,
+      negative: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.sentiment} = 'negative')::int`,
+      lastCheckedAt: sql<string>`to_char(max(${geoMentionChecks.capturedAt}), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
+    })
+    .from(geoMentionChecks)
+    .where(
+      mentionFilters(scope, window, { sequences: "single", englishOnly: true })
+    )
+    .groupBy(day, geoMentionChecks.engine)
+    .orderBy(day, geoMentionChecks.engine);
+  return rows;
+}
+
+export function queryGeoSentimentBrand(scope: GeoCheckScope) {
+  return db.query.geoSettings.findFirst({
+    columns: { companyName: true },
+    where: and(
+      eq(geoSettings.projectId, scope.projectId ?? ""),
+      eq(geoSettings.organizationId, scope.organizationId)
+    ),
+  });
+}
+
+export async function queryGeoCheckSentimentEvidence(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined,
+  limit: number,
+  cursor?: GeoSentimentCursor
+) {
+  return db
+    .select({
+      id: geoMentionChecks.id,
+      scanId: geoMentionChecks.scanId,
+      promptId: geoMentionChecks.promptId,
+      prompt: geoMentionChecks.prompt,
+      engine: geoMentionChecks.engine,
+      language: geoMentionChecks.language,
+      capturedAt: geoMentionChecks.capturedAt,
+      answer: geoMentionChecks.answer,
+      excerpt: geoMentionChecks.excerpt,
+    })
+    .from(geoMentionChecks)
+    .where(
+      and(
+        mentionFilters(scope, window, {
+          sequences: "single",
+          englishOnly: true,
+        }),
+        eq(geoMentionChecks.mentioned, true),
+        eq(geoMentionChecks.sentiment, "negative"),
+        cursor
+          ? eq(
+              geoMentionChecks.projectId,
+              cursor.projectId ?? scope.projectId ?? ""
+            )
+          : undefined,
+        cursor
+          ? or(
+              lt(geoMentionChecks.capturedAt, new Date(cursor.capturedAt)),
+              and(
+                eq(geoMentionChecks.capturedAt, new Date(cursor.capturedAt)),
+                lt(geoMentionChecks.id, cursor.id)
+              )
+            )
+          : undefined
+      )
+    )
+    .orderBy(desc(geoMentionChecks.capturedAt), desc(geoMentionChecks.id))
+    .limit(limit);
+}
+
+export async function queryGeoSentimentAnalysisSnapshot(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow
+) {
+  const [row] = await db
+    .select({
+      fingerprint: sql<string>`md5(coalesce(string_agg(md5(jsonb_build_array(${geoMentionChecks.id}, ${geoMentionChecks.answer}, ${geoMentionChecks.prompt}, ${geoMentionChecks.sentiment}, ${geoMentionChecks.engine}, ${geoMentionChecks.capturedAt})::text), '' order by ${geoMentionChecks.id}), ''))`,
+      eligible: sql<number>`count(*)::int`,
+      latestCapturedAt: sql<
+        string | null
+      >`to_char(max(${geoMentionChecks.capturedAt}), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
+    })
+    .from(geoMentionChecks)
+    .where(
+      and(
+        mentionFilters(scope, window, {
+          sequences: "single",
+          englishOnly: true,
+        }),
+        eq(geoMentionChecks.turn, 0),
+        eq(geoMentionChecks.mentioned, true),
+        inArray(geoMentionChecks.sentiment, ["positive", "negative"])
+      )
+    );
+  if (!row) {
+    throw new Error("Sentiment snapshot returned no aggregate");
+  }
+  return row;
+}
+
+export async function queryGeoSentimentAnalysisSample(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow,
+  limitPerPolarity: number,
+  answerChars: number
+) {
+  const groups = await Promise.all(
+    ["positive", "negative"].map((sentiment) =>
+      db
+        .select({
+          id: geoMentionChecks.id,
+          sentiment: geoMentionChecks.sentiment,
+          answer: sql<string>`left(${geoMentionChecks.answer}, ${answerChars})`,
+          prompt: sql<string>`left(${geoMentionChecks.prompt}, 500)`,
+          engine: geoMentionChecks.engine,
+          capturedAt: sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
+        })
+        .from(geoMentionChecks)
+        .where(
+          and(
+            mentionFilters(scope, window, {
+              sequences: "single",
+              englishOnly: true,
+            }),
+            eq(geoMentionChecks.turn, 0),
+            eq(geoMentionChecks.mentioned, true),
+            eq(geoMentionChecks.sentiment, sentiment)
+          )
+        )
+        .orderBy(sql`md5(${geoMentionChecks.id})`, geoMentionChecks.id)
+        .limit(limitPerPolarity)
+    )
+  );
+  return groups.flat();
+}
 
 const CHECK_INSERT_CHUNK = 250;
 

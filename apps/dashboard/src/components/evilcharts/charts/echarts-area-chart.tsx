@@ -265,6 +265,9 @@ export interface XAxisProps {
 const XAxis: FC<XAxisProps> = () => null;
 
 export interface YAxisProps {
+  min?: number;
+  max?: number;
+  interval?: number;
   dataKey?: string; // reserved for parity with the Recharts twin
   tickFormatter?: (value: number, index: number) => string; // formats y tick labels
   label?: string; // axis title, rotated alongside the tick labels
@@ -350,6 +353,9 @@ type XAxisSlot = {
   hideDots: boolean;
 };
 type YAxisSlot = {
+  min?: number;
+  max?: number;
+  interval?: number;
   present: boolean;
   dataKey?: string;
   tickFormatter?: (value: number, index: number) => string;
@@ -471,6 +477,9 @@ function collectConfig(children: ReactNode): CollectedConfig {
       const props = child.props as YAxisProps;
       yAxis = {
         present: true,
+        min: props.min,
+        max: props.max,
+        interval: props.interval,
         dataKey: props.dataKey,
         tickFormatter: props.tickFormatter,
         label: props.label,
@@ -771,11 +780,14 @@ function fillPaint(
 function curveConfig(curveType: CurveType): {
   smooth: boolean;
   step: "middle" | false;
+  smoothMonotone?: "x" | "y";
 } {
   // Recharts "step" is d3's curveStep: the transition happens at the MIDPOINT
   // between points, so each dot sits centered on its plateau.
   if (curveType === "step") return { smooth: false, step: "middle" };
   if (curveType === "linear") return { smooth: false, step: false };
+  if (curveType === "monotoneX") return { smooth: true, step: false, smoothMonotone: "x" };
+  if (curveType === "monotoneY") return { smooth: true, step: false, smoothMonotone: "y" };
   return { smooth: true, step: false };
 }
 
@@ -991,7 +1003,9 @@ function buildMainAxes(ctx: OptionBuildContext): {
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
-    max: isExpanded ? 1 : undefined,
+    min: isExpanded ? undefined : yAxisSlot.min,
+    max: isExpanded ? 1 : yAxisSlot.max,
+    interval: isExpanded ? undefined : yAxisSlot.interval,
     scale: !isExpanded && yAxisSlot.scale,
     // Axis title — rendered rotated alongside the tick labels, same styling.
     name: isLoading ? undefined : yAxisSlot.label,
@@ -1297,6 +1311,7 @@ function buildBrushOption(
       data: data.map((row) => areaPointValue(row, key, area.gapMissing)),
       stack: isStacked ? "__mini-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       silent: true,
@@ -1349,6 +1364,7 @@ function buildLoadingOption(
         type: "line",
         data: ctx.loadingData(),
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         showSymbol: false,
         silent: true,
@@ -1528,6 +1544,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(mainValues),
       stack: isStacked ? "total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       cursor: area.isClickable && !isHidden ? "pointer" : "default",
@@ -1628,6 +1645,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         // reproduces the same cumulative shape in a separate layer.
         stack: isStacked ? "__reveal-total" : undefined,
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         connectNulls: false,
         silent: true,
@@ -1666,6 +1684,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // order give the identical cumulative height, so the dash lines up.
       stack: isStacked ? "__buffer-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,
@@ -1717,6 +1736,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(bufferValues),
       stack: isStacked ? "__bufferfill-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,

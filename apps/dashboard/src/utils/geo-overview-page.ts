@@ -63,7 +63,6 @@ export function toGeoOverviewReadyPage(input: {
   const languagePoints = input.languagePoints ?? [];
   const promptResults = input.promptResults ?? [];
   const journeys = input.journeys ?? [];
-  const promptCount = input.promptCount ?? 0;
 
   return {
     status: "ready",
@@ -75,6 +74,7 @@ export function toGeoOverviewReadyPage(input: {
     revealActive: input.revealActive,
     onRunScan: () => input.scanPreflight.onOpenChange(true),
     tabs: {
+      promptCount: input.promptCount ?? 0,
       activeTab: input.activeTab,
       onActiveTabChange: input.onActiveTabChange,
       organizationSlug: input.organizationSlug,
@@ -87,7 +87,6 @@ export function toGeoOverviewReadyPage(input: {
       competitors,
       languagePoints,
       promptResults,
-      promptCount,
       isScanning: input.isScanning,
       journeys,
       organizationId: input.organizationId,
