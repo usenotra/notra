@@ -18,6 +18,7 @@ const {
   getPostHogInitGeneration,
   initPostHog,
   resetPostHogForTests,
+  subscribeWhenPostHogReady,
   whenPostHogReady,
   withPostHog,
 } = await import("./posthog-lazy");
@@ -148,18 +149,22 @@ test("flushTrackEvent abandons a hung init so a later event can retry", async ()
   }
 });
 
-test("flush timeout does not abandon an idle init already in flight", async () => {
+test("flush timeout abandons a hung idle init already in flight", async () => {
+  const staleInit = mock(() => undefined);
   const liveInit = mock(() => undefined);
   let importCalls = 0;
   let resolveIdle:
-    | ((module: { default: { init: typeof liveInit } }) => void)
+    | ((module: { default: { init: typeof staleInit } }) => void)
     | undefined;
 
   resetPostHogForTests(() => {
     importCalls += 1;
-    return new Promise((resolve) => {
-      resolveIdle = resolve;
-    });
+    if (importCalls === 1) {
+      return new Promise((resolve) => {
+        resolveIdle = resolve;
+      });
+    }
+    return Promise.resolve({ default: { init: liveInit } });
   });
 
   const timers = installMockTimers();
@@ -170,19 +175,46 @@ test("flush timeout does not abandon an idle init already in flight", async () =
     timers.runPending();
     await flush;
 
-    resolveIdle?.({ default: { init: liveInit } });
-    const identified = mock(() => undefined);
-    const captured = mock(() => undefined);
-    const ready = whenPostHogReady(identified);
-    await withPostHog(captured);
-    await ready;
-
-    expect(importCalls).toBe(1);
+    const retried = mock(() => undefined);
+    await withPostHog(retried);
+    expect(importCalls).toBe(2);
     expect(liveInit).toHaveBeenCalledTimes(1);
-    expect(captured).toHaveBeenCalledTimes(1);
-    expect(identified).toHaveBeenCalledTimes(1);
+    expect(retried).toHaveBeenCalledTimes(1);
+
+    resolveIdle?.({ default: { init: staleInit } });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(staleInit).not.toHaveBeenCalled();
+    expect(liveInit).toHaveBeenCalledTimes(1);
   } finally {
     timers.restore();
+    resetPostHogForTests();
+  }
+});
+
+test("subscribeWhenPostHogReady cleanup drops abandoned waiters", async () => {
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: { location: { hostname: "localhost" } },
+  });
+  resetPostHogForTests(() =>
+    Promise.resolve({
+      default: { init: mock(() => undefined) },
+    })
+  );
+  try {
+    const abandoned = mock(() => undefined);
+    const live = mock(() => undefined);
+    const unsubscribe = subscribeWhenPostHogReady(abandoned);
+    unsubscribe();
+    subscribeWhenPostHogReady(live);
+
+    await withPostHog(() => undefined);
+    expect(abandoned).not.toHaveBeenCalled();
+    expect(live).toHaveBeenCalledTimes(1);
+  } finally {
+    restoreWindow(previousWindow);
     resetPostHogForTests();
   }
 });

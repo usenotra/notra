@@ -85,6 +85,13 @@ function waitForClient(): Promise<PostHog> {
   });
 }
 
+function removeReadyWaiter(callback: (client: PostHog) => void): void {
+  const index = readyWaiters.indexOf(callback);
+  if (index >= 0) {
+    readyWaiters.splice(index, 1);
+  }
+}
+
 /**
  * Drops the in-flight init for `attempt` so the next `withPostHog` retries.
  * A later flush's generation is left alone if this timeout is stale.
@@ -99,14 +106,6 @@ export function abandonPendingPostHogInit(attempt: number): void {
 
   initGeneration += 1;
   clientPromise = null;
-}
-
-/**
- * True when idle `initPostHog` or an earlier `withPostHog` already owns
- * `clientPromise`. A flush must not abandon that shared load.
- */
-export function hasSharedPostHogInit(): boolean {
-  return readyClient !== null || clientPromise !== null;
 }
 
 export function getPostHogInitGeneration(): number {
@@ -169,4 +168,26 @@ export async function whenPostHogReady(
 
   const posthog = await waitForClient();
   callback(posthog);
+}
+
+/**
+ * Subscribe to a successful init. The returned function drops this waiter so
+ * session/project effect cleanups do not retain identify callbacks forever.
+ */
+export function subscribeWhenPostHogReady(
+  callback: (posthog: PostHog) => void
+): () => void {
+  if (!POSTHOG_PROJECT_TOKEN || globalThis.window === undefined) {
+    return () => undefined;
+  }
+
+  if (readyClient) {
+    callback(readyClient);
+    return () => undefined;
+  }
+
+  readyWaiters.push(callback);
+  return () => {
+    removeReadyWaiter(callback);
+  };
 }

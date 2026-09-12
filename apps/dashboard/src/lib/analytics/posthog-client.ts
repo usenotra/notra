@@ -6,7 +6,6 @@ import type { PostHogProperties } from "@notra/posthog/types/posthog";
 import {
   abandonPendingPostHogInit,
   getPostHogInitGeneration,
-  hasSharedPostHogInit,
   withPostHog,
 } from "@/lib/analytics/posthog-lazy";
 
@@ -23,9 +22,8 @@ export function trackEvent(
 /**
  * Best-effort capture before a navigation. Starts init if needed, but never
  * blocks longer than `FLUSH_TRACK_EVENT_TIMEOUT_MS`. Capture uses sendBeacon so
- * a following redirect can still deliver. Only an init this flush started is
- * abandoned on timeout; a shared idle `clientPromise` is left running so
- * identify and later events can still complete.
+ * a following redirect can still deliver. A hung shared load is abandoned so a
+ * later event can retry; a stale timeout cannot drop a newer generation.
  */
 export async function flushTrackEvent(
   event: PostHogEventName,
@@ -35,7 +33,6 @@ export async function flushTrackEvent(
     return;
   }
 
-  const joinedSharedInit = hasSharedPostHogInit();
   const capture = withPostHog((posthog) =>
     posthog.capture(event, properties, {
       send_instantly: true,
@@ -47,9 +44,7 @@ export async function flushTrackEvent(
   let timeoutId = 0;
   const timeout = new Promise<void>((resolve) => {
     timeoutId = globalThis.window.setTimeout(() => {
-      if (!joinedSharedInit) {
-        abandonPendingPostHogInit(attempt);
-      }
+      abandonPendingPostHogInit(attempt);
       resolve();
     }, FLUSH_TRACK_EVENT_TIMEOUT_MS);
   });

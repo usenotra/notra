@@ -23,21 +23,62 @@ let importCopyAsFigma = defaultImportCopyAsFigma;
 let importCopyAsPaper = defaultImportCopyAsPaper;
 let copyAsFigmaPromise: Promise<CopyAsFigma> | null = null;
 let copyAsPaperPromise: Promise<CopyAsPaper> | null = null;
+let copyAsFigmaFn: CopyAsFigma | null = null;
+let copyAsPaperFn: CopyAsPaper | null = null;
+const copyReadyListeners = new Set<() => void>();
+
+function notifyCopyReady(): void {
+  for (const listener of copyReadyListeners) {
+    listener();
+  }
+}
 
 function loadCopyAsFigma(): Promise<CopyAsFigma> {
-  copyAsFigmaPromise ??= importCopyAsFigma().catch((error: unknown) => {
-    copyAsFigmaPromise = null;
-    throw error;
-  });
+  copyAsFigmaPromise ??= importCopyAsFigma()
+    .then((copyAsFigma) => {
+      copyAsFigmaFn = copyAsFigma;
+      notifyCopyReady();
+      return copyAsFigma;
+    })
+    .catch((error: unknown) => {
+      copyAsFigmaPromise = null;
+      throw error;
+    });
   return copyAsFigmaPromise;
 }
 
 function loadCopyAsPaper(): Promise<CopyAsPaper> {
-  copyAsPaperPromise ??= importCopyAsPaper().catch((error: unknown) => {
-    copyAsPaperPromise = null;
-    throw error;
-  });
+  copyAsPaperPromise ??= importCopyAsPaper()
+    .then((copyAsPaper) => {
+      copyAsPaperFn = copyAsPaper;
+      notifyCopyReady();
+      return copyAsPaper;
+    })
+    .catch((error: unknown) => {
+      copyAsPaperPromise = null;
+      throw error;
+    });
   return copyAsPaperPromise;
+}
+
+/** True when the Figma/Paper chunk is already in memory for a click handler. */
+export function isImageExportCopyReady(target: ImageExportTarget): boolean {
+  if (target === "figma") {
+    return copyAsFigmaFn !== null;
+  }
+  if (target === "paper") {
+    return copyAsPaperFn !== null;
+  }
+  return false;
+}
+
+export function subscribeImageExportCopyReady(
+  onStoreChange: () => void
+): () => void {
+  copyReadyListeners.add(onStoreChange);
+  return () => {
+    copyReadyListeners.delete(onStoreChange);
+  };
 }
 
 /** Test-only: drop copy caches so a later case can start a fresh import. */
@@ -47,22 +88,31 @@ export function resetImageExportCopyForTests(next?: {
 }): void {
   copyAsFigmaPromise = null;
   copyAsPaperPromise = null;
+  copyAsFigmaFn = null;
+  copyAsPaperFn = null;
   importCopyAsFigma = next?.figma ?? defaultImportCopyAsFigma;
   importCopyAsPaper = next?.paper ?? defaultImportCopyAsPaper;
+  notifyCopyReady();
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */
-export function preloadImageExportCopy(target: ImageExportTarget): void {
+export function preloadImageExportCopy(
+  target: ImageExportTarget
+): Promise<boolean> {
   if (globalThis.window === undefined) {
-    return;
+    return Promise.resolve(false);
   }
   if (target === "figma") {
-    void loadCopyAsFigma().catch(() => undefined);
-    return;
+    return loadCopyAsFigma()
+      .then(() => true)
+      .catch(() => false);
   }
   if (target === "paper") {
-    void loadCopyAsPaper().catch(() => undefined);
+    return loadCopyAsPaper()
+      .then(() => true)
+      .catch(() => false);
   }
+  return Promise.resolve(false);
 }
 
 function createExportElement(html: string): HTMLDivElement {
@@ -127,14 +177,17 @@ export async function copyImageAsFigma(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
-    const copyFnPromise = loadCopyAsFigma();
-    void copyFnPromise.catch(() => undefined);
+    preloadImageExportCopy("figma");
+    const copyAsFigma = copyAsFigmaFn;
+    if (!copyAsFigma) {
+      toast.error("Copy is still loading. Try again in a moment.");
+      return;
+    }
     const copied = await withExportElement(
       element,
       html,
       htmlUrl,
       async (exportElement) => {
-        const copyAsFigma = await copyFnPromise;
         await copyAsFigma(exportElement, { label, name: label });
       }
     );
@@ -156,14 +209,17 @@ export async function copyImageAsPaper(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
-    const copyFnPromise = loadCopyAsPaper();
-    void copyFnPromise.catch(() => undefined);
+    preloadImageExportCopy("paper");
+    const copyAsPaper = copyAsPaperFn;
+    if (!copyAsPaper) {
+      toast.error("Copy is still loading. Try again in a moment.");
+      return;
+    }
     const copied = await withExportElement(
       element,
       html,
       htmlUrl,
       async (exportElement) => {
-        const copyAsPaper = await copyFnPromise;
         await copyAsPaper(exportElement, { label, name: label });
       }
     );

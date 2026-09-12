@@ -12,6 +12,7 @@ mock.module("sonner", () => ({
   },
 }));
 
+const { toast } = await import("sonner");
 const {
   copyImageAsFigma,
   copyImageAsPaper,
@@ -65,25 +66,20 @@ test("preload with window warms the kiwi chunk without copying", async () => {
 
   try {
     await withWindow(async () => {
-      preloadImageExportCopy("paper");
-      await Promise.resolve();
-      await Promise.resolve();
+      expect(await preloadImageExportCopy("paper")).toBe(true);
       expect(copyAsPaper).not.toHaveBeenCalled();
       expect(copyAsFigma).not.toHaveBeenCalled();
       expect(paperImports).toBe(1);
       expect(figmaImports).toBe(0);
 
-      preloadImageExportCopy("paper");
-      await Promise.resolve();
+      expect(await preloadImageExportCopy("paper")).toBe(true);
       expect(paperImports).toBe(1);
 
       await copyImageAsPaper(exportElement, "Card");
       expect(copyAsPaper).toHaveBeenCalledTimes(1);
       expect(paperImports).toBe(1);
 
-      preloadImageExportCopy("figma");
-      await Promise.resolve();
-      await Promise.resolve();
+      expect(await preloadImageExportCopy("figma")).toBe(true);
       expect(copyAsFigma).not.toHaveBeenCalled();
       expect(figmaImports).toBe(1);
     });
@@ -107,12 +103,18 @@ test("preload with window swallows a failed paper import and click retries", asy
 
   try {
     await withWindow(async () => {
-      expect(() => preloadImageExportCopy("paper")).not.toThrow();
-      await Promise.resolve();
-      await Promise.resolve();
+      expect(await preloadImageExportCopy("paper")).toBe(false);
       expect(copyAsPaper).not.toHaveBeenCalled();
       expect(paperImports).toBe(1);
 
+      await copyImageAsPaper(exportElement, "Card");
+      expect(copyAsPaper).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalledWith(
+        "Copy is still loading. Try again in a moment."
+      );
+      expect(paperImports).toBe(2);
+
+      expect(await preloadImageExportCopy("paper")).toBe(true);
       await copyImageAsPaper(exportElement, "Card");
       expect(copyAsPaper).toHaveBeenCalledTimes(1);
       expect(paperImports).toBe(2);
@@ -125,19 +127,25 @@ test("preload with window swallows a failed paper import and click retries", asy
 test("Paper and Figma copy call separate kiwi functions", async () => {
   copyAsFigma.mockClear();
   copyAsPaper.mockClear();
+  resetImageExportCopyForTests();
 
-  await copyImageAsPaper(exportElement, "Card");
-  expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
-    label: "Card",
-    name: "Card",
-  });
-  expect(copyAsFigma).not.toHaveBeenCalled();
+  await withWindow(async () => {
+    expect(await preloadImageExportCopy("paper")).toBe(true);
+    expect(await preloadImageExportCopy("figma")).toBe(true);
 
-  await copyImageAsFigma(exportElement, "Card");
-  expect(copyAsFigma).toHaveBeenCalledTimes(1);
-  expect(copyAsFigma).toHaveBeenCalledWith(exportElement, {
-    label: "Card",
-    name: "Card",
+    await copyImageAsPaper(exportElement, "Card");
+    expect(copyAsPaper).toHaveBeenCalledWith(exportElement, {
+      label: "Card",
+      name: "Card",
+    });
+    expect(copyAsFigma).not.toHaveBeenCalled();
+
+    await copyImageAsFigma(exportElement, "Card");
+    expect(copyAsFigma).toHaveBeenCalledTimes(1);
+    expect(copyAsFigma).toHaveBeenCalledWith(exportElement, {
+      label: "Card",
+      name: "Card",
+    });
   });
 });
 

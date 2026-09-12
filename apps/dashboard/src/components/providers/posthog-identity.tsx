@@ -4,7 +4,7 @@ import { POSTHOG_GROUP_TYPES } from "@notra/posthog/constants/posthog";
 import { useEffect } from "react";
 
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
-import { whenPostHogReady } from "@/lib/analytics/posthog-lazy";
+import { subscribeWhenPostHogReady } from "@/lib/analytics/posthog-lazy";
 import { authClient } from "@/lib/auth/client";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 
@@ -23,11 +23,7 @@ export function PostHogIdentity() {
       return;
     }
 
-    let active = true;
-    void whenPostHogReady((posthog) => {
-      if (!active) {
-        return;
-      }
+    return subscribeWhenPostHogReady((posthog) => {
       const identifiedUserId = posthog.get_property("$user_id");
 
       if (!userId) {
@@ -46,9 +42,6 @@ export function PostHogIdentity() {
         hidePersonalData ? undefined : { email, name: name ?? undefined }
       );
     });
-    return () => {
-      active = false;
-    };
   }, [email, hidePersonalData, isPending, name, userId]);
 
   useEffect(() => {
@@ -56,11 +49,7 @@ export function PostHogIdentity() {
       return;
     }
 
-    let active = true;
-    void whenPostHogReady((posthog) => {
-      if (!active) {
-        return;
-      }
+    return subscribeWhenPostHogReady((posthog) => {
       posthog.resetGroups();
 
       if (organizationId) {
@@ -77,9 +66,6 @@ export function PostHogIdentity() {
         posthog.unregister("project_id");
       }
     });
-    return () => {
-      active = false;
-    };
   }, [isPending, organizationId, projectId, userId]);
 
   return null;
