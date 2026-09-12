@@ -7,36 +7,49 @@ import type {
   GeoTrafficPoint,
   GeoTrafficSource,
   GeoTrafficSourceGroupDefinition,
-  GeoVisitorType,
 } from "@notra/geo-core/types/geo";
 import {
   formatGeoSource,
+  isCitedTrafficSource,
   trafficDayKey,
 } from "@notra/geo-core/utils/ai-traffic";
 import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 
 import type {
   GeoTrafficPurposeTotal,
+  GeoTrafficSourceBand,
   GeoTrafficSourceGroup,
 } from "@/types/geo";
 
 export function trafficGroupKey(
-  visitorType: GeoVisitorType,
+  band: GeoTrafficSourceBand,
   groupKey: string
 ): string {
-  return `${visitorType}:${groupKey}`;
+  return `${band}:${groupKey}`;
+}
+
+export function resolveTrafficSourceBand(
+  source: Pick<GeoTrafficSource, "visitorType" | "category">
+): GeoTrafficSourceBand {
+  if (source.visitorType === "ai_referral") {
+    return "ai_referral";
+  }
+  if (isCitedTrafficSource(source)) {
+    return "cited";
+  }
+  return "crawler";
 }
 
 export function resolveTrafficSourceGroup(
   source: string,
-  visitorType: GeoVisitorType
+  band: GeoTrafficSourceBand
 ): GeoTrafficSourceGroupDefinition {
   const engine = resolveEngineIconKey(source);
   const group = engine ? GEO_TRAFFIC_GROUPS_BY_ENGINE[engine] : undefined;
   if (group === undefined) {
     return GEO_TRAFFIC_OTHER_GROUP;
   }
-  if (visitorType !== "crawler") {
+  if (band !== "crawler" && band !== "cited") {
     return {
       key: source,
       label: formatGeoSource(source),
@@ -68,16 +81,15 @@ export function groupTrafficSources(
   const groups = new Map<string, GeoTrafficSourceGroup>();
 
   for (const source of sources) {
-    const definition = resolveTrafficSourceGroup(
-      source.source,
-      source.visitorType
-    );
-    const key = trafficGroupKey(source.visitorType, definition.key);
+    const band = resolveTrafficSourceBand(source);
+    const definition = resolveTrafficSourceGroup(source.source, band);
+    const key = trafficGroupKey(band, definition.key);
     const existing = groups.get(key);
     if (existing === undefined) {
       groups.set(key, {
         ...definition,
         visitorType: source.visitorType,
+        band,
         visits: source.visits,
         markdownVisits: source.markdownVisits,
         paths: source.paths,

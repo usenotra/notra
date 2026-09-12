@@ -783,8 +783,11 @@ export interface PurposeBadgeProps {
   tooltip?: boolean;
 }
 
+export type GeoTrafficSourceBand = "crawler" | "cited" | "ai_referral";
+
 export interface GeoTrafficSourceGroup extends GeoTrafficSourceGroupDefinition {
   visitorType: GeoVisitorType;
+  band: GeoTrafficSourceBand;
   visits: number;
   markdownVisits: number;
   paths: number;
@@ -1523,7 +1526,7 @@ export interface TrafficProviderLegendProps {
 }
 
 export interface TrafficSourcesGroupProps {
-  visitorType: GeoVisitorType;
+  band: GeoTrafficSourceBand;
   groups: GeoTrafficSourceGroup[];
   columns: TableColumn<GeoTrafficSourceGroup>[];
   collapsed: boolean;

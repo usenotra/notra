@@ -154,6 +154,10 @@ const ENGINE_ICON_RULES: readonly EngineIconRule[] = [
     patterns: ["deepseek"],
   },
   {
+    key: "instagram",
+    patterns: ["instagram", "instagr.am"],
+  },
+  {
     key: "meta",
     patterns: ["meta-", "meta/", "llama", "facebook", "muse-spark"],
   },

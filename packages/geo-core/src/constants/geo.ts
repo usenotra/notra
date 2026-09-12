@@ -715,6 +715,8 @@ export const GEO_AI_REFERRER_HOSTS: Record<string, string> = {
   "grok.com": "grok",
   "x.ai": "grok",
   "chat.qwen.ai": "qwen",
+  "meta.ai": "meta",
+  "www.meta.ai": "meta",
 };
 
 export const GEO_SOURCE_LABELS: Record<string, string> = {
@@ -736,6 +738,7 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   qwen: "Qwen",
   alibaba: "Alibaba",
   meta: "Meta",
+  instagram: "Instagram",
   amazon: "Amazon",
   apple: "Apple",
   bytedance: "ByteDance",
@@ -849,6 +852,7 @@ export const GEO_TRAFFIC_GROUPS_BY_ENGINE: Partial<
   perplexity: { key: "perplexity", label: "Perplexity", icon: "perplexity" },
   copilot: { key: "microsoft", label: "Microsoft", icon: "copilot" },
   meta: { key: "meta", label: "Meta", icon: "meta-" },
+  instagram: { key: "instagram", label: "Instagram", icon: "instagram" },
   amazon: { key: "amazon", label: "Amazon", icon: "amazonbot" },
   apple: { key: "apple", label: "Apple", icon: "applebot" },
   tiktok: { key: "bytedance", label: "ByteDance", icon: "bytespider" },
@@ -879,6 +883,7 @@ export const GEO_TRAFFIC_GROUPS_BY_ENGINE: Partial<
 export const GEO_TRAFFIC_TREND_CRAWLER_KEY = "crawler";
 export const GEO_TRAFFIC_TREND_REFERRAL_KEY = "aiReferral";
 export const GEO_TRAFFIC_TREND_CRAWLER_LABEL = "Crawlers";
+export const GEO_TRAFFIC_TREND_CITED_LABEL = "Cited";
 export const GEO_TRAFFIC_TREND_REFERRAL_LABEL = "Referrals";
 export const GEO_TRAFFIC_CRAWLER_HINT =
   "Bots fetching your pages to train models or build a search index";

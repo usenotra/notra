@@ -170,7 +170,7 @@ Rotation invalidates every tracking token previously issued for the organization
 Once events arrive the page shows three sections, each honouring the range picker:
 
 - A hero row with **Crawlers**, **Referrals**, and **Total** visit counts, each compared "vs. previous period", and a daily trend chart.
-- **Sources**: a table with **Source**, **Purpose**, **Visits**, **Markdown** (visits that asked for Markdown), **Pages**, and **Last seen** columns. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Amazon, Apple, ByteDance, and Common Crawl.
+- **Sources**: three groups — **Crawlers** (training and search-index bots), **Cited** (assistant-browse fetches while an engine answered someone), and **Referrals**. Columns are **Source**, **Purpose**, **Visits**, **Markdown** (visits that asked for Markdown; crawlers and cited only), **Pages**, and **Last seen**. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Instagram, Amazon, Apple, ByteDance, and Common Crawl. Instagram is its own source, not folded into Meta.
 - **Top pages by AI source**: **Page** (host and path), **Sources**, and **Visits**. When a project tracks more than one domain, a domain filter narrows the table.
 - **Recent citations**: the live event log with **All visitors** (AI crawler, AI referral) and **All purposes** (Model training, Search index, Cited in answer) filters. The domain filter on top pages also narrows this log. Live updates refresh every few seconds and can be paused.
 
