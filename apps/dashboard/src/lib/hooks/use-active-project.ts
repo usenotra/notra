@@ -1,7 +1,7 @@
 "use client";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { useGeoProjects } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import type { ActiveProjectState } from "@/types/hooks/projects";
 import { getLastVisitedProjectFromClient } from "@/utils/cookies";
@@ -17,13 +17,13 @@ export function useActiveProject(): ActiveProjectState {
   const organizationId = activeOrganization?.id ?? "";
   const slug = activeOrganization?.slug ?? "";
   const [projectParam] = useGeoProjectQueryState();
-  const { data } = useGeoProjects(organizationId);
-  const projects = data?.projects;
+  const { projects, isLoading, isError, isReady } =
+    useGeoProjectsDb(organizationId);
 
   if (!organizationId) {
     return { projectId: null, isResolved: false };
   }
-  if (!projects) {
+  if (isLoading || isError || !isReady) {
     return { projectId: null, isResolved: false };
   }
 

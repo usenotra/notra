@@ -42,8 +42,8 @@ import {
   useGscSelectSite,
   useGscSites,
   useGscSync,
-  useGeoProjects,
 } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
   SearchConsoleConnectActionProps,
@@ -471,10 +471,8 @@ export function SearchConsoleToolbar({
 }: SearchConsoleToolbarProps) {
   const headingId = useId();
   const { projectId } = useGeoProjectScope();
-  const { data: projectsData } = useGeoProjects(organizationId);
+  const { projects } = useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
-
-  const projects = projectsData?.projects ?? [];
   const activeProject =
     projects.find((project) => project.id === projectId) ??
     projects.at(0) ??

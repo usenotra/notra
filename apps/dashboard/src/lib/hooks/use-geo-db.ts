@@ -2,6 +2,7 @@
 
 import type {
   GeoCompetitor,
+  GeoProject,
   GeoPromptSequence,
   GeoScopeInput,
   GeoTrackedPrompt,
@@ -9,25 +10,28 @@ import type {
 import { mergePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import type { Transaction } from "@tanstack/react-db";
 import { useDbClient, useLiveQuery } from "@tanstack/react-db";
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
   geoCollectionId,
   geoCompetitorsCollection,
+  geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
   geoShelfCollection,
   getGeoShelfSampleData,
   subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
+import { takeCreatedGeoProject } from "@/lib/db/geo-project-create-cache";
 import {
   clearRowPending,
   getPendingRows,
   markRowPending,
   subscribeToPendingRows,
 } from "@/lib/db/pending-rows";
+import type { GeoProjectCreateInput } from "@/types/geo";
 import type {
   GeoShelfDbApi,
   GeoShelfOpportunityWrite,
@@ -35,6 +39,7 @@ import type {
   GeoShelfSource,
 } from "@/types/geo-shelf";
 import { toErrorMessage } from "@/utils/error-message";
+import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 import { mergeShelfOpportunity } from "@/utils/geo-shelf";
 
 /**
@@ -156,6 +161,115 @@ export function useGeoPromptsDb(
     setPromptTags,
     addTagsToPrompts,
     addPrompt,
+  };
+}
+
+export function useGeoProjectsDb(
+  organizationId: string,
+  options?: GeoDbOptions
+) {
+  const isEnabled = options?.enabled ?? true;
+  const scope = { organizationId };
+  const dbClient = useDbClient();
+  const definition = geoProjectsCollection(scope);
+  const collection = dbClient.collection(definition);
+  const { pendingIds, track } = usePendingRows("projects", scope);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingDeleteSnapshots, setPendingDeleteSnapshots] = useState<
+    ReadonlyMap<string, GeoProject>
+  >(() => new Map());
+
+  const { data, isLoading, isError, isReady } = useLiveQuery(
+    (q) =>
+      isEnabled && organizationId
+        ? q
+            .from({ project: definition })
+            .orderBy(({ project }) => project.createdAt, "asc")
+            .orderBy(({ project }) => project.id, "asc")
+        : undefined,
+    [definition, isEnabled, organizationId]
+  );
+
+  const projects = useMemo(() => {
+    const merged = new Map<string, GeoProject>();
+    for (const project of data ?? []) {
+      merged.set(project.id, project);
+    }
+    for (const [projectId, snapshot] of pendingDeleteSnapshots) {
+      if (!merged.has(projectId)) {
+        merged.set(projectId, snapshot);
+      }
+    }
+    return sortGeoProjectsOldestFirst([...merged.values()]);
+  }, [data, pendingDeleteSnapshots]);
+
+  const createProject = async (
+    input: GeoProjectCreateInput
+  ): Promise<GeoProject> => {
+    const trimmedName = input.name.trim();
+    const tempId = crypto.randomUUID();
+    setIsCreating(true);
+    const transaction = collection.insert({
+      id: tempId,
+      name: trimmedName,
+      brandSettingsId: input.brandSettingsId,
+      createdAt: new Date().toISOString(),
+    });
+    track(tempId, transaction, "Failed to create project");
+
+    let created: GeoProject | null = null;
+    try {
+      await transaction.isPersisted.promise;
+      created = takeCreatedGeoProject(tempId) ?? null;
+    } finally {
+      setIsCreating(false);
+    }
+
+    if (!created) {
+      const error = new Error("Failed to resolve created project");
+      toast.error(toErrorMessage(error, "Failed to create project"));
+      throw error;
+    }
+
+    toast.success("Project created");
+    return created;
+  };
+
+  const deleteProject = async (projectId: string) => {
+    const snapshot = projects.find((project) => project.id === projectId);
+    if (snapshot) {
+      setPendingDeleteSnapshots((current) =>
+        new Map(current).set(projectId, snapshot)
+      );
+    }
+
+    setIsDeleting(true);
+    const transaction = collection.delete(projectId);
+    track(projectId, transaction, "Failed to delete project");
+    try {
+      await transaction.isPersisted.promise;
+      toast.success("Project deleted");
+    } finally {
+      setPendingDeleteSnapshots((current) => {
+        const next = new Map(current);
+        next.delete(projectId);
+        return next;
+      });
+      setIsDeleting(false);
+    }
+  };
+
+  return {
+    projects,
+    isLoading,
+    isError,
+    isReady,
+    pendingProjectIds: pendingIds,
+    isCreating,
+    isDeleting,
+    createProject,
+    deleteProject,
   };
 }
 

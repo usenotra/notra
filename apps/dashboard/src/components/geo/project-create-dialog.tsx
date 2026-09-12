@@ -25,7 +25,7 @@ import { useId, useState } from "react";
 import { AddIdentityDialog } from "@/app/(dashboard)/[slug]/brand/identity/components/add-identity-dialog";
 import { Button } from "@/components/button";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
-import { useGeoProjectCreate } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import type { GeoProjectCreateDialogProps } from "@/types/geo";
 
 export function GeoProjectCreateDialog({
@@ -41,7 +41,7 @@ export function GeoProjectCreateDialog({
     string | null
   >(null);
   const [identityDialogOpen, setIdentityDialogOpen] = useState(false);
-  const createProject = useGeoProjectCreate(organizationId);
+  const { createProject, isCreating } = useGeoProjectsDb(organizationId);
   const brandSettingsQuery = useBrandSettings(organizationId);
 
   const voices = brandSettingsQuery.data?.voices ?? [];
@@ -61,10 +61,10 @@ export function GeoProjectCreateDialog({
 
   const handleCreate = async () => {
     const trimmed = name.trim();
-    if (trimmed.length === 0 || !brandSettingsId || createProject.isPending) {
+    if (trimmed.length === 0 || !brandSettingsId || isCreating) {
       return;
     }
-    const project = await createProject.mutateAsync({
+    const project = await createProject({
       name: trimmed,
       brandSettingsId,
     });
@@ -173,19 +173,13 @@ export function GeoProjectCreateDialog({
             </Button>
             <Button
               disabled={
-                name.trim().length === 0 ||
-                !brandSettingsId ||
-                createProject.isPending
+                name.trim().length === 0 || !brandSettingsId || isCreating
               }
               onClick={handleCreate}
               type="button"
             >
-              {createProject.isPending && (
-                <Loader2Icon className="size-4 animate-spin" />
-              )}
-              {createProject.isPending
-                ? "Setting up project"
-                : "Create project"}
+              {isCreating && <Loader2Icon className="size-4 animate-spin" />}
+              {isCreating ? "Setting up project" : "Create project"}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
