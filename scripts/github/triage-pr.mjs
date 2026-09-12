@@ -124,12 +124,18 @@ const paths = files.flatMap((file) =>
 const labels = areas.filter((area) =>
   paths.some((path) => path.startsWith(`${area}/`))
 );
-labels.push(types[pr.title.match(titlePrefix)?.[1]] ?? "type/chore");
-try {
-  labels.push(await priority(pr));
-} catch (error) {
-  console.log(`Priority unavailable: ${error.message}`);
-  labels.push("needs-triage");
+const type = types[pr.title.match(titlePrefix)?.[1]] ?? "type/chore";
+labels.push(type);
+const fixed = { "type/bug": "priority/high", "type/ci": "priority/low" };
+if (fixed[type]) {
+  labels.push(fixed[type]);
+} else {
+  try {
+    labels.push(await priority(pr));
+  } catch (error) {
+    console.log(`Priority unavailable: ${error.message}`);
+    labels.push("needs-triage");
+  }
 }
 await github(`issues/${pr.number}/labels`, "POST", { labels });
 console.log(JSON.stringify(labels));
