@@ -162,7 +162,7 @@ export function EngineRateTable({
       },
       {
         key: "rate",
-        header: "Visibility rate",
+        header: "Brand visibility",
         width: "1.4fr",
         sortable: true,
         cell: (row) => <RateCell family={row} />,

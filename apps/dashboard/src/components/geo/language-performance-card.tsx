@@ -160,7 +160,7 @@ function languagePerformanceColumns({
     },
     {
       key: "mentionRate",
-      header: "Visibility rate",
+      header: "Brand visibility",
       width: "1.3fr",
       sortable: true,
       sortValue: (row) =>
