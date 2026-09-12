@@ -13,14 +13,16 @@ export function DashboardAgentButton() {
 
   return (
     <Button
+      aria-label={`${open ? "Close" : "Open"} ${DASHBOARD_AGENT_TITLE}`}
       aria-pressed={open}
-      className="hover:bg-background hidden lg:inline-flex"
+      className="hover:bg-background size-7 px-0 lg:w-auto lg:px-2.5"
       onClick={() => togglePanel("agent")}
       size="sm"
+      title={DASHBOARD_AGENT_TITLE}
       variant={open ? "secondary" : "ghost"}
     >
       <HugeiconsIcon icon={Robot01Icon} strokeWidth={1.8} />
-      {DASHBOARD_AGENT_TITLE}
+      <span className="hidden lg:inline">{DASHBOARD_AGENT_TITLE}</span>
     </Button>
   );
 }

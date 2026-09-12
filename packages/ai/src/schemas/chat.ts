@@ -88,6 +88,8 @@ export const uiMessageSchema = z.object({
   metadata: z.looseObject({}).optional(),
 }) as unknown as z.ZodType<UIMessage>;
 
+export const chatSurfaceSchema = z.enum(["chat", "dashboard-agent"]);
+
 export const standaloneChatRequestSchema = z.object({
   chatId: chatIdSchema.optional(),
   projectId: z.string().min(1).optional(),
@@ -97,6 +99,7 @@ export const standaloneChatRequestSchema = z.object({
   enableThinking: z.boolean().optional(),
   thinkingLevel: thinkingLevelSchema.optional(),
   timezone: z.string().min(1).max(100).optional(),
+  surface: chatSurfaceSchema.default("chat"),
 });
 
 export const dashboardAgentChatRequestSchema = z.object({
@@ -133,6 +136,7 @@ export const chatWorkflowPayloadSchema = z.object({
   thinkingLevel: thinkingLevelSchema.optional(),
   timezone: z.string().min(1).max(100).optional(),
   projectId: z.string().min(1).optional(),
+  surface: chatSurfaceSchema.default("chat"),
 });
 
 export const chatTransportRequestBodySchema = z.object({

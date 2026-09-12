@@ -217,7 +217,7 @@ export function ContentChatActivityPanel({
     .find((message) => message.role === "user")?.id;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 max-w-full min-w-0 flex-col">
       <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
         <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
           {title}

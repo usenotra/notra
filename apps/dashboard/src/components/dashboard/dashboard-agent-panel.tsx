@@ -12,10 +12,26 @@ import {
   dashboardAgentChatSessionsPath,
   dashboardAgentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@notra/ui/components/shared/responsive-dialog";
+import { cn } from "@notra/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
@@ -37,6 +53,17 @@ import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
+
+function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia("(min-width: 64rem)");
+  mediaQuery.addEventListener("change", onStoreChange);
+
+  return () => mediaQuery.removeEventListener("change", onStoreChange);
+}
+
+const getDesktopBreakpointSnapshot = () =>
+  window.matchMedia("(min-width: 64rem)").matches;
+const getServerDesktopBreakpointSnapshot = () => false;
 
 function DashboardAgentChat({
   organizationId,
@@ -81,19 +108,47 @@ function DashboardAgentChat({
       !session.externalChannelId || session.externalChannelId.source === "agent"
   );
 
-  const transport = new DefaultChatTransport({
-    api: `/api/organizations/${organizationId}/chat`,
-    prepareSendMessagesRequest: ({ messages, body }) => ({
-      body: {
-        ...body,
-        chatId: activeChatId,
-        projectId:
-          isProjectResolved && activeProjectId ? activeProjectId : undefined,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        messages,
-      },
-    }),
-  });
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: `/api/organizations/${organizationId}/chat`,
+        prepareSendMessagesRequest: ({ messages, body }) => ({
+          body: {
+            ...body,
+            chatId: activeChatId,
+            projectId:
+              isProjectResolved && activeProjectId
+                ? activeProjectId
+                : undefined,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            messages,
+            surface: "dashboard-agent",
+          },
+        }),
+        fetch: async (input, init) => {
+          const triggerResponse = await fetch(input, init);
+          if (!triggerResponse.ok) {
+            return triggerResponse;
+          }
+
+          const contentType = triggerResponse.headers.get("content-type") ?? "";
+          if (contentType.includes("text/event-stream")) {
+            return triggerResponse;
+          }
+
+          return fetch(
+            `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stream`,
+            {
+              method: "GET",
+              headers: init?.headers,
+              credentials: init?.credentials,
+              signal: init?.signal,
+            }
+          );
+        },
+      }),
+    [activeChatId, activeProjectId, isProjectResolved, organizationId]
+  );
 
   const {
     messages,
@@ -256,6 +311,19 @@ function DashboardAgentChat({
     await sendMessage({ text: instruction });
   };
 
+  const handleStop = useCallback(
+    () =>
+      fetch(
+        `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stop`,
+        { method: "POST" }
+      )
+        .catch((stopError) => {
+          console.error("Failed to stop dashboard agent response", stopError);
+        })
+        .finally(() => stop()),
+    [activeChatId, organizationId, stop]
+  );
+
   const handleSuggestionSelect = (prompt: string) => {
     setChatInputValue(prompt);
   };
@@ -332,7 +400,7 @@ function DashboardAgentChat({
           isLoading={isAgentBusy}
           onClearError={() => setChatError(null)}
           onSend={handleSend}
-          onStop={stop}
+          onStop={handleStop}
           onValueChange={setChatInputValue}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
@@ -345,25 +413,67 @@ function DashboardAgentChat({
 }
 
 export function DashboardAgentHost() {
-  const { closePanel } = useRightPanel();
+  const { active, closePanel, expanded, hasOpened } = useRightPanel();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const organizationSlug = activeOrganization?.slug ?? "";
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktopBreakpoint,
+    getDesktopBreakpointSnapshot,
+    getServerDesktopBreakpointSnapshot
+  );
+  const open = active === "agent";
 
   if (!organizationId) {
     return null;
   }
 
+  const chat = hasOpened.agent ? (
+    <div className="h-full min-h-0 max-w-full min-w-0">
+      <DashboardAgentChat
+        key={organizationId}
+        onClose={() => closePanel("agent")}
+        organizationId={organizationId}
+        organizationSlug={organizationSlug}
+      />
+    </div>
+  ) : null;
+
+  if (isDesktop) {
+    return <RightPanel id="agent">{chat}</RightPanel>;
+  }
+
   return (
-    <RightPanel id="agent">
-      <div className="h-full min-h-0">
-        <DashboardAgentChat
-          key={organizationId}
-          onClose={() => closePanel("agent")}
-          organizationId={organizationId}
-          organizationSlug={organizationSlug}
-        />
-      </div>
-    </RightPanel>
+    <ResponsiveDialog
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          closePanel("agent");
+        }
+      }}
+      open={open}
+    >
+      <ResponsiveDialogContent
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          expanded
+            ? "h-svh max-h-svh max-w-none rounded-none sm:max-w-none"
+            : "h-[85svh] max-h-[85svh] sm:max-w-md"
+        )}
+        drawerClassName={cn(
+          "[&>*:not([data-slot=sheet-header]):not([data-slot=sheet-footer]):not([data-slot=sheet-close])]:px-0",
+          expanded && "h-svh max-h-svh rounded-none"
+        )}
+        keepMounted
+        showCloseButton={false}
+      >
+        <ResponsiveDialogHeader className="sr-only">
+          <ResponsiveDialogTitle>{DASHBOARD_AGENT_TITLE}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Chat with your dashboard agent.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        {chat}
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

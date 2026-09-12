@@ -111,7 +111,7 @@ export function DashboardShell({
 
   return (
     <div
-      className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
+      className="bg-sidebar flex h-svh w-full max-w-full min-w-0 flex-col overflow-hidden overscroll-none"
       style={shellStyle}
     >
       {bannerAvailable || dismissing ? (
@@ -142,7 +142,7 @@ export function DashboardShell({
       ) : null}
       <SidebarProvider
         className={cn(
-          "min-h-0! flex-1 overflow-hidden overscroll-none",
+          "min-h-0! max-w-full min-w-0 flex-1 overflow-hidden overscroll-none",
           sidebarResizing &&
             "[&_[data-slot=sidebar-gap]]:transition-none! [&_[data-slot=sidebar-inset]]:transition-none!"
         )}
