@@ -1,0 +1,25 @@
+apps/dashboard/src/hooks/use-github-repository-actions.ts
+  s_147c9d2b26b125::t_21bd269126de6d 25
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/page-client.tsx
+  s_147c9d2b26b125::t_96614db9ef8dbe 27-28,30-35
+  s_147c9d2b26b125::t_4ac07c68e5d21f 61
+apps/dashboard/src/components/integrations/github/github-app-section.tsx
+  s_147c9d2b26b125::t_cd4879621b3e80 84
+  s_147c9d2b26b125::t_4418775f0989a9 12,22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3ff8e5115676ab31edec4dd23dc0322a2534b825",
+  "prompts": {},
+  "sessions": {
+    "s_147c9d2b26b125": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "eeed3135-babd-4e3e-a49c-16bf479b004e",
+        "model": "grok-4.6"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
