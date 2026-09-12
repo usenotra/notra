@@ -23,6 +23,14 @@ describe("isLocalDevAuthEnabled", () => {
     ).toBe(false);
   });
 
+  test("never enables in test or staging", () => {
+    expect(isLocalDevAuthEnabled("test", undefined)).toBe(false);
+    expect(isLocalDevAuthEnabled("staging", undefined)).toBe(false);
+    expect(isLocalDevAuthEnabled("test", "sk_test_local_dev_placeholder")).toBe(
+      false
+    );
+  });
+
   test("enables in development when WorkOS is not configured", () => {
     expect(isLocalDevAuthEnabled("development", undefined)).toBe(true);
     expect(

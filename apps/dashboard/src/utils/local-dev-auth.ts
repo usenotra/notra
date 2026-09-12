@@ -1,8 +1,9 @@
 /**
  * AuthKit's Edge proxy reads `process.env[name]`, which Next does not inline.
- * Without a live WorkOS key, every request 500s. Development can skip AuthKit
- * and authenticate as a local database user instead. Production never takes
- * this path.
+ * Without a live WorkOS key, every request 500s. Local `development` can skip
+ * AuthKit and authenticate as a database user instead. Staging, test, and
+ * production never take this path — a missing WorkOS key there must fail
+ * closed rather than impersonate the latest user.
  */
 export function isLiveWorkOSApiKey(apiKey: string | undefined): boolean {
   if (!apiKey) {
@@ -16,8 +17,8 @@ export function isLiveWorkOSApiKey(apiKey: string | undefined): boolean {
 }
 
 export function isLocalDevAuthEnabled(
-  nodeEnv = process.env.NODE_ENV,
-  apiKey = process.env.WORKOS_API_KEY
+  nodeEnv: string | undefined = process.env.NODE_ENV,
+  apiKey: string | undefined = process.env.WORKOS_API_KEY
 ): boolean {
-  return nodeEnv !== "production" && !isLiveWorkOSApiKey(apiKey);
+  return nodeEnv === "development" && !isLiveWorkOSApiKey(apiKey);
 }
