@@ -236,6 +236,8 @@ export function MentionRateCard({
     const row = ranked.find((entry) => entry.family.family === family.family);
     trackEvent(POSTHOG_EVENTS.GEO_ENGINE_FAMILY_OPENED, {
       engine_family: family.family,
+      mention_rate: row?.totals.rate ?? null,
+      mentions: row?.totals.mentions ?? null,
       visibility_rate: row?.totals.rate ?? null,
       visible: row?.totals.mentions ?? null,
       tracked: row?.tracked ?? null,

@@ -297,17 +297,17 @@ export function mentionRateSparklineLabel(
   const first = points[0];
   const last = points.at(-1);
   if (!(first && last)) {
-    return "Mention rate trend";
+    return "Visibility rate trend";
   }
   const from = formatChartPercent(first.value);
   const to = formatChartPercent(last.value);
   if (points.length === 1) {
-    return `Mention rate ${from}`;
+    return `Visibility rate ${from}`;
   }
   if (from === to) {
-    return `Mention rate held at ${to} over ${points.length} days`;
+    return `Visibility rate held at ${to} over ${points.length} days`;
   }
-  return `Mention rate ${from} to ${to} over ${points.length} days`;
+  return `Visibility rate ${from} to ${to} over ${points.length} days`;
 }
 
 function daysWithSettledUsage(

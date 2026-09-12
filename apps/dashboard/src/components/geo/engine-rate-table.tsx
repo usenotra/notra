@@ -145,12 +145,20 @@ export function EngineRateTable({
         header: "Citations",
         width: "8rem",
         sortable: true,
-        cell: (row) => (
-          <span className="text-sm tabular-nums">
-            {engineFamilyCitationTotal(row).toLocaleString()}
-          </span>
-        ),
-        sortValue: engineFamilyCitationTotal,
+        cell: (row) => {
+          if (!engineFamilyTotals(row)) {
+            return (
+              <span className="text-muted-foreground text-xs">Not scanned</span>
+            );
+          }
+          return (
+            <span className="text-sm tabular-nums">
+              {engineFamilyCitationTotal(row).toLocaleString()}
+            </span>
+          );
+        },
+        sortValue: (row) =>
+          engineFamilyTotals(row) ? engineFamilyCitationTotal(row) : -1,
       },
       {
         key: "rate",

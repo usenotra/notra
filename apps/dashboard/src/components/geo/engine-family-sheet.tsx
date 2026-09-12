@@ -479,7 +479,9 @@ function PromptHits({
         if (row.mentioned) {
           return row.position ?? 0;
         }
-        return row.ownedSourceCited ? 1 : Number.MAX_SAFE_INTEGER;
+        return row.ownedSourceCited
+          ? Number.MAX_SAFE_INTEGER - 1
+          : Number.MAX_SAFE_INTEGER;
       },
     },
   ];
