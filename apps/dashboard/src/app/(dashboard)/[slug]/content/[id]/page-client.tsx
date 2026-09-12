@@ -1690,16 +1690,17 @@ export default function PageClient({
                       <HugeiconsIcon className="size-4" icon={Download01Icon} />
                       Download image
                     </Button>
-                    <ButtonGroup>
+                    <ButtonGroup
+                      onFocusCapture={() =>
+                        preloadImageExportCopy(imageExportTarget)
+                      }
+                      onMouseEnter={() =>
+                        preloadImageExportCopy(imageExportTarget)
+                      }
+                    >
                       <Button
                         disabled={!imageExportCopyReady}
                         onClick={handleCopyImageExport}
-                        onFocus={() =>
-                          preloadImageExportCopy(imageExportTarget)
-                        }
-                        onMouseEnter={() =>
-                          preloadImageExportCopy(imageExportTarget)
-                        }
                         size="sm"
                         variant="outline"
                       >
