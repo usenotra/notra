@@ -94,7 +94,7 @@ export function GeoLanguagePicker({
               <LanguageLabel language={language} />
               <button
                 aria-label={`Remove ${language}`}
-                className="hover:bg-background cursor-pointer rounded-sm p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                className="hover:bg-background cursor-pointer rounded-full p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={disabled || lastLanguage}
                 onClick={() =>
                   onChange(selected.filter((item) => item !== language))
