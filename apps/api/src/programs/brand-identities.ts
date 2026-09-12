@@ -108,7 +108,7 @@ function getBrandAnalysisJobKey(jobId: string) {
   return `brand-analysis:job:${jobId}`;
 }
 
-function failBrandAnalysisQueue(
+const failBrandAnalysisQueue = Effect.fnUntraced(function* (
   input: CreateBrandIdentityProgramInput,
   brandIdentityId: string,
   jobId: string,
@@ -119,43 +119,41 @@ function failBrandAnalysisQueue(
     errorMessage: string;
   }
 ) {
-  return Effect.gen(function* () {
-    if (options.markJobFailed) {
-      yield* Effect.tryPromise({
-        try: () =>
-          setBrandAnalysisJobStatus(input.redis, jobId, "failed", {
-            step: null,
-            currentStep: 0,
-            totalSteps: 3,
-            error: options.errorMessage,
-          }),
-        catch: () => undefined,
-      }).pipe(Effect.ignore);
-    }
+  if (options.markJobFailed) {
+    yield* Effect.tryPromise({
+      try: () =>
+        setBrandAnalysisJobStatus(input.redis, jobId, "failed", {
+          step: null,
+          currentStep: 0,
+          totalSteps: 3,
+          error: options.errorMessage,
+        }),
+      catch: () => undefined,
+    }).pipe(Effect.ignore);
+  }
 
-    if (options.cleanupJobKey) {
-      yield* Effect.tryPromise({
-        try: () => input.redis.del(getBrandAnalysisJobKey(jobId)),
-        catch: () => undefined,
-      }).pipe(Effect.ignore);
-    }
+  if (options.cleanupJobKey) {
+    yield* Effect.tryPromise({
+      try: () => input.redis.del(getBrandAnalysisJobKey(jobId)),
+      catch: () => undefined,
+    }).pipe(Effect.ignore);
+  }
 
-    if (options.deleteBrandIdentity) {
-      yield* database(() =>
-        input.db
-          .delete(brandSettings)
-          .where(
-            and(
-              eq(brandSettings.id, brandIdentityId),
-              eq(brandSettings.organizationId, input.organizationId)
-            )
+  if (options.deleteBrandIdentity) {
+    yield* database(() =>
+      input.db
+        .delete(brandSettings)
+        .where(
+          and(
+            eq(brandSettings.id, brandIdentityId),
+            eq(brandSettings.organizationId, input.organizationId)
           )
-      );
-    }
+        )
+    );
+  }
 
-    return yield* new BrandAnalysisQueueFailedError();
-  });
-}
+  return yield* new BrandAnalysisQueueFailedError();
+});
 
 function recoverBeforeWorkflowAccepted(
   input: CreateBrandIdentityProgramInput,

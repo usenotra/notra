@@ -21,13 +21,35 @@ export function isBrandAnalysisConfigured(env: BrandAnalysisEnv) {
   return !!getBrandAnalysisWorkflowUrl(env);
 }
 
+function isInternalDashboardError(
+  error: unknown
+): error is InternalDashboardError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "_tag" in error &&
+    error._tag === "InternalDashboardError"
+  );
+}
+
+function isInternalDashboardAdapterError(
+  error: unknown
+): error is InternalDashboardAdapterError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "_tag" in error &&
+    error._tag === "InternalDashboardAdapterError"
+  );
+}
+
 /** True when the dashboard explicitly rejected the workflow before acceptance. */
 export function isConfirmedWorkflowTriggerRejection(error: unknown) {
-  if (error instanceof InternalDashboardError) {
+  if (isInternalDashboardError(error)) {
     return error.status >= 400 && error.status < 500;
   }
 
-  if (error instanceof InternalDashboardAdapterError) {
+  if (isInternalDashboardAdapterError(error)) {
     return error.kind === "configuration" || error.kind === "authentication";
   }
 
