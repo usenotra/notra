@@ -18,11 +18,12 @@ import {
 
 import {
   createPostGeneration,
+  commitPatchPost,
   deletePost,
   getPost,
   getPostGeneration,
   listPosts,
-  patchPost,
+  preparePatchPost,
 } from "../programs/posts";
 import { runGeoEffect } from "../runtime/geo";
 import type { DbClient } from "../types/db";
@@ -41,7 +42,6 @@ import {
   respondToPostFailure,
   runPostProgram,
   serializePost,
-  validatePatchPostRequest,
 } from "../utils/posts";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
@@ -378,33 +378,21 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const existingResult = await runPostProgram(
-    getPost({
+  const preparedResult = await runPostProgram(
+    preparePatchPost({
       db: c.get("db"),
       organizationId: orgId,
       postId,
+      body,
     })
   );
 
-  if (existingResult._tag === "Failure") {
-    throw existingResult.failure;
-  }
-
-  if (!existingResult.success.post) {
-    return c.json({ error: "Post not found" }, 404);
-  }
-
-  const validationError = await validatePatchPostRequest(
-    existingResult.success.post,
-    body
-  );
-
-  if (validationError) {
-    const response = respondToPostFailure(c, validationError);
+  if (preparedResult._tag === "Failure") {
+    const response = respondToPostFailure(c, preparedResult.failure);
     if (response) {
       return response;
     }
-    throw validationError;
+    throw preparedResult.failure;
   }
 
   // Charged immediately before the write: the 404s and 400s above must not
@@ -415,11 +403,11 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
   }
 
   const result = await runPostProgram(
-    patchPost({
+    commitPatchPost({
       db: c.get("db"),
       organizationId: orgId,
       postId,
-      body,
+      prepared: preparedResult.success.prepared,
     })
   );
 

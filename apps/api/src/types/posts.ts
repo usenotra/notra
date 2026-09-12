@@ -84,6 +84,20 @@ export interface PatchPostProgramInput extends PostProgramInput {
   body: z.infer<typeof patchPostRequestSchema>;
 }
 
+interface PatchPostPreparedUpdate {
+  updateData: Partial<typeof posts.$inferInsert>;
+  previousStatus: "draft" | "published";
+}
+
+export interface PreparePatchPostProgramSuccess {
+  prepared: PatchPostPreparedUpdate;
+}
+
+export interface CommitPatchPostProgramInput extends PostProgramInput {
+  postId: string;
+  prepared: PatchPostPreparedUpdate;
+}
+
 export interface PatchPostProgramSuccess {
   post: PostRow;
   previousStatus: "draft" | "published";
