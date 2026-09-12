@@ -28,8 +28,9 @@ export function validateSentimentThemes(
     const statements = new Set<string>();
     const claims = theme.claims.map((claim) => {
       const normalized = claim.statement.toLowerCase().replace(/\s+/g, " ");
-      if (statements.has(normalized))
-        {throw new Error("Duplicate sentiment claim");}
+      if (statements.has(normalized)) {
+        throw new Error("Duplicate sentiment claim");
+      }
       statements.add(normalized);
       const seen = new Set<string>();
       const evidence = claim.evidence.map((reference) => {
