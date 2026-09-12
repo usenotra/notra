@@ -28,6 +28,7 @@ import {
   PostDatabaseError,
 } from "../errors/posts";
 import type {
+  CommitPatchPostProgramInput,
   CreatePostGenerationProgramInput,
   CreatePostGenerationProgramSuccess,
   DeletePostProgramInput,
@@ -40,10 +41,13 @@ import type {
   ListPostsProgramSuccess,
   PatchPostProgramInput,
   PatchPostProgramSuccess,
+  PreparePatchPostProgramSuccess,
 } from "../types/posts";
 import { addActiveGeneration } from "../utils/active-generations";
-import { isConfirmedWorkflowTriggerRejection } from "../utils/brand-analysis";
-import { triggerContentGenerationWorkflow } from "../utils/content-generation";
+import {
+  isConfirmedContentGenerationRejection,
+  triggerContentGenerationWorkflow,
+} from "../utils/content-generation";
 import {
   extractTitleFromMarkdown,
   renderMarkdownToHtml,
@@ -61,16 +65,13 @@ function queueFailureMessage(error: unknown) {
   return error instanceof Error ? error.message : "Failed to trigger workflow";
 }
 
-function isConfirmedContentGenerationRejection(error: unknown) {
-  if (isConfirmedWorkflowTriggerRejection(error)) {
-    return true;
-  }
-
-  return (
-    error instanceof Error &&
-    error.message === "Content generation workflow URL is not configured"
-  );
-}
+const patchPostLookupColumns = {
+  id: true,
+  title: true,
+  slug: true,
+  contentType: true,
+  status: true,
+} as const;
 
 const failPostGenerationQueue = Effect.fnUntraced(function* (
   input: CreatePostGenerationProgramInput,
@@ -279,7 +280,7 @@ export const deletePost = Effect.fn("posts.delete")(function* (
   } satisfies DeletePostProgramSuccess;
 });
 
-export const patchPost = Effect.fn("posts.patch")(function* (
+export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
   input: PatchPostProgramInput
 ) {
   const existingPost = yield* database(() =>
@@ -288,13 +289,7 @@ export const patchPost = Effect.fn("posts.patch")(function* (
         eq(posts.id, input.postId),
         eq(posts.organizationId, input.organizationId)
       ),
-      columns: {
-        id: true,
-        title: true,
-        slug: true,
-        contentType: true,
-        status: true,
-      },
+      columns: patchPostLookupColumns,
     })
   );
 
@@ -339,11 +334,22 @@ export const patchPost = Effect.fn("posts.patch")(function* (
     updateData.status = body.status;
   }
 
+  return {
+    prepared: {
+      updateData,
+      previousStatus: existingPost.status,
+    },
+  } satisfies PreparePatchPostProgramSuccess;
+});
+
+export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
+  input: CommitPatchPostProgramInput
+) {
   const patchResult = yield* Effect.tryPromise({
     try: () =>
       input.db
         .update(posts)
-        .set(updateData)
+        .set(input.prepared.updateData)
         .where(
           and(
             eq(posts.id, input.postId),
@@ -384,7 +390,7 @@ export const patchPost = Effect.fn("posts.patch")(function* (
 
   return {
     post: updatedPost,
-    previousStatus: existingPost.status,
+    previousStatus: input.prepared.previousStatus,
   } satisfies PatchPostProgramSuccess;
 });
 

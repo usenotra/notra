@@ -7,6 +7,7 @@ import {
 } from "@notra/db/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
 
+import { isConfirmedWorkflowTriggerRejection } from "./brand-analysis";
 import {
   getInternalWorkflowUrl,
   startDashboardWorkflow,
@@ -61,6 +62,18 @@ export async function triggerContentGenerationWorkflow(
   }
 
   return await startDashboardWorkflow(url, payload);
+}
+
+/** True when the dashboard explicitly rejected content generation before acceptance. */
+export function isConfirmedContentGenerationRejection(error: unknown) {
+  if (isConfirmedWorkflowTriggerRejection(error)) {
+    return true;
+  }
+
+  return (
+    error instanceof Error &&
+    error.message === "Content generation workflow URL is not configured"
+  );
 }
 
 export async function resolveRequestedRepositoryIds(

@@ -1,15 +1,9 @@
-import { supportsPostSlug } from "@notra/ai/schemas/post";
 import { ALL_POST_CONTENT_TYPES } from "@notra/schemas/api/content";
 import { Effect } from "effect";
 import type { Context } from "hono";
 
 import type { PostDatabaseError } from "../errors/posts";
-import {
-  PostInvalidMarkdownError,
-  PostSlugNotSupportedError,
-} from "../errors/posts";
 import type { PostDomainError, PostRow } from "../types/posts";
-import { renderMarkdownToHtml } from "../utils/markdown";
 
 type PostResponseContentType = (typeof ALL_POST_CONTENT_TYPES)[number];
 
@@ -73,28 +67,6 @@ export function postQueryColumns() {
     createdAt: true,
     updatedAt: true,
   } as const;
-}
-
-export async function validatePatchPostRequest(
-  existingPost: Pick<PostRow, "contentType" | "title">,
-  body: {
-    slug?: string | null;
-    markdown?: string;
-  }
-): Promise<PostDomainError | null> {
-  if (body.slug !== undefined && !supportsPostSlug(existingPost.contentType)) {
-    return new PostSlugNotSupportedError();
-  }
-
-  if (body.markdown !== undefined) {
-    try {
-      await renderMarkdownToHtml(body.markdown);
-    } catch {
-      return new PostInvalidMarkdownError();
-    }
-  }
-
-  return null;
 }
 
 /** Leave unexpected database errors to Hono's central error handler. */
