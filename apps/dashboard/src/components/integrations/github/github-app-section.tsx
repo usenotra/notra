@@ -19,7 +19,7 @@ function GitHubAccounts({
   handleOpenConnect,
   setLegacyOpen,
 }: GitHubAppSectionProps) {
-  if (isLoading || isLoadingLegacyIntegrations) {
+  if (isLoading) {
     return <GitHubIntegrationSkeleton />;
   }
   if (githubAppQuery.isError && !githubAppQuery.data) {
@@ -61,6 +61,9 @@ function GitHubAccounts({
         ))}
       </section>
     );
+  }
+  if (isLoadingLegacyIntegrations) {
+    return <GitHubIntegrationSkeleton />;
   }
   return (
     <div className="bg-muted/40 space-y-3 rounded-2xl p-5">
