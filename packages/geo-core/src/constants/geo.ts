@@ -1147,7 +1147,7 @@ export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";
 export const GEO_MAX_DOMAINS = 20;
 export const GEO_PROJECT_DOMAINS_LABEL = "Tracked domains";
 export const GEO_PROJECT_DOMAINS_DESCRIPTION =
-  "Other sites that send AI traffic to this project, besides the brand website. Install the same ingest token on each. Ingest only records visits on the brand website and these domains, so a leaked token cannot register other hosts. Subdomains of a listed domain are included.";
+  "Other sites besides the brand website. Same ingest token; only listed domains and their subdomains are recorded.";
 export const GEO_PROJECT_DOMAINS_PLACEHOLDER = "docs.example.com";
 export const GEO_COMPETITOR_MAX_SYNONYMS = 8;
 export const GEO_SHORT_FIELD_MAX_LENGTH = 128;
