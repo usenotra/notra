@@ -21,23 +21,27 @@ const DITHERING_SPEED = 0.5;
 
 export function AuthBrandPanel() {
   const shouldReduceMotion = useReducedMotion();
-  const [canMountDithering, setCanMountDithering] = useState(false);
+  const [canMountPanel, setCanMountPanel] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(
       `(min-width: ${AUTH_SPLIT_PANEL_MIN_WIDTH})`
     );
     const onChange = () => {
-      setCanMountDithering(mediaQuery.matches);
+      setCanMountPanel(mediaQuery.matches);
     };
     onChange();
     mediaQuery.addEventListener("change", onChange);
     return () => mediaQuery.removeEventListener("change", onChange);
   }, []);
 
+  if (!canMountPanel) {
+    return null;
+  }
+
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(200deg,#a78bfa_0%,#7c3aed_55%,#5b21b6_100%)] p-14">
-      {shouldReduceMotion || !canMountDithering ? null : (
+      {shouldReduceMotion ? null : (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <Dithering
             className="absolute top-[56.875rem] left-[calc(100%-38.75rem)] h-[49.0625rem] w-[56.625rem] origin-top-left rotate-[270deg] opacity-30"

@@ -137,11 +137,6 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-function preloadFigmaAndPaperExport() {
-  preloadImageExportCopy("figma");
-  preloadImageExportCopy("paper");
-}
-
 function extractTitleFromMarkdown(markdown: string): string {
   const match = markdown.match(CONTENT_TITLE_REGEX);
   return match?.[1] ?? "Untitled";
@@ -1712,14 +1707,7 @@ export default function PageClient({
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          render={
-                            <Button
-                              onFocus={preloadFigmaAndPaperExport}
-                              onMouseEnter={preloadFigmaAndPaperExport}
-                              size="icon-sm"
-                              variant="outline"
-                            />
-                          }
+                          render={<Button size="icon-sm" variant="outline" />}
                         >
                           <span className="sr-only">Select export target</span>
                           <HugeiconsIcon

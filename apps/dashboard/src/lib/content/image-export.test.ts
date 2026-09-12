@@ -224,21 +224,29 @@ async function expectNoUnhandledRejection(
 test("a failed kiwi import during a skipped copy does not reject unhandled", async () => {
   const errorLog = mock(() => undefined);
   const previousError = console.error;
+  let figmaImports = 0;
+  let paperImports = 0;
   console.error = errorLog;
   resetImageExportCopyForTests({
     figma: async () => {
+      figmaImports += 1;
       throw new Error("figma chunk failed");
     },
     paper: async () => {
+      paperImports += 1;
       throw new Error("paper chunk failed");
     },
   });
 
   try {
-    await expectNoUnhandledRejection(async () => {
-      await copyImageAsFigma(null);
-      await copyImageAsPaper(null);
+    await withWindow(async () => {
+      await expectNoUnhandledRejection(async () => {
+        await copyImageAsFigma(null);
+        await copyImageAsPaper(null);
+      });
     });
+    expect(figmaImports).toBe(1);
+    expect(paperImports).toBe(1);
   } finally {
     console.error = previousError;
     resetImageExportCopyForTests();
