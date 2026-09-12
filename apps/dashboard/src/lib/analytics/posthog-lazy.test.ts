@@ -226,3 +226,28 @@ test("a timed-out flush does not abandon a newer init", async () => {
     resetPostHogForTests();
   }
 });
+
+test("flushTrackEvent captures with sendBeacon so navigation can still deliver", async () => {
+  const capture = mock(() => undefined);
+  resetPostHogForTests(() =>
+    Promise.resolve({
+      default: {
+        init: mock(() => undefined),
+        capture,
+      },
+    })
+  );
+
+  const timers = installMockTimers();
+  try {
+    await flushTrackEvent("$pageview", { from: "logout" });
+    expect(capture).toHaveBeenCalledWith(
+      "$pageview",
+      { from: "logout" },
+      { send_instantly: true, transport: "sendBeacon" }
+    );
+  } finally {
+    timers.restore();
+    resetPostHogForTests();
+  }
+});

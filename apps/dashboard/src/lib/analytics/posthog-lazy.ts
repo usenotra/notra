@@ -114,7 +114,10 @@ export function getPostHogInitGeneration(): number {
 }
 
 type TestPostHogImport = () => Promise<{
-  default: { init: (...args: never[]) => unknown };
+  default: {
+    init: (...args: never[]) => unknown;
+    capture?: (...args: unknown[]) => unknown;
+  };
 }>;
 
 /** Test-only: drop client state so a later case can start a fresh init. */

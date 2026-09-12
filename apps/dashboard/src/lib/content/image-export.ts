@@ -128,6 +128,7 @@ export async function copyImageAsFigma(
 ): Promise<void> {
   try {
     const copyFnPromise = loadCopyAsFigma();
+    void copyFnPromise.catch(() => undefined);
     const copied = await withExportElement(
       element,
       html,
@@ -156,6 +157,7 @@ export async function copyImageAsPaper(
 ): Promise<void> {
   try {
     const copyFnPromise = loadCopyAsPaper();
+    void copyFnPromise.catch(() => undefined);
     const copied = await withExportElement(
       element,
       html,

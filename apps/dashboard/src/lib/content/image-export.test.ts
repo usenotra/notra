@@ -157,3 +157,45 @@ test("preload is a no-op without window and does not copy", () => {
     }
   }
 });
+
+async function expectNoUnhandledRejection(
+  run: () => Promise<void>
+): Promise<void> {
+  const unhandled: unknown[] = [];
+  const onUnhandled = (reason: unknown) => {
+    unhandled.push(reason);
+  };
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    await run();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(unhandled).toEqual([]);
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+  }
+}
+
+test("a failed kiwi import during a skipped copy does not reject unhandled", async () => {
+  const errorLog = mock(() => undefined);
+  const previousError = console.error;
+  console.error = errorLog;
+  resetImageExportCopyForTests({
+    figma: async () => {
+      throw new Error("figma chunk failed");
+    },
+    paper: async () => {
+      throw new Error("paper chunk failed");
+    },
+  });
+
+  try {
+    await expectNoUnhandledRejection(async () => {
+      await copyImageAsFigma(null);
+      await copyImageAsPaper(null);
+    });
+  } finally {
+    console.error = previousError;
+    resetImageExportCopyForTests();
+  }
+});

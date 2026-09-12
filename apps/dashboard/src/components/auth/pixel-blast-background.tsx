@@ -4,6 +4,8 @@ import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+import { isWebGLAvailable } from "@/utils/webgl";
+
 // Matches the auth layout `hidden lg:flex` column (`lg` is 64rem in this
 // Tailwind theme) so Three never mounts in a `display: none` ancestor.
 const AUTH_PIXEL_BLAST_MIN_WIDTH = "64rem";
@@ -19,23 +21,21 @@ const PATTERN_SPEED = 0.5;
 
 export function PixelBlastBackground() {
   const shouldReduceMotion = useReducedMotion();
-  const [isDesktopLg, setIsDesktopLg] = useState<boolean | undefined>(
-    undefined
-  );
+  const [canMountBlast, setCanMountBlast] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(
       `(min-width: ${AUTH_PIXEL_BLAST_MIN_WIDTH})`
     );
     const onChange = () => {
-      setIsDesktopLg(mediaQuery.matches);
+      setCanMountBlast(mediaQuery.matches && isWebGLAvailable());
     };
     onChange();
     mediaQuery.addEventListener("change", onChange);
     return () => mediaQuery.removeEventListener("change", onChange);
   }, []);
 
-  if (shouldReduceMotion || isDesktopLg !== true) {
+  if (shouldReduceMotion || !canMountBlast) {
     return null;
   }
 
