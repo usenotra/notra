@@ -258,7 +258,8 @@ async function sendDailySummaryForOrganization({
     isUnchangedDailySummary({
       yesterday,
       previousDay,
-      eventCount: allEvents.length,
+      changes,
+      hasNewEngine: allEvents.some((event) => event.kind === "new_engine"),
     })
   ) {
     return "quiet";
