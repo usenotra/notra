@@ -24,7 +24,15 @@ export default function PageClient({
     handleOpenRepositories,
     handleOpenConnect,
     githubAppQuery,
+    isLoading,
+    isLoadingLegacyIntegrations,
   } = settings;
+  const showGitHubAppSection =
+    isLoading ||
+    isLoadingLegacyIntegrations ||
+    isConnected ||
+    githubIntegrations.length > 0 ||
+    (githubAppQuery.isError && !githubAppQuery.data);
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-10 px-4 lg:px-6">
@@ -50,9 +58,7 @@ export default function PageClient({
           ) : null}
         </div>
         <GitHubRepositoriesSection {...settings} />
-        {githubIntegrations.length > 0 || isConnected ? (
-          <GitHubAppSection {...settings} />
-        ) : null}
+        {showGitHubAppSection ? <GitHubAppSection {...settings} /> : null}
       </div>
       <ConnectGitHubDialog
         isConnecting={false}

@@ -9,6 +9,7 @@ import type { GitHubAppSectionProps } from "@/types/integrations/github-settings
 function GitHubAccounts({
   githubAppQuery,
   isLoading,
+  isLoadingLegacyIntegrations,
   isConnected,
   accounts,
   repositories,
@@ -18,7 +19,7 @@ function GitHubAccounts({
   handleOpenConnect,
   setLegacyOpen,
 }: GitHubAppSectionProps) {
-  if (isLoading) {
+  if (isLoading || isLoadingLegacyIntegrations) {
     return <GitHubIntegrationSkeleton />;
   }
   if (githubAppQuery.isError && !githubAppQuery.data) {
@@ -80,21 +81,7 @@ function GitHubAccounts({
 }
 
 export function GitHubAppSection(props: GitHubAppSectionProps) {
-  const {
-    githubAppQuery,
-    isLoading,
-    isLoadingLegacyIntegrations,
-    isConnected,
-    handleOpenConnect,
-    setLegacyOpen,
-  } = props;
-  const hasAccountContent =
-    isLoading ||
-    (githubAppQuery.isError && !githubAppQuery.data) ||
-    isConnected;
-  if (!hasAccountContent && isLoadingLegacyIntegrations) {
-    return null;
-  }
+  const { isConnected, handleOpenConnect, setLegacyOpen } = props;
   return (
     <section
       aria-labelledby="github-app-heading"
