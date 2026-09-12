@@ -55,6 +55,19 @@ function GitHubContentPublishingSettings({
   const directory =
     directoryQuery.data?.directory ??
     DEFAULT_GITHUB_CONTENT_DIRECTORIES[contentType];
+  const directoryQueryKey =
+    dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
+      input: { organizationId, repositoryId, contentType },
+    });
+  // Both saves return the whole configuration. Overlapping requests can
+  // resolve out of order, so the server state is refetched after each save
+  // instead of trusting the response as the latest configuration.
+  const settleDirectoryConfig = (
+    result: NonNullable<typeof directoryQuery.data>
+  ) => {
+    queryClient.setQueryData(directoryQueryKey, result);
+    return queryClient.invalidateQueries({ queryKey: directoryQueryKey });
+  };
   const directoryMutation = useMutation({
     mutationFn: ({
       nextDirectory,
@@ -66,31 +79,11 @@ function GitHubContentPublishingSettings({
         contentType,
         directory: nextDirectory,
       }),
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({
-        queryKey:
-          dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey(
-            {
-              input: {
-                organizationId,
-                repositoryId: variables.targetRepositoryId,
-                contentType,
-              },
-            }
-          ),
-      });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: directoryQueryKey });
     },
-    onSuccess: (result, variables) => {
-      queryClient.setQueryData(
-        dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
-          input: {
-            organizationId,
-            repositoryId: variables.targetRepositoryId,
-            contentType,
-          },
-        }),
-        result
-      );
+    onSuccess: async (result) => {
+      await settleDirectoryConfig(result);
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.integrations.list.queryKey({
           input: { organizationId },
@@ -115,17 +108,11 @@ function GitHubContentPublishingSettings({
         contentPath,
         imagePath,
       }),
-    onSuccess: (result, variables) => {
-      queryClient.setQueryData(
-        dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
-          input: {
-            organizationId,
-            repositoryId: variables.targetRepositoryId,
-            contentType,
-          },
-        }),
-        result
-      );
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: directoryQueryKey });
+    },
+    onSuccess: async (result) => {
+      await settleDirectoryConfig(result);
       toast.success(`${contentLabel} paths saved`);
     },
     onError: (error) => {
@@ -211,7 +198,9 @@ function GitHubContentPublishingSettings({
           <GitHubDirectoryPicker
             contentLabel={contentLabel}
             directory={directory}
-            disabled={disabled || directoryQuery.isLoading}
+            disabled={
+              disabled || directoryQuery.isLoading || pathMutation.isPending
+            }
             isSaving={directoryMutation.isPending}
             key={selectedRepository.id}
             onSave={async (nextDirectory) => {
@@ -235,6 +224,7 @@ function GitHubContentPublishingSettings({
         disabled={
           disabled ||
           directoryQuery.isLoading ||
+          directoryMutation.isPending ||
           (directoryQuery.isError && !directoryQuery.data)
         }
         imagePath={directoryQuery.data?.imagePath ?? null}
