@@ -1,30 +1,13 @@
-import { ArrowUpDownIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_FILTER_TRIGGER_CLASS } from "@notra/geo-core/constants/geo";
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
 import { Button } from "@notra/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuCheckboxItem,
-} from "@notra/ui/components/ui/dropdown-menu";
-import { useState } from "react";
 
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
-import { SentimentScore } from "@/components/geo/sentiment-score";
 import { SentimentSkeleton } from "@/components/geo/sentiment-skeleton";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
+import { InstrumentEmpty } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_CHART_CONFIG,
   SENTIMENT_SCORE_FORMAT,
-  SENTIMENT_SCORE_HINT,
 } from "@/constants/geo-sentiment";
 import type {
   SentimentTrendCardProps,
@@ -35,9 +18,9 @@ import {
   hasIsolatedSentimentPoint,
   sentimentTrendState,
   sentimentComparisonData,
-  sentimentComparisonLabel,
   sentimentEmptyMessage,
 } from "@/utils/geo-sentiment";
+import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
 
 export function SentimentTrendCard({
   points,
@@ -48,63 +31,10 @@ export function SentimentTrendCard({
   summary,
   retry,
 }: SentimentTrendCardProps) {
-  const [showCurrent, setShowCurrent] = useState(true);
-  const [showPrevious, setShowPrevious] = useState(true);
-  const { hasRatings } = sentimentTrendState({
-    points,
-    comparison,
-    isPending,
-    isError,
-    isScanning,
-  });
-  const ready = !isPending && !isError;
   return (
-    <InstrumentModule
-      eyebrow="Brand sentiment"
-      variant="table"
-      className="lg:col-span-7"
-      bodyClassName="gap-3 px-4 pt-1 pb-4"
-      hint={SENTIMENT_SCORE_HINT}
-      action={
-        ready && hasRatings ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={GEO_FILTER_TRIGGER_CLASS}
-              aria-label="Visible sentiment periods"
-            >
-              <span>Periods</span>
-              <HugeiconsIcon icon={ArrowUpDownIcon} size={12} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>Show sentiment scores</DropdownMenuLabel>
-                <DropdownMenuCheckboxItem
-                  checked={showCurrent}
-                  onCheckedChange={setShowCurrent}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="bg-geo-search size-2 rounded-full"
-                  />
-                  Current period
-                </DropdownMenuCheckboxItem>
-                {comparison ? (
-                  <DropdownMenuCheckboxItem
-                    checked={showPrevious}
-                    onCheckedChange={setShowPrevious}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="bg-geo-memory size-2 rounded-full"
-                    />
-                    Previous period
-                  </DropdownMenuCheckboxItem>
-                ) : null}
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : undefined
-      }
+    <div
+      className="flex min-w-0 flex-col justify-center gap-3 p-4 sm:p-5"
+      aria-label="Sentiment history"
     >
       <SentimentTrendContent
         points={points}
@@ -114,10 +44,10 @@ export function SentimentTrendCard({
         isError={isError}
         isScanning={isScanning}
         retry={retry}
-        showCurrent={showCurrent}
-        showPrevious={showPrevious}
+        showCurrent
+        showPrevious={false}
       />
-    </InstrumentModule>
+    </div>
   );
 }
 
@@ -149,9 +79,6 @@ function SentimentTrendContent(props: SentimentTrendContentProps) {
   const { hasRatings } = sentimentTrendState(props);
   return (
     <>
-      {summary ? (
-        <SentimentScore summary={summary} comparison={comparison} />
-      ) : null}
       {hasRatings && points ? (
         <SentimentTrendPlot
           points={points}
@@ -162,7 +89,7 @@ function SentimentTrendContent(props: SentimentTrendContentProps) {
       ) : (
         <InstrumentEmpty
           seed="Sentiment trend"
-          className="h-64 min-h-64 [&_p]:normal-case"
+          className="h-52 min-h-52 [&_p]:normal-case"
           busy={isScanning}
           message={
             isScanning ? "Scan in progress" : sentimentEmptyMessage(summary)
@@ -185,10 +112,12 @@ function SentimentTrendPlot({
   showCurrent,
   showPrevious,
 }: SentimentTrendPlotProps) {
+  const estimates = sentimentTailEstimate(points);
+  const hasEstimate = showCurrent && estimates.some((value) => value !== null);
   return (
     <EChartsAreaChart
       animation={false}
-      className="h-64 min-h-64 w-full"
+      className="h-52 min-h-52 w-full"
       config={SENTIMENT_CHART_CONFIG}
       curveType="monotoneX"
       enableHoverHighlight={false}
@@ -198,7 +127,10 @@ function SentimentTrendPlot({
         comparison,
         showCurrent,
         showPrevious,
-      })}
+      }).map((row, index) => ({
+        ...row,
+        estimate: showCurrent ? (estimates[index] ?? null) : null,
+      }))}
       xDataKey="day"
     >
       <EChartsAreaChart.Grid variant="solid" />
@@ -236,12 +168,22 @@ function SentimentTrendPlot({
           ) : null}
         </EChartsAreaChart.Area>
       ) : null}
+      {hasEstimate ? (
+        <EChartsAreaChart.Area
+          dataKey="estimate"
+          curveType="linear"
+          gapMissing
+          connectNulls={false}
+          enableBufferLine={false}
+          strokeVariant="dashed"
+          strokeWidth={2}
+          variant="none"
+        />
+      ) : null}
       <EChartsAreaChart.Tooltip
         hideZeros={false}
         labelKey="day"
-        labelFormatter={(day) =>
-          sentimentComparisonLabel(day, points, comparison)
-        }
+        labelFormatter={formatDayLabel}
         valueFormatter={(value) =>
           `${SENTIMENT_SCORE_FORMAT.format(value)} / 100`
         }

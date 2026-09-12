@@ -50,7 +50,7 @@ export function sentimentThemesState({
   const busy = !isError && (isAnalyzing || state?.status === "pending");
   const loading = !isError && (isPending || aggregatePending);
   const noRatings = summary?.classifiedMentions === 0;
-  let message = "Find themes supported by your saved answers.";
+  let message = "";
   if (state?.status === "ready") {
     message = "No supported themes in the sampled answers.";
   }
@@ -79,18 +79,20 @@ export function sentimentThemesState({
   if (loading) {
     statusText = "Loading analysis…";
   }
+  const canAnalyze =
+    settled &&
+    !!summary &&
+    (state?.status === "stale" || state?.status === "failed");
   return {
     pending: busy || loading,
+    title: "No themes yet",
     message,
     statusText,
     showResults,
     showTable: busy || loading || showResults,
     showEmpty: !loading && !busy && !isError && !showResults,
     showSampling: settled && state?.status === "ready",
-    canAnalyze:
-      settled &&
-      !!summary &&
-      (state?.status === "stale" || state?.status === "failed"),
+    canAnalyze,
   };
 }
 
@@ -152,16 +154,4 @@ export function sentimentComparisonData({
     score: showCurrent ? score : null,
     previous: showPrevious ? (comparison?.points[index]?.score ?? null) : null,
   }));
-}
-
-export function sentimentComparisonLabel(
-  day: string,
-  points: GeoSentimentResponse["points"],
-  comparison: GeoSentimentResponse["comparison"]
-) {
-  const previous =
-    comparison?.points[points.findIndex((point) => point.day === day)]?.day;
-  return previous
-    ? `Current: ${day} · Previous: ${previous} (UTC)`
-    : `${day} (UTC)`;
 }

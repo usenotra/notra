@@ -44,6 +44,7 @@ export function useGeoSentimentAnalysis(organizationId: string) {
     mutation.isPending &&
     JSON.stringify(mutation.variables) === JSON.stringify(input);
   return {
+    scopeKey: JSON.stringify(input),
     query,
     isAnalyzing,
     analyze: () => mutation.mutate(input),

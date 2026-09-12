@@ -12,9 +12,14 @@ export interface SentimentScoreProps {
 export interface SentimentSkeletonProps {
   compact?: boolean;
 }
-export interface SentimentThemeRowProps {
-  theme: SentimentTheme;
+export interface SentimentDetailRow {
+  id: string;
+  title: string;
+  polarity: SentimentTheme["polarity"];
+  evidence: SentimentTheme["evidence"];
 }
+
+export type SentimentTableView = "themes" | "answers";
 export interface SentimentTrendPlotProps {
   points: GeoSentimentResponse["points"];
   comparison?: GeoSentimentResponse["comparison"];
@@ -27,10 +32,6 @@ export interface SentimentFamilyRow {
   iconEngine: string;
   label: string;
   score: number | null;
-}
-
-export interface SentimentFamilyListProps {
-  engines: GeoSentimentResponse["engines"];
 }
 
 export interface SentimentTrendCardProps {
@@ -58,6 +59,13 @@ export interface SentimentThemesProps {
   summary?: GeoSentimentResponse["summary"];
   aggregatePending?: boolean;
 }
+export interface SentimentThemesEmptyProps {
+  title: string;
+  message: string;
+  canAnalyze: boolean;
+  retrying: boolean;
+  analyze: () => void;
+}
 
 export interface SentimentThemesStateInput {
   state?: SentimentAnalysisState;
@@ -68,7 +76,7 @@ export interface SentimentThemesStateInput {
   aggregatePending: boolean;
 }
 
-export interface SentimentDistributionProps {
+export interface SentimentSummaryProps {
   data?: GeoSentimentResponse;
   isPending: boolean;
   isError: boolean;

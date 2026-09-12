@@ -1,11 +1,7 @@
-import { Button } from "@notra/ui/components/ui/button";
-
-import { EmptyStateTablePreview } from "@/components/empty-state-preview";
-import { SentimentThemeTable } from "@/components/geo/sentiment-theme-table";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
+import { Button } from "@/components/button";
+import { SentimentResultsTable } from "@/components/geo/sentiment-results-table";
+import { SentimentThemesEmpty } from "@/components/geo/sentiment-themes-empty";
+import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type { SentimentThemesProps } from "@/types/geo-sentiment";
 import { sentimentThemesState } from "@/utils/geo-sentiment";
@@ -15,7 +11,7 @@ export function SentimentThemes({
   summary,
   aggregatePending = false,
 }: SentimentThemesProps) {
-  const { query, isAnalyzing, analyze, mutationError } =
+  const { query, isAnalyzing, analyze, mutationError, scopeKey } =
     useGeoSentimentAnalysis(organizationId);
   const state = query.data;
   const view = sentimentThemesState({
@@ -48,26 +44,19 @@ export function SentimentThemes({
         </p>
       ) : null}
       {view.showTable ? (
-        <SentimentThemeTable pending={view.pending} themes={themes} />
+        <SentimentResultsTable
+          key={scopeKey}
+          pending={view.pending}
+          themes={themes}
+        />
       ) : null}
       {view.showEmpty ? (
-        <InstrumentEmpty
-          seed="Sentiment themes"
-          className="h-auto min-h-44 [&_p]:normal-case"
+        <SentimentThemesEmpty
+          title={view.title}
           message={view.message}
-          preview={<EmptyStateTablePreview columns={[70, 180, 50]} rows={3} />}
-          action={
-            view.canAnalyze ? (
-              <div className="space-y-2">
-                <Button size="sm" onClick={analyze}>
-                  {retrying ? "Retry finding themes" : "Find themes"}
-                </Button>
-                <p className="text-muted-foreground text-xs">
-                  Uses AI credits or one AI answer from your plan.
-                </p>
-              </div>
-            ) : undefined
-          }
+          canAnalyze={view.canAnalyze}
+          retrying={retrying}
+          analyze={analyze}
         />
       ) : null}
       <p

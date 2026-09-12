@@ -89,7 +89,9 @@ export function GeoTabs({
         value={activeTab}
       >
         <PermissionOption value="visibility">Visibility</PermissionOption>
-        <PermissionOption value="sentiment">Brand Sentiment</PermissionOption>
+        <PermissionOption value="brand-sentiment">
+          Brand Sentiment
+        </PermissionOption>
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
             Journeys
@@ -174,7 +176,7 @@ export function GeoTabs({
         </div>
       ) : null}
 
-      {activeTab === "sentiment" ? (
+      {activeTab === "brand-sentiment" ? (
         <div className="mt-6">
           <TabSection active={revealActive} order={0}>
             <BrandSentimentCard

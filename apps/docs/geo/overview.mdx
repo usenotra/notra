@@ -142,31 +142,40 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 
 ### Brand Sentiment
 
-The **Brand Sentiment** dashboard tab uses two native dualtone cards:
-a compact score and period-comparison trend on the left, with the positive, neutral
-and negative distribution on the right. A standalone themes table sits below the cards.
-The cards stack on mobile. Loading uses layout-preserving skeletons; empty states
-distinguish no saved answers, no rated mentions and no supported themes.
-The distribution includes an exact-proportion stacked bar and a textual count/percentage
-legend. Sampling and denominator details are available in compact disclosures.
-Expand **Provider scores** for the compact provider breakdown. Each row shows the family's logo,
-name and score. Families follow the standard GEO brand order,
-with unlisted families sorted by name, rather than being ranked by score.
-Model and search-mode counts are combined within each family before scoring.
-An unrated family shows a dash; an all-negative family scores 0.
-These rows are read-only summaries for the selected project and date range.
+The **Brand Sentiment** dashboard tab uses two native dualtone cards side by side:
+a wide current-period chart on the left and a compact **Current sentiment score** card on the right.
+The summary shows **Current sentiment score**, its change from the previous period,
+and a 0–100 score-position scale. Hover or focus the black marker to see the current
+score. Unrated answers and answers without a brand mention are excluded.
+The chart and summary stack on mobile. Loading uses layout-preserving skeletons;
+empty states distinguish no saved answers, no rated mentions and no supported themes.
+
+Below, the same table component used elsewhere in GEO offers **By theme** and
+**Supporting answers** views. The first lists themes, sentiment, models and distinct
+supporting-answer counts. The second lists the original prompts for the cited answers,
+deduplicated by saved check. It shows the analyzed evidence sample, not all responses
+in the selected period. Select a row to open the original quotes, model and timestamp
+in a detail sheet. Multiple quoted passages from the same answer remain available.
+On mobile, sentiment appears beneath the theme or prompt; model details remain in
+the sheet. Sampling details sit below the table.
 The trend uses the Mention Activity chart with monotone curves and a subtle current-period
 fill on a fixed 0–100 scale with gaps for missing
 ratings. Point markers appear when a rated day has no rated neighbor, so isolated
-observations remain visible. Contiguous series use a clean line. It includes no forecast.
+observations remain visible. Contiguous series use a clean line. If the selected window
+ends with missing days, a dashed line extends the last observed
+score for up to three days, using the same linear-trend calculation as Mention Activity.
+It requires at least three completed observed days and stays within 0–100. Internal
+gaps remain empty. Tooltips label the estimates separately; they do not affect scores,
+comparisons, mention counts or saved data.
 The previous period covers the same number of UTC calendar days immediately before the
-selected inclusive window. The two observed lines align by day within their respective
-periods, and tooltips identify both dates. Toggle either period independently in **Periods**.
+selected inclusive window. The shared dashboard date filter controls the chart;
+the previous period is used for the score comparison rather than a second plotted line.
 Focus or hover the score comparison to see both full date windows.
 The delta is in **score points**, not a percent change. It is unavailable when either
 period has no classified mentions. Unspecified windows default to 30 UTC calendar days
 including today. Explicit windows support up to 366 days.
-It replaces the dashboard's former Prompts tab. Open it directly with `?tab=sentiment`.
+It replaces the dashboard's former Prompts tab. Open it directly with `?tab=brand-sentiment`.
+Existing `?tab=sentiment` links open the same view and update to the canonical tab name.
 Legacy `?tab=prompts` links fall back to **Visibility**. Prompt management remains
 on the standalone `/geo/prompts` page.
 

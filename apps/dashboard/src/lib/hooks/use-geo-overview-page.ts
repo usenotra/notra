@@ -1,11 +1,9 @@
 "use client";
 
-import { GEO_DEFAULT_TAB, GEO_TAB_VALUES } from "@notra/geo-core/constants/geo";
 import type { GeoTab } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useReducedMotion } from "motion/react";
-import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -25,6 +23,7 @@ import {
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
+import { useGeoTab } from "@/lib/hooks/use-geo-tab";
 import type { GeoOverviewPageModel } from "@/types/geo";
 import { resolveOrganizationId } from "@/utils/geo-overview-organization";
 import {
@@ -104,10 +103,7 @@ export function useGeoOverviewPage(
     getOrganization(organizationSlug)
   );
   const geoRange = useGeoRange();
-  const [activeTab, setActiveTab] = useQueryState(
-    "tab",
-    parseAsStringLiteral(GEO_TAB_VALUES).withDefault(GEO_DEFAULT_TAB)
-  );
+  const { activeTab, setActiveTab } = useGeoTab();
 
   const { data: settingsData, isPending: isSettingsPending } =
     useGeoSettings(organizationId);
