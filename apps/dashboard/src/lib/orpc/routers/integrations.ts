@@ -16,7 +16,7 @@ import {
   getTokenForIntegrationId,
   getWebhookConfigForRepository,
   listAvailableRepositories,
-  setRepositoryOutputDirectory,
+  setRepositoryOutputConfig,
   toggleOutput,
   updateGitHubIntegration,
   updateGitHubIntegrationToken,
@@ -817,7 +817,11 @@ export const integrationsRouter = {
           );
 
           return {
-            directory: config.success ? config.data.directory : null,
+            directory: config.success ? (config.data.directory ?? null) : null,
+            contentPath: config.success
+              ? (config.data.contentPath ?? null)
+              : null,
+            imagePath: config.success ? (config.data.imagePath ?? null) : null,
           };
         }),
       update: baseProcedure
@@ -836,13 +840,38 @@ export const integrationsRouter = {
             input.repositoryId
           );
 
-          await setRepositoryOutputDirectory({
+          await setRepositoryOutputConfig({
             repositoryId: input.repositoryId,
             outputType: input.contentType,
-            directory: input.directory,
+            ...(input.directory !== undefined
+              ? { directory: input.directory }
+              : {}),
+            ...(input.contentPath !== undefined
+              ? { contentPath: input.contentPath }
+              : {}),
+            ...(input.imagePath !== undefined
+              ? { imagePath: input.imagePath }
+              : {}),
           });
 
-          return { directory: input.directory };
+          const output = await db.query.repositoryOutputs.findFirst({
+            where: and(
+              eq(repositoryOutputs.repositoryId, input.repositoryId),
+              eq(repositoryOutputs.outputType, input.contentType)
+            ),
+            columns: { config: true },
+          });
+          const config = repositoryContentDirectoryConfigSchema.safeParse(
+            output?.config
+          );
+
+          return {
+            directory: config.success ? (config.data.directory ?? null) : null,
+            contentPath: config.success
+              ? (config.data.contentPath ?? null)
+              : null,
+            imagePath: config.success ? (config.data.imagePath ?? null) : null,
+          };
         }),
     },
     directories: {

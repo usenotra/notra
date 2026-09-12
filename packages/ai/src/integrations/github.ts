@@ -40,7 +40,7 @@ import type {
   ErrorWithStatus,
   GitHubOrgMembershipCheck,
   RepositoryOutputType,
-  SetRepositoryOutputDirectoryParams,
+  SetRepositoryOutputConfigParams,
   ValidateRepositoryBranchExistsParams,
   WebhookConfig,
 } from "../types/integrations";
@@ -137,6 +137,12 @@ function readGitHubAppConfig() {
 export function isGitHubAppConfigured() {
   const { appId, privateKey, slug } = readGitHubAppConfig();
   return Boolean(appId && privateKey && slug);
+}
+
+/** Login GitHub assigns to commits made with an installation token. */
+export function getGitHubAppBotLogin() {
+  const { slug } = readGitHubAppConfig();
+  return isGitHubAppConfigured() && slug ? `${slug}[bot]` : null;
 }
 
 function getGitHubAppConfig() {
@@ -1167,17 +1173,24 @@ export async function configureOutput(params: ConfigureOutputParams) {
   return output;
 }
 
-export async function setRepositoryOutputDirectory(
-  params: SetRepositoryOutputDirectoryParams
+export async function setRepositoryOutputConfig(
+  params: SetRepositoryOutputConfigParams
 ) {
-  const directoryConfig = JSON.stringify({ directory: params.directory });
+  const config = {
+    ...(params.directory !== undefined ? { directory: params.directory } : {}),
+    ...(params.contentPath !== undefined
+      ? { contentPath: params.contentPath }
+      : {}),
+    ...(params.imagePath !== undefined ? { imagePath: params.imagePath } : {}),
+  };
+  const serializedConfig = JSON.stringify(config);
   const mergedConfig = sql`(
     CASE
       WHEN jsonb_typeof(${repositoryOutputs.config}) = 'object'
         THEN ${repositoryOutputs.config}
       ELSE '{}'::jsonb
     END
-  ) || ${directoryConfig}::jsonb`;
+  ) || ${serializedConfig}::jsonb`;
   const [output] = await db
     .insert(repositoryOutputs)
     .values({
@@ -1186,7 +1199,7 @@ export async function setRepositoryOutputDirectory(
       outputType: params.outputType,
       enabled:
         params.outputType === "changelog" || params.outputType === "blog_post",
-      config: { directory: params.directory },
+      config,
     })
     .onConflictDoUpdate({
       target: [repositoryOutputs.repositoryId, repositoryOutputs.outputType],

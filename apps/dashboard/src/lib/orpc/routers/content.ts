@@ -3,6 +3,7 @@ import {
   describeContentBillingDenial,
 } from "@notra/ai/billing/content-billing";
 import {
+  getGitHubAppBotLogin,
   getGitHubAppInstallationPublishAccess,
   getTokenForIntegrationId,
   isGitHubAppConfigured,
@@ -60,6 +61,7 @@ import {
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
 import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
+import { slugify } from "@notra/utils/slugify";
 import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
 import {
   and,
@@ -100,6 +102,7 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
+import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   publishContentDraftPullRequest,
@@ -859,6 +862,7 @@ export const contentRouter = {
       if (!post.markdown) {
         throw badRequest("Save the content before publishing it to GitHub");
       }
+      const savedMarkdown = post.markdown;
       if (!(integration?.owner && integration.repo)) {
         throw notFound("Selected GitHub repository not found");
       }
@@ -926,12 +930,16 @@ export const contentRouter = {
         contentOutput.config
       );
       const directory = outputConfig.success
-        ? outputConfig.data.directory
+        ? (outputConfig.data.directory ??
+          DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType])
         : DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType];
       const path = resolveGitHubContentPath({
         contentId: input.contentId,
         customPath: input.path,
         directory,
+        pathTemplate: outputConfig.success
+          ? outputConfig.data.contentPath
+          : null,
         slug: post.slug,
         title: post.title,
       });
@@ -940,6 +948,9 @@ export const contentRouter = {
           "The configured directory and content slug exceed GitHub's file path limit"
         );
       }
+
+      const contentSlug =
+        slugify(post.slug ?? "") || slugify(post.title) || input.contentId;
 
       const notraBaseUrl = resolveNotraBaseUrl();
       let publishInstallationId = integration.installationId ?? null;
@@ -978,26 +989,56 @@ export const contentRouter = {
         toGitHubOperationOrpcError
       );
 
+      const octokit = createOctokit(token);
+      const publisherLogin =
+        getGitHubAppBotLogin() ??
+        (await octokit
+          .request("GET /user")
+          .then(({ data }) => data.login)
+          .catch(() => undefined));
+
       try {
-        const result = await publishContentDraftPullRequest(
-          createOctokit(token),
-          {
-            contentId: input.contentId,
-            contentType: input.contentType,
-            owner: integration.owner,
-            repo: integration.repo,
-            defaultBranch: integration.defaultBranch,
-            path,
-            title: post.title,
-            markdown: post.markdown,
-            ...(notraBaseUrl && organization
-              ? {
-                  badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
-                  contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
-                }
-              : {}),
-          }
-        );
+        const result = await publishContentDraftPullRequest(octokit, {
+          contentId: input.contentId,
+          contentType: input.contentType,
+          owner: integration.owner,
+          repo: integration.repo,
+          defaultBranch: integration.defaultBranch,
+          path,
+          title: post.title,
+          markdown: savedMarkdown,
+          pullRequestMarkdown: savedMarkdown,
+          ...(publisherLogin ? { publisherLogin } : {}),
+          ...(outputConfig.success && outputConfig.data.imagePath
+            ? {
+                prepareContent: async (contentPath: string) => {
+                  const preparedContent = await prepareR2GitHubContentAssets({
+                    contentPath,
+                    imagePathTemplate: outputConfig.data.imagePath ?? "",
+                    markdown: savedMarkdown,
+                    slug: contentSlug,
+                  });
+                  if (
+                    preparedContent.assets.some(
+                      (asset) =>
+                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+                    )
+                  ) {
+                    throw badRequest(
+                      "The configured image path exceeds GitHub's path limit"
+                    );
+                  }
+                  return preparedContent;
+                },
+              }
+            : {}),
+          ...(notraBaseUrl && organization
+            ? {
+                badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
+                contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
+              }
+            : {}),
+        });
         await clearGitHubPublishFailures({
           organizationId: input.organizationId,
           outputType: input.contentType,

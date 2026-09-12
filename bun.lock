@@ -171,6 +171,7 @@
         "lucide-react": "^0.562.0",
         "mailchecker": "^6.0.19",
         "marked": "^17.0.1",
+        "mdast-util-from-markdown": "^2.0.3",
         "motion": "^12.34.2",
         "nanoid": "^5.1.6",
         "next": "^16.3.4",
