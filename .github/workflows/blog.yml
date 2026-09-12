@@ -3,9 +3,9 @@ name: Blog
 on:
   push:
     branches: [main]
-    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml"]
+    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
   pull_request:
-    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml"]
+    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
 
 permissions:
   contents: read
@@ -17,24 +17,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - id: links
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
-        with:
-          format: json
-          output: lychee/out.json
-          args: >-
-            --no-progress --max-redirects 0 --accept '200..=299'
-            --exclude '^https://x\.com/'
-            --base-url https://www.usenotra.com/blog/
-            'apps/web/src/content/blog/**/*.mdx'
+      - run: node scripts/github/check-blog-links.mjs
       - if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        run: |
-          jq -r --arg ok "$OK" '"### Blog link checker\n\n\($ok) **\(.successful)/\(.total - .excludes) valid links**", ((.error_map + .timeout_map) // {} | to_entries[] | "\n**\(.key)**", (.value[] | "- `\(.url)`: \(.status.text)"))' lychee/out.json > comment.md
-          echo "\n[View workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> comment.md
-          cat comment.md >> "$GITHUB_STEP_SUMMARY"
-          gh pr comment "$PR" --body-file comment.md --edit-last --create-if-none
+        run: gh pr comment "$PR" --body-file comment.md --edit-last --create-if-none
         env:
-          OK: ${{ steps.links.outcome == 'success' && '✅' || '❌' }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
