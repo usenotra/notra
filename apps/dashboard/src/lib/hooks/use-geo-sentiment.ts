@@ -28,7 +28,7 @@ export function useGeoSentimentAnalysis(organizationId: string) {
     ...options,
     enabled: !!organizationId,
     refetchInterval: (state) =>
-      state.state.data?.status === "pending" ? 3000 : false,
+      state.state.data?.status === "pending" ? 3000 : 30_000,
   });
   const mutation = useMutation({
     ...dashboardOrpc.geo.analyzeSentiment.mutationOptions(),

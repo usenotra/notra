@@ -31,6 +31,7 @@ const { loadGeoSentiment, loadGeoSentimentEvidence } =
   await import("../src/geo/sentiment");
 const { loadGeoSentimentAnalysis } =
   await import("../src/geo/sentiment-analysis");
+const { sentimentAutomation } = await import("../src/geo/sentiment-automation");
 const scope = { organizationId: "org-test", projectId: "main" };
 const window = {
   from: new Date("2026-09-01T00:00:00Z"),
@@ -43,6 +44,23 @@ beforeEach(async () => {
   await resetDatabase();
   await seedProject("main");
   await testDb.insert(geoScans).values({ id: "scan", ...scope });
+});
+
+test("automatic sentiment attempt history stays scoped to the project", async () => {
+  await seedProject("other");
+  await database.postgres.exec(
+    "UPDATE geo_settings SET sentiment_attempted_at = '2026-09-12 12:00:00' WHERE project_id = 'main'"
+  );
+  expect(
+    (await Effect.runPromise(sentimentAutomation(scope))).lastAttemptAt
+  ).toBe("2026-09-12T12:00:00.000Z");
+  expect(
+    (
+      await Effect.runPromise(
+        sentimentAutomation({ ...scope, projectId: "other" })
+      )
+    ).lastAttemptAt
+  ).toBeNull();
 });
 
 test("analysis uses the canonical project GEO brand, scoped to its organization", async () => {
@@ -139,10 +157,14 @@ test("analysis sample and fingerprint enforce historical scope, bounds, polarity
       id: `eligible-${index}`,
       sentiment: index % 2 ? "positive" : "negative",
       answer: "A".repeat(5000),
+      capturedAt: new Date(
+        index === 15 ? "2026-09-02T12:00:00Z" : "2026-09-01T12:00:00Z"
+      ),
     });
   }
   const before = await queryGeoSentimentAnalysisSnapshot(scope, window);
   expect(before.eligible).toBe(16);
+  expect(before.latestCapturedAt).toBe("2026-09-02T12:00:00.000Z");
   const sampled = await queryGeoSentimentAnalysisSample(scope, window, 3, 2000);
   expect(sampled).toHaveLength(6);
   expect(

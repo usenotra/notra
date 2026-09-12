@@ -53,10 +53,15 @@ const output = {
     {
       title: "Easy onboarding",
       polarity: "positive",
-      evidence: sample.map((row) => ({
-        checkId: row.id,
-        quote: "Notra makes onboarding easy.",
-      })),
+      claims: [
+        {
+          statement: "Easy onboarding",
+          evidence: sample.map((row) => ({
+            checkId: row.id,
+            quote: "Notra makes onboarding easy.",
+          })),
+        },
+      ],
     },
   ],
 };
@@ -147,11 +152,14 @@ function memoryStore() {
       locks.set(key, token);
       return true;
     },
-    commit: async (key, resultKey, token, state) => {
+    commit: async (key, resultKey, token, state, latestKey) => {
       if (locks.get(key) !== token) {
         return false;
       }
       values.set(resultKey, state);
+      if (state.status === "ready") {
+        values.set(latestKey, state);
+      }
       locks.delete(key);
       return true;
     },
@@ -210,7 +218,14 @@ test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and
   ]) {
     expect(() =>
       validateSentimentThemes(
-        { themes: [{ ...output.themes[0], evidence }] },
+        {
+          themes: [
+            {
+              ...output.themes[0],
+              claims: [{ statement: "Easy onboarding", evidence }],
+            },
+          ],
+        },
         sample
       )
     ).toThrow();
@@ -288,10 +303,24 @@ test("read path never extracts; concurrent calls singleflight and ready calls id
   await entered;
   expect((await runSentimentAnalysis(run)).status).toBe("pending");
   expect((await readSentimentAnalysis(run)).status).toBe("pending");
+  expect(
+    (
+      await runSentimentAnalysis({
+        ...run,
+        snapshot: async () => ({ fingerprint: "new-inputs", eligible: 3 }),
+      })
+    ).status
+  ).toBe("pending");
   finish();
   expect((await first).status).toBe("ready");
   expect((await runSentimentAnalysis(run)).status).toBe("ready");
   expect(calls).toBe(1);
+  const outdated = await readSentimentAnalysis({
+    ...run,
+    snapshot: async () => ({ fingerprint: "new-inputs", eligible: 3 }),
+  });
+  expect(outdated.status).toBe("stale");
+  expect(outdated.result?.themes).toHaveLength(1);
 });
 
 test("empty history does not call the model; cache results cannot cross scopes", async () => {
@@ -355,7 +384,7 @@ test("a result completed between lookup and lease acquisition does not generate 
     },
   });
   expect(state).toEqual(ready);
-  expect(await store.locked("scope:a:lock")).toBe(false);
+  expect(await store.locked("scope:lock")).toBe(false);
 });
 
 test("freshness changes and lease theft cannot publish old results; failed runs retry", async () => {
@@ -397,14 +426,14 @@ test("freshness changes and lease theft cannot publish old results; failed runs 
       await runSentimentAnalysis({
         ...run,
         extract: async () => {
-          locks.set("scope:c:lock", "new-owner");
+          locks.set("scope:lock", "new-owner");
           return output;
         },
       })
     ).status
   ).toBe("stale");
   expect(values.has("scope:c")).toBe(false);
-  expect(locks.get("scope:c:lock")).toBe("new-owner");
+  expect(locks.get("scope:lock")).toBe("new-owner");
   expect(
     new Set([
       sentimentAnalysisKey("a", "p", "2026-01-01", "2026-01-02"),

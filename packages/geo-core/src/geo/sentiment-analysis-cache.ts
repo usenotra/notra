@@ -32,10 +32,10 @@ export function sentimentAnalysisStore(): SentimentAnalysisStore | null {
         nx: true,
         ex: SENTIMENT_ANALYSIS_LOCK_SECONDS,
       })) === "OK",
-    commit: async (key, resultKey, token, state) =>
+    commit: async (key, resultKey, token, state, latestKey) =>
       (await client.eval(
         SENTIMENT_ANALYSIS_COMMIT_SCRIPT,
-        [key, resultKey],
+        [key, resultKey, latestKey],
         [token, JSON.stringify(state), SENTIMENT_ANALYSIS_CACHE_SECONDS]
       )) === 1,
   };
@@ -47,17 +47,24 @@ export async function readSentimentAnalysis(
   const snapshot = await run.snapshot();
   const key = `${run.key}:${snapshot.fingerprint}`;
   const state = await run.store.get(key);
-  if (await run.store.locked(`${key}:lock`)) {
-    return { status: "pending", result: state?.result ?? null, message: null };
+  const previous = state?.result
+    ? state
+    : await run.store.get(`${run.key}:latest`);
+  if (await run.store.locked(`${run.key}:lock`)) {
+    return {
+      status: "pending",
+      result: previous?.result ?? null,
+      message: null,
+    };
   }
-  return (
-    state ?? {
-      status: "stale",
-      result: null,
-      message:
-        "Analysis missing or out of date. Select Analyze answers to refresh.",
-    }
-  );
+  return state
+    ? { ...state, result: state.result ?? previous?.result ?? null }
+    : {
+        status: "stale",
+        result: previous?.result ?? null,
+        message:
+          "Analysis missing or out of date. Select Analyze answers to refresh.",
+      };
 }
 
 export async function runSentimentAnalysis(
@@ -70,7 +77,7 @@ export async function runSentimentAnalysis(
     return cached;
   }
   const token = crypto.randomUUID();
-  const lock = `${key}:lock`;
+  const lock = `${run.key}:lock`;
   if (!(await run.store.claim(lock, token))) {
     return { status: "pending", result: null, message: null };
   }
@@ -79,7 +86,7 @@ export async function runSentimentAnalysis(
     // Another request can finish between our first read and acquiring the lease.
     const settled = await run.store.get(key);
     if (settled?.status === "ready") {
-      await run.store.commit(lock, key, token, settled);
+      await run.store.commit(lock, key, token, settled, `${run.key}:latest`);
       return settled;
     }
     const sample = await run.sample();
@@ -118,7 +125,7 @@ export async function runSentimentAnalysis(
         "Analysis could not complete. Check AI credits and provider availability, then retry.",
     };
   }
-  if (!(await run.store.commit(lock, key, token, state))) {
+  if (!(await run.store.commit(lock, key, token, state, `${run.key}:latest`))) {
     return {
       status: "stale",
       result: null,

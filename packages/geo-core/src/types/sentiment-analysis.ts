@@ -25,7 +25,7 @@ export interface SentimentAnalysisSample {
   capturedAt: string;
 }
 export interface SentimentTheme {
-  claims?: { statement: string; evidence: SentimentTheme["evidence"] }[];
+  claims: { statement: string; evidence: SentimentTheme["evidence"] }[];
   title: string;
   polarity: "positive" | "negative";
   evidence: {
@@ -57,7 +57,8 @@ export interface SentimentAnalysisStore {
     key: string,
     resultKey: string,
     token: string,
-    state: SentimentAnalysisState
+    state: SentimentAnalysisState,
+    latestKey: string
   ) => Promise<boolean>;
 }
 export interface SentimentAnalysisSnapshot {

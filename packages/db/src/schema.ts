@@ -1458,6 +1458,7 @@ export const geoSettings = pgTable(
       .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
     scanIntervalHours: integer("scan_interval_hours").notNull().default(24),
+    sentimentAttemptedAt: timestamp("sentiment_attempted_at"),
     nextScanAt: timestamp("next_scan_at"),
     // Cron-sweep lease: while set and in the future the row is off limits to
     // other sweeps. Kept separate from `next_scan_at` so a retried tick never

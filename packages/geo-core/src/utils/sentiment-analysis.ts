@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { SENTIMENT_ANALYSIS_VERSION } from "../constants/sentiment-analysis";
+import { SENTIMENT_ANALYSIS_MODEL } from "../constants/sentiment-analysis";
 import { sentimentThemeOutputSchema } from "../schemas/sentiment-analysis";
 import type {
   SentimentAnalysisSample,
@@ -13,8 +13,16 @@ export function sentimentAnalysisKey(
   from: string,
   to: string
 ) {
-  return `geo:sentiment:${SENTIMENT_ANALYSIS_VERSION}:${createHash("sha256")
-    .update(JSON.stringify([organizationId, projectId, from, to]))
+  return `geo:sentiment:analysis:${createHash("sha256")
+    .update(
+      JSON.stringify([
+        SENTIMENT_ANALYSIS_MODEL,
+        organizationId,
+        projectId,
+        from,
+        to,
+      ])
+    )
     .digest("hex")}`;
 }
 
