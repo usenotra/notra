@@ -1,20 +1,6 @@
 import { createRoute } from "@hono/zod-openapi";
-import { supportsPostSlug } from "@notra/ai/schemas/post";
-import {
-  appendContentGenerationJobEvent,
-  createContentGenerationJob,
-  createContentGenerationJobId,
-  getContentGenerationJob,
-  listContentGenerationJobEvents,
-  setContentGenerationJobStatus,
-  updateContentGenerationJob,
-} from "@notra/content-generation/jobs";
-import { postCollections, posts } from "@notra/db/schema";
-import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { requestGeoRescanForPost } from "@notra/geo-core/geo/rescan";
 import {
-  ALL_POST_CONTENT_TYPES,
-  ALL_POST_STATUSES,
   createPostGenerationRequestSchema,
   createPostGenerationResponseSchema,
   deletePostResponseSchema,
@@ -29,11 +15,17 @@ import {
   patchPostRequestSchema,
   patchPostResponseSchema,
 } from "@notra/schemas/api/content";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
-import { nanoid } from "nanoid";
 
+import {
+  createPostGeneration,
+  deletePost,
+  getPost,
+  getPostGeneration,
+  listPosts,
+  patchPost,
+} from "../programs/posts";
 import { runGeoEffect } from "../runtime/geo";
-import { addActiveGeneration } from "../utils/active-generations";
+import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
 import {
   getContentGenerationUnavailableReason,
@@ -41,81 +33,20 @@ import {
   resolveRequestedBrandVoiceId,
   resolveRequestedLinearIntegrationIds,
   resolveRequestedRepositoryIds,
-  triggerContentGenerationWorkflow,
 } from "../utils/content-generation";
-import {
-  extractTitleFromMarkdown,
-  renderMarkdownToHtml,
-} from "../utils/markdown";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
-import { isConstraintViolation, isPgUniqueViolation } from "../utils/pg-errors";
+import {
+  respondToPostFailure,
+  runPostProgram,
+  serializePost,
+  validatePatchPostRequest,
+} from "../utils/posts";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
 
 export const postsRoutes = createOpenApiApp();
-
-function shouldApplyFilter(
-  selectedValues: readonly string[],
-  allValues: readonly string[]
-) {
-  return selectedValues.length < allValues.length;
-}
-
-type PostResponseContentType = (typeof ALL_POST_CONTENT_TYPES)[number];
-
-function extractImageArtifactHtml(sourceMetadata: unknown): string | null {
-  if (
-    !sourceMetadata ||
-    typeof sourceMetadata !== "object" ||
-    Array.isArray(sourceMetadata)
-  ) {
-    return null;
-  }
-
-  const artifacts = (sourceMetadata as { artifacts?: unknown }).artifacts;
-  if (!artifacts || typeof artifacts !== "object" || Array.isArray(artifacts)) {
-    return null;
-  }
-
-  const html = (artifacts as { html?: unknown }).html;
-  return typeof html === "string" && html.trim() ? html : null;
-}
-
-function serializePost(post: {
-  content: string;
-  contentType: string;
-  createdAt: Date;
-  id: string;
-  htmlUrl?: string | null;
-  markdown: string | null;
-  rawHtml?: string | null;
-  recommendations: string | null;
-  slug: string | null;
-  sourceMetadata: unknown;
-  status: "draft" | "published";
-  title: string;
-  updatedAt: Date;
-}) {
-  const isImage = post.contentType === "image";
-
-  return {
-    id: post.id,
-    title: post.title,
-    slug: post.slug,
-    content: post.content,
-    htmlUrl: post.contentType === "image" ? (post.htmlUrl ?? null) : null,
-    markdown: isImage ? null : post.markdown,
-    rawHtml: isImage ? extractImageArtifactHtml(post.sourceMetadata) : null,
-    recommendations: post.recommendations,
-    contentType: post.contentType as PostResponseContentType,
-    sourceMetadata: post.sourceMetadata,
-    status: post.status,
-    createdAt: post.createdAt.toISOString(),
-    updatedAt: post.updatedAt.toISOString(),
-  };
-}
 
 const getPostsRoute = createRoute({
   method: "get",
@@ -317,6 +248,16 @@ const getPostGenerationRoute = createRoute({
   },
 });
 
+async function requireOrganization(
+  c: {
+    get: (key: "db") => DbClient;
+  },
+  orgId: string
+) {
+  const organization = await getOrganizationResponse(c.get("db"), orgId);
+  return organization ?? null;
+}
+
 postsRoutes.openapi(getPostsRoute, async (c) => {
   const orgId = getOrganizationId(c);
   if (!orgId) {
@@ -326,76 +267,27 @@ postsRoutes.openapi(getPostsRoute, async (c) => {
     );
   }
 
-  const query = c.req.valid("query");
-  const db = c.get("db");
-  const { limit, page, sort, status, contentType, brandIdentityId } = query;
-  const organization = await getOrganizationResponse(db, orgId);
-
+  const organization = await requireOrganization(c, orgId);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const offset = (page - 1) * limit;
-  const whereClause = and(
-    eq(posts.organizationId, orgId),
-    shouldApplyFilter(status, ALL_POST_STATUSES)
-      ? inArray(posts.status, status)
-      : undefined,
-    shouldApplyFilter(contentType, ALL_POST_CONTENT_TYPES)
-      ? inArray(posts.contentType, contentType)
-      : undefined,
-    brandIdentityId.length > 0
-      ? inArray(
-          sql<string>`${posts.sourceMetadata} ->> 'brandVoiceId'`,
-          brandIdentityId
-        )
-      : undefined
+  const result = await runPostProgram(
+    listPosts({
+      db: c.get("db"),
+      organizationId: orgId,
+      query: c.req.valid("query"),
+    })
   );
 
-  const [[countResult], results] = await Promise.all([
-    db
-      .select({ totalItems: count(posts.id) })
-      .from(posts)
-      .where(whereClause),
-    db.query.posts.findMany({
-      where: whereClause,
-      orderBy: (table, { asc, desc }) =>
-        sort === "asc"
-          ? [asc(table.createdAt), asc(table.id)]
-          : [desc(table.createdAt), desc(table.id)],
-      limit,
-      offset,
-      columns: {
-        id: true,
-        title: true,
-        slug: true,
-        content: true,
-        htmlUrl: true,
-        markdown: true,
-        recommendations: true,
-        contentType: true,
-        sourceMetadata: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
-
-  const totalItems = countResult?.totalItems ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  if (result._tag === "Failure") {
+    throw result.failure;
+  }
 
   return c.json(
     {
-      posts: results.map(serializePost),
-      pagination: {
-        limit,
-        currentPage: page,
-        nextPage: page < totalPages ? page + 1 : null,
-        previousPage: page > 1 ? page - 1 : null,
-        totalPages,
-        totalItems,
-      },
+      posts: result.success.posts.map(serializePost),
+      pagination: result.success.pagination,
       organization,
     },
     200
@@ -411,35 +303,26 @@ postsRoutes.openapi(getPostRoute, async (c) => {
     );
   }
 
-  const params = c.req.valid("param");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
-
+  const organization = await requireOrganization(c, orgId);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const post = await db.query.posts.findFirst({
-    where: and(eq(posts.id, params.postId), eq(posts.organizationId, orgId)),
-    columns: {
-      id: true,
-      title: true,
-      slug: true,
-      content: true,
-      htmlUrl: true,
-      markdown: true,
-      recommendations: true,
-      contentType: true,
-      sourceMetadata: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const result = await runPostProgram(
+    getPost({
+      db: c.get("db"),
+      organizationId: orgId,
+      postId: c.req.valid("param").postId,
+    })
+  );
+
+  if (result._tag === "Failure") {
+    throw result.failure;
+  }
 
   return c.json(
     {
-      post: post ? serializePost(post) : null,
+      post: result.success.post ? serializePost(result.success.post) : null,
       organization,
     },
     200
@@ -455,24 +338,27 @@ postsRoutes.openapi(deletePostRoute, async (c) => {
     );
   }
 
-  const { postId } = c.req.valid("param");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
-
+  const organization = await requireOrganization(c, orgId);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const [deletedPost] = await db
-    .delete(posts)
-    .where(and(eq(posts.id, postId), eq(posts.organizationId, orgId)))
-    .returning({ id: posts.id });
+  const result = await runPostProgram(
+    deletePost({
+      db: c.get("db"),
+      organizationId: orgId,
+      postId: c.req.valid("param").postId,
+    })
+  );
 
-  if (!deletedPost) {
-    return c.json({ error: "Post not found" }, 404);
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "PostNotFoundError") {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    throw result.failure;
   }
 
-  return c.json({ id: deletedPost.id, organization }, 200);
+  return c.json({ id: result.success.id, organization }, 200);
 });
 
 postsRoutes.openapi(patchPostRoute, async (c) => {
@@ -486,84 +372,40 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
 
   const { postId } = c.req.valid("param");
   const body = c.req.valid("json");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const existingPost = await db.query.posts.findFirst({
-    where: and(eq(posts.id, postId), eq(posts.organizationId, orgId)),
-    columns: {
-      id: true,
-      title: true,
-      slug: true,
-      contentType: true,
-      status: true,
-    },
-  });
+  const existingResult = await runPostProgram(
+    getPost({
+      db: c.get("db"),
+      organizationId: orgId,
+      postId,
+    })
+  );
 
-  if (!existingPost) {
+  if (existingResult._tag === "Failure") {
+    throw existingResult.failure;
+  }
+
+  if (!existingResult.success.post) {
     return c.json({ error: "Post not found" }, 404);
   }
 
-  const updateData: Partial<typeof posts.$inferInsert> = {
-    updatedAt: new Date(),
-  };
+  const validationError = await validatePatchPostRequest(
+    existingResult.success.post,
+    body
+  );
 
-  if (body.title !== undefined) {
-    updateData.title = body.title;
-  }
-
-  if (body.slug !== undefined) {
-    if (!supportsPostSlug(existingPost.contentType)) {
-      return c.json(
-        { error: "Slug can only be set for blog posts and changelogs" },
-        400
-      );
+  if (validationError) {
+    const response = respondToPostFailure(c, validationError);
+    if (response) {
+      return response;
     }
-
-    updateData.slug = body.slug;
+    throw validationError;
   }
-
-  if (body.markdown !== undefined) {
-    let renderedContent: string;
-
-    try {
-      renderedContent = await renderMarkdownToHtml(body.markdown);
-    } catch {
-      return c.json({ error: "Invalid markdown content" }, 400);
-    }
-
-    updateData.markdown = body.markdown;
-    updateData.content = renderedContent;
-
-    if (body.title === undefined) {
-      updateData.title =
-        extractTitleFromMarkdown(body.markdown) ?? existingPost.title;
-    }
-  }
-
-  if (body.status !== undefined) {
-    updateData.status = body.status;
-  }
-
-  let updatedRows: Array<{
-    id: string;
-    title: string;
-    slug: string | null;
-    content: string;
-    htmlUrl?: string | null;
-    markdown: string | null;
-    rawHtml?: string | null;
-    recommendations: string | null;
-    contentType: string;
-    sourceMetadata: unknown;
-    status: "draft" | "published";
-    createdAt: Date;
-    updatedAt: Date;
-  }> = [];
 
   // Charged immediately before the write: the 404s and 400s above must not
   // spend the caller's update budget.
@@ -572,53 +414,33 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
     return rateLimited;
   }
 
-  try {
-    updatedRows = await db
-      .update(posts)
-      .set(updateData)
-      .where(and(eq(posts.id, postId), eq(posts.organizationId, orgId)))
-      .returning({
-        id: posts.id,
-        title: posts.title,
-        slug: posts.slug,
-        content: posts.content,
-        htmlUrl: posts.htmlUrl,
-        markdown: posts.markdown,
-        recommendations: posts.recommendations,
-        contentType: posts.contentType,
-        sourceMetadata: posts.sourceMetadata,
-        status: posts.status,
-        createdAt: posts.createdAt,
-        updatedAt: posts.updatedAt,
-      });
-  } catch (error) {
-    if (
-      isPgUniqueViolation(error) &&
-      isConstraintViolation(error, "posts_org_slug_uidx")
-    ) {
-      return c.json({ error: "A post with this slug already exists" }, 409);
+  const result = await runPostProgram(
+    patchPost({
+      db: c.get("db"),
+      organizationId: orgId,
+      postId,
+      body,
+    })
+  );
+
+  if (result._tag === "Failure") {
+    const response = respondToPostFailure(c, result.failure);
+    if (response) {
+      return response;
     }
-
-    throw error;
+    throw result.failure;
   }
 
-  const [updatedPost] = updatedRows;
+  const { post, previousStatus } = result.success;
 
-  if (!updatedPost) {
-    return c.json({ error: "Post not found" }, 404);
-  }
-
-  if (
-    updatedPost.status === "published" &&
-    existingPost.status !== "published"
-  ) {
+  if (post.status === "published" && previousStatus !== "published") {
     void runGeoEffect(
       "rescanForPost",
-      requestGeoRescanForPost({ organizationId: orgId, postId: updatedPost.id })
+      requestGeoRescanForPost({ organizationId: orgId, postId: post.id })
     );
   }
 
-  return c.json({ post: serializePost(updatedPost), organization }, 200);
+  return c.json({ post: serializePost(post), organization }, 200);
 });
 
 postsRoutes.openapi(createPostGenerationRoute, async (c) => {
@@ -645,8 +467,7 @@ postsRoutes.openapi(createPostGenerationRoute, async (c) => {
   }
 
   const body = c.req.valid("json");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
@@ -661,19 +482,19 @@ postsRoutes.openapi(createPostGenerationRoute, async (c) => {
   };
 
   try {
-    repositoryIds = await resolveRequestedRepositoryIds(db, orgId, {
+    repositoryIds = await resolveRequestedRepositoryIds(c.get("db"), orgId, {
       integrations: requestedIntegrations,
       github: body.github,
     });
     linearIntegrationIds = await resolveRequestedLinearIntegrationIds(
-      db,
+      c.get("db"),
       orgId,
       {
         integrations: requestedIntegrations,
       }
     );
     resolvedBrandVoiceId = await resolveRequestedBrandVoiceId(
-      db,
+      c.get("db"),
       orgId,
       body.brandIdentityId ?? body.brandVoiceId
     );
@@ -696,142 +517,33 @@ postsRoutes.openapi(createPostGenerationRoute, async (c) => {
     return rateLimited;
   }
 
-  const now = new Date().toISOString();
-  const jobId = createContentGenerationJobId();
-  const collectionId = nanoid();
-  let collectionCreated = false;
-
-  await db.insert(postCollections).values({
-    id: collectionId,
-    organizationId: orgId,
-    source: "api",
-    sourceId: jobId,
-    name: buildPostCollectionName([body.contentType], new Date(now)),
-    nameSource: "generated",
-    contentTypes: [body.contentType],
-    expectedPostCount: 1,
-    completedPostCount: 0,
-    createdAt: new Date(now),
-    updatedAt: new Date(now),
-  });
-  collectionCreated = true;
-
-  let job: Awaited<ReturnType<typeof createContentGenerationJob>> | null = null;
-  let workflowTriggered = false;
-
-  try {
-    job = await createContentGenerationJob(redis, {
-      id: jobId,
+  const result = await runPostProgram(
+    createPostGeneration({
+      db: c.get("db"),
       organizationId: orgId,
-      status: "queued",
-      contentType: body.contentType,
-      lookbackWindow: body.lookbackWindow,
-      repositoryIds: repositoryIds ?? [],
-      brandVoiceId: resolvedBrandVoiceId,
-      workflowRunId: null,
-      postId: null,
-      error: null,
-      source: "api",
-      createdAt: now,
-      updatedAt: now,
-      completedAt: null,
-    });
-
-    await addActiveGeneration(redis, orgId, {
-      runId: jobId,
-      triggerId: "api_on_demand",
-      outputType: body.contentType,
-      triggerName: body.contentType,
-      startedAt: now,
-      source: "api",
-    });
-
-    await appendContentGenerationJobEvent(redis, {
-      id: crypto.randomUUID(),
-      jobId,
-      type: "queued",
-      message: `Queued ${body.contentType.replaceAll("_", " ")} generation`,
-      createdAt: now,
-      metadata: {
-        lookbackWindow: body.lookbackWindow,
-        repositoryCount: repositoryIds?.length ?? 0,
-        linearIntegrationCount: linearIntegrationIds?.length ?? 0,
-      },
-    });
-
-    const workflowRunId = await triggerContentGenerationWorkflow(runtimeEnv, {
-      organizationId: orgId,
-      collectionId,
-      jobId,
-      runId: jobId,
-      contentType: body.contentType,
-      lookbackWindow: body.lookbackWindow,
+      body,
+      redis,
+      runtimeEnv,
       repositoryIds,
       linearIntegrationIds,
-      brandVoiceId: resolvedBrandVoiceId ?? undefined,
-      dataPoints: body.dataPoints,
-      selectedItems: body.selectedItems,
-      aiCreditReserved: false,
-      aiCreditMarkup: false,
-      source: "api",
-    });
-    workflowTriggered = true;
+      resolvedBrandVoiceId,
+    })
+  );
 
-    const updatedJob = await updateContentGenerationJob(redis, jobId, {
-      workflowRunId,
-    });
-
-    await appendContentGenerationJobEvent(redis, {
-      id: crypto.randomUUID(),
-      jobId,
-      type: "workflow_triggered",
-      message: "Triggered content generation workflow",
-      createdAt: new Date().toISOString(),
-      metadata: { workflowRunId },
-    });
-
-    return c.json({ job: updatedJob ?? job, organization }, 202);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to trigger workflow";
-
-    if (collectionCreated && !workflowTriggered) {
-      await db
-        .delete(postCollections)
-        .where(
-          and(
-            eq(postCollections.id, collectionId),
-            eq(postCollections.organizationId, orgId)
-          )
-        )
-        .catch(() => null);
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "PostGenerationQueueFailedError") {
+      return c.json(
+        {
+          error: "Failed to queue content generation",
+          ...(result.failure.jobId ? { jobId: result.failure.jobId } : {}),
+        },
+        503
+      );
     }
-
-    const failedJob = job
-      ? await setContentGenerationJobStatus(redis, jobId, "failed", {
-          error: message,
-        }).catch(() => null)
-      : null;
-
-    if (job) {
-      await appendContentGenerationJobEvent(redis, {
-        id: crypto.randomUUID(),
-        jobId,
-        type: "failed",
-        message,
-        createdAt: new Date().toISOString(),
-        metadata: null,
-      }).catch(() => null);
-    }
-
-    return c.json(
-      {
-        error: "Failed to queue content generation",
-        ...(failedJob ? { jobId: failedJob.id } : {}),
-      },
-      503
-    );
+    throw result.failure;
   }
+
+  return c.json({ job: result.success.job, organization }, 202);
 });
 
 postsRoutes.openapi(getPostGenerationRoute, async (c) => {
@@ -852,13 +564,23 @@ postsRoutes.openapi(getPostGenerationRoute, async (c) => {
     );
   }
 
-  const { jobId } = c.req.valid("param");
-  const job = await getContentGenerationJob(redis, jobId);
+  const result = await runPostProgram(
+    getPostGeneration({
+      organizationId: orgId,
+      jobId: c.req.valid("param").jobId,
+      redis,
+    })
+  );
 
-  if (!job || job.organizationId !== orgId) {
-    return c.json({ error: "Generation job not found" }, 404);
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "PostGenerationJobNotFoundError") {
+      return c.json({ error: "Generation job not found" }, 404);
+    }
+    throw result.failure;
   }
 
-  const events = await listContentGenerationJobEvents(redis, jobId);
-  return c.json({ job, events }, 200);
+  return c.json(
+    { job: result.success.job, events: result.success.events },
+    200
+  );
 });
