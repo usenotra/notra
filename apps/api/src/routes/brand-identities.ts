@@ -246,6 +246,9 @@ const deleteBrandIdentityRoute = createRoute({
     401: errorResponse("Missing or invalid API key"),
     403: errorResponse("Forbidden"),
     404: errorResponse("Brand identity not found"),
+    409: errorResponse(
+      "Brand identity is in use by a project or content brief"
+    ),
     503: errorResponse("Authentication service unavailable"),
   },
 });
@@ -516,6 +519,15 @@ brandIdentitiesRoutes.openapi(deleteBrandIdentityRoute, async (c) => {
     }
     if (result.failure._tag === "BrandIdentityDefaultDeleteError") {
       return c.json({ error: "Cannot delete the default brand identity" }, 400);
+    }
+    if (result.failure._tag === "BrandIdentityInUseError") {
+      return c.json(
+        {
+          error:
+            "Brand identity is in use by a project or content brief and cannot be deleted",
+        },
+        409
+      );
     }
     throw result.failure;
   }

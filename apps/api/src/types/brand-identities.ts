@@ -12,6 +12,7 @@ import type {
   BrandAnalysisQueueFailedError,
   BrandIdentityCreateFailedError,
   BrandIdentityDefaultDeleteError,
+  BrandIdentityInUseError,
   BrandIdentityNameDuplicateError,
   BrandIdentityNotFoundError,
 } from "../errors/brand-identities";
@@ -39,6 +40,7 @@ export type BrandIdentityDomainError =
   | BrandIdentityNameDuplicateError
   | BrandIdentityCreateFailedError
   | BrandIdentityDefaultDeleteError
+  | BrandIdentityInUseError
   | BrandAnalysisJobNotFoundError
   | BrandAnalysisQueueFailedError;
 

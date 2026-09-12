@@ -90,6 +90,16 @@ export function respondToBrandIdentityFailure(
     return c.json({ error: "Cannot delete the default brand identity" }, 400);
   }
 
+  if (failure._tag === "BrandIdentityInUseError") {
+    return c.json(
+      {
+        error:
+          "Brand identity is in use by a project or content brief and cannot be deleted",
+      },
+      409
+    );
+  }
+
   if (failure._tag === "BrandAnalysisJobNotFoundError") {
     return c.json({ error: "Brand identity analysis job not found" }, 404);
   }

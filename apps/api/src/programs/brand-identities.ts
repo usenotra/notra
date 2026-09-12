@@ -5,7 +5,12 @@ import {
   setBrandAnalysisJobStatus,
   updateBrandAnalysisJob,
 } from "@notra/ai/jobs/brand-analysis";
-import { brandSettings, contentTriggers } from "@notra/db/schema";
+import {
+  brandSettings,
+  contentTriggers,
+  geoContentBriefs,
+  projects,
+} from "@notra/db/schema";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -15,6 +20,7 @@ import {
   BrandIdentityCreateFailedError,
   BrandIdentityDatabaseError,
   BrandIdentityDefaultDeleteError,
+  BrandIdentityInUseError,
   BrandIdentityNameDuplicateError,
   BrandIdentityNotFoundError,
 } from "../errors/brand-identities";
@@ -89,6 +95,86 @@ async function insertBrandIdentity(
   }
 }
 
+function queueFailureMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "Failed to queue brand identity analysis";
+}
+
+function rollbackBrandAnalysisQueue(
+  input: CreateBrandIdentityProgramInput,
+  brandIdentityId: string,
+  jobId: string,
+  options: { markJobFailed: boolean; errorMessage: string }
+) {
+  return Effect.gen(function* () {
+    if (options.markJobFailed) {
+      yield* Effect.tryPromise({
+        try: () =>
+          setBrandAnalysisJobStatus(input.redis, jobId, "failed", {
+            step: null,
+            currentStep: 0,
+            totalSteps: 3,
+            error: options.errorMessage,
+          }),
+        catch: () => undefined,
+      }).pipe(Effect.ignore);
+    }
+
+    yield* database(() =>
+      input.db
+        .delete(brandSettings)
+        .where(
+          and(
+            eq(brandSettings.id, brandIdentityId),
+            eq(brandSettings.organizationId, input.organizationId)
+          )
+        )
+    );
+
+    return yield* new BrandAnalysisQueueFailedError();
+  });
+}
+
+function recoverBrandAnalysisQueueFailure<A>(
+  input: CreateBrandIdentityProgramInput,
+  brandIdentityId: string,
+  jobId: string,
+  options: { markJobFailed: boolean }
+) {
+  return Effect.catch((error: unknown) =>
+    rollbackBrandAnalysisQueue(input, brandIdentityId, jobId, {
+      markJobFailed: options.markJobFailed,
+      errorMessage: queueFailureMessage(error),
+    })
+  );
+}
+
+async function isBrandIdentityInUse(
+  db: DbClient,
+  organizationId: string,
+  brandIdentityId: string
+) {
+  const [project, contentBrief] = await Promise.all([
+    db.query.projects.findFirst({
+      where: and(
+        eq(projects.organizationId, organizationId),
+        eq(projects.brandSettingsId, brandIdentityId)
+      ),
+      columns: { id: true },
+    }),
+    db.query.geoContentBriefs.findFirst({
+      where: and(
+        eq(geoContentBriefs.organizationId, organizationId),
+        eq(geoContentBriefs.brandSettingsId, brandIdentityId)
+      ),
+      columns: { id: true },
+    }),
+  ]);
+
+  return project !== undefined || contentBrief !== undefined;
+}
+
 export const listBrandIdentities = Effect.fn("brandIdentities.list")(
   function* ({ db, organizationId }: ListBrandIdentitiesProgramInput) {
     const brandIdentities = yield* database(() =>
@@ -140,24 +226,30 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
       });
     }
 
-    const job = yield* database(() =>
-      createBrandAnalysisJob(input.redis, {
-        id: jobId,
-        organizationId: input.organizationId,
-        brandIdentityId: brandIdentity.id,
-        status: "queued",
-        step: null,
-        currentStep: 0,
-        totalSteps: 3,
-        workflowRunId: null,
-        error: null,
-        createdAt: now,
-        updatedAt: now,
-        completedAt: null,
+    const job = yield* Effect.tryPromise({
+      try: () =>
+        createBrandAnalysisJob(input.redis, {
+          id: jobId,
+          organizationId: input.organizationId,
+          brandIdentityId: brandIdentity.id,
+          status: "queued",
+          step: null,
+          currentStep: 0,
+          totalSteps: 3,
+          workflowRunId: null,
+          error: null,
+          createdAt: now,
+          updatedAt: now,
+          completedAt: null,
+        }),
+      catch: (cause) => cause,
+    }).pipe(
+      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
+        markJobFailed: false,
       })
     );
 
-    const workflowResult = yield* Effect.tryPromise({
+    const workflowRunId = yield* Effect.tryPromise({
       try: () =>
         triggerBrandAnalysisWorkflow(input.runtimeEnv, {
           organizationId: input.organizationId,
@@ -167,41 +259,20 @@ export const createBrandIdentity = Effect.fn("brandIdentities.create")(
         }),
       catch: (cause) => cause,
     }).pipe(
-      Effect.catch((error) =>
-        Effect.gen(function* () {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "Failed to trigger workflow";
-
-          yield* database(() =>
-            setBrandAnalysisJobStatus(input.redis, jobId, "failed", {
-              step: null,
-              currentStep: 0,
-              totalSteps: 3,
-              error: message,
-            })
-          );
-
-          yield* database(() =>
-            input.db
-              .delete(brandSettings)
-              .where(
-                and(
-                  eq(brandSettings.id, brandIdentity.id),
-                  eq(brandSettings.organizationId, input.organizationId)
-                )
-              )
-          );
-
-          return yield* new BrandAnalysisQueueFailedError();
-        })
-      )
+      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
+        markJobFailed: true,
+      })
     );
 
-    const updatedJob = yield* database(() =>
-      updateBrandAnalysisJob(input.redis, jobId, {
-        workflowRunId: workflowResult,
+    const updatedJob = yield* Effect.tryPromise({
+      try: () =>
+        updateBrandAnalysisJob(input.redis, jobId, {
+          workflowRunId,
+        }),
+      catch: (cause) => cause,
+    }).pipe(
+      recoverBrandAnalysisQueueFailure(input, brandIdentity.id, jobId, {
+        markJobFailed: true,
       })
     );
 
@@ -398,6 +469,18 @@ export const deleteBrandIdentity = Effect.fn("brandIdentities.delete")(
 
     if (brandIdentity.isDefault) {
       return yield* new BrandIdentityDefaultDeleteError();
+    }
+
+    const inUse = yield* database(() =>
+      isBrandIdentityInUse(
+        input.db,
+        input.organizationId,
+        input.brandIdentityId
+      )
+    );
+
+    if (inUse) {
+      return yield* new BrandIdentityInUseError();
     }
 
     const affectedTriggers = yield* database(() =>

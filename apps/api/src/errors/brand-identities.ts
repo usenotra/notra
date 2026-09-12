@@ -20,6 +20,11 @@ export class BrandIdentityDefaultDeleteError extends Schema.TaggedError<BrandIde
   {}
 ) {}
 
+export class BrandIdentityInUseError extends Schema.TaggedError<BrandIdentityInUseError>()(
+  "BrandIdentityInUseError",
+  {}
+) {}
+
 export class BrandAnalysisJobNotFoundError extends Schema.TaggedError<BrandAnalysisJobNotFoundError>()(
   "BrandAnalysisJobNotFoundError",
   {}
