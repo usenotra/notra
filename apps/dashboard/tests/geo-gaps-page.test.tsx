@@ -29,11 +29,13 @@ mock.module("@/lib/hooks/use-geo", () => ({
     isFetching: false,
     refetch: retrySettings,
   }),
-  useGeoCompetitors: () => ({ data: { competitors: [] } }),
   useGeoStartScan: () => ({ mutate: mock() }),
   useGeoRescanPrompt: () => ({ mutate: mock() }),
   useIsGeoScanning: () => false,
   useGeoSuggestionDismiss: () => ({ isPending: false, mutate: mock() }),
+}));
+mock.module("@/lib/hooks/use-geo-db", () => ({
+  useGeoCompetitorsDb: () => ({ competitors: [] }),
 }));
 mock.module("@/lib/hooks/use-geo-writer", () => ({
   useGeoWriterGaps: () => ({

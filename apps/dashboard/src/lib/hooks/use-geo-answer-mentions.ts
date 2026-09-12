@@ -2,7 +2,8 @@
 
 import { geoAnswerMentionTerms } from "@notra/geo-core/utils/geo-answer-mentions";
 
-import { useGeoCompetitors, useGeoSettings } from "@/lib/hooks/use-geo";
+import { useGeoSettings } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import type { GeoAnswerMentionContextValue } from "@/types/geo-answer-mentions";
 
 const EMPTY_MENTIONED: readonly string[] = [];
@@ -14,9 +15,10 @@ export function useGeoAnswerMentionData(
 ) {
   const enabledId = organizationId ?? "";
   const { data: settingsData } = useGeoSettings(enabledId);
-  const { data: competitorsData } = useGeoCompetitors(enabledId);
+  const { competitors } = useGeoCompetitorsDb(enabledId, {
+    enabled: Boolean(organizationId),
+  });
   const settings = settingsData?.settings;
-  const competitors = competitorsData?.competitors ?? EMPTY_TRACKED;
   const terms = geoAnswerMentionTerms({
     companyName: settings?.companyName,
     aliases: settings?.aliases,
