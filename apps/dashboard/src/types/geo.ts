@@ -392,8 +392,6 @@ export interface GeoVisitorClassification {
 export interface GeoTrafficLogQueryOptions {
   refetchInterval?: number | false;
   host?: string;
-  knownHosts?: readonly string[];
-  isHostReady?: boolean;
 }
 
 export interface GeoJourneyInput {
@@ -562,7 +560,6 @@ export interface TrafficPagesCardProps {
   pages: GeoTrafficPage[];
   isPending?: boolean;
   hosts?: readonly string[];
-  isHostReady?: boolean;
 }
 
 export interface PresenceBadgeProps {
@@ -766,8 +763,6 @@ export interface MentionTrendAgentsPickerProps {
 
 export interface AiTrafficLogCardProps {
   organizationId: string;
-  knownHosts?: readonly string[];
-  isHostReady?: boolean;
 }
 
 export interface CitationsTableProps {

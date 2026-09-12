@@ -2,12 +2,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
-import { organizations, projects } from "@notra/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { organizations } from "@notra/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
-  GEO_INGEST_HOSTS_CACHE_PREFIX,
   GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS,
   GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS,
   GEO_INGEST_PATH,
@@ -27,6 +26,12 @@ import type {
 } from "../types/geo";
 import { geoDb } from "./effect";
 import { resolveGeoScope } from "./projects";
+
+export {
+  geoIngestHostsCacheKey,
+  invalidateGeoIngestHostsCache,
+  invalidateGeoIngestHostsCacheForBrand,
+} from "./ingest-hosts-cache";
 
 /**
  * Tracking-token issuing, revocation and install snippets.
@@ -66,65 +71,6 @@ return 0
 
 function generationCacheKey(organizationId: string): string {
   return `${GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX}:${organizationId}`;
-}
-
-export function geoIngestHostsCacheKey(
-  organizationId: string,
-  projectId: string | null
-): string {
-  return `${GEO_INGEST_HOSTS_CACHE_PREFIX}:${organizationId}:${projectId ?? "-"}`;
-}
-
-/**
- * Drop the cached allowlist after settings change so a newly added domain
- * is accepted immediately. Org-scoped tokens union every project, so that
- * key is cleared too.
- */
-export async function invalidateGeoIngestHostsCache(
-  organizationId: string,
-  projectId: string | null
-): Promise<void> {
-  const client = redis;
-  if (!client) {
-    return;
-  }
-  const keys = [geoIngestHostsCacheKey(organizationId, projectId)];
-  if (projectId) {
-    keys.push(geoIngestHostsCacheKey(organizationId, null));
-  }
-  await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
-}
-
-/**
- * Brand website changes affect every project linked to that voice, including
- * org-scoped tokens that union those hosts. Best-effort: a lookup blip must
- * not fail the settings write that already committed, and the org key is
- * still dropped so org-scoped tokens do not keep a stale union.
- */
-export async function invalidateGeoIngestHostsCacheForBrand(
-  organizationId: string,
-  brandSettingsId: string
-): Promise<void> {
-  const client = redis;
-  if (!client) {
-    return;
-  }
-  const keys = [geoIngestHostsCacheKey(organizationId, null)];
-  try {
-    const rows = await db.query.projects.findMany({
-      columns: { id: true },
-      where: and(
-        eq(projects.organizationId, organizationId),
-        eq(projects.brandSettingsId, brandSettingsId)
-      ),
-    });
-    for (const row of rows) {
-      keys.push(geoIngestHostsCacheKey(organizationId, row.id));
-    }
-  } catch {
-    // Org key still cleared below; project keys expire with the TTL.
-  }
-  await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
 }
 
 async function cacheGeneration(

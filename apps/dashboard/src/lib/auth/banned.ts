@@ -2,10 +2,11 @@ import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 
 import type { BannedStatusUser } from "@/types/auth/banned";
-import { isLocalDevAuthEnabled } from "@/utils/local-dev-auth";
+import { evaluateLocalDevAuth } from "@/utils/local-dev-auth";
 
 export function isUserBanned(user: BannedStatusUser) {
   if (!user.banned) {
@@ -15,8 +16,13 @@ export function isUserBanned(user: BannedStatusUser) {
 }
 
 export async function isSessionBanned(): Promise<boolean> {
-  if (isLocalDevAuthEnabled()) {
-    return false;
+  try {
+    const headerList = await headers();
+    if (evaluateLocalDevAuth(headerList).kind === "allowed") {
+      return false;
+    }
+  } catch {
+    // Outside a request, fall through to AuthKit.
   }
 
   try {

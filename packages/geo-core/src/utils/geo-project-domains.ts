@@ -1,8 +1,40 @@
 import { GEO_DOMAIN_REGEX, GEO_MAX_DOMAINS } from "../constants/geo";
-import { normalizeCompetitorDomain } from "../geo/domain";
+
+const HAS_SCHEME_REGEX = /^[a-z][a-z0-9+.-]*:\/\//i;
+
+/**
+ * Parse a user-entered host or URL to an ASCII hostname (IDNA/punycode)
+ * before allowlist checks. `https://bücher.de` and `xn--bcher-kva.de` must
+ * land on the same value, matching how `new URL(event.url)` yields hosts.
+ */
+function canonicalHostnameFromInput(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  let hostname: string;
+  try {
+    const withScheme = HAS_SCHEME_REGEX.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    hostname = new URL(withScheme).hostname;
+  } catch {
+    return null;
+  }
+
+  hostname = hostname
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.$/, "")
+    .toLowerCase();
+  if (hostname.startsWith("www.")) {
+    hostname = hostname.slice(4);
+  }
+  return hostname.length === 0 ? null : hostname;
+}
 
 export function normalizeProjectDomain(value: string): string | null {
-  const domain = normalizeCompetitorDomain(value);
+  const domain = canonicalHostnameFromInput(value);
   if (!domain || !GEO_DOMAIN_REGEX.test(domain)) {
     return null;
   }
@@ -70,6 +102,21 @@ export function ingestAllowedHosts(
   return hosts;
 }
 
+export function unionTrafficHosts(
+  configured: readonly string[],
+  observed: readonly string[]
+): string[] {
+  const unique = new Set<string>();
+  for (const host of [...configured, ...observed]) {
+    const trimmed = host.trim();
+    if (trimmed.length === 0 || trimmed === "all") {
+      continue;
+    }
+    unique.add(trimmed);
+  }
+  return [...unique].toSorted((left, right) => left.localeCompare(right));
+}
+
 /**
  * `null` allowed hosts means the allowlist could not be loaded (infra
  * outage): fail open so a database blip does not drop real traffic. An empty
@@ -129,24 +176,6 @@ export function isKnownTrafficHost(
       matchesProjectHost(host, [needle]) ||
       matchesProjectHost(needle, [host])
   );
-}
-
-export function trafficQueryHost(
-  host: string | undefined,
-  knownHosts?: readonly string[],
-  isReady = false
-): string {
-  const filtered = trafficLogHostFilter(host);
-  if (filtered.length === 0) {
-    return "";
-  }
-  if (!isReady) {
-    return filtered;
-  }
-  if (knownHosts && !isKnownTrafficHost(host ?? "", knownHosts)) {
-    return "";
-  }
-  return filtered;
 }
 
 export function formatTrafficLocation(host: string, path: string): string {

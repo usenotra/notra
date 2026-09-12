@@ -10,7 +10,7 @@ import {
   normalizeProjectDomain,
   normalizeProjectDomains,
   trafficLogHostFilter,
-  trafficQueryHost,
+  unionTrafficHosts,
 } from "../src/utils/geo-project-domains";
 
 describe("normalizeProjectDomain", () => {
@@ -19,6 +19,16 @@ describe("normalizeProjectDomain", () => {
       "docs.example.com"
     );
     expect(normalizeProjectDomain("example.com:443")).toBe("example.com");
+  });
+
+  test("canonicalizes Unicode/IDN hosts to punycode", () => {
+    expect(normalizeProjectDomain("https://bücher.de")).toBe(
+      "xn--bcher-kva.de"
+    );
+    expect(normalizeProjectDomain("https://www.Bücher.de/path")).toBe(
+      "xn--bcher-kva.de"
+    );
+    expect(normalizeProjectDomain("xn--bcher-kva.de")).toBe("xn--bcher-kva.de");
   });
 
   test("rejects empty values and bare hostnames", () => {
@@ -78,6 +88,12 @@ describe("ingestAllowedHosts", () => {
     expect(ingestAllowedHosts(null)).toEqual([]);
     expect(ingestAllowedHosts("", ["not a domain"])).toEqual([]);
   });
+
+  test("keeps Unicode brand sites on the punycode allowlist", () => {
+    expect(ingestAllowedHosts("https://bücher.de")).toEqual([
+      "xn--bcher-kva.de",
+    ]);
+  });
 });
 
 describe("acceptsIngestHost", () => {
@@ -103,6 +119,12 @@ describe("acceptsIngestHost", () => {
     expect(acceptsIngestHost("docs.example.com", allowed)).toBe(true);
     expect(acceptsIngestHost("status.docs.example.com", allowed)).toBe(true);
     expect(acceptsIngestHost("attacker.com", allowed)).toBe(false);
+  });
+
+  test("accepts punycode event hosts for a Unicode brand site", () => {
+    const allowed = ingestAllowedHosts("https://bücher.de");
+    expect(acceptsIngestHost("xn--bcher-kva.de", allowed)).toBe(true);
+    expect(acceptsIngestHost("www.xn--bcher-kva.de", allowed)).toBe(true);
   });
 });
 
@@ -176,21 +198,10 @@ describe("isKnownTrafficHost", () => {
   });
 });
 
-describe("trafficQueryHost", () => {
-  test("preserves the host until readiness is confirmed", () => {
-    expect(trafficQueryHost("www.Docs.Example.com", [], false)).toBe(
-      "docs.example.com"
-    );
-    expect(trafficQueryHost("other.com", ["example.com"])).toBe("other.com");
-  });
-
-  test("drops a host that is not in the current project list", () => {
-    expect(trafficQueryHost("other.com", ["example.com"], true)).toBe("");
-  });
-
-  test("keeps a parent host when only subdomain rows exist", () => {
+describe("unionTrafficHosts", () => {
+  test("keeps configured hosts that are missing from observed traffic", () => {
     expect(
-      trafficQueryHost("www.example.com", ["docs.example.com"], true)
-    ).toBe("example.com");
+      unionTrafficHosts(["docs.example.com", "example.com"], ["example.com"])
+    ).toEqual(["docs.example.com", "example.com"]);
   });
 });

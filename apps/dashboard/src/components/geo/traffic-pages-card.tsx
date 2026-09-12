@@ -11,10 +11,7 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
-import {
-  formatTrafficLocation,
-  isKnownTrafficHost,
-} from "@notra/geo-core/utils/geo-project-domains";
+import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
@@ -58,7 +55,6 @@ export function TrafficPagesCard({
   pages,
   isPending = false,
   hosts,
-  isHostReady,
 }: TrafficPagesCardProps) {
   const [pathQuery, setPathQuery] = useQueryState(
     GEO_TRAFFIC_PAGES_PATH_PARAM,
@@ -66,18 +62,9 @@ export function TrafficPagesCard({
   );
   const groups = groupTrafficPages(pages);
   const observedHosts = hosts ?? trafficHostsFromPages(pages);
-  const hostReady = isHostReady ?? !isPending;
-  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery(
-    observedHosts,
-    hostReady
-  );
-  let appliedHost = hostQuery;
-  if (
-    hostQuery === GEO_TRAFFIC_HOST_ALL ||
-    (hostReady && !isKnownTrafficHost(hostQuery, observedHosts))
-  ) {
-    appliedHost = "";
-  }
+  const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();
+  const appliedHost =
+    hostQuery === GEO_TRAFFIC_HOST_ALL ? "" : hostQuery.trim();
   const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
   const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
   const filteredGroups = filterTrafficPageGroupsByHost(

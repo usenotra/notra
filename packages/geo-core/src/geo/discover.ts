@@ -38,6 +38,7 @@ import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
 import { geoSkip } from "./effect";
 import { GeoDiscoveryError } from "./errors";
+import { invalidateGeoIngestHostsCache } from "./ingest-hosts-cache";
 import { toGeoProject } from "./mappers";
 import {
   insertPromptsInTransaction,
@@ -468,6 +469,9 @@ export const createGeoProjectFromWebsite = Effect.fn(
       }),
   });
 
+  yield* Effect.promise(() =>
+    invalidateGeoIngestHostsCache(organizationId, project.id)
+  );
   yield* startGeoScanAfterWebsiteGeneration(organizationId, project.id, true);
   return project;
 });

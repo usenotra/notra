@@ -1,15 +1,29 @@
 import { authkitProxy } from "@workos-inc/authkit-nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isLocalDevAuthEnabled } from "@/utils/local-dev-auth";
+import {
+  evaluateLocalDevAuth,
+  isLocalDevAuthEnabled,
+  localDevAuthBlockedMessage,
+} from "@/utils/local-dev-auth";
+
+function localDevProxy(request: NextRequest) {
+  const gate = evaluateLocalDevAuth(request.headers);
+  if (gate.kind === "allowed") {
+    return NextResponse.next();
+  }
+  if (gate.kind === "blocked") {
+    return new NextResponse(localDevAuthBlockedMessage(gate.reason), {
+      status: 403,
+    });
+  }
+  return NextResponse.next();
+}
 
 // AuthKit reads `process.env[name]` (dynamic), so Edge never sees WORKOS_*.
-// Skip the proxy in local dev until a live API key is configured.
-export default isLocalDevAuthEnabled()
-  ? function proxy(_request: NextRequest) {
-      return NextResponse.next();
-    }
-  : authkitProxy();
+// Do not instantiate AuthKit when local-dev impersonation is opted in — it
+// 500s without a live key. Per-request we still require loopback + email.
+export default isLocalDevAuthEnabled() ? localDevProxy : authkitProxy();
 
 export const config = {
   matcher: [

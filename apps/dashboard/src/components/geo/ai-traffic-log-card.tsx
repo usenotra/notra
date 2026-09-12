@@ -48,22 +48,16 @@ import { paginatedTableHeightFor } from "@/utils/table";
 
 const LOG_SKELETON_ROWS = 6;
 
-export function AiTrafficLogCard({
-  organizationId,
-  knownHosts = [],
-  isHostReady = false,
-}: AiTrafficLogCardProps) {
+export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   const [filters, setFilters] = useState<GeoTrafficLogFilters>({
     visitorTypes: [],
     categories: [],
   });
   const [live, setLive] = useState(true);
-  const [hostQuery] = useGeoTrafficHostQuery(knownHosts, isHostReady);
+  const [hostQuery] = useGeoTrafficHostQuery();
   const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
     refetchInterval: live ? GEO_CITATIONS_LIVE_INTERVAL_MS : false,
     host: hostQuery,
-    knownHosts,
-    isHostReady,
   });
   const log = data?.log ?? [];
   const total = data?.total ?? log.length;

@@ -2,6 +2,10 @@
 
 import { GEO_TRAFFIC_REVEAL_MS } from "@notra/geo-core/constants/geo";
 import { isTrafficPagePending } from "@notra/geo-core/utils/ai-traffic";
+import {
+  ingestAllowedHosts,
+  unionTrafficHosts,
+} from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -29,6 +33,7 @@ import {
   useGeoSettings,
   useGeoTrafficPages,
 } from "@/lib/hooks/use-geo";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type { GeoPageClientProps } from "@/types/geo";
@@ -47,6 +52,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
       ? activeOrganization
       : orgFromList;
   const organizationId = organization?.id ?? "";
+  const { domain: brandDomain } = useGeoActiveProject(organizationId);
 
   const geoRange = useGeoRange();
   const [hostQuery] = useGeoTrafficHostQuery();
@@ -64,8 +70,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     geoRange.query,
     hostQuery
   );
-  const knownHosts = trafficHostsFromPages(inventoryPages.data?.pages ?? []);
-  const isHostReady = inventoryPages.isSuccess;
+  const knownHosts = unionTrafficHosts(
+    ingestAllowedHosts(brandDomain, settingsData?.settings?.domains),
+    trafficHostsFromPages(inventoryPages.data?.pages ?? [])
+  );
 
   const settings = settingsData?.settings ?? null;
   const sources = traffic?.sources ?? [];
@@ -184,17 +192,12 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
           <InstrumentReveal active={revealActive} order={1}>
             <TrafficPagesCard
               hosts={knownHosts}
-              isHostReady={isHostReady}
               isPending={isPagesPending}
               pages={trafficPages?.pages ?? []}
             />
           </InstrumentReveal>
           <InstrumentReveal active={revealActive} order={2}>
-            <AiTrafficLogCard
-              isHostReady={isHostReady}
-              knownHosts={knownHosts}
-              organizationId={organizationId}
-            />
+            <AiTrafficLogCard organizationId={organizationId} />
           </InstrumentReveal>
         </div>
       </div>
