@@ -75,12 +75,18 @@ export function GeoProjectQueryProvider({
     () => urlProjectId !== undefined
   );
 
+  // Mark the URL as established even when `?project=` matches the fallback.
+  // The sidebar often writes that same id; if we wait for a mismatch, the
+  // next real switch still looks like hydration and keeps the previous host.
+  // `isHydrationAlignment` below still reads the pre-update flag so a first
+  // paint of `?project=B` vs fallback `A` does not clear `host`.
+  if (urlProjectId !== undefined && !seenUrlProject) {
+    setSeenUrlProject(true);
+  }
+
   if (projectId !== hostScopeProjectId) {
     const isHydrationAlignment = urlProjectId !== undefined && !seenUrlProject;
     setHostScopeProjectId(projectId);
-    if (urlProjectId !== undefined) {
-      setSeenUrlProject(true);
-    }
     if (!isHydrationAlignment && hostQuery.length > 0) {
       setHostSuppressed(true);
     }
