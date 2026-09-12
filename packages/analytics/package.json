@@ -7,13 +7,14 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "tinybird:dev": "tinybird dev",
     "tinybird:build": "tinybird build",
     "tinybird:deploy": "tinybird deploy",
     "tinybird:push": "tinybird build"
   },
   "dependencies": {
+    "@notra/utils": "workspace:*",
     "@tinybirdco/sdk": "^0.0.82",
     "@upstash/redis": "^1.35.8",
     "effect": "4.0.0-rc.112"

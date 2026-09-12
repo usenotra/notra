@@ -1,6 +1,7 @@
 "use client";
 
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import type { TextSelection } from "@notra/schemas/dashboard/content";
 import {
   $getRoot,
   $getSelection,
@@ -9,8 +10,6 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { useEffect } from "react";
-
-import type { TextSelection } from "@/schemas/content";
 
 interface SelectionPluginProps {
   onSelectionChange: (selection: TextSelection | null) => void;

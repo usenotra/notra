@@ -1,7 +1,7 @@
 import {
   ALLOWED_RASTER_MIME_TYPES,
   MAX_LOGO_FILE_SIZE,
-} from "@/constants/upload";
+} from "@notra/schemas/constants/dashboard/upload";
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
 

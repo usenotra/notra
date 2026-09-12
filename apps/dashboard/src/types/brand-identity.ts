@@ -1,9 +1,9 @@
 import type { SupportedLanguage } from "@notra/ai/constants/languages";
 import type { ToneProfile } from "@notra/ai/schemas/tone";
+import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
 import type { Dispatch } from "react";
 
 import type { useBrandForm } from "@/lib/hooks/use-brand-form";
-import type { AffectedTrigger } from "@/schemas/integrations";
 import type { BrandSettings, ProgressData } from "@/types/hooks/brand-analysis";
 import type {
   BrandGuidelineAsset,

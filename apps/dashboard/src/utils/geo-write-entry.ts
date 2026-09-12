@@ -1,7 +1,7 @@
 import { GEO_WRITER_TRIGGER_ID } from "@notra/geo-core/constants/geo";
 import type { GeoContentBriefSummary } from "@notra/geo-core/types/geo";
+import { sourceMetadataSchema } from "@notra/schemas/dashboard/content";
 
-import { sourceMetadataSchema } from "@/schemas/content";
 import type {
   GeoGapsWriteEntry,
   WriteDialogInitialState,

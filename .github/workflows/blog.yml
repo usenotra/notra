@@ -1,0 +1,28 @@
+name: Blog
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
+  pull_request:
+    paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml", "scripts/github/check-blog-links.mjs"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - run: node scripts/github/check-blog-links.mjs
+      - if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        run: gh pr comment "$PR" --body-file comment.md --edit-last --create-if-none
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}

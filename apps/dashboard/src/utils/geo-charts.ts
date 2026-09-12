@@ -45,7 +45,8 @@ import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
 import {
   CHART_MIN_BAR_PERCENT,
-  CHART_OTHER_SLICE_LABEL,
+  SHARE_OF_VOICE_AGGREGATE_ID,
+  SHARE_OF_VOICE_AGGREGATE_LABEL,
   CHART_PERCENT_SCALE,
 } from "@/constants/charts";
 
@@ -84,6 +85,8 @@ export function buildShareOfVoiceBreakdown(
     mentions: number,
     trend: readonly GeoSparklinePoint[]
   ): ShareOfVoiceRow => ({
+    id: `brand:${brand}`,
+    kind: "brand",
     brand,
     mentions,
     share: total > 0 ? mentions / total : 0,
@@ -94,13 +97,15 @@ export function buildShareOfVoiceBreakdown(
     toRow(point.brand, point.mentions, point.trend ?? [])
   );
   if (otherTotal > 0) {
-    rows.push(
-      toRow(
-        CHART_OTHER_SLICE_LABEL,
-        otherTotal,
-        sumGeoSparklinePoints(rest.map((point) => point.trend ?? []))
-      )
-    );
+    rows.push({
+      id: SHARE_OF_VOICE_AGGREGATE_ID,
+      kind: "aggregate",
+      brand: SHARE_OF_VOICE_AGGREGATE_LABEL,
+      mentions: otherTotal,
+      share: total > 0 ? otherTotal / total : 0,
+      trend: sumGeoSparklinePoints(rest.map((point) => point.trend ?? [])),
+      tracked: false,
+    });
   }
   return {
     rows,
@@ -127,7 +132,7 @@ export function toShareOfVoiceDonutSlices(
 ): ShareOfVoiceDonutSlice[] {
   return rows.map((row, index) => ({
     ...row,
-    slice: chartKey(`${row.brand}-${index}`),
+    slice: chartKey(`${row.id}-${index}`),
   }));
 }
 
@@ -329,13 +334,15 @@ export function buildMentionTrendRows(
 ): MentionTrend {
   const byDay = new Map<string, Map<string, GeoTimeseriesPoint>>();
   for (const point of points) {
-    const model = engineModelOf(point.engine);
+    // Hover/picker series are provider families (ChatGPT, Claude), not every
+    // model variant — a day can otherwise list a dozen near-duplicate rows.
+    const family = engineFamilyOf(point.engine);
     const dayPoints: Map<string, GeoTimeseriesPoint> =
       byDay.get(point.day) ?? new Map();
-    const existing = dayPoints.get(model);
-    dayPoints.set(model, {
+    const existing = dayPoints.get(family);
+    dayPoints.set(family, {
       day: point.day,
-      engine: model,
+      engine: family,
       checks: (existing?.checks ?? 0) + point.checks,
       mentions: (existing?.mentions ?? 0) + point.mentions,
     });
@@ -345,7 +352,7 @@ export function buildMentionTrendRows(
   const knownDays = [...byDay.keys()].sort();
   const usageWindow = daysWithSettledUsage(knownDays);
   const engines = [
-    ...new Set(points.map((point) => engineModelOf(point.engine))),
+    ...new Set(points.map((point) => engineFamilyOf(point.engine))),
   ];
   const firstDay = knownDays.at(0);
   const lastDay = knownDays.at(-1);

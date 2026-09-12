@@ -1,4 +1,7 @@
-import type { ContentResponse, PostCollectionContext } from "@/schemas/content";
+import type {
+  ContentResponse,
+  PostCollectionContext,
+} from "@notra/schemas/dashboard/content";
 
 export interface ContentApiResponse {
   content: ContentResponse;

@@ -6,6 +6,11 @@ import {
   loadGeoSettings,
 } from "@notra/geo-core/geo/programs";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
+import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
+import {
+  canonicalizeShelfUrl,
+  shelfDomainFromUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -30,9 +35,7 @@ import {
   patchGeoShelfSource,
   updateGeoShelfCitations,
 } from "@/lib/geo-shelf/store";
-import { canonicalizeShelfUrl, shelfDomainFromUrl } from "@/lib/geo-shelf/url";
 import { conflict } from "@/lib/orpc/utils/errors";
-import { geoShelfSourceSchema } from "@/schemas/geo-shelf";
 import { getWebsiteDomain } from "@/utils/brand";
 
 import type {

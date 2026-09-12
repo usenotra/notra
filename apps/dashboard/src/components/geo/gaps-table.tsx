@@ -8,9 +8,6 @@ import {
   GEO_GAPS_EMPTY,
   GEO_GAPS_EMPTY_CELL,
   GEO_GAPS_ENGINE_FILTER_ALL,
-  GEO_GAPS_LIFT_BASELINE_LABEL,
-  GEO_GAPS_LIFT_NOW_LABEL,
-  GEO_GAPS_LIFT_TONE_CLASS,
   GEO_GAPS_METER_STEPS,
   GEO_GAPS_METER_TONE_CLASS,
   GEO_GAPS_TABLE_HEIGHT,
@@ -58,6 +55,7 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { GapDetailDialog } from "@/components/geo/gap-detail-dialog";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -69,8 +67,8 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type {
   GeoGapBrandMentionsCellProps,
+  GeoGapDetailSelection,
   GeoGapContentCellProps,
-  GeoGapLiftLineProps,
   GeoGapMeterProps,
   GeoGapNumberCellProps,
   GeoGapOpportunityCellProps,
@@ -90,8 +88,6 @@ import {
   filterPromptGaps,
   filterSearchGaps,
   gapCanRescan,
-  gapLift,
-  gapLiftTone,
   gapMeterLevel,
   gapMeterTone,
   gapMissingEngineFamilies,
@@ -406,20 +402,7 @@ function OpportunityCell({ row, maxOpportunity }: GeoGapOpportunityCellProps) {
   );
 }
 
-function GapLiftLine({ lift }: GeoGapLiftLineProps) {
-  return (
-    <span
-      className={cn(
-        "text-xs tabular-nums",
-        GEO_GAPS_LIFT_TONE_CLASS[gapLiftTone(lift.delta)]
-      )}
-    >
-      {`${GEO_GAPS_LIFT_BASELINE_LABEL} ${lift.before}/${lift.baselineTotal} → ${GEO_GAPS_LIFT_NOW_LABEL} ${lift.after}/${lift.total}`}
-    </span>
-  );
-}
-
-function ContentCell({ title, subtitle, lift }: GeoGapContentCellProps) {
+function ContentCell({ title, subtitle }: GeoGapContentCellProps) {
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span
@@ -436,7 +419,6 @@ function ContentCell({ title, subtitle, lift }: GeoGapContentCellProps) {
           {subtitle}
         </span>
       ) : null}
-      {lift ? <GapLiftLine lift={lift} /> : null}
     </span>
   );
 }
@@ -721,6 +703,11 @@ export function GeoGapsTable({
   onOpenPost,
 }: GeoGapsTableProps) {
   const [tab, setTab] = useState<GeoGapsTab>("prompt");
+  const [detail, setDetail] = useState<GeoGapDetailSelection | null>(null);
+  const selectedSearch =
+    detail?.kind === "search"
+      ? (searchGaps.find((row) => row.id === detail.id) ?? null)
+      : null;
   const [query, setQuery] = useQueryState(
     "q",
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
@@ -758,13 +745,7 @@ export function GeoGapsTable({
       width: "1fr",
       cell: (row) => {
         const headline = row.brief?.workingTitle ?? row.title;
-        return (
-          <ContentCell
-            lift={gapLift(row)}
-            subtitle={headline ? row.prompt : null}
-            title={headline ?? row.prompt}
-          />
-        );
+        return <ContentCell subtitle={null} title={headline ?? row.prompt} />;
       },
       sortValue: (row) => row.brief?.workingTitle ?? row.title ?? row.prompt,
       sortable: true,
@@ -811,23 +792,25 @@ export function GeoGapsTable({
       key: "write",
       header: "",
       align: "right",
-      width: "10.5rem",
-      minWidth: "10.5rem",
+      width: "12.5rem",
+      minWidth: "12.5rem",
       cell: (row) => (
-        <WriteCell
-          action={gapWriteAction(row.brief)}
-          onOpenPost={onOpenPost}
-          onRescan={
-            gapCanRescan(row.brief) ? () => onRescanPrompt(row) : undefined
-          }
-          onWrite={() => onWritePrompt(row)}
-          opportunityBucket={gapMeterLevel(
-            maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity
-          )}
-          postId={row.brief?.postId}
-          rescanDisabled={isScanning}
-          sourceKind="prompt"
-        />
+        <span className="inline-flex items-center gap-1">
+          <WriteCell
+            action={gapWriteAction(row.brief)}
+            onOpenPost={onOpenPost}
+            onRescan={
+              gapCanRescan(row.brief) ? () => onRescanPrompt(row) : undefined
+            }
+            onWrite={() => onWritePrompt(row)}
+            opportunityBucket={gapMeterLevel(
+              maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity
+            )}
+            postId={row.brief?.postId}
+            rescanDisabled={isScanning}
+            sourceKind="prompt"
+          />
+        </span>
       ),
     },
   ];
@@ -839,23 +822,6 @@ export function GeoGapsTable({
       width: "1fr",
       cell: (row) => <QueriesCell prompt={row.prompt} queries={row.queries} />,
       sortValue: (row) => row.prompt,
-      sortable: true,
-    },
-    {
-      key: "title",
-      header: "Suggested asset",
-      width: "1fr",
-      cell: (row) => {
-        const headline = row.brief?.workingTitle ?? row.title;
-        return headline ? (
-          <ContentCell subtitle={null} title={headline} />
-        ) : (
-          <span className="text-muted-foreground text-xs">
-            Title is drafted when you write
-          </span>
-        );
-      },
-      sortValue: (row) => row.brief?.workingTitle ?? row.title ?? "",
       sortable: true,
     },
     {
@@ -872,33 +838,6 @@ export function GeoGapsTable({
       sortable: true,
     },
     {
-      key: "clicks",
-      header: "Clicks",
-      width: "5.5rem",
-      cell: (row) => (
-        <NumberCell
-          emptyLabel={GEO_GAPS_EMPTY_CELL.impressions}
-          value={row.clicks}
-        />
-      ),
-      sortValue: (row) => row.clicks ?? -1,
-      sortable: true,
-    },
-    {
-      key: "position",
-      header: "Position",
-      width: "6rem",
-      cell: (row) => (
-        <NumberCell
-          emptyLabel={GEO_GAPS_EMPTY_CELL.impressions}
-          format={(value) => `#${value.toFixed(1)}`}
-          value={row.position}
-        />
-      ),
-      sortValue: (row) => row.position ?? Number.MAX_SAFE_INTEGER,
-      sortable: true,
-    },
-    {
       key: "recommendation",
       header: "Recommendation",
       width: "9rem",
@@ -910,8 +849,8 @@ export function GeoGapsTable({
       key: "write",
       header: "",
       align: "right",
-      width: "10.5rem",
-      minWidth: "10.5rem",
+      width: "12rem",
+      minWidth: "12rem",
       cell: (row) => (
         <SearchWriteCell
           isDismissing={dismissingSearchId === row.id}
@@ -962,6 +901,7 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={promptColumns}
         data={filteredPromptGaps}
+        onRowClick={(row) => setDetail({ kind: "prompt", id: row.id })}
         defaultSort={{ key: "opportunity", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
@@ -971,6 +911,7 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={searchColumns}
         data={filteredSearchGaps}
+        onRowClick={(row) => setDetail({ kind: "search", id: row.id })}
         defaultSort={{ key: "impressions", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
@@ -1007,6 +948,36 @@ export function GeoGapsTable({
           table
         )}
       </div>
+      <GapDetailDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetail(null);
+          }
+        }}
+        prompt={
+          detail?.kind === "prompt"
+            ? (promptGaps.find((row) => row.id === detail.id) ?? null)
+            : null
+        }
+        search={selectedSearch}
+        searchActions={
+          selectedSearch ? (
+            <SearchWriteCell
+              isDismissing={dismissingSearchId === selectedSearch.id}
+              onDismiss={() => onDismissSearch(selectedSearch)}
+              onOpenPost={(postId) => {
+                setDetail(null);
+                onOpenPost(postId);
+              }}
+              onWrite={(existingPageUrl) => {
+                setDetail(null);
+                onWriteSearch(selectedSearch, existingPageUrl);
+              }}
+              row={selectedSearch}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }

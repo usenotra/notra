@@ -74,6 +74,18 @@ export const GEO_MODEL_PROVIDERS: readonly GeoModelProvider[] = [
     brand: "opencode",
     featured: false,
   },
+  {
+    id: "claude-code",
+    label: "Claude Code",
+    brand: "claude-code",
+    featured: false,
+  },
+  {
+    id: "codex",
+    label: "Codex",
+    brand: "codex",
+    featured: false,
+  },
 ];
 
 export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
@@ -218,20 +230,20 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   },
   // Meta
   {
+    id: "meta/muse-spark-1.3",
+    provider: "meta",
+    label: "Muse Spark 1.3",
+    zdr: "none",
+    released: "2026-09-03",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "meta/muse-spark-1.2",
     provider: "meta",
     label: "Muse Spark 1.2",
     zdr: "none",
     released: "2026-08-05",
-    default: false,
-    gateways: ["vercel", "openrouter"],
-  },
-  {
-    id: "meta/muse-spark-1.1",
-    provider: "meta",
-    label: "Muse Spark 1.1",
-    zdr: "none",
-    released: "2026-07-09",
     default: false,
     gateways: ["vercel", "openrouter"],
   },
@@ -334,9 +346,10 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
 /**
  * Models that do not run through the Notra AI router. They are appended to the
  * catalog instead of coming from the gateway feed. `zdr: "none"` because
- * neither direct runner exposes an enforceable ZDR route to GEO; under enforced
- * ZDR each engine therefore needs explicit approval before it is scanned.
- * Google AI Overview is fetched through SerpApi and is also non-ZDR.
+ * neither Cursor, Box, nor SerpApi exposes an enforceable ZDR route to GEO;
+ * under enforced ZDR each engine therefore needs explicit approval before it
+ * is scanned. Google AI Overview is fetched through SerpApi and is also
+ * non-ZDR.
  */
 export const GEO_MODEL_CATALOG_STATIC: readonly GeoModelCatalogEntry[] = [
   {
@@ -358,6 +371,42 @@ export const GEO_MODEL_CATALOG_STATIC: readonly GeoModelCatalogEntry[] = [
     gateways: ["box"],
   },
   {
+    id: "claude-code/claude-fable-5.1",
+    provider: "claude-code",
+    label: "Fable 5.1",
+    zdr: "none",
+    released: "2026-09-01",
+    default: false,
+    gateways: ["box"],
+  },
+  {
+    id: "claude-code/claude-opus-5",
+    provider: "claude-code",
+    label: "Opus 5",
+    zdr: "none",
+    released: "2026-07-24",
+    default: false,
+    gateways: ["box"],
+  },
+  {
+    id: "codex/gpt-6-astra",
+    provider: "codex",
+    label: "GPT-6 Astra",
+    zdr: "none",
+    released: "2026-09-04",
+    default: false,
+    gateways: ["box"],
+  },
+  {
+    id: "codex/gpt-5.6-sol-rei",
+    provider: "codex",
+    label: "GPT-5.6 Sol Rei",
+    zdr: "none",
+    released: "2026-08-21",
+    default: false,
+    gateways: ["box"],
+  },
+  {
     id: "google/ai-overview",
     provider: "google",
     label: "AI Overview",
@@ -372,11 +421,21 @@ export const GEO_MODEL_CATALOG_STATIC: readonly GeoModelCatalogEntry[] = [
  * Environment variables that have to be set for a static engine to be
  * runnable. Static entries are hidden from the catalog while a key is missing.
  */
+const GEO_OPENCODE_ENGINE_ENV = [
+  "UPSTASH_BOX_API_KEY",
+  "OPENROUTER_API_KEY",
+] as const;
+const GEO_NATIVE_BOX_ENGINE_ENV = ["UPSTASH_BOX_API_KEY"] as const;
+
 export const GEO_STATIC_ENGINE_ENV: Readonly<
   Record<string, readonly string[]>
 > = {
   "cursor/composer-2.5": ["CURSOR_API_KEY"],
-  "opencode/gpt-5.6-sol-medium": ["UPSTASH_BOX_API_KEY", "OPENROUTER_API_KEY"],
+  "opencode/gpt-5.6-sol-medium": GEO_OPENCODE_ENGINE_ENV,
+  "claude-code/claude-fable-5.1": GEO_NATIVE_BOX_ENGINE_ENV,
+  "claude-code/claude-opus-5": GEO_NATIVE_BOX_ENGINE_ENV,
+  "codex/gpt-6-astra": GEO_NATIVE_BOX_ENGINE_ENV,
+  "codex/gpt-5.6-sol-rei": GEO_NATIVE_BOX_ENGINE_ENV,
   "google/ai-overview": ["SERPAPI_API_KEY"],
 };
 
@@ -390,6 +449,8 @@ export const GEO_MODEL_FEED_URL = "https://ai-gateway.vercel.sh/v1/models";
 export const GEO_MODEL_FEED_REVALIDATE_SECONDS = 3600;
 /** Models shown per provider before "Show x other models". */
 export const GEO_PICKER_VISIBLE_MODELS = 3;
+/** Providers shown in the picker before "Show x more providers". */
+export const GEO_PICKER_VISIBLE_PROVIDERS = 7;
 /** Newest models kept per provider; defaults are always included. */
 export const GEO_MODELS_PER_PROVIDER = 10;
 export const GEO_MODEL_EXCLUDED_TAGS: ReadonlySet<string> = new Set([
@@ -398,6 +459,14 @@ export const GEO_MODEL_EXCLUDED_TAGS: ReadonlySet<string> = new Set([
 ]);
 /** Host-speed variants and previews duplicate a model's answers. */
 export const GEO_MODEL_EXCLUDED_ID_PATTERN = /(-fast|-beta|-contributor)$/;
+/** Retired catalog ids that the gateway feed may still publish. */
+export const GEO_MODEL_EXCLUDED_IDS: ReadonlySet<string> = new Set([
+  "meta/muse-spark-1.1",
+]);
+/** Stored engine ids that should keep scanning as their replacement. */
+export const GEO_MODEL_REPLACED_IDS: Readonly<Record<string, string>> = {
+  "meta/muse-spark-1.1": "meta/muse-spark-1.3",
+};
 /**
  * Coding, vision and edge-sized specialities. They are never used to answer
  * the prompts we scan, so they would only crowd out a provider's general

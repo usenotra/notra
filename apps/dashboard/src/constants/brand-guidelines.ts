@@ -1,8 +1,5 @@
 import type { BrandGuidelineScreenshotConfig } from "@/types/brand-guidelines";
 
-export const BRAND_GUIDELINE_HEX_COLOR_REGEX =
-  /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
-
 export const BRAND_GUIDELINE_LEADING_WWW_REGEX = /^www\./i;
 
 export const BRAND_GUIDELINE_TRAILING_SLASH_REGEX = /\/$/;

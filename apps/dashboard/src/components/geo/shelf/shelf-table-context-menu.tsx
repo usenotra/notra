@@ -8,6 +8,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GEO_SHELF_OPPORTUNITY_STATUSES,
+  GEO_SHELF_PLACEMENT_STATUSES,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
+import { isAllowedShelfUrl } from "@notra/schemas/utils/dashboard/shelf-url";
+import {
   ContextMenuItem,
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
@@ -21,11 +26,8 @@ import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge
 import { ShelfTicketMark } from "@/components/geo/shelf/shelf-ticket-badge";
 import {
   GEO_SHELF_OPPORTUNITY_STATUS_LABELS,
-  GEO_SHELF_OPPORTUNITY_STATUSES,
   GEO_SHELF_PLACEMENT_LABELS,
-  GEO_SHELF_PLACEMENT_STATUSES,
 } from "@/constants/geo-shelf";
-import { isAllowedShelfUrl } from "@/lib/geo-shelf/url";
 import type {
   GeoShelfOpportunityStatus,
   GeoShelfPlacementStatus,

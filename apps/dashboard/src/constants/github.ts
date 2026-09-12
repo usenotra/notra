@@ -3,12 +3,6 @@ import type {
   GitHubPublishRecovery,
 } from "@/types/integrations/github";
 
-export const GITHUB_URL_PATTERNS = [
-  /^https?:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/i,
-  /^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/i,
-  /^([^/]+)\/([^/]+)$/,
-] as const;
-
 export const GITHUB_INSTALL_STATE_TTL_SECONDS = 1800;
 
 export const GITHUB_PULL_REQUEST_CLOSED_ACTION = "closed";
@@ -37,8 +31,6 @@ export const GITHUB_CALLBACK_ERROR_MESSAGES: Record<string, string> = {
     "Too many GitHub connection attempts. Please wait a moment and try again.",
 };
 
-export const GITHUB_PUBLISH_CONTENT_TYPES = ["changelog", "blog_post"] as const;
-
 export const DEFAULT_GITHUB_CONTENT_DIRECTORIES = {
   changelog: "changelogs",
   blog_post: "blog",
@@ -46,20 +38,33 @@ export const DEFAULT_GITHUB_CONTENT_DIRECTORIES = {
 
 export const DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED = {
   changelog: true,
-  blog_post: false,
+  blog_post: true,
 } as const satisfies Record<GitHubPublishContentType, boolean>;
 
 export const GITHUB_API_VERSION_HEADERS = {
   "X-GitHub-Api-Version": "2022-11-28",
 } as const;
 
-export const GITHUB_CONTENT_PATH_MAX_LENGTH = 1024;
-
 export const GITHUB_PULL_REQUEST_BODY_SECTION_START =
   "<!-- notra:content:start -->";
 export const GITHUB_PULL_REQUEST_BODY_SECTION_END =
   "<!-- notra:content:end -->";
+/** Commit message trailer that records the files a Notra publication owns. */
+export const GITHUB_CONTENT_COMMIT_METADATA_PREFIX = "Notra-Publication: ";
+/** Leaves one comparison slot for the content file below GitHub's 300-file cap. */
+export const GITHUB_CONTENT_MAX_ASSET_COUNT = 298;
+/**
+ * The GraphQL endpoint rejects request bodies of roughly 20 MB and more with
+ * HTTP 499. Assets travel base64-encoded inside that body, so ~12 MB of raw
+ * bytes is the largest total that reliably commits in one request.
+ */
+export const GITHUB_CONTENT_MAX_ASSET_BYTES = 12 * 1024 * 1024;
+export const GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES = 10 * 1024 * 1024;
 
+/** GitHub rejects issue and pull request bodies longer than this. */
+export const GITHUB_PULL_REQUEST_BODY_MAX_LENGTH = 65_536;
+
+/** GitHub App installation tokens author this commit as `{slug}[bot]`. */
 export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
   mutation CreateCommitOnBranch($input: CreateCommitOnBranchInput!) {
     createCommitOnBranch(input: $input) {
@@ -70,18 +75,33 @@ export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
   }
 `;
 
-export const GITHUB_PATH_INVALID_CHARACTERS_REGEX = /[?#]/;
 export const GITHUB_INSTALLATION_ID_REGEX = /^\d+$/;
 
 export const GITHUB_RECOVERY_COPY = {
   github_app_permissions_required: {
     description:
-      "Allow read and write access to Contents and Pull requests. An organization admin may need to approve this.",
-    title: "GitHub permissions needed",
+      "Notra needs write access to Contents and Pull requests. Review the installation on GitHub and accept any pending permission request. Reconnecting the repository does not grant write access.",
+    title: "GitHub write access needed",
   },
   github_authentication_required: {
-    description: "Reconnect the GitHub integration, then try again.",
-    title: "Reconnect GitHub",
+    description:
+      "Review the GitHub App installation, then select and save this repository in the GitHub integration settings.",
+    title: "Review the GitHub App connection",
+  },
+  github_repository_connection_required: {
+    description:
+      "This repository has no saved credentials. Connect the GitHub App, then select and save this repository to publish.",
+    title: "Connect this repository to publish",
+  },
+  github_token_authentication_required: {
+    description:
+      "The saved personal access token was rejected. Update it in the GitHub integration settings, or connect this repository through the GitHub App.",
+    title: "Update the GitHub token",
+  },
+  github_token_permissions_required: {
+    description:
+      "Allow the saved personal access token to write repository contents and pull requests, or connect this repository through the GitHub App.",
+    title: "GitHub token permissions needed",
   },
   github_content_publishing_paused: {
     description:

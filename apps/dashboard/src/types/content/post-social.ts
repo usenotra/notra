@@ -1,7 +1,8 @@
 import type {
   SocialConnectPlatform,
   SocialPublishSurface,
-} from "@/schemas/social-accounts";
+} from "@notra/schemas/dashboard/social-accounts";
+
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 
 export interface PublishedSocialPost {

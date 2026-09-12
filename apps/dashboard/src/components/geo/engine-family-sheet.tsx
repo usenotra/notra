@@ -14,7 +14,6 @@ import {
   GEO_SPARKLINE_MIN_POINTS,
   GEO_WITHOUT_SEARCH_LABEL,
 } from "@notra/geo-core/constants/geo";
-import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import type {
   GeoEngineFamily,
   GeoEngineFamilyTotals,
@@ -356,7 +355,7 @@ function BrandRow({
         ) : (
           <CompetitorLogo
             className="size-4 shrink-0"
-            domain={findCompetitorDomain(scope.competitors ?? [], row.name)}
+            competitors={scope.competitors}
             name={row.name}
           />
         )}

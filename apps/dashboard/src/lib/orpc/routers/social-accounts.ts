@@ -1,6 +1,16 @@
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  beginConnectInputSchema,
+  disconnectSocialAccountInputSchema,
+  linkedinSelectionCompleteInputSchema,
+  linkedinSelectionGetInputSchema,
+  publishSocialPostInputSchema,
+  refreshSocialAccountsInputSchema,
+  socialAccountsOrganizationInputSchema,
+  socialConnectPlatformSchema,
+} from "@notra/schemas/dashboard/social-accounts";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -18,16 +28,6 @@ import {
 } from "@/lib/social-connect/linkedin-selection";
 import { publishSocialPost } from "@/lib/social-connect/publish";
 import { refreshConnectedAccounts } from "@/lib/social-connect/refresh";
-import {
-  beginConnectInputSchema,
-  disconnectSocialAccountInputSchema,
-  linkedinSelectionCompleteInputSchema,
-  linkedinSelectionGetInputSchema,
-  publishSocialPostInputSchema,
-  refreshSocialAccountsInputSchema,
-  socialAccountsOrganizationInputSchema,
-  socialConnectPlatformSchema,
-} from "@/schemas/social-accounts";
 
 import { notFound } from "../utils/errors";
 

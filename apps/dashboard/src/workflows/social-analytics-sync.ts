@@ -1,10 +1,10 @@
+import { socialAnalyticsSyncPayloadSchema } from "@notra/schemas/dashboard/analytics";
 import { flattenError } from "zod";
 
 import {
   WORKFLOW_ANALYTICS_NAMES,
   WORKFLOW_OUTCOMES,
 } from "@/constants/workflow-analytics";
-import { socialAnalyticsSyncPayloadSchema } from "@/schemas/analytics";
 import type {
   SocialAnalyticsSyncPayload,
   SocialAnalyticsSyncResult,

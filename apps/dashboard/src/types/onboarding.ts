@@ -4,22 +4,18 @@ import type {
   GeoDiscoveredPrompt,
   GeoWebsiteDiscovery,
 } from "@notra/geo-core/types/geo";
+import type { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
 import type * as z from "zod";
-
-import type { ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES } from "@/constants/onboarding";
-import type { onboardingWorkspaceSchema } from "@/schemas/onboarding/workspace";
-
-export type OnboardingHeardAboutNotraSource =
-  (typeof ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES)[number];
-
-export interface OnboardingAttributionValue {
-  heardAboutNotraSource: OnboardingHeardAboutNotraSource | "" | null;
-  heardAboutNotraOther?: string | null;
-}
 
 export type OnboardingWorkspaceInput = z.infer<
   typeof onboardingWorkspaceSchema
 >;
+
+/** Response of `onboarding.companyLogo`, also the cached representation. */
+export interface CompanyLogoResult {
+  domain: string | null;
+  url: string | null;
+}
 
 export interface PricingClientProps {
   slug: string;

@@ -1,7 +1,7 @@
 import {
   ALLOWED_CHAT_MIME_TYPES,
   ALLOWED_OPENAI_CHAT_MIME_TYPES,
-} from "@/constants/upload";
+} from "@notra/schemas/constants/dashboard/upload";
 
 const MIME_EXTENSION_MAP: Record<string, string> = {
   "image/jpeg": "jpg",

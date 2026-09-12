@@ -3,18 +3,18 @@ import type {
   ContextDevScreenshotResponse,
   ContextDevStyleguideResponse,
 } from "@notra/ai/types/context-dev";
-
-import {
-  BRAND_GUIDELINE_HEX_COLOR_REGEX,
-  BRAND_GUIDELINE_LEADING_WWW_REGEX,
-  BRAND_GUIDELINE_TOKEN_GROUPS,
-} from "@/constants/brand-guidelines";
+import { BRAND_GUIDELINE_HEX_COLOR_REGEX } from "@notra/schemas/constants/dashboard/brand-guidelines";
 import {
   styleguideColorSchema,
   styleguideFontSchema,
   styleguideRecordSchema,
   styleguideTokenValueSchema,
-} from "@/schemas/brand-guidelines";
+} from "@notra/schemas/dashboard/brand-guidelines";
+
+import {
+  BRAND_GUIDELINE_LEADING_WWW_REGEX,
+  BRAND_GUIDELINE_TOKEN_GROUPS,
+} from "@/constants/brand-guidelines";
 import type {
   NormalizedAsset,
   NormalizedColor,

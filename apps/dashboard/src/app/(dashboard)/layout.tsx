@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { requireAuth } from "@/lib/auth/actions";
+import { requireAuthIdentity } from "@/lib/auth/actions";
 
 export const instant = false;
 
@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
+  await requireAuthIdentity();
 
   return children;
 }

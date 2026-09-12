@@ -9,6 +9,4 @@ export const FEEDBACK_TOKEN_SCOPE_ERROR =
 export const FEEDBACK_TOKEN_UNAVAILABLE_ERROR =
   "Feedback ingestion unavailable";
 export const FEEDBACK_INGEST_SCOPE = "feedback.write";
-export const FEEDBACK_LIST_DEFAULT_LIMIT = 25;
-export const FEEDBACK_LIST_MAX_LIMIT = 100;
 export const FEEDBACK_TOKEN_GENERATION_MISSING = "missing";

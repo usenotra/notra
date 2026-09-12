@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
+import { socialConnectPlatformSchema } from "@notra/schemas/dashboard/social-accounts";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { SocialPostResult } from "post-for-me/resources/social-post-results";
@@ -13,7 +14,6 @@ import {
   SocialConnectConfigError,
   SocialConnectRequestError,
 } from "@/lib/social-connect/errors";
-import { socialConnectPlatformSchema } from "@/schemas/social-accounts";
 import type { PublishSocialPostParams } from "@/types/services/social-connect";
 
 const RESULT_POLL_ATTEMPTS = 5;

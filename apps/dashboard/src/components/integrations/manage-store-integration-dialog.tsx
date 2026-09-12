@@ -6,6 +6,7 @@ import {
   PlusSignIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { MAX_MCP_HEADERS } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -36,7 +37,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import { MAX_MCP_HEADERS } from "@/schemas/integrations";
 import type {
   ManageStoreIntegrationDialogProps,
   McpConnectionActionsProps,

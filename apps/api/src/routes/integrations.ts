@@ -1,40 +1,29 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
-  githubIntegrations,
-  linearIntegrations,
-  repositoryOutputs,
-} from "@notra/db/schema";
-import { and, asc, eq } from "drizzle-orm";
-
-import {
   createGitHubIntegrationRequestSchema,
   createGitHubIntegrationResponseSchema,
   deleteIntegrationResponseSchema,
   getIntegrationParamsSchema,
   getIntegrationsResponseSchema,
-} from "../schemas/content";
+} from "@notra/schemas/api/content";
+
+import {
+  assertNoGitHubIntegrationDuplicate,
+  createGitHubIntegration,
+  deleteIntegration,
+  listIntegrations,
+} from "../programs/integrations";
+import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
 import {
-  encryptGitHubIntegrationToken,
-  findMatchingGitHubIntegration,
-  generateGitHubIntegrationId,
-  generateGitHubWebhookSecret,
-  getGitHubIntegrationCreatorUserId,
-  getSafeGitHubIntegrationErrorMessage,
-  isGitHubIntegrationUnavailableError,
-  validateGitHubRepositoryAccess,
-} from "../utils/github-integrations";
+  respondToIntegrationFailure,
+  runIntegrationProgram,
+} from "../utils/integrations";
 import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
-import { isConstraintViolation, isPgUniqueViolation } from "../utils/pg-errors";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
-import {
-  deleteQstashSchedulesForTriggers,
-  disableTriggersAndDeleteIntegration,
-  getTriggersForIntegration,
-} from "../utils/triggers";
 
 export const integrationsRoutes = createOpenApiApp();
 
@@ -133,6 +122,16 @@ const deleteIntegrationRoute = createRoute({
   },
 });
 
+async function requireOrganization(
+  c: {
+    get: (key: "db") => DbClient;
+  },
+  orgId: string
+) {
+  const organization = await getOrganizationResponse(c.get("db"), orgId);
+  return organization ?? null;
+}
+
 integrationsRoutes.openapi(getIntegrationsRoute, async (c) => {
   const orgId = getOrganizationId(c);
   if (!orgId) {
@@ -142,56 +141,23 @@ integrationsRoutes.openapi(getIntegrationsRoute, async (c) => {
     );
   }
 
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
-
+  const organization = await requireOrganization(c, orgId);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const [github, linear] = await Promise.all([
-    db.query.githubIntegrations.findMany({
-      where: and(
-        eq(githubIntegrations.organizationId, orgId),
-        eq(githubIntegrations.enabled, true)
-      ),
-      orderBy: [
-        asc(githubIntegrations.displayName),
-        asc(githubIntegrations.id),
-      ],
-      columns: {
-        id: true,
-        displayName: true,
-        owner: true,
-        repo: true,
-        defaultBranch: true,
-      },
-    }),
-    db.query.linearIntegrations.findMany({
-      where: and(
-        eq(linearIntegrations.organizationId, orgId),
-        eq(linearIntegrations.enabled, true)
-      ),
-      orderBy: [
-        asc(linearIntegrations.displayName),
-        asc(linearIntegrations.id),
-      ],
-      columns: {
-        id: true,
-        displayName: true,
-        linearOrganizationId: true,
-        linearOrganizationName: true,
-        linearTeamId: true,
-        linearTeamName: true,
-      },
-    }),
-  ]);
+  const result = await runIntegrationProgram(
+    listIntegrations({ db: c.get("db"), organizationId: orgId })
+  );
+
+  if (result._tag === "Failure") {
+    throw result.failure;
+  }
 
   return c.json(
     {
-      github,
+      ...result.success,
       slack: [],
-      linear,
       organization,
     },
     200
@@ -208,8 +174,7 @@ integrationsRoutes.openapi(createGitHubIntegrationRoute, async (c) => {
   }
 
   const body = c.req.valid("json");
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
@@ -217,130 +182,54 @@ integrationsRoutes.openapi(createGitHubIntegrationRoute, async (c) => {
 
   const owner = body.owner.trim();
   const repo = body.repo.trim();
-  const branch = body.branch?.trim() || null;
-  const token = body.token?.trim() || null;
 
-  try {
-    const existingIntegration = await findMatchingGitHubIntegration(
-      db,
-      orgId,
+  const duplicateCheck = await runIntegrationProgram(
+    assertNoGitHubIntegrationDuplicate({
+      db: c.get("db"),
+      organizationId: orgId,
       owner,
-      repo
-    );
+      repo,
+    })
+  );
 
-    if (existingIntegration) {
-      return c.json({ error: "Repository already connected" }, 409);
+  if (duplicateCheck._tag === "Failure") {
+    const response = respondToIntegrationFailure(c, duplicateCheck.failure);
+    if (response) {
+      return response;
     }
-
-    // Charged immediately before the GitHub round-trip and the write: the 404
-    // and 409 above must not spend the caller's budget.
-    const rateLimited = await enforceRatelimit(c, ratelimit.integrationCreate);
-    if (rateLimited) {
-      return rateLimited;
-    }
-
-    await validateGitHubRepositoryAccess({ owner, repo, token });
-
-    const integrationId = generateGitHubIntegrationId();
-    const createdByUserId = await getGitHubIntegrationCreatorUserId(db, orgId);
-    const encryptedToken = token
-      ? encryptGitHubIntegrationToken(token, c.env ?? {})
-      : null;
-    const encryptedWebhookSecret = encryptGitHubIntegrationToken(
-      generateGitHubWebhookSecret(),
-      c.env ?? {}
-    );
-
-    const integration = await db.transaction(async (tx) => {
-      const [createdIntegration] = await tx
-        .insert(githubIntegrations)
-        .values({
-          id: integrationId,
-          organizationId: orgId,
-          createdByUserId,
-          encryptedToken,
-          displayName: `${owner}/${repo}`,
-          owner,
-          repo,
-          defaultBranch: branch,
-          repositoryEnabled: true,
-          encryptedWebhookSecret,
-          enabled: true,
-        })
-        .returning({
-          id: githubIntegrations.id,
-          displayName: githubIntegrations.displayName,
-          owner: githubIntegrations.owner,
-          repo: githubIntegrations.repo,
-          defaultBranch: githubIntegrations.defaultBranch,
-        });
-
-      if (!createdIntegration) {
-        throw new Error("Failed to create GitHub integration record");
-      }
-
-      await tx.insert(repositoryOutputs).values([
-        {
-          id: generateGitHubIntegrationId(),
-          repositoryId: integrationId,
-          outputType: "changelog",
-          enabled: true,
-          config: null,
-        },
-        {
-          id: generateGitHubIntegrationId(),
-          repositoryId: integrationId,
-          outputType: "blog_post",
-          enabled: false,
-          config: null,
-        },
-        {
-          id: generateGitHubIntegrationId(),
-          repositoryId: integrationId,
-          outputType: "twitter_post",
-          enabled: false,
-          config: null,
-        },
-      ]);
-
-      return createdIntegration;
-    });
-
-    if (!integration) {
-      return c.json({ error: "Failed to create integration" }, 503);
-    }
-
-    return c.json({ github: integration, organization }, 201);
-  } catch (error) {
-    if (isGitHubIntegrationUnavailableError(error)) {
-      return c.json({ error: "GitHub integrations are unavailable" }, 503);
-    }
-
-    if (
-      isPgUniqueViolation(error) ||
-      isConstraintViolation(
-        error,
-        "githubIntegrations_organization_owner_repo_uidx"
-      )
-    ) {
-      return c.json({ error: "Repository already connected" }, 409);
-    }
-
-    const safeMessage = getSafeGitHubIntegrationErrorMessage(error);
-
-    if (safeMessage) {
-      return c.json({ error: safeMessage }, 400);
-    }
-
-    logError("Failed to create GitHub integration", error);
-
-    return c.json(
-      {
-        error: "Failed to create GitHub integration",
-      },
-      400
-    );
+    throw duplicateCheck.failure;
   }
+
+  // Charged immediately before the GitHub round-trip and the write: the 404
+  // and 409 above must not spend the caller's budget.
+  const rateLimited = await enforceRatelimit(c, ratelimit.integrationCreate);
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const result = await runIntegrationProgram(
+    createGitHubIntegration({
+      db: c.get("db"),
+      organizationId: orgId,
+      body,
+      runtimeEnv: c.env ?? {},
+    })
+  );
+
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "IntegrationCreateError") {
+      logError("Failed to create GitHub integration", result.failure.cause);
+    }
+
+    const response = respondToIntegrationFailure(c, result.failure);
+    if (response) {
+      return response;
+    }
+
+    throw result.failure;
+  }
+
+  return c.json({ github: result.success, organization }, 201);
 });
 
 integrationsRoutes.openapi(deleteIntegrationRoute, async (c) => {
@@ -353,107 +242,32 @@ integrationsRoutes.openapi(deleteIntegrationRoute, async (c) => {
   }
 
   const { integrationId } = c.req.valid("param");
-  const runtimeEnv = (c.env ?? {}) as Record<string, unknown>;
-  const db = c.get("db");
-  const organization = await getOrganizationResponse(db, orgId);
+  const organization = await requireOrganization(c, orgId);
 
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const githubIntegration = await db.query.githubIntegrations.findFirst({
-    where: and(
-      eq(githubIntegrations.id, integrationId),
-      eq(githubIntegrations.organizationId, orgId)
-    ),
-    columns: {
-      id: true,
-    },
-  });
-
-  if (githubIntegration) {
-    const affectedTriggers = await getTriggersForIntegration(
-      db,
-      orgId,
-      integrationId
-    );
-
-    await disableTriggersAndDeleteIntegration(
-      db,
-      orgId,
-      affectedTriggers,
-      (tx) =>
-        tx
-          .delete(githubIntegrations)
-          .where(
-            and(
-              eq(githubIntegrations.id, integrationId),
-              eq(githubIntegrations.organizationId, orgId)
-            )
-          )
-    );
-
-    await deleteQstashSchedulesForTriggers(runtimeEnv, affectedTriggers);
-
-    return c.json(
-      {
-        id: integrationId,
-        organization,
-        disabledSchedules: affectedTriggers
-          .filter((trigger) => trigger.sourceType === "cron")
-          .map((trigger) => ({ id: trigger.id, name: trigger.name })),
-        disabledEvents: affectedTriggers
-          .filter((trigger) => trigger.sourceType !== "cron")
-          .map((trigger) => ({ id: trigger.id, name: trigger.name })),
-      },
-      200
-    );
-  }
-
-  const [existingLinearIntegration] = await db
-    .select({ id: linearIntegrations.id })
-    .from(linearIntegrations)
-    .where(
-      and(
-        eq(linearIntegrations.id, integrationId),
-        eq(linearIntegrations.organizationId, orgId)
-      )
-    )
-    .limit(1);
-
-  if (!existingLinearIntegration) {
-    return c.json({ error: "Integration not found" }, 404);
-  }
-
-  const affectedTriggers = await getTriggersForIntegration(
-    db,
-    orgId,
-    integrationId
+  const result = await runIntegrationProgram(
+    deleteIntegration({
+      db: c.get("db"),
+      organizationId: orgId,
+      integrationId,
+      runtimeEnv: (c.env ?? {}) as Record<string, unknown>,
+    })
   );
 
-  await disableTriggersAndDeleteIntegration(db, orgId, affectedTriggers, (tx) =>
-    tx
-      .delete(linearIntegrations)
-      .where(
-        and(
-          eq(linearIntegrations.id, integrationId),
-          eq(linearIntegrations.organizationId, orgId)
-        )
-      )
-  );
-
-  await deleteQstashSchedulesForTriggers(runtimeEnv, affectedTriggers);
+  if (result._tag === "Failure") {
+    if (result.failure._tag === "IntegrationNotFoundError") {
+      return c.json({ error: "Integration not found" }, 404);
+    }
+    throw result.failure;
+  }
 
   return c.json(
     {
-      id: existingLinearIntegration.id,
+      ...result.success,
       organization,
-      disabledSchedules: affectedTriggers
-        .filter((trigger) => trigger.sourceType === "cron")
-        .map((trigger) => ({ id: trigger.id, name: trigger.name })),
-      disabledEvents: affectedTriggers
-        .filter((trigger) => trigger.sourceType !== "cron")
-        .map((trigger) => ({ id: trigger.id, name: trigger.name })),
     },
     200
   );

@@ -1,3 +1,5 @@
+import { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
+
 import {
   saveOnboardingAttribution,
   saveOnboardingNotificationSettings,
@@ -8,7 +10,6 @@ import { authClient } from "@/lib/auth/client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { uploadFile } from "@/lib/upload/client";
 import { generateOrganizationAvatar } from "@/lib/utils";
-import { onboardingWorkspaceSchema } from "@/schemas/onboarding/workspace";
 import type { SubmitWorkspaceFormArgs } from "@/types/onboarding";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 

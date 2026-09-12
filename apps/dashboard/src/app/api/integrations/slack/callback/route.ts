@@ -3,6 +3,7 @@ import {
   getSlackIntegrationByTeamId,
 } from "@notra/ai/integrations/slack-workspace";
 import { redis } from "@notra/ai/utils/redis";
+import { slackOAuthAccessResponseSchema } from "@notra/schemas/dashboard/slack-integration";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
 import { type NextRequest, NextResponse } from "next/server";
@@ -19,7 +20,6 @@ import {
   trackIntegrationConnectFailed,
 } from "@/lib/integrations/connect-events";
 import { slackOAuthErrorParam } from "@/lib/integrations/slack/oauth-errors";
-import { slackOAuthAccessResponseSchema } from "@/schemas/slack-integration";
 import type { SlackOAuthState } from "@/types/slack-integration";
 
 export async function GET(request: NextRequest) {

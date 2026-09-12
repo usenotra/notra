@@ -2,7 +2,7 @@ import { PUBLIC_API_SCOPES } from "@notra/utils/api-scopes";
 
 import { SITE_DESCRIPTION } from "@/utils/metadata";
 import { SOCIAL_LINKS } from "@/utils/social-links";
-import { API_URL, APP_URL, DOCS_URL, MCP_URL, SITE_URL } from "@/utils/urls";
+import { API_URL, DOCS_URL, MCP_URL, SITE_URL } from "@/utils/urls";
 
 const AGENT_DISCOVERY_PATHS = {
   agentJson: "/.well-known/agent.json",
@@ -52,19 +52,14 @@ function authIssuerUrl() {
 function buildAgentAuthMetadata() {
   return {
     register_uri: `${authIssuerUrl()}/oauth2/register`,
-    claim_uri: siteUrl("/agent/auth/claim"),
+    authorization_endpoint: `${authIssuerUrl()}/oauth2/authorize`,
+    token_endpoint: `${authIssuerUrl()}/oauth2/token`,
+    device_authorization_endpoint: `${authIssuerUrl()}/oauth2/device_authorization`,
     revocation_uri: `${authIssuerUrl()}/oauth2/revoke`,
     skill: siteUrl(AGENT_DISCOVERY_PATHS.authMarkdown),
-    identity_types_supported: ["anonymous", "identity_assertion"],
-    anonymous: {
-      credential_types_supported: ["api_key"],
-    },
-    identity_assertion: {
-      assertion_types_supported: [
-        "verified_email",
-        "urn:ietf:params:oauth:token-type:id-jag",
-      ],
-      credential_types_supported: ["api_key", "bearer"],
+    credential_types_supported: ["api_key", "bearer"],
+    api_key: {
+      issuance: "Create a scoped API key in the Notra dashboard",
     },
   };
 }
@@ -86,14 +81,14 @@ export function buildAgentJson() {
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     icon: siteUrl("/notra-mark.svg"),
-    category: "AI content generation",
+    category: "Generative engine optimization (GEO)",
     docs: DOCS_URL,
     api: {
       base_url: API_URL,
       openapi: apiUrl("/openapi.json"),
       catalog: siteUrl(AGENT_DISCOVERY_PATHS.apiCatalog),
       auth: siteUrl(AGENT_DISCOVERY_PATHS.authMarkdown),
-      sandbox: apiUrl("/v1/status?sandbox=true"),
+      status: apiUrl("/v1/status"),
     },
     mcp: {
       streamable_http: MCP_URL,

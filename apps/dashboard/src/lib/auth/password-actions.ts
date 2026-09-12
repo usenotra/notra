@@ -2,6 +2,13 @@
 
 import { POSTHOG_EVENTS, type PostHogEventName } from "@notra/posthog/events";
 import type { PostHogProperties } from "@notra/posthog/types/posthog";
+import {
+  forgotPasswordInputSchema,
+  resetPasswordInputSchema,
+  signInWithPasswordInputSchema,
+  signUpWithPasswordInputSchema,
+  verifyEmailCodeInputSchema,
+} from "@notra/schemas/dashboard/auth/credentials";
 import type {
   AuthFlowResult,
   SignInWithPasswordInput,
@@ -24,13 +31,6 @@ import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
 import { readWorkOSError } from "@/lib/auth/workos-error";
-import {
-  forgotPasswordInputSchema,
-  resetPasswordInputSchema,
-  signInWithPasswordInputSchema,
-  signUpWithPasswordInputSchema,
-  verifyEmailCodeInputSchema,
-} from "@/schemas/auth/credentials";
 import type {
   ForgotPasswordInput,
   ResetPasswordInput,

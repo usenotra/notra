@@ -1,9 +1,9 @@
 import { getAppUrl } from "@notra/ai/qstash/triggers";
+import { socialAnalyticsSyncPayloadSchema } from "@notra/schemas/dashboard/analytics";
 import { flattenError } from "zod";
 
 import { verifyQstashSignature } from "@/lib/workflows/qstash-verify";
 import { startSocialAnalyticsSyncRun } from "@/lib/workflows/start";
-import { socialAnalyticsSyncPayloadSchema } from "@/schemas/analytics";
 
 const ROUTE_PATH = "/api/workflows/social-analytics-sync";
 

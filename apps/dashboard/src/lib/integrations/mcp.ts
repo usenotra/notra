@@ -1,9 +1,9 @@
-import { logoLinkUrl } from "@notra/utils/logo-link";
-
 import {
   type AddMcpServerFormValues,
   MCP_URL_PROTOCOL_REGEX,
-} from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/integrations";
+import { logoLinkUrl } from "@notra/utils/logo-link";
+
 import type {
   GetMcpIconUrlsInput,
   McpIconUrls,

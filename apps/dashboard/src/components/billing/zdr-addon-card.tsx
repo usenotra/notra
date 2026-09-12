@@ -4,7 +4,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useCustomer, useListPlans } from "autumn-js/react";
+import { useListPlans } from "autumn-js/react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ import {
   ZDR_ADDON_UNAVAILABLE,
 } from "@/constants/billing";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import {
   findActivePlanSubscription,
@@ -40,7 +41,7 @@ export function ZdrAddonCard() {
     attach,
     updateSubscription,
     refetch,
-  } = useCustomer({ expand: ["subscriptions.plan"] });
+  } = useBillingCustomer({ expand: ["subscriptions.plan"] });
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { hasZdr, isLoading: zdrLoading } = useHasZdrEntitlement();
   const [loading, setLoading] = useState(false);

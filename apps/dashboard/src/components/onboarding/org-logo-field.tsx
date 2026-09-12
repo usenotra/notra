@@ -2,6 +2,7 @@
 
 import { Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ALLOWED_RASTER_MIME_TYPES } from "@notra/schemas/constants/dashboard/upload";
 import {
   Avatar,
   AvatarFallback,
@@ -11,7 +12,6 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useRef } from "react";
 
-import { ALLOWED_RASTER_MIME_TYPES } from "@/constants/upload";
 import type { OrgLogoFieldProps } from "@/types/onboarding";
 
 const ACCEPTED_LOGO_TYPES = ALLOWED_RASTER_MIME_TYPES.join(",");

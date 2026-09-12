@@ -1,10 +1,10 @@
 import type { IrisOutboxArtifact } from "@notra/ai/schemas/autonomy/outbox";
-import { flattenError } from "zod";
-
 import {
   type IrisWorkflowPayload,
   irisWorkflowPayloadSchema,
-} from "@/schemas/workflows/iris";
+} from "@notra/schemas/dashboard/workflows/iris";
+import { flattenError } from "zod";
+
 import type {
   IrisControllerProgress,
   IrisControllerResult,

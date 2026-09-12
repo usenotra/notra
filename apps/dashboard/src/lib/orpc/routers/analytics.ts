@@ -1,6 +1,15 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  analyticsOrganizationInputSchema,
+  analyticsPostingPerformanceInputSchema,
+  analyticsTimeseriesInputSchema,
+  analyticsTopPostsInputSchema,
+  leaderboardInputSchema,
+  trackAccountInputSchema,
+  untrackAccountInputSchema,
+} from "@notra/schemas/dashboard/analytics";
 
-import { assertAnalyticsEnabled } from "@/lib/analytics/access";
+import { assertAnalyticsAccess } from "@/lib/analytics/access";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import {
   loadEngagementTimeseries,
@@ -14,19 +23,9 @@ import {
   trackTwitterAccount,
   untrackTwitterAccount,
 } from "@/lib/analytics/programs";
-import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import { toAnalyticsOrpcError } from "@/lib/orpc/utils/analytics-errors";
-import {
-  analyticsOrganizationInputSchema,
-  analyticsPostingPerformanceInputSchema,
-  analyticsTimeseriesInputSchema,
-  analyticsTopPostsInputSchema,
-  leaderboardInputSchema,
-  trackAccountInputSchema,
-  untrackAccountInputSchema,
-} from "@/schemas/analytics";
 import type {
   EngagementTimeseriesResponse,
   FollowerGrowthResponse,
@@ -42,12 +41,11 @@ export const analyticsRouter = {
   overview: authorizedProcedure
     .input(analyticsOrganizationInputSchema)
     .handler(async ({ context, input }): Promise<SocialOverviewResponse> => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         loadSocialOverview(input.organizationId),
@@ -58,12 +56,11 @@ export const analyticsRouter = {
     .input(analyticsTimeseriesInputSchema)
     .handler(
       async ({ context, input }): Promise<EngagementTimeseriesResponse> => {
-        await assertOrganizationAccess({
+        await assertAnalyticsAccess({
           headers: context.headers,
           organizationId: input.organizationId,
           user: context.user,
         });
-        await assertAnalyticsEnabled(input.organizationId);
 
         return await runOrpcEffect(
           loadEngagementTimeseries(input.organizationId, {
@@ -79,12 +76,11 @@ export const analyticsRouter = {
   topPosts: authorizedProcedure
     .input(analyticsTopPostsInputSchema)
     .handler(async ({ context, input }): Promise<TopPostsResponse> => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         loadTopPosts(input.organizationId, input.limit, {
@@ -98,12 +94,11 @@ export const analyticsRouter = {
   adoption: authorizedProcedure
     .input(analyticsOrganizationInputSchema)
     .handler(async ({ context, input }): Promise<NotraAdoptionResponse> => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         loadNotraAdoption(input.organizationId),
@@ -114,12 +109,11 @@ export const analyticsRouter = {
     .input(analyticsPostingPerformanceInputSchema)
     .handler(
       async ({ context, input }): Promise<PostingPerformanceResponse> => {
-        await assertOrganizationAccess({
+        await assertAnalyticsAccess({
           headers: context.headers,
           organizationId: input.organizationId,
           user: context.user,
         });
-        await assertAnalyticsEnabled(input.organizationId);
 
         return await runOrpcEffect(
           loadPostingPerformance(input.organizationId, {
@@ -135,12 +129,11 @@ export const analyticsRouter = {
   leaderboard: authorizedProcedure
     .input(leaderboardInputSchema)
     .handler(async ({ context, input }): Promise<LeaderboardResponse> => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         loadLeaderboard(input.organizationId, input.days, {
@@ -155,12 +148,11 @@ export const analyticsRouter = {
     .input(trackAccountInputSchema)
     .handler(
       async ({ context, input }): Promise<TrackAccountPreviewResponse> => {
-        await assertOrganizationAccess({
+        await assertAnalyticsAccess({
           headers: context.headers,
           organizationId: input.organizationId,
           user: context.user,
         });
-        await assertAnalyticsEnabled(input.organizationId);
 
         return await runOrpcEffect(
           previewTrackedAccount(input.username),
@@ -171,12 +163,11 @@ export const analyticsRouter = {
   trackAccount: authorizedProcedure
     .input(trackAccountInputSchema)
     .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         trackTwitterAccount(input.organizationId, input.username),
@@ -186,12 +177,11 @@ export const analyticsRouter = {
   untrackAccount: authorizedProcedure
     .input(untrackAccountInputSchema)
     .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       const result = await runOrpcEffect(
         untrackTwitterAccount(input.organizationId, input.trackedAccountId),
@@ -215,12 +205,11 @@ export const analyticsRouter = {
   followerGrowth: authorizedProcedure
     .input(analyticsTimeseriesInputSchema)
     .handler(async ({ context, input }): Promise<FollowerGrowthResponse> => {
-      await assertOrganizationAccess({
+      await assertAnalyticsAccess({
         headers: context.headers,
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertAnalyticsEnabled(input.organizationId);
 
       return await runOrpcEffect(
         loadFollowerGrowth(input.organizationId, {

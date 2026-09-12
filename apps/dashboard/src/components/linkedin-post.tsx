@@ -13,6 +13,7 @@ import {
   ThumbsUpIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { TextSelection } from "@notra/schemas/dashboard/content";
 import {
   Avatar,
   AvatarFallback,
@@ -34,7 +35,6 @@ import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";
 import { LINKEDIN_TRUNCATION_LIMIT } from "@/constants/linkedin";
 import { cn } from "@/lib/utils";
-import type { TextSelection } from "@/schemas/content";
 import type { LinkedInPostProps } from "@/types/content/linkedin-post";
 
 const reactionColors: Record<string, string> = {

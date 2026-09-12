@@ -2,6 +2,10 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, members, organizations } from "@notra/db/schema";
 import { getResend } from "@notra/email/utils/resend";
+import {
+  type AutomatedWorkflowFailureState,
+  automatedWorkflowFailureStateSchema,
+} from "@notra/schemas/dashboard/workflows";
 import { and, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
@@ -10,10 +14,6 @@ import {
   AUTOMATED_WORKFLOW_FAILURE_STATE_TTL_SECONDS,
 } from "@/constants/workflows";
 import { sendWorkflowPausedEmail } from "@/lib/email/send";
-import {
-  type AutomatedWorkflowFailureState,
-  automatedWorkflowFailureStateSchema,
-} from "@/schemas/workflows";
 import type {
   AutomatedWorkflowPauseReason,
   ClearAutomatedWorkflowPauseStateParams,

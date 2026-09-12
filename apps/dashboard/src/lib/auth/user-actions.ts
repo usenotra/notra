@@ -3,6 +3,11 @@
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  signOutOptionsSchema,
+  unlinkAccountInputSchema,
+  updateUserInputSchema,
+} from "@notra/schemas/dashboard/auth/user-actions";
 import { getWorkOS, signOut, withAuth } from "@workos-inc/authkit-nextjs";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -15,11 +20,6 @@ import { OrganizationActionError } from "@/lib/organizations/errors";
 import { requireSession } from "@/lib/organizations/guards";
 import { runOrganizationAction } from "@/lib/organizations/run-action";
 import { validateActionInput } from "@/lib/organizations/validate-input";
-import {
-  signOutOptionsSchema,
-  unlinkAccountInputSchema,
-  updateUserInputSchema,
-} from "@/schemas/auth/user-actions";
 import type { SessionUser } from "@/types/auth/session";
 import type {
   SignOutActionOptions,

@@ -1,4 +1,4 @@
-import type { ScheduleOutputType } from "@/schemas/integrations";
+import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
 
 const AUTO_PUBLISH_SUPPORTED: ScheduleOutputType[] = ["changelog", "blog_post"];
 

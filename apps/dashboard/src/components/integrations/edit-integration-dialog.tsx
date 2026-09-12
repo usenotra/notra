@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  type EditGitHubIntegrationFormValues,
+  editGitHubIntegrationFormSchema,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
@@ -22,10 +26,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  type EditGitHubIntegrationFormValues,
-  editGitHubIntegrationFormSchema,
-} from "@/schemas/integrations";
 import type { GitHubIntegration } from "@/types/integrations";
 
 interface EditIntegrationDialogProps {

@@ -1,6 +1,5 @@
 import { GitBranchIcon, Package01Icon } from "@hugeicons/core-free-icons";
-
-import type { WebhookEventType } from "@/schemas/integrations";
+import type { WebhookEventType } from "@notra/schemas/dashboard/integrations";
 
 interface EventTypeMeta {
   label: string;

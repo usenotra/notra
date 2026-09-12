@@ -10,6 +10,7 @@ import {
   claimChatWorkflowRequest,
   clearActiveChatStream,
   clearChatAbortFlag,
+  getChatProjectId,
   getChatStreamChannelName,
   loadChatHistory,
   replaceChatHistory,
@@ -158,6 +159,7 @@ export async function streamChatResponseStep(
     timezone,
     streamId,
     chargeAiCredits,
+    surface,
   } = input;
 
   const messages = await loadChatHistory(organizationId, chatId);
@@ -165,6 +167,8 @@ export async function streamChatResponseStep(
     await clearActiveChatStream(organizationId, chatId, streamId);
     return { status: "empty_history" };
   }
+
+  const projectId = await getChatProjectId(organizationId, chatId);
 
   const channelName = getChatStreamChannelName(
     organizationId,
@@ -238,6 +242,8 @@ export async function streamChatResponseStep(
         thinkingLevel,
         timezone,
         useMarkup,
+        projectId,
+        surface,
         telemetryMetadata: buildStandaloneChatTelemetryMetadata({
           chatId,
           organizationId,

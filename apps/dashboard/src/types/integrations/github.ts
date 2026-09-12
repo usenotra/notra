@@ -3,7 +3,51 @@ import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
 import type React from "react";
 
-import type { GitHubRepository } from "../integrations";
+import type { GitHubIntegration, GitHubRepository } from "../integrations";
+
+export interface GitHubRepositoryRowProps {
+  integration: GitHubIntegration;
+  organizationId: string;
+  onMigrate: (integration: GitHubIntegration) => void;
+  isMigrating: boolean;
+  onManageRepositories: () => void;
+}
+
+export interface GitHubRepositoryActionsProps {
+  onMigrate: () => void;
+  isMigrating: boolean;
+  onToggleWebhooks: () => void;
+  webhooksOpen: boolean;
+  integration: GitHubIntegration;
+  organizationId: string;
+  onManageRepositories: () => void;
+}
+
+export type GitHubRepositoryDialog = "edit" | "token" | "delete" | null;
+
+export interface GitHubRepositoryMenuProps extends GitHubRepositoryActionsProps {
+  isEnabled: boolean;
+  isPending: boolean;
+  onToggle: () => void;
+  onDialog: (dialog: GitHubRepositoryDialog) => void;
+}
+
+export interface GitHubLegacyPageProps {
+  params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export interface GitHubWebhookSettingsProps {
+  repository: GitHubRepository;
+  organizationId: string;
+}
+
+export interface GitHubWebhookRotationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}
 
 export type GitHubClient = ReturnType<typeof createOctokit>;
 export type GitHubPublishContentType = "blog_post" | "changelog";
@@ -24,10 +68,12 @@ export type GitHubAccountType = "User" | "Organization";
 
 export interface GitHubAppAccount {
   id: string;
+  installationId: string;
   login: string;
   name: string | null;
   avatarUrl: string;
   type: GitHubAccountType;
+  canPublish: boolean | null;
 }
 
 export interface GitHubAppRepository {
@@ -38,6 +84,18 @@ export interface GitHubAppRepository {
   private: boolean;
   description: string | null;
   defaultBranch: string;
+}
+
+export interface GitHubAccountsSectionProps {
+  accounts: GitHubAppAccount[];
+  repositories: GitHubAppRepository[];
+  selectedRepositoryIds: string[];
+  isLoading: boolean;
+  isError: boolean;
+  onConnect: () => void;
+  onRetry: () => void;
+  onOpenRepositories: (accountId: string) => void;
+  onDisconnect: (accountId: string) => void;
 }
 
 export type GitHubInstallFailureReason =
@@ -79,6 +137,8 @@ export interface RepositoryMultiSelectProps {
 
 export interface SelectRepositoriesDialogProps {
   repositories: GitHubAppRepository[];
+  error?: string;
+  onRetry?: () => void;
   onSave: (repositoryIds: string[]) => void;
   initialSelected?: string[];
   isLoading?: boolean;
@@ -100,6 +160,7 @@ export interface GitHubIntegrationDialogProps {
 }
 
 export interface GitHubAccountCardProps {
+  isDisconnecting?: boolean;
   account: GitHubAppAccount;
   repositories: GitHubAppRepository[];
   selectedRepositoryIds: string[];
@@ -109,7 +170,8 @@ export interface GitHubAccountCardProps {
 
 export interface GitHubPublishingSettingsProps {
   organizationId: string;
-  repositories: GitHubRepository[];
+  repository: GitHubRepository;
+  disabled?: boolean;
 }
 
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
@@ -121,6 +183,25 @@ export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSe
 export interface GitHubContentDirectoryMutationVariables {
   nextDirectory: string;
   targetRepositoryId: string;
+}
+
+export interface GitHubContentPathMutationVariables {
+  contentPath: string | null;
+  imagePath: string | null;
+  targetRepositoryId: string;
+}
+
+export interface GitHubPublishingPathFieldsProps {
+  contentLabel: string;
+  contentPath: string | null;
+  directory: string;
+  disabled?: boolean;
+  imagePath: string | null;
+  isSaving?: boolean;
+  onSave: (paths: {
+    contentPath: string | null;
+    imagePath: string | null;
+  }) => void;
 }
 
 export interface GitHubOutputMutationVariables {
@@ -208,6 +289,7 @@ export interface ResolveGitHubContentPathParams {
   contentId: string;
   customPath?: string;
   directory: string;
+  pathTemplate?: string | null;
   slug: string | null;
   title: string;
 }
@@ -226,7 +308,44 @@ export interface ValidateExistingGitHubBranchParams {
   octokit: GitHubClient;
   owner: string;
   path: string;
+  /** Login whose GitHub-signed commits may carry trusted publication metadata. */
+  publisherLogin: string | null;
   repo: string;
+}
+
+export interface GitHubComparisonFile {
+  filename: string;
+  previous_filename?: string;
+  status: string;
+}
+
+export interface GitHubContentCommitMetadata {
+  assetPaths: string[];
+  contentPath: string;
+}
+
+export interface GitHubContentAsset {
+  contents: Uint8Array;
+  path: string;
+}
+
+export interface GitHubSourceImageAsset {
+  contents: Uint8Array;
+  extension: string;
+}
+
+export interface PrepareGitHubContentAssetsParams {
+  contentPath: string;
+  imagePathTemplate: string;
+  markdown: string;
+  publicUrl: string;
+  slug: string;
+  loadImage: (key: string, maxBytes: number) => Promise<GitHubSourceImageAsset>;
+}
+
+export interface PreparedGitHubContent {
+  assets: GitHubContentAsset[];
+  markdown: string;
 }
 
 export type GitHubPullRequestOperation = "created" | "updated";
@@ -259,6 +378,17 @@ export interface PublishContentDraftPullRequestParams {
   path: string;
   title: string;
   markdown: string;
+  assets?: GitHubContentAsset[];
+  assetPathsToDelete?: string[];
+  /** Markdown shown in the pull request body when repository-local asset URLs differ from the committed file. */
+  pullRequestMarkdown?: string;
+  /** Prepares repository-local assets after an existing draft's pinned content path is known. */
+  prepareContent?: (contentPath: string) => Promise<PreparedGitHubContent>;
+  /**
+   * Login the octokit token commits as (`{app}[bot]` or the token's user).
+   * Publication metadata is only trusted on GitHub-signed commits by this login.
+   */
+  publisherLogin?: string;
   /** Deep link to the content in the Notra dashboard, rendered as an "Open in Notra" button. */
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
@@ -307,9 +437,19 @@ export interface GitHubPublishFailureDependencies {
 
 export type GitHubPublishRecovery = (
   | { code: "github_authentication_required" }
+  | { code: "github_repository_connection_required" }
+  | { code: "github_token_authentication_required" }
+  | { code: "github_token_permissions_required" }
   | { code: "github_content_publishing_paused" }
   | {
       code: "github_app_permissions_required";
       permissionsUrl?: string;
     }
 ) & { publishingPaused?: boolean };
+export interface UseGitHubRepositorySelectionOptions {
+  organizationId: string;
+  enabled?: boolean;
+  refetchOnMount?: boolean;
+  initialAccountId?: string | null;
+  onSaved: () => void;
+}

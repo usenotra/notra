@@ -1,5 +1,6 @@
 "use client";
 
+import { updateSkillSchema } from "@notra/schemas/dashboard/skills";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,6 @@ import { SkillDetailHeader } from "@/components/skills/skill-detail-header";
 import { SkillEditorForm } from "@/components/skills/skill-editor-form";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import { updateSkillSchema } from "@/schemas/skills";
 import type { SkillDetailPageClientProps } from "@/types/skills/page";
 
 export default function PageClient({ slug, name }: SkillDetailPageClientProps) {

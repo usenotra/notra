@@ -1,0 +1,1 @@
+export const FEEDBACK_MAX_MESSAGE_LENGTH = 4000;

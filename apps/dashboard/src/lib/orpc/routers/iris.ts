@@ -10,6 +10,13 @@ import {
   slackIntegrations,
 } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { IRIS_SIGNALS_PAGE_SIZE } from "@notra/schemas/constants/dashboard/iris";
+import {
+  irisListRunsInputSchema,
+  irisListSignalsInputSchema,
+  irisMandateInputSchema,
+  irisOrganizationInputSchema,
+} from "@notra/schemas/dashboard/iris";
 import { and, count, desc, eq, gte, isNotNull, lt } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -42,12 +49,6 @@ import {
   notFound,
 } from "@/lib/orpc/utils/errors";
 import { startIrisRun } from "@/lib/workflows/start";
-import {
-  irisListRunsInputSchema,
-  irisListSignalsInputSchema,
-  irisMandateInputSchema,
-  irisOrganizationInputSchema,
-} from "@/schemas/iris";
 import type {
   IrisListRunsResult,
   IrisMandateRow,

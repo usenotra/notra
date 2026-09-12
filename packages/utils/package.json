@@ -10,13 +10,14 @@
     "./callback-url": "./src/callback-url.ts",
     "./oauth-popup": "./src/oauth-popup.ts",
     "./slugify": "./src/slugify.ts",
+    "./timeout-fetch": "./src/timeout-fetch.ts",
     "./color": "./src/color.ts",
     "./ingest-token": "./src/ingest-token.ts",
     "./require-api-key": "./src/require-api-key.ts",
     "./types/*": "./src/types/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",

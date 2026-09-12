@@ -2,7 +2,8 @@ import {
   type AutomationOutputType,
   SUPPORTED_AUTOMATION_OUTPUT_TYPES,
   WEBHOOK_EVENT_TYPES,
-} from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/integrations";
+
 import type { EventTriggerFormValues } from "@/types/automation/event-trigger";
 import type { Trigger } from "@/types/triggers/triggers";
 

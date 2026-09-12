@@ -1,11 +1,4 @@
 import type { GeoCompetitor, GeoSettings } from "@notra/geo-core/types/geo";
-import type { z } from "zod";
-
-import type {
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTERS,
-  GEO_SHELF_VIEWS,
-} from "@/constants/geo-shelf";
 import type {
   geoShelfCitationSummarySchema,
   geoShelfCreateInputSchema,
@@ -27,7 +20,14 @@ import type {
   geoShelfSourceKindSchema,
   geoShelfSourceSchema,
   geoShelfUpdateInputSchema,
-} from "@/schemas/geo-shelf";
+} from "@notra/schemas/dashboard/geo-shelf";
+import type { z } from "zod";
+
+import type {
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_TICKET_FILTERS,
+  GEO_SHELF_VIEWS,
+} from "@/constants/geo-shelf";
 
 export type GeoShelfSourceKind = z.infer<typeof geoShelfSourceKindSchema>;
 export type GeoShelfOwnership = z.infer<typeof geoShelfOwnershipSchema>;
@@ -165,10 +165,6 @@ export interface GeoShelfDbApi {
     competitorId: string | null,
     status: GeoShelfPlacementStatus
   ) => void;
-}
-
-export interface GeoShelfPageContentProps {
-  organizationSlug: string;
 }
 
 /** Row selection keeps the URL so the detail dialog survives an id swap. */
@@ -350,4 +346,60 @@ export interface GeoShelfPlacementsTableProps {
   ownBrandName: string;
   onSetPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
   disabled: boolean;
+}
+
+export interface GeoShelfPageStatusInput {
+  isSettingsPending: boolean;
+  hasSettings: boolean;
+  isShelfLoading: boolean;
+}
+
+export interface GeoShelfPageEmpty {
+  status: "empty";
+  organizationSlug: string;
+  projectId: string | undefined;
+}
+
+export interface GeoShelfPageReady {
+  status: "ready";
+  organizationId: string;
+  organizationSlug: string;
+  ownBrandName: string;
+  ownDomain: string | null;
+  competitors: GeoCompetitor[];
+  members: GeoShelfMember[];
+  currentMemberId: string | null;
+  currentMember: GeoShelfMember | null;
+  rows: GeoShelfRow[];
+  filteredRows: GeoShelfRow[];
+  filters: GeoShelfFilterState;
+  view: GeoShelfView;
+  hasScanData: boolean;
+  selectedRow: GeoShelfRow | null;
+  addOpen: boolean;
+  pendingSourceIds: ReadonlySet<string>;
+  onSearchChange: (value: string) => void;
+  onShelfFilterChange: (value: GeoShelfShelfFilter) => void;
+  onTicketFilterChange: (value: GeoShelfTicketFilter) => void;
+  onViewChange: (value: GeoShelfView) => void;
+  onAddOpenChange: (open: boolean) => void;
+  onRowClick: (row: GeoShelfRow) => void;
+  onSelectedOpenChange: (open: boolean) => void;
+  addSource: GeoShelfDbApi["addSource"];
+  updateOpportunity: GeoShelfDbApi["updateOpportunity"];
+  setPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
+}
+
+export type GeoShelfPageModel =
+  | { status: "loading" }
+  | GeoShelfPageEmpty
+  | GeoShelfPageReady;
+
+export interface GeoShelfLoadedProps {
+  page: GeoShelfPageReady;
+}
+
+export interface GeoShelfNotSetupProps {
+  organizationSlug: string;
+  projectId: string | undefined;
 }

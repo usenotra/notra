@@ -1,6 +1,16 @@
 "use client";
 
 import {
+  GEO_SHELF_SOURCE_KINDS,
+  GEO_SHELF_TITLE_MAX_LENGTH,
+  GEO_SHELF_URL_INVALID_MESSAGE,
+  GEO_SHELF_URL_MAX_LENGTH,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
+import {
+  canonicalizeShelfUrl,
+  isAllowedShelfUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
@@ -31,14 +41,9 @@ import {
   GEO_SHELF_PREVIEW_RATE_LIMIT_MESSAGE,
   GEO_SHELF_PREVIEW_UNAVAILABLE_MESSAGE,
   GEO_SHELF_SOURCE_KIND_LABELS,
-  GEO_SHELF_SOURCE_KINDS,
-  GEO_SHELF_TITLE_MAX_LENGTH,
   GEO_SHELF_TITLE_TOO_LONG_MESSAGE,
-  GEO_SHELF_URL_INVALID_MESSAGE,
-  GEO_SHELF_URL_MAX_LENGTH,
   GEO_SHELF_URL_TOO_LONG_MESSAGE,
 } from "@/constants/geo-shelf";
-import { canonicalizeShelfUrl, isAllowedShelfUrl } from "@/lib/geo-shelf/url";
 import { useGeoShelfPreview } from "@/lib/hooks/use-geo-shelf";
 import type {
   GeoShelfAddDialogProps,

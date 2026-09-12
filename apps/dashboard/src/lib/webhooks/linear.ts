@@ -1,13 +1,13 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDecryptedLinearWebhookSecret } from "@notra/ai/integrations/linear";
-
-import { checkLogRetention } from "@/lib/billing/check-log-retention";
-import { appendWebhookLog } from "@/lib/webhooks/logging";
 import {
   type LinearWebhookPayload,
   linearWebhookPayloadSchema,
-} from "@/schemas/linear";
+} from "@notra/schemas/dashboard/linear";
+
+import { checkLogRetention } from "@/lib/billing/check-log-retention";
+import { appendWebhookLog } from "@/lib/webhooks/logging";
 import type { WebhookContext } from "@/types/webhooks/webhooks";
 
 export async function handleLinearWebhook(

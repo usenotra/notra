@@ -28,6 +28,7 @@ import {
 } from "@notra/ai/utils/chat";
 import { geoBriefToMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markdown";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { sourceMetadataSchema } from "@notra/schemas/dashboard/content";
 import {
   Avatar,
   AvatarFallback,
@@ -74,13 +75,11 @@ import { ImageExportTargetIcon } from "@/components/content/image-export-target-
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
 import { RecommendationsSection } from "@/components/content/recommendations-section";
-import { RightPanelPortal } from "@/components/dashboard/right-panel-portal";
+import { RightPanel } from "@/components/dashboard/right-panel";
+import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
-  ACTIVITY_PANEL_CLASSNAME,
-  ACTIVITY_PANEL_FRAME_CLASSNAME,
-  ACTIVITY_PANEL_OPEN_WIDTH_CLASSNAME,
   CONTENT_TITLE_REGEX,
   SAVE_BAR_SELECTOR,
 } from "@/constants/content-detail";
@@ -104,7 +103,6 @@ import {
 } from "@/lib/hooks/use-geo-writer";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { cn } from "@/lib/utils";
-import { sourceMetadataSchema } from "@/schemas/content";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import type { ContentDetailPageClientProps } from "@/types/content/detail";
 import type { ImageExportTarget } from "@/types/content/image-export";
@@ -219,15 +217,12 @@ export default function PageClient({
   const [imageExportTarget, setImageExportTarget] =
     useState<ImageExportTarget>("paper");
 
-  const [isActivityPanelOpen, setIsActivityPanelOpen] = useState(false);
-  const [hasOpenedActivityPanel, setHasOpenedActivityPanel] = useState(false);
+  const { active, openPanel, closePanel, togglePanel } = useRightPanel();
+  const isActivityPanelOpen = active === "content";
   const [writeFocusNonce, setWriteFocusNonce] = useState(0);
   const [reviewPreviousMarkdown, setReviewPreviousMarkdown] = useState<
     string | null
   >(null);
-  if (isActivityPanelOpen && !hasOpenedActivityPanel) {
-    setHasOpenedActivityPanel(true);
-  }
   const saveToastIdRef = useRef<string | number | null>(null);
   const editorRef = useRef<EditorRefHandle | null>(null);
   const imageExportRef = useRef<HTMLDivElement | null>(null);
@@ -854,6 +849,10 @@ export default function PageClient({
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
     setChatInputValue("");
+    if (messagesRef.current.length === 0) {
+      processedToolCallsRef.current.clear();
+      return;
+    }
     processedToolCallsRef.current.clear();
     setMessages([]);
     setActiveChatId(crypto.randomUUID());
@@ -1047,7 +1046,7 @@ export default function PageClient({
 
   const handleAiEdit = useCallback(
     async (instruction: string) => {
-      setIsActivityPanelOpen(true);
+      openPanel("content");
       const attachments = snapshotContentChatAttachments(selection, context);
       if (isAgentBusyRef.current) {
         const next = [
@@ -1423,7 +1422,7 @@ export default function PageClient({
                 render={
                   <Button
                     className="hidden lg:inline-flex"
-                    onClick={() => setIsActivityPanelOpen((open) => !open)}
+                    onClick={() => togglePanel("content")}
                     size="icon-sm"
                     variant={isActivityPanelOpen ? "secondary" : "outline"}
                   />
@@ -1758,36 +1757,23 @@ export default function PageClient({
           <div className="h-24" />
         </div>
       </div>
-      <RightPanelPortal>
-        <aside
-          aria-hidden={!isActivityPanelOpen}
-          className={cn(
-            ACTIVITY_PANEL_CLASSNAME,
-            isActivityPanelOpen ? ACTIVITY_PANEL_OPEN_WIDTH_CLASSNAME : "w-0"
-          )}
-          inert={isActivityPanelOpen ? undefined : true}
+      <RightPanel id="content">
+        <ContentChatActivityPanel
+          activeChatId={activeChatId}
+          isHistoryLoading={
+            contentChatSessionsQuery.isPending ||
+            contentChatHistoryQuery.isFetching
+          }
+          messages={messages}
+          onClose={() => closePanel("content")}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+          sessions={contentChatSessions}
+          status={status}
         >
-          {hasOpenedActivityPanel ? (
-            <div className={ACTIVITY_PANEL_FRAME_CLASSNAME}>
-              <ContentChatActivityPanel
-                activeChatId={activeChatId}
-                isHistoryLoading={
-                  contentChatSessionsQuery.isPending ||
-                  contentChatHistoryQuery.isFetching
-                }
-                messages={messages}
-                onClose={() => setIsActivityPanelOpen(false)}
-                onNewChat={handleNewChat}
-                onSelectChat={handleSelectChat}
-                sessions={contentChatSessions}
-                status={status}
-              >
-                <div className="shrink-0 p-2 pt-1">{renderChatComposer()}</div>
-              </ContentChatActivityPanel>
-            </div>
-          ) : null}
-        </aside>
-      </RightPanelPortal>
+          <div className="shrink-0 p-2 pt-1">{renderChatComposer()}</div>
+        </ContentChatActivityPanel>
+      </RightPanel>
       {saveBarSection}
       {chatInputSection}
     </>

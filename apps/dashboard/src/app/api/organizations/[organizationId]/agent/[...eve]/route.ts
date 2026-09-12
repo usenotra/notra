@@ -8,6 +8,10 @@ import {
 } from "@notra/ai/utils/agent-proxy";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
+import {
+  agentProxyCreateSessionSchema,
+  agentProxyFollowUpSchema,
+} from "@notra/schemas/dashboard/agent-proxy";
 import { and, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -16,10 +20,6 @@ import { AGENT_PROXY_ALLOWED_PATHS } from "@/constants/agent";
 import { createNotraAgentClient, startAgentSession } from "@/lib/agent/client";
 import { isAgentChatEnabled } from "@/lib/agent/flag";
 import { withOrganizationAuth } from "@/lib/auth/organization";
-import {
-  agentProxyCreateSessionSchema,
-  agentProxyFollowUpSchema,
-} from "@/schemas/agent-proxy";
 import type { AgentSurface } from "@/types/agent";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 

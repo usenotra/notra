@@ -8,12 +8,10 @@ import {
   updateGeoPrompt,
 } from "@notra/geo-core/geo/programs";
 import type { GeoPromptImportRow } from "@notra/geo-core/types/geo-import";
-
 import {
-  GEO_COMMON_ERROR_RESPONSES,
-  GEO_OPENAPI_TAG,
-} from "../constants/geo-openapi";
-import { projectParamsSchema, promptParamsSchema } from "../schemas/geo-params";
+  projectParamsSchema,
+  promptParamsSchema,
+} from "@notra/schemas/api/geo-params";
 import {
   createPromptRequestSchema,
   deletePromptResponseSchema,
@@ -22,9 +20,14 @@ import {
   listPromptsResponseSchema,
   patchPromptRequestSchema,
   promptResponseSchema,
-} from "../schemas/geo-prompts";
+} from "@notra/schemas/api/geo-prompts";
+
+import {
+  GEO_COMMON_ERROR_RESPONSES,
+  GEO_OPENAPI_TAG,
+} from "../constants/geo-openapi";
+import { runGeoEffect } from "../runtime/geo";
 import { geoErrorResponse } from "../utils/geo";
-import { runGeoEffect } from "../utils/geo-effect";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { rateLimitResponse } from "../utils/openapi-responses";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";

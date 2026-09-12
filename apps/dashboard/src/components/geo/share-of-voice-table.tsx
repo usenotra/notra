@@ -5,7 +5,6 @@ import {
   GEO_FAMILY_STAT_TREND_HINT,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
-import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
@@ -15,9 +14,9 @@ import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { ProjectLogo } from "@/components/geo/project-logo";
 import { InstrumentEmpty } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
-import { CHART_OTHER_SLICE_LABEL } from "@/constants/charts";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { ShareOfVoiceTableProps } from "@/types/geo";
@@ -45,6 +44,7 @@ export function ShareOfVoiceTable({
   onRowPointerEnter,
   companyName,
   aliases,
+  ownDomain,
 }: ShareOfVoiceTableProps) {
   const rows = buildShareOfVoiceRows(points, {
     limit,
@@ -70,13 +70,21 @@ export function ShareOfVoiceTable({
       sortable: true,
       cell: (row) => (
         <span className="flex min-w-0 items-center gap-2 text-sm">
-          {row.brand !== CHART_OTHER_SLICE_LABEL && (
-            <CompetitorLogo
-              className="size-4 shrink-0"
-              domain={findCompetitorDomain(competitors, row.brand)}
-              name={row.brand}
-            />
-          )}
+          {row.kind === "brand" &&
+            (isOwnBrandName(row.brand, companyName, aliases) ? (
+              <ProjectLogo
+                className="size-4 shrink-0 rounded-sm"
+                domain={ownDomain ?? null}
+                fallbackClassName="bg-background p-px ring-1 ring-foreground/10"
+                name={row.brand}
+              />
+            ) : (
+              <CompetitorLogo
+                className="size-4 shrink-0"
+                competitors={competitors}
+                name={row.brand}
+              />
+            ))}
           <span className="truncate">{row.brand}</span>
         </span>
       ),
@@ -88,9 +96,11 @@ export function ShareOfVoiceTable({
       sortable: true,
       sortValue: (row) => row.share,
       cell: (row) => {
-        const own = isOwnBrandName(row.brand, companyName, aliases);
+        const own =
+          row.kind === "brand" &&
+          isOwnBrandName(row.brand, companyName, aliases);
         const color = shareOfVoiceSliceColor(
-          row.brand,
+          row,
           shareOfVoiceRivalIndex(rows, row.brand, ownBrand),
           competitors,
           ownBrand
@@ -117,7 +127,7 @@ export function ShareOfVoiceTable({
       width: "10.5rem",
       sortable: true,
       cell: (row) => {
-        const series = mentionSparklines.get(row.brand) ?? [];
+        const series = mentionSparklines.get(row.id) ?? [];
 
         return (
           <span className="flex items-center gap-2">
@@ -141,9 +151,11 @@ export function ShareOfVoiceTable({
         if (row.trend.length < GEO_SPARKLINE_MIN_POINTS) {
           return <span className="text-muted-foreground text-xs">-</span>;
         }
-        const own = isOwnBrandName(row.brand, companyName, aliases);
+        const own =
+          row.kind === "brand" &&
+          isOwnBrandName(row.brand, companyName, aliases);
         const color = shareOfVoiceSliceColor(
-          row.brand,
+          row,
           shareOfVoiceRivalIndex(rows, row.brand, ownBrand),
           competitors,
           ownBrand
@@ -189,7 +201,7 @@ export function ShareOfVoiceTable({
       data={rows}
       defaultSort={{ key: "share", direction: "desc" }}
       emptyState="No competitor data yet"
-      getRowId={(row) => row.brand}
+      getRowId={(row) => row.id}
       height={GEO_VISIBILITY_TABLE_HEIGHT}
       minHeight={GEO_VISIBILITY_TABLE_HEIGHT}
       onRowClick={onRowClick}

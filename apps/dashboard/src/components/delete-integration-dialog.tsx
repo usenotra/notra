@@ -1,5 +1,6 @@
 "use client";
 
+import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveAlertDialog,
   ResponsiveAlertDialogAction,
@@ -14,7 +15,6 @@ import { Input } from "@notra/ui/components/ui/input";
 import { useState } from "react";
 
 import { AffectedTriggersWarning } from "@/components/affected-triggers-warning";
-import type { AffectedTrigger } from "@/schemas/integrations";
 
 interface DeleteIntegrationDialogProps {
   open: boolean;

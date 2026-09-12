@@ -63,7 +63,7 @@ export function buildIntegrationsManifest(): IntegrationsManifest {
   return {
     version: 3,
     summary:
-      "Notra exposes an HTTP API, a hosted MCP server, and a CLI for turning shipped engineering work into changelogs, blog posts, and social updates in a saved brand voice.",
+      "Notra exposes an HTTP API, a hosted MCP server, and a CLI for tracking AI visibility, comparing competitors, analyzing AI traffic, and turning content gaps into articles in a saved brand voice.",
     credentials: {
       [API_KEY_CREDENTIAL_ID]: {
         type: "api_key",
@@ -75,7 +75,7 @@ export function buildIntegrationsManifest(): IntegrationsManifest {
       [OAUTH_CREDENTIAL_ID]: {
         type: "oauth2",
         label: "Notra OAuth 2.1",
-        setup: `Read the protected resource metadata at ${MCP_PROTECTED_RESOURCE_METADATA_URL} to find the authorization server, register a client at https://oauth.usenotra.com/oauth2/register, and run the authorization code flow with PKCE. Request least privilege scopes such as posts.read and include offline_access when you need a refresh token. Headless clients can use the device authorization grant instead, which is what notra auth login does. Send the access token as an Authorization bearer token.`,
+        setup: `Read the protected resource metadata at ${MCP_PROTECTED_RESOURCE_METADATA_URL} to find the authorization server, register a client at https://oauth.usenotra.com/oauth2/register, and run the authorization code flow with PKCE. Request least privilege scopes such as projects.read and visibility.read and include offline_access when you need a refresh token. Headless clients can use the device authorization grant instead, which is what notra auth login does. Send the access token as an Authorization bearer token.`,
       },
     },
     surfaces: [

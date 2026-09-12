@@ -1,4 +1,4 @@
-import { onboardingSuggestionDataSchema } from "@/schemas/onboarding-agent";
+import { onboardingSuggestionDataSchema } from "@notra/schemas/dashboard/onboarding-agent";
 
 export function getOnboardingSuggestionEvidence(data: unknown): string | null {
   const result = onboardingSuggestionDataSchema.safeParse(data);

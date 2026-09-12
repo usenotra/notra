@@ -1,4 +1,4 @@
-import type { IntegrationType } from "@/schemas/integrations";
+import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 
 export interface IntegrationConfig {
   id: IntegrationType;

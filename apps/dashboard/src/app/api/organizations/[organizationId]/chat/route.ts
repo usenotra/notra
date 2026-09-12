@@ -13,6 +13,7 @@ import {
   clearLastResponseStopped,
   generateAndSetChatTitle,
   generateChatId,
+  getChatProjectId,
   getChatSession,
   isChatDeleted,
   replaceChatHistory,
@@ -66,8 +67,8 @@ export const POST = withEvlog(async function POST(
   request: NextRequest,
   { params }: RouteContext<{ organizationId: string }>
 ) {
-  const requestId = nanoid(10);
   const log = getLogger();
+  const requestId = String(log.getContext().requestId);
   let cleanupOrganizationId: string | null = null;
   let cleanupChatId: string | null = null;
   let cleanupStreamId: string | null = null;
@@ -78,7 +79,6 @@ export const POST = withEvlog(async function POST(
     log.set({
       feature: "standalone_chat",
       organizationId,
-      requestId,
     });
 
     const auth = await withOrganizationAuth(request, organizationId);
@@ -103,6 +103,7 @@ export const POST = withEvlog(async function POST(
     );
     const chatId = parseResult.data.chatId ?? generateChatId();
     let projectId: string | null = parseResult.data.projectId ?? null;
+    let bindProjectFromSession = false;
 
     const trackBlocked = (code: string) => {
       trackServerEvent({
@@ -126,15 +127,17 @@ export const POST = withEvlog(async function POST(
           { status: 409 }
         );
       }
-      // The project is only stored when the chat row is first created, so
-      // existing chats skip the validation lookup.
+      // Existing chats keep the project stored at creation. Continuing with a
+      // different active project must not retarget GEO tools or content.
       if (existingSession) {
-        projectId = null;
+        bindProjectFromSession = true;
+        projectId = await getChatProjectId(organizationId, chatId);
       }
     }
 
     if (
       projectId &&
+      !bindProjectFromSession &&
       !(await isProjectInOrganization(organizationId, projectId))
     ) {
       return NextResponse.json({ error: "Project not found" }, { status: 400 });
@@ -299,6 +302,8 @@ export const POST = withEvlog(async function POST(
         abortSignal: request.signal,
         telemetryMetadata,
         headers: request.headers,
+        projectId: projectId ?? undefined,
+        surface: parseResult.data.surface,
       });
     }
 
@@ -314,6 +319,8 @@ export const POST = withEvlog(async function POST(
       enableThinking: parseResult.data.enableThinking,
       thinkingLevel: parseResult.data.thinkingLevel,
       timezone: parseResult.data.timezone,
+      projectId: projectId ?? undefined,
+      surface: parseResult.data.surface,
     };
 
     await startStandaloneChatRun(workflowPayload);
@@ -374,6 +381,8 @@ async function createDirectStandaloneChatResponse({
   abortSignal,
   telemetryMetadata,
   headers,
+  projectId,
+  surface,
 }: {
   organizationId: string;
   userId: string;
@@ -392,6 +401,8 @@ async function createDirectStandaloneChatResponse({
   abortSignal?: AbortSignal;
   telemetryMetadata: TccMetadata;
   headers: Headers;
+  projectId?: string;
+  surface?: ChatWorkflowPayload["surface"];
 }) {
   const autumnClient = autumn;
   const streamId = messages.at(-1)?.id;
@@ -453,6 +464,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        projectId,
+        surface,
       },
       {
         preValidatedIntegrations: validatedIntegrations,

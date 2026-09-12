@@ -1,5 +1,6 @@
 import { getContentBillingLimitLabel } from "@notra/ai/billing/content-billing";
 import { isCustomIntervalDue } from "@notra/ai/utils/schedule-interval";
+import { scheduleWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 import { sleep } from "workflow";
 import { flattenError } from "zod";
 
@@ -10,7 +11,6 @@ import {
   SCHEDULE_RATE_LIMIT_MAX_ATTEMPTS,
 } from "@/constants/workflows";
 import type { ContentGenerationResult } from "@/lib/workflows/schedule/types";
-import { scheduleWorkflowPayloadSchema } from "@/schemas/workflows";
 import type { WorkflowContentBillingGate } from "@/types/workflows/content-generation-steps";
 import type { ScheduleContentWorkflowResult } from "@/types/workflows/schedule-generation";
 import { resolveContentLimitPauseReason } from "@/utils/content-billing";
@@ -297,6 +297,13 @@ export async function scheduleContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: manual ? "manual" : "schedule",
         title: `Schedule "${automationName}" failed to generate content`,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
         status: "failed",
         errorMessage: contentResult.reason,
       });
@@ -371,6 +378,13 @@ export async function scheduleContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: manual ? "manual" : "schedule",
         title: `Schedule "${automationName}" skipped content generation`,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
         status: "skipped",
         errorMessage: contentResult.reason,
       });
@@ -501,6 +515,13 @@ export async function scheduleContentWorkflow(payload: {
             : `Schedule "${automationName}" created ${createdPosts.length} drafts`,
         status: "success",
         referenceId: postId,
+        payload: {
+          runId,
+          triggerName: automationName,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: repositories.length,
+        },
       });
       await trackContentOutcome({
         kind: "created",

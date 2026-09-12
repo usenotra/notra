@@ -1,8 +1,8 @@
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
+import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
 
 import { FORMAT_CARD_META } from "@/constants/content-formats";
 import { DEFAULT_SCHEDULE, FREQUENCY_LABELS } from "@/constants/schedule";
-import type { ScheduleOutputType } from "@/schemas/integrations";
 import type {
   ScheduleCron,
   ScheduleFormValues,

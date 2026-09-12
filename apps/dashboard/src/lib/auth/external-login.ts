@@ -1,8 +1,8 @@
+import { externalLoginCompleteResponseSchema } from "@notra/schemas/dashboard/auth/external-login";
 import { Effect } from "effect";
 
 import { WorkOSAuthError } from "@/lib/auth/errors";
 import { readWorkOSError } from "@/lib/auth/workos-error";
-import { externalLoginCompleteResponseSchema } from "@/schemas/auth/external-login";
 import type { SessionUser } from "@/types/auth/session";
 
 const COMPLETE_ENDPOINT = "https://api.workos.com/authkit/oauth2/complete";

@@ -70,6 +70,8 @@ export const AI_CREDITS_SOURCE_STANDALONE_CHAT = "standalone_chat";
 
 export const AI_CREDITS_SOURCE_CONTENT_CHAT = "chat";
 
+export const AI_CREDITS_SOURCE_DASHBOARD_AGENT_CHAT = "dashboard_agent_chat";
+
 export const DEFAULT_SIDEBAR_ENTRY_MODE = "studio";
 
 export const CHAT_MODEL_AUTO = "auto";

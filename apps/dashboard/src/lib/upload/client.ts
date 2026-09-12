@@ -2,7 +2,8 @@ import {
   ALLOWED_CHAT_MIME_TYPES,
   type AllowedChatMimeType,
   SVG_MIME_TYPE,
-} from "@/constants/upload";
+} from "@notra/schemas/constants/dashboard/upload";
+
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   DeleteChatUploadProps,

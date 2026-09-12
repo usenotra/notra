@@ -1,7 +1,7 @@
+import { triggerSourceConfigSchema } from "@notra/schemas/dashboard/integrations";
 import { Data, Effect } from "effect";
 
 import { startEventRun } from "@/lib/workflows/start";
-import { triggerSourceConfigSchema } from "@/schemas/integrations";
 import type {
   DispatchEventTriggerProps,
   DispatchEventTriggersProps,

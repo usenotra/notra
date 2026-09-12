@@ -9,6 +9,19 @@ import {
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  API_KEY_ACCESS_MODE_VALUES,
+  API_KEY_DEFAULT_SCOPES,
+  API_KEY_EXPIRATION_VALUES,
+} from "@notra/schemas/constants/dashboard/api-keys";
+import type {
+  CreateApiKeyInput,
+  UpdateApiKeyInput,
+} from "@notra/schemas/dashboard/api-keys";
+import {
+  createApiKeySchema,
+  updateApiKeySchema,
+} from "@notra/schemas/dashboard/api-keys";
 import { ConnectedCards } from "@notra/ui/components/shared/connected-cards";
 import {
   ResponsiveAlertDialog,
@@ -83,17 +96,12 @@ import { PageContainer } from "@/components/layout/container";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
-  API_KEY_ACCESS_MODE_VALUES,
-  API_KEY_DEFAULT_SCOPES,
   API_KEY_EXPIRATION_OPTIONS,
-  API_KEY_EXPIRATION_VALUES,
   API_KEY_PERMISSION_SUMMARY,
 } from "@/constants/api-keys";
 import { API_KEY_CARD_ITEMS, API_KEY_PRESETS } from "@/lib/api-keys/presets";
 import { expandLegacyApiKeyScopes } from "@/lib/api-keys/scopes";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { CreateApiKeyInput, UpdateApiKeyInput } from "@/schemas/api-keys";
-import { createApiKeySchema, updateApiKeySchema } from "@/schemas/api-keys";
 import type {
   ApiKeyAccessMode,
   ApiKeyCreateConfig,

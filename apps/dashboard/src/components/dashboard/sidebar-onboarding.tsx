@@ -8,12 +8,12 @@ import {
 import { Progress } from "@notra/ui/components/ui/progress";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useCustomer } from "autumn-js/react";
 import { useSyncExternalStore } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { AGENT_RUN_REFETCH_INTERVAL_MS } from "@/constants/onboarding-agent";
 import { localStorageKeys } from "@/constants/storage";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import {
   useOnboardingAgentRun,
   useOnboardingStatus,
@@ -48,7 +48,7 @@ export function SidebarOnboarding() {
   const { data } = useOnboardingStatus(orgId, {
     refetchInterval: agentRunning ? AGENT_RUN_REFETCH_INTERVAL_MS : false,
   });
-  const { data: customer } = useCustomer({
+  const { data: customer } = useBillingCustomer({
     expand: ["subscriptions.plan"],
   });
 

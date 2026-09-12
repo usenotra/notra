@@ -2,6 +2,8 @@ import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { FinishReason, LanguageModelUsage } from "ai";
 import { Data } from "effect";
 
+import type { GeoSuggestionNotFoundError } from "../schemas/suggestion-errors";
+
 export class GeoScanError extends Data.TaggedError("GeoScanError")<{
   readonly message: string;
   readonly timedOut?: boolean;
@@ -226,6 +228,7 @@ export class GeoWriterStartError extends Data.TaggedError(
 }> {}
 
 export type GeoRouterError =
+  | GeoSuggestionNotFoundError
   | GeoBrandIdentityMissingError
   | GeoBrandIdentityNotFoundError
   | GeoCompetitorLimitError

@@ -19,6 +19,11 @@ import type {
   GeoPresenceStatus,
   GeoPromptIntent,
 } from "@notra/geo-core/types/geo";
+import {
+  GEO_PROMPT_FILTER_ALL,
+  GEO_PROMPT_INTENT_FILTER_VALUES,
+  GEO_PROMPT_SOURCE_FILTER_VALUES,
+} from "@notra/schemas/constants/dashboard/geo-prompts";
 
 import type {
   GeoPromptFilterOption,
@@ -27,16 +32,6 @@ import type {
   GeoPromptTableFilters,
 } from "@/types/geo";
 
-export const GEO_PROMPT_FILTER_ALL = "all";
-export const GEO_PROMPT_INTENT_FILTER_VALUES = [
-  GEO_PROMPT_FILTER_ALL,
-  ...GEO_PROMPT_INTENTS,
-] as const;
-export const GEO_PROMPT_SOURCE_FILTER_VALUES = [
-  GEO_PROMPT_FILTER_ALL,
-  "custom",
-  "auto",
-] as const;
 export const GEO_PROMPT_DEFAULT_FILTERS: GeoPromptTableFilters = {
   q: "",
   intent: GEO_PROMPT_FILTER_ALL,
@@ -64,8 +59,6 @@ export const GEO_PROMPT_SOURCE_LABELS: Record<GeoPromptSourceFilter, string> = {
 };
 export const GEO_PROMPT_TAG_FILTER_ALL_LABEL = "All tags";
 export const GEO_PROMPT_TAGS_VISIBLE_COUNT = 3;
-export const GEO_PROMPT_SAVED_VIEWS_MAX = 20;
-export const GEO_PROMPT_VIEW_NAME_MAX_LENGTH = 40;
 export const GEO_PROMPT_FILTER_SELECT_CLASS = "w-36";
 export const GEO_PROMPT_VIEWS_COPY = {
   trigger: "Views",
@@ -100,6 +93,8 @@ export const GEO_PROMPT_TAGS_COPY = {
   cancel: "Cancel",
   none: "No tags",
 } as const;
+
+export const GEO_PROMPT_ANSWER_LOADING_LABEL = "Loading answer";
 
 export const GEO_PROMPT_LABEL_PILL_CLASS =
   "inline-flex h-6 max-w-full items-center gap-1.5 rounded-full border px-2 text-xs font-medium whitespace-nowrap";

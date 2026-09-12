@@ -5,6 +5,11 @@ import {
   GEO_CONTEXT_MAX_CHECKS,
   GEO_CONTEXT_MAX_EXCERPT_CHARS,
 } from "@notra/ai/constants/geo-writer";
+import {
+  buildGeoCompetitorShareChart,
+  buildGeoOverviewChart,
+  buildGeoTimeseriesChart,
+} from "@notra/ai/utils/chart-artifact";
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "@notra/db/constants/geo-checks";
 import { db } from "@notra/db/drizzle";
 import {
@@ -94,21 +99,27 @@ export async function loadGeoOverviewForTool(
     ),
   ]);
 
+  const engines = overview.map((row) => ({
+    engine: row.engine,
+    checks: row.checks,
+    mentions: row.mentions,
+    mention_rate: row.mentionRate,
+    avg_position: row.avgPosition,
+    last_checked_at: row.lastCheckedAt.toISOString(),
+  }));
+
   return {
     project_id: scope.projectId,
     days,
-    engines: overview.map((row) => ({
-      engine: row.engine,
-      checks: row.checks,
-      mentions: row.mentions,
-      mention_rate: row.mentionRate,
-      avg_position: row.avgPosition,
-      last_checked_at: row.lastCheckedAt.toISOString(),
-    })),
+    engines,
     competitor_share: competitors.map((row) => ({
       brand: row.brand,
       mentions: row.mentions,
     })),
+    chart: buildGeoOverviewChart({
+      days,
+      engines,
+    }),
   };
 }
 
@@ -127,20 +138,23 @@ export async function loadGeoTimeseriesForTool(
     }
   );
 
+  const points = rows.map((row) => ({
+    day: row.day,
+    engine: row.engine,
+    checks: row.checks,
+    mentions: row.mentions,
+    mention_rate:
+      row.checks === 0
+        ? 0
+        : Math.round((row.mentions / row.checks) * 1000) / 1000,
+    avg_position: row.avgPosition,
+  }));
+
   return {
     project_id: scope.projectId,
     days,
-    points: rows.map((row) => ({
-      day: row.day,
-      engine: row.engine,
-      checks: row.checks,
-      mentions: row.mentions,
-      mention_rate:
-        row.checks === 0
-          ? 0
-          : Math.round((row.mentions / row.checks) * 1000) / 1000,
-      avg_position: row.avgPosition,
-    })),
+    points,
+    chart: buildGeoTimeseriesChart({ days, points }),
   };
 }
 
@@ -202,13 +216,19 @@ export async function loadGeoCompetitorShareForTool(
     { sequences: "single", englishOnly: true }
   );
 
+  const competitorRows = competitors.map((row) => ({
+    brand: row.brand,
+    mentions: row.mentions,
+  }));
+
   return {
     project_id: scope.projectId,
     days,
-    competitors: competitors.map((row) => ({
-      brand: row.brand,
-      mentions: row.mentions,
-    })),
+    competitors: competitorRows,
+    chart: buildGeoCompetitorShareChart({
+      days,
+      competitors: competitorRows,
+    }),
   };
 }
 

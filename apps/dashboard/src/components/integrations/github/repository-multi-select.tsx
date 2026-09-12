@@ -102,6 +102,7 @@ export function RepositoryMultiSelect({
             icon={Search01Icon}
           />
           <Input
+            aria-label="Search repositories"
             className="h-9 pl-9"
             disabled={disabled}
             onChange={(event) => setQuery(event.currentTarget.value)}
@@ -142,17 +143,19 @@ export function RepositoryMultiSelect({
                   </div>
 
                   <Button
+                    aria-label={`${selected ? "Selected" : "Select"}: ${repo.fullName}`}
+                    aria-pressed={selected}
                     className="min-w-20 shrink-0 gap-1.5"
                     disabled={disabled}
                     onClick={() => toggleRepository(repo.id)}
                     size="sm"
                     type="button"
-                    variant={selected ? "secondary" : "default"}
+                    variant="outline"
                   >
                     {selected ? (
                       <HugeiconsIcon className="size-3.5" icon={Tick02Icon} />
                     ) : null}
-                    {selected ? "Selected" : "Import"}
+                    {selected ? "Selected" : "Select"}
                   </Button>
                 </div>
               );

@@ -1,13 +1,10 @@
 import { ArrowLeft02Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@notra/ui/components/ui/avatar";
 import { Card } from "@notra/ui/components/ui/card";
 import Link from "next/link";
 import type { BlogPaginationCardProps } from "~types/blog";
+
+import { BlogAuthorAvatar } from "@/components/blog-author-avatar";
 
 export function BlogPaginationCard({
   link,
@@ -56,14 +53,11 @@ export function BlogPaginationCard({
           <div
             className={`text-muted-foreground mt-auto flex items-center gap-2 font-sans text-sm ${authorRowDirection}`}
           >
-            <Avatar className="size-6" size="sm">
-              {link.author.image ? (
-                <AvatarImage alt={link.author.name} src={link.author.image} />
-              ) : null}
-              <AvatarFallback className="text-xs">
-                {link.author.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+            <BlogAuthorAvatar
+              image={link.author.image}
+              name={link.author.name}
+              size={24}
+            />
             <span>{link.author.name}</span>
           </div>
         ) : null}

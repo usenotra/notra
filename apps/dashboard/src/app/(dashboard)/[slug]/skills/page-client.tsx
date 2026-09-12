@@ -6,6 +6,7 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { createSkillSchema } from "@notra/schemas/dashboard/skills";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -40,7 +41,6 @@ import { SkillsTable } from "@/components/skills/skills-table";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
-import { createSkillSchema } from "@/schemas/skills";
 import type { SkillSortState } from "@/types/skills/page";
 import { filterSkills, sortSkills } from "@/utils/skills";
 

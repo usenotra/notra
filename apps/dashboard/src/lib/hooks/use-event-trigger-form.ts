@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  type EventTriggerFormValues,
+  eventTriggerFormSchema,
+} from "@notra/schemas/dashboard/automation/event-trigger-form";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
@@ -7,10 +11,6 @@ import { toast } from "sonner";
 
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  type EventTriggerFormValues,
-  eventTriggerFormSchema,
-} from "@/schemas/automation/event-trigger-form";
 import type { UseEventTriggerFormProps } from "@/types/automation/event-trigger";
 import type { Trigger } from "@/types/triggers/triggers";
 import { getDefaultEventTriggerValues } from "@/utils/event-trigger-form";

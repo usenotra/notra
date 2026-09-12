@@ -16,7 +16,11 @@ export function createDb(databaseUrl: string) {
         ? upstashCache({
             url: upstashUrl,
             token: upstashToken,
-            global: true,
+            // Opt-in only: with `global: true` a cache miss paid 2 Upstash HTTP
+            // round trips (HGET, then a write-back pipeline of HSET + HEXPIRE +
+            // SADD) for a 1 s TTL. Query hashing is local, not a Redis RT.
+            // Expensive, slowly changing queries opt in via `.$withCache(...)`.
+            global: false,
           })
         : undefined,
     schema,

@@ -1,8 +1,8 @@
 "use client";
 
+import type { CreateReferenceInput } from "@notra/schemas/dashboard/brand";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { CreateReferenceInput } from "@/schemas/brand";
 import type {
   BrandReference,
   FetchedTweetResponse,

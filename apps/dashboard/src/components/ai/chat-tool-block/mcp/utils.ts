@@ -1,5 +1,6 @@
+import { mcpToolMetadataSchema } from "@notra/schemas/dashboard/ai/chat-tool-block";
+
 import { getMcpFaviconUrl, getMcpIconUrls } from "@/lib/integrations/mcp";
-import { mcpToolMetadataSchema } from "@/schemas/ai/chat-tool-block";
 import type { McpIconUrls } from "@/types/integrations/mcp";
 
 import {

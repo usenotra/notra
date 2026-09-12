@@ -8,6 +8,12 @@ import { getWebhookSecretByRepositoryId } from "@notra/ai/integrations/github";
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
+import {
+  type GitHubEventType,
+  type GitHubWebhookPayload,
+  githubWebhookPayloadSchema,
+  isGitHubEventType,
+} from "@notra/schemas/dashboard/github-webhook";
 import { and, eq, sql } from "drizzle-orm";
 
 import { GITHUB_PULL_REQUEST_CLOSED_ACTION } from "@/constants/github";
@@ -15,12 +21,6 @@ import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { dispatchIrisGithubSignal } from "@/lib/iris/record-github-signal";
 import { dispatchEventTriggers } from "@/lib/webhooks/dispatch-event-triggers";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
-import {
-  type GitHubEventType,
-  type GitHubWebhookPayload,
-  githubWebhookPayloadSchema,
-  isGitHubEventType,
-} from "@/schemas/github-webhook";
 import type {
   GithubCreateMemoryEntryProps,
   GithubMemoryEventType,

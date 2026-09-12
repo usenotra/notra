@@ -1,10 +1,10 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations } from "@notra/db/schema";
+import { organizationSlugParamSchema } from "@notra/schemas/dashboard/auth/organization";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { AUTUMN_ORGANIZATION_HEADER } from "@/constants/billing";
-import { organizationSlugParamSchema } from "@/schemas/auth/organization";
 import type { AuthSessionData } from "@/types/auth/session";
 
 const findMemberOrganizationIdBySlug = Effect.fn(

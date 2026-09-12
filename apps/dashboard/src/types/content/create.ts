@@ -1,8 +1,9 @@
 import type {
   ContentDataPointSettings,
   OnDemandContentType,
-} from "@/schemas/content";
-import type { LookbackWindow } from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/content";
+import type { LookbackWindow } from "@notra/schemas/dashboard/integrations";
+
 import type {
   PreviewResponse,
   RepositoryPreview,

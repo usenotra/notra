@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { linkedInSelectionStashSchema } from "@notra/schemas/dashboard/social-accounts";
 import { Effect } from "effect";
 
 import {
@@ -9,7 +10,6 @@ import {
   SocialConnectConfigError,
   SocialConnectRequestError,
 } from "@/lib/social-connect/errors";
-import { linkedInSelectionStashSchema } from "@/schemas/social-accounts";
 
 const parseStash = Effect.fn("parseStash")(function* (raw: unknown) {
   const stashJson = yield* Effect.try({

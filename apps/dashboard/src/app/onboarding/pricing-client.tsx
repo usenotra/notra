@@ -4,7 +4,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useCustomer, useListPlans } from "autumn-js/react";
+import { useListPlans } from "autumn-js/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +20,7 @@ import {
 } from "@/lib/analytics/billing-events";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { attachPlanWithAddons } from "@/lib/billing/attach-plan";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import type { BillingPlanGroup } from "@/types/billing/plan";
 import type { PricingClientProps } from "@/types/onboarding";
 import {
@@ -34,7 +35,7 @@ import {
 
 export function PricingClient({ slug }: PricingClientProps) {
   const { data: plans, isLoading: plansLoading } = useListPlans();
-  const { attach, multiAttach } = useCustomer();
+  const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [includeZdr, setIncludeZdr] = useState(false);

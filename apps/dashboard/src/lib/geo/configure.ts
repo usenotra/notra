@@ -9,6 +9,10 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
+import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
+import { GeoFlagEvaluationError } from "@notra/geo-core/geo/errors";
+import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import { Effect, Layer } from "effect";
 
 import { resolveZdrEntitlement } from "@/lib/billing/subscription";
@@ -73,20 +77,35 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
   ),
 });
 
+function geoEngineFlagEnabled(
+  flagKey: string,
+  organizationId: string
+): Effect.Effect<boolean, GeoFlagEvaluationError> {
+  return resolveGeoFlagState(flagKey, organizationId).pipe(
+    Effect.flatMap((state) => {
+      if (state === "unavailable") {
+        return Effect.fail(
+          new GeoFlagEvaluationError({
+            message: `GEO feature flag "${flagKey}" is unavailable`,
+            cause: null,
+          })
+        );
+      }
+      return Effect.succeed(state === "enabled");
+    })
+  );
+}
+
 const featureFlagLayer = Layer.succeed(GeoFeatureFlagService, {
   isCursorEngineEnabledForOrganization: Effect.fn(
     "GeoDashboardFeatureFlags.isCursorEnabled"
   )((organizationId) =>
-    resolveGeoFlagState(GEO_CURSOR_FLAG_KEY, organizationId).pipe(
-      Effect.map((state) => state === "enabled")
-    )
+    geoEngineFlagEnabled(GEO_CURSOR_FLAG_KEY, organizationId)
   ),
   isOpenCodeEngineEnabledForOrganization: Effect.fn(
     "GeoDashboardFeatureFlags.isOpenCodeEnabled"
   )((organizationId) =>
-    resolveGeoFlagState(GEO_OPENCODE_FLAG_KEY, organizationId).pipe(
-      Effect.map((state) => state === "enabled")
-    )
+    geoEngineFlagEnabled(GEO_OPENCODE_FLAG_KEY, organizationId)
   ),
 });
 
@@ -105,6 +124,9 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
 
 /** Complete dashboard runtime for GEO programs. */
 export const geoCoreDashboardLayer = Layer.mergeAll(
+  agentReadinessNetworkLive,
+  geoModelLive,
+  geoSearchConsoleLive,
   workflowLayer,
   billingLayer,
   entitlementLayer,

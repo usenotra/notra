@@ -5,6 +5,7 @@ import type {
   GeoScopeInput,
   GeoTrackedPrompt,
 } from "@notra/geo-core/types/geo";
+import { ORPCError } from "@orpc/client";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { collectionOptions } from "@tanstack/react-db";
 import type { QueryClient } from "@tanstack/react-query";
@@ -56,7 +57,12 @@ function buildScopedCollection<T extends object>(
         try {
           return await spec.fetch(scope);
         } catch (error) {
-          toast.error(spec.errorMessage, { id });
+          // The upgrade gate handles entitlement denials, not load-error toasts.
+          if (
+            !(error instanceof ORPCError && error.code === "PAYMENT_REQUIRED")
+          ) {
+            toast.error(spec.errorMessage, { id });
+          }
           throw error;
         }
       },

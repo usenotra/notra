@@ -1,8 +1,9 @@
+import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
+
 import {
   DUPLICATE_POST_DOCS_URLS,
   SOCIAL_PLATFORM_LABELS,
 } from "@/constants/social-connect";
-import type { SocialConnectPlatform } from "@/schemas/social-accounts";
 import type {
   PublishErrorInfo,
   PublishedSocialPost,

@@ -4,6 +4,13 @@ import { CpuIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
+  type AddMcpServerFormValues,
+  beginMcpOAuthRequestSchema,
+  type CreateMcpServerRequest,
+  createMcpServerRequestSchema,
+  testMcpServerRequestSchema,
+} from "@notra/schemas/dashboard/integrations";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
@@ -37,13 +44,6 @@ import {
   getMcpFaviconUrl,
 } from "@/lib/integrations/mcp";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import {
-  type AddMcpServerFormValues,
-  beginMcpOAuthRequestSchema,
-  type CreateMcpServerRequest,
-  createMcpServerRequestSchema,
-  testMcpServerRequestSchema,
-} from "@/schemas/integrations";
 import type {
   AddMcpServerDialogProps,
   BeginMcpOAuthRequest,

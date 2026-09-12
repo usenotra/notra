@@ -11,12 +11,9 @@ import type {
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
-import type {
-  FinishReason,
-  LanguageModel,
-  LanguageModelUsage,
-  ToolSet,
-} from "ai";
+import type { FinishReason, LanguageModel, ToolSet } from "ai";
+
+import type { GeoModelTokenUsage } from "./token-usage";
 
 export interface GeoProject {
   id: string;
@@ -159,7 +156,7 @@ export interface GeoEngineAnswer {
   grounding: GeoCheckGrounding;
   sources: GeoCheckSourceItem[];
   finishReason: FinishReason | null;
-  usage?: LanguageModelUsage;
+  usage?: GeoModelTokenUsage;
   /** Whether the call ran with ZDR enforced; null when the route did not say. */
   zdrEnforced: boolean | null;
   /**
@@ -170,7 +167,7 @@ export interface GeoEngineAnswer {
 }
 
 export interface GeoGroundedAnswer extends GeoEngineAnswer {
-  usage: LanguageModelUsage;
+  usage: GeoModelTokenUsage;
 }
 
 export interface GeoCheckOutcome {
@@ -206,7 +203,7 @@ export interface GeoErrorFields {
   causeName?: string;
   causeMessage?: string;
   finishReason?: FinishReason | null;
-  usage?: LanguageModelUsage;
+  usage?: GeoModelTokenUsage;
 }
 
 export interface GeoSkipFields extends Record<string, unknown> {
@@ -254,6 +251,30 @@ export interface GeoAnswerSource {
   domain: string;
 }
 
+export type GeoAnswerMentionKind = "own" | "competitor";
+
+export interface GeoAnswerMentionTerm {
+  phrase: string;
+  kind: GeoAnswerMentionKind;
+}
+
+export interface GeoAnswerMentionSpan {
+  start: number;
+  end: number;
+  kind: GeoAnswerMentionKind;
+  phrase: string;
+}
+
+export interface GeoAnswerMentionInput {
+  companyName?: string | null;
+  aliases?: readonly string[];
+  mentionedCompetitors?: readonly string[];
+  trackedCompetitors?: readonly {
+    name: string;
+    synonyms?: readonly string[];
+  }[];
+}
+
 export interface GeoPromptResult {
   promptId: string;
   engine: string;
@@ -279,12 +300,44 @@ export interface GeoPromptResultsResponse {
   results: GeoPromptResult[];
 }
 
+export interface GeoPromptResultDetailInput {
+  organizationId: string;
+  checkId: string;
+}
+
+/**
+ * List projection of a prompt result. Carries the mention state the tables and
+ * charts read; `checkId` addresses the full answer, which is loaded on demand.
+ */
+export type GeoPromptResultSummary = Pick<
+  GeoPromptResult,
+  | "promptId"
+  | "engine"
+  | "prompt"
+  | "mentioned"
+  | "position"
+  | "sentiment"
+  | "competitors"
+  | "lastCheckedAt"
+> & { checkId: string };
+
+export interface GeoPromptResultSummariesResponse {
+  configured: boolean;
+  results: GeoPromptResultSummary[];
+}
+
+export interface GeoPromptResultDetailResponse {
+  result: GeoPromptResult | null;
+}
+
 export interface GeoPromptHistoryInput extends GeoScopeInput {
+  scanId?: string;
   promptId: string;
 }
 
 export interface GeoPromptRescanInput extends GeoScopeInput {
   promptId: string;
+  engines?: readonly string[];
 }
 
 export interface GeoRescanForPostInput {
@@ -366,10 +419,28 @@ export interface GeoSettingsLanguageAddInput extends GeoScopeInput {
   language: string;
 }
 
+export interface DueGeoScanRow {
+  id: string;
+  organizationId: string;
+  projectId: string;
+  scanIntervalHours: number;
+  nextScanAt: Date | null;
+  lastScanAt: Date | null;
+}
+
 export interface GeoScanCronSweepResult {
   due: number;
   started: number;
-  skipped: number;
+  /** Due slots an attempt that finished after they came due already answered. */
+  covered: number;
+  /** Rows another sweep already holds the lease on. */
+  leaseLost: number;
+  /** Rows whose project scan slot is still claimed by a running scan. */
+  alreadyRunning: number;
+  /** Hand-offs that failed; their row keeps its lease and is retried. */
+  failed: number;
+  /** Slots another sweep advanced while this one held a stale lease. */
+  advanceLost: number;
   staleScansFailed: number;
 }
 
@@ -536,6 +607,8 @@ export interface GeoScanProjectContext {
   aliases: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
+  /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
+  scoped?: boolean;
 }
 
 export interface GeoScanProjectPlan {
@@ -1028,7 +1101,7 @@ export interface GeoPromptSummary {
   total: number;
   bestPosition: number | null;
   presence: GeoPresenceStatus | null;
-  results: GeoPromptResult[];
+  results: GeoPromptResultSummary[];
 }
 
 export type GeoTab = "visibility" | "brand-sentiment" | "journeys";
@@ -1070,6 +1143,8 @@ export type EngineIconKey =
   | "tencent"
   | "xiaomi"
   | "cursor"
+  | "claude-code"
+  | "codex"
   | "apple"
   | "duckduckgo"
   | "cloudflare"
@@ -1101,7 +1176,9 @@ export type GeoChatSkin =
   | "chatgpt"
   | "gemini"
   | "perplexity"
-  | "opencode";
+  | "opencode"
+  | "claude-code"
+  | "codex";
 
 export interface EngineIconRule {
   key: EngineIconKey;
@@ -1121,15 +1198,18 @@ export type GeoModelProviderId =
   | "deepseek"
   | "mistral"
   | "cursor"
-  | "opencode";
+  | "opencode"
+  | "claude-code"
+  | "codex";
 
 /** Zero-data-retention coverage as reported by the Vercel AI Gateway feed. */
 export type GeoModelZdr = "all" | "some" | "none";
 
 /**
  * Where a model is served. `cursor` runs through the Cursor SDK, `box`
- * through OpenCode in Upstash Box, and `serpapi` through SerpApi's Google
- * AI Overview endpoint — none of those go through the AI router.
+ * through OpenCode, Claude Code, and Codex in Upstash Box, and `serpapi`
+ * through SerpApi's Google AI Overview endpoint — none of those go through
+ * the AI router.
  */
 export type GeoModelGateway =
   | "vercel"
@@ -1165,6 +1245,24 @@ export interface GeoModelCatalog {
   models: GeoModelCatalogEntry[];
 }
 
+/** Organization catalog after the server resolves available search routes. */
+export interface GeoResolvedModelCatalog extends GeoModelCatalog {
+  models: (GeoModelCatalogEntry & { supportsGroundedChecks: boolean })[];
+}
+
+export type GeoScanSizeSeverity = "ok" | "warn" | "danger";
+
+export interface GeoScanSizeInput {
+  promptCount: number;
+  engines: readonly string[];
+  languages: readonly string[];
+  catalog: GeoResolvedModelCatalog;
+  sequences: readonly Pick<
+    GeoPromptSequence,
+    "enabled" | "steps" | "createdAt"
+  >[];
+}
+
 /** One model as published by the Vercel AI Gateway feed. */
 export interface GeoGatewayModel {
   id: string;
@@ -1184,6 +1282,8 @@ export type GeoZdrMode = "required" | "preferred" | "none";
 export type GeoZdrEntitlement = "entitled" | "not_entitled" | "unknown";
 
 export interface ShareOfVoiceRow {
+  id: string;
+  kind: "brand" | "aggregate";
   brand: string;
   mentions: number;
   share: number;

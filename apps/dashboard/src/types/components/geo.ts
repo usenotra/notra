@@ -74,6 +74,7 @@ export interface SearchConsoleConnectedStateProps {
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;
+  fallback: ReactNode;
 }
 
 export interface GeoUpgradeDialogProps {

@@ -3,6 +3,7 @@
 import { Copy01Icon, Download01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ChatAttachment } from "@notra/ai/types/chat";
+import { MIME_DISPLAY_LABELS } from "@notra/schemas/constants/dashboard/upload";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Dialog,
@@ -15,7 +16,6 @@ import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { MIME_DISPLAY_LABELS } from "@/constants/upload";
 import {
   isImageMimeType,
   isPdfMimeType,

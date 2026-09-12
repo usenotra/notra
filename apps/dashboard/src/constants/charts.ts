@@ -37,6 +37,9 @@ export const ACCOUNT_SERIES_COLORS: readonly ChartColorPair[] = [
 ];
 
 export const CHART_OTHER_SLICE_LABEL = "Other";
+export const SHARE_OF_VOICE_AGGREGATE_ID = "aggregate:other";
+export const SHARE_OF_VOICE_AGGREGATE_LABEL = "Other brands";
+export const SHARE_OF_VOICE_RANKING_LIMIT = 4;
 export const CHART_PERCENT_SCALE = 100;
 export const CHART_MIN_BAR_PERCENT = 2;
 export const SPARKLINE_SERIES_KEY = "value";
@@ -44,6 +47,13 @@ export const SPARKLINE_SERIES_KEY = "value";
 export const SPARKLINE_CHART_OPTIONS: Record<string, unknown> = {
   grid: { left: 1, right: 1, top: 2, bottom: 1, containLabel: false },
 };
+
+export const CHAT_TOOL_CHART_HEIGHT_CLASS = "h-40";
+export const CHAT_TOOL_CHART_EMPTY_SERIES = "No data points to plot.";
+export const CHAT_TOOL_CHART_OPTIONS: Record<string, unknown> = {
+  grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
+};
+export const CHAT_TOOL_RANK_TRACK_CLASS = "bg-muted";
 
 export const DONUT_INNER_RADIUS = "58%";
 export const DONUT_OUTER_RADIUS = "82%";

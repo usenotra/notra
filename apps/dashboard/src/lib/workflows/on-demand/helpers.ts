@@ -1,9 +1,8 @@
 import type { GitHubSelectionFilters } from "@notra/ai/types/tools";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
+import type { SelectedItems } from "@notra/schemas/dashboard/content";
 import { and, desc, eq } from "drizzle-orm";
-
-import type { SelectedItems } from "@/schemas/content";
 
 export async function resolveBrandVoiceForManualGeneration(
   organizationId: string,

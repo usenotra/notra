@@ -1,0 +1,64 @@
+---
+title: "AI chat is open to everyone, with images, models, and a public API"
+description: "Notra's AI chat is now open to everyone, with persistent chat sessions, image attachments, a public Chats API, and external channel support for Discord and Slack."
+date: "2026-05-05T23:54:42.367Z"
+updatedAt: "2026-06-02T12:17:47.906Z"
+author: "dominik"
+---
+
+Notra's AI chat used to live behind a feature flag. Over the last two weeks, we tore that flag out, gave the chat a real backend, taught it to handle images, added a searchable model picker, and exposed the whole thing as a public API you can call from Discord, Slack, or anywhere else. If you have logged in recently, the chat in the sidebar is no longer a preview. It is the product.
+
+## Open to everyone, and a lot less janky [#open-to-everyone-and-a-lot-less-janky]
+
+The first thing that changed is the feature flag is gone. The Databuddy `ai-chat-experiment` gate came out of the sidebar, the chat page, the content composer, and every chat workflow route ([4e31cafb](https://github.com/usenotra/notra/commit/4e31cafb46a5d9bc7d4287501f7d6ee5a301cb2a)). If you have a workspace, you have chat.
+
+We also spent a chunk of time on the small things that quietly make a chat feel cheap when they break:
+
+- The input now focuses the moment you start typing, instead of swallowing your first keystroke ([#308](https://github.com/usenotra/notra/pull/308)).
+- The command palette routes between conversations more predictably ([#307](https://github.com/usenotra/notra/pull/307)).
+- Switching chats and clicking "New chat" no longer pollutes the back button. If you are already on a chat route, navigation uses `replace`, so the back button takes you back to the dashboard instead of walking through every chat you opened ([#314](https://github.com/usenotra/notra/issues/314)).
+- The first-message URL sync no longer flashes a skeleton, attachments survive when you retry or edit a message, and long URLs in the input now wrap instead of blowing out the layout.
+
+There is also a new model picker. The plain dropdown is now a `Popover` plus `Command` combobox so you can search, and we added Kimi K2.6 and GPT-5.5 to the lineup with proper icons.
+
+## Real persistence, real attachments [#real-persistence-real-attachments]
+
+Chat sessions used to live in Redis. That was fine when it was an experiment. It is not fine when people have actual conversations they want to keep.
+
+Chats now persist in Postgres in a `chat_sessions` table with a JSONB messages column, soft deletes via `deleted_at`, and indexes on `(organization_id)` and `(organization_id, deleted_at)`. The upsert is scoped to `deleted_at IS NULL` and uses `RETURNING`, so a delete that lands between a `SELECT` and `UPDATE` no longer writes to a tombstoned chat. Redis stays in the loop, but only for the ephemeral stuff: stream IDs, abort flags, last-stopped markers.
+
+On top of that, chat now accepts media. You can drag a file into the composer or paste an image straight from your clipboard ([#284](https://github.com/usenotra/notra/pull/284)). Images render at their natural aspect, not cropped into a forced thumbnail. Attachments are scoped per organization and stored under `organization/{orgId}/chat/` in R2, and the per-user auto-delete retention setting we shipped earlier is gone. Access control runs through the same org-membership check the rest of the dashboard uses, so an injected `activeOrganizationId` cannot reach into another workspace's files.
+
+## A public Chats API, and Discord and Slack out of the box [#a-public-chats-api-and-discord-and-slack-out-of-the-box]
+
+The bigger shift is that chat is no longer a dashboard-only thing. We extracted the chat backend out of `apps/dashboard` into `@notra/ai/chat` so any app can run it ([#318](https://github.com/usenotra/notra/pull/318)), then built a public API on top of it ([#319](https://github.com/usenotra/notra/pull/319)):
+
+```http
+GET  /v1/chats
+GET  /v1/chats/{chatId}
+POST /v1/chats
+POST /v1/chats/{chatId}
+```
+
+`POST /v1/chats` always returns a streaming response now, instead of a 202 with a stream ID that only the dashboard could subscribe to. The minted chat ID comes back in the `X-Chat-Id` header and in the start chunk's `messageMetadata.chatId`, so external clients can resume the conversation cleanly.
+
+The piece we are most curious to see people use is `externalChannelId` ([#320](https://github.com/usenotra/notra/pull/320)). When you start a chat, you can tag it with a `{ source: "discord" | "slack" | "dashboard", id?: string }` tuple. Send another message with the same tuple and you land in the same chat session, atomically claimed via `INSERT ... ON CONFLICT DO NOTHING`:
+
+```ts
+await fetch("https://api.usenotra.com/v1/chats", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${apiKey}` },
+  body: JSON.stringify({
+    messages: [{ role: "user", content: "draft a changelog for last week" }],
+    externalChannelId: { source: "discord", id: thread.id },
+  }),
+});
+```
+
+A partial unique index on `(organization_id, external_channel_source, external_channel_id)` keeps the tuple from colliding across sources or workspaces, scoped to live rows.
+
+While we were in there, we also closed an authorization gap in `/api/realtime`: the middleware used to check that you had a session and ignore the channel array, which meant any authenticated user could subscribe to another tenant's `chat:<orgId>:<chatId>:<streamId>` stream. The middleware now enforces the exact channel shape, rejects wildcards, and verifies organization membership on every channel ([#325](https://github.com/usenotra/notra/pull/325)).
+
+## What this unlocks [#what-this-unlocks]
+
+The point of all this plumbing is that chat should feel like the same product whether you are in the dashboard, replying to a Discord thread, or wiring it into your own tool. The dashboard just happens to be the first client. We are working on first-party Discord and Slack adapters next, plus automatic model routing so you do not have to think about the picker at all. If you build something on top of `/v1/chats`, we want to hear about it.

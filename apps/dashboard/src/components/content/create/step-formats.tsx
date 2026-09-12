@@ -3,6 +3,10 @@
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  LOOKBACK_WINDOWS,
+  type LookbackWindow,
+} from "@notra/schemas/dashboard/integrations";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,7 +20,6 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 
 import { CREATE_CONTENT_FORMAT_ORDER } from "@/constants/content-formats";
-import { LOOKBACK_WINDOWS, type LookbackWindow } from "@/schemas/integrations";
 import type { FormatsStepProps } from "@/types/content/create";
 import { formatSnakeCaseLabel } from "@/utils/format";
 

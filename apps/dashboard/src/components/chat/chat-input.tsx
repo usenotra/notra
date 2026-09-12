@@ -19,6 +19,12 @@ import type {
   ChatInputHandle,
   ContextItem,
 } from "@notra/ai/types/chat";
+import {
+  MAX_CHAT_ATTACHMENTS,
+  MAX_CHAT_FILE_SIZE,
+  MIME_DISPLAY_LABELS,
+  PASTE_TO_ATTACHMENT_THRESHOLD,
+} from "@notra/schemas/constants/dashboard/upload";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Command,
@@ -53,7 +59,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { useCustomer } from "autumn-js/react";
 import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -72,13 +77,8 @@ import { toast } from "sonner";
 
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
-import {
-  MAX_CHAT_ATTACHMENTS,
-  MAX_CHAT_FILE_SIZE,
-  MIME_DISPLAY_LABELS,
-  PASTE_TO_ATTACHMENT_THRESHOLD,
-} from "@/constants/upload";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
+import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import {
   dragEventHasFiles,
@@ -622,7 +622,11 @@ export function ChatInputAdvanced({
       document.removeEventListener("drop", onDrop);
     };
   }, [handleFilesSelected]);
-  const { check, data: customer, refetch: refetchCustomer } = useCustomer();
+  const {
+    check,
+    data: customer,
+    refetch: refetchCustomer,
+  } = useBillingCustomer();
 
   useAutumnRefreshListener(refetchCustomer);
 

@@ -1,6 +1,6 @@
 import type { ScheduledCreatedContentItem } from "@/types/email/send";
 
-export type { ContentEmailDigestPayload } from "@/schemas/workflows";
+export type { ContentEmailDigestPayload } from "@notra/schemas/dashboard/workflows";
 
 export type ContentEmailDigestKind =
   | "ai_credits_depleted"

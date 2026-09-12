@@ -1,4 +1,5 @@
 import { GEO_DIRECT_GROUNDED_PROVIDERS } from "../constants/geo";
+import { GEO_MODEL_REPLACED_IDS } from "../constants/geo-model-catalog";
 import type {
   GeoGroundedEngine,
   GeoModelCatalog,
@@ -22,6 +23,21 @@ export function sortKnownEngines(
   return catalog.models
     .filter((model) => selected.has(model.id))
     .map((model) => model.id);
+}
+
+/** Swap retired catalog ids for the engine that replaced them. */
+export function remapRetiredGeoEngineIds(ids: Iterable<string>): string[] {
+  const seen = new Set<string>();
+  const next: string[] = [];
+  for (const id of ids) {
+    const mapped = GEO_MODEL_REPLACED_IDS[id] ?? id;
+    if (seen.has(mapped)) {
+      continue;
+    }
+    seen.add(mapped);
+    next.push(mapped);
+  }
+  return next;
 }
 
 /**
@@ -76,7 +92,10 @@ export function resolveTrackedEngines(
   catalog: GeoModelCatalog,
   stored: readonly string[] | null | undefined
 ): string[] {
-  const selected = sortKnownEngines(catalog, stored ?? []);
+  const selected = sortKnownEngines(
+    catalog,
+    remapRetiredGeoEngineIds(stored ?? [])
+  );
   return selected.length === 0 ? geoDefaultEngines(catalog) : selected;
 }
 
@@ -145,10 +164,10 @@ export function applyGeoZdrEngineFallback(
   policy: GeoZdrPolicy
 ): string[] {
   if (!policy.enforceZdr) {
-    return sortKnownEngines(catalog, selected);
+    return sortKnownEngines(catalog, remapRetiredGeoEngineIds(selected));
   }
 
-  const next = selected.filter(
+  const next = remapRetiredGeoEngineIds(selected).filter(
     (engine) => resolveGeoZdrMode(catalog, engine, policy) !== null
   );
 

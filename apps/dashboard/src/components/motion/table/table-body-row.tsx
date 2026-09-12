@@ -27,6 +27,7 @@ export function TableBodyRow<T>({
   index,
   isLastRow,
   rowHeight,
+  rowSizing,
   selectable,
   isSelected,
   columns,
@@ -44,6 +45,7 @@ export function TableBodyRow<T>({
   index: number;
   isLastRow: boolean;
   rowHeight: number;
+  rowSizing: TableProps<T>["rowSizing"];
   selectable: boolean;
   isSelected: boolean;
   columns: TableColumn<T>[];
@@ -104,7 +106,11 @@ export function TableBodyRow<T>({
       }
       onPointerLeave={hasRowMenu ? onDeactivate : undefined}
       ref={rowRef}
-      style={{ height: rowHeight }}
+      style={
+        rowSizing === "content"
+          ? { minHeight: rowHeight }
+          : { height: rowHeight }
+      }
       tabIndex={onRowClick ? 0 : undefined}
     >
       {selectable ? (
@@ -122,13 +128,23 @@ export function TableBodyRow<T>({
       {columns.map((column) => (
         <td
           className={cn(
-            "text-foreground max-w-0 overflow-hidden px-4",
+            "text-foreground max-w-0 px-4",
+            rowSizing === "content"
+              ? "overflow-visible align-top"
+              : "overflow-hidden",
             cellBorder,
             alignText(column.align)
           )}
           key={column.key}
         >
-          <div className={cn(TABLE_CELL_INNER_CLASS, alignText(column.align))}>
+          <div
+            className={cn(
+              TABLE_CELL_INNER_CLASS,
+              rowSizing === "content" &&
+                "overflow-visible py-3 whitespace-normal",
+              alignText(column.align)
+            )}
+          >
             {!column.cell && column.editable ? (
               <EditableCell
                 label={`${column.key} for row ${index + 1}`}

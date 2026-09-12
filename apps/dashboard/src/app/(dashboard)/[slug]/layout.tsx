@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
 import { SIDEBAR_WIDTH_COOKIE_NAME } from "@/constants/nav";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
+import { toOrganizationSummary } from "@/utils/organization-summary";
 import { getSidebarWidthFromCookie } from "@/utils/sidebar-width";
 
 export const instant = false;
@@ -35,10 +36,11 @@ export default async function OrganizationLayout({
   const initialSidebarWidth = getSidebarWidthFromCookie(
     cookieStore.get(SIDEBAR_WIDTH_COOKIE_NAME)?.value
   );
+  const organizationSummary = toOrganizationSummary(organization);
 
   return (
     <DashboardClientWrapper
-      initialActiveOrganization={organization}
+      initialActiveOrganization={organizationSummary}
       initialSidebarOpen={initialSidebarOpen}
       initialSidebarWidth={initialSidebarWidth}
       modal={modal}

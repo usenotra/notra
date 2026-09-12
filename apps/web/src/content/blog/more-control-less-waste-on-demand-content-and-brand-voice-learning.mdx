@@ -1,0 +1,43 @@
+---
+title: "More control, less waste: on-demand content and brand voice learning"
+description: "This week we shipped more control over generated content, brand voice learning, and auto-publish for scheduled runs."
+date: "2026-03-13T23:09:06.983Z"
+updatedAt: "2026-05-22T19:54:04.985Z"
+author: "dominik"
+---
+
+When we built Notra, we made one big bet: that most teams would rather automate what goes to their audience than hand-tweak it every time. Still true. But we missed something. Not every ship deserves coverage. Not every commit is worth mentioning. And automatic is not helpful if the output does not sound like you.
+
+This week we shipped three things that change how you generate content. They come down to one idea: you decide what gets made and how it sounds.
+
+## Generate what you actually want to ship [#generate-what-you-actually-want-to-ship]
+
+For the first two months, Notra worked like this: set up a trigger, the AI looks at everything since last time, drafts appear. Fine if you wanted broad coverage. Broke down when you wanted to be selective.
+
+We got requests like this. "I want a changelog for our three customer-facing repos only. Not internal tools. And only commits from the last five days, not a month." Or: "I'm building a blog post about performance improvements. Let me hand-pick which PRs matter instead of including everything."
+
+So we rebuilt the generate flow. When you create content on-demand now, you see a preview first. The commits, PRs, and releases Notra found. You check boxes for what belongs in your story. Toggle releases on or off. Pick a time window. Scope to specific repos. Nothing fancy. But now you control scope instead of hoping the AI guesses right.
+
+The backend work was real. The preview endpoint fetches your data (paginated, because large repos will kill you if you're not careful), and those filters travel with your generate request so the AI only sees what you picked.
+
+## Your voice, not a generic one [#your-voice-not-a-generic-one]
+
+The other gap we kept hearing: content that looked good but sounded like nobody. Teams would edit our drafts because the tone felt off. Not wrong. Just not theirs.
+
+This week we shipped brand voice learning. Add references from your Twitter account (or paste custom text), and Notra's agents study them first, before generating anything. They are matching not just word choice, but rhythm, how you structure sentences, what ideas you prioritize.
+
+The reference system runs on Twitter OAuth with encrypted token storage. Connect one click. Bulk import your last 20 tweets. Pick which ones define your voice. Add custom examples for platforms we don't auto-pull from.
+
+You also get platform scoping. A tweet reference can teach Twitter posts and blog writing. A blog excerpt teaches blog generation only. Granular control over what shapes the AI's output.
+
+## Instant publish for your schedule [#instant-publish-for-your-schedule]
+
+Generated content usually lands as draft. You review it, maybe edit it, then publish. For teams running daily schedules, that review step is one more thing to get to.
+
+We added a toggle on triggers: "Auto-publish on this trigger." Turn it on and content hits published status immediately when generated instead of sitting in draft. On-demand content from your dashboard stays draft by default (you probably want to eyeball something you asked for), but scheduled runs can go straight to live.
+
+## What comes next [#what-comes-next]
+
+We are working on automatic voice detection. Load your references and we infer your tone without you tagging them. We are also improving the data filtering so complex filters compose. You should be able to say things like "commits from the API team in the last week, excluding docs changes" and have it just work.
+
+The real goal is that Notra disappears. You point it at your data. It learns how you sound. The drafts that show up sound like you wrote them.

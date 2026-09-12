@@ -1,5 +1,6 @@
+import { editMarkdownOutputSchema } from "@notra/schemas/dashboard/ai/chat-tool-block";
+
 import { DOCUMENT_DIFF_FALLBACK_FILENAME } from "@/constants/document-diff";
-import { editMarkdownOutputSchema } from "@/schemas/ai/chat-tool-block";
 import type { DocumentDiffProps } from "@/types/content/document-diff";
 
 export function getEditMarkdownDiff(output: unknown): DocumentDiffProps | null {

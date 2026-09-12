@@ -2,7 +2,7 @@ import type {
   LookbackWindow,
   OutputContentType,
   WebhookEventType,
-} from "@/schemas/integrations";
+} from "@notra/schemas/dashboard/integrations";
 
 export type TriggerSourceType =
   | "github_webhook"

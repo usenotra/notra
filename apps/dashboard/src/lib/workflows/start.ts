@@ -13,6 +13,17 @@ import { gscSyncPayloadSchema } from "@notra/geo-core/schemas/google-search-cons
 import type { AgentReadinessWorkflowPayload } from "@notra/geo-core/types/agent-readiness";
 import type { GeoWriterPayload } from "@notra/geo-core/types/geo";
 import type { GscSyncPayload } from "@notra/geo-core/types/google-search-console";
+import { socialAnalyticsSyncPayloadSchema } from "@notra/schemas/dashboard/analytics";
+import { brandGuidelinesWorkflowPayloadSchema } from "@notra/schemas/dashboard/brand-guidelines";
+import {
+  eventWorkflowPayloadSchema,
+  scheduleWorkflowPayloadSchema,
+} from "@notra/schemas/dashboard/workflows";
+import {
+  type IrisWorkflowPayload,
+  irisWorkflowPayloadSchema,
+} from "@notra/schemas/dashboard/workflows/iris";
+import { onboardingAgentWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows/onboarding-agent-payload";
 import { start } from "workflow/api";
 
 import {
@@ -24,17 +35,6 @@ import {
   WORKFLOW_TRIGGERS,
 } from "@/constants/workflow-analytics";
 import { trackWorkflowStarted } from "@/lib/analytics/workflow-lifecycle";
-import { socialAnalyticsSyncPayloadSchema } from "@/schemas/analytics";
-import { brandGuidelinesWorkflowPayloadSchema } from "@/schemas/brand-guidelines";
-import {
-  eventWorkflowPayloadSchema,
-  scheduleWorkflowPayloadSchema,
-} from "@/schemas/workflows";
-import {
-  type IrisWorkflowPayload,
-  irisWorkflowPayloadSchema,
-} from "@/schemas/workflows/iris";
-import { onboardingAgentWorkflowPayloadSchema } from "@/schemas/workflows/onboarding-agent-payload";
 import type { BrandAnalysisPayload } from "@/types/brand-analysis";
 import { agentReadinessWorkflow } from "@/workflows/agent-readiness";
 import {

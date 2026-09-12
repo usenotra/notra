@@ -3,18 +3,18 @@ import {
   loadGeoSettings,
   upsertGeoSettings,
 } from "@notra/geo-core/geo/programs";
+import { projectParamsSchema } from "@notra/schemas/api/geo-params";
+import {
+  patchSettingsRequestSchema,
+  settingsResponseSchema,
+} from "@notra/schemas/api/geo-settings";
 
 import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
-import { projectParamsSchema } from "../schemas/geo-params";
-import {
-  patchSettingsRequestSchema,
-  settingsResponseSchema,
-} from "../schemas/geo-settings";
+import { runGeoEffect } from "../runtime/geo";
 import { findGeoSelectionError, geoErrorResponse } from "../utils/geo";
-import { runGeoEffect } from "../utils/geo-effect";
 import { createOpenApiApp } from "../utils/openapi-app";
 
 export const geoSettingsRoutes = createOpenApiApp();

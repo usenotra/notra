@@ -1,6 +1,7 @@
+import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
+
 import { LINKEDIN_DUPLICATE_POST_DOCS_URL } from "@/constants/linkedin";
 import { TWITTER_DUPLICATE_POST_DOCS_URL } from "@/constants/twitter";
-import type { SocialConnectPlatform } from "@/schemas/social-accounts";
 
 export const SOCIAL_PLATFORM_LABELS: Record<SocialConnectPlatform, string> = {
   twitter: "X",

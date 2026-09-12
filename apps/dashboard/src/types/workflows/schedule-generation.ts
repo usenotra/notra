@@ -1,4 +1,5 @@
-import type { LookbackWindow } from "@/schemas/integrations";
+import type { LookbackWindow } from "@notra/schemas/dashboard/integrations";
+
 import type {
   ScheduleBrandSettingsData,
   ScheduleRepositoryData,

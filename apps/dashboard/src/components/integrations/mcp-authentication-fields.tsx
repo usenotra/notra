@@ -2,6 +2,11 @@
 
 import { MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MAX_MCP_HEADERS,
+  mcpHeaderNameSchema,
+  mcpHeaderValueSchema,
+} from "@notra/schemas/dashboard/integrations";
 import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import {
@@ -14,11 +19,6 @@ import {
 import { Button } from "@/components/button";
 import { MCP_AUTH_OPTIONS } from "@/constants/mcp";
 import { getMcpFormErrorMessage } from "@/lib/integrations/mcp";
-import {
-  MAX_MCP_HEADERS,
-  mcpHeaderNameSchema,
-  mcpHeaderValueSchema,
-} from "@/schemas/integrations";
 import type { McpAuthenticationFieldsProps } from "@/types/integrations/mcp";
 
 export function McpAuthenticationFields({

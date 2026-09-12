@@ -76,7 +76,7 @@ export function MentionTrendAgentsPicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Show individual activity</DropdownMenuLabel>
+          <DropdownMenuLabel>Show by provider</DropdownMenuLabel>
           {series.map((entry) => (
             <DropdownMenuCheckboxItem
               checked={activeKeys.has(entry.key)}

@@ -1,5 +1,6 @@
 "use client";
 
+import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 import { useSyncExternalStore } from "react";
 
 import { useSocialAccounts } from "@/lib/hooks/use-connected-accounts";
@@ -8,7 +9,6 @@ import {
   setSelectedSocialAccountId,
   subscribeToSelectedSocialAccountId,
 } from "@/lib/state/selected-social-account";
-import type { SocialConnectPlatform } from "@/schemas/social-accounts";
 
 export function useSelectedSocialAccount(
   organizationId: string,

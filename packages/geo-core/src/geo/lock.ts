@@ -9,11 +9,18 @@ export function lockGeoProject(
   tx: DbTransaction,
   projectId: string
 ): Effect.Effect<void, GeoDatabaseError> {
-  return geoDb("project lock failed", async () => {
-    await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`geo-project:${projectId}`}, 0))`
-    );
-  });
+  return geoDb("project lock failed", () =>
+    lockGeoProjectInTransaction(tx, projectId)
+  );
+}
+
+export async function lockGeoProjectInTransaction(
+  tx: DbTransaction,
+  projectId: string
+): Promise<void> {
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtextextended(${`geo-project:${projectId}`}, 0))`
+  );
 }
 
 /**

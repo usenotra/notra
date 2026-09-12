@@ -1,137 +1,36 @@
-import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import type {
   BlogCardAuthor,
   BlogCardItem,
   BlogPaginationLink,
-  NotraBlogAuthor,
   NotraBlogPost,
+  NotraBlogAuthor,
 } from "~types/blog";
 
+import { blog } from "@/../.source/server";
+import { BLOG_AUTHORS } from "@/constants/blog-authors";
 import { getAuthorHref } from "@/utils/authors";
-import {
-  BLOG_INDEX_PATH,
-  MARBLE_BLOG_CATEGORY_SLUG,
-  MARBLE_CACHE_KEYS,
-  MARBLE_CACHE_TAGS,
-  MARBLE_REVALIDATE_SECONDS,
-} from "@/utils/constants";
-import {
-  getMarblePostCacheTag,
-  listMarblePublishedPosts,
-  type MarblePublishedPost,
-} from "@/utils/marble";
+import { BLOG_INDEX_PATH } from "@/utils/constants";
+import { normalizeContentEntry } from "@/utils/content";
 
-const BLOG_CONTENT_TYPE = "blog_post";
-const FALLBACK_EXCERPT_MAX_LENGTH = 160;
-const BLOCK_SEPARATOR_REGEX = /\n\s*\n/;
+export const listNotraBlogPosts = cache(async (): Promise<NotraBlogPost[]> => {
+  const posts = await Promise.all(
+    blog.map(async (entry) => ({
+      ...(await normalizeContentEntry(entry)),
+      contentType: "blog_post",
+      authors: BLOG_AUTHORS.filter((author) => author.slug === entry.author),
+    }))
+  );
+  return posts.sort(
+    (first, second) =>
+      Date.parse(second.createdAt) - Date.parse(first.createdAt)
+  );
+});
 
-function stripMarkdownFormatting(value: string) {
-  return value
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")
-    .replace(/[>#*_~]+/g, "")
-    .replace(/^-\s+/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getPostExcerpt(markdown: string, fallbackTitle: string) {
-  const blocks = markdown
-    .split(BLOCK_SEPARATOR_REGEX)
-    .map((block) => block.trim())
-    .filter(Boolean);
-
-  for (const block of blocks) {
-    if (block.startsWith("#")) {
-      continue;
-    }
-
-    const excerpt = stripMarkdownFormatting(block);
-    if (excerpt.length > 0) {
-      return excerpt.slice(0, FALLBACK_EXCERPT_MAX_LENGTH);
-    }
-  }
-
-  const stripped = stripMarkdownFormatting(markdown);
-  if (stripped.length > 0) {
-    return stripped.slice(0, FALLBACK_EXCERPT_MAX_LENGTH);
-  }
-
-  return `${fallbackTitle} on the Notra blog.`;
-}
-
-function slugifySegment(value: string) {
-  const slug = value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return slug || "post";
-}
-
-function normalizePost(post: MarblePublishedPost): NotraBlogPost {
-  const apiSlug = typeof post.slug === "string" ? post.slug.trim() : "";
-  const slug =
-    apiSlug.length > 0 ? apiSlug : createBlogPostSlug({ title: post.title });
-  const createdAt = post.publishedAt.toISOString();
-  const markdown = post.markdown || post.content;
-  const authors: NotraBlogAuthor[] = post.authors.map((author) => ({
-    id: author.id,
-    name: author.name,
-    image: author.image,
-    slug: author.slug,
-    bio: author.bio,
-    role: author.role,
-    socials: author.socials.map((social) => ({
-      url: social.url,
-      platform: social.platform,
-    })),
-  }));
-
-  return {
-    id: post.id,
-    title: post.title,
-    content: post.content,
-    markdown,
-    recommendations: null,
-    contentType: BLOG_CONTENT_TYPE,
-    sourceMetadata: null,
-    status: post.status,
-    createdAt,
-    updatedAt: post.updatedAt.toISOString(),
-    slug,
-    excerpt: post.description.trim() || getPostExcerpt(markdown, post.title),
-    authors,
-  };
-}
-
-const fetchBlogPosts = unstable_cache(
-  async () => {
-    try {
-      const posts = await listMarblePublishedPosts({
-        category: MARBLE_BLOG_CATEGORY_SLUG,
-      });
-      return posts.map(normalizePost);
-    } catch (error) {
-      console.error("Failed to load Marble blog posts", error);
-      return [] satisfies NotraBlogPost[];
-    }
-  },
-  [MARBLE_CACHE_KEYS.blogPosts],
-  {
-    revalidate: MARBLE_REVALIDATE_SECONDS.blogPosts,
-    tags: [
-      MARBLE_CACHE_TAGS.blogPosts,
-      `${MARBLE_CACHE_TAGS.blogPosts}:${MARBLE_BLOG_CATEGORY_SLUG}`,
-    ],
-  }
-);
-
-function createBlogPostSlug(post: Pick<NotraBlogPost, "title">) {
-  return slugifySegment(post.title);
+export async function getNotraBlogPostBySlug(slug: string) {
+  return (
+    (await listNotraBlogPosts()).find((post) => post.slug === slug) ?? null
+  );
 }
 
 function getBlogPostHref(slug: string) {
@@ -143,27 +42,8 @@ export function formatBlogDate(date: string) {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
-}
-
-export async function listNotraBlogPosts() {
-  return fetchBlogPosts();
-}
-
-export async function getNotraBlogPostBySlug(slug: string) {
-  const posts = await unstable_cache(
-    listNotraBlogPosts,
-    [MARBLE_CACHE_KEYS.blogPosts, slug],
-    {
-      revalidate: MARBLE_REVALIDATE_SECONDS.blogPosts,
-      tags: [
-        MARBLE_CACHE_TAGS.blogPosts,
-        `${MARBLE_CACHE_TAGS.blogPosts}:${MARBLE_BLOG_CATEGORY_SLUG}`,
-        getMarblePostCacheTag(slug),
-      ],
-    }
-  )();
-  return posts.find((post) => post.slug === slug) ?? null;
 }
 
 function toBlogCardAuthor(

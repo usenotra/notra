@@ -11,10 +11,13 @@ import {
   sentimentPoints,
   summarizeSentiment,
 } from "../src/utils/geo-sentiment";
-import { createTestDatabase } from "./utils/database";
-
-const { initializeDatabase, postgres, resetDatabase, seedProject, testDb } =
-  createTestDatabase();
+import {
+  database,
+  initializeDatabase,
+  resetDatabase,
+  seedProject,
+  testDb,
+} from "./utils/database";
 
 mock.module("@notra/db/drizzle", () => ({ db: testDb }));
 const {
@@ -35,7 +38,7 @@ const window = {
 };
 
 beforeAll(initializeDatabase, 30_000);
-afterAll(() => postgres.close());
+afterAll(() => database.postgres.close());
 beforeEach(async () => {
   await resetDatabase();
   await seedProject("main");
@@ -43,11 +46,11 @@ beforeEach(async () => {
 });
 
 test("analysis uses the canonical project GEO brand, scoped to its organization", async () => {
-  await postgres.exec(
+  await database.postgres.exec(
     "UPDATE brand_settings SET company_name = 'Different brand identity' WHERE id = 'brand-main'"
   );
   expect(await queryGeoSentimentBrand(scope)).toEqual({ companyName: "main" });
-  await postgres.exec(
+  await database.postgres.exec(
     "UPDATE geo_settings SET company_name = 'Canonical GEO brand' WHERE id = 'settings-main'"
   );
   expect(await queryGeoSentimentBrand(scope)).toEqual({
@@ -150,7 +153,7 @@ test("analysis sample and fingerprint enforce historical scope, bounds, polarity
   expect(await queryGeoSentimentAnalysisSample(scope, window, 3, 2000)).toEqual(
     sampled
   );
-  await postgres.exec(
+  await database.postgres.exec(
     "UPDATE geo_mention_checks SET answer = answer || 'changed' WHERE id = 'eligible-0'"
   );
   expect(
@@ -378,7 +381,7 @@ test.skipIf(!process.env.GEO_SENTIMENT_BENCH)(
   "synthetic 30/90-day SQL query plans",
   async () => {
     await seedProject("other");
-    await postgres.exec(`INSERT INTO geo_mention_checks
+    await database.postgres.exec(`INSERT INTO geo_mention_checks
     (id, organization_id, project_id, scan_id, engine, prompt_id, prompt, answer, mentioned, sentiment, captured_at)
     SELECT 'bench-' || i, 'org-test', CASE WHEN i < 90000 THEN 'main' ELSE 'other' END,
       'scan', 'engine-' || (i % 5), 'bench-' || i, 'Synthetic prompt', 'Synthetic answer', true,
@@ -388,7 +391,7 @@ test.skipIf(!process.env.GEO_SENTIMENT_BENCH)(
     ANALYZE geo_mention_checks;`);
     let statement = "";
     let parameters: unknown[] = [];
-    const measuredDb = drizzle(postgres, {
+    const measuredDb = drizzle(database.postgres, {
       logger: {
         logQuery(query, params) {
           statement = query;
@@ -405,7 +408,7 @@ test.skipIf(!process.env.GEO_SENTIMENT_BENCH)(
         const rows = await queryGeoCheckSentiment(scope, { from, toExclusive });
         const elapsedMs = performance.now() - started;
         expect(summarizeSentiment(rows).totalChecks).toBe(days * 1000);
-        const plan = await postgres.query(
+        const plan = await database.postgres.query(
           `EXPLAIN (ANALYZE, BUFFERS) ${statement}`,
           parameters
         );

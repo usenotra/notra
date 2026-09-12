@@ -1,13 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { skills } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { and, eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
-
-import { trackServerEvent } from "@/lib/analytics/posthog-server";
-import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { authorizedProcedure } from "@/lib/orpc/base";
-import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
 import {
   createSkillInputSchema,
   deleteSkillInputSchema,
@@ -15,7 +8,14 @@ import {
   importSkillFromUrlInputSchema,
   listSkillsInputSchema,
   updateSkillInputSchema,
-} from "@/schemas/skills";
+} from "@notra/schemas/dashboard/skills";
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+
+import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { authorizedProcedure } from "@/lib/orpc/base";
+import { parseSkillFrontmatter } from "@/lib/skills/parse-frontmatter";
 
 import {
   badRequest,

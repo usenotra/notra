@@ -7,6 +7,9 @@ import type {
   GeoSuggestionKeyword,
   GeoWriterSourceKind,
 } from "@notra/geo-core/types/geo";
+import type { ReactNode } from "react";
+
+import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 
 export interface GeoGapsWriteCellProps {
   action: GeoGapWriteAction;
@@ -20,6 +23,17 @@ export interface GeoGapsWriteCellProps {
 }
 
 export type GeoGapsTab = "prompt" | "search";
+
+export type GeoGapDetailSelection =
+  | { kind: "prompt"; id: string }
+  | { kind: "search"; id: string };
+
+export interface GeoGapDetailDialogProps {
+  prompt: GeoPromptGapRow | null;
+  search: GeoSearchGapRow | null;
+  searchActions?: ReactNode;
+  onOpenChange: (open: boolean) => void;
+}
 
 export type GeoGapsMeterTone = "empty" | "low" | "mid" | "high";
 
@@ -94,10 +108,6 @@ export interface GeoGapsFiltersProps {
   engineFamilies: readonly string[];
 }
 
-export interface GeoGapsPageContentProps {
-  organizationSlug: string;
-}
-
 export interface GeoGapOpportunityCellProps {
   row: GeoPromptGapRow;
   maxOpportunity: number;
@@ -138,6 +148,54 @@ export interface GeoGapNumberCellProps {
   value: number | null;
   emptyLabel: string;
   format?: (value: number) => string;
+}
+
+export interface GeoGapsPageError {
+  status: "error";
+  isRetrying: boolean;
+  onRetry: () => void;
+}
+
+export interface GeoGapsPageEmpty {
+  status: "empty";
+  organizationId: string;
+}
+
+export interface GeoGapsPageReady {
+  status: "ready";
+  organizationId: string;
+  organizationSlug: string;
+  isGapsPending: boolean;
+  table: GeoGapsTableProps;
+  dialog: {
+    open: boolean;
+    initial: WriteDialogInitialState | null;
+    onOpenChange: (open: boolean) => void;
+  };
+}
+
+export type GeoGapsPageModel =
+  | { status: "loading" }
+  | GeoGapsPageError
+  | GeoGapsPageEmpty
+  | GeoGapsPageReady;
+
+export interface GeoGapsLoadedProps {
+  page: GeoGapsPageReady;
+}
+
+export interface GeoGapsLoadErrorProps {
+  isRetrying: boolean;
+  onRetry: () => void;
+}
+
+export interface GeoGapsPageStatusInput {
+  settingsError: boolean;
+  hasSettingsData: boolean;
+  hasSettings: boolean;
+  settingsPending: boolean;
+  gapsError: boolean;
+  hasGapsData: boolean;
 }
 
 export interface GeoGapMeterProps {

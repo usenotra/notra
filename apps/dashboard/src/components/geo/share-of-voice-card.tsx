@@ -9,11 +9,11 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 
 import { ShareOfVoiceTable } from "@/components/geo/share-of-voice-table";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
-import { CHART_OTHER_SLICE_LABEL } from "@/constants/charts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import type { ShareOfVoiceCardProps } from "@/types/geo";
-import { isOwnBrandName } from "@/utils/geo-competitors";
+import { findOwnBrandDomain, isOwnBrandName } from "@/utils/geo-competitors";
 
 export function ShareOfVoiceCard({
   points,
@@ -29,17 +29,20 @@ export function ShareOfVoiceCard({
     organizationSlug,
     organizationId
   );
+  const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
+  const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const openRow = (row: ShareOfVoiceRow) => {
     trackEvent(POSTHOG_EVENTS.GEO_SHARE_OF_VOICE_SLICE_CLICKED, {
-      is_own_brand: isOwnBrandName(row.brand, companyName, aliases),
-      is_other: row.brand === CHART_OTHER_SLICE_LABEL,
+      is_own_brand:
+        row.kind === "brand" && isOwnBrandName(row.brand, companyName, aliases),
+      is_other: row.kind === "aggregate",
       share: row.share,
       mentions: row.mentions,
     });
-    navigation.openRow(row.brand);
+    navigation.openRow(row.brand, row.kind === "aggregate");
   };
   const prefetchRow = (row: ShareOfVoiceRow) =>
-    navigation.prefetchRow(row.brand);
+    navigation.prefetchRow(row.brand, row.kind === "aggregate");
 
   return (
     <InstrumentSection
@@ -55,6 +58,7 @@ export function ShareOfVoiceCard({
         isScanning={isScanning}
         onRowClick={organizationSlug ? openRow : undefined}
         onRowPointerEnter={organizationSlug ? prefetchRow : undefined}
+        ownDomain={ownDomain}
         points={points}
         timeseries={timeseries}
       />

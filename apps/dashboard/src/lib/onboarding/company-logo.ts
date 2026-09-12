@@ -1,4 +1,7 @@
-import type { ContextDevBrandLogo } from "@notra/ai/types/context-dev";
+import type {
+  ContextDevBrandLogo,
+  ContextDevBrandSearchResult,
+} from "@notra/ai/types/context-dev";
 
 const RASTER_URL_REGEX = /\.(png|jpe?g|webp|avif|gif)(\?|$)/i;
 const PROTOCOL_REGEX = /^https?:\/\//i;
@@ -22,6 +25,31 @@ export function pickCompanyLogoUrl(
     rasterLogos[0];
 
   return preferred?.url ?? null;
+}
+
+function brandSearchKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+/** Exact name or domain only — prefix/rank fallbacks misidentify brands. */
+export function pickBrandSearchResult(
+  results: readonly ContextDevBrandSearchResult[],
+  query: string
+): ContextDevBrandSearchResult | null {
+  const key = brandSearchKey(query);
+  if (key.length === 0) {
+    return null;
+  }
+
+  const exactName = results.find(
+    (result) => brandSearchKey(result.name) === key
+  );
+  if (exactName) {
+    return exactName;
+  }
+  return (
+    results.find((result) => brandSearchKey(result.domain) === key) ?? null
+  );
 }
 
 export function extractDomain(input: string): string | null {

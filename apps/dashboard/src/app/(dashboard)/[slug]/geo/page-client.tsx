@@ -8,13 +8,12 @@ import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupEmpty } from "@/components/geo/geo-setup-empty";
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
 import { PageContainer } from "@/components/layout/container";
-import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { useGeoOverviewPage } from "@/lib/hooks/use-geo-overview-page";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
+import { cn } from "@/lib/utils";
 import type {
   GeoOverviewLoadedProps,
   GeoPageClientProps,
-  GeoPageContentProps,
   GeoScanSpinnerProps,
 } from "@/types/geo";
 
@@ -22,16 +21,6 @@ import { GeoTabs } from "./components/geo-tabs";
 import { GeoPageSkeleton } from "./skeleton";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoPageContent({ organizationSlug }: GeoPageContentProps) {
   const page = useGeoOverviewPage(organizationSlug);
 
   if (page.status === "loading") {

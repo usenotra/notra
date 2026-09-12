@@ -2,13 +2,25 @@ import {
   checkContentBilling,
   describeContentBillingDenial,
 } from "@notra/ai/billing/content-billing";
-import { getTokenForIntegrationId } from "@notra/ai/integrations/github";
+import {
+  getGitHubAppBotLogin,
+  getGitHubAppInstallationPublishAccess,
+  getTokenForIntegrationId,
+  isGitHubAppConfigured,
+  listGitHubAppInstallationsByOrganization,
+} from "@notra/ai/integrations/github";
+import {
+  getGitHubPublishTokenEffect,
+  selectGitHubAppInstallationForOwner,
+} from "@notra/ai/integrations/github-publish-auth";
 import {
   getDecryptedLinearToken,
   getLinearIntegrationsByOrganization,
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
+import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
@@ -28,8 +40,42 @@ import {
   projectScopeFilter,
 } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { GITHUB_CONTENT_PATH_MAX_LENGTH } from "@notra/schemas/constants/dashboard/github";
+import { contentListQuerySchema } from "@notra/schemas/dashboard/api-params";
+import type {
+  ContentResponse,
+  PostsResponse,
+} from "@notra/schemas/dashboard/content";
+import {
+  contentInputSchema,
+  contentOrganizationIdInputSchema,
+  contentPreviewRequestSchema,
+  createPostCollectionInputSchema,
+  generateContentInputSchema,
+  postCollectionInputSchema,
+  postCollectionsListInputSchema,
+  publishContentToGitHubSchema,
+  renamePostCollectionInputSchema,
+  updateContentSchema,
+  updateExpectedPostCountInputSchema,
+} from "@notra/schemas/dashboard/content";
+import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
+import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
+import { slugify } from "@notra/utils/slugify";
 import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
-import { and, asc, count, desc, eq, gte, inArray, lt, lte } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lt,
+  lte,
+  ne,
+  sql,
+} from "drizzle-orm";
 import { marked } from "marked";
 import { nanoid } from "nanoid";
 import { after } from "next/server";
@@ -42,8 +88,6 @@ import {
 import {
   DEFAULT_GITHUB_CONTENT_DIRECTORIES,
   DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED,
-  GITHUB_CONTENT_PATH_MAX_LENGTH,
-  GITHUB_INSTALLATION_ID_REGEX,
 } from "@/constants/github";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getEnabledDataPoints } from "@/lib/analytics/studio-events";
@@ -58,18 +102,9 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
-import { authenticateGitHubPublish } from "@/lib/integrations/github/authenticate-github-publish";
+import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
+import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
-  clearGitHubPublishFailures,
-  recordGitHubPublishFailure,
-} from "@/lib/integrations/github/github-publish-failure-state";
-import {
-  classifyGitHubPublishFailure,
-  GitHubContentBranchConflictError,
-  GitHubContentPublishError,
-  GitHubContentTargetExistsError,
-  GitHubRepositoryEmptyError,
-  hasGitHubStatus,
   publishContentDraftPullRequest,
   resolveGitHubContentPath,
 } from "@/lib/integrations/github/publish-content-to-github";
@@ -78,24 +113,9 @@ import {
   resolveNotraBaseUrl,
 } from "@/lib/integrations/github/pull-request-body";
 import { baseProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
+import { toGitHubPublishOrpcError } from "@/lib/orpc/utils/github-publish-error";
 import { startOnDemandRun } from "@/lib/workflows/start";
-import { contentListQuerySchema } from "@/schemas/api-params";
-import type { ContentResponse, PostsResponse } from "@/schemas/content";
-import {
-  contentInputSchema,
-  contentOrganizationIdInputSchema,
-  contentPreviewRequestSchema,
-  createPostCollectionInputSchema,
-  generateContentInputSchema,
-  postCollectionInputSchema,
-  postCollectionsListInputSchema,
-  publishContentToGitHubSchema,
-  renamePostCollectionInputSchema,
-  updateContentSchema,
-  updateExpectedPostCountInputSchema,
-} from "@/schemas/content";
-import { clearCompletedGenerationSchema } from "@/schemas/generations";
-import { repositoryContentDirectoryConfigSchema } from "@/schemas/integrations";
 import type {
   CommitPreview,
   LinearIntegrationPreviewItem,
@@ -104,6 +124,8 @@ import type {
   RepositoryPreview,
   RepositoryPreviewFailure,
 } from "@/types/content/preview";
+import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
+import { getGitHubAppPermissionsRecovery } from "@/utils/github-publish-policy";
 import { resolveLookbackRange } from "@/utils/lookback";
 import { ratelimit } from "@/utils/ratelimit";
 
@@ -115,10 +137,13 @@ import {
   notFound,
   paymentRequired,
   tooManyRequests,
-  unauthorized,
 } from "../utils/errors";
 
 const TITLE_REGEX = /^#\s+(.+)$/m;
+
+// Upper bound for the sibling rail on the content detail response; matches the
+// maximum page size of the content list.
+const CONTENT_SIBLING_LIMIT = 100;
 
 const postReadColumns = {
   id: true,
@@ -587,7 +612,11 @@ export const contentRouter = {
               contentType: true,
               status: true,
             },
+            // The current post is excluded in SQL, and the rail is bounded: a
+            // collection can hold hundreds of posts.
+            where: ne(posts.id, post.id),
             orderBy: [asc(posts.createdAt), asc(posts.id)],
+            limit: CONTENT_SIBLING_LIMIT,
           },
         },
       });
@@ -599,14 +628,12 @@ export const contentRouter = {
               id: collection.id,
               name: collection.name,
               source: collection.source,
-              siblings: collection.posts
-                .filter((sibling) => sibling.id !== post.id)
-                .map((sibling) => ({
-                  id: sibling.id,
-                  title: sibling.title,
-                  contentType: normalizeContentType(sibling.contentType),
-                  status: sibling.status,
-                })),
+              siblings: collection.posts.map((sibling) => ({
+                id: sibling.id,
+                title: sibling.title,
+                contentType: normalizeContentType(sibling.contentType),
+                status: sibling.status,
+              })),
             }
           : null,
       };
@@ -784,6 +811,10 @@ export const contentRouter = {
             repo: githubIntegrations.repo,
             defaultBranch: githubIntegrations.defaultBranch,
             installationId: githubAppInstallations.installationId,
+            installationAccountType: githubAppInstallations.accountType,
+            installationAccountLogin: githubAppInstallations.accountLogin,
+            githubAppInstallationId: githubIntegrations.githubAppInstallationId,
+            encryptedToken: githubIntegrations.encryptedToken,
             outputConfig: repositoryOutputs.config,
             outputEnabled: repositoryOutputs.enabled,
             outputId: repositoryOutputs.id,
@@ -831,12 +862,22 @@ export const contentRouter = {
       if (!post.markdown) {
         throw badRequest("Save the content before publishing it to GitHub");
       }
+      const savedMarkdown = post.markdown;
       if (!(integration?.owner && integration.repo)) {
         throw notFound("Selected GitHub repository not found");
       }
       if (!integration.defaultBranch) {
         throw badRequest(
           "Selected GitHub repository does not have a default branch"
+        );
+      }
+      const connectionMethod = isGitHubAppConfigured()
+        ? "github-app"
+        : getGitHubConnectionMethod(integration);
+      if (connectionMethod === "unauthenticated") {
+        throw forbidden(
+          "Connect this repository through the GitHub App before publishing.",
+          { code: "github_repository_connection_required" }
         );
       }
       let contentOutput = integration.outputId
@@ -889,12 +930,16 @@ export const contentRouter = {
         contentOutput.config
       );
       const directory = outputConfig.success
-        ? outputConfig.data.directory
+        ? (outputConfig.data.directory ??
+          DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType])
         : DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType];
       const path = resolveGitHubContentPath({
         contentId: input.contentId,
         customPath: input.path,
         directory,
+        pathTemplate: outputConfig.success
+          ? outputConfig.data.contentPath
+          : null,
         slug: post.slug,
         title: post.title,
       });
@@ -904,33 +949,96 @@ export const contentRouter = {
         );
       }
 
+      const contentSlug =
+        slugify(post.slug ?? "") || slugify(post.title) || input.contentId;
+
       const notraBaseUrl = resolveNotraBaseUrl();
+      let publishInstallationId = integration.installationId ?? null;
+      let publishInstallationAccountType = integration.installationAccountType;
+      let publishInstallationAccountLogin =
+        integration.installationAccountLogin;
+      if (connectionMethod === "github-app" && !publishInstallationId) {
+        const fallback = selectGitHubAppInstallationForOwner(
+          await listGitHubAppInstallationsByOrganization(input.organizationId),
+          integration.owner
+        );
+        if (fallback) {
+          publishInstallationId = fallback.installationId;
+          publishInstallationAccountType = fallback.accountType;
+          publishInstallationAccountLogin = fallback.accountLogin;
+        }
+      }
+      if (connectionMethod === "github-app" && publishInstallationId) {
+        const publishAccess = await getGitHubAppInstallationPublishAccess(
+          publishInstallationId
+        );
+        if (githubAppInstallationCanPublishContent(publishAccess) === false) {
+          const recovery = getGitHubAppPermissionsRecovery({
+            installationId: publishInstallationId,
+            installationAccountType: publishInstallationAccountType,
+            installationAccountLogin: publishInstallationAccountLogin,
+          });
+          throw forbidden(recovery.message, recovery.data);
+        }
+      }
+
+      const token = await runOrpcEffect(
+        getGitHubPublishTokenEffect(integration.id, {
+          organizationId: input.organizationId,
+        }),
+        toGitHubOperationOrpcError
+      );
+
+      const octokit = createOctokit(token);
+      const publisherLogin =
+        getGitHubAppBotLogin() ??
+        (await octokit
+          .request("GET /user")
+          .then(({ data }) => data.login)
+          .catch(() => undefined));
 
       try {
-        const token = await authenticateGitHubPublish(() =>
-          getTokenForIntegrationId(integration.id, {
-            organizationId: input.organizationId,
-          })
-        );
-        const result = await publishContentDraftPullRequest(
-          createOctokit(token),
-          {
-            contentId: input.contentId,
-            contentType: input.contentType,
-            owner: integration.owner,
-            repo: integration.repo,
-            defaultBranch: integration.defaultBranch,
-            path,
-            title: post.title,
-            markdown: post.markdown,
-            ...(notraBaseUrl && organization
-              ? {
-                  badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
-                  contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
-                }
-              : {}),
-          }
-        );
+        const result = await publishContentDraftPullRequest(octokit, {
+          contentId: input.contentId,
+          contentType: input.contentType,
+          owner: integration.owner,
+          repo: integration.repo,
+          defaultBranch: integration.defaultBranch,
+          path,
+          title: post.title,
+          markdown: savedMarkdown,
+          pullRequestMarkdown: savedMarkdown,
+          ...(publisherLogin ? { publisherLogin } : {}),
+          ...(outputConfig.success && outputConfig.data.imagePath
+            ? {
+                prepareContent: async (contentPath: string) => {
+                  const preparedContent = await prepareR2GitHubContentAssets({
+                    contentPath,
+                    imagePathTemplate: outputConfig.data.imagePath ?? "",
+                    markdown: savedMarkdown,
+                    slug: contentSlug,
+                  });
+                  if (
+                    preparedContent.assets.some(
+                      (asset) =>
+                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+                    )
+                  ) {
+                    throw badRequest(
+                      "The configured image path exceeds GitHub's path limit"
+                    );
+                  }
+                  return preparedContent;
+                },
+              }
+            : {}),
+          ...(notraBaseUrl && organization
+            ? {
+                badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
+                contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
+              }
+            : {}),
+        });
         await clearGitHubPublishFailures({
           organizationId: input.organizationId,
           outputType: input.contentType,
@@ -938,93 +1046,16 @@ export const contentRouter = {
         });
         return result;
       } catch (error) {
-        if (error instanceof GitHubContentTargetExistsError) {
-          throw conflict(error.message);
-        }
-        if (error instanceof GitHubContentBranchConflictError) {
-          throw conflict(error.message, { branchName: error.branchName });
-        }
-        if (error instanceof GitHubRepositoryEmptyError) {
-          throw badRequest(
-            "Initialize the GitHub repository with a first commit before publishing"
-          );
-        }
-        if (error instanceof GitHubContentPublishError) {
-          const failureKind = classifyGitHubPublishFailure(error.cause);
-          let publishingPaused = false;
-          if (failureKind !== "rate_limit") {
-            try {
-              const pauseResult = await recordGitHubPublishFailure({
-                organizationId: input.organizationId,
-                outputId: contentOutput.id,
-                outputType: input.contentType,
-                repositoryId: integration.id,
-              });
-              publishingPaused = pauseResult.paused;
-            } catch (trackingError) {
-              console.warn("Failed to record GitHub publish failure state", {
-                organizationId: input.organizationId,
-                repositoryId: integration.id,
-                error: trackingError,
-              });
-            }
-          }
-          if (
-            publishingPaused &&
-            failureKind !== "authentication" &&
-            failureKind !== "permissions"
-          ) {
-            throw forbidden(
-              "GitHub content publishing was paused after repeated failures",
-              { code: "github_content_publishing_paused" }
-            );
-          }
-          if (failureKind === "authentication") {
-            throw unauthorized(
-              "GitHub authentication failed. Reconnect GitHub and try again.",
-              {
-                code: "github_authentication_required",
-                ...(publishingPaused ? { publishingPaused: true } : {}),
-              }
-            );
-          }
-          if (failureKind === "rate_limit") {
-            throw tooManyRequests(
-              "GitHub's API rate limit was reached. Please try again later."
-            );
-          }
-          if (failureKind === "permissions") {
-            const installationId = integration.installationId;
-            const permissionsUrl =
-              installationId &&
-              GITHUB_INSTALLATION_ID_REGEX.test(installationId)
-                ? `https://github.com/settings/installations/${installationId}/permissions`
-                : undefined;
-            throw forbidden(
-              "The GitHub App needs read and write access to Contents and Pull requests.",
-              {
-                code: "github_app_permissions_required",
-                ...(publishingPaused ? { publishingPaused: true } : {}),
-                ...(permissionsUrl ? { permissionsUrl } : {}),
-              }
-            );
-          }
-          if (failureKind === "forbidden") {
-            throw forbidden(
-              "GitHub blocked this request. An organization owner may need to review the organization's GitHub App policy."
-            );
-          }
-          if (
-            hasGitHubStatus(error.cause, 404) ||
-            hasGitHubStatus(error.cause, 422)
-          ) {
-            throw badRequest(error.message, {
-              branchName: error.branchName,
-            });
-          }
-          throw internalServerError(error.message, error.cause);
-        }
-        throw internalServerError("Failed to publish content to GitHub", error);
+        throw await toGitHubPublishOrpcError(error, {
+          organizationId: input.organizationId,
+          repositoryId: integration.id,
+          outputId: contentOutput.id,
+          outputType: input.contentType,
+          connectionMethod,
+          installationId: publishInstallationId,
+          installationAccountType: publishInstallationAccountType,
+          installationAccountLogin: publishInstallationAccountLogin,
+        });
       }
     }),
   delete: baseProcedure
@@ -1104,40 +1135,36 @@ export const contentRouter = {
         ]);
 
         const collectionIds = collectionRows.map((collection) => collection.id);
-        const postRows =
+        // One row per collection: counting and de-duplicating the content types
+        // in Postgres avoids shipping every post of every listed collection.
+        const aggregateRows =
           collectionIds.length > 0
             ? await db
                 .select({
                   collectionId: posts.collectionId,
-                  contentType: posts.contentType,
-                  status: posts.status,
+                  total: sql<number>`count(*)::int`,
+                  draft: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
+                  published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
+                  types: sql<
+                    string[] | null
+                  >`array_agg(distinct ${posts.contentType})`,
                 })
                 .from(posts)
                 .where(inArray(posts.collectionId, collectionIds))
+                .groupBy(posts.collectionId)
             : [];
 
-        const aggregates = new Map<
-          string,
-          { total: number; draft: number; published: number; types: string[] }
-        >();
-        for (const post of postRows) {
-          const aggregate = aggregates.get(post.collectionId) ?? {
-            total: 0,
-            draft: 0,
-            published: 0,
-            types: [],
-          };
-          aggregate.total += 1;
-          if (post.status === "published") {
-            aggregate.published += 1;
-          } else {
-            aggregate.draft += 1;
-          }
-          if (!aggregate.types.includes(post.contentType)) {
-            aggregate.types.push(post.contentType);
-          }
-          aggregates.set(post.collectionId, aggregate);
-        }
+        const aggregates = new Map(
+          aggregateRows.map((row) => [
+            row.collectionId,
+            {
+              total: Number(row.total),
+              draft: Number(row.draft),
+              published: Number(row.published),
+              types: row.types ?? [],
+            },
+          ])
+        );
 
         const collections = collectionRows.map((collection) => {
           const aggregate = aggregates.get(collection.id);
@@ -1383,10 +1410,16 @@ export const contentRouter = {
         const yearStart = startOfYear(now);
         const yearEnd = endOfYear(now);
 
-        const allPosts = await db
+        // One row per day instead of one row per post. `drafts` counts every
+        // non-published status (matching the previous JS bucketing), while
+        // `strictDrafts` feeds the `drafts` total, which only ever counted the
+        // literal "draft" status.
+        const dailyCounts = await db
           .select({
-            status: posts.status,
-            createdAt: posts.createdAt,
+            day: sql<string>`to_char(${posts.createdAt}, 'YYYY-MM-DD')`,
+            drafts: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
+            strictDrafts: sql<number>`count(*) filter (where ${posts.status} = 'draft')::int`,
+            published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
           })
           .from(posts)
           .where(
@@ -1396,43 +1429,30 @@ export const contentRouter = {
               lte(posts.createdAt, yearEnd)
             )
           )
-          .orderBy(posts.createdAt);
+          .groupBy(sql`to_char(${posts.createdAt}, 'YYYY-MM-DD')`);
 
-        const totalDrafts = allPosts.filter(
-          (post) => post.status === "draft"
-        ).length;
-        const totalPublished = allPosts.filter(
-          (post) => post.status === "published"
-        ).length;
         const dateMap = new Map<
           string,
           { drafts: number; published: number }
         >();
+        let totalDrafts = 0;
+        let totalPublished = 0;
+        let maxCount = 1;
 
-        for (const post of allPosts) {
-          const dateKey = format(post.createdAt, "yyyy-MM-dd");
-          const entry = dateMap.get(dateKey) ?? { drafts: 0, published: 0 };
+        for (const row of dailyCounts) {
+          const drafts = Number(row.drafts);
+          const published = Number(row.published);
 
-          if (post.status === "published") {
-            entry.published += 1;
-          } else {
-            entry.drafts += 1;
-          }
-
-          dateMap.set(dateKey, entry);
+          totalDrafts += Number(row.strictDrafts);
+          totalPublished += published;
+          maxCount = Math.max(maxCount, drafts + published);
+          dateMap.set(row.day, { drafts, published });
         }
 
         const allDaysInYear = eachDayOfInterval({
           start: yearStart,
           end: yearEnd,
         });
-
-        const maxCount = Math.max(
-          ...Array.from(dateMap.values()).map(
-            (value) => value.drafts + value.published
-          ),
-          1
-        );
 
         const activityData = allDaysInYear.map((date) => {
           const dateKey = format(date, "yyyy-MM-dd");

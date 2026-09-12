@@ -18,6 +18,8 @@ import type {
 } from "@/types/analytics/workflow-events";
 import type { BrandAnalysisProgressInput } from "@/types/workflows/brand-analysis";
 import type { TrackContentOutcomeInput } from "@/types/workflows/content-generation-steps";
+import { getCurrentWorkflowRunId } from "@/utils/workflow-run-id";
+import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
 function resolveDurationMs(startedAt: number | undefined): number | undefined {
   if (startedAt === undefined) {
@@ -27,6 +29,15 @@ function resolveDurationMs(startedAt: number | undefined): number | undefined {
 }
 
 export function trackWorkflowStarted(input: WorkflowStartedInput): void {
+  // start() acknowledges queue acceptance, not the beginning of execution.
+  logWorkflowTelemetry({
+    event: "job.queued",
+    runId: input.runId,
+    workflow: input.workflow,
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+    trigger: input.trigger,
+  });
   trackServerEvent({
     event: POSTHOG_EVENTS.WORKFLOW_STARTED,
     userId: input.userId,
@@ -57,6 +68,20 @@ function buildWorkflowOutcomeProperties(
 export async function trackWorkflowOutcomeAndFlush(
   input: WorkflowOutcomeInput
 ): Promise<void> {
+  logWorkflowTelemetry({
+    event:
+      input.outcome === WORKFLOW_OUTCOMES.FAILED
+        ? "job.failed"
+        : "job.completed",
+    runId: getCurrentWorkflowRunId(),
+    executionId: input.runId,
+    workflow: input.workflow,
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+    durationMs: resolveDurationMs(input.startedAt),
+    outcome: input.outcome === WORKFLOW_OUTCOMES.FAILED ? "error" : "success",
+    stepFailed: input.stepFailed,
+  });
   await trackServerEventAndFlush({
     event:
       input.outcome === WORKFLOW_OUTCOMES.FAILED

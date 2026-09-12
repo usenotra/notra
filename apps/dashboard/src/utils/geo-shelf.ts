@@ -1,4 +1,9 @@
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
+import {
+  canonicalizeShelfUrl,
+  isAllowedShelfUrl,
+  shelfDomainFromUrl,
+} from "@notra/schemas/utils/dashboard/shelf-url";
 
 import {
   GEO_SHELF_BOARD_COLUMN_IDS_BY_TICKET_FILTER,
@@ -6,11 +11,6 @@ import {
   GEO_SHELF_OPEN_STATUSES,
 } from "@/constants/geo-shelf";
 import { emptyShelfCitations } from "@/lib/geo-shelf/citations";
-import {
-  canonicalizeShelfUrl,
-  isAllowedShelfUrl,
-  shelfDomainFromUrl,
-} from "@/lib/geo-shelf/url";
 
 import type {
   GeoShelfBoardColumnId,

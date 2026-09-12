@@ -7,6 +7,10 @@ import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { flushPostHogServer } from "@notra/posthog/server";
+import {
+  brandSettingsSchema,
+  getValidLanguage,
+} from "@notra/schemas/dashboard/brand";
 import { generateText, Output } from "ai";
 import { and, eq } from "drizzle-orm";
 import { createRequestLogger } from "evlog";
@@ -22,7 +26,6 @@ import {
   isFinalStepAttempt,
   reportStepError,
 } from "@/lib/workflows/step-errors";
-import { brandSettingsSchema, getValidLanguage } from "@/schemas/brand";
 import type { ExtractionResult } from "@/types/brand-analysis";
 import type {
   BrandAnalysisProgressInput,

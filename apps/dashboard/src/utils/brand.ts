@@ -1,6 +1,5 @@
+import { brandIdentityToolOutputSchema } from "@notra/schemas/dashboard/brand";
 import { logoLinkUrl } from "@notra/utils/logo-link";
-
-import { brandIdentityToolOutputSchema } from "@/schemas/brand";
 
 export function getWebsiteDomain(websiteUrl: string | null): string | null {
   if (!websiteUrl) {

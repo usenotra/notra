@@ -1,10 +1,11 @@
-import type { ScheduleCron } from "@/schemas/automation/schedule-form";
+import type { ScheduleCron } from "@notra/schemas/dashboard/automation/schedule-form";
+
 import type { Trigger } from "@/types/triggers/triggers";
 
 export type {
   ScheduleCron,
   ScheduleFormValues,
-} from "@/schemas/automation/schedule-form";
+} from "@notra/schemas/dashboard/automation/schedule-form";
 
 export interface CreateScheduleDialogProps {
   organizationId: string;

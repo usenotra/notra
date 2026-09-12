@@ -1,6 +1,7 @@
 "use client";
 
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
+import { AGENT_FEEDBACK_PAGE_SIZE } from "@notra/schemas/constants/dashboard/agent-feedback";
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -10,7 +11,6 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { AGENT_FEEDBACK_PAGE_SIZE } from "@/constants/agent-feedback";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   AgentFeedbackSetupResponse,

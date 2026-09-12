@@ -1,34 +1,63 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import dynamic from "next/dynamic";
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { DITHER_MOBILE_MAX_PIXELS } from "@/constants/dithering";
 import { useDitherVisibility } from "@/lib/dithering/use-dither-visibility";
-import type { DeferredDitheringProps } from "@/types/dithering";
-import {
-  getDitherEnvironmentServerSnapshot,
-  getDitherMobileSnapshot,
-  subscribeToDitherViewport,
-} from "@/utils/dither-environment";
+import type {
+  DeferredDitheringProps,
+  DitheringCanvasProps,
+} from "@/types/dithering";
 
-const Dithering = dynamic(
-  () =>
-    import("@paper-design/shaders-react").then((module_) => module_.Dithering),
-  { ssr: false }
-);
+import { DitheringCanvas } from "./dithering-canvas";
+
+function DeferredDitherLayer({
+  speed,
+  maxPixelCount,
+  onPainted,
+  ...shaderProps
+}: DitheringCanvasProps) {
+  const [painted, setPainted] = useState(false);
+  const onPaintedRef = useRef(onPainted);
+  const didNotify = useRef(false);
+
+  useEffect(() => {
+    onPaintedRef.current = onPainted;
+  }, [onPainted]);
+
+  return (
+    <DitheringCanvas
+      {...shaderProps}
+      className={cn(
+        "h-full w-full transition-opacity duration-300 motion-reduce:transition-none",
+        painted ? "opacity-100" : "opacity-0"
+      )}
+      maxPixelCount={maxPixelCount}
+      onPainted={() => {
+        if (didNotify.current) {
+          return;
+        }
+        didNotify.current = true;
+        setPainted(true);
+        onPaintedRef.current?.();
+      }}
+      speed={speed}
+    />
+  );
+}
 
 export function DeferredDithering({
   className,
   speed,
+  maxPixelCount,
+  unmountOffscreen = false,
+  eager = false,
+  onPainted,
   ...shaderProps
 }: DeferredDitheringProps) {
-  const { containerRef, shouldRender, isAnimating } = useDitherVisibility();
-  const isMobile = useSyncExternalStore(
-    subscribeToDitherViewport,
-    getDitherMobileSnapshot,
-    getDitherEnvironmentServerSnapshot
+  const { containerRef, shouldRender, isAnimating } = useDitherVisibility(
+    unmountOffscreen,
+    eager
   );
 
   return (
@@ -37,15 +66,15 @@ export function DeferredDithering({
       className={cn("pointer-events-none", className)}
       ref={containerRef}
     >
-      {shouldRender && (
-        <Dithering
+      {shouldRender ? (
+        <DeferredDitherLayer
           {...shaderProps}
-          className="h-full w-full"
-          maxPixelCount={isMobile ? DITHER_MOBILE_MAX_PIXELS : undefined}
-          minPixelRatio={isMobile ? 1 : undefined}
-          speed={isAnimating ? speed : 0}
+          animate={isAnimating}
+          maxPixelCount={maxPixelCount}
+          onPainted={onPainted}
+          speed={speed}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,21 +1,23 @@
-import { PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
-import { Autumn } from "autumn-js";
+import { Effect } from "effect";
 import type { Context, Next } from "hono";
 
 import { API_PAYWALL_FEATURES } from "../constants/analytics";
+import { RESTRICTED_BILLING_METHODS } from "../constants/billing";
+import { billingLayer, type BillingMiddlewareOptions } from "../lib/billing";
+import { checkSubscriptionAccess } from "../programs/subscription";
 import { isIngestAuth } from "../types/auth";
 import { trackApiPaywalled } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
 
+export type SubscriptionMiddlewareOptions = BillingMiddlewareOptions;
+
 // DELETE and GET are intentionally unrestricted so lapsed/unsubscribed orgs
 // retain read access and data-deletion rights (GDPR / data portability).
-const RESTRICTED_METHODS = new Set(["POST", "PUT", "PATCH"]);
-
-const AI_CREDITS_FEATURE_ID = "ai_credits";
-
-export function subscriptionMiddleware() {
+export function subscriptionMiddleware(
+  options: SubscriptionMiddlewareOptions = {}
+) {
   return async (c: Context, next: Next) => {
-    if (!RESTRICTED_METHODS.has(c.req.method)) {
+    if (!RESTRICTED_BILLING_METHODS.has(c.req.method)) {
       return next();
     }
 
@@ -47,38 +49,25 @@ export function subscriptionMiddleware() {
       );
     }
 
-    const autumn = new Autumn({ secretKey });
+    const layer = options.billingLayer ?? billingLayer(secretKey);
+    const access = await Effect.runPromise(
+      Effect.result(
+        checkSubscriptionAccess({ organizationId: orgId, secretKey }).pipe(
+          Effect.provide(layer)
+        )
+      )
+    );
 
-    try {
-      const customer = await autumn.customers.getOrCreate({
-        customerId: orgId,
-      });
-
-      let hasAccess = customer.subscriptions.some(
-        (subscription) =>
-          !subscription.addOn &&
-          subscription.status === "active" &&
-          PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
-      );
-
-      if (!hasAccess) {
-        const check = await autumn.check({
-          customerId: orgId,
-          featureId: AI_CREDITS_FEATURE_ID,
-          requiredBalance: 1,
-        });
-        hasAccess = check.allowed === true;
-      }
-
-      if (!hasAccess) {
-        trackApiPaywalled(c, {
-          feature: API_PAYWALL_FEATURES.SUBSCRIPTION,
-          status: 402,
-        });
-        return c.json({ error: "Active subscription required" }, 402);
-      }
-    } catch {
+    if (access._tag === "Failure") {
       return c.json({ error: "Failed to verify subscription status" }, 500);
+    }
+
+    if (!access.success) {
+      trackApiPaywalled(c, {
+        feature: API_PAYWALL_FEATURES.SUBSCRIPTION,
+        status: 402,
+      });
+      return c.json({ error: "Active subscription required" }, 402);
     }
 
     return next();

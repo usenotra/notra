@@ -7,26 +7,50 @@ import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import {
   geoAnswerEmptyClassName,
   geoAnswerMarkdownFontClass,
-  geoAnswerThinkingClassName,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import { useReducedMotion } from "motion/react";
-import { type ReactNode, useMemo } from "react";
+import type { ReactNode } from "react";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
 import { GeoAnswerActions } from "@/components/geo/geo-answer-actions";
+import {
+  GeoAnswerMentionBlockquote,
+  GeoAnswerMentionHeading1,
+  GeoAnswerMentionHeading2,
+  GeoAnswerMentionHeading3,
+  GeoAnswerMentionHeading4,
+  GeoAnswerMentionHeading5,
+  GeoAnswerMentionHeading6,
+  GeoAnswerMentionListItem,
+  GeoAnswerMentionParagraph,
+  GeoAnswerMentionTableCell,
+  GeoAnswerMentionTableHeaderCell,
+} from "@/components/geo/geo-answer-mention-components";
+import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
-import { useAnswerReplay } from "@/lib/hooks/use-answer-replay";
+import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { cn } from "@/lib/utils";
-import type {
-  AnswerReplayProgress,
-  GeoPromptAnswerThreadProps,
-} from "@/types/geo";
+import type { GeoPromptAnswerThreadProps } from "@/types/geo";
+import type { GeoAnswerMentionComponents } from "@/types/geo-answer-mentions";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 
 const ANSWER_MARKDOWN_CLASS =
-  "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ol]:my-2.5";
+  "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_h4]:mt-3 [&_h4]:mb-1 [&_h4]:text-[0.95em] [&_h4]:font-semibold [&_h5]:mt-2.5 [&_h5]:mb-1 [&_h5]:text-[0.9em] [&_h5]:font-semibold [&_h6]:mt-2.5 [&_h6]:mb-1 [&_h6]:text-[0.85em] [&_h6]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ol]:my-2.5";
+
+const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
+  p: GeoAnswerMentionParagraph,
+  li: GeoAnswerMentionListItem,
+  td: GeoAnswerMentionTableCell,
+  th: GeoAnswerMentionTableHeaderCell,
+  h1: GeoAnswerMentionHeading1,
+  h2: GeoAnswerMentionHeading2,
+  h3: GeoAnswerMentionHeading3,
+  h4: GeoAnswerMentionHeading4,
+  h5: GeoAnswerMentionHeading5,
+  h6: GeoAnswerMentionHeading6,
+  blockquote: GeoAnswerMentionBlockquote,
+};
 
 function emptyAnswerCopy(mentioned: boolean): string {
   return mentioned
@@ -66,6 +90,7 @@ export function AnswerMarkdown({
   return (
     <MessageResponse
       className={cn(ANSWER_MARKDOWN_CLASS, geoAnswerMarkdownFontClass(skin))}
+      components={GEO_ANSWER_MENTION_COMPONENTS}
       mode={mode}
     >
       {text}
@@ -121,7 +146,6 @@ function ThreadMessages({
   skin,
   search,
   sources,
-  progress,
 }: {
   prompt: string;
   answer: string;
@@ -129,62 +153,36 @@ function ThreadMessages({
   skin: GeoChatSkin;
   search: ReactNode;
   sources: PerplexitySearchSource[];
-  progress: AnswerReplayProgress | null;
 }) {
-  const stage = progress?.stage ?? null;
-  const answerDone = progress === null;
-  const showThinking = stage === "thinking";
-  const showAnswer = answerDone || stage === "typing";
-  const showSearch =
-    Boolean(search) && (showAnswer || (skin === "opencode" && showThinking));
-  const answerText = stage === "typing" ? (progress?.typed ?? "") : answer;
-
   return (
     <>
       <GeoSkinMessage from="user" skin={skin}>
         {prompt}
       </GeoSkinMessage>
-      {(showThinking || showAnswer) && (
-        <GeoSkinMessage
-          actions={
-            answerDone ? assistantActions(answerText, sources) : undefined
-          }
-          from="assistant"
-          search={showSearch ? search : undefined}
-          skin={skin}
-        >
-          {showThinking ? (
-            <p
-              className={cn(
-                "text-muted-foreground animate-pulse",
-                geoAnswerThinkingClassName(skin)
-              )}
-            >
-              Thinking…
-            </p>
-          ) : (
-            <AssistantBody
-              answer={answerText}
-              mentioned={mentioned}
-              mode={answerDone ? "static" : "streaming"}
-              skin={skin}
-            />
-          )}
-        </GeoSkinMessage>
-      )}
+      <GeoSkinMessage
+        actions={assistantActions(answer, sources)}
+        from="assistant"
+        search={search}
+        skin={skin}
+      >
+        <AssistantBody answer={answer} mentioned={mentioned} skin={skin} />
+      </GeoSkinMessage>
     </>
   );
 }
 
 export function GeoPromptAnswerThread({
+  scrollable = true,
+  organizationId,
   prompt,
   result,
 }: GeoPromptAnswerThreadProps) {
   const skin = geoChatSkin(result.engine);
   const answer = displayAnswer(result);
-  const replayTurns = useMemo(() => [{ answer }], [answer]);
-  const reducedMotion = useReducedMotion();
-  const progress = useAnswerReplay(replayTurns, 1, Boolean(reducedMotion));
+  const { terms: mentionTerms, competitors } = useGeoAnswerMentionData(
+    organizationId,
+    result.competitors
+  );
   const sources = threadSources(result, answer);
   const searchQueries =
     result.searchQueries.length > 0 || skin !== "opencode"
@@ -193,35 +191,43 @@ export function GeoPromptAnswerThread({
   const hasRecordedSearch =
     searchQueries.length > 0 || result.sources.length > 0;
   const search = hasRecordedSearch ? (
-    <GeoAnswerSearch
-      queries={searchQueries}
-      sequential={progress !== null}
-      skin={skin}
-      sources={sources}
-    />
+    <GeoAnswerSearch queries={searchQueries} skin={skin} sources={sources} />
   ) : undefined;
 
   return (
-    <div
-      className={cn(
-        "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
-        GEO_CHAT_SKIN_SURFACE[skin]
-      )}
+    <GeoAnswerMentionProvider
+      competitors={competitors}
+      organizationId={organizationId}
+      terms={mentionTerms}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
-          <AnswerSentiment result={result} />
-          <ThreadMessages
-            answer={answer}
-            mentioned={result.mentioned}
-            prompt={prompt}
-            progress={progress}
-            search={search}
-            skin={skin}
-            sources={sources}
-          />
+      <div
+        className={cn(
+          scrollable
+            ? "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden"
+            : "relative flex min-h-full flex-1 flex-col",
+          GEO_CHAT_SKIN_SURFACE[skin]
+        )}
+      >
+        <div
+          className={
+            scrollable
+              ? "min-h-0 flex-1 overflow-y-auto overscroll-contain"
+              : undefined
+          }
+        >
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
+            <AnswerSentiment result={result} />
+            <ThreadMessages
+              answer={answer}
+              mentioned={result.mentioned}
+              prompt={prompt}
+              search={search}
+              skin={skin}
+              sources={sources}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </GeoAnswerMentionProvider>
   );
 }

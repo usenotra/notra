@@ -9,8 +9,10 @@ import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
 import { DashboardSidebar } from "@/components/dashboard/app-sidebar";
+import { DashboardAgentHost } from "@/components/dashboard/dashboard-agent-panel";
 import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
+import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
@@ -38,6 +40,7 @@ export function DashboardShell({
   initialSidebarWidth,
 }: DashboardShellProps) {
   const { activeOrganization } = useOrganizationsContext();
+  const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
   const { data } = useOnboardingAgentRun(organizationId);
   const runAgent = useRunOnboardingAgent();
@@ -155,7 +158,12 @@ export function DashboardShell({
           variant="inset"
           width={sidebarWidth}
         />
-        <SidebarInset className="min-h-0 min-w-0 overflow-hidden">
+        <SidebarInset
+          className={cn(
+            "min-h-0 min-w-0 overflow-hidden",
+            expanded && "hidden"
+          )}
+        >
           <SiteHeader />
           <RestoreSidebarHome />
           <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
@@ -163,6 +171,7 @@ export function DashboardShell({
           </div>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
+        <DashboardAgentHost />
       </SidebarProvider>
     </div>
   );

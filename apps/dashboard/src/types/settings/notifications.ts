@@ -29,7 +29,3 @@ export interface NotificationToggleRowProps {
   disabled: boolean;
   onCheckedChange: (checked: boolean) => void;
 }
-
-export interface NotificationFooterProps {
-  emails: string[];
-}

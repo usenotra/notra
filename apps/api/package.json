@@ -5,7 +5,8 @@
     "dev": "NODE_ENV=development bun --watch src/index.ts",
     "build": "tsup",
     "start": "node dist/index.mjs",
-    "check-types": "bunx tsc --noEmit",
+    "check-types": "bunx tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
+    "test": "bun test tests",
     "knip": "knip"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "@notra/db": "workspace:*",
     "@notra/geo-core": "workspace:*",
     "@notra/posthog": "workspace:*",
+    "@notra/schemas": "workspace:*",
     "@notra/utils": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/sdk-node": "^0.220.0",

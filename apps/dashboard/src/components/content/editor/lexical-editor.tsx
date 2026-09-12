@@ -15,11 +15,11 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import type { TextSelection } from "@notra/schemas/dashboard/content";
 import type { EditorThemeClasses } from "lexical";
 import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import type { TextSelection } from "@/schemas/content";
 
 import { editorTheme } from "./editor-theme";
 import { EDITOR_TRANSFORMERS } from "./markdown-transformers";

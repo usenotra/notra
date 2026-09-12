@@ -9,6 +9,9 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
+import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
+import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { Redis } from "@upstash/redis";
 import { Effect, Layer } from "effect";
@@ -21,58 +24,40 @@ import {
 import { addActiveGeneration } from "../../utils/active-generations";
 import {
   getInternalWorkflowUrl,
-  startDashboardWorkflow,
+  startDashboardWorkflowEffect,
 } from "../../utils/internal-workflow";
+import { internalDashboardLive } from "../internal-dashboard";
 
 const redis = Redis.fromEnv();
-
-function requireInternalWorkflowUrl(path: string): string {
-  const url = getInternalWorkflowUrl(process.env, path);
-  if (!url) {
-    throw new Error(
-      "WORKFLOW_BASE_URL is not configured — cannot reach the dashboard."
-    );
-  }
-  return url;
-}
 
 const workflowLayer = Layer.succeed(GeoWorkflowService, {
   startGeoScanRun: Effect.fn("GeoApiWorkflow.startGeoScanRun")(
     function* (payload) {
-      const runId = yield* Effect.tryPromise({
-        try: () =>
-          startDashboardWorkflow(
-            requireInternalWorkflowUrl(GEO_SCAN_INTERNAL_WORKFLOW_PATH),
-            payload
-          ),
-        catch: (cause) => cause,
-      });
+      const runId = yield* startDashboardWorkflowEffect(
+        getInternalWorkflowUrl(process.env, GEO_SCAN_INTERNAL_WORKFLOW_PATH),
+        payload
+      ).pipe(Effect.provide(internalDashboardLive));
       return { runId };
     }
   ),
   startGeoWriterRun: Effect.fn("GeoApiWorkflow.startGeoWriterRun")(
     function* (payload) {
-      const runId = yield* Effect.tryPromise({
-        try: () =>
-          startDashboardWorkflow(
-            requireInternalWorkflowUrl(GEO_WRITER_INTERNAL_WORKFLOW_PATH),
-            payload
-          ),
-        catch: (cause) => cause,
-      });
+      const runId = yield* startDashboardWorkflowEffect(
+        getInternalWorkflowUrl(process.env, GEO_WRITER_INTERNAL_WORKFLOW_PATH),
+        payload
+      ).pipe(Effect.provide(internalDashboardLive));
       return { runId };
     }
   ),
   startAgentReadinessRun: Effect.fn("GeoApiWorkflow.startAgentReadinessRun")(
     function* (payload) {
-      const runId = yield* Effect.tryPromise({
-        try: () =>
-          startDashboardWorkflow(
-            requireInternalWorkflowUrl(AGENT_READINESS_INTERNAL_WORKFLOW_PATH),
-            payload
-          ),
-        catch: (cause) => cause,
-      });
+      const runId = yield* startDashboardWorkflowEffect(
+        getInternalWorkflowUrl(
+          process.env,
+          AGENT_READINESS_INTERNAL_WORKFLOW_PATH
+        ),
+        payload
+      ).pipe(Effect.provide(internalDashboardLive));
       return { runId };
     }
   ),
@@ -137,6 +122,9 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
  * dashboard and are reached through its authenticated internal endpoints.
  */
 export const geoCoreApiLayer = Layer.mergeAll(
+  agentReadinessNetworkLive,
+  geoModelLive,
+  geoSearchConsoleLive,
   workflowLayer,
   entitlementLayer,
   featureFlagLayer,

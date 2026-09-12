@@ -1,15 +1,11 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
-  getChatSession,
+  getStandaloneChatSession,
   getChatSessionByExternalChannel,
   listChatSessions,
   loadChatHistory,
 } from "@notra/ai/chat/history";
 import { useLogger, withEvlog } from "@notra/ai/evlog";
-import type { Context } from "hono";
-import { nanoid } from "nanoid";
-
-import { runChatMessage } from "../lib/chat/run";
 import {
   chatSessionSummarySchema,
   getChatByExternalQuerySchema,
@@ -18,7 +14,11 @@ import {
   getChatsResponseSchema,
   sendChatMessageRequestSchema,
   sendChatParamsSchema,
-} from "../schemas/chats";
+} from "@notra/schemas/api/chats";
+import type { Context } from "hono";
+import { nanoid } from "nanoid";
+
+import { runChatMessage } from "../lib/chat/run";
 import { getOrganizationId } from "../utils/auth";
 import { createOpenApiApp, formatValidationError } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
@@ -131,7 +131,7 @@ chatsRoutes.openapi(getChatRoute, async (c) => {
   }
 
   const { chatId } = c.req.valid("param");
-  const chat = await getChatSession(orgId, chatId);
+  const chat = await getStandaloneChatSession(orgId, chatId);
 
   if (!chat) {
     return c.json({ error: "Chat not found" }, 404);

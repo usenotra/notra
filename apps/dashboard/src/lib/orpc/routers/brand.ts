@@ -23,6 +23,29 @@ import {
 import { deleteBrandReferenceMemory } from "@notra/db/utils/supermemory";
 import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import {
+  analyzeInputSchema,
+  createReferenceSchema,
+  fetchTweetSchema,
+  importTweetsSchema,
+  referenceInputSchema,
+  referenceSourceUrlSchema,
+  setDefaultVoiceInputSchema,
+  updateReferenceSchema,
+  voiceCreateInputSchema,
+  voiceInputSchema,
+  voiceUpdateInputSchema,
+} from "@notra/schemas/dashboard/brand";
+import {
+  createGuidelineAssetSchema,
+  createGuidelineColorSchema,
+  updateGuidelineAssetSchema,
+  updateGuidelineColorSchema,
+  updateGuidelineFontSchema,
+  updateGuidelineScreenshotSchema,
+  updateGuidelineTokenSchema,
+} from "@notra/schemas/dashboard/brand-guidelines";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -46,29 +69,6 @@ import {
   startBrandAnalysisRun,
   startBrandGuidelinesRun,
 } from "@/lib/workflows/start";
-import { organizationIdInputSchema } from "@/schemas/auth/organization";
-import {
-  analyzeInputSchema,
-  createReferenceSchema,
-  fetchTweetSchema,
-  importTweetsSchema,
-  referenceInputSchema,
-  referenceSourceUrlSchema,
-  setDefaultVoiceInputSchema,
-  updateReferenceSchema,
-  voiceCreateInputSchema,
-  voiceInputSchema,
-  voiceUpdateInputSchema,
-} from "@/schemas/brand";
-import {
-  createGuidelineAssetSchema,
-  createGuidelineColorSchema,
-  updateGuidelineAssetSchema,
-  updateGuidelineColorSchema,
-  updateGuidelineFontSchema,
-  updateGuidelineScreenshotSchema,
-  updateGuidelineTokenSchema,
-} from "@/schemas/brand-guidelines";
 import type { BrandReferenceSource } from "@/types/analytics/integration-events";
 import type {
   BrandSettings as BrandVoiceOutput,

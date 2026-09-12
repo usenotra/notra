@@ -6,13 +6,13 @@ import {
   getSlackIntegrationByTeamId,
 } from "@notra/ai/integrations/slack-workspace";
 import { redis } from "@notra/ai/utils/redis";
-
 import {
   slackExternalChannelKeySchema,
   slackPermalinkResponseSchema,
   slackPostMessageResponseSchema,
   slackRepliesResponseSchema,
-} from "@/schemas/slack-relay";
+} from "@notra/schemas/dashboard/slack-relay";
+
 import type { SlackRelayTarget } from "@/types/slack-relay";
 
 const TRAILING_SLASH_REGEX = /\/$/u;

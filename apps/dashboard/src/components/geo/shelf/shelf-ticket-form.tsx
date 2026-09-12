@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  GEO_SHELF_NOTES_MAX_LENGTH,
+  GEO_SHELF_OPPORTUNITY_STATUSES,
+  GEO_SHELF_PRIORITIES,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Label } from "@notra/ui/components/ui/label";
 import {
   Select,
@@ -16,10 +21,7 @@ import { ShelfMemberSelect } from "@/components/geo/shelf/shelf-member-select";
 import { ShelfTicketMark } from "@/components/geo/shelf/shelf-ticket-badge";
 import {
   GEO_SHELF_NO_PRIORITY,
-  GEO_SHELF_NOTES_MAX_LENGTH,
   GEO_SHELF_NOTES_SAVE_DEBOUNCE_MS,
-  GEO_SHELF_OPPORTUNITY_STATUSES,
-  GEO_SHELF_PRIORITIES,
   GEO_SHELF_PRIORITY_LABELS,
 } from "@/constants/geo-shelf";
 import type {

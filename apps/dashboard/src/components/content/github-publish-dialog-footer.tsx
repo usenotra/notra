@@ -26,6 +26,13 @@ export function GitHubPublishDialogFooter({
       publishRecovery.code !== "github_app_permissions_required" ||
       !publishRecovery.permissionsUrl)
   );
+  const publishingPaused = Boolean(publishRecovery?.publishingPaused);
+  let submitLabel = "Create draft PR";
+  if (isPublishing) {
+    submitLabel = "Creating draft PR…";
+  } else if (publishRecovery) {
+    submitLabel = "Try again";
+  }
 
   return (
     <>
@@ -50,7 +57,7 @@ export function GitHubPublishDialogFooter({
           nativeButton={false}
           render={
             <a href={permissionsUrl} rel="noopener noreferrer" target="_blank">
-              Update permissions
+              Review on GitHub
               <HugeiconsIcon className="size-4" icon={ArrowUpRight01Icon} />
             </a>
           }
@@ -71,14 +78,14 @@ export function GitHubPublishDialogFooter({
           }
         />
       ) : null}
-      {publishRecovery || pullRequest ? null : (
+      {pullRequest || publishingPaused ? null : (
         <Button
           disabled={
             isPublishing || !hasSelectedRepository || !selectedPublishingEnabled
           }
           type="submit"
         >
-          {isPublishing ? "Creating draft PR…" : "Create draft PR"}
+          {submitLabel}
         </Button>
       )}
     </>

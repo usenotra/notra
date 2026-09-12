@@ -2,17 +2,16 @@ import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { db } from "@notra/db/drizzle";
 import { chatAttachments, members } from "@notra/db/schema";
-import { ORPCError } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
-
 import {
   ALLOWED_CHAT_MIME_TYPES,
   type AllowedChatMimeType,
   MAX_CHAT_FILE_SIZE,
-} from "@/constants/upload";
+} from "@notra/schemas/constants/dashboard/upload";
+import { ORPCError } from "@orpc/server";
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+
 import { assertAuthenticated } from "@/lib/auth/organization";
-import { validateUpload } from "@/schemas/upload";
 import type {
   UploadPresignedResponse,
   UploadType,
@@ -20,6 +19,7 @@ import type {
 
 import { getFileExtension } from "./mime";
 import { getR2Config } from "./r2";
+import { validateUpload } from "./validate";
 
 const TRAILING_SLASH_REGEX = /\/$/;
 

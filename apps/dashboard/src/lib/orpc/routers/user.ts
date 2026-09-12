@@ -1,5 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations } from "@notra/db/schema";
+import {
+  deleteWithTransfersSchema,
+  organizationMembershipActionSchema,
+} from "@notra/schemas/dashboard/api-params";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -15,10 +19,6 @@ import {
   deleteOrganizationFiles,
   deleteUserFiles,
 } from "@/lib/upload/cleanup";
-import {
-  deleteWithTransfersSchema,
-  organizationMembershipActionSchema,
-} from "@/schemas/api-params";
 import type {
   NextOwnerCandidate,
   OwnedOrganizationSummary,

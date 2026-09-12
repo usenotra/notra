@@ -10,7 +10,7 @@ import {
 import { sendContactMessageEmail } from "@/lib/contact/send-message-email";
 import { verifyContactTurnstile } from "@/lib/contact/verify-turnstile";
 import { contactMessageSchema } from "@/schemas/contact";
-import { jsonError } from "@/utils/revalidate-route";
+import { jsonError } from "@/utils/api-response";
 
 export const runtime = "nodejs";
 

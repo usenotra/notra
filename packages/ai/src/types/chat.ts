@@ -6,6 +6,7 @@ import type {
   chatMessageMetadataSchema,
   chatModelSchema,
   chatSessionSummarySchema,
+  chatSurfaceSchema,
   chatTransportRequestInputSchema,
   chatWorkflowPayloadSchema,
   externalChannelIdSchema,
@@ -29,6 +30,7 @@ export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;
 export type ChatUIMessage = UIMessage<ChatMessageMetadata>;
 export type StoredChatPreferences = z.infer<typeof storedChatPreferencesSchema>;
 export type ChatSessionSummary = z.infer<typeof chatSessionSummarySchema>;
+export type ChatSurface = z.infer<typeof chatSurfaceSchema>;
 export type ExternalChannelSource = z.infer<typeof externalChannelSourceSchema>;
 export type ExternalChannelLookupSource = z.infer<
   typeof externalChannelLookupSourceSchema

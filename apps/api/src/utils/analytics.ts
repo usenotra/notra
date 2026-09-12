@@ -1,3 +1,5 @@
+import { httpErrorKind } from "@notra/ai/utils/http-error-kind";
+import { logOperationalEvent } from "@notra/ai/utils/operational-log";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   captureServerEvent,
@@ -25,7 +27,6 @@ import type {
   FeedbackReceivedInput,
 } from "../types/analytics";
 import { type AuthData, isIngestAuth } from "../types/auth";
-import { getOrganizationId } from "./auth";
 
 function bucketSdkFromUserAgent(userAgent: string | undefined): ApiSdkBucket {
   if (!userAgent) {
@@ -75,11 +76,7 @@ function shouldTrackApiRequest(method: string, status: number): boolean {
 }
 
 function safeOrganizationId(c: Context): string | null {
-  try {
-    return getOrganizationId(c);
-  } catch {
-    return null;
-  }
+  return readAuth(c)?.identity?.externalId ?? null;
 }
 
 function safeGeoProjectId(c: Context): string | null {
@@ -141,6 +138,21 @@ export function trackApiRequest(c: Context, latencyMs: number): void {
   } catch (error) {
     console.error("[posthog] api request capture failed", error);
   }
+}
+
+export function logApiRequest(c: Context, durationMs: number): void {
+  logOperationalEvent({
+    event: "api.request.completed",
+    surface: "api",
+    method: c.req.method,
+    routeId: resolveApiRouteId(c),
+    status: c.res.status,
+    outcome: c.res.status >= 400 ? "error" : "success",
+    errorKind: httpErrorKind(c.res.status),
+    durationMs,
+    organizationId: safeOrganizationId(c),
+    projectId: safeGeoProjectId(c),
+  });
 }
 
 export function trackApiException(

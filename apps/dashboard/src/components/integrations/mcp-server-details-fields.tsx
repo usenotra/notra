@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  addMcpServerFormFieldsSchema,
+  MCP_URL_PROTOCOL_REGEX,
+} from "@notra/schemas/dashboard/integrations";
+import {
   Field,
   FieldDescription,
   FieldLabel,
@@ -9,10 +13,6 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 
 import { getMcpFormErrorMessage } from "@/lib/integrations/mcp";
-import {
-  addMcpServerFormFieldsSchema,
-  MCP_URL_PROTOCOL_REGEX,
-} from "@/schemas/integrations";
 import type { McpServerDetailsFieldsProps } from "@/types/integrations/mcp";
 
 export function McpServerDetailsFields({

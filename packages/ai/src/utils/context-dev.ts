@@ -16,6 +16,7 @@ import type {
   ContextDevWebSearchInput,
   ContextDevWebSearchResponse,
 } from "@notra/ai/types/context-dev";
+import type { OperationalLogEvent } from "@notra/ai/types/operational-log";
 
 import {
   BRAND_ANALYSIS_EXCLUDED_PATH_PARTS,
@@ -29,6 +30,8 @@ import {
   BRAND_SEARCH_TYPO_TOLERANCE,
   COMPETITORS_TIMEOUT_MS,
 } from "../constants/context-dev";
+import { httpErrorKind } from "./http-error-kind";
+import { logOperationalEvent } from "./operational-log";
 
 const CONTEXT_DEV_API_BASE_URL = "https://api.context.dev/v1";
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
@@ -72,7 +75,7 @@ function getContextDevErrorMessage(
   return `Website data request failed with status ${status}`;
 }
 
-async function parseContextDevError(response: Response) {
+async function parseContextDevError(response: Response): Promise<never> {
   let payload: ContextDevErrorResponse | undefined;
   try {
     payload = (await response.json()) as ContextDevErrorResponse;
@@ -91,21 +94,54 @@ async function requestContextDev<TResponse>(
   path: string,
   init: RequestInit
 ): Promise<TResponse> {
-  const response = await fetch(`${CONTEXT_DEV_API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${getContextDevApiKey()}`,
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
-  });
-
-  if (!response.ok) {
-    await parseContextDevError(response);
+  const startedAt = performance.now();
+  let status: number | undefined;
+  let outcome: "success" | "error" = "error";
+  let errorName: string | undefined;
+  let errorKind: OperationalLogEvent["errorKind"] = "operation_error";
+  try {
+    const apiKey = getContextDevApiKey();
+    errorKind = "transport_error";
+    const response = await fetch(`${CONTEXT_DEV_API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        ...init.headers,
+      },
+    });
+    status = response.status;
+    errorKind = httpErrorKind(status) ?? "operation_error";
+    if (!response.ok) {
+      return await parseContextDevError(response);
+    }
+    // Fetch resolves at headers; body reads can still fail. Keep the native
+    // JSON decoder and distinguish its SyntaxError from a transport failure.
+    errorKind = "transport_error";
+    const payload = (await response.json()) as TResponse;
+    outcome = "success";
+    return payload;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      errorKind = "operation_error";
+    }
+    errorName = error instanceof Error ? error.name : "UnknownError";
+    throw error;
+  } finally {
+    logOperationalEvent({
+      event: "integration.request.completed",
+      surface: "context-dev",
+      provider: "context.dev",
+      routeId: path.split("?")[0] ?? path,
+      method: init.method ?? "GET",
+      durationMs: Math.round(performance.now() - startedAt),
+      status,
+      outcome,
+      errorName,
+      errorKind: outcome === "error" ? errorKind : undefined,
+    });
   }
-
-  return (await response.json()) as TResponse;
 }
 
 function truncateContent(content: string): string {

@@ -1,6 +1,7 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { loginSchema } from "@notra/schemas/dashboard/auth/credentials";
 import { LoginForm as SharedLoginForm } from "@notra/ui/components/shared/auth/login-form";
 import type {
   SignInWithPasswordInput,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/auth/password-actions";
 import { buildPostAuthRedirectPath } from "@/lib/auth/return-to";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
-import { loginSchema } from "@/schemas/auth/credentials";
 import type { LoginFormProps } from "@/types/auth/login-form";
 
 const validators = {

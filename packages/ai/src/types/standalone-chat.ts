@@ -1,5 +1,6 @@
 import type { AILogTarget } from "@notra/ai/observability";
 import type { StandaloneChatContextItem } from "@notra/ai/schemas/standalone-chat";
+import type { ChatSurface } from "@notra/ai/types/chat";
 import type { RouteUsageSummary } from "@notra/ai/types/router";
 import type { TccMetadata } from "@notra/ai/types/tcc";
 import type { LanguageModelUsage, UIMessage } from "ai";
@@ -19,6 +20,7 @@ export interface StandaloneChatInput {
   chatId?: string;
   userId?: string;
   messages: UIMessage[];
+  projectId?: string | null;
   context?: StandaloneChatContextItem[];
   maxSteps?: number;
   log?: AILogTarget;
@@ -29,6 +31,7 @@ export interface StandaloneChatInput {
   timezone?: string;
   telemetryMetadata?: TccMetadata;
   useMarkup?: boolean;
+  surface?: ChatSurface;
 }
 
 export interface StandaloneChatDeps {

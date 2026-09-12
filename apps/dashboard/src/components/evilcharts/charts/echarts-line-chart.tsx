@@ -28,6 +28,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
   type BrushGeometry,
@@ -2211,18 +2212,15 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
   };
 
   return (
-    <div
-      className={`relative flex flex-col text-xs ${className ?? ""}`}
-      data-chart={chartId}
-      ref={containerRef}
+    <EChartsPlotFrame
+      chartId={chartId}
+      className={className}
+      containerRef={containerRef}
+      css={css}
+      isLoading={isLoading}
+      mountRef={mountRef}
     >
-      <style dangerouslySetInnerHTML={{ __html: css }} />
-
-      <div className="relative min-h-0 w-full flex-1">
-        <div className="h-full min-h-0 w-full" ref={mountRef} />
-      </div>
-
-      {legendSlot.present && !isLoading && (
+      {legendSlot.present && !isLoading ? (
         <LegendOverlay
           align={legendSlot.align}
           config={config}
@@ -2235,22 +2233,8 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
           variant={legendSlot.variant}
           verticalAlign={legendSlot.verticalAlign}
         />
-      )}
-
-      {isLoading && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <motion.div
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center justify-center gap-2 rounded-md border bg-background px-2 py-0.5 text-primary text-sm"
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
-            transition={tween("slow")}
-          >
-            <div className="h-3 w-3 animate-spin rounded-full border border-border border-t-primary" />
-            <span>Loading</span>
-          </motion.div>
-        </div>
-      )}
-    </div>
+      ) : null}
+    </EChartsPlotFrame>
   );
 }
 

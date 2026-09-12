@@ -1,11 +1,10 @@
-import {
-  GEO_SHELF_EMPTY_CITATIONS,
-  GEO_SHELF_TITLE_MAX_LENGTH,
-} from "@/constants/geo-shelf";
+import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
   shelfDomainFromUrl,
   tryCanonicalizeShelfUrl,
-} from "@/lib/geo-shelf/url";
+} from "@notra/schemas/utils/dashboard/shelf-url";
+
+import { GEO_SHELF_EMPTY_CITATIONS } from "@/constants/geo-shelf";
 
 import type {
   GeoShelfCitationRawRow,

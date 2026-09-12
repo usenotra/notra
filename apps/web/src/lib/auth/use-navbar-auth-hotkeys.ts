@@ -35,6 +35,6 @@ export function useNavbarAuthHotkeys({
       }
       startSignup(NAVBAR_HOTKEY_SIGNUP_SOURCE);
     },
-    { enabled: isResolved, conflictBehavior: "replace" }
+    { enabled: isResolved }
   );
 }

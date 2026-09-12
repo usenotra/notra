@@ -21,6 +21,8 @@ interface TablePaginationProps {
   setPage: (page: number) => void;
   itemLabel?: string;
   className?: string;
+  /** Numbered page links. Hide in compact footers that only need prev/next. */
+  showPageNumbers?: boolean;
 }
 
 export function TablePagination({
@@ -31,6 +33,7 @@ export function TablePagination({
   setPage,
   itemLabel,
   className,
+  showPageNumbers = true,
 }: TablePaginationProps) {
   const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(totalItems, page * pageSize);
@@ -66,28 +69,31 @@ export function TablePagination({
                 text=""
               />
             </PaginationItem>
-            {getPageNumbers(page, pageCount).map((pageNumber, index, pages) =>
-              pageNumber === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${pages[index - 1]}`}>
-                  <PaginationEllipsis className="size-6" />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    className="text-xs tabular-nums"
-                    href="#"
-                    isActive={pageNumber === page}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setPage(pageNumber);
-                    }}
-                    size="icon-xs"
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
+            {showPageNumbers
+              ? getPageNumbers(page, pageCount).map(
+                  (pageNumber, index, pages) =>
+                    pageNumber === "ellipsis" ? (
+                      <PaginationItem key={`ellipsis-${pages[index - 1]}`}>
+                        <PaginationEllipsis className="size-6" />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={pageNumber}>
+                        <PaginationLink
+                          className="text-xs tabular-nums"
+                          href="#"
+                          isActive={pageNumber === page}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setPage(pageNumber);
+                          }}
+                          size="icon-xs"
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                )
+              : null}
             <PaginationItem>
               <PaginationNext
                 aria-disabled={isLast}

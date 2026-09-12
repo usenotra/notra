@@ -1,10 +1,8 @@
 import { GEO_PROMPT_INTENT_LABELS } from "@notra/geo-core/constants/geo";
+import { GEO_PROMPT_FILTER_ALL } from "@notra/schemas/constants/dashboard/geo-prompts";
+import { geoPromptSavedViewsSchema } from "@notra/schemas/dashboard/geo-prompt-views";
 
-import {
-  GEO_PROMPT_FILTER_ALL,
-  GEO_PROMPT_SOURCE_LABELS,
-} from "@/constants/geo-prompts";
-import { geoPromptSavedViewsSchema } from "@/schemas/geo-prompt-views";
+import { GEO_PROMPT_SOURCE_LABELS } from "@/constants/geo-prompts";
 import type { GeoPromptSavedView, GeoPromptTableFilters } from "@/types/geo";
 
 const GEO_PROMPT_VIEWS_EVENT = "notra:geo-prompt-views-change";

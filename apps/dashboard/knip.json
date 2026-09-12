@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["scripts/*.ts"],
+  "entry": [
+    "scripts/*.ts",
+    "tests/fixtures/prompt-answer-selection.fixture.ts"
+  ],
   "paths": {
     "@/*": ["./src/*"]
   },
@@ -22,7 +25,6 @@
     "src/lib/upload/**/*.ts": ["exports"],
     "src/lib/utils/local-storage.ts": ["exports"],
     "src/lib/webhooks/**/*.ts": ["exports"],
-    "src/schemas/**/*.ts": ["exports", "types"],
     "src/types/**/*.ts": ["exports", "types"],
     "src/utils/**/*.ts": ["exports", "types"],
     "src/utils/**/*.tsx": ["exports", "types"],

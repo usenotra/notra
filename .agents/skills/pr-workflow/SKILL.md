@@ -18,6 +18,11 @@ description: Git workflow for pushing code and opening pull requests on GitHub. 
    `<type>/<kebab-description>`, e.g. `feat/add-logout-button`.
 
 3. **Commit with a Conventional Commit message**, then push the branch.
+   **Always make a new commit.** Never force-push (`git push --force` /
+   `--force-with-lease`) and never amend (`git commit --amend`) or otherwise
+   rewrite existing commits — unless the user explicitly asks for it in their
+   latest message. To update a PR or fix a previous commit, add another commit
+   and push normally.
 
 4. **Open the PR** with a Conventional-Commit title
    (`<type>[(scope)][!]: <subject>`, e.g. `feat(auth): add OAuth login`). For the
@@ -51,6 +56,11 @@ description: Git workflow for pushing code and opening pull requests on GitHub. 
   the body; leave its checkboxes/headings exactly as written unless the user
   fills them. Stacking your own "## Summary / ## Test plan" on top of an
   existing template is wrong.
+- **Never rewrite history to "clean up."** Force-pushing and amending are
+  destructive and break anyone who pulled the branch. Even when a previous
+  commit was wrong, the default is a new follow-up commit, *not* an amend or
+  force-push. Only rewrite when the user explicitly tells you to in their
+  latest message.
 - **The template lookup checks `.github` first**, then the repo root, then
   `docs/`, and includes the `.github/PULL_REQUEST_TEMPLATE/` directory form
   (multiple templates). If the repo has several, ask which to use.

@@ -117,7 +117,7 @@ export function GitHubPublishRepositoryField({
     contentLabel === "blog post" ? "Blog post" : "Changelog";
 
   return (
-    <div className="space-y-4 py-6">
+    <div className="space-y-3">
       <Field>
         <FieldLabel htmlFor="github-publish-repository">Repository</FieldLabel>
         <Select

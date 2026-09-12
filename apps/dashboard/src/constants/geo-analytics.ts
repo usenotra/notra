@@ -1,12 +1,3 @@
-export const GEO_SCAN_TRIGGERS = [
-  "manual",
-  "hotkey",
-  "onboarding",
-  "gaps_empty",
-  "schedule",
-  "api",
-] as const;
-
 export const GEO_DEFAULT_SCAN_TRIGGER = "manual" as const;
 
 export const GEO_PROMPT_SOURCES = {

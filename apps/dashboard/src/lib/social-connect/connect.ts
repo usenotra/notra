@@ -1,6 +1,11 @@
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { connectedSocialAccounts } from "@notra/db/schema";
+import {
+  type SocialConnectOAuthState,
+  type SocialConnectPlatform,
+  socialConnectOAuthStateSchema,
+} from "@notra/schemas/dashboard/social-accounts";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import type { SocialAccount } from "post-for-me/resources/social-accounts";
@@ -23,11 +28,6 @@ import {
   SocialConnectConfigError,
   SocialConnectRequestError,
 } from "@/lib/social-connect/errors";
-import {
-  type SocialConnectOAuthState,
-  type SocialConnectPlatform,
-  socialConnectOAuthStateSchema,
-} from "@/schemas/social-accounts";
 import type {
   BeginSocialConnectParams,
   CompleteSocialConnectParams,

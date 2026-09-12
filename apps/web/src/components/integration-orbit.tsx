@@ -5,7 +5,6 @@ import { Databuddy } from "@notra/ui/components/ui/svgs/databuddy";
 import { Framer } from "@notra/ui/components/ui/svgs/framer";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
-import { Marble } from "@notra/ui/components/ui/svgs/marble";
 import { Slack } from "@notra/ui/components/ui/svgs/slack";
 import { Webflow } from "@notra/ui/components/ui/svgs/webflow";
 
@@ -41,12 +40,6 @@ const items = [
     key="framer"
   >
     <Framer className="h-6 w-6" />
-  </div>,
-  <div
-    className="border-border bg-background flex h-12 w-12 items-center justify-center rounded-full border shadow-sm"
-    key="marble"
-  >
-    <Marble className="h-6 w-6" />
   </div>,
   <div
     className="border-border bg-background flex h-12 w-12 items-center justify-center rounded-full border shadow-sm"

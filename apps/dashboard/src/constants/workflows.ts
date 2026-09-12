@@ -1,4 +1,4 @@
-import type { LookbackWindow } from "@/schemas/integrations";
+import type { LookbackWindow } from "@notra/schemas/dashboard/integrations";
 
 export const DEFAULT_LOOKBACK_WINDOW: LookbackWindow = "last_7_days";
 export const GITHUB_RATE_LIMIT_RETRY_DELAY = "30m";

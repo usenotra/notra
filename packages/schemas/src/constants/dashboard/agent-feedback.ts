@@ -1,0 +1,1 @@
+export const AGENT_FEEDBACK_PAGE_SIZE = 50;

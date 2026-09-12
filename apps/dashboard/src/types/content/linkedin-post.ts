@@ -1,6 +1,6 @@
+import type { TextSelection } from "@notra/schemas/dashboard/content";
 import type { ComponentProps } from "react";
 
-import type { TextSelection } from "@/schemas/content";
 import type { SocialPostAccountSelector } from "@/types/content/social-account-selector";
 
 export interface LinkedInPostAuthor {

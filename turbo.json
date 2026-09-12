@@ -1,6 +1,7 @@
 {
-  "$schema": "https://v2-10-11.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-12.turborepo.dev/schema.json",
   "ui": "tui",
+  "globalDependencies": [".npmrc", "bunfig.toml", "scripts/prepare-effect.sh"],
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
     "APP_URL",
@@ -11,6 +12,7 @@
     "WORKOS_COOKIE_PASSWORD",
     "WORKOS_COOKIE_DOMAIN",
     "WORKOS_COOKIE_NAME",
+    "WORKOS_COOKIE_MAX_AGE",
     "INTERNAL_WORKFLOW_SECRET",
     "NEXT_PUBLIC_WORKOS_REDIRECT_URI",
     "WORKOS_WEBHOOK_SECRET",
@@ -65,8 +67,6 @@
     "POST_FOR_ME_API_KEY",
     "POST_FOR_ME_API_KEY_TWITTER",
     "POST_FOR_ME_API_KEY_LINKEDIN",
-    "MARBLE_API_KEY",
-    "MARBLE_WEBHOOK_SECRET",
     "NOTRA_API_KEY",
     "WORKFLOW_BASE_URL",
     "LINEAR_CLIENT_ID",
@@ -118,7 +118,13 @@
     "build": {
       "dependsOn": ["transit"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vercel/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "dist/**",
+        ".vercel/**"
+      ]
     },
     "@notra/onboarding-agent#build": {
       "dependsOn": ["^build", "transit"],
@@ -130,7 +136,12 @@
       ]
     },
     "check-types": {
-      "dependsOn": ["transit"]
+      "dependsOn": ["transit"],
+      "outputs": [".cache/typecheck.tsbuildinfo"]
+    },
+    "ui#check-types": {
+      "dependsOn": ["transit"],
+      "outputs": []
     },
     "knip": {
       "dependsOn": ["transit"]

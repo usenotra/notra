@@ -1,6 +1,7 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { signupSchema } from "@notra/schemas/dashboard/auth/credentials";
 import { AuthEmailField } from "@notra/ui/components/shared/auth/auth-email-field";
 import { AuthFormError } from "@notra/ui/components/shared/auth/auth-form-error";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
@@ -33,7 +34,6 @@ import {
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { errorMessageOr } from "@/lib/utils";
-import { signupSchema } from "@/schemas/auth/credentials";
 import {
   marketingAttributionSearchParams,
   persistMarketingAttribution,

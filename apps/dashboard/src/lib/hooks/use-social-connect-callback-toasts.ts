@@ -1,5 +1,6 @@
 "use client";
 
+import type { SocialConnectPlatform } from "@notra/schemas/dashboard/social-accounts";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -11,7 +12,6 @@ import {
   SOCIAL_PLATFORM_LABELS,
 } from "@/constants/social-connect";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { SocialConnectPlatform } from "@/schemas/social-accounts";
 
 export function useSocialConnectCallbackToasts(organizationId: string) {
   const searchParams = useSearchParams();

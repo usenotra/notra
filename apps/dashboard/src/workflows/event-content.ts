@@ -1,8 +1,8 @@
 import { getContentBillingLimitLabel } from "@notra/ai/billing/content-billing";
+import { eventWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 import { flattenError } from "zod";
 
 import { WORKFLOW_ANALYTICS_NAMES } from "@/constants/workflow-analytics";
-import { eventWorkflowPayloadSchema } from "@/schemas/workflows";
 import type { EventContentWorkflowResult } from "@/types/workflows/event-generation";
 import { resolveContentLimitPauseReason } from "@/utils/content-billing";
 
@@ -236,6 +236,13 @@ export async function eventContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: "events",
         title: `Event "${trigger.name.trim() || eventType}" failed to generate content`,
+        payload: {
+          runId,
+          triggerName: trigger.name,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: 1,
+        },
         status: "failed",
         errorMessage: contentResult.reason,
         retentionDays: logRetentionDays,
@@ -290,6 +297,13 @@ export async function eventContentWorkflow(payload: {
         integrationId: triggerId,
         integrationType: "events",
         title: `Event "${trigger.name.trim() || eventType}" skipped content generation`,
+        payload: {
+          runId,
+          triggerName: trigger.name,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: 1,
+        },
         status: "skipped",
         errorMessage: contentResult.reason,
         retentionDays: logRetentionDays,
@@ -403,6 +417,13 @@ export async function eventContentWorkflow(payload: {
         status: "success",
         referenceId: postId,
         retentionDays: logRetentionDays,
+        payload: {
+          runId,
+          triggerName: trigger.name,
+          outputType: trigger.outputType,
+          lookbackWindow,
+          repositoryCount: 1,
+        },
       });
       await trackContentOutcome({
         kind: "created",

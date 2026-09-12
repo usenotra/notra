@@ -1,5 +1,6 @@
+import type { TextSelection } from "@notra/schemas/dashboard/content";
+
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
-import type { TextSelection } from "@/schemas/content";
 
 interface ContentData {
   id: string;

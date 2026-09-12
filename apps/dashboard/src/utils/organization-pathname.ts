@@ -1,4 +1,5 @@
-import { RESERVED_ORGANIZATION_SLUGS } from "@/constants/organization";
+import { RESERVED_ORGANIZATION_SLUGS } from "@notra/schemas/constants/dashboard/organization";
+
 import { NON_ORGANIZATION_ROUTE_SEGMENTS } from "@/constants/organization-routes";
 
 const reservedSlugs: ReadonlySet<string> = new Set(RESERVED_ORGANIZATION_SLUGS);

@@ -1,4 +1,4 @@
-import type { AddMcpServerFormValues } from "@/schemas/integrations";
+import type { AddMcpServerFormValues } from "@notra/schemas/dashboard/integrations";
 
 export const MCP_AUTH_OPTIONS = [
   { label: "None", value: "none" },

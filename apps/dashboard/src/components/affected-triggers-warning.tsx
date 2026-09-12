@@ -2,9 +2,7 @@
 
 import { Calendar03Icon, SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
-
-import type { AffectedTrigger } from "@/schemas/integrations";
+import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
 
 interface AffectedTriggersWarningProps {
   schedules: AffectedTrigger[];
@@ -20,12 +18,7 @@ export function AffectedTriggersWarning({
   resourceLabel,
 }: AffectedTriggersWarningProps) {
   if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-48" />
-        <Skeleton className="h-16 w-full rounded-lg" />
-      </div>
-    );
+    return null;
   }
 
   const hasSchedules = schedules.length > 0;

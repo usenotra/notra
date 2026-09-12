@@ -1,5 +1,6 @@
 import { getChatSession } from "@notra/ai/chat/history";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
+import { relaySlackApprovalSchema } from "@notra/schemas/dashboard/slack-relay";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,6 @@ import {
   parseSlackExternalChannelKey,
   postSlackApprovalInteraction,
 } from "@/lib/slack/relay";
-import { relaySlackApprovalSchema } from "@/schemas/slack-relay";
 import { ratelimit } from "@/utils/ratelimit";
 
 interface RouteContext {

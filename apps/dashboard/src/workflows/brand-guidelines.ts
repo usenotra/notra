@@ -1,4 +1,5 @@
 import type { BrandGuidelinesWorkflowPayload } from "@notra/ai/types/brand-guidelines";
+import { brandGuidelinesWorkflowPayloadSchema } from "@notra/schemas/dashboard/brand-guidelines";
 import { flattenError } from "zod";
 
 import {
@@ -6,7 +7,6 @@ import {
   WORKFLOW_OUTCOMES,
   WORKFLOW_UNEXPECTED_FAILURE_REASON,
 } from "@/constants/workflow-analytics";
-import { brandGuidelinesWorkflowPayloadSchema } from "@/schemas/brand-guidelines";
 import {
   BRAND_GUIDELINE_STAGES,
   type BrandGuidelinesWorkflowResult,
@@ -18,6 +18,10 @@ import {
   markBrandGuidelinesUnexpectedFailure,
   runBrandGuidelineStage,
 } from "./steps/brand-guidelines-steps";
+import {
+  appendAutomationLogBestEffort,
+  fetchLogRetention,
+} from "./steps/content-generation-steps";
 import { trackWorkflowOutcome } from "./steps/workflow-lifecycle-steps";
 
 export async function brandGuidelinesWorkflow(
@@ -35,6 +39,7 @@ export async function brandGuidelinesWorkflow(
   }
   const { brandSettingsId, organizationId, sourceUrl } = parseResult.data;
   const workflowStartedAt = Date.now();
+  const retentionDays = await fetchLogRetention(organizationId);
 
   try {
     await markBrandGuidelinesGenerating(brandSettingsId);
@@ -59,6 +64,16 @@ export async function brandGuidelinesWorkflow(
           stepFailed: stage,
           reason: result.error,
         });
+        await appendAutomationLogBestEffort({
+          organizationId,
+          integrationId: brandSettingsId,
+          integrationType: "brand",
+          title: "Brand guidelines generation failed",
+          status: "failed",
+          errorMessage: result.error,
+          payload: { url: sourceUrl, stage },
+          retentionDays,
+        });
         return { status: "stage_failed", stage };
       }
     }
@@ -68,6 +83,15 @@ export async function brandGuidelinesWorkflow(
       outcome: WORKFLOW_OUTCOMES.COMPLETED,
       organizationId,
       startedAt: workflowStartedAt,
+    });
+    await appendAutomationLogBestEffort({
+      organizationId,
+      integrationId: brandSettingsId,
+      integrationType: "brand",
+      title: "Brand guidelines generated",
+      status: "success",
+      payload: { url: sourceUrl },
+      retentionDays,
     });
     return { status: "completed" };
   } catch (error) {
@@ -81,6 +105,16 @@ export async function brandGuidelinesWorkflow(
       organizationId,
       startedAt: workflowStartedAt,
       reason: WORKFLOW_UNEXPECTED_FAILURE_REASON,
+    });
+    await appendAutomationLogBestEffort({
+      organizationId,
+      integrationId: brandSettingsId,
+      integrationType: "brand",
+      title: "Brand guidelines generation failed",
+      status: "failed",
+      errorMessage: WORKFLOW_UNEXPECTED_FAILURE_REASON,
+      payload: { url: sourceUrl, stage: "unexpected" },
+      retentionDays,
     });
     throw error;
   }

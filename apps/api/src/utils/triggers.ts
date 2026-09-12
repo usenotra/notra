@@ -1,9 +1,11 @@
 import type { createDb } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
+import { Effect } from "effect";
 
+import { deleteQstashWithRetry, qstashLayer } from "../lib/qstash";
 import { logError } from "./logging";
-import { deleteQstashSchedule } from "./qstash";
+import { runServiceEffect } from "./run-service-effect";
 
 type DbClient = ReturnType<typeof createDb>;
 type DbTransaction = Parameters<Parameters<DbClient["transaction"]>[0]>[0];
@@ -103,52 +105,16 @@ export async function disableTriggersAndDeleteIntegration(
   });
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRetryableDeleteError(error: unknown) {
-  // deleteQstashSchedule throws `...: <status> <body>` for HTTP failures and
-  // plain Errors for missing config/network failures. Only retry timeouts,
-  // rate limits, 5xx, and network failures — 401/403/400 will never succeed.
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("not configured")) {
-    return false;
-  }
-  const match = message.match(/:\s(\d{3})\b/);
-  if (!match) {
-    return true;
-  }
-  const status = Number(match[1]);
-  return status === 408 || status === 425 || status === 429 || status >= 500;
-}
-
 export async function deleteQstashScheduleWithRetry(
   runtimeEnv: { QSTASH_TOKEN?: string; WORKFLOW_BASE_URL?: string },
   scheduleId: string,
   attempts = 3
 ) {
-  const totalAttempts = Math.max(1, Math.floor(attempts));
-  let lastError: unknown = new Error(
-    `Failed to delete QStash schedule ${scheduleId}`
+  return runServiceEffect(
+    deleteQstashWithRetry(scheduleId, attempts).pipe(
+      Effect.provide(qstashLayer(runtimeEnv))
+    )
   );
-
-  for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
-    try {
-      await deleteQstashSchedule(runtimeEnv, scheduleId);
-      return;
-    } catch (error) {
-      lastError = error;
-
-      if (attempt >= totalAttempts || !isRetryableDeleteError(error)) {
-        throw error;
-      }
-
-      await delay(200 * attempt);
-    }
-  }
-
-  throw lastError;
 }
 
 export async function deleteQstashSchedulesForTriggers(

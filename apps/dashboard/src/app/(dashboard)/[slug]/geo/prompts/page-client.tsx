@@ -16,11 +16,10 @@ import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PromptAddDialog } from "@/components/geo/prompt-add-dialog";
 import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
+import { ScanActivity } from "@/components/geo/scan-activity";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GeoScanControlsProvider } from "@/components/providers/geo-scan-controls-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -32,7 +31,6 @@ import {
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -43,16 +41,6 @@ interface PageClientProps {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoPromptsPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
-}
-
-function GeoPromptsPageContent({ organizationSlug }: PageClientProps) {
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
@@ -106,57 +94,64 @@ function GeoPromptsPageContent({ organizationSlug }: PageClientProps) {
   }
 
   return (
-    <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Prompts</h1>
-            <p className="text-muted-foreground">
-              The questions we ask AI engines on your behalf
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <GeoRangePicker control={geoRange} />
-            <Button
-              className="gap-1.5"
-              onClick={() => setImportOpen(true)}
-              variant="outline"
-            >
-              <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-              Import CSV
-            </Button>
-            <Button className="gap-1.5" onClick={() => setAddOpen(true)}>
-              <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              Add Prompt
-              <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
-            </Button>
-          </div>
-        </header>
-        <PromptsTable
-          isScanning={isScanning}
+    <GeoScanControlsProvider
+      key={`${organizationId}:${projectId ?? "default"}`}
+      organizationId={organizationId}
+      promptCount={prompts.filter((prompt) => prompt.enabled).length}
+    >
+      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="w-full space-y-6 px-4 lg:px-6">
+          <header className="flex flex-wrap items-center justify-between gap-3">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">Prompts</h1>
+              <p className="text-muted-foreground">
+                The questions we ask AI engines on your behalf
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <GeoRangePicker control={geoRange} />
+              <Button
+                className="gap-1.5"
+                onClick={() => setImportOpen(true)}
+                variant="outline"
+              >
+                <HugeiconsIcon className="size-4" icon={Upload01Icon} />
+                Import CSV
+              </Button>
+              <Button className="gap-1.5" onClick={() => setAddOpen(true)}>
+                <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+                Add Prompt
+                <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
+              </Button>
+            </div>
+          </header>
+          <ScanActivity organizationId={organizationId} />
+          <PromptsTable
+            isScanning={isScanning}
+            organizationId={organizationId}
+            prompts={prompts}
+            results={promptResults?.results ?? []}
+          />
+          <ConversationsCard organizationId={organizationId} />
+          <PromptSuggestions
+            callbackPath={withGeoProject(
+              `/${organizationSlug}/geo/prompts`,
+              projectId
+            )}
+            organizationId={organizationId}
+          />
+        </div>
+        <PromptAddDialog
+          onOpenChange={setAddOpen}
+          open={addOpen}
           organizationId={organizationId}
-          prompts={prompts}
-          results={promptResults?.results ?? []}
         />
-        <ConversationsCard organizationId={organizationId} />
-        <PromptSuggestions
-          callbackPath={withGeoProject(
-            `/${organizationSlug}/geo/prompts`,
-            projectId
-          )}
+        <PromptsCsvImportDialog
+          onOpenChange={setImportOpen}
+          open={importOpen}
           organizationId={organizationId}
         />
-      </div>
-      <PromptAddDialog
-        onOpenChange={setAddOpen}
-        open={addOpen}
-        organizationId={organizationId}
-      />
-      <PromptsCsvImportDialog
-        onOpenChange={setImportOpen}
-        open={importOpen}
-        organizationId={organizationId}
-      />
-    </PageContainer>
+      </PageContainer>
+    </GeoScanControlsProvider>
   );
 }
