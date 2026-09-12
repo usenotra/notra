@@ -1,0 +1,138 @@
+apps/api/src/utils/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-63
+apps/dashboard/src/utils/github-publish-repositories.ts
+  s_aa8229cd889ec7::t_70509c441488c5 51-64
+apps/api/src/utils/brand-analysis.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 2-5,24-63
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 496,524
+apps/api/src/routes/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 10-16,19-21,125-134,144,149-155,159,177,186-189,191-193,195-198,200-201,203-208,210-217,219-221,224-226,229,231-232,245,251-257,260-265,269
+apps/dashboard/src/components/geo/competitor-detail-view.tsx
+  s_aa8229cd889ec7::t_6f165d6e3fb331 43-44,243,246
+apps/dashboard/src/components/content/github-publish-repository-field.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 120
+apps/dashboard/src/lib/hooks/use-geo-gaps-page.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 16,43,86
+apps/dashboard/src/constants/settings.ts
+  s_aa8229cd889ec7::t_70509c441488c5 10,28,127-144,264,282
+apps/dashboard/src/components/settings/panes/geo-pane.tsx
+  s_aa8229cd889ec7::t_6f165d6e3fb331 15,49,77
+apps/api/src/programs/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-345
+apps/dashboard/src/components/content/github-publish-dialog-footer.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 29-35,60,81,88
+apps/dashboard/src/types/email/daily-summary.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 19-25
+apps/dashboard/src/constants/github.ts
+  s_aa8229cd889ec7::t_70509c441488c5 83-84
+apps/dashboard/src/utils/daily-summary.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 7,97-99,101-105
+apps/dashboard/src/components/settings/settings-modal.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 108-114,148-149
+packages/ai/src/utils/github-app-publish-access.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-14
+apps/dashboard/src/lib/hooks/use-geo-db.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 89,152
+packages/ui/src/components/ui/svgs/github.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 9
+apps/dashboard/src/lib/integrations/catalog.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 18
+apps/api/src/routes/brand-identities.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 16-26,28-29,249-251,256-265,275,280-286,290-292,311,323-336,346-354,356-359,361,363-364,379,389-396,398-402,405,418,424-434,438-439,458,464-471,473-476,478,481-487,501,507-513,516-519,521-522,526
+apps/api/src/types/brand-identities.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 1,3-19,37-108
+apps/dashboard/src/lib/email/daily-summary.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 240-241,256-258,265-266,272,280
+apps/dashboard/src/utils/github-installation-url.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-21
+apps/dashboard/src/lib/hooks/use-geo-answer-mentions.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 5-6,18-20
+apps/dashboard/src/utils/github-publish-policy.ts
+  s_aa8229cd889ec7::t_70509c441488c5 6,9-31,80-84
+apps/api/src/utils/github-integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 10,73-74
+apps/dashboard/src/components/integrations/github/github-app-section.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 12,65-67,87,98-99
+apps/dashboard/src/components/integrations/github/connect-github-dialog.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 48-50,52-55
+apps/dashboard/src/components/geo/writer/write-dialog.tsx
+  s_aa8229cd889ec7::t_6f165d6e3fb331 71,215-218
+apps/api/src/programs/brand-identities.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 1-599
+apps/dashboard/src/types/settings/modal.ts
+  s_aa8229cd889ec7::t_70509c441488c5 10
+packages/ai/src/integrations/github-publish-auth.ts
+  s_aa8229cd889ec7::t_70509c441488c5 20
+apps/dashboard/src/components/integrations/github/github-publishing-settings.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 3,173,184,189
+apps/dashboard/src/constants/storage.ts
+  s_aa8229cd889ec7::t_70509c441488c5 26-27
+apps/dashboard/src/components/settings/panes/integrations-pane.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 1-139
+apps/dashboard/src/components/command-palette/registry.ts
+  s_aa8229cd889ec7::t_70509c441488c5 12,240-268
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/page-client.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 27-28,30-35,61
+packages/ai/src/integrations/github.ts
+  s_aa8229cd889ec7::t_70509c441488c5 48,238-259
+apps/api/src/errors/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-36
+packages/ui/src/components/ui/switch.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 17
+apps/dashboard/src/types/integrations/github.ts
+  s_aa8229cd889ec7::t_70509c441488c5 71,76
+apps/dashboard/src/utils/github-publish-repository-preference.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-37
+apps/api/src/utils/brand-identities.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 2-3,5-27,54-109
+apps/dashboard/tests/geo-gaps-page.test.tsx
+  s_aa8229cd889ec7::t_6f165d6e3fb331 37-38
+apps/api/src/errors/brand-identities.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 1-41
+apps/dashboard/src/hooks/use-github-repository-actions.ts
+  s_aa8229cd889ec7::t_70509c441488c5 24
+apps/dashboard/src/lib/orpc/routers/github.ts
+  s_aa8229cd889ec7::t_70509c441488c5 3,13,219-234,236
+apps/dashboard/src/components/content/github-publish-result-card.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 19
+apps/docs/integrations/github.mdx
+  s_aa8229cd889ec7::t_70509c441488c5 28,35,39,41-43,49,126
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_aa8229cd889ec7::t_c5e481110bfa6c 7,10,12-15,22,128,956-984,1055-1057
+  s_aa8229cd889ec7::t_44892017c3682c 814-815
+apps/dashboard/src/components/integrations/github/github-repository-menu.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 1-12,18,51,54,60,64,68,73-76,83-86,89,94
+apps/dashboard/src/components/content/publish-content-to-github-dialog.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 14,33,35-38,102-104,107-110,122-128,184-196,200,212,220-237
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_aa8229cd889ec7::t_6f165d6e3fb331 49,392-395,402-404,500
+apps/dashboard/src/components/affected-triggers-warning.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 21
+apps/api/src/types/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-70
+apps/dashboard/src/types/settings/integrations.ts
+  s_aa8229cd889ec7::t_70509c441488c5 1-7
+apps/dashboard/src/components/integrations/github/github-account-card.tsx
+  s_aa8229cd889ec7::t_70509c441488c5 19,33-57,72,91-104
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_aa8229cd889ec7::t_6f165d6e3fb331 25,115-116,128,178,181,193-195
+apps/dashboard/src/utils/github-publish-recovery.ts
+  s_aa8229cd889ec7::t_70509c441488c5 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ce77232156cd80ff5dde26f5d2be6648c1dc9804",
+  "prompts": {},
+  "sessions": {
+    "s_aa8229cd889ec7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1f0df977-ca0c-4496-bc00-88a14c552ab7",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
