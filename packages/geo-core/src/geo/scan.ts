@@ -94,6 +94,7 @@ import {
   geoLogWarn,
   logGeoSkip,
 } from "../utils/geo-log";
+import { hasOwnedSourceCitation } from "../utils/geo-owned-source";
 import {
   interleaveGeoScanItemsByKey,
   isGeoScanRunning,
@@ -524,6 +525,7 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
       answer: GEO_AI_OVERVIEW_ABSENT_ANSWER,
       capturedAt: context.capturedAt,
       mentioned: false,
+      ownedSourceCited: false,
       position: null,
       sentiment: null,
       competitors: [],
@@ -547,6 +549,11 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     answer
   );
   const judged = yield* judgeAnswer(context, task.prompt.text, answerText);
+  const ownedSourceCited = hasOwnedSourceCitation(
+    context.websiteUrl,
+    [...answer.grounding.sources, ...answer.sources],
+    context.aliases
+  );
   const usage = answer.usage
     ? addTokenUsage(EMPTY_TOKEN_USAGE, answer.usage)
     : EMPTY_TOKEN_USAGE;
@@ -570,6 +577,7 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     answer: answerText,
     capturedAt: context.capturedAt,
     mentioned: judged.mentioned,
+    ownedSourceCited,
     position: normalizePosition(judged.position),
     sentiment: judged.sentiment,
     competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),
@@ -1145,6 +1153,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         runId,
         companyName: settings.companyName,
         aliases: settings.aliases,
+        websiteUrl: brand?.websiteUrl ?? null,
         gate,
         startedAtMs: Date.now(),
         scoped: promptIds !== undefined,
@@ -1189,6 +1198,7 @@ const buildGeoScanCheckContext = Effect.fn("geo.buildScanCheckContext")(
       capturedAt: new Date(),
       companyName: context.companyName,
       aliases: context.aliases,
+      websiteUrl: context.websiteUrl,
     };
     return checkContext;
   }
@@ -1653,6 +1663,11 @@ const runGeoSequenceCheck = Effect.fn("geo.runSequenceCheck")(function* (
     }
     messages.push({ role: "assistant", content: answerText });
     const judged = yield* judgeAnswer(context, step, answerText);
+    const ownedSourceCited = hasOwnedSourceCitation(
+      context.websiteUrl,
+      [...answer.grounding.sources, ...answer.sources],
+      context.aliases
+    );
 
     rows.push({
       organizationId: context.organizationId,
@@ -1666,6 +1681,7 @@ const runGeoSequenceCheck = Effect.fn("geo.runSequenceCheck")(function* (
       answer: answerText,
       capturedAt: context.capturedAt,
       mentioned: judged.mentioned,
+      ownedSourceCited,
       position: normalizePosition(judged.position),
       sentiment: judged.sentiment,
       competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),
@@ -1815,6 +1831,11 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
             ),
         })
       );
+      const ownedSourceCited = hasOwnedSourceCitation(
+        context.websiteUrl,
+        [...answer.grounding.sources, ...answer.sources],
+        context.aliases
+      );
 
       rows.push({
         organizationId: context.organizationId,
@@ -1828,6 +1849,7 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
         answer: answerText,
         capturedAt: context.capturedAt,
         mentioned: judged.mentioned,
+        ownedSourceCited,
         position: normalizePosition(judged.position),
         sentiment: judged.sentiment,
         competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),
@@ -1900,6 +1922,10 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
 
   const catalog = yield* loadGeoModelCatalog(scope.organizationId);
   const settings = toGeoSettings(settingsRow, catalog);
+  const brand = yield* loadGeoProjectBrand({
+    organizationId: scope.organizationId,
+    projectId,
+  });
   const zdrPolicy = yield* resolveScanZdrPolicy(
     scope.organizationId,
     settings,
@@ -2005,6 +2031,7 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
           capturedAt: new Date(),
           companyName: settings.companyName,
           aliases: settings.aliases,
+          websiteUrl: brand?.websiteUrl ?? null,
         };
         const outcomes = yield* Effect.forEach(
           replayEngines,

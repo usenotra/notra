@@ -115,6 +115,9 @@ export interface GeoOverviewEngine {
   checks: number;
   mentions: number;
   mentionRate: number;
+  citations?: number;
+  visibility?: number;
+  visibilityRate?: number;
   avgPosition: number | null;
   lastCheckedAt: string;
 }
@@ -129,6 +132,8 @@ export interface GeoTimeseriesPoint {
   engine: string;
   checks: number;
   mentions: number;
+  citations?: number;
+  visibility?: number;
   avgPosition?: number | null;
 }
 
@@ -281,6 +286,7 @@ export interface GeoPromptResult {
   prompt: string;
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   competitors: string[];
@@ -315,6 +321,7 @@ export type GeoPromptResultSummary = Pick<
   | "engine"
   | "prompt"
   | "mentioned"
+  | "ownedSourceCited"
   | "position"
   | "sentiment"
   | "competitors"
@@ -357,6 +364,7 @@ export interface GeoPromptHistoryCheck {
   scanId: string;
   engine: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   competitors: string[];
@@ -552,6 +560,7 @@ export interface GeoSequenceTurnResult {
   prompt: string;
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   excerpt: string;
@@ -605,6 +614,8 @@ export interface GeoScanProjectContext {
   runId: string;
   companyName: string;
   aliases: string[];
+  /** Canonical brand website used to recognize citations from owned subdomains. */
+  websiteUrl?: string | null;
   gate: ContentBillingReservation;
   startedAtMs: number;
   /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
@@ -699,6 +710,7 @@ export interface GeoCheckContext {
   capturedAt: Date;
   companyName: string;
   aliases: string[];
+  websiteUrl?: string | null;
 }
 
 export interface GeoSequenceDefinition {
@@ -1072,6 +1084,9 @@ export interface GeoLanguageSharePoint {
   checks: number;
   mentions: number;
   mentionRate: number;
+  citations?: number;
+  visibility?: number;
+  visibilityRate?: number;
   avgPosition: number | null;
   trend?: GeoSparklinePoint[];
 }

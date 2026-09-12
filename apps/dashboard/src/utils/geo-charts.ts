@@ -238,7 +238,7 @@ export function mentionTrendEmptyLabel(
 ): string {
   const scanned =
     row != null && keys.some((key) => typeof row[key] === "number");
-  return scanned ? "No mentions" : "Not scanned";
+  return scanned ? "No visibility" : "Not scanned";
 }
 
 export function latestChartDay(
@@ -277,7 +277,7 @@ export function mentionRateSparkline(
       continue;
     }
     const bucket = byDay.get(point.day) ?? { mentions: 0, checks: 0 };
-    bucket.mentions += point.mentions;
+    bucket.mentions += point.visibility ?? point.mentions;
     bucket.checks += point.checks;
     byDay.set(point.day, bucket);
   }
@@ -323,10 +323,10 @@ function engineMentionTotal(
   days: readonly string[],
   byDay: ReadonlyMap<string, ReadonlyMap<string, GeoTimeseriesPoint>>
 ): number {
-  return days.reduce(
-    (total, day) => total + (byDay.get(day)?.get(engine)?.mentions ?? 0),
-    0
-  );
+  return days.reduce((total, day) => {
+    const point = byDay.get(day)?.get(engine);
+    return total + (point?.visibility ?? point?.mentions ?? 0);
+  }, 0);
 }
 
 export function buildMentionTrendRows(
@@ -345,6 +345,10 @@ export function buildMentionTrendRows(
       engine: family,
       checks: (existing?.checks ?? 0) + point.checks,
       mentions: (existing?.mentions ?? 0) + point.mentions,
+      citations: (existing?.citations ?? 0) + (point.citations ?? 0),
+      visibility:
+        (existing?.visibility ?? existing?.mentions ?? 0) +
+        (point.visibility ?? point.mentions),
     });
     byDay.set(point.day, dayPoints);
   }
@@ -378,8 +382,9 @@ export function buildMentionTrendRows(
     for (const engine of engines) {
       const point = dayPoints?.get(engine);
       if (point) {
-        row[chartKey(engine)] = point.mentions;
-        total += point.mentions;
+        const visibility = point.visibility ?? point.mentions;
+        row[chartKey(engine)] = visibility;
+        total += visibility;
         sampled = true;
       }
     }
@@ -487,7 +492,10 @@ function emptyVariant(model: string): GeoEngineVariant {
 }
 
 function variantPeakRate(variant: GeoEngineVariant): number {
-  return Math.max(variant.web?.mentionRate ?? 0, variant.raw?.mentionRate ?? 0);
+  return Math.max(
+    variant.web?.visibilityRate ?? variant.web?.mentionRate ?? 0,
+    variant.raw?.visibilityRate ?? variant.raw?.mentionRate ?? 0
+  );
 }
 
 export function groupEngineFamilies(
@@ -523,6 +531,13 @@ export function engineFamilyTotals(
   return totalsForEngines(engineFamilySources(family));
 }
 
+export function engineFamilyCitationTotal(family: GeoEngineFamily): number {
+  return engineFamilySources(family).reduce(
+    (sum, engine) => sum + (engine.citations ?? 0),
+    0
+  );
+}
+
 export function engineFamilyModeTotals(
   family: GeoEngineFamily,
   mode: GeoEngineMode
@@ -542,7 +557,10 @@ function totalsForEngines(
   if (sources.length === 0) {
     return null;
   }
-  const mentions = sources.reduce((sum, engine) => sum + engine.mentions, 0);
+  const mentions = sources.reduce(
+    (sum, engine) => sum + (engine.visibility ?? engine.mentions),
+    0
+  );
   const checks = sources.reduce((sum, engine) => sum + engine.checks, 0);
   return { mentions, checks, rate: checks === 0 ? 0 : mentions / checks };
 }
@@ -595,7 +613,7 @@ function addFamilyDayPoint(
   bucket: FamilyDayBucket,
   point: GeoTimeseriesPoint
 ): void {
-  bucket.mentions += point.mentions;
+  bucket.mentions += point.visibility ?? point.mentions;
   bucket.checks += point.checks;
   if (point.avgPosition === null || point.avgPosition === undefined) {
     return;

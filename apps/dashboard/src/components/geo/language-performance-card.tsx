@@ -160,11 +160,13 @@ function languagePerformanceColumns({
     },
     {
       key: "mentionRate",
-      header: "Mention rate",
+      header: "Visibility rate",
       width: "1.3fr",
       sortable: true,
       sortValue: (row) =>
-        row.kind === "tracked" ? row.mentionRate : Number.NEGATIVE_INFINITY,
+        row.kind === "tracked"
+          ? (row.visibilityRate ?? row.mentionRate)
+          : Number.NEGATIVE_INFINITY,
       cell: (row) =>
         row.kind === "suggested" ? (
           <span className="text-muted-foreground/50 text-xs">Not tracked</span>
@@ -173,10 +175,10 @@ function languagePerformanceColumns({
             <GeoBar
               className="h-2 max-w-40"
               fillClassName="bg-geo-search"
-              value={row.mentionRate}
+              value={row.visibilityRate ?? row.mentionRate}
             />
             <span className="shrink-0 text-xs tabular-nums">
-              {formatMentionRate(row.mentionRate)}
+              {formatMentionRate(row.visibilityRate ?? row.mentionRate)}
             </span>
           </span>
         ),

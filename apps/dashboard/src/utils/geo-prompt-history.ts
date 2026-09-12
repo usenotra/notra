@@ -152,6 +152,7 @@ export function promptResultFromHistoryCheck(
     prompt,
     answer: check.answer,
     mentioned: check.mentioned,
+    ownedSourceCited: check.ownedSourceCited,
     position: check.position,
     sentiment: check.sentiment,
     competitors: check.competitors,
@@ -183,6 +184,7 @@ export function latestPromptResults(
         prompt,
         engine: check.engine,
         mentioned: check.mentioned,
+        ownedSourceCited: check.ownedSourceCited,
         position: check.position,
         sentiment: check.sentiment,
         competitors: check.competitors,
@@ -200,8 +202,17 @@ export function promptSentimentLabel(sentiment: string | null): string {
   return GEO_SENTIMENT_LABELS[sentiment] ?? sentiment;
 }
 
-export function promptOutcomeLabel(mentioned: boolean): string {
-  return mentioned
-    ? GEO_PROMPT_RECEIPT_LABELS.mentioned
+export function promptOutcomeLabel(
+  mentioned: boolean,
+  ownedSourceCited = false
+): string {
+  if (mentioned && ownedSourceCited) {
+    return GEO_PROMPT_RECEIPT_LABELS.mentionedAndCited;
+  }
+  if (mentioned) {
+    return GEO_PROMPT_RECEIPT_LABELS.mentioned;
+  }
+  return ownedSourceCited
+    ? GEO_PROMPT_RECEIPT_LABELS.cited
     : GEO_PROMPT_RECEIPT_LABELS.notMentioned;
 }

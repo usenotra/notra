@@ -104,6 +104,9 @@ export async function loadGeoOverviewForTool(
     checks: row.checks,
     mentions: row.mentions,
     mention_rate: row.mentionRate,
+    citations: row.citations,
+    visibility: row.visibility,
+    visibility_rate: row.visibilityRate,
     avg_position: row.avgPosition,
     last_checked_at: row.lastCheckedAt.toISOString(),
   }));
@@ -143,10 +146,16 @@ export async function loadGeoTimeseriesForTool(
     engine: row.engine,
     checks: row.checks,
     mentions: row.mentions,
+    citations: row.citations,
+    visibility: row.visibility,
     mention_rate:
       row.checks === 0
         ? 0
         : Math.round((row.mentions / row.checks) * 1000) / 1000,
+    visibility_rate:
+      row.checks === 0
+        ? 0
+        : Math.round((row.visibility / row.checks) * 1000) / 1000,
     avg_position: row.avgPosition,
   }));
 
