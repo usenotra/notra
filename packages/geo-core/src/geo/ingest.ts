@@ -7,6 +7,7 @@ import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
+  GEO_INGEST_HOSTS_CACHE_PREFIX,
   GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS,
   GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS,
   GEO_INGEST_PATH,
@@ -65,6 +66,33 @@ return 0
 
 function generationCacheKey(organizationId: string): string {
   return `${GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX}:${organizationId}`;
+}
+
+export function geoIngestHostsCacheKey(
+  organizationId: string,
+  projectId: string | null
+): string {
+  return `${GEO_INGEST_HOSTS_CACHE_PREFIX}:${organizationId}:${projectId ?? "-"}`;
+}
+
+/**
+ * Drop the cached allowlist after settings change so a newly added domain
+ * is accepted immediately. Org-scoped tokens union every project, so that
+ * key is cleared too.
+ */
+export async function invalidateGeoIngestHostsCache(
+  organizationId: string,
+  projectId: string | null
+): Promise<void> {
+  const client = redis;
+  if (!client) {
+    return;
+  }
+  const keys = [geoIngestHostsCacheKey(organizationId, projectId)];
+  if (projectId) {
+    keys.push(geoIngestHostsCacheKey(organizationId, null));
+  }
+  await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
 }
 
 async function cacheGeneration(

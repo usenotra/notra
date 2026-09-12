@@ -133,6 +133,7 @@ import {
   GeoSettingsTrackingError,
 } from "./errors";
 import { geoHiddenSourceParams } from "./hidden-sources";
+import { invalidateGeoIngestHostsCache } from "./ingest";
 import { lockGeoProject } from "./lock";
 import {
   toGeoCompetitor,
@@ -762,6 +763,10 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           ...clearedLease,
         },
       })
+  );
+
+  yield* Effect.promise(() =>
+    invalidateGeoIngestHostsCache(input.organizationId, projectId)
   );
 
   yield* reconcileGeoCompetitors(

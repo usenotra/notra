@@ -1,17 +1,11 @@
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoSettings, projects } from "@notra/db/schema";
-import {
-  GEO_INGEST_HOSTS_CACHE_PREFIX,
-  GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS } from "@notra/geo-core/constants/geo";
+import { geoIngestHostsCacheKey } from "@notra/geo-core/geo/ingest";
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import { ingestAllowedHosts } from "@notra/geo-core/utils/geo-project-domains";
 import { and, eq } from "drizzle-orm";
-
-function hostsCacheKey(identity: GeoIngestIdentity): string {
-  return `${GEO_INGEST_HOSTS_CACHE_PREFIX}:${identity.organizationId}:${identity.projectId ?? "-"}`;
-}
 
 function parseCachedHosts(value: unknown): string[] | undefined {
   if (Array.isArray(value) && value.every((host) => typeof host === "string")) {
@@ -76,7 +70,10 @@ async function lookupAllowedHosts(
 export async function loadIngestAllowedHosts(
   identity: GeoIngestIdentity
 ): Promise<string[] | null> {
-  const key = hostsCacheKey(identity);
+  const key = geoIngestHostsCacheKey(
+    identity.organizationId,
+    identity.projectId
+  );
   const client = redis;
   if (client) {
     const cached = await client.get<string | string[]>(key).catch(() => null);
