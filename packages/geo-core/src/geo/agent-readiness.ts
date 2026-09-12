@@ -1,6 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoAgentReadinessReports } from "@notra/db/schema";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { unionAll } from "drizzle-orm/pg-core";
 import { Effect } from "effect";
 
 import { AGENT_READINESS_HISTORY_LIMIT } from "../constants/agent-readiness";
@@ -30,7 +31,26 @@ import {
 } from "../utils/geo-website";
 import { geoDb } from "./effect";
 
-function toReportView(row: AgentReadinessReportRow): AgentReadinessReportView {
+/** Everything `toReportView` reads — the two JSONB-free columns are omitted. */
+type AgentReadinessReportFields = Pick<
+  AgentReadinessReportRow,
+  | "id"
+  | "status"
+  | "targetUrl"
+  | "score"
+  | "scoreLabel"
+  | "scoreBreakdown"
+  | "issues"
+  | "eligibleChecks"
+  | "reportUrl"
+  | "errorMessage"
+  | "scannedAt"
+  | "createdAt"
+>;
+
+function toReportView(
+  row: AgentReadinessReportFields
+): AgentReadinessReportView {
   return {
     id: row.id,
     status: row.status,
@@ -92,6 +112,72 @@ async function latestRowWhere(
   });
 }
 
+const readinessReportColumns = {
+  id: geoAgentReadinessReports.id,
+  status: geoAgentReadinessReports.status,
+  targetUrl: geoAgentReadinessReports.targetUrl,
+  score: geoAgentReadinessReports.score,
+  scoreLabel: geoAgentReadinessReports.scoreLabel,
+  scoreBreakdown: geoAgentReadinessReports.scoreBreakdown,
+  issues: geoAgentReadinessReports.issues,
+  eligibleChecks: geoAgentReadinessReports.eligibleChecks,
+  reportUrl: geoAgentReadinessReports.reportUrl,
+  errorMessage: geoAgentReadinessReports.errorMessage,
+  scannedAt: geoAgentReadinessReports.scannedAt,
+  createdAt: geoAgentReadinessReports.createdAt,
+} as const;
+
+/**
+ * The newest report and the newest *completed* report in one round trip. A
+ * `limit 2` would not do: any number of running/failed reports can sit between
+ * the two, so each half keeps its own `order by ... limit 1`.
+ *
+ * `union all` makes no promise about which branch's row comes first, so each
+ * branch labels itself instead of relying on position. When the newest report
+ * is already completed, both branches return it and both halves resolve to it.
+ */
+async function latestReadinessReports(
+  projectId: string,
+  targetUrl: string
+): Promise<{
+  latest: AgentReadinessReportFields | undefined;
+  completed: AgentReadinessReportFields | undefined;
+}> {
+  const targetUrls = getWebsiteUrlLookupVariants(targetUrl);
+  const scoped = and(
+    eq(geoAgentReadinessReports.projectId, projectId),
+    inArray(geoAgentReadinessReports.targetUrl, targetUrls)
+  );
+  const latestBranch = db
+    .select({
+      ...readinessReportColumns,
+      isLatest: sql<boolean>`true`.as("is_latest"),
+    })
+    .from(geoAgentReadinessReports)
+    .where(scoped)
+    .orderBy(desc(geoAgentReadinessReports.createdAt))
+    .limit(1)
+    .as("latest_readiness_report");
+  const completedBranch = db
+    .select({
+      ...readinessReportColumns,
+      isLatest: sql<boolean>`false`.as("is_latest"),
+    })
+    .from(geoAgentReadinessReports)
+    .where(and(scoped, eq(geoAgentReadinessReports.status, "completed")))
+    .orderBy(desc(geoAgentReadinessReports.createdAt))
+    .limit(1)
+    .as("completed_readiness_report");
+  const rows = await unionAll(
+    db.select().from(latestBranch),
+    db.select().from(completedBranch)
+  );
+  return {
+    latest: rows.find((row) => row.isLatest),
+    completed: rows.find((row) => !row.isLatest),
+  };
+}
+
 async function loadHistory(
   projectId: string,
   targetUrl: string
@@ -131,13 +217,10 @@ async function loadHistory(
 export const loadAgentReadiness = Effect.fn("geo.agentReadiness.load")(
   function* (scope: AgentReadinessScope) {
     const targetUrl = yield* resolveTargetUrl(scope.brandSettingsId);
-    const [completed, latest, history] = yield* Effect.all(
+    const [reports, history] = yield* Effect.all(
       [
-        geoDb("read completed readiness", () =>
-          latestRowWhere(scope.projectId, "completed", targetUrl)
-        ),
-        geoDb("read latest readiness", () =>
-          latestRowWhere(scope.projectId, undefined, targetUrl)
+        geoDb("read readiness reports", () =>
+          latestReadinessReports(scope.projectId, targetUrl)
         ),
         geoDb("read readiness history", () =>
           loadHistory(scope.projectId, targetUrl)
@@ -145,6 +228,7 @@ export const loadAgentReadiness = Effect.fn("geo.agentReadiness.load")(
       ],
       { concurrency: "unbounded" }
     );
+    const { completed, latest } = reports;
 
     const report = completed ? toReportView(completed) : null;
     const scan =

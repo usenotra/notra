@@ -16,7 +16,7 @@ import {
   getTokenForIntegrationId,
   getWebhookConfigForRepository,
   listAvailableRepositories,
-  setRepositoryOutputDirectory,
+  setRepositoryOutputConfig,
   toggleOutput,
   updateGitHubIntegration,
   updateGitHubIntegrationToken,
@@ -67,7 +67,10 @@ import {
 } from "@notra/ai/integrations/slack-workspace";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
 import type { GitHubConnectionMethod } from "@notra/ai/types/github-connection";
-import { createOctokit } from "@notra/ai/utils/octokit";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -546,7 +549,6 @@ export const integrationsRouter = {
         if (input.enabled !== undefined || input.displayName !== undefined) {
           await updateGitHubIntegration(input.integrationId, {
             enabled: input.enabled,
-            repositoryEnabled: input.enabled,
             displayName: input.displayName,
           });
         }
@@ -815,7 +817,11 @@ export const integrationsRouter = {
           );
 
           return {
-            directory: config.success ? config.data.directory : null,
+            directory: config.success ? (config.data.directory ?? null) : null,
+            contentPath: config.success
+              ? (config.data.contentPath ?? null)
+              : null,
+            imagePath: config.success ? (config.data.imagePath ?? null) : null,
           };
         }),
       update: baseProcedure
@@ -834,13 +840,38 @@ export const integrationsRouter = {
             input.repositoryId
           );
 
-          await setRepositoryOutputDirectory({
+          await setRepositoryOutputConfig({
             repositoryId: input.repositoryId,
             outputType: input.contentType,
-            directory: input.directory,
+            ...(input.directory !== undefined
+              ? { directory: input.directory }
+              : {}),
+            ...(input.contentPath !== undefined
+              ? { contentPath: input.contentPath }
+              : {}),
+            ...(input.imagePath !== undefined
+              ? { imagePath: input.imagePath }
+              : {}),
           });
 
-          return { directory: input.directory };
+          const output = await db.query.repositoryOutputs.findFirst({
+            where: and(
+              eq(repositoryOutputs.repositoryId, input.repositoryId),
+              eq(repositoryOutputs.outputType, input.contentType)
+            ),
+            columns: { config: true },
+          });
+          const config = repositoryContentDirectoryConfigSchema.safeParse(
+            output?.config
+          );
+
+          return {
+            directory: config.success ? (config.data.directory ?? null) : null,
+            contentPath: config.success
+              ? (config.data.contentPath ?? null)
+              : null,
+            imagePath: config.success ? (config.data.imagePath ?? null) : null,
+          };
         }),
     },
     directories: {
@@ -863,6 +894,7 @@ export const integrationsRouter = {
           try {
             token = await getTokenForIntegrationId(input.repositoryId, {
               organizationId: input.organizationId,
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
             });
           } catch (error) {
             if (
@@ -888,7 +920,9 @@ export const integrationsRouter = {
           }
 
           try {
-            const octokit = createOctokit(token);
+            const octokit = createOctokit(token, {
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
             const requestOptions = {
               owner: repository.owner,
               repo: repository.repo,

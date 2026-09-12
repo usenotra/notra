@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId } from "react";
@@ -13,12 +14,14 @@ import {
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   GitHubContentDirectoryMutationVariables,
+  GitHubContentPathMutationVariables,
   GitHubContentPublishingSettingsProps,
   GitHubOutputMutationVariables,
   GitHubPublishingSettingsProps,
 } from "@/types/integrations/github";
 
 import { GitHubDirectoryPicker } from "./github-directory-picker";
+import { GitHubPublishingPathFields } from "./github-publishing-path-fields";
 
 function GitHubContentPublishingSettings({
   contentLabel,
@@ -52,6 +55,19 @@ function GitHubContentPublishingSettings({
   const directory =
     directoryQuery.data?.directory ??
     DEFAULT_GITHUB_CONTENT_DIRECTORIES[contentType];
+  const directoryQueryKey =
+    dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
+      input: { organizationId, repositoryId, contentType },
+    });
+  // Both saves return the whole configuration. Overlapping requests can
+  // resolve out of order, so the server state is refetched after each save
+  // instead of trusting the response as the latest configuration.
+  const settleDirectoryConfig = (
+    result: NonNullable<typeof directoryQuery.data>
+  ) => {
+    queryClient.setQueryData(directoryQueryKey, result);
+    return queryClient.invalidateQueries({ queryKey: directoryQueryKey });
+  };
   const directoryMutation = useMutation({
     mutationFn: ({
       nextDirectory,
@@ -63,31 +79,11 @@ function GitHubContentPublishingSettings({
         contentType,
         directory: nextDirectory,
       }),
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({
-        queryKey:
-          dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey(
-            {
-              input: {
-                organizationId,
-                repositoryId: variables.targetRepositoryId,
-                contentType,
-              },
-            }
-          ),
-      });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: directoryQueryKey });
     },
-    onSuccess: (result, variables) => {
-      queryClient.setQueryData(
-        dashboardOrpc.integrations.repositories.contentDirectory.get.queryKey({
-          input: {
-            organizationId,
-            repositoryId: variables.targetRepositoryId,
-            contentType,
-          },
-        }),
-        result
-      );
+    onSuccess: async (result) => {
+      await settleDirectoryConfig(result);
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.integrations.list.queryKey({
           input: { organizationId },
@@ -97,6 +93,30 @@ function GitHubContentPublishingSettings({
     },
     onError: (error) => {
       toast.error(error.message || `Failed to save ${contentLabel} folder`);
+    },
+  });
+  const pathMutation = useMutation({
+    mutationFn: ({
+      contentPath,
+      imagePath,
+      targetRepositoryId,
+    }: GitHubContentPathMutationVariables) =>
+      dashboardOrpc.integrations.repositories.contentDirectory.update.call({
+        organizationId,
+        repositoryId: targetRepositoryId,
+        contentType,
+        contentPath,
+        imagePath,
+      }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: directoryQueryKey });
+    },
+    onSuccess: async (result) => {
+      await settleDirectoryConfig(result);
+      toast.success(`${contentLabel} paths saved`);
+    },
+    onError: (error) => {
+      toast.error(error.message || `Failed to save ${contentLabel} paths`);
     },
   });
   const outputMutation = useMutation({
@@ -137,6 +157,7 @@ function GitHubContentPublishingSettings({
       <div className="flex items-center gap-2">
         <Switch
           id={publishingSwitchId}
+          nativeButton
           aria-label={`Publish ${pluralLabel} to ${selectedRepository.owner}/${selectedRepository.repo}`}
           checked={publishingEnabled}
           disabled={disabled || outputMutation.isPending}
@@ -147,12 +168,12 @@ function GitHubContentPublishingSettings({
             });
           }}
         />
-        <label
+        <Label
           className="cursor-pointer text-xs font-medium"
           htmlFor={publishingSwitchId}
         >
           {contentLabel}
-        </label>
+        </Label>
       </div>
 
       <div className="min-w-0">
@@ -177,7 +198,9 @@ function GitHubContentPublishingSettings({
           <GitHubDirectoryPicker
             contentLabel={contentLabel}
             directory={directory}
-            disabled={disabled || directoryQuery.isLoading}
+            disabled={
+              disabled || directoryQuery.isLoading || pathMutation.isPending
+            }
             isSaving={directoryMutation.isPending}
             key={selectedRepository.id}
             onSave={async (nextDirectory) => {
@@ -193,6 +216,28 @@ function GitHubContentPublishingSettings({
           />
         )}
       </div>
+
+      <GitHubPublishingPathFields
+        contentLabel={contentLabel}
+        contentPath={directoryQuery.data?.contentPath ?? null}
+        directory={directory}
+        disabled={
+          disabled ||
+          directoryQuery.isLoading ||
+          directoryMutation.isPending ||
+          (directoryQuery.isError && !directoryQuery.data)
+        }
+        imagePath={directoryQuery.data?.imagePath ?? null}
+        isSaving={pathMutation.isPending}
+        key={`${selectedRepository.id}:${directoryQuery.data?.contentPath ?? ""}:${directoryQuery.data?.imagePath ?? ""}`}
+        onSave={({ contentPath, imagePath }) => {
+          pathMutation.mutate({
+            contentPath,
+            imagePath,
+            targetRepositoryId: selectedRepository.id,
+          });
+        }}
+      />
     </div>
   );
 }

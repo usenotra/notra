@@ -4,6 +4,7 @@ import type {
   BuildDailySummaryInput,
   BuiltDailySummary,
   DailySummaryMentionTotals,
+  DailySummaryUnchangedInput,
   DailySummaryWindow,
 } from "@/types/email/daily-summary";
 
@@ -88,6 +89,21 @@ export function isQuietDailySummary({
   yesterdayChecks: number;
 }) {
   return scansCompleted === 0 && yesterdayChecks === 0;
+}
+
+export function isUnchangedDailySummary({
+  yesterday,
+  previousDay,
+  changes,
+  hasNewEngine,
+}: DailySummaryUnchangedInput) {
+  return (
+    !hasNewEngine &&
+    formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged" &&
+    changes.gained === changes.lost &&
+    changes.positionImproved === changes.positionDropped &&
+    changes.citationsAdded === changes.citationsRemoved
+  );
 }
 
 export function buildDailySummaryHeadline({

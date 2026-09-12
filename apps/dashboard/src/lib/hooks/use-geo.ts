@@ -101,6 +101,8 @@ import { toGeoWindowInput } from "@/utils/geo-range";
 import { dashboardOrpc } from "../orpc/query";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
+// Bounded retries instead of an unbounded 30 s error poll on every dashboard page.
+const GEO_PROJECTS_RETRY_COUNT = 3;
 
 function gscAnalyzeMutationKey(organizationId: string) {
   return [GSC_ANALYZE_MUTATION_KEY, organizationId] as const;
@@ -212,6 +214,7 @@ export function useGeoSettings(organizationId: string) {
       current.state.data?.settings?.isScanning
         ? GEO_SCAN_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI visibility settings" },
   });
 
@@ -494,6 +497,7 @@ export function useGeoCompetitorRowNavigation(
   return { openRow, prefetchRow };
 }
 
+/** @deprecated Use {@link useGeoCompetitorsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoCompetitors(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoCompetitorsResponse>({
@@ -521,6 +525,7 @@ export function useGeoLanguageShare(
   });
 }
 
+/** @deprecated Use {@link useGeoPromptsDb} from `@/lib/hooks/use-geo-db` instead. */
 export function useGeoPrompts(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrackedPromptsResponse>({
@@ -743,6 +748,7 @@ export function useAgentReadiness(organizationId: string) {
       query.state.data?.scan?.status === "running"
         ? AGENT_READINESS_POLL_INTERVAL_MS
         : false,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load agent readiness" },
   });
 }
@@ -801,6 +807,7 @@ export function useGeoTrafficLog(
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
     refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI tracking log" },
   });
 }
@@ -909,8 +916,7 @@ export function useGeoProjects(organizationId: string) {
       errorMessage: "Failed to load projects",
       showRetryAction: true,
     },
-    refetchInterval: (query) =>
-      query.state.status === "error" ? 30_000 : false,
+    retry: GEO_PROJECTS_RETRY_COUNT,
   });
 }
 

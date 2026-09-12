@@ -4,7 +4,7 @@ import { toolDescription } from "@notra/ai/utils/description";
 import { db } from "@notra/db/drizzle";
 import { brandSitemapPages, brandSitemaps } from "@notra/db/schema";
 import { type Tool, tool } from "ai";
-import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
@@ -75,7 +75,7 @@ export function createGetSitemapPagesTool(config: SitemapToolsConfig): Tool {
         })
         .from(brandSitemapPages)
         .where(and(...filters))
-        .orderBy(desc(brandSitemapPages.wordCount))
+        .orderBy(sql`${brandSitemapPages.wordCount} desc nulls last`)
         .limit(limit);
 
       return { pages: rows, total: rows.length, hasSitemap: true };

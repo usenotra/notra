@@ -40,11 +40,12 @@ import type {
   ErrorWithStatus,
   GitHubOrgMembershipCheck,
   RepositoryOutputType,
-  SetRepositoryOutputDirectoryParams,
+  SetRepositoryOutputConfigParams,
   ValidateRepositoryBranchExistsParams,
   WebhookConfig,
 } from "../types/integrations";
 import type { GitHubToolRepositoryContext } from "../types/tools";
+import type { GitHubAppPublishAccess } from "../utils/github-app-publish-access";
 import { createOctokit } from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";
@@ -138,6 +139,12 @@ export function isGitHubAppConfigured() {
   return Boolean(appId && privateKey && slug);
 }
 
+/** Login GitHub assigns to commits made with an installation token. */
+export function getGitHubAppBotLogin() {
+  const { slug } = readGitHubAppConfig();
+  return isGitHubAppConfigured() && slug ? `${slug}[bot]` : null;
+}
+
 function getGitHubAppConfig() {
   const { appId, privateKey, slug } = readGitHubAppConfig();
 
@@ -178,34 +185,40 @@ async function createGitHubAppInstallationToken(installationId: string) {
   );
 }
 
-const createGitHubAppInstallationTokenEffect = Effect.fn(
-  "GitHub.createInstallationToken"
-)(function* (installationId: string) {
-  const jwt = yield* Effect.try({
-    try: createGitHubAppJwt,
-    catch: (cause) => new GitHubAppConfigurationError({ cause }),
-  });
-  const octokit = createOctokit(jwt);
-  const { data } = yield* Effect.tryPromise({
-    try: () =>
-      octokit.request(
-        "POST /app/installations/{installation_id}/access_tokens",
-        {
-          installation_id: Number(installationId),
-          headers: { "X-GitHub-Api-Version": "2022-11-28" },
-        }
-      ),
-    catch: (cause) =>
-      getErrorStatus(cause) === 401
-        ? new GitHubAppConfigurationError({ cause })
-        : new GitHubRequestError({
-            operation: "createInstallationToken",
-            status: getErrorStatus(cause) ?? undefined,
-            cause,
-          }),
-  });
-  return data.token;
-});
+function createGitHubAppInstallationTokenEffect(
+  installationId: string,
+  requestTimeoutMs?: number
+) {
+  return Effect.gen(function* () {
+    const jwt = yield* Effect.try({
+      try: createGitHubAppJwt,
+      catch: (cause) => new GitHubAppConfigurationError({ cause }),
+    });
+    const octokit = createOctokit(
+      jwt,
+      requestTimeoutMs === undefined ? undefined : { requestTimeoutMs }
+    );
+    const { data } = yield* Effect.tryPromise({
+      try: () =>
+        octokit.request(
+          "POST /app/installations/{installation_id}/access_tokens",
+          {
+            installation_id: Number(installationId),
+            headers: { "X-GitHub-Api-Version": "2022-11-28" },
+          }
+        ),
+      catch: (cause) =>
+        getErrorStatus(cause) === 401
+          ? new GitHubAppConfigurationError({ cause })
+          : new GitHubRequestError({
+              operation: "createInstallationToken",
+              status: getErrorStatus(cause) ?? undefined,
+              cause,
+            }),
+    });
+    return data.token;
+  }).pipe(Effect.withSpan("GitHub.createInstallationToken"));
+}
 
 async function getGitHubAppInstallation(installationId: string) {
   const octokit = createOctokit(createGitHubAppJwt());
@@ -220,6 +233,30 @@ async function getGitHubAppInstallation(installationId: string) {
   );
 
   return Effect.runPromise(decodeGitHubAppInstallationResponse(data));
+}
+
+export async function getGitHubAppInstallationPublishAccess(
+  installationId: string
+): Promise<GitHubAppPublishAccess | null> {
+  try {
+    const octokit = createOctokit(createGitHubAppJwt());
+    const { data } = await octokit.request(
+      "GET /app/installations/{installation_id}",
+      {
+        installation_id: Number(installationId),
+        headers: {
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    );
+
+    return {
+      contents: data.permissions?.contents,
+      pullRequests: data.permissions?.pull_requests,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function getInstallationOrgMembership(params: {
@@ -1136,17 +1173,24 @@ export async function configureOutput(params: ConfigureOutputParams) {
   return output;
 }
 
-export async function setRepositoryOutputDirectory(
-  params: SetRepositoryOutputDirectoryParams
+export async function setRepositoryOutputConfig(
+  params: SetRepositoryOutputConfigParams
 ) {
-  const directoryConfig = JSON.stringify({ directory: params.directory });
+  const config = {
+    ...(params.directory !== undefined ? { directory: params.directory } : {}),
+    ...(params.contentPath !== undefined
+      ? { contentPath: params.contentPath }
+      : {}),
+    ...(params.imagePath !== undefined ? { imagePath: params.imagePath } : {}),
+  };
+  const serializedConfig = JSON.stringify(config);
   const mergedConfig = sql`(
     CASE
       WHEN jsonb_typeof(${repositoryOutputs.config}) = 'object'
         THEN ${repositoryOutputs.config}
       ELSE '{}'::jsonb
     END
-  ) || ${directoryConfig}::jsonb`;
+  ) || ${serializedConfig}::jsonb`;
   const [output] = await db
     .insert(repositoryOutputs)
     .values({
@@ -1155,7 +1199,7 @@ export async function setRepositoryOutputDirectory(
       outputType: params.outputType,
       enabled:
         params.outputType === "changelog" || params.outputType === "blog_post",
-      config: { directory: params.directory },
+      config,
     })
     .onConflictDoUpdate({
       target: [repositoryOutputs.repositoryId, repositoryOutputs.outputType],
@@ -1462,12 +1506,21 @@ export function createGitHubAppInstallationTokenForRecordEffect(
 
 export function getTokenForIntegrationIdEffect(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return resolveGitHubToken(
     { integrationId, organizationId: options?.organizationId },
     {
       ...githubCredentialDependencies,
+      ...(options?.requestTimeoutMs === undefined
+        ? {}
+        : {
+            createInstallationToken: (installationId: string) =>
+              createGitHubAppInstallationTokenEffect(
+                installationId,
+                options.requestTimeoutMs
+              ),
+          }),
       findIntegration: (params) =>
         Effect.tryPromise({
           try: () =>
@@ -1502,7 +1555,7 @@ export function getTokenForIntegrationIdEffect(
 
 export function getTokenForIntegrationId(
   integrationId: string,
-  options?: { organizationId?: string }
+  options?: { organizationId?: string; requestTimeoutMs?: number }
 ) {
   return runGitHubEffect(
     getTokenForIntegrationIdEffect(integrationId, options).pipe(

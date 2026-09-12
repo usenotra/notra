@@ -1,5 +1,5 @@
 {
-  "id": "40773f54-a53b-47f6-9c85-a335af458ab1",
+  "id": "55ad6f8c-2b75-4768-86b7-3a1515462c12",
   "prevId": "2af30101-d3f7-47ba-822d-79ee7e9ba8b2",
   "version": "7",
   "dialect": "postgresql",
@@ -3424,6 +3424,33 @@
           "method": "btree",
           "with": {}
         },
+        "brandSitemapPages_sitemap_category_wordCount_idx": {
+          "name": "brandSitemapPages_sitemap_category_wordCount_idx",
+          "columns": [
+            {
+              "expression": "sitemap_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "category",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "word_count",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "brandSitemapPages_sitemap_url_uidx": {
           "name": "brandSitemapPages_sitemap_url_uidx",
           "columns": [
@@ -4890,6 +4917,39 @@
           "method": "btree",
           "with": {}
         },
+        "geoContentBriefs_project_source_updated_idx": {
+          "name": "geoContentBriefs_project_source_updated_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "source_kind",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "source_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "geoContentBriefs_open_source_uidx": {
           "name": "geoContentBriefs_open_source_uidx",
           "columns": [
@@ -5239,6 +5299,142 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "geoMentionChecks_project_captured_cover_idx": {
+          "name": "geoMentionChecks_project_captured_cover_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "captured_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "language",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "engine",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "prompt_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "mentioned",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "position",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sentiment",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sequence_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "geoMentionChecks_project_prompt_engine_captured_idx": {
+          "name": "geoMentionChecks_project_prompt_engine_captured_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "prompt_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "engine",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "captured_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "geoMentionChecks_sequence_turn_engine_captured_idx": {
+          "name": "geoMentionChecks_sequence_turn_engine_captured_idx",
+          "columns": [
+            {
+              "expression": "sequence_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "turn",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "engine",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "captured_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"geo_mention_checks\".\"sequence_id\" IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -5709,6 +5905,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "geoPrompts_projectId_createdAt_idx": {
+          "name": "geoPrompts_projectId_createdAt_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -6079,13 +6296,6 @@
         },
         "conversion_paths": {
           "name": "conversion_paths",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "ARRAY[]::text[]"
-        },
-        "domains": {
-          "name": "domains",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,
@@ -8811,6 +9021,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "members_organizationId_userId_uidx": {
+          "name": "members_organizationId_userId_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -9158,23 +9389,7 @@
           "notNull": false
         }
       },
-      "indexes": {
-        "organizations_slug_uidx": {
-          "name": "organizations_slug_uidx",
-          "columns": [
-            {
-              "expression": "slug",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
@@ -9582,6 +9797,82 @@
               "expression": "collection_id",
               "isExpression": false,
               "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_org_createdAt_status_idx": {
+          "name": "posts_org_createdAt_status_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_org_published_createdAt_idx": {
+          "name": "posts_org_published_createdAt_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"posts\".\"status\" = 'published'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_org_content_type_updated_at_idx": {
+          "name": "posts_org_content_type_updated_at_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "content_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": false,
               "nulls": "last"
             }
           ],

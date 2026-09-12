@@ -660,7 +660,7 @@ function MessageTableRow({
   );
 }
 
-function MessageTableHeaderCell({
+export function MessageTableHeaderCell({
   children,
   className,
   node: _node,
@@ -673,7 +673,7 @@ function MessageTableHeaderCell({
   );
 }
 
-function MessageTableCell({
+export function MessageTableCell({
   children,
   className,
   node: _node,
