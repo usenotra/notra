@@ -103,22 +103,18 @@ const failPostGenerationQueue = Effect.fnUntraced(function* (
   if (options.markJobFailed && job) {
     failedJobId = yield* Effect.tryPromise({
       try: async () => {
-        try {
-          const failedJob = await setContentGenerationJobStatus(
-            input.redis,
-            jobId,
-            "failed",
-            {
-              error: options.errorMessage,
-            }
-          );
-          return failedJob?.id;
-        } catch {
-          return undefined;
-        }
+        const failedJob = await setContentGenerationJobStatus(
+          input.redis,
+          jobId,
+          "failed",
+          {
+            error: options.errorMessage,
+          }
+        );
+        return failedJob?.id;
       },
-      catch: (cause) => new PostDatabaseError({ cause }),
-    });
+      catch: () => undefined,
+    }).pipe(Effect.catch(() => Effect.succeed(undefined)));
 
     yield* Effect.tryPromise({
       try: () =>
