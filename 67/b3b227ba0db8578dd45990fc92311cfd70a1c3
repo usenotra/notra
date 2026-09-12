@@ -1,0 +1,41 @@
+packages/ai/src/agents/background-gen.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 5,155
+packages/ai/src/orchestration/orchestrate.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 3,132
+packages/ai/src/chat/history.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 14,1053
+apps/dashboard/src/app/api/command-palette/navigate/route.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 2,295
+packages/ai/src/agents/repo-image.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 25,268
+packages/ai/src/autonomy/planner.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 10,64
+packages/ai/src/jobs/collection-title.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 8,122
+packages/ai/src/orchestration/orchestrate-standalone.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 4,249
+packages/ai/src/agents/geo-writer.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 21,218,365,447
+apps/dashboard/src/workflows/steps/brand-analysis-steps.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 3,83
+packages/ai/src/orchestration/router.ts
+  s_e085e53fab1854::t_96b3a5b16056b9 7,138,171
+packages/ai/src/autonomy/capabilities.ts
+  s_e085e53fab1854::t_233e0a24f14cf0 44,214,483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "67b3b227ba0db8578dd45990fc92311cfd70a1c3",
+  "prompts": {},
+  "sessions": {
+    "s_e085e53fab1854": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0976d-b2c6-79f0-8a22-617b082a93e2",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
