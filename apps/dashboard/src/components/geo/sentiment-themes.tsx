@@ -52,6 +52,7 @@ export function SentimentThemes({
       ) : null}
       {view.showEmpty ? (
         <SentimentThemesEmpty
+          key={scopeKey}
           title={view.title}
           message={view.message}
           canAnalyze={view.canAnalyze}
@@ -65,21 +66,6 @@ export function SentimentThemes({
       >
         {view.statusText}
       </p>
-      {view.showSampling && state?.result ? (
-        <details className="text-muted-foreground text-xs">
-          <summary className="focus-visible:outline-ring cursor-pointer rounded-sm py-1 focus-visible:outline-2">
-            {state.result.sampled} sampled answers · Sampling details
-          </summary>
-          <p className="pt-2">
-            {state.result.sampled} of {state.result.eligible} eligible positive
-            or negative answers. Up to 12 per polarity; first 2,000 answer
-            characters and 500 prompt characters per check. Evidence counts
-            refer to this sample. Two or more distinct checks support a
-            recurring theme; one is a single source. Quotes are exact saved
-            text. Analyzed {state.result.generatedAt.slice(0, 10)}.
-          </p>
-        </details>
-      ) : null}
     </InstrumentSection>
   );
 }

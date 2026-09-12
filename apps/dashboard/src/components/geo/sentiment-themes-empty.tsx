@@ -1,5 +1,3 @@
-import { Comment01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Popover,
   PopoverContent,
@@ -10,6 +8,10 @@ import {
 
 import { Button } from "@/components/button";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import {
+  EMPTY_STATE_TABLE_COLUMNS,
+  EMPTY_STATE_TABLE_ROWS,
+} from "@/constants/empty-state";
 import type { SentimentThemesEmptyProps } from "@/types/geo-sentiment";
 
 export function SentimentThemesEmpty({
@@ -19,30 +21,28 @@ export function SentimentThemesEmpty({
   retrying,
   analyze,
 }: SentimentThemesEmptyProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   return (
-    <div className="border-border bg-muted/10 flex min-h-44 items-center justify-center gap-6 rounded-2xl border px-5 py-6">
+    <div className="relative w-full overflow-hidden rounded-2xl">
       <div
         aria-hidden="true"
-        className="pointer-events-none hidden w-36 shrink-0 [mask-image:linear-gradient(to_bottom,black_65%,transparent)] opacity-45 sm:block"
+        className="pointer-events-none absolute inset-x-0 top-0 px-3 pt-3 select-none sm:px-4 sm:pt-4"
       >
-        <EmptyStateTablePreview columns={[24, 56, 20]} rows={2} />
-      </div>
-      <div className="flex min-w-0 flex-col items-center gap-3 text-center sm:items-start sm:text-left">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            aria-hidden="true"
-            icon={Comment01Icon}
-            size={18}
-            className="text-muted-foreground shrink-0"
+        <div className="mask-[linear-gradient(to_bottom,black_0%,transparent_100%)] opacity-[0.38]">
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.prompts}
+            rows={EMPTY_STATE_TABLE_ROWS}
           />
-          <h3 className="text-sm font-medium">{title}</h3>
         </div>
+      </div>
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-6 py-12 text-center md:py-16">
+        <h3 className="text-xl font-semibold text-balance">{title}</h3>
         {message ? (
           <p className="text-muted-foreground max-w-sm text-sm">{message}</p>
         ) : null}
         {canAnalyze ? (
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <Button onClick={analyze}>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button onClick={() => setConfirmOpen(true)}>
               {retrying ? "Retry finding themes" : "Find themes"}
             </Button>
             <Popover>
@@ -60,6 +60,46 @@ export function SentimentThemesEmpty({
           </div>
         ) : null}
       </div>
+      <ResponsiveAlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <ResponsiveAlertDialogContent>
+          <ResponsiveAlertDialogHeader>
+            <ResponsiveAlertDialogTitle>
+              Find sentiment themes?
+            </ResponsiveAlertDialogTitle>
+            <ResponsiveAlertDialogDescription>
+              Analyze saved answers for the selected project and date range. A
+              new analysis uses AI credits based on token usage, or one AI
+              answer on quota-based plans. Reusing a cached analysis has no
+              additional cost.
+            </ResponsiveAlertDialogDescription>
+          </ResponsiveAlertDialogHeader>
+          <p className="text-muted-foreground text-sm">
+            An AI attempt may still use credits if it fails or finds no themes.
+          </p>
+          <ResponsiveAlertDialogFooter>
+            <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+            <ResponsiveAlertDialogAction
+              onClick={() => {
+                setConfirmOpen(false);
+                analyze();
+              }}
+            >
+              Confirm and analyze
+            </ResponsiveAlertDialogAction>
+          </ResponsiveAlertDialogFooter>
+        </ResponsiveAlertDialogContent>
+      </ResponsiveAlertDialog>
     </div>
   );
 }
+import {
+  ResponsiveAlertDialog,
+  ResponsiveAlertDialogAction,
+  ResponsiveAlertDialogCancel,
+  ResponsiveAlertDialogContent,
+  ResponsiveAlertDialogDescription,
+  ResponsiveAlertDialogFooter,
+  ResponsiveAlertDialogHeader,
+  ResponsiveAlertDialogTitle,
+} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { useState } from "react";
