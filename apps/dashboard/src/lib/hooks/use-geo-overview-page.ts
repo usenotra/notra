@@ -112,7 +112,8 @@ export function useGeoOverviewPage(
     useGeoSettings(organizationId);
   const { data: overview } = useGeoOverview(organizationId, geoRange.query);
   const { data: timeseries } = useGeoTimeseries(organizationId, geoRange.query);
-  const { prompts } = useGeoPromptsDb(organizationId);
+  const { prompts, isLoading: isPromptsLoading } =
+    useGeoPromptsDb(organizationId);
   const { data: promptResults } = useGeoPromptResults(
     organizationId,
     geoRange.query,
@@ -177,7 +178,7 @@ export function useGeoOverviewPage(
     competitors,
     languagePoints: languageShare?.points,
     promptResults: promptResults?.results,
-    promptCount: prompts.length,
+    promptCount: isPromptsLoading ? undefined : prompts.length,
     journeys: trafficJourneys?.journeys,
     isScanning,
     revealActive,
@@ -189,7 +190,9 @@ export function useGeoOverviewPage(
         setPreflightOpen(false);
       },
       isPending: startScan.isPending,
-      promptCount: countEnabledGeoPrompts(prompts),
+      promptCount: countEnabledGeoPrompts(
+        isPromptsLoading ? undefined : prompts
+      ),
       lastScanAt: settings.lastScanAt,
     },
   });
