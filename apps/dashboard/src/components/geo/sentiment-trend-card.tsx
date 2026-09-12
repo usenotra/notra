@@ -33,7 +33,7 @@ export function SentimentTrendCard({
 }: SentimentTrendCardProps) {
   return (
     <div
-      className="flex min-w-0 flex-col justify-center gap-3 p-4 sm:p-5"
+      className="flex min-w-0 flex-col justify-center gap-2 px-4 py-3"
       aria-label="Sentiment history"
     >
       <SentimentTrendContent
@@ -89,7 +89,7 @@ function SentimentTrendContent(props: SentimentTrendContentProps) {
       ) : (
         <InstrumentEmpty
           seed="Sentiment trend"
-          className="h-52 min-h-52 [&_p]:normal-case"
+          className="h-40 min-h-40 [&_p]:normal-case"
           busy={isScanning}
           message={
             isScanning ? "Scan in progress" : sentimentEmptyMessage(summary)
@@ -117,7 +117,7 @@ function SentimentTrendPlot({
   return (
     <EChartsAreaChart
       animation={false}
-      className="h-52 min-h-52 w-full"
+      className="h-40 min-h-40 w-full"
       config={SENTIMENT_CHART_CONFIG}
       curveType="monotoneX"
       enableHoverHighlight={false}

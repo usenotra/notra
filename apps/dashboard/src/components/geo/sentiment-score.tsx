@@ -13,7 +13,7 @@ import { formatSentimentPeriod } from "@/utils/sentiment-dates";
 
 export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
   return (
-    <div className="space-y-2">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[auto_minmax(0,1fr)]">
       <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
         {summary.score === null
           ? "—"
@@ -50,7 +50,7 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
         </Tooltip>
       ) : null}
       {summary.score !== null ? (
-        <div className="pt-4">
+        <div className="pt-2 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:self-center sm:pt-0">
           <meter
             aria-label="Sentiment score position"
             min={0}
@@ -59,7 +59,7 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
             aria-valuetext={`${SENTIMENT_SCORE_FORMAT.format(summary.score)} out of 100`}
             className="sr-only"
           />
-          <p className="text-muted-foreground mb-3 text-xs">Score position</p>
+          <p className="text-muted-foreground mb-2 text-xs">Score position</p>
           <div className="from-geo-down to-geo-up relative h-2 rounded-full bg-linear-to-r via-amber-200">
             <Tooltip>
               <TooltipTrigger

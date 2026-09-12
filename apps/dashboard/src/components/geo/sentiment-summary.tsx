@@ -15,7 +15,7 @@ export function SentimentSummary({
 }: SentimentSummaryProps) {
   const summary = data?.summary;
   return (
-    <aside aria-label="Sentiment summary" className="min-w-0 p-5 lg:p-6">
+    <aside aria-label="Sentiment summary" className="min-w-0 px-5 pt-4 pb-1">
       {isPending ? <SentimentSkeleton compact /> : null}
       {isError ? (
         <div role="alert" className="space-y-2 text-sm">

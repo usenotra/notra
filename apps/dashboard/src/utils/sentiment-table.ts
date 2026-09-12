@@ -10,12 +10,17 @@ export function sentimentTableRows(
   view: SentimentTableView
 ): SentimentDetailRow[] {
   if (view === "themes") {
-    return themes.map((theme) => ({
-      id: `${theme.polarity}-${theme.title}`,
-      title: theme.title,
-      polarity: theme.polarity,
-      evidence: theme.evidence,
-    }));
+    return themes.flatMap((theme) =>
+      (
+        theme.claims ?? [{ statement: theme.title, evidence: theme.evidence }]
+      ).map((claim) => ({
+        id: JSON.stringify([theme.polarity, theme.title, claim.statement]),
+        title: claim.statement,
+        theme: theme.title,
+        polarity: theme.polarity,
+        evidence: claim.evidence,
+      }))
+    );
   }
   const answers = new Map<string, SentimentDetailRow>();
   for (const theme of themes) {

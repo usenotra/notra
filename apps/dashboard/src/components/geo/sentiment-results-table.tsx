@@ -1,6 +1,3 @@
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
   Sheet,
   SheetContent,
@@ -8,12 +5,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@notra/ui/components/ui/tabs";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 import { useMemo, useRef, useState } from "react";
 
@@ -24,22 +15,21 @@ import { SENTIMENT_POLARITY_STYLES } from "@/constants/geo-sentiment";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type {
   SentimentDetailRow,
-  SentimentTableView,
   SentimentThemeTableProps,
 } from "@/types/geo-sentiment";
+import { formatModelLabel } from "@/utils/geo-model-display";
 import { sentimentTableRows } from "@/utils/sentiment-table";
 
 export function SentimentResultsTable({
   themes,
   pending,
 }: SentimentThemeTableProps) {
-  const [view, setView] = useState<SentimentTableView>("themes");
   const isMobile = useIsMobile();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const rows = useMemo(
-    () => (pending ? [] : sentimentTableRows(themes, view)),
-    [themes, view, pending]
+    () => (pending ? [] : sentimentTableRows(themes, "themes")),
+    [themes, pending]
   );
   const selected = rows.find((row) => row.id === selectedId);
   const columns = useMemo<TableColumn<SentimentDetailRow>[]>(
@@ -63,20 +53,17 @@ export function SentimentResultsTable({
       },
       {
         key: "title",
-        header: view === "themes" ? "Theme" : "Prompt",
+        header: "Claim",
         width: "1fr",
         minWidth: isMobile ? "8rem" : "15rem",
         sortable: true,
         cell: (row) => (
           <span className="flex min-w-0 items-center gap-2 text-sm">
-            <HugeiconsIcon
-              aria-hidden="true"
-              icon={ArrowRight01Icon}
-              size={14}
-              className="text-muted-foreground shrink-0"
-            />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate">{row.title}</span>
+              <span className="truncate font-medium">{row.title}</span>
+              <span className="text-muted-foreground truncate text-xs">
+                {row.theme}
+              </span>
               {isMobile ? (
                 <span
                   className={`text-[0.6875rem] capitalize ${SENTIMENT_POLARITY_STYLES[row.polarity].text}`}
@@ -99,11 +86,11 @@ export function SentimentResultsTable({
               .map((engine) => (
                 <span
                   key={engine}
-                  title={engine}
+                  title={formatModelLabel(engine)}
                   className="border-border bg-background flex size-6 items-center justify-center rounded-md border"
                 >
                   <EngineIcon engine={engine} />
-                  <span className="sr-only">{engine}</span>
+                  <span className="sr-only">{formatModelLabel(engine)}</span>
                 </span>
               ))}
             {new Set(row.evidence.map((evidence) => evidence.engine)).size >
@@ -118,73 +105,61 @@ export function SentimentResultsTable({
         ),
       },
       {
-        key: view === "themes" ? "answers" : "capturedAt",
-        header: view === "themes" ? "Answers" : "Checked",
-        width: view === "themes" ? "6rem" : "8.5rem",
+        key: "answers",
+        header: "Evidence",
+        width: "6rem",
         align: "right",
         sortable: true,
         sortValue: (row) =>
-          view === "themes"
-            ? new Set(row.evidence.map((evidence) => evidence.checkId)).size
-            : (row.evidence[0]?.capturedAt ?? ""),
+          new Set(row.evidence.map((evidence) => evidence.checkId)).size,
         cell: (row) => (
           <span className="text-muted-foreground tabular-nums">
-            {view === "themes"
-              ? new Set(row.evidence.map((evidence) => evidence.checkId)).size
-              : formatAiTrafficTimestamp(row.evidence[0]?.capturedAt ?? "")}
+            {new Set(row.evidence.map((evidence) => evidence.checkId)).size}
           </span>
         ),
       },
     ],
-    [view, isMobile]
+    [isMobile]
   );
 
   return (
-    <div className="min-w-0 space-y-3" aria-busy={pending}>
-      <Tabs
-        className="min-w-0 gap-3"
-        value={view}
-        onValueChange={(value) => {
-          if (value === "themes" || value === "answers") {
-            setView(value);
-            setSelectedId(null);
-          }
+    <div
+      id="sentiment-claims"
+      className="min-w-0 scroll-mt-24 space-y-3"
+      aria-busy={pending}
+    >
+      <Table
+        columns={
+          isMobile
+            ? columns.filter(
+                (column) => column.key !== "polarity" && column.key !== "models"
+              )
+            : [
+                ...columns.slice(1, 2),
+                ...columns.slice(0, 1),
+                ...columns.slice(2),
+              ]
+        }
+        data={rows}
+        getRowId={(row) => row.id}
+        rowHeight={TABLE_ROW_HEIGHT}
+        height={
+          (Math.min(Math.max(rows.length, pending ? 3 : 1), 8) + 1) *
+          TABLE_ROW_HEIGHT
+        }
+        loading={pending}
+        resizable
+        skeletonRows={3}
+        emptyState="No sentiment themes yet."
+        onRowClick={(row) => {
+          returnFocus.current =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+          setSelectedId(row.id);
         }}
-      >
-        <TabsList aria-label="Sentiment evidence view">
-          <TabsTrigger value="themes">By theme</TabsTrigger>
-          <TabsTrigger value="answers">Supporting answers</TabsTrigger>
-        </TabsList>
-        <TabsContent value={view} className="min-w-0">
-          <Table
-            columns={
-              isMobile
-                ? columns.filter(
-                    (column) =>
-                      column.key !== "polarity" && column.key !== "models"
-                  )
-                : columns
-            }
-            data={rows}
-            getRowId={(row) => row.id}
-            rowHeight={TABLE_ROW_HEIGHT}
-            height={
-              (Math.min(Math.max(rows.length, 3), 8) + 1) * TABLE_ROW_HEIGHT
-            }
-            loading={pending}
-            skeletonRows={3}
-            emptyState="No supporting answers in this sample."
-            onRowClick={(row) => {
-              returnFocus.current =
-                document.activeElement instanceof HTMLElement
-                  ? document.activeElement
-                  : null;
-              setSelectedId(row.id);
-            }}
-            className="[&_tr:focus-visible]:outline-ring rounded-2xl [&_tr:focus-visible]:outline-2 [&_tr:focus-visible]:-outline-offset-2"
-          />
-        </TabsContent>
-      </Tabs>
+        className="[&_tr:focus-visible]:outline-ring rounded-2xl [&_tr:focus-visible]:outline-2 [&_tr:focus-visible]:-outline-offset-2"
+      />
       <Sheet
         open={Boolean(selected)}
         onOpenChange={(open) => {
@@ -211,7 +186,9 @@ export function SentimentResultsTable({
               >
                 <div className="text-muted-foreground flex items-center gap-2 text-xs">
                   <EngineIcon engine={evidence.engine} />
-                  <span className="min-w-0 break-words">{evidence.engine}</span>
+                  <span className="min-w-0 break-words">
+                    {formatModelLabel(evidence.engine)}
+                  </span>
                   <time
                     className="ml-auto shrink-0 tabular-nums"
                     dateTime={evidence.capturedAt}

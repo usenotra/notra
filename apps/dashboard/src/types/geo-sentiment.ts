@@ -13,6 +13,7 @@ export interface SentimentSkeletonProps {
   compact?: boolean;
 }
 export interface SentimentDetailRow {
+  theme?: string;
   id: string;
   title: string;
   polarity: SentimentTheme["polarity"];
