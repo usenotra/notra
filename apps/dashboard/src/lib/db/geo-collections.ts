@@ -12,6 +12,7 @@ import { collectionOptions } from "@tanstack/react-db";
 import type { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { rememberCreatedGeoProject } from "@/lib/db/geo-project-create-cache";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoCollectionSpec } from "@/types/geo-db";
 import type { GeoShelfSource } from "@/types/geo-shelf";
@@ -181,12 +182,15 @@ export const geoProjectsCollection = createCollectionFactory<GeoProject>({
     return response.projects;
   },
   getKey: (item) => item.id,
-  insert: (scope, item) =>
-    dashboardOrpc.geo.projectsCreate.call({
+  insert: async (scope, item) => {
+    const created = await dashboardOrpc.geo.projectsCreate.call({
       organizationId: scope.organizationId,
       name: item.name,
       brandSettingsId: item.brandSettingsId,
-    }),
+    });
+    rememberCreatedGeoProject(item.id, created);
+    return created;
+  },
   remove: (scope, original) =>
     dashboardOrpc.geo.projectsDelete.call({
       organizationId: scope.organizationId,

@@ -58,8 +58,12 @@ export function SidebarProjectSwitcher() {
   const { openSettings } = useSettingsModal();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const { projects: loadedProjects, isLoading } =
-    useGeoProjectsDb(organizationId);
+  const {
+    projects: loadedProjects,
+    isLoading,
+    isError,
+    isReady,
+  } = useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
   const projects = loadedProjects;
   const voices = brandData?.voices ?? [];
@@ -70,7 +74,7 @@ export function SidebarProjectSwitcher() {
     null;
 
   useEffect(() => {
-    if (isLoading || !slug) {
+    if (isLoading || isError || !isReady || !slug) {
       return;
     }
 
@@ -94,14 +98,22 @@ export function SidebarProjectSwitcher() {
     if (projectParam !== restoredProjectId) {
       setProjectParam(restoredProjectId);
     }
-  }, [isLoading, loadedProjects, projectParam, setProjectParam, slug]);
+  }, [
+    isError,
+    isLoading,
+    isReady,
+    loadedProjects,
+    projectParam,
+    setProjectParam,
+    slug,
+  ]);
 
   const projectDomain = (brandSettingsId: string) =>
     getWebsiteDomain(
       voices.find((voice) => voice.id === brandSettingsId)?.websiteUrl ?? null
     );
 
-  if (organizationId && isLoading) {
+  if (organizationId && (isLoading || isError || !isReady)) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>

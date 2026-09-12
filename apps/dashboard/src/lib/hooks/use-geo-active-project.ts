@@ -8,12 +8,15 @@ import { getWebsiteDomain } from "@/utils/brand";
 
 export function useGeoActiveProject(organizationId: string): GeoActiveProject {
   const { projectId } = useGeoProjectScope();
-  const { projects } = useGeoProjectsDb(organizationId);
+  const { projects, isLoading, isError, isReady } =
+    useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
-  const project =
-    projects.find((candidate) => candidate.id === projectId) ??
-    projects.at(0) ??
-    null;
+  const hasLoadedProjects = !isLoading && !isError && isReady;
+  const project = hasLoadedProjects
+    ? (projects.find((candidate) => candidate.id === projectId) ??
+      projects.at(0) ??
+      null)
+    : null;
   const voice = project
     ? (brandData?.voices ?? []).find(
         (candidate) => candidate.id === project.brandSettingsId

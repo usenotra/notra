@@ -10,16 +10,13 @@ import type {
 import { mergePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import type { Transaction } from "@tanstack/react-db";
 import { useDbClient, useLiveQuery } from "@tanstack/react-db";
-import type { QueryClient } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
   geoCollectionId,
   geoCompetitorsCollection,
-  geoDbQueryKey,
   geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
@@ -27,13 +24,13 @@ import {
   getGeoShelfSampleData,
   subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
+import { takeCreatedGeoProject } from "@/lib/db/geo-project-create-cache";
 import {
   clearRowPending,
   getPendingRows,
   markRowPending,
   subscribeToPendingRows,
 } from "@/lib/db/pending-rows";
-import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoProjectCreateInput } from "@/types/geo";
 import type {
   GeoShelfDbApi,
@@ -42,6 +39,7 @@ import type {
   GeoShelfSource,
 } from "@/types/geo-shelf";
 import { toErrorMessage } from "@/utils/error-message";
+import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 import { mergeShelfOpportunity } from "@/utils/geo-shelf";
 
 /**
@@ -77,35 +75,6 @@ function usePendingRows(name: string, scope: GeoScopeInput) {
   );
 
   return { pendingIds, track };
-}
-
-async function resolveCreatedGeoProject(
-  queryClient: QueryClient,
-  organizationId: string,
-  tempId: string,
-  trimmedName: string,
-  brandSettingsId: string
-): Promise<GeoProject | null> {
-  const scope = { organizationId };
-  const matchesCreated = (project: GeoProject) =>
-    project.id !== tempId &&
-    project.name === trimmedName &&
-    project.brandSettingsId === brandSettingsId;
-
-  const cached =
-    queryClient.getQueryData<GeoProject[]>(geoDbQueryKey("projects", scope)) ??
-    [];
-  const fromCache = cached.find(matchesCreated) ?? null;
-  if (fromCache) {
-    return fromCache;
-  }
-
-  const response = await queryClient.fetchQuery(
-    dashboardOrpc.geo.projectsList.queryOptions({
-      input: { organizationId },
-    })
-  );
-  return response.projects.find(matchesCreated) ?? null;
 }
 
 export function useGeoPromptsDb(
@@ -201,21 +170,39 @@ export function useGeoProjectsDb(
 ) {
   const isEnabled = options?.enabled ?? true;
   const scope = { organizationId };
-  const queryClient = useQueryClient();
   const dbClient = useDbClient();
   const definition = geoProjectsCollection(scope);
   const collection = dbClient.collection(definition);
   const { pendingIds, track } = usePendingRows("projects", scope);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingDeleteSnapshots, setPendingDeleteSnapshots] = useState<
+    ReadonlyMap<string, GeoProject>
+  >(() => new Map());
 
-  const { data, isLoading } = useLiveQuery(
+  const { data, isLoading, isError, isReady } = useLiveQuery(
     (q) =>
-      isEnabled && organizationId ? q.from({ project: definition }) : undefined,
+      isEnabled && organizationId
+        ? q
+            .from({ project: definition })
+            .orderBy(({ project }) => project.createdAt, "asc")
+            .orderBy(({ project }) => project.id, "asc")
+        : undefined,
     [definition, isEnabled, organizationId]
   );
 
-  const projects: GeoProject[] = data ?? [];
+  const projects = useMemo(() => {
+    const merged = new Map<string, GeoProject>();
+    for (const project of data ?? []) {
+      merged.set(project.id, project);
+    }
+    for (const [projectId, snapshot] of pendingDeleteSnapshots) {
+      if (!merged.has(projectId)) {
+        merged.set(projectId, snapshot);
+      }
+    }
+    return sortGeoProjectsOldestFirst([...merged.values()]);
+  }, [data, pendingDeleteSnapshots]);
 
   const createProject = async (
     input: GeoProjectCreateInput
@@ -232,19 +219,12 @@ export function useGeoProjectsDb(
     track(tempId, transaction, "Failed to create project");
 
     let created: GeoProject | null = null;
-    await transaction.isPersisted.promise
-      .then(async () => {
-        created = await resolveCreatedGeoProject(
-          queryClient,
-          organizationId,
-          tempId,
-          trimmedName,
-          input.brandSettingsId
-        );
-      })
-      .finally(() => {
-        setIsCreating(false);
-      });
+    try {
+      await transaction.isPersisted.promise;
+      created = takeCreatedGeoProject(tempId) ?? null;
+    } finally {
+      setIsCreating(false);
+    }
 
     if (!created) {
       const error = new Error("Failed to resolve created project");
@@ -257,18 +237,34 @@ export function useGeoProjectsDb(
   };
 
   const deleteProject = async (projectId: string) => {
+    const snapshot = projects.find((project) => project.id === projectId);
+    if (snapshot) {
+      setPendingDeleteSnapshots((current) =>
+        new Map(current).set(projectId, snapshot)
+      );
+    }
+
     setIsDeleting(true);
     const transaction = collection.delete(projectId);
     track(projectId, transaction, "Failed to delete project");
-    await transaction.isPersisted.promise.finally(() => {
+    try {
+      await transaction.isPersisted.promise;
+      toast.success("Project deleted");
+    } finally {
+      setPendingDeleteSnapshots((current) => {
+        const next = new Map(current);
+        next.delete(projectId);
+        return next;
+      });
       setIsDeleting(false);
-    });
-    toast.success("Project deleted");
+    }
   };
 
   return {
     projects,
     isLoading,
+    isError,
+    isReady,
     pendingProjectIds: pendingIds,
     isCreating,
     isDeleting,
