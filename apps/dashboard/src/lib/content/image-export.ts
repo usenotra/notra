@@ -30,19 +30,11 @@ let copyAsFigmaPromise: Promise<CopyAsFigma> | null = null;
 let copyAsPaperPromise: Promise<CopyAsPaper> | null = null;
 let copyAsFigmaFn: CopyAsFigma | null = null;
 let copyAsPaperFn: CopyAsPaper | null = null;
-const copyReadyListeners = new Set<() => void>();
-
-function notifyCopyReady(): void {
-  for (const listener of copyReadyListeners) {
-    listener();
-  }
-}
 
 function loadCopyAsFigma(): Promise<CopyAsFigma> {
   copyAsFigmaPromise ??= importCopyAsFigma()
     .then((copyAsFigma) => {
       copyAsFigmaFn = copyAsFigma;
-      notifyCopyReady();
       return copyAsFigma;
     })
     .catch((error: unknown) => {
@@ -56,7 +48,6 @@ function loadCopyAsPaper(): Promise<CopyAsPaper> {
   copyAsPaperPromise ??= importCopyAsPaper()
     .then((copyAsPaper) => {
       copyAsPaperFn = copyAsPaper;
-      notifyCopyReady();
       return copyAsPaper;
     })
     .catch((error: unknown) => {
@@ -77,15 +68,6 @@ export function isImageExportCopyReady(target: ImageExportTarget): boolean {
   return false;
 }
 
-export function subscribeImageExportCopyReady(
-  onStoreChange: () => void
-): () => void {
-  copyReadyListeners.add(onStoreChange);
-  return () => {
-    copyReadyListeners.delete(onStoreChange);
-  };
-}
-
 /** Test-only: drop copy caches so a later case can start a fresh import. */
 export function resetImageExportCopyForTests(next?: {
   figma?: CopyAsFigmaImport;
@@ -97,7 +79,6 @@ export function resetImageExportCopyForTests(next?: {
   copyAsPaperFn = null;
   importCopyAsFigma = next?.figma ?? defaultImportCopyAsFigma;
   importCopyAsPaper = next?.paper ?? defaultImportCopyAsPaper;
-  notifyCopyReady();
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */

@@ -1,17 +1,19 @@
-import { expect, mock, test } from "bun:test";
+import { beforeEach, expect, mock, test } from "bun:test";
 
 const copyAsFigma = mock(async () => undefined);
 const copyAsPaper = mock(async () => undefined);
 const loadFallbackFont = mock(async () => {
   /* Inter payload is mocked as already loaded */
 });
+const toastSuccess = mock(() => undefined);
+const toastError = mock(() => undefined);
 
 mock.module("@notra/kiwi", () => ({ copyAsFigma, loadFallbackFont }));
 mock.module("@notra/kiwi/paper", () => ({ copyAsPaper }));
 mock.module("sonner", () => ({
   toast: {
-    success: mock(() => undefined),
-    error: mock(() => undefined),
+    success: toastSuccess,
+    error: toastError,
   },
 }));
 
@@ -25,6 +27,14 @@ const {
 } = await import("./image-export");
 
 const exportElement = {} as HTMLElement;
+
+beforeEach(() => {
+  copyAsFigma.mockClear();
+  copyAsPaper.mockClear();
+  loadFallbackFont.mockClear();
+  toastError.mockClear();
+  toastSuccess.mockClear();
+});
 
 function withWindow<T>(run: () => T | Promise<T>): T | Promise<T> {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");

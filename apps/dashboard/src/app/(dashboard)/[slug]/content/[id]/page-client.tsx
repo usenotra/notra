@@ -102,7 +102,6 @@ import {
   useGeoWriterBrief,
   useGeoWriterUpdate,
 } from "@/lib/hooks/use-geo-writer";
-import { useImageExportCopyReady } from "@/lib/hooks/use-image-export-copy-ready";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { cn } from "@/lib/utils";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
@@ -218,10 +217,6 @@ export default function PageClient({
   const [chatIdToHydrate, setChatIdToHydrate] = useState<string | null>(null);
   const [imageExportTarget, setImageExportTarget] =
     useState<ImageExportTarget>("paper");
-  const imageExportCopyReady = useImageExportCopyReady(
-    imageExportTarget,
-    data?.content?.contentType === "image"
-  );
 
   const { active, openPanel, closePanel, togglePanel } = useRightPanel();
   const isActivityPanelOpen = active === "content";
@@ -1278,7 +1273,7 @@ export default function PageClient({
 
     setImageExportTarget(value);
     window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
-    copyImageExportFor(value);
+    preloadImageExportCopy(value);
   };
   const collection = data.collection;
   const backHref = collection
@@ -1694,7 +1689,6 @@ export default function PageClient({
                       }
                     >
                       <Button
-                        disabled={!imageExportCopyReady}
                         onClick={handleCopyImageExport}
                         size="sm"
                         variant="outline"
