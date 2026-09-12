@@ -61,11 +61,16 @@ export function ingestAllowedHosts(
  * `null` allowed hosts means the allowlist could not be loaded (infra
  * outage): fail open so a database blip does not drop real traffic. An empty
  * list is a loaded allowlist with nothing configured and rejects every host.
+ * Invalid or empty hosts (data:, file://, localhost) are always rejected,
+ * including on the fail-open path.
  */
 export function acceptsIngestHost(
   host: string,
   allowedHosts: readonly string[] | null
 ): boolean {
+  if (normalizeProjectDomain(host) === null) {
+    return false;
+  }
   if (allowedHosts === null) {
     return true;
   }

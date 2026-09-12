@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import { and, eq } from "drizzle-orm";
 
 import { DEFAULT_BRAND_CONSTRAINT } from "@/constants/brand";
@@ -92,6 +93,7 @@ export async function updateDefaultBrandSettings(
       .update(brandSettings)
       .set(brandData)
       .where(eq(brandSettings.id, existing.id));
+    await invalidateGeoIngestHostsCacheForBrand(organizationId, existing.id);
     return;
   }
 

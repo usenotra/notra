@@ -21,6 +21,7 @@ import {
   contentTriggers,
 } from "@notra/db/schema";
 import { deleteBrandReferenceMemory } from "@notra/db/utils/supermemory";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -398,6 +399,13 @@ export const brandRouter = {
               updatedAt: new Date(),
             })
             .where(eq(brandSettings.id, input.voiceId));
+
+          if (normalizedWebsiteUrl !== undefined) {
+            await invalidateGeoIngestHostsCacheForBrand(
+              input.organizationId,
+              input.voiceId
+            );
+          }
 
           const voices = await db.query.brandSettings.findMany({
             where: eq(brandSettings.organizationId, input.organizationId),

@@ -2,8 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
-import { organizations } from "@notra/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { organizations, projects } from "@notra/db/schema";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -92,6 +92,32 @@ export async function invalidateGeoIngestHostsCache(
   if (projectId) {
     keys.push(geoIngestHostsCacheKey(organizationId, null));
   }
+  await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
+}
+
+/**
+ * Brand website changes affect every project linked to that voice, including
+ * org-scoped tokens that union those hosts.
+ */
+export async function invalidateGeoIngestHostsCacheForBrand(
+  organizationId: string,
+  brandSettingsId: string
+): Promise<void> {
+  const client = redis;
+  if (!client) {
+    return;
+  }
+  const rows = await db.query.projects.findMany({
+    columns: { id: true },
+    where: and(
+      eq(projects.organizationId, organizationId),
+      eq(projects.brandSettingsId, brandSettingsId)
+    ),
+  });
+  const keys = [
+    geoIngestHostsCacheKey(organizationId, null),
+    ...rows.map((row) => geoIngestHostsCacheKey(organizationId, row.id)),
+  ];
   await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
 }
 

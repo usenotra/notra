@@ -69,6 +69,12 @@ describe("acceptsIngestHost", () => {
     expect(acceptsIngestHost("attacker.example", null)).toBe(true);
   });
 
+  test("still rejects hostless and invalid hosts when failing open", () => {
+    expect(acceptsIngestHost("", null)).toBe(false);
+    expect(acceptsIngestHost("localhost", null)).toBe(false);
+    expect(acceptsIngestHost("not a domain", null)).toBe(false);
+  });
+
   test("rejects every host when the loaded allowlist is empty", () => {
     expect(acceptsIngestHost("example.com", [])).toBe(false);
   });

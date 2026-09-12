@@ -7,6 +7,7 @@ import {
   updateBrandAnalysisJob,
 } from "@notra/ai/jobs/brand-analysis";
 import { brandSettings, contentTriggers } from "@notra/db/schema";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import {
   createBrandIdentityRequestSchema,
   createBrandIdentityResponseSchema,
@@ -671,6 +672,10 @@ brandIdentitiesRoutes.openapi(patchBrandIdentityRoute, async (c) => {
 
     if (!brandIdentity) {
       return c.json({ error: "Brand identity not found" }, 404);
+    }
+
+    if (body.websiteUrl !== undefined) {
+      await invalidateGeoIngestHostsCacheForBrand(orgId, brandIdentityId);
     }
 
     return c.json(
