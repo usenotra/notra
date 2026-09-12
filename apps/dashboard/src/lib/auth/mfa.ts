@@ -4,11 +4,13 @@ import { Effect } from "effect";
 
 import {
   MFA_ERROR_CODES,
+  MFA_RECOVERY_COOKIE,
+  MFA_RECOVERY_COOKIE_MAX_AGE_SECONDS,
   TOTP_FACTOR_TYPE,
   TOTP_ISSUER,
 } from "@/constants/security";
 import { WorkOSAuthError } from "@/lib/auth/errors";
-import { createRecoveryToken } from "@/lib/auth/recovery-token";
+import { storeShortLivedCookie } from "@/lib/auth/short-lived-cookie";
 import type { WorkOSErrorInfo } from "@/lib/auth/workos-error";
 
 const tryWorkOS = <T>(run: () => Promise<T>) =>
@@ -75,17 +77,22 @@ export const resolveMfaFlow = Effect.fn("auth.mfa.resolveFlow")(function* (
     }
 
     const authenticationChallengeId = yield* createMfaChallenge(factor.id);
+    if (info.userId) {
+      // Lets the challenge form fall back to a backup code without the
+      // client ever handling the user's identity.
+      yield* Effect.promise(() =>
+        storeShortLivedCookie(
+          MFA_RECOVERY_COOKIE,
+          info.userId ?? "",
+          MFA_RECOVERY_COOKIE_MAX_AGE_SECONDS
+        )
+      );
+    }
     const result: AuthFlowResult = {
       status: "mfa-required",
       pendingAuthenticationToken,
       authenticationChallengeId,
       email: resolvedEmail,
-      recoveryToken: info.userId
-        ? createRecoveryToken({
-            workosUserId: info.userId,
-            email: resolvedEmail,
-          })
-        : undefined,
     };
     return result;
   }

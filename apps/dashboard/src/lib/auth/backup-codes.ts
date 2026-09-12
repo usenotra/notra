@@ -61,14 +61,23 @@ export async function countRemainingBackupCodes(
   return rows.length;
 }
 
-/** Marks the code as used. Returns false when it is unknown or already spent. */
-export async function consumeBackupCode(
+export async function hasBackupCodes(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: userBackupCodes.id })
+    .from(userBackupCodes)
+    .where(eq(userBackupCodes.userId, userId))
+    .limit(1);
+  return Boolean(row);
+}
+
+/** True when `code` matches one of the user's unused backup codes. */
+export async function hasUnusedBackupCode(
   userId: string,
   code: string
 ): Promise<boolean> {
-  const [updated] = await db
-    .update(userBackupCodes)
-    .set({ usedAt: new Date() })
+  const [row] = await db
+    .select({ id: userBackupCodes.id })
+    .from(userBackupCodes)
     .where(
       and(
         eq(userBackupCodes.userId, userId),
@@ -76,6 +85,6 @@ export async function consumeBackupCode(
         isNull(userBackupCodes.usedAt)
       )
     )
-    .returning({ id: userBackupCodes.id });
-  return Boolean(updated);
+    .limit(1);
+  return Boolean(row);
 }

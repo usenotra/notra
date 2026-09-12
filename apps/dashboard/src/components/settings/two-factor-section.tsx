@@ -25,19 +25,16 @@ export function TwoFactorSection({
   const [enrollment, setEnrollment] = useState<ActiveTotpEnrollment | null>(
     null
   );
-  const [verifiedFactorId, setVerifiedFactorId] = useState<string | null>(null);
-  // Only an unverified enrollment must be cleaned up when the pane unmounts;
-  // a verified one stays mounted briefly to show the backup codes.
-  const abandonedEnrollmentRef = useRef<ActiveTotpEnrollment | null>(null);
-  abandonedEnrollmentRef.current =
-    enrollment && enrollment.factorId !== verifiedFactorId ? enrollment : null;
+  const enrollmentRef = useRef(enrollment);
+  enrollmentRef.current = enrollment;
 
+  // Walking away from an unverified enrollment would leave a dangling factor.
   useEffect(() => {
     return () => {
-      const abandoned = abandonedEnrollmentRef.current;
-      if (abandoned) {
+      const current = enrollmentRef.current;
+      if (current?.kind === "scanning") {
         authClient.security
-          .removeAuthFactor({ factorId: abandoned.factorId })
+          .removeAuthFactor({ factorId: current.factorId })
           .catch(() => undefined);
       }
     };
@@ -53,8 +50,7 @@ export function TwoFactorSection({
       return result.data;
     },
     onSuccess: (data) => {
-      setVerifiedFactorId(null);
-      setEnrollment(data);
+      setEnrollment({ kind: "scanning", ...data });
     },
     onError: (error) => {
       toast.error(
@@ -97,7 +93,7 @@ export function TwoFactorSection({
       return { ok: false, message: result.error.message };
     }
 
-    setVerifiedFactorId(enrollment.factorId);
+    setEnrollment({ ...enrollment, kind: "verified" });
     toast.success("Two-factor authentication is on");
     return { ok: true, backupCodes: result.data.backupCodes };
   }
@@ -110,7 +106,7 @@ export function TwoFactorSection({
   function cancelEnrollment() {
     const current = enrollment;
     setEnrollment(null);
-    if (current && current.factorId !== verifiedFactorId) {
+    if (current?.kind === "scanning") {
       authClient.security
         .removeAuthFactor({ factorId: current.factorId })
         .catch(() => undefined);

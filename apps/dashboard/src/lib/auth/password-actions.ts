@@ -17,35 +17,38 @@ import {
 } from "@notra/schemas/dashboard/auth/mfa";
 import type {
   AuthFlowResult,
-  SignInWithPasswordInput,
   RedeemBackupCodeInput,
+  RedeemBackupCodeResult,
+  SignInWithPasswordInput,
   VerifyEmailCodeInput,
   VerifyMfaCodeInput,
 } from "@notra/ui/lib/auth-types";
-import type { Ratelimit } from "@upstash/ratelimit";
 import { getWorkOS, saveSession } from "@workos-inc/authkit-nextjs";
 import type { AuthenticationResponse } from "@workos-inc/node";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { headers } from "next/headers";
 
 import {
   ANALYTICS_AUTH_METHODS,
   PASSWORD_RESET_OUTCOMES,
 } from "@/constants/analytics-events";
-import { TOTP_FACTOR_TYPE } from "@/constants/security";
+import { MFA_RECOVERY_COOKIE, TOTP_FACTOR_TYPE } from "@/constants/security";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import {
   clearBackupCodes,
-  consumeBackupCode,
+  hasBackupCodes,
+  hasUnusedBackupCode,
   replaceBackupCodes,
 } from "@/lib/auth/backup-codes";
 import { UserSyncError, WorkOSAuthError } from "@/lib/auth/errors";
 import { resolveMfaFlow } from "@/lib/auth/mfa";
 import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
-import { readRecoveryToken } from "@/lib/auth/recovery-token";
 import { sanitizeReturnTo } from "@/lib/auth/return-to";
+import {
+  clearShortLivedCookie,
+  readShortLivedCookie,
+} from "@/lib/auth/short-lived-cookie";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 import type {
@@ -53,7 +56,7 @@ import type {
   ResetPasswordInput,
   SignUpWithPasswordInput,
 } from "@/types/auth/password-actions";
-import { getClientIpFromHeaders, ratelimit } from "@/utils/ratelimit";
+import { isRateLimited, ratelimit } from "@/utils/ratelimit";
 
 async function trackAuthEvent(
   event: PostHogEventName,
@@ -68,21 +71,6 @@ const VERIFICATION_REQUIRED_CODE = "email_verification_required";
 const NAME_SPLIT_REGEX = /\s+/;
 const DEFAULT_POST_LOGIN_PATH = "/callback";
 const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
-
-async function isRateLimited(limiter: Ratelimit, email: string) {
-  if (
-    process.env.NODE_ENV !== "production" &&
-    (!process.env.UPSTASH_REDIS_REST_URL ||
-      !process.env.UPSTASH_REDIS_REST_TOKEN)
-  ) {
-    return false;
-  }
-
-  const headersList = await headers();
-  const ip = getClientIpFromHeaders(headersList);
-  const { success } = await limiter.limit(`${ip}:${email.toLowerCase()}`);
-  return !success;
-}
 
 function getClientId() {
   const clientId = process.env.WORKOS_CLIENT_ID;
@@ -102,12 +90,12 @@ const tryWorkOSAuth = <T>(run: () => Promise<T>) =>
     catch: (error) => new WorkOSAuthError({ error }),
   });
 
+/** Persists the WorkOS session, syncs the local user, and resolves the redirect. */
 const completeAuthentication = Effect.fn("auth.password.completeSession")(
   function* (
     response: AuthenticationResponse,
     returnTo?: string | null,
-    completionEvent?: PostHogEventName,
-    options?: { issueBackupCodes?: boolean }
+    completionEvent?: PostHogEventName
   ) {
     yield* Effect.tryPromise({
       try: () =>
@@ -143,28 +131,14 @@ const completeAuthentication = Effect.fn("auth.password.completeSession")(
 
     const redirectTo =
       sanitizeReturnTo(returnTo ?? null) ?? DEFAULT_POST_LOGIN_PATH;
-
-    if (options?.issueBackupCodes) {
-      const backupCodes = yield* Effect.tryPromise({
-        try: () => replaceBackupCodes(localUser.id),
-        catch: (cause) =>
-          new UserSyncError({
-            message: "Failed to generate backup codes",
-            cause,
-          }),
-      });
-      const result: AuthFlowResult = {
-        status: "success",
-        redirectTo,
-        backupCodes,
-      };
-      return result;
-    }
-
-    const result: AuthFlowResult = { status: "success", redirectTo };
-    return result;
+    return { redirectTo, localUserId: localUser.id };
   }
 );
+
+const signedIn = ({ redirectTo }: { redirectTo: string }): AuthFlowResult => ({
+  status: "success",
+  redirectTo,
+});
 
 const mapAuthFailure =
   (email: string) =>
@@ -256,7 +230,9 @@ export async function signInWithPasswordAction(
         })
       );
 
-      return yield* completeAuthentication(response, parsed.data.returnTo);
+      return signedIn(
+        yield* completeAuthentication(response, parsed.data.returnTo)
+      );
     })
   );
 }
@@ -301,7 +277,9 @@ export async function signUpWithPasswordAction(
         })
       );
 
-      return yield* completeAuthentication(response, parsed.data.returnTo);
+      return signedIn(
+        yield* completeAuthentication(response, parsed.data.returnTo)
+      );
     })
   );
 }
@@ -329,10 +307,12 @@ export async function verifyEmailCodeAction(
         })
       );
 
-      return yield* completeAuthentication(
-        response,
-        parsed.data.returnTo,
-        POSTHOG_EVENTS.EMAIL_VERIFIED
+      return signedIn(
+        yield* completeAuthentication(
+          response,
+          parsed.data.returnTo,
+          POSTHOG_EVENTS.EMAIL_VERIFIED
+        )
       );
     })
   );
@@ -371,12 +351,34 @@ export async function verifyMfaCodeAction(
         })
       );
 
-      return yield* completeAuthentication(
+      const session = yield* completeAuthentication(
         response,
         parsed.data.returnTo,
-        POSTHOG_EVENTS.MFA_VERIFIED,
-        { issueBackupCodes: parsed.data.enrollment === true }
+        POSTHOG_EVENTS.MFA_VERIFIED
       );
+
+      // The first successful TOTP sign-in is the end of enrollment: that is
+      // when the user gets their one-time look at the backup codes.
+      const alreadyHasCodes = yield* Effect.promise(() =>
+        hasBackupCodes(session.localUserId)
+      );
+      if (alreadyHasCodes) {
+        return signedIn(session);
+      }
+      const backupCodes = yield* Effect.tryPromise({
+        try: () => replaceBackupCodes(session.localUserId),
+        catch: (cause) =>
+          new UserSyncError({
+            message: "Failed to generate backup codes",
+            cause,
+          }),
+      });
+      const result: AuthFlowResult = {
+        status: "enrolled",
+        redirectTo: session.redirectTo,
+        backupCodes,
+      };
+      return result;
     })
   );
 }
@@ -387,13 +389,13 @@ const BACKUP_CODE_REJECTED_MESSAGE =
 /**
  * A backup code cannot complete a WorkOS MFA challenge, so accepting one
  * removes the authenticator instead and lets the user sign in again without
- * a second factor. The remaining codes are cleared with it.
+ * a second factor. The code is only spent once the factors are gone, so a
+ * WorkOS failure never burns it.
  */
 export async function redeemBackupCodeAction(
   rawInput: RedeemBackupCodeInput
-): Promise<AuthFlowResult> {
+): Promise<RedeemBackupCodeResult> {
   const parsed = redeemBackupCodeInputSchema.safeParse(rawInput);
-
   if (!parsed.success) {
     return {
       status: "error",
@@ -401,46 +403,57 @@ export async function redeemBackupCodeAction(
     };
   }
 
-  const recovery = readRecoveryToken(parsed.data.recoveryToken);
-  if (!recovery) {
+  const workosUserId = await readShortLivedCookie(MFA_RECOVERY_COOKIE);
+  if (!workosUserId) {
     return {
       status: "error",
       message: "This sign-in attempt expired. Please start again.",
     };
   }
 
-  if (await isRateLimited(ratelimit.backupCode, recovery.workosUserId)) {
+  if (await isRateLimited(ratelimit.backupCode, workosUserId)) {
     return { status: "error", message: RATE_LIMITED_MESSAGE };
   }
 
-  const localUser = await db.query.users.findFirst({
-    where: eq(users.workosUserId, recovery.workosUserId),
-    columns: { id: true, email: true },
-  });
-  if (!localUser) {
-    return { status: "error", message: BACKUP_CODE_REJECTED_MESSAGE };
-  }
-
-  const accepted = await consumeBackupCode(localUser.id, parsed.data.code);
-  if (!accepted) {
-    return { status: "error", message: BACKUP_CODE_REJECTED_MESSAGE };
-  }
+  const rejected: RedeemBackupCodeResult = {
+    status: "error",
+    message: BACKUP_CODE_REJECTED_MESSAGE,
+  };
 
   return Effect.runPromise(
     Effect.gen(function* () {
-      const factors = yield* tryWorkOSAuth(() =>
-        getWorkOS().multiFactorAuth.listUserAuthFactors({
-          userId: recovery.workosUserId,
+      const localUser = yield* Effect.promise(() =>
+        db.query.users.findFirst({
+          where: eq(users.workosUserId, workosUserId),
+          columns: { id: true, email: true },
         })
       );
-      for (const factor of factors.data) {
-        if (factor.type === TOTP_FACTOR_TYPE) {
-          yield* tryWorkOSAuth(() =>
-            getWorkOS().multiFactorAuth.deleteFactor(factor.id)
-          );
-        }
+      if (!localUser) {
+        return rejected;
       }
+      const matches = yield* Effect.promise(() =>
+        hasUnusedBackupCode(localUser.id, parsed.data.code)
+      );
+      if (!matches) {
+        return rejected;
+      }
+
+      const factors = yield* tryWorkOSAuth(() =>
+        getWorkOS().multiFactorAuth.listUserAuthFactors({
+          userId: workosUserId,
+        })
+      );
+      yield* Effect.forEach(
+        factors.data.filter((factor) => factor.type === TOTP_FACTOR_TYPE),
+        (factor) =>
+          tryWorkOSAuth(() =>
+            getWorkOS().multiFactorAuth.deleteFactor(factor.id)
+          ),
+        { discard: true }
+      );
+
       yield* Effect.promise(() => clearBackupCodes(localUser.id));
+      yield* Effect.promise(() => clearShortLivedCookie(MFA_RECOVERY_COOKIE));
       yield* Effect.promise(() =>
         trackAuthEvent(
           POSTHOG_EVENTS.MFA_BACKUP_CODE_USED,
@@ -448,14 +461,14 @@ export async function redeemBackupCodeAction(
           localUser.id
         )
       );
-      const result: AuthFlowResult = {
+      const recovered: RedeemBackupCodeResult = {
         status: "recovered",
         email: localUser.email,
       };
-      return result;
+      return recovered;
     }).pipe(
       Effect.catch((error) =>
-        Effect.succeed<AuthFlowResult>({
+        Effect.succeed<RedeemBackupCodeResult>({
           status: "error",
           message: readWorkOSError(error.error).message,
         })

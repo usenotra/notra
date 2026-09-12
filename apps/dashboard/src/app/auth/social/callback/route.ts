@@ -28,7 +28,6 @@ interface SocialCallbackOutcome {
     | "mfa-enrollment-required";
   pendingAuthenticationToken?: string;
   authenticationChallengeId?: string;
-  recoveryToken?: string;
   email?: string;
 }
 
@@ -99,7 +98,6 @@ const mapFailure = (error: WorkOSAuthError | UserSyncError) => {
           kind: "mfa-required",
           pendingAuthenticationToken: mfaResult.pendingAuthenticationToken,
           authenticationChallengeId: mfaResult.authenticationChallengeId,
-          recoveryToken: mfaResult.recoveryToken,
           email: mfaResult.email || undefined,
         });
       }),
@@ -162,9 +160,6 @@ export async function GET(request: NextRequest) {
     });
     if (outcome.email) {
       params.set("email", outcome.email);
-    }
-    if (outcome.recoveryToken) {
-      params.set(LOGIN_MFA_QUERY_KEYS.recovery, outcome.recoveryToken);
     }
     redirect(`/login?${params.toString()}`);
   }

@@ -1,17 +1,17 @@
-import { cookies } from "next/headers";
-
 import {
   ELEVATED_ACCESS_COOKIE,
   ELEVATED_ACCESS_FALLBACK_MAX_AGE_SECONDS,
 } from "@/constants/security";
+import {
+  clearShortLivedCookie,
+  readShortLivedCookie,
+  storeShortLivedCookie,
+} from "@/lib/auth/short-lived-cookie";
 
 const MS_PER_SECOND = 1000;
 
 function resolveMaxAgeSeconds(expiresAt: string | null | undefined) {
-  if (!expiresAt) {
-    return ELEVATED_ACCESS_FALLBACK_MAX_AGE_SECONDS;
-  }
-  const expiresMs = Date.parse(expiresAt);
+  const expiresMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
   if (!Number.isFinite(expiresMs)) {
     return ELEVATED_ACCESS_FALLBACK_MAX_AGE_SECONDS;
   }
@@ -19,28 +19,18 @@ function resolveMaxAgeSeconds(expiresAt: string | null | undefined) {
   return remaining > 0 ? remaining : ELEVATED_ACCESS_FALLBACK_MAX_AGE_SECONDS;
 }
 
-export async function readElevatedAccessToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(ELEVATED_ACCESS_COOKIE)?.value || null;
-}
+export const readElevatedAccessToken = () =>
+  readShortLivedCookie(ELEVATED_ACCESS_COOKIE);
 
-export async function storeElevatedAccessToken(
+export const storeElevatedAccessToken = (
   token: string,
   expiresAt: string | null | undefined
-) {
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: ELEVATED_ACCESS_COOKIE,
-    value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: resolveMaxAgeSeconds(expiresAt),
-  });
-}
+) =>
+  storeShortLivedCookie(
+    ELEVATED_ACCESS_COOKIE,
+    token,
+    resolveMaxAgeSeconds(expiresAt)
+  );
 
-export async function clearElevatedAccessToken() {
-  const cookieStore = await cookies();
-  cookieStore.delete({ name: ELEVATED_ACCESS_COOKIE, path: "/" });
-}
+export const clearElevatedAccessToken = () =>
+  clearShortLivedCookie(ELEVATED_ACCESS_COOKIE);

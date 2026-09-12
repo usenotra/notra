@@ -2,25 +2,6 @@ export type SocialProvider = "google" | "github";
 
 export type AuthMethod = "email" | "google" | "github" | "passkey";
 
-export interface PendingVerification {
-  pendingAuthenticationToken: string;
-  email: string;
-}
-
-export interface PendingMfaChallenge {
-  pendingAuthenticationToken: string;
-  authenticationChallengeId: string;
-  email: string;
-  /** Signed token that lets the user fall back to a backup code. */
-  recoveryToken?: string;
-}
-
-export interface PendingMfaEnrollment extends PendingMfaChallenge {
-  qrCode: string;
-  secret: string;
-  otpauthUri?: string;
-}
-
 export interface SignInWithPasswordInput {
   email: string;
   password: string;
@@ -38,12 +19,9 @@ export interface VerifyMfaCodeInput {
   authenticationChallengeId: string;
   code: string;
   returnTo?: string | null;
-  /** True when the code completes a first-time enrollment; issues backup codes. */
-  enrollment?: boolean;
 }
 
 export interface RedeemBackupCodeInput {
-  recoveryToken: string;
   code: string;
   returnTo?: string | null;
 }
@@ -60,14 +38,13 @@ export interface StartPasskeySignInInput {
 export interface AuthFlowSuccess {
   status: "success";
   redirectTo: string;
-  /** Present once, right after a first-time TOTP enrollment. */
-  backupCodes?: string[];
 }
 
-/** A backup code was accepted: the authenticator was removed, sign in again. */
-export interface AuthFlowRecovered {
-  status: "recovered";
-  email: string;
+/** First successful TOTP sign-in: the session exists and backup codes were issued once. */
+export interface AuthFlowEnrolled {
+  status: "enrolled";
+  redirectTo: string;
+  backupCodes: string[];
 }
 
 export interface AuthFlowVerificationRequired {
@@ -81,7 +58,6 @@ export interface AuthFlowMfaRequired {
   pendingAuthenticationToken: string;
   authenticationChallengeId: string;
   email: string;
-  recoveryToken?: string;
 }
 
 export interface AuthFlowMfaEnrollmentRequired {
@@ -91,7 +67,7 @@ export interface AuthFlowMfaEnrollmentRequired {
   email: string;
   qrCode: string;
   secret: string;
-  otpauthUri?: string;
+  otpauthUri: string;
 }
 
 export interface AuthFlowError {
@@ -101,19 +77,56 @@ export interface AuthFlowError {
 
 export type AuthFlowResult =
   | AuthFlowSuccess
+  | AuthFlowEnrolled
   | AuthFlowVerificationRequired
   | AuthFlowMfaRequired
   | AuthFlowMfaEnrollmentRequired
-  | AuthFlowRecovered
   | AuthFlowError;
 
-export type VerifyMfaCode = (input: VerifyMfaCodeInput) => Promise<AuthFlowResult>;
+/** The results that keep the user on the auth screen for another step. */
+export type PendingAuthStep =
+  | AuthFlowVerificationRequired
+  | AuthFlowMfaRequired
+  | AuthFlowMfaEnrollmentRequired;
 
-export type RedeemBackupCode = (input: RedeemBackupCodeInput) => Promise<AuthFlowResult>;
+/** A backup code was accepted: the authenticator was removed, sign in again. */
+export interface AuthFlowRecovered {
+  status: "recovered";
+  email: string;
+}
+
+export type RedeemBackupCodeResult = AuthFlowRecovered | AuthFlowError;
+
+export type SignInWithPassword = (
+  input: SignInWithPasswordInput
+) => Promise<AuthFlowResult>;
+export type VerifyEmailCode = (
+  input: VerifyEmailCodeInput
+) => Promise<AuthFlowResult>;
+export type VerifyMfaCode = (input: VerifyMfaCodeInput) => Promise<AuthFlowResult>;
+export type RedeemBackupCode = (
+  input: RedeemBackupCodeInput
+) => Promise<RedeemBackupCodeResult>;
+export type StartSocialSignIn = (input: StartSocialSignInInput) => Promise<void>;
+export type StartPasskeySignIn = (
+  input: StartPasskeySignInInput
+) => Promise<void>;
+
+/**
+ * Feeds a server result back into the auth flow. Returns true when the flow
+ * moved on (signed in or a new pending step), false when the caller should
+ * show `result.message`.
+ */
+export type ApplyAuthResult = (result: AuthFlowResult) => boolean;
 
 export type TotpVerifyResult =
   | { ok: true; backupCodes?: string[] }
   | { ok: false; message: string };
+
+export interface UseAuthFlowOptions {
+  initialPending?: PendingAuthStep;
+  onSuccess?: () => void;
+}
 
 export interface AuthFormHeaderProps {
   title?: string;
@@ -180,27 +193,31 @@ export interface TotpCodeInputProps {
 }
 
 export interface EmailVerificationFormProps {
-  pendingAuthenticationToken: string;
-  email: string;
+  step: AuthFlowVerificationRequired;
   returnTo?: string | null;
-  onSuccess?: () => void;
-  onMfaRequired?: (challenge: PendingMfaChallenge) => void;
-  onMfaEnrollmentRequired?: (enrollment: PendingMfaEnrollment) => void;
-  verifyEmailCode: (input: VerifyEmailCodeInput) => Promise<AuthFlowResult>;
+  onResult: ApplyAuthResult;
+  verifyEmailCode: VerifyEmailCode;
 }
 
 export interface MfaChallengeFormProps {
-  pendingAuthenticationToken: string;
-  authenticationChallengeId: string;
-  email?: string;
+  step: AuthFlowMfaRequired;
   returnTo?: string | null;
-  recoveryToken?: string;
-  onSuccess?: () => void;
+  onResult: ApplyAuthResult;
   onBack?: () => void;
   /** Called when a backup code was accepted and the authenticator removed. */
   onRecovered?: (email: string) => void;
   verifyMfaCode: VerifyMfaCode;
   redeemBackupCode?: RedeemBackupCode;
+}
+
+export interface MfaEnrollmentFormProps {
+  step: AuthFlowMfaEnrollmentRequired;
+  returnTo?: string | null;
+  onResult: ApplyAuthResult;
+  /** Leaves the auth screen once the backup codes were acknowledged. */
+  onFinish: (redirectTo: string) => void;
+  onBack?: () => void;
+  verifyMfaCode: VerifyMfaCode;
 }
 
 export interface TotpEnrollmentPanelProps {
@@ -217,12 +234,16 @@ export interface TotpEnrollmentPanelProps {
   onDone?: () => void;
 }
 
-export interface MfaEnrollmentFormProps {
-  enrollment: PendingMfaEnrollment;
+export interface AuthPendingStepProps {
+  step: PendingAuthStep;
   returnTo?: string | null;
-  onSuccess?: () => void;
-  onBack?: () => void;
+  onResult: ApplyAuthResult;
+  onFinish: (redirectTo: string) => void;
+  onBack: () => void;
+  onRecovered?: (email: string) => void;
+  verifyEmailCode: VerifyEmailCode;
   verifyMfaCode: VerifyMfaCode;
+  redeemBackupCode?: RedeemBackupCode;
 }
 
 export interface LoginFieldValidators {
@@ -238,16 +259,13 @@ export interface LoginFormProps {
   showSignupLink?: boolean;
   showForgotPasswordLink?: boolean;
   initialError?: string;
-  initialPendingVerification?: PendingVerification;
-  initialPendingMfa?: PendingMfaChallenge;
+  initialPending?: PendingAuthStep;
   callbackPath: string;
   validators: LoginFieldValidators;
-  signInWithPassword: (
-    input: SignInWithPasswordInput
-  ) => Promise<AuthFlowResult>;
-  verifyEmailCode: (input: VerifyEmailCodeInput) => Promise<AuthFlowResult>;
+  signInWithPassword: SignInWithPassword;
+  verifyEmailCode: VerifyEmailCode;
   verifyMfaCode: VerifyMfaCode;
   redeemBackupCode?: RedeemBackupCode;
-  startSocialSignIn: (input: StartSocialSignInInput) => Promise<void>;
-  startPasskeySignIn?: (input: StartPasskeySignInInput) => Promise<void>;
+  startSocialSignIn: StartSocialSignIn;
+  startPasskeySignIn?: StartPasskeySignIn;
 }

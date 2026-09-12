@@ -1,3 +1,5 @@
+import type { PendingAuthStep } from "@notra/ui/lib/auth-types";
+
 import { LoginErrorTracker } from "@/components/auth/login-error-tracker";
 import { LoginForm } from "@/components/auth/login-form";
 import { LOGIN_ERROR_KEYS, LOGIN_MFA_QUERY_KEYS } from "@/constants/security";
@@ -9,6 +11,35 @@ const ERROR_MESSAGES: Record<string, string> = {
   [LOGIN_ERROR_KEYS.MFA_ENROLLMENT_REQUIRED]:
     "Your organization requires two-factor authentication. Sign in with your email and password to set it up.",
 };
+
+function resolveInitialPending({
+  verify,
+  mfaToken,
+  mfaChallengeId,
+  email,
+}: {
+  verify?: string;
+  mfaToken?: string;
+  mfaChallengeId?: string;
+  email?: string;
+}): PendingAuthStep | undefined {
+  if (mfaToken && mfaChallengeId) {
+    return {
+      status: "mfa-required",
+      pendingAuthenticationToken: mfaToken,
+      authenticationChallengeId: mfaChallengeId,
+      email: email ?? "",
+    };
+  }
+  if (verify) {
+    return {
+      status: "verification-required",
+      pendingAuthenticationToken: verify,
+      email: email ?? "",
+    };
+  }
+  return undefined;
+}
 
 export default async function Login({
   searchParams,
@@ -28,7 +59,6 @@ export default async function Login({
   const errorKey = readParam("error");
   const mfaToken = readParam(LOGIN_MFA_QUERY_KEYS.token);
   const mfaChallengeId = readParam(LOGIN_MFA_QUERY_KEYS.challenge);
-  const recoveryToken = readParam(LOGIN_MFA_QUERY_KEYS.recovery);
   const knownErrorKey =
     errorKey && errorKey in ERROR_MESSAGES ? errorKey : undefined;
 
@@ -37,21 +67,12 @@ export default async function Login({
       {knownErrorKey ? <LoginErrorTracker errorCode={knownErrorKey} /> : null}
       <LoginForm
         initialError={errorKey ? ERROR_MESSAGES[errorKey] : undefined}
-        initialPendingMfa={
-          mfaToken && mfaChallengeId
-            ? {
-                pendingAuthenticationToken: mfaToken,
-                authenticationChallengeId: mfaChallengeId,
-                email: email ?? "",
-                recoveryToken,
-              }
-            : undefined
-        }
-        initialPendingVerification={
-          verify
-            ? { pendingAuthenticationToken: verify, email: email ?? "" }
-            : undefined
-        }
+        initialPending={resolveInitialPending({
+          verify,
+          mfaToken,
+          mfaChallengeId,
+          email,
+        })}
         returnTo={returnTo}
       />
     </div>

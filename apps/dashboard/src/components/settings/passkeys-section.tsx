@@ -12,6 +12,7 @@ import {
   createPasskeyCredential,
   isPasskeySupported,
 } from "@/lib/auth/webauthn-client";
+import type { ActionResult } from "@/types/organizations/actions";
 import type {
   PasskeysSectionProps,
   PendingStepUp,
@@ -46,22 +47,38 @@ export function PasskeysSection({
     null
   );
 
+  /**
+   * Runs a passkey action; when WorkOS wants a fresh email verification the
+   * step-up dialog opens and `resume` re-runs the whole flow afterwards.
+   */
+  async function withStepUp<T>(
+    run: () => Promise<ActionResult<T>>,
+    resume: () => void
+  ): Promise<T | null> {
+    const result = await run();
+    if (result.error?.code === SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED) {
+      setPendingStepUp({ resume });
+      return null;
+    }
+    if (result.error) {
+      toast.error(result.error.message);
+      return null;
+    }
+    return result.data;
+  }
+
   async function addPasskey() {
     setIsAdding(true);
     try {
-      const start = await authClient.security.startPasskeyRegistration();
-      if (start.error) {
-        if (
-          start.error.code === SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED
-        ) {
-          setPendingStepUp({ resume: addPasskey });
-          return;
-        }
-        toast.error(start.error.message);
+      const start = await withStepUp(
+        () => authClient.security.startPasskeyRegistration(),
+        addPasskey
+      );
+      if (!start) {
         return;
       }
 
-      const created = await createPasskeyCredential(start.data.options);
+      const created = await createPasskeyCredential(start.options);
       if (!created.ok) {
         if (!created.cancelled) {
           toast.error(created.message);
@@ -69,18 +86,15 @@ export function PasskeysSection({
         return;
       }
 
-      const completed = await authClient.security.completePasskeyRegistration({
-        challengeId: start.data.challengeId,
-        response: created.response,
-      });
-      if (completed.error) {
-        if (
-          completed.error.code === SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED
-        ) {
-          setPendingStepUp({ resume: addPasskey });
-          return;
-        }
-        toast.error(completed.error.message);
+      const completed = await withStepUp(
+        () =>
+          authClient.security.completePasskeyRegistration({
+            challengeId: start.challengeId,
+            response: created.response,
+          }),
+        addPasskey
+      );
+      if (!completed) {
         return;
       }
 
@@ -96,15 +110,11 @@ export function PasskeysSection({
   async function removePasskey(passkeyId: string) {
     setRemovingPasskeyId(passkeyId);
     try {
-      const result = await authClient.security.removePasskey({ passkeyId });
-      if (result.error) {
-        if (
-          result.error.code === SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED
-        ) {
-          setPendingStepUp({ resume: () => removePasskey(passkeyId) });
-          return;
-        }
-        toast.error(result.error.message);
+      const removed = await withStepUp(
+        () => authClient.security.removePasskey({ passkeyId }),
+        () => removePasskey(passkeyId)
+      );
+      if (!removed) {
         return;
       }
       toast.success("Passkey removed");

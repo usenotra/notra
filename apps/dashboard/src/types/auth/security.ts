@@ -2,20 +2,7 @@ import type {
   PasskeySummary,
   TotpFactorSummary,
 } from "@notra/ui/lib/security-types";
-
-import type { SECURITY_ERROR_CODES } from "@/constants/security";
-
-export type SecurityErrorCode =
-  (typeof SECURITY_ERROR_CODES)[keyof typeof SECURITY_ERROR_CODES];
-
-export interface SecurityActionError {
-  message: string;
-  code: SecurityErrorCode;
-}
-
-export type SecurityActionResult<T> =
-  | { data: T; error: null }
-  | { data: null; error: SecurityActionError };
+import type * as z from "zod";
 
 export interface SecurityOverview {
   email: string;
@@ -40,12 +27,6 @@ export interface VerifyTotpEnrollmentResult {
 
 export interface RegenerateBackupCodesResult {
   codes: string[];
-}
-
-export interface RecoveryTokenPayload {
-  workosUserId: string;
-  email: string;
-  exp: number;
 }
 
 export interface VerifyTotpEnrollmentInput {
@@ -80,47 +61,13 @@ export interface RemovePasskeyInput {
   passkeyId: string;
 }
 
-export interface WidgetsRequestOptions {
+export interface WidgetsRequestOptions<Schema extends z.ZodType> {
   accessToken: string;
-  elevatedAccessToken?: string | null;
-  requiresElevatedAccess?: boolean;
+  elevatedAccessToken?: string;
   path: string;
   method: "GET" | "POST" | "DELETE";
   body?: unknown;
-}
-
-export interface WidgetsPasskeyRecord {
-  id: string;
-  name?: string | null;
-  created_at?: string | null;
-  createdAt?: string | null;
-}
-
-export interface WidgetsAuthenticationInformationResponse {
-  data?: {
-    verificationMethods?: {
-      Mfa?: { isSetUp: boolean; lastUsed?: string | null } | null;
-      Passkey?: {
-        isSetUp: boolean;
-        lastUsed?: string | null;
-        passKeys?: WidgetsPasskeyRecord[];
-      } | null;
-    };
-  };
-}
-
-export interface WidgetsSendVerificationResponse {
-  authenticationChallenge: string;
-}
-
-export interface WidgetsVerifyResponse {
-  elevatedAccessToken: string;
-  expiresAt?: string;
-}
-
-export interface WidgetsRegisterPasskeyResponse {
-  challengeId: string;
-  options: PublicKeyCredentialCreationOptionsJSON;
+  schema: Schema;
 }
 
 /** JSON form of a WebAuthn registration credential (what `credential.toJSON()` returns). */

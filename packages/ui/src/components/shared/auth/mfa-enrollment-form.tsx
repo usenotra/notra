@@ -12,52 +12,45 @@ import { TotpEnrollmentPanel } from "./totp-enrollment-panel";
 const ENROLLMENT_ERROR_FALLBACK = "That code didn't work. Please try again.";
 
 export function MfaEnrollmentForm({
-  enrollment,
+  step,
   returnTo,
-  onSuccess,
+  onResult,
+  onFinish,
   onBack,
   verifyMfaCode,
 }: MfaEnrollmentFormProps) {
   const redirectToRef = useRef<string | null>(null);
 
-  function finish() {
-    if (onSuccess) {
-      onSuccess();
-      return;
-    }
-    if (redirectToRef.current) {
-      window.location.assign(redirectToRef.current);
-    }
-  }
-
   async function handleSubmit(code: string): Promise<TotpVerifyResult> {
     const result = await verifyMfaCode({
-      pendingAuthenticationToken: enrollment.pendingAuthenticationToken,
-      authenticationChallengeId: enrollment.authenticationChallengeId,
+      pendingAuthenticationToken: step.pendingAuthenticationToken,
+      authenticationChallengeId: step.authenticationChallengeId,
       code,
       returnTo,
-      enrollment: true,
     }).catch(() => null);
 
-    if (result?.status === "success") {
+    if (!result) {
+      return { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
+    }
+    // Hold the redirect until the user has seen their backup codes.
+    if (result.status === "enrolled") {
       redirectToRef.current = result.redirectTo;
-      if (!result.backupCodes?.length) {
-        finish();
-      }
       return { ok: true, backupCodes: result.backupCodes };
     }
-
+    if (onResult(result)) {
+      return { ok: true };
+    }
     return {
       ok: false,
       message:
-        result?.status === "error"
+        result.status === "error"
           ? result.message || ENROLLMENT_ERROR_FALLBACK
           : ENROLLMENT_ERROR_FALLBACK,
     };
   }
 
-  const description = enrollment.email
-    ? `Your organization requires a second step when signing in as ${enrollment.email}.`
+  const description = step.email
+    ? `Your organization requires a second step when signing in as ${step.email}.`
     : "Your organization requires a second step when signing in.";
 
   return (
@@ -67,15 +60,19 @@ export function MfaEnrollmentForm({
         title="Set up two-factor authentication"
       />
       <TotpEnrollmentPanel
-        accountLabel={enrollment.email || undefined}
+        accountLabel={step.email || undefined}
         cancelLabel="Back to sign in"
         doneLabel="Continue to Notra"
         onCancel={onBack}
-        onDone={finish}
+        onDone={() => {
+          if (redirectToRef.current) {
+            onFinish(redirectToRef.current);
+          }
+        }}
         onSubmit={handleSubmit}
-        otpauthUri={enrollment.otpauthUri}
-        qrCode={enrollment.qrCode}
-        secret={enrollment.secret}
+        otpauthUri={step.otpauthUri}
+        qrCode={step.qrCode}
+        secret={step.secret}
         submitLabel="Verify and sign in"
       />
     </div>

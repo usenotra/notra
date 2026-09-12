@@ -9,6 +9,9 @@ export const WORKOS_ELEVATED_ACCESS_HEADER = "x-elevated-access-token";
 
 export const ELEVATED_ACCESS_COOKIE = "notra_elevated_access";
 export const ELEVATED_ACCESS_FALLBACK_MAX_AGE_SECONDS = 10 * 60;
+/** Identifies the user mid-challenge so a backup code can be redeemed. */
+export const MFA_RECOVERY_COOKIE = "notra_mfa_recovery";
+export const MFA_RECOVERY_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 
 export const MFA_ERROR_CODES = {
   CHALLENGE: "mfa_challenge",
@@ -18,23 +21,18 @@ export const MFA_ERROR_CODES = {
 export const SECURITY_ERROR_CODES = {
   ELEVATED_ACCESS_REQUIRED: "elevated_access_required",
   INVALID_CODE: "invalid_code",
-  INVALID_INPUT: "invalid_input",
-  UNAUTHORIZED: "unauthorized",
   UNAVAILABLE: "unavailable",
-  UNKNOWN: "unknown",
 } as const;
 
 export const LOGIN_MFA_QUERY_KEYS = {
   token: "mfa",
   challenge: "challenge",
-  recovery: "recovery",
 } as const;
 
 export const BACKUP_CODE_COUNT = 10;
 export const BACKUP_CODE_LENGTH = 8;
 /** Lowercase, no ambiguous characters (0/o, 1/l/i). */
 export const BACKUP_CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
-export const RECOVERY_TOKEN_TTL_SECONDS = 10 * 60;
 
 export const LOGIN_ERROR_KEYS = {
   MFA_ENROLLMENT_REQUIRED: "mfa-enrollment-required",

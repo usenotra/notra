@@ -29,7 +29,6 @@ export const verifyMfaCodeInputSchema = z.object({
   authenticationChallengeId: workosIdSchema("Challenge"),
   code: totpCodeSchema,
   returnTo: returnToSchema,
-  enrollment: z.boolean().optional(),
 });
 
 const BACKUP_CODE_SEPARATOR_REGEX = /[\s-]/g;
@@ -43,10 +42,6 @@ export const backupCodeSchema = z
   .pipe(z.string().regex(BACKUP_CODE_REGEX, "Enter a valid backup code"));
 
 export const redeemBackupCodeInputSchema = z.object({
-  recoveryToken: z
-    .string()
-    .min(1, "Recovery session is missing")
-    .max(AUTH_TOKEN_MAX_LENGTH),
   code: backupCodeSchema,
   returnTo: returnToSchema,
 });

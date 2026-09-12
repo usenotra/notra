@@ -10,14 +10,13 @@ import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 
 const NON_DIGIT_REGEX = /\D/g;
+const CODE_LENGTH = 6;
+const VERIFY_ERROR_FALLBACK = "Verification failed. Please try again.";
 
 export function EmailVerificationForm({
-  pendingAuthenticationToken,
-  email,
+  step,
   returnTo,
-  onSuccess,
-  onMfaRequired,
-  onMfaEnrollmentRequired,
+  onResult,
   verifyEmailCode,
 }: EmailVerificationFormProps) {
   const [code, setCode] = useState("");
@@ -32,65 +31,27 @@ export function EmailVerificationForm({
     setIsPending(true);
 
     const result = await verifyEmailCode({
-      pendingAuthenticationToken,
+      pendingAuthenticationToken: step.pendingAuthenticationToken,
       code,
       returnTo,
     }).catch(() => null);
 
-    if (result?.status === "success") {
-      if (requestIdRef.current === requestId) {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      }
+    if (requestIdRef.current !== requestId) {
       return;
     }
-
-    if (result?.status === "mfa-required" && onMfaRequired) {
-      if (requestIdRef.current === requestId) {
-        onMfaRequired({
-          pendingAuthenticationToken: result.pendingAuthenticationToken,
-          authenticationChallengeId: result.authenticationChallengeId,
-          email: result.email || email,
-          recoveryToken: result.recoveryToken,
-        });
-      }
+    if (result && onResult(result)) {
       return;
     }
-
-    if (result?.status === "mfa-enrollment-required" && onMfaEnrollmentRequired) {
-      if (requestIdRef.current === requestId) {
-        onMfaEnrollmentRequired({
-          pendingAuthenticationToken: result.pendingAuthenticationToken,
-          authenticationChallengeId: result.authenticationChallengeId,
-          email: result.email || email,
-          qrCode: result.qrCode,
-          secret: result.secret,
-          otpauthUri: result.otpauthUri,
-        });
-      }
-      return;
-    }
-
-    const nextError =
-      result?.status === "error"
-        ? result.message
-        : "Verification failed. Please try again.";
-
-    setFormError((previous) =>
-      requestIdRef.current === requestId ? nextError : previous
+    setFormError(
+      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK
     );
-    setIsPending((previous) =>
-      requestIdRef.current === requestId ? false : previous
-    );
+    setIsPending(false);
   }
 
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
-        description={`We sent a 6-digit code to ${email || "your email address"}. Enter it below to continue.`}
+        description={`We sent a 6-digit code to ${step.email || "your email address"}. Enter it below to continue.`}
         title="Check your email"
       />
 
@@ -111,7 +72,7 @@ export function EmailVerificationForm({
             disabled={isPending}
             id="verification-code"
             inputMode="numeric"
-            maxLength={6}
+            maxLength={CODE_LENGTH}
             onChange={(event) =>
               setCode(event.target.value.replace(NON_DIGIT_REGEX, ""))
             }
@@ -125,7 +86,7 @@ export function EmailVerificationForm({
 
           <CtaButton
             className="w-full"
-            disabled={isPending || code.length !== 6}
+            disabled={isPending || code.length !== CODE_LENGTH}
             type="submit"
           >
             {isPending ? (

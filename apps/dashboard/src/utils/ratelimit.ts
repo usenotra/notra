@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
 import { COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE } from "@/constants/company-logo";
@@ -224,4 +225,26 @@ export function getClientIp(request: NextRequest): string {
   }
 
   return request.headers.get("x-vercel-forwarded-for")?.trim() || "unknown";
+}
+
+/**
+ * Sliding-window check keyed by client IP plus a caller-provided key. Skipped
+ * outside production when no Upstash credentials are configured.
+ */
+export async function isRateLimited(
+  limiter: Ratelimit,
+  key: string
+): Promise<boolean> {
+  const skipInDevelopment =
+    process.env.NODE_ENV !== "production" &&
+    (!process.env.UPSTASH_REDIS_REST_URL ||
+      !process.env.UPSTASH_REDIS_REST_TOKEN);
+  if (skipInDevelopment) {
+    return false;
+  }
+
+  const headersList = await headers();
+  const ip = getClientIpFromHeaders(headersList);
+  const { success } = await limiter.limit(`${ip}:${key.toLowerCase()}`);
+  return !success;
 }

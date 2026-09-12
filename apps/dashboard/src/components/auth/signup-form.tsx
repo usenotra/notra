@@ -7,19 +7,12 @@ import { AuthFormError } from "@notra/ui/components/shared/auth/auth-form-error"
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { AuthOrDivider } from "@notra/ui/components/shared/auth/auth-or-divider";
 import { AuthPasswordField } from "@notra/ui/components/shared/auth/auth-password-field";
+import { AuthPendingStep } from "@notra/ui/components/shared/auth/auth-pending-step";
 import { AuthSocialButtons } from "@notra/ui/components/shared/auth/auth-social-buttons";
-import { EmailVerificationForm } from "@notra/ui/components/shared/auth/email-verification-form";
-import { MfaChallengeForm } from "@notra/ui/components/shared/auth/mfa-challenge-form";
-import { MfaEnrollmentForm } from "@notra/ui/components/shared/auth/mfa-enrollment-form";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Separator } from "@notra/ui/components/ui/separator";
-import type {
-  AuthMethod,
-  PendingMfaChallenge,
-  PendingMfaEnrollment,
-  PendingVerification,
-  SocialProvider,
-} from "@notra/ui/lib/auth-types";
+import { useAuthFlow } from "@notra/ui/hooks/use-auth-flow";
+import type { AuthMethod, SocialProvider } from "@notra/ui/lib/auth-types";
 import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
@@ -67,13 +60,7 @@ export function SignupForm({
 }: SignupFormProps) {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [pendingVerification, setPendingVerification] =
-    useState<PendingVerification | null>(null);
-  const [pendingMfa, setPendingMfa] = useState<PendingMfaChallenge | null>(
-    null
-  );
-  const [pendingEnrollment, setPendingEnrollment] =
-    useState<PendingMfaEnrollment | null>(null);
+  const flow = useAuthFlow({ onSuccess });
   const authInFlightRef = useRef(false);
   const [attributionParams] = useQueryStates(marketingAttributionSearchParams, {
     history: "replace",
@@ -188,52 +175,10 @@ export function SignupForm({
           signupMethod: "email",
         });
 
-        if (result.status === "verification-required") {
+        flow.applyResult(result);
+        if (result.status !== "success") {
           authInFlightRef.current = false;
           setAuthMethod(null);
-          setPendingVerification({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            email: result.email,
-          });
-          return;
-        }
-
-        if (result.status === "mfa-required") {
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          setPendingMfa({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            authenticationChallengeId: result.authenticationChallengeId,
-            email: result.email,
-          });
-          return;
-        }
-
-        if (result.status === "mfa-enrollment-required") {
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          setPendingEnrollment({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            authenticationChallengeId: result.authenticationChallengeId,
-            email: result.email,
-            qrCode: result.qrCode,
-            secret: result.secret,
-            otpauthUri: result.otpauthUri,
-          });
-          return;
-        }
-
-        if (result.status === "recovered") {
-          // Backup codes are a sign-in concern; a fresh signup never gets here.
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          return;
-        }
-
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
         }
       } catch (error) {
         console.error("Email signup error:", error);
@@ -244,44 +189,16 @@ export function SignupForm({
     },
   });
 
-  if (pendingEnrollment) {
+  if (flow.pending) {
     return (
-      <MfaEnrollmentForm
-        enrollment={pendingEnrollment}
-        onBack={() => setPendingEnrollment(null)}
-        onSuccess={onSuccess}
+      <AuthPendingStep
+        onBack={flow.reset}
+        onFinish={flow.finish}
+        onResult={flow.applyResult}
         returnTo={buildCallbackUrl("email")}
-        verifyMfaCode={verifyMfaCodeAction}
-      />
-    );
-  }
-
-  if (pendingMfa) {
-    return (
-      <MfaChallengeForm
-        authenticationChallengeId={pendingMfa.authenticationChallengeId}
-        email={pendingMfa.email}
-        onBack={() => setPendingMfa(null)}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={pendingMfa.pendingAuthenticationToken}
-        returnTo={buildCallbackUrl("email")}
-        verifyMfaCode={verifyMfaCodeAction}
-      />
-    );
-  }
-
-  if (pendingVerification) {
-    return (
-      <EmailVerificationForm
-        email={pendingVerification.email}
-        onMfaEnrollmentRequired={setPendingEnrollment}
-        onMfaRequired={setPendingMfa}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={
-          pendingVerification.pendingAuthenticationToken
-        }
-        returnTo={buildCallbackUrl("email")}
+        step={flow.pending}
         verifyEmailCode={verifyEmailCodeAction}
+        verifyMfaCode={verifyMfaCodeAction}
       />
     );
   }

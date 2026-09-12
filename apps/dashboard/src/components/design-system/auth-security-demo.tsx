@@ -17,7 +17,11 @@ import {
 import { Label } from "@notra/ui/components/ui/label";
 import { Separator } from "@notra/ui/components/ui/separator";
 import { Switch } from "@notra/ui/components/ui/switch";
-import type { TotpVerifyResult, VerifyMfaCode } from "@notra/ui/lib/auth-types";
+import type {
+  RedeemBackupCode,
+  TotpVerifyResult,
+  VerifyMfaCode,
+} from "@notra/ui/lib/auth-types";
 import type {
   PasskeySummary,
   SecurityActionOutcome,
@@ -103,7 +107,7 @@ function MfaChallengeDemo() {
     };
   };
 
-  const redeemBackupCode = async ({ code }: { code: string }) => {
+  const redeemBackupCode: RedeemBackupCode = async ({ code }) => {
     await wait(DEMO_LATENCY_MS);
     if (DEMO_BACKUP_CODES.includes(code.toLowerCase().replaceAll("-", ""))) {
       return { status: "recovered" as const, email: DEMO_EMAIL };
@@ -130,14 +134,22 @@ function MfaChallengeDemo() {
 
   return (
     <MfaChallengeForm
-      authenticationChallengeId="auth_challenge_demo"
-      email={DEMO_EMAIL}
       onBack={() => setState("idle")}
-      onSuccess={() => setState("verified")}
       onRecovered={() => setState("verified")}
-      pendingAuthenticationToken="pending_demo"
-      recoveryToken="recovery_demo"
+      onResult={(result) => {
+        if (result.status === "success" || result.status === "enrolled") {
+          setState("verified");
+          return true;
+        }
+        return false;
+      }}
       redeemBackupCode={redeemBackupCode}
+      step={{
+        status: "mfa-required",
+        pendingAuthenticationToken: "pending_demo",
+        authenticationChallengeId: "auth_challenge_demo",
+        email: DEMO_EMAIL,
+      }}
       verifyMfaCode={verifyMfaCode}
     />
   );

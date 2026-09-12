@@ -4,13 +4,10 @@ import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
+import { useAuthFlow } from "../../../hooks/use-auth-flow";
 import type {
-  AuthFlowResult,
   AuthMethod,
   LoginFormProps,
-  PendingMfaChallenge,
-  PendingMfaEnrollment,
-  PendingVerification,
   SocialProvider,
 } from "../../../lib/auth-types";
 import {
@@ -27,17 +24,18 @@ import { AuthFormHeader } from "./auth-form-header";
 import { AuthOrDivider } from "./auth-or-divider";
 import { AuthPasskeyButton } from "./auth-passkey-button";
 import { AuthPasswordField } from "./auth-password-field";
+import { AuthPendingStep } from "./auth-pending-step";
 import { AuthSocialButtons } from "./auth-social-buttons";
-import { EmailVerificationForm } from "./email-verification-form";
-import { MfaChallengeForm } from "./mfa-challenge-form";
-import { MfaEnrollmentForm } from "./mfa-enrollment-form";
 
 const LOGIN_ERROR_FALLBACK = "Failed to sign in. Please try again.";
 const PASSKEY_ERROR_FALLBACK = "Passkey sign-in failed. Please try again.";
+const SOCIAL_ERROR_FALLBACK = "Social sign-in failed. Please try again.";
 
 const noop = () => {
   return;
 };
+const subscribeToNothing = () => noop;
+const returnNull = () => null;
 
 /**
  * Leaving an untouched field (for example by clicking a social or passkey
@@ -47,8 +45,6 @@ const validateFilledField = (
   validate: (value: string) => string | undefined,
   value: string
 ) => (value.length > 0 ? validate(value) : undefined);
-const subscribeToNothing = () => noop;
-const returnNull = () => null;
 
 export function LoginForm({
   title = "Welcome back",
@@ -58,8 +54,7 @@ export function LoginForm({
   showSignupLink = true,
   showForgotPasswordLink = true,
   initialError,
-  initialPendingVerification,
-  initialPendingMfa,
+  initialPending,
   callbackPath,
   validators,
   signInWithPassword,
@@ -73,59 +68,89 @@ export function LoginForm({
   const [formError, setFormError] = useState<string | null>(
     initialError ?? null
   );
-  const [pendingVerification, setPendingVerification] =
-    useState<PendingVerification | null>(initialPendingVerification ?? null);
-  const [pendingMfa, setPendingMfa] = useState<PendingMfaChallenge | null>(
-    initialPendingMfa ?? null
-  );
-  const [pendingEnrollment, setPendingEnrollment] =
-    useState<PendingMfaEnrollment | null>(null);
   const authInFlightRef = useRef(false);
+  const flow = useAuthFlow({ initialPending, onSuccess });
   const lastMethod = useSyncExternalStore(
     subscribeToNothing,
     getLastUsedLoginMethod,
     returnNull
   );
   const isAuthLoading = authMethod !== null;
-
   const callbackURL = returnTo ?? callbackPath;
 
-  function resetToSignIn() {
-    setPendingVerification(null);
-    setPendingMfa(null);
-    setPendingEnrollment(null);
-    setFormError(null);
+  function releaseAuth() {
+    authInFlightRef.current = false;
+    setAuthMethod(null);
   }
 
-  function handlePendingResult(result: AuthFlowResult) {
-    if (result.status === "verification-required") {
-      setPendingVerification({
-        pendingAuthenticationToken: result.pendingAuthenticationToken,
-        email: result.email,
-      });
+  /** Runs a redirect-style sign-in (social, passkey); a Next redirect throws by design. */
+  function startRedirectSignIn(
+    method: AuthMethod,
+    start: () => Promise<void>,
+    fallbackError: string
+  ) {
+    if (authInFlightRef.current) {
       return;
     }
+    setFormError(null);
+    authInFlightRef.current = true;
+    setAuthMethod(method);
+    setLastUsedLoginMethod(method);
+    start().catch((error) => {
+      if (isNextRedirectError(error)) {
+        return;
+      }
+      releaseAuth();
+      setFormError(fallbackError);
+    });
+  }
 
-    if (result.status === "mfa-required") {
-      setPendingMfa({
-        pendingAuthenticationToken: result.pendingAuthenticationToken,
-        authenticationChallengeId: result.authenticationChallengeId,
-        email: result.email,
-        recoveryToken: result.recoveryToken,
-      });
+  async function submitPassword(email: string, password: string) {
+    if (authInFlightRef.current) {
       return;
     }
-
-    if (result.status === "mfa-enrollment-required") {
-      setPendingEnrollment({
-        pendingAuthenticationToken: result.pendingAuthenticationToken,
-        authenticationChallengeId: result.authenticationChallengeId,
-        email: result.email,
-        qrCode: result.qrCode,
-        secret: result.secret,
-        otpauthUri: result.otpauthUri,
+    setFormError(null);
+    authInFlightRef.current = true;
+    setAuthMethod("email");
+    try {
+      const result = await signInWithPassword({
+        email,
+        password,
+        returnTo: callbackURL,
       });
+      if (result.status === "success") {
+        setLastUsedLoginMethod("email");
+      }
+      if (!flow.applyResult(result)) {
+        setFormError(
+          result.status === "error"
+            ? result.message || LOGIN_ERROR_FALLBACK
+            : LOGIN_ERROR_FALLBACK
+        );
+      }
+      if (result.status !== "success") {
+        releaseAuth();
+      }
+    } catch (error) {
+      console.error("Email login error:", error);
+      setFormError(LOGIN_ERROR_FALLBACK);
+      releaseAuth();
     }
+  }
+
+  const form = useForm({
+    defaultValues: { email: "", password: "" },
+    onSubmit: async ({ value }) => {
+      if (validators.email(value.email) || validators.password(value.password)) {
+        return;
+      }
+      await submitPassword(value.email, value.password);
+    },
+  });
+
+  function resetToSignIn() {
+    flow.reset();
+    setFormError(null);
   }
 
   /**
@@ -133,169 +158,29 @@ export function LoginForm({
    * form, sign in again right away; otherwise ask the user to sign in.
    */
   async function handleRecovered(recoveredEmail: string) {
-    setPendingMfa(null);
+    flow.reset();
     const { email, password } = form.state.values;
-    if (email && password && !authInFlightRef.current) {
-      authInFlightRef.current = true;
-      setAuthMethod("email");
-      try {
-        const result = await signInWithPassword({
-          email,
-          password,
-          returnTo: callbackURL,
-        });
-        if (result.status === "success") {
-          setLastUsedLoginMethod("email");
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            window.location.assign(result.redirectTo);
-          }
-          return;
-        }
-      } catch {
-        // fall through to the manual sign-in prompt
-      }
-      authInFlightRef.current = false;
-      setAuthMethod(null);
+    if (email && password) {
+      await submitPassword(email, password);
+      return;
     }
     setFormError(
       `Backup code accepted. Two-factor authentication was turned off for ${recoveredEmail}. Sign in again to continue.`
     );
   }
 
-  function handleSocialLogin(provider: SocialProvider) {
-    if (authInFlightRef.current) {
-      return;
-    }
-
-    setFormError(null);
-    authInFlightRef.current = true;
-    setAuthMethod(provider);
-    setLastUsedLoginMethod(provider);
-    startSocialSignIn({ provider, returnTo: callbackURL }).catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
-      authInFlightRef.current = false;
-      setAuthMethod(null);
-      setFormError("Social sign-in failed. Please try again.");
-    });
-  }
-
-  function handlePasskeyLogin() {
-    if (!startPasskeySignIn || authInFlightRef.current) {
-      return;
-    }
-
-    setFormError(null);
-    authInFlightRef.current = true;
-    setAuthMethod("passkey");
-    setLastUsedLoginMethod("passkey");
-    startPasskeySignIn({ returnTo: callbackURL }).catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
-      authInFlightRef.current = false;
-      setAuthMethod(null);
-      setFormError(PASSKEY_ERROR_FALLBACK);
-    });
-  }
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      if (authInFlightRef.current) {
-        return;
-      }
-
-      if (validators.email(value.email) || validators.password(value.password)) {
-        return;
-      }
-
-      setFormError(null);
-      authInFlightRef.current = true;
-      setAuthMethod("email");
-      try {
-        const result = await signInWithPassword({
-          email: value.email,
-          password: value.password,
-          returnTo: callbackURL,
-        });
-
-        if (result.status === "error") {
-          setFormError(result.message || LOGIN_ERROR_FALLBACK);
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          return;
-        }
-
-        if (result.status !== "success") {
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          handlePendingResult(result);
-          return;
-        }
-
-        setLastUsedLoginMethod("email");
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      } catch (error) {
-        console.error("Email login error:", error);
-        setFormError(LOGIN_ERROR_FALLBACK);
-        authInFlightRef.current = false;
-        setAuthMethod(null);
-      }
-    },
-  });
-
-  if (pendingEnrollment) {
+  if (flow.pending) {
     return (
-      <MfaEnrollmentForm
-        enrollment={pendingEnrollment}
+      <AuthPendingStep
         onBack={resetToSignIn}
-        onSuccess={onSuccess}
-        returnTo={callbackURL}
-        verifyMfaCode={verifyMfaCode}
-      />
-    );
-  }
-
-  if (pendingMfa) {
-    return (
-      <MfaChallengeForm
-        authenticationChallengeId={pendingMfa.authenticationChallengeId}
-        email={pendingMfa.email}
-        onBack={resetToSignIn}
+        onFinish={flow.finish}
         onRecovered={handleRecovered}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={pendingMfa.pendingAuthenticationToken}
-        recoveryToken={pendingMfa.recoveryToken}
-        returnTo={callbackURL}
+        onResult={flow.applyResult}
         redeemBackupCode={redeemBackupCode}
-        verifyMfaCode={verifyMfaCode}
-      />
-    );
-  }
-
-  if (pendingVerification) {
-    return (
-      <EmailVerificationForm
-        email={pendingVerification.email}
-        onMfaEnrollmentRequired={setPendingEnrollment}
-        onMfaRequired={setPendingMfa}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={
-          pendingVerification.pendingAuthenticationToken
-        }
         returnTo={callbackURL}
+        step={flow.pending}
         verifyEmailCode={verifyEmailCode}
+        verifyMfaCode={verifyMfaCode}
       />
     );
   }
@@ -309,7 +194,13 @@ export function LoginForm({
           authMethod={authMethod}
           disabled={isAuthLoading}
           lastMethod={lastMethod}
-          onSelect={handleSocialLogin}
+          onSelect={(provider: SocialProvider) =>
+            startRedirectSignIn(
+              provider,
+              () => startSocialSignIn({ provider, returnTo: callbackURL }),
+              SOCIAL_ERROR_FALLBACK
+            )
+          }
         />
 
         {startPasskeySignIn && (
@@ -317,7 +208,13 @@ export function LoginForm({
             disabled={isAuthLoading}
             lastUsed={lastMethod === "passkey"}
             loading={authMethod === "passkey"}
-            onClick={handlePasskeyLogin}
+            onClick={() =>
+              startRedirectSignIn(
+                "passkey",
+                () => startPasskeySignIn({ returnTo: callbackURL }),
+                PASSKEY_ERROR_FALLBACK
+              )
+            }
           />
         )}
 
@@ -337,7 +234,8 @@ export function LoginForm({
             <form.Field
               name="email"
               validators={{
-                onBlur: ({ value }) => validateFilledField(validators.email, value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.email, value),
                 onSubmit: ({ value }) => validators.email(value),
               }}
             >
@@ -357,7 +255,8 @@ export function LoginForm({
             <form.Field
               name="password"
               validators={{
-                onBlur: ({ value }) => validateFilledField(validators.password, value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.password, value),
                 onSubmit: ({ value }) => validators.password(value),
               }}
             >

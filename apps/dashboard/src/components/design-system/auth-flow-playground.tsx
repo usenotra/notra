@@ -5,7 +5,6 @@ import { LoginForm } from "@notra/ui/components/shared/auth/login-form";
 import { PasskeysSettings } from "@notra/ui/components/shared/security/passkeys-settings";
 import { StepUpVerification } from "@notra/ui/components/shared/security/step-up-verification";
 import { TwoFactorSettings } from "@notra/ui/components/shared/security/two-factor-settings";
-import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -20,8 +19,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
-import { Label } from "@notra/ui/components/ui/label";
-import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Tabs,
   TabsContent,
@@ -35,29 +32,27 @@ import type {
   StartPasskeySignInInput,
   TotpVerifyResult,
   RedeemBackupCodeInput,
+  RedeemBackupCodeResult,
   VerifyMfaCodeInput,
 } from "@notra/ui/lib/auth-types";
 import type {
   BackupCodesOutcome,
   SecurityActionOutcome,
 } from "@notra/ui/lib/security-types";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import {
+  formatClock,
+  SignedInView,
+  SimulatorPanel,
+} from "@/components/design-system/auth-flow-simulator-panel";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { TOTP_ISSUER } from "@/constants/security";
 import {
   buildOtpauthUri,
-  generateTotpCode,
   generateTotpSecret,
-  secondsUntilNextTotp,
   verifyTotpCode,
 } from "@/lib/auth/dev-totp";
 import {
@@ -90,7 +85,6 @@ const BACKUP_CODE_COUNT = 10;
 const BACKUP_CODE_LENGTH = 8;
 const BACKUP_CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
 const MAX_LOG_ENTRIES = 40;
-const TOTP_TICK_MS = 1000;
 const MS_PER_SECOND = 1000;
 
 const wait = (ms: number) =>
@@ -137,242 +131,6 @@ function randomEmailCode() {
   return String((value ?? 0) % EMAIL_CODE_MODULUS).padStart(6, "0");
 }
 
-function formatClock(iso: string) {
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
-function AuthenticatorWidget({ secret }: { secret: string | null }) {
-  const [code, setCode] = useState<string | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(secondsUntilNextTotp());
-
-  useEffect(() => {
-    if (!secret) {
-      return;
-    }
-    let cancelled = false;
-    const refresh = async () => {
-      const next = await generateTotpCode(secret);
-      if (!cancelled) {
-        setCode(next);
-        setSecondsLeft(secondsUntilNextTotp());
-      }
-    };
-    refresh();
-    const timer = setInterval(refresh, TOTP_TICK_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [secret]);
-
-  if (!secret) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        No account enrolled yet. Start enrollment to see codes here.
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <p className="text-muted-foreground text-xs">
-          {TOTP_ISSUER} · {DEFAULT_EMAIL}
-        </p>
-        <p className="font-mono text-2xl tracking-[0.3em] tabular-nums">
-          {code ?? "······"}
-        </p>
-      </div>
-      <Badge variant={secondsLeft <= 5 ? "warning" : "secondary"}>
-        {secondsLeft}s
-      </Badge>
-    </div>
-  );
-}
-
-function SimulatorPanel({
-  account,
-  backupCodeCount,
-  orgRequiresMfa,
-  session,
-  pending,
-  settingsEnrollmentSecret,
-  inbox,
-  log,
-  onToggleOrgRequiresMfa,
-  onReset,
-}: {
-  account: DevAccount;
-  backupCodeCount: number;
-  orgRequiresMfa: boolean;
-  session: DevSession | null;
-  pending: DevPendingAuth | null;
-  settingsEnrollmentSecret: string | null;
-  inbox: DevEmailMessage[];
-  log: DevLogEntry[];
-  onToggleOrgRequiresMfa: (value: boolean) => void;
-  onReset: () => void;
-}) {
-  const authenticatorSecret =
-    account.totpSecret ?? pending?.enrollmentSecret ?? settingsEnrollmentSecret;
-
-  return (
-    <div className="space-y-4">
-      <TitleCard
-        action={
-          <Button onClick={onReset} size="sm" variant="outline">
-            Reset
-          </Button>
-        }
-        heading="Simulated WorkOS"
-      >
-        <dl className="grid gap-2 text-sm">
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Email</dt>
-            <dd className="font-mono text-xs">{account.email}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Password</dt>
-            <dd className="font-mono text-xs">{account.password}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Authenticator app</dt>
-            <dd>
-              <Badge variant={account.totpSecret ? "success" : "outline"}>
-                {account.totpSecret ? "Enrolled" : "Off"}
-              </Badge>
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Backup codes</dt>
-            <dd>
-              <Badge variant={backupCodeCount ? "success" : "outline"}>
-                {backupCodeCount}
-              </Badge>
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Passkeys</dt>
-            <dd>
-              <Badge variant={account.passkeys.length ? "success" : "outline"}>
-                {account.passkeys.length}
-              </Badge>
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">Session</dt>
-            <dd>
-              {session ? (
-                <Badge variant="success">
-                  {session.method}
-                  {session.secondFactor ? " + totp" : ""}
-                </Badge>
-              ) : (
-                <Badge variant="outline">Signed out</Badge>
-              )}
-            </dd>
-          </div>
-        </dl>
-        <div className="mt-4 flex items-center justify-between rounded-lg border p-3">
-          <div>
-            <Label htmlFor="org-requires-mfa">Organization requires 2FA</Label>
-            <p className="text-muted-foreground text-xs">
-              Forces enrollment at sign-in when no factor exists.
-            </p>
-          </div>
-          <Switch
-            checked={orgRequiresMfa}
-            id="org-requires-mfa"
-            onCheckedChange={onToggleOrgRequiresMfa}
-          />
-        </div>
-      </TitleCard>
-
-      <TitleCard heading="Authenticator app">
-        <AuthenticatorWidget secret={authenticatorSecret} />
-      </TitleCard>
-
-      <TitleCard heading="Email inbox">
-        {inbox.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Verification emails show up here.
-          </p>
-        ) : (
-          <ul className="grid gap-2 text-sm">
-            {inbox.map((message) => (
-              <li
-                className="flex items-center justify-between gap-3"
-                key={message.id}
-              >
-                <div>
-                  <p className="font-medium">{message.purpose}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {formatClock(message.sentAt)}
-                  </p>
-                </div>
-                <code className="bg-muted/50 rounded-md border px-2 py-1 font-mono text-sm tracking-widest">
-                  {message.code}
-                </code>
-              </li>
-            ))}
-          </ul>
-        )}
-      </TitleCard>
-
-      <TitleCard heading="Event log">
-        {log.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Nothing yet.</p>
-        ) : (
-          <ol className="grid max-h-72 gap-1 overflow-y-auto font-mono text-xs">
-            {log.map((entry) => (
-              <li className="flex gap-2" key={entry.id}>
-                <span className="text-muted-foreground shrink-0">
-                  {formatClock(entry.at)}
-                </span>
-                <span>{entry.message}</span>
-              </li>
-            ))}
-          </ol>
-        )}
-      </TitleCard>
-    </div>
-  );
-}
-
-function SignedInView({
-  session,
-  onSignOut,
-  onOpenSettings,
-}: {
-  session: DevSession;
-  onSignOut: () => void;
-  onOpenSettings: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-4 py-10 text-center">
-      <Badge variant="success">Signed in</Badge>
-      <div>
-        <p className="text-lg font-semibold">{session.email}</p>
-        <p className="text-muted-foreground text-sm">
-          via {session.method}
-          {session.secondFactor ? " + authenticator code" : ""} at{" "}
-          {formatClock(session.signedInAt)}
-        </p>
-      </div>
-      <div className="flex gap-2">
-        <Button onClick={onOpenSettings}>Open security settings</Button>
-        <Button onClick={onSignOut} variant="outline">
-          Sign out
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export function AuthFlowPlayground() {
   const [account, setAccount] = useState<DevAccount>({
     email: DEFAULT_EMAIL,
@@ -403,6 +161,13 @@ export function AuthFlowPlayground() {
   // Mirrors `elevated.grantedUntil` so a resumed action sees the grant
   // synchronously instead of the closure it was created in.
   const elevatedUntilRef = useRef<number | null>(null);
+  // A first-time enrollment shows backup codes before the redirect, so the
+  // session only becomes visible once the login form reports completion.
+  const pendingSessionRef = useRef<DevSession | null>(null);
+  // Handlers are captured by the login form at render time; reading through
+  // a ref keeps a re-submitted sign-in (after a backup code) on fresh state.
+  const accountRef = useRef(account);
+  accountRef.current = account;
   const [isAddingPasskey, setIsAddingPasskey] = useState(false);
   const [removingPasskeyId, setRemovingPasskeyId] = useState<string | null>(
     null
@@ -461,6 +226,7 @@ export function AuthFlowPlayground() {
     input: SignInWithPasswordInput
   ): Promise<AuthFlowResult> {
     await wait(SIMULATED_LATENCY_MS);
+    const account = accountRef.current;
     const matches =
       input.email.trim().toLowerCase() === account.email &&
       input.password === account.password;
@@ -483,7 +249,6 @@ export function AuthFlowPlayground() {
         pendingAuthenticationToken: next.token,
         authenticationChallengeId: next.challengeId,
         email: account.email,
-        recoveryToken: next.token,
       };
     }
 
@@ -551,30 +316,33 @@ export function AuthFlowPlayground() {
       };
     }
 
-    let issuedCodes: string[] | undefined;
-    if (pending.kind === "enrollment") {
-      setAccount((current) => ({
-        ...current,
-        totpSecret: secret,
-        totpEnrolledAt: new Date().toISOString(),
-      }));
-      issuedCodes = randomBackupCodes();
-      setBackupCodes(issuedCodes);
-      appendLog(
-        "authenticateWithTotp → factor verified and enrolled, backup codes issued"
-      );
-    } else {
-      appendLog("authenticateWithTotp → code accepted");
-    }
-    setPending(null);
-    setSession({
+    const nextSession: DevSession = {
       email: account.email,
       method: "password",
       secondFactor: "totp",
       signedInAt: new Date().toISOString(),
-    });
+    };
+    setPending(null);
+
+    if (pending.kind !== "enrollment") {
+      appendLog("authenticateWithTotp → code accepted");
+      setSession(nextSession);
+      return { status: "success", redirectTo: "#signed-in" };
+    }
+
+    setAccount((current) => ({
+      ...current,
+      totpSecret: secret,
+      totpEnrolledAt: new Date().toISOString(),
+    }));
+    const issuedCodes = randomBackupCodes();
+    setBackupCodes(issuedCodes);
+    pendingSessionRef.current = nextSession;
+    appendLog(
+      "authenticateWithTotp → factor verified and enrolled, backup codes issued"
+    );
     return {
-      status: "success",
+      status: "enrolled",
       redirectTo: "#signed-in",
       backupCodes: issuedCodes,
     };
@@ -582,9 +350,9 @@ export function AuthFlowPlayground() {
 
   async function redeemBackupCode(
     input: RedeemBackupCodeInput
-  ): Promise<AuthFlowResult> {
+  ): Promise<RedeemBackupCodeResult> {
     await wait(SIMULATED_LATENCY_MS);
-    if (!pending || pending.token !== input.recoveryToken) {
+    if (!pending) {
       return {
         status: "error",
         message: "This sign-in attempt expired. Please start again.",
@@ -911,7 +679,13 @@ export function AuthFlowPlayground() {
                     <LoginForm
                       callbackPath="#signed-in"
                       key={loginKey}
-                      onSuccess={() => setTab("sign-in")}
+                      onSuccess={() => {
+                        if (pendingSessionRef.current) {
+                          setSession(pendingSessionRef.current);
+                          pendingSessionRef.current = null;
+                        }
+                        setTab("sign-in");
+                      }}
                       showForgotPasswordLink={false}
                       showSignupLink={false}
                       signInWithPassword={signInWithPassword}

@@ -1,5 +1,7 @@
 import { Effect } from "effect";
+import type * as z from "zod";
 
+import { ACTION_ERROR_CODES } from "@/constants/actions";
 import {
   SECURITY_ERROR_CODES,
   WORKOS_ELEVATED_ACCESS_HEADER,
@@ -7,24 +9,13 @@ import {
   WORKOS_WIDGETS_API_VERSION,
   WORKOS_WIDGETS_TYPE,
 } from "@/constants/security";
-import { SecurityActionError } from "@/lib/auth/errors";
+import { ActionFailure } from "@/lib/actions/errors";
 import type { WidgetsRequestOptions } from "@/types/auth/security";
 
 const HTTP_BAD_REQUEST = 400;
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_FORBIDDEN = 403;
-const HTTP_NO_CONTENT = 204;
 const HTTP_UNPROCESSABLE = 422;
-
-class WidgetsHttpError extends Error {
-  readonly status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.name = "WidgetsHttpError";
-    this.status = status;
-  }
-}
 
 async function readErrorMessage(response: Response, fallback: string) {
   try {
@@ -44,90 +35,93 @@ async function readErrorMessage(response: Response, fallback: string) {
   return fallback;
 }
 
-function toSecurityError(
-  cause: unknown,
-  options: WidgetsRequestOptions
-): SecurityActionError {
-  if (cause instanceof WidgetsHttpError) {
-    const isAuthFailure =
-      cause.status === HTTP_UNAUTHORIZED || cause.status === HTTP_FORBIDDEN;
-
-    if (isAuthFailure && options.requiresElevatedAccess) {
-      return new SecurityActionError({
-        code: SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED,
-        message: "Confirm it's you to continue.",
-        cause,
-      });
-    }
-
-    if (isAuthFailure) {
-      return new SecurityActionError({
-        code: SECURITY_ERROR_CODES.UNAUTHORIZED,
-        message: "Your session has expired. Please sign in again.",
-        cause,
-      });
-    }
-
-    if (
-      cause.status === HTTP_BAD_REQUEST ||
-      cause.status === HTTP_UNPROCESSABLE
-    ) {
-      return new SecurityActionError({
-        code: SECURITY_ERROR_CODES.INVALID_INPUT,
-        message: cause.message,
-        cause,
-      });
-    }
-
-    return new SecurityActionError({
-      code: SECURITY_ERROR_CODES.UNKNOWN,
-      message: cause.message,
-      cause,
+function httpFailure(status: number, message: string, elevated: boolean) {
+  if (status === HTTP_UNAUTHORIZED || status === HTTP_FORBIDDEN) {
+    return elevated
+      ? new ActionFailure({
+          code: SECURITY_ERROR_CODES.ELEVATED_ACCESS_REQUIRED,
+          message: "Confirm it's you to continue.",
+        })
+      : new ActionFailure({
+          code: ACTION_ERROR_CODES.UNAUTHORIZED,
+          message: "Your session has expired. Please sign in again.",
+        });
+  }
+  if (status === HTTP_BAD_REQUEST || status === HTTP_UNPROCESSABLE) {
+    return new ActionFailure({
+      code: ACTION_ERROR_CODES.INVALID_INPUT,
+      message,
     });
   }
-
-  return new SecurityActionError({
-    code: SECURITY_ERROR_CODES.UNAVAILABLE,
-    message: "Couldn't reach WorkOS. Please try again.",
-    cause,
-  });
+  return new ActionFailure({ message });
 }
 
-export const widgetsRequest = <T>(options: WidgetsRequestOptions) =>
-  Effect.tryPromise({
-    try: async (): Promise<T> => {
-      const url = new URL(options.path, WORKOS_WIDGETS_API_BASE_URL);
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${options.accessToken}`,
-        "WorkOS-Widgets-Version": WORKOS_WIDGETS_API_VERSION,
-        "WorkOS-Widgets-Type": WORKOS_WIDGETS_TYPE,
-        "Content-Type": "application/json",
-      };
-      if (options.elevatedAccessToken) {
-        headers[WORKOS_ELEVATED_ACCESS_HEADER] = options.elevatedAccessToken;
-      }
+/**
+ * Calls the WorkOS Widgets API with the session access token. Responses are
+ * parsed with `schema`, so callers get a typed value or a clean failure.
+ */
+export const widgetsRequest = <Schema extends z.ZodType>(
+  options: WidgetsRequestOptions<Schema>
+): Effect.Effect<z.output<Schema>, ActionFailure> =>
+  Effect.gen(function* () {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${options.accessToken}`,
+      "WorkOS-Widgets-Version": WORKOS_WIDGETS_API_VERSION,
+      "WorkOS-Widgets-Type": WORKOS_WIDGETS_TYPE,
+      "Content-Type": "application/json",
+    };
+    if (options.elevatedAccessToken) {
+      headers[WORKOS_ELEVATED_ACCESS_HEADER] = options.elevatedAccessToken;
+    }
 
-      const response = await fetch(url, {
-        method: options.method,
-        headers,
-        cache: "no-store",
-        body:
-          options.body === undefined ? undefined : JSON.stringify(options.body),
-      });
+    const response = yield* Effect.tryPromise({
+      try: () =>
+        fetch(new URL(options.path, WORKOS_WIDGETS_API_BASE_URL), {
+          method: options.method,
+          headers,
+          cache: "no-store",
+          body:
+            options.body === undefined
+              ? undefined
+              : JSON.stringify(options.body),
+        }),
+      catch: (cause) =>
+        new ActionFailure({
+          code: SECURITY_ERROR_CODES.UNAVAILABLE,
+          message: "Couldn't reach WorkOS. Please try again.",
+          cause,
+        }),
+    });
 
-      if (!response.ok) {
-        const message = await readErrorMessage(
-          response,
-          `WorkOS request failed (${response.status})`
-        );
-        throw new WidgetsHttpError(response.status, message);
-      }
+    if (!response.ok) {
+      const message = yield* Effect.promise(() =>
+        readErrorMessage(response, `WorkOS request failed (${response.status})`)
+      );
+      return yield* Effect.fail(
+        httpFailure(
+          response.status,
+          message,
+          options.elevatedAccessToken !== undefined
+        )
+      );
+    }
 
-      if (response.status === HTTP_NO_CONTENT) {
-        return undefined as T;
-      }
-
-      return (await response.json()) as T;
-    },
-    catch: (cause) => toSecurityError(cause, options),
+    const payload = yield* Effect.tryPromise({
+      try: () => response.json() as Promise<unknown>,
+      catch: (cause) =>
+        new ActionFailure({
+          message: "WorkOS returned an unreadable response.",
+          cause,
+        }),
+    });
+    const parsed = options.schema.safeParse(payload);
+    if (!parsed.success) {
+      return yield* Effect.fail(
+        new ActionFailure({
+          message: "WorkOS returned an unexpected response.",
+          cause: parsed.error,
+        })
+      );
+    }
+    return parsed.data as z.output<Schema>;
   });
