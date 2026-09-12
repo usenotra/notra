@@ -808,6 +808,8 @@ export const contentRouter = {
             repo: githubIntegrations.repo,
             defaultBranch: githubIntegrations.defaultBranch,
             installationId: githubAppInstallations.installationId,
+            installationAccountType: githubAppInstallations.accountType,
+            installationAccountLogin: githubAppInstallations.accountLogin,
             githubAppInstallationId: githubIntegrations.githubAppInstallationId,
             encryptedToken: githubIntegrations.encryptedToken,
             outputConfig: repositoryOutputs.config,

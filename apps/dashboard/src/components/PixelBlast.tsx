@@ -603,7 +603,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
             );
             const noisePass = new EffectPass(camera, noiseEffect);
             noisePass.renderToScreen = true;
-            if (composer && composer.passes.length > 0) {
+            if (composer.passes.length > 0) {
               for (const p of composer.passes) {
                 const pass = p as { renderToScreen?: boolean };
                 pass.renderToScreen = false;
