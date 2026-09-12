@@ -7,13 +7,13 @@ import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
-  useGeoCompetitors,
   useGeoRescanPrompt,
   useGeoSettings,
   useGeoStartScan,
   useGeoSuggestionDismiss,
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoWriterGaps } from "@/lib/hooks/use-geo-writer";
 import type { GeoGapsPageModel } from "@/types/components/geo-gaps";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
@@ -40,7 +40,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
   const settingsQuery = useGeoSettings(organizationId);
   const { data: settingsData, isPending: isSettingsPending } = settingsQuery;
   const gapsQuery = useGeoWriterGaps(organizationId);
-  const competitorsQuery = useGeoCompetitors(organizationId);
+  const { competitors } = useGeoCompetitorsDb(organizationId);
   const startScan = useGeoStartScan(organizationId);
   const rescanPrompt = useGeoRescanPrompt(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
@@ -83,7 +83,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
       organizationSlug,
       isGapsPending: gapsQuery.isPending,
       table: {
-        competitors: competitorsQuery.data?.competitors ?? [],
+        competitors,
         hasScanData: gapsQuery.data?.hasScanData ?? false,
         isScanning,
         onOpenPost: (postId) => {

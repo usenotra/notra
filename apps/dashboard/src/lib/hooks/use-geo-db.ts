@@ -86,7 +86,7 @@ export function useGeoPromptsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery(
+  const { data, isLoading } = useLiveQuery(
     (q) => (isEnabled ? q.from({ prompt: definition }) : undefined),
     [definition, isEnabled]
   );
@@ -149,6 +149,7 @@ export function useGeoPromptsDb(
 
   return {
     prompts,
+    isLoading,
     pendingPromptIds: pendingIds,
     togglePrompt,
     removePrompts,
