@@ -1,0 +1,15 @@
+packages/db/migrations/0085_red_wrecker.sql
+  ai_agent 1-23
+packages/db/migrations/meta/0085_snapshot.json
+  ai_agent 1-11192
+bun.lock
+  ai_agent 278,374,2049-2051
+packages/db/migrations/meta/_journal.json
+  ai_agent 599-605
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "21677d2a16760628e3c0ef92a445b9b811457bf9",
+  "prompts": {}
+}
