@@ -103,7 +103,9 @@ export function isUnchangedDailySummary({
     return false;
   }
 
-  return formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged";
+  return (
+    formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged"
+  );
 }
 
 export function buildDailySummaryHeadline({
