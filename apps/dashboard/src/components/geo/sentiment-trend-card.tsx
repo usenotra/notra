@@ -12,19 +12,15 @@ import {
 import type {
   SentimentTrendCardProps,
   SentimentTrendPlotProps,
-  SentimentTrendContentProps,
 } from "@/types/geo-sentiment";
 import {
   hasIsolatedSentimentPoint,
-  sentimentTrendState,
-  sentimentComparisonData,
   sentimentEmptyMessage,
 } from "@/utils/geo-sentiment";
 import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
 
 export function SentimentTrendCard({
   points,
-  comparison,
   isPending,
   isError,
   isScanning,
@@ -38,31 +34,18 @@ export function SentimentTrendCard({
     >
       <SentimentTrendContent
         points={points}
-        comparison={comparison}
         summary={summary}
         isPending={isPending}
         isError={isError}
         isScanning={isScanning}
         retry={retry}
-        showCurrent
-        showPrevious={false}
       />
     </div>
   );
 }
 
-function SentimentTrendContent(props: SentimentTrendContentProps) {
-  const {
-    isPending,
-    isError,
-    retry,
-    summary,
-    comparison,
-    points,
-    isScanning,
-    showCurrent,
-    showPrevious,
-  } = props;
+function SentimentTrendContent(props: SentimentTrendCardProps) {
+  const { isPending, isError, retry, summary, points, isScanning } = props;
   if (isPending) {
     return <SentimentSkeleton />;
   }
@@ -76,16 +59,11 @@ function SentimentTrendContent(props: SentimentTrendContentProps) {
       </div>
     );
   }
-  const { hasRatings } = sentimentTrendState(props);
+  const hasRatings = points?.some((point) => point.score !== null) ?? false;
   return (
     <>
       {hasRatings && points ? (
-        <SentimentTrendPlot
-          points={points}
-          comparison={comparison}
-          showCurrent={showCurrent}
-          showPrevious={showPrevious}
-        />
+        <SentimentTrendPlot points={points} />
       ) : (
         <InstrumentEmpty
           seed="Sentiment trend"
@@ -106,14 +84,9 @@ function SentimentTrendContent(props: SentimentTrendContentProps) {
   );
 }
 
-function SentimentTrendPlot({
-  points,
-  comparison,
-  showCurrent,
-  showPrevious,
-}: SentimentTrendPlotProps) {
+function SentimentTrendPlot({ points }: SentimentTrendPlotProps) {
   const estimates = sentimentTailEstimate(points);
-  const hasEstimate = showCurrent && estimates.some((value) => value !== null);
+  const hasEstimate = estimates.some((value) => value !== null);
   return (
     <EChartsAreaChart
       animation={false}
@@ -122,14 +95,10 @@ function SentimentTrendPlot({
       curveType="monotoneX"
       enableHoverHighlight={false}
       enableHoverReveal={false}
-      data={sentimentComparisonData({
-        points,
-        comparison,
-        showCurrent,
-        showPrevious,
-      }).map((row, index) => ({
-        ...row,
-        estimate: showCurrent ? (estimates[index] ?? null) : null,
+      data={points.map(({ day, score }, index) => ({
+        day,
+        score,
+        estimate: estimates[index] ?? null,
       }))}
       xDataKey="day"
     >
@@ -140,34 +109,17 @@ function SentimentTrendPlot({
         hideDots
         tickFormatter={formatDayLabel}
       />
-      {showCurrent ? (
-        <EChartsAreaChart.Area
-          dataKey="score"
-          gapMissing
-          connectNulls={false}
-          enableBufferLine={false}
-          strokeVariant="solid"
-          strokeWidth={2}
-          variant="gradient"
-        >
-          {hasIsolatedSentimentPoint(points) ? <EChartsAreaChart.Dot /> : null}
-        </EChartsAreaChart.Area>
-      ) : null}
-      {comparison && showPrevious ? (
-        <EChartsAreaChart.Area
-          dataKey="previous"
-          gapMissing
-          connectNulls={false}
-          enableBufferLine={false}
-          strokeVariant="solid"
-          strokeWidth={2}
-          variant="none"
-        >
-          {hasIsolatedSentimentPoint(comparison.points) ? (
-            <EChartsAreaChart.Dot />
-          ) : null}
-        </EChartsAreaChart.Area>
-      ) : null}
+      <EChartsAreaChart.Area
+        dataKey="score"
+        gapMissing
+        connectNulls={false}
+        enableBufferLine={false}
+        strokeVariant="solid"
+        strokeWidth={2}
+        variant="gradient"
+      >
+        {hasIsolatedSentimentPoint(points) ? <EChartsAreaChart.Dot /> : null}
+      </EChartsAreaChart.Area>
       {hasEstimate ? (
         <EChartsAreaChart.Area
           dataKey="estimate"

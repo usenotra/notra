@@ -142,22 +142,19 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 
 ### Brand Sentiment
 
-The **Brand Sentiment** dashboard tab uses two native dualtone cards side by side:
-a wide current-period chart on the left and a compact **Current sentiment score** card on the right.
+The **Brand Sentiment** dashboard tab uses one compact dualtone card:
+score and current-period chart on the left, positive/negative themes and sentiment distribution on the right.
 The summary shows **Current sentiment score**, its change from the previous period,
 and a 0–100 score-position scale. Hover or focus the black marker to see the current
 score. Unrated answers and answers without a brand mention are excluded.
 The chart and summary stack on mobile. Loading uses layout-preserving skeletons;
 empty states distinguish no saved answers, no rated mentions and no supported themes.
 
-Below, the same table component used elsewhere in GEO offers **By theme** and
-**Supporting answers** views. The first lists themes, sentiment, models and distinct
-supporting-answer counts. The second lists the original prompts for the cited answers,
-deduplicated by saved check. It shows the analyzed evidence sample, not all responses
-in the selected period. Select a row to open the original quotes, model and timestamp
-in a detail sheet. Multiple quoted passages from the same answer remain available.
-On mobile, sentiment appears beneath the theme or prompt; model details remain in
-the sheet. Sampling details sit below the table.
+Below, a single Feedback-style table lists claims with their theme beneath the claim,
+sentiment, models and distinct supporting-answer counts. It shows the analyzed evidence
+sample, not all responses in the selected period. Select a row to open that claim's
+original quotes, prompts, models and timestamps. On mobile, sentiment appears within
+the claim cell and model details remain available in the sheet.
 The trend uses the Mention Activity chart with monotone curves and a subtle current-period
 fill on a fixed 0–100 scale with gaps for missing
 ratings. Point markers appear when a rated day has no rated neighbor, so isolated
@@ -216,19 +213,19 @@ and negative answers. The action appears when analysis is missing or stale, with
 notice before the paid action. Failed analysis offers a retry; ready results have no
 persistent generation button. Configuration problems show the server's explanation.
 This is a separate structured model call through the organization's existing model router,
-using `openai/gpt-4.1-mini`. It has no browsing or other tools. Each attempted call uses
+using `zai/glm-5.3-flash`. It has no browsing or other tools. Each attempted call uses
 one AI-answer quota unit or the existing AI-credit billing path, including failed output
 validation. The existing sentiment judge and its labels are unchanged.
 
 Sampling is deterministic: up to 12 checks per polarity, ordered by a hash of the saved
 check ID, with the first 2,000 answer characters and up to 500 prompt characters per check.
-The UI reports sampled and eligible answer counts. The model may return up to six themes,
+The model may return up to six themes with one to four concrete claims per theme,
 each with up to six evidence references. Every quote must be an exact contiguous substring
 of the supplied historical answer and match the theme's saved polarity. Foreign IDs,
 paraphrased quotes, duplicate sources and mismatched polarities invalidate the result.
 Answers and brand metadata are treated as untrusted data, never instructions.
 
-Expand a theme to see its saved quotes, engines, UTC dates and prompts. **Recurring** means
+Select a claim to see its saved quotes, engines, dates and prompts. **Recurring** means
 at least two distinct sampled checks support it. **Single source** means one check.
 These evidence counts are not population prevalence or counts of independent users.
 The classified-mention distribution uses all scoped saved counts, not the theme sample;
@@ -237,21 +234,26 @@ neutral is never combined with negative, and displayed percentages are rounded.
 Analysis reads never generate content or write the cache. An authorized POST mutation
 awaits the bounded extraction, with a 60-second model timeout and no automatic model retries.
 Redis stores results for seven days under organization, resolved project, UTC window,
-analysis version, brand name and historical-input fingerprint. The fingerprint includes
+model, brand name and historical-input fingerprint. The fingerprint includes
 the canonical project's `geo_settings.companyName`, matching the scan and judge context,
 rather than the linked content brand identity's name. It also includes
 all eligible answer content, even outside the bounded sample. A finalized scan invalidates
 the client's analysis query; changed inputs show an analysis action on the next read.
 That lookup is marked stale and the themes section offers **Find themes** again.
-A completed scan does not itself generate themes.
-Generation is explicit, rather than automatically starting another paid call after a scan.
+Completed dashboard scans start a separate background workflow for the last 30 days.
+It generates only when new eligible answers exist and no fresh result is available.
+A persisted atomic timestamp allows at most one automatic attempt per project in 24 hours.
+This is always enabled; manual analysis for other date windows still requires confirmation.
 
 The UI handles ready, pending, stale, failed and unavailable states. A 180-second Redis
-lease prevents concurrent extraction for the same input. The worker checks ownership after
+lease prevents concurrent extraction for the same project and window, even if inputs change. The worker checks ownership after
 billing reservation and uses an atomic token check when publishing. Old results cannot
 overwrite another worker's result or appear under a newer input fingerprint. Expired work
 can be retried. Missing Redis, provider configuration or a project brand name makes analysis
-unavailable. No schema migration is required.
+unavailable. Migration `0086_geo_auto_sentiment` adds the persisted attempt timestamp;
+`0087_remove_sentiment_opt_in` removes the obsolete opt-in flag. Cached results are not
+permanent Postgres records. Older results for the same window can remain visible while a
+refresh is pending, but are not treated as fresh.
 
 Quotes are mechanically validated; theme interpretation still depends on the model and
 the saved judge labels. A bounded sample can miss themes or repeat similar answers.

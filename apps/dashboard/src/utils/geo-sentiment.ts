@@ -8,7 +8,6 @@ import { sentimentFamilyScore } from "@notra/geo-core/utils/geo-sentiment";
 import { SENTIMENT_FAMILY_ORDER } from "@/constants/geo-sentiment";
 import type {
   SentimentFamilyRow,
-  SentimentTrendPlotProps,
   SentimentTrendCardProps,
   SentimentThemesStateInput,
 } from "@/types/geo-sentiment";
@@ -69,9 +68,7 @@ export function sentimentThemesState({
   }
   const settled = !loading && !isError && !busy && !noRatings;
   const showResults =
-    settled &&
-    state?.status === "ready" &&
-    (state.result?.themes.length ?? 0) > 0;
+    !isError && !noRatings && (state?.result?.themes.length ?? 0) > 0;
   let statusText = "";
   if (busy) {
     statusText = "Analyzing saved answers…";
@@ -84,14 +81,13 @@ export function sentimentThemesState({
     !!summary &&
     (state?.status === "stale" || state?.status === "failed");
   return {
-    pending: busy || loading,
-    title: "No themes yet",
+    pending: (busy || loading) && !showResults,
+    title: showResults ? "Update themes" : "No themes yet",
     message,
     statusText,
     showResults,
     showTable: busy || loading || showResults,
-    showEmpty: !loading && !busy && !isError && !showResults,
-    showSampling: settled && state?.status === "ready",
+    showEmpty: !loading && !busy && !isError && (!showResults || canAnalyze),
     canAnalyze,
   };
 }
@@ -120,38 +116,4 @@ export function sentimentFamilyRows(
         left.family.localeCompare(right.family, "en")
       );
     });
-}
-
-export function sentimentTrendState({
-  points,
-  comparison,
-  isPending,
-  isError,
-}: SentimentTrendCardProps) {
-  let message = "No rated mentions in this period.";
-  if (isPending) {
-    message = "Loading sentiment…";
-  }
-  if (isError) {
-    message = "Could not load sentiment.";
-  }
-  return {
-    message,
-    hasRatings:
-      points?.some((point) => point.score !== null) ||
-      comparison?.points.some((point) => point.score !== null),
-  };
-}
-
-export function sentimentComparisonData({
-  points,
-  comparison,
-  showCurrent,
-  showPrevious,
-}: SentimentTrendPlotProps) {
-  return points.map(({ day, score }, index) => ({
-    day,
-    score: showCurrent ? score : null,
-    previous: showPrevious ? (comparison?.points[index]?.score ?? null) : null,
-  }));
 }

@@ -1,44 +1,17 @@
 import type { SentimentTheme } from "@notra/geo-core/types/sentiment-analysis";
 
-import type {
-  SentimentDetailRow,
-  SentimentTableView,
-} from "@/types/geo-sentiment";
+import type { SentimentDetailRow } from "@/types/geo-sentiment";
 
 export function sentimentTableRows(
-  themes: SentimentTheme[],
-  view: SentimentTableView
+  themes: SentimentTheme[]
 ): SentimentDetailRow[] {
-  if (view === "themes") {
-    return themes.flatMap((theme) =>
-      (
-        theme.claims ?? [{ statement: theme.title, evidence: theme.evidence }]
-      ).map((claim) => ({
-        id: JSON.stringify([theme.polarity, theme.title, claim.statement]),
-        title: claim.statement,
-        theme: theme.title,
-        polarity: theme.polarity,
-        evidence: claim.evidence,
-      }))
-    );
-  }
-  const answers = new Map<string, SentimentDetailRow>();
-  for (const theme of themes) {
-    for (const evidence of theme.evidence) {
-      const existing = answers.get(evidence.checkId);
-      if (existing) {
-        if (!existing.evidence.some((item) => item.quote === evidence.quote)) {
-          existing.evidence.push(evidence);
-        }
-      } else {
-        answers.set(evidence.checkId, {
-          id: evidence.checkId,
-          title: evidence.prompt,
-          polarity: theme.polarity,
-          evidence: [evidence],
-        });
-      }
-    }
-  }
-  return [...answers.values()];
+  return themes.flatMap((theme) =>
+    theme.claims.map((claim) => ({
+      id: JSON.stringify([theme.polarity, theme.title, claim.statement]),
+      title: claim.statement,
+      theme: theme.title,
+      polarity: theme.polarity,
+      evidence: claim.evidence,
+    }))
+  );
 }

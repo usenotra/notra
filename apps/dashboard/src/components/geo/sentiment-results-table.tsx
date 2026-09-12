@@ -28,7 +28,7 @@ export function SentimentResultsTable({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const rows = useMemo(
-    () => (pending ? [] : sentimentTableRows(themes, "themes")),
+    () => (pending ? [] : sentimentTableRows(themes)),
     [themes, pending]
   );
   const selected = rows.find((row) => row.id === selectedId);

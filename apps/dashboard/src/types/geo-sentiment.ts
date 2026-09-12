@@ -13,19 +13,15 @@ export interface SentimentSkeletonProps {
   compact?: boolean;
 }
 export interface SentimentDetailRow {
-  theme?: string;
+  theme: string;
   id: string;
   title: string;
   polarity: SentimentTheme["polarity"];
   evidence: SentimentTheme["evidence"];
 }
 
-export type SentimentTableView = "themes" | "answers";
 export interface SentimentTrendPlotProps {
   points: GeoSentimentResponse["points"];
-  comparison?: GeoSentimentResponse["comparison"];
-  showCurrent: boolean;
-  showPrevious: boolean;
 }
 
 export interface SentimentFamilyRow {
@@ -43,11 +39,6 @@ export interface SentimentTrendCardProps {
   isPending: boolean;
   isError: boolean;
   isScanning: boolean;
-}
-
-export interface SentimentTrendContentProps extends SentimentTrendCardProps {
-  showCurrent: boolean;
-  showPrevious: boolean;
 }
 
 export interface SentimentThemeTableProps {
