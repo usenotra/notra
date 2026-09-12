@@ -3,6 +3,20 @@ import type { Context } from "hono";
 
 import type { IntegrationDatabaseError } from "../errors/integrations";
 import type { IntegrationDomainError } from "../types/integrations";
+import type { IntegrationTrigger } from "./triggers";
+
+export function serializeDisabledTriggers(
+  affectedTriggers: readonly IntegrationTrigger[]
+) {
+  return {
+    disabledSchedules: affectedTriggers
+      .filter((trigger) => trigger.sourceType === "cron")
+      .map((trigger) => ({ id: trigger.id, name: trigger.name })),
+    disabledEvents: affectedTriggers
+      .filter((trigger) => trigger.sourceType !== "cron")
+      .map((trigger) => ({ id: trigger.id, name: trigger.name })),
+  };
+}
 
 /** Leave unexpected database errors to Hono's central error handler. */
 export function runIntegrationProgram<A, E extends IntegrationDomainError>(
@@ -43,5 +57,7 @@ export function respondToIntegrationFailure(
     return c.json({ error: "Failed to create integration" }, 503);
   }
 
-  return c.json({ error: "Failed to create GitHub integration" }, 400);
+  if (failure._tag === "IntegrationCreateError") {
+    return c.json({ error: "Failed to create GitHub integration" }, 400);
+  }
 }

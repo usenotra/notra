@@ -7,6 +7,7 @@ import type { z } from "zod";
 
 import type {
   GitHubAccessError,
+  IntegrationCreateError,
   IntegrationCreateFailedError,
   IntegrationDuplicateError,
   IntegrationNotFoundError,
@@ -19,7 +20,8 @@ export type IntegrationDomainError =
   | IntegrationDuplicateError
   | GitHubAccessError
   | IntegrationUnavailableError
-  | IntegrationCreateFailedError;
+  | IntegrationCreateFailedError
+  | IntegrationCreateError;
 
 interface IntegrationProgramInput {
   db: DbClient;

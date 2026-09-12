@@ -19,6 +19,7 @@ import {
   respondToIntegrationFailure,
   runIntegrationProgram,
 } from "../utils/integrations";
+import { logError } from "../utils/logging";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { getOrganizationResponse } from "../utils/organizations";
@@ -216,6 +217,10 @@ integrationsRoutes.openapi(createGitHubIntegrationRoute, async (c) => {
   );
 
   if (result._tag === "Failure") {
+    if (result.failure._tag === "IntegrationCreateError") {
+      logError("Failed to create GitHub integration", result.failure.cause);
+    }
+
     const response = respondToIntegrationFailure(c, result.failure);
     if (response) {
       return response;

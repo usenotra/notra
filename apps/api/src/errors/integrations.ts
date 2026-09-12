@@ -25,6 +25,11 @@ export class IntegrationCreateFailedError extends Schema.TaggedError<Integration
   {}
 ) {}
 
+export class IntegrationCreateError extends Schema.TaggedError<IntegrationCreateError>()(
+  "IntegrationCreateError",
+  { cause: Schema.Defect() }
+) {}
+
 export class IntegrationDatabaseError extends Schema.TaggedError<IntegrationDatabaseError>()(
   "IntegrationDatabaseError",
   { cause: Schema.Defect() }

@@ -8,12 +8,14 @@ import { Effect } from "effect";
 
 import {
   GitHubAccessError,
+  IntegrationCreateError,
   IntegrationCreateFailedError,
   IntegrationDatabaseError,
   IntegrationDuplicateError,
   IntegrationNotFoundError,
   IntegrationUnavailableError,
 } from "../errors/integrations";
+import type { DbClient } from "../types/db";
 import type {
   AssertNoGitHubIntegrationDuplicateInput,
   CreateGitHubIntegrationProgramInput,
@@ -33,12 +35,15 @@ import {
   isGitHubIntegrationUnavailableError,
   validateGitHubRepositoryAccess,
 } from "../utils/github-integrations";
+import { serializeDisabledTriggers } from "../utils/integrations";
 import { isConstraintViolation, isPgUniqueViolation } from "../utils/pg-errors";
 import {
   deleteQstashSchedulesForTriggers,
   disableTriggersAndDeleteIntegration,
   getTriggersForIntegration,
 } from "../utils/triggers";
+
+type DbTransaction = Parameters<Parameters<DbClient["transaction"]>[0]>[0];
 
 const database = <A>(operation: () => Promise<A>) =>
   Effect.tryPromise({
@@ -60,7 +65,7 @@ const write = <A>(operation: () => Promise<A>) =>
         return new IntegrationDuplicateError();
       }
 
-      return new IntegrationDatabaseError({ cause });
+      return new IntegrationCreateError({ cause });
     },
   });
 
@@ -74,7 +79,7 @@ const mapGitHubAccessError = (cause: unknown) => {
     return new GitHubAccessError({ message: safeMessage });
   }
 
-  return new IntegrationDatabaseError({ cause });
+  return new IntegrationCreateError({ cause });
 };
 
 const encryptToken = (
@@ -244,15 +249,35 @@ export const createGitHubIntegration = Effect.fn("integrations.createGitHub")(
   }
 );
 
-const serializeDisabledTriggers = (
-  affectedTriggers: Awaited<ReturnType<typeof getTriggersForIntegration>>
-) => ({
-  disabledSchedules: affectedTriggers
-    .filter((trigger) => trigger.sourceType === "cron")
-    .map((trigger) => ({ id: trigger.id, name: trigger.name })),
-  disabledEvents: affectedTriggers
-    .filter((trigger) => trigger.sourceType !== "cron")
-    .map((trigger) => ({ id: trigger.id, name: trigger.name })),
+const deleteIntegrationWithTriggerCleanup = Effect.fnUntraced(function* (
+  input: DeleteIntegrationProgramInput,
+  deleteIntegrationRecord: (tx: DbTransaction) => Promise<unknown>
+) {
+  const affectedTriggers = yield* database(() =>
+    getTriggersForIntegration(
+      input.db,
+      input.organizationId,
+      input.integrationId
+    )
+  );
+
+  yield* database(() =>
+    disableTriggersAndDeleteIntegration(
+      input.db,
+      input.organizationId,
+      affectedTriggers,
+      deleteIntegrationRecord
+    )
+  );
+
+  yield* database(() =>
+    deleteQstashSchedulesForTriggers(input.runtimeEnv, affectedTriggers)
+  );
+
+  return {
+    id: input.integrationId,
+    ...serializeDisabledTriggers(affectedTriggers),
+  } satisfies DeleteIntegrationProgramSuccess;
 });
 
 export const deleteIntegration = Effect.fn("integrations.delete")(function* ({
@@ -274,35 +299,18 @@ export const deleteIntegration = Effect.fn("integrations.delete")(function* ({
   );
 
   if (githubIntegration) {
-    const affectedTriggers = yield* database(() =>
-      getTriggersForIntegration(db, organizationId, integrationId)
-    );
-
-    yield* database(() =>
-      disableTriggersAndDeleteIntegration(
-        db,
-        organizationId,
-        affectedTriggers,
-        (tx) =>
-          tx
-            .delete(githubIntegrations)
-            .where(
-              and(
-                eq(githubIntegrations.id, integrationId),
-                eq(githubIntegrations.organizationId, organizationId)
-              )
+    return yield* deleteIntegrationWithTriggerCleanup(
+      { db, organizationId, integrationId, runtimeEnv },
+      (tx) =>
+        tx
+          .delete(githubIntegrations)
+          .where(
+            and(
+              eq(githubIntegrations.id, integrationId),
+              eq(githubIntegrations.organizationId, organizationId)
             )
-      )
+          )
     );
-
-    yield* database(() =>
-      deleteQstashSchedulesForTriggers(runtimeEnv, affectedTriggers)
-    );
-
-    return {
-      id: integrationId,
-      ...serializeDisabledTriggers(affectedTriggers),
-    } satisfies DeleteIntegrationProgramSuccess;
   }
 
   const [existingLinearIntegration] = yield* database(() =>
@@ -322,33 +330,16 @@ export const deleteIntegration = Effect.fn("integrations.delete")(function* ({
     return yield* new IntegrationNotFoundError();
   }
 
-  const affectedTriggers = yield* database(() =>
-    getTriggersForIntegration(db, organizationId, integrationId)
-  );
-
-  yield* database(() =>
-    disableTriggersAndDeleteIntegration(
-      db,
-      organizationId,
-      affectedTriggers,
-      (tx) =>
-        tx
-          .delete(linearIntegrations)
-          .where(
-            and(
-              eq(linearIntegrations.id, integrationId),
-              eq(linearIntegrations.organizationId, organizationId)
-            )
+  return yield* deleteIntegrationWithTriggerCleanup(
+    { db, organizationId, integrationId, runtimeEnv },
+    (tx) =>
+      tx
+        .delete(linearIntegrations)
+        .where(
+          and(
+            eq(linearIntegrations.id, integrationId),
+            eq(linearIntegrations.organizationId, organizationId)
           )
-    )
+        )
   );
-
-  yield* database(() =>
-    deleteQstashSchedulesForTriggers(runtimeEnv, affectedTriggers)
-  );
-
-  return {
-    id: existingLinearIntegration.id,
-    ...serializeDisabledTriggers(affectedTriggers),
-  } satisfies DeleteIntegrationProgramSuccess;
 });
