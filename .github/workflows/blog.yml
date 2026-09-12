@@ -2,7 +2,7 @@ name: Blog
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
     paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml"]
   pull_request:
     paths: ["apps/web/src/content/blog/**/*.mdx", ".github/workflows/blog.yml"]
@@ -11,82 +11,22 @@ permissions:
   contents: read
   pull-requests: write
 
-concurrency:
-  group: blog-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  lint:
+  links:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Lint blog links
-        id: links
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
         with:
-          format: json
-          output: lychee/out.json
-          # X profiles load in browsers but return 403 to GitHub-hosted crawlers.
           args: >-
             --no-progress --max-redirects 0 --accept '200..=299'
             --exclude '^https://x\.com/'
             --base-url https://www.usenotra.com/blog/
             'apps/web/src/content/blog/**/*.mdx'
-      - name: Comment on blog links
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      - if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        run: gh pr comment "$PR" --body-file lychee/out.md --edit-last --create-if-none
         env:
-          LINK_CHECK_OUTCOME: ${{ steps.links.outcome }}
-        with:
-          script: |
-            const fs = require('node:fs');
-            const marker = '<!-- notra-blog-links -->';
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const escape = (value) => String(value).replace(/[&<>`]/g, (character) => ({
-              '&': '&amp;', '<': '&lt;', '>': '&gt;', '`': '&#96;'
-            })[character]);
-            const lines = [marker, '### Blog link checker', ''];
-
-            if (fs.existsSync('lychee/out.json')) {
-              const report = JSON.parse(fs.readFileSync('lychee/out.json', 'utf8'));
-              const checked = report.total - report.excludes;
-              const passed = process.env.LINK_CHECK_OUTCOME === 'success';
-              lines.push(`${passed ? '✅' : '❌'} **${report.successful}/${checked} valid links**`);
-              if (report.excludes > 0) {
-                lines.push(`\n${report.excludes} excluded links were skipped.`);
-              }
-              for (const map of [report.error_map, report.timeout_map]) {
-                for (const [file, errors] of Object.entries(map ?? {}).sort()) {
-                  lines.push(`\n**${escape(file)}**`);
-                  for (const error of errors) {
-                    const location = error.span?.line ? ` (line ${error.span.line})` : '';
-                    lines.push(`- <code>${escape(error.url)}</code>${location}: ${escape(error.status.text)}${error.status.details ? ` — ${escape(error.status.details)}` : ''}`);
-                  }
-                }
-              }
-              if (!passed) {
-                lines.push('\nThe link check failed. See the workflow run for full details.');
-              }
-            } else {
-              lines.push('❌ The link checker could not produce a report. See the workflow run for details.');
-            }
-
-            // Stay below GitHub's comment limit, even for large failure reports.
-            const body = `${lines.join('\n').slice(0, 60000)}\n\n[View workflow run](${runUrl})`;
-            await core.summary.addRaw(body).write();
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              ...context.repo, issue_number: context.issue.number
-            });
-            const previous = comments.find((comment) =>
-              comment.user?.login === 'github-actions[bot]' && comment.body?.startsWith(marker)
-            );
-            if (previous) {
-              await github.rest.issues.updateComment({
-                ...context.repo, comment_id: previous.id, body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                ...context.repo, issue_number: context.issue.number, body
-              });
-            }
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
