@@ -10,7 +10,7 @@ const links = new Map();
 for (const file of await readdir(dir)) {
   const text = await readFile(join(dir, file), "utf8");
   for (const [, href] of text.matchAll(linkPattern)) {
-    const url = new URL(href, base).href;
+    const url = URL.canParse(href, base) ? new URL(href, base).href : href;
     if (!(href.startsWith("#") || excluded.test(url))) {
       links.set(url, [...(links.get(url) ?? []), file]);
     }
