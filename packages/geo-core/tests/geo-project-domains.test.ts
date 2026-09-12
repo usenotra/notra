@@ -7,6 +7,7 @@ import {
   normalizeProjectDomain,
   normalizeProjectDomains,
   trafficLogHostFilter,
+  trafficQueryHost,
 } from "../src/utils/geo-project-domains";
 
 describe("normalizeProjectDomain", () => {
@@ -52,6 +53,16 @@ describe("matchesProjectHost", () => {
     expect(matchesProjectHost("example.com", ["example.com"])).toBe(true);
   });
 
+  test("strips www on the selected domain so subdomains still match", () => {
+    expect(matchesProjectHost("docs.example.com", ["www.example.com"])).toBe(
+      true
+    );
+    expect(matchesProjectHost("example.com", ["www.example.com"])).toBe(true);
+    expect(
+      matchesProjectHost("www.docs.example.com", ["www.example.com"])
+    ).toBe(true);
+  });
+
   test("does not match sibling hosts", () => {
     expect(matchesProjectHost("notexample.com", ["example.com"])).toBe(false);
     expect(matchesProjectHost("example.com", ["docs.example.com"])).toBe(false);
@@ -92,8 +103,33 @@ describe("isKnownTrafficHost", () => {
     ).toBe(true);
   });
 
+  test("keeps a parent host when only subdomain traffic is present", () => {
+    expect(isKnownTrafficHost("example.com", ["docs.example.com"])).toBe(true);
+    expect(isKnownTrafficHost("www.example.com", ["docs.example.com"])).toBe(
+      true
+    );
+  });
+
   test("rejects a host that is not in the current list", () => {
-    expect(isKnownTrafficHost("example.com", ["docs.example.com"])).toBe(false);
     expect(isKnownTrafficHost("other.com", ["example.com"])).toBe(false);
+    expect(isKnownTrafficHost("other.com", [])).toBe(false);
+  });
+});
+
+describe("trafficQueryHost", () => {
+  test("sends a host before known hosts are ready", () => {
+    expect(trafficQueryHost("www.Docs.Example.com", [], false)).toBe(
+      "docs.example.com"
+    );
+  });
+
+  test("drops a host that is not in the current project list", () => {
+    expect(trafficQueryHost("other.com", ["example.com"], true)).toBe("");
+  });
+
+  test("keeps a parent host when only subdomain rows exist", () => {
+    expect(
+      trafficQueryHost("www.example.com", ["docs.example.com"], true)
+    ).toBe("example.com");
   });
 });

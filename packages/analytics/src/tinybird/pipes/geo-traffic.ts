@@ -7,8 +7,6 @@ import {
 } from "@tinybirdco/sdk";
 
 import {
-  GEO_CAPTURED_CURRENT_CONDITION,
-  GEO_CAPTURED_PREVIOUS_CONDITION,
   GEO_CAPTURED_WINDOW_SQL,
   GEO_DAY_COMPARISON_WINDOW_SQL,
   GEO_DAY_CURRENT_CONDITION,
@@ -71,11 +69,12 @@ export const geoTrafficPagesDailyMv = defineMaterializedView(
             project_id,
             visitor_type,
             source,
+            host,
             path,
             countState() AS visits_state,
             maxState(captured_at) AS last_seen_state
           FROM geo_traffic_events
-          GROUP BY day, organization_id, project_id, visitor_type, source, path
+          GROUP BY day, organization_id, project_id, visitor_type, source, host, path
         `,
       }),
     ],
@@ -179,6 +178,7 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
       .optional("")
       .describe("Visitor type filter, empty for every AI visitor"),
     limit: p.int32().optional(20).describe("Max rows"),
+    ...GEO_HOST_FILTER_PARAMS,
   },
   nodes: [
     node({
@@ -189,16 +189,17 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
           path,
           source,
           visitor_type,
-          countIf(${GEO_CAPTURED_CURRENT_CONDITION}) AS visits,
-          countIf(${GEO_CAPTURED_PREVIOUS_CONDITION}) AS previous_visits,
-          maxIf(captured_at, (${GEO_CAPTURED_CURRENT_CONDITION})) AS last_seen_at
-        FROM geo_traffic_events
+          countMergeIf(visits_state, (${GEO_DAY_CURRENT_CONDITION})) AS visits,
+          countMergeIf(visits_state, (${GEO_DAY_PREVIOUS_CONDITION})) AS previous_visits,
+          maxMergeIf(last_seen_state, (${GEO_DAY_CURRENT_CONDITION})) AS last_seen_at
+        FROM geo_traffic_pages_daily
         WHERE organization_id = {{String(organization_id)}}
           ${GEO_PROJECT_SCOPE_SQL}
           ${GEO_EXCLUDED_SOURCES_SQL}
           AND visitor_type IN ('crawler', 'ai_referral')
           AND ({{String(visitor, '')}} = '' OR visitor_type = {{String(visitor, '')}})
-          AND ((${GEO_CAPTURED_CURRENT_CONDITION}) OR (${GEO_CAPTURED_PREVIOUS_CONDITION}))
+          ${GEO_DAY_COMPARISON_WINDOW_SQL}
+          ${GEO_HOST_FILTER_SQL}
         GROUP BY host, path, source, visitor_type
         HAVING visits > 0
         ORDER BY visits DESC, host ASC, path ASC

@@ -1035,7 +1035,8 @@ export const geoRouter = {
           input,
           geoWindow(input),
           input.limit,
-          input.visitorType
+          input.visitorType,
+          input.host
         )
       )
     ),

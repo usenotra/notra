@@ -81,6 +81,16 @@ export const trafficPagesQuerySchema = geoWindowQuerySchema.extend({
     .enum(["crawler", "ai_referral"])
     .optional()
     .openapi({ param: { name: "visitorType", in: "query" } }),
+  host: z
+    .string()
+    .trim()
+    .max(GEO_SHORT_FIELD_MAX_LENGTH)
+    .optional()
+    .openapi({
+      param: { name: "host", in: "query" },
+      description:
+        "Hostname to filter on. Subdomains of this host are included. Omit for every host.",
+    }),
 });
 
 export const journeyParamsSchema = projectParamsSchema.extend({

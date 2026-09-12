@@ -30,7 +30,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { CitationsTable } from "@/components/geo/citations-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
@@ -48,16 +48,22 @@ import { paginatedTableHeightFor } from "@/utils/table";
 
 const LOG_SKELETON_ROWS = 6;
 
-export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
+export function AiTrafficLogCard({
+  organizationId,
+  knownHosts = [],
+  isHostReady = false,
+}: AiTrafficLogCardProps) {
   const [filters, setFilters] = useState<GeoTrafficLogFilters>({
     visitorTypes: [],
     categories: [],
   });
   const [live, setLive] = useState(true);
-  const [hostQuery] = useGeoTrafficHostQuery();
+  const [hostQuery] = useGeoTrafficHostQuery(knownHosts, isHostReady);
   const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
     refetchInterval: live ? GEO_CITATIONS_LIVE_INTERVAL_MS : false,
     host: hostQuery,
+    knownHosts,
+    isHostReady,
   });
   const log = data?.log ?? [];
   const total = data?.total ?? log.length;
@@ -66,6 +72,18 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     totalItems: log.length,
     isReady: !isPending,
   });
+  const previousHostRef = useRef(hostQuery);
+  const setLogPageRef = useRef(pagination.setPage);
+  setLogPageRef.current = pagination.setPage;
+
+  useEffect(() => {
+    if (previousHostRef.current === hostQuery) {
+      return;
+    }
+    previousHostRef.current = hostQuery;
+    setLogPageRef.current(1);
+  }, [hostQuery]);
+
   const citationsOnly = isGeoTrafficCitationsOnly(filters.categories);
 
   let body: ReactNode;

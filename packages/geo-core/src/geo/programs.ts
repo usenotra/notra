@@ -1257,7 +1257,8 @@ export const loadGeoTrafficPages = Effect.fn("geo.trafficPages")(function* (
   input: GeoScopeInput,
   window: GeoWindowInput,
   limit: number | undefined,
-  visitorType: string | undefined
+  visitorType: string | undefined,
+  host: string | undefined
 ) {
   const scope = yield* resolveGeoScope(input);
   const pages = yield* geoQuery("traffic pages query failed", () =>
@@ -1267,6 +1268,7 @@ export const loadGeoTrafficPages = Effect.fn("geo.trafficPages")(function* (
       ...geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS),
       limit: limit ?? AI_TRAFFIC_DEFAULT_PAGES_LIMIT,
       visitor: visitorType ?? "",
+      host: trafficLogHostFilter(host),
     })
   );
 

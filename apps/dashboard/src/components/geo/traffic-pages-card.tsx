@@ -44,6 +44,7 @@ import {
   filterTrafficPageGroups,
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
+  trafficHostsFromPages,
 } from "@/utils/ai-traffic-pages";
 import { paginatedTableHeightFor } from "@/utils/table";
 
@@ -61,18 +62,17 @@ export function TrafficPagesCard({
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
   );
   const groups = groupTrafficPages(pages);
-  const hostSet = new Set<string>();
-  for (const group of groups) {
-    if (group.host.length > 0) {
-      hostSet.add(group.host);
-    }
-  }
-  const hosts = [...hostSet].toSorted((left, right) =>
-    left.localeCompare(right)
-  );
+  const hosts = trafficHostsFromPages(pages);
   const [hostQuery, setHostQuery] = useGeoTrafficHostQuery(hosts, !isPending);
   const appliedHost =
     isPending || isKnownTrafficHost(hostQuery, hosts) ? hostQuery : "";
+  const hostOptions =
+    appliedHost.length > 0 && !hosts.includes(appliedHost)
+      ? [...hosts, appliedHost].toSorted((left, right) =>
+          left.localeCompare(right)
+        )
+      : hosts;
+  const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
   const filteredGroups = filterTrafficPageGroupsByHost(
     filterTrafficPageGroups(groups, pathQuery),
     appliedHost
@@ -152,7 +152,7 @@ export function TrafficPagesCard({
     body = (
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          {hosts.length > 1 ? (
+          {showHostFilter ? (
             <Select
               onValueChange={(value) => {
                 if (value) {
@@ -174,7 +174,7 @@ export function TrafficPagesCard({
                 <SelectItem value={GEO_TRAFFIC_HOST_ALL}>
                   All domains
                 </SelectItem>
-                {hosts.map((host) => (
+                {hostOptions.map((host) => (
                   <SelectItem key={host} value={host}>
                     {host}
                   </SelectItem>

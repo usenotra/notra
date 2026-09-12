@@ -6,6 +6,7 @@ import {
   filterTrafficPageGroups,
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
+  trafficHostsFromPages,
 } from "../src/utils/ai-traffic-pages";
 
 function page(
@@ -65,9 +66,25 @@ describe("filterTrafficPageGroupsByHost", () => {
     expect(filterTrafficPageGroupsByHost(groups, "example.com")).toHaveLength(
       2
     );
+    expect(
+      filterTrafficPageGroupsByHost(groups, "www.example.com")
+    ).toHaveLength(2);
     const docs = filterTrafficPageGroupsByHost(groups, "docs.example.com");
     expect(docs).toHaveLength(1);
     expect(docs[0]?.host).toBe("docs.example.com");
     expect(filterTrafficPageGroupsByHost(groups, "")).toHaveLength(3);
+  });
+});
+
+describe("trafficHostsFromPages", () => {
+  test("returns sorted unique hosts", () => {
+    expect(
+      trafficHostsFromPages([
+        page({ host: "docs.example.com", path: "/" }),
+        page({ host: "example.com", path: "/" }),
+        page({ host: "docs.example.com", path: "/blog" }),
+        page({ host: "", path: "/" }),
+      ])
+    ).toEqual(["docs.example.com", "example.com"]);
   });
 });

@@ -30,7 +30,9 @@ import {
   useGeoTrafficPages,
 } from "@/lib/hooks/use-geo";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
+import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type { GeoPageClientProps } from "@/types/geo";
+import { trafficHostsFromPages } from "@/utils/ai-traffic-pages";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoSettingsPath } from "@/utils/settings-path";
 
@@ -47,6 +49,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const organizationId = organization?.id ?? "";
 
   const geoRange = useGeoRange();
+  const [hostQuery] = useGeoTrafficHostQuery();
   const { data: settingsData, isPending: isSettingsPending } =
     useGeoSettings(organizationId);
   const { data: traffic, isPending: isTrafficPending } = useAiTraffic(
@@ -57,7 +60,8 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     useGeoIngestSetup(organizationId);
   const { data: trafficPages, isPending: isPagesPending } = useGeoTrafficPages(
     organizationId,
-    geoRange.query
+    geoRange.query,
+    hostQuery
   );
 
   const settings = settingsData?.settings ?? null;
@@ -179,7 +183,11 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
             />
           </InstrumentReveal>
           <InstrumentReveal active={revealActive} order={2}>
-            <AiTrafficLogCard organizationId={organizationId} />
+            <AiTrafficLogCard
+              isHostReady={!isPagesPending}
+              knownHosts={trafficHostsFromPages(trafficPages?.pages ?? [])}
+              organizationId={organizationId}
+            />
           </InstrumentReveal>
         </div>
       </div>

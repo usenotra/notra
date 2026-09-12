@@ -493,6 +493,7 @@ export const geoTrafficPagesInputSchema = geoOrganizationInputSchema.extend({
   ...geoWindowFields,
   limit: number().int().min(1).max(MAX_AI_TRAFFIC_PAGES_LIMIT).optional(),
   visitorType: enumType(["crawler", "ai_referral"]).optional(),
+  host: string().trim().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
 });
 
 export const geoWriterPlanInputSchema = geoOrganizationInputSchema.extend({

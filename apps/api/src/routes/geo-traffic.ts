@@ -147,7 +147,7 @@ const trafficPagesRoute = createRoute({
   operationId: "listGeoTrafficPages",
   summary: "List the most visited pages",
   description:
-    "Which paths AI crawlers and referrals read most, with the previous window's count for comparison.",
+    "Which paths AI crawlers and referrals read most, with the previous window's count for comparison. Pass `host` to rank pages for that hostname and its subdomains before applying `limit`.",
   request: { params: projectParamsSchema, query: trafficPagesQuerySchema },
   responses: {
     200: {
@@ -303,7 +303,8 @@ geoTrafficRoutes.openapi(trafficPagesRoute, async (c) => {
       { organizationId: base.organizationId, projectId },
       geoWindow(query),
       query.limit,
-      query.visitorType
+      query.visitorType,
+      query.host
     )
   );
   if (!outcome.ok) {

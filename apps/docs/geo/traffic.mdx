@@ -184,7 +184,7 @@ All paths below are prefixed with `/v1/projects/{projectId}` and need `traffic.r
 | `GET /geo/traffic/log` | `limit` (1 to 200), `visitorTypes`, `categories`, `host` | `log[]` with `capturedAt`, `visitorType`, `source`, `agent`, `category`, `confidence`, `path`, `host`, `country`, `ua`, `journeyId`, `wantsMarkdown`, plus `total`. No window; bound it with `limit`. `host` keeps the newest matching events for that hostname and its subdomains |
 | `GET /geo/traffic/journeys` | window plus `limit` (1 to 100) | `journeys[]` with `journeyId`, `source`, `visitorType`, `pages`, `distinctPaths`, `firstSeenAt`, `lastSeenAt`, `samplePaths[]` |
 | `GET /geo/traffic/journeys/{journeyId}` | window | `events[]` with `capturedAt`, `path`, `host`, `method`, `referer`, `country`, `agent`, `category` |
-| `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`) | `pages[]` with `host`, `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt` |
+| `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`), `host` | `pages[]` with `host`, `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt`. `host` ranks pages for that hostname and its subdomains before applying `limit` |
 
 `visitorTypes` and `categories` on the log endpoint are comma-separated lists. `categories` accepts `training-crawler`, `search-index`, and `assistant-browse`.
 

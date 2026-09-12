@@ -288,13 +288,14 @@ export const geoTrafficPagesDaily = defineDatasource(
   "geo_traffic_pages_daily",
   {
     description:
-      "Daily rollup of geo_traffic_events per organization, visitor type, source and path; read with countMerge/maxMerge",
+      "Daily rollup of geo_traffic_events per organization, visitor type, source, host and path; read with countMerge/maxMerge. Adding host to the sorting key requires recreating this datasource and its MV, then backfilling from geo_traffic_events.",
     schema: {
       day: t.date(),
       organization_id: t.string(),
       project_id: t.string().lowCardinality(),
       visitor_type: t.string().lowCardinality(),
       source: t.string().lowCardinality(),
+      host: t.string(),
       path: t.string(),
       visits_state: t.aggregateFunction("count"),
       last_seen_state: t.aggregateFunction("max", t.dateTime()),
@@ -305,6 +306,7 @@ export const geoTrafficPagesDaily = defineDatasource(
         "project_id",
         "visitor_type",
         "source",
+        "host",
         "day",
         "path",
       ],

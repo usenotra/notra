@@ -37,9 +37,13 @@ export function matchesProjectHost(
   if (!normalized) {
     return false;
   }
-  return domains.some(
-    (domain) => normalized === domain || normalized.endsWith(`.${domain}`)
-  );
+  return domains.some((domain) => {
+    const candidate = normalizeProjectDomain(domain);
+    if (!candidate) {
+      return false;
+    }
+    return normalized === candidate || normalized.endsWith(`.${candidate}`);
+  });
 }
 
 export function trafficLogHostFilter(host: string | undefined): string {
@@ -58,7 +62,30 @@ export function isKnownTrafficHost(
   if (needle.length === 0 || needle === "all") {
     return true;
   }
-  return hosts.includes(needle);
+  return hosts.some(
+    (host) =>
+      host === needle ||
+      matchesProjectHost(host, [needle]) ||
+      matchesProjectHost(needle, [host])
+  );
+}
+
+export function trafficQueryHost(
+  host: string | undefined,
+  knownHosts?: readonly string[],
+  isReady = true
+): string {
+  const filtered = trafficLogHostFilter(host);
+  if (filtered.length === 0) {
+    return "";
+  }
+  if (!isReady) {
+    return filtered;
+  }
+  if (knownHosts && !isKnownTrafficHost(host ?? "", knownHosts)) {
+    return "";
+  }
+  return filtered;
 }
 
 export function formatTrafficLocation(host: string, path: string): string {

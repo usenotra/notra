@@ -113,3 +113,15 @@ export function filterTrafficPageGroupsByHost(
       group.host === selected || matchesProjectHost(group.host, [selected])
   );
 }
+
+export function trafficHostsFromPages(
+  pages: readonly Pick<GeoTrafficPage, "host">[]
+): string[] {
+  const hostSet = new Set<string>();
+  for (const page of pages) {
+    if (page.host.length > 0) {
+      hostSet.add(page.host);
+    }
+  }
+  return [...hostSet].toSorted((left, right) => left.localeCompare(right));
+}

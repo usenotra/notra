@@ -75,6 +75,8 @@ export interface GeoProjectCreateInput {
 
 export interface GeoProjectContextValue {
   projectId: string | undefined;
+  trafficHost: string;
+  setTrafficHost: (value: string) => void;
 }
 
 export interface GeoActiveProject {
@@ -85,6 +87,8 @@ export interface GeoActiveProject {
 export interface GeoProjectProviderProps {
   projectId: string | undefined;
   children: ReactNode;
+  trafficHost?: string;
+  setTrafficHost?: (value: string) => void;
 }
 
 export interface GeoProjectQueryProviderProps {
@@ -387,6 +391,8 @@ export interface GeoVisitorClassification {
 export interface GeoTrafficLogQueryOptions {
   refetchInterval?: number | false;
   host?: string;
+  knownHosts?: readonly string[];
+  isHostReady?: boolean;
 }
 
 export interface GeoJourneyInput {
@@ -757,6 +763,8 @@ export interface MentionTrendAgentsPickerProps {
 
 export interface AiTrafficLogCardProps {
   organizationId: string;
+  knownHosts?: readonly string[];
+  isHostReady?: boolean;
 }
 
 export interface CitationsTableProps {
