@@ -97,7 +97,9 @@ export async function invalidateGeoIngestHostsCache(
 
 /**
  * Brand website changes affect every project linked to that voice, including
- * org-scoped tokens that union those hosts.
+ * org-scoped tokens that union those hosts. Best-effort: a lookup blip must
+ * not fail the settings write that already committed, and the org key is
+ * still dropped so org-scoped tokens do not keep a stale union.
  */
 export async function invalidateGeoIngestHostsCacheForBrand(
   organizationId: string,
@@ -107,17 +109,21 @@ export async function invalidateGeoIngestHostsCacheForBrand(
   if (!client) {
     return;
   }
-  const rows = await db.query.projects.findMany({
-    columns: { id: true },
-    where: and(
-      eq(projects.organizationId, organizationId),
-      eq(projects.brandSettingsId, brandSettingsId)
-    ),
-  });
-  const keys = [
-    geoIngestHostsCacheKey(organizationId, null),
-    ...rows.map((row) => geoIngestHostsCacheKey(organizationId, row.id)),
-  ];
+  const keys = [geoIngestHostsCacheKey(organizationId, null)];
+  try {
+    const rows = await db.query.projects.findMany({
+      columns: { id: true },
+      where: and(
+        eq(projects.organizationId, organizationId),
+        eq(projects.brandSettingsId, brandSettingsId)
+      ),
+    });
+    for (const row of rows) {
+      keys.push(geoIngestHostsCacheKey(organizationId, row.id));
+    }
+  } catch {
+    // Org key still cleared below; project keys expire with the TTL.
+  }
   await Promise.all(keys.map((key) => client.del(key).catch(() => null)));
 }
 
