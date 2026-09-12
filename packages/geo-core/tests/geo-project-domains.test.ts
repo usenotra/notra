@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  acceptsIngestHost,
   formatTrafficLocation,
+  ingestAllowedHosts,
   isKnownTrafficHost,
   matchesProjectHost,
   normalizeProjectDomain,
@@ -43,6 +45,42 @@ describe("normalizeProjectDomains", () => {
       "a.com",
       "b.com",
     ]);
+  });
+});
+
+describe("ingestAllowedHosts", () => {
+  test("includes the brand website and extra tracked domains", () => {
+    expect(
+      ingestAllowedHosts("https://www.Example.com/blog", [
+        "docs.example.com",
+        "https://www.example.com",
+      ])
+    ).toEqual(["example.com", "docs.example.com"]);
+  });
+
+  test("returns an empty list when nothing is configured", () => {
+    expect(ingestAllowedHosts(null)).toEqual([]);
+    expect(ingestAllowedHosts("", ["not a domain"])).toEqual([]);
+  });
+});
+
+describe("acceptsIngestHost", () => {
+  test("fails open when the allowlist could not be loaded", () => {
+    expect(acceptsIngestHost("attacker.example", null)).toBe(true);
+  });
+
+  test("rejects every host when the loaded allowlist is empty", () => {
+    expect(acceptsIngestHost("example.com", [])).toBe(false);
+  });
+
+  test("accepts the brand host and listed extras, including subdomains", () => {
+    const allowed = ingestAllowedHosts("https://example.com", [
+      "docs.example.com",
+    ]);
+    expect(acceptsIngestHost("www.example.com", allowed)).toBe(true);
+    expect(acceptsIngestHost("docs.example.com", allowed)).toBe(true);
+    expect(acceptsIngestHost("status.docs.example.com", allowed)).toBe(true);
+    expect(acceptsIngestHost("attacker.com", allowed)).toBe(false);
   });
 });
 

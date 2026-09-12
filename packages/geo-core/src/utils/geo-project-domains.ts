@@ -29,6 +29,49 @@ export function normalizeProjectDomains(
   return result;
 }
 
+/**
+ * Hosts ingest will accept for a project: the brand website plus extra
+ * tracked domains. The brand host is always included when it normalizes, even
+ * if the extra list is empty. An empty result means ingest should drop every
+ * event — there is nowhere legitimate traffic can come from.
+ */
+export function ingestAllowedHosts(
+  websiteUrl: string | null | undefined,
+  extraDomains: readonly string[] = []
+): string[] {
+  const seen = new Set<string>();
+  const hosts: string[] = [];
+  const websiteHost = websiteUrl ? normalizeProjectDomain(websiteUrl) : null;
+  if (websiteHost) {
+    seen.add(websiteHost);
+    hosts.push(websiteHost);
+  }
+  for (const value of extraDomains) {
+    const domain = normalizeProjectDomain(value);
+    if (!domain || seen.has(domain)) {
+      continue;
+    }
+    seen.add(domain);
+    hosts.push(domain);
+  }
+  return hosts;
+}
+
+/**
+ * `null` allowed hosts means the allowlist could not be loaded (infra
+ * outage): fail open so a database blip does not drop real traffic. An empty
+ * list is a loaded allowlist with nothing configured and rejects every host.
+ */
+export function acceptsIngestHost(
+  host: string,
+  allowedHosts: readonly string[] | null
+): boolean {
+  if (allowedHosts === null) {
+    return true;
+  }
+  return matchesProjectHost(host, allowedHosts);
+}
+
 export function matchesProjectHost(
   host: string,
   domains: readonly string[]

@@ -573,6 +573,7 @@ export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
 export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
+export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v1";
 export const GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX = "geo:ingest-gen:v1";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
 export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
@@ -1146,7 +1147,7 @@ export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";
 export const GEO_MAX_DOMAINS = 20;
 export const GEO_PROJECT_DOMAINS_LABEL = "Tracked domains";
 export const GEO_PROJECT_DOMAINS_DESCRIPTION =
-  "Other sites that send AI traffic to this project, besides the brand website. Install the same ingest token on each. Subdomains of a listed domain are included.";
+  "Other sites that send AI traffic to this project, besides the brand website. Install the same ingest token on each. Ingest only records visits on the brand website and these domains, so a leaked token cannot register other hosts. Subdomains of a listed domain are included.";
 export const GEO_PROJECT_DOMAINS_PLACEHOLDER = "docs.example.com";
 export const GEO_COMPETITOR_MAX_SYNONYMS = 8;
 export const GEO_SHORT_FIELD_MAX_LENGTH = 128;
