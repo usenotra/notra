@@ -50,7 +50,7 @@ import {
 import { paginatedTableHeightFor } from "@/utils/table";
 
 const PAGE_SKELETON_ROWS = 4;
-const PAGE_COLUMN_WIDTH = "32rem";
+const PAGE_COLUMN_WIDTH = "1fr";
 const SOURCE_COLUMN_WIDTH = "1fr";
 const VISITS_COLUMN_WIDTH = "9.5rem";
 
@@ -172,7 +172,7 @@ export function TrafficPagesCard({
             >
               <SelectTrigger
                 aria-label="Filter pages by domain"
-                className="w-full sm:w-52"
+                className="w-full min-w-0 sm:max-w-52"
                 size="sm"
               >
                 <SelectValue placeholder="All domains" />

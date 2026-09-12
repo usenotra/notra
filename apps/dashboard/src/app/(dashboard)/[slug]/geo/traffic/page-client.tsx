@@ -117,7 +117,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   if (!settings) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full space-y-6 px-4 lg:px-6">
+        <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
           <header className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
             <p className="text-muted-foreground text-sm">
@@ -142,8 +142,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 
   const header = (
     <header className="flex flex-wrap items-start justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
+      <div className="min-w-0 space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          AI Traffic
+        </h1>
         <p className="text-muted-foreground text-sm">
           AI crawlers and referrals visiting your site
         </p>
@@ -155,7 +157,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   if (isEmptyTraffic) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="flex w-full flex-col gap-6 px-4 lg:px-6">
+        <div className="flex w-full min-w-0 flex-col gap-6 px-4 lg:px-6">
           {header}
           <InstrumentReveal active={revealActive} order={0}>
             <TrafficEmpty setup={ingestSetup} />
