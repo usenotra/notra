@@ -12,14 +12,15 @@ import type {
   SentimentThemesStateInput,
 } from "@/types/geo-sentiment";
 
-export function hasIsolatedSentimentPoint(
+export function isolatedSentimentPointIndices(
   points: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
-): boolean {
-  return points.some(
-    (point, index) =>
-      point.score !== null &&
-      points[index - 1]?.score == null &&
-      points[index + 1]?.score == null
+): number[] {
+  return points.flatMap((point, index) =>
+    point.score !== null &&
+    points[index - 1]?.score == null &&
+    points[index + 1]?.score == null
+      ? [index]
+      : []
   );
 }
 

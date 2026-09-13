@@ -45,14 +45,14 @@ export function SentimentThemes({
       ) : null}
       {view.showTable ? (
         <SentimentResultsTable
-          key={scopeKey}
+          key={`table:${scopeKey}`}
           pending={view.pending}
           themes={themes}
         />
       ) : null}
       {view.showEmpty ? (
         <SentimentThemesEmpty
-          key={scopeKey}
+          key={`empty:${scopeKey}`}
           title={view.title}
           message={view.message}
           canAnalyze={view.canAnalyze}

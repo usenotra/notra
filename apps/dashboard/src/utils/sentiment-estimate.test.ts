@@ -10,10 +10,27 @@ function points(scores: (number | null)[]) {
 }
 
 describe("sentiment estimated continuation", () => {
+  test("leaves past and future windows untouched", () => {
+    const input = points([40, 50, 60, null, null]);
+    expect(sentimentTailEstimate(input, "2026-09-06")).toEqual([
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect(sentimentTailEstimate(input, "2026-09-04")).toEqual([
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
+  });
   test("anchors the regression continuation to the last real score", () => {
     const input = points([40, 50, 60, null, null]);
     const before = JSON.stringify(input);
-    expect(sentimentTailEstimate(input, "2026-09-11")).toEqual([
+    expect(sentimentTailEstimate(input, "2026-09-05")).toEqual([
       null,
       null,
       60,
@@ -26,7 +43,7 @@ describe("sentiment estimated continuation", () => {
   test("does not estimate internal gaps or leading missing days", () => {
     const result = sentimentTailEstimate(
       points([null, 40, null, 50, 60, null]),
-      "2026-09-11"
+      "2026-09-06"
     );
     expect(result.slice(0, 4)).toEqual([null, null, null, null]);
     expect(result[4]).toBe(60);
@@ -45,7 +62,7 @@ describe("sentiment estimated continuation", () => {
       null,
       null,
     ]);
-    expect(sentimentTailEstimate(points([null, null]), "2026-09-11")).toEqual([
+    expect(sentimentTailEstimate(points([null, null]), "2026-09-05")).toEqual([
       null,
       null,
     ]);
@@ -54,10 +71,10 @@ describe("sentiment estimated continuation", () => {
 
   test("stays inside the sentiment scale including a genuine zero", () => {
     expect(
-      sentimentTailEstimate(points([80, 90, 100, null, null]), "2026-09-11")
+      sentimentTailEstimate(points([80, 90, 100, null, null]), "2026-09-05")
     ).toEqual([null, null, 100, 100, 100]);
     expect(
-      sentimentTailEstimate(points([30, 15, 0, null, null]), "2026-09-11")
+      sentimentTailEstimate(points([30, 15, 0, null, null]), "2026-09-05")
     ).toEqual([null, null, 0, 0, 0]);
   });
 
@@ -65,7 +82,7 @@ describe("sentiment estimated continuation", () => {
     expect(
       sentimentTailEstimate(
         points([40, 50, 60, null, null, null, null]),
-        "2026-09-11"
+        "2026-09-07"
       )
     ).toEqual([null, null, 60, 70, 80, 90, null]);
   });

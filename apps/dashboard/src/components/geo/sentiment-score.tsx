@@ -18,7 +18,11 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
         {summary.score === null
           ? "—"
           : SENTIMENT_SCORE_FORMAT.format(summary.score)}{" "}
-        <span className="text-muted-foreground text-sm font-normal">/ 100</span>
+        {summary.score !== null ? (
+          <span className="text-muted-foreground text-sm font-normal">
+            / 100
+          </span>
+        ) : null}
       </p>
       {comparison ? (
         <Tooltip>

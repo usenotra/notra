@@ -4,7 +4,7 @@ import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { summarizeSentiment } from "@notra/geo-core/utils/geo-sentiment";
 
 import {
-  hasIsolatedSentimentPoint,
+  isolatedSentimentPointIndices,
   sentimentFamilyRows,
   sentimentEmptyMessage,
   sentimentThemesState,
@@ -60,6 +60,11 @@ test("empty copy distinguishes absent answers from saved but unrated mentions", 
 });
 
 test("markers preserve isolated observations while contiguous series stay clean", () => {
+  expect(
+    isolatedSentimentPointIndices(
+      [70, null, 80, 90, null, 0].map((score) => ({ score }))
+    )
+  ).toEqual([0, 5]);
   for (const scores of [
     [70, null, 80],
     [70, null, 80, 90],
@@ -68,9 +73,10 @@ test("markers preserve isolated observations while contiguous series stay clean"
     [null, 0, null, 80, null],
     [70],
   ]) {
-    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
-      true
-    );
+    expect(
+      isolatedSentimentPointIndices(scores.map((score) => ({ score }))).length >
+        0
+    ).toBe(true);
   }
   for (const scores of [
     [],
@@ -79,9 +85,10 @@ test("markers preserve isolated observations while contiguous series stay clean"
     [null, 70, 80, null],
     [0, 0],
   ]) {
-    expect(hasIsolatedSentimentPoint(scores.map((score) => ({ score })))).toBe(
-      false
-    );
+    expect(
+      isolatedSentimentPointIndices(scores.map((score) => ({ score }))).length >
+        0
+    ).toBe(false);
   }
 });
 

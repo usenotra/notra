@@ -1,16 +1,16 @@
-import { GEO_SENTIMENT_LABELS } from "@notra/geo-core/constants/geo-sentiment";
 import { exactSentimentExcerpt } from "@notra/geo-core/utils/geo-sentiment";
 
 import type { AnswerSentimentProps } from "@/types/geo-sentiment";
 
 export function AnswerSentiment({ result }: AnswerSentimentProps) {
-  const rating = GEO_SENTIMENT_LABELS.find(
-    (label) => label === result.sentiment
-  );
+  const rating =
+    result.sentiment === "positive" ||
+    result.sentiment === "neutral" ||
+    result.sentiment === "negative"
+      ? result.sentiment
+      : null;
   const label = result.mentioned ? (rating ?? "Unrated") : "Not mentioned";
-  const excerpt = result.mentioned
-    ? exactSentimentExcerpt(result.answer, result.excerpt)
-    : null;
+  const excerpt = exactSentimentExcerpt(result.answer, result.excerpt);
   return (
     <div className="space-y-2 text-sm">
       <p className="text-muted-foreground">
@@ -20,7 +20,7 @@ export function AnswerSentiment({ result }: AnswerSentimentProps) {
         </span>
       </p>
       {excerpt ? (
-        <p className="line-clamp-2 break-words whitespace-pre-wrap">
+        <p className="break-words whitespace-pre-wrap">
           <span className="sr-only">Exact excerpt: </span>
           <mark className="bg-primary/10 text-foreground rounded-sm px-0.5">
             {excerpt}

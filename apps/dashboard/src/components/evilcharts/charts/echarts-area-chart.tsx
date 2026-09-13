@@ -244,6 +244,7 @@ const Area: FC<AreaProps> = () => null;
 
 export interface DotProps {
   variant?: DotVariant; // visual style of the point marker
+  indices?: readonly number[]; // restrict resting markers to these data indices
 }
 
 /** Declares the resting point marker for the enclosing <Area>. Renders nothing. */
@@ -342,6 +343,7 @@ type AreaSeriesConfig = {
   gapMissing: boolean;
   visible: boolean;
   dotVariant: DotVariant; // "none" when no <Dot> child is present
+  dotIndices?: readonly number[];
   activeDotVariant: DotVariant; // "none" when no <ActiveDot> child is present
 };
 
@@ -440,16 +442,19 @@ function collectConfig(children: ReactNode): CollectedConfig {
     if (type === Area) {
       const props = child.props as AreaProps;
       let dotVariant: DotVariant = "none";
+      let dotIndices: readonly number[] | undefined;
       let activeDotVariant: DotVariant = "none";
       Children.forEach(props.children, (dotChild) => {
         if (!isValidElement(dotChild)) return;
         if (dotChild.type === Dot) {
           dotVariant = (dotChild.props as DotProps).variant ?? "default";
+          dotIndices = (dotChild.props as DotProps).indices;
         } else if (dotChild.type === ActiveDot) {
           activeDotVariant = (dotChild.props as DotProps).variant ?? "default";
         }
       });
       areas.push({
+        dotIndices,
         dataKey: props.dataKey,
         variant: props.variant ?? "gradient",
         strokeVariant: props.strokeVariant ?? "dashed",
@@ -1556,7 +1561,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // invisible until the axis pointer highlights the scrubbed index.
       showSymbol: !isHidden && (restingVisible || hoverSymbol),
       symbol: "circle",
-      symbolSize: restingVisible ? restingDot.size : activeDot.size,
+      symbolSize: area.dotIndices
+        ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
+        : restingVisible ? restingDot.size : activeDot.size,
       z,
       lineStyle: {
         color: strokePaint,
@@ -1690,7 +1697,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       silent: true,
       showSymbol: restingVisible,
       symbol: "circle",
-      symbolSize: restingVisible ? restingDot.size : activeDot.size,
+      symbolSize: area.dotIndices
+        ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
+        : restingVisible ? restingDot.size : activeDot.size,
       z,
       lineStyle: {
         color: paint,

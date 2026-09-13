@@ -15,6 +15,9 @@ export function sentimentTailEstimate(
   today = todayIsoDate()
 ): (number | null)[] {
   const estimates: (number | null)[] = points.map(() => null);
+  if (points.at(-1)?.day !== today) {
+    return estimates;
+  }
   const last = points.findLastIndex((point) => point.score !== null);
   if (last < 0 || last === points.length - 1) {
     return estimates;

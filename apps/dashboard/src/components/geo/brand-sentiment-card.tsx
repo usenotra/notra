@@ -13,6 +13,7 @@ import {
   useGeoSentimentAnalysis,
 } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
+import { sentimentAnalysisStatus } from "@/utils/sentiment-analysis";
 
 export function BrandSentimentCard({
   organizationId,
@@ -21,10 +22,10 @@ export function BrandSentimentCard({
   const query = useGeoSentiment(organizationId);
   const data = query.isSuccess ? query.data : undefined;
   const analysis = useGeoSentimentAnalysis(organizationId);
-  const themes =
-    analysis.query.data?.status === "ready"
-      ? (analysis.query.data.result?.themes ?? [])
-      : [];
+  const themes = analysis.query.data?.result?.themes ?? [];
+  const themeStatus = analysis.query.isError
+    ? "Could not load analysis."
+    : sentimentAnalysisStatus(analysis.query.data);
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <InstrumentModule
@@ -53,6 +54,14 @@ export function BrandSentimentCard({
             />
           </div>
           <div className="flex min-w-0 flex-col divide-y border-t lg:border-t-0">
+            {themeStatus ? (
+              <p
+                role="status"
+                className="text-muted-foreground px-5 py-3 text-xs"
+              >
+                {themeStatus}
+              </p>
+            ) : null}
             {(["positive", "negative"] as const).map((polarity) => (
               <div
                 key={polarity}
@@ -70,21 +79,26 @@ export function BrandSentimentCard({
                   {query.isPending || analysis.query.isPending
                     ? "Loading themes…"
                     : null}
-                  {themes
-                    .filter((theme) => theme.polarity === polarity)
-                    .map((theme, index) => (
-                      <span key={theme.title}>
-                        {index > 0 ? ", " : ""}
-                        <a
-                          className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
-                          href="#sentiment-claims"
-                        >
-                          {theme.title}
-                        </a>
-                      </span>
-                    ))}
+                  {[
+                    ...new Set(
+                      themes
+                        .filter((theme) => theme.polarity === polarity)
+                        .map((theme) => theme.title)
+                    ),
+                  ].map((title, index) => (
+                    <span key={title}>
+                      {index > 0 ? ", " : ""}
+                      <a
+                        className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
+                        href="#sentiment-claims"
+                      >
+                        {title}
+                      </a>
+                    </span>
+                  ))}
                   {!query.isPending &&
                   !analysis.query.isPending &&
+                  !themeStatus &&
                   !themes.some((theme) => theme.polarity === polarity) ? (
                     <span>
                       {analysis.query.data?.status === "ready"

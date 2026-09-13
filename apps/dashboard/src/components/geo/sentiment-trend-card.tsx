@@ -14,7 +14,7 @@ import type {
   SentimentTrendPlotProps,
 } from "@/types/geo-sentiment";
 import {
-  hasIsolatedSentimentPoint,
+  isolatedSentimentPointIndices,
   sentimentEmptyMessage,
 } from "@/utils/geo-sentiment";
 import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
@@ -118,7 +118,7 @@ function SentimentTrendPlot({ points }: SentimentTrendPlotProps) {
         strokeWidth={2}
         variant="gradient"
       >
-        {hasIsolatedSentimentPoint(points) ? <EChartsAreaChart.Dot /> : null}
+        <EChartsAreaChart.Dot indices={isolatedSentimentPointIndices(points)} />
       </EChartsAreaChart.Area>
       {hasEstimate ? (
         <EChartsAreaChart.Area

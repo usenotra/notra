@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { sentimentAnalysisInterval } from "@/utils/sentiment-analysis";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useGeoRange } from "./use-geo-range";
@@ -27,8 +28,7 @@ export function useGeoSentimentAnalysis(organizationId: string) {
   const query = useQuery({
     ...options,
     enabled: !!organizationId,
-    refetchInterval: (state) =>
-      state.state.data?.status === "pending" ? 3000 : 30_000,
+    refetchInterval: (state) => sentimentAnalysisInterval(state.state.data),
   });
   const mutation = useMutation({
     ...dashboardOrpc.geo.analyzeSentiment.mutationOptions(),
