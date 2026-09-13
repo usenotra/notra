@@ -42,17 +42,3 @@ export function getUtcYearRange(now = new Date()) {
     endDate: new Date(Date.UTC(year + 1, 0, 1)),
   };
 }
-
-export function getUtcDateKeys(startDate: Date, endDate: Date): string[] {
-  const dates: string[] = [];
-
-  for (
-    let timestamp = startDate.getTime();
-    timestamp < endDate.getTime();
-    timestamp += DAY_IN_MILLISECONDS
-  ) {
-    dates.push(new Date(timestamp).toISOString().slice(0, 10));
-  }
-
-  return dates;
-}
