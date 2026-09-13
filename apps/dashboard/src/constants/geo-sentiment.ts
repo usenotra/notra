@@ -13,12 +13,12 @@ export const SENTIMENT_RETROACTIVE_EMPTY_MESSAGE =
   "Sentiment ratings aren't available for earlier days in this range yet.";
 export const SENTIMENT_POLARITY_CTA = {
   positive: {
-    subtext: "See which themes are lifting perception.",
-    action: "Find positive themes",
+    subtext: "See what's working in saved answers.",
+    action: "Analyze positives",
   },
   negative: {
-    subtext: "Surface criticism before it spreads.",
-    action: "Find risk themes",
+    subtext: "Catch what's hurting before it spreads.",
+    action: "Analyze risks",
   },
 } as const;
 export const SENTIMENT_SCORE_FORMAT = new Intl.NumberFormat("en", {
