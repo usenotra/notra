@@ -42,6 +42,7 @@ export function TrafficSourcesGroup({
   collapsed,
   onToggle,
   stacked,
+  followedByStack = false,
 }: TrafficSourcesGroupProps) {
   const label = SOURCE_BAND_LABELS[band];
   const noun = SOURCE_BAND_NOUN[band];
@@ -108,7 +109,12 @@ export function TrafficSourcesGroup({
   }
 
   return (
-    <div className={cn(stacked ? "relative z-0 -mt-5" : "relative z-10")}>
+    <div
+      className={cn(
+        stacked ? "relative z-0 -mt-5" : "relative z-10",
+        followedByStack && "pb-5"
+      )}
+    >
       <Table
         className="rounded-2xl"
         flushTop={stacked}

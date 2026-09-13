@@ -1528,6 +1528,7 @@ export interface TrafficSourcesGroupProps {
   collapsed: boolean;
   onToggle: () => void;
   stacked: boolean;
+  followedByStack?: boolean;
 }
 
 export interface TrafficMarkdownCellProps {
