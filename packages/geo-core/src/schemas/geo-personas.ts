@@ -87,6 +87,7 @@ export const geoPersonaDeleteInputSchema = geoOrganizationInputSchema.extend({
 
 export const geoPersonaResultsInputSchema = geoOrganizationInputSchema.extend({
   personaId: string().min(1).optional(),
+  scanId: string().min(1).optional(),
 });
 
 export const geoPersonaRunInputSchema = geoOrganizationInputSchema.extend({

@@ -1375,7 +1375,9 @@ export const geoRouter = {
   personaResults: authorizedProcedure
     .input(geoPersonaResultsInputSchema)
     .handler(
-      geoHandler((input) => loadGeoPersonaResults(input, input.personaId))
+      geoHandler((input) =>
+        loadGeoPersonaResults(input, input.personaId, input.scanId)
+      )
     ),
   personaRun: authorizedProcedure
     .input(geoPersonaRunInputSchema)

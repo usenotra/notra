@@ -5,3 +5,8 @@ export interface GeoPersonaUpdateInput {
   enabled?: boolean;
   details?: GeoPersonaEditableDetails;
 }
+
+export interface PersonaScanSelection {
+  personaId: string;
+  scanId: string;
+}

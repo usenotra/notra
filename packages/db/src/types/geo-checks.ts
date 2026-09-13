@@ -205,6 +205,7 @@ export interface GeoCheckSequenceResultRow {
 }
 
 export interface GeoCheckPersonaResultRow {
+  scanId: string;
   personaId: string;
   personaSnapshot: GeoPersonaSnapshot | null;
   turn: number;
@@ -223,6 +224,11 @@ export interface GeoCheckPersonaResultRow {
   reasoningTokens: number | null;
   truncated: boolean | null;
   lastCheckedAt: Date;
+}
+
+export interface GeoCheckPersonaScanRow {
+  scanId: string;
+  capturedAt: Date;
 }
 
 export interface GeoCheckScanRow {

@@ -206,6 +206,7 @@ export function PersonasTable({
                     }}
                     size="icon"
                     variant="ghost"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
                     <HugeiconsIcon icon={Delete02Icon} size={16} />
                   </Button>

@@ -211,15 +211,17 @@ export function useGeoPersonaRun(organizationId: string) {
 export function useGeoPersonaResults(
   organizationId: string,
   personaId?: string,
+  scanId?: string,
   poll = false
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoPersonaResultsResponse>({
     ...dashboardOrpc.geo.personaResults.queryOptions({
-      input: { organizationId, projectId, personaId },
+      input: { organizationId, projectId, personaId, scanId },
     }),
     enabled: Boolean(organizationId && personaId),
-    refetchInterval: poll && personaId ? GEO_PERSONA_RESULTS_POLL_MS : false,
+    refetchInterval:
+      poll && personaId && !scanId ? GEO_PERSONA_RESULTS_POLL_MS : false,
     meta: { errorMessage: "Failed to load persona results" },
   });
 }

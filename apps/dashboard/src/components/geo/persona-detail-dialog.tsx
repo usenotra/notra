@@ -8,6 +8,13 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -55,15 +62,7 @@ function latestCheckAt(threads: GeoSequenceEngineThread[]): string | null {
   return latest;
 }
 
-function ConversationEmpty({
-  enabled,
-  isScanning,
-  onRunScan,
-}: {
-  enabled: boolean;
-  isScanning: boolean;
-  onRunScan: () => void;
-}) {
+function ConversationEmpty({ enabled }: { enabled: boolean }) {
   return (
     <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4 px-6 pb-6">
       <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-full">
@@ -79,16 +78,6 @@ function ConversationEmpty({
             : GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION}
         </p>
       </div>
-      {enabled ? (
-        <Button disabled={isScanning} onClick={onRunScan} size="sm">
-          <HugeiconsIcon
-            className={isScanning ? "animate-spin" : undefined}
-            icon={isScanning ? Loading03Icon : PlayIcon}
-            size={14}
-          />
-          {isScanning ? "Scanning…" : "Run scan"}
-        </Button>
-      ) : null}
     </div>
   );
 }
@@ -99,8 +88,6 @@ function PersonaConversation({
   isLoading,
   isWaitingForScan,
   enabled,
-  isScanning,
-  onRunScan,
 }: PersonaConversationProps) {
   if (active) {
     return (
@@ -128,13 +115,7 @@ function PersonaConversation({
       </div>
     );
   }
-  return (
-    <ConversationEmpty
-      enabled={enabled}
-      isScanning={isScanning}
-      onRunScan={onRunScan}
-    />
-  );
+  return <ConversationEmpty enabled={enabled} />;
 }
 
 export function PersonaDetailDialog({
@@ -151,9 +132,14 @@ export function PersonaDetailDialog({
     active,
     isWaitingForScan,
     isConversationLoading: showConversationLoading,
+    scans,
+    selectedScanId,
+    selectScan,
     setEngine,
   } = usePersonaConversation(organizationId, persona, open, showConversation);
   const latestCheck = latestCheckAt(threads);
+  const selectedScan =
+    scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
 
   if (!persona) {
     return null;
@@ -193,7 +179,7 @@ export function PersonaDetailDialog({
         <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
           <div className="flex items-center gap-3">
             <PersonaAvatar className="size-12" persona={persona} size="lg" />
-            <div className="min-w-0 space-y-0.5">
+            <div className="min-w-0 flex-1 space-y-0.5">
               <SheetTitle className="text-xl leading-snug font-semibold text-balance">
                 {persona.name}
               </SheetTitle>
@@ -204,6 +190,24 @@ export function PersonaDetailDialog({
                   : null}
               </SheetDescription>
             </div>
+            <Button
+              className="ml-auto"
+              disabled={runPersona.isPending}
+              onClick={() =>
+                runPersona.mutate(persona.id, {
+                  onSuccess: () => selectScan(null),
+                })
+              }
+              size="sm"
+              type="button"
+            >
+              <HugeiconsIcon
+                className={runPersona.isPending ? "animate-spin" : undefined}
+                icon={runPersona.isPending ? Loading03Icon : PlayIcon}
+                size={14}
+              />
+              {runPersona.isPending ? "Running…" : "Run scan"}
+            </Button>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Tabs
@@ -225,13 +229,40 @@ export function PersonaDetailDialog({
             </Tabs>
           </div>
           {showConversation && active ? (
-            <PromptEngineSwitcher
-              active={active}
-              onChange={(next) => {
-                setEngine(next);
-              }}
-              results={threads}
-            />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <PromptEngineSwitcher
+                active={active}
+                onChange={(next) => {
+                  setEngine(next);
+                }}
+                results={threads}
+              />
+              {selectedScan && selectedScanId ? (
+                <Select
+                  disabled={runPersona.isPending}
+                  onValueChange={(value) => selectScan(value)}
+                  value={selectedScanId}
+                >
+                  <SelectTrigger
+                    aria-label="Persona scan history"
+                    className="w-44"
+                  >
+                    <SelectValue>
+                      {selectedScan.id === scans.at(0)?.id ? "Latest · " : ""}
+                      {formatAiTrafficTimestamp(selectedScan.capturedAt)}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scans.map((scan, index) => (
+                      <SelectItem key={scan.id} value={scan.id}>
+                        {index === 0 ? "Latest · " : ""}
+                        {formatAiTrafficTimestamp(scan.capturedAt)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+            </div>
           ) : null}
         </SheetHeader>
 
@@ -243,8 +274,6 @@ export function PersonaDetailDialog({
               isLoading={showConversationLoading}
               isWaitingForScan={isWaitingForScan}
               enabled={persona.enabled}
-              isScanning={runPersona.isPending}
-              onRunScan={() => runPersona.mutate(persona.id)}
             />
           ) : null}
           <div hidden={showConversation} className="h-full">

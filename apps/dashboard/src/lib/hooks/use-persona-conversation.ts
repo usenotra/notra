@@ -7,6 +7,7 @@ import {
   useGeoPersonaResults,
   useGeoPersonaRun,
 } from "@/lib/hooks/use-geo-personas";
+import type { PersonaScanSelection } from "@/types/geo-personas";
 import { toPersonaEngineThreads } from "@/utils/geo-personas";
 
 export function usePersonaConversation(
@@ -15,10 +16,17 @@ export function usePersonaConversation(
   open: boolean,
   showConversation: boolean
 ) {
+  const [scanSelection, setScanSelection] =
+    useState<PersonaScanSelection | null>(null);
+  const selectedScanId =
+    scanSelection && scanSelection.personaId === persona?.id
+      ? scanSelection.scanId
+      : undefined;
   const { data, isLoading, isFetching } = useGeoPersonaResults(
     organizationId,
     open ? persona?.id : undefined,
-    open && showConversation
+    selectedScanId,
+    open && showConversation && !selectedScanId
   );
   const runPersona = useGeoPersonaRun(organizationId);
   const [engine, setEngine] = useState<string | null>(null);
@@ -37,6 +45,13 @@ export function usePersonaConversation(
     active,
     isWaitingForScan,
     isConversationLoading,
+    scans: data?.scans ?? [],
+    selectedScanId: data?.selectedScanId ?? null,
+    selectScan: (scanId: string | null) => {
+      setScanSelection(
+        scanId && persona ? { personaId: persona.id, scanId } : null
+      );
+    },
     setEngine,
   };
 }

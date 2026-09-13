@@ -66,6 +66,7 @@ export interface GeoPersonaActivityResponse {
 }
 
 export interface GeoPersonaTurnResult {
+  scanId: string;
   personaId: string;
   personaSnapshot: GeoPersonaSnapshot | null;
   turn: number;
@@ -86,8 +87,15 @@ export interface GeoPersonaTurnResult {
   lastCheckedAt: string;
 }
 
+export interface GeoPersonaScanSummary {
+  id: string;
+  capturedAt: string;
+}
+
 export interface GeoPersonaResultsResponse {
   results: GeoPersonaTurnResult[];
+  scans: GeoPersonaScanSummary[];
+  selectedScanId: string | null;
 }
 
 export interface GeoPersonaRunResponse {

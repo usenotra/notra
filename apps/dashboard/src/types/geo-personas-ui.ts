@@ -70,8 +70,6 @@ export interface PersonaConversationProps {
   isLoading: boolean;
   isWaitingForScan: boolean;
   enabled: boolean;
-  isScanning: boolean;
-  onRunScan: () => void;
 }
 export interface PersonaAddDialogProps {
   open: boolean;

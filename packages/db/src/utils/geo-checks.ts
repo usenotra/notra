@@ -11,7 +11,10 @@ import {
 } from "drizzle-orm";
 
 import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
-import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
+import {
+  GEO_CHECK_ENGLISH_LANGUAGES,
+  GEO_PERSONA_SCAN_HISTORY_LIMIT,
+} from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks, geoScans } from "../schema";
 import type {
@@ -33,6 +36,7 @@ import type {
   GeoCheckScanComparisonRow,
   GeoCheckScope,
   GeoCheckPersonaResultRow,
+  GeoCheckPersonaScanRow,
   GeoCheckSequenceResultRow,
   GeoCheckTimeseriesRow,
   GeoCheckWindow,
@@ -834,7 +838,8 @@ export async function queryGeoCheckSequenceResults(
 
 export async function queryGeoCheckPersonaResults(
   scope: GeoCheckScope,
-  personaId: string | undefined
+  personaId: string | undefined,
+  scanId?: string
 ): Promise<GeoCheckPersonaResultRow[]> {
   const filters = [
     scopeWhere(scope),
@@ -842,6 +847,9 @@ export async function queryGeoCheckPersonaResults(
   ];
   if (personaId) {
     filters.push(eq(geoMentionChecks.personaId, personaId));
+  }
+  if (scanId) {
+    filters.push(eq(geoMentionChecks.scanId, scanId));
   }
 
   const rows = await db
@@ -852,6 +860,7 @@ export async function queryGeoCheckPersonaResults(
         geoMentionChecks.engine,
       ],
       {
+        scanId: geoMentionChecks.scanId,
         personaId: geoMentionChecks.personaId,
         personaSnapshot: geoMentionChecks.personaSnapshot,
         turn: geoMentionChecks.turn,
@@ -886,6 +895,7 @@ export async function queryGeoCheckPersonaResults(
     }
     return [
       {
+        scanId: row.scanId,
         personaId: row.personaId,
         personaSnapshot: row.personaSnapshot,
         turn: row.turn,
@@ -908,6 +918,22 @@ export async function queryGeoCheckPersonaResults(
       },
     ];
   });
+}
+
+export async function queryGeoCheckPersonaScans(
+  scope: GeoCheckScope,
+  personaId: string
+): Promise<GeoCheckPersonaScanRow[]> {
+  return db
+    .select({
+      scanId: geoMentionChecks.scanId,
+      capturedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
+    })
+    .from(geoMentionChecks)
+    .where(and(scopeWhere(scope), eq(geoMentionChecks.personaId, personaId)))
+    .groupBy(geoMentionChecks.scanId)
+    .orderBy(desc(sql`max(${geoMentionChecks.capturedAt})`))
+    .limit(GEO_PERSONA_SCAN_HISTORY_LIMIT);
 }
 
 export async function queryGeoCheckPersonaActivity(

@@ -14,6 +14,7 @@ import {
 } from "@notra/db/schema";
 import {
   queryGeoCheckPersonaResults,
+  queryGeoCheckPersonaScans,
   queryGeoCheckPersonaActivity,
   toGeoCheckWindow,
 } from "@notra/db/utils/geo-checks";
@@ -565,14 +566,26 @@ export const deleteGeoPersona = Effect.fn("geo.personaDelete")(function* (
 
 export const loadGeoPersonaResults = Effect.fn("geo.personaResults")(function* (
   input: GeoScopeInput,
-  personaId: string | undefined
+  personaId: string | undefined,
+  scanId?: string
 ) {
   const scope = yield* resolveGeoScope(input);
+  const scans = personaId
+    ? yield* geoDb("persona scan history query failed", () =>
+        queryGeoCheckPersonaScans(geoCheckScope(scope), personaId)
+      )
+    : [];
+  const selectedScanId = scanId ?? scans.at(0)?.scanId ?? null;
   const rows = yield* geoDb("persona results query failed", () =>
-    queryGeoCheckPersonaResults(geoCheckScope(scope), personaId)
+    queryGeoCheckPersonaResults(
+      geoCheckScope(scope),
+      personaId,
+      selectedScanId ?? undefined
+    )
   );
   const response: GeoPersonaResultsResponse = {
     results: rows.map((row) => ({
+      scanId: row.scanId,
       personaId: row.personaId,
       personaSnapshot: row.personaSnapshot,
       turn: row.turn,
@@ -599,6 +612,11 @@ export const loadGeoPersonaResults = Effect.fn("geo.personaResults")(function* (
       truncated: row.truncated,
       lastCheckedAt: row.lastCheckedAt.toISOString(),
     })),
+    scans: scans.map((scan) => ({
+      id: scan.scanId,
+      capturedAt: scan.capturedAt.toISOString(),
+    })),
+    selectedScanId,
   };
   return response;
 });
