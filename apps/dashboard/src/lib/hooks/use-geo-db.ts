@@ -14,6 +14,7 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GEO_PROJECT_CREATE_TIMEOUT_MS } from "@/constants/geo-projects";
 import {
   geoCollectionId,
   geoCompetitorsCollection,
@@ -229,18 +230,33 @@ export function useGeoProjectsDb(
       createdAt: new Date().toISOString(),
     });
     const createdPromise = waitForProjectCreateHandoff(transaction.id);
+    void createdPromise.catch(() => undefined);
     track(tempId, transaction, "Failed to create project");
 
-    let created: GeoProject | null = null;
-    await Promise.all([transaction.isPersisted.promise, createdPromise])
-      .then(([, project]) => {
-        created = project;
+    let persistError: unknown;
+    await Promise.race([
+      transaction.isPersisted.promise,
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Project create timed out")),
+          GEO_PROJECT_CREATE_TIMEOUT_MS
+        );
+      }),
+    ])
+      .catch((error: unknown) => {
+        persistError = error;
       })
       .finally(() => {
         abandonProjectCreateHandoff(transaction.id);
         setIsCreating(false);
       });
 
+    if (persistError) {
+      toast.error(toErrorMessage(persistError, "Failed to create project"));
+      throw persistError;
+    }
+
+    const created = await createdPromise.catch(() => null);
     if (!created) {
       const error = new Error("Failed to resolve created project");
       toast.error(toErrorMessage(error, "Failed to create project"));
