@@ -24,7 +24,13 @@ import {
   getGeoShelfSampleData,
   subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
-import { takeCreatedGeoProject } from "@/lib/db/geo-project-create-cache";
+import { waitForProjectCreateHandoff } from "@/lib/db/geo-project-create-handoff";
+import {
+  clearPendingDeleteSnapshot,
+  getPendingDeleteSnapshots,
+  rememberPendingDeleteSnapshot,
+  subscribeToPendingDeleteSnapshots,
+} from "@/lib/db/geo-project-pending-deletes";
 import {
   clearRowPending,
   getPendingRows,
@@ -170,15 +176,18 @@ export function useGeoProjectsDb(
 ) {
   const isEnabled = options?.enabled ?? true;
   const scope = { organizationId };
+  const collectionId = geoCollectionId("projects", scope);
   const dbClient = useDbClient();
   const definition = geoProjectsCollection(scope);
   const collection = dbClient.collection(definition);
   const { pendingIds, track } = usePendingRows("projects", scope);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [pendingDeleteSnapshots, setPendingDeleteSnapshots] = useState<
-    ReadonlyMap<string, GeoProject>
-  >(() => new Map());
+  const pendingDeleteSnapshots = useSyncExternalStore(
+    subscribeToPendingDeleteSnapshots,
+    () => getPendingDeleteSnapshots(collectionId),
+    () => getPendingDeleteSnapshots(collectionId)
+  );
 
   const { data, isLoading, isError, isReady } = useLiveQuery(
     (q) =>
@@ -216,12 +225,13 @@ export function useGeoProjectsDb(
       brandSettingsId: input.brandSettingsId,
       createdAt: new Date().toISOString(),
     });
+    const createdPromise = waitForProjectCreateHandoff(transaction.id);
     track(tempId, transaction, "Failed to create project");
 
     let created: GeoProject | null = null;
     try {
       await transaction.isPersisted.promise;
-      created = takeCreatedGeoProject(tempId) ?? null;
+      created = await createdPromise;
     } finally {
       setIsCreating(false);
     }
@@ -239,9 +249,7 @@ export function useGeoProjectsDb(
   const deleteProject = async (projectId: string) => {
     const snapshot = projects.find((project) => project.id === projectId);
     if (snapshot) {
-      setPendingDeleteSnapshots((current) =>
-        new Map(current).set(projectId, snapshot)
-      );
+      rememberPendingDeleteSnapshot(collectionId, snapshot);
     }
 
     setIsDeleting(true);
@@ -251,11 +259,7 @@ export function useGeoProjectsDb(
       await transaction.isPersisted.promise;
       toast.success("Project deleted");
     } finally {
-      setPendingDeleteSnapshots((current) => {
-        const next = new Map(current);
-        next.delete(projectId);
-        return next;
-      });
+      clearPendingDeleteSnapshot(collectionId, projectId);
       setIsDeleting(false);
     }
   };

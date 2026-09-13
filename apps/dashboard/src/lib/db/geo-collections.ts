@@ -12,7 +12,10 @@ import { collectionOptions } from "@tanstack/react-db";
 import type { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { rememberCreatedGeoProject } from "@/lib/db/geo-project-create-cache";
+import {
+  rejectProjectCreateHandoff,
+  resolveProjectCreateHandoff,
+} from "@/lib/db/geo-project-create-handoff";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoCollectionSpec } from "@/types/geo-db";
 import type { GeoShelfSource } from "@/types/geo-shelf";
@@ -85,10 +88,20 @@ function buildScopedCollection<T extends object>(
       },
       getKey: spec.getKey,
       onInsert: async ({ transaction }) => {
-        for (const mutation of transaction.mutations) {
-          await spec.insert?.(scope, mutation.modified);
+        try {
+          for (const mutation of transaction.mutations) {
+            const result = await spec.insert?.(scope, mutation.modified);
+            if (spec.name === "projects" && result) {
+              resolveProjectCreateHandoff(transaction.id, result as GeoProject);
+            }
+          }
+          await spec.invalidateLegacy(queryClient, scope);
+        } catch (error) {
+          if (spec.name === "projects") {
+            rejectProjectCreateHandoff(transaction.id, error);
+          }
+          throw error;
         }
-        await spec.invalidateLegacy(queryClient, scope);
       },
       onUpdate: async ({ transaction }) => {
         for (const mutation of transaction.mutations) {
@@ -182,15 +195,12 @@ export const geoProjectsCollection = createCollectionFactory<GeoProject>({
     return response.projects;
   },
   getKey: (item) => item.id,
-  insert: async (scope, item) => {
-    const created = await dashboardOrpc.geo.projectsCreate.call({
+  insert: (scope, item) =>
+    dashboardOrpc.geo.projectsCreate.call({
       organizationId: scope.organizationId,
       name: item.name,
       brandSettingsId: item.brandSettingsId,
-    });
-    rememberCreatedGeoProject(item.id, created);
-    return created;
-  },
+    }),
   remove: (scope, original) =>
     dashboardOrpc.geo.projectsDelete.call({
       organizationId: scope.organizationId,

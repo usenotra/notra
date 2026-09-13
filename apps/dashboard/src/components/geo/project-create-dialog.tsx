@@ -41,7 +41,9 @@ export function GeoProjectCreateDialog({
     string | null
   >(null);
   const [identityDialogOpen, setIdentityDialogOpen] = useState(false);
-  const { createProject, isCreating } = useGeoProjectsDb(organizationId);
+  const { createProject, isCreating } = useGeoProjectsDb(organizationId, {
+    enabled: open,
+  });
   const brandSettingsQuery = useBrandSettings(organizationId);
 
   const voices = brandSettingsQuery.data?.voices ?? [];
