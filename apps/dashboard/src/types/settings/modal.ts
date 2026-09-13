@@ -11,6 +11,7 @@ export type SettingsSectionId =
   | "billing"
   | "usage"
   | "credits"
+  | "webhooks"
   | "logs"
   | "geo"
   | "geo-brand"

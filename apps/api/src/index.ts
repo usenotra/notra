@@ -45,6 +45,7 @@ import { legacyRedirectRoutes } from "./routes/legacy-redirects";
 import { postsRoutes } from "./routes/posts";
 import { schedulesRoutes } from "./routes/schedules";
 import { skillsRoutes } from "./routes/skills";
+import { webhooksRoutes } from "./routes/webhooks";
 import type { ApiEnv } from "./types/env";
 import type { ApiServerControl } from "./types/shutdown";
 import {
@@ -267,6 +268,7 @@ app.get("/.well-known/api-catalog", (c) => {
 
 app.route("/v1", legacyRedirectRoutes);
 app.route("/v1", postsRoutes);
+app.route("/v1", webhooksRoutes);
 app.route("/v1", brandIdentitiesRoutes);
 app.route("/v1", integrationsRoutes);
 app.route("/v1", schedulesRoutes);

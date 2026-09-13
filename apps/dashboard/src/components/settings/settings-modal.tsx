@@ -13,6 +13,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import dynamic from "next/dynamic";
 import { useId, useState } from "react";
+import type { ReactNode } from "react";
 
 import {
   SettingsHeaderProvider,
@@ -112,6 +113,13 @@ const IntegrationsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const WebhooksSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/webhooks-pane").then((mod) => ({
+      default: mod.WebhooksSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const LogsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/logs-pane").then((mod) => ({
@@ -128,39 +136,24 @@ const GeoSettingsPane = dynamic(
 );
 
 function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
-  switch (section) {
-    case "account":
-      return <AccountSettingsPane />;
-    case "general":
-      return <GeneralSettingsPane />;
-    case "members":
-      return <MembersSettingsPane />;
-    case "notifications":
-      return <NotificationsSettingsPane />;
-    case "attachments":
-      return <AttachmentsSettingsPane />;
-    case "billing":
-      return <BillingSettingsPane />;
-    case "usage":
-      return <UsageSettingsPane />;
-    case "credits":
-      return <CreditsSettingsPane />;
-    case "integrations":
-      return <IntegrationsSettingsPane />;
-    case "logs":
-      return <LogsSettingsPane />;
-    case "geo":
-    case "geo-brand":
-      return <GeoSettingsPane section="brand" />;
-    case "geo-languages":
-      return <GeoSettingsPane section="languages" />;
-    case "geo-models":
-      return <GeoSettingsPane section="models" />;
-    default: {
-      const exhaustive: never = section;
-      return exhaustive;
-    }
-  }
+  const panes: Record<SettingsSectionId, ReactNode> = {
+    account: <AccountSettingsPane />,
+    general: <GeneralSettingsPane />,
+    members: <MembersSettingsPane />,
+    notifications: <NotificationsSettingsPane />,
+    attachments: <AttachmentsSettingsPane />,
+    billing: <BillingSettingsPane />,
+    usage: <UsageSettingsPane />,
+    credits: <CreditsSettingsPane />,
+    integrations: <IntegrationsSettingsPane />,
+    webhooks: <WebhooksSettingsPane />,
+    logs: <LogsSettingsPane />,
+    geo: <GeoSettingsPane section="brand" />,
+    "geo-brand": <GeoSettingsPane section="brand" />,
+    "geo-languages": <GeoSettingsPane section="languages" />,
+    "geo-models": <GeoSettingsPane section="models" />,
+  };
+  return panes[section];
 }
 
 export function SettingsModal() {

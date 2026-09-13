@@ -163,7 +163,11 @@
           },
           {
             "group": "Webhooks",
-            "pages": ["api/webhooks/overview", "api/webhooks/events"]
+            "pages": [
+              "api/webhooks/overview",
+              "api/webhooks/events",
+              "api/webhooks/outbound"
+            ]
           },
           {
             "group": "Endpoints",

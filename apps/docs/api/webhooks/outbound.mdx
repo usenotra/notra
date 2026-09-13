@@ -1,0 +1,84 @@
+---
+title: "Outbound webhooks"
+description: "Subscribe to generation events and inspect every delivery and attempt."
+---
+
+Open **Settings**, then **Webhooks** to connect Notra to n8n or another public
+HTTPS endpoint. Select the events to receive and copy the signing secret shown after
+creation. Only organization owners and admins can manage endpoints and retry
+failed deliveries; members can view delivery history.
+
+## Events
+
+| Event | Data |
+| --- | --- |
+| `post.generation.completed` | `jobId`, `postId` |
+| `post.generation.failed` | `jobId`, `error` |
+| `post.generation.skipped` | `jobId`, `reason` |
+
+These events apply to tracked post-generation jobs, including jobs started through
+`POST /v1/posts/generate`. Brand analysis and GEO scans still require polling.
+
+## Subscribe through the API
+
+Use an organization API key with `webhooks.write`:
+
+```bash
+curl https://api.usenotra.com/v1/webhooks \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-app.com/webhook/notra","events":["post.generation.completed"]}'
+```
+
+The response includes `endpoint` and a one-time `secret`. Store it securely; list
+and detail responses never return signing secrets. `GET /v1/webhooks` lists
+subscriptions. `DELETE /v1/webhooks/{endpointId}` removes one and cancels unsent
+work. A request already in flight may still reach the deleted endpoint.
+
+## Verify requests
+
+Read the body as raw text before parsing JSON. Requests include these headers:
+
+- `x-notra-event`: event type.
+- `x-notra-event-id`: stable event ID.
+- `x-notra-delivery-id`: stable delivery ID for this endpoint.
+- `x-notra-timestamp`: signing time in Unix seconds.
+- `x-notra-signature`: `v1,` followed by a base64 HMAC-SHA256 signature.
+
+Remove the `whsec_` prefix from the secret, decode the remaining base64 bytes, and
+verify the HMAC over this UTF-8 message:
+
+```text
+<eventId>.<deliveryId>.<timestamp>.<exact raw request body>
+```
+
+Use constant-time signature verification. Reject timestamps more than five
+minutes in the past or future. Return 2xx promptly and process expensive work in
+your own queue.
+
+Delivery is at least once. Deduplicate by delivery ID, or by event ID if multiple
+subscriptions should produce only one downstream action. Ordering is not guaranteed.
+
+## Logs and retries
+
+The delivery table shows status, response code, attempt count and creation time.
+Select a row to see its payload, destination, event and delivery IDs, the status
+and duration of each attempt and the next retry time. Failed deliveries can be retried
+after a one-minute cooldown; earlier attempts stay in the history.
+
+For API access, use `webhooks.read`:
+
+- `GET /v1/webhooks/deliveries?offset=0&status=all` returns 25 rows and `hasMore`.
+- `GET /v1/webhooks/deliveries/{deliveryId}` returns the payload and attempts.
+- `POST /v1/webhooks/deliveries/{deliveryId}/retry` queues a failed delivery and
+  requires `webhooks.write`.
+
+Network failures, timeouts, 408, 429 and 5xx responses retry up to eight attempts.
+Other unsuccessful responses stop delivery, including redirects. Requests time out
+after ten seconds. Backoff starts at 30 seconds, honors `Retry-After` and grows up
+to six hours. Dispatch/recovery runs every minute, so delivery and retries can
+start after their scheduled time.
+
+Terminal delivery history is retained for 30 days; active work is retained until
+it finishes. Response bodies are not stored. Destinations must use public HTTPS
+hostnames on port 443.

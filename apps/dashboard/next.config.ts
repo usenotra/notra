@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
     "@notra/email",
     "@notra/ai",
     "@notra/content-generation",
+    "@notra/webhooks",
     "@notra/kiwi",
     "@notra/posthog",
     "@notra/utils",

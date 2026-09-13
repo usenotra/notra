@@ -63,6 +63,10 @@ export interface ApiScopeResourceDefinition {
 
 export const API_OPENAPI_TAGS = [
   {
+    name: "Webhooks",
+    description: "Manage outbound webhook subscriptions and delivery history.",
+  },
+  {
     name: "Discovery",
     description: "Public API status and service discovery.",
   },
@@ -106,6 +110,13 @@ export const API_OPENAPI_TAGS = [
 export type ApiOpenApiTagName = (typeof API_OPENAPI_TAGS)[number]["name"];
 
 export const API_SCOPE_RESOURCES = [
+  {
+    id: "webhooks",
+    paths: ["/webhooks"],
+    label: "Webhooks",
+    description: "Outbound subscriptions and delivery history",
+    openApiTag: "Webhooks",
+  },
   {
     id: "posts",
     paths: ["/posts"],
