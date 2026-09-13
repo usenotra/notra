@@ -6,7 +6,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoPromptHistoryCheck,
-  GeoPromptResult,
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 
@@ -138,33 +137,6 @@ export function promptHistoryChangeText(
     );
   }
   return sentences.join(" ");
-}
-
-/** Shapes a history check like a prompt result so the answer thread can render it. */
-export function promptResultFromHistoryCheck(
-  check: GeoPromptHistoryCheck,
-  promptId: string,
-  prompt: string
-): GeoPromptResult {
-  return {
-    promptId,
-    engine: check.engine,
-    prompt,
-    answer: check.answer,
-    mentioned: check.mentioned,
-    position: check.position,
-    sentiment: check.sentiment,
-    competitors: check.competitors,
-    excerpt: check.excerpt,
-    searchQueries: check.searchQueries,
-    sources: check.sources,
-    finishReason: null,
-    promptTokens: null,
-    outputTokens: null,
-    reasoningTokens: null,
-    truncated: null,
-    lastCheckedAt: check.capturedAt,
-  };
 }
 
 export function latestPromptResults(

@@ -37,9 +37,5 @@ export const scopedAnswer: GeoPromptHistoryCheck = {
   position: null,
   sentiment: null,
   competitors: [],
-  answer: "Eine Antwort.",
-  excerpt: "Eine Antwort.",
-  searchQueries: [],
-  sources: [],
   capturedAt: "2026-09-08T12:00:00.000Z",
 };

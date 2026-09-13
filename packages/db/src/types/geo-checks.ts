@@ -114,10 +114,6 @@ export interface GeoCheckPromptHistoryRow {
   position: number | null;
   sentiment: string | null;
   competitors: string[];
-  answer: string;
-  excerpt: string;
-  grounding: GeoCheckGrounding;
-  sources: GeoCheckSourceItem[];
   language: string;
   capturedAt: Date;
 }

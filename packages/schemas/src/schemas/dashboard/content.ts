@@ -87,6 +87,11 @@ export const contentSchema = z.object({
 
 export type ContentResponse = z.infer<typeof contentSchema>;
 
+/**
+ * List item for `content.list`. Bodies are not shipped: `content` is only set
+ * for image posts (it holds the image URL) and `markdown` is a leading excerpt
+ * for text posts. Use `content.get` for the full post.
+ */
 export const postSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -94,8 +99,6 @@ export const postSchema = z.object({
   content: z.string(),
   htmlUrl: z.string().nullable(),
   markdown: z.string().nullable(),
-  rawHtml: z.string().nullable(),
-  recommendations: z.string().nullable(),
   contentType: contentTypeSchema,
   contentSubtype: z.enum(BLOG_POST_SUBTYPES).nullable(),
   status: postStatusSchema,

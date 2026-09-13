@@ -410,6 +410,8 @@ export async function queryGeoCheckPromptHistory(
     return [];
   }
 
+  // Mention state only: the answer, excerpt, grounding and sources of an older
+  // check are loaded on demand through `queryGeoCheckById`.
   const rowsQuery = db
     .select({
       id: geoMentionChecks.id,
@@ -419,10 +421,6 @@ export async function queryGeoCheckPromptHistory(
       position: geoMentionChecks.position,
       sentiment: geoMentionChecks.sentiment,
       competitors: geoMentionChecks.competitors,
-      answer: geoMentionChecks.answer,
-      excerpt: geoMentionChecks.excerpt,
-      grounding: geoMentionChecks.grounding,
-      sources: geoMentionChecks.sources,
       language: geoMentionChecks.language,
       capturedAt: geoMentionChecks.capturedAt,
     })
@@ -441,21 +439,7 @@ export async function queryGeoCheckPromptHistory(
     .orderBy(desc(geoMentionChecks.capturedAt));
   const rows = await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
 
-  return rows.map((row) => ({
-    id: row.id,
-    scanId: row.scanId,
-    engine: row.engine,
-    mentioned: row.mentioned,
-    position: row.position,
-    sentiment: row.sentiment,
-    competitors: row.competitors,
-    answer: row.answer,
-    excerpt: row.excerpt,
-    grounding: parseGeoCheckGrounding(row.grounding),
-    sources: row.sources,
-    language: row.language,
-    capturedAt: row.capturedAt,
-  }));
+  return await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
 }
 
 export async function queryGeoCheckCompetitorShare(
@@ -855,7 +839,22 @@ export async function queryGeoScanComparison(
       mentioned: geoMentionChecks.mentioned,
       position: geoMentionChecks.position,
       competitors: geoMentionChecks.competitors,
-      grounding: geoMentionChecks.grounding,
+      // The diff only reads source domains. Search queries and titles make up
+      // most of the column, so only url + domain of each source leave Postgres
+      // (url is still needed: the parser drops sources without a valid URL).
+      grounding: sql<unknown>`jsonb_build_object('sources', (
+        select coalesce(
+          jsonb_agg(jsonb_build_object('url', source->'url', 'domain', source->'domain')),
+          '[]'::jsonb
+        )
+        from jsonb_array_elements(
+          case
+            when jsonb_typeof(${geoMentionChecks.grounding}->'sources') = 'array'
+            then ${geoMentionChecks.grounding}->'sources'
+            else '[]'::jsonb
+          end
+        ) as source
+      ))`,
       capturedAt: geoMentionChecks.capturedAt,
     })
     .from(geoMentionChecks)

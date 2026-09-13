@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoSettings, projects } from "@notra/db/schema";
 import type { GeoCheckScope } from "@notra/db/types/geo-checks";
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { GEO_PROJECTS_OLDEST_ORDER } from "../constants/geo-projects";
@@ -11,6 +11,7 @@ import type {
   GeoProjectUpdateInput,
   GeoScopeInput,
 } from "../types/geo";
+import { memoizeGeoRequest } from "../utils/request-memo";
 import { geoDb } from "./effect";
 import {
   GeoBrandIdentityMissingError,
@@ -79,20 +80,6 @@ const resolveDefaultBrandIdentity = Effect.fn(
   }
 
   return identity.id;
-});
-
-const findOldestProjectId = Effect.fn("geo.oldestProject")(function* (
-  organizationId: string
-) {
-  const row = yield* geoDb("projects lookup failed", () =>
-    db.query.projects.findFirst({
-      columns: { id: true },
-      where: eq(projects.organizationId, organizationId),
-      orderBy: GEO_PROJECTS_OLDEST_ORDER,
-    })
-  );
-
-  return row?.id ?? null;
 });
 
 export const createGeoProject = Effect.fn("geo.projectCreate")(function* (
@@ -268,41 +255,56 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
 export const resolveGeoScope = Effect.fn("geo.resolveScope")(function* (
   input: GeoScopeInput
 ) {
-  if (input.projectId) {
-    const [oldestProject, row] = yield* Effect.all([
-      findOldestProjectId(input.organizationId),
-      geoDb("project lookup failed", () =>
-        db.query.projects.findFirst({
-          columns: { id: true, brandSettingsId: true },
-          where: and(
-            eq(projects.id, input.projectId ?? ""),
-            eq(projects.organizationId, input.organizationId)
-          ),
-        })
-      ),
-    ]);
+  const { organizationId, projectId } = input;
+  if (projectId) {
+    // One round trip instead of two, shared by every GEO procedure in the
+    // same request.
+    const row = yield* geoDb("project lookup failed", () =>
+      memoizeGeoRequest(`scope:${organizationId}:${projectId}`, async () => {
+        const [found] = await db
+          .select({
+            id: projects.id,
+            brandSettingsId: projects.brandSettingsId,
+            isOldest: sql<boolean>`${projects.id} = (
+              select oldest.id from ${projects} as oldest
+              where oldest.organization_id = ${organizationId}
+              order by oldest.created_at asc, oldest.id asc
+              limit 1
+            )`,
+          })
+          .from(projects)
+          .where(
+            and(
+              eq(projects.id, projectId),
+              eq(projects.organizationId, organizationId)
+            )
+          )
+          .limit(1);
+        return found;
+      })
+    );
 
     if (!row) {
-      return yield* Effect.fail(
-        new GeoProjectNotFoundError({ projectId: input.projectId })
-      );
+      return yield* Effect.fail(new GeoProjectNotFoundError({ projectId }));
     }
 
     const scope: GeoProjectScope = {
-      organizationId: input.organizationId,
+      organizationId,
       projectId: row.id,
       brandSettingsId: row.brandSettingsId,
-      includeUnassigned: row.id === oldestProject,
+      includeUnassigned: row.isOldest,
     };
     return scope;
   }
 
   const oldest = yield* geoDb("projects lookup failed", () =>
-    db.query.projects.findFirst({
-      columns: { id: true, brandSettingsId: true },
-      where: eq(projects.organizationId, input.organizationId),
-      orderBy: GEO_PROJECTS_OLDEST_ORDER,
-    })
+    memoizeGeoRequest(`scope:${organizationId}:oldest`, () =>
+      db.query.projects.findFirst({
+        columns: { id: true, brandSettingsId: true },
+        where: eq(projects.organizationId, organizationId),
+        orderBy: GEO_PROJECTS_OLDEST_ORDER,
+      })
+    )
   );
 
   const scope: GeoProjectScope = {

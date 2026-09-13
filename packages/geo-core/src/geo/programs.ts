@@ -96,7 +96,6 @@ import type {
   GeoPromptImportRow,
 } from "../types/geo-import";
 import { toGeoTrafficTotals, toGeoVisitorType } from "../utils/ai-traffic";
-import { geoAnswerSourcesFor } from "../utils/geo-answer-sources";
 import {
   diffScanChecks,
   summarizeGeoChanges,
@@ -899,10 +898,6 @@ export const loadGeoPromptHistory = Effect.fn("geo.promptHistory")(function* (
       position: row.position,
       sentiment: row.sentiment,
       competitors: row.competitors,
-      answer: row.answer,
-      excerpt: row.excerpt,
-      searchQueries: row.grounding.queries,
-      sources: geoAnswerSourcesFor(row.grounding, row.sources),
       language: row.language,
       capturedAt: row.capturedAt.toISOString(),
     })),

@@ -41,9 +41,18 @@ export async function assertAuthenticatedWithDeps(
     "getServerSession"
   > = organizationAuthDependencies
 ) {
-  const { session, user } = (await deps.getServerSession({
-    headers,
-  })) as AuthSession;
+  const memo = getORPCRequestMemo(headers);
+  let lookup = memo?.sessionLookup;
+  if (!lookup) {
+    lookup = deps.getServerSession({ headers });
+    if (memo) {
+      memo.sessionLookup = lookup;
+      lookup.catch(() => {
+        memo.sessionLookup = undefined;
+      });
+    }
+  }
+  const { session, user } = (await lookup) as AuthSession;
 
   if (!(session && user)) {
     throw new ORPCError("UNAUTHORIZED", {

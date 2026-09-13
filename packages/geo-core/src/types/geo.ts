@@ -360,10 +360,6 @@ export interface GeoPromptHistoryCheck {
   position: number | null;
   sentiment: string | null;
   competitors: string[];
-  answer: string;
-  excerpt: string;
-  searchQueries: string[];
-  sources: GeoAnswerSource[];
   language: string;
   capturedAt: string;
 }
