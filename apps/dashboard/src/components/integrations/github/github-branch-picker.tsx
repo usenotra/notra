@@ -137,7 +137,9 @@ export function GitHubBranchPicker({
           branchList={
             <GitHubBranchList
               branches={branches}
-              canCreate={Boolean(repository.defaultBranch)}
+              canCreate={
+                Boolean(repository.defaultBranch) && !branchMutation.isPending
+              }
               currentBranch={repository.defaultBranch}
               isError={branchesQuery.isError}
               isLoading={branchesQuery.isLoading}
