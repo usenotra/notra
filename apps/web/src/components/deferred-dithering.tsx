@@ -63,9 +63,18 @@ export function DeferredDithering({
   return (
     <div
       aria-hidden="true"
-      className={cn("pointer-events-none", className)}
+      className={cn("pointer-events-none relative", className)}
       ref={containerRef}
     >
+      <div
+        className="absolute inset-0 hidden motion-reduce:block"
+        style={{
+          backgroundImage: `radial-gradient(circle, ${shaderProps.colorFront ?? "#000000"} 0.75px, transparent 1px)`,
+          backgroundSize: "4px 4px",
+          maskImage:
+            "linear-gradient(155deg, transparent 15%, black 45%, transparent 75%)",
+        }}
+      />
       {shouldRender ? (
         <DeferredDitherLayer
           {...shaderProps}
