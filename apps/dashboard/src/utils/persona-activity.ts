@@ -29,9 +29,7 @@ export function buildPersonaActivityRows(
     for (const persona of personas) {
       const point = points.get(`${day}:${persona.id}`);
       row[chartKey(persona.id)] =
-        point && point.checks > 0
-          ? (point.mentions / point.checks) * 100
-          : null;
+        point && point.checks > 0 ? (point.mentions / point.checks) * 100 : 0;
     }
     rows.push(row);
     date.setUTCDate(date.getUTCDate() + 1);
