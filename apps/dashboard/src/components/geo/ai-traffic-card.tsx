@@ -28,7 +28,10 @@ import {
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { TableColumn } from "@/components/motion/table";
-import { TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS } from "@/constants/geo-traffic-sources";
+import {
+  TRAFFIC_SOURCE_COLUMN_MIN_WIDTH,
+  TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS,
+} from "@/constants/geo-traffic-sources";
 import type {
   AiTrafficCardProps,
   GeoTrafficSourceBand,
@@ -86,11 +89,21 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
   }, [canSparkline, groups, points, sparklineDays]);
 
   const columns = useMemo<TableColumn<GeoTrafficSourceGroup>[]>(() => {
+    const categorySize = isMobile
+      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.categoryMobile
+      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.category;
+    const visitsSize = isMobile
+      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visitsMobile
+      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visits;
+    const pathsSize = isMobile
+      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.pathsMobile
+      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths;
     const next: TableColumn<GeoTrafficSourceGroup>[] = [
       {
         key: "source",
         header: "Source",
         width: "1fr",
+        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.source,
         sortable: true,
         cell: (row) => <TrafficSourceGroupCell group={row} />,
         sortValue: (row) => row.label,
@@ -98,7 +111,8 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       {
         key: "category",
         header: "Purpose",
-        width: isMobile ? "8rem" : "9.5rem",
+        width: categorySize,
+        minWidth: categorySize,
         sortable: true,
         cell: (row) => <TrafficPurposeCell group={row} />,
         sortValue: (row) => row.categories.join(","),
@@ -106,7 +120,8 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       {
         key: "visits",
         header: "Visits",
-        width: isMobile ? "7.5rem" : "10.5rem",
+        width: visitsSize,
+        minWidth: visitsSize,
         sortable: true,
         cell: (row) => {
           const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
@@ -132,8 +147,8 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       {
         key: GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
         header: "Markdown",
-        width: "8.5rem",
-        minWidth: "8.5rem",
+        width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.markdown,
+        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.markdown,
         sortable: true,
         cell: (row) => {
           if (row.markdownVisits <= 0) {
@@ -153,7 +168,8 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       {
         key: "paths",
         header: "Pages",
-        width: isMobile ? "4.5rem" : "5.625rem",
+        width: pathsSize,
+        minWidth: pathsSize,
         sortable: true,
         cell: (row) => (
           <span className="text-sm tabular-nums">{row.paths}</span>
@@ -162,7 +178,8 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       {
         key: "lastSeenAt",
         header: "Last seen",
-        width: "9.375rem",
+        width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
+        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
         sortable: true,
         cell: (row) => (
           <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
