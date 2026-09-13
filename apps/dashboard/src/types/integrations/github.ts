@@ -174,6 +174,11 @@ export interface GitHubPublishingSettingsProps {
   disabled?: boolean;
 }
 
+export interface GitHubBranchPickerProps {
+  organizationId: string;
+  repository: GitHubRepository;
+}
+
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
   contentLabel: string;
   contentType: GitHubPublishContentType;

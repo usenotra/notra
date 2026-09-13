@@ -254,7 +254,7 @@ export function EditIntegrationDialog({
                   <form.Field name="branch">
                     {(field) => (
                       <Field>
-                        <FieldLabel>Default Branch</FieldLabel>
+                        <FieldLabel>Publishing Branch</FieldLabel>
                         <Input
                           disabled={mutation.isPending}
                           onBlur={field.handleBlur}

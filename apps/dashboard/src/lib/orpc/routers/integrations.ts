@@ -791,6 +791,68 @@ export const integrationsRouter = {
           mapKnownIntegrationError(error);
         }
       }),
+    branches: {
+      list: baseProcedure
+        .input(repositoryInputSchema)
+        .handler(async ({ context, input }) => {
+          await assertOrganizationAccess({
+            headers: context.headers,
+            organizationId: input.organizationId,
+          });
+
+          const repository = await requireRepositoryInOrganization(
+            input.organizationId,
+            input.repositoryId
+          );
+          let token: string | null;
+          try {
+            token = await getTokenForIntegrationId(input.repositoryId, {
+              organizationId: input.organizationId,
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
+          } catch (error) {
+            if (
+              hasGitHubStatus(error, 401) ||
+              hasGitHubStatus(error, 404) ||
+              (error instanceof Error &&
+                error.message === "GitHub App installation not found")
+            ) {
+              throw forbidden(
+                "GitHub authentication failed. Reconnect GitHub and try again."
+              );
+            }
+            throw internalServerError(
+              "Failed to authenticate with GitHub",
+              error
+            );
+          }
+
+          try {
+            const octokit = createOctokit(token ?? undefined, {
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
+            const { data } = await octokit.request(
+              "GET /repos/{owner}/{repo}/branches",
+              {
+                owner: repository.owner,
+                repo: repository.repo,
+                per_page: 100,
+                headers: GITHUB_API_VERSION_HEADERS,
+              }
+            );
+
+            return { branches: data.map((branch) => branch.name) };
+          } catch (error) {
+            if (hasGitHubStatus(error, 404)) {
+              throw notFound("GitHub repository not found");
+            }
+            if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
+              throw forbidden("GitHub repository access denied");
+            }
+            throw internalServerError("Failed to load GitHub branches", error);
+          }
+        }),
+    },
     contentDirectory: {
       get: baseProcedure
         .input(repositoryInputSchema.and(repositoryContentDirectoryInputSchema))

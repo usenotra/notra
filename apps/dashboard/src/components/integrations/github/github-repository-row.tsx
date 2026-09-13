@@ -12,6 +12,7 @@ import { useState } from "react";
 
 import type { GitHubRepositoryRowProps } from "@/types/integrations/github";
 
+import { GitHubBranchPicker } from "./github-branch-picker";
 import { GitHubPublishingSettings } from "./github-publishing-settings";
 import { GitHubRepositoryActions } from "./github-repository-actions";
 import { GitHubWebhookSettings } from "./github-webhook-settings";
@@ -69,10 +70,14 @@ export function GitHubRepositoryRow({
                 integration.displayName
               )}
             </h3>
-            {primaryRepository?.defaultBranch ? (
-              <span className="text-muted-foreground text-xs">
-                · {primaryRepository.defaultBranch}
-              </span>
+            {integration.repositories.length === 1 && primaryRepository ? (
+              <>
+                <span className="text-muted-foreground text-xs">·</span>
+                <GitHubBranchPicker
+                  organizationId={organizationId}
+                  repository={primaryRepository}
+                />
+              </>
             ) : null}
           </div>
         </CollapsibleTrigger>
@@ -90,9 +95,16 @@ export function GitHubRepositoryRow({
         {integration.repositories.map((repository) => (
           <div key={repository.id}>
             {integration.repositories.length > 1 ? (
-              <h4 className="mb-2 text-sm font-medium">
-                {repository.owner}/{repository.repo}
-              </h4>
+              <div className="mb-2 flex min-w-0 items-center gap-1">
+                <h4 className="truncate text-sm font-medium">
+                  {repository.owner}/{repository.repo}
+                </h4>
+                <span className="text-muted-foreground text-xs">·</span>
+                <GitHubBranchPicker
+                  organizationId={organizationId}
+                  repository={repository}
+                />
+              </div>
             ) : null}
             <GitHubPublishingSettings
               repository={repository}
