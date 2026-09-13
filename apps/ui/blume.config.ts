@@ -1,6 +1,9 @@
 import { defineConfig } from "blume";
 
 export default defineConfig({
+  deployment: {
+    site: "https://ui.usenotra.com",
+  },
   analytics: {
     scripts: process.env.NEXT_PUBLIC_DATABUDDY_WEBSITE_ID
       ? [
