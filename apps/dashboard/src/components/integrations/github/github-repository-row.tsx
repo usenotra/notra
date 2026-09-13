@@ -1,6 +1,12 @@
 "use client";
 
-import { Badge } from "@notra/ui/components/ui/badge";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@notra/ui/components/ui/collapsible";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useState } from "react";
 
@@ -21,46 +27,60 @@ export function GitHubRepositoryRow({
   const legacy = !integration.managedByGitHubApp;
   const primaryRepository = integration.repositories[0];
   return (
-    <article
-      className="bg-muted/40 grid scroll-mt-24 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-5 rounded-2xl p-5"
+    <Collapsible
+      className="group/repo border-border bg-muted scroll-mt-24 rounded-2xl border"
+      defaultOpen
       id={`repository-${integration.id}`}
+      render={<article />}
     >
-      <div className="contents">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="bg-muted/50 flex size-9 shrink-0 items-center justify-center rounded-lg">
+      <CollapsibleTrigger
+        className="group/header flex w-full cursor-pointer items-center gap-4 px-5 py-4 text-left group-data-open/repo:pb-9 [&_[data-chevron]]:transition-transform [&[data-panel-open]_[data-chevron]]:rotate-180"
+        nativeButton={false}
+        render={<div />}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="text-muted-foreground group-hover/header:bg-muted group-hover/header:text-foreground dark:group-hover/header:bg-muted/50 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors">
+            <HugeiconsIcon
+              className="size-4"
+              data-chevron
+              icon={ArrowDown01Icon}
+            />
+          </span>
+          <div className="bg-background flex size-9 shrink-0 items-center justify-center rounded-lg border">
             <Github className="size-4" />
           </div>
-          <div className="min-w-0 space-y-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h3 className="truncate text-sm font-medium">
               {primaryRepository ? (
                 <a
                   className="underline-offset-4 hover:underline"
+                  onClick={(event) => event.stopPropagation()}
                   href={`https://github.com/${encodeURIComponent(primaryRepository.owner)}/${encodeURIComponent(primaryRepository.repo)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
+                  <span className="text-muted-foreground font-normal">
+                    {primaryRepository.owner}/
+                  </span>
                   {primaryRepository.repo}
                 </a>
               ) : (
                 integration.displayName
               )}
             </h3>
-            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-              <span>{primaryRepository?.owner}</span>
-              <span>· {legacy ? "Token" : "App"}</span>
-              {primaryRepository?.defaultBranch ? (
-                <span>· {primaryRepository.defaultBranch}</span>
-              ) : null}
-              {!integration.enabled ||
-              integration.repositories.some(
-                (repository) => !repository.enabled
-              ) ? (
-                <Badge variant="secondary">Paused</Badge>
-              ) : null}
-            </div>
+            {primaryRepository?.defaultBranch ? (
+              <span className="text-muted-foreground text-xs">
+                · {primaryRepository.defaultBranch}
+              </span>
+            ) : null}
           </div>
         </div>
-        <div>
+        <div
+          className="flex items-center"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          role="presentation"
+        >
           <GitHubRepositoryActions
             onMigrate={() => onMigrate(integration)}
             isMigrating={isMigrating}
@@ -71,8 +91,8 @@ export function GitHubRepositoryRow({
             onManageRepositories={onManageRepositories}
           />
         </div>
-      </div>
-      <div className="col-span-2 min-w-0 space-y-3">
+      </CollapsibleTrigger>
+      <CollapsibleContent className="border-border bg-background -mx-px -mt-5 -mb-px min-w-0 space-y-3 rounded-2xl border p-5">
         {integration.repositories.map((repository) => (
           <div key={repository.id}>
             {integration.repositories.length > 1 ? (
@@ -87,18 +107,16 @@ export function GitHubRepositoryRow({
             />
           </div>
         ))}
-      </div>
-      {integration.repositories.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No repository configured. Choose Edit repository from the menu to
-          finish setup.
-        </p>
-      ) : null}
-      {legacy && integration.repositories.length > 0 ? (
-        <div className="col-span-full" hidden={!webhooksOpen}>
+        {integration.repositories.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            No repository configured. Choose Edit repository from the menu to
+            finish setup.
+          </p>
+        ) : null}
+        {legacy && integration.repositories.length > 0 ? (
           <div id={`webhooks-${integration.id}`} hidden={!webhooksOpen}>
             {webhooksOpen ? (
-              <div className="space-y-5 pt-4">
+              <div className="space-y-5 pt-2">
                 {integration.repositories.map((repository) => (
                   <GitHubWebhookSettings
                     key={repository.id}
@@ -109,8 +127,8 @@ export function GitHubRepositoryRow({
               </div>
             ) : null}
           </div>
-        </div>
-      ) : null}
-    </article>
+        ) : null}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

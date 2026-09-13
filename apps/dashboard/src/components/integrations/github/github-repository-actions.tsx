@@ -1,5 +1,7 @@
 "use client";
 
+import { Switch } from "@notra/ui/components/ui/switch";
+
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { EditIntegrationDialog } from "@/components/integrations/edit-integration-dialog";
 import { GitHubRepositoryMenu } from "@/components/integrations/github/github-repository-menu";
@@ -18,13 +20,26 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
   };
   return (
     <>
-      <GitHubRepositoryMenu
-        {...props}
-        isEnabled={isEnabled}
-        isPending={toggle.isPending || remove.isPending}
-        onToggle={() => toggle.mutate()}
-        onDialog={setDialog}
-      />
+      <div className="flex items-center gap-3">
+        <Switch
+          nativeButton
+          aria-label={
+            isEnabled
+              ? `Pause ${integration.displayName}`
+              : `Enable ${integration.displayName}`
+          }
+          checked={isEnabled}
+          disabled={toggle.isPending || remove.isPending}
+          onCheckedChange={() => toggle.mutate()}
+        />
+        <GitHubRepositoryMenu
+          {...props}
+          isEnabled={isEnabled}
+          isPending={toggle.isPending || remove.isPending}
+          onToggle={() => toggle.mutate()}
+          onDialog={setDialog}
+        />
+      </div>
       {dialog === "edit" ? (
         <EditIntegrationDialog
           integration={integration}

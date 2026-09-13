@@ -2,7 +2,6 @@
 
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tabs,
   TabsContent,
@@ -91,7 +90,6 @@ const IntegrationCard = memo(function IntegrationCard({
       accentColor={integration.accentColor}
       action={
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {isPending && <Skeleton className="h-5 w-8 rounded-full" />}
           {!isPending && isActive && (
             <Badge className="text-xs" variant="default">
               {activeCount}

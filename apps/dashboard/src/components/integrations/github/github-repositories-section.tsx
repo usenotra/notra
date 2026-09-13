@@ -94,7 +94,7 @@ export function GitHubRepositoriesSection(
       aria-labelledby="github-repositories-heading"
       className={
         githubIntegrations.length > 0
-          ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] lg:gap-12"
+          ? "grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] 2xl:gap-12"
           : ""
       }
     >

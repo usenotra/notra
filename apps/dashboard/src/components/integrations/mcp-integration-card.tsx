@@ -3,7 +3,6 @@
 import { CpuIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -48,7 +47,6 @@ export function McpIntegrationCard({
           accentColor={MCP_ACCENT_COLOR}
           action={
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {isPending && <Skeleton className="h-5 w-8 rounded-full" />}
               {!isPending && activeCount > 0 && (
                 <Badge className="text-xs" variant="default">
                   {activeCount}
