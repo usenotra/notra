@@ -20,18 +20,52 @@ interface ContentDetailMainDocumentProps {
 export function ContentDetailMainDocument({
   contentId,
   data,
-  document,
+  document: contentDocument,
   organizationId,
   onSelectionChange,
 }: ContentDetailMainDocumentProps) {
+  const {
+    briefStatus,
+    editedMarkdown,
+    editedMarkdownRef,
+    editorKey,
+    editorRef,
+    geoWriterBriefQuery,
+    geoWriterDraft,
+    handleEditorChange,
+    handlePlanBriefChange,
+    hasChanges,
+    hasMarkdownChanges,
+    hasPlanConflict,
+    hasSlugChanges,
+    hasTitleChanges,
+    imageExportRef,
+    isGeoWriterPlanMode,
+    isGeoWriterPlanReviewableNow,
+    originalMarkdown,
+    planEditorVersion,
+    resolvePlanConflictLoadLatest,
+    resolvePlanConflictSaveMine,
+    reviewPreviousMarkdown,
+    setEditedMarkdown,
+    setEditingSlug,
+    setEditingTitle,
+    setIsPlanDirty,
+    setOriginalMarkdown,
+    editingSlug,
+    editingTitle,
+    serverSlug,
+    serverTitle,
+    writeFocusNonce,
+  } = contentDocument;
   const { activeOrganization } = useOrganizationsContext();
   const content = data.content;
-  const planBrief = document.geoWriterBriefQuery.data?.brief;
+  const planBrief = geoWriterBriefQuery.data?.brief;
 
-  if (document.isGeoWriterPlanMode && planBrief) {
+  if (isGeoWriterPlanMode && planBrief) {
     return (
       <>
-        {document.hasPlanConflict ? (
+        {hasPlanConflict ? (
           <div
             className="border-border bg-muted/50 mx-auto mb-6 flex w-full max-w-3xl flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
             role="alert"
@@ -44,13 +78,13 @@ export function ContentDetailMainDocument({
             </div>
             <div className="flex shrink-0 gap-2">
               <Button
-                onClick={document.resolvePlanConflictLoadLatest}
+                onClick={resolvePlanConflictLoadLatest}
                 size="sm"
                 variant="outline"
               >
                 Load latest
               </Button>
-              <Button onClick={document.resolvePlanConflictSaveMine} size="sm">
+              <Button onClick={resolvePlanConflictSaveMine} size="sm">
                 Save my version
               </Button>
             </div>
@@ -58,27 +92,22 @@ export function ContentDetailMainDocument({
         ) : null}
         <ContentPlanView
           brief={planBrief}
-          isWriting={
-            document.briefStatus === "writing" ||
-            document.briefStatus === "approved"
-          }
-          key={`${document.geoWriterDraft?.briefId ?? contentId}:${document.planEditorVersion}`}
+          isWriting={briefStatus === "writing" || briefStatus === "approved"}
+          key={`${geoWriterDraft?.briefId ?? contentId}:${planEditorVersion}`}
           onChange={
-            document.isGeoWriterPlanReviewableNow && !document.hasPlanConflict
-              ? document.handlePlanBriefChange
+            isGeoWriterPlanReviewableNow && !hasPlanConflict
+              ? handlePlanBriefChange
               : undefined
           }
           onDirtyChange={
-            document.isGeoWriterPlanReviewableNow
-              ? document.setIsPlanDirty
-              : undefined
+            isGeoWriterPlanReviewableNow ? setIsPlanDirty : undefined
           }
         />
       </>
     );
   }
 
-  if (document.isGeoWriterPlanMode) {
+  if (isGeoWriterPlanMode) {
     return (
       <div className="mx-auto w-full max-w-3xl space-y-6">
         <div className="bg-muted/60 h-4 w-24 animate-pulse rounded-sm" />
@@ -93,15 +122,15 @@ export function ContentDetailMainDocument({
     <ContentEditorSwitch
       actions={{
         setEditedMarkdown: (markdown) => {
-          document.setEditedMarkdown(markdown);
+          setEditedMarkdown(markdown);
           if (markdown !== null) {
-            document.editedMarkdownRef.current = markdown;
+            editedMarkdownRef.current = markdown;
           }
         },
-        setOriginalMarkdown: document.setOriginalMarkdown,
-        setEditingTitle: document.setEditingTitle,
-        setEditingSlug: document.setEditingSlug,
-        onEditorChange: document.handleEditorChange,
+        setOriginalMarkdown,
+        setEditingTitle,
+        setEditingSlug,
+        onEditorChange: handleEditorChange,
         onSelectionChange,
       }}
       content={{
@@ -118,29 +147,29 @@ export function ContentDetailMainDocument({
         sourceMetadata: content.sourceMetadata,
       }}
       contentType={content.contentType}
-      editorKey={document.editorKey}
-      editorRef={document.editorRef}
-      imageExportRef={document.imageExportRef}
+      editorKey={editorKey}
+      editorRef={editorRef}
+      imageExportRef={imageExportRef}
       organization={{
         name: activeOrganization?.name ?? "Your Organization",
         logo: activeOrganization?.logo ?? null,
       }}
       organizationId={organizationId}
       readOnly={false}
-      reviewPreviousMarkdown={document.reviewPreviousMarkdown}
+      reviewPreviousMarkdown={reviewPreviousMarkdown}
       state={{
-        editedMarkdown: document.editedMarkdown,
-        originalMarkdown: document.originalMarkdown,
-        editingTitle: document.editingTitle,
-        serverTitle: document.serverTitle,
-        editingSlug: document.editingSlug,
-        serverSlug: document.serverSlug,
-        hasChanges: document.hasChanges,
-        hasMarkdownChanges: document.hasMarkdownChanges,
-        hasTitleChanges: document.hasTitleChanges,
-        hasSlugChanges: document.hasSlugChanges,
+        editedMarkdown,
+        originalMarkdown,
+        editingTitle,
+        serverTitle,
+        editingSlug,
+        serverSlug,
+        hasChanges,
+        hasMarkdownChanges,
+        hasTitleChanges,
+        hasSlugChanges,
       }}
-      writeFocusNonce={document.writeFocusNonce}
+      writeFocusNonce={writeFocusNonce}
     />
   );
 }
