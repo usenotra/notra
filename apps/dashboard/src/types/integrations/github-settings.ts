@@ -16,7 +16,7 @@ export type GitHubRepositoriesSectionProps = Pick<
   | "githubIntegrations"
   | "organizationId"
   | "isLoadingLegacyIntegrations"
-  | "legacyQuery"
+  | "repositoriesDb"
   | "handleOpenRepositories"
   | "handleOpenConnect"
   | "isConnected"

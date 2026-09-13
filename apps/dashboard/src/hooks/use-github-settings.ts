@@ -1,5 +1,5 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import {
 } from "@/hooks/use-github-install-callbacks";
 import { useGitHubRepositoryMigration } from "@/hooks/use-github-repository-migration";
 import { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
+import { useGitHubRepositoriesDb } from "@/lib/hooks/use-github-repositories-db";
 import { startGitHubInstall } from "@/lib/integrations/github/install";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
@@ -52,23 +53,15 @@ export function useGitHubSettings(organizationSlug: string) {
     initialAccountId: searchParams.get("githubAccountId"),
     onSaved: () => setReposOpen(false),
   });
-  const legacyQuery = useQuery(
-    dashboardOrpc.integrations.list.queryOptions({
-      input: { organizationId },
-      enabled: !!organizationId,
-    })
-  );
-  const githubIntegrations =
-    legacyQuery.data?.integrations.filter(
-      (integration) => integration.type === "github"
-    ) ?? [];
+  const repositoriesDb = useGitHubRepositoriesDb(organizationId);
+  const githubIntegrations = repositoriesDb.repositories;
   const isConnected = accounts.length > 0;
   const isLoading =
     isLoadingOrganizations ||
     (!!organizationId && githubAppQuery.isLoading && !githubAppQuery.data);
   const isLoadingLegacyIntegrations =
     isLoadingOrganizations ||
-    (!!organizationId && legacyQuery.isLoading && !legacyQuery.data);
+    (!!organizationId && repositoriesDb.isLoading && !repositoriesDb.hasData);
   useEffect(() => {
     if (searchParams.get("githubConnected") !== "true" || !organization?.id) {
       return;
@@ -145,7 +138,7 @@ export function useGitHubSettings(organizationSlug: string) {
     repositories,
     selectedRepositoryIds,
     saveRepositoriesMutation,
-    legacyQuery,
+    repositoriesDb,
     githubIntegrations,
     isConnected,
     isLoading,
