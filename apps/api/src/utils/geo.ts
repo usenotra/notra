@@ -2,7 +2,8 @@ import type { createDb } from "@notra/db/drizzle";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
 import type { Context } from "hono";
 
-import type { GeoFailure } from "../types/geo";
+import type { GeoFailure, GeoOutcome } from "../types/geo";
+import type { GeoRequestContext } from "../types/geo-context";
 
 type DbClient = ReturnType<typeof createDb>;
 
@@ -28,6 +29,42 @@ export function geoErrorResponse(c: Context, failure: GeoFailure) {
     default:
       return c.json({ error: failure.error }, 500);
   }
+}
+
+/** Attaches the organization envelope every GEO route returns. */
+export function attachGeoOrganization<T>(
+  organization: GeoRequestContext["organization"],
+  body: T
+): T & { organization: GeoRequestContext["organization"] } {
+  return { ...body, organization };
+}
+
+/** Maps a remote GEO operation's missing dashboard URL to 503. */
+export function geoRemoteUnavailableResponse(c: Context, message: string) {
+  return c.json({ error: message }, 503);
+}
+
+type GeoSuccessStatus = 200 | 201 | 202;
+
+/**
+ * Turns a normalized GEO outcome into JSON, or the matching error response.
+ * The mapper shapes the success body before the organization envelope is added.
+ */
+export function respondGeoOutcome<T, B extends Record<string, unknown>>(
+  c: Context,
+  outcome: GeoOutcome<T>,
+  organization: GeoRequestContext["organization"],
+  toBody: (value: T) => B,
+  status: GeoSuccessStatus = 200
+) {
+  if (!outcome.ok) {
+    return geoErrorResponse(c, outcome.failure);
+  }
+
+  return c.json(
+    attachGeoOrganization(organization, toBody(outcome.value)),
+    status
+  );
 }
 
 /** Confirms the project exists inside the caller's organization. */

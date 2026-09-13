@@ -25,7 +25,13 @@ import {
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
 import { runGeoEffect } from "../runtime/geo";
-import { geoErrorResponse } from "../utils/geo";
+import { attachGeoOrganization, geoErrorResponse } from "../utils/geo";
+import {
+  normalizeLanguageShareResponse,
+  normalizeOverviewResponse,
+  normalizePromptResultsResponse,
+  normalizeTimeseriesResponse,
+} from "../utils/geo-visibility";
 import { createOpenApiApp } from "../utils/openapi-app";
 
 /**
@@ -183,16 +189,10 @@ geoVisibilityRoutes.openapi(overviewRoute, async (c) => {
   }
 
   return c.json(
-    {
-      ...outcome.value,
-      engines: outcome.value.engines.map((engine) => ({
-        ...engine,
-        citations: engine.citations ?? 0,
-        visibility: engine.visibility ?? engine.mentions,
-        visibilityRate: engine.visibilityRate ?? engine.mentionRate,
-      })),
-      organization: base.organization,
-    },
+    attachGeoOrganization(
+      base.organization,
+      normalizeOverviewResponse(outcome.value)
+    ),
     200
   );
 });
@@ -212,15 +212,10 @@ geoVisibilityRoutes.openapi(timeseriesRoute, async (c) => {
   }
 
   return c.json(
-    {
-      ...outcome.value,
-      points: outcome.value.points.map((point) => ({
-        ...point,
-        citations: point.citations ?? 0,
-        visibility: point.visibility ?? point.mentions,
-      })),
-      organization: base.organization,
-    },
+    attachGeoOrganization(
+      base.organization,
+      normalizeTimeseriesResponse(outcome.value)
+    ),
     200
   );
 });
@@ -239,27 +234,11 @@ geoVisibilityRoutes.openapi(promptResultsRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  const results = outcome.value.results.map((result) => ({
-    promptId: result.promptId,
-    engine: result.engine,
-    prompt: result.prompt,
-    answer: result.answer,
-    mentioned: result.mentioned,
-    ownedSourceCited: result.ownedSourceCited ?? false,
-    position: result.position,
-    sentiment: result.sentiment,
-    competitors: result.competitors,
-    excerpt: result.excerpt,
-    searchQueries: result.searchQueries,
-    sources: result.sources,
-    lastCheckedAt: result.lastCheckedAt,
-  }));
   return c.json(
-    {
-      configured: outcome.value.configured,
-      results,
-      organization: base.organization,
-    },
+    attachGeoOrganization(
+      base.organization,
+      normalizePromptResultsResponse(outcome.value)
+    ),
     200
   );
 });
@@ -278,7 +257,7 @@ geoVisibilityRoutes.openapi(competitorShareRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(attachGeoOrganization(base.organization, outcome.value), 200);
 });
 
 geoVisibilityRoutes.openapi(languageShareRoute, async (c) => {
@@ -296,16 +275,10 @@ geoVisibilityRoutes.openapi(languageShareRoute, async (c) => {
   }
 
   return c.json(
-    {
-      ...outcome.value,
-      points: outcome.value.points.map((point) => ({
-        ...point,
-        citations: point.citations ?? 0,
-        visibility: point.visibility ?? point.mentions,
-        visibilityRate: point.visibilityRate ?? point.mentionRate,
-      })),
-      organization: base.organization,
-    },
+    attachGeoOrganization(
+      base.organization,
+      normalizeLanguageShareResponse(outcome.value)
+    ),
     200
   );
 });
@@ -325,5 +298,5 @@ geoVisibilityRoutes.openapi(competitorDetailRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(attachGeoOrganization(base.organization, outcome.value), 200);
 });
