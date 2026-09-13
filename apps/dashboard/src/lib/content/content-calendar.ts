@@ -25,9 +25,8 @@ export function getUtcDayRange(dateParam: string | null, now = new Date()) {
     return null;
   }
 
-  const startDate = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  );
+  const startDate = new Date(date);
+  startDate.setUTCHours(0, 0, 0, 0);
 
   return {
     startDate,

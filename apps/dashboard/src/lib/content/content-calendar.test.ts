@@ -33,6 +33,13 @@ test("rejects impossible UTC calendar dates", () => {
   });
 });
 
+test("preserves UTC date-only years below 100", () => {
+  expect(getUtcDayRange("0099-12-31")).toEqual({
+    startDate: new Date("0099-12-31T00:00:00.000Z"),
+    endDate: new Date("0100-01-01T00:00:00.000Z"),
+  });
+});
+
 test("generates UTC year boundaries across New Year", () => {
   const { startDate, endDate } = getUtcYearRange(
     new Date("2024-12-31T23:30:00-02:00")
