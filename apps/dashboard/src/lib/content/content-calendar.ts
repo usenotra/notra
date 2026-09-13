@@ -1,4 +1,5 @@
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
+const UTC_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Content activity uses UTC calendar days. Keeping the range construction here
@@ -10,9 +11,17 @@ export function getUtcDayRange(dateParam: string | null, now = new Date()) {
     return null;
   }
 
-  const date = dateParam === "today" ? now : new Date(dateParam);
+  if (dateParam !== "today" && !UTC_DATE_ONLY_PATTERN.test(dateParam)) {
+    return null;
+  }
 
-  if (Number.isNaN(date.getTime())) {
+  const date =
+    dateParam === "today" ? now : new Date(`${dateParam}T00:00:00.000Z`);
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    (dateParam !== "today" && date.toISOString().slice(0, 10) !== dateParam)
+  ) {
     return null;
   }
 

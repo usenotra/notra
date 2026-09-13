@@ -12,7 +12,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
@@ -24,6 +24,7 @@ import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
   useOnboardingAgentRun,
@@ -42,17 +43,6 @@ const OnboardingAgentBanner = dynamic(() =>
   )
 );
 
-function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
-  const mediaQuery = window.matchMedia("(min-width: 64rem)");
-  mediaQuery.addEventListener("change", onStoreChange);
-
-  return () => mediaQuery.removeEventListener("change", onStoreChange);
-}
-
-const getDesktopBreakpointSnapshot = () =>
-  window.matchMedia("(min-width: 64rem)").matches;
-const getServerDesktopBreakpointSnapshot = () => false;
-
 function DashboardAgentPanelSkeleton() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 p-4">
@@ -68,11 +58,7 @@ function DashboardAgentPanelSkeleton() {
 
 function DashboardAgentHostLoading() {
   const { active, closePanel, expanded } = useRightPanel();
-  const isDesktop = useSyncExternalStore(
-    subscribeToDesktopBreakpoint,
-    getDesktopBreakpointSnapshot,
-    getServerDesktopBreakpointSnapshot
-  );
+  const isDesktop = useDesktopBreakpoint();
 
   if (isDesktop) {
     return (

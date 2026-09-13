@@ -24,6 +24,15 @@ test("treats date-only filters as UTC calendar days", () => {
   });
 });
 
+test("rejects impossible UTC calendar dates", () => {
+  expect(getUtcDayRange("2025-02-29")).toBeNull();
+  expect(getUtcDayRange("2025-02-30")).toBeNull();
+  expect(getUtcDayRange("2024-02-29")).toEqual({
+    startDate: new Date("2024-02-29T00:00:00.000Z"),
+    endDate: new Date("2024-03-01T00:00:00.000Z"),
+  });
+});
+
 test("generates UTC year boundaries across New Year", () => {
   const { startDate, endDate } = getUtcYearRange(
     new Date("2024-12-31T23:30:00-02:00")
