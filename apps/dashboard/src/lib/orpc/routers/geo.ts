@@ -54,6 +54,7 @@ import {
   listGeoPersonas,
   loadGeoPersonaResults,
   loadGeoPersonaActivity,
+  requireGeoPersonaGenerationCapacity,
   updateGeoPersona,
 } from "@notra/geo-core/geo/personas";
 import {
@@ -1338,20 +1339,23 @@ export const geoRouter = {
         organizationId: input.organizationId,
         user: context.user,
       });
-      await assertActiveSubscription(input.organizationId);
-      const rate = await ratelimit.geoPersonasGenerate.limit(
-        input.organizationId
-      );
+      const [, scope, rate] = await Promise.all([
+        assertActiveSubscription(input.organizationId),
+        runOrpcEffect(
+          requireGeoPersonaGenerationCapacity(
+            input,
+            input.personaId,
+            input.brief
+          ).pipe(Effect.provide(geoCoreDashboardLayer)),
+          toGeoOrpcError
+        ),
+        ratelimit.geoPersonasGenerate.limit(input.organizationId),
+      ]);
       if (!rate.success) {
         throw badRequest(
           "Too many persona generations. Please wait a few minutes."
         );
       }
-
-      const scope = await runOrpcEffect(
-        requireGeoProject(input).pipe(Effect.provide(geoCoreDashboardLayer)),
-        toGeoOrpcError
-      );
       return startPersonaGeneration(
         scope.organizationId,
         scope.projectId,

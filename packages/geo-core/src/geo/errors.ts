@@ -185,6 +185,12 @@ export class GeoPersonaNotFoundError extends Data.TaggedError(
   readonly personaId: string;
 }> {}
 
+export class GeoPersonaLimitError extends Data.TaggedError(
+  "GeoPersonaLimitError"
+)<{
+  readonly limit: number;
+}> {}
+
 export class GeoPersonaGenerateError extends Data.TaggedError(
   "GeoPersonaGenerateError"
 )<{
@@ -266,6 +272,7 @@ export type GeoRouterError =
   | GeoDatabaseError
   | GeoDiscoveryError
   | GeoPersonaGenerateError
+  | GeoPersonaLimitError
   | GeoPersonaNotFoundError
   | GeoPersonaRunError
   | GeoPersonaRunUnavailableError

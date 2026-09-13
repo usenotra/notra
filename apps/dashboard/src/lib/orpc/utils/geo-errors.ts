@@ -41,6 +41,10 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return badRequest("Failed to create conversation");
     case "GeoPersonaNotFoundError":
       return notFound("Persona not found");
+    case "GeoPersonaLimitError":
+      return badRequest(
+        `You can have up to ${failure.limit} personas. Delete one before adding another.`
+      );
     case "GeoPersonaGenerateError":
       console.error("[GEO] persona generation failed:", failure);
       return badRequest(failure.message);

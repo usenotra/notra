@@ -19,7 +19,7 @@ import {
   toGeoCheckWindow,
 } from "@notra/db/utils/geo-checks";
 import { generateText, Output } from "ai";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -29,6 +29,7 @@ import {
   GEO_PERSONA_GENERATION_MODEL,
   GEO_PERSONA_GENERATION_SYSTEM_PROMPT,
   GEO_PERSONA_GENERATION_TRIGGER_ID,
+  GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
   GEO_PERSONA_MIN_COUNT,
   GEO_PERSONA_ACTIVITY_DAYS,
@@ -55,6 +56,7 @@ import { normalizeGeneratedPersonaSet } from "../utils/geo-personas";
 import { geoDb, geoSkip } from "./effect";
 import {
   GeoPersonaGenerateError,
+  GeoPersonaLimitError,
   GeoPersonaNotFoundError,
   GeoWriterCreditsExhaustedError,
 } from "./errors";
@@ -176,6 +178,33 @@ export const listGeoPersonas = Effect.fn("geo.personasList")(function* (
   const personas = yield* loadPersonaRows(scope.projectId);
   const response: GeoPersonasResponse = { configured: true, personas };
   return response;
+});
+
+export const requireGeoPersonaGenerationCapacity = Effect.fn(
+  "geo.personas.capacity"
+)(function* (input: GeoScopeInput, personaId?: string, brief?: string) {
+  const scope = yield* requireGeoProject(input);
+  if (personaId) {
+    return scope;
+  }
+  const current = yield* geoDb("persona count lookup failed", () =>
+    db
+      .select({ count: count() })
+      .from(geoPersonas)
+      .where(
+        and(
+          eq(geoPersonas.projectId, scope.projectId),
+          eq(geoPersonas.organizationId, scope.organizationId)
+        )
+      )
+  );
+  const requestedCount = brief ? 1 : GEO_PERSONA_MIN_COUNT;
+  if ((current.at(0)?.count ?? 0) + requestedCount > GEO_PERSONA_MAX_COUNT) {
+    return yield* Effect.fail(
+      new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+    );
+  }
+  return scope;
 });
 
 const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
@@ -350,9 +379,26 @@ const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(function* (
     }
   }
 
-  yield* geoDb("personas persist failed", () =>
+  const persisted = yield* geoDb("personas persist failed", () =>
     db.transaction(async (tx) => {
       await Effect.runPromise(lockGeoProject(tx, projectId));
+      if (!target) {
+        const current = await tx
+          .select({ count: count() })
+          .from(geoPersonas)
+          .where(
+            and(
+              eq(geoPersonas.projectId, projectId),
+              eq(geoPersonas.organizationId, organizationId)
+            )
+          );
+        if (
+          (current.at(0)?.count ?? 0) + personaRows.length >
+          GEO_PERSONA_MAX_COUNT
+        ) {
+          return false;
+        }
+      }
       const deleted = target
         ? await tx
             .delete(geoPersonas)
@@ -378,8 +424,14 @@ const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(function* (
           : personaRows
       );
       await tx.insert(geoPersonaMemories).values(memoryRows);
+      return true;
     })
   );
+  if (!persisted) {
+    return yield* Effect.fail(
+      new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+    );
+  }
 });
 
 /**
@@ -398,6 +450,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
   const target = existing.find((persona) => persona.id === personaId);
   if (personaId && !target) {
     return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
+  }
+  const requestedCount = brief ? 1 : GEO_PERSONA_MIN_COUNT;
+  if (!target && existing.length + requestedCount > GEO_PERSONA_MAX_COUNT) {
+    return yield* Effect.fail(
+      new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+    );
   }
   const context = yield* loadGenerationContext(
     scope.projectId,
