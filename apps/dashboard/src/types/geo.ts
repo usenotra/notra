@@ -1526,6 +1526,7 @@ export interface TrafficSourcesGroupProps {
   groups: GeoTrafficSourceGroup[];
   columns: TableColumn<GeoTrafficSourceGroup>[];
   collapsed: boolean;
+  followedByStack?: boolean;
   onToggle: () => void;
   stacked: boolean;
 }

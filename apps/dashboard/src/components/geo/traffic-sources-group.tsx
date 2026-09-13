@@ -44,6 +44,7 @@ export function TrafficSourcesGroup({
   groups,
   columns,
   collapsed,
+  followedByStack = false,
   onToggle,
   stacked,
 }: TrafficSourcesGroupProps) {
@@ -82,16 +83,18 @@ export function TrafficSourcesGroup({
       ? columns
       : [{ ...first, header, sortable: false }, ...rest];
 
-  const stackClassName = stacked
+  const collapsedStackClassName = stacked
     ? "relative -mt-5 rounded-t-none border-t-0 pt-5"
     : "relative";
+  const expandedStackClassName = stacked ? "relative -mt-5" : "relative";
 
   if (!showTable) {
     return (
       <div
         className={cn(
           "border-border bg-muted flex items-center rounded-2xl border px-4",
-          stackClassName
+          collapsedStackClassName,
+          followedByStack && "pb-5"
         )}
         style={{
           zIndex: STACK_Z_INDEX[band],
@@ -107,7 +110,10 @@ export function TrafficSourcesGroup({
   }
 
   return (
-    <div className={cn(stackClassName)} style={{ zIndex: STACK_Z_INDEX[band] }}>
+    <div
+      className={cn(expandedStackClassName)}
+      style={{ zIndex: STACK_Z_INDEX[band] }}
+    >
       <Table
         className="rounded-2xl"
         flushTop={stacked}
