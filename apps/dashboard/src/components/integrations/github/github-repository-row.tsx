@@ -33,12 +33,12 @@ export function GitHubRepositoryRow({
       id={`repository-${integration.id}`}
       render={<article />}
     >
-      <CollapsibleTrigger
-        className="group/header flex w-full cursor-pointer items-center gap-4 px-5 py-4 text-left group-data-open/repo:pb-9 [&_[data-chevron]]:transition-transform [&[data-panel-open]_[data-chevron]]:rotate-180"
-        nativeButton={false}
-        render={<div />}
-      >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="flex items-center gap-4 px-5 py-4 group-data-open/repo:pb-9">
+        <CollapsibleTrigger
+          className="group/header flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left [&_[data-chevron]]:transition-transform [&[data-panel-open]_[data-chevron]]:rotate-180"
+          nativeButton={false}
+          render={<div />}
+        >
           <span className="text-muted-foreground group-hover/header:bg-muted group-hover/header:text-foreground dark:group-hover/header:bg-muted/50 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors">
             <HugeiconsIcon
               className="size-4"
@@ -55,6 +55,7 @@ export function GitHubRepositoryRow({
                 <a
                   className="underline-offset-4 hover:underline"
                   onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
                   href={`https://github.com/${encodeURIComponent(primaryRepository.owner)}/${encodeURIComponent(primaryRepository.repo)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -74,24 +75,17 @@ export function GitHubRepositoryRow({
               </span>
             ) : null}
           </div>
-        </div>
-        <div
-          className="flex items-center"
-          onClick={(event) => event.stopPropagation()}
-          onKeyDown={(event) => event.stopPropagation()}
-          role="presentation"
-        >
-          <GitHubRepositoryActions
-            onMigrate={() => onMigrate(integration)}
-            isMigrating={isMigrating}
-            onToggleWebhooks={() => setWebhooksOpen(!webhooksOpen)}
-            webhooksOpen={webhooksOpen}
-            integration={integration}
-            organizationId={organizationId}
-            onManageRepositories={onManageRepositories}
-          />
-        </div>
-      </CollapsibleTrigger>
+        </CollapsibleTrigger>
+        <GitHubRepositoryActions
+          onMigrate={() => onMigrate(integration)}
+          isMigrating={isMigrating}
+          onToggleWebhooks={() => setWebhooksOpen(!webhooksOpen)}
+          webhooksOpen={webhooksOpen}
+          integration={integration}
+          organizationId={organizationId}
+          onManageRepositories={onManageRepositories}
+        />
+      </div>
       <CollapsibleContent className="border-border bg-background -mx-px -mt-5 -mb-px min-w-0 space-y-3 rounded-2xl border p-5">
         {integration.repositories.map((repository) => (
           <div key={repository.id}>
