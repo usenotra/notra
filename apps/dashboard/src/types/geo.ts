@@ -1531,6 +1531,13 @@ export interface TrafficSourcesGroupProps {
   stacked: boolean;
 }
 
+export interface TrafficSourcesStackProps {
+  groups: GeoTrafficSourceGroup[];
+  columns: TableColumn<GeoTrafficSourceGroup>[];
+  collapsed: ReadonlySet<GeoTrafficSourceBand>;
+  onToggle: (band: GeoTrafficSourceBand) => void;
+}
+
 export interface TrafficMarkdownCellProps {
   markdownVisits: number;
   visits: number;
