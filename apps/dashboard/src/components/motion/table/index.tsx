@@ -58,7 +58,6 @@ export function Table<T>({
   onRowPointerEnter,
   isRowPinned,
   toolbar,
-  leadingHeader,
   footer,
   page = 1,
   pageSize,
@@ -208,7 +207,6 @@ export function Table<T>({
       {/* Overlap hides the header's side border in the body radius. */}
       <TableHeaderSurface
         toolbar={toolbar}
-        leadingHeader={leadingHeader}
         flushTop={flushTop}
         overlapTop={overlapTop}
       >
