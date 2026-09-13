@@ -10,6 +10,7 @@ import {
   getPendingDeleteSnapshots,
   rememberPendingDeleteSnapshot,
 } from "@/lib/db/geo-project-pending-deletes";
+import { geoProjectQueryParser } from "@/lib/hooks/use-geo-project-query";
 import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 
 const sampleProject = {
@@ -43,6 +44,13 @@ describe("sortGeoProjectsOldestFirst", () => {
     ]);
 
     expect(projects.map((project) => project.id)).toEqual(["a", "c", "b"]);
+  });
+});
+
+describe("geoProjectQueryParser", () => {
+  test("normalizes whitespace before project selection", () => {
+    expect(geoProjectQueryParser.parse("  project-1  ")).toBe("project-1");
+    expect(geoProjectQueryParser.parse("   ")).toBeNull();
   });
 });
 
