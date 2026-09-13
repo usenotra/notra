@@ -43,14 +43,17 @@ function buildGitHubRepositoriesCollection(organizationId: string) {
       },
       getKey: (item) => item.id,
       onUpdate: async ({ transaction }) => {
+        const calls: Promise<unknown>[] = [];
         for (const mutation of transaction.mutations) {
           const { modified, original } = mutation;
           if (modified.enabled !== original.enabled) {
-            await dashboardOrpc.integrations.update.call({
-              organizationId,
-              integrationId: String(mutation.key),
-              enabled: modified.enabled,
-            });
+            calls.push(
+              dashboardOrpc.integrations.update.call({
+                organizationId,
+                integrationId: String(mutation.key),
+                enabled: modified.enabled,
+              })
+            );
           }
           for (const repository of modified.repositories) {
             const originalRepository = original.repositories.find(
@@ -64,34 +67,39 @@ function buildGitHubRepositoriesCollection(organizationId: string) {
                 continue;
               }
               if (originalOutput && !isPendingOutputId(originalOutput.id)) {
-                await dashboardOrpc.integrations.outputs.update.call({
-                  organizationId,
-                  outputId: originalOutput.id,
-                  enabled: output.enabled,
-                });
+                calls.push(
+                  dashboardOrpc.integrations.outputs.update.call({
+                    organizationId,
+                    outputId: originalOutput.id,
+                    enabled: output.enabled,
+                  })
+                );
                 continue;
               }
               if (isGitHubContentOutputType(output.outputType)) {
-                await dashboardOrpc.integrations.repositories.configureOutput.call(
-                  {
+                calls.push(
+                  dashboardOrpc.integrations.repositories.configureOutput.call({
                     organizationId,
                     repositoryId: repository.id,
                     outputType: output.outputType,
                     enabled: output.enabled,
-                  }
+                  })
                 );
               }
             }
           }
         }
+        await Promise.all(calls);
       },
       onDelete: async ({ transaction }) => {
-        for (const mutation of transaction.mutations) {
-          await dashboardOrpc.integrations.delete.call({
-            organizationId,
-            integrationId: String(mutation.key),
-          });
-        }
+        await Promise.all(
+          transaction.mutations.map((mutation) =>
+            dashboardOrpc.integrations.delete.call({
+              organizationId,
+              integrationId: String(mutation.key),
+            })
+          )
+        );
       },
     });
   });

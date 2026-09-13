@@ -14,3 +14,10 @@ export const INTEGRATION_CATEGORY_TABS = [
 
 export const INTEGRATION_CARD_DITHER_HEX_COLOR_PATTERN = /^#[\da-f]{6}$/i;
 export const INTEGRATION_CARD_DITHER_FADE_OUT_DURATION = 300;
+
+export const INTEGRATIONS_WITH_CONNECT_DIALOG = new Set<string>([
+  "github",
+  "linear",
+  "granola",
+  "slack",
+]);

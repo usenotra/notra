@@ -56,20 +56,20 @@ export function useGitHubRepositoriesDb(
     });
   };
 
-  const persist = async (
+  const persist = (
     rowId: string,
     transaction: { isPersisted: { promise: Promise<unknown> } },
     fallback: string
   ) => {
     markRowPending(collectionId, rowId);
-    try {
-      await transaction.isPersisted.promise;
-    } catch (error) {
-      toast.error(toErrorMessage(error, fallback));
-      throw error;
-    } finally {
-      clearRowPending(collectionId, rowId);
-    }
+    return transaction.isPersisted.promise
+      .catch((error: unknown) => {
+        toast.error(toErrorMessage(error, fallback));
+        throw error;
+      })
+      .finally(() => {
+        clearRowPending(collectionId, rowId);
+      });
   };
 
   const setRepositoryEnabled = async (

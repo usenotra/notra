@@ -10,20 +10,17 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { memo, useState } from "react";
 
 import { Button } from "@/components/button";
-import { AddGranolaIntegrationDialog } from "@/components/integrations/add-granola-integration-dialog";
-import { AddLinearIntegrationDialog } from "@/components/integrations/add-linear-integration-dialog";
-import { AddSlackIntegrationDialog } from "@/components/integrations/add-slack-integration-dialog";
 import {
   IntegrationCardDither,
   useIntegrationCardDither,
 } from "@/components/integrations/integration-card-dither";
+import { IntegrationConnectDialog } from "@/components/integrations/integration-connect-dialog";
 import { McpIntegrationCard } from "@/components/integrations/mcp-integration-card";
 import { StoreIntegrationsSection } from "@/components/integrations/store-integrations-section";
 import { PageContainer } from "@/components/layout/container";
@@ -34,6 +31,7 @@ import { ALL_INTEGRATIONS } from "@/lib/integrations/catalog";
 import {
   INTEGRATION_CATEGORY_TABS,
   INTEGRATION_TAB_VALUES,
+  INTEGRATIONS_WITH_CONNECT_DIALOG,
 } from "@/lib/integrations/constants";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
@@ -49,14 +47,6 @@ interface Integration {
   createdAt: string;
 }
 
-const GitHubIntegrationDialog = dynamic(
-  () =>
-    import("@/components/integrations/github/github-integration-dialog").then(
-      (module) => module.GitHubIntegrationDialog
-    ),
-  { ssr: false }
-);
-
 const IntegrationCard = memo(function IntegrationCard({
   integration,
   activeCount,
@@ -70,15 +60,12 @@ const IntegrationCard = memo(function IntegrationCard({
   const organizationId = activeOrganization?.id;
   const organizationSlug = activeOrganization?.slug;
   const router = useRouter();
-  const pathname = usePathname();
   const isActive = activeCount > 0;
   const [dialogOpen, setDialogOpen] = useState(false);
   const showConnectButton = integration.available;
-  const showGitHubDialog = integration.available && integration.id === "github";
-  const showLinearDialog = integration.available && integration.id === "linear";
-  const showGranolaDialog =
-    integration.available && integration.id === "granola";
-  const showSlackDialog = integration.available && integration.id === "slack";
+  const hasConnectDialog =
+    integration.available &&
+    INTEGRATIONS_WITH_CONNECT_DIALOG.has(integration.id);
   const dither = useIntegrationCardDither(integration.available);
 
   if (!(organizationId && organizationSlug)) {
@@ -100,12 +87,7 @@ const IntegrationCard = memo(function IntegrationCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (
-                  showGitHubDialog ||
-                  showLinearDialog ||
-                  showGranolaDialog ||
-                  showSlackDialog
-                ) {
+                if (hasConnectDialog) {
                   setDialogOpen(true);
                 } else {
                   router.push(
@@ -157,33 +139,13 @@ const IntegrationCard = memo(function IntegrationCard({
       ) : (
         cardContent
       )}
-      {showGitHubDialog ? (
-        <GitHubIntegrationDialog
+      {hasConnectDialog ? (
+        <IntegrationConnectDialog
+          integrationId={integration.id}
           onOpenChange={setDialogOpen}
           open={dialogOpen}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
-        />
-      ) : null}
-      {showLinearDialog ? (
-        <AddLinearIntegrationDialog
-          authorizeUrl={`/api/integrations/linear/authorize?organizationId=${organizationId}&callbackPath=${encodeURIComponent(pathname)}`}
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-        />
-      ) : null}
-      {showGranolaDialog ? (
-        <AddGranolaIntegrationDialog
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-          organizationId={organizationId}
-        />
-      ) : null}
-      {showSlackDialog ? (
-        <AddSlackIntegrationDialog
-          authorizeUrl={`/api/integrations/slack/authorize?organizationId=${organizationId}&callbackPath=${encodeURIComponent(pathname)}`}
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
         />
       ) : null}
     </>
