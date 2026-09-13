@@ -90,7 +90,9 @@ export function TrafficSourcesGroup({
       <div
         className={cn(
           "border-border bg-muted flex items-center px-4",
-          connectsAbove && "border-t"
+          connectsAbove && "border-t",
+          !connectsAbove && "overflow-hidden rounded-t-2xl",
+          !connectsBelow && "rounded-b-2xl"
         )}
         style={{ height: TABLE_ROW_HEIGHT }}
       >

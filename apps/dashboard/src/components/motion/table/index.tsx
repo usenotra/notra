@@ -252,9 +252,18 @@ export function Table<T>({
       <div
         className={cn(
           "scrollbar-floating border-border bg-background relative -mt-5 box-content outline-none",
-          embedded ? "rounded-none border-0" : "rounded-2xl border",
-          isEmpty ? "overflow-hidden" : overflowClass,
-          !embedded && flushBottom && !footer && "rounded-b-none border-b-0"
+          embedded
+            ? cn(
+                "z-0 rounded-2xl border border-x-0",
+                flushBottom && !footer
+                  ? "rounded-b-none border-b-0"
+                  : "rounded-b-2xl"
+              )
+            : cn(
+                "rounded-2xl border",
+                flushBottom && !footer && "rounded-b-none border-b-0"
+              ),
+          isEmpty ? "overflow-hidden" : overflowClass
         )}
         onScroll={handleScroll}
         ref={scrollRef}
