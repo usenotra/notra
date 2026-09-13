@@ -78,6 +78,8 @@ export function useContentDetailChat({
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
   const processedToolCallsRef = useRef<Set<string>>(new Set());
+  const contentScopeKey = `${organizationId}:${contentId}`;
+  const contentScopeRef = useRef(contentScopeKey);
 
   const contentChatSessionsQuery = useQuery<ChatSessionSummary[]>({
     queryKey: contentChatSessionsQueryKey(organizationId, contentId),
@@ -127,20 +129,8 @@ export function useContentDetailChat({
     refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    if (activeChatId || contentChatSessionsQuery.isPending) {
-      return;
-    }
-    const latestChatId = contentChatSessionsQuery.data?.at(0)?.chatId;
-    setActiveChatId(latestChatId ?? crypto.randomUUID());
-    setChatIdToHydrate(latestChatId ?? null);
-  }, [
-    activeChatId,
-    contentChatSessionsQuery.data,
-    contentChatSessionsQuery.isPending,
-  ]);
-
   const { messages, sendMessage, setMessages, status, stop } = useChat({
+    id: `content-detail-${contentScopeKey}`,
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
     }),
@@ -210,6 +200,43 @@ export function useContentDetailChat({
   });
 
   const isAgentBusy = status === "streaming" || status === "submitted";
+
+  useLayoutEffect(() => {
+    if (contentScopeRef.current === contentScopeKey) {
+      return;
+    }
+    contentScopeRef.current = contentScopeKey;
+
+    stop();
+    setActiveChatId(null);
+    setChatIdToHydrate(null);
+    setSelection(null);
+    setContext([]);
+    setChatInputValue("");
+    setQueuedMessages([]);
+    queuedMessagesRef.current = [];
+    setChatError(null);
+    processedToolCallsRef.current.clear();
+    wasStoppedByUserRef.current = false;
+    isDrainingRef.current = false;
+    isAgentBusyRef.current = false;
+    setMessages([]);
+  }, [contentScopeKey, setMessages, stop]);
+
+  useEffect(() => {
+    if (activeChatId || contentChatSessionsQuery.isPending) {
+      return;
+    }
+    const latestChatId = contentChatSessionsQuery.data?.at(0)?.chatId;
+    setActiveChatId(latestChatId ?? crypto.randomUUID());
+    setChatIdToHydrate(latestChatId ?? null);
+  }, [
+    activeChatId,
+    contentId,
+    contentChatSessionsQuery.data,
+    contentChatSessionsQuery.isPending,
+    organizationId,
+  ]);
 
   useLayoutEffect(() => {
     messagesRef.current = messages;
