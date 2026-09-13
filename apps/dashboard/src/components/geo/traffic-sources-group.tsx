@@ -6,6 +6,10 @@ import { GEO_TRAFFIC_MARKDOWN_COLUMN_KEY } from "@notra/geo-core/constants/geo";
 
 import { Table, type TableColumn } from "@/components/motion/table";
 import {
+  DEFAULT_MIN_COLUMN_WIDTH,
+  tableMinWidthCss,
+} from "@/components/motion/table/utils";
+import {
   TRAFFIC_SOURCE_BAND_LABELS,
   TRAFFIC_SOURCE_BAND_NOUN,
   TRAFFIC_SOURCE_BANDS,
@@ -41,11 +45,11 @@ function TrafficSourcesGroup({
   const showTable = !(collapsed || isEmpty);
 
   const header = (
-    <span className="flex items-center gap-2">
+    <span className="flex min-w-max items-center gap-2">
       <button
         aria-expanded={showTable}
         aria-label={`${showTable ? "Collapse" : "Expand"} ${label}`}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -ml-1 flex size-6 cursor-pointer items-center justify-center rounded-md outline-hidden transition-colors focus-visible:ring-[3px] disabled:cursor-default disabled:opacity-40"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -ml-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-hidden transition-colors focus-visible:ring-[3px] disabled:cursor-default disabled:opacity-40"
         disabled={isEmpty}
         onClick={onToggle}
         type="button"
@@ -59,8 +63,10 @@ function TrafficSourcesGroup({
           size={14}
         />
       </button>
-      <span className="text-foreground text-sm font-semibold">{label}</span>
-      <span className="text-muted-foreground text-xs font-normal tabular-nums">
+      <span className="text-foreground shrink-0 text-sm font-semibold">
+        {label}
+      </span>
+      <span className="text-muted-foreground shrink-0 text-xs font-normal tabular-nums">
         {countLabel}
       </span>
     </span>
@@ -105,7 +111,7 @@ function TrafficSourcesGroup({
       style={{ zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band] }}
     >
       <Table
-        className="min-w-0 rounded-2xl"
+        className="rounded-2xl"
         columns={groupColumns}
         data={groups}
         defaultSort={{ key: "visits", direction: "desc" }}
@@ -130,21 +136,24 @@ export function TrafficSourcesStack({
   onToggle,
 }: TrafficSourcesStackProps) {
   const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
+  const minWidth = tableMinWidthCss(columns, DEFAULT_MIN_COLUMN_WIDTH);
 
   return (
-    <div className="isolate min-w-0">
-      {TRAFFIC_SOURCE_BANDS.map((band, index) => (
-        <TrafficSourcesGroup
-          band={band}
-          collapsed={collapsed.has(band)}
-          columns={columns}
-          followedByStack={index < lastIndex}
-          groups={groups.filter((group) => group.band === band)}
-          key={band}
-          onToggle={() => onToggle(band)}
-          stacked={index > 0}
-        />
-      ))}
+    <div className="isolate min-w-0 overflow-x-auto">
+      <div className="w-full" style={{ minWidth }}>
+        {TRAFFIC_SOURCE_BANDS.map((band, index) => (
+          <TrafficSourcesGroup
+            band={band}
+            collapsed={collapsed.has(band)}
+            columns={columns}
+            followedByStack={index < lastIndex}
+            groups={groups.filter((group) => group.band === band)}
+            key={band}
+            onToggle={() => onToggle(band)}
+            stacked={index > 0}
+          />
+        ))}
+      </div>
     </div>
   );
 }

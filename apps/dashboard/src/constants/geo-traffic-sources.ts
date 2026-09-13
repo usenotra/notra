@@ -42,3 +42,16 @@ export const TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS = new Set([
   GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
   "lastSeenAt",
 ]);
+
+/** Floors so band titles ("Crawlers") and source names cannot crush to "Cri". */
+export const TRAFFIC_SOURCE_COLUMN_MIN_WIDTH = {
+  source: "16rem",
+  category: "9.5rem",
+  categoryMobile: "8rem",
+  visits: "10.5rem",
+  visitsMobile: "7.5rem",
+  markdown: "8.5rem",
+  paths: "5.625rem",
+  pathsMobile: "4.5rem",
+  lastSeenAt: "9.375rem",
+} as const;
