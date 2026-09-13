@@ -96,7 +96,7 @@ export function GitHubRepositoryRow({
           <div key={repository.id}>
             {integration.repositories.length > 1 ? (
               <div className="mb-2 flex min-w-0 items-center gap-1">
-                <h4 className="truncate text-sm font-medium">
+                <h4 className="min-w-0 flex-1 truncate text-sm font-medium">
                   {repository.owner}/{repository.repo}
                 </h4>
                 <span className="text-muted-foreground text-xs">·</span>

@@ -831,17 +831,28 @@ export const integrationsRouter = {
             const octokit = createOctokit(token ?? undefined, {
               requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
             });
-            const { data } = await octokit.request(
-              "GET /repos/{owner}/{repo}/branches",
-              {
-                owner: repository.owner,
-                repo: repository.repo,
-                per_page: 100,
-                headers: GITHUB_API_VERSION_HEADERS,
-              }
-            );
+            const branches: string[] = [];
+            let page = 1;
+            let hasNextPage = true;
 
-            return { branches: data.map((branch) => branch.name) };
+            while (hasNextPage) {
+              const { data } = await octokit.request(
+                "GET /repos/{owner}/{repo}/branches",
+                {
+                  owner: repository.owner,
+                  repo: repository.repo,
+                  page,
+                  per_page: 100,
+                  headers: GITHUB_API_VERSION_HEADERS,
+                }
+              );
+
+              branches.push(...data.map((branch) => branch.name));
+              hasNextPage = data.length === 100;
+              page += 1;
+            }
+
+            return { branches };
           } catch (error) {
             if (hasGitHubStatus(error, 404)) {
               throw notFound("GitHub repository not found");
