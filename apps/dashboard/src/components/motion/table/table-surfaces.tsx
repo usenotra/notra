@@ -8,13 +8,16 @@ export function TableHeaderSurface({
   toolbar,
   flushTop,
   overlapTop,
+  embedded,
   children,
 }: TableHeaderSurfaceProps) {
   return (
     <div
       className={cn(
         "border-border bg-muted overflow-hidden rounded-t-2xl border border-b-0 pb-5",
-        flushTop && "rounded-t-none border-t-0",
+        embedded && "rounded-none border-x-0",
+        flushTop &&
+          (embedded ? "rounded-t-none border-t" : "rounded-t-none border-t-0"),
         overlapTop && "pt-5"
       )}
     >

@@ -64,7 +64,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       return next;
     });
   const crawlersCollapsed = collapsed.has("crawler");
-  const followingStackExpanded = !collapsed.has("cited");
   const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
   const canSparkline = hasTrafficSourceSeries(points);
   const seriesByGroup = new Map<string, { day: string; value: number }[]>();
@@ -187,24 +186,22 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         totals={totals}
       />
       <InstrumentSection eyebrow="Sources">
-        <div className="flex flex-col">
+        <div className="border-border overflow-hidden rounded-2xl border">
           <TrafficSourcesGroup
             band="crawler"
             collapsed={crawlersCollapsed}
             columns={columns}
-            followedByStack={followingStackExpanded}
             groups={crawlerGroups}
             onToggle={() => toggleCollapsed("crawler")}
-            stacked={false}
+            segment="first"
           />
           <TrafficSourcesGroup
             band="cited"
             collapsed={collapsed.has("cited")}
             columns={columns}
-            followedByStack={!collapsed.has("ai_referral")}
             groups={citedGroups}
             onToggle={() => toggleCollapsed("cited")}
-            stacked
+            segment="middle"
           />
           <TrafficSourcesGroup
             band="ai_referral"
@@ -212,7 +209,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
             columns={columns}
             groups={referralGroups}
             onToggle={() => toggleCollapsed("ai_referral")}
-            stacked
+            segment="last"
           />
         </div>
       </InstrumentSection>
