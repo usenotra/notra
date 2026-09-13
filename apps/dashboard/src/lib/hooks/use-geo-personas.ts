@@ -121,16 +121,19 @@ export function useGeoPersonasGenerate(organizationId: string) {
       toast.error(toErrorMessage(error, "Failed to generate personas"));
     },
   });
+  let startedAt: string | undefined;
+  if (job?.status === "queued" || job?.status === "running") {
+    startedAt = job.startedAt;
+  } else if (mutation.isPending && mutation.submittedAt > 0) {
+    startedAt = new Date(mutation.submittedAt).toISOString();
+  }
   return {
     ...mutation,
     isPending:
       mutation.isPending ||
       job?.status === "queued" ||
       job?.status === "running",
-    startedAt:
-      job?.status === "queued" || job?.status === "running"
-        ? job.startedAt
-        : undefined,
+    startedAt,
     generationError: job?.status === "failed" ? job.error : null,
     generatingPersonaId: job?.personaId,
   };

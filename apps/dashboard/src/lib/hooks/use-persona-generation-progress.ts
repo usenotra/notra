@@ -41,8 +41,9 @@ export function usePersonaGenerationProgress(
   if (!active) {
     return null;
   }
-  const startedAt = generationStartedAt ? Date.parse(generationStartedAt) : now;
-  const step = stepForElapsed(now - startedAt);
+  const step = generationStartedAt
+    ? stepForElapsed(now - Date.parse(generationStartedAt))
+    : 0;
   const entry = GEO_PERSONA_GENERATION_STEPS[step];
   return {
     step: step + 1,
