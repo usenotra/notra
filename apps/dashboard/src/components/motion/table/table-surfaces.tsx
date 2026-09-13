@@ -14,10 +14,13 @@ export function TableHeaderSurface({
   return (
     <div
       className={cn(
-        "border-border bg-muted overflow-hidden rounded-t-2xl border border-b-0 pb-5",
-        embedded && "rounded-none border-x-0",
-        flushTop &&
-          (embedded ? "rounded-t-none border-t" : "rounded-t-none border-t-0"),
+        "border-border bg-muted overflow-hidden pb-5",
+        embedded
+          ? cn("rounded-none border-0", flushTop && "border-t")
+          : cn(
+              "rounded-t-2xl border border-b-0",
+              flushTop && "rounded-t-none border-t-0"
+            ),
         overlapTop && "pt-5"
       )}
     >
