@@ -50,6 +50,6 @@ export const DESIGN_SYSTEM_TRAFFIC_RESPONSE: AiTrafficResponse = {
     aiReferral: 1,
     cited: 7,
     conversions: null,
-    crawler: 10,
+    crawler: 17,
   },
 };
