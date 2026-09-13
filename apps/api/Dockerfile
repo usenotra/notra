@@ -30,6 +30,7 @@ COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/utils/package.json ./packages/utils/package.json
+COPY packages/webhooks/package.json ./packages/webhooks/package.json
 
 # Install all workspace deps. Root prepare scripts are local-dev only.
 RUN bun install --ignore-scripts
@@ -47,6 +48,7 @@ COPY packages/geo-core ./packages/geo-core
 COPY packages/posthog ./packages/posthog
 COPY packages/schemas ./packages/schemas
 COPY packages/utils ./packages/utils
+COPY packages/webhooks ./packages/webhooks
 COPY apps/api ./apps/api
 
 WORKDIR /app/apps/api
