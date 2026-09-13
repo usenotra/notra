@@ -54,7 +54,7 @@ export function SentimentThemesEmpty({
         {canAnalyze ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button onClick={() => setConfirmOpen(true)}>
-              {retrying ? "Retry finding themes" : "Find themes"}
+              {retrying ? "Retry analysis" : "Analyze now"}
             </Button>
             <Popover>
               <PopoverTrigger render={<Button variant="outline" />}>
