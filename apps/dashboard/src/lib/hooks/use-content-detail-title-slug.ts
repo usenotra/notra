@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { extractTitleFromMarkdown } from "@/utils/content-detail";
 
@@ -19,10 +19,6 @@ export function useContentDetailTitleSlug({
   const [persistedSlug, setPersistedSlug] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-
-  useEffect(() => {
-    setPersistedTitle(contentTitle ?? null);
-  }, [contentTitle]);
 
   const serverTitle =
     persistedTitle ?? contentTitle ?? extractTitleFromMarkdown(currentMarkdown);
