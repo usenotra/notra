@@ -7,8 +7,6 @@ import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "./charts";
 
 export const SENTIMENT_SCORE_HINT =
   "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50, and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage.";
-export const SENTIMENT_SCORE_FORMULA =
-  "Positive = 100, neutral = 50, negative = 0. The score is their weighted average across rated mentions.";
 export const SENTIMENT_RETROACTIVE_EMPTY_MESSAGE =
   "Sentiment ratings aren't available for earlier days in this range yet.";
 export const SENTIMENT_SHARES_PENDING_MESSAGE =
