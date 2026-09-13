@@ -119,7 +119,7 @@ function TrafficSourcesGroup({
         flushTop={stacked}
         getRowId={(row) => trafficGroupKey(row.band, row.key)}
         height={tableHeightFor(count)}
-        overlapTop={stacked}
+        overlapTop={stacked} // pairs with -mt-5 so the stacked header is not clipped
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />
