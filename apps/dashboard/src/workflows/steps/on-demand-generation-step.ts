@@ -155,6 +155,8 @@ export async function runOnDemandGeneration(
         audience: brand?.audience ?? undefined,
         customInstructions: customInstructions || null,
         language: brand?.language ?? undefined,
+        tone: getValidToneProfile(brand?.toneProfile, "Conversational"),
+        customTone: brand?.customTone ?? undefined,
       },
       sourceMetadata,
       dataPointSettings: dataPoints,

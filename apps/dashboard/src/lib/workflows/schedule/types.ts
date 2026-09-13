@@ -24,6 +24,7 @@ export interface ContentGenerationContext {
     defaultBranch: string | null;
   }>;
   linearIntegrations?: LinearIntegrationRef[];
+  /** Top-level tone, always mirrored into promptInput.tone (source of truth downstream). */
   tone: ToneProfile;
   promptInput: {
     sourceTargets: string;
@@ -36,6 +37,9 @@ export interface ContentGenerationContext {
     audience?: string;
     customInstructions?: string | null;
     language?: string;
+    /** Required: normalized from top-level tone at the workflow entrypoint. */
+    tone: ToneProfile;
+    customTone?: string | null;
   };
   sourceMetadata: PostSourceMetadata;
   dataPointSettings?: AgentDataPointSettings;

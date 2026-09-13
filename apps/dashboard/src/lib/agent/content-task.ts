@@ -1,5 +1,6 @@
 import { getUserPrompt } from "@notra/ai/prompts/user";
 import { contentWriterResultSchema } from "@notra/ai/schemas/content-writer-result";
+import { ensureSystemSkillToneSections } from "@notra/ai/skills/seed";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
@@ -41,6 +42,16 @@ export async function generateContentViaAgentTask(
   options: AgentContentTaskOptions
 ): Promise<ContentGenerationResult> {
   try {
+    // Best-effort migration: a transient DB failure here must not fail the
+    // whole generation — the previous skill content still generates fine.
+    try {
+      await ensureSystemSkillToneSections(options.organizationId);
+    } catch (error) {
+      console.warn(
+        "[content-task] ensureSystemSkillToneSections failed, continuing with existing skills",
+        error
+      );
+    }
     const { output } = await runAgentTask({
       scope: {
         organizationId: options.organizationId,

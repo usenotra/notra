@@ -17,7 +17,10 @@ export async function generateTwitterPost(
     voiceId: options.voiceId,
     repositories: options.repositories,
     linearIntegrations: options.linearIntegrations,
-    promptInput: options.promptInput,
+    promptInput: {
+      ...options.promptInput,
+      tone: options.promptInput.tone ?? options.tone ?? "Conversational",
+    },
     sourceMetadata: options.sourceMetadata,
     dataPointSettings: options.dataPointSettings,
     selectionFilters: options.selectionFilters,

@@ -34,6 +34,7 @@ export interface WorkflowBrandSettings {
   id: string;
   name: string;
   toneProfile: string | null;
+  customTone: string | null;
   companyName: string | null;
   companyDescription: string | null;
   audience: string | null;
@@ -52,6 +53,7 @@ export type ScheduleBrandSettingsData = {
   id: string;
   name: string;
   toneProfile: string | null;
+  customTone: string | null;
   companyName: string | null;
   companyDescription: string | null;
   audience: string | null;
@@ -77,6 +79,8 @@ export interface EventGenerationContext {
     companyDescription?: string;
     audience?: string;
     customInstructions?: string | null;
+    language?: string;
+    customTone?: string | null;
   };
   outputType: string;
   sourceMetadata: PostSourceMetadata;

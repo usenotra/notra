@@ -1,3 +1,5 @@
+import { sanitizeToneNotes } from "@notra/ai/prompts/user";
+
 import { EVENT_MAX_LISTED_COMMITS } from "@/constants/workflows";
 import type { EventGenerationContext } from "@/types/workflows/workflows";
 
@@ -115,5 +117,10 @@ export function buildEventPromptInput(ctx: EventGenerationContext) {
     customInstructions: ctx.brand.customInstructions
       ? `${ctx.brand.customInstructions}\n\n${eventInstructions}`
       : eventInstructions,
+    language: ctx.brand.language
+      ? sanitizeToneNotes(ctx.brand.language)
+      : ctx.brand.language,
+    tone: ctx.tone,
+    customTone: ctx.brand.customTone,
   };
 }

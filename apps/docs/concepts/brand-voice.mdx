@@ -79,7 +79,7 @@ The **Brand Guidelines** tab pulls logos, colors, typography and landing page sc
 
 ## Tone Profiles Explained
 
-Each tone profile selects a different prompt template for every format:
+Each tone profile selects the matching tone section in every format skill. The section sets wording, sentence rhythm, and examples for that profile:
 
 ### Conversational
 
@@ -195,6 +195,8 @@ When generating content, the identity is formatted into structured tags and plac
 <company>Acme Corp - Building developer tools for modern web apps</company>
 <target-audience>Software developers and engineering teams</target-audience>
 <language>English</language>
+<tone>Conversational</tone>
+<tone-notes>Technical but enthusiastic about developer experience</tone-notes>
 <custom-instructions>
 Keep technical accuracy while being approachable
 Emphasize security and performance improvements
@@ -206,12 +208,13 @@ Emphasize security and performance improvements
 </background-data>
 ```
 
-Two rules travel with these tags:
+Three rules travel with these tags:
 
 1. `<company>` is the publishing identity. Sources are evidence only, so a repository, workspace or team with a different name never causes the writer to hesitate or attribute the work elsewhere.
 2. If `<language>` is present, the final text is written in that language.
+3. `<tone>` names the tone section the writer follows inside the skill: Conversational, Professional, Casual or Formal. `<tone-notes>` holds Custom Tone text and applies on top of that section.
 
-The tone-specific system prompt for the chosen format wraps all of this, and any skills you enabled on the Skills page, such as the human-writer skill, run on the result.
+Each format skill (changelog, blog post, LinkedIn, Twitter) carries a tone section per profile with its own wording, sentence rhythm, and sample. Tone changes wording, sentence rhythm, and examples only. It never changes structure, facts, audience filtering, or language. Custom instructions, references, and the human-writer skill apply on top of the tone.
 
 ## Multiple Identities
 

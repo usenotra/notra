@@ -19,7 +19,11 @@ import {
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 
-import { LANGUAGE_OPTIONS, TONE_OPTIONS } from "@/constants/brand-identity";
+import {
+  LANGUAGE_OPTIONS,
+  TONE_OPTIONS,
+  TONE_SCOPE_NOTE,
+} from "@/constants/brand-identity";
 import type { ToneLanguageFieldsProps } from "@/types/brand-identity";
 import { getLanguageFlag } from "@/utils/brand-identity";
 
@@ -91,17 +95,36 @@ export function ToneLanguageFields({
                     }}
                     value={toneProfileField.state.value}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        className="[&_[data-item-desc]]:hidden"
+                        placeholder="Select tone"
+                      />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent alignItemWithTrigger={false}>
                       {TONE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                        <SelectItem
+                          className="items-start py-1.5"
+                          key={option.value}
+                          value={option.value}
+                        >
+                          <span className="flex min-w-0 flex-col items-start gap-0.5">
+                            <span>{option.label}</span>
+                            <span
+                              data-item-desc
+                              className="text-muted-foreground text-xs whitespace-normal"
+                            >
+                              {option.description}
+                            </span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-muted-foreground text-xs">
+                    {TONE_SCOPE_NOTE} Custom Tone adds your own notes on top of
+                    the profile.
+                  </p>
                 </div>
               )}
             </form.Field>

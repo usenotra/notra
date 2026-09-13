@@ -1,5 +1,6 @@
 import { generateRepoImage } from "@notra/ai/agents/repo-image";
 import { maybeGenerateCollectionTitle } from "@notra/ai/jobs/collection-title";
+import { sanitizeToneNotes } from "@notra/ai/prompts/user";
 import { isGitHubRateLimitError } from "@notra/ai/tools/github";
 import {
   uploadGeneratedHtmlAsset,
@@ -160,6 +161,7 @@ function buildSelectedItemsContext(ctx: ContentGenerationContext): string {
 
 function buildImagePrompt(ctx: ContentGenerationContext) {
   const selectedItemsContext = buildSelectedItemsContext(ctx);
+  const toneNotes = sanitizeToneNotes(ctx.promptInput.customTone);
   const promptParts = [
     `Create a polished 1200x630 marketing asset for: ${ctx.promptInput.sourceTargets}.`,
     selectedItemsContext ||
@@ -171,6 +173,8 @@ function buildImagePrompt(ctx: ContentGenerationContext) {
       ? `Company description: ${ctx.promptInput.companyDescription}.`
       : "",
     ctx.promptInput.audience ? `Audience: ${ctx.promptInput.audience}.` : "",
+    ctx.promptInput.tone ? `Tone: ${ctx.promptInput.tone}.` : "",
+    toneNotes ? `Tone notes: ${toneNotes}.` : "",
     ctx.promptInput.customInstructions ?? "",
   ];
 

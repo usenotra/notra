@@ -3,6 +3,7 @@ import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import { getUserPrompt } from "@notra/ai/prompts/user";
 import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { ensureSystemSkillToneSections } from "@notra/ai/skills/seed";
 import {
   createGetBrandReferencesTool,
   createSearchBrandReferencesTool,
@@ -53,7 +54,7 @@ Do these steps in order:
 
 3. Call getSkillByName to load the primary skill's full instructions. Read them carefully and follow them exactly. They override these dispatcher instructions on any overlap.
 
-4. Execute the primary skill: gather source data via the provided tools (brand references, GitHub, Linear), then draft the post according to the skill's format and rules.
+4. Execute the primary skill: gather source data via the provided tools (brand references, GitHub, Linear), then draft the post according to the skill's format and rules. Match the <tone> value from the user prompt to the tone section in the skill. Tone changes wording, sentence rhythm, and examples only. Structure, facts, audience filtering, language, length limits, and formatting rules stay the same. Apply <tone-notes> on top of the named tone when present.
 
 5. Before finalizing, scan the skill list again for supporting skills (for example, a "humanizer" skill for polishing AI-sounding output, or any org-specific skill whose description applies). Load any that apply via getSkillByName and apply their guidance to your near-final draft.
 
@@ -107,6 +108,17 @@ export async function runBackgroundGen(
   });
 
   await assertRouteHasCredits({ organizationId, modelId: AGENT_DEFAULT_MODEL });
+
+  // Best-effort migration: a transient DB failure here must not fail the
+  // whole generation — the previous skill content still generates fine.
+  try {
+    await ensureSystemSkillToneSections(organizationId);
+  } catch (error) {
+    console.warn(
+      "[background-gen] ensureSystemSkillToneSections failed, continuing with existing skills",
+      error
+    );
+  }
 
   const model = createModel(organizationId, AGENT_DEFAULT_MODEL, {}, log);
 
