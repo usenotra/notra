@@ -96,6 +96,7 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getEnabledDataPoints } from "@/lib/analytics/studio-events";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getUtcDayRange } from "@/lib/content/content-calendar";
 import { getContentPublishingMetrics } from "@/lib/content/content-publishing-metrics.server";
 import { projectScopedCollectionIds } from "@/lib/content/project-scope";
 import {
@@ -268,31 +269,6 @@ function normalizeContentTypes(contentTypes: string[]): ContentType[] {
 
 function normalizeContentType(contentType: string): ContentType {
   return contentTypeSchema.parse(contentType);
-}
-
-function getDateRange(dateParam: string | null) {
-  if (!dateParam) {
-    return null;
-  }
-
-  const baseDate = dateParam === "today" ? new Date() : new Date(dateParam);
-
-  if (Number.isNaN(baseDate.getTime())) {
-    return null;
-  }
-
-  const startDate = new Date(
-    baseDate.getFullYear(),
-    baseDate.getMonth(),
-    baseDate.getDate()
-  );
-  const endDate = new Date(
-    baseDate.getFullYear(),
-    baseDate.getMonth(),
-    baseDate.getDate() + 1
-  );
-
-  return { startDate, endDate };
 }
 
 function formatFailureMessage(error: unknown): string {
@@ -543,7 +519,7 @@ export const contentRouter = {
           organizationId: input.organizationId,
         });
 
-        const dateRange = getDateRange("today");
+        const dateRange = getUtcDayRange("today");
         const filters = [eq(posts.organizationId, input.organizationId)];
         const collectionIds = projectScopedCollectionIds(
           input.organizationId,
@@ -581,7 +557,7 @@ export const contentRouter = {
         organizationId: input.organizationId,
       });
 
-      const dateRange = getDateRange(input.date ?? null);
+      const dateRange = getUtcDayRange(input.date ?? null);
 
       if (input.date && !dateRange) {
         throw badRequest("Invalid date");

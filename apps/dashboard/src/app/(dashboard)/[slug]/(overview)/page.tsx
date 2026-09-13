@@ -8,6 +8,7 @@ import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
 import { getGreeting } from "@/utils/dashboard-greeting";
 import { dehydrateDashboardHomeQueries } from "@/utils/dashboard-home-prefetch.server";
+import { geoRequestedProjectId } from "@/utils/geo-hydration";
 
 import PageClient from "../page-client";
 import { HomePageSkeleton } from "./skeleton";
@@ -27,14 +28,15 @@ async function Page({
 }) {
   const { slug } = await params;
   await redirectOrgRootToStoredMode(slug, searchParams);
-  const [{ organization, user }, requestHeaders] = await Promise.all([
+  const [{ organization, user }, requestHeaders, search] = await Promise.all([
     validateOrganizationAccess(slug),
     headers(),
+    searchParams,
   ]);
   const projectId = await resolveInitialGeoProjectId(
     organization.id,
     slug,
-    undefined
+    geoRequestedProjectId(search)
   );
   const greeting = getGreeting(new Date());
   const userName = user.name?.trim();

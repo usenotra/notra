@@ -1,17 +1,16 @@
 import "server-only";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
-import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 
 import type { ContentPublishingMetricsData } from "@/types/dashboard";
 
+import { getUtcDateKeys, getUtcYearRange } from "./content-calendar";
+
 export async function getContentPublishingMetrics(
   organizationId: string
 ): Promise<ContentPublishingMetricsData> {
-  const now = new Date();
-  const yearStart = startOfYear(now);
-  const nextYearStart = startOfYear(new Date(now.getFullYear() + 1, 0, 1));
+  const { startDate: yearStart, endDate: nextYearStart } = getUtcYearRange();
 
   const dailyCounts = await db
     .select({
@@ -45,11 +44,7 @@ export async function getContentPublishingMetrics(
     dateMap.set(row.day, { drafts, published });
   }
 
-  const activity = eachDayOfInterval({
-    start: yearStart,
-    end: endOfYear(now),
-  }).map((date) => {
-    const dateKey = format(date, "yyyy-MM-dd");
+  const activity = getUtcDateKeys(yearStart, nextYearStart).map((dateKey) => {
     const entry = dateMap.get(dateKey) ?? { drafts: 0, published: 0 };
     const count = entry.drafts + entry.published;
     const percentage = count === 0 ? 0 : (count / maxCount) * 100;

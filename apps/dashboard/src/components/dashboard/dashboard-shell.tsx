@@ -1,16 +1,25 @@
 "use client";
 
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@notra/ui/components/shared/responsive-dialog";
 import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
 import { DashboardSidebar } from "@/components/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
+import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
@@ -33,12 +42,89 @@ const OnboardingAgentBanner = dynamic(() =>
   )
 );
 
+function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia("(min-width: 64rem)");
+  mediaQuery.addEventListener("change", onStoreChange);
+
+  return () => mediaQuery.removeEventListener("change", onStoreChange);
+}
+
+const getDesktopBreakpointSnapshot = () =>
+  window.matchMedia("(min-width: 64rem)").matches;
+const getServerDesktopBreakpointSnapshot = () => false;
+
+function DashboardAgentPanelSkeleton() {
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4">
+      <Skeleton className="h-8 w-32" />
+      <div className="flex flex-1 flex-col gap-3">
+        <Skeleton className="h-16 w-4/5" />
+        <Skeleton className="h-16 w-3/5 self-end" />
+      </div>
+      <Skeleton className="h-20 w-full" />
+    </div>
+  );
+}
+
+function DashboardAgentHostLoading() {
+  const { active, closePanel, expanded } = useRightPanel();
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktopBreakpoint,
+    getDesktopBreakpointSnapshot,
+    getServerDesktopBreakpointSnapshot
+  );
+
+  if (isDesktop) {
+    return (
+      <RightPanel id="agent">
+        <DashboardAgentPanelSkeleton />
+      </RightPanel>
+    );
+  }
+
+  return (
+    <ResponsiveDialog
+      onOpenChange={(open) => {
+        if (!open) {
+          closePanel("agent");
+        }
+      }}
+      open={active === "agent"}
+    >
+      <ResponsiveDialogContent
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          expanded
+            ? "h-svh max-h-svh max-w-none rounded-none sm:max-w-none"
+            : "h-[85svh] max-h-[85svh] sm:max-w-md"
+        )}
+        drawerClassName={cn(
+          "[&>*:not([data-slot=sheet-header]):not([data-slot=sheet-footer]):not([data-slot=sheet-close])]:px-0",
+          expanded && "h-svh max-h-svh rounded-none"
+        )}
+        showCloseButton={false}
+      >
+        <ResponsiveDialogHeader className="sr-only">
+          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Loading the dashboard agent.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <DashboardAgentPanelSkeleton />
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+  );
+}
+
 const DashboardAgentHost = dynamic(
   () =>
     import("@/components/dashboard/dashboard-agent-panel").then(
       (module) => module.DashboardAgentHost
     ),
-  { ssr: false }
+  {
+    loading: DashboardAgentHostLoading,
+    ssr: false,
+  }
 );
 
 export function DashboardShell({
