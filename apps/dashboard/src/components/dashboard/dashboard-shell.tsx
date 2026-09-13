@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
 import { DashboardSidebar } from "@/components/dashboard/app-sidebar";
-import { DashboardAgentHost } from "@/components/dashboard/dashboard-agent-panel";
 import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
@@ -32,6 +31,14 @@ const OnboardingAgentBanner = dynamic(() =>
   import("@/components/dashboard/onboarding-agent-banner").then(
     (module) => module.OnboardingAgentBanner
   )
+);
+
+const DashboardAgentHost = dynamic(
+  () =>
+    import("@/components/dashboard/dashboard-agent-panel").then(
+      (module) => module.DashboardAgentHost
+    ),
+  { ssr: false }
 );
 
 export function DashboardShell({

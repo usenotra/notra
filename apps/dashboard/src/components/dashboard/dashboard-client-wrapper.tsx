@@ -1,18 +1,34 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
-import { CommandPalette } from "@/components/command-palette/command-palette";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FeedbackProvider } from "@/components/dashboard/feedback-context";
 import { RightPanelProvider } from "@/components/dashboard/right-panel-context";
+import { DashboardRuntimeProviders } from "@/components/providers/dashboard-runtime-providers";
 import { DatabuddyFlagsProvider } from "@/components/providers/databuddy-flags-provider";
 import {
   type InitialActiveOrganization,
   OrganizationsProvider,
 } from "@/components/providers/organization-provider";
-import { SettingsModal } from "@/components/settings/settings-modal";
+
+const CommandPalette = dynamic(
+  () =>
+    import("@/components/command-palette/command-palette").then(
+      (module) => module.CommandPalette
+    ),
+  { ssr: false }
+);
+
+const SettingsModal = dynamic(
+  () =>
+    import("@/components/settings/settings-modal").then(
+      (module) => module.SettingsModal
+    ),
+  { ssr: false }
+);
 
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
@@ -30,28 +46,30 @@ export function DashboardClientWrapper({
   modal,
 }: DashboardClientWrapperProps) {
   return (
-    <OrganizationsProvider
-      initialActiveOrganization={initialActiveOrganization}
-    >
-      <DatabuddyFlagsProvider>
-        <FeedbackProvider>
-          <CommandPaletteProvider>
-            <RightPanelProvider>
-              <DashboardShell
-                initialSidebarOpen={initialSidebarOpen}
-                initialSidebarWidth={initialSidebarWidth}
-              >
-                {children}
-              </DashboardShell>
-              <CommandPalette />
-              <Suspense fallback={null}>
-                <SettingsModal />
-              </Suspense>
-            </RightPanelProvider>
-          </CommandPaletteProvider>
-        </FeedbackProvider>
-      </DatabuddyFlagsProvider>
-      {modal}
-    </OrganizationsProvider>
+    <DashboardRuntimeProviders>
+      <OrganizationsProvider
+        initialActiveOrganization={initialActiveOrganization}
+      >
+        <DatabuddyFlagsProvider>
+          <FeedbackProvider>
+            <CommandPaletteProvider>
+              <RightPanelProvider>
+                <DashboardShell
+                  initialSidebarOpen={initialSidebarOpen}
+                  initialSidebarWidth={initialSidebarWidth}
+                >
+                  {children}
+                </DashboardShell>
+                <CommandPalette />
+                <Suspense fallback={null}>
+                  <SettingsModal />
+                </Suspense>
+              </RightPanelProvider>
+            </CommandPaletteProvider>
+          </FeedbackProvider>
+        </DatabuddyFlagsProvider>
+        {modal}
+      </OrganizationsProvider>
+    </DashboardRuntimeProviders>
   );
 }

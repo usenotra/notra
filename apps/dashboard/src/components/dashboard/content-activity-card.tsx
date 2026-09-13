@@ -19,15 +19,10 @@ import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { ContentPublishingMetricsData } from "@/types/dashboard";
-
-interface ActivityEntry {
-  date: string;
-  count: number;
-  drafts: number;
-  published: number;
-  level: number;
-}
+import type {
+  ContentActivityEntry,
+  ContentPublishingMetricsData,
+} from "@/types/dashboard";
 
 import { useOrganizationsContext } from "../providers/organization-provider";
 
@@ -37,7 +32,7 @@ export const ContentActivityCard = () => {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
 
-  const { data, isPending } = useQuery({
+  const { data: metrics, isPending } = useQuery({
     ...dashboardOrpc.content.metrics.get.queryOptions({
       input: { organizationId: organizationId ?? "" },
     }),
@@ -51,16 +46,16 @@ export const ContentActivityCard = () => {
 
   return (
     <div className="border-border/80 bg-background w-full overflow-x-auto rounded-lg border px-4 py-3">
-      {data?.graph?.activity ? (
+      {metrics?.graph.activity ? (
         <ContributionGraph
           blockMargin={3}
           blockSize={13}
-          data={data.graph.activity}
+          data={metrics.graph.activity}
           fontSize={12}
         >
           <ContributionGraphCalendar>
             {({ activity, dayIndex, weekIndex }) => {
-              const entry = activity as unknown as ActivityEntry;
+              const entry = activity as unknown as ContentActivityEntry;
 
               return (
                 <Tooltip>
@@ -113,11 +108,11 @@ export const ContentActivityCard = () => {
                   </span>{" "}
                   posts (
                   <span className="text-foreground font-semibold">
-                    {numberFormatter.format(data.drafts)}
+                    {numberFormatter.format(metrics.drafts)}
                   </span>{" "}
-                  {data.drafts === 1 ? "draft" : "drafts"} /{" "}
+                  {metrics.drafts === 1 ? "draft" : "drafts"} /{" "}
                   <span className="text-foreground font-semibold">
-                    {numberFormatter.format(data.published)}
+                    {numberFormatter.format(metrics.published)}
                   </span>{" "}
                   published)
                 </span>

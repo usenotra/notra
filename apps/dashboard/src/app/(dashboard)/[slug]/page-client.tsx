@@ -9,15 +9,15 @@ import { useId } from "react";
 import { Button } from "@/components/button";
 import { ContentCard } from "@/components/content/content-card";
 import { ContentSkeletonCard } from "@/components/content/content-skeleton-card";
-import { CreateContentDialog } from "@/components/content/create-content-dialog";
-import { ContentActivityCard } from "@/components/dashboard/content-activity-card";
+import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
+import { LazyContentActivityCard } from "@/components/dashboard/lazy-content-activity-card";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
 import { useActiveGenerations } from "@/lib/hooks/use-active-generations";
-import { useTodayPosts } from "@/lib/hooks/use-posts";
+import { useDashboardHomeContent } from "@/lib/hooks/use-posts";
 import type { DashboardHomePageClientProps } from "@/types/dashboard/home";
 import { getDashboardPostPreview } from "@/utils/content-preview";
 import { resolveImagePreviewSrc } from "@/utils/markdown-image";
@@ -34,7 +34,7 @@ export default function PageClient({
       : orgFromList;
   const organizationId = organization?.id ?? "";
   const skeletonId = useId();
-  const { data, isPending } = useTodayPosts(organizationId);
+  const { data, isPending } = useDashboardHomeContent(organizationId);
   const { data: activeGenerations } = useActiveGenerations(organizationId);
   const posts = data?.posts ?? [];
   const visibleGenerations = activeGenerations?.slice(0, 3) ?? [];
@@ -135,7 +135,10 @@ export default function PageClient({
                 Latest items created today
               </p>
             </div>
-            <CreateContentDialog entry="home" organizationId={organizationId} />
+            <LazyCreateContentDialog
+              entry="home"
+              organizationId={organizationId}
+            />
           </div>
 
           {todayContent}
@@ -149,7 +152,7 @@ export default function PageClient({
             </p>
           </div>
 
-          <ContentActivityCard />
+          <LazyContentActivityCard />
         </section>
       </div>
     </PageContainer>

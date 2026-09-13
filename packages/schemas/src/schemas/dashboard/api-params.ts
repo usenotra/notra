@@ -59,6 +59,10 @@ export const contentListQuerySchema = z.object({
   projectId: z.string().min(1).optional(),
 });
 
+export const dashboardHomeContentQuerySchema = z.object({
+  projectId: z.string().min(1).optional(),
+});
+
 export const deleteWithTransfersSchema = z.object({
   transfers: z.array(
     z.object({
