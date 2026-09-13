@@ -1339,7 +1339,7 @@ export const geoRouter = {
         organizationId: input.organizationId,
         user: context.user,
       });
-      const [, scope, rate] = await Promise.all([
+      const { scope, rate } = await Promise.all([
         assertActiveSubscription(input.organizationId),
         runOrpcEffect(
           requireGeoPersonaGenerationCapacity(
@@ -1349,8 +1349,11 @@ export const geoRouter = {
           ).pipe(Effect.provide(geoCoreDashboardLayer)),
           toGeoOrpcError
         ),
-        ratelimit.geoPersonasGenerate.limit(input.organizationId),
-      ]);
+      ]).then(([, scope]) =>
+        ratelimit.geoPersonasGenerate
+          .limit(input.organizationId)
+          .then((rate) => ({ scope, rate }))
+      );
       if (!rate.success) {
         throw badRequest(
           "Too many persona generations. Please wait a few minutes."

@@ -73,7 +73,7 @@ export function useGeoPersonaActivity(
 export function useGeoPersonasGenerate(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
-  const observedJob = useRef<string | null>(null);
+  const activeJob = useRef<string | null>(null);
   const statusOptions = dashboardOrpc.geo.personasGenerationStatus.queryOptions(
     {
       input: { organizationId, projectId },
@@ -92,13 +92,17 @@ export function useGeoPersonasGenerate(organizationId: string) {
   });
   const job = status.data;
   useEffect(() => {
-    if (!job || (job.status !== "completed" && job.status !== "failed")) {
+    if (!job) {
       return;
     }
-    if (observedJob.current === job.id) {
+    if (job.status === "queued" || job.status === "running") {
+      activeJob.current = job.id;
       return;
     }
-    observedJob.current = job.id;
+    if (activeJob.current !== job.id) {
+      return;
+    }
+    activeJob.current = null;
     if (job.status === "completed") {
       void invalidatePersonaList(queryClient, organizationId, projectId);
     } else {
