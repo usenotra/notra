@@ -15,7 +15,10 @@ import {
   useGeoSentimentAnalysis,
 } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
-import { sentimentHasDisplayableData } from "@/utils/geo-sentiment";
+import {
+  sentimentHasDisplayableData,
+  sentimentThemesState,
+} from "@/utils/geo-sentiment";
 import { sentimentAnalysisStatus } from "@/utils/sentiment-analysis";
 
 function formatPolarityShare(
@@ -32,10 +35,16 @@ function PolarityThemeContent({
   loading,
   polarity,
   themes,
+  canAnalyze,
+  analysisReady,
+  hideEmpty,
 }: {
   loading: boolean;
   polarity: "positive" | "negative";
   themes: string[];
+  canAnalyze: boolean;
+  analysisReady: boolean;
+  hideEmpty: boolean;
 }) {
   const cta = SENTIMENT_POLARITY_CTA[polarity];
 
@@ -59,15 +68,25 @@ function PolarityThemeContent({
       </p>
     );
   }
+  if (canAnalyze) {
+    return (
+      <p className="text-muted-foreground text-xs text-balance">
+        {cta.subtext}{" "}
+        <a
+          className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
+          href="#sentiment-themes"
+        >
+          {cta.action}
+        </a>
+      </p>
+    );
+  }
+  if (hideEmpty) {
+    return null;
+  }
   return (
     <p className="text-muted-foreground text-xs text-balance">
-      {cta.subtext}{" "}
-      <a
-        className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
-        href="#sentiment-themes"
-      >
-        {cta.action}
-      </a>
+      {analysisReady ? "No themes found" : "Run analysis to find themes"}
     </p>
   );
 }
@@ -81,6 +100,14 @@ export function BrandSentimentCard({
   const analysis = useGeoSentimentAnalysis(organizationId);
   const themes = analysis.query.data?.result?.themes ?? [];
   const showData = sentimentHasDisplayableData(data?.summary, data?.points);
+  const themeView = sentimentThemesState({
+    state: analysis.query.data,
+    summary: data?.summary,
+    isAnalyzing: analysis.isAnalyzing,
+    isPending: analysis.query.isPending,
+    isError: analysis.query.isError,
+    aggregatePending: query.isPending,
+  });
   const themeStatus = analysis.query.isError
     ? "Could not load analysis."
     : sentimentAnalysisStatus(analysis.query.data);
@@ -159,7 +186,10 @@ export function BrandSentimentCard({
                     </p>
                   )}
                   <PolarityThemeContent
-                    loading={query.isPending || analysis.query.isPending}
+                    analysisReady={analysis.query.data?.status === "ready"}
+                    canAnalyze={themeView.canAnalyze}
+                    hideEmpty={Boolean(showThemeStatus)}
+                    loading={themeView.pending}
                     polarity={polarity}
                     themes={polarityThemes}
                   />

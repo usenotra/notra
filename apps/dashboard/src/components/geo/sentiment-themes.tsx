@@ -25,7 +25,7 @@ export function SentimentThemes({
   const themes = state?.result?.themes ?? [];
   const retrying = state?.status === "failed" || mutationError;
   return (
-    <div id="sentiment-themes">
+    <div id="sentiment-themes" className="scroll-mt-24">
       <InstrumentSection
         eyebrow="Sentiment themes"
         className="lg:col-span-12"

@@ -31,10 +31,10 @@ export function sentimentLacksRetroactiveData(
   points: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
 ): boolean {
   if (points.length === 0) {
-    return true;
+    return false;
   }
   const firstRatedIndex = points.findIndex((point) => point.score !== null);
-  return firstRatedIndex !== 0;
+  return firstRatedIndex > 0;
 }
 
 export function sentimentHasDisplayableData(
