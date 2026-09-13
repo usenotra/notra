@@ -26,11 +26,11 @@ const IDLE_PROGRESS: ProgressResponse["progress"] = {
   totalSteps: 3,
 };
 
-export function useBrandSettings(organizationId: string, enabled = true) {
+export function useBrandSettings(organizationId: string) {
   return useQuery<BrandSettingsResponse>(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
-      enabled: enabled && !!organizationId,
+      enabled: !!organizationId,
     })
   );
 }

@@ -35,7 +35,6 @@ import {
 } from "@/constants/nav";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
-import { useDeferredMount } from "@/lib/hooks/use-deferred-mount";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
@@ -58,7 +57,6 @@ export function SidebarProjectSwitcher() {
   const [projectParam, setProjectParam] = useGeoProjectQueryState();
   const { openSettings } = useSettingsModal();
   const [createOpen, setCreateOpen] = useState(false);
-  const loadBrandVoices = useDeferredMount();
 
   const {
     projects: loadedProjects,
@@ -66,7 +64,7 @@ export function SidebarProjectSwitcher() {
     isError,
     isReady,
   } = useGeoProjectsDb(organizationId);
-  const { data: brandData } = useBrandSettings(organizationId, loadBrandVoices);
+  const { data: brandData } = useBrandSettings(organizationId);
   const projects = loadedProjects;
   const voices = brandData?.voices ?? [];
 
