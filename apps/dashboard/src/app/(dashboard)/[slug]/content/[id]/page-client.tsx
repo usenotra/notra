@@ -220,6 +220,7 @@ export default function PageClient({
 
   const { active, openPanel, closePanel, togglePanel } = useRightPanel();
   const isActivityPanelOpen = active === "content";
+  const isRightPanelOpen = active !== null;
   const [writeFocusNonce, setWriteFocusNonce] = useState(0);
   const [reviewPreviousMarkdown, setReviewPreviousMarkdown] = useState<
     string | null
@@ -1192,7 +1193,7 @@ export default function PageClient({
 
   const chatInputSection = (
     <div
-      className={`fixed right-0 bottom-0 left-0 mx-auto w-full max-w-2xl px-4 pb-4 md:w-auto ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"} ${isActivityPanelOpen ? "lg:hidden" : ""}`}
+      className={`fixed right-0 bottom-0 left-0 mx-auto w-full max-w-2xl px-4 pb-4 md:w-auto ${sidebarState === "collapsed" ? "md:left-14" : "md:left-64"} ${isRightPanelOpen ? "lg:hidden" : ""}`}
     >
       {renderChatComposer()}
     </div>
