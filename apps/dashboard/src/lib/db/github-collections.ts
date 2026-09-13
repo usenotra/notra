@@ -7,6 +7,7 @@ import {
   isGitHubContentOutputType,
   isPendingOutputId,
 } from "@/utils/github-outputs";
+import { settleAll } from "@/utils/settle-all";
 
 const definitions = new Map<
   string,
@@ -101,10 +102,10 @@ function buildGitHubRepositoriesCollection(organizationId: string) {
             }
           }
         }
-        await Promise.all(calls);
+        await settleAll(calls);
       },
       onDelete: async ({ transaction }) => {
-        await Promise.all(
+        await settleAll(
           transaction.mutations.map((mutation) =>
             dashboardOrpc.integrations.delete.call({
               organizationId,

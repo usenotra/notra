@@ -70,13 +70,14 @@ export function useGitHubRepositoriesDb(
   ) => {
     markRowPending(collectionId, rowId);
     return transaction.isPersisted.promise
-      .then(invalidateIntegrationsList)
       .catch((error: unknown) => {
         toast.error(toErrorMessage(error, fallback));
         throw error;
       })
       .finally(() => {
         clearRowPending(collectionId, rowId);
+        void invalidateIntegrationsList();
+        void refetch();
       });
   };
 
