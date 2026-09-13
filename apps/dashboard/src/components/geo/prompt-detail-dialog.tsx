@@ -30,8 +30,8 @@ import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
-import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { LazyGeoPromptAnswerThread } from "@/components/geo/lazy-geo-prompt-answer-thread";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
 import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
@@ -240,7 +240,7 @@ function HistoryAnswerThread({
     return <PromptDetailStatus onRetry={detail.refetch} status="error" />;
   }
   return (
-    <GeoPromptAnswerThread
+    <LazyGeoPromptAnswerThread
       organizationId={organizationId}
       scrollable={false}
       prompt={prompt}

@@ -58,6 +58,7 @@ import type { OrganizationOptionsListProps } from "@/types/dashboard";
 import { planDisplayName } from "@/utils/billing-plans";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { QUERY_KEYS } from "@/utils/query-keys";
+import { scheduleDemo } from "@/utils/schedule-demo";
 
 import {
   type Organization,
@@ -287,12 +288,6 @@ export function OrgSelector() {
   const { openSettings } = useSettingsModal();
   const isApplePlatform = useIsApplePlatform();
 
-  function triggerScheduleDemo() {
-    const btn = document.querySelector<HTMLButtonElement>(
-      '[data-cal-namespace="15min"]'
-    );
-    btn?.click();
-  }
   const { activeOrganization, organizations, isLoading } =
     useOrganizationsContext();
   const { data: customer } = useBillingCustomer({
@@ -445,7 +440,9 @@ export function OrgSelector() {
             </DropdownMenuItem>
             <DropdownMenuItem
               className={ORG_MENU_ITEM_CLASS}
-              onClick={triggerScheduleDemo}
+              onClick={() => {
+                void scheduleDemo();
+              }}
             >
               <HugeiconsIcon icon={Calendar03Icon} />
               Schedule a Demo
