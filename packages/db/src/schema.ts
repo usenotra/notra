@@ -1438,6 +1438,10 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    domains: text("domains")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     languages: text("languages").array(),
     // null = track the default engine set; otherwise a subset of GEO_ENGINES.
     engines: text("engines").array(),
@@ -1681,6 +1685,7 @@ export const geoMentionChecks = pgTable(
     prompt: text("prompt").notNull(),
     answer: text("answer").notNull(),
     mentioned: boolean("mentioned").notNull(),
+    ownedSourceCited: boolean("owned_source_cited").notNull().default(false),
     position: integer("position"),
     sentiment: text("sentiment"),
     competitors: text("competitors")
@@ -1735,6 +1740,7 @@ export const geoMentionChecks = pgTable(
       table.engine,
       table.promptId,
       table.mentioned,
+      table.ownedSourceCited,
       table.position,
       table.sentiment,
       table.sequenceId

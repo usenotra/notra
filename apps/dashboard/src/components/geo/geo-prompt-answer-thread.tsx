@@ -52,10 +52,14 @@ const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   blockquote: GeoAnswerMentionBlockquote,
 };
 
-function emptyAnswerCopy(mentioned: boolean): string {
-  return mentioned
-    ? "Mentioned, but no answer was captured."
-    : "This engine did not mention you.";
+function emptyAnswerCopy(mentioned: boolean, ownedSourceCited = false): string {
+  if (mentioned) {
+    return "Mentioned, but no answer was captured.";
+  }
+  if (ownedSourceCited) {
+    return "An owned source was cited, but no answer was captured.";
+  }
+  return "This engine did not mention you.";
 }
 
 function displayAnswer(result: { answer: string; excerpt: string }): string {
@@ -101,11 +105,13 @@ export function AnswerMarkdown({
 function AssistantBody({
   answer,
   mentioned,
+  ownedSourceCited,
   mode = "static",
   skin,
 }: {
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   mode?: "static" | "streaming";
   skin: GeoChatSkin;
 }) {
@@ -115,7 +121,7 @@ function AssistantBody({
 
   return (
     <p className={cn("text-muted-foreground", geoAnswerEmptyClassName(skin))}>
-      {emptyAnswerCopy(mentioned)}
+      {emptyAnswerCopy(mentioned, ownedSourceCited)}
     </p>
   );
 }
@@ -143,6 +149,7 @@ function ThreadMessages({
   prompt,
   answer,
   mentioned,
+  ownedSourceCited,
   skin,
   search,
   sources,
@@ -150,6 +157,7 @@ function ThreadMessages({
   prompt: string;
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   skin: GeoChatSkin;
   search: ReactNode;
   sources: PerplexitySearchSource[];
@@ -165,7 +173,12 @@ function ThreadMessages({
         search={search}
         skin={skin}
       >
-        <AssistantBody answer={answer} mentioned={mentioned} skin={skin} />
+        <AssistantBody
+          answer={answer}
+          mentioned={mentioned}
+          ownedSourceCited={ownedSourceCited}
+          skin={skin}
+        />
       </GeoSkinMessage>
     </>
   );
@@ -220,6 +233,7 @@ export function GeoPromptAnswerThread({
             <ThreadMessages
               answer={answer}
               mentioned={result.mentioned}
+              ownedSourceCited={result.ownedSourceCited}
               prompt={prompt}
               search={search}
               skin={skin}

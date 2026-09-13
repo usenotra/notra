@@ -55,7 +55,7 @@ export function geoIngestAgentPrompt(
     geoIngestSnippet(setup, framework),
     "```",
     "",
-    `3. Add ${GEO_INGEST_TOKEN_ENV} to the site's environment variables (local env file and hosting provider). Ask me for the value - never hardcode or commit it.`,
+    `3. Add ${GEO_INGEST_TOKEN_ENV} to the site's environment variables (local env file and hosting provider). Repeat for every domain this project tracks. Ask me for the value - never hardcode or commit it.`,
   ].join("\n");
 }
 

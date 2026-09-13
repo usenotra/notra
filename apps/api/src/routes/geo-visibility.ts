@@ -182,7 +182,19 @@ geoVisibilityRoutes.openapi(overviewRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(
+    {
+      ...outcome.value,
+      engines: outcome.value.engines.map((engine) => ({
+        ...engine,
+        citations: engine.citations ?? 0,
+        visibility: engine.visibility ?? engine.mentions,
+        visibilityRate: engine.visibilityRate ?? engine.mentionRate,
+      })),
+      organization: base.organization,
+    },
+    200
+  );
 });
 
 geoVisibilityRoutes.openapi(timeseriesRoute, async (c) => {
@@ -199,7 +211,18 @@ geoVisibilityRoutes.openapi(timeseriesRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(
+    {
+      ...outcome.value,
+      points: outcome.value.points.map((point) => ({
+        ...point,
+        citations: point.citations ?? 0,
+        visibility: point.visibility ?? point.mentions,
+      })),
+      organization: base.organization,
+    },
+    200
+  );
 });
 
 geoVisibilityRoutes.openapi(promptResultsRoute, async (c) => {
@@ -222,6 +245,7 @@ geoVisibilityRoutes.openapi(promptResultsRoute, async (c) => {
     prompt: result.prompt,
     answer: result.answer,
     mentioned: result.mentioned,
+    ownedSourceCited: result.ownedSourceCited ?? false,
     position: result.position,
     sentiment: result.sentiment,
     competitors: result.competitors,
@@ -271,7 +295,19 @@ geoVisibilityRoutes.openapi(languageShareRoute, async (c) => {
     return geoErrorResponse(c, outcome.failure);
   }
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(
+    {
+      ...outcome.value,
+      points: outcome.value.points.map((point) => ({
+        ...point,
+        citations: point.citations ?? 0,
+        visibility: point.visibility ?? point.mentions,
+        visibilityRate: point.visibilityRate ?? point.mentionRate,
+      })),
+      organization: base.organization,
+    },
+    200
+  );
 });
 
 geoVisibilityRoutes.openapi(competitorDetailRoute, async (c) => {

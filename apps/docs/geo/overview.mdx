@@ -250,8 +250,8 @@ lease prevents concurrent extraction for the same project and window, even if in
 billing reservation and uses an atomic token check when publishing. Old results cannot
 overwrite another worker's result or appear under a newer input fingerprint. Expired work
 can be retried. Missing Redis, provider configuration or a project brand name makes analysis
-unavailable. Migration `0086_geo_auto_sentiment` adds the persisted attempt timestamp;
-`0087_remove_sentiment_opt_in` removes the obsolete opt-in flag. Cached results are not
+unavailable. Migration `0088_geo_sentiment_attempt` adds the persisted attempt timestamp
+and removes the obsolete opt-in flag if present. Cached results are not
 permanent Postgres records. Older results for the same window can remain visible while a
 refresh is pending, but are not treated as fresh.
 

@@ -15,7 +15,7 @@ import {
 } from "@notra/schemas/dashboard/onboarding-agent";
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import {
   AGENT_RUN_HARD_LIMIT_MS,
@@ -99,36 +99,27 @@ export const onboardingRouter = {
         user: context.user,
       });
 
-      const [org, brand, integration, schedule, geo] = await Promise.all([
-        db.query.organizations.findFirst({
-          columns: { onboardingCompleted: true, onboardingDismissed: true },
-          where: eq(organizations.id, input.organizationId),
-        }),
-        db.query.brandSettings.findFirst({
-          columns: { id: true },
-          where: eq(brandSettings.organizationId, input.organizationId),
-        }),
-        db.query.githubIntegrations.findFirst({
-          columns: { id: true },
-          where: eq(githubIntegrations.organizationId, input.organizationId),
-        }),
-        db.query.contentTriggers.findFirst({
-          columns: { id: true },
-          where: and(
-            eq(contentTriggers.organizationId, input.organizationId),
-            eq(contentTriggers.sourceType, "cron")
-          ),
-        }),
-        db.query.geoSettings.findFirst({
-          columns: { id: true },
-          where: eq(geoSettings.organizationId, input.organizationId),
-        }),
-      ]);
+      // Mounted by the sidebar on every page: one round trip instead of five.
+      // Columns in a single-table select render unqualified, so the subqueries
+      // bind the organization id as a parameter instead of correlating.
+      const organizationId = input.organizationId;
+      const [org] = await db
+        .select({
+          onboardingCompleted: organizations.onboardingCompleted,
+          onboardingDismissed: organizations.onboardingDismissed,
+          hasBrandIdentity: sql<boolean>`exists (select 1 from ${brandSettings} where ${brandSettings.organizationId} = ${organizationId})`,
+          hasIntegration: sql<boolean>`exists (select 1 from ${githubIntegrations} where ${githubIntegrations.organizationId} = ${organizationId})`,
+          hasSchedule: sql<boolean>`exists (select 1 from ${contentTriggers} where ${contentTriggers.organizationId} = ${organizationId} and ${contentTriggers.sourceType} = 'cron')`,
+          hasGeoTracking: sql<boolean>`exists (select 1 from ${geoSettings} where ${geoSettings.organizationId} = ${organizationId})`,
+        })
+        .from(organizations)
+        .where(eq(organizations.id, input.organizationId))
+        .limit(1);
 
-      const hasBrandIdentity = !!brand;
-      const hasIntegration = !!integration;
-      const hasSchedule = !!schedule;
-      const hasGeoTracking = !!geo;
+      const hasBrandIdentity = org?.hasBrandIdentity ?? false;
+      const hasIntegration = org?.hasIntegration ?? false;
+      const hasSchedule = org?.hasSchedule ?? false;
+      const hasGeoTracking = org?.hasGeoTracking ?? false;
       const onboardingCompleted = org?.onboardingCompleted ?? false;
       const onboardingDismissed = org?.onboardingDismissed ?? false;
 

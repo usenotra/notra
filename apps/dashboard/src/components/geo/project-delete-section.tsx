@@ -16,7 +16,7 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
-import { useGeoProjectDelete } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import type { GeoProjectDeleteSectionProps } from "@/types/geo";
 
 export function GeoProjectDeleteSection({
@@ -26,16 +26,16 @@ export function GeoProjectDeleteSection({
   onDeleted,
 }: GeoProjectDeleteSectionProps) {
   const [open, setOpen] = useState(false);
-  const deleteProject = useGeoProjectDelete(organizationId);
+  const { deleteProject, isDeleting } = useGeoProjectsDb(organizationId);
   const isLastProject = replacementProjectId === undefined;
 
   const handleDelete = async () => {
-    if (isLastProject || deleteProject.isPending) {
+    if (isLastProject || isDeleting) {
       return;
     }
 
     try {
-      await deleteProject.mutateAsync(project.id);
+      await deleteProject(project.id);
     } catch {
       return;
     }
@@ -69,7 +69,7 @@ export function GeoProjectDeleteSection({
 
       <ResponsiveAlertDialog
         onOpenChange={(nextOpen) => {
-          if (!deleteProject.isPending) {
+          if (!isDeleting) {
             setOpen(nextOpen);
           }
         }}
@@ -86,18 +86,18 @@ export function GeoProjectDeleteSection({
             </ResponsiveAlertDialogDescription>
           </ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={deleteProject.isPending}>
+            <ResponsiveAlertDialogCancel disabled={isDeleting}>
               Cancel
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
-              disabled={deleteProject.isPending}
+              disabled={isDeleting}
               onClick={(event) => {
                 event.preventDefault();
                 handleDelete();
               }}
               variant="destructive"
             >
-              {deleteProject.isPending ? "Deleting..." : "Delete project"}
+              {isDeleting ? "Deleting..." : "Delete project"}
             </ResponsiveAlertDialogAction>
           </ResponsiveAlertDialogFooter>
         </ResponsiveAlertDialogContent>

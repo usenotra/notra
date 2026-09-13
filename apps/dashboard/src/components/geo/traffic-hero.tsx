@@ -24,6 +24,12 @@ import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-ch
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
 import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "@/constants/charts";
+import {
+  TRAFFIC_HERO_FRAME_CLASS,
+  TRAFFIC_HERO_METRIC_CELL_CLASS,
+  TRAFFIC_HERO_METRIC_VALUE_CLASS,
+  TRAFFIC_HERO_METRICS_GRID_CLASS,
+} from "@/constants/geo-traffic-hero";
 import { cn } from "@/lib/utils";
 import type { ChartConfig, TooltipRowGroup } from "@/types/charts";
 import type {
@@ -48,9 +54,6 @@ const HERO_CHART_OPTIONS = {
 
 const TRAFFIC_TREND_STROKE_WIDTH = 1.5;
 
-const HERO_METRIC_CELL_CLASS =
-  "border-border flex min-w-0 flex-col gap-3 border-b px-5 py-5 last:border-b-0 sm:px-6 sm:odd:border-r sm:nth-[n+3]:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0";
-
 function metricDelta(
   current: number | null,
   previous: number | null
@@ -63,15 +66,18 @@ function metricDelta(
 
 function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
   return (
-    <div className={HERO_METRIC_CELL_CLASS}>
-      <p className="text-foreground/75 text-base leading-6 font-semibold tracking-tight">
+    <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
+      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight text-pretty @sm/hero:text-base @sm/hero:leading-6">
         {metric.label}
       </p>
       {metric.value === null ? (
-        <div className="flex items-center gap-3 self-start">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 self-start @sm/hero:gap-3">
           <span
             aria-hidden="true"
-            className="text-muted-foreground text-4xl leading-none font-semibold tracking-tight"
+            className={cn(
+              "text-muted-foreground",
+              TRAFFIC_HERO_METRIC_VALUE_CLASS
+            )}
             title={GEO_TRAFFIC_CONVERSIONS_NOT_CONFIGURED_LABEL}
           >
             —
@@ -90,8 +96,8 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
           </Button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 self-start">
-          <span className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
+        <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
+          <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
             {metric.value.toLocaleString()}
           </span>
           <GeoStatDelta
@@ -190,10 +196,10 @@ export function TrafficHero({
   const anyVisible = providerSeries.some((entry) => !hiddenKeys.has(entry.key));
 
   return (
-    <div className="border-border bg-card overflow-hidden rounded-2xl border">
+    <div className={TRAFFIC_HERO_FRAME_CLASS}>
       <div
         className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+          TRAFFIC_HERO_METRICS_GRID_CLASS,
           showTrend && "bg-muted/40"
         )}
       >
@@ -213,7 +219,7 @@ export function TrafficHero({
           <EChartsAreaChart
             animation={false}
             chartOptions={HERO_CHART_OPTIONS}
-            className="h-72 w-full"
+            className="h-52 w-full @md/hero:h-72"
             config={config}
             curveType="monotone"
             data={chartRows}

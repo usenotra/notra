@@ -36,6 +36,13 @@ export interface GeoPromptAnswerSkeletonProps {
   view: GeoPromptReceiptView;
 }
 
+export interface HistoryAnswerThreadProps {
+  checkId: string;
+  organizationId: string;
+  prompt: string;
+  scanPromptId: string;
+}
+
 export interface PromptAnswerBodyProps {
   organizationId: string;
   detailState: GeoPromptDetailState;

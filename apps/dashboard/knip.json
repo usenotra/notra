@@ -33,6 +33,8 @@
     "src/components/motion/**/*.{ts,tsx}": ["exports", "types"],
     "src/lib/ease.ts": ["exports", "types"],
     "src/lib/geo-ingest/**/*.ts": ["exports", "types"],
-    "src/lib/geo-shelf/preview.ts": ["exports"]
+    "src/lib/geo-shelf/preview.ts": ["exports"],
+    "src/lib/analytics/posthog-lazy.ts": ["exports"],
+    "src/lib/content/image-export.ts": ["exports"]
   }
 }

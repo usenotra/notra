@@ -1,6 +1,6 @@
 {
-  "id": "5cb60372-96e5-4173-b7cf-38dfea014fc6",
-  "prevId": "30b6b16b-6e80-49b6-9111-ddee034fedd8",
+  "id": "6693b03b-df2c-473d-bc78-d606698680ba",
+  "prevId": "40773f54-a53b-47f6-9c85-a335af458ab1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -5136,6 +5136,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "owned_source_cited": {
+          "name": "owned_source_cited",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "position": {
           "name": "position",
           "type": "integer",
@@ -5344,6 +5351,12 @@
             },
             {
               "expression": "mentioned",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "owned_source_cited",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -6301,6 +6314,13 @@
           "notNull": true,
           "default": "ARRAY[]::text[]"
         },
+        "domains": {
+          "name": "domains",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
+        },
         "languages": {
           "name": "languages",
           "type": "text[]",
@@ -6354,12 +6374,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 24
-        },
-        "sentiment_attempted_at": {
-          "name": "sentiment_attempted_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
         },
         "next_scan_at": {
           "name": "next_scan_at",

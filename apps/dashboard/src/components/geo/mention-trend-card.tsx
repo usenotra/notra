@@ -124,7 +124,10 @@ export function MentionTrendCard({
 
   const emptyMessage =
     sampledDays === 0
-      ? geoScanEmptyMessage(isScanning, "Run a scan to see your mention trend")
+      ? geoScanEmptyMessage(
+          isScanning,
+          "Run a scan to see your visibility trend"
+        )
       : null;
 
   return (
@@ -148,7 +151,7 @@ export function MentionTrendCard({
           className="min-h-64 flex-1"
           message={emptyMessage}
           preview={<EmptyStateTrendPreview />}
-          seed="Mention activity"
+          seed="Visibility activity"
         />
       ) : (
         <EChartsAreaChart

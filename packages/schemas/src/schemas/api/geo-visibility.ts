@@ -37,6 +37,9 @@ const overviewEngineSchema = z.object({
   checks: z.number().int(),
   mentions: z.number().int(),
   mentionRate: z.number(),
+  citations: z.number().int(),
+  visibility: z.number().int(),
+  visibilityRate: z.number(),
   avgPosition: z.number().nullable(),
   lastCheckedAt: z.string(),
 });
@@ -56,6 +59,8 @@ const timeseriesPointSchema = z.object({
   engine: z.string(),
   checks: z.number().int(),
   mentions: z.number().int(),
+  citations: z.number().int(),
+  visibility: z.number().int(),
   avgPosition: z.number().nullable().optional(),
 });
 
@@ -79,6 +84,7 @@ const promptResultSchema = z.object({
   prompt: z.string(),
   answer: z.string(),
   mentioned: z.boolean(),
+  ownedSourceCited: z.boolean(),
   position: z.number().int().nullable(),
   sentiment: z.string().nullable(),
   competitors: z.array(z.string()),
@@ -158,6 +164,9 @@ const languageSharePointSchema = z.object({
   checks: z.number().int(),
   mentions: z.number().int(),
   mentionRate: z.number(),
+  citations: z.number().int(),
+  visibility: z.number().int(),
+  visibilityRate: z.number(),
   avgPosition: z.number().nullable(),
   trend: z.array(sparklinePointSchema).optional(),
 });

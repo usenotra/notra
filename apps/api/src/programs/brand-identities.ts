@@ -11,6 +11,7 @@ import {
   geoContentBriefs,
   projects,
 } from "@notra/db/schema";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -474,6 +475,15 @@ export const patchBrandIdentity = Effect.fn("brandIdentities.patch")(function* (
 
   if (!brandIdentity) {
     return yield* new BrandIdentityNotFoundError();
+  }
+
+  if (body.websiteUrl !== undefined) {
+    yield* Effect.promise(() =>
+      invalidateGeoIngestHostsCacheForBrand(
+        input.organizationId,
+        input.brandIdentityId
+      )
+    );
   }
 
   return {

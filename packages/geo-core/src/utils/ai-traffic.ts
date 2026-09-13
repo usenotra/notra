@@ -45,6 +45,15 @@ export function formatGeoSource(source: string): string {
   return GEO_SOURCE_LABELS[trimmed.toLowerCase()] ?? trimmed;
 }
 
+export function isCitedTrafficSource(
+  source: Pick<GeoTrafficSource, "visitorType" | "category">
+): boolean {
+  return (
+    source.visitorType === "crawler" &&
+    source.category === GEO_JOURNEY_BROWSE_CATEGORY
+  );
+}
+
 export function toGeoTrafficTotals(
   sources: readonly GeoTrafficSource[],
   conversions: number | null = null

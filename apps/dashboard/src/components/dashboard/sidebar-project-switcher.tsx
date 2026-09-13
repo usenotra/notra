@@ -35,7 +35,7 @@ import {
 } from "@/constants/nav";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
-import { useGeoProjects } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { getWebsiteDomain } from "@/utils/brand";
@@ -58,10 +58,14 @@ export function SidebarProjectSwitcher() {
   const { openSettings } = useSettingsModal();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const { data, isPending } = useGeoProjects(organizationId);
+  const {
+    projects: loadedProjects,
+    isLoading,
+    isError,
+    isReady,
+  } = useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
-  const loadedProjects = data?.projects;
-  const projects = loadedProjects ?? [];
+  const projects = loadedProjects;
   const voices = brandData?.voices ?? [];
 
   const activeProject =
@@ -70,7 +74,7 @@ export function SidebarProjectSwitcher() {
     null;
 
   useEffect(() => {
-    if (loadedProjects === undefined || !slug) {
+    if (isLoading || isError || !isReady || !slug) {
       return;
     }
 
@@ -94,14 +98,22 @@ export function SidebarProjectSwitcher() {
     if (projectParam !== restoredProjectId) {
       setProjectParam(restoredProjectId);
     }
-  }, [loadedProjects, projectParam, setProjectParam, slug]);
+  }, [
+    isError,
+    isLoading,
+    isReady,
+    loadedProjects,
+    projectParam,
+    setProjectParam,
+    slug,
+  ]);
 
   const projectDomain = (brandSettingsId: string) =>
     getWebsiteDomain(
       voices.find((voice) => voice.id === brandSettingsId)?.websiteUrl ?? null
     );
 
-  if (organizationId && isPending) {
+  if (organizationId && (isLoading || isError || !isReady)) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>

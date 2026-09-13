@@ -194,6 +194,7 @@ export function engineFamilyPromptHits(
       promptId,
       prompt: first.prompt,
       mentioned: mentioned !== null,
+      ownedSourceCited: group.some((result) => result.ownedSourceCited),
       position: mentioned?.position ?? null,
     });
   }

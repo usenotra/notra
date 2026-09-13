@@ -10,6 +10,7 @@ import {
   GEO_FAMILY_STAT_TREND_HINT,
   GEO_MENTION_RATE_LABEL,
   GEO_MENTIONS_LABEL,
+  GEO_PROMPT_RECEIPT_LABELS,
   GEO_SEARCH_LABEL,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_WITHOUT_SEARCH_LABEL,
@@ -186,10 +187,10 @@ function FamilyStats({
         value={totals ? formatMentionRate(totals.rate) : "—"}
       />
       <Stat
-        delta={trends.mentionDelta}
+        delta={trends.visibilityDelta}
         kind="mentions"
         label={GEO_MENTIONS_LABEL}
-        value={totals ? `${totals.mentions}/${totals.checks}` : "—"}
+        value={totals ? `${totals.visible}/${totals.checks}` : "—"}
       />
       <Stat
         delta={trends.positionDelta}
@@ -205,8 +206,8 @@ function FamilySheetDescription({ family }: { family: GeoEngineFamily }) {
   const lastChecked = engineFamilyLastCheckedAt(family);
   let description =
     family.variants.length > 1
-      ? "How each model mentions you"
-      : "How this engine mentions you";
+      ? "How each model makes your brand visible"
+      : "How this engine makes your brand visible";
   if (lastChecked) {
     description = `Last checked ${formatAiTrafficTimestamp(lastChecked)}`;
   }
@@ -421,6 +422,12 @@ function FamilyBrands({
 }
 
 function promptResultLabel(hit: EngineFamilyPromptHit): string {
+  if (hit.mentioned && hit.ownedSourceCited) {
+    return GEO_PROMPT_RECEIPT_LABELS.mentionedAndCited;
+  }
+  if (!hit.mentioned && hit.ownedSourceCited) {
+    return GEO_PROMPT_RECEIPT_LABELS.cited;
+  }
   if (!hit.mentioned) {
     return "Miss";
   }
@@ -456,21 +463,30 @@ function PromptHits({
     {
       key: "result",
       header: "Result",
-      width: "7rem",
+      width: "11rem",
       sortable: true,
-      cell: (row) => (
-        <span
-          className={cn(
-            "flex items-center gap-1.5 text-sm tabular-nums",
-            !row.mentioned && "text-muted-foreground"
-          )}
-        >
-          <PromptOutcomeIcon mentioned={row.mentioned} />
-          {promptResultLabel(row)}
-        </span>
-      ),
-      sortValue: (row) =>
-        row.mentioned ? (row.position ?? 0) : Number.MAX_SAFE_INTEGER,
+      cell: (row) => {
+        const visible = row.mentioned || Boolean(row.ownedSourceCited);
+        return (
+          <span
+            className={cn(
+              "flex items-center gap-1.5 text-sm tabular-nums",
+              !visible && "text-muted-foreground"
+            )}
+          >
+            <PromptOutcomeIcon mentioned={visible} />
+            {promptResultLabel(row)}
+          </span>
+        );
+      },
+      sortValue: (row) => {
+        if (row.mentioned) {
+          return row.position ?? 0;
+        }
+        return row.ownedSourceCited
+          ? Number.MAX_SAFE_INTEGER - 1
+          : Number.MAX_SAFE_INTEGER;
+      },
     },
   ];
   if (onWrite) {
@@ -480,7 +496,7 @@ function PromptHits({
       width: "5.5rem",
       align: "right",
       cell: (row) =>
-        row.mentioned ? null : (
+        row.mentioned || row.ownedSourceCited ? null : (
           <Button
             className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
             onClick={() => onWrite(row)}
@@ -559,7 +575,9 @@ function EngineFamilySheetSession({
     promptResults,
     brandScope
   );
-  const missedCount = promptHits.filter((hit) => !hit.mentioned).length;
+  const missedCount = promptHits.filter(
+    (hit) => !(hit.mentioned || hit.ownedSourceCited)
+  ).length;
   const improveInsight = familyImproveInsight({
     familyLabel: name,
     search: engineFamilyModeTotals(family, "search"),

@@ -55,8 +55,3 @@ export function withRouterDefaults(
     routerOptions
   ) as ProviderOptions;
 }
-
-/** @deprecated Use `withRouterDefaults`. */
-export const withGatewayDefaults = withRouterDefaults;
-/** @deprecated Use `withRouterDefaults`. */
-export const withGatewayAutomaticCaching = withRouterDefaults;

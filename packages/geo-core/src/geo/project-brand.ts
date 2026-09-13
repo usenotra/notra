@@ -14,6 +14,7 @@ export const loadGeoProjectBrand = Effect.fn("geo.projectBrand")(function* (
       .select({
         companyDescription: brandSettings.companyDescription,
         audience: brandSettings.audience,
+        websiteUrl: brandSettings.websiteUrl,
       })
       .from(projects)
       .innerJoin(

@@ -14,6 +14,7 @@ import type {
   GeoCompetitor,
   GeoCompetitorSharePoint,
   GeoEngineFamily,
+  GeoEngineFamilyMentionTotals,
   GeoEngineFamilyTotals,
   GeoEngineMode,
   GeoEngineVariant,
@@ -238,7 +239,7 @@ export function mentionTrendEmptyLabel(
 ): string {
   const scanned =
     row != null && keys.some((key) => typeof row[key] === "number");
-  return scanned ? "No mentions" : "Not scanned";
+  return scanned ? "No visibility" : "Not scanned";
 }
 
 export function latestChartDay(
@@ -277,7 +278,7 @@ export function mentionRateSparkline(
       continue;
     }
     const bucket = byDay.get(point.day) ?? { mentions: 0, checks: 0 };
-    bucket.mentions += point.mentions;
+    bucket.mentions += point.visibility ?? point.mentions;
     bucket.checks += point.checks;
     byDay.set(point.day, bucket);
   }
@@ -297,17 +298,17 @@ export function mentionRateSparklineLabel(
   const first = points[0];
   const last = points.at(-1);
   if (!(first && last)) {
-    return "Mention rate trend";
+    return "Brand visibility trend";
   }
   const from = formatChartPercent(first.value);
   const to = formatChartPercent(last.value);
   if (points.length === 1) {
-    return `Mention rate ${from}`;
+    return `Brand visibility ${from}`;
   }
   if (from === to) {
-    return `Mention rate held at ${to} over ${points.length} days`;
+    return `Brand visibility held at ${to} over ${points.length} days`;
   }
-  return `Mention rate ${from} to ${to} over ${points.length} days`;
+  return `Brand visibility ${from} to ${to} over ${points.length} days`;
 }
 
 function daysWithSettledUsage(
@@ -323,10 +324,10 @@ function engineMentionTotal(
   days: readonly string[],
   byDay: ReadonlyMap<string, ReadonlyMap<string, GeoTimeseriesPoint>>
 ): number {
-  return days.reduce(
-    (total, day) => total + (byDay.get(day)?.get(engine)?.mentions ?? 0),
-    0
-  );
+  return days.reduce((total, day) => {
+    const point = byDay.get(day)?.get(engine);
+    return total + (point?.visibility ?? point?.mentions ?? 0);
+  }, 0);
 }
 
 export function buildMentionTrendRows(
@@ -345,6 +346,10 @@ export function buildMentionTrendRows(
       engine: family,
       checks: (existing?.checks ?? 0) + point.checks,
       mentions: (existing?.mentions ?? 0) + point.mentions,
+      citations: (existing?.citations ?? 0) + (point.citations ?? 0),
+      visibility:
+        (existing?.visibility ?? existing?.mentions ?? 0) +
+        (point.visibility ?? point.mentions),
     });
     byDay.set(point.day, dayPoints);
   }
@@ -378,8 +383,9 @@ export function buildMentionTrendRows(
     for (const engine of engines) {
       const point = dayPoints?.get(engine);
       if (point) {
-        row[chartKey(engine)] = point.mentions;
-        total += point.mentions;
+        const visibility = point.visibility ?? point.mentions;
+        row[chartKey(engine)] = visibility;
+        total += visibility;
         sampled = true;
       }
     }
@@ -487,7 +493,10 @@ function emptyVariant(model: string): GeoEngineVariant {
 }
 
 function variantPeakRate(variant: GeoEngineVariant): number {
-  return Math.max(variant.web?.mentionRate ?? 0, variant.raw?.mentionRate ?? 0);
+  return Math.max(
+    variant.web?.visibilityRate ?? variant.web?.mentionRate ?? 0,
+    variant.raw?.visibilityRate ?? variant.raw?.mentionRate ?? 0
+  );
 }
 
 export function groupEngineFamilies(
@@ -523,6 +532,25 @@ export function engineFamilyTotals(
   return totalsForEngines(engineFamilySources(family));
 }
 
+export function engineFamilyMentionTotals(
+  family: GeoEngineFamily
+): GeoEngineFamilyMentionTotals | null {
+  const sources = engineFamilySources(family);
+  if (sources.length === 0) {
+    return null;
+  }
+  const mentions = sources.reduce((sum, engine) => sum + engine.mentions, 0);
+  const checks = sources.reduce((sum, engine) => sum + engine.checks, 0);
+  return { mentions, checks, rate: checks === 0 ? 0 : mentions / checks };
+}
+
+export function engineFamilyCitationTotal(family: GeoEngineFamily): number {
+  return engineFamilySources(family).reduce(
+    (sum, engine) => sum + (engine.citations ?? 0),
+    0
+  );
+}
+
 export function engineFamilyModeTotals(
   family: GeoEngineFamily,
   mode: GeoEngineMode
@@ -542,9 +570,12 @@ function totalsForEngines(
   if (sources.length === 0) {
     return null;
   }
-  const mentions = sources.reduce((sum, engine) => sum + engine.mentions, 0);
+  const visible = sources.reduce(
+    (sum, engine) => sum + (engine.visibility ?? engine.mentions),
+    0
+  );
   const checks = sources.reduce((sum, engine) => sum + engine.checks, 0);
-  return { mentions, checks, rate: checks === 0 ? 0 : mentions / checks };
+  return { visible, checks, rate: checks === 0 ? 0 : visible / checks };
 }
 
 export function buildEngineFamilyModeTrendRows(
@@ -585,6 +616,7 @@ function familySortRate(family: GeoEngineFamily): number {
 function emptyFamilyDayBucket(): FamilyDayBucket {
   return {
     mentions: 0,
+    visibility: 0,
     checks: 0,
     positionWeighted: 0,
     positionWeight: 0,
@@ -596,6 +628,7 @@ function addFamilyDayPoint(
   point: GeoTimeseriesPoint
 ): void {
   bucket.mentions += point.mentions;
+  bucket.visibility += point.visibility ?? point.mentions;
   bucket.checks += point.checks;
   if (point.avgPosition === null || point.avgPosition === undefined) {
     return;
@@ -621,14 +654,14 @@ function familyDayBuckets(
   return byDay;
 }
 
-export function mentionOverviewTotals(
+export function visibilityOverviewTotals(
   engines: readonly GeoOverviewEngine[]
 ): GeoEngineFamilyTotals | null {
   return totalsForEngines(engines);
 }
 
 const EMPTY_FAMILY_TOTALS: GeoEngineFamilyTotals = {
-  mentions: 0,
+  visible: 0,
   checks: 0,
   rate: 0,
 };
@@ -664,8 +697,8 @@ function compareMentionProviderRows(
   left: MentionProviderRow,
   right: MentionProviderRow
 ): number {
-  if (right.totals.mentions !== left.totals.mentions) {
-    return right.totals.mentions - left.totals.mentions;
+  if (right.totals.visible !== left.totals.visible) {
+    return right.totals.visible - left.totals.visible;
   }
   return engineFamilyLabel(left.family.family).localeCompare(
     engineFamilyLabel(right.family.family)
@@ -690,7 +723,8 @@ export function buildMentionProviderRows(
     .map((family) => ({
       family,
       totals: engineFamilyTotals(family) ?? EMPTY_FAMILY_TOTALS,
-      mentionDelta: engineFamilyStatTrends(points, family.family).mentionDelta,
+      visibilityDelta: engineFamilyStatTrends(points, family.family)
+        .visibilityDelta,
       tracked: trackedFamilies.size === 0 || trackedFamilies.has(family.family),
     }))
     .sort(compareMentionProviderRows);
@@ -707,6 +741,7 @@ function sumFamilyWindow(
       continue;
     }
     total.mentions += bucket.mentions;
+    total.visibility += bucket.visibility;
     total.checks += bucket.checks;
     total.positionWeighted += bucket.positionWeighted;
     total.positionWeight += bucket.positionWeight;
@@ -714,11 +749,11 @@ function sumFamilyWindow(
   return total;
 }
 
-function windowRate(bucket: FamilyDayBucket): number | null {
+function windowVisibilityRate(bucket: FamilyDayBucket): number | null {
   if (bucket.checks <= 0) {
     return null;
   }
-  return bucket.mentions / bucket.checks;
+  return bucket.visibility / bucket.checks;
 }
 
 function windowPosition(bucket: FamilyDayBucket): number | null {
@@ -768,6 +803,7 @@ export function mentionStatTrends(
   const empty: EngineFamilyStatTrends = {
     ratePts: null,
     mentionDelta: null,
+    visibilityDelta: null,
     positionDelta: null,
   };
   const today = options?.today ?? todayIsoDate();
@@ -779,8 +815,8 @@ export function mentionStatTrends(
   }
   const previous = sumFamilyWindow(windows.previous, byDay);
   const current = sumFamilyWindow(windows.current, byDay);
-  const previousRate = windowRate(previous);
-  const currentRate = windowRate(current);
+  const previousRate = windowVisibilityRate(previous);
+  const currentRate = windowVisibilityRate(current);
   const previousPosition = windowPosition(previous);
   const currentPosition = windowPosition(current);
   return {
@@ -789,6 +825,7 @@ export function mentionStatTrends(
         ? null
         : (currentRate - previousRate) * CHART_PERCENT_SCALE,
     mentionDelta: trafficVisitDelta(current.mentions, previous.mentions),
+    visibilityDelta: trafficVisitDelta(current.visibility, previous.visibility),
     positionDelta:
       previousPosition === null || currentPosition === null
         ? null

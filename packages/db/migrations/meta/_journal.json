@@ -607,15 +607,22 @@
     {
       "idx": 86,
       "version": "7",
-      "when": 1789242928861,
-      "tag": "0086_geo_auto_sentiment",
+      "when": 1789210000000,
+      "tag": "0086_geo_project_domains",
       "breakpoints": true
     },
     {
       "idx": 87,
       "version": "7",
-      "when": 1789245170233,
-      "tag": "0087_remove_sentiment_opt_in",
+      "when": 1789283361912,
+      "tag": "0087_mushy_calypso",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1789283852941,
+      "tag": "0088_geo_sentiment_attempt",
       "breakpoints": true
     }
   ]

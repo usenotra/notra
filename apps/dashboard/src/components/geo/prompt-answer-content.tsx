@@ -1,7 +1,7 @@
 "use client";
 
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
-import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
+import { LazyGeoPromptAnswerThread } from "@/components/geo/lazy-geo-prompt-answer-thread";
 import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
 import { PromptReceiptAnalysis } from "@/components/geo/prompt-receipt-analysis";
 import type { PromptAnswerContentProps } from "@/types/geo";
@@ -37,7 +37,7 @@ export function PromptAnswerContent({
           view === "raw" ? "flex min-h-full flex-1 flex-col" : "hidden"
         }
       >
-        <GeoPromptAnswerThread
+        <LazyGeoPromptAnswerThread
           organizationId={organizationId}
           prompt={promptText}
           result={result}

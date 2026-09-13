@@ -6,7 +6,6 @@ import {
   GEO_SPARKLINE_TREND_CLASS,
   GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
 } from "@notra/geo-core/constants/geo";
-import type { GeoVisitorType } from "@notra/geo-core/types/geo";
 import {
   buildTrafficTrendRows,
   formatAiTrafficTimestamp,
@@ -28,7 +27,11 @@ import {
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { TableColumn } from "@/components/motion/table";
-import type { AiTrafficCardProps, GeoTrafficSourceGroup } from "@/types/geo";
+import type {
+  AiTrafficCardProps,
+  GeoTrafficSourceBand,
+  GeoTrafficSourceGroup,
+} from "@/types/geo";
 import {
   buildTrafficGroupSeries,
   groupTrafficSources,
@@ -44,22 +47,19 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
   );
   const trendRows = buildTrafficTrendRows(points);
   const groups = groupTrafficSources(sources);
-  const crawlerGroups = groups.filter(
-    (group) => group.visitorType === "crawler"
-  );
-  const referralGroups = groups.filter(
-    (group) => group.visitorType === "ai_referral"
-  );
-  const [collapsed, setCollapsed] = useState<ReadonlySet<GeoVisitorType>>(
+  const crawlerGroups = groups.filter((group) => group.band === "crawler");
+  const citedGroups = groups.filter((group) => group.band === "cited");
+  const referralGroups = groups.filter((group) => group.band === "ai_referral");
+  const [collapsed, setCollapsed] = useState<ReadonlySet<GeoTrafficSourceBand>>(
     () => new Set()
   );
-  const toggleCollapsed = (visitorType: GeoVisitorType) =>
+  const toggleCollapsed = (band: GeoTrafficSourceBand) =>
     setCollapsed((current) => {
       const next = new Set(current);
-      if (next.has(visitorType)) {
-        next.delete(visitorType);
+      if (next.has(band)) {
+        next.delete(band);
       } else {
-        next.add(visitorType);
+        next.add(band);
       }
       return next;
     });
@@ -71,7 +71,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
     for (const group of groups) {
       const values = buildTrafficGroupSeries(points, group, sparklineDays);
       seriesByGroup.set(
-        trafficGroupKey(group.visitorType, group.key),
+        trafficGroupKey(group.band, group.key),
         sparklineDays.map((day, index) => ({
           day,
           value: values[index] ?? 0,
@@ -103,9 +103,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       width: "10.5rem",
       sortable: true,
       cell: (row) => {
-        const series = seriesByGroup.get(
-          trafficGroupKey(row.visitorType, row.key)
-        );
+        const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
         const showSpark =
           series !== undefined && series.length >= GEO_SPARKLINE_MIN_POINTS;
 
@@ -190,20 +188,28 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       <InstrumentSection eyebrow="Sources">
         <div className="flex flex-col">
           <TrafficSourcesGroup
+            band="crawler"
             collapsed={crawlersCollapsed}
             columns={columns}
             groups={crawlerGroups}
             onToggle={() => toggleCollapsed("crawler")}
             stacked={false}
-            visitorType="crawler"
           />
           <TrafficSourcesGroup
+            band="cited"
+            collapsed={collapsed.has("cited")}
+            columns={columns}
+            groups={citedGroups}
+            onToggle={() => toggleCollapsed("cited")}
+            stacked
+          />
+          <TrafficSourcesGroup
+            band="ai_referral"
             collapsed={collapsed.has("ai_referral")}
             columns={columns}
             groups={referralGroups}
             onToggle={() => toggleCollapsed("ai_referral")}
             stacked
-            visitorType="ai_referral"
           />
         </div>
       </InstrumentSection>

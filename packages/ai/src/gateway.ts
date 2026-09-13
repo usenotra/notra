@@ -129,14 +129,6 @@ export function assertRouteHasCredits(
   });
 }
 
-/**
- * @deprecated Use `assertRouteHasCredits({ organizationId })` so the check
- * targets the gateway the request will actually use.
- */
-export async function assertGatewayHasCredits(): Promise<void> {
-  await assertRouteHasCredits();
-}
-
 export function getRouteMetadata(
   providerMetadata: SharedV3ProviderMetadata | undefined
 ): RouteMetadata | undefined {

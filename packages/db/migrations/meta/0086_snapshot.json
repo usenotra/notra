@@ -1,5 +1,5 @@
 {
-  "id": "30b6b16b-6e80-49b6-9111-ddee034fedd8",
+  "id": "40773f54-a53b-47f6-9c85-a335af458ab1",
   "prevId": "55ad6f8c-2b75-4768-86b7-3a1515462c12",
   "version": "7",
   "dialect": "postgresql",
@@ -6301,6 +6301,13 @@
           "notNull": true,
           "default": "ARRAY[]::text[]"
         },
+        "domains": {
+          "name": "domains",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
+        },
         "languages": {
           "name": "languages",
           "type": "text[]",
@@ -6354,19 +6361,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 24
-        },
-        "auto_sentiment": {
-          "name": "auto_sentiment",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "sentiment_attempted_at": {
-          "name": "sentiment_attempted_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
         },
         "next_scan_at": {
           "name": "next_scan_at",

@@ -45,6 +45,7 @@ export function toGeoSettings(
     aliases: row.aliases,
     competitors: row.competitors,
     conversionPaths: row.conversionPaths,
+    domains: row.domains,
     languages: trackedGeoLanguages(row.languages ?? []),
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,

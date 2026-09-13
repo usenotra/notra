@@ -96,6 +96,7 @@ import {
   copyImageAsFigma,
   copyImageAsPaper,
   downloadImage,
+  preloadImageExportCopy,
 } from "@/lib/content/image-export";
 import {
   useGeoWriterBrief,
@@ -1272,7 +1273,7 @@ export default function PageClient({
 
     setImageExportTarget(value);
     window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
-    copyImageExportFor(value);
+    preloadImageExportCopy(value);
   };
   const collection = data.collection;
   const backHref = collection
@@ -1679,7 +1680,14 @@ export default function PageClient({
                       <HugeiconsIcon className="size-4" icon={Download01Icon} />
                       Download image
                     </Button>
-                    <ButtonGroup>
+                    <ButtonGroup
+                      onFocusCapture={() =>
+                        preloadImageExportCopy(imageExportTarget)
+                      }
+                      onMouseEnter={() =>
+                        preloadImageExportCopy(imageExportTarget)
+                      }
+                    >
                       <Button
                         onClick={handleCopyImageExport}
                         size="sm"
@@ -1718,6 +1726,10 @@ export default function PageClient({
                                   closeOnClick
                                   disabled={isWonder}
                                   key={target}
+                                  onFocus={() => preloadImageExportCopy(target)}
+                                  onMouseEnter={() =>
+                                    preloadImageExportCopy(target)
+                                  }
                                   value={target}
                                 >
                                   <ImageExportTargetIcon

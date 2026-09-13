@@ -434,11 +434,52 @@ export const irisRouter = {
           : eq(autonomyRuns.organizationId, input.organizationId),
         orderBy: (run, { desc: descending }) => [descending(run.startedAt)],
         limit: IRIS_RUNS_PAGE_SIZE + 1,
+        // Only the fields `toIrisRunView` reads: planner output stays (decision
+        // and reason) and task results stay (artifacts), but task params,
+        // action refs/errors and outbox payloads are left in the database.
+        columns: {
+          id: true,
+          trigger: true,
+          status: true,
+          plannerOutput: true,
+          costCents: true,
+          startedAt: true,
+          completedAt: true,
+        },
         with: {
-          goal: true,
-          tasks: true,
-          actions: true,
-          outboxMessages: true,
+          goal: {
+            columns: { id: true, title: true, summary: true, status: true },
+          },
+          tasks: {
+            columns: {
+              id: true,
+              capabilityName: true,
+              capabilityVersion: true,
+              status: true,
+              attempt: true,
+              errorMessage: true,
+              completedAt: true,
+              result: true,
+            },
+          },
+          actions: {
+            columns: {
+              id: true,
+              capabilityName: true,
+              status: true,
+              finishedAt: true,
+            },
+          },
+          outboxMessages: {
+            columns: {
+              id: true,
+              destination: true,
+              status: true,
+              attempts: true,
+              lastError: true,
+              deliveredAt: true,
+            },
+          },
         },
       });
 
@@ -461,7 +502,15 @@ export const irisRouter = {
       });
 
       const rows = await db
-        .select()
+        .select({
+          id: autonomySignals.id,
+          source: autonomySignals.source,
+          kind: autonomySignals.kind,
+          status: autonomySignals.status,
+          sourceEventId: autonomySignals.sourceEventId,
+          occurredAt: autonomySignals.occurredAt,
+          processedAt: autonomySignals.processedAt,
+        })
         .from(autonomySignals)
         .where(eq(autonomySignals.organizationId, input.organizationId))
         .orderBy(desc(autonomySignals.occurredAt))

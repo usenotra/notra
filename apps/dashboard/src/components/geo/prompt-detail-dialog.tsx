@@ -30,8 +30,8 @@ import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
-import { GeoPromptAnswerThread } from "@/components/geo/geo-prompt-answer-thread";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { LazyGeoPromptAnswerThread } from "@/components/geo/lazy-geo-prompt-answer-thread";
 import { PromptAnswerContent } from "@/components/geo/prompt-answer-content";
 import { PromptCopyButton } from "@/components/geo/prompt-copy-button";
 import { PromptDetailStatus } from "@/components/geo/prompt-detail-status";
@@ -46,6 +46,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { GEO_PROMPT_TAGS_COPY } from "@/constants/geo-prompts";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ import type {
   PromptDetailDialogProps,
 } from "@/types/geo";
 import type {
+  HistoryAnswerThreadProps,
   PromptAnswerBodyProps,
   PromptAnswerEmptyProps,
   PromptAnswerHeaderProps,
@@ -67,7 +69,6 @@ import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
-import { promptResultFromHistoryCheck } from "@/utils/geo-prompt-history";
 
 const INSTANT = { duration: 0 } as const;
 const SLIDE_PX = 18;
@@ -219,6 +220,35 @@ function PromptAnswerHeader({
   );
 }
 
+/**
+ * The history list only carries mention state; the captured answer, sources
+ * and search queries of an older scan load when the user opens it.
+ */
+function HistoryAnswerThread({
+  checkId,
+  organizationId,
+  prompt,
+  scanPromptId,
+}: HistoryAnswerThreadProps) {
+  const detail = useGeoPromptResultDetail(organizationId, checkId);
+  const result = detail.data?.result;
+
+  if (detail.isPending) {
+    return <GeoPromptAnswerSkeleton view="raw" />;
+  }
+  if (detail.isError || !result) {
+    return <PromptDetailStatus onRetry={detail.refetch} status="error" />;
+  }
+  return (
+    <LazyGeoPromptAnswerThread
+      organizationId={organizationId}
+      scrollable={false}
+      prompt={prompt}
+      result={{ ...result, promptId: scanPromptId, prompt }}
+    />
+  );
+}
+
 function PromptAnswerBody({
   organizationId,
   detailState,
@@ -237,15 +267,11 @@ function PromptAnswerBody({
     return (
       <>
         <HistoryAnswerBanner check={selectedCheck} onBack={onBackToLatest} />
-        <GeoPromptAnswerThread
+        <HistoryAnswerThread
+          checkId={selectedCheck.id}
           organizationId={organizationId}
-          scrollable={false}
           prompt={prompt}
-          result={promptResultFromHistoryCheck(
-            selectedCheck,
-            scanPromptId,
-            prompt
-          )}
+          scanPromptId={scanPromptId}
         />
       </>
     );

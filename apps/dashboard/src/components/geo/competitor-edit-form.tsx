@@ -229,7 +229,7 @@ function CompetitorSynonymsField({
             {synonym}
             <button
               aria-label={`Remove ${synonym}`}
-              className="hover:bg-background rounded-sm p-0.5"
+              className="hover:bg-background rounded-full p-0.5"
               onClick={() =>
                 onChange(synonyms.filter((item) => item !== synonym))
               }

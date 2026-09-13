@@ -2,7 +2,7 @@ import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import { getUserPrompt } from "@notra/ai/prompts/user";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import {
   createGetBrandReferencesTool,
   createSearchBrandReferencesTool,
@@ -152,7 +152,7 @@ export async function runBackgroundGen(
 
   const agent = new ToolLoopAgent({
     model,
-    providerOptions: withGatewayDefaults(
+    providerOptions: withRouterDefaults(
       {
         anthropic: {
           thinking: { type: "adaptive" },

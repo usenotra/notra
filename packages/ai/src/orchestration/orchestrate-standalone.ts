@@ -1,7 +1,7 @@
 import { getEnabledMcpServerCount } from "@notra/ai/integrations/mcp-tool-index";
 import { createModel } from "@notra/ai/model";
 import { getStandaloneChatPrompt } from "@notra/ai/prompts/standalone-chat";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import { STANDALONE_SKILL_CATALOG_LIMIT } from "@notra/ai/skills/constants";
 import { listSkillSummaries } from "@notra/ai/skills/functions/service";
 import { createLazyMcpRuntime } from "@notra/ai/tools/mcp-lazy";
@@ -246,7 +246,7 @@ export async function orchestrateStandaloneChat(
   const effectiveEnableThinking =
     enableThinking && (autoThinkingLevel ? autoThinkingLevel !== "off" : true);
 
-  const providerOptions = withGatewayDefaults(
+  const providerOptions = withRouterDefaults(
     getThinkingProviderOptions(
       routingDecision.model,
       effectiveEnableThinking,

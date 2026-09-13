@@ -26,6 +26,7 @@ import { Firefox } from "@notra/ui/components/ui/svgs/firefox";
 import { Gemini } from "@notra/ui/components/ui/svgs/gemini";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { Huawei } from "@notra/ui/components/ui/svgs/huawei";
+import { Instagram } from "@notra/ui/components/ui/svgs/instagram";
 import { Kagi } from "@notra/ui/components/ui/svgs/kagi";
 import { Kimi } from "@notra/ui/components/ui/svgs/kimi";
 import { Liner } from "@notra/ui/components/ui/svgs/liner";
@@ -101,6 +102,7 @@ const SIMPLE_ICONS: Partial<Record<EngineIconKey, IconComponent>> = {
   mistral: Mistral,
   deepseek: Deepseek,
   meta: Meta,
+  instagram: Instagram,
   tencent: Tencent,
   xiaomi: Xiaomi,
   cursor: Cursor,

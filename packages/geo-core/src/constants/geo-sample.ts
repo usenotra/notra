@@ -266,6 +266,9 @@ export const GEO_SAMPLE_CRAWLERS: readonly {
   { agent: "GPTBot", category: "training-crawler" },
   { agent: "OAI-SearchBot", category: "search-index" },
   { agent: "ClaudeBot", category: "training-crawler" },
+  { agent: "meta-externalagent", category: "training-crawler" },
+  { agent: "meta-externalfetcher", category: "assistant-browse" },
+  { agent: "Instagram", category: "assistant-browse" },
   { agent: "PerplexityBot", category: "search-index" },
   { agent: "Google-Extended", category: "training-crawler" },
   { agent: "Bytespider", category: "training-crawler" },
@@ -285,4 +288,6 @@ export const GEO_SAMPLE_REFERRALS: readonly {
   { source: "gemini", referer: "https://gemini.google.com/" },
   { source: "copilot", referer: "https://copilot.microsoft.com/" },
   { source: "you.com", referer: "https://you.com/" },
+  { source: "meta", referer: "https://www.meta.ai/" },
+  { source: "instagram", referer: "https://www.instagram.com/" },
 ];
