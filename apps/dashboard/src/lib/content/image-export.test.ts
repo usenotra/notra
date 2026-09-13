@@ -122,15 +122,12 @@ test("preload with window swallows a failed paper import and click retries", asy
       expect(paperImports).toBe(1);
 
       await copyImageAsPaper(exportElement, "Card");
-      expect(copyAsPaper).not.toHaveBeenCalled();
-      expect(toast.error).toHaveBeenCalledWith(
-        "Copy is still loading. Try again in a moment."
-      );
+      expect(copyAsPaper).toHaveBeenCalledTimes(1);
+      expect(toast.error).not.toHaveBeenCalled();
       expect(paperImports).toBe(2);
 
-      expect(await preloadImageExportCopy("paper")).toBe(true);
       await copyImageAsPaper(exportElement, "Card");
-      expect(copyAsPaper).toHaveBeenCalledTimes(1);
+      expect(copyAsPaper).toHaveBeenCalledTimes(2);
       expect(paperImports).toBe(2);
     });
   } finally {
@@ -196,6 +193,60 @@ test("Figma copy is not ready until the Inter font chunk loads", async () => {
   }
 });
 
+test("copy waits for an in-flight Figma preload then pastes", async () => {
+  let resolveFont: () => void = () => {
+    /* assigned when fontReady is constructed */
+  };
+  const fontReady = new Promise<void>((resolve) => {
+    resolveFont = resolve;
+  });
+  loadFallbackFont.mockImplementation(() => fontReady);
+  copyAsFigma.mockClear();
+  resetImageExportCopyForTests();
+
+  try {
+    await withWindow(async () => {
+      const pending = preloadImageExportCopy("figma");
+      const copyPromise = copyImageAsFigma(exportElement, "Card");
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(copyAsFigma).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
+
+      resolveFont();
+      await copyPromise;
+      expect(await pending).toBe(true);
+      expect(copyAsFigma).toHaveBeenCalledTimes(1);
+      expect(toast.success).toHaveBeenCalledWith(
+        "Copied for Figma. Paste it into your Figma file."
+      );
+    });
+  } finally {
+    loadFallbackFont.mockImplementation(async () => {
+      /* Inter payload is mocked as already loaded */
+    });
+    resetImageExportCopyForTests();
+  }
+});
+
+test("cold copy awaits the kiwi import then pastes", async () => {
+  resetImageExportCopyForTests();
+
+  await withWindow(async () => {
+    expect(isImageExportCopyReady("paper")).toBe(false);
+    expect(isImageExportCopyReady("figma")).toBe(false);
+
+    await copyImageAsPaper(exportElement, "Card");
+    expect(copyAsPaper).toHaveBeenCalledTimes(1);
+    expect(toast.error).not.toHaveBeenCalled();
+
+    await copyImageAsFigma(exportElement, "Card");
+    expect(copyAsFigma).toHaveBeenCalledTimes(1);
+    expect(loadFallbackFont).toHaveBeenCalledTimes(1);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+});
+
 test("preload is a no-op without window and does not copy", () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   Reflect.deleteProperty(globalThis, "window");
@@ -257,6 +308,9 @@ test("a failed kiwi import during a skipped copy does not reject unhandled", asy
     });
     expect(figmaImports).toBe(1);
     expect(paperImports).toBe(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Copy is still loading. Try again in a moment."
+    );
   } finally {
     console.error = previousError;
     resetImageExportCopyForTests();

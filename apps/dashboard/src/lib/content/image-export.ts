@@ -163,7 +163,7 @@ export async function copyImageAsFigma(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
-    preloadImageExportCopy("figma");
+    await preloadImageExportCopy("figma");
     const copyAsFigma = copyAsFigmaFn;
     if (!copyAsFigma) {
       toast.error("Copy is still loading. Try again in a moment.");
@@ -195,7 +195,7 @@ export async function copyImageAsPaper(
   htmlUrl?: string | null
 ): Promise<void> {
   try {
-    preloadImageExportCopy("paper");
+    await preloadImageExportCopy("paper");
     const copyAsPaper = copyAsPaperFn;
     if (!copyAsPaper) {
       toast.error("Copy is still loading. Try again in a moment.");
