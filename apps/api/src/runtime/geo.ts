@@ -132,11 +132,21 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
 }
 
 function toGeoProgramFailure(error: GeoProgramError): GeoFailure {
-  if (error._tag === "GeoSelectionInvalidError") {
-    return { status: 400, error: error.message };
+  switch (error._tag) {
+    case "GeoSelectionInvalidError":
+      return { status: 400, error: error.message };
+    case "AgentReadinessTargetMissingError":
+    case "AgentReadinessApiError":
+      return { status: 400, error: error.message };
+    case "GeoScanNotFoundError":
+      return { status: 404, error: "Scan not found" };
+    case "AgentReadinessClaimError":
+    case "AgentReadinessStampError":
+    case "AgentReadinessStartError":
+      return { status: 500, error: "Internal server error" };
+    default:
+      return toGeoFailure(toGeoFailureWire(error));
   }
-
-  return toGeoFailure(toGeoFailureWire(error));
 }
 
 /**

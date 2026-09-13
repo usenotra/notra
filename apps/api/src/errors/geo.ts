@@ -6,3 +6,10 @@ export class GeoSelectionInvalidError extends Schema.TaggedError<GeoSelectionInv
     message: Schema.String,
   }
 ) {}
+
+export class GeoScanNotFoundError extends Schema.TaggedError<GeoScanNotFoundError>()(
+  "GeoScanNotFoundError",
+  {
+    scanId: Schema.String,
+  }
+) {}
