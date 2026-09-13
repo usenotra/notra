@@ -24,7 +24,7 @@ function stepForElapsed(elapsedMs: number): number {
  */
 export function usePersonaGenerationProgress(
   active: boolean,
-  generationStartedAt?: string
+  generationStartedAt: string
 ): PersonaGenerationProgress | null {
   const [now, setNow] = useState(() => Date.now());
 
@@ -41,9 +41,7 @@ export function usePersonaGenerationProgress(
   if (!active) {
     return null;
   }
-  const step = generationStartedAt
-    ? stepForElapsed(now - Date.parse(generationStartedAt))
-    : 0;
+  const step = stepForElapsed(now - Date.parse(generationStartedAt));
   const entry = GEO_PERSONA_GENERATION_STEPS[step];
   return {
     step: step + 1,

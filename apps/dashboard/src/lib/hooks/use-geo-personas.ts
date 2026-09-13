@@ -13,7 +13,10 @@ import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GEO_PERSONA_RESULTS_POLL_MS } from "@/constants/geo-personas";
-import { PERSONA_GENERATION_POLL_MS } from "@/constants/persona-generation";
+import {
+  PERSONA_GENERATION_FAILED_MESSAGE,
+  PERSONA_GENERATION_POLL_MS,
+} from "@/constants/persona-generation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
 import type {
@@ -98,6 +101,8 @@ export function useGeoPersonasGenerate(organizationId: string) {
     observedJob.current = job.id;
     if (job.status === "completed") {
       void invalidatePersonaList(queryClient, organizationId, projectId);
+    } else {
+      toast.error(job.error || PERSONA_GENERATION_FAILED_MESSAGE);
     }
   }, [job, queryClient, organizationId, projectId]);
 
@@ -121,7 +126,7 @@ export function useGeoPersonasGenerate(organizationId: string) {
       toast.error(toErrorMessage(error, "Failed to generate personas"));
     },
   });
-  let startedAt: string | undefined;
+  let startedAt = "";
   if (job?.status === "queued" || job?.status === "running") {
     startedAt = job.startedAt;
   } else if (mutation.isPending && mutation.submittedAt > 0) {
@@ -134,7 +139,7 @@ export function useGeoPersonasGenerate(organizationId: string) {
       job?.status === "queued" ||
       job?.status === "running",
     startedAt,
-    generationError: job?.status === "failed" ? job.error : null,
+    generationStatus: job?.status,
     generatingPersonaId: job?.personaId,
   };
 }
