@@ -5,9 +5,23 @@ export const webhookEventTypeSchema = z.enum([
   "post.generation.failed",
   "post.generation.skipped",
 ]);
+export const webhookStatusFilterSchema = z.enum([
+  "all",
+  "pending",
+  "sending",
+  "retrying",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+export const webhookEventsInputSchema = z
+  .array(webhookEventTypeSchema)
+  .min(1)
+  .max(3);
+export const webhookUrlInputSchema = z.string().url().max(2048);
 export const createWebhookRequestSchema = z.object({
-  url: z.string().url().max(2048),
-  events: z.array(webhookEventTypeSchema).min(1).max(3),
+  url: webhookUrlInputSchema,
+  events: webhookEventsInputSchema,
 });
 export const webhookEndpointParamsSchema = z.object({
   endpointId: z.string().min(1),
@@ -17,17 +31,7 @@ export const webhookDeliveryParamsSchema = z.object({
 });
 export const webhookDeliveryQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).max(100000).default(0),
-  status: z
-    .enum([
-      "all",
-      "pending",
-      "sending",
-      "retrying",
-      "succeeded",
-      "failed",
-      "cancelled",
-    ])
-    .default("all"),
+  status: webhookStatusFilterSchema.default("all"),
 });
 export const webhookEndpointSchema = z.object({
   id: z.string(),

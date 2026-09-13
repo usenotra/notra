@@ -2,12 +2,14 @@ import {
   WebhookNotFound,
   WebhookValidationError,
 } from "@notra/webhooks/errors/webhooks";
+import { OrganizationId } from "@notra/webhooks/schemas/webhooks";
 import type { WebhookDatabase } from "@notra/webhooks/services/database";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { Config, ManagedRuntime } from "effect";
 import type { Context } from "hono";
 
 import type { ApiEnv } from "../types/env";
+import { getOrganizationId } from "./auth";
 
 export function runWebhookApi<A, E>(
   runtime: ManagedRuntime.ManagedRuntime<WebhookDatabase, Config.ConfigError>,
@@ -30,3 +32,6 @@ export function runWebhookApi<A, E>(
     )
   );
 }
+
+export const decodeOrganizationId = (c: Context<ApiEnv>) =>
+  Schema.decodeUnknownEffect(OrganizationId)(getOrganizationId(c));

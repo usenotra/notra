@@ -1,5 +1,6 @@
 import type { Badge } from "@notra/ui/components/ui/badge";
 import type {
+  Attempt,
   DeliverySummary,
   DeliveryStats,
   Endpoint,
@@ -11,6 +12,7 @@ import type { assertOrganizationAccess } from "@/lib/auth/organization";
 
 export type WebhookAccessInput = Parameters<typeof assertOrganizationAccess>[0];
 export type OutboundDelivery = Schema.Schema.Type<typeof DeliverySummary>;
+type OutboundAttempt = Schema.Schema.Type<typeof Attempt>;
 type OutboundEndpoint = Schema.Schema.Type<typeof Endpoint>;
 type WebhookStats = Schema.Schema.Type<typeof DeliveryStats>;
 export type WebhookFilter = "all" | OutboundDelivery["status"];
@@ -66,4 +68,16 @@ export interface WebhookDetailsProps {
   readonly onClose: () => void;
   readonly onRetry: (deliveryId: string) => void;
   readonly retrying: boolean;
+}
+
+export interface WebhookDeliverySummaryProps {
+  readonly entry: OutboundDelivery;
+}
+
+export interface WebhookAttemptListProps {
+  readonly attempts: readonly OutboundAttempt[];
+}
+
+export interface WebhookPayloadProps {
+  readonly payload: string;
 }

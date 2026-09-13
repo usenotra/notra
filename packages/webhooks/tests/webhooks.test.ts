@@ -603,8 +603,8 @@ test("transport refuses private DNS answers, never follows redirects and reads r
       expect(privateTarget.result.error).toBe("unsafe_url");
       expect(privateTarget.result.statusCode).toBeNull();
       expect(
-        privateTarget.calls.filter((url) =>
-          url.startsWith("https://hooks.usenotra.com")
+        privateTarget.calls.filter(
+          (url) => new URL(url).hostname === "hooks.usenotra.com"
         )
       ).toHaveLength(0);
 
@@ -625,7 +625,9 @@ test("transport refuses private DNS answers, never follows redirects and reads r
       expect(redirect.result.statusCode).toBe(302);
       expect(redirect.result.error).toBe("http_302");
       expect(
-        redirect.calls.filter((url) => url.includes("169.254.169.254"))
+        redirect.calls.filter(
+          (url) => new URL(url).hostname === "169.254.169.254"
+        )
       ).toHaveLength(0);
 
       const throttled = yield* sendThrough(

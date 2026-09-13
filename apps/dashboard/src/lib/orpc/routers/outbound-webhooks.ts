@@ -17,47 +17,12 @@ import {
   retryDelivery,
 } from "@notra/webhooks/programs/history";
 import { configuredCryptoLayer } from "@notra/webhooks/runtime/crypto";
-import {
-  DeliveryId,
-  EndpointId,
-  OrganizationId,
-} from "@notra/webhooks/schemas/webhooks";
-import { ORPCError } from "@orpc/server";
+import { DeliveryId, EndpointId } from "@notra/webhooks/schemas/webhooks";
 import { Effect, Schema } from "effect";
 
-import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { authorizeOutboundWebhooks } from "@/lib/webhooks/outbound-access";
 import { runOutboundWebhook } from "@/lib/webhooks/outbound-runtime";
-import type { WebhookAccessInput } from "@/types/webhooks/outbound";
-
-const authorize = Effect.fn("webhooks.authorize")(function* (
-  input: WebhookAccessInput,
-  mutate = false
-) {
-  const access = yield* Effect.tryPromise({
-    try: () => assertOrganizationAccess(input),
-    catch: (cause) =>
-      cause instanceof ORPCError ? cause : new ORPCError("UNAUTHORIZED"),
-  });
-  if (
-    mutate &&
-    access.membership.role !== "owner" &&
-    access.membership.role !== "admin"
-  ) {
-    return yield* Effect.fail(
-      new ORPCError("FORBIDDEN", {
-        message: "Only organization owners and admins can manage webhooks",
-      })
-    );
-  }
-  return {
-    organizationId: yield* Schema.decodeUnknownEffect(OrganizationId)(
-      access.organizationId
-    ),
-    canManage:
-      access.membership.role === "owner" || access.membership.role === "admin",
-  };
-});
 
 export const outboundWebhooksRouter = {
   overview: authorizedProcedure
@@ -65,10 +30,11 @@ export const outboundWebhooksRouter = {
     .handler(({ context, input }) =>
       runOutboundWebhook(
         Effect.gen(function* () {
-          const { organizationId, canManage } = yield* authorize({
-            ...context,
-            organizationId: input.organizationId,
-          });
+          const { organizationId, canManage } =
+            yield* authorizeOutboundWebhooks({
+              ...context,
+              organizationId: input.organizationId,
+            });
           const [endpoints, deliveries, stats] = yield* Effect.all(
             [
               listEndpoints(organizationId),
@@ -86,7 +52,7 @@ export const outboundWebhooksRouter = {
     .handler(({ context, input }) =>
       runOutboundWebhook(
         Effect.gen(function* () {
-          const { organizationId } = yield* authorize(
+          const { organizationId } = yield* authorizeOutboundWebhooks(
             { ...context, organizationId: input.organizationId },
             true
           );
@@ -101,7 +67,7 @@ export const outboundWebhooksRouter = {
     .handler(({ context, input }) =>
       runOutboundWebhook(
         Effect.gen(function* () {
-          const { organizationId } = yield* authorize(
+          const { organizationId } = yield* authorizeOutboundWebhooks(
             { ...context, organizationId: input.organizationId },
             true
           );
@@ -117,7 +83,7 @@ export const outboundWebhooksRouter = {
     .handler(({ context, input }) =>
       runOutboundWebhook(
         Effect.gen(function* () {
-          const { organizationId } = yield* authorize({
+          const { organizationId } = yield* authorizeOutboundWebhooks({
             ...context,
             organizationId: input.organizationId,
           });
@@ -140,7 +106,7 @@ export const outboundWebhooksRouter = {
     .handler(({ context, input }) =>
       runOutboundWebhook(
         Effect.gen(function* () {
-          const { organizationId } = yield* authorize(
+          const { organizationId } = yield* authorizeOutboundWebhooks(
             { ...context, organizationId: input.organizationId },
             true
           );

@@ -23,29 +23,15 @@ import {
   retryDelivery,
 } from "@notra/webhooks/programs/history";
 import { configuredCryptoLayer } from "@notra/webhooks/runtime/crypto";
-import { postgresDatabaseLayer } from "@notra/webhooks/runtime/postgres";
-import {
-  DeliveryId,
-  EndpointId,
-  OrganizationId,
-} from "@notra/webhooks/schemas/webhooks";
-import { ConfigProvider, Effect, ManagedRuntime, Schema } from "effect";
+import { DeliveryId, EndpointId } from "@notra/webhooks/schemas/webhooks";
+import { ConfigProvider, Effect, Schema } from "effect";
 
-import { getOrganizationId } from "../utils/auth";
+import { WEBHOOK_ERROR_RESPONSES } from "../constants/webhooks";
+import { webhookRuntime } from "../runtime/webhooks";
 import { createOpenApiApp } from "../utils/openapi-app";
-import { errorResponse } from "../utils/openapi-responses";
-import { runWebhookApi } from "../utils/webhooks";
+import { decodeOrganizationId, runWebhookApi } from "../utils/webhooks";
 
-const runtime = ManagedRuntime.make(postgresDatabaseLayer);
 export const webhooksRoutes = createOpenApiApp();
-const errors = {
-  400: errorResponse("Invalid webhook request"),
-  401: errorResponse("Unauthorized"),
-  402: errorResponse("Subscription required"),
-  403: errorResponse("Forbidden"),
-  404: errorResponse("Webhook not found"),
-  503: errorResponse("Webhooks unavailable"),
-};
 
 webhooksRoutes.openapi(
   createRoute({
@@ -59,17 +45,15 @@ webhooksRoutes.openapi(
         description: "Endpoints, without signing secrets",
         content: { "application/json": { schema: webhookListResponseSchema } },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const endpoints = yield* listEndpoints(organizationId);
         return c.json(
           {
@@ -104,17 +88,15 @@ webhooksRoutes.openapi(
           "application/json": { schema: webhookCreateResponseSchema },
         },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const result = yield* createEndpoint({
           ...c.req.valid("json"),
           organizationId,
@@ -151,17 +133,15 @@ webhooksRoutes.openapi(
         description: "Deleted endpoint ID",
         content: { "application/json": { schema: webhookIdentifierSchema } },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const endpointId = yield* Schema.decodeUnknownEffect(EndpointId)(
           c.req.valid("param").endpointId
         );
@@ -185,17 +165,15 @@ webhooksRoutes.openapi(
           "application/json": { schema: webhookDeliveriesResponseSchema },
         },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const query = c.req.valid("query");
         const deliveries = yield* listDeliveries(
           organizationId,
@@ -228,17 +206,15 @@ webhooksRoutes.openapi(
           "application/json": { schema: webhookDetailResponseSchema },
         },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const deliveryId = yield* Schema.decodeUnknownEffect(DeliveryId)(
           c.req.valid("param").deliveryId
         );
@@ -267,17 +243,15 @@ webhooksRoutes.openapi(
         description: "Queued delivery ID",
         content: { "application/json": { schema: webhookIdentifierSchema } },
       },
-      ...errors,
+      ...WEBHOOK_ERROR_RESPONSES,
     },
   }),
   (c) =>
     runWebhookApi(
-      runtime,
+      webhookRuntime,
       c,
       Effect.gen(function* () {
-        const organizationId = yield* Schema.decodeUnknownEffect(
-          OrganizationId
-        )(getOrganizationId(c));
+        const organizationId = yield* decodeOrganizationId(c);
         const deliveryId = yield* Schema.decodeUnknownEffect(DeliveryId)(
           c.req.valid("param").deliveryId
         );

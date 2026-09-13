@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect";
 
+import { DELIVERY_QUEUE_NAME, EVENT_QUEUE_NAME } from "./constants/queues";
 import { WebhookValidationError } from "./errors/webhooks";
 import { deliver } from "./programs/deliveries";
 import { cleanup, dispatchEvent, recover } from "./programs/recovery";
@@ -14,12 +15,12 @@ export default {
         batch.messages,
         (message) =>
           Effect.gen(function* () {
-            if (batch.queue === "notra-webhook-events") {
+            if (batch.queue === EVENT_QUEUE_NAME) {
               const body = yield* Schema.decodeUnknownEffect(EventMessage)(
                 message.body
               );
               yield* dispatchEvent(body.eventId);
-            } else if (batch.queue === "notra-webhook-deliveries") {
+            } else if (batch.queue === DELIVERY_QUEUE_NAME) {
               const body = yield* Schema.decodeUnknownEffect(DeliveryMessage)(
                 message.body
               );

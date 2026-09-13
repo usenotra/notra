@@ -1,29 +1,19 @@
 import { z } from "zod";
 
+import {
+  webhookEventsInputSchema,
+  webhookStatusFilterSchema,
+  webhookUrlInputSchema,
+} from "../api/webhooks";
 import { organizationIdInputSchema } from "./auth/organization";
 
-export const webhookEventTypeSchema = z.enum([
-  "post.generation.completed",
-  "post.generation.failed",
-  "post.generation.skipped",
-]);
 export const webhookListInputSchema = organizationIdInputSchema.extend({
   offset: z.number().int().min(0).max(100000).default(0),
-  status: z
-    .enum([
-      "all",
-      "pending",
-      "sending",
-      "retrying",
-      "succeeded",
-      "failed",
-      "cancelled",
-    ])
-    .default("all"),
+  status: webhookStatusFilterSchema.default("all"),
 });
 export const webhookCreateInputSchema = organizationIdInputSchema.extend({
-  url: z.string().url().max(2048),
-  events: z.array(webhookEventTypeSchema).min(1).max(3),
+  url: webhookUrlInputSchema,
+  events: webhookEventsInputSchema,
 });
 export const webhookEndpointInputSchema = organizationIdInputSchema.extend({
   endpointId: z.string().min(1),

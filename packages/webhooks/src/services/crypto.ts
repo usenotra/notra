@@ -2,7 +2,8 @@ import { Context, Effect, Layer, Redacted } from "effect";
 
 import { WebhookCryptoError } from "../errors/webhooks";
 import type { WebhookCryptoService } from "../types/services";
-import { base64, bytes } from "../utils/encoding";
+import { cryptoOperation, decodeBase64 } from "../utils/crypto";
+import { base64 } from "../utils/encoding";
 import { hmacSign, hmacVerify } from "../utils/hmac";
 
 export class WebhookCrypto extends Context.Service<
@@ -10,22 +11,11 @@ export class WebhookCrypto extends Context.Service<
   WebhookCryptoService
 >()("@notra/webhooks/Crypto") {}
 
-const cryptoOperation = <A>(operation: string, run: () => Promise<A>) =>
-  Effect.tryPromise({
-    try: run,
-    catch: () => new WebhookCryptoError({ operation }),
-  });
-const decode = (value: string) =>
-  Effect.try({
-    try: () => bytes(value),
-    catch: () => new WebhookCryptoError({ operation: "base64.decode" }),
-  });
-
 export const webCryptoLayer = (encryptionKey: Redacted.Redacted<string>) =>
   Layer.effect(
     WebhookCrypto,
     Effect.gen(function* () {
-      const rawKey = yield* decode(Redacted.value(encryptionKey));
+      const rawKey = yield* decodeBase64(Redacted.value(encryptionKey));
       if (rawKey.length !== 32) {
         return yield* new WebhookCryptoError({
           operation: "encryptionKey.mustBe32Bytes",
@@ -73,8 +63,8 @@ export const webCryptoLayer = (encryptionKey: Redacted.Redacted<string>) =>
                 operation: "decrypt.format",
               });
             }
-            const iv = yield* decode(ivText);
-            const ciphertext = yield* decode(ciphertextText);
+            const iv = yield* decodeBase64(ivText);
+            const ciphertext = yield* decodeBase64(ciphertextText);
             const plaintext = yield* cryptoOperation("decrypt", () =>
               crypto.subtle.decrypt(
                 {
