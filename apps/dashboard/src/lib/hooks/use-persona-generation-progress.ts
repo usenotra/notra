@@ -26,26 +26,23 @@ export function usePersonaGenerationProgress(
   active: boolean,
   generationStartedAt?: string
 ): PersonaGenerationProgress | null {
-  const [step, setStep] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!active) {
-      setStep(0);
       return;
     }
-    const startedAt = generationStartedAt
-      ? Date.parse(generationStartedAt)
-      : Date.now();
-    setStep(stepForElapsed(Date.now() - startedAt));
     const timer = setInterval(() => {
-      setStep(stepForElapsed(Date.now() - startedAt));
+      setNow(Date.now());
     }, GEO_PERSONA_GENERATION_TICK_MS);
     return () => clearInterval(timer);
-  }, [active, generationStartedAt]);
+  }, [active]);
 
   if (!active) {
     return null;
   }
+  const startedAt = generationStartedAt ? Date.parse(generationStartedAt) : now;
+  const step = stepForElapsed(now - startedAt);
   const entry = GEO_PERSONA_GENERATION_STEPS[step];
   return {
     step: step + 1,
