@@ -209,22 +209,24 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         totals={totals}
       />
       <InstrumentSection eyebrow="Sources">
-        <div className="border-border min-w-0 rounded-2xl border">
+        <div className="flex min-w-0 flex-col">
           <TrafficSourcesGroup
             band="crawler"
             collapsed={crawlersCollapsed}
             columns={columns}
+            followedByStack
             groups={crawlerGroups}
             onToggle={() => toggleCollapsed("crawler")}
-            segment="first"
+            stacked={false}
           />
           <TrafficSourcesGroup
             band="cited"
             collapsed={collapsed.has("cited")}
             columns={columns}
+            followedByStack
             groups={citedGroups}
             onToggle={() => toggleCollapsed("cited")}
-            segment="middle"
+            stacked
           />
           <TrafficSourcesGroup
             band="ai_referral"
@@ -232,7 +234,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
             columns={columns}
             groups={referralGroups}
             onToggle={() => toggleCollapsed("ai_referral")}
-            segment="last"
+            stacked
           />
         </div>
       </InstrumentSection>

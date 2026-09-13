@@ -64,7 +64,6 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
-  embedded = false,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -208,7 +207,6 @@ export function Table<T>({
       {/* Overlap hides the header's side border in the body radius. */}
       <TableHeaderSurface
         toolbar={toolbar}
-        embedded={embedded}
         flushTop={flushTop}
         overlapTop={overlapTop}
       >
@@ -251,19 +249,9 @@ export function Table<T>({
       </TableHeaderSurface>
       <div
         className={cn(
-          "scrollbar-floating border-border bg-background relative box-content outline-none",
-          embedded
-            ? cn(
-                "relative z-0 -mt-5 rounded-2xl border border-x-0",
-                flushBottom && !footer
-                  ? "rounded-b-none border-b-0"
-                  : "rounded-b-2xl border-b-0"
-              )
-            : cn(
-                "-mt-5 rounded-2xl border",
-                flushBottom && !footer && "rounded-b-none border-b-0"
-              ),
-          isEmpty ? "overflow-hidden" : overflowClass
+          "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
+          isEmpty ? "overflow-hidden" : overflowClass,
+          flushBottom && !footer && "rounded-b-none"
         )}
         onScroll={handleScroll}
         ref={scrollRef}
