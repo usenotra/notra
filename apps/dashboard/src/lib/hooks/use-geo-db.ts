@@ -116,10 +116,10 @@ export function useGeoPromptsDb(
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ prompt: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data, isLoading } = useLiveQuery({
+    query: (q) => q.from({ prompt: definition }),
+    startSync: isEnabled,
+  });
 
   const prompts: GeoTrackedPrompt[] = data ?? [];
 
@@ -208,16 +208,14 @@ export function useGeoProjectsDb(
     () => getPendingDeleteSnapshots(collectionId)
   );
 
-  const { data, isLoading, isError, isReady } = useLiveQuery(
-    (q) =>
-      isEnabled && organizationId
-        ? q
-            .from({ project: definition })
-            .orderBy(({ project }) => project.createdAt, "asc")
-            .orderBy(({ project }) => project.id, "asc")
-        : undefined,
-    [definition, isEnabled, organizationId]
-  );
+  const { data, isLoading, isError, isReady } = useLiveQuery({
+    query: (q) =>
+      q
+        .from({ project: definition })
+        .orderBy(({ project }) => project.createdAt, "asc")
+        .orderBy(({ project }) => project.id, "asc"),
+    startSync: isEnabled && Boolean(organizationId),
+  });
 
   const projects = useMemo(() => {
     const merged = new Map<string, GeoProject>();
@@ -330,10 +328,10 @@ export function useGeoCompetitorsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ competitor: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data } = useLiveQuery({
+    query: (q) => q.from({ competitor: definition }),
+    startSync: isEnabled,
+  });
 
   const competitors: GeoCompetitor[] = data ?? [];
 
@@ -377,10 +375,10 @@ export function useGeoSequencesDb(
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ sequence: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data, isLoading } = useLiveQuery({
+    query: (q) => q.from({ sequence: definition }),
+    startSync: isEnabled,
+  });
 
   const sequences: GeoPromptSequence[] = data ?? [];
 
@@ -443,12 +441,19 @@ export function useGeoShelfFilteredSourcesDb(
   const { projectId } = useGeoProjectScope();
   const shelfDefinition = geoShelfCollection({ organizationId, projectId });
 
-  const { data, isLoading } = useLiveQuery(
-    (q) => {
-      if (!isEnabled) {
-        return undefined;
-      }
-
+  const { data, isLoading } = useLiveQuery({
+    queryKey: [
+      shelfDefinition.id,
+      isEnabled,
+      input.filters.search,
+      input.filters.shelf,
+      input.filters.ticket,
+      input.filters.currentMemberId,
+      input.members,
+      input.competitors,
+    ],
+    startSync: isEnabled,
+    query: (q) => {
       return q
         .from({ shelf: shelfDefinition })
         .where(({ shelf }) => {
@@ -498,17 +503,7 @@ export function useGeoShelfFilteredSourcesDb(
         )
         .select(({ shelf }) => shelf);
     },
-    [
-      shelfDefinition,
-      isEnabled,
-      input.filters.search,
-      input.filters.shelf,
-      input.filters.ticket,
-      input.filters.currentMemberId,
-      input.members,
-      input.competitors,
-    ]
-  );
+  });
 
   const sources: GeoShelfSource[] = data ?? [];
 
