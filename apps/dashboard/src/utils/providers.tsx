@@ -10,8 +10,11 @@ import {
 import { ThemeProvider } from "next-themes";
 import dynamic from "next/dynamic";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
+
+import { PostHogIdentity } from "@/components/providers/posthog-identity";
+import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
 
 const DatabuddyAnalytics = dynamic(
   () =>
@@ -88,7 +91,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
         <TooltipProvider delay={500}>
-          <NuqsAdapter>{children}</NuqsAdapter>
+          <NuqsAdapter>
+            {children}
+            {POSTHOG_PROJECT_TOKEN ? (
+              <Suspense fallback={null}>
+                <PostHogIdentity />
+              </Suspense>
+            ) : null}
+          </NuqsAdapter>
           <Toaster position="top-center" />
           <DatabuddyAnalytics />
         </TooltipProvider>

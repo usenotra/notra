@@ -7,10 +7,11 @@ import { authClient } from "@/lib/auth/client";
 
 export function BannedNotice() {
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const signOut = authClient.useSignOut();
 
   function handleSignOut() {
     setIsSigningOut(true);
-    authClient.signOut().catch(() => setIsSigningOut(false));
+    signOut().catch(() => setIsSigningOut(false));
   }
 
   return (

@@ -1,4 +1,8 @@
-import type { CapturedNetworkRequest, CaptureResult } from "posthog-js";
+import type {
+  CapturedNetworkRequest,
+  CaptureResult,
+  PostHog,
+} from "posthog-js";
 
 import {
   POSTHOG_DEFAULT_UI_HOST,
@@ -9,6 +13,13 @@ import {
 import { maskOrganizationPathname } from "@/utils/organization-pathname";
 
 const ABSOLUTE_URL_PATTERN = /^[a-z][a-z\d+.-]*:\/\//i;
+
+export function clearPostHogIdentity(posthog: PostHog): void {
+  posthog.reset();
+  posthog.resetGroups();
+  posthog.unregister("organization_id");
+  posthog.unregister("project_id");
+}
 
 export function stripUrlQueryAndHash(url: string): string {
   const queryIndex = url.indexOf("?");

@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { resetPostHogIdentity } from "@/lib/analytics/posthog-client";
 import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import {
   deleteUserAction,
@@ -77,26 +78,33 @@ function useSessionInvalidation() {
   const queryClient = useQueryClient();
 
   return () => {
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.session });
+    queryClient.setQueryData(QUERY_KEYS.AUTH.session, null);
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.session });
   };
 }
 
-async function signOut(options?: SignOutOptions) {
-  try {
-    await signOutAction();
-  } catch (error) {
-    if (!isNextRedirectError(error)) {
-      throw error;
+function useSignOut() {
+  const invalidateSession = useSessionInvalidation();
+
+  return async (options?: SignOutOptions) => {
+    try {
+      await signOutAction();
+    } catch (error) {
+      if (!isNextRedirectError(error)) {
+        throw error;
+      }
     }
-  }
-  options?.fetchOptions?.onSuccess?.();
+    invalidateSession();
+    resetPostHogIdentity();
+    options?.fetchOptions?.onSuccess?.();
+  };
 }
 
 export const authClient = {
   useSession,
   useListOrganizations,
   useSessionInvalidation,
-  signOut,
+  useSignOut,
   updateUser: updateUserAction,
   deleteUser: deleteUserAction,
   requestPasswordReset: requestPasswordResetAction,

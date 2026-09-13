@@ -7,6 +7,7 @@ import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
 import { subscribeWhenPostHogReady } from "@/lib/analytics/posthog-lazy";
 import { authClient } from "@/lib/auth/client";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
+import { clearPostHogIdentity } from "@/utils/posthog";
 
 export function PostHogIdentity() {
   const { data: session, isPending } = authClient.useSession();
@@ -28,13 +29,13 @@ export function PostHogIdentity() {
 
       if (!userId) {
         if (identifiedUserId) {
-          posthog.reset();
+          clearPostHogIdentity(posthog);
         }
         return;
       }
 
       if (identifiedUserId && identifiedUserId !== userId) {
-        posthog.reset();
+        clearPostHogIdentity(posthog);
       }
 
       posthog.identify(
