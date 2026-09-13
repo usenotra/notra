@@ -103,6 +103,7 @@ export function TrafficSourcesGroup({
 
   return (
     <Table
+      className="isolate min-w-0"
       columns={groupColumns}
       data={groups}
       defaultSort={{ key: "visits", direction: "desc" }}
