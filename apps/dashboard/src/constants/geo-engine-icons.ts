@@ -20,6 +20,7 @@ import { Google } from "@notra/ui/components/ui/svgs/google";
 import { Grok } from "@notra/ui/components/ui/svgs/grok";
 import { GrokDark } from "@notra/ui/components/ui/svgs/grokDark";
 import { Huawei } from "@notra/ui/components/ui/svgs/huawei";
+import { Instagram } from "@notra/ui/components/ui/svgs/instagram";
 import { Kagi } from "@notra/ui/components/ui/svgs/kagi";
 import { Kimi } from "@notra/ui/components/ui/svgs/kimi";
 import { Liner } from "@notra/ui/components/ui/svgs/liner";
@@ -57,6 +58,7 @@ export const SIMPLE_ENGINE_ICONS: Partial<
   tavily: Tavily,
   timpi: Timpi,
   huawei: Huawei,
+  instagram: Instagram,
   kagi: Kagi,
   zai: Zai,
   claude: ClaudeAiIcon,

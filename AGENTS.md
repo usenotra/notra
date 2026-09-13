@@ -72,5 +72,6 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   verification. The `haveIBeenPwned` plugin rejects breached passwords, so use a strong
   unique password when signing up during tests.
 - Local-dev impersonation is opt-in: `DEV_AUTH_ENABLED=true` plus `DEV_AUTH_EMAIL`,
-  and only for loopback requests. A missing WorkOS key in development no longer
-  auto-authenticates, and tunneled hosts never inherit a database user.
+  and only for loopback requests. `next dev` binds to `127.0.0.1` so a LAN
+  client cannot spoof `Host: localhost`. A missing WorkOS key in development no
+  longer auto-authenticates, and tunneled hosts never inherit a database user.

@@ -88,6 +88,15 @@ describe("trafficHostsFromPages", () => {
       ])
     ).toEqual(["docs.example.com", "example.com"]);
   });
+
+  test("collapses www and apex into one host", () => {
+    expect(
+      trafficHostsFromPages([
+        page({ host: "www.example.com", path: "/" }),
+        page({ host: "example.com", path: "/blog" }),
+      ])
+    ).toEqual(["example.com"]);
+  });
 });
 
 describe("trafficHostSelectOptions", () => {
@@ -101,5 +110,11 @@ describe("trafficHostSelectOptions", () => {
     expect(
       trafficHostSelectOptions(["docs.example.com"], "example.com")
     ).toEqual(["docs.example.com", "example.com"]);
+  });
+
+  test("collapses www and apex into one option", () => {
+    expect(
+      trafficHostSelectOptions(["www.example.com", "example.com"], "")
+    ).toEqual(["example.com"]);
   });
 });

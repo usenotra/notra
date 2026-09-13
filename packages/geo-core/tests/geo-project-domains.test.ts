@@ -51,6 +51,21 @@ describe("extraProjectDomains", () => {
   test("keeps extras when no brand host is set", () => {
     expect(extraProjectDomains(["example.com"], null)).toEqual(["example.com"]);
   });
+
+  test("drops the brand first, then caps extras at 20", () => {
+    const extras = Array.from(
+      { length: 20 },
+      (_, index) => `extra-${index}.example.com`
+    );
+    const result = extraProjectDomains(
+      ["brand.example.com", ...extras],
+      "brand.example.com"
+    );
+    expect(result).toHaveLength(20);
+    expect(result).not.toContain("brand.example.com");
+    expect(result[0]).toBe("extra-0.example.com");
+    expect(result.at(-1)).toBe("extra-19.example.com");
+  });
 });
 
 describe("normalizeProjectDomains", () => {
@@ -203,5 +218,11 @@ describe("unionTrafficHosts", () => {
     expect(
       unionTrafficHosts(["docs.example.com", "example.com"], ["example.com"])
     ).toEqual(["docs.example.com", "example.com"]);
+  });
+
+  test("collapses www and apex into one host", () => {
+    expect(unionTrafficHosts(["www.example.com"], ["example.com"])).toEqual([
+      "example.com",
+    ]);
   });
 });

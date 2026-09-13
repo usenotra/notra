@@ -46,12 +46,14 @@ export function extraProjectDomains(
   brandHost: string | null | undefined,
   max = GEO_MAX_DOMAINS
 ): string[] {
-  const extras = normalizeProjectDomains(values, max);
   const brand = brandHost ? normalizeProjectDomain(brandHost) : null;
   if (!brand) {
-    return extras;
+    return normalizeProjectDomains(values, max);
   }
-  return extras.filter((domain) => domain !== brand);
+  return normalizeProjectDomains(
+    values.filter((value) => normalizeProjectDomain(value) !== brand),
+    max
+  );
 }
 
 export function normalizeProjectDomains(
@@ -108,11 +110,11 @@ export function unionTrafficHosts(
 ): string[] {
   const unique = new Set<string>();
   for (const host of [...configured, ...observed]) {
-    const trimmed = host.trim();
-    if (trimmed.length === 0 || trimmed === "all") {
+    const canonical = trafficLogHostFilter(host);
+    if (canonical.length === 0) {
       continue;
     }
-    unique.add(trimmed);
+    unique.add(canonical);
   }
   return [...unique].toSorted((left, right) => left.localeCompare(right));
 }

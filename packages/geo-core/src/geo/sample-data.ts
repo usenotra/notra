@@ -85,6 +85,7 @@ const SAMPLE_TRAFFIC_HOSTS = [
   "app.example.com",
 ] as const;
 const SAMPLE_TRAFFIC_EXTRA_DOMAINS = [
+  "www.example.com",
   "docs.example.com",
   "app.example.com",
 ] as const;

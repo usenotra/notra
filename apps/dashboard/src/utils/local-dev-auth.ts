@@ -131,6 +131,8 @@ export function evaluateLocalDevAuth(
   if (!localDevAuthEmail(options?.email)) {
     return { kind: "blocked", reason: "missing_email" };
   }
+  // NextRequest no longer exposes a trusted peer IP. `next dev` binds to
+  // 127.0.0.1 so LAN clients cannot connect and spoof Host: localhost.
   const host = headers?.get("host") ?? null;
   if (!requestHostIsLoopback(host) || requestLooksPubliclyExposed(headers)) {
     return { kind: "blocked", reason: "non_loopback" };

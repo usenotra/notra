@@ -67,6 +67,7 @@ export function TrafficPagesCard({
     hostQuery === GEO_TRAFFIC_HOST_ALL ? "" : hostQuery.trim();
   const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
   const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
+  const hasActiveFilter = appliedHost.length > 0 || pathQuery.trim().length > 0;
   const filteredGroups = filterTrafficPageGroupsByHost(
     filterTrafficPageGroups(groups, pathQuery),
     appliedHost
@@ -135,7 +136,7 @@ export function TrafficPagesCard({
   let body: ReactNode;
   if (isPending) {
     body = <GeoTableSkeleton rows={PAGE_SKELETON_ROWS} />;
-  } else if (groups.length === 0) {
+  } else if (groups.length === 0 && !hasActiveFilter) {
     body = (
       <InstrumentEmpty
         message="No AI visits captured yet"

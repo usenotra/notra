@@ -19,7 +19,15 @@ export async function isSessionBanned(): Promise<boolean> {
   try {
     const headerList = await headers();
     if (evaluateLocalDevAuth(headerList).kind === "allowed") {
-      return false;
+      const email = process.env.DEV_AUTH_EMAIL?.trim();
+      if (!email) {
+        return false;
+      }
+      const localUser = await db.query.users.findFirst({
+        where: eq(users.email, email),
+        columns: { banned: true, banExpires: true },
+      });
+      return localUser ? isUserBanned(localUser) : false;
     }
   } catch {
     // Outside a request, fall through to AuthKit.

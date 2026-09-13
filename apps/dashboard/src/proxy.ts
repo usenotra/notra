@@ -8,6 +8,9 @@ import {
 } from "@/utils/local-dev-auth";
 
 function localDevProxy(request: NextRequest) {
+  // NextRequest has no trusted peer IP. Host and forwarding headers are
+  // spoofable, so `next dev` binds to 127.0.0.1 and this gate only allows
+  // loopback Host without public forwarding headers.
   const gate = evaluateLocalDevAuth(request.headers);
   if (gate.kind === "allowed") {
     return NextResponse.next();

@@ -4,6 +4,7 @@ import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
 import {
   formatTrafficLocation,
   matchesProjectHost,
+  trafficLogHostFilter,
 } from "@notra/geo-core/utils/geo-project-domains";
 
 import type { GeoTrafficPageGroup, GeoTrafficPageSource } from "@/types/geo";
@@ -120,8 +121,9 @@ export function trafficHostsFromPages(
 ): string[] {
   const hostSet = new Set<string>();
   for (const page of pages) {
-    if (page.host.length > 0) {
-      hostSet.add(page.host);
+    const host = trafficLogHostFilter(page.host);
+    if (host.length > 0) {
+      hostSet.add(host);
     }
   }
   return [...hostSet].toSorted((left, right) => left.localeCompare(right));
@@ -131,15 +133,15 @@ export function trafficHostSelectOptions(
   hosts: readonly string[],
   selected: string
 ): string[] {
-  const selectedHost = selected.trim();
-  const unique = new Set(
-    hosts.filter((host) => host.length > 0 && host !== GEO_TRAFFIC_HOST_ALL)
-  );
-  if (
-    selectedHost.length > 0 &&
-    selectedHost !== GEO_TRAFFIC_HOST_ALL &&
-    !unique.has(selectedHost)
-  ) {
+  const selectedHost = trafficLogHostFilter(selected);
+  const unique = new Set<string>();
+  for (const host of hosts) {
+    const canonical = trafficLogHostFilter(host);
+    if (canonical.length > 0 && canonical !== GEO_TRAFFIC_HOST_ALL) {
+      unique.add(canonical);
+    }
+  }
+  if (selectedHost.length > 0 && selectedHost !== GEO_TRAFFIC_HOST_ALL) {
     unique.add(selectedHost);
   }
   return [...unique].toSorted((left, right) => left.localeCompare(right));
