@@ -201,6 +201,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
             band="cited"
             collapsed={collapsed.has("cited")}
             columns={columns}
+            followedByStack={!collapsed.has("ai_referral")}
             groups={citedGroups}
             onToggle={() => toggleCollapsed("cited")}
             stacked
