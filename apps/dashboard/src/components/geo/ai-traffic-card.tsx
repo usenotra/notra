@@ -14,6 +14,7 @@ import {
   sparklineTrend,
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
+import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 import { useMemo, useState } from "react";
 
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
@@ -37,6 +38,11 @@ import {
   groupTrafficSources,
   trafficGroupKey,
 } from "@/utils/ai-traffic-groups";
+
+const MOBILE_HIDDEN_SOURCE_COLUMN_KEYS = new Set([
+  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
+  "lastSeenAt",
+]);
 
 export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
   const { sources, totals, points, previousConversions } =
@@ -64,13 +70,18 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       return next;
     });
   const crawlersCollapsed = collapsed.has("crawler");
+  const isMobile = useIsMobile();
   const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
   const canSparkline = hasTrafficSourceSeries(points);
-  const seriesByGroup = new Map<string, { day: string; value: number }[]>();
-  if (canSparkline) {
+  const seriesByGroup = useMemo(() => {
+    const map = new Map<string, { day: string; value: number }[]>();
+    if (!canSparkline) {
+      return map;
+    }
+
     for (const group of groups) {
       const values = buildTrafficGroupSeries(points, group, sparklineDays);
-      seriesByGroup.set(
+      map.set(
         trafficGroupKey(group.band, group.key),
         sparklineDays.map((day, index) => ({
           day,
@@ -78,91 +89,103 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         }))
       );
     }
-  }
 
-  const columns: TableColumn<GeoTrafficSourceGroup>[] = [
-    {
-      key: "source",
-      header: "Source",
-      width: "1fr",
-      sortable: true,
-      cell: (row) => <TrafficSourceGroupCell group={row} />,
-      sortValue: (row) => row.label,
-    },
-    {
-      key: "category",
-      header: "Purpose",
-      width: "9.5rem",
-      sortable: true,
-      cell: (row) => <TrafficPurposeCell group={row} />,
-      sortValue: (row) => row.categories.join(","),
-    },
-    {
-      key: "visits",
-      header: "Visits",
-      width: "10.5rem",
-      sortable: true,
-      cell: (row) => {
-        const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
-        const showSpark =
-          series !== undefined && series.length >= GEO_SPARKLINE_MIN_POINTS;
+    return map;
+  }, [canSparkline, groups, points, sparklineDays]);
 
-        return (
-          <span className="flex items-center gap-2">
-            {showSpark ? (
-              <GeoRateSparkline
-                className={GEO_SPARKLINE_TREND_CLASS[sparklineTrend(series)]}
-                label={`${row.label} visit trend`}
-                points={series}
-              />
-            ) : null}
-            <span className="text-sm tabular-nums">
-              {row.visits.toLocaleString()}
+  const columns = useMemo<TableColumn<GeoTrafficSourceGroup>[]>(() => {
+    const next: TableColumn<GeoTrafficSourceGroup>[] = [
+      {
+        key: "source",
+        header: "Source",
+        width: "1fr",
+        sortable: true,
+        cell: (row) => <TrafficSourceGroupCell group={row} />,
+        sortValue: (row) => row.label,
+      },
+      {
+        key: "category",
+        header: "Purpose",
+        width: isMobile ? "8rem" : "9.5rem",
+        sortable: true,
+        cell: (row) => <TrafficPurposeCell group={row} />,
+        sortValue: (row) => row.categories.join(","),
+      },
+      {
+        key: "visits",
+        header: "Visits",
+        width: isMobile ? "7.5rem" : "10.5rem",
+        sortable: true,
+        cell: (row) => {
+          const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
+          const showSpark =
+            series !== undefined && series.length >= GEO_SPARKLINE_MIN_POINTS;
+
+          return (
+            <span className="flex items-center gap-2">
+              {showSpark ? (
+                <GeoRateSparkline
+                  className={GEO_SPARKLINE_TREND_CLASS[sparklineTrend(series)]}
+                  label={`${row.label} visit trend`}
+                  points={series}
+                />
+              ) : null}
+              <span className="text-sm tabular-nums">
+                {row.visits.toLocaleString()}
+              </span>
             </span>
-          </span>
-        );
+          );
+        },
       },
-    },
-    {
-      key: GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
-      header: "Markdown",
-      width: "8.5rem",
-      minWidth: "8.5rem",
-      sortable: true,
-      cell: (row) => {
-        if (row.markdownVisits <= 0) {
-          return <span className="tabular-nums">-</span>;
-        }
+      {
+        key: GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
+        header: "Markdown",
+        width: "8.5rem",
+        minWidth: "8.5rem",
+        sortable: true,
+        cell: (row) => {
+          if (row.markdownVisits <= 0) {
+            return <span className="tabular-nums">-</span>;
+          }
 
-        return (
-          <TrafficMarkdownCell
-            markdownVisits={row.markdownVisits}
-            visits={row.visits}
-          />
-        );
+          return (
+            <TrafficMarkdownCell
+              markdownVisits={row.markdownVisits}
+              visits={row.visits}
+            />
+          );
+        },
+        sortValue: (row) =>
+          row.visits === 0 ? 0 : row.markdownVisits / row.visits,
       },
-      sortValue: (row) =>
-        row.visits === 0 ? 0 : row.markdownVisits / row.visits,
-    },
-    {
-      key: "paths",
-      header: "Pages",
-      width: "5.625rem",
-      sortable: true,
-      cell: (row) => <span className="text-sm tabular-nums">{row.paths}</span>,
-    },
-    {
-      key: "lastSeenAt",
-      header: "Last seen",
-      width: "9.375rem",
-      sortable: true,
-      cell: (row) => (
-        <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt)}
-        </span>
-      ),
-    },
-  ];
+      {
+        key: "paths",
+        header: "Pages",
+        width: isMobile ? "4.5rem" : "5.625rem",
+        sortable: true,
+        cell: (row) => (
+          <span className="text-sm tabular-nums">{row.paths}</span>
+        ),
+      },
+      {
+        key: "lastSeenAt",
+        header: "Last seen",
+        width: "9.375rem",
+        sortable: true,
+        cell: (row) => (
+          <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
+            {formatAiTrafficTimestamp(row.lastSeenAt)}
+          </span>
+        ),
+      },
+    ];
+
+    return isMobile
+      ? next.filter(
+          (column) => !MOBILE_HIDDEN_SOURCE_COLUMN_KEYS.has(column.key)
+        )
+      : next;
+  }, [isMobile, seriesByGroup]);
 
   if (sources.length === 0) {
     return (
@@ -186,7 +209,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         totals={totals}
       />
       <InstrumentSection eyebrow="Sources">
-        <div className="border-border rounded-2xl border">
+        <div className="border-border min-w-0 rounded-2xl border">
           <TrafficSourcesGroup
             band="crawler"
             collapsed={crawlersCollapsed}

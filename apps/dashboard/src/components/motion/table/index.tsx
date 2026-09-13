@@ -251,16 +251,16 @@ export function Table<T>({
       </TableHeaderSurface>
       <div
         className={cn(
-          "scrollbar-floating border-border bg-background relative -mt-5 box-content outline-none",
+          "scrollbar-floating border-border bg-background relative box-content outline-none",
           embedded
             ? cn(
-                "z-0 rounded-2xl border border-x-0",
+                "relative z-0 -mt-5 rounded-2xl border border-x-0",
                 flushBottom && !footer
                   ? "rounded-b-none border-b-0"
-                  : "rounded-b-2xl"
+                  : "rounded-b-2xl border-b-0"
               )
             : cn(
-                "rounded-2xl border",
+                "-mt-5 rounded-2xl border",
                 flushBottom && !footer && "rounded-b-none border-b-0"
               ),
           isEmpty ? "overflow-hidden" : overflowClass
