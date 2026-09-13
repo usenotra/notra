@@ -27,3 +27,12 @@ export async function addActiveGeneration(
   pipeline.expire(key, ACTIVE_TTL_SECONDS);
   await pipeline.exec();
 }
+
+export async function removeActiveGeneration(
+  redis: Redis,
+  organizationId: string,
+  runId: string
+) {
+  const key = getActiveKey(organizationId);
+  await redis.hdel(key, runId);
+}

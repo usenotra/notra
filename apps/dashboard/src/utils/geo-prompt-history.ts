@@ -6,7 +6,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type {
   GeoPromptHistoryCheck,
-  GeoPromptResult,
   GeoPromptResultSummary,
 } from "@notra/geo-core/types/geo";
 
@@ -140,33 +139,6 @@ export function promptHistoryChangeText(
   return sentences.join(" ");
 }
 
-/** Shapes a history check like a prompt result so the answer thread can render it. */
-export function promptResultFromHistoryCheck(
-  check: GeoPromptHistoryCheck,
-  promptId: string,
-  prompt: string
-): GeoPromptResult {
-  return {
-    promptId,
-    engine: check.engine,
-    prompt,
-    answer: check.answer,
-    mentioned: check.mentioned,
-    position: check.position,
-    sentiment: check.sentiment,
-    competitors: check.competitors,
-    excerpt: check.excerpt,
-    searchQueries: check.searchQueries,
-    sources: check.sources,
-    finishReason: null,
-    promptTokens: null,
-    outputTokens: null,
-    reasoningTokens: null,
-    truncated: null,
-    lastCheckedAt: check.capturedAt,
-  };
-}
-
 export function latestPromptResults(
   results: readonly GeoPromptResultSummary[],
   checks: readonly GeoPromptHistoryCheck[],
@@ -183,6 +155,7 @@ export function latestPromptResults(
         prompt,
         engine: check.engine,
         mentioned: check.mentioned,
+        ownedSourceCited: check.ownedSourceCited,
         position: check.position,
         sentiment: check.sentiment,
         competitors: check.competitors,
@@ -200,8 +173,17 @@ export function promptSentimentLabel(sentiment: string | null): string {
   return GEO_SENTIMENT_LABELS[sentiment] ?? sentiment;
 }
 
-export function promptOutcomeLabel(mentioned: boolean): string {
-  return mentioned
-    ? GEO_PROMPT_RECEIPT_LABELS.mentioned
+export function promptOutcomeLabel(
+  mentioned: boolean,
+  ownedSourceCited = false
+): string {
+  if (mentioned && ownedSourceCited) {
+    return GEO_PROMPT_RECEIPT_LABELS.mentionedAndCited;
+  }
+  if (mentioned) {
+    return GEO_PROMPT_RECEIPT_LABELS.mentioned;
+  }
+  return ownedSourceCited
+    ? GEO_PROMPT_RECEIPT_LABELS.cited
     : GEO_PROMPT_RECEIPT_LABELS.notMentioned;
 }

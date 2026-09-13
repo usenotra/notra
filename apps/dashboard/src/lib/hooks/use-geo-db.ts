@@ -2,20 +2,35 @@
 
 import type {
   GeoCompetitor,
+  GeoProject,
   GeoPromptSequence,
   GeoScopeInput,
   GeoTrackedPrompt,
 } from "@notra/geo-core/types/geo";
 import { mergePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import type { Transaction } from "@tanstack/react-db";
-import { useDbClient, useLiveQuery } from "@tanstack/react-db";
-import { useCallback, useSyncExternalStore } from "react";
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  not,
+  or,
+  useDbClient,
+  useLiveQuery,
+} from "@tanstack/react-db";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
+  GEO_PROJECT_CREATE_TIMEOUT_MS,
+  GeoProjectCreateTimeoutError,
+} from "@/constants/geo-projects";
+import {
   geoCollectionId,
   geoCompetitorsCollection,
+  geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
   geoShelfCollection,
@@ -23,19 +38,34 @@ import {
   subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
 import {
+  abandonProjectCreateHandoff,
+  waitForProjectCreateHandoff,
+} from "@/lib/db/geo-project-create-handoff";
+import {
+  clearPendingDeleteSnapshot,
+  getPendingDeleteSnapshots,
+  rememberPendingDeleteSnapshot,
+  subscribeToPendingDeleteSnapshots,
+} from "@/lib/db/geo-project-pending-deletes";
+import {
   clearRowPending,
   getPendingRows,
   markRowPending,
   subscribeToPendingRows,
 } from "@/lib/db/pending-rows";
+import type { GeoProjectCreateInput } from "@/types/geo";
 import type {
   GeoShelfDbApi,
+  GeoShelfFilterState,
+  GeoShelfMember,
   GeoShelfOpportunityWrite,
   GeoShelfPlacementStatus,
   GeoShelfSource,
 } from "@/types/geo-shelf";
 import { toErrorMessage } from "@/utils/error-message";
+import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 import { mergeShelfOpportunity } from "@/utils/geo-shelf";
+import { matchesGeoShelfSourceFilters } from "@/utils/geo-shelf-live-query";
 
 /**
  * Dialogs that stay mounted while closed pass `enabled: false` so the collection
@@ -159,6 +189,133 @@ export function useGeoPromptsDb(
   };
 }
 
+export function useGeoProjectsDb(
+  organizationId: string,
+  options?: GeoDbOptions
+) {
+  const isEnabled = options?.enabled ?? true;
+  const scope = { organizationId };
+  const collectionId = geoCollectionId("projects", scope);
+  const dbClient = useDbClient();
+  const definition = geoProjectsCollection(scope);
+  const collection = dbClient.collection(definition);
+  const { pendingIds, track } = usePendingRows("projects", scope);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const pendingDeleteSnapshots = useSyncExternalStore(
+    subscribeToPendingDeleteSnapshots,
+    () => getPendingDeleteSnapshots(collectionId),
+    () => getPendingDeleteSnapshots(collectionId)
+  );
+
+  const { data, isLoading, isError, isReady } = useLiveQuery(
+    (q) =>
+      isEnabled && organizationId
+        ? q
+            .from({ project: definition })
+            .orderBy(({ project }) => project.createdAt, "asc")
+            .orderBy(({ project }) => project.id, "asc")
+        : undefined,
+    [definition, isEnabled, organizationId]
+  );
+
+  const projects = useMemo(() => {
+    const merged = new Map<string, GeoProject>();
+    for (const project of data ?? []) {
+      merged.set(project.id, project);
+    }
+    for (const [projectId, snapshot] of pendingDeleteSnapshots) {
+      if (!merged.has(projectId)) {
+        merged.set(projectId, snapshot);
+      }
+    }
+    return sortGeoProjectsOldestFirst([...merged.values()]);
+  }, [data, pendingDeleteSnapshots]);
+
+  const createProject = async (
+    input: GeoProjectCreateInput
+  ): Promise<GeoProject> => {
+    const trimmedName = input.name.trim();
+    const tempId = crypto.randomUUID();
+    setIsCreating(true);
+    const transaction = collection.insert({
+      id: tempId,
+      name: trimmedName,
+      brandSettingsId: input.brandSettingsId,
+      createdAt: new Date().toISOString(),
+    });
+    const createdPromise = waitForProjectCreateHandoff(transaction.id);
+    void createdPromise.catch(() => undefined);
+    track(tempId, transaction, "Failed to create project");
+
+    let persistError: unknown;
+    await Promise.race([
+      transaction.isPersisted.promise,
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new GeoProjectCreateTimeoutError()),
+          GEO_PROJECT_CREATE_TIMEOUT_MS
+        );
+      }),
+    ])
+      .catch((error: unknown) => {
+        persistError = error;
+      })
+      .finally(() => {
+        abandonProjectCreateHandoff(transaction.id);
+        setIsCreating(false);
+      });
+
+    if (persistError) {
+      if (persistError instanceof GeoProjectCreateTimeoutError) {
+        toast.error(toErrorMessage(persistError, "Failed to create project"));
+      }
+      throw persistError;
+    }
+
+    const created = await createdPromise.catch(() => null);
+    if (!created) {
+      const error = new Error("Failed to resolve created project");
+      toast.error(toErrorMessage(error, "Failed to create project"));
+      throw error;
+    }
+
+    toast.success("Project created");
+    return created;
+  };
+
+  const deleteProject = async (projectId: string) => {
+    const snapshot = projects.find((project) => project.id === projectId);
+    if (snapshot) {
+      rememberPendingDeleteSnapshot(collectionId, snapshot);
+    }
+
+    setIsDeleting(true);
+    const transaction = collection.delete(projectId);
+    track(projectId, transaction, "Failed to delete project");
+    await transaction.isPersisted.promise
+      .then(() => {
+        toast.success("Project deleted");
+      })
+      .finally(() => {
+        clearPendingDeleteSnapshot(collectionId, projectId);
+        setIsDeleting(false);
+      });
+  };
+
+  return {
+    projects,
+    isLoading,
+    isError,
+    isReady,
+    pendingProjectIds: pendingIds,
+    isCreating,
+    isDeleting,
+    createProject,
+    deleteProject,
+  };
+}
+
 export function useGeoCompetitorsDb(
   organizationId: string,
   options?: GeoDbOptions
@@ -270,6 +427,94 @@ export function useGeoSequencesDb(
     addSequence,
     updateSequence,
     removeSequence,
+  };
+}
+
+export function useGeoShelfFilteredSourcesDb(
+  organizationId: string,
+  input: {
+    filters: GeoShelfFilterState;
+    members: readonly GeoShelfMember[];
+    competitors: readonly GeoCompetitor[];
+    enabled?: boolean;
+  }
+) {
+  const isEnabled = input.enabled ?? true;
+  const { projectId } = useGeoProjectScope();
+  const shelfDefinition = geoShelfCollection({ organizationId, projectId });
+
+  const { data, isLoading } = useLiveQuery(
+    (q) => {
+      if (!isEnabled) {
+        return undefined;
+      }
+
+      return q
+        .from({ shelf: shelfDefinition })
+        .where(({ shelf }) => {
+          switch (input.filters.ticket) {
+            case "open":
+              return eq(shelf.opportunity?.status, "open");
+            case "in_progress":
+              return eq(shelf.opportunity?.status, "in_progress");
+            case "closed":
+              return and(
+                not(isNull(shelf.opportunity)),
+                inArray(shelf.opportunity?.status, ["won", "lost", "dismissed"])
+              );
+            case "unassigned":
+              return and(
+                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
+                isNull(shelf.opportunity?.assigneeMemberId)
+              );
+            case "mine":
+              if (!input.filters.currentMemberId) {
+                return eq(1, 0);
+              }
+              return and(
+                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
+                or(
+                  eq(
+                    shelf.opportunity?.assigneeMemberId,
+                    input.filters.currentMemberId
+                  ),
+                  eq(
+                    shelf.opportunity?.pocMemberId,
+                    input.filters.currentMemberId
+                  )
+                )
+              );
+            default:
+              return eq(1, 1);
+          }
+        })
+        .fn.where((row) =>
+          matchesGeoShelfSourceFilters(
+            row.shelf,
+            input.filters,
+            input.members,
+            input.competitors
+          )
+        )
+        .select(({ shelf }) => shelf);
+    },
+    [
+      shelfDefinition,
+      isEnabled,
+      input.filters.search,
+      input.filters.shelf,
+      input.filters.ticket,
+      input.filters.currentMemberId,
+      input.members,
+      input.competitors,
+    ]
+  );
+
+  const sources: GeoShelfSource[] = data ?? [];
+
+  return {
+    sources,
+    isLoading,
   };
 }
 

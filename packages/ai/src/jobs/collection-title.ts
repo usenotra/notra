@@ -5,7 +5,7 @@ import {
   COLLECTION_TITLE_MODEL_ID,
 } from "@notra/ai/constants/collection-title";
 import { gateway } from "@notra/ai/gateway";
-import { withGatewayAutomaticCaching } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import {
   COLLECTION_TITLE_MAX_LENGTH,
   collectionTitleResultSchema,
@@ -119,7 +119,7 @@ export async function generateCollectionTitle(
     schema: collectionTitleResultSchema,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
-    providerOptions: withGatewayAutomaticCaching(undefined, {
+    providerOptions: withRouterDefaults(undefined, {
       modelId: COLLECTION_TITLE_MODEL_ID,
     }),
     experimental_telemetry: buildExperimentalTelemetry({

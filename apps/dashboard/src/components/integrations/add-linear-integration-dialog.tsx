@@ -17,7 +17,7 @@ import { isValidElement, useState } from "react";
 
 import { Button } from "@/components/button";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 
 interface AddLinearIntegrationDialogProps {
   authorizeUrl: string;
@@ -72,10 +72,11 @@ export function AddLinearIntegrationDialog({
           </ResponsiveDialogClose>
           <Button
             onClick={() => {
-              trackEvent(POSTHOG_EVENTS.INTEGRATION_CONNECT_STARTED, {
+              void flushTrackEvent(POSTHOG_EVENTS.INTEGRATION_CONNECT_STARTED, {
                 provider: INTEGRATION_PROVIDERS.LINEAR,
+              }).finally(() => {
+                window.location.href = authorizeUrl;
               });
-              window.location.href = authorizeUrl;
             }}
           >
             Add Integration

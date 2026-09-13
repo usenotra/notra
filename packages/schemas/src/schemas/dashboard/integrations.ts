@@ -4,6 +4,7 @@ import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organiz
 import * as z from "zod";
 
 import {
+  GITHUB_CONTENT_PATH_MAX_LENGTH,
   GITHUB_PATH_INVALID_CHARACTERS_REGEX,
   GITHUB_PUBLISH_CONTENT_TYPES,
   GITHUB_URL_PATTERNS,
@@ -272,8 +273,54 @@ export const repositoryContentDirectorySchema = z
     "Directory contains an invalid segment"
   );
 
+export const repositoryRelativePathSchema = z
+  .string()
+  .trim()
+  .min(1, "File path is required")
+  .max(GITHUB_CONTENT_PATH_MAX_LENGTH, "File path is too long")
+  .refine((path) => !path.startsWith("/"), "Enter a repository-relative path")
+  .refine((path) => !path.endsWith("/"), "File path must include a file name")
+  .refine((path) => !path.includes("\\"), "Use forward slashes in file paths")
+  .refine(
+    (path) => !GITHUB_PATH_INVALID_CHARACTERS_REGEX.test(path),
+    "File path contains invalid characters"
+  )
+  .refine(
+    (path) =>
+      path
+        .split("/")
+        .every((segment) => segment && segment !== "." && segment !== ".."),
+    "File path contains an invalid segment"
+  );
+
+/** A single content file, e.g. the custom path chosen when publishing one post. */
+export const repositoryContentFilePathSchema =
+  repositoryRelativePathSchema.refine(
+    (path) => /\.(?:md|mdx)$/i.test(path),
+    "Content path must end in .md or .mdx"
+  );
+
+/**
+ * Templates apply to every post, so they need `:slug` to keep posts from
+ * resolving to the same repository file.
+ */
+export const repositoryContentPathTemplateSchema =
+  repositoryContentFilePathSchema.refine(
+    (path) => path.includes(":slug"),
+    "Content path must include :slug"
+  );
+
+export const repositoryImagePathTemplateSchema = repositoryRelativePathSchema
+  .refine((path) => path.includes(":slug"), "Image path must include :slug")
+  .refine(
+    (path) => !(path.split("/").at(-1) ?? "").includes("."),
+    "Leave out the file extension; it follows the source image"
+  );
+
 export const repositoryContentDirectoryConfigSchema = z.looseObject({
-  directory: repositoryContentDirectorySchema,
+  directory: repositoryContentDirectorySchema.optional(),
+  contentPath: repositoryContentPathTemplateSchema.nullable().optional(),
+  imagePath: repositoryImagePathTemplateSchema.nullable().optional(),
 });
 
 export const repositoryContentDirectoryInputSchema = z.object({
@@ -281,9 +328,19 @@ export const repositoryContentDirectoryInputSchema = z.object({
 });
 
 export const updateRepositoryContentDirectoryBodySchema =
-  repositoryContentDirectoryInputSchema.extend({
-    directory: repositoryContentDirectorySchema,
-  });
+  repositoryContentDirectoryInputSchema
+    .extend({
+      directory: repositoryContentDirectorySchema.optional(),
+      contentPath: repositoryContentPathTemplateSchema.nullable().optional(),
+      imagePath: repositoryImagePathTemplateSchema.nullable().optional(),
+    })
+    .refine(
+      (value) =>
+        value.directory !== undefined ||
+        value.contentPath !== undefined ||
+        value.imagePath !== undefined,
+      "At least one publishing path must be provided"
+    );
 
 export const listRepositoryDirectoriesInputSchema = z.object({
   directory: repositoryContentDirectorySchema.default(""),

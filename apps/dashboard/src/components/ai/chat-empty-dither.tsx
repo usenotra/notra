@@ -90,7 +90,7 @@ export function ChatEmptyDither({ className }: ChatEmptyDitherProps) {
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,transparent_88%)]",
+        "pointer-events-none absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,transparent_88%)] opacity-60",
         className
       )}
     >

@@ -12,10 +12,26 @@ import {
   dashboardAgentChatSessionsPath,
   dashboardAgentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@notra/ui/components/shared/responsive-dialog";
+import { cn } from "@notra/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
@@ -28,6 +44,7 @@ import { DASHBOARD_AGENT_SUGGESTIONS } from "@/constants/chat-suggestions";
 import {
   DASHBOARD_AGENT_CHAT_ERROR_TOAST,
   DASHBOARD_AGENT_CHAT_PLACEHOLDER,
+  DASHBOARD_AGENT_STOP_ERROR_TOAST,
   DASHBOARD_AGENT_TITLE,
 } from "@/constants/dashboard-agent";
 import { localStorageKeys } from "@/constants/storage";
@@ -36,9 +53,22 @@ import { useActiveProject } from "@/lib/hooks/use-active-project";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
+function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia("(min-width: 64rem)");
+  mediaQuery.addEventListener("change", onStoreChange);
+
+  return () => mediaQuery.removeEventListener("change", onStoreChange);
+}
+
+const getDesktopBreakpointSnapshot = () =>
+  window.matchMedia("(min-width: 64rem)").matches;
+const getServerDesktopBreakpointSnapshot = () => false;
+
 function DashboardAgentChat({
+  hasOpened,
   organizationId,
   organizationSlug,
   onClose,
@@ -46,6 +76,13 @@ function DashboardAgentChat({
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { active, expanded } = useRightPanel();
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktopBreakpoint,
+    getDesktopBreakpointSnapshot,
+    getServerDesktopBreakpointSnapshot
+  );
+  const open = active === "agent";
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState(() => crypto.randomUUID());
@@ -74,6 +111,7 @@ function DashboardAgentChat({
       }
       return parsed.data.sessions ?? [];
     },
+    enabled: hasOpened,
     staleTime: 60_000,
   });
   const sessions = (sessionsQuery.data ?? []).filter(
@@ -81,19 +119,47 @@ function DashboardAgentChat({
       !session.externalChannelId || session.externalChannelId.source === "agent"
   );
 
-  const transport = new DefaultChatTransport({
-    api: `/api/organizations/${organizationId}/chat`,
-    prepareSendMessagesRequest: ({ messages, body }) => ({
-      body: {
-        ...body,
-        chatId: activeChatId,
-        projectId:
-          isProjectResolved && activeProjectId ? activeProjectId : undefined,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        messages,
-      },
-    }),
-  });
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: `/api/organizations/${organizationId}/chat`,
+        prepareSendMessagesRequest: ({ messages, body }) => ({
+          body: {
+            ...body,
+            chatId: activeChatId,
+            projectId:
+              isProjectResolved && activeProjectId
+                ? activeProjectId
+                : undefined,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            messages,
+            surface: "dashboard-agent",
+          },
+        }),
+        fetch: async (input, init) => {
+          const triggerResponse = await fetch(input, init);
+          if (!triggerResponse.ok) {
+            return triggerResponse;
+          }
+
+          const contentType = triggerResponse.headers.get("content-type") ?? "";
+          if (contentType.includes("text/event-stream")) {
+            return triggerResponse;
+          }
+
+          return fetch(
+            `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stream`,
+            {
+              method: "GET",
+              headers: init?.headers,
+              credentials: init?.credentials,
+              signal: init?.signal,
+            }
+          );
+        },
+      }),
+    [activeChatId, activeProjectId, isProjectResolved, organizationId]
+  );
 
   const {
     messages,
@@ -256,6 +322,28 @@ function DashboardAgentChat({
     await sendMessage({ text: instruction });
   };
 
+  const handleStop = useCallback(async () => {
+    const response = await fetch(
+      `/api/organizations/${organizationId}/chat/${encodeURIComponent(activeChatId)}/stop`,
+      { method: "POST" }
+    ).catch((stopError) => {
+      console.error("Failed to stop dashboard agent response", stopError);
+      return null;
+    });
+
+    if (!response?.ok) {
+      if (response) {
+        console.error(
+          `Failed to stop dashboard agent response: status ${response.status}`
+        );
+      }
+      toast.error(DASHBOARD_AGENT_STOP_ERROR_TOAST);
+      return;
+    }
+
+    stop();
+  }, [activeChatId, organizationId, stop]);
+
   const handleSuggestionSelect = (prompt: string) => {
     setChatInputValue(prompt);
   };
@@ -293,59 +381,103 @@ function DashboardAgentChat({
   const showExamplePrompts =
     messages.length === 0 && !isAgentBusy && !isHydratingHistory;
 
-  return (
-    <ContentChatActivityPanel
-      activeChatId={activeChatId}
-      isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
-      messages={messages}
-      onApproveTool={handleApproveTool}
-      onClose={onClose}
-      onDenyTool={handleDenyTool}
-      onNewChat={handleNewChat}
-      onOpenChat={handleOpenChat}
-      onSelectChat={handleSelectChat}
-      organizationSlug={organizationSlug}
-      showHistory={false}
-      sessions={sessions}
-      status={status}
-      title={DASHBOARD_AGENT_TITLE}
-    >
-      {showExamplePrompts ? (
-        <div className="px-2">
-          <ChatSuggestions
+  const chat = hasOpened ? (
+    <div className="h-full min-h-0 max-w-full min-w-0">
+      <ContentChatActivityPanel
+        activeChatId={activeChatId}
+        isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
+        messages={messages}
+        onApproveTool={handleApproveTool}
+        onClose={onClose}
+        onDenyTool={handleDenyTool}
+        onNewChat={handleNewChat}
+        onOpenChat={handleOpenChat}
+        onSelectChat={handleSelectChat}
+        organizationSlug={organizationSlug}
+        showHistory={false}
+        sessions={sessions}
+        status={status}
+        title={DASHBOARD_AGENT_TITLE}
+      >
+        {showExamplePrompts ? (
+          <div className="px-2">
+            <ChatSuggestions
+              disabled={isChatDisabled}
+              dismissStorageKey={
+                localStorageKeys.dashboardAgentSuggestionsDismissed
+              }
+              hidden={chatInputValue.trim().length > 0}
+              layout="list"
+              onSelect={handleSuggestionSelect}
+              rotate
+              suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+            />
+          </div>
+        ) : null}
+        <div className="shrink-0 p-2 pt-1">
+          <ChatInput
             disabled={isChatDisabled}
-            dismissStorageKey={
-              localStorageKeys.dashboardAgentSuggestionsDismissed
+            error={chatError}
+            isLoading={isAgentBusy}
+            onClearError={() => setChatError(null)}
+            onSend={handleSend}
+            onStop={handleStop}
+            onValueChange={setChatInputValue}
+            organizationId={organizationId}
+            organizationSlug={
+              chatError && chatError !== CHAT_USAGE_LIMIT_MESSAGE
+                ? ""
+                : organizationSlug
             }
-            hidden={chatInputValue.trim().length > 0}
-            layout="list"
-            onSelect={handleSuggestionSelect}
-            rotate
-            suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+            placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
+            value={chatInputValue}
           />
         </div>
-      ) : null}
-      <div className="shrink-0 p-2 pt-1">
-        <ChatInput
-          disabled={isChatDisabled}
-          error={chatError}
-          isLoading={isAgentBusy}
-          onClearError={() => setChatError(null)}
-          onSend={handleSend}
-          onStop={stop}
-          onValueChange={setChatInputValue}
-          organizationId={organizationId}
-          organizationSlug={organizationSlug}
-          placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
-          value={chatInputValue}
-        />
-      </div>
-    </ContentChatActivityPanel>
+      </ContentChatActivityPanel>
+    </div>
+  ) : null;
+
+  if (isDesktop) {
+    return <RightPanel id="agent">{chat}</RightPanel>;
+  }
+
+  return (
+    <ResponsiveDialog
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          onClose();
+        }
+      }}
+      open={open}
+    >
+      <ResponsiveDialogContent
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          expanded
+            ? "h-svh max-h-svh max-w-none rounded-none sm:max-w-none"
+            : "h-[85svh] max-h-[85svh] sm:max-w-md"
+        )}
+        drawerClassName={cn(
+          "[&>*:not([data-slot=sheet-header]):not([data-slot=sheet-footer]):not([data-slot=sheet-close])]:px-0",
+          expanded && "h-svh max-h-svh rounded-none"
+        )}
+        keepMounted
+        showCloseButton={false}
+      >
+        <ResponsiveDialogHeader className="sr-only">
+          <ResponsiveDialogTitle>{DASHBOARD_AGENT_TITLE}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Chat with your dashboard agent.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        {chat}
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
 
 export function DashboardAgentHost() {
-  const { closePanel } = useRightPanel();
+  const { closePanel, hasOpened } = useRightPanel();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const organizationSlug = activeOrganization?.slug ?? "";
@@ -355,15 +487,12 @@ export function DashboardAgentHost() {
   }
 
   return (
-    <RightPanel id="agent">
-      <div className="h-full min-h-0">
-        <DashboardAgentChat
-          key={organizationId}
-          onClose={() => closePanel("agent")}
-          organizationId={organizationId}
-          organizationSlug={organizationSlug}
-        />
-      </div>
-    </RightPanel>
+    <DashboardAgentChat
+      hasOpened={hasOpened.agent}
+      key={organizationId}
+      onClose={() => closePanel("agent")}
+      organizationId={organizationId}
+      organizationSlug={organizationSlug}
+    />
   );
 }

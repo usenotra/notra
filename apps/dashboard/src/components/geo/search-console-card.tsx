@@ -29,21 +29,21 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Google } from "@notra/ui/components/ui/svgs/google";
-import { type ReactNode, useId, useState } from "react";
+import { type MouseEvent, type ReactNode, useId, useState } from "react";
 
 import { Button } from "@/components/button";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import { trackEvent } from "@/lib/analytics/posthog-client";
+import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import {
   useGscDisconnect,
   useGscSelectSite,
   useGscSites,
   useGscSync,
-  useGeoProjects,
 } from "@/lib/hooks/use-geo";
+import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
   SearchConsoleConnectActionProps,
@@ -59,14 +59,22 @@ import {
   formatGscSiteUrl,
   getGscSiteDomain,
 } from "@/utils/gsc-site-url";
+import { handleTrackedAnchorClick } from "@/utils/tracked-anchor-click";
 
 function buildAuthorizeUrl(organizationId: string, callbackPath: string) {
   const params = new URLSearchParams({ organizationId, callbackPath });
   return `${GSC_OAUTH_AUTHORIZE_PATH}?${params.toString()}`;
 }
 
-function trackConnectStarted(isReconnect: boolean) {
-  trackEvent(POSTHOG_EVENTS.GSC_CONNECT_STARTED, { is_reconnect: isReconnect });
+function onConnectClick(
+  event: MouseEvent<HTMLAnchorElement>,
+  isReconnect: boolean
+) {
+  handleTrackedAnchorClick(event, () =>
+    flushTrackEvent(POSTHOG_EVENTS.GSC_CONNECT_STARTED, {
+      is_reconnect: isReconnect,
+    })
+  );
 }
 
 function HeaderRow({
@@ -131,7 +139,7 @@ function ConnectAction({
       render={
         <a
           href={buildAuthorizeUrl(organizationId, callbackPath)}
-          onClick={() => trackConnectStarted(reauth)}
+          onClick={(event) => onConnectClick(event, reauth)}
         >
           {reauth ? "Reconnect Google" : "Connect Search Console"}
         </a>
@@ -278,7 +286,7 @@ function SelectSiteState({
               render={
                 <a
                   href={buildAuthorizeUrl(organizationId, callbackPath)}
-                  onClick={() => trackConnectStarted(true)}
+                  onClick={(event) => onConnectClick(event, true)}
                 >
                   Reconnect Google
                 </a>
@@ -355,7 +363,7 @@ function ConnectedState({
           render={
             <a
               href={buildAuthorizeUrl(organizationId, callbackPath)}
-              onClick={() => trackConnectStarted(true)}
+              onClick={(event) => onConnectClick(event, true)}
             >
               Reconnect Google
             </a>
@@ -471,10 +479,8 @@ export function SearchConsoleToolbar({
 }: SearchConsoleToolbarProps) {
   const headingId = useId();
   const { projectId } = useGeoProjectScope();
-  const { data: projectsData } = useGeoProjects(organizationId);
+  const { projects } = useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
-
-  const projects = projectsData?.projects ?? [];
   const activeProject =
     projects.find((project) => project.id === projectId) ??
     projects.at(0) ??

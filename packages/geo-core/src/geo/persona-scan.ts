@@ -47,6 +47,7 @@ import {
   resolveGroundedEngines,
 } from "../utils/geo-grounded-engines";
 import { flushGeoLogEffect, geoLogWarn, logGeoSkip } from "../utils/geo-log";
+import { hasOwnedSourceCitation } from "../utils/geo-owned-source";
 import { personaPromptId } from "../utils/geo-personas";
 import { geoSkip } from "./effect";
 import {
@@ -262,6 +263,11 @@ export const runGeoPersonaConversation = Effect.fn(
     messages.push({ role: "assistant", content: answerText });
     transcript.push({ question: next.message, answer: answerText });
     const judged = yield* judgeAnswer(context, next.message, answerText);
+    const ownedSourceCited = hasOwnedSourceCitation(
+      context.websiteUrl,
+      [...answer.grounding.sources, ...answer.sources],
+      context.domains
+    );
 
     rows.push({
       organizationId: context.organizationId,
@@ -277,6 +283,7 @@ export const runGeoPersonaConversation = Effect.fn(
       answer: answerText,
       capturedAt: context.capturedAt,
       mentioned: judged.mentioned,
+      ownedSourceCited,
       position: normalizePosition(judged.position),
       sentiment: judged.sentiment,
       competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),

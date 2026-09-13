@@ -22,10 +22,14 @@ function resolveTimezone(timezone: string | undefined): string {
     return FALLBACK_TIMEZONE;
   }
 
+  return isValidTimezone(timezone) ? timezone : FALLBACK_TIMEZONE;
+}
+
+export function isValidTimezone(timezone: string) {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: timezone });
-    return timezone;
+    return true;
   } catch {
-    return FALLBACK_TIMEZONE;
+    return false;
   }
 }

@@ -59,7 +59,7 @@ export function GeoTagList({
             <span className="truncate">{value}</span>
             <button
               aria-label={`Remove ${value}`}
-              className="hover:bg-background focus-visible:ring-ring flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
+              className="hover:bg-background focus-visible:ring-ring flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 disabled:cursor-not-allowed"
               disabled={disabled}
               onClick={() => onChange(removeValue(values, value))}
               type="button"

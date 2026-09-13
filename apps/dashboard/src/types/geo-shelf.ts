@@ -352,6 +352,8 @@ export interface GeoShelfPageStatusInput {
   isSettingsPending: boolean;
   hasSettings: boolean;
   isShelfLoading: boolean;
+  isFilteredShelfLoading: boolean;
+  isMembersLoading: boolean;
 }
 
 export interface GeoShelfPageEmpty {

@@ -1,11 +1,12 @@
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
 import { gateway } from "@notra/ai/gateway";
-import { withGatewayAutomaticCaching } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import type { ContextDevScrapingResult } from "@notra/ai/types/context-dev";
 import { scrapeWebsiteForBrandAnalysis } from "@notra/ai/utils/context-dev";
 import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
+import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
 import { flushPostHogServer } from "@notra/posthog/server";
 import {
   brandSettingsSchema,
@@ -80,7 +81,7 @@ Extract the following information:
 5. language: The primary language of the website content. Must be one of: ${SUPPORTED_LANGUAGES.join(", ")}`,
       system:
         "You are a brand analyst expert. Your job is to analyze website content and extract key brand identity information. Be thorough but concise. Focus on understanding the company's essence, values, and how they communicate.",
-      providerOptions: withGatewayAutomaticCaching(undefined, {
+      providerOptions: withRouterDefaults(undefined, {
         modelId: "anthropic/claude-sonnet-4.6",
       }),
       experimental_telemetry: buildExperimentalTelemetry({
@@ -144,6 +145,10 @@ export async function saveBrandSettingsFromAnalysis(
         .update(brandSettings)
         .set(brandData)
         .where(eq(brandSettings.id, input.voiceId));
+      await invalidateGeoIngestHostsCacheForBrand(
+        input.organizationId,
+        input.voiceId
+      );
       return;
     }
   }

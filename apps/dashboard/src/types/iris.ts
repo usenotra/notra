@@ -22,14 +22,48 @@ import type { autonomyMandates } from "@notra/db/schema";
 
 export type IrisMandateRow = typeof autonomyMandates.$inferSelect;
 
-export interface IrisRunRowWithRelations extends AutonomyRunRow {
-  goal: AutonomyGoalRow | null;
-  tasks: AutonomyTaskRow[];
-  actions: AutonomyActionRow[];
-  outboxMessages: AutonomyOutboxRow[];
+export interface IrisRunRowWithRelations extends Pick<
+  AutonomyRunRow,
+  | "id"
+  | "trigger"
+  | "status"
+  | "plannerOutput"
+  | "costCents"
+  | "startedAt"
+  | "completedAt"
+> {
+  goal: Pick<AutonomyGoalRow, "id" | "title" | "summary" | "status"> | null;
+  tasks: Pick<
+    AutonomyTaskRow,
+    | "id"
+    | "capabilityName"
+    | "capabilityVersion"
+    | "status"
+    | "attempt"
+    | "errorMessage"
+    | "completedAt"
+    | "result"
+  >[];
+  actions: Pick<
+    AutonomyActionRow,
+    "id" | "capabilityName" | "status" | "finishedAt"
+  >[];
+  outboxMessages: Pick<
+    AutonomyOutboxRow,
+    "id" | "destination" | "status" | "attempts" | "lastError" | "deliveredAt"
+  >[];
 }
 
-export type IrisSignalRow = AutonomySignalRow;
+export type IrisSignalRow = Pick<
+  AutonomySignalRow,
+  | "id"
+  | "source"
+  | "kind"
+  | "status"
+  | "sourceEventId"
+  | "occurredAt"
+  | "processedAt"
+>;
 
 export interface IrisMandateContext {
   mandate: Mandate | null;

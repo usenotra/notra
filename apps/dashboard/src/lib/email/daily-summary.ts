@@ -237,7 +237,8 @@ async function sendDailySummaryForOrganization({
     projectRows.map((project) => [project.id, project.name])
   );
   const includeProjectName = projectIds.length > 1;
-  const allEvents = projectChanges.flatMap((entry) => {
+  const changeEvents = projectChanges.flatMap((entry) => entry?.events ?? []);
+  const summaryItems = projectChanges.flatMap((entry) => {
     if (!entry) {
       return [];
     }
@@ -252,19 +253,23 @@ async function sendDailySummaryForOrganization({
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
+  const hasNewEngine = changeEvents.some(
+    (event) => event.kind === "new_engine"
+  );
   const previousDay = aggregateMentionTotals(previousOverview);
   const changes = mergeChangesSummaries(summaries);
   if (
     isUnchangedDailySummary({
       yesterday,
       previousDay,
-      eventCount: allEvents.length,
+      changes,
+      hasNewEngine,
     })
   ) {
     return "quiet";
   }
 
-  const visibleItems = allEvents.slice(0, DAILY_SUMMARY_MAX_ITEMS);
+  const visibleItems = summaryItems.slice(0, DAILY_SUMMARY_MAX_ITEMS);
   const summary = buildDailySummary({
     windowStart: start,
     scansCompleted: finishedScans.length,
@@ -272,7 +277,7 @@ async function sendDailySummaryForOrganization({
     previousDay,
     changes,
     items: visibleItems,
-    remainingCount: Math.max(allEvents.length - visibleItems.length, 0),
+    remainingCount: Math.max(summaryItems.length - visibleItems.length, 0),
   });
 
   let sent = 0;

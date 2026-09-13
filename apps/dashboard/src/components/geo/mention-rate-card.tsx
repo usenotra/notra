@@ -59,8 +59,9 @@ import type {
 } from "@/types/geo";
 import {
   buildMentionProviderRows,
-  mentionOverviewTotals,
+  engineFamilyMentionTotals,
   mentionStatTrends,
+  visibilityOverviewTotals,
   withTrackedMentionEngines,
 } from "@/utils/geo-charts";
 
@@ -79,14 +80,14 @@ function ProviderRow({
   trackingDisabled,
   tracking,
 }: MentionProviderRowProps) {
-  const { family, totals, mentionDelta, tracked } = row;
+  const { family, totals, visibilityDelta, tracked } = row;
   const name = engineFamilyLabel(family.family);
-  const clickable = totals.mentions > 0;
+  const clickable = totals.visible > 0;
   const buttonProps = {
     "aria-disabled": !clickable,
     "aria-label": clickable
-      ? `Open ${name} mention breakdown`
-      : `${name}, no mentions`,
+      ? `Open ${name} visibility breakdown`
+      : `${name}, no visibility`,
     className: cn(
       "grid w-full grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-1.5 border-b text-left transition-colors",
       clickable ? "hover:bg-muted/50 cursor-pointer" : "cursor-default",
@@ -112,12 +113,12 @@ function ProviderRow({
         <span
           className={cn(
             "text-sm tabular-nums",
-            totals.mentions === 0 && "text-muted-foreground"
+            totals.visible === 0 && "text-muted-foreground"
           )}
         >
-          {totals.mentions.toLocaleString()}
+          {totals.visible.toLocaleString()}
         </span>
-        <GeoStatDelta delta={mentionDelta} label={`${name} mentions`} />
+        <GeoStatDelta delta={visibilityDelta} label={`${name} visibility`} />
       </span>
     </>
   );
@@ -227,17 +228,20 @@ export function MentionRateCard({
     addEngine.isPending && addEngine.variables
       ? engineFamilyOf(addEngine.variables)
       : undefined;
-  const totals = mentionOverviewTotals(
+  const totals = visibilityOverviewTotals(
     withTrackedMentionEngines(engines, trackedEngines)
   );
-  const overviewDelta = mentionStatTrends(timeseriesPoints).mentionDelta;
+  const overviewDelta = mentionStatTrends(timeseriesPoints).visibilityDelta;
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
   const openFamily = (family: GeoEngineFamily) => {
     const row = ranked.find((entry) => entry.family.family === family.family);
+    const mentionTotals = engineFamilyMentionTotals(family);
     trackEvent(POSTHOG_EVENTS.GEO_ENGINE_FAMILY_OPENED, {
       engine_family: family.family,
-      mention_rate: row?.totals.rate ?? null,
-      mentions: row?.totals.mentions ?? null,
+      mention_rate: mentionTotals?.rate ?? null,
+      mentions: mentionTotals?.mentions ?? null,
+      visibility_rate: row?.totals.rate ?? null,
+      visible: row?.totals.visible ?? null,
       tracked: row?.tracked ?? null,
     });
     setSelected(family);
@@ -270,7 +274,7 @@ export function MentionRateCard({
           <div className="flex flex-1 flex-col gap-4">
             <div className="flex items-end gap-2">
               <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {totals.mentions.toLocaleString()}
+                {totals.visible.toLocaleString()}
               </p>
               <GeoStatDelta
                 className="mb-0.5"
@@ -287,7 +291,7 @@ export function MentionRateCard({
               </div>
               <div className="relative">
                 <div
-                  aria-label="Mentions by provider"
+                  aria-label="Visibility by provider"
                   className="border-border focus-visible:ring-ring relative overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
                   ref={ref}
                   role="region"

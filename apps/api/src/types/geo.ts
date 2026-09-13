@@ -7,7 +7,20 @@ import type {
   GeoModelService,
   GeoSearchConsoleService,
 } from "@notra/geo-core/deps";
+import type { GeoRouterError } from "@notra/geo-core/geo/errors";
+import type {
+  AgentReadinessApiError,
+  AgentReadinessClaimError,
+  AgentReadinessStampError,
+  AgentReadinessStartError,
+  AgentReadinessTargetMissingError,
+} from "@notra/geo-core/schemas/agent-readiness-errors";
 import type { ZodType } from "zod";
+
+import type {
+  GeoScanNotFoundError,
+  GeoSelectionInvalidError,
+} from "../errors/geo";
 
 type GeoErrorStatus = 400 | 402 | 404 | 409 | 500 | 503;
 
@@ -28,6 +41,20 @@ export type GeoApiRuntime =
   | GeoFeatureFlagService
   | GeoGenerationService
   | GeoWorkflowService;
+
+type AgentReadinessProgramError =
+  | AgentReadinessApiError
+  | AgentReadinessClaimError
+  | AgentReadinessStampError
+  | AgentReadinessStartError
+  | AgentReadinessTargetMissingError;
+
+/** Domain failures from geo-core plus API-boundary validation errors. */
+export type GeoProgramError =
+  | GeoRouterError
+  | GeoSelectionInvalidError
+  | AgentReadinessProgramError
+  | GeoScanNotFoundError;
 
 export interface RemoteGeoEffectOptions<A> {
   readonly responseSchema: ZodType<A>;

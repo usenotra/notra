@@ -65,6 +65,7 @@ export interface GeoSettings {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[];
   engines: string[];
   /** ZDR add-on: request zero data retention from every model host. */
@@ -95,6 +96,7 @@ export interface GeoSettingsRow {
   aliases: string[];
   competitors: string[];
   conversionPaths: string[];
+  domains: string[];
   languages: string[] | null;
   engines: string[] | null;
   enforceZdr: boolean;
@@ -115,6 +117,9 @@ export interface GeoOverviewEngine {
   checks: number;
   mentions: number;
   mentionRate: number;
+  citations?: number;
+  visibility?: number;
+  visibilityRate?: number;
   avgPosition: number | null;
   lastCheckedAt: string;
 }
@@ -129,6 +134,8 @@ export interface GeoTimeseriesPoint {
   engine: string;
   checks: number;
   mentions: number;
+  citations?: number;
+  visibility?: number;
   avgPosition?: number | null;
 }
 
@@ -139,6 +146,7 @@ export type GeoStatDeltaTone = "up" | "down" | "flat";
 export interface EngineFamilyStatTrends {
   ratePts: number | null;
   mentionDelta: number | null;
+  visibilityDelta: number | null;
   positionDelta: number | null;
 }
 
@@ -281,6 +289,7 @@ export interface GeoPromptResult {
   prompt: string;
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   competitors: string[];
@@ -315,6 +324,7 @@ export type GeoPromptResultSummary = Pick<
   | "engine"
   | "prompt"
   | "mentioned"
+  | "ownedSourceCited"
   | "position"
   | "sentiment"
   | "competitors"
@@ -357,13 +367,10 @@ export interface GeoPromptHistoryCheck {
   scanId: string;
   engine: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   competitors: string[];
-  answer: string;
-  excerpt: string;
-  searchQueries: string[];
-  sources: GeoAnswerSource[];
   language: string;
   capturedAt: string;
 }
@@ -401,6 +408,7 @@ export interface GeoSettingsUpsertInput {
   aliases: string[];
   competitors: string[];
   conversionPaths?: string[];
+  domains?: string[];
   languages: string[];
   engines: string[];
   enforceZdr: boolean;
@@ -552,6 +560,7 @@ export interface GeoSequenceTurnResult {
   prompt: string;
   answer: string;
   mentioned: boolean;
+  ownedSourceCited?: boolean;
   position: number | null;
   sentiment: string | null;
   excerpt: string;
@@ -612,6 +621,10 @@ export interface GeoScanProjectContext {
   runId: string;
   companyName: string;
   aliases: string[];
+  /** Canonical brand website used to recognize citations from owned subdomains. */
+  websiteUrl?: string | null;
+  /** Additional project domains whose citations count as owned sources. */
+  domains?: string[];
   gate: ContentBillingReservation;
   startedAtMs: number;
   /** Partial prompt scans do not cover a scheduled project scan. Optional for persisted older plans. */
@@ -708,6 +721,8 @@ export interface GeoCheckContext {
   capturedAt: Date;
   companyName: string;
   aliases: string[];
+  websiteUrl?: string | null;
+  domains?: string[];
 }
 
 export interface GeoSequenceDefinition {
@@ -733,6 +748,7 @@ export interface MentionTrend {
 
 export interface FamilyDayBucket {
   mentions: number;
+  visibility: number;
   checks: number;
   positionWeighted: number;
   positionWeight: number;
@@ -1009,6 +1025,7 @@ export interface AiTrafficResponse {
 }
 
 export interface GeoTrafficPage {
+  host: string;
   path: string;
   source: string;
   visitorType: GeoVisitorType;
@@ -1064,6 +1081,12 @@ export interface GeoEngineFamily {
 }
 
 export interface GeoEngineFamilyTotals {
+  visible: number;
+  checks: number;
+  rate: number;
+}
+
+export interface GeoEngineFamilyMentionTotals {
   mentions: number;
   checks: number;
   rate: number;
@@ -1072,7 +1095,7 @@ export interface GeoEngineFamilyTotals {
 export interface MentionProviderRow {
   family: GeoEngineFamily;
   totals: GeoEngineFamilyTotals;
-  mentionDelta: number | null;
+  visibilityDelta: number | null;
   tracked: boolean;
 }
 
@@ -1081,6 +1104,9 @@ export interface GeoLanguageSharePoint {
   checks: number;
   mentions: number;
   mentionRate: number;
+  citations?: number;
+  visibility?: number;
+  visibilityRate?: number;
   avgPosition: number | null;
   trend?: GeoSparklinePoint[];
 }
@@ -1113,7 +1139,7 @@ export interface GeoPromptSummary {
   results: GeoPromptResultSummary[];
 }
 
-export type GeoTab = "visibility" | "prompts" | "journeys";
+export type GeoTab = "visibility" | "brand-sentiment" | "journeys";
 
 export type GeoRangePreset =
   | "today"
@@ -1146,6 +1172,7 @@ export type EngineIconKey =
   | "mistral"
   | "deepseek"
   | "meta"
+  | "instagram"
   | "grok"
   | "qwen"
   | "copilot"

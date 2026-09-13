@@ -69,6 +69,31 @@ export const GEO_CAPTURED_WINDOW_SQL = `AND if(
           )
           AND ({{String(date_to, '')}} = '' OR toDate(captured_at) <= toDateOrNull({{String(date_to, '')}}))`;
 
+export const GEO_CAPTURED_CURRENT_CONDITION = `if(
+            {{String(date_from, '')}} = '',
+            toDate(captured_at) >= toDate(now() - toIntervalDay({{Int32(days, 30)}})),
+            toDate(captured_at) >= toDateOrNull({{String(date_from, '')}})
+          )
+          AND ({{String(date_to, '')}} = '' OR toDate(captured_at) <= toDateOrNull({{String(date_to, '')}}))`;
+
+export const GEO_CAPTURED_PREVIOUS_CONDITION = `if(
+            {{String(date_from, '')}} = '',
+            toDate(captured_at) >= toDate(now() - toIntervalDay({{Int32(days, 30)}} * 2))
+              AND toDate(captured_at) < toDate(now() - toIntervalDay({{Int32(days, 30)}})),
+            toDate(captured_at) >= toDateOrNull({{String(date_from, '')}}) - toIntervalDay(
+              dateDiff(
+                'day',
+                toDateOrNull({{String(date_from, '')}}),
+                if(
+                  {{String(date_to, '')}} = '',
+                  toDate(now()),
+                  toDateOrNull({{String(date_to, '')}})
+                )
+              ) + 1
+            )
+            AND toDate(captured_at) < toDateOrNull({{String(date_from, '')}})
+          )`;
+
 export const GEO_PROJECT_SCOPE_SQL = `AND (
             {{String(project_id, '')}} = ''
             OR project_id = {{String(project_id, '')}}
@@ -78,4 +103,28 @@ export const GEO_PROJECT_SCOPE_SQL = `AND (
 export const GEO_EXCLUDED_SOURCES_SQL = `AND (
             {{String(excluded_sources, '')}} = ''
             OR NOT has(splitByChar(',', {{String(excluded_sources, '')}}), source)
+          )`;
+
+export const GEO_HOST_FILTER_PARAMS = {
+  host: p
+    .string()
+    .optional("")
+    .describe("Hostname filter, empty for every host. Subdomains match."),
+};
+
+export const GEO_HOST_FILTER_SQL = `AND (
+            {{String(host, '')}} = ''
+            OR if(
+              startsWith(lowerUTF8(host), 'www.'),
+              substring(lowerUTF8(host), 5),
+              lowerUTF8(host)
+            ) = {{String(host, '')}}
+            OR endsWith(
+              if(
+                startsWith(lowerUTF8(host), 'www.'),
+                substring(lowerUTF8(host), 5),
+                lowerUTF8(host)
+              ),
+              concat('.', {{String(host, '')}})
+            )
           )`;

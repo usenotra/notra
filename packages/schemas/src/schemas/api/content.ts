@@ -15,6 +15,7 @@ import {
 } from "@notra/ai/schemas/limits";
 import { POST_SLUG_MAX_LENGTH, POST_SLUG_REGEX } from "@notra/ai/schemas/post";
 import { toneProfileSchema } from "@notra/ai/schemas/tone";
+import { isValidTimezone } from "@notra/ai/utils/current-date";
 import { SUPPORTED_CONTENT_GENERATION_TYPES } from "@notra/content-generation/schemas";
 import { lookbackWindowEnum, postStatusEnum } from "@notra/db/schema";
 import { assertPublicHttpUrl } from "@notra/utils/url";
@@ -798,6 +799,19 @@ export const createPostGenerationRequestSchema = z
       .openapi({
         description:
           "Restrict generation to specific commits, pull requests, releases, or Linear issues instead of everything in the lookback window.",
+      }),
+    timezone: z
+      .string()
+      .min(1)
+      .max(100)
+      .optional()
+      .refine((value) => value === undefined || isValidTimezone(value), {
+        message: "Invalid timezone",
+      })
+      .openapi({
+        description:
+          "IANA timezone used for relative lookback windows such as current_day and yesterday.",
+        example: "America/New_York",
       }),
   })
   .refine(

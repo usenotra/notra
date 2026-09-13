@@ -3,6 +3,7 @@ import {
   describeContentBillingDenial,
 } from "@notra/ai/billing/content-billing";
 import {
+  getGitHubAppBotLogin,
   getGitHubAppInstallationPublishAccess,
   getTokenForIntegrationId,
   isGitHubAppConfigured,
@@ -34,6 +35,7 @@ import {
 } from "@notra/db/schema";
 import type { BlogPostSubtype } from "@notra/db/types/content";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
+import { extractImageArtifactHtml } from "@notra/db/utils/post-image-artifacts";
 import {
   isProjectInOrganization,
   projectScopeFilter,
@@ -60,6 +62,7 @@ import {
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
 import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard/integrations";
+import { slugify } from "@notra/utils/slugify";
 import { eachDayOfInterval, endOfYear, format, startOfYear } from "date-fns";
 import {
   and,
@@ -100,6 +103,7 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
+import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   publishContentDraftPullRequest,
@@ -160,6 +164,34 @@ const postReadColumns = {
   updatedAt: true,
 } as const;
 
+// List consumers (sidebar "Recent", dashboard home cards) render a title, a
+// status and a two-line preview, so text bodies stay in the database.
+const POST_LIST_MARKDOWN_PREVIEW_CHARS = 2000;
+
+const postListColumns = {
+  id: true,
+  title: true,
+  slug: true,
+  htmlUrl: true,
+  contentType: true,
+  contentSubtype: true,
+  createdAt: true,
+  status: true,
+  updatedAt: true,
+} as const;
+
+const postListExtras = {
+  content:
+    sql<string>`case when ${posts.contentType} = 'image' then ${posts.content} else '' end`.as(
+      "content"
+    ),
+  markdown: sql<
+    string | null
+  >`case when ${posts.contentType} = 'image' then ${posts.markdown} else left(${posts.markdown}, ${POST_LIST_MARKDOWN_PREVIEW_CHARS}) end`.as(
+    "markdown"
+  ),
+};
+
 function serializePost(post: {
   content: string;
   contentType: string;
@@ -168,8 +200,6 @@ function serializePost(post: {
   htmlUrl: string | null;
   id: string;
   markdown: string | null;
-  sourceMetadata: unknown;
-  recommendations: string | null;
   slug: string | null;
   status: "draft" | "published";
   title: string;
@@ -182,8 +212,6 @@ function serializePost(post: {
     content: post.content,
     htmlUrl: post.contentType === "image" ? post.htmlUrl : null,
     markdown: post.markdown,
-    rawHtml: extractImageArtifactHtml(post.sourceMetadata),
-    recommendations: post.recommendations,
     contentType:
       post.contentType as PostsResponse["posts"][number]["contentType"],
     contentSubtype: post.contentSubtype,
@@ -220,24 +248,6 @@ function serializeContent(post: {
     date: post.createdAt.toISOString(),
     sourceMetadata: post.sourceMetadata as ContentResponse["sourceMetadata"],
   };
-}
-
-function extractImageArtifactHtml(sourceMetadata: unknown): string | null {
-  if (
-    !sourceMetadata ||
-    typeof sourceMetadata !== "object" ||
-    Array.isArray(sourceMetadata)
-  ) {
-    return null;
-  }
-
-  const artifacts = (sourceMetadata as { artifacts?: unknown }).artifacts;
-  if (!artifacts || typeof artifacts !== "object" || Array.isArray(artifacts)) {
-    return null;
-  }
-
-  const html = (artifacts as { html?: unknown }).html;
-  return typeof html === "string" && html.trim() ? html : null;
 }
 
 function normalizeContentTypes(contentTypes: string[]): ContentType[] {
@@ -558,7 +568,8 @@ export const contentRouter = {
           orderBy: [desc(posts.createdAt), desc(posts.id)],
           limit: input.pageSize,
           offset,
-          columns: postReadColumns,
+          columns: postListColumns,
+          extras: postListExtras,
         }),
         db.select({ value: count() }).from(posts).where(whereClause),
       ]);
@@ -859,6 +870,7 @@ export const contentRouter = {
       if (!post.markdown) {
         throw badRequest("Save the content before publishing it to GitHub");
       }
+      const savedMarkdown = post.markdown;
       if (!(integration?.owner && integration.repo)) {
         throw notFound("Selected GitHub repository not found");
       }
@@ -926,12 +938,16 @@ export const contentRouter = {
         contentOutput.config
       );
       const directory = outputConfig.success
-        ? outputConfig.data.directory
+        ? (outputConfig.data.directory ??
+          DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType])
         : DEFAULT_GITHUB_CONTENT_DIRECTORIES[input.contentType];
       const path = resolveGitHubContentPath({
         contentId: input.contentId,
         customPath: input.path,
         directory,
+        pathTemplate: outputConfig.success
+          ? outputConfig.data.contentPath
+          : null,
         slug: post.slug,
         title: post.title,
       });
@@ -940,6 +956,9 @@ export const contentRouter = {
           "The configured directory and content slug exceed GitHub's file path limit"
         );
       }
+
+      const contentSlug =
+        slugify(post.slug ?? "") || slugify(post.title) || input.contentId;
 
       const notraBaseUrl = resolveNotraBaseUrl();
       let publishInstallationId = integration.installationId ?? null;
@@ -978,26 +997,56 @@ export const contentRouter = {
         toGitHubOperationOrpcError
       );
 
+      const octokit = createOctokit(token);
+      const publisherLogin =
+        getGitHubAppBotLogin() ??
+        (await octokit
+          .request("GET /user")
+          .then(({ data }) => data.login)
+          .catch(() => undefined));
+
       try {
-        const result = await publishContentDraftPullRequest(
-          createOctokit(token),
-          {
-            contentId: input.contentId,
-            contentType: input.contentType,
-            owner: integration.owner,
-            repo: integration.repo,
-            defaultBranch: integration.defaultBranch,
-            path,
-            title: post.title,
-            markdown: post.markdown,
-            ...(notraBaseUrl && organization
-              ? {
-                  badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
-                  contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
-                }
-              : {}),
-          }
-        );
+        const result = await publishContentDraftPullRequest(octokit, {
+          contentId: input.contentId,
+          contentType: input.contentType,
+          owner: integration.owner,
+          repo: integration.repo,
+          defaultBranch: integration.defaultBranch,
+          path,
+          title: post.title,
+          markdown: savedMarkdown,
+          pullRequestMarkdown: savedMarkdown,
+          ...(publisherLogin ? { publisherLogin } : {}),
+          ...(outputConfig.success && outputConfig.data.imagePath
+            ? {
+                prepareContent: async (contentPath: string) => {
+                  const preparedContent = await prepareR2GitHubContentAssets({
+                    contentPath,
+                    imagePathTemplate: outputConfig.data.imagePath ?? "",
+                    markdown: savedMarkdown,
+                    slug: contentSlug,
+                  });
+                  if (
+                    preparedContent.assets.some(
+                      (asset) =>
+                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+                    )
+                  ) {
+                    throw badRequest(
+                      "The configured image path exceeds GitHub's path limit"
+                    );
+                  }
+                  return preparedContent;
+                },
+              }
+            : {}),
+          ...(notraBaseUrl && organization
+            ? {
+                badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),
+                contentUrl: `${notraBaseUrl}/${organization.slug}/content/${input.contentId}`,
+              }
+            : {}),
+        });
         await clearGitHubPublishFailures({
           organizationId: input.organizationId,
           outputType: input.contentType,

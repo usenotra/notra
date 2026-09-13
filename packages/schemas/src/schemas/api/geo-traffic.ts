@@ -28,6 +28,18 @@ const trafficLimitParam = (name: string, max: number) =>
     .optional()
     .openapi({ param: { name, in: "query" } });
 
+const trafficHostParam = () =>
+  z
+    .string()
+    .trim()
+    .max(GEO_SHORT_FIELD_MAX_LENGTH)
+    .optional()
+    .openapi({
+      param: { name: "host", in: "query" },
+      description:
+        "Hostname to filter on. Subdomains of this host are included. Omit for every host.",
+    });
+
 const commaSeparated = <T extends string>(
   name: string,
   values: readonly [T, ...T[]]
@@ -59,6 +71,7 @@ export const trafficLogQuerySchema = z.object({
     "search-index",
     "assistant-browse",
   ]),
+  host: trafficHostParam(),
 });
 
 export const trafficJourneysQuerySchema = geoWindowQuerySchema.extend({
@@ -71,6 +84,7 @@ export const trafficPagesQuerySchema = geoWindowQuerySchema.extend({
     .enum(["crawler", "ai_referral"])
     .optional()
     .openapi({ param: { name: "visitorType", in: "query" } }),
+  host: trafficHostParam(),
 });
 
 export const journeyParamsSchema = projectParamsSchema.extend({
@@ -193,6 +207,7 @@ export const journeyDetailResponseSchema = z
 
 const trafficPageSchema = z.object({
   path: z.string(),
+  host: z.string(),
   source: z.string(),
   visitorType: visitorTypeSchema,
   visits: z.number().int(),

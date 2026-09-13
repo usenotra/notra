@@ -244,6 +244,7 @@ const Area: FC<AreaProps> = () => null;
 
 export interface DotProps {
   variant?: DotVariant; // visual style of the point marker
+  indices?: readonly number[]; // restrict resting markers to these data indices
 }
 
 /** Declares the resting point marker for the enclosing <Area>. Renders nothing. */
@@ -267,6 +268,7 @@ const XAxis: FC<XAxisProps> = () => null;
 export interface YAxisProps {
   min?: number;
   max?: number;
+  interval?: number;
   dataKey?: string; // reserved for parity with the Recharts twin
   tickFormatter?: (value: number, index: number) => string; // formats y tick labels
   label?: string; // axis title, rotated alongside the tick labels
@@ -341,6 +343,7 @@ type AreaSeriesConfig = {
   gapMissing: boolean;
   visible: boolean;
   dotVariant: DotVariant; // "none" when no <Dot> child is present
+  dotIndices?: readonly number[];
   activeDotVariant: DotVariant; // "none" when no <ActiveDot> child is present
 };
 
@@ -354,6 +357,7 @@ type XAxisSlot = {
 type YAxisSlot = {
   min?: number;
   max?: number;
+  interval?: number;
   present: boolean;
   dataKey?: string;
   tickFormatter?: (value: number, index: number) => string;
@@ -438,16 +442,19 @@ function collectConfig(children: ReactNode): CollectedConfig {
     if (type === Area) {
       const props = child.props as AreaProps;
       let dotVariant: DotVariant = "none";
+      let dotIndices: readonly number[] | undefined;
       let activeDotVariant: DotVariant = "none";
       Children.forEach(props.children, (dotChild) => {
         if (!isValidElement(dotChild)) return;
         if (dotChild.type === Dot) {
           dotVariant = (dotChild.props as DotProps).variant ?? "default";
+          dotIndices = (dotChild.props as DotProps).indices;
         } else if (dotChild.type === ActiveDot) {
           activeDotVariant = (dotChild.props as DotProps).variant ?? "default";
         }
       });
       areas.push({
+        dotIndices,
         dataKey: props.dataKey,
         variant: props.variant ?? "gradient",
         strokeVariant: props.strokeVariant ?? "dashed",
@@ -475,13 +482,14 @@ function collectConfig(children: ReactNode): CollectedConfig {
       const props = child.props as YAxisProps;
       yAxis = {
         present: true,
+        min: props.min,
+        max: props.max,
+        interval: props.interval,
         dataKey: props.dataKey,
         tickFormatter: props.tickFormatter,
         label: props.label,
         hideDots: props.hideDots ?? false,
         scale: props.scale ?? false,
-        min: props.min,
-        max: props.max,
       };
     } else if (type === Grid) {
       showGrid = true;
@@ -777,11 +785,14 @@ function fillPaint(
 function curveConfig(curveType: CurveType): {
   smooth: boolean;
   step: "middle" | false;
+  smoothMonotone?: "x" | "y";
 } {
   // Recharts "step" is d3's curveStep: the transition happens at the MIDPOINT
   // between points, so each dot sits centered on its plateau.
   if (curveType === "step") return { smooth: false, step: "middle" };
   if (curveType === "linear") return { smooth: false, step: false };
+  if (curveType === "monotoneX") return { smooth: true, step: false, smoothMonotone: "x" };
+  if (curveType === "monotoneY") return { smooth: true, step: false, smoothMonotone: "y" };
   return { smooth: true, step: false };
 }
 
@@ -999,6 +1010,7 @@ function buildMainAxes(ctx: OptionBuildContext): {
     show: yAxisSlot.present || showGrid,
     min: isExpanded ? 0 : yAxisSlot.min,
     max: isExpanded ? 1 : yAxisSlot.max,
+    interval: isExpanded ? undefined : yAxisSlot.interval,
     scale: !isExpanded && yAxisSlot.scale,
     // Axis title — rendered rotated alongside the tick labels, same styling.
     name: isLoading ? undefined : yAxisSlot.label,
@@ -1304,6 +1316,7 @@ function buildBrushOption(
       data: data.map((row) => areaPointValue(row, key, area.gapMissing)),
       stack: isStacked ? "__mini-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       silent: true,
@@ -1356,6 +1369,7 @@ function buildLoadingOption(
         type: "line",
         data: ctx.loadingData(),
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         showSymbol: false,
         silent: true,
@@ -1535,6 +1549,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(mainValues),
       stack: isStacked ? "total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
       cursor: area.isClickable && !isHidden ? "pointer" : "default",
@@ -1546,7 +1561,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // invisible until the axis pointer highlights the scrubbed index.
       showSymbol: !isHidden && (restingVisible || hoverSymbol),
       symbol: "circle",
-      symbolSize: restingVisible ? restingDot.size : activeDot.size,
+      symbolSize: area.dotIndices
+        ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
+        : restingVisible ? restingDot.size : activeDot.size,
       z,
       lineStyle: {
         color: strokePaint,
@@ -1635,6 +1652,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         // reproduces the same cumulative shape in a separate layer.
         stack: isStacked ? "__reveal-total" : undefined,
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         connectNulls: false,
         silent: true,
@@ -1673,12 +1691,15 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // order give the identical cumulative height, so the dash lines up.
       stack: isStacked ? "__buffer-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,
       showSymbol: restingVisible,
       symbol: "circle",
-      symbolSize: restingVisible ? restingDot.size : activeDot.size,
+      symbolSize: area.dotIndices
+        ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
+        : restingVisible ? restingDot.size : activeDot.size,
       z,
       lineStyle: {
         color: paint,
@@ -1724,6 +1745,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       data: toPoints(bufferValues),
       stack: isStacked ? "__bufferfill-total" : undefined,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,

@@ -199,6 +199,8 @@ The **Settings** page (`/geo/settings`) is subtitled "How your brand is identifi
 | Section | Fields |
 | --- | --- |
 | Brand | **Company name** ("The primary name we match in answers") and **Aliases** (up to 10: "Other spellings, product names, or the bare domain") |
+| **Tracked domains** | The brand website is always recorded (read-only here; change it in Brand → Identity). Extra sites besides that website, up to 20. Same ingest token; subdomains of a listed domain are included. |
+| **Conversion paths** | Paths that count as a conversion when an AI referral reaches them, for example `/signup`. Prefix match. |
 | **Scan schedule** | **Automatic scans** switch and **Frequency**: Daily (default), 48 hours, 3 days, Weekly, 2 weeks, 30 days. "Manual scans always work." |
 | **Languages** | "Languages your prompts are scanned in. English is on by default." Up to 4 languages |
 | **Models** | "Each enabled provider runs on every prompt." Pick models per provider from the catalog, up to 64. A **Zero data retention** toggle limits scans to models with ZDR; it needs the ZDR add-on and is forced off without it. Models without ZDR can be individually approved |
@@ -230,6 +232,12 @@ curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/settings \
 </ParamField>
 <ParamField body="aliases" type="string[]" required>
   Up to 10 entries.
+</ParamField>
+<ParamField body="conversionPaths" type="string[]">
+  Paths that count as a conversion when an AI referral reaches them. Prefix match. Omit to keep the stored list.
+</ParamField>
+<ParamField body="domains" type="string[]">
+  Additional hostnames that send AI traffic to this project, besides the brand website. Up to 20. Subdomains of a listed domain are included. Omit to keep the stored list.
 </ParamField>
 <ParamField body="languages" type="string[]" required>
   1 to 4 supported language codes. An unknown code is rejected with `400`.

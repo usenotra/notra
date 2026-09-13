@@ -1,5 +1,6 @@
 import { useLogger as getRequestLogger, withEvlog } from "@notra/ai/evlog";
 import { httpErrorKind } from "@notra/ai/utils/http-error-kind";
+import { runWithGeoRequestMemo } from "@notra/geo-core/utils/request-memo";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { BatchHandlerPlugin } from "@orpc/server/plugins";
@@ -36,12 +37,10 @@ const handle = withEvlog(async (request: Request) => {
     routeId: "/rpc/[[...rest]]",
   });
   try {
-    const { matched, response } = await handler.handle(request, {
-      context: await createORPCContext({
-        headers: request.headers,
-      }),
-      prefix: "/rpc",
-    });
+    const context = await createORPCContext({ headers: request.headers });
+    const { matched, response } = await runWithGeoRequestMemo(() =>
+      handler.handle(request, { context, prefix: "/rpc" })
+    );
 
     const result =
       matched && response

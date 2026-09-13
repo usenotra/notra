@@ -1443,6 +1443,10 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    domains: text("domains")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     languages: text("languages").array(),
     // null = track the default engine set; otherwise a subset of GEO_ENGINES.
     engines: text("engines").array(),
@@ -1463,6 +1467,7 @@ export const geoSettings = pgTable(
       .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
     scanIntervalHours: integer("scan_interval_hours").notNull().default(24),
+    sentimentAttemptedAt: timestamp("sentiment_attempted_at"),
     nextScanAt: timestamp("next_scan_at"),
     // Cron-sweep lease: while set and in the future the row is off limits to
     // other sweeps. Kept separate from `next_scan_at` so a retried tick never
@@ -1743,6 +1748,7 @@ export const geoMentionChecks = pgTable(
     prompt: text("prompt").notNull(),
     answer: text("answer").notNull(),
     mentioned: boolean("mentioned").notNull(),
+    ownedSourceCited: boolean("owned_source_cited").notNull().default(false),
     position: integer("position"),
     sentiment: text("sentiment"),
     competitors: text("competitors")
@@ -1797,6 +1803,7 @@ export const geoMentionChecks = pgTable(
       table.engine,
       table.promptId,
       table.mentioned,
+      table.ownedSourceCited,
       table.position,
       table.sentiment,
       table.sequenceId

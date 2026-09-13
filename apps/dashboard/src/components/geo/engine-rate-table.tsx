@@ -32,6 +32,7 @@ import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { EngineRateTableProps } from "@/types/geo";
 import {
   engineFamilyAvgPosition,
+  engineFamilyCitationTotal,
   engineFamilyLastCheckedAt,
   engineFamilyStatTrends,
   engineFamilyTotals,
@@ -113,7 +114,7 @@ export function EngineRateTable({
       },
       {
         key: "mentions",
-        header: "Mentions",
+        header: "Visible",
         width: "10rem",
         sortable: true,
         cell: (row) => {
@@ -127,21 +128,41 @@ export function EngineRateTable({
           return (
             <span className="flex items-center gap-2">
               <span className="text-sm tabular-nums">
-                {totals.mentions.toLocaleString()}
+                {totals.visible.toLocaleString()}
               </span>
               <GeoStatDelta
-                delta={trends.mentionDelta}
+                delta={trends.visibilityDelta}
                 hint={GEO_FAMILY_STAT_TREND_HINT}
-                label={`${engineFamilyLabel(row.family)} mentions`}
+                label={`${engineFamilyLabel(row.family)} visibility`}
               />
             </span>
           );
         },
-        sortValue: (row) => engineFamilyTotals(row)?.mentions ?? -1,
+        sortValue: (row) => engineFamilyTotals(row)?.visible ?? -1,
+      },
+      {
+        key: "citations",
+        header: "Citations",
+        width: "8rem",
+        sortable: true,
+        cell: (row) => {
+          if (!engineFamilyTotals(row)) {
+            return (
+              <span className="text-muted-foreground text-xs">Not scanned</span>
+            );
+          }
+          return (
+            <span className="text-sm tabular-nums">
+              {engineFamilyCitationTotal(row).toLocaleString()}
+            </span>
+          );
+        },
+        sortValue: (row) =>
+          engineFamilyTotals(row) ? engineFamilyCitationTotal(row) : -1,
       },
       {
         key: "rate",
-        header: "Mention rate",
+        header: "Brand visibility",
         width: "1.4fr",
         sortable: true,
         cell: (row) => <RateCell family={row} />,

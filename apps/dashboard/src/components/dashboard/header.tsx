@@ -1,9 +1,6 @@
 import { ArrowRight01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_DEFAULT_TAB,
-  GEO_TAB_BREADCRUMB_LABELS,
-} from "@notra/geo-core/constants/geo";
+import { GEO_TAB_BREADCRUMB_LABELS } from "@notra/geo-core/constants/geo";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -26,7 +23,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useId } from "react";
+import { useId } from "react";
 
 import { useCommandPalette } from "@/components/command-palette/command-palette-context";
 import { BrandTopbarIdentitySelector } from "@/components/dashboard/brand-topbar-identity-selector";
@@ -40,15 +37,10 @@ import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { withGeoProject } from "@/utils/geo-paths";
+import { toGeoTab } from "@/utils/geo-tabs";
+import { scheduleDemo } from "@/utils/schedule-demo";
 
 const NON_ORG_PATHS: string[] = [];
-
-function triggerScheduleDemo() {
-  const btn = document.querySelector<HTMLButtonElement>(
-    '[data-cal-namespace="15min"]'
-  );
-  btn?.click();
-}
 
 const SEGMENT_CONFIG: Record<string, { label?: string; href?: null }> = {
   collection: { label: "Collections" },
@@ -92,20 +84,12 @@ export function SiteHeader() {
     openSettings("account");
   });
 
-  useEffect(() => {
-    (async () => {
-      const { getCalApi } = await import("@calcom/embed-react");
-      const cal = await getCalApi({ namespace: "15min" });
-      cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
-    })();
-  }, []);
-
   useHotkey("F", () => {
     openFeedback();
   });
 
   useHotkey("S", () => {
-    triggerScheduleDemo();
+    void scheduleDemo();
   });
 
   return (
@@ -379,9 +363,7 @@ function geoHeaderBreadcrumbs({
 }) {
   const geoSectionSegments = breadcrumbSegments.slice(1);
   const geoTabLabel =
-    GEO_TAB_BREADCRUMB_LABELS[searchParams.get("tab") ?? GEO_DEFAULT_TAB] ??
-    GEO_TAB_BREADCRUMB_LABELS[GEO_DEFAULT_TAB] ??
-    "Visibility";
+    GEO_TAB_BREADCRUMB_LABELS[toGeoTab(searchParams.get("tab"))];
 
   const geoSectionBreadcrumbs =
     geoSectionSegments.length > 0

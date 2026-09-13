@@ -18,7 +18,7 @@ import {
   buildGeoPlannerSystem,
 } from "@notra/ai/prompts/geo_writer/planner";
 import { buildGeoWriterInstructions } from "@notra/ai/prompts/geo_writer/writer";
-import { withGatewayDefaults } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import { geoContentBriefSchema } from "@notra/ai/schemas/geo-writer";
 import {
   createGetBrandReferencesTool,
@@ -215,7 +215,7 @@ export async function generateGeoContentBrief(
         prompt,
         temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
-        providerOptions: withGatewayDefaults(undefined, {
+        providerOptions: withRouterDefaults(undefined, {
           modelId: GEO_WRITER_MODEL,
         }),
       });
@@ -362,7 +362,7 @@ async function humanizeMarkdown(
     system: GEO_HUMANIZER_SYSTEM,
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
-    providerOptions: withGatewayDefaults(undefined, {
+    providerOptions: withRouterDefaults(undefined, {
       modelId: GEO_WRITER_MODEL,
     }),
     experimental_telemetry: buildExperimentalTelemetry({
@@ -444,7 +444,7 @@ export async function runGeoWriter(
 
   const agent = new ToolLoopAgent({
     model,
-    providerOptions: withGatewayDefaults(
+    providerOptions: withRouterDefaults(
       { anthropic: { thinking: { type: "adaptive" } } },
       { modelId: GEO_WRITER_MODEL }
     ),

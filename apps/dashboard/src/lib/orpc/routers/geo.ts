@@ -112,6 +112,11 @@ import {
   syncGscSuggestions,
 } from "@notra/geo-core/geo/search-console";
 import {
+  loadGeoSentiment,
+  loadGeoSentimentEvidence,
+} from "@notra/geo-core/geo/sentiment";
+import { loadGeoSentimentAnalysis } from "@notra/geo-core/geo/sentiment-analysis";
+import {
   createGeoSequence,
   deleteGeoSequence,
   listGeoSequences,
@@ -190,8 +195,10 @@ import {
   geoScanRunInputSchema,
   geoScanRunsInputSchema,
 } from "@notra/geo-core/schemas/geo-scan-history";
+import { geoSentimentEvidenceInputSchema } from "@notra/geo-core/schemas/geo-sentiment";
 import { gscSelectSiteInputSchema } from "@notra/geo-core/schemas/google-search-console";
 import { GeoSearchConsoleError } from "@notra/geo-core/schemas/search-console-errors";
+import { sentimentPeriodInputSchema } from "@notra/geo-core/schemas/sentiment-analysis";
 import type {
   AgentReadinessResponse,
   AgentReadinessScanResponse,
@@ -860,6 +867,27 @@ export const geoRouter = {
   overview: authorizedProcedure
     .input(geoTimeseriesInputSchema)
     .handler(geoHandler((input) => loadGeoOverview(input, geoWindow(input)))),
+  sentiment: authorizedProcedure
+    .input(sentimentPeriodInputSchema)
+    .handler(geoHandler((input) => loadGeoSentiment(input, geoWindow(input)))),
+  sentimentAnalysis: authorizedProcedure
+    .input(sentimentPeriodInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoSentimentAnalysis(input, geoWindow(input)))
+    ),
+  analyzeSentiment: authorizedProcedure
+    .route({ method: "POST" })
+    .input(sentimentPeriodInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadGeoSentimentAnalysis(input, geoWindow(input), true)
+      )
+    ),
+  sentimentEvidence: authorizedProcedure
+    .input(geoSentimentEvidenceInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoSentimentEvidence(input, geoWindow(input)))
+    ),
   timeseries: authorizedProcedure
     .input(geoTimeseriesInputSchema)
     .handler(geoHandler((input) => loadGeoTimeseries(input, geoWindow(input)))),
@@ -1027,7 +1055,8 @@ export const geoRouter = {
           input,
           input.limit,
           input.visitorTypes,
-          input.categories
+          input.categories,
+          input.host
         )
       )
     ),
@@ -1053,7 +1082,8 @@ export const geoRouter = {
           input,
           geoWindow(input),
           input.limit,
-          input.visitorType
+          input.visitorType,
+          input.host
         )
       )
     ),

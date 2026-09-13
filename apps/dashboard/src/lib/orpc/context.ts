@@ -14,6 +14,12 @@ export interface ORPCRequestMemo {
     string,
     Promise<OrganizationMembership | undefined>
   >;
+  /**
+   * React `cache()` does not memoize inside route handlers, so without this
+   * every procedure in a batch re-ran the WorkOS session read, the `users`
+   * lookup and the active-organization lookup.
+   */
+  sessionLookup?: Promise<SessionData>;
 }
 
 const requestMemosByHeaders = new WeakMap<Headers, ORPCRequestMemo>();

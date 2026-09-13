@@ -16,21 +16,24 @@ import {
   planBriefResponseSchema,
 } from "@notra/schemas/api/geo-content";
 import { projectParamsSchema } from "@notra/schemas/api/geo-params";
-import { internalGeoWriterPlanResponseSchema } from "@notra/schemas/api/internal-geo";
 
 import { API_TRIGGER_SOURCE } from "../constants/analytics";
-import { GEO_WRITER_PLAN_INTERNAL_PATH } from "../constants/geo";
 import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
-import { runGeoEffect, runRemoteGeoEffect } from "../runtime/geo";
-import { trackApiEvent } from "../utils/analytics";
-import { geoErrorResponse } from "../utils/geo";
+import { runGeoEffect } from "../runtime/geo";
 import {
-  getInternalWorkflowUrl,
-  SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,
-} from "../utils/internal-workflow";
+  GEO_REMOTE_WRITER_PLAN,
+  resolveRemoteGeoUrl,
+  runConfiguredRemoteGeoEffect,
+} from "../runtime/geo-remote";
+import { trackApiEvent } from "../utils/analytics";
+import {
+  attachGeoOrganization,
+  geoErrorResponse,
+  geoRemoteUnavailableResponse,
+} from "../utils/geo";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
@@ -204,9 +207,12 @@ geoBriefsRoutes.openapi(getBriefRoute, async (c) => {
 geoBriefsRoutes.openapi(planBriefRoute, async (c) => {
   const base = c.get("geo");
   const { projectId } = c.req.valid("param");
-  const url = getInternalWorkflowUrl(c.env, GEO_WRITER_PLAN_INTERNAL_PATH);
+  const url = resolveRemoteGeoUrl(c.env, GEO_REMOTE_WRITER_PLAN);
   if (!url) {
-    return c.json({ error: "Brief planning is unavailable" }, 503);
+    return geoRemoteUnavailableResponse(
+      c,
+      GEO_REMOTE_WRITER_PLAN.unavailableMessage
+    );
   }
 
   // Charged immediately before the paid planning run: the 404 and 503 above
@@ -220,19 +226,13 @@ geoBriefsRoutes.openapi(planBriefRoute, async (c) => {
     return rateLimited;
   }
 
-  const outcome = await runRemoteGeoEffect(
-    "writerPlan",
+  const outcome = await runConfiguredRemoteGeoEffect(
+    GEO_REMOTE_WRITER_PLAN,
     url,
     {
       ...c.req.valid("json"),
       organizationId: base.organizationId,
       projectId,
-    },
-    {
-      responseSchema: internalGeoWriterPlanResponseSchema,
-      timeoutMs: SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,
-      timeoutMessage:
-        "Brief planning is taking longer than expected and is still in progress. Do not retry. List the project's GEO briefs to find the result.",
     }
   );
   if (!outcome.ok) {
@@ -251,7 +251,7 @@ geoBriefsRoutes.openapi(planBriefRoute, async (c) => {
     },
   });
 
-  return c.json({ ...outcome.value, organization: base.organization }, 200);
+  return c.json(attachGeoOrganization(base.organization, outcome.value), 200);
 });
 
 geoBriefsRoutes.openapi(approveBriefRoute, async (c) => {

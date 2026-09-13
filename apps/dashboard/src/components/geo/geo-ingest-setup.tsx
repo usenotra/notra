@@ -105,8 +105,8 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
         <section className="space-y-2">
           <h3 className="text-sm font-medium">Set your token</h3>
           <p className="text-muted-foreground text-xs">
-            Add this as {GEO_INGEST_TOKEN_ENV} in your site's environment
-            variables.
+            Add this as {GEO_INGEST_TOKEN_ENV} on every domain this project
+            tracks.
           </p>
           <ApiKeyRevealField value={token} />
         </section>

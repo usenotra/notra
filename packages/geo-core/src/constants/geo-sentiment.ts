@@ -1,0 +1,1 @@
+export const GEO_SENTIMENT_EVIDENCE_LIMIT = 25;

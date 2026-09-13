@@ -16,6 +16,13 @@ export interface DailySummaryMentionTotals {
   rate: number | null;
 }
 
+export interface DailySummaryUnchangedInput {
+  yesterday: DailySummaryMentionTotals;
+  previousDay: DailySummaryMentionTotals;
+  changes: GeoChangesSummary;
+  hasNewEngine: boolean;
+}
+
 export interface BuiltDailySummary {
   dateLabel: string;
   headline: string;

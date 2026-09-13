@@ -1,5 +1,5 @@
 import { gateway } from "@notra/ai/gateway";
-import { withGatewayAutomaticCaching } from "@notra/ai/provider-options";
+import { withRouterDefaults } from "@notra/ai/provider-options";
 import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import {
@@ -292,7 +292,7 @@ export async function POST(request: NextRequest) {
           : "No matching entities found.",
         `User query: ${query}`,
       ].join("\n"),
-      providerOptions: withGatewayAutomaticCaching(undefined, {
+      providerOptions: withRouterDefaults(undefined, {
         modelId: "anthropic/claude-sonnet-4.6",
       }),
       abortSignal: request.signal,

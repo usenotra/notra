@@ -301,13 +301,17 @@ export function PromptReceiptHistory({
           minWidth: "168px",
           cell: ({ check }) => (
             <span className={cn(HISTORY_LINE_CLASS, "gap-2 whitespace-nowrap")}>
-              <PromptOutcomeIcon mentioned={check.mentioned} />
+              <PromptOutcomeIcon
+                mentioned={check.mentioned || Boolean(check.ownedSourceCited)}
+              />
               <span
                 className={
-                  check.mentioned ? "text-foreground" : "text-muted-foreground"
+                  check.mentioned || check.ownedSourceCited
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                 }
               >
-                {promptOutcomeLabel(check.mentioned)}
+                {promptOutcomeLabel(check.mentioned, check.ownedSourceCited)}
               </span>
             </span>
           ),

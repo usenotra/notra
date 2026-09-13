@@ -4,6 +4,7 @@ import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
+  GEO_TRAFFIC_TREND_CITED_LABEL,
   GEO_TRAFFIC_TREND_CRAWLER_LABEL,
   GEO_TRAFFIC_TREND_REFERRAL_LABEL,
 } from "@notra/geo-core/constants/geo";
@@ -12,6 +13,7 @@ import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
+  GeoTrafficSourceBand,
   GeoTrafficSourceGroup,
   TrafficSourcesGroupProps,
 } from "@/types/geo";
@@ -21,19 +23,29 @@ import { tableHeightFor } from "@/utils/table";
 const COLLAPSED_BAND_BORDER_PX = 2;
 const STACK_OVERLAP_PX = 20;
 
+const SOURCE_BAND_LABELS: Record<GeoTrafficSourceBand, string> = {
+  crawler: GEO_TRAFFIC_TREND_CRAWLER_LABEL,
+  cited: GEO_TRAFFIC_TREND_CITED_LABEL,
+  ai_referral: GEO_TRAFFIC_TREND_REFERRAL_LABEL,
+};
+
+const SOURCE_BAND_NOUN: Record<GeoTrafficSourceBand, string> = {
+  crawler: "bot",
+  cited: "source",
+  ai_referral: "source",
+};
+
 export function TrafficSourcesGroup({
-  visitorType,
+  band,
   groups,
   columns,
   collapsed,
   onToggle,
   stacked,
 }: TrafficSourcesGroupProps) {
-  const isCrawler = visitorType === "crawler";
-  const label = isCrawler
-    ? GEO_TRAFFIC_TREND_CRAWLER_LABEL
-    : GEO_TRAFFIC_TREND_REFERRAL_LABEL;
-  const noun = isCrawler ? "bot" : "source";
+  const label = SOURCE_BAND_LABELS[band];
+  const noun = SOURCE_BAND_NOUN[band];
+  const showMarkdown = band !== "ai_referral";
   const count = groups.length;
   const countLabel = `${count.toLocaleString()} ${count === 1 ? noun : `${noun}s`}`;
   const isEmpty = count === 0;
@@ -62,7 +74,7 @@ export function TrafficSourcesGroup({
   );
 
   const [first, ...rest] = columns;
-  const visibleRest = isCrawler
+  const visibleRest = showMarkdown
     ? rest
     : rest.map((column) =>
         column.key === GEO_TRAFFIC_MARKDOWN_COLUMN_KEY
@@ -105,7 +117,7 @@ export function TrafficSourcesGroup({
         data={groups}
         defaultSort={{ key: "visits", direction: "desc" }}
         emptyState="No AI traffic captured yet"
-        getRowId={(row) => trafficGroupKey(row.visitorType, row.key)}
+        getRowId={(row) => trafficGroupKey(row.band, row.key)}
         height={tableHeightFor(count)}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}

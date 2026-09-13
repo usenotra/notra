@@ -18,15 +18,12 @@ import type {
   GeoCompetitorDetailResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorSuggestionsResponse,
-  GeoCompetitorsResponse,
   GeoDiscoverWebsiteResult,
   GeoJourneyDetailResponse,
   GeoLanguageShareResponse,
   GeoOnboardingBrandInput,
   GeoOnboardingBrandResult,
   GeoOverviewResponse,
-  GeoProject,
-  GeoProjectsResponse,
   GeoIngestSetupResponse,
   GeoPromptHistoryResponse,
   GeoPromptResultSummariesResponse,
@@ -35,7 +32,6 @@ import type {
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
   GeoTimeseriesResponse,
-  GeoTrackedPromptsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogFilters,
   GeoTrafficLogResponse,
@@ -56,6 +52,7 @@ import {
   toGeoTrafficLogPurposeFilter,
   toGeoTrafficLogVisitorFilter,
 } from "@notra/geo-core/utils/ai-traffic";
+import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -77,7 +74,6 @@ import { geoDbOrgQueryKey, geoDbQueryKey } from "@/lib/db/geo-collections";
 import type { GeoScanTrigger } from "@/types/analytics/geo-events";
 import type {
   GeoGenerateFromWebsiteInput,
-  GeoProjectCreateInput,
   GeoPromptSuggestionsResponse,
   GeoRangeQuery,
   GeoSettingsUpsertOptions,
@@ -97,8 +93,6 @@ import { toGeoWindowInput } from "@/utils/geo-range";
 import { dashboardOrpc } from "../orpc/query";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
-// Bounded retries instead of an unbounded 30 s error poll on every dashboard page.
-const GEO_PROJECTS_RETRY_COUNT = 3;
 
 function gscAnalyzeMutationKey(organizationId: string) {
   return [GSC_ANALYZE_MUTATION_KEY, organizationId] as const;
@@ -145,6 +139,15 @@ async function invalidatePromptQueries(
 
 async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
   await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.sentiment.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.sentimentEvidence.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.sentimentAnalysis.key(),
+    }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.scanRuns.key(),
     }),
@@ -493,18 +496,6 @@ export function useGeoCompetitorRowNavigation(
   return { openRow, prefetchRow };
 }
 
-/** @deprecated Use {@link useGeoCompetitorsDb} from `@/lib/hooks/use-geo-db` instead. */
-export function useGeoCompetitors(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
-  return useQuery<GeoCompetitorsResponse>({
-    ...dashboardOrpc.geo.competitors.queryOptions({
-      input: { organizationId, projectId },
-    }),
-    enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load competitors" },
-  });
-}
-
 export function useGeoLanguageShare(
   organizationId: string,
   range?: GeoRangeQuery,
@@ -518,18 +509,6 @@ export function useGeoLanguageShare(
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load language performance" },
-  });
-}
-
-/** @deprecated Use {@link useGeoPromptsDb} from `@/lib/hooks/use-geo-db` instead. */
-export function useGeoPrompts(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
-  return useQuery<GeoTrackedPromptsResponse>({
-    ...dashboardOrpc.geo.promptsList.queryOptions({
-      input: { organizationId, projectId },
-    }),
-    enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load tracked prompts" },
   });
 }
 
@@ -793,6 +772,7 @@ export function useGeoTrafficLog(
         limit: AI_TRAFFIC_LOG_FETCH_LIMIT,
         visitorTypes: toGeoTrafficLogVisitorFilter(filters.visitorTypes),
         categories: toGeoTrafficLogPurposeFilter(filters.categories),
+        host: trafficLogHostFilter(options?.host),
       },
     }),
     enabled: !!organizationId,
@@ -805,7 +785,8 @@ export function useGeoTrafficLog(
 
 export function useGeoTrafficPages(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  host?: string
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficPagesResponse>({
@@ -815,6 +796,7 @@ export function useGeoTrafficPages(
         projectId,
         limit: AI_TRAFFIC_PAGES_FETCH_LIMIT,
         ...toGeoWindowInput(range),
+        host: trafficLogHostFilter(host),
       },
     }),
     enabled: !!organizationId,
@@ -891,58 +873,6 @@ export function useGeoIngestTokenRotate(organizationId: string) {
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to rotate the token"));
-    },
-  });
-}
-
-export function useGeoProjects(organizationId: string) {
-  return useQuery<GeoProjectsResponse>({
-    ...dashboardOrpc.geo.projectsList.queryOptions({
-      input: { organizationId },
-    }),
-    enabled: !!organizationId,
-    meta: {
-      errorMessage: "Failed to load projects",
-      showRetryAction: true,
-    },
-    retry: GEO_PROJECTS_RETRY_COUNT,
-  });
-}
-
-export function useGeoProjectCreate(organizationId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: GeoProjectCreateInput): Promise<GeoProject> =>
-      dashboardOrpc.geo.projectsCreate.call({ ...input, organizationId }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.projectsList.queryKey({
-          input: { organizationId },
-        }),
-      });
-      toast.success("Project created");
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to create project"));
-    },
-  });
-}
-
-export function useGeoProjectDelete(organizationId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (projectId: string) =>
-      dashboardOrpc.geo.projectsDelete.call({ organizationId, projectId }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.projectsList.queryKey({
-          input: { organizationId },
-        }),
-      });
-      toast.success("Project deleted");
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to delete project"));
     },
   });
 }

@@ -40,6 +40,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
@@ -50,6 +51,7 @@ import {
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import {
   GEO_CHANGE_ICON_SIZE,
   GEO_CHANGE_KIND_ICONS,
@@ -420,6 +422,14 @@ export function WhatChangedCard({
             isScanning,
             GEO_CHANGES_EMPTY_NEEDS_SCANS
           )}
+          preview={
+            <div className="px-6 pt-2">
+              <EmptyStateTablePreview
+                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
+                rows={3}
+              />
+            </div>
+          }
           seed={GEO_CHANGES_LABEL}
         />
       );
@@ -432,6 +442,14 @@ export function WhatChangedCard({
             isScanning,
             GEO_CHANGES_EMPTY_NO_CHANGES
           )}
+          preview={
+            <div className="px-6 pt-2">
+              <EmptyStateTablePreview
+                columns={EMPTY_STATE_TABLE_COLUMNS.changes}
+                rows={3}
+              />
+            </div>
+          }
           seed={GEO_CHANGES_LABEL}
         />
       );

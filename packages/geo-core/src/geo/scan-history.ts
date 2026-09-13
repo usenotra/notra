@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { geoMentionChecks, geoScans } from "@notra/db/schema";
+import type { GeoScanPlanSnapshot } from "@notra/db/types/geo-scan";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -29,7 +30,14 @@ export const loadGeoScanRuns = Effect.fn("geo.scanRuns")(function* (
         status: true,
         startedAt: true,
         finishedAt: true,
-        plan: true,
+      },
+      extras: {
+        // `tasks` holds one entry per prompt × engine × language with the full
+        // prompt text; this list is polled every 3 s during a scan and only
+        // renders totals and engines.
+        plan: sql<GeoScanPlanSnapshot | null>`${geoScans.plan} - 'tasks' - 'taskStates'`.as(
+          "plan"
+        ),
       },
       where: and(
         eq(geoScans.organizationId, scope.organizationId),

@@ -29,6 +29,9 @@ const EMPTY_LANGUAGE_POINT = {
   checks: 0,
   mentions: 0,
   mentionRate: 0,
+  citations: 0,
+  visibility: 0,
+  visibilityRate: 0,
   avgPosition: null,
 } as const;
 

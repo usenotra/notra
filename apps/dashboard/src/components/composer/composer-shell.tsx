@@ -83,7 +83,7 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
         <p className="min-w-0 flex-1 text-sm font-medium">{title}</p>
       ) : null}
       {hasChips ? (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
           {children}
         </div>
       ) : null}

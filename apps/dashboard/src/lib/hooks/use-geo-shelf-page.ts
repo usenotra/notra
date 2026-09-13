@@ -16,7 +16,11 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
-import { useGeoCompetitorsDb, useGeoShelfDb } from "@/lib/hooks/use-geo-db";
+import {
+  useGeoCompetitorsDb,
+  useGeoShelfDb,
+  useGeoShelfFilteredSourcesDb,
+} from "@/lib/hooks/use-geo-db";
 import { useGeoShelfMembers } from "@/lib/hooks/use-geo-shelf";
 import type {
   GeoShelfPageModel,
@@ -75,6 +79,8 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const { competitors } = useGeoCompetitorsDb(organizationId);
   const { domain: ownDomain } = useGeoActiveProject(organizationId);
   const membersQuery = useGeoShelfMembers(organizationId);
+  const members = membersQuery.data?.members ?? [];
+  const currentMemberId = membersQuery.data?.currentMemberId ?? null;
   const shelf = useGeoShelfDb(organizationId);
 
   const [search, setSearch] = useQueryState(
@@ -101,6 +107,17 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   );
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<GeoShelfSelection | null>(null);
+  const filteredShelf = useGeoShelfFilteredSourcesDb(organizationId, {
+    enabled: Boolean(settingsData?.settings),
+    filters: {
+      search,
+      shelf: shelfFilter,
+      ticket: ticketFilter,
+      currentMemberId,
+    },
+    members,
+    competitors,
+  });
 
   useHotkey(GEO_SHELF_ADD_HOTKEY, () => setAddOpen(true), {
     enabled: !addOpen && selected === null,
@@ -123,6 +140,8 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
       isSettingsPending,
       hasSettings,
       isShelfLoading: shelf.isLoading,
+      isFilteredShelfLoading: filteredShelf.isLoading,
+      isMembersLoading: membersQuery.isPending,
     }),
     empty: { organizationSlug, projectId },
     ready: toGeoShelfReadyFields({
@@ -134,6 +153,7 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
       members: membersQuery.data?.members,
       currentMemberId: membersQuery.data?.currentMemberId,
       sources: shelf.sources,
+      filteredSources: filteredShelf.sources,
       selected,
       search,
       shelfFilter,

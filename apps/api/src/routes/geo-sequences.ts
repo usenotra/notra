@@ -18,21 +18,24 @@ import {
   runSequenceResponseSchema,
   sequenceResponseSchema,
 } from "@notra/schemas/api/geo-sequences";
-import { internalGeoSequenceRunResponseSchema } from "@notra/schemas/api/internal-geo";
 
 import { API_TRIGGER_SOURCE } from "../constants/analytics";
-import { GEO_SEQUENCE_RUN_INTERNAL_PATH } from "../constants/geo";
 import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
-import { runGeoEffect, runRemoteGeoEffect } from "../runtime/geo";
-import { trackApiEvent } from "../utils/analytics";
-import { geoErrorResponse } from "../utils/geo";
+import { runGeoEffect } from "../runtime/geo";
 import {
-  getInternalWorkflowUrl,
-  SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,
-} from "../utils/internal-workflow";
+  GEO_REMOTE_SEQUENCE_RUN,
+  resolveRemoteGeoUrl,
+  runConfiguredRemoteGeoEffect,
+} from "../runtime/geo-remote";
+import { trackApiEvent } from "../utils/analytics";
+import {
+  attachGeoOrganization,
+  geoErrorResponse,
+  geoRemoteUnavailableResponse,
+} from "../utils/geo";
 import { createOpenApiApp } from "../utils/openapi-app";
 import { errorResponse, rateLimitResponse } from "../utils/openapi-responses";
 import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
@@ -225,9 +228,12 @@ geoSequencesRoutes.openapi(runSequenceRoute, async (c) => {
   const base = c.get("geo");
   const { projectId, sequenceId } = c.req.valid("param");
 
-  const url = getInternalWorkflowUrl(c.env, GEO_SEQUENCE_RUN_INTERNAL_PATH);
+  const url = resolveRemoteGeoUrl(c.env, GEO_REMOTE_SEQUENCE_RUN);
   if (!url) {
-    return c.json({ error: "Sequence runs are unavailable" }, 503);
+    return geoRemoteUnavailableResponse(
+      c,
+      GEO_REMOTE_SEQUENCE_RUN.unavailableMessage
+    );
   }
 
   // Charged immediately before the remote run. Project ownership and service
@@ -249,16 +255,10 @@ geoSequencesRoutes.openapi(runSequenceRoute, async (c) => {
   //
   // TODO(Phase 6 — durable workflow): once the sequence run is a durable
   // workflow, hand off and return a real run id plus a status endpoint.
-  const outcome = await runRemoteGeoEffect(
-    "sequenceRun",
+  const outcome = await runConfiguredRemoteGeoEffect(
+    GEO_REMOTE_SEQUENCE_RUN,
     url,
-    { organizationId: base.organizationId, projectId, sequenceId },
-    {
-      responseSchema: internalGeoSequenceRunResponseSchema,
-      timeoutMs: SYNCHRONOUS_INTERNAL_CALL_TIMEOUT_MS,
-      timeoutMessage:
-        "The sequence run is taking longer than expected and is still in progress. Do not retry. Check the project's GEO checks for the result.",
-    }
+    { organizationId: base.organizationId, projectId, sequenceId }
   );
   if (!outcome.ok) {
     return geoErrorResponse(c, outcome.failure);
@@ -276,12 +276,11 @@ geoSequencesRoutes.openapi(runSequenceRoute, async (c) => {
   });
 
   return c.json(
-    {
+    attachGeoOrganization(base.organization, {
       checks: outcome.value.checks,
       mentions: outcome.value.mentions,
       engines: outcome.value.engines,
-      organization: base.organization,
-    },
+    }),
     200
   );
 });
