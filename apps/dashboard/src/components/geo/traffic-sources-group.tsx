@@ -21,6 +21,11 @@ import { tableHeightFor } from "@/utils/table";
 
 const COLLAPSED_BAND_BORDER_PX = 2;
 const STACK_OVERLAP_PX = 20;
+const STACK_Z_INDEX: Record<GeoTrafficSourceBand, number> = {
+  crawler: 10,
+  cited: 20,
+  ai_referral: 30,
+};
 
 const SOURCE_BAND_LABELS: Record<GeoTrafficSourceBand, string> = {
   crawler: GEO_TRAFFIC_TREND_CRAWLER_LABEL,
@@ -41,7 +46,6 @@ export function TrafficSourcesGroup({
   collapsed,
   onToggle,
   stacked,
-  followedByStack = false,
 }: TrafficSourcesGroupProps) {
   const label = SOURCE_BAND_LABELS[band];
   const noun = SOURCE_BAND_NOUN[band];
@@ -78,16 +82,19 @@ export function TrafficSourcesGroup({
       ? columns
       : [{ ...first, header, sortable: false }, ...rest];
 
+  const stackClassName = stacked
+    ? "relative -mt-5 rounded-t-none border-t-0 pt-5"
+    : "relative";
+
   if (!showTable) {
     return (
       <div
         className={cn(
           "border-border bg-muted flex items-center rounded-2xl border px-4",
-          stacked
-            ? "relative z-0 -mt-5 rounded-t-none border-t-0 pt-5"
-            : "relative z-10"
+          stackClassName
         )}
         style={{
+          zIndex: STACK_Z_INDEX[band],
           height:
             TABLE_ROW_HEIGHT +
             COLLAPSED_BAND_BORDER_PX +
@@ -100,12 +107,7 @@ export function TrafficSourcesGroup({
   }
 
   return (
-    <div
-      className={cn(
-        stacked ? "relative z-0 -mt-5" : "relative z-10",
-        followedByStack && "pb-5"
-      )}
-    >
+    <div className={cn(stackClassName)} style={{ zIndex: STACK_Z_INDEX[band] }}>
       <Table
         className="rounded-2xl"
         flushTop={stacked}

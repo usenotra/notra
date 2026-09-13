@@ -191,7 +191,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
             band="crawler"
             collapsed={crawlersCollapsed}
             columns={columns}
-            followedByStack
             groups={crawlerGroups}
             onToggle={() => toggleCollapsed("crawler")}
             stacked={false}
@@ -200,7 +199,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
             band="cited"
             collapsed={collapsed.has("cited")}
             columns={columns}
-            followedByStack
             groups={citedGroups}
             onToggle={() => toggleCollapsed("cited")}
             stacked
