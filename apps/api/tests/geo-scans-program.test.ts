@@ -44,12 +44,43 @@ function collectSqlText(fragment: unknown): string {
   return String(fragment);
 }
 
+function collectBoundValues(fragment: unknown): string[] {
+  if (!fragment || typeof fragment !== "object") {
+    return [];
+  }
+
+  const values: string[] = [];
+
+  if ("value" in fragment) {
+    const value = (fragment as { value: unknown }).value;
+    if (typeof value === "string") {
+      values.push(value);
+    } else if (Array.isArray(value)) {
+      for (const entry of value) {
+        values.push(...collectBoundValues(entry));
+      }
+    } else if (value != null && typeof value === "object") {
+      values.push(...collectBoundValues(value));
+    }
+  }
+
+  if ("queryChunks" in fragment && Array.isArray(fragment.queryChunks)) {
+    for (const chunk of fragment.queryChunks) {
+      values.push(...collectBoundValues(chunk));
+    }
+  }
+
+  return values;
+}
+
 function expectTenantScopedWhere(where: unknown) {
   const sql = collectSqlText(where);
   expect(sql).toContain("organization_id");
   expect(sql).toContain("project_id");
-  expect(sql).toContain("org");
-  expect(sql).toContain("project");
+
+  const values = collectBoundValues(where);
+  expect(values).toContain("org");
+  expect(values).toContain("project");
 }
 
 const findFirst = mock(async (args: { where: unknown }) => {
@@ -147,9 +178,8 @@ describe("getGeoScanForProject", () => {
       expect(outcome.failure).toBeInstanceOf(GeoScanNotFoundError);
     }
     expect(capturedFindFirstArgs).toBeDefined();
-    const sql = collectSqlText(capturedFindFirstArgs?.where);
-    expect(sql).toContain("id");
-    expect(sql).toContain("missing");
+    const values = collectBoundValues(capturedFindFirstArgs?.where);
+    expect(values).toContain("missing");
     expectTenantScopedWhere(capturedFindFirstArgs?.where);
   });
 
@@ -185,6 +215,8 @@ describe("getGeoScanForProject", () => {
       createdAt: createdAt.toISOString(),
     });
     expectTenantScopedWhere(capturedFindFirstArgs?.where);
-    expect(collectSqlText(capturedFindFirstArgs?.where)).toContain("scan-1");
+    expect(collectBoundValues(capturedFindFirstArgs?.where)).toContain(
+      "scan-1"
+    );
   });
 });
