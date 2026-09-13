@@ -29,10 +29,10 @@ function collectSqlText(fragment: unknown): string {
   if ("value" in fragment) {
     const value = (fragment as { value: unknown }).value;
     if (Array.isArray(value)) {
-      return value.map((entry) => String(entry)).join("");
+      return value.map((entry) => collectSqlText(entry)).join("");
     }
 
-    return String(value);
+    return collectSqlText(value);
   }
 
   return String(fragment);
