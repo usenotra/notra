@@ -37,7 +37,7 @@ export interface TableSkeletonProps {
 
 export interface TableHeaderSurfaceProps extends Pick<
   TableProps<unknown>,
-  "toolbar" | "flushTop" | "overlapTop"
+  "toolbar" | "leadingHeader" | "flushTop" | "overlapTop"
 > {
   children: ReactNode;
 }

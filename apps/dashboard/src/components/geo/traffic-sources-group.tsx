@@ -7,7 +7,6 @@ import {
   GEO_TRAFFIC_TREND_CRAWLER_LABEL,
   GEO_TRAFFIC_TREND_REFERRAL_LABEL,
 } from "@notra/geo-core/constants/geo";
-import type { ReactNode } from "react";
 
 import { Table } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -19,7 +18,6 @@ import type {
 import { trafficGroupKey } from "@/utils/ai-traffic-groups";
 import { tableHeightFor } from "@/utils/table";
 
-const COLLAPSED_BAND_BORDER_PX = 2;
 const STACK_OVERLAP_PX = 20;
 const STACK_Z_INDEX: Record<GeoTrafficSourceBand, number> = {
   crawler: 10,
@@ -38,28 +36,6 @@ const SOURCE_BAND_NOUN: Record<GeoTrafficSourceBand, string> = {
   cited: "source",
   ai_referral: "source",
 };
-
-function BandHeaderBar({
-  children,
-  className,
-  style,
-}: {
-  children: ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div
-      className={cn(
-        "border-border bg-muted flex items-center border-x px-4",
-        className
-      )}
-      style={style}
-    >
-      {children}
-    </div>
-  );
-}
 
 export function TrafficSourcesGroup({
   band,
@@ -99,56 +75,52 @@ export function TrafficSourcesGroup({
     </span>
   );
 
-  const stackOverlapClassName = stacked
-    ? "relative -mt-5 border-t-0 pt-5"
-    : undefined;
+  const stackWrapperClassName = cn("relative", stacked && "-mt-5");
 
   if (!showTable) {
+    const collapsedHeight =
+      TABLE_ROW_HEIGHT +
+      (stacked ? STACK_OVERLAP_PX : 0) +
+      (followedByStack ? STACK_OVERLAP_PX : 0);
+
     return (
       <div
-        className={cn("relative", followedByStack && "pb-5")}
+        className={stackWrapperClassName}
         style={{ zIndex: STACK_Z_INDEX[band] }}
       >
-        <BandHeaderBar
-          className={cn("rounded-2xl border", stackOverlapClassName)}
-          style={{
-            height:
-              TABLE_ROW_HEIGHT +
-              COLLAPSED_BAND_BORDER_PX +
-              (stacked ? STACK_OVERLAP_PX : 0),
-          }}
+        <div
+          className={cn(
+            "border-border bg-muted flex items-center border-x px-4",
+            stacked && "border-t-0 pt-5",
+            !stacked && "border-t",
+            followedByStack && "pb-5",
+            followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border",
+            followedByStack && stacked && "rounded-t-none"
+          )}
+          style={{ height: collapsedHeight }}
         >
           {header}
-        </BandHeaderBar>
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className={cn("relative", followedByStack && "pb-5")}
+      className={cn(stackWrapperClassName, followedByStack && "pb-5")}
       style={{ zIndex: STACK_Z_INDEX[band] }}
     >
-      <BandHeaderBar
-        className={cn(
-          "border-t",
-          stackOverlapClassName,
-          stacked ? undefined : "rounded-t-2xl"
-        )}
-        style={{ height: TABLE_ROW_HEIGHT + COLLAPSED_BAND_BORDER_PX }}
-      >
-        {header}
-      </BandHeaderBar>
       <Table
-        className="rounded-t-none"
         columns={columns}
         data={groups}
         defaultSort={{ key: "visits", direction: "desc" }}
         emptyState="No AI traffic captured yet"
         flushBottom={followedByStack}
-        flushTop
+        flushTop={stacked}
         getRowId={(row) => trafficGroupKey(row.band, row.key)}
         height={tableHeightFor(count)}
+        leadingHeader={header}
+        overlapTop={stacked}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />
