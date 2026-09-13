@@ -15,12 +15,18 @@ import type {
   GeoShelfTicketFilter,
   GeoShelfView,
 } from "@/types/geo-shelf";
-import { filterShelfRows, toShelfRows } from "@/utils/geo-shelf";
+import { toShelfRows } from "@/utils/geo-shelf";
 
 export function resolveGeoShelfPageStatus(
   input: GeoShelfPageStatusInput
 ): GeoShelfPageModel["status"] {
-  if (input.isSettingsPending || (input.hasSettings && input.isShelfLoading)) {
+  if (
+    input.isSettingsPending ||
+    (input.hasSettings &&
+      (input.isShelfLoading ||
+        input.isFilteredShelfLoading ||
+        input.isMembersLoading))
+  ) {
     return "loading";
   }
   if (!input.hasSettings) {
@@ -52,6 +58,7 @@ export function toGeoShelfReadyFields(input: {
   members: GeoShelfMember[] | undefined;
   currentMemberId: string | null | undefined;
   sources: GeoShelfSource[];
+  filteredSources: GeoShelfSource[];
   selected: GeoShelfSelection | null;
   search: string;
   shelfFilter: GeoShelfShelfFilter;
@@ -75,6 +82,7 @@ export function toGeoShelfReadyFields(input: {
   const currentMember =
     members.find((member) => member.id === currentMemberId) ?? null;
   const rows = toShelfRows(input.sources, members);
+  const filteredRows = toShelfRows(input.filteredSources, members);
   const filters: GeoShelfFilterState = {
     search: input.search,
     shelf: input.shelfFilter,
@@ -92,7 +100,7 @@ export function toGeoShelfReadyFields(input: {
     currentMemberId,
     currentMember,
     rows,
-    filteredRows: filterShelfRows(rows, filters),
+    filteredRows,
     filters,
     view: input.view,
     hasScanData: input.sources.some((source) => source.origin === "scan"),

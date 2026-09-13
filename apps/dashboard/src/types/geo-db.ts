@@ -1,5 +1,4 @@
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
-import type { QueryClient } from "@tanstack/react-query";
 
 export interface GeoCollectionSpec<T extends object> {
   name: string;
@@ -18,8 +17,4 @@ export interface GeoCollectionSpec<T extends object> {
     original: T
   ) => Promise<unknown>;
   remove?: (scope: GeoScopeInput, original: T) => Promise<unknown>;
-  invalidateLegacy: (
-    queryClient: QueryClient,
-    scope: GeoScopeInput
-  ) => Promise<unknown>;
 }

@@ -1,4 +1,3 @@
-import type { GeoRouterError } from "@notra/geo-core/geo/errors";
 import {
   type GeoFailureWire,
   toGeoFailureWire,
@@ -11,6 +10,7 @@ import type {
   GeoApiRuntime,
   GeoFailure,
   GeoOutcome,
+  GeoProgramError,
   RemoteGeoEffectOptions,
 } from "../types/geo";
 import {
@@ -19,6 +19,18 @@ import {
   InternalDashboardTimeoutError,
 } from "../utils/internal-workflow";
 import { logError } from "../utils/logging";
+
+/**
+ * GEO execution surfaces:
+ *
+ * - `runGeoEffect` — programs the API host can run (database, workflow
+ *   starters, entitlement checks). Wired through `geoCoreApiLayer`.
+ *
+ * - `runRemoteGeoEffect` — paid synchronous work that only the dashboard can
+ *   execute (brief planning, sequence runs). Returns the dashboard's tagged
+ *   domain failure verbatim; remote timeouts map to 409 so clients do not
+ *   retry in-flight billing.
+ */
 
 /**
  * Maps a tagged GEO failure onto an HTTP status and a client-safe message.
@@ -119,6 +131,24 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
   }
 }
 
+function toGeoProgramFailure(error: GeoProgramError): GeoFailure {
+  switch (error._tag) {
+    case "GeoSelectionInvalidError":
+      return { status: 400, error: error.message };
+    case "AgentReadinessTargetMissingError":
+    case "AgentReadinessApiError":
+      return { status: 400, error: error.message };
+    case "GeoScanNotFoundError":
+      return { status: 404, error: "Scan not found" };
+    case "AgentReadinessClaimError":
+    case "AgentReadinessStampError":
+    case "AgentReadinessStartError":
+      return { status: 500, error: "Internal server error" };
+    default:
+      return toGeoFailure(toGeoFailureWire(error));
+  }
+}
+
 /**
  * Runs a GEO program and normalizes both failure channels.
  *
@@ -127,7 +157,7 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
  * typed failure and would escape `Effect.result`. Both channels are caught and
  * reported as a 500 so no route leaks a raw stack trace.
  */
-export async function runGeoEffect<A, E extends GeoRouterError>(
+export async function runGeoEffect<A, E extends GeoProgramError>(
   label: string,
   effect: Effect.Effect<A, E, GeoApiRuntime>
 ): Promise<GeoOutcome<A>> {
@@ -137,7 +167,7 @@ export async function runGeoEffect<A, E extends GeoRouterError>(
     );
 
     if (outcome._tag === "Failure") {
-      const failure = toGeoFailure(toGeoFailureWire(outcome.failure));
+      const failure = toGeoProgramFailure(outcome.failure);
       if (failure.status === 500) {
         logError(`[GEO] ${label}`, outcome.failure);
       }
