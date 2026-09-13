@@ -117,6 +117,7 @@ export function useGeoPromptsDb(
   });
 
   const { data, isLoading } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
     query: (q) => q.from({ prompt: definition }),
     startSync: isEnabled,
   });
@@ -209,6 +210,7 @@ export function useGeoProjectsDb(
   );
 
   const { data, isLoading, isError, isReady } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
     query: (q) =>
       q
         .from({ project: definition })
@@ -329,6 +331,7 @@ export function useGeoCompetitorsDb(
   });
 
   const { data } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
     query: (q) => q.from({ competitor: definition }),
     startSync: isEnabled,
   });
@@ -376,6 +379,7 @@ export function useGeoSequencesDb(
   });
 
   const { data, isLoading } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
     query: (q) => q.from({ sequence: definition }),
     startSync: isEnabled,
   });
