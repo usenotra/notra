@@ -4,6 +4,7 @@ import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organiz
 import * as z from "zod";
 
 import {
+  GITHUB_BRANCH_INVALID_CHARACTERS,
   GITHUB_CONTENT_PATH_MAX_LENGTH,
   GITHUB_PATH_INVALID_CHARACTERS_REGEX,
   GITHUB_PUBLISH_CONTENT_TYPES,
@@ -246,6 +247,47 @@ export const updateRepositoryBodySchema = z
     }
   );
 export type UpdateRepositoryBody = z.infer<typeof updateRepositoryBodySchema>;
+
+export const repositoryBranchNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Branch name is required")
+  .max(255, "Branch name is too long")
+  .refine(
+    (value) =>
+      Array.from(value).every((character) => {
+        const codePoint = character.codePointAt(0) ?? 0;
+        return (
+          codePoint > 32 &&
+          codePoint !== 127 &&
+          !GITHUB_BRANCH_INVALID_CHARACTERS.includes(character)
+        );
+      }),
+    "Branch name contains an invalid character"
+  )
+  .refine(
+    (value) =>
+      !value.startsWith("/") && !value.endsWith("/") && !value.includes("//"),
+    "Branch name contains an invalid slash"
+  )
+  .refine(
+    (value) => !value.includes("..") && !value.includes("@{") && value !== "@",
+    "Branch name is not valid"
+  )
+  .refine(
+    (value) =>
+      !value.endsWith(".") &&
+      value
+        .split("/")
+        .every(
+          (segment) => !segment.startsWith(".") && !segment.endsWith(".lock")
+        ),
+    "Branch name contains an invalid segment"
+  );
+
+export const createRepositoryBranchBodySchema = z.object({
+  branchName: repositoryBranchNameSchema,
+});
 
 export const repositoryContentDirectorySchema = z
   .string()
