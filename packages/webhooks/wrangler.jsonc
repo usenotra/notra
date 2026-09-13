@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "notra-webhooks",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": false,
+  "observability": {
+    "enabled": true,
+  },
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "EVENT_QUEUE",
+        "queue": "notra-webhook-events",
+      },
+      {
+        "binding": "DELIVERY_QUEUE",
+        "queue": "notra-webhook-deliveries",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "notra-webhook-events",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+      },
+      {
+        "queue": "notra-webhook-deliveries",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 5,
+      },
+    ],
+  },
+}

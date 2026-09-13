@@ -48,6 +48,7 @@
     "@notra/schemas": "workspace:*",
     "@notra/ui": "workspace:*",
     "@notra/utils": "workspace:*",
+    "@notra/webhooks": "workspace:*",
     "@orpc/client": "^1.13.9",
     "@orpc/server": "^1.13.9",
     "@orpc/tanstack-query": "^1.13.9",

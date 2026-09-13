@@ -19,6 +19,7 @@
     "@notra/posthog": "workspace:*",
     "@notra/schemas": "workspace:*",
     "@notra/utils": "workspace:*",
+    "@notra/webhooks": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/sdk-node": "^0.220.0",
     "@unkey/api": "^2.3.0",

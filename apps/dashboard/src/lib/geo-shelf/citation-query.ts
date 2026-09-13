@@ -10,7 +10,7 @@ import type {
   GeoShelfStoreKey,
 } from "../../types/geo-shelf";
 
-interface CitedSourceSqlRow {
+type CitedSourceSqlRow = {
   url: string | null;
   title: string | null;
   window_count: number | string | null;
@@ -21,7 +21,7 @@ interface CitedSourceSqlRow {
   window_check_ids: string[] | null;
   first_cited_at: Date | string | null;
   last_cited_at: Date | string | null;
-}
+};
 
 function toCount(value: number | string | null | undefined): number {
   const parsed = Number(value ?? 0);
@@ -61,7 +61,7 @@ export async function queryCitedShelfPages(
     else '[]'::jsonb
   end`;
 
-  const result = await db.execute(sql`
+  const result = await db.execute<CitedSourceSqlRow>(sql`
     with listed as (
       select
         ${geoMentionChecks.id} as check_id,
@@ -106,7 +106,7 @@ export async function queryCitedShelfPages(
     group by url
   `);
 
-  const rows = (result.rows as CitedSourceSqlRow[]).flatMap((row) => {
+  const rows = result.rows.flatMap((row) => {
     if (!row.url || !row.first_cited_at || !row.last_cited_at) {
       return [];
     }
