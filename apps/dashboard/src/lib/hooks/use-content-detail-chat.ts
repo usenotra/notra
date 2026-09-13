@@ -16,7 +16,6 @@ import {
   contentChatSessionsPath,
   contentChatSessionsQueryKey,
 } from "@notra/ai/utils/chat";
-import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { ContentResponse } from "@notra/schemas/dashboard/content";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,9 +34,11 @@ import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { ContentDetailChatComposerProps } from "@/components/content/content-detail-chat-shell";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { CONTENT_PLAN_CHAT_PLACEHOLDER } from "@/constants/content-plan";
-import { trackEvent } from "@/lib/analytics/posthog-client";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
-import { collectContentChatToolOutputEffects } from "@/lib/content/apply-content-chat-tool-output";
+import {
+  applyContentChatToolOutputEffect,
+  collectContentChatToolOutputEffects,
+} from "@/lib/content/apply-content-chat-tool-output";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import { handleStandaloneChatError } from "@/utils/chat-error";
@@ -48,7 +49,7 @@ interface UseContentDetailChatParams {
   organizationSlug: string;
   contentId: string;
   content: ContentResponse | undefined;
-  document: ContentDetailDocument;
+  contentDocument: ContentDetailDocument;
 }
 
 export function useContentDetailChat({
@@ -56,8 +57,25 @@ export function useContentDetailChat({
   organizationSlug,
   contentId,
   content,
-  document,
+  contentDocument,
 }: UseContentDetailChatParams) {
+  const {
+    editedMarkdown,
+    editedMarkdownRef,
+    editorRef,
+    geoWriterBriefQuery,
+    geoWriterDraft,
+    geoWriterUpdate,
+    invalidateContentQueries,
+    isGeoWriterChatLocked,
+    isGeoWriterPlanReviewableNow,
+    originalMarkdownRef,
+    setEditedMarkdown,
+    setEditorKey,
+    setOriginalMarkdown,
+    setReviewPreviousMarkdown,
+    setWriteFocusNonce,
+  } = contentDocument;
   const { state: sidebarState } = useSidebar();
   const queryClient = useQueryClient();
   const { active, openPanel, closePanel } = useRightPanel();
@@ -216,7 +234,7 @@ export function useContentDetailChat({
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
     setChatError(null);
-    processedToolCallsRef.current.clear();
+    processedToolCallsRef.current = new Set();
     wasStoppedByUserRef.current = false;
     isDrainingRef.current = false;
     isAgentBusyRef.current = false;
@@ -255,14 +273,15 @@ export function useContentDetailChat({
       return;
     }
 
-    processedToolCallsRef.current.clear();
+    const nextProcessedToolCalls = new Set<string>();
     for (const message of history) {
       for (const part of message.parts) {
         if ("toolCallId" in part && typeof part.toolCallId === "string") {
-          processedToolCallsRef.current.add(part.toolCallId);
+          nextProcessedToolCalls.add(part.toolCallId);
         }
       }
     }
+    processedToolCallsRef.current = nextProcessedToolCalls;
     setMessages(history);
     setChatIdToHydrate(null);
   }, [
@@ -323,7 +342,7 @@ export function useContentDetailChat({
       }
       setQueuedMessages([]);
       queuedMessagesRef.current = [];
-      processedToolCallsRef.current.clear();
+      processedToolCallsRef.current = new Set();
       setMessages([]);
       setActiveChatId(chatId);
       setChatIdToHydrate(chatId);
@@ -339,67 +358,68 @@ export function useContentDetailChat({
     queuedMessagesRef.current = [];
     setChatInputValue("");
     if (messagesRef.current.length === 0) {
-      processedToolCallsRef.current.clear();
+      processedToolCallsRef.current = new Set();
       return;
     }
-    processedToolCallsRef.current.clear();
+    processedToolCallsRef.current = new Set();
     setMessages([]);
     setActiveChatId(crypto.randomUUID());
     setChatIdToHydrate(null);
   }, [setMessages]);
 
   useEffect(() => {
+    const processedToolCalls = processedToolCallsRef.current;
     const effects = collectContentChatToolOutputEffects({
       messages,
-      processedToolCalls: processedToolCallsRef.current,
-      isGeoWriterPlanReviewableNow: document.isGeoWriterPlanReviewableNow,
-      geoWriterDraftBriefId: document.geoWriterDraft?.briefId,
-      geoWriterBriefData: document.geoWriterBriefQuery.data,
-      editedMarkdownRef: document.editedMarkdownRef,
+      processedToolCalls,
+      isGeoWriterPlanReviewableNow,
+      geoWriterDraftBriefId: geoWriterDraft?.briefId,
+      geoWriterBriefData: geoWriterBriefQuery.data,
+      editedMarkdown,
     });
 
-    for (const effect of effects) {
-      switch (effect.type) {
-        case "track-image-revised":
-          trackEvent(POSTHOG_EVENTS.IMAGE_REVISED, { content_id: contentId });
-          break;
-        case "invalidate-content":
-          document.invalidateContentQueries().catch((error) => {
-            console.error("Failed to refresh edited content", error);
-          });
-          break;
-        case "apply-image-markdown":
-          document.setEditedMarkdown(effect.markdown);
-          document.editedMarkdownRef.current = effect.markdown;
-          document.editorRef.current?.setMarkdown(effect.markdown);
-          trackEvent(POSTHOG_EVENTS.IMAGE_REVISED, { content_id: contentId });
-          break;
-        case "apply-markdown-edit":
-          document.setEditedMarkdown(effect.fixedMarkdown);
-          document.editedMarkdownRef.current = effect.fixedMarkdown;
-          if (effect.geoWriterPersist) {
-            document.setReviewPreviousMarkdown(null);
-            document.geoWriterUpdate.mutate(effect.geoWriterPersist, {
-              onSuccess: () => {
-                document.setOriginalMarkdown(effect.fixedMarkdown);
-                document.originalMarkdownRef.current = effect.fixedMarkdown;
-              },
-            });
-          } else {
-            document.setReviewPreviousMarkdown(effect.reviewPrevious);
-            document.setWriteFocusNonce((value) => value + 1);
-            document.setEditorKey((key) => key + 1);
-          }
-          trackEvent(POSTHOG_EVENTS.CONTENT_AGENT_EDIT_APPLIED, {
-            content_id: contentId,
-            type: content?.contentType ?? null,
-          });
-          break;
-        default:
-          break;
-      }
+    if (effects.length === 0) {
+      return;
     }
-  }, [content?.contentType, contentId, document, messages]);
+
+    const nextProcessedToolCalls = new Set(processedToolCalls);
+    for (const effect of effects) {
+      applyContentChatToolOutputEffect(effect, {
+        contentId,
+        contentType: content?.contentType,
+        editedMarkdownRef,
+        editorRef,
+        geoWriterUpdate,
+        invalidateContentQueries,
+        originalMarkdownRef,
+        setEditedMarkdown,
+        setEditorKey,
+        setOriginalMarkdown,
+        setReviewPreviousMarkdown,
+        setWriteFocusNonce,
+      });
+      nextProcessedToolCalls.add(effect.toolCallId);
+    }
+    processedToolCallsRef.current = nextProcessedToolCalls;
+  }, [
+    content?.contentType,
+    contentId,
+    editedMarkdown,
+    editedMarkdownRef,
+    editorRef,
+    geoWriterBriefQuery.data,
+    geoWriterDraft?.briefId,
+    geoWriterUpdate,
+    invalidateContentQueries,
+    isGeoWriterPlanReviewableNow,
+    messages,
+    originalMarkdownRef,
+    setEditedMarkdown,
+    setEditorKey,
+    setOriginalMarkdown,
+    setReviewPreviousMarkdown,
+    setWriteFocusNonce,
+  ]);
 
   const dispatchContentEdit = useCallback(
     async (
@@ -425,11 +445,9 @@ export function useContentDetailChat({
             currentMarkdown:
               content?.contentType === "image"
                 ? ""
-                : (document.editedMarkdown ?? content?.markdown ?? ""),
+                : (editedMarkdown ?? content?.markdown ?? ""),
             contentType: content?.contentType,
-            documentMode: document.isGeoWriterPlanReviewableNow
-              ? "plan"
-              : undefined,
+            documentMode: isGeoWriterPlanReviewableNow ? "plan" : undefined,
             selection: nextSelection,
             context: nextContext,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -442,8 +460,8 @@ export function useContentDetailChat({
       activeChatId,
       content?.contentType,
       content?.markdown,
-      document.editedMarkdown,
-      document.isGeoWriterPlanReviewableNow,
+      editedMarkdown,
+      isGeoWriterPlanReviewableNow,
     ]
   );
 
@@ -530,7 +548,7 @@ export function useContentDetailChat({
   }, [drainQueue]);
 
   const isChatDisabled =
-    document.isGeoWriterChatLocked ||
+    isGeoWriterChatLocked ||
     !activeChatId ||
     contentChatSessionsQuery.isPending ||
     contentChatHistoryQuery.isFetching ||
@@ -552,7 +570,7 @@ export function useContentDetailChat({
     onValueChange: setChatInputValue,
     organizationId,
     organizationSlug,
-    placeholder: document.isGeoWriterPlanReviewableNow
+    placeholder: isGeoWriterPlanReviewableNow
       ? CONTENT_PLAN_CHAT_PLACEHOLDER
       : undefined,
     queuedMessages,

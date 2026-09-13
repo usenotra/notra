@@ -31,7 +31,7 @@ export default function PageClient({
     organizationSlug,
     contentId,
     content: data?.content,
-    document,
+    contentDocument: document,
   });
   const { active, togglePanel } = useRightPanel();
   const isActivityPanelOpen = active === "content";
