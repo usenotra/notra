@@ -95,7 +95,6 @@ function buildScopedCollection<T extends object>(
               resolveProjectCreateHandoff(transaction.id, result as GeoProject);
             }
           }
-          await spec.invalidateLegacy(queryClient, scope);
         } catch (error) {
           if (spec.name === "projects") {
             rejectProjectCreateHandoff(transaction.id, error);
@@ -112,13 +111,11 @@ function buildScopedCollection<T extends object>(
             mutation.original
           );
         }
-        await spec.invalidateLegacy(queryClient, scope);
       },
       onDelete: async ({ transaction }) => {
         for (const mutation of transaction.mutations) {
           await spec.remove?.(scope, mutation.original);
         }
-        await spec.invalidateLegacy(queryClient, scope);
       },
     });
   });
@@ -172,15 +169,6 @@ export const geoPromptsCollection = createCollectionFactory<GeoTrackedPrompt>({
         }),
   remove: (scope, original) =>
     dashboardOrpc.geo.promptsDelete.call({ ...scope, promptId: original.id }),
-  invalidateLegacy: (queryClient, scope) =>
-    Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.promptsList.queryKey({ input: scope }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.settings.queryKey({ input: scope }),
-      }),
-    ]),
 });
 
 export const geoProjectsCollection = createCollectionFactory<GeoProject>({
@@ -205,12 +193,6 @@ export const geoProjectsCollection = createCollectionFactory<GeoProject>({
     dashboardOrpc.geo.projectsDelete.call({
       organizationId: scope.organizationId,
       projectId: original.id,
-    }),
-  invalidateLegacy: (queryClient, scope) =>
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.projectsList.queryKey({
-        input: { organizationId: scope.organizationId },
-      }),
     }),
 });
 
@@ -246,20 +228,6 @@ export const geoCompetitorsCollection = createCollectionFactory<GeoCompetitor>({
       ...scope,
       name: original.name,
     }),
-  invalidateLegacy: (queryClient, scope) =>
-    Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.competitors.queryKey({ input: scope }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.competitorShare.queryKey({
-          input: scope,
-        }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.settings.queryKey({ input: scope }),
-      }),
-    ]),
 });
 
 export const geoSequencesCollection =
@@ -290,10 +258,6 @@ export const geoSequencesCollection =
       dashboardOrpc.geo.sequencesDelete.call({
         ...scope,
         sequenceId: original.id,
-      }),
-    invalidateLegacy: (queryClient, scope) =>
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.sequencesList.queryKey({ input: scope }),
       }),
   });
 
@@ -350,9 +314,5 @@ export const geoShelfCollection = createCollectionFactory<GeoShelfSource>({
       kind: modified.kind === original.kind ? undefined : modified.kind,
       placements: changedShelfPlacementWrites(modified, original),
       opportunity: changedShelfOpportunityWrite(modified, original),
-    }),
-  invalidateLegacy: (queryClient, scope) =>
-    queryClient.invalidateQueries({
-      queryKey: dashboardOrpc.geo.shelfList.queryKey({ input: scope }),
     }),
 });
