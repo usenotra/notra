@@ -11,7 +11,7 @@ export class WebhookValidationError extends Schema.TaggedError<WebhookValidation
 ) {}
 export class WebhookCryptoError extends Schema.TaggedError<WebhookCryptoError>()(
   "WebhookCryptoError",
-  { operation: Schema.String }
+  { operation: Schema.String, cause: Schema.optional(Schema.Defect()) }
 ) {}
 export class WebhookTransportError extends Schema.TaggedError<WebhookTransportError>()(
   "WebhookTransportError",

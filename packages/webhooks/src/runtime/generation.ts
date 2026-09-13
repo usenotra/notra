@@ -14,7 +14,9 @@ export const recordGenerationOutcome = (job: GenerationOutcome) =>
     Effect.gen(function* () {
       const enabled = yield* webhooksEnabled;
       if (!enabled) {
-        return;
+        return yield* Effect.logDebug("Webhooks disabled, skipping event").pipe(
+          Effect.annotateLogs({ jobId: job.id, status: job.status })
+        );
       }
       yield* Effect.promise(() =>
         runtime.runPromise(publishGenerationOutcome(job))

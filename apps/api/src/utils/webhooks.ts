@@ -34,4 +34,12 @@ export function runWebhookApi<A, E>(
 }
 
 export const decodeOrganizationId = (c: Context<ApiEnv>) =>
-  Schema.decodeUnknownEffect(OrganizationId)(getOrganizationId(c));
+  Schema.decodeUnknownEffect(OrganizationId)(getOrganizationId(c)).pipe(
+    Effect.mapError(
+      () =>
+        new WebhookValidationError({
+          message:
+            "The authenticated credential is not tied to an organization",
+        })
+    )
+  );

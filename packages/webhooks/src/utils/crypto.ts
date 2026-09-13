@@ -6,11 +6,11 @@ import { bytes } from "./encoding";
 export const cryptoOperation = <A>(operation: string, run: () => Promise<A>) =>
   Effect.tryPromise({
     try: run,
-    catch: () => new WebhookCryptoError({ operation }),
+    catch: (cause) => new WebhookCryptoError({ operation, cause }),
   });
 
 export const decodeBase64 = (value: string, operation = "base64.decode") =>
   Effect.try({
     try: () => bytes(value),
-    catch: () => new WebhookCryptoError({ operation }),
+    catch: (cause) => new WebhookCryptoError({ operation, cause }),
   });

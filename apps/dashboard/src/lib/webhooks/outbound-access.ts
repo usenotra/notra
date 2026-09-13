@@ -9,8 +9,7 @@ export const authorizeOutboundWebhooks = Effect.fn("webhooks.authorize")(
   function* (input: WebhookAccessInput, mutate = false) {
     const access = yield* Effect.tryPromise({
       try: () => assertOrganizationAccess(input),
-      catch: (cause) =>
-        cause instanceof ORPCError ? cause : new ORPCError("UNAUTHORIZED"),
+      catch: (cause) => cause,
     });
     const canManage =
       access.membership.role === "owner" || access.membership.role === "admin";

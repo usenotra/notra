@@ -51,8 +51,10 @@ The code does not provision infrastructure or apply production migrations.
    Point both at the **same database**. Use a dedicated base64-encoded 32-byte
    encryption key (`openssl rand -base64 32`), also configured in the API/dashboard.
 4. Deploy the worker with `bun run deploy`, then deploy the API/dashboard changes.
-5. Webhook event publishing is always enabled for terminal tracked generation jobs.
-   Apply the migration before deploying generation-producing apps.
+5. Set `WEBHOOKS_ENABLED=true` in generation-producing app environments once the
+   migration and worker are live. It defaults to false, so a deployment that
+   predates the migration skips publishing instead of failing generation updates.
+   Redeploy those apps after changing it.
 6. Create an endpoint, generate a post through the API and inspect its delivery
    and attempt history. Allow up to a minute for initial dispatch/retries.
 

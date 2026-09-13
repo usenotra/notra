@@ -6,5 +6,7 @@ export const WEBHOOK_ERROR_RESPONSES = {
   402: errorResponse("Subscription required"),
   403: errorResponse("Forbidden"),
   404: errorResponse("Webhook not found"),
+  429: errorResponse("Rate limit exceeded"),
+  500: errorResponse("Subscription verification failed"),
   503: errorResponse("Webhooks unavailable"),
 };
