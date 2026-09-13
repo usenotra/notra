@@ -1130,7 +1130,7 @@ export interface GeoPromptSummary {
   results: GeoPromptResultSummary[];
 }
 
-export type GeoTab = "visibility" | "prompts" | "journeys";
+export type GeoTab = "visibility" | "brand-sentiment" | "journeys";
 
 export type GeoRangePreset =
   | "today"

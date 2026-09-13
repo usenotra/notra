@@ -9,7 +9,16 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { mergePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import type { Transaction } from "@tanstack/react-db";
-import { useDbClient, useLiveQuery } from "@tanstack/react-db";
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  not,
+  or,
+  useDbClient,
+  useLiveQuery,
+} from "@tanstack/react-db";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -47,6 +56,8 @@ import {
 import type { GeoProjectCreateInput } from "@/types/geo";
 import type {
   GeoShelfDbApi,
+  GeoShelfFilterState,
+  GeoShelfMember,
   GeoShelfOpportunityWrite,
   GeoShelfPlacementStatus,
   GeoShelfSource,
@@ -54,6 +65,7 @@ import type {
 import { toErrorMessage } from "@/utils/error-message";
 import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 import { mergeShelfOpportunity } from "@/utils/geo-shelf";
+import { matchesGeoShelfSourceFilters } from "@/utils/geo-shelf-live-query";
 
 /**
  * Dialogs that stay mounted while closed pass `enabled: false` so the collection
@@ -415,6 +427,94 @@ export function useGeoSequencesDb(
     addSequence,
     updateSequence,
     removeSequence,
+  };
+}
+
+export function useGeoShelfFilteredSourcesDb(
+  organizationId: string,
+  input: {
+    filters: GeoShelfFilterState;
+    members: readonly GeoShelfMember[];
+    competitors: readonly GeoCompetitor[];
+    enabled?: boolean;
+  }
+) {
+  const isEnabled = input.enabled ?? true;
+  const { projectId } = useGeoProjectScope();
+  const shelfDefinition = geoShelfCollection({ organizationId, projectId });
+
+  const { data, isLoading } = useLiveQuery(
+    (q) => {
+      if (!isEnabled) {
+        return undefined;
+      }
+
+      return q
+        .from({ shelf: shelfDefinition })
+        .where(({ shelf }) => {
+          switch (input.filters.ticket) {
+            case "open":
+              return eq(shelf.opportunity?.status, "open");
+            case "in_progress":
+              return eq(shelf.opportunity?.status, "in_progress");
+            case "closed":
+              return and(
+                not(isNull(shelf.opportunity)),
+                inArray(shelf.opportunity?.status, ["won", "lost", "dismissed"])
+              );
+            case "unassigned":
+              return and(
+                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
+                isNull(shelf.opportunity?.assigneeMemberId)
+              );
+            case "mine":
+              if (!input.filters.currentMemberId) {
+                return eq(1, 0);
+              }
+              return and(
+                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
+                or(
+                  eq(
+                    shelf.opportunity?.assigneeMemberId,
+                    input.filters.currentMemberId
+                  ),
+                  eq(
+                    shelf.opportunity?.pocMemberId,
+                    input.filters.currentMemberId
+                  )
+                )
+              );
+            default:
+              return eq(1, 1);
+          }
+        })
+        .fn.where((row) =>
+          matchesGeoShelfSourceFilters(
+            row.shelf,
+            input.filters,
+            input.members,
+            input.competitors
+          )
+        )
+        .select(({ shelf }) => shelf);
+    },
+    [
+      shelfDefinition,
+      isEnabled,
+      input.filters.search,
+      input.filters.shelf,
+      input.filters.ticket,
+      input.filters.currentMemberId,
+      input.members,
+      input.competitors,
+    ]
+  );
+
+  const sources: GeoShelfSource[] = data ?? [];
+
+  return {
+    sources,
+    isLoading,
   };
 }
 

@@ -164,6 +164,30 @@ async function finalizeProjectRun(
     ...(options.failureReason ? { failureReason: options.failureReason } : {}),
   });
   const { context } = plan;
+  if (status === "completed" && totals.checks > 0) {
+    try {
+      await startGeoSentimentStep({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      });
+    } catch (error) {
+      await appendAutomationLogBestEffort({
+        organizationId: context.organizationId,
+        integrationId: context.projectId,
+        integrationType: "geo",
+        title: `GEO sentiment analysis could not start for ${context.companyName}`,
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        referenceId: context.runId,
+        payload: {
+          scanId: context.scanId,
+        },
+        ...(options.retentionDays
+          ? { retentionDays: options.retentionDays }
+          : {}),
+      });
+    }
+  }
   const errorMessage =
     status === "failed"
       ? (options.failureReason ?? "No successful checks")
@@ -373,3 +397,4 @@ export async function geoScanWorkflow(
   }
   return { status: "completed", checks, mentions };
 }
+import { startGeoSentimentStep } from "./steps/start-geo-sentiment";

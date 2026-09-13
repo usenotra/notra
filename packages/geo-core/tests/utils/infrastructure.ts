@@ -9,6 +9,7 @@ import { testDb } from "./database";
 // boundaries. Every DB-backed test file imports this module explicitly.
 mock.module("@notra/db/drizzle", () => ({ db: testDb }));
 mock.module("@notra/ai/evlog", () => ({
+  log: { info: mock(), warn: mock(), error: mock() },
   geoLog: { info: mock(), warn: mock(), error: mock() },
   geoLogDrainEnabled: true,
   flushGeoLog: async () => undefined,

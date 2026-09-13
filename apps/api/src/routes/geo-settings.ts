@@ -1,8 +1,5 @@
 import { createRoute } from "@hono/zod-openapi";
-import {
-  loadGeoSettings,
-  upsertGeoSettings,
-} from "@notra/geo-core/geo/programs";
+import { loadGeoSettings } from "@notra/geo-core/geo/programs";
 import { projectParamsSchema } from "@notra/schemas/api/geo-params";
 import {
   patchSettingsRequestSchema,
@@ -13,8 +10,9 @@ import {
   GEO_COMMON_ERROR_RESPONSES,
   GEO_OPENAPI_TAG,
 } from "../constants/geo-openapi";
+import { upsertGeoSettingsWithValidation } from "../programs/geo";
 import { runGeoEffect } from "../runtime/geo";
-import { findGeoSelectionError, geoErrorResponse } from "../utils/geo";
+import { geoErrorResponse } from "../utils/geo";
 import { createOpenApiApp } from "../utils/openapi-app";
 
 export const geoSettingsRoutes = createOpenApiApp();
@@ -87,20 +85,9 @@ geoSettingsRoutes.openapi(patchSettingsRoute, async (c) => {
   const base = c.get("geo");
   const { projectId } = c.req.valid("param");
   const body = c.req.valid("json");
-  // The engine catalog is per organization and loaded asynchronously, so this
-  // cannot live in the request schema.
-  const selectionError = await findGeoSelectionError({
-    organizationId: base.organizationId,
-    engines: body.engines,
-    languages: body.languages,
-  });
-  if (selectionError) {
-    return c.json({ error: selectionError }, 400);
-  }
-
   const outcome = await runGeoEffect(
     "settingsUpsert",
-    upsertGeoSettings({
+    upsertGeoSettingsWithValidation({
       organizationId: base.organizationId,
       projectId,
       companyName: body.companyName,

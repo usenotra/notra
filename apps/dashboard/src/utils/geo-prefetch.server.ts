@@ -56,7 +56,7 @@ export async function dehydrateGeoOverviewQueries(
       queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
     });
   }
-  if (input.activeTab === "visibility" || input.activeTab === "prompts") {
+  if (input.activeTab === "visibility") {
     void queryClient.prefetchQuery({
       ...dashboardOrpc.geo.promptResultSummaries.queryOptions({
         input: input.promptResultSummaries,

@@ -24,11 +24,18 @@ const trackRetry = mock<typeof Steps.trackGeoScanRetryScheduledStep>();
 const sleep = mock(async (_delay: string) => undefined);
 const appendLog = mock(async (_input: AppendAutomationLogInput) => undefined);
 const fetchRetention = mock(async () => 30 as const);
+const startSentiment =
+  mock<
+    typeof import("../src/workflows/steps/start-geo-sentiment").startGeoSentimentStep
+  >();
 // These tests exercise orchestration decisions as ordinary functions. The
 // durable runtime and model/billing steps have separate integration
 // boundaries — the activity-log steps are mocked too, otherwise they would
 // perform real Redis/billing network I/O during orchestration tests.
 mock.module("workflow", () => ({ FatalError, sleep }));
+mock.module("../src/workflows/steps/start-geo-sentiment", () => ({
+  startGeoSentimentStep: startSentiment,
+}));
 mock.module("../src/workflows/steps/content-generation-steps", () => ({
   appendAutomationLog: appendLog,
   fetchLogRetention: fetchRetention,
@@ -76,10 +83,12 @@ beforeEach(() => {
     sleep,
     appendLog,
     fetchRetention,
+    startSentiment,
   ]) {
     fn.mockReset();
   }
   appendLog.mockResolvedValue(undefined);
+  startSentiment.mockResolvedValue("sentiment-run");
   fetchRetention.mockResolvedValue(30);
   renewClaim.mockImplementation(async (_projectId, claimedAt) => claimedAt);
   listProjects.mockResolvedValue(["project-test"]);
@@ -551,6 +560,24 @@ describe("GEO scan workflow orchestration", () => {
       "completed",
     ]);
     expect(appendLog).toHaveBeenCalledTimes(1);
+  });
+
+  test("a sentiment startup failure records its cause without failing the scan", async () => {
+    startSentiment.mockRejectedValue(new Error("Workflow queue unavailable"));
+    expect(await geoScanWorkflow({ organizationId: "org-test" })).toMatchObject(
+      { status: "completed" }
+    );
+    expect(finalize.mock.calls.map(([, , status]) => status)).toEqual([
+      "completed",
+    ]);
+    expect(appendLog.mock.calls.map(([input]) => input.status)).toEqual([
+      "failed",
+      "success",
+    ]);
+    expect(appendLog.mock.calls[0]?.[0]).toMatchObject({
+      integrationType: "geo",
+      errorMessage: "Workflow queue unavailable",
+    });
   });
 
   test("a logging failure after a failed wave does not escalate the failure", async () => {

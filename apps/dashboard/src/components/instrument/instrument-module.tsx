@@ -214,43 +214,45 @@ export function InstrumentEmpty({
           {preview}
         </div>
       ) : null}
-      <div
-        className={cn(
-          "relative z-10 flex items-center justify-center gap-2",
-          preview &&
-            "bg-background/85 rounded-full px-3 py-1.5 shadow-xs backdrop-blur-[2px]"
-        )}
-      >
-        {busy ? (
-          <span
-            aria-hidden="true"
-            className="text-muted-foreground inline-flex size-4 motion-safe:animate-spin"
-          >
-            <svg
+      {message || busy ? (
+        <div
+          className={cn(
+            "relative z-10 flex items-center justify-center gap-2",
+            preview &&
+              "bg-background/85 rounded-full px-3 py-1.5 shadow-xs backdrop-blur-[2px]"
+          )}
+        >
+          {busy ? (
+            <span
               aria-hidden="true"
-              className="size-full"
-              fill="none"
-              viewBox="0 0 16 16"
+              className="text-muted-foreground inline-flex size-4 motion-safe:animate-spin"
             >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="currentColor"
-                strokeOpacity="0.25"
-                strokeWidth="2"
-              />
-              <path
-                d="M14 8A6 6 0 0 0 8 2"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2"
-              />
-            </svg>
-          </span>
-        ) : null}
-        <p className="text-muted-foreground text-sm capitalize">{message}</p>
-      </div>
+              <svg
+                aria-hidden="true"
+                className="size-full"
+                fill="none"
+                viewBox="0 0 16 16"
+              >
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6"
+                  stroke="currentColor"
+                  strokeOpacity="0.25"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M14 8A6 6 0 0 0 8 2"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="2"
+                />
+              </svg>
+            </span>
+          ) : null}
+          <p className="text-muted-foreground text-sm capitalize">{message}</p>
+        </div>
+      ) : null}
       {action && !busy ? <div className="relative z-10">{action}</div> : null}
     </div>
   );
