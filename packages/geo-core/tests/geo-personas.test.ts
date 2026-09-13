@@ -3,8 +3,10 @@ import { describe, expect, test } from "bun:test";
 import {
   GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
+  GEO_PERSONA_MIN_MEMORIES,
   GEO_PERSONA_PROFILE_LIST_MAX,
 } from "../src/constants/geo-personas";
+import { geoGeneratedPersonaSchema } from "../src/schemas/geo-personas";
 import {
   isPersonaScanPromptId,
   normalizeGeneratedPersona,
@@ -75,5 +77,27 @@ describe("normalizeGeneratedPersona", () => {
       personas: Array.from({ length: GEO_PERSONA_MAX_COUNT + 2 }, () => base),
     });
     expect(set.personas.length).toBe(GEO_PERSONA_MAX_COUNT);
+  });
+
+  test("requires the documented minimum memory set", () => {
+    const generated = {
+      ...base,
+      role: "Marketing Lead",
+      memories: Array.from(
+        { length: GEO_PERSONA_MIN_MEMORIES },
+        (_, index) => ({
+          kind: "background" as const,
+          content: `memory ${index}`,
+        })
+      ),
+    };
+
+    expect(geoGeneratedPersonaSchema.safeParse(generated).success).toBe(true);
+    expect(
+      geoGeneratedPersonaSchema.safeParse({
+        ...generated,
+        memories: generated.memories.slice(1),
+      }).success
+    ).toBe(false);
   });
 });

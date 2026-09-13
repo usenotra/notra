@@ -1,4 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { GEO_PERSONA_MEMORY_KINDS } from "../constants/geo-personas";
 import { db } from "../drizzle";
@@ -11,6 +13,8 @@ import {
   organizations,
   projects,
 } from "../schema";
+import type { GeoPersonaSnapshot } from "../types/geo-personas";
+import type { SeedPersonaVisibilityPersona } from "../types/seed-persona-visibility";
 
 const ENGINES = [
   "openai/gpt-5.4-grounded",
@@ -326,11 +330,23 @@ async function resolveTargets() {
 
   const explicitProjectId = getArgValue("project-id")?.trim();
   if (explicitProjectId) {
+    const project = await db.query.projects.findFirst({
+      where: and(
+        eq(projects.id, explicitProjectId),
+        eq(projects.organizationId, organizationId)
+      ),
+      columns: { id: true, name: true },
+    });
+    if (!project) {
+      throw new Error(
+        `Project "${explicitProjectId}" does not belong to organization "${organizationId}"`
+      );
+    }
     return [
       {
         organizationId,
-        projectId: explicitProjectId,
-        label: explicitProjectId,
+        projectId: project.id,
+        label: project.name,
       },
     ];
   }
@@ -357,7 +373,10 @@ async function ensureGeoSettings(
   companyName: string
 ) {
   const existing = await db.query.geoSettings.findFirst({
-    where: eq(geoSettings.projectId, projectId),
+    where: and(
+      eq(geoSettings.projectId, projectId),
+      eq(geoSettings.organizationId, organizationId)
+    ),
     columns: { id: true },
   });
   if (existing) {
@@ -377,29 +396,38 @@ async function ensureGeoSettings(
 async function ensurePersonas(
   organizationId: string,
   projectId: string
-): Promise<{ id: string; name: string; baseRate: number; trend: number }[]> {
+): Promise<SeedPersonaVisibilityPersona[]> {
   const existing = await db.query.geoPersonas.findMany({
-    where: eq(geoPersonas.projectId, projectId),
-    columns: { id: true, name: true },
+    where: and(
+      eq(geoPersonas.projectId, projectId),
+      eq(geoPersonas.organizationId, organizationId)
+    ),
   });
   if (existing.length > 0) {
+    const memories = await db.query.geoPersonaMemories.findMany({
+      where: and(
+        eq(geoPersonaMemories.organizationId, organizationId),
+        eq(geoPersonaMemories.projectId, projectId),
+        inArray(
+          geoPersonaMemories.personaId,
+          existing.map((persona) => persona.id)
+        )
+      ),
+    });
     // Reuse whatever personas the project already has; derive a stable,
     // distinct base rate per persona so the chart shows separate lines.
     return existing.map((persona, index) => ({
-      id: persona.id,
-      name: persona.name,
+      ...persona,
+      memories: memories
+        .filter((memory) => memory.personaId === persona.id)
+        .map(({ id, kind, content }) => ({ id, kind, content })),
       baseRate: 0.15 + ((hash01(persona.id) * 5 + index) % 5) * 0.11,
       trend: 0.05 + hash01(`${persona.id}:trend`) * 0.12,
     }));
   }
 
   const now = new Date();
-  const created: {
-    id: string;
-    name: string;
-    baseRate: number;
-    trend: number;
-  }[] = [];
+  const created: SeedPersonaVisibilityPersona[] = [];
   for (const demo of DEMO_PERSONAS) {
     const personaId = crypto.randomUUID();
     await db.insert(geoPersonas).values({
@@ -416,25 +444,62 @@ async function ensurePersonas(
       createdAt: now,
       updatedAt: now,
     });
-    await db.insert(geoPersonaMemories).values(
-      demo.memories.map((memory) => ({
-        id: crypto.randomUUID(),
-        personaId,
-        organizationId,
-        projectId,
-        kind: memory.kind,
-        content: memory.content,
-        createdAt: now,
-      }))
-    );
+    const memories = demo.memories.map((memory) => ({
+      id: crypto.randomUUID(),
+      personaId,
+      organizationId,
+      projectId,
+      kind: memory.kind,
+      content: memory.content,
+      createdAt: now,
+    }));
+    await db.insert(geoPersonaMemories).values(memories);
     created.push({
       id: personaId,
       name: demo.name,
+      role: demo.role,
+      company: demo.company,
+      summary: demo.summary,
+      searchStyle: demo.searchStyle,
+      profile: demo.profile,
+      memories: memories.map(({ id, kind, content }) => ({
+        id,
+        kind,
+        content,
+      })),
       baseRate: demo.baseRate,
       trend: demo.trend,
     });
   }
   return created;
+}
+
+function createSeedPersonaSnapshot(
+  persona: SeedPersonaVisibilityPersona,
+  engine: string
+): GeoPersonaSnapshot {
+  const context = {
+    persona: {
+      id: persona.id,
+      name: persona.name,
+      role: persona.role,
+      company: persona.company,
+      summary: persona.summary,
+      searchStyle: persona.searchStyle,
+      profile: persona.profile,
+    },
+    memories: persona.memories,
+    model: "seed/demo",
+    promptVersion: 1,
+    systemPrompt: "Deterministic persona visibility seed fixture.",
+    engineLabel: engine,
+    maxTurns: 1,
+  };
+  return {
+    schemaVersion: 1,
+    version: createHash("sha256").update(JSON.stringify(context)).digest("hex"),
+    ...context,
+  };
 }
 
 async function seedProjectActivity(
@@ -444,7 +509,10 @@ async function seedProjectActivity(
   reset: boolean
 ) {
   const settings = await db.query.geoSettings.findFirst({
-    where: eq(geoSettings.projectId, projectId),
+    where: and(
+      eq(geoSettings.projectId, projectId),
+      eq(geoSettings.organizationId, organizationId)
+    ),
     columns: { companyName: true },
   });
   const brandName = settings?.companyName?.trim() || "Notra";
@@ -460,6 +528,7 @@ async function seedProjectActivity(
       .where(
         and(
           eq(geoMentionChecks.projectId, projectId),
+          eq(geoMentionChecks.organizationId, organizationId),
           sql`${geoMentionChecks.scanId} like ${`${SCAN_ID_PREFIX}%`}`
         )
       );
@@ -477,7 +546,11 @@ async function seedProjectActivity(
     const scanId = `${SCAN_ID_PREFIX}${projectId}-${dayString}`;
 
     const existingScan = await db.query.geoScans.findFirst({
-      where: eq(geoScans.id, scanId),
+      where: and(
+        eq(geoScans.id, scanId),
+        eq(geoScans.organizationId, organizationId),
+        eq(geoScans.projectId, projectId)
+      ),
       columns: { id: true },
     });
     if (!existingScan) {
@@ -518,6 +591,7 @@ async function seedProjectActivity(
           promptId: `persona-${persona.id}`,
           sequenceId: null,
           personaId: persona.id,
+          personaSnapshot: createSeedPersonaSnapshot(persona, engine),
           turn: 0,
           prompt,
           answer,

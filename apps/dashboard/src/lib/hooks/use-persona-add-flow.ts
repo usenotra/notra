@@ -40,15 +40,16 @@ export function usePersonaAddFlow(
     generatePersonas.mutate();
   };
 
-  const submitPersona = (brief: string) => {
+  const submitPersona = async (brief: string) => {
     setAutoOpenBaseline(new Set(personas.map((persona) => persona.id)));
-    generatePersonas.mutate(
-      { brief },
-      {
-        onError: () => setAutoOpenBaseline(null),
-        onSuccess: () => setAddOpen(false),
-      }
-    );
+    try {
+      await generatePersonas.mutateAsync({ brief });
+      setAddOpen(false);
+      return true;
+    } catch {
+      setAutoOpenBaseline(null);
+      return false;
+    }
   };
 
   return {

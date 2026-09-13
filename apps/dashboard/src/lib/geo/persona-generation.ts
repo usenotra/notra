@@ -21,12 +21,11 @@ export async function getPersonaGeneration(
     return job;
   }
   const status = job.runId ? await getRun(job.runId).status : null;
-  const failed =
-    status === "failed" ||
-    status === "cancelled" ||
-    (!job.runId &&
-      Date.now() - Date.parse(job.startedAt) >
-        PERSONA_GENERATION_START_TIMEOUT_MS);
+  const timedOut =
+    (!job.runId || status === "pending") &&
+    Date.now() - Date.parse(job.startedAt) >
+      PERSONA_GENERATION_START_TIMEOUT_MS;
+  const failed = status === "failed" || status === "cancelled" || timedOut;
   if (failed) {
     await updatePersonaGenerationJob(
       job,
@@ -34,7 +33,7 @@ export async function getPersonaGeneration(
         status: "failed",
         error: PERSONA_GENERATION_FAILED_MESSAGE,
       },
-      !job.runId
+      timedOut
     );
     return readPersonaGenerationJob(organizationId, projectId);
   }

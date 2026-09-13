@@ -25,7 +25,7 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import type * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { SocialAccountSelector } from "@/components/content/social-account-selector";
@@ -303,6 +303,20 @@ function TwitterPost({
   const hasSquareAvatar = isSquareTwitterAvatar(author.verifiedType);
   const [localValue, setLocalValue] = useState(() => content ?? "");
   const highlightRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const syncHighlightScroll = (textarea: HTMLTextAreaElement) => {
+    if (highlightRef.current) {
+      highlightRef.current.scrollTop = textarea.scrollTop;
+      highlightRef.current.scrollLeft = textarea.scrollLeft;
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (textareaRef.current) {
+      syncHighlightScroll(textareaRef.current);
+    }
+  }, [localValue]);
 
   const readOnlyContent = content ? (
     <TweetContent content={content} onSelectionChange={onSelectionChange} />
@@ -347,13 +361,9 @@ function TwitterPost({
                     {"\u200b"}
                   </div>
                   <Textarea
+                    ref={textareaRef}
                     onScroll={(event) => {
-                      if (highlightRef.current) {
-                        highlightRef.current.scrollTop =
-                          event.currentTarget.scrollTop;
-                        highlightRef.current.scrollLeft =
-                          event.currentTarget.scrollLeft;
-                      }
+                      syncHighlightScroll(event.currentTarget);
                     }}
                     className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[4rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
                     onChange={(e) => {

@@ -3,6 +3,7 @@ import { array, boolean, enum as enumType, object, string } from "zod";
 
 import {
   GEO_PERSONA_MIN_COUNT,
+  GEO_PERSONA_MIN_MEMORIES,
   GEO_PERSONA_FIELD_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MIN,
 } from "../constants/geo-personas";
@@ -36,7 +37,9 @@ export const geoGeneratedPersonaSchema = object({
   currentStack: textList,
   buyingTriggers: textList,
   objections: textList,
-  memories: array(geoGeneratedPersonaMemorySchema).min(1),
+  memories: array(geoGeneratedPersonaMemorySchema).min(
+    GEO_PERSONA_MIN_MEMORIES
+  ),
 });
 
 export const geoPersonaGenerationSchema = object({

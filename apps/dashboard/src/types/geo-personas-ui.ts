@@ -99,6 +99,6 @@ export interface PersonaAddDialogProps {
   open: boolean;
   atLimit: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (brief: string) => void;
+  onSubmit: (brief: string) => Promise<boolean>;
   isPending: boolean;
 }

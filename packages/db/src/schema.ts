@@ -1776,6 +1776,10 @@ export const geoMentionChecks = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
+    check(
+      "geoMentionChecks_personaSnapshot_check",
+      sql`${table.personaId} IS NULL OR ${table.personaSnapshot} IS NOT NULL`
+    ),
     index("geoMentionChecks_organizationId_capturedAt_idx").on(
       table.organizationId,
       table.capturedAt

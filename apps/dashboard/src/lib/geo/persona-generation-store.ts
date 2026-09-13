@@ -44,7 +44,7 @@ export async function claimPersonaGenerationJob(
 export async function updatePersonaGenerationJob(
   job: PersonaGenerationJob,
   patch: Partial<Pick<PersonaGenerationJob, "status" | "runId" | "error">>,
-  onlyUnstarted = false
+  onlyQueued = false
 ): Promise<boolean> {
   if (!redis) {
     throw new Error("Persona generation storage is unavailable.");
@@ -56,7 +56,7 @@ export async function updatePersonaGenerationJob(
       job.id,
       JSON.stringify(patch),
       PERSONA_GENERATION_JOB_TTL_SECONDS,
-      onlyUnstarted ? "1" : "0",
+      onlyQueued ? "1" : "0",
     ]
   );
   return updated === 1;

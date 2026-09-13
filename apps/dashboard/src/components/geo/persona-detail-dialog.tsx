@@ -192,7 +192,7 @@ export function PersonaDetailDialog({
             </div>
             <Button
               className="ml-auto"
-              disabled={runPersona.isPending}
+              disabled={!persona.enabled || runPersona.isPending}
               onClick={() =>
                 runPersona.mutate(persona.id, {
                   onSuccess: () => selectScan(null),
@@ -278,7 +278,7 @@ export function PersonaDetailDialog({
           ) : null}
           <div hidden={showConversation} className="h-full">
             <PersonaProfileEditor
-              key={persona.id}
+              key={`${persona.id}:${persona.updatedAt}`}
               persona={persona}
               organizationId={organizationId}
               onCancel={() => onOpenChange(false)}

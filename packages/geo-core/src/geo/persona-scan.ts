@@ -110,7 +110,8 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
     catch: (cause) =>
       new GeoScanError({ message: "Failed to load persona memories", cause }),
   });
-  const loaded: PersonaForScan = {
+  const loaded: PersonaForScan & { enabled: boolean } = {
+    enabled: row.enabled,
     persona: {
       id: row.id,
       name: row.name,
@@ -209,18 +210,26 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   checkContext: GeoCheckContext,
   planned: GeoScanPlannedPersona
 ) {
+  const tasks = geoScanPersonaTasks(planned);
   const grounded = resolveGroundedEngineByKey(planned.groundedKey);
   if (!grounded) {
+    yield* omitGeoScanTasks(
+      checkContext,
+      tasks.map((task) => task.key)
+    ).pipe(geoSkip("scan plan update failed"));
     return null;
   }
   const loaded = yield* loadPersonaForScan(
     checkContext.projectId,
     planned.personaId
   );
-  if (!loaded) {
+  if (!loaded || !loaded.enabled) {
+    yield* omitGeoScanTasks(
+      checkContext,
+      tasks.map((task) => task.key)
+    ).pipe(geoSkip("scan plan update failed"));
     return null;
   }
-  const tasks = geoScanPersonaTasks(planned);
   yield* Effect.forEach(
     tasks,
     (task) =>
@@ -347,6 +356,9 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   );
   if (!loaded) {
     return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
+  }
+  if (!loaded.enabled) {
+    return yield* Effect.fail(new GeoPersonaRunUnavailableError({}));
   }
 
   const settingsRow = yield* Effect.tryPromise({

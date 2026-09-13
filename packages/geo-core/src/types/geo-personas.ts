@@ -27,6 +27,7 @@ export interface GeoPersona {
   profile: GeoPersonaProfile;
   enabled: boolean;
   createdAt: string;
+  updatedAt: string;
   memories: GeoPersonaMemory[];
 }
 

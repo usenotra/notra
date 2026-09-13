@@ -1,0 +1,1 @@
+ALTER TABLE "geo_mention_checks" ADD CONSTRAINT "geoMentionChecks_personaSnapshot_check" CHECK ("geo_mention_checks"."persona_id" IS NULL OR "geo_mention_checks"."persona_snapshot" IS NOT NULL) NOT VALID;

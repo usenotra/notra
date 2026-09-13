@@ -228,6 +228,7 @@ export function PersonasTable({
             }}
             persona={row}
             scanDisabled={
+              !row.enabled ||
               runPersona.isPending ||
               generationPending ||
               deletePersona.isPending ||

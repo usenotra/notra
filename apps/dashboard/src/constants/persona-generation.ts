@@ -22,7 +22,7 @@ if not current then return 0 end
 local job = cjson.decode(current)
 if job.id ~= ARGV[1] then return 0 end
 if job.status == 'completed' or job.status == 'failed' then return 0 end
-if ARGV[4] == '1' and (job.status ~= 'queued' or (job.runId ~= nil and job.runId ~= cjson.null)) then return 0 end
+if ARGV[4] == '1' and job.status ~= 'queued' then return 0 end
 local patch = cjson.decode(ARGV[2])
 for key, value in pairs(patch) do job[key] = value end
 redis.call('SET', KEYS[1], cjson.encode(job), 'EX', ARGV[3])

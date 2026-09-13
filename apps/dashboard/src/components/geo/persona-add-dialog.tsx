@@ -29,12 +29,14 @@ export function PersonaAddDialog({
       <ResponsiveDialogContent className="sm:max-w-md">
         <form
           className="flex flex-col gap-4"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
             if (!brief.trim() || isPending || atLimit) {
               return;
             }
-            onSubmit(brief.trim());
+            if (await onSubmit(brief.trim())) {
+              setBrief("");
+            }
           }}
         >
           <ResponsiveDialogHeader>

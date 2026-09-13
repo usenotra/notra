@@ -15,10 +15,7 @@ import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
 import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
-import {
-  GeoProjectProvider,
-  useGeoProjectScope,
-} from "@/components/providers/geo-project-provider";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -33,7 +30,6 @@ import {
 } from "@/constants/geo-personas";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoPersonas } from "@/lib/hooks/use-geo-personas";
-import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
@@ -129,13 +125,7 @@ function GeneratePersonasButton({
 }
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const [projectParam] = useGeoProjectQueryState();
-
-  return (
-    <GeoProjectProvider projectId={projectParam ?? undefined}>
-      <GeoPersonasPageContent organizationSlug={organizationSlug} />
-    </GeoProjectProvider>
-  );
+  return <GeoPersonasPageContent organizationSlug={organizationSlug} />;
 }
 
 function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
