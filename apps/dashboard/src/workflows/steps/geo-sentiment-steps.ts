@@ -8,7 +8,13 @@ export async function analyzeGeoSentimentStep(input: GeoScopeInput) {
   "use step";
   const result = await Effect.runPromise(
     runAutomaticSentiment(input).pipe(Effect.provide(geoCoreDashboardLayer))
-  );
+  ).catch((error: unknown) => {
+    console.warn("Automatic GEO sentiment analysis errored", {
+      ...input,
+      error,
+    });
+    throw error;
+  });
   if (result?.status === "failed") {
     console.warn("Automatic GEO sentiment analysis failed", {
       ...input,

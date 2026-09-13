@@ -165,12 +165,28 @@ async function finalizeProjectRun(
   });
   const { context } = plan;
   if (status === "completed" && totals.checks > 0) {
-    await Promise.allSettled([
-      startGeoSentimentStep({
+    try {
+      await startGeoSentimentStep({
         organizationId: context.organizationId,
         projectId: context.projectId,
-      }),
-    ]);
+      });
+    } catch {
+      await appendAutomationLogBestEffort({
+        organizationId: context.organizationId,
+        integrationId: context.projectId,
+        integrationType: "geo",
+        title: `GEO sentiment analysis could not start for ${context.companyName}`,
+        status: "failed",
+        referenceId: context.runId,
+        payload: {
+          scanId: context.scanId,
+          error: "Background sentiment workflow could not be started",
+        },
+        ...(options.retentionDays
+          ? { retentionDays: options.retentionDays }
+          : {}),
+      });
+    }
   }
   const errorMessage =
     status === "failed"
