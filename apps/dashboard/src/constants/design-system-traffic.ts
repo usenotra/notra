@@ -3,6 +3,7 @@ import type {
   GeoTrafficSource,
   GeoVisitorType,
 } from "@notra/geo-core/types/geo";
+import { toGeoTrafficTotals } from "@notra/geo-core/utils/ai-traffic";
 
 function trafficSource(
   source: string,
@@ -46,10 +47,5 @@ export const DESIGN_SYSTEM_TRAFFIC_RESPONSE: AiTrafficResponse = {
   points: [],
   previousConversions: null,
   sources: DESIGN_SYSTEM_TRAFFIC_SOURCES,
-  totals: {
-    aiReferral: 1,
-    cited: 7,
-    conversions: null,
-    crawler: 17,
-  },
+  totals: toGeoTrafficTotals(DESIGN_SYSTEM_TRAFFIC_SOURCES),
 };
