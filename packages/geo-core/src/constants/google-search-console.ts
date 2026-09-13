@@ -1,3 +1,5 @@
+import { UTILITY_MODEL_ID } from "@notra/ai/constants/models";
+
 export const GSC_OAUTH_STATE_TTL_SECONDS = 600;
 export const GSC_OAUTH_STATE_KEY_PREFIX = "gsc_oauth:";
 export const GSC_OAUTH_CALLBACK_PATH =
@@ -14,6 +16,6 @@ export const GSC_SYNC_MIN_IMPRESSIONS = 5;
 export const GSC_SYNC_MAX_KEYWORDS_FOR_MODEL = 80;
 export const GSC_SUGGESTIONS_MAX_PER_SYNC = 15;
 export const GSC_MAX_KEYWORDS_PER_SUGGESTION = 8;
-export const GSC_SUGGESTION_MODEL = "anthropic/claude-sonnet-4.6";
+export const GSC_SUGGESTION_MODEL = UTILITY_MODEL_ID;
 export const GSC_SUGGESTION_MAX_TOKENS = 3000;
 export const GSC_SCHEDULE_ID_PREFIX = "gsc-sync-";

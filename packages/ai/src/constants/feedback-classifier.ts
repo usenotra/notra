@@ -1,4 +1,6 @@
-export const FEEDBACK_CLASSIFIER_MODEL_ID = "openai/gpt-5.6-luna";
+import { UTILITY_MODEL_ID } from "@notra/ai/constants/models";
+
+export const FEEDBACK_CLASSIFIER_MODEL_ID = UTILITY_MODEL_ID;
 export const FEEDBACK_CLASSIFIER_TIMEOUT_MS = 6000;
 export const FEEDBACK_CLASSIFIER_MAX_MESSAGE_CHARS = 4000;
 export const FEEDBACK_CLASSIFIER_FEATURE = "agent_feedback_classifier";
