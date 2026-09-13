@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { GEO_PERSONA_MEMORY_KINDS } from "../constants/geo-personas";
 import { db } from "../drizzle";
@@ -538,7 +538,7 @@ async function seedProjectActivity(
   today.setUTCHours(0, 0, 0, 0);
 
   let scansCreated = 0;
-  let checksInserted = 0;
+  let checksWritten = 0;
 
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = new Date(today.getTime() - offset * 86_400_000);
@@ -616,10 +616,10 @@ async function seedProjectActivity(
     }
 
     if (rows.length > 0) {
-      const inserted = await db
+      const written = await db
         .insert(geoMentionChecks)
         .values(rows)
-        .onConflictDoNothing({
+        .onConflictDoUpdate({
           target: [
             geoMentionChecks.scanId,
             geoMentionChecks.engine,
@@ -627,9 +627,13 @@ async function seedProjectActivity(
             geoMentionChecks.turn,
             geoMentionChecks.language,
           ],
+          set: {
+            personaSnapshot: sql`excluded.persona_snapshot`,
+          },
+          setWhere: isNull(geoMentionChecks.personaSnapshot),
         })
         .returning({ id: geoMentionChecks.id });
-      checksInserted += inserted.length;
+      checksWritten += written.length;
     }
   }
 
@@ -637,7 +641,7 @@ async function seedProjectActivity(
     brandName,
     personaCount: personas.length,
     scansCreated,
-    checksInserted,
+    checksWritten,
   };
 }
 
