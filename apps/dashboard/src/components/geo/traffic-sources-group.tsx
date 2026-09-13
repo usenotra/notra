@@ -1,46 +1,29 @@
 "use client";
 
-import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
-  GEO_TRAFFIC_TREND_CITED_LABEL,
-  GEO_TRAFFIC_TREND_CRAWLER_LABEL,
-  GEO_TRAFFIC_TREND_REFERRAL_LABEL,
-} from "@notra/geo-core/constants/geo";
+import { GEO_TRAFFIC_MARKDOWN_COLUMN_KEY } from "@notra/geo-core/constants/geo";
 
 import { Table, type TableColumn } from "@/components/motion/table";
+import {
+  TRAFFIC_SOURCE_BAND_LABELS,
+  TRAFFIC_SOURCE_BAND_NOUN,
+  TRAFFIC_SOURCE_BANDS,
+  TRAFFIC_SOURCE_COLLAPSED_BORDER_PX,
+  TRAFFIC_SOURCE_STACK_OVERLAP_PX,
+  TRAFFIC_SOURCE_STACK_Z_INDEX,
+} from "@/constants/geo-traffic-sources";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
-  GeoTrafficSourceBand,
   GeoTrafficSourceGroup,
   TrafficSourcesGroupProps,
+  TrafficSourcesStackProps,
 } from "@/types/geo";
 import { trafficGroupKey } from "@/utils/ai-traffic-groups";
 import { tableHeightFor } from "@/utils/table";
 
-const COLLAPSED_BAND_BORDER_PX = 2;
-const STACK_OVERLAP_PX = 20;
-const STACK_Z_INDEX: Record<GeoTrafficSourceBand, number> = {
-  crawler: 30,
-  cited: 20,
-  ai_referral: 10,
-};
-
-const SOURCE_BAND_LABELS: Record<GeoTrafficSourceBand, string> = {
-  crawler: GEO_TRAFFIC_TREND_CRAWLER_LABEL,
-  cited: GEO_TRAFFIC_TREND_CITED_LABEL,
-  ai_referral: GEO_TRAFFIC_TREND_REFERRAL_LABEL,
-};
-
-const SOURCE_BAND_NOUN: Record<GeoTrafficSourceBand, string> = {
-  crawler: "bot",
-  cited: "source",
-  ai_referral: "source",
-};
-
-export function TrafficSourcesGroup({
+function TrafficSourcesGroup({
   band,
   groups,
   columns,
@@ -49,8 +32,8 @@ export function TrafficSourcesGroup({
   onToggle,
   stacked,
 }: TrafficSourcesGroupProps) {
-  const label = SOURCE_BAND_LABELS[band];
-  const noun = SOURCE_BAND_NOUN[band];
+  const label = TRAFFIC_SOURCE_BAND_LABELS[band];
+  const noun = TRAFFIC_SOURCE_BAND_NOUN[band];
   const showMarkdown = band !== "ai_referral";
   const count = groups.length;
   const countLabel = `${count.toLocaleString()} ${count === 1 ? noun : `${noun}s`}`;
@@ -68,7 +51,11 @@ export function TrafficSourcesGroup({
         type="button"
       >
         <HugeiconsIcon
-          icon={showTable ? ArrowDown01Icon : ArrowRight01Icon}
+          className={cn(
+            "transition-transform duration-200 ease-out",
+            showTable && "rotate-90"
+          )}
+          icon={ArrowRight01Icon}
           size={14}
         />
       </button>
@@ -92,32 +79,30 @@ export function TrafficSourcesGroup({
       ? columns
       : [{ ...first, header, sortable: false }, ...visibleRest];
 
-  if (!showTable) {
-    return (
-      <div
-        className={cn(
-          "border-border bg-muted relative flex items-center border-x px-4",
-          stacked ? "-mt-5 border-t-0 pt-5" : "border-t",
-          followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border-b",
-          stacked && "rounded-t-none"
-        )}
-        style={{
-          height:
-            TABLE_ROW_HEIGHT +
-            COLLAPSED_BAND_BORDER_PX +
-            (stacked ? STACK_OVERLAP_PX : 0),
-          zIndex: STACK_Z_INDEX[band],
-        }}
-      >
-        {header}
-      </div>
-    );
-  }
+  const collapsedBar = (
+    <div
+      className={cn(
+        "border-border bg-muted relative flex items-center border-x px-4",
+        stacked ? "-mt-5 border-t-0 pt-5" : "border-t",
+        followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border-b",
+        stacked && "rounded-t-none"
+      )}
+      style={{
+        height:
+          TABLE_ROW_HEIGHT +
+          TRAFFIC_SOURCE_COLLAPSED_BORDER_PX +
+          (stacked ? TRAFFIC_SOURCE_STACK_OVERLAP_PX : 0),
+        zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band],
+      }}
+    >
+      {header}
+    </div>
+  );
 
-  return (
+  const table = (
     <div
       className={cn("relative", stacked && "-mt-5")}
-      style={{ zIndex: STACK_Z_INDEX[band] }}
+      style={{ zIndex: TRAFFIC_SOURCE_STACK_Z_INDEX[band] }}
     >
       <Table
         className="min-w-0 rounded-2xl"
@@ -132,6 +117,34 @@ export function TrafficSourcesGroup({
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />
+    </div>
+  );
+
+  return showTable ? table : collapsedBar;
+}
+
+export function TrafficSourcesStack({
+  groups,
+  columns,
+  collapsed,
+  onToggle,
+}: TrafficSourcesStackProps) {
+  const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
+
+  return (
+    <div className="isolate min-w-0">
+      {TRAFFIC_SOURCE_BANDS.map((band, index) => (
+        <TrafficSourcesGroup
+          band={band}
+          collapsed={collapsed.has(band)}
+          columns={columns}
+          followedByStack={index < lastIndex}
+          groups={groups.filter((group) => group.band === band)}
+          key={band}
+          onToggle={() => onToggle(band)}
+          stacked={index > 0}
+        />
+      ))}
     </div>
   );
 }

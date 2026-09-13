@@ -22,12 +22,13 @@ import { TrafficHero } from "@/components/geo/traffic-hero";
 import { TrafficMarkdownCell } from "@/components/geo/traffic-markdown-cell";
 import { TrafficPurposeCell } from "@/components/geo/traffic-purpose-cell";
 import { TrafficSourceGroupCell } from "@/components/geo/traffic-source-group-cell";
-import { TrafficSourcesGroup } from "@/components/geo/traffic-sources-group";
+import { TrafficSourcesStack } from "@/components/geo/traffic-sources-group";
 import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { TableColumn } from "@/components/motion/table";
+import { TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS } from "@/constants/geo-traffic-sources";
 import type {
   AiTrafficCardProps,
   GeoTrafficSourceBand,
@@ -39,11 +40,6 @@ import {
   trafficGroupKey,
 } from "@/utils/ai-traffic-groups";
 
-const MOBILE_HIDDEN_SOURCE_COLUMN_KEYS = new Set([
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
-  "lastSeenAt",
-]);
-
 export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
   const { sources, totals, points, previousConversions } =
     traffic ?? GEO_EMPTY_TRAFFIC_RESPONSE;
@@ -53,9 +49,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
   );
   const trendRows = buildTrafficTrendRows(points);
   const groups = groupTrafficSources(sources);
-  const crawlerGroups = groups.filter((group) => group.band === "crawler");
-  const citedGroups = groups.filter((group) => group.band === "cited");
-  const referralGroups = groups.filter((group) => group.band === "ai_referral");
   const [collapsed, setCollapsed] = useState<ReadonlySet<GeoTrafficSourceBand>>(
     () => new Set()
   );
@@ -69,7 +62,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       }
       return next;
     });
-  const crawlersCollapsed = collapsed.has("crawler");
   const isMobile = useIsMobile();
   const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
   const canSparkline = hasTrafficSourceSeries(points);
@@ -182,7 +174,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
 
     return isMobile
       ? next.filter(
-          (column) => !MOBILE_HIDDEN_SOURCE_COLUMN_KEYS.has(column.key)
+          (column) => !TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS.has(column.key)
         )
       : next;
   }, [isMobile, seriesByGroup]);
@@ -209,34 +201,12 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         totals={totals}
       />
       <InstrumentSection eyebrow="Sources">
-        <div className="flex min-w-0 flex-col">
-          <TrafficSourcesGroup
-            band="crawler"
-            collapsed={crawlersCollapsed}
-            columns={columns}
-            followedByStack
-            groups={crawlerGroups}
-            onToggle={() => toggleCollapsed("crawler")}
-            stacked={false}
-          />
-          <TrafficSourcesGroup
-            band="cited"
-            collapsed={collapsed.has("cited")}
-            columns={columns}
-            followedByStack
-            groups={citedGroups}
-            onToggle={() => toggleCollapsed("cited")}
-            stacked
-          />
-          <TrafficSourcesGroup
-            band="ai_referral"
-            collapsed={collapsed.has("ai_referral")}
-            columns={columns}
-            groups={referralGroups}
-            onToggle={() => toggleCollapsed("ai_referral")}
-            stacked
-          />
-        </div>
+        <TrafficSourcesStack
+          collapsed={collapsed}
+          columns={columns}
+          groups={groups}
+          onToggle={toggleCollapsed}
+        />
       </InstrumentSection>
     </div>
   );
