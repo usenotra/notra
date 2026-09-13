@@ -91,8 +91,6 @@ export interface TableProps<T> {
   isRowPinned?: (row: T) => boolean;
   /** Content rendered above the column headers inside the table surface. */
   toolbar?: ReactNode;
-  /** Band label or section title rendered inside the header surface, directly above column headers. */
-  leadingHeader?: ReactNode;
   /** Content rendered below the body on a muted footer surface that mirrors the header. */
   footer?: ReactNode;
   /** 1-based page to render when `pageSize` is set. Rows are sliced after sorting. */
