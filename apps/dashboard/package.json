@@ -91,7 +91,7 @@
     "mdast-util-from-markdown": "^2.0.3",
     "motion": "^12.34.2",
     "nanoid": "^5.1.6",
-    "next": "^16.3.4",
+    "next": "^16.3.5",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.6",
     "post-for-me": "^2.7.0",
