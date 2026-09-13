@@ -575,7 +575,10 @@ export const loadGeoPersonaResults = Effect.fn("geo.personaResults")(function* (
         queryGeoCheckPersonaScans(geoCheckScope(scope), personaId)
       )
     : [];
-  const selectedScanId = scanId ?? scans.at(0)?.scanId ?? null;
+  const selectedScanId =
+    scanId && scans.some((scan) => scan.scanId === scanId)
+      ? scanId
+      : (scans.at(0)?.scanId ?? null);
   const rows = yield* geoDb("persona results query failed", () =>
     queryGeoCheckPersonaResults(
       geoCheckScope(scope),
