@@ -9,7 +9,7 @@ import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
 import { getGreeting } from "@/utils/dashboard-greeting";
 import { dehydrateDashboardHomeQueries } from "@/utils/dashboard-home-prefetch.server";
 
-import PageClient from "./page-client";
+import PageClient from "../page-client";
 import { HomePageSkeleton } from "./skeleton";
 
 export const metadata: Metadata = {
