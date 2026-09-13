@@ -68,6 +68,7 @@ export interface WebhookDetailsProps {
   readonly onClose: () => void;
   readonly onRetry: (deliveryId: string) => void;
   readonly retrying: boolean;
+  readonly canRetry: boolean;
 }
 
 export interface WebhookDeliverySummaryProps {

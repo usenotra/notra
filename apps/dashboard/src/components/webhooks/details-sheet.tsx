@@ -25,6 +25,7 @@ export function WebhookDetailsSheet({
   onClose,
   onRetry,
   retrying,
+  canRetry,
 }: WebhookDetailsProps) {
   const detail = useQuery({
     ...dashboardOrpc.outboundWebhooks.detail.queryOptions({
@@ -91,7 +92,7 @@ export function WebhookDetailsSheet({
           </p>
           {entry?.status === "failed" ? (
             <Button
-              disabled={retrying}
+              disabled={retrying || !canRetry}
               variant="outline"
               onClick={() => onRetry(entry.id)}
             >

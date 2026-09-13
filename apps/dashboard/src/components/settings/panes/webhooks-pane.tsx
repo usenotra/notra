@@ -167,7 +167,8 @@ function WebhookWorkspace({ organizationId }: WebhookWorkspaceProps) {
         organizationId={organizationId}
         delivery={selected}
         onClose={() => setSelected(null)}
-        retrying={retry.isPending || !canManage}
+        retrying={retry.isPending}
+        canRetry={canManage}
         onRetry={(deliveryId) => retry.mutate({ organizationId, deliveryId })}
       />
     </SettingsPane>

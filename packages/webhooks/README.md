@@ -14,8 +14,8 @@ Public API clients use `webhooks.read` and `webhooks.write` scopes.
    IDs to `notra-webhook-events`. The event consumer queues each delivery ID.
 3. The delivery consumer atomically claims a delivery and creates its attempt row.
    It signs the exact stored payload, sends it and atomically records the result.
-4. Recovery resubmits due deliveries independently of queue acknowledgement and
-   dead-letter state. Expired claims become retries; stale workers cannot overwrite
+4. Recovery resubmits due deliveries independently of queue acknowledgement.
+   Expired claims become retries; stale workers cannot overwrite
    a new attempt because completion is fenced by a unique lease token.
 
 The application database remains authoritative. Queue duplicates are safe; delivery
@@ -38,12 +38,11 @@ The code does not provision infrastructure or apply production migrations.
    migration includes endpoints, events, deliveries, attempts, tenant-aware foreign
    keys, deduplication indexes and lease/retry fields. Unique indexes deliberately
    precede composite foreign keys. Follow `AGENTS.md` for fresh database setup.
-2. From this package, create the three queues:
+2. From this package, create the two queues:
 
    ```sh
    bunx wrangler queues create notra-webhook-events
    bunx wrangler queues create notra-webhook-deliveries
-   bunx wrangler queues create notra-webhook-dead-letters
    ```
 
 3. Set Worker secrets with `bunx wrangler secret put DATABASE_URL` and
@@ -138,7 +137,7 @@ key. Acknowledge promptly with a 2xx response and do expensive work asynchronous
 - Cleanup deletes completed event/delivery/attempt history older than 30 days in
   bounded batches. Active work is retained. Producer deduplication lasts as long
   as the corresponding event is retained; do not replay ancient source transitions.
-- Monitor Worker logs and the dead-letter queue for infrastructure/malformed-message
+- Monitor Worker logs for infrastructure/malformed-message
   failures. The database recovery scan remains the source of outstanding work;
   a queue acknowledgement is not proof that an endpoint received an event.
 
