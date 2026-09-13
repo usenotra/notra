@@ -212,9 +212,6 @@ export function applyContentChatToolOutputEffect(
       handlers.setEditedMarkdown(effect.markdown);
       editedMarkdownRef.current = effect.markdown;
       editorRef.current?.setMarkdown(effect.markdown);
-      trackEvent(POSTHOG_EVENTS.IMAGE_REVISED, {
-        content_id: handlers.contentId,
-      });
       break;
     }
     case "apply-markdown-edit": {
