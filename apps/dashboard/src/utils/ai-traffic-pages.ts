@@ -146,3 +146,8 @@ export function trafficHostSelectOptions(
   }
   return [...unique].toSorted((left, right) => left.localeCompare(right));
 }
+
+export function trafficHostSelectValue(selected: string): string {
+  const canonical = trafficLogHostFilter(selected);
+  return canonical.length > 0 ? canonical : GEO_TRAFFIC_HOST_ALL;
+}

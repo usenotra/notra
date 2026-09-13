@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { GEO_TRAFFIC_HOST_ALL } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficPage } from "@notra/geo-core/types/geo";
 
 import {
@@ -7,6 +8,7 @@ import {
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
   trafficHostSelectOptions,
+  trafficHostSelectValue,
   trafficHostsFromPages,
 } from "../src/utils/ai-traffic-pages";
 
@@ -116,5 +118,23 @@ describe("trafficHostSelectOptions", () => {
     expect(
       trafficHostSelectOptions(["www.example.com", "example.com"], "")
     ).toEqual(["example.com"]);
+  });
+
+  test("maps a www URL host onto the canonical option", () => {
+    expect(
+      trafficHostSelectOptions(
+        ["example.com", "docs.example.com"],
+        "www.example.com"
+      )
+    ).toEqual(["docs.example.com", "example.com"]);
+  });
+});
+
+describe("trafficHostSelectValue", () => {
+  test("binds the selector to the canonical host", () => {
+    expect(trafficHostSelectValue("www.example.com")).toBe("example.com");
+    expect(trafficHostSelectValue("example.com")).toBe("example.com");
+    expect(trafficHostSelectValue("")).toBe(GEO_TRAFFIC_HOST_ALL);
+    expect(trafficHostSelectValue("all")).toBe(GEO_TRAFFIC_HOST_ALL);
   });
 });

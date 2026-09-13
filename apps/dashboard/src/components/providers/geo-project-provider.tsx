@@ -1,6 +1,7 @@
 "use client";
 
 import { GEO_TRAFFIC_HOST_PARAM } from "@notra/geo-core/constants/geo";
+import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { parseAsString, useQueryState } from "nuqs";
 import {
   createContext,
@@ -65,7 +66,7 @@ export function GeoProjectQueryProvider({
   );
   const setTrafficHost = useCallback(
     (value: string) => {
-      void setHostQuery(value);
+      void setHostQuery(trafficLogHostFilter(value));
     },
     [setHostQuery]
   );
@@ -103,7 +104,17 @@ export function GeoProjectQueryProvider({
     void setHostQuery("");
   }, [hostQuery, hostSuppressed, setHostQuery]);
 
-  const trafficHost = hostSuppressed ? "" : hostQuery;
+  useEffect(() => {
+    if (hostSuppressed || hostQuery.length === 0) {
+      return;
+    }
+    const canonical = trafficLogHostFilter(hostQuery);
+    if (canonical !== hostQuery) {
+      void setHostQuery(canonical);
+    }
+  }, [hostQuery, hostSuppressed, setHostQuery]);
+
+  const trafficHost = hostSuppressed ? "" : trafficLogHostFilter(hostQuery);
 
   return (
     <GeoProjectProvider

@@ -11,7 +11,10 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
-import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
+import {
+  formatTrafficLocation,
+  trafficLogHostFilter,
+} from "@notra/geo-core/utils/geo-project-domains";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
@@ -42,6 +45,7 @@ import {
   filterTrafficPageGroupsByHost,
   groupTrafficPages,
   trafficHostSelectOptions,
+  trafficHostSelectValue,
   trafficHostsFromPages,
 } from "@/utils/ai-traffic-pages";
 import { paginatedTableHeightFor } from "@/utils/table";
@@ -63,8 +67,7 @@ export function TrafficPagesCard({
   const groups = groupTrafficPages(pages);
   const observedHosts = hosts ?? trafficHostsFromPages(pages);
   const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();
-  const appliedHost =
-    hostQuery === GEO_TRAFFIC_HOST_ALL ? "" : hostQuery.trim();
+  const appliedHost = trafficLogHostFilter(hostQuery);
   const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
   const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
   const hasActiveFilter = appliedHost.length > 0 || pathQuery.trim().length > 0;
@@ -156,7 +159,7 @@ export function TrafficPagesCard({
                   );
                 }
               }}
-              value={appliedHost || GEO_TRAFFIC_HOST_ALL}
+              value={trafficHostSelectValue(hostQuery)}
             >
               <SelectTrigger
                 aria-label="Filter pages by domain"
