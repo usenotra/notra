@@ -112,9 +112,7 @@ export function BrandSentimentCard({
     ? "Could not load analysis."
     : sentimentAnalysisStatus(analysis.query.data);
   const showThemeStatus =
-    themeStatus &&
-    themeStatus !== "Analyzing saved answers…" &&
-    !themeStatus.startsWith("Showing previous themes");
+    themeStatus && themeStatus !== "Analyzing saved answers…";
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
