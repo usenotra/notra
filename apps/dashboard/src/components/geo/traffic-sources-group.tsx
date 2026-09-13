@@ -3,7 +3,6 @@
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
   GEO_TRAFFIC_TREND_CITED_LABEL,
   GEO_TRAFFIC_TREND_CRAWLER_LABEL,
   GEO_TRAFFIC_TREND_REFERRAL_LABEL,
@@ -46,7 +45,6 @@ export function TrafficSourcesGroup({
 }: TrafficSourcesGroupProps) {
   const label = SOURCE_BAND_LABELS[band];
   const noun = SOURCE_BAND_NOUN[band];
-  const showMarkdown = band !== "ai_referral";
   const count = groups.length;
   const countLabel = `${count.toLocaleString()} ${count === 1 ? noun : `${noun}s`}`;
   const isEmpty = count === 0;
@@ -75,17 +73,10 @@ export function TrafficSourcesGroup({
   );
 
   const [first, ...rest] = columns;
-  const visibleRest = showMarkdown
-    ? rest
-    : rest.map((column) =>
-        column.key === GEO_TRAFFIC_MARKDOWN_COLUMN_KEY
-          ? { ...column, header: "", sortable: false, cell: () => null }
-          : column
-      );
   const groupColumns: TableColumn<GeoTrafficSourceGroup>[] =
     first === undefined
       ? columns
-      : [{ ...first, header, sortable: false }, ...visibleRest];
+      : [{ ...first, header, sortable: false }, ...rest];
 
   if (!showTable) {
     return (
