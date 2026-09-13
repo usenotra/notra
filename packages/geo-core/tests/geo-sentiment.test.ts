@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, beforeEach, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import assert from "node:assert/strict";
 
 import { geoMentionChecks, geoScans } from "@notra/db/schema";
@@ -6,7 +14,9 @@ import { drizzle } from "drizzle-orm/pglite";
 import { Effect } from "effect";
 
 import { GeoContentBillingService } from "../src/deps";
+import * as analysisCache from "../src/geo/sentiment-analysis-cache";
 import { geoSentimentEvidenceInputSchema } from "../src/schemas/geo-sentiment";
+import type { SentimentAnalysisState } from "../src/types/sentiment-analysis";
 import {
   sentimentPoints,
   summarizeSentiment,
@@ -80,6 +90,65 @@ test("analysis uses the canonical project GEO brand, scoped to its organization"
   expect(
     await queryGeoSentimentBrand({ ...scope, projectId: "missing" })
   ).toBeUndefined();
+});
+
+test("cached analysis reads need no provider and brand edits invalidate the snapshot", async () => {
+  const state: SentimentAnalysisState = {
+    status: "ready",
+    result: null,
+    message: null,
+  };
+  const fingerprints: string[] = [];
+  const providerKeys = [
+    "AI_GATEWAY_API_KEY",
+    "OPENROUTER_API_KEY",
+    "VERCEL_OIDC_TOKEN",
+    "VERCEL",
+  ] as const;
+  const previous = providerKeys.map((key) => process.env[key]);
+  for (const key of providerKeys) {
+    delete process.env[key];
+  }
+  const store = spyOn(analysisCache, "sentimentAnalysisStore").mockReturnValue({
+    get: async () => state,
+    locked: async () => false,
+    renew: async () => true,
+    claim: async () => true,
+    commit: async () => true,
+  });
+  const read = spyOn(analysisCache, "readSentimentAnalysis").mockImplementation(
+    async (run) => {
+      fingerprints.push((await run.snapshot()).fingerprint);
+      await database.postgres.exec(
+        "UPDATE geo_settings SET company_name = 'Renamed brand' WHERE project_id = 'main'"
+      );
+      fingerprints.push((await run.snapshot()).fingerprint);
+      return state;
+    }
+  );
+  try {
+    const result = await Effect.runPromise(
+      loadGeoSentimentAnalysis(scope, {}).pipe(
+        Effect.provideService(GeoContentBillingService, {
+          gateContentBilling: () => Effect.die("read must not bill"),
+          finalizeContentBilling: () => Effect.die("read must not finalize"),
+        })
+      )
+    );
+    expect(result).toEqual(state);
+    expect(fingerprints).toHaveLength(2);
+    expect(fingerprints[0]).not.toBe(fingerprints[1]);
+  } finally {
+    read.mockRestore();
+    store.mockRestore();
+    providerKeys.forEach((key, index) => {
+      if (previous[index] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = previous[index];
+      }
+    });
+  }
 });
 
 async function check(
@@ -235,6 +304,7 @@ test("scope, English, single-turn and inclusive/exclusive UTC boundaries apply t
   await check({ projectId: "foreign", organizationId: "foreign-org" });
   await check({ language: "German" });
   await check({ sequenceId: "sequence" });
+  await check({ turn: 1 });
   await check({ capturedAt: new Date("2026-08-31T23:59:59.999Z") });
   await check({ capturedAt: window.toExclusive });
   await check({ id: "start", capturedAt: window.from });
@@ -331,6 +401,44 @@ test("cursor validation rejects malformed dates and changed scope", () => {
   expect(mismatchedScope.error.issues.map((issue) => issue.path)).toEqual([
     ["cursor"],
   ]);
+});
+
+test("evidence validates calendar dates and inclusive window limits", () => {
+  for (const range of [
+    { from: "2026-02-30", to: "2026-03-01" },
+    { from: "2026-09-02", to: "2026-09-01" },
+    { from: "2024-01-01", to: "2025-01-01" },
+    { days: 367 },
+  ]) {
+    expect(
+      geoSentimentEvidenceInputSchema.safeParse({ ...scope, ...range }).success
+    ).toBe(false);
+  }
+  expect(
+    geoSentimentEvidenceInputSchema.safeParse({ ...scope, days: 366 }).success
+  ).toBe(true);
+});
+
+test("default evidence and summary windows cover the same inclusive 30 UTC days", async () => {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  await check({ id: "today", capturedAt: today });
+  await check({
+    id: "first",
+    capturedAt: new Date(today.getTime() - 29 * 86400000),
+  });
+  await check({
+    id: "old",
+    capturedAt: new Date(today.getTime() - 30 * 86400000),
+  });
+  await check({
+    id: "future",
+    capturedAt: new Date(today.getTime() + 86400000),
+  });
+  const summary = await Effect.runPromise(loadGeoSentiment(scope, {}));
+  const evidence = await Effect.runPromise(loadGeoSentimentEvidence(scope, {}));
+  expect(summary.summary.negative).toBe(2);
+  expect(evidence.items.map((item) => item.id)).toEqual(["today", "first"]);
 });
 
 test("missing calendar days are explicit null gaps", async () => {

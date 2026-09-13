@@ -36,8 +36,8 @@ export async function billSentimentAnalysis({
       inputTokens: result.usage.inputTokens ?? 0,
       outputTokens: result.usage.outputTokens ?? 0,
       totalTokens: result.usage.totalTokens ?? 0,
-      cacheReadTokens: result.usage.inputTokenDetails.cacheReadTokens ?? 0,
-      cacheWriteTokens: result.usage.inputTokenDetails.cacheWriteTokens ?? 0,
+      cacheReadTokens: result.usage.inputTokenDetails?.cacheReadTokens ?? 0,
+      cacheWriteTokens: result.usage.inputTokenDetails?.cacheWriteTokens ?? 0,
       modelId: SENTIMENT_ANALYSIS_MODEL,
       route: result.route,
     };

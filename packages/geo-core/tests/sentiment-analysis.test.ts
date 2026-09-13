@@ -67,7 +67,13 @@ const output = {
 };
 
 test("billing blocks denied and expired requests, confirms attempted calls including failures", async () => {
-  for (const mode of ["denied", "expired", "success", "failed"]) {
+  for (const mode of [
+    "denied",
+    "expired",
+    "success",
+    "missing-details",
+    "failed",
+  ]) {
     const gates: GateContentBillingInput[] = [];
     const finalized: FinalizeContentBillingInput[] = [];
     let generated = 0;
@@ -97,7 +103,7 @@ test("billing blocks denied and expired requests, confirms attempted calls inclu
         if (mode === "failed") {
           throw new Error("Provider unavailable");
         }
-        return {
+        const result = {
           output,
           usage: {
             inputTokens: 10,
@@ -111,9 +117,14 @@ test("billing blocks denied and expired requests, confirms attempted calls inclu
             outputTokenDetails: { textTokens: 5, reasoningTokens: 0 },
           },
         };
+        if (mode === "missing-details") {
+          // Simulate a provider response omitting details despite the SDK type.
+          Reflect.deleteProperty(result.usage, "inputTokenDetails");
+        }
+        return result;
       },
     });
-    if (mode === "success") {
+    if (mode === "success" || mode === "missing-details") {
       expect(await run).toEqual(output);
     } else {
       await expect(run).rejects.toThrow();
@@ -123,7 +134,7 @@ test("billing blocks denied and expired requests, confirms attempted calls inclu
       quotaFeatureId: "ai_answers",
       units: 1,
     });
-    expect(generated).toBe(mode === "success" || mode === "failed" ? 1 : 0);
+    expect(generated).toBe(mode === "denied" || mode === "expired" ? 0 : 1);
     if (mode === "denied") {
       expect(finalized).toHaveLength(0);
     } else {
@@ -132,8 +143,10 @@ test("billing blocks denied and expired requests, confirms attempted calls inclu
         units: mode === "expired" ? 0 : 1,
       });
     }
-    if (mode === "success") {
+    if (mode === "success" || mode === "missing-details") {
       expect(finalized[0]?.usage?.totalTokens).toBe(15);
+      expect(finalized[0]?.usage?.cacheReadTokens).toBe(0);
+      expect(finalized[0]?.usage?.cacheWriteTokens).toBe(0);
     }
   }
 });
@@ -198,12 +211,17 @@ test("UTC equal-length periods include leap days, gaps and zero; invalid windows
     { from: "2026-02-30" },
     { from: "2026-09-02", to: "2026-09-01" },
     { from: "2020-01-01", to: "2026-01-01" },
+    { days: 367 },
   ]) {
     expect(
       sentimentPeriodInputSchema.safeParse({ organizationId: "a", ...dates })
         .success
     ).toBe(false);
   }
+  expect(
+    sentimentPeriodInputSchema.safeParse({ organizationId: "a", days: 366 })
+      .success
+  ).toBe(true);
 });
 
 test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and extra claims", () => {

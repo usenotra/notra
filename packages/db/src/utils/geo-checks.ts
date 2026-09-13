@@ -64,7 +64,13 @@ export async function queryGeoCheckSentiment(
     })
     .from(geoMentionChecks)
     .where(
-      mentionFilters(scope, window, { sequences: "single", englishOnly: true })
+      and(
+        mentionFilters(scope, window, {
+          sequences: "single",
+          englishOnly: true,
+        }),
+        eq(geoMentionChecks.turn, 0)
+      )
     )
     .groupBy(day, geoMentionChecks.engine)
     .orderBy(day, geoMentionChecks.engine);
@@ -108,6 +114,7 @@ export async function queryGeoCheckSentimentEvidence(
         }),
         eq(geoMentionChecks.mentioned, true),
         eq(geoMentionChecks.sentiment, "negative"),
+        eq(geoMentionChecks.turn, 0),
         cursor
           ? eq(
               geoMentionChecks.projectId,

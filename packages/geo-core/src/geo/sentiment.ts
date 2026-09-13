@@ -72,7 +72,7 @@ export const loadGeoSentimentEvidence = Effect.fn("geo.sentimentEvidence")(
     const rows = yield* geoDb("sentiment evidence query failed", () =>
       queryGeoCheckSentimentEvidence(
         geoCheckScope(scope),
-        toGeoCheckWindow(window),
+        toGeoCheckWindow(sentimentPeriods(window).current),
         GEO_SENTIMENT_EVIDENCE_LIMIT + 1,
         input.cursor
       )

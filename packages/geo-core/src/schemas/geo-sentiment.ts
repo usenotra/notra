@@ -1,6 +1,6 @@
 import { object, string } from "zod";
 
-import { geoTimeseriesInputSchema } from "./geo";
+import { sentimentPeriodInputSchema } from "./sentiment-analysis";
 
 export const geoSentimentCursorSchema = object({
   capturedAt: string().datetime(),
@@ -9,8 +9,8 @@ export const geoSentimentCursorSchema = object({
   scope: string().max(2048),
 });
 
-export const geoSentimentEvidenceInputSchema = geoTimeseriesInputSchema
-  .extend({
+export const geoSentimentEvidenceInputSchema = sentimentPeriodInputSchema
+  .safeExtend({
     cursor: geoSentimentCursorSchema.optional(),
   })
   .refine(

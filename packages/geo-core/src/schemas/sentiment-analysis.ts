@@ -4,7 +4,11 @@ import { sentimentPeriods } from "../utils/sentiment-period";
 import { geoTimeseriesInputSchema } from "./geo";
 
 export const sentimentPeriodInputSchema = geoTimeseriesInputSchema
-  .extend({ from: z.iso.date().optional(), to: z.iso.date().optional() })
+  .extend({
+    from: z.iso.date().optional(),
+    to: z.iso.date().optional(),
+    days: z.number().int().min(1).max(366).optional(),
+  })
   .refine((input) => {
     try {
       sentimentPeriods(input);

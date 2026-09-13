@@ -45,12 +45,13 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
     const store = sentimentAnalysisStore();
     if (
       !store ||
-      !(
-        process.env.AI_GATEWAY_API_KEY ||
-        process.env.OPENROUTER_API_KEY ||
-        process.env.VERCEL_OIDC_TOKEN ||
-        process.env.VERCEL === "1"
-      )
+      (analyze &&
+        !(
+          process.env.AI_GATEWAY_API_KEY ||
+          process.env.OPENROUTER_API_KEY ||
+          process.env.VERCEL_OIDC_TOKEN ||
+          process.env.VERCEL === "1"
+        ))
     ) {
       return {
         status: "unavailable",
@@ -64,7 +65,7 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
     if (!checkWindow) {
       throw new Error("Missing sentiment window");
     }
-    const companyName = brand.companyName;
+    let companyName = brand.companyName;
     const key = sentimentAnalysisKey(
       input.organizationId,
       scope.projectId,
@@ -72,6 +73,8 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
       period.to
     );
     const snapshot = async () => {
+      const currentBrand = await queryGeoSentimentBrand(checkScope);
+      companyName = currentBrand?.companyName ?? "";
       const value = await queryGeoSentimentAnalysisSnapshot(
         checkScope,
         checkWindow
@@ -81,7 +84,7 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
         fingerprint: sentimentAnalysisKey(
           value.fingerprint,
           null,
-          brand.companyName ?? "",
+          companyName,
           ""
         ),
       };
