@@ -8,6 +8,7 @@ import type { SentimentSummaryProps } from "@/types/geo-sentiment";
 import {
   sentimentEmptyMessage,
   sentimentHasDisplayableData,
+  sentimentSummaryShowsEmpty,
 } from "@/utils/geo-sentiment";
 
 export function SentimentSummary({
@@ -19,7 +20,7 @@ export function SentimentSummary({
   const summary = data?.summary;
   const points = data?.points;
   const showData = sentimentHasDisplayableData(summary, points);
-  const showEmpty = summary && (summary.classifiedMentions === 0 || !showData);
+  const showEmpty = sentimentSummaryShowsEmpty(summary, points);
   return (
     <aside aria-label="Sentiment summary" className="min-w-0 px-5 pt-4 pb-1">
       {isPending ? <SentimentSkeleton compact /> : null}

@@ -8,6 +8,7 @@ import {
   SENTIMENT_POLARITY_CTA,
   SENTIMENT_POLARITY_STYLES,
   SENTIMENT_SCORE_HINT,
+  SENTIMENT_SHARES_PENDING_MESSAGE,
 } from "@/constants/geo-sentiment";
 import {
   useGeoSentiment,
@@ -124,6 +125,11 @@ export function BrandSentimentCard({
                 {themeStatus}
               </p>
             ) : null}
+            {!showData ? (
+              <p className="text-muted-foreground px-5 py-4 text-xs text-balance">
+                {SENTIMENT_SHARES_PENDING_MESSAGE}
+              </p>
+            ) : null}
             {(["positive", "negative"] as const).map((polarity) => {
               const polarityThemes = [
                 ...new Set(
@@ -139,11 +145,19 @@ export function BrandSentimentCard({
                   key={polarity}
                   className="flex flex-1 flex-col justify-center gap-2 px-5 py-3"
                 >
-                  <p
-                    className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
-                  >
-                    {formatPolarityShare(share, showData)} {polarity}
-                  </p>
+                  {showData ? (
+                    <p
+                      className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                    >
+                      {formatPolarityShare(share, showData)} {polarity}
+                    </p>
+                  ) : (
+                    <p
+                      className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                    >
+                      {polarity}
+                    </p>
+                  )}
                   <PolarityThemeContent
                     loading={query.isPending || analysis.query.isPending}
                     polarity={polarity}
@@ -152,42 +166,42 @@ export function BrandSentimentCard({
                 </div>
               );
             })}
-            <div className="space-y-2 px-5 py-3">
-              <div
-                aria-hidden="true"
-                className="bg-muted flex h-5 overflow-hidden rounded-md"
-              >
-                {(["positive", "neutral", "negative"] as const).map(
-                  (polarity) => (
-                    <span
-                      key={polarity}
-                      className={SENTIMENT_POLARITY_STYLES[polarity].fill}
-                      style={{
-                        width: showData
-                          ? `${(data?.summary?.[`${polarity}Share`] ?? 0) * 100}%`
-                          : "0%",
-                      }}
-                    />
-                  )
-                )}
+            {showData ? (
+              <div className="space-y-2 px-5 py-3">
+                <div
+                  aria-hidden="true"
+                  className="bg-muted flex h-5 overflow-hidden rounded-md"
+                >
+                  {(["positive", "neutral", "negative"] as const).map(
+                    (polarity) => (
+                      <span
+                        key={polarity}
+                        className={SENTIMENT_POLARITY_STYLES[polarity].fill}
+                        style={{
+                          width: `${(data?.summary?.[`${polarity}Share`] ?? 0) * 100}%`,
+                        }}
+                      />
+                    )
+                  )}
+                </div>
+                <div className="flex flex-wrap justify-between gap-2 text-xs">
+                  {(["positive", "neutral", "negative"] as const).map(
+                    (polarity) => (
+                      <span
+                        key={polarity}
+                        className={`capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                      >
+                        {formatPolarityShare(
+                          data?.summary?.[`${polarity}Share`],
+                          showData
+                        )}{" "}
+                        {polarity}
+                      </span>
+                    )
+                  )}
+                </div>
               </div>
-              <div className="flex flex-wrap justify-between gap-2 text-xs">
-                {(["positive", "neutral", "negative"] as const).map(
-                  (polarity) => (
-                    <span
-                      key={polarity}
-                      className={`capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
-                    >
-                      {formatPolarityShare(
-                        data?.summary?.[`${polarity}Share`],
-                        showData
-                      )}{" "}
-                      {polarity}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </InstrumentModule>

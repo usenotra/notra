@@ -17,6 +17,7 @@ import {
   isolatedSentimentPointIndices,
   sentimentEmptyMessage,
   sentimentHasDisplayableData,
+  sentimentSummaryShowsEmpty,
 } from "@/utils/geo-sentiment";
 import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
 
@@ -61,10 +62,18 @@ function SentimentTrendContent(props: SentimentTrendCardProps) {
     );
   }
   const showData = sentimentHasDisplayableData(summary, points);
+  const summaryShowsEmpty = sentimentSummaryShowsEmpty(summary, points);
   return (
     <>
       {showData && points ? (
         <SentimentTrendPlot points={points} />
+      ) : summaryShowsEmpty && !isScanning ? (
+        <div
+          aria-hidden="true"
+          className="relative h-40 min-h-40 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_70%,transparent_100%)] opacity-40"
+        >
+          <EmptyStateTrendPreview />
+        </div>
       ) : (
         <InstrumentEmpty
           seed="Sentiment trend"

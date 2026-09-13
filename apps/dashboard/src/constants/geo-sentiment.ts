@@ -11,6 +11,8 @@ export const SENTIMENT_SCORE_FORMULA =
   "Positive = 100, neutral = 50, negative = 0. The score is their weighted average across rated mentions.";
 export const SENTIMENT_RETROACTIVE_EMPTY_MESSAGE =
   "Sentiment ratings aren't available for earlier days in this range yet.";
+export const SENTIMENT_SHARES_PENDING_MESSAGE =
+  "Polarity shares appear once ratings cover the full selected range.";
 export const SENTIMENT_POLARITY_CTA = {
   positive: {
     subtext: "See what's working in saved answers.",

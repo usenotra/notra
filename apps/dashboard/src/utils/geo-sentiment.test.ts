@@ -9,6 +9,7 @@ import {
   sentimentEmptyMessage,
   sentimentHasDisplayableData,
   sentimentLacksRetroactiveData,
+  sentimentSummaryShowsEmpty,
   sentimentThemesState,
 } from "./geo-sentiment";
 
@@ -79,6 +80,21 @@ test("retroactive gaps hide aggregate sentiment until the period starts with rat
   ).toBe(
     "Sentiment ratings aren't available for earlier days in this range yet."
   );
+  expect(
+    sentimentSummaryShowsEmpty(
+      summarizeSentiment([
+        {
+          positive: 2,
+          neutral: 1,
+          negative: 0,
+          mentions: 3,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ]),
+      points
+    )
+  ).toBe(true);
   const covered = [65, 70, 68].map((score) => ({ score }));
   expect(sentimentLacksRetroactiveData(covered)).toBe(false);
   expect(

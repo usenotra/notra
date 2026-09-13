@@ -47,6 +47,17 @@ export function sentimentHasDisplayableData(
   return !sentimentLacksRetroactiveData(points ?? []);
 }
 
+export function sentimentSummaryShowsEmpty(
+  summary?: GeoSentimentResponse["summary"],
+  points?: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
+): boolean {
+  return Boolean(
+    summary &&
+    (summary.classifiedMentions === 0 ||
+      !sentimentHasDisplayableData(summary, points))
+  );
+}
+
 export function sentimentEmptyMessage(
   summary?: GeoSentimentResponse["summary"],
   points?: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
