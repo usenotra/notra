@@ -64,8 +64,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       return next;
     });
   const crawlersCollapsed = collapsed.has("crawler");
-  const followingStackExpanded =
-    !collapsed.has("cited") || !collapsed.has("ai_referral");
+  const followingStackExpanded = !collapsed.has("cited");
   const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
   const canSparkline = hasTrafficSourceSeries(points);
   const seriesByGroup = new Map<string, { day: string; value: number }[]>();
