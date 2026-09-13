@@ -27,6 +27,50 @@ function formatPolarityShare(
   return `${(share * 100).toFixed(1)}%`;
 }
 
+function PolarityThemeContent({
+  loading,
+  polarity,
+  themes,
+}: {
+  loading: boolean;
+  polarity: "positive" | "negative";
+  themes: string[];
+}) {
+  const cta = SENTIMENT_POLARITY_CTA[polarity];
+
+  if (loading) {
+    return <p className="text-muted-foreground text-xs">Loading themes…</p>;
+  }
+  if (themes.length > 0) {
+    return (
+      <p className="text-sm font-medium text-balance">
+        {themes.map((title, index) => (
+          <span key={title}>
+            {index > 0 ? ", " : ""}
+            <a
+              className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
+              href="#sentiment-claims"
+            >
+              {title}
+            </a>
+          </span>
+        ))}
+      </p>
+    );
+  }
+  return (
+    <p className="text-muted-foreground text-xs text-balance">
+      {cta.subtext}{" "}
+      <a
+        className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
+        href="#sentiment-themes"
+      >
+        {cta.action}
+      </a>
+    </p>
+  );
+}
+
 export function BrandSentimentCard({
   organizationId,
   isScanning,
@@ -88,7 +132,6 @@ export function BrandSentimentCard({
                     .map((theme) => theme.title)
                 ),
               ];
-              const cta = SENTIMENT_POLARITY_CTA[polarity];
               const share = data?.summary?.[`${polarity}Share`];
 
               return (
@@ -101,35 +144,11 @@ export function BrandSentimentCard({
                   >
                     {formatPolarityShare(share, showData)} {polarity}
                   </p>
-                  {query.isPending || analysis.query.isPending ? (
-                    <p className="text-muted-foreground text-xs">
-                      Loading themes…
-                    </p>
-                  ) : polarityThemes.length > 0 ? (
-                    <p className="text-sm font-medium text-balance">
-                      {polarityThemes.map((title, index) => (
-                        <span key={title}>
-                          {index > 0 ? ", " : ""}
-                          <a
-                            className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
-                            href="#sentiment-claims"
-                          >
-                            {title}
-                          </a>
-                        </span>
-                      ))}
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground text-xs text-balance">
-                      {cta.subtext}{" "}
-                      <a
-                        className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
-                        href="#sentiment-themes"
-                      >
-                        {cta.action}
-                      </a>
-                    </p>
-                  )}
+                  <PolarityThemeContent
+                    loading={query.isPending || analysis.query.isPending}
+                    polarity={polarity}
+                    themes={polarityThemes}
+                  />
                 </div>
               );
             })}
