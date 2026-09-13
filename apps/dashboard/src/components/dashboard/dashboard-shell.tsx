@@ -32,6 +32,7 @@ import {
 } from "@/lib/hooks/use-onboarding";
 import { useSidebarWidth } from "@/lib/hooks/use-sidebar-width";
 import type {
+  DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
   DashboardShellStyle,
@@ -112,6 +113,48 @@ const DashboardAgentHost = dynamic(
     ssr: false,
   }
 );
+
+function DashboardOnboardingBanner({
+  available,
+  dismissing,
+  onDismiss,
+  onExitComplete,
+  onStart,
+  running,
+  starting,
+  visible,
+}: DashboardOnboardingBannerProps) {
+  if (!(available || dismissing)) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        "duration-normal w-full shrink-0 overflow-hidden transition-[max-height,opacity] ease-out motion-reduce:transition-none",
+        visible ? "opacity-100" : "opacity-0"
+      )}
+      onTransitionEnd={(event) => {
+        if (
+          event.target === event.currentTarget &&
+          event.propertyName === "max-height"
+        ) {
+          onExitComplete();
+        }
+      }}
+      style={{ maxHeight: visible ? EVE_BANNER_HEIGHT : "0rem" }}
+    >
+      <div style={{ height: EVE_BANNER_HEIGHT }}>
+        <OnboardingAgentBanner
+          onDismiss={onDismiss}
+          onStart={onStart}
+          starting={starting}
+          state={running ? "running" : "idle"}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function DashboardShell({
   children,
@@ -197,32 +240,16 @@ export function DashboardShell({
       className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
       style={shellStyle}
     >
-      {bannerAvailable || dismissing ? (
-        <div
-          className={cn(
-            "duration-normal w-full shrink-0 overflow-hidden transition-[max-height,opacity] ease-out motion-reduce:transition-none",
-            visible ? "opacity-100" : "opacity-0"
-          )}
-          onTransitionEnd={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              event.propertyName === "max-height"
-            ) {
-              handleBannerExitComplete();
-            }
-          }}
-          style={{ maxHeight: visible ? EVE_BANNER_HEIGHT : "0rem" }}
-        >
-          <div style={{ height: EVE_BANNER_HEIGHT }}>
-            <OnboardingAgentBanner
-              onDismiss={handleDismiss}
-              onStart={handleStart}
-              starting={starting}
-              state={running ? "running" : "idle"}
-            />
-          </div>
-        </div>
-      ) : null}
+      <DashboardOnboardingBanner
+        available={bannerAvailable}
+        dismissing={dismissing}
+        onDismiss={handleDismiss}
+        onExitComplete={handleBannerExitComplete}
+        onStart={handleStart}
+        running={running}
+        starting={starting}
+        visible={visible}
+      />
       <SidebarProvider
         className={cn(
           "min-h-0! flex-1 overflow-hidden overscroll-none",
