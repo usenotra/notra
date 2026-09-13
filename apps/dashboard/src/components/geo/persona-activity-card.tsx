@@ -53,9 +53,6 @@ export function PersonaActivityCard({
     };
   }
   const rows = data ? buildPersonaActivityRows(data, personas) : [];
-  const hasForecast = Boolean(
-    data && rows.some((row) => String(row.day) >= data.to)
-  );
   const hasResults = data?.points.some(
     (point) =>
       point.checks > 0 &&
@@ -178,12 +175,6 @@ export function PersonaActivityCard({
               valueFormatter={(value) => `${Number(value).toFixed(1)}%`}
             />
           </EChartsAreaChart>
-          {hasForecast ? (
-            <p className="text-muted-foreground mt-2 text-xs">
-              Dashed lines: 7-day estimate from recent scans. Days without scans
-              are shown as 0 and excluded from the estimate.
-            </p>
-          ) : null}
         </>
       ) : null}
       {!isPending && !isError && !hasResults ? (
