@@ -20,6 +20,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GitHubRepositoriesDbApi } from "@/types/github-db";
 import type { GitHubIntegration } from "@/types/integrations";
 import { toErrorMessage } from "@/utils/error-message";
+import { pendingOutputId } from "@/utils/github-outputs";
 
 export function useGitHubRepositoriesDb(
   organizationId: string
@@ -56,39 +57,32 @@ export function useGitHubRepositoriesDb(
   };
 
   const persist = async (
-    repositoryId: string,
+    rowId: string,
     transaction: { isPersisted: { promise: Promise<unknown> } },
-    fallback: string,
-    success: string
+    fallback: string
   ) => {
-    markRowPending(collectionId, repositoryId);
+    markRowPending(collectionId, rowId);
     try {
       await transaction.isPersisted.promise;
-      toast.success(success);
     } catch (error) {
       toast.error(toErrorMessage(error, fallback));
       throw error;
     } finally {
-      clearRowPending(collectionId, repositoryId);
+      clearRowPending(collectionId, rowId);
     }
   };
 
   const setRepositoryEnabled = async (
-    repositoryId: string,
+    integrationId: string,
     enabled: boolean
   ) => {
-    const transaction = collection.update(repositoryId, (draft) => {
+    const transaction = collection.update(integrationId, (draft) => {
       draft.enabled = enabled;
       for (const repository of draft.repositories) {
         repository.enabled = enabled;
       }
     });
-    await persist(
-      repositoryId,
-      transaction,
-      "Failed to update repository",
-      enabled ? "Repository enabled" : "Repository paused"
-    );
+    await persist(integrationId, transaction, "Failed to update repository");
     await queryClient.invalidateQueries({
       queryKey: dashboardOrpc.github.app.get.queryKey({
         input: { organizationId },
@@ -96,14 +90,47 @@ export function useGitHubRepositoriesDb(
     });
   };
 
-  const removeRepository = async (repositoryId: string) => {
-    const transaction = collection.delete(repositoryId);
-    await persist(
-      repositoryId,
-      transaction,
-      "Failed to remove repository",
-      "Repository removed"
+  const setRepositoryOutputEnabled = async (
+    repositoryId: string,
+    outputType: string,
+    enabled: boolean
+  ) => {
+    const integration = repositories.find((candidate) =>
+      candidate.repositories.some(
+        (repository) => repository.id === repositoryId
+      )
     );
+    if (!integration) {
+      return;
+    }
+    const transaction = collection.update(integration.id, (draft) => {
+      const repository = draft.repositories.find(
+        (candidate) => candidate.id === repositoryId
+      );
+      if (!repository) {
+        return;
+      }
+      const outputs = repository.outputs ?? [];
+      const output = outputs.find(
+        (candidate) => candidate.outputType === outputType
+      );
+      if (output) {
+        output.enabled = enabled;
+      } else {
+        outputs.push({
+          id: pendingOutputId(repositoryId, outputType),
+          outputType,
+          enabled,
+        });
+      }
+      repository.outputs = outputs;
+    });
+    await persist(integration.id, transaction, "Failed to update publishing");
+  };
+
+  const removeRepository = async (integrationId: string) => {
+    const transaction = collection.delete(integrationId);
+    await persist(integrationId, transaction, "Failed to remove repository");
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.github.app.get.queryKey({
@@ -124,6 +151,7 @@ export function useGitHubRepositoriesDb(
     pendingRepositoryIds,
     refetch,
     setRepositoryEnabled,
+    setRepositoryOutputEnabled,
     removeRepository,
   };
 }

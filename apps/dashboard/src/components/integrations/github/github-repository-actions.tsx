@@ -46,13 +46,12 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
               : `Enable ${integration.displayName}`
           }
           checked={isEnabled}
-          disabled={isPending}
           onCheckedChange={toggle}
         />
         <GitHubRepositoryMenu
           {...props}
           isEnabled={isEnabled}
-          isPending={isPending}
+          isPending={false}
           onToggle={toggle}
           onDialog={setDialog}
         />

@@ -11,12 +11,12 @@ import {
   DEFAULT_GITHUB_CONTENT_DIRECTORIES,
   DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED,
 } from "@/constants/github";
+import { useGitHubRepositoriesDb } from "@/lib/hooks/use-github-repositories-db";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   GitHubContentDirectoryMutationVariables,
   GitHubContentPathMutationVariables,
   GitHubContentPublishingSettingsProps,
-  GitHubOutputMutationVariables,
   GitHubPublishingSettingsProps,
 } from "@/types/integrations/github";
 
@@ -32,6 +32,7 @@ function GitHubContentPublishingSettings({
   disabled = false,
 }: GitHubContentPublishingSettingsProps) {
   const queryClient = useQueryClient();
+  const repositoriesDb = useGitHubRepositoriesDb(organizationId);
   const folderTriggerId = useId();
   const publishingSwitchId = useId();
   const repositoryId = selectedRepository?.id ?? "";
@@ -89,7 +90,6 @@ function GitHubContentPublishingSettings({
           input: { organizationId },
         }),
       });
-      toast.success(`${contentLabel} folder saved`);
     },
     onError: (error) => {
       toast.error(error.message || `Failed to save ${contentLabel} folder`);
@@ -113,45 +113,11 @@ function GitHubContentPublishingSettings({
     },
     onSuccess: async (result) => {
       await settleDirectoryConfig(result);
-      toast.success(`${contentLabel} paths saved`);
     },
     onError: (error) => {
       toast.error(error.message || `Failed to save ${contentLabel} paths`);
     },
   });
-  const outputMutation = useMutation({
-    mutationFn: ({ enabled, outputId }: GitHubOutputMutationVariables) =>
-      outputId
-        ? dashboardOrpc.integrations.outputs.update.call({
-            organizationId,
-            outputId,
-            enabled,
-          })
-        : dashboardOrpc.integrations.repositories.configureOutput.call({
-            organizationId,
-            repositoryId,
-            outputType: contentType,
-            enabled,
-          }),
-    onSuccess: async (_, variables) => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.integrations.list.queryKey({
-          input: { organizationId },
-        }),
-      });
-      toast.success(
-        variables.enabled
-          ? `${contentLabel} publishing resumed`
-          : `${contentLabel} publishing paused`
-      );
-    },
-    onError: (error) => {
-      toast.error(
-        error.message || `Failed to update ${contentLabel} publishing`
-      );
-    },
-  });
-
   return (
     <div className="min-w-0 space-y-2.5">
       <div className="flex items-center gap-2">
@@ -160,12 +126,15 @@ function GitHubContentPublishingSettings({
           nativeButton
           aria-label={`Publish ${pluralLabel} to ${selectedRepository.owner}/${selectedRepository.repo}`}
           checked={publishingEnabled}
-          disabled={disabled || outputMutation.isPending}
+          disabled={disabled}
           onCheckedChange={(enabled) => {
-            outputMutation.mutate({
-              enabled,
-              outputId: contentOutput?.id,
-            });
+            void repositoriesDb
+              .setRepositoryOutputEnabled(
+                selectedRepository.id,
+                contentType,
+                enabled
+              )
+              .catch(() => {});
           }}
         />
         <Label
@@ -198,9 +167,7 @@ function GitHubContentPublishingSettings({
           <GitHubDirectoryPicker
             contentLabel={contentLabel}
             directory={directory}
-            disabled={
-              disabled || directoryQuery.isLoading || pathMutation.isPending
-            }
+            disabled={disabled || directoryQuery.isLoading}
             isSaving={directoryMutation.isPending}
             key={selectedRepository.id}
             onSave={async (nextDirectory) => {
@@ -224,7 +191,6 @@ function GitHubContentPublishingSettings({
         disabled={
           disabled ||
           directoryQuery.isLoading ||
-          directoryMutation.isPending ||
           (directoryQuery.isError && !directoryQuery.data)
         }
         imagePath={directoryQuery.data?.imagePath ?? null}

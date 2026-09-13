@@ -8,8 +8,13 @@ export interface GitHubRepositoriesDbApi {
   pendingRepositoryIds: ReadonlySet<string>;
   refetch: () => Promise<void>;
   setRepositoryEnabled: (
-    repositoryId: string,
+    integrationId: string,
     enabled: boolean
   ) => Promise<void>;
-  removeRepository: (repositoryId: string) => Promise<void>;
+  setRepositoryOutputEnabled: (
+    repositoryId: string,
+    outputType: string,
+    enabled: boolean
+  ) => Promise<void>;
+  removeRepository: (integrationId: string) => Promise<void>;
 }

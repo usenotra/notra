@@ -3,6 +3,10 @@ import { collectionOptions } from "@tanstack/react-db";
 import type { QueryClient } from "@tanstack/react-query";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
+import {
+  isGitHubContentOutputType,
+  isPendingOutputId,
+} from "@/utils/github-outputs";
 
 const definitions = new Map<
   string,
@@ -40,11 +44,45 @@ function buildGitHubRepositoriesCollection(organizationId: string) {
       getKey: (item) => item.id,
       onUpdate: async ({ transaction }) => {
         for (const mutation of transaction.mutations) {
-          await dashboardOrpc.integrations.update.call({
-            organizationId,
-            integrationId: String(mutation.key),
-            enabled: mutation.modified.enabled,
-          });
+          const { modified, original } = mutation;
+          if (modified.enabled !== original.enabled) {
+            await dashboardOrpc.integrations.update.call({
+              organizationId,
+              integrationId: String(mutation.key),
+              enabled: modified.enabled,
+            });
+          }
+          for (const repository of modified.repositories) {
+            const originalRepository = original.repositories.find(
+              (candidate) => candidate.id === repository.id
+            );
+            for (const output of repository.outputs ?? []) {
+              const originalOutput = originalRepository?.outputs?.find(
+                (candidate) => candidate.outputType === output.outputType
+              );
+              if (originalOutput?.enabled === output.enabled) {
+                continue;
+              }
+              if (originalOutput && !isPendingOutputId(originalOutput.id)) {
+                await dashboardOrpc.integrations.outputs.update.call({
+                  organizationId,
+                  outputId: originalOutput.id,
+                  enabled: output.enabled,
+                });
+                continue;
+              }
+              if (isGitHubContentOutputType(output.outputType)) {
+                await dashboardOrpc.integrations.repositories.configureOutput.call(
+                  {
+                    organizationId,
+                    repositoryId: repository.id,
+                    outputType: output.outputType,
+                    enabled: output.enabled,
+                  }
+                );
+              }
+            }
+          }
         }
       },
       onDelete: async ({ transaction }) => {

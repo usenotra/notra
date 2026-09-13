@@ -204,11 +204,6 @@ export interface GitHubPublishingPathFieldsProps {
   }) => void;
 }
 
-export interface GitHubOutputMutationVariables {
-  enabled: boolean;
-  outputId?: string;
-}
-
 export interface GitHubDirectoryPickerProps {
   contentLabel: string;
   directory: string;
