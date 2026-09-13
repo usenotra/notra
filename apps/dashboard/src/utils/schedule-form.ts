@@ -1,8 +1,16 @@
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
-import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
+import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
+import type {
+  LookbackWindow,
+  ScheduleOutputType,
+} from "@notra/schemas/dashboard/integrations";
 
 import { FORMAT_CARD_META } from "@/constants/content-formats";
 import { DEFAULT_SCHEDULE, FREQUENCY_LABELS } from "@/constants/schedule";
+import {
+  SCHEDULE_PRESETS,
+  type SchedulePresetId,
+} from "@/constants/schedule-presets";
 import type {
   ScheduleCron,
   ScheduleFormValues,
@@ -74,6 +82,32 @@ export function getDefaultScheduleValues(
     brandVoiceId: "",
     autoPublish: false,
   };
+}
+
+export interface PresetScheduleValues {
+  outputType: ScheduleOutputType;
+  schedule: ScheduleCron;
+  lookbackWindow: LookbackWindow;
+}
+
+export function getPresetScheduleValues(
+  presetId: SchedulePresetId
+): PresetScheduleValues {
+  const preset = SCHEDULE_PRESETS.find((item) => item.id === presetId);
+  if (!preset) {
+    throw new Error(`Unknown schedule preset: ${presetId}`);
+  }
+  if (preset.values.schedule.frequency === "custom") {
+    return {
+      ...preset.values,
+      schedule: {
+        ...preset.values.schedule,
+        anchorDate:
+          preset.values.schedule.anchorDate ?? toUtcDateString(new Date()),
+      },
+    };
+  }
+  return { ...preset.values, schedule: { ...preset.values.schedule } };
 }
 
 export function buildAutoScheduleName(
