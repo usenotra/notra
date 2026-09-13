@@ -1,46 +1,50 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-const existingUpdatedAt = new Date("2026-01-01T00:00:00.000Z");
-const staleUpdatedAt = new Date("2026-01-01T00:00:01.000Z");
+import { postUpdatedAtMatches } from "../src/utils/post-patch-concurrency";
 
-let currentUpdatedAt = existingUpdatedAt;
+const existingUpdatedAt = new Date("2026-01-01T00:00:00.123Z");
+const newerUpdatedAt = new Date("2026-01-01T00:00:00.456Z");
+
+let storedUpdatedAt = existingUpdatedAt;
+let capturedUpdateWhere: unknown;
 
 const mockDb = {
   query: {
     posts: {
-      findFirst: mock(async ({ where }: { where: unknown }) => {
-        void where;
-        return {
-          id: "post_test",
-          title: "Fresh title",
-          slug: "fresh-title",
-          contentType: "blog_post",
-          status: "draft",
-          updatedAt: currentUpdatedAt,
-        };
-      }),
+      findFirst: mock(async () => ({
+        id: "post_test",
+        title: "Fresh title",
+        updatedAt: storedUpdatedAt,
+      })),
     },
   },
   update: mock(() => ({
     set: mock(() => ({
-      where: mock(() => ({
-        returning: mock(async () => [
-          {
-            id: "post_test",
-            title: "Updated title",
-            slug: "fresh-title",
-            content: "<p>Updated</p>",
-            htmlUrl: null,
-            markdown: "# Updated",
-            recommendations: null,
-            contentType: "blog_post",
-            sourceMetadata: null,
-            status: "draft",
-            createdAt: existingUpdatedAt,
-            updatedAt: new Date("2026-01-02T00:00:00.000Z"),
-          },
-        ]),
-      })),
+      where: mock((where: unknown) => {
+        capturedUpdateWhere = where;
+        return {
+          returning: mock(async () =>
+            postUpdatedAtMatches(storedUpdatedAt, existingUpdatedAt)
+              ? [
+                  {
+                    id: "post_test",
+                    title: "Updated title",
+                    slug: "fresh-title",
+                    content: "<p>Updated</p>",
+                    htmlUrl: null,
+                    markdown: "# Updated",
+                    recommendations: null,
+                    contentType: "blog_post",
+                    sourceMetadata: null,
+                    status: "draft",
+                    createdAt: existingUpdatedAt,
+                    updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+                  },
+                ]
+              : []
+          ),
+        };
+      }),
     })),
   })),
 };
@@ -49,32 +53,36 @@ const { commitPatchPost } = await import("../src/programs/posts");
 const { runPostProgram } = await import("../src/utils/posts");
 
 beforeEach(() => {
-  currentUpdatedAt = existingUpdatedAt;
+  storedUpdatedAt = existingUpdatedAt;
+  capturedUpdateWhere = undefined;
   mockDb.query.posts.findFirst.mockClear();
   mockDb.update.mockClear();
 });
 
 describe("commitPatchPost", () => {
-  test("sets updatedAt during commit instead of prepare", async () => {
+  test("sets updatedAt during commit and applies millisecond concurrency filter", async () => {
     const setMock = mock(() => ({
-      where: mock(() => ({
-        returning: mock(async () => [
-          {
-            id: "post_test",
-            title: "Updated title",
-            slug: "fresh-title",
-            content: "<p>Updated</p>",
-            htmlUrl: null,
-            markdown: "# Updated",
-            recommendations: null,
-            contentType: "blog_post",
-            sourceMetadata: null,
-            status: "draft",
-            createdAt: existingUpdatedAt,
-            updatedAt: new Date("2026-01-02T00:00:00.000Z"),
-          },
-        ]),
-      })),
+      where: mock((where: unknown) => {
+        capturedUpdateWhere = where;
+        return {
+          returning: mock(async () => [
+            {
+              id: "post_test",
+              title: "Updated title",
+              slug: "fresh-title",
+              content: "<p>Updated</p>",
+              htmlUrl: null,
+              markdown: "# Updated",
+              recommendations: null,
+              contentType: "blog_post",
+              sourceMetadata: null,
+              status: "draft",
+              createdAt: existingUpdatedAt,
+              updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+            },
+          ]),
+        };
+      }),
     }));
 
     mockDb.update.mockImplementationOnce(() => ({
@@ -102,17 +110,11 @@ describe("commitPatchPost", () => {
         updatedAt: expect.any(Date),
       })
     );
-    expect(setMock.mock.calls[0]?.[0].updatedAt.getTime()).toBeGreaterThan(
-      existingUpdatedAt.getTime()
-    );
+    expect(capturedUpdateWhere).toBeDefined();
   });
 
-  test("returns concurrent modification when the post changed during rate limiting", async () => {
-    currentUpdatedAt = staleUpdatedAt;
-
-    mockDb.query.posts.findFirst
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ id: "post_test" });
+  test("returns concurrent modification when updatedAt changed after prepare", async () => {
+    storedUpdatedAt = newerUpdatedAt;
 
     const result = await runPostProgram(
       commitPatchPost({

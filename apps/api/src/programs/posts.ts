@@ -57,6 +57,11 @@ import {
   renderMarkdownToHtml,
 } from "../utils/markdown";
 import { isConstraintViolation, isPgUniqueViolation } from "../utils/pg-errors";
+import {
+  matchesPostUpdatedAt,
+  normalizePostUpdatedAt,
+  postUpdatedAtMatches,
+} from "../utils/post-patch-concurrency";
 import { shouldApplyFilter, postQueryColumns } from "../utils/posts";
 
 const database = <A>(operation: () => Promise<A>) =>
@@ -353,7 +358,7 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
     prepared: {
       updateData,
       previousStatus: existingPost.status,
-      expectedUpdatedAt: existingPost.updatedAt,
+      expectedUpdatedAt: normalizePostUpdatedAt(existingPost.updatedAt),
       rederiveTitleFromMarkdown,
     },
   } satisfies PreparePatchPostProgramSuccess;
@@ -366,31 +371,23 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
     input.db.query.posts.findFirst({
       where: and(
         eq(posts.id, input.postId),
-        eq(posts.organizationId, input.organizationId),
-        eq(posts.updatedAt, input.prepared.expectedUpdatedAt)
+        eq(posts.organizationId, input.organizationId)
       ),
       columns: {
         id: true,
         title: true,
+        updatedAt: true,
       },
     })
   );
 
   if (!freshPost) {
-    const stillExists = yield* database(() =>
-      input.db.query.posts.findFirst({
-        where: and(
-          eq(posts.id, input.postId),
-          eq(posts.organizationId, input.organizationId)
-        ),
-        columns: { id: true },
-      })
-    );
+    return yield* new PostNotFoundError();
+  }
 
-    if (!stillExists) {
-      return yield* new PostNotFoundError();
-    }
-
+  if (
+    !postUpdatedAtMatches(freshPost.updatedAt, input.prepared.expectedUpdatedAt)
+  ) {
     return yield* new PostConcurrentModificationError();
   }
 
@@ -415,7 +412,7 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
           and(
             eq(posts.id, input.postId),
             eq(posts.organizationId, input.organizationId),
-            eq(posts.updatedAt, input.prepared.expectedUpdatedAt)
+            matchesPostUpdatedAt(input.prepared.expectedUpdatedAt)
           )
         )
         .returning({
