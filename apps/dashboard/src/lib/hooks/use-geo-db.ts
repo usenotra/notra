@@ -252,7 +252,12 @@ export function useGeoProjectsDb(
       });
 
     if (persistError) {
-      toast.error(toErrorMessage(persistError, "Failed to create project"));
+      if (
+        persistError instanceof Error &&
+        persistError.message === "Project create timed out"
+      ) {
+        toast.error(toErrorMessage(persistError, "Failed to create project"));
+      }
       throw persistError;
     }
 
