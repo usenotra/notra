@@ -35,7 +35,7 @@ import {
   useGeoPersonaUpdate,
 } from "@/lib/hooks/use-geo-personas";
 import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
-import type { PersonasTableProps } from "@/types/geo-personas-ui";
+import type { PersonaTableProps } from "@/types/geo-personas-ui";
 import { tableHeightFor } from "@/utils/table";
 
 const MIN_TABLE_ROWS = 3;
@@ -43,7 +43,10 @@ const MIN_TABLE_ROWS = 3;
 export function PersonasTable({
   organizationId,
   personas,
-}: PersonasTableProps) {
+  isAddingPersona = false,
+  openPersonaId,
+  onAutoOpenClose,
+}: PersonaTableProps) {
   const { projectId } = useGeoProjectScope();
   const deletePersona = useGeoPersonaDelete(organizationId);
   const updatePersona = useGeoPersonaUpdate(organizationId);
@@ -68,6 +71,9 @@ export function PersonasTable({
   const deletingPersonaId = deletePersona.isPending
     ? deletePersona.variables
     : null;
+  const autoOpenPersona =
+    personas.find((persona) => persona.id === openPersonaId) ?? null;
+  const displayedPersona = autoOpenPersona ?? viewing;
 
   const columns = useMemo<TableColumn<GeoPersona>[]>(
     () => [
@@ -187,7 +193,10 @@ export function PersonasTable({
         defaultSort={{ key: "name", direction: "asc" }}
         emptyState="No personas yet — generate a set to have them research your category during scans"
         getRowId={(row) => row.id}
-        height={tableHeightFor(Math.max(personas.length, MIN_TABLE_ROWS))}
+        height={tableHeightFor(
+          Math.max(personas.length + (isAddingPersona ? 1 : 0), MIN_TABLE_ROWS)
+        )}
+        loading={isAddingPersona}
         onRowClick={(row) => {
           trackEvent(POSTHOG_EVENTS.GEO_PERSONA_DETAIL_OPENED, {
             personaId: row.id,
@@ -227,18 +236,23 @@ export function PersonasTable({
           />
         )}
         rowHeight={TABLE_ROW_HEIGHT}
+        skeletonRows={1}
       />
 
       <PersonaDetailDialog
         onOpenChange={(next) => {
           if (!next) {
             setViewing(null);
+            if (autoOpenPersona) {
+              onAutoOpenClose?.();
+            }
           }
         }}
-        open={viewing !== null}
+        open={displayedPersona !== null}
         organizationId={organizationId}
         persona={
-          personas.find((persona) => persona.id === viewing?.id) ?? viewing
+          personas.find((persona) => persona.id === displayedPersona?.id) ??
+          displayedPersona
         }
       />
       <GeoRemoveDialog

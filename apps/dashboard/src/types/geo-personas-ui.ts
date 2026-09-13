@@ -12,6 +12,12 @@ export interface PersonasTableProps {
   personas: GeoPersona[];
 }
 
+export interface PersonaTableProps extends PersonasTableProps {
+  isAddingPersona?: boolean;
+  openPersonaId?: string;
+  onAutoOpenClose?: () => void;
+}
+
 export interface PersonaTableRowActionsProps {
   persona: GeoPersona;
   disabled: boolean;
@@ -91,6 +97,7 @@ export interface PersonaConversationProps {
 }
 export interface PersonaAddDialogProps {
   open: boolean;
+  atLimit: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (brief: string) => void;
   isPending: boolean;

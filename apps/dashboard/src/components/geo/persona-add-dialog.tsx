@@ -1,5 +1,6 @@
 "use client";
 
+import { GEO_PERSONA_MAX_COUNT } from "@notra/geo-core/constants/geo-personas";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -16,6 +17,7 @@ import type { PersonaAddDialogProps } from "@/types/geo-personas-ui";
 
 export function PersonaAddDialog({
   open,
+  atLimit,
   onOpenChange,
   onSubmit,
   isPending,
@@ -29,7 +31,7 @@ export function PersonaAddDialog({
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
-            if (!brief.trim() || isPending) {
+            if (!brief.trim() || isPending || atLimit) {
               return;
             }
             onSubmit(brief.trim());
@@ -42,7 +44,7 @@ export function PersonaAddDialog({
               and memories.
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <label className="text-sm font-medium" htmlFor={id}>
               Who should this persona represent?
             </label>
@@ -56,6 +58,12 @@ export function PersonaAddDialog({
               placeholder="An agency founder comparing AI visibility tools for clients, with a tight budget and little time for setup…"
               className="min-h-28"
             />
+            {atLimit ? (
+              <p className="text-destructive text-sm" role="alert">
+                You’ve reached the {GEO_PERSONA_MAX_COUNT}-persona limit. Delete
+                one to generate this persona; your description will stay here.
+              </p>
+            ) : null}
           </div>
           <ResponsiveDialogFooter>
             <Button
@@ -66,7 +74,7 @@ export function PersonaAddDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || atLimit}>
               {isPending ? "Starting…" : "Generate persona"}
             </Button>
           </ResponsiveDialogFooter>

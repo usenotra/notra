@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Counter from "@notra/ui/components/shared/counter";
 import { useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -32,12 +32,9 @@ import {
   GEO_PERSONAS_PAGE_TITLE,
 } from "@/constants/geo-personas";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
-import {
-  useGeoPersonas,
-  useGeoPersonasGenerate,
-} from "@/lib/hooks/use-geo-personas";
+import { useGeoPersonas } from "@/lib/hooks/use-geo-personas";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
-import { usePersonaGenerationProgress } from "@/lib/hooks/use-persona-generation-progress";
+import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
@@ -155,16 +152,21 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     useGeoSettings(organizationId);
   const { data: personasData, isPending: isPersonasPending } =
     useGeoPersonas(organizationId);
-  const generatePersonas = useGeoPersonasGenerate(organizationId);
 
   const personas = personasData?.personas ?? [];
-  const hasPersonas = personas.length > 0;
-  const [addOpen, setAddOpen] = useState(false);
-  const isGenerating = generatePersonas.isPending;
-  const progress = usePersonaGenerationProgress(
+  const {
+    addOpen,
+    atPersonaLimit,
+    autoOpenPersonaId,
+    clearAutoOpenPersona,
+    hasPersonas,
+    isAddingPersona,
     isGenerating,
-    generatePersonas.startedAt
-  );
+    onGenerateClick,
+    progress,
+    setAddOpen,
+    submitPersona,
+  } = usePersonaAddFlow(organizationId, personas);
 
   if (isSettingsPending) {
     return <GeoPersonasSkeleton />;
@@ -202,14 +204,6 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     );
   }
 
-  const onGenerateClick = () => {
-    if (hasPersonas) {
-      setAddOpen(true);
-      return;
-    }
-    generatePersonas.mutate();
-  };
-
   const isLoadingPersonas = isPersonasPending && !hasPersonas;
   const showEmptyState = !(isLoadingPersonas || hasPersonas);
   // The empty state carries the primary action until personas exist.
@@ -226,11 +220,6 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <PageHeader action={headerAction} />
-        {generatePersonas.generationError ? (
-          <p role="alert" className="text-destructive text-sm">
-            {generatePersonas.generationError}
-          </p>
-        ) : null}
 
         {isLoadingPersonas ? (
           <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
@@ -243,7 +232,13 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
           />
         ) : null}
         {hasPersonas ? (
-          <PersonasTable organizationId={organizationId} personas={personas} />
+          <PersonasTable
+            isAddingPersona={isAddingPersona}
+            onAutoOpenClose={clearAutoOpenPersona}
+            openPersonaId={autoOpenPersonaId}
+            organizationId={organizationId}
+            personas={personas}
+          />
         ) : null}
 
         {showEmptyState ? (
@@ -267,15 +262,11 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
         ) : null}
       </div>
       <PersonaAddDialog
+        atLimit={atPersonaLimit}
         open={addOpen}
         onOpenChange={setAddOpen}
-        isPending={generatePersonas.isPending}
-        onSubmit={(brief) =>
-          generatePersonas.mutate(
-            { brief },
-            { onSuccess: () => setAddOpen(false) }
-          )
-        }
+        isPending={isGenerating}
+        onSubmit={submitPersona}
       />
     </PageContainer>
   );
