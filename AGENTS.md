@@ -11,7 +11,14 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
 - Runtime/package manager is **Bun `1.4.0`** (installed at `~/.bun`); tooling uses
   **Node `24.11.1`** (installed via `nvm`, set as the default alias). Both are baked
   into the VM snapshot and on `PATH` in a login shell. `bun install` is the startup
-  update script — do not run it manually unless deps changed.
+  update script — run it manually when dependencies changed or `node_modules`
+  or `.repos/effect` is missing (for example, in a fresh worktree).
+- If `.repos/effect` is missing, run `bun install` from the repo root before
+  working with Effect. The existing `prepare` script runs
+  `scripts/prepare-effect.sh` to clone the Effect source; do not add another
+  bootstrap script or ask the user to choose a checkout strategy. Verify that
+  `.repos/effect` exists afterward. The bootstrap intentionally skips Vercel,
+  CI, and production environments.
 - Quality gates (run from repo root): lint `bun run check`, types `bun run check-types`,
   build `bun run build` (use `--filter=dashboard` to scope). Husky `pre-commit` runs
   `bun format` + `bun knip`.
