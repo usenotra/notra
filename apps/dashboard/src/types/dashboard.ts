@@ -20,6 +20,13 @@ export interface ContentActivityEntry {
   published: number;
 }
 
+export interface ContentPublishingDailyCount {
+  day: string;
+  drafts: number;
+  strictDrafts: number;
+  published: number;
+}
+
 export interface ContentPublishingMetricsData {
   drafts: number;
   published: number;
