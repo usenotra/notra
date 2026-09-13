@@ -43,7 +43,10 @@ import type {
   PatchPostProgramSuccess,
   PreparePatchPostProgramSuccess,
 } from "../types/posts";
-import { addActiveGeneration } from "../utils/active-generations";
+import {
+  addActiveGeneration,
+  removeActiveGeneration,
+} from "../utils/active-generations";
 import {
   isConfirmedContentGenerationRejection,
   triggerContentGenerationWorkflow,
@@ -81,20 +84,27 @@ const failPostGenerationQueue = Effect.fnUntraced(function* (
   options: {
     deleteCollection: boolean;
     markJobFailed: boolean;
+    removeActiveGeneration: boolean;
     errorMessage: string;
   }
 ) {
   if (options.deleteCollection) {
+    yield* database(() =>
+      input.db
+        .delete(postCollections)
+        .where(
+          and(
+            eq(postCollections.id, collectionId),
+            eq(postCollections.organizationId, input.organizationId)
+          )
+        )
+    );
+  }
+
+  if (options.removeActiveGeneration) {
     yield* Effect.tryPromise({
       try: () =>
-        input.db
-          .delete(postCollections)
-          .where(
-            and(
-              eq(postCollections.id, collectionId),
-              eq(postCollections.organizationId, input.organizationId)
-            )
-          ),
+        removeActiveGeneration(input.redis, input.organizationId, jobId),
       catch: () => undefined,
     }).pipe(Effect.ignore);
   }
@@ -146,6 +156,7 @@ function recoverBeforeWorkflowAccepted(
     failPostGenerationQueue(input, collectionId, jobId, job, {
       deleteCollection: true,
       markJobFailed: job !== null,
+      removeActiveGeneration: true,
       errorMessage: queueFailureMessage(error),
     })
   );
@@ -161,6 +172,7 @@ function recoverWorkflowTriggerFailure(
     failPostGenerationQueue(input, collectionId, jobId, job, {
       deleteCollection: isConfirmedContentGenerationRejection(error),
       markJobFailed: true,
+      removeActiveGeneration: isConfirmedContentGenerationRejection(error),
       errorMessage: queueFailureMessage(error),
     })
   );
@@ -176,6 +188,7 @@ function recoverAfterWorkflowAccepted(
     failPostGenerationQueue(input, collectionId, jobId, job, {
       deleteCollection: false,
       markJobFailed: true,
+      removeActiveGeneration: false,
       errorMessage: queueFailureMessage(error),
     })
   );
@@ -477,6 +490,7 @@ export const createPostGeneration = Effect.fn("posts.createGeneration")(
           runId: jobId,
           contentType: body.contentType,
           lookbackWindow: body.lookbackWindow,
+          timezone: body.timezone,
           repositoryIds: input.repositoryIds,
           linearIntegrationIds: input.linearIntegrationIds,
           brandVoiceId: input.resolvedBrandVoiceId ?? undefined,

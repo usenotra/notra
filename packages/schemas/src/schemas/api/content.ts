@@ -799,6 +799,11 @@ export const createPostGenerationRequestSchema = z
         description:
           "Restrict generation to specific commits, pull requests, releases, or Linear issues instead of everything in the lookback window.",
       }),
+    timezone: z.string().min(1).max(100).optional().openapi({
+      description:
+        "IANA timezone used for relative lookback windows such as current_day and yesterday.",
+      example: "America/New_York",
+    }),
   })
   .refine(
     (value) => {

@@ -27,6 +27,7 @@ const createJob = mock(
   async (_redis: unknown, job: ContentGenerationJob) => job
 );
 const addActive = mock(async () => undefined);
+const removeActive = mock(async () => undefined);
 const appendEvent = mock(async (_redis: unknown, event: unknown) => event);
 const triggerWorkflow = mock(async () => "workflow-run-id");
 const updateJob = mock(
@@ -78,6 +79,7 @@ mock.module("@notra/content-generation/jobs", () => ({
 
 mock.module("../src/utils/active-generations", () => ({
   addActiveGeneration: addActive,
+  removeActiveGeneration: removeActive,
 }));
 
 mock.module("../src/utils/content-generation", () => ({
@@ -124,6 +126,7 @@ beforeEach(() => {
   collectionDeleteCalls.mockClear();
   createJob.mockClear();
   addActive.mockClear();
+  removeActive.mockClear();
   appendEvent.mockClear();
   triggerWorkflow.mockReset();
   updateJob.mockReset();
@@ -133,6 +136,7 @@ beforeEach(() => {
 
   createJob.mockImplementation(async (_redis, job) => job);
   addActive.mockResolvedValue(undefined);
+  removeActive.mockResolvedValue(undefined);
   appendEvent.mockImplementation(async (_redis, event) => event);
   triggerWorkflow.mockResolvedValue("workflow-run-id");
   updateJob.mockImplementation(async (_redis, jobId, updates) => ({
@@ -163,6 +167,11 @@ describe("createPostGeneration rollback", () => {
       expect(result.failure._tag).toBe("PostGenerationQueueFailedError");
     }
     expect(collectionDeleteCalls).toHaveBeenCalledTimes(1);
+    expect(removeActive).toHaveBeenCalledWith(
+      expect.anything(),
+      "org_test",
+      "job_test123"
+    );
     expect(setJobStatus).toHaveBeenCalledWith(
       expect.anything(),
       "job_test123",
@@ -182,6 +191,7 @@ describe("createPostGeneration rollback", () => {
 
     expect(result._tag).toBe("Failure");
     expect(collectionDeleteCalls).not.toHaveBeenCalled();
+    expect(removeActive).not.toHaveBeenCalled();
     expect(setJobStatus).toHaveBeenCalled();
   });
 
@@ -236,6 +246,60 @@ describe("createPostGeneration rollback", () => {
 
     expect(result._tag).toBe("Failure");
     expect(collectionDeleteCalls).toHaveBeenCalledTimes(1);
+    expect(removeActive).toHaveBeenCalledWith(
+      expect.anything(),
+      "org_test",
+      "job_test123"
+    );
     expect(setJobStatus).not.toHaveBeenCalled();
+  });
+
+  test("removes the active generation entry during pre-acceptance compensation", async () => {
+    appendEvent.mockRejectedValueOnce(new Error("redis unavailable"));
+
+    const result = await runPostProgram(
+      createPostGeneration(generationInput())
+    );
+
+    expect(result._tag).toBe("Failure");
+    expect(addActive).toHaveBeenCalled();
+    expect(removeActive).toHaveBeenCalledWith(
+      expect.anything(),
+      "org_test",
+      "job_test123"
+    );
+  });
+
+  test("surfaces collection delete failures during rollback", async () => {
+    mockDb.delete.mockImplementationOnce(() => ({
+      where: mock(async () => {
+        throw new Error("delete failed");
+      }),
+    }));
+    triggerWorkflow.mockRejectedValueOnce(
+      new InternalDashboardError(402, "payment_required", "credits exhausted")
+    );
+
+    await expect(
+      runPostProgram(createPostGeneration(generationInput()))
+    ).rejects.toThrow("delete failed");
+  });
+
+  test("passes timezone through to the workflow payload", async () => {
+    const result = await runPostProgram(
+      createPostGeneration({
+        ...generationInput(),
+        body: {
+          ...generationInput().body,
+          timezone: "America/New_York",
+        },
+      })
+    );
+
+    expect(result._tag).toBe("Success");
+    expect(triggerWorkflow).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ timezone: "America/New_York" })
+    );
   });
 });
