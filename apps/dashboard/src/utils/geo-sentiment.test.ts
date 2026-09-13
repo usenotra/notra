@@ -7,6 +7,8 @@ import {
   isolatedSentimentPointIndices,
   sentimentFamilyRows,
   sentimentEmptyMessage,
+  sentimentHasDisplayableData,
+  sentimentLacksRetroactiveData,
   sentimentThemesState,
 } from "./geo-sentiment";
 
@@ -37,6 +39,63 @@ test("lookup failures never render pending ghosts and configuration explanations
   expect(failed.pending).toBe(false);
   expect(failed.showEmpty).toBe(false);
   expect(failed.showResults).toBe(false);
+});
+
+test("retroactive gaps hide aggregate sentiment until the period starts with ratings", () => {
+  const points = [null, null, 65, 70].map((score) => ({ score }));
+  expect(sentimentLacksRetroactiveData(points)).toBe(true);
+  expect(sentimentHasDisplayableData(summarizeSentiment([]), points)).toBe(
+    false
+  );
+  expect(
+    sentimentHasDisplayableData(
+      summarizeSentiment([
+        {
+          positive: 2,
+          neutral: 1,
+          negative: 0,
+          mentions: 3,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ]),
+      points
+    )
+  ).toBe(false);
+  expect(
+    sentimentEmptyMessage(
+      summarizeSentiment([
+        {
+          positive: 2,
+          neutral: 1,
+          negative: 0,
+          mentions: 3,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ]),
+      points
+    )
+  ).toBe(
+    "Sentiment ratings aren't available for earlier days in this range yet."
+  );
+  const covered = [65, 70, 68].map((score) => ({ score }));
+  expect(sentimentLacksRetroactiveData(covered)).toBe(false);
+  expect(
+    sentimentHasDisplayableData(
+      summarizeSentiment([
+        {
+          positive: 2,
+          neutral: 1,
+          negative: 0,
+          mentions: 3,
+          totalChecks: 3,
+          lastCheckedAt: null,
+        },
+      ]),
+      covered
+    )
+  ).toBe(true);
 });
 
 test("empty copy distinguishes absent answers from saved but unrated mentions", () => {

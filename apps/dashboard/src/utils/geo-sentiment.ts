@@ -5,7 +5,10 @@ import {
 } from "@notra/geo-core/utils/geo-engine-family";
 import { sentimentFamilyScore } from "@notra/geo-core/utils/geo-sentiment";
 
-import { SENTIMENT_FAMILY_ORDER } from "@/constants/geo-sentiment";
+import {
+  SENTIMENT_FAMILY_ORDER,
+  SENTIMENT_RETROACTIVE_EMPTY_MESSAGE,
+} from "@/constants/geo-sentiment";
 import type {
   SentimentFamilyRow,
   SentimentTrendCardProps,
@@ -24,9 +27,33 @@ export function isolatedSentimentPointIndices(
   );
 }
 
+export function sentimentLacksRetroactiveData(
+  points: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
+): boolean {
+  if (points.length === 0) {
+    return true;
+  }
+  const firstRatedIndex = points.findIndex((point) => point.score !== null);
+  return firstRatedIndex !== 0;
+}
+
+export function sentimentHasDisplayableData(
+  summary?: GeoSentimentResponse["summary"],
+  points?: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
+): boolean {
+  if (!summary || summary.classifiedMentions === 0) {
+    return false;
+  }
+  return !sentimentLacksRetroactiveData(points ?? []);
+}
+
 export function sentimentEmptyMessage(
-  summary?: GeoSentimentResponse["summary"]
+  summary?: GeoSentimentResponse["summary"],
+  points?: readonly Pick<GeoSentimentResponse["points"][number], "score">[]
 ) {
+  if (points && sentimentLacksRetroactiveData(points)) {
+    return SENTIMENT_RETROACTIVE_EMPTY_MESSAGE;
+  }
   if (
     summary &&
     summary.classifiedMentions +

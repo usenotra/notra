@@ -1,10 +1,21 @@
 import {
+  ResponsiveAlertDialog,
+  ResponsiveAlertDialogAction,
+  ResponsiveAlertDialogCancel,
+  ResponsiveAlertDialogContent,
+  ResponsiveAlertDialogDescription,
+  ResponsiveAlertDialogFooter,
+  ResponsiveAlertDialogHeader,
+  ResponsiveAlertDialogTitle,
+} from "@notra/ui/components/shared/responsive-alert-dialog";
+import {
   Popover,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -92,14 +103,3 @@ export function SentimentThemesEmpty({
     </div>
   );
 }
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useState } from "react";

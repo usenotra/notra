@@ -5,8 +5,9 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 
 import {
-  SENTIMENT_SCORE_FORMAT,
   SENTIMENT_DELTA_FORMAT,
+  SENTIMENT_SCORE_FORMAT,
+  SENTIMENT_SCORE_FORMULA,
 } from "@/constants/geo-sentiment";
 import type { SentimentScoreProps } from "@/types/geo-sentiment";
 import { formatSentimentPeriod } from "@/utils/sentiment-dates";
@@ -24,11 +25,16 @@ export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
           </span>
         ) : null}
       </p>
+      {summary.score !== null ? (
+        <p className="text-muted-foreground max-w-xs text-xs text-balance sm:col-span-2">
+          {SENTIMENT_SCORE_FORMULA}
+        </p>
+      ) : null}
       {comparison ? (
         <Tooltip>
           <TooltipTrigger
             data-direction={Math.sign(comparison.delta ?? 0)}
-            className="text-muted-foreground focus-visible:outline-ring data-[direction='1']:text-geo-up data-[direction='-1']:text-geo-down min-h-6 rounded-sm text-xs tabular-nums focus-visible:outline-2"
+            className="text-muted-foreground focus-visible:outline-ring data-[direction='1']:text-geo-up data-[direction='-1']:text-geo-down min-h-6 rounded-sm text-xs tabular-nums focus-visible:outline-2 sm:col-span-2"
             aria-label="Score comparison and period dates"
           >
             {comparison.delta === null

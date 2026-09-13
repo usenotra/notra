@@ -5,7 +5,10 @@ import { SentimentScore } from "@/components/geo/sentiment-score";
 import { SentimentSkeleton } from "@/components/geo/sentiment-skeleton";
 import { InstrumentEmpty } from "@/components/instrument/instrument-module";
 import type { SentimentSummaryProps } from "@/types/geo-sentiment";
-import { sentimentEmptyMessage } from "@/utils/geo-sentiment";
+import {
+  sentimentEmptyMessage,
+  sentimentHasDisplayableData,
+} from "@/utils/geo-sentiment";
 
 export function SentimentSummary({
   data,
@@ -14,6 +17,9 @@ export function SentimentSummary({
   retry,
 }: SentimentSummaryProps) {
   const summary = data?.summary;
+  const points = data?.points;
+  const showData = sentimentHasDisplayableData(summary, points);
+  const showEmpty = summary && (summary.classifiedMentions === 0 || !showData);
   return (
     <aside aria-label="Sentiment summary" className="min-w-0 px-5 pt-4 pb-1">
       {isPending ? <SentimentSkeleton compact /> : null}
@@ -25,14 +31,14 @@ export function SentimentSummary({
           </Button>
         </div>
       ) : null}
-      {summary ? (
+      {summary && showData ? (
         <SentimentScore summary={summary} comparison={data?.comparison} />
       ) : null}
-      {summary && summary.classifiedMentions === 0 ? (
+      {showEmpty ? (
         <InstrumentEmpty
           seed="Sentiment summary"
           className="mt-5 h-auto min-h-40 [&_p]:normal-case"
-          message={sentimentEmptyMessage(summary)}
+          message={sentimentEmptyMessage(summary, points)}
           preview={<EmptyStateTablePreview columns={[90, 70, 60]} rows={3} />}
         />
       ) : null}

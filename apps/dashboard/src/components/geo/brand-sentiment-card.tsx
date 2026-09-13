@@ -5,15 +5,27 @@ import { SentimentThemes } from "@/components/geo/sentiment-themes";
 import { SentimentTrendCard } from "@/components/geo/sentiment-trend-card";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
-  SENTIMENT_SCORE_HINT,
+  SENTIMENT_POLARITY_CTA,
   SENTIMENT_POLARITY_STYLES,
+  SENTIMENT_SCORE_HINT,
 } from "@/constants/geo-sentiment";
 import {
   useGeoSentiment,
   useGeoSentimentAnalysis,
 } from "@/lib/hooks/use-geo-sentiment";
 import type { BrandSentimentCardProps } from "@/types/geo-sentiment";
+import { sentimentHasDisplayableData } from "@/utils/geo-sentiment";
 import { sentimentAnalysisStatus } from "@/utils/sentiment-analysis";
+
+function formatPolarityShare(
+  share: number | null | undefined,
+  showData: boolean
+): string {
+  if (!showData || share == null) {
+    return "—";
+  }
+  return `${(share * 100).toFixed(1)}%`;
+}
 
 export function BrandSentimentCard({
   organizationId,
@@ -23,9 +35,15 @@ export function BrandSentimentCard({
   const data = query.isSuccess ? query.data : undefined;
   const analysis = useGeoSentimentAnalysis(organizationId);
   const themes = analysis.query.data?.result?.themes ?? [];
+  const showData = sentimentHasDisplayableData(data?.summary, data?.points);
   const themeStatus = analysis.query.isError
     ? "Could not load analysis."
     : sentimentAnalysisStatus(analysis.query.data);
+  const showThemeStatus =
+    themeStatus &&
+    themeStatus !== "Analyzing saved answers…" &&
+    !themeStatus.startsWith("Showing previous themes");
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <InstrumentModule
@@ -54,7 +72,7 @@ export function BrandSentimentCard({
             />
           </div>
           <div className="flex min-w-0 flex-col divide-y border-t lg:border-t-0">
-            {themeStatus ? (
+            {showThemeStatus ? (
               <p
                 role="status"
                 className="text-muted-foreground px-5 py-3 text-xs"
@@ -62,53 +80,59 @@ export function BrandSentimentCard({
                 {themeStatus}
               </p>
             ) : null}
-            {(["positive", "negative"] as const).map((polarity) => (
-              <div
-                key={polarity}
-                className="flex flex-1 flex-col justify-center gap-2 px-5 py-3"
-              >
-                <p
-                  className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+            {(["positive", "negative"] as const).map((polarity) => {
+              const polarityThemes = [
+                ...new Set(
+                  themes
+                    .filter((theme) => theme.polarity === polarity)
+                    .map((theme) => theme.title)
+                ),
+              ];
+              const cta = SENTIMENT_POLARITY_CTA[polarity];
+              const share = data?.summary?.[`${polarity}Share`];
+
+              return (
+                <div
+                  key={polarity}
+                  className="flex flex-1 flex-col justify-center gap-2 px-5 py-3"
                 >
-                  {data?.summary[`${polarity}Share`] == null
-                    ? "—"
-                    : `${((data.summary[`${polarity}Share`] ?? 0) * 100).toFixed(1)}%`}{" "}
-                  {polarity}
-                </p>
-                <p className="text-sm font-medium text-balance">
-                  {query.isPending || analysis.query.isPending
-                    ? "Loading themes…"
-                    : null}
-                  {[
-                    ...new Set(
-                      themes
-                        .filter((theme) => theme.polarity === polarity)
-                        .map((theme) => theme.title)
-                    ),
-                  ].map((title, index) => (
-                    <span key={title}>
-                      {index > 0 ? ", " : ""}
+                  <p
+                    className={`text-sm font-medium capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
+                  >
+                    {formatPolarityShare(share, showData)} {polarity}
+                  </p>
+                  {query.isPending || analysis.query.isPending ? (
+                    <p className="text-muted-foreground text-xs">
+                      Loading themes…
+                    </p>
+                  ) : polarityThemes.length > 0 ? (
+                    <p className="text-sm font-medium text-balance">
+                      {polarityThemes.map((title, index) => (
+                        <span key={title}>
+                          {index > 0 ? ", " : ""}
+                          <a
+                            className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
+                            href="#sentiment-claims"
+                          >
+                            {title}
+                          </a>
+                        </span>
+                      ))}
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs text-balance">
+                      {cta.subtext}{" "}
                       <a
-                        className="decoration-border focus-visible:outline-ring underline underline-offset-4 hover:decoration-current"
-                        href="#sentiment-claims"
+                        className="text-foreground decoration-border focus-visible:outline-ring font-medium underline underline-offset-4 hover:decoration-current"
+                        href="#sentiment-themes"
                       >
-                        {title}
+                        {cta.action}
                       </a>
-                    </span>
-                  ))}
-                  {!query.isPending &&
-                  !analysis.query.isPending &&
-                  !themeStatus &&
-                  !themes.some((theme) => theme.polarity === polarity) ? (
-                    <span>
-                      {analysis.query.data?.status === "ready"
-                        ? "No themes found"
-                        : "Run analysis to find themes"}
-                    </span>
-                  ) : null}
-                </p>
-              </div>
-            ))}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
             <div className="space-y-2 px-5 py-3">
               <div
                 aria-hidden="true"
@@ -120,7 +144,9 @@ export function BrandSentimentCard({
                       key={polarity}
                       className={SENTIMENT_POLARITY_STYLES[polarity].fill}
                       style={{
-                        width: `${(data?.summary[`${polarity}Share`] ?? 0) * 100}%`,
+                        width: showData
+                          ? `${(data?.summary?.[`${polarity}Share`] ?? 0) * 100}%`
+                          : "0%",
                       }}
                     />
                   )
@@ -133,9 +159,10 @@ export function BrandSentimentCard({
                       key={polarity}
                       className={`capitalize ${SENTIMENT_POLARITY_STYLES[polarity].text}`}
                     >
-                      {data?.summary[`${polarity}Share`] == null
-                        ? "—"
-                        : `${((data.summary[`${polarity}Share`] ?? 0) * 100).toFixed(1)}%`}{" "}
+                      {formatPolarityShare(
+                        data?.summary?.[`${polarity}Share`],
+                        showData
+                      )}{" "}
                       {polarity}
                     </span>
                   )

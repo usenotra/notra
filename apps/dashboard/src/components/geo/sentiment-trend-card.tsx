@@ -16,6 +16,7 @@ import type {
 import {
   isolatedSentimentPointIndices,
   sentimentEmptyMessage,
+  sentimentHasDisplayableData,
 } from "@/utils/geo-sentiment";
 import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
 
@@ -59,10 +60,10 @@ function SentimentTrendContent(props: SentimentTrendCardProps) {
       </div>
     );
   }
-  const hasRatings = points?.some((point) => point.score !== null) ?? false;
+  const showData = sentimentHasDisplayableData(summary, points);
   return (
     <>
-      {hasRatings && points ? (
+      {showData && points ? (
         <SentimentTrendPlot points={points} />
       ) : (
         <InstrumentEmpty
@@ -70,12 +71,14 @@ function SentimentTrendContent(props: SentimentTrendCardProps) {
           className="h-40 min-h-40 [&_p]:normal-case"
           busy={isScanning}
           message={
-            isScanning ? "Scan in progress" : sentimentEmptyMessage(summary)
+            isScanning
+              ? "Scan in progress"
+              : sentimentEmptyMessage(summary, points)
           }
           preview={<EmptyStateTrendPreview />}
         />
       )}
-      {isScanning && hasRatings ? (
+      {isScanning && showData ? (
         <p role="status" className="text-muted-foreground text-xs">
           Scan in progress
         </p>

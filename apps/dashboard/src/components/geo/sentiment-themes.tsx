@@ -25,47 +25,52 @@ export function SentimentThemes({
   const themes = state?.result?.themes ?? [];
   const retrying = state?.status === "failed" || mutationError;
   return (
-    <InstrumentSection
-      eyebrow="Sentiment themes"
-      className="lg:col-span-12"
-      bodyClassName="min-w-0 space-y-3"
-    >
-      {query.isError ? (
-        <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
-          Could not load analysis.
-          <Button variant="ghost" size="sm" onClick={() => query.refetch()}>
-            Retry analysis lookup
-          </Button>
-        </div>
-      ) : null}
-      {mutationError ? (
-        <p role="alert" className="text-sm">
-          Analysis request failed. Try again.
-        </p>
-      ) : null}
-      {view.showTable ? (
-        <SentimentResultsTable
-          key={`table:${scopeKey}`}
-          pending={view.pending}
-          themes={themes}
-        />
-      ) : null}
-      {view.showEmpty ? (
-        <SentimentThemesEmpty
-          key={`empty:${scopeKey}`}
-          title={view.title}
-          message={view.message}
-          canAnalyze={view.canAnalyze}
-          retrying={retrying}
-          analyze={analyze}
-        />
-      ) : null}
-      <p
-        role="status"
-        className={view.pending ? "text-muted-foreground text-xs" : "sr-only"}
+    <div id="sentiment-themes">
+      <InstrumentSection
+        eyebrow="Sentiment themes"
+        className="lg:col-span-12"
+        bodyClassName="min-w-0 space-y-3"
       >
-        {view.statusText}
-      </p>
-    </InstrumentSection>
+        {query.isError ? (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center gap-2 text-sm"
+          >
+            Could not load analysis.
+            <Button variant="ghost" size="sm" onClick={() => query.refetch()}>
+              Retry analysis lookup
+            </Button>
+          </div>
+        ) : null}
+        {mutationError ? (
+          <p role="alert" className="text-sm">
+            Analysis request failed. Try again.
+          </p>
+        ) : null}
+        {view.showTable ? (
+          <SentimentResultsTable
+            key={`table:${scopeKey}`}
+            pending={view.pending}
+            themes={themes}
+          />
+        ) : null}
+        {view.showEmpty ? (
+          <SentimentThemesEmpty
+            key={`empty:${scopeKey}`}
+            title={view.title}
+            message={view.message}
+            canAnalyze={view.canAnalyze}
+            retrying={retrying}
+            analyze={analyze}
+          />
+        ) : null}
+        <p
+          role="status"
+          className={view.pending ? "text-muted-foreground text-xs" : "sr-only"}
+        >
+          {view.statusText}
+        </p>
+      </InstrumentSection>
+    </div>
   );
 }
