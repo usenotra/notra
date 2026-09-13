@@ -17,10 +17,7 @@ import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/comp
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-import {
-  AGENT_RUN_HARD_LIMIT_MS,
-  SELF_SERVE_AGENT_ERROR_MESSAGES,
-} from "@/constants/onboarding-agent";
+import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   getOnboardingAgentState,
@@ -36,6 +33,7 @@ import {
 } from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import type { CompanyLogoResult } from "@/types/onboarding";
+import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { ratelimit } from "@/utils/ratelimit";
 
 export const onboardingRouter = {
@@ -156,15 +154,9 @@ export const onboardingRouter = {
         user: context.user,
       });
 
-      const { ran, startedAt } = await getOnboardingAgentState(
-        input.organizationId
+      return resolveOnboardingAgentRunState(
+        await getOnboardingAgentState(input.organizationId)
       );
-      const running =
-        !ran &&
-        startedAt !== null &&
-        Date.now() - startedAt.getTime() < AGENT_RUN_HARD_LIMIT_MS;
-
-      return { ran, running, startedAt };
     }),
   runAgent: authorizedProcedure
     .input(organizationIdInputSchema)

@@ -1,7 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
+
 export interface DashboardShellProps {
   children: ReactNode;
+  initialOnboardingAgentRun: InitialOnboardingAgentRun;
   initialSidebarOpen: boolean;
   initialSidebarWidth: number;
 }

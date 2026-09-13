@@ -13,6 +13,7 @@ import {
   type InitialActiveOrganization,
   OrganizationsProvider,
 } from "@/components/providers/organization-provider";
+import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
 const CommandPalette = dynamic(
   () =>
@@ -33,6 +34,7 @@ const SettingsModal = dynamic(
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
   initialActiveOrganization?: InitialActiveOrganization | null;
+  initialOnboardingAgentRun: InitialOnboardingAgentRun;
   initialSidebarOpen?: boolean;
   initialSidebarWidth: number;
   modal?: React.ReactNode;
@@ -41,6 +43,7 @@ interface DashboardClientWrapperProps {
 export function DashboardClientWrapper({
   children,
   initialActiveOrganization,
+  initialOnboardingAgentRun,
   initialSidebarOpen = true,
   initialSidebarWidth,
   modal,
@@ -55,6 +58,7 @@ export function DashboardClientWrapper({
             <CommandPaletteProvider>
               <RightPanelProvider>
                 <DashboardShell
+                  initialOnboardingAgentRun={initialOnboardingAgentRun}
                   initialSidebarOpen={initialSidebarOpen}
                   initialSidebarWidth={initialSidebarWidth}
                 >

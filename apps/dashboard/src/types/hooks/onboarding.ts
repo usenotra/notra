@@ -20,6 +20,20 @@ export interface OnboardingRunSnapshot {
   running: boolean;
 }
 
+export interface OnboardingAgentStateSource {
+  ran: boolean;
+  startedAt: Date | null;
+}
+
+export interface OnboardingAgentRunState extends OnboardingAgentStateSource {
+  running: boolean;
+}
+
+export interface InitialOnboardingAgentRun {
+  organizationId: string;
+  state: OnboardingAgentRunState;
+}
+
 export interface PendingOnboardingSuggestion {
   organizationId: string;
   suggestionId: string;

@@ -115,13 +115,17 @@ const DashboardAgentHost = dynamic(
 
 export function DashboardShell({
   children,
+  initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
   const { activeOrganization } = useOrganizationsContext();
   const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
-  const { data } = useOnboardingAgentRun(organizationId);
+  const { data } = useOnboardingAgentRun(
+    organizationId,
+    initialOnboardingAgentRun
+  );
   const runAgent = useRunOnboardingAgent();
   const { dismiss, dismissed } =
     useOnboardingAgentBannerDismissal(organizationId);
