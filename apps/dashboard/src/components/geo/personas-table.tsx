@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  Delete02Icon,
-  PauseIcon,
-  PlayIcon,
-  RefreshIcon,
-  ViewIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_PERSONA_MAX_TURNS } from "@notra/geo-core/constants/geo-personas";
 import type { GeoPersona } from "@notra/geo-core/types/geo-personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import {
-  ContextMenuItem,
-  ContextMenuSeparator,
-} from "@notra/ui/components/ui/context-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -23,10 +11,13 @@ import {
 import { useMutationState } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import { Button } from "@/components/button";
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
 import { PersonaDetailDialog } from "@/components/geo/persona-detail-dialog";
+import {
+  PersonaTableContextMenu,
+  PersonaTableRowActions,
+} from "@/components/geo/persona-table-actions";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
@@ -164,57 +155,16 @@ export function PersonasTable({
         minWidth: GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
         align: "right",
         cell: (row) => (
-          <div className="flex items-center justify-end gap-1">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    aria-label={`Regenerate ${row.name}`}
-                    type="button"
-                    disabled={
-                      pendingPersonaIds.includes(row.id) ||
-                      generationPending ||
-                      deletingPersonaId !== null
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      regenerate(row.id);
-                    }}
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <HugeiconsIcon icon={RefreshIcon} size={16} />
-                  </Button>
-                }
-              />
-              <TooltipContent>Regenerate persona</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    aria-label={`Delete ${row.name}`}
-                    type="button"
-                    disabled={
-                      pendingPersonaIds.includes(row.id) ||
-                      generationPending ||
-                      deletingPersonaId !== null
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setRemoving(row);
-                    }}
-                    size="icon"
-                    variant="ghost"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={16} />
-                  </Button>
-                }
-              />
-              <TooltipContent>Delete persona</TooltipContent>
-            </Tooltip>
-          </div>
+          <PersonaTableRowActions
+            disabled={
+              pendingPersonaIds.includes(row.id) ||
+              generationPending ||
+              deletingPersonaId !== null
+            }
+            onDelete={setRemoving}
+            onRegenerate={regenerate}
+            persona={row}
+          />
         ),
       },
     ],
@@ -246,71 +196,35 @@ export function PersonasTable({
         }}
         resizable
         renderRowContextMenu={(row) => (
-          <>
-            <ContextMenuItem
-              onClick={() => {
-                trackEvent(POSTHOG_EVENTS.GEO_PERSONA_DETAIL_OPENED, {
-                  personaId: row.id,
-                });
-                setViewing(row);
-              }}
-            >
-              <HugeiconsIcon icon={ViewIcon} />
-              View persona
-            </ContextMenuItem>
-            <ContextMenuItem
-              disabled={
-                runPersona.isPending ||
-                generationPending ||
-                deletePersona.isPending ||
-                pendingPersonaIds.includes(row.id)
-              }
-              onClick={() => runPersona.mutate(row.id)}
-            >
-              <HugeiconsIcon icon={PlayIcon} />
-              Run scan
-            </ContextMenuItem>
-            <ContextMenuItem
-              disabled={
-                generationPending ||
-                deletePersona.isPending ||
-                pendingPersonaIds.includes(row.id)
-              }
-              onClick={() =>
-                updatePersona.mutate({
-                  personaId: row.id,
-                  enabled: !row.enabled,
-                })
-              }
-            >
-              <HugeiconsIcon icon={row.enabled ? PauseIcon : PlayIcon} />
-              {row.enabled ? "Pause scans" : "Include in scans"}
-            </ContextMenuItem>
-            <ContextMenuItem
-              disabled={
-                generationPending ||
-                deletePersona.isPending ||
-                pendingPersonaIds.includes(row.id)
-              }
-              onClick={() => generatePersona.mutate(row.id)}
-            >
-              <HugeiconsIcon icon={RefreshIcon} />
-              Regenerate persona
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem
-              variant="destructive"
-              disabled={
-                generationPending ||
-                deletePersona.isPending ||
-                pendingPersonaIds.includes(row.id)
-              }
-              onClick={() => setRemoving(row)}
-            >
-              <HugeiconsIcon icon={Delete02Icon} />
-              Delete persona
-            </ContextMenuItem>
-          </>
+          <PersonaTableContextMenu
+            mutationDisabled={
+              generationPending ||
+              deletePersona.isPending ||
+              pendingPersonaIds.includes(row.id)
+            }
+            onDelete={setRemoving}
+            onRegenerate={generatePersona.mutate}
+            onRun={runPersona.mutate}
+            onToggle={(persona) =>
+              updatePersona.mutate({
+                personaId: persona.id,
+                enabled: !persona.enabled,
+              })
+            }
+            onView={(persona) => {
+              trackEvent(POSTHOG_EVENTS.GEO_PERSONA_DETAIL_OPENED, {
+                personaId: persona.id,
+              });
+              setViewing(persona);
+            }}
+            persona={row}
+            scanDisabled={
+              runPersona.isPending ||
+              generationPending ||
+              deletePersona.isPending ||
+              pendingPersonaIds.includes(row.id)
+            }
+          />
         )}
         rowHeight={TABLE_ROW_HEIGHT}
       />

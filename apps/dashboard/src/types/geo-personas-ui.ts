@@ -12,6 +12,24 @@ export interface PersonasTableProps {
   personas: GeoPersona[];
 }
 
+export interface PersonaTableRowActionsProps {
+  persona: GeoPersona;
+  disabled: boolean;
+  onDelete: (persona: GeoPersona) => void;
+  onRegenerate: (personaId: string) => void;
+}
+
+export interface PersonaTableContextMenuProps {
+  persona: GeoPersona;
+  mutationDisabled: boolean;
+  scanDisabled: boolean;
+  onDelete: (persona: GeoPersona) => void;
+  onRegenerate: (personaId: string) => void;
+  onRun: (personaId: string) => void;
+  onToggle: (persona: GeoPersona) => void;
+  onView: (persona: GeoPersona) => void;
+}
+
 export interface PersonaDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
