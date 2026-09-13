@@ -3461,3 +3461,123 @@ export const geoProspectReportsRelations = relations(
     }),
   })
 );
+
+export const webhookEndpoints = pgTable(
+  "webhook_endpoints",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    events: text("events").array().notNull(),
+    secret: text("secret").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("webhook_endpoints_org_id").on(table.organizationId, table.id),
+  ]
+);
+
+export const webhookEvents = pgTable(
+  "webhook_events",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    sourceKey: text("source_key").notNull(),
+    eventType: text("event_type").notNull(),
+    payload: text("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    dispatchAt: timestamp("dispatch_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("webhook_events_org_source").on(
+      table.organizationId,
+      table.sourceKey
+    ),
+    uniqueIndex("webhook_events_org_id").on(table.organizationId, table.id),
+    index("webhook_events_dispatch").on(table.dispatchAt),
+  ]
+);
+
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id").notNull(),
+    endpointId: text("endpoint_id").notNull(),
+    eventId: text("event_id").notNull(),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(),
+    status: text("status").default("pending").notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    attemptLimit: integer("attempt_limit").default(8).notNull(),
+    leaseToken: text("lease_token"),
+    leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.organizationId, table.endpointId],
+      foreignColumns: [webhookEndpoints.organizationId, webhookEndpoints.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.eventId],
+      foreignColumns: [webhookEvents.organizationId, webhookEvents.id],
+    }).onDelete("cascade"),
+    uniqueIndex("webhook_deliveries_event_endpoint").on(
+      table.eventId,
+      table.endpointId
+    ),
+    index("webhook_deliveries_due").on(table.status, table.nextAttemptAt),
+    index("webhook_deliveries_org_created").on(
+      table.organizationId,
+      table.createdAt
+    ),
+    check(
+      "webhook_delivery_status",
+      sql`${table.status} in ('pending', 'sending', 'retrying', 'succeeded', 'failed', 'cancelled')`
+    ),
+    check("webhook_delivery_attempt_count", sql`${table.attemptCount} >= 0`),
+  ]
+);
+
+export const webhookAttempts = pgTable(
+  "webhook_attempts",
+  {
+    id: text("id").primaryKey(),
+    deliveryId: text("delivery_id")
+      .notNull()
+      .references(() => webhookDeliveries.id, { onDelete: "cascade" }),
+    attemptNumber: integer("attempt_number").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    statusCode: integer("status_code"),
+    error: text("error"),
+    durationMs: integer("duration_ms"),
+  },
+  (table) => [
+    uniqueIndex("webhook_attempts_delivery_number").on(
+      table.deliveryId,
+      table.attemptNumber
+    ),
+  ]
+);
