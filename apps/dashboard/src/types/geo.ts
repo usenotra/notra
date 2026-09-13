@@ -1521,14 +1521,15 @@ export interface TrafficProviderLegendProps {
   onToggle: (key: string) => void;
 }
 
+export type TrafficSourcesStackSegment = "first" | "middle" | "last";
+
 export interface TrafficSourcesGroupProps {
   band: GeoTrafficSourceBand;
   groups: GeoTrafficSourceGroup[];
   columns: TableColumn<GeoTrafficSourceGroup>[];
   collapsed: boolean;
-  followedByStack?: boolean;
+  segment: TrafficSourcesStackSegment;
   onToggle: () => void;
-  stacked: boolean;
 }
 
 export interface TrafficMarkdownCellProps {
