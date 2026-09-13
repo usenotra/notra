@@ -6,34 +6,47 @@ import {
   postUpdatedAtMatches,
 } from "../src/utils/post-patch-concurrency";
 
-function sqlContains(fragment: unknown, needle: string): boolean {
+function collectSqlText(fragment: unknown): string {
+  if (fragment instanceof Date) {
+    return fragment.toISOString();
+  }
+
   if (!fragment || typeof fragment !== "object") {
-    return false;
+    return String(fragment);
   }
 
   if ("queryChunks" in fragment && Array.isArray(fragment.queryChunks)) {
-    return fragment.queryChunks.some((chunk) => sqlContains(chunk, needle));
+    return fragment.queryChunks.map(collectSqlText).join("");
+  }
+
+  if (
+    "name" in fragment &&
+    typeof (fragment as { name: unknown }).name === "string"
+  ) {
+    return (fragment as { name: string }).name;
   }
 
   if ("value" in fragment) {
     const value = (fragment as { value: unknown }).value;
     if (Array.isArray(value)) {
-      return value.some((entry) => String(entry).includes(needle));
+      return value.map((entry) => String(entry)).join("");
     }
 
-    return String(value).includes(needle);
+    return String(value);
   }
 
-  return String(fragment).includes(needle);
+  return String(fragment);
 }
 
 describe("postUpdatedAtMatches", () => {
-  test("treats normalized timestamps as equal at millisecond precision", () => {
+  test("matches separate Date instances with the same millisecond", () => {
+    const prepared = new Date("2026-01-01T00:00:00.123Z");
+    const freshRead = new Date(prepared);
+
+    expect(prepared).not.toBe(freshRead);
+    expect(postUpdatedAtMatches(freshRead, prepared)).toBe(true);
     expect(
-      postUpdatedAtMatches(
-        new Date("2026-01-01T00:00:00.123Z"),
-        normalizePostUpdatedAt(new Date("2026-01-01T00:00:00.123Z"))
-      )
+      postUpdatedAtMatches(freshRead, normalizePostUpdatedAt(prepared))
     ).toBe(true);
   });
 
@@ -48,12 +61,12 @@ describe("postUpdatedAtMatches", () => {
 });
 
 describe("matchesPostUpdatedAt", () => {
-  test("compares postgres timestamps at millisecond precision", () => {
-    expect(
-      sqlContains(
-        matchesPostUpdatedAt(new Date("2026-01-01T00:00:00.123Z")),
-        "date_trunc"
-      )
-    ).toBe(true);
+  test("truncates updated_at and binds the expected millisecond timestamp", () => {
+    const expected = new Date("2026-01-01T00:00:00.123Z");
+    const sql = collectSqlText(matchesPostUpdatedAt(expected));
+
+    expect(sql).toContain("date_trunc");
+    expect(sql).toContain("updated_at");
+    expect(sql).toContain(expected.toISOString());
   });
 });

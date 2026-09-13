@@ -134,5 +134,39 @@ describe("commitPatchPost", () => {
     if (result._tag === "Failure") {
       expect(result.failure._tag).toBe("PostConcurrentModificationError");
     }
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+
+  test("returns concurrent modification when the update matches no rows", async () => {
+    mockDb.update.mockImplementationOnce(() => ({
+      set: mock(() => ({
+        where: mock((where: unknown) => {
+          capturedUpdateWhere = where;
+          return {
+            returning: mock(async () => []),
+          };
+        }),
+      })),
+    }));
+
+    const result = await runPostProgram(
+      commitPatchPost({
+        db: mockDb as never,
+        organizationId: "org_test",
+        postId: "post_test",
+        prepared: {
+          updateData: { title: "Updated title" },
+          previousStatus: "draft",
+          expectedUpdatedAt: existingUpdatedAt,
+          rederiveTitleFromMarkdown: false,
+        },
+      })
+    );
+
+    expect(result._tag).toBe("Failure");
+    if (result._tag === "Failure") {
+      expect(result.failure._tag).toBe("PostConcurrentModificationError");
+    }
+    expect(capturedUpdateWhere).toBeDefined();
   });
 });
