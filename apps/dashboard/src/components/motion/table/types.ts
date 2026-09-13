@@ -104,8 +104,6 @@ export interface TableProps<T> {
   flushBottom?: boolean;
   /** Pad the header band so the table can tuck 20px under the rounded bottom of a surface above it. */
   overlapTop?: boolean;
-  /** Drop side borders and corner radius so multiple tables can share one outer frame. */
-  embedded?: boolean;
   className?: string;
 }
 

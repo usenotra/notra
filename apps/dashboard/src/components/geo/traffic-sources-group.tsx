@@ -20,6 +20,14 @@ import type {
 import { trafficGroupKey } from "@/utils/ai-traffic-groups";
 import { tableHeightFor } from "@/utils/table";
 
+const COLLAPSED_BAND_BORDER_PX = 2;
+const STACK_OVERLAP_PX = 20;
+const STACK_Z_INDEX: Record<GeoTrafficSourceBand, number> = {
+  crawler: 30,
+  cited: 20,
+  ai_referral: 10,
+};
+
 const SOURCE_BAND_LABELS: Record<GeoTrafficSourceBand, string> = {
   crawler: GEO_TRAFFIC_TREND_CRAWLER_LABEL,
   cited: GEO_TRAFFIC_TREND_CITED_LABEL,
@@ -37,8 +45,9 @@ export function TrafficSourcesGroup({
   groups,
   columns,
   collapsed,
-  segment,
+  followedByStack = false,
   onToggle,
+  stacked,
 }: TrafficSourcesGroupProps) {
   const label = SOURCE_BAND_LABELS[band];
   const noun = SOURCE_BAND_NOUN[band];
@@ -47,8 +56,6 @@ export function TrafficSourcesGroup({
   const countLabel = `${count.toLocaleString()} ${count === 1 ? noun : `${noun}s`}`;
   const isEmpty = count === 0;
   const showTable = !(collapsed || isEmpty);
-  const connectsAbove = segment !== "first";
-  const connectsBelow = segment !== "last";
 
   const header = (
     <span className="flex items-center gap-2">
@@ -89,12 +96,18 @@ export function TrafficSourcesGroup({
     return (
       <div
         className={cn(
-          "border-border bg-muted flex items-center px-4",
-          connectsAbove && "border-t",
-          !connectsAbove && "overflow-hidden rounded-t-2xl",
-          !connectsBelow && "rounded-b-2xl"
+          "border-border bg-muted relative flex items-center border-x px-4",
+          stacked ? "-mt-5 border-t-0 pt-5" : "border-t",
+          followedByStack ? "rounded-t-2xl border-b-0" : "rounded-2xl border-b",
+          stacked && "rounded-t-none"
         )}
-        style={{ height: TABLE_ROW_HEIGHT }}
+        style={{
+          height:
+            TABLE_ROW_HEIGHT +
+            COLLAPSED_BAND_BORDER_PX +
+            (stacked ? STACK_OVERLAP_PX : 0),
+          zIndex: STACK_Z_INDEX[band],
+        }}
       >
         {header}
       </div>
@@ -102,19 +115,23 @@ export function TrafficSourcesGroup({
   }
 
   return (
-    <Table
-      className="isolate min-w-0"
-      columns={groupColumns}
-      data={groups}
-      defaultSort={{ key: "visits", direction: "desc" }}
-      embedded
-      emptyState="No AI traffic captured yet"
-      flushBottom={connectsBelow}
-      flushTop={connectsAbove}
-      getRowId={(row) => trafficGroupKey(row.band, row.key)}
-      height={tableHeightFor(count)}
-      resizable
-      rowHeight={TABLE_ROW_HEIGHT}
-    />
+    <div
+      className={cn("relative", stacked && "-mt-5")}
+      style={{ zIndex: STACK_Z_INDEX[band] }}
+    >
+      <Table
+        className="min-w-0 rounded-2xl"
+        columns={groupColumns}
+        data={groups}
+        defaultSort={{ key: "visits", direction: "desc" }}
+        emptyState="No AI traffic captured yet"
+        flushTop={stacked}
+        getRowId={(row) => trafficGroupKey(row.band, row.key)}
+        height={tableHeightFor(count)}
+        overlapTop={stacked}
+        resizable
+        rowHeight={TABLE_ROW_HEIGHT}
+      />
+    </div>
   );
 }
