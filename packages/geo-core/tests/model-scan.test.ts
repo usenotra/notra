@@ -11,6 +11,7 @@ import {
 
 import { geoLog } from "@notra/ai/evlog";
 import { geoMentionChecks, geoScans } from "@notra/db/schema";
+import { queryGeoCheckOverview } from "@notra/db/utils/geo-checks";
 import { Effect } from "effect";
 
 import { GEO_SEQUENCE_MAX_TURNS } from "../src/constants/geo";
@@ -271,7 +272,7 @@ describe("model service in real scan batches", () => {
     expect(row?.answer).toBe("The selected brand is a good choice.");
   });
 
-  test("judge mention is rejected when the brand never appears in the answer", async () => {
+  test("an owned citation adds visibility without inventing a mention", async () => {
     const scope = await seedProject("absent");
     await testDb.insert(geoScans).values({ id: "scan-test", ...scope });
     const result = await Effect.runPromise(
@@ -282,6 +283,7 @@ describe("model service in real scan batches", () => {
           runId: "test-run",
           companyName: "Email SDK",
           aliases: ["@opencoredev/email-sdk"],
+          websiteUrl: "https://example.com",
           gate: testBillingGate,
           startedAtMs: Date.now(),
         },
@@ -298,7 +300,26 @@ describe("model service in real scan batches", () => {
           },
         ]
       ).pipe(
-        Effect.provideService(GeoModelService, fakeModels),
+        Effect.provideService(GeoModelService, {
+          ...fakeModels,
+          answer: () =>
+            Effect.succeed({
+              text: "The selected brand is a good choice.",
+              grounding: {
+                queries: ["email tools"],
+                sources: [
+                  {
+                    title: "Email guide",
+                    url: "https://docs.example.com/email",
+                    domain: "docs.example.com",
+                  },
+                ],
+              },
+              sources: [],
+              finishReason: "stop",
+              zdrEnforced: null,
+            }),
+        }),
         Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
       )
     );
@@ -306,8 +327,14 @@ describe("model service in real scan batches", () => {
     expect(result.mentions).toBe(0);
     const [row] = await testDb.select().from(geoMentionChecks);
     expect(row?.mentioned).toBe(false);
+    expect(row?.ownedSourceCited).toBe(true);
     expect(row?.position).toBeNull();
     expect(row?.sentiment).toBeNull();
+    const [overview] = await queryGeoCheckOverview(scope, undefined);
+    expect(overview?.mentions).toBe(0);
+    expect(overview?.citations).toBe(1);
+    expect(overview?.visibility).toBe(1);
+    expect(overview?.visibilityRate).toBe(1);
   });
 
   test("typed provider refusal drops the check without a domain retry", async () => {

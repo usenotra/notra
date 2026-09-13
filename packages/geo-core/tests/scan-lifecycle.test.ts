@@ -118,6 +118,7 @@ describe("scan project brand context", () => {
     expect(botBrand).toEqual({
       companyDescription: "moderating Discord communities",
       audience: "community moderators",
+      websiteUrl: "https://example.com",
     });
     const prompts = buildGeoPrompts(
       { companyName: "Akeru Bot", aliases: [] },
@@ -146,6 +147,7 @@ describe("scan project brand context", () => {
     expect(await Effect.runPromise(loadGeoProjectBrand(scope))).toEqual({
       companyDescription: null,
       audience: null,
+      websiteUrl: "https://example.com",
     });
     expect(
       await Effect.runPromise(

@@ -143,6 +143,7 @@ export const loadGeoSequenceResults = Effect.fn("geo.sequenceResults")(
         prompt: row.prompt,
         answer: row.answer,
         mentioned: row.mentioned,
+        ownedSourceCited: row.ownedSourceCited,
         position: row.position,
         sentiment: row.sentiment,
         excerpt: row.excerpt,

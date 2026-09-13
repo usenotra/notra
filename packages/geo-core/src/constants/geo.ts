@@ -417,6 +417,8 @@ export const GEO_PROMPT_ANSWER_COPY_LABEL = "Copy answer";
 export const GEO_PROMPT_ANSWER_COPIED_MESSAGE = "Answer copied";
 export const GEO_PROMPT_RECEIPT_LABELS = {
   mentioned: "Mentioned",
+  cited: "Owned source cited",
+  mentionedAndCited: "Mentioned and cited",
   notMentioned: "Not mentioned",
   position: "Position",
   notRanked: "Not ranked",
@@ -1027,23 +1029,23 @@ export const GEO_MENTION_TREND_LINE_KEY = "trend";
 export const GEO_MENTION_TREND_LINE_LABEL = "Trend";
 export const GEO_MENTION_TREND_AGENT_ICON_LIMIT = 4;
 export const GEO_MENTION_TREND_ALL_PROVIDERS_LABEL = "All Models";
-export const GEO_MENTION_ACTIVITY_LABEL = "Mention activity";
+export const GEO_MENTION_ACTIVITY_LABEL = "Visibility activity";
 export const GEO_MENTION_SUMMARY_VISIBLE = 5;
 export const GEO_MENTION_ROW_HEIGHT_REM = 2.75;
 export const GEO_MENTION_FADE_HEIGHT_REM = 2;
 export const GEO_MENTION_UNTRACKED_HINT =
-  "These mentions come from earlier scans. Add the model back in GEO settings to keep tracking it.";
+  "This visibility comes from earlier scans. Add the model back in GEO settings to keep tracking it.";
 export const GEO_PROVIDER_COLUMN_LABEL = "Provider";
-export const GEO_PROVIDER_MENTIONS_COLUMN_LABEL = "Mentions · change";
+export const GEO_PROVIDER_MENTIONS_COLUMN_LABEL = "Visible · change";
 export const GEO_BRAND_TRACKED_LABEL = "Tracked";
 export const GEO_BRAND_DISCOVERED_LABEL = "Discovered";
 export const GEO_BRAND_TRACK_ACTION = "Track";
 export const GEO_SHARE_OF_VOICE_TRACKING_HINT =
   "Discovered brands come from scan answers. Tracked brands are called out in scans and available in the writer.";
 export const GEO_LANGUAGE_PERFORMANCE_HINT =
-  "The same prompts run in each tracked language. Add a language to track your mention rate there.";
+  "The same prompts run in each tracked language. Visibility includes brand mentions and citations from owned sources.";
 export const GEO_ENGINE_PERFORMANCE_HINT =
-  "How often each engine mentioned your brand in this range. Manage engines in GEO settings.";
+  "How often each engine mentioned your brand or cited an owned source in this range. Manage engines in GEO settings.";
 export const GEO_PROMPT_AUTO_MANAGED_LABEL = "Managed automatically";
 export const GEO_PROMPT_AUTO_MANAGED_HINT =
   "Generated from your site. Pause it to skip it in scans, or remove it if you do not want it tracked.";
@@ -1097,8 +1099,8 @@ export const GEO_RANGE_PRESET_DAYS = {
 export const GEO_DEFAULT_QUERY_DAYS = 30;
 export const GEO_FILTER_TRIGGER_CLASS =
   "corner-squircle flex h-7 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring";
-export const GEO_MENTION_RATE_LABEL = "Mention rate";
-export const GEO_MENTIONS_LABEL = "Mentions";
+export const GEO_MENTION_RATE_LABEL = "Brand visibility";
+export const GEO_MENTIONS_LABEL = "Visibility";
 export const GEO_AVG_POSITION_LABEL = "Avg position";
 export const GEO_FAMILY_STAT_TREND_HINT = "vs first half of this range";
 /** Search vs memory gap that names a specific bottleneck. */

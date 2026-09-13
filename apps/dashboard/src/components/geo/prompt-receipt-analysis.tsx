@@ -49,10 +49,17 @@ function OutcomeCell({
   );
 }
 
-function OutcomeValue({ mentioned }: { mentioned: boolean }) {
+function OutcomeValue({
+  mentioned,
+  ownedSourceCited,
+}: {
+  mentioned: boolean;
+  ownedSourceCited?: boolean;
+}) {
+  const visible = mentioned || Boolean(ownedSourceCited);
   return (
-    <span className={mentioned ? "text-foreground" : "text-muted-foreground"}>
-      {promptOutcomeLabel(mentioned)}
+    <span className={visible ? "text-foreground" : "text-muted-foreground"}>
+      {promptOutcomeLabel(mentioned, ownedSourceCited)}
     </span>
   );
 }
@@ -99,7 +106,10 @@ function OutcomeStrip({ result }: { result: GeoPromptResult }) {
       className="bg-background grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border p-4 sm:grid-cols-3"
     >
       <OutcomeCell label="Outcome">
-        <OutcomeValue mentioned={result.mentioned} />
+        <OutcomeValue
+          mentioned={result.mentioned}
+          ownedSourceCited={result.ownedSourceCited}
+        />
       </OutcomeCell>
       <OutcomeCell label={GEO_PROMPT_RECEIPT_LABELS.position}>
         <span className="tabular-nums">

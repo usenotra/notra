@@ -248,6 +248,7 @@ function buildMentionRow(input: {
     answer: excerpt,
     capturedAt: input.capturedAt,
     mentioned,
+    ownedSourceCited: false,
     position,
     sentiment,
     competitors: mentionedCompetitors(seed, input.companyName),

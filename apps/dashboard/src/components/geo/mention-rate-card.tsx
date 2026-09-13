@@ -59,6 +59,7 @@ import type {
 } from "@/types/geo";
 import {
   buildMentionProviderRows,
+  engineFamilyMentionTotals,
   mentionOverviewTotals,
   mentionStatTrends,
   withTrackedMentionEngines,
@@ -85,8 +86,8 @@ function ProviderRow({
   const buttonProps = {
     "aria-disabled": !clickable,
     "aria-label": clickable
-      ? `Open ${name} mention breakdown`
-      : `${name}, no mentions`,
+      ? `Open ${name} visibility breakdown`
+      : `${name}, no visibility`,
     className: cn(
       "grid w-full grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-1.5 border-b text-left transition-colors",
       clickable ? "hover:bg-muted/50 cursor-pointer" : "cursor-default",
@@ -117,7 +118,7 @@ function ProviderRow({
         >
           {totals.mentions.toLocaleString()}
         </span>
-        <GeoStatDelta delta={mentionDelta} label={`${name} mentions`} />
+        <GeoStatDelta delta={mentionDelta} label={`${name} visibility`} />
       </span>
     </>
   );
@@ -234,10 +235,13 @@ export function MentionRateCard({
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
   const openFamily = (family: GeoEngineFamily) => {
     const row = ranked.find((entry) => entry.family.family === family.family);
+    const mentionTotals = engineFamilyMentionTotals(family);
     trackEvent(POSTHOG_EVENTS.GEO_ENGINE_FAMILY_OPENED, {
       engine_family: family.family,
-      mention_rate: row?.totals.rate ?? null,
-      mentions: row?.totals.mentions ?? null,
+      mention_rate: mentionTotals?.rate ?? null,
+      mentions: mentionTotals?.mentions ?? null,
+      visibility_rate: row?.totals.rate ?? null,
+      visible: row?.totals.mentions ?? null,
       tracked: row?.tracked ?? null,
     });
     setSelected(family);
@@ -287,7 +291,7 @@ export function MentionRateCard({
               </div>
               <div className="relative">
                 <div
-                  aria-label="Mentions by provider"
+                  aria-label="Visibility by provider"
                   className="border-border focus-visible:ring-ring relative overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
                   ref={ref}
                   role="region"
