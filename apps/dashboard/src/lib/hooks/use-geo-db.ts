@@ -14,7 +14,10 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import { GEO_PROJECT_CREATE_TIMEOUT_MS } from "@/constants/geo-projects";
+import {
+  GEO_PROJECT_CREATE_TIMEOUT_MS,
+  GeoProjectCreateTimeoutError,
+} from "@/constants/geo-projects";
 import {
   geoCollectionId,
   geoCompetitorsCollection,
@@ -238,7 +241,7 @@ export function useGeoProjectsDb(
       transaction.isPersisted.promise,
       new Promise<never>((_, reject) => {
         setTimeout(
-          () => reject(new Error("Project create timed out")),
+          () => reject(new GeoProjectCreateTimeoutError()),
           GEO_PROJECT_CREATE_TIMEOUT_MS
         );
       }),
@@ -252,10 +255,7 @@ export function useGeoProjectsDb(
       });
 
     if (persistError) {
-      if (
-        persistError instanceof Error &&
-        persistError.message === "Project create timed out"
-      ) {
+      if (persistError instanceof GeoProjectCreateTimeoutError) {
         toast.error(toErrorMessage(persistError, "Failed to create project"));
       }
       throw persistError;
