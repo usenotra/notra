@@ -251,7 +251,7 @@ export function Table<T>({
         className={cn(
           "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
           isEmpty ? "overflow-hidden" : overflowClass,
-          flushBottom && !footer && "rounded-b-none"
+          flushBottom && !footer && "rounded-b-none border-b-0"
         )}
         onScroll={handleScroll}
         ref={scrollRef}
