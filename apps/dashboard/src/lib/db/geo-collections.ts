@@ -89,8 +89,12 @@ function buildScopedCollection<T extends object>(
       getKey: spec.getKey,
       onInsert: async ({ transaction }) => {
         try {
-          for (const mutation of transaction.mutations) {
-            const result = await spec.insert?.(scope, mutation.modified);
+          const results = await Promise.all(
+            transaction.mutations.map((mutation) =>
+              spec.insert?.(scope, mutation.modified)
+            )
+          );
+          for (const result of results) {
             if (spec.name === "projects" && result) {
               resolveProjectCreateHandoff(transaction.id, result as GeoProject);
             }

@@ -24,7 +24,10 @@ import {
   getGeoShelfSampleData,
   subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
-import { waitForProjectCreateHandoff } from "@/lib/db/geo-project-create-handoff";
+import {
+  abandonProjectCreateHandoff,
+  waitForProjectCreateHandoff,
+} from "@/lib/db/geo-project-create-handoff";
 import {
   clearPendingDeleteSnapshot,
   getPendingDeleteSnapshots,
@@ -229,12 +232,14 @@ export function useGeoProjectsDb(
     track(tempId, transaction, "Failed to create project");
 
     let created: GeoProject | null = null;
-    try {
-      await transaction.isPersisted.promise;
-      created = await createdPromise;
-    } finally {
-      setIsCreating(false);
-    }
+    await Promise.all([transaction.isPersisted.promise, createdPromise])
+      .then(([, project]) => {
+        created = project;
+      })
+      .finally(() => {
+        abandonProjectCreateHandoff(transaction.id);
+        setIsCreating(false);
+      });
 
     if (!created) {
       const error = new Error("Failed to resolve created project");
@@ -255,13 +260,14 @@ export function useGeoProjectsDb(
     setIsDeleting(true);
     const transaction = collection.delete(projectId);
     track(projectId, transaction, "Failed to delete project");
-    try {
-      await transaction.isPersisted.promise;
-      toast.success("Project deleted");
-    } finally {
-      clearPendingDeleteSnapshot(collectionId, projectId);
-      setIsDeleting(false);
-    }
+    await transaction.isPersisted.promise
+      .then(() => {
+        toast.success("Project deleted");
+      })
+      .finally(() => {
+        clearPendingDeleteSnapshot(collectionId, projectId);
+        setIsDeleting(false);
+      });
   };
 
   return {
