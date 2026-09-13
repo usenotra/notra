@@ -45,9 +45,17 @@ describe("postUpdatedAtMatches", () => {
 
     expect(prepared).not.toBe(freshRead);
     expect(postUpdatedAtMatches(freshRead, prepared)).toBe(true);
+  });
+
+  test("treats normalized timestamps as equal at millisecond precision", () => {
+    const prepared = new Date("2026-01-01T00:00:00.123Z");
+    const storedFromPostgres = new Date("2026-01-01T00:00:00.123999Z");
+
+    expect(storedFromPostgres.getTime()).toBe(prepared.getTime());
     expect(
-      postUpdatedAtMatches(freshRead, normalizePostUpdatedAt(prepared))
+      postUpdatedAtMatches(storedFromPostgres, normalizePostUpdatedAt(prepared))
     ).toBe(true);
+    expect(normalizePostUpdatedAt(prepared)).not.toBe(prepared);
   });
 
   test("detects changed rows", () => {
