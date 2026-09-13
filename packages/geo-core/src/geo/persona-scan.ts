@@ -1,8 +1,4 @@
 import { generatePersonaNextTurn } from "@notra/ai/agents/geo-persona";
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
-import { FEATURES } from "@notra/ai/billing/features";
-import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
-import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   PersonaAgentPersona,
   PersonaConversationTurn,
@@ -12,21 +8,15 @@ import { db } from "@notra/db/drizzle";
 import { geoPersonaMemories, geoPersonas, geoSettings } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
-import type { ModelMessage } from "ai";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import {
-  GEO_EXCERPT_MAX_LENGTH,
-  GEO_JUDGE_MODEL,
-  GEO_SCAN_CONCURRENCY,
-} from "../constants/geo";
+import { GEO_JUDGE_MODEL, GEO_SCAN_CONCURRENCY } from "../constants/geo";
 import {
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_PAIR_TIMEOUT_MS,
   GEO_PERSONA_TURN_TIMEOUT_MS,
 } from "../constants/geo-personas";
-import { GeoContentBillingService } from "../deps";
 import type {
   GeoCheckContext,
   GeoGroundedEngine,
@@ -37,43 +27,35 @@ import type {
   GeoSkipFields,
   GeoZdrMode,
 } from "../types/geo";
-import type {
-  GeoPersonaCheckOutcome,
-  GeoPersonaRunResponse,
-} from "../types/geo-personas";
+import type { GeoPersonaRunResponse } from "../types/geo-personas";
 import { resolveGeoGroundedZdrMode } from "../utils/geo-engines";
 import {
   resolveGroundedEngineByKey,
   resolveGroundedEngines,
 } from "../utils/geo-grounded-engines";
-import { flushGeoLogEffect, geoLogWarn, logGeoSkip } from "../utils/geo-log";
-import { hasOwnedSourceCitation } from "../utils/geo-owned-source";
+import { flushGeoLogEffect, geoLogWarn } from "../utils/geo-log";
 import { personaPromptId } from "../utils/geo-personas";
+import { geoScanPersonaTasks } from "../utils/geo-scan-plan";
+import {
+  addAgentTokenUsage as addTokenUsage,
+  EMPTY_AGENT_TOKEN_USAGE as EMPTY_TOKEN_USAGE,
+} from "../utils/token-usage";
+import { runGeoConversation } from "./conversation";
+import { runGeoConversationReplay } from "./conversation-replay";
 import { geoSkip } from "./effect";
 import {
-  GeoPersonaEmptyError,
   GeoPersonaNotFoundError,
   GeoPersonaRunError,
   GeoPersonaRunUnavailableError,
   GeoScanError,
   GeoSettingsMissingError,
-  GeoWriterCreditsExhaustedError,
 } from "./errors";
 import { toGeoSettings } from "./mappers";
 import { loadGeoModelCatalog } from "./model-catalog";
+import { loadGeoProjectBrand } from "./project-brand";
 import { requireGeoProject } from "./projects";
-import {
-  addTokenUsage,
-  askGroundedConversation,
-  buildGeoScanCheckContext,
-  EMPTY_TOKEN_USAGE,
-  judgeAnswer,
-  logGeoBillingFailure,
-  MAX_JUDGE_COMPETITORS,
-  normalizePosition,
-  requireAnswerText,
-} from "./scan";
-import { claimGeoScanRun, withGeoScanRun } from "./scan-status";
+import { buildGeoScanCheckContext } from "./scan-context";
+import { omitGeoScanTasks, updateGeoScanTaskStatus } from "./scan-task-status";
 import { resolveScanZdrPolicy } from "./zdr-policy";
 
 interface PersonaForScan {
@@ -202,105 +184,25 @@ export const runGeoPersonaConversation = Effect.fn(
   grounded: GeoGroundedEngine,
   zdr: GeoZdrMode
 ) {
-  const rows: GeoCheckWrite[] = [];
-  const messages: ModelMessage[] = [];
-  const transcript: PersonaConversationTurn[] = [];
-  const personaId = loaded.persona.id;
-  const failureFields = personaFailureFields(context, personaId, grounded.key);
-  let usage = EMPTY_TOKEN_USAGE;
-  let droppedTurns = 0;
-
-  for (let index = 0; index < GEO_PERSONA_MAX_TURNS; index += 1) {
-    const next = yield* askPersonaNextTurn(
-      context.organizationId,
-      loaded,
-      grounded.label,
-      transcript,
-      index
-    );
-    usage = addTokenUsage(usage, next.usage);
-    if (!next.message) {
-      break;
-    }
-
-    messages.push({ role: "user", content: next.message });
-    const answer = yield* askGroundedConversation(
-      context.organizationId,
-      grounded,
-      messages,
-      zdr
-    );
-    usage = addTokenUsage(usage, answer.usage);
-    if (zdr !== "none" && answer.zdrEnforced === false) {
-      yield* geoLogWarn({
-        ...failureFields,
-        event: "geo.check.zdr_relaxed",
-        turn: index,
-        zdr,
-      });
-    }
-    const answerText = yield* requireAnswerText(
-      grounded.key,
-      personaPromptId(personaId),
-      DEFAULT_LANGUAGE,
-      answer
-    ).pipe(
-      Effect.catchTag("GeoEmptyAnswerError", (error) =>
-        Effect.sync(() => {
-          logGeoSkip(
-            "persona turn failed",
-            { ...failureFields, turn: index + 1 },
-            error
-          );
-          return null;
-        })
-      )
-    );
-    if (answerText === null) {
-      droppedTurns = GEO_PERSONA_MAX_TURNS - index;
-      break;
-    }
-    messages.push({ role: "assistant", content: answerText });
-    transcript.push({ question: next.message, answer: answerText });
-    const judged = yield* judgeAnswer(context, next.message, answerText);
-    const ownedSourceCited = hasOwnedSourceCitation(
-      context.websiteUrl,
-      [...answer.grounding.sources, ...answer.sources],
-      context.domains
-    );
-
-    rows.push({
-      organizationId: context.organizationId,
-      projectId: context.projectId,
-      scanId: context.scanId,
-      engine: grounded.key,
-      promptId: personaPromptId(personaId),
-      sequenceId: null,
-      personaId,
-      turn: index + 1,
-      personaSnapshot: next.snapshot,
-      prompt: next.message,
-      answer: answerText,
-      capturedAt: context.capturedAt,
-      mentioned: judged.mentioned,
-      ownedSourceCited,
-      position: normalizePosition(judged.position),
-      sentiment: judged.sentiment,
-      competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),
-      excerpt: judged.excerpt.slice(0, GEO_EXCERPT_MAX_LENGTH),
-      grounding: answer.grounding,
-      finishReason: answer.finishReason,
-      promptTokens: answer.usage.inputTokens ?? null,
-      outputTokens: answer.usage.outputTokens ?? null,
-      reasoningTokens: answer.usage.reasoningTokens ?? null,
-      zdrEnforced: answer.zdrEnforced,
-      language: DEFAULT_LANGUAGE,
-      sources: answer.sources,
-    });
-  }
-
-  const outcome: GeoPersonaCheckOutcome = { rows, usage, droppedTurns };
-  return outcome;
+  return yield* runGeoConversation(
+    context,
+    {
+      promptId: personaPromptId(loaded.persona.id),
+      personaId: loaded.persona.id,
+      maxTurns: GEO_PERSONA_MAX_TURNS,
+      timeoutMs: GEO_PERSONA_PAIR_TIMEOUT_MS,
+      next: (transcript, index) =>
+        askPersonaNextTurn(
+          context.organizationId,
+          loaded,
+          grounded.label,
+          transcript,
+          index
+        ),
+    },
+    grounded,
+    zdr
+  );
 });
 
 const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
@@ -318,22 +220,52 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   if (!loaded) {
     return null;
   }
-  return yield* runGeoPersonaConversation(
+  const tasks = geoScanPersonaTasks(planned);
+  yield* Effect.forEach(
+    tasks,
+    (task) =>
+      updateGeoScanTaskStatus(
+        checkContext,
+        {
+          prompt: { id: task.promptId, text: task.prompt },
+          engine: task.engine,
+          language: task.language,
+        },
+        "running",
+        task.turn
+      ),
+    { concurrency: GEO_SCAN_CONCURRENCY }
+  );
+  const outcome = yield* runGeoPersonaConversation(
     checkContext,
     loaded,
     grounded,
     planned.zdr
-  ).pipe(
-    Effect.timeoutOrElse({
-      duration: GEO_PERSONA_PAIR_TIMEOUT_MS,
-      orElse: () =>
-        Effect.fail(
-          new GeoScanError({
-            message: `Persona ${planned.personaId} on ${grounded.key} timed out after ${GEO_PERSONA_PAIR_TIMEOUT_MS}ms`,
-          })
-        ),
-    })
   );
+  const remaining = tasks.slice(outcome.rows.length);
+  if (outcome.stoppedEarly) {
+    yield* omitGeoScanTasks(
+      checkContext,
+      remaining.map((task) => task.key)
+    ).pipe(geoSkip("scan plan update failed"));
+  } else {
+    yield* Effect.forEach(
+      remaining,
+      (task) =>
+        updateGeoScanTaskStatus(
+          checkContext,
+          {
+            prompt: { id: task.promptId, text: task.prompt },
+            engine: task.engine,
+            language: task.language,
+          },
+          "failed",
+          task.turn
+        ),
+      { concurrency: GEO_SCAN_CONCURRENCY }
+    );
+  }
+  return outcome;
 });
 
 /** Runs one batch of persona conversations; same contract as `runGeoScanSequenceBatch`. */
@@ -404,7 +336,6 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   input: GeoScopeInput,
   personaId: string
 ) {
-  const billing = yield* GeoContentBillingService;
   const scope = yield* requireGeoProject(input);
   const projectId = scope.projectId;
 
@@ -465,139 +396,46 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   }
 
   const runId = `geo-persona-${personaId}-${crypto.randomUUID()}`;
-  const gate = yield* billing
-    .gateContentBilling({
-      organizationId: scope.organizationId,
-      executionId: runId,
-      outputType: null,
-      quotaFeatureId: FEATURES.AI_ANSWERS,
-    })
-    .pipe(
-      Effect.mapError(
-        (cause) =>
-          new GeoPersonaRunError({
-            message: "Failed to reserve AI credits",
-            cause,
-          })
-      )
-    );
-  if (!gate.allowed) {
-    return yield* Effect.fail(
-      new GeoWriterCreditsExhaustedError({
-        message: describeContentBillingDenial(gate),
-      })
-    );
-  }
-
-  const claim = yield* claimGeoScanRun(projectId).pipe(
-    geoSkip("scan claim failed")
-  );
-  const play = withGeoScanRun(
-    { organizationId: scope.organizationId, projectId },
-    (scanId) =>
-      Effect.gen(function* () {
-        const context: GeoCheckContext = {
-          runId,
-          organizationId: scope.organizationId,
-          projectId,
-          scanId,
-          catalog,
-          capturedAt: new Date(),
-          companyName: settings.companyName,
-          aliases: settings.aliases,
-        };
-        const outcomes = yield* Effect.forEach(
-          groundedEngines,
-          ({ grounded, zdr }) =>
-            runGeoPersonaConversation(context, loaded, grounded, zdr).pipe(
-              geoSkip(
-                "persona run failed",
-                personaFailureFields(context, personaId, grounded.key)
-              )
-            ),
-          { concurrency: GEO_SCAN_CONCURRENCY }
-        );
-        const succeeded = outcomes.filter(
-          (outcome): outcome is GeoPersonaCheckOutcome => outcome !== null
-        );
-        const rows = succeeded.flatMap((outcome) => outcome.rows);
-        const usage = succeeded.reduce(
-          (total, outcome) => addTokenUsage(total, outcome.usage),
-          EMPTY_TOKEN_USAGE
-        );
-        if (rows.length === 0) {
-          return yield* Effect.fail(new GeoPersonaEmptyError({ usage }));
-        }
-        yield* Effect.tryPromise({
-          try: () => insertGeoMentionChecks(rows),
-          catch: (cause) =>
-            new GeoPersonaRunError({
-              message: "Failed to store the persona results",
-              cause,
-            }),
-        });
-        return { rows, usage };
-      }),
-    claim ? { claimedAt: claim.claimedAt } : { skipStatusStamps: true as const }
-  );
-
-  const confirmBilling = (units: number, usage: AgentTokenUsage) =>
-    billing
-      .finalizeContentBilling({
-        reservation: gate,
-        action: "confirm",
-        units,
-        usage,
-        fallbackModelId: groundedEngines[0]?.grounded.model ?? GEO_JUDGE_MODEL,
-        properties: {
-          source: "geo_persona_run",
-          run_id: runId,
-          persona_id: personaId,
-          markup_applied: gate.useMarkup,
-        },
-        logPrefix: "GeoPersonaRun",
-      })
-      .pipe(
-        Effect.catch((confirmError) =>
-          Effect.sync(() => {
-            logGeoBillingFailure("confirm", projectId, runId, confirmError);
-          })
-        )
-      );
-
-  const result = yield* play.pipe(
-    Effect.tapError((error) =>
-      error._tag === "GeoPersonaEmptyError"
-        ? confirmBilling(0, error.usage)
-        : billing
-            .finalizeContentBilling({
-              reservation: gate,
-              action: "release",
-              logPrefix: "GeoPersonaRun",
-            })
-            .pipe(
-              Effect.catch((releaseError) =>
-                Effect.sync(() => {
-                  logGeoBillingFailure(
-                    "release",
-                    projectId,
-                    runId,
-                    releaseError
-                  );
-                })
-              )
+  const brand = yield* loadGeoProjectBrand({
+    organizationId: scope.organizationId,
+    projectId,
+  });
+  const result = yield* runGeoConversationReplay(
+    {
+      context: {
+        runId,
+        organizationId: scope.organizationId,
+        projectId,
+        catalog,
+        companyName: settings.companyName,
+        aliases: settings.aliases,
+        websiteUrl: brand?.websiteUrl ?? null,
+        domains: settings.domains,
+      },
+      fallbackModelId: groundedEngines[0]?.grounded.model ?? GEO_JUDGE_MODEL,
+      properties: { source: "geo_persona_run", persona_id: personaId },
+      logPrefix: "GeoPersonaRun",
+      emptyMessage: "Engines failed to answer this persona. Try again.",
+    },
+    (context) =>
+      Effect.forEach(
+        groundedEngines,
+        ({ grounded, zdr }) =>
+          runGeoPersonaConversation(context, loaded, grounded, zdr).pipe(
+            geoSkip(
+              "persona run failed",
+              personaFailureFields(context, personaId, grounded.key)
             )
-    ),
-    Effect.catchTag("GeoPersonaEmptyError", () =>
-      Effect.fail(
-        new GeoPersonaRunError({
-          message: "Engines failed to answer this persona. Try again.",
-        })
+          ),
+        { concurrency: GEO_SCAN_CONCURRENCY }
       )
+  ).pipe(
+    Effect.mapError((error) =>
+      error._tag === "GeoWriterCreditsExhaustedError"
+        ? error
+        : new GeoPersonaRunError({ message: error.message, cause: error })
     )
   );
-
-  yield* confirmBilling(result.rows.length, result.usage);
 
   const response: GeoPersonaRunResponse = {
     checks: result.rows.length,

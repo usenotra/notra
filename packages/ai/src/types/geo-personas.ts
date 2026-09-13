@@ -41,6 +41,6 @@ export interface PersonaNextTurnInput {
 export interface PersonaNextTurnResult {
   /** Null when the persona has nothing left to ask. */
   message: string | null;
-  usage: LanguageModelUsage;
+  usage: LanguageModelUsage & { modelId: string };
   snapshot: GeoPersonaSnapshot;
 }

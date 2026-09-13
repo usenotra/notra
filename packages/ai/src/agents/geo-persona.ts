@@ -48,7 +48,7 @@ export async function generatePersonaNextTurn(
   const message = output.message.trim();
   return {
     message: output.done || message.length === 0 ? null : message,
-    usage: result.totalUsage,
+    usage: { ...result.totalUsage, modelId: GEO_PERSONA_AGENT_MODEL },
     snapshot,
   };
 }

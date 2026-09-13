@@ -1095,7 +1095,7 @@ export async function queryGeoCheckPersonaScans(
   return db
     .select({
       scanId: geoMentionChecks.scanId,
-      capturedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
+      capturedAt: sql`max(${geoMentionChecks.capturedAt})`.mapWith(toDate),
     })
     .from(geoMentionChecks)
     .where(and(scopeWhere(scope), eq(geoMentionChecks.personaId, personaId)))

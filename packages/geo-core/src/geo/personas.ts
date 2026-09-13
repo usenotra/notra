@@ -336,72 +336,88 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
  * Adds generated personas atomically. Regenerating a single target replaces
  * only that row, preserving its current scan setting within the transaction.
  */
-const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(function* (
-  organizationId: string,
-  projectId: string,
-  generation: GeoPersonaGeneration,
-  target?: GeoPersona
-) {
-  const now = new Date();
-  const personaRows: (typeof geoPersonas.$inferInsert)[] = [];
-  const memoryRows: (typeof geoPersonaMemories.$inferInsert)[] = [];
-  for (const persona of generation.personas) {
-    const personaId = crypto.randomUUID();
-    personaRows.push({
-      id: personaId,
-      organizationId,
-      projectId,
-      name: persona.name,
-      role: persona.role,
-      company: persona.company,
-      summary: persona.summary,
-      searchStyle: persona.searchStyle,
-      profile: {
-        goals: persona.goals,
-        painPoints: persona.painPoints,
-        currentStack: persona.currentStack,
-        buyingTriggers: persona.buyingTriggers,
-        objections: persona.objections,
-      },
-      enabled: target?.enabled ?? true,
-      createdAt: now,
-    });
-    for (const memory of persona.memories) {
-      memoryRows.push({
-        id: crypto.randomUUID(),
-        personaId,
+export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
+  function* (
+    organizationId: string,
+    projectId: string,
+    generation: GeoPersonaGeneration,
+    target?: GeoPersona
+  ) {
+    const now = new Date();
+    const personaRows: (typeof geoPersonas.$inferInsert)[] = [];
+    const memoryRows: (typeof geoPersonaMemories.$inferInsert)[] = [];
+    for (const persona of generation.personas) {
+      const personaId = target?.id ?? crypto.randomUUID();
+      personaRows.push({
+        id: personaId,
         organizationId,
         projectId,
-        kind: memory.kind,
-        content: memory.content,
+        name: persona.name,
+        role: persona.role,
+        company: persona.company,
+        summary: persona.summary,
+        searchStyle: persona.searchStyle,
+        profile: {
+          goals: persona.goals,
+          painPoints: persona.painPoints,
+          currentStack: persona.currentStack,
+          buyingTriggers: persona.buyingTriggers,
+          objections: persona.objections,
+        },
+        enabled: target?.enabled ?? true,
         createdAt: now,
       });
-    }
-  }
-
-  const persisted = yield* geoDb("personas persist failed", () =>
-    db.transaction(async (tx) => {
-      await Effect.runPromise(lockGeoProject(tx, projectId));
-      if (!target) {
-        const current = await tx
-          .select({ count: count() })
-          .from(geoPersonas)
-          .where(
-            and(
-              eq(geoPersonas.projectId, projectId),
-              eq(geoPersonas.organizationId, organizationId)
-            )
-          );
-        if (
-          (current.at(0)?.count ?? 0) + personaRows.length >
-          GEO_PERSONA_MAX_COUNT
-        ) {
-          return false;
-        }
+      for (const memory of persona.memories) {
+        memoryRows.push({
+          id: crypto.randomUUID(),
+          personaId,
+          organizationId,
+          projectId,
+          kind: memory.kind,
+          content: memory.content,
+          createdAt: now,
+        });
       }
-      const deleted = target
-        ? await tx
-            .delete(geoPersonas)
+    }
+
+    const persisted = yield* geoDb("personas persist failed", () =>
+      db.transaction(async (tx) => {
+        await Effect.runPromise(lockGeoProject(tx, projectId));
+        if (!target) {
+          const current = await tx
+            .select({ count: count() })
+            .from(geoPersonas)
+            .where(
+              and(
+                eq(geoPersonas.projectId, projectId),
+                eq(geoPersonas.organizationId, organizationId)
+              )
+            );
+          if (
+            (current.at(0)?.count ?? 0) + personaRows.length >
+            GEO_PERSONA_MAX_COUNT
+          ) {
+            return false;
+          }
+        }
+        if (target) {
+          const replacement = personaRows.at(0);
+          if (!replacement || personaRows.length !== 1) {
+            throw new GeoPersonaGenerateError({
+              message: "Expected one replacement persona",
+            });
+          }
+          const updated = await tx
+            .update(geoPersonas)
+            .set({
+              name: replacement.name,
+              role: replacement.role,
+              company: replacement.company,
+              summary: replacement.summary,
+              searchStyle: replacement.searchStyle,
+              profile: replacement.profile,
+              updatedAt: now,
+            })
             .where(
               and(
                 eq(geoPersonas.projectId, projectId),
@@ -409,30 +425,27 @@ const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(function* (
                 eq(geoPersonas.id, target.id)
               )
             )
-            .returning({ id: geoPersonas.id, enabled: geoPersonas.enabled })
-        : [];
-      if (target && deleted.length !== 1) {
-        throw new GeoPersonaNotFoundError({ personaId: target.id });
-      }
-      const currentTarget = deleted.at(0);
-      await tx.insert(geoPersonas).values(
-        target && currentTarget
-          ? personaRows.map((row) => ({
-              ...row,
-              enabled: currentTarget.enabled,
-            }))
-          : personaRows
-      );
-      await tx.insert(geoPersonaMemories).values(memoryRows);
-      return true;
-    })
-  );
-  if (!persisted) {
-    return yield* Effect.fail(
-      new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+            .returning({ id: geoPersonas.id });
+          if (updated.length !== 1) {
+            throw new GeoPersonaNotFoundError({ personaId: target.id });
+          }
+          await tx
+            .delete(geoPersonaMemories)
+            .where(eq(geoPersonaMemories.personaId, target.id));
+        } else {
+          await tx.insert(geoPersonas).values(personaRows);
+        }
+        await tx.insert(geoPersonaMemories).values(memoryRows);
+        return true;
+      })
     );
+    if (!persisted) {
+      return yield* Effect.fail(
+        new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+      );
+    }
   }
-});
+);
 
 /**
  * Builds a fresh persona set for the project from its brand profile,

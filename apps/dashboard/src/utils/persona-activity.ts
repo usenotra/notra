@@ -29,7 +29,9 @@ export function buildPersonaActivityRows(
     for (const persona of personas) {
       const point = points.get(`${day}:${persona.id}`);
       row[chartKey(persona.id)] =
-        point && point.checks > 0 ? (point.mentions / point.checks) * 100 : 0;
+        point && point.checks > 0
+          ? (point.mentions / point.checks) * 100
+          : null;
     }
     rows.push(row);
     date.setUTCDate(date.getUTCDate() + 1);
@@ -61,7 +63,7 @@ export function buildPersonaActivityRows(
     }
     const key = personaForecastKey(persona.id);
     forecasts.set(key, Math.max(0, Math.min(100, (mentions / checks) * 100)));
-    last[key] = last[chartKey(persona.id)] ?? 0;
+    last[key] = last[chartKey(persona.id)] ?? null;
   }
   if (!forecasts.size) {
     return rows;

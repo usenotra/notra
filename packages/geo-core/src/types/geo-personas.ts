@@ -1,6 +1,4 @@
-import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { geoPersonaMemories, geoPersonas } from "@notra/db/schema";
-import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import type {
   GeoPersonaMemoryKind,
   GeoPersonaProfile,
@@ -102,12 +100,6 @@ export interface GeoPersonaRunResponse {
   checks: number;
   mentions: number;
   engines: string[];
-}
-
-export interface GeoPersonaCheckOutcome {
-  rows: GeoCheckWrite[];
-  usage: AgentTokenUsage;
-  droppedTurns: number;
 }
 
 export interface GeoGeneratedPersonaMemory {
