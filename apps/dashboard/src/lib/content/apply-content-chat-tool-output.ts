@@ -90,11 +90,12 @@ export function collectContentChatToolOutputEffects({
 
     if (
       toolPart.state === "output-available" &&
-      (toolPart.output?.updatedMarkdown || toolPart.output?.markdown)
+      (toolPart.output?.updatedMarkdown !== undefined ||
+        toolPart.output?.markdown !== undefined)
     ) {
       const nextMarkdown =
-        toolPart.output.updatedMarkdown || toolPart.output.markdown;
-      if (!nextMarkdown) {
+        toolPart.output.updatedMarkdown ?? toolPart.output.markdown;
+      if (nextMarkdown === undefined) {
         continue;
       }
 

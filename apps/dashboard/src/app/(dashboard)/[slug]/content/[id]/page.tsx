@@ -26,6 +26,7 @@ async function Page({ params }: PageProps) {
     <Suspense fallback={<Loading />}>
       <PageClient
         contentId={id}
+        key={`${organization.id}:${id}`}
         organizationId={organization.id}
         organizationSlug={slug}
       />

@@ -75,7 +75,10 @@ export function ContentDetailChatPanel({
 }: ContentDetailChatPanelProps) {
   return (
     <RightPanel id="content">
-      <ContentChatActivityPanel {...panelProps}>
+      <ContentChatActivityPanel
+        {...panelProps}
+        organizationSlug={composer.organizationSlug}
+      >
         <div className="shrink-0 p-2 pt-1">
           <ContentDetailChatComposer {...composer} />
         </div>

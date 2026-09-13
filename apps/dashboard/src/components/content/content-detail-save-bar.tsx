@@ -4,12 +4,14 @@ import { Button } from "@notra/ui/components/ui/button";
 
 interface ContentDetailSaveBarProps {
   sidebarOffsetClass: string;
+  isSaving: boolean;
   onDiscard: () => void;
   onSave: () => void;
 }
 
 export function ContentDetailSaveBar({
   sidebarOffsetClass,
+  isSaving,
   onDiscard,
   onSave,
 }: ContentDetailSaveBarProps) {
@@ -26,11 +28,16 @@ export function ContentDetailSaveBar({
             <span className="text-muted-foreground flex-1 text-sm">
               You have unsaved changes
             </span>
-            <Button onClick={onDiscard} size="sm" variant="ghost">
+            <Button
+              disabled={isSaving}
+              onClick={onDiscard}
+              size="sm"
+              variant="ghost"
+            >
               Discard
             </Button>
-            <Button onClick={onSave} size="sm">
-              Save
+            <Button disabled={isSaving} onClick={onSave} size="sm">
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
@@ -40,12 +47,14 @@ export function ContentDetailSaveBar({
 }
 
 interface ContentDetailSaveToastProps {
+  isSaving: boolean;
   onDiscard: () => void;
   onSave: () => void;
   onDismiss: () => void;
 }
 
 export function ContentDetailSaveToast({
+  isSaving,
   onDiscard,
   onSave,
   onDismiss,
@@ -58,6 +67,7 @@ export function ContentDetailSaveToast({
       <div className="bg-background flex items-center gap-3 rounded-lg px-4 py-3">
         <span className="text-muted-foreground text-sm">Unsaved changes</span>
         <Button
+          disabled={isSaving}
           onClick={() => {
             onDismiss();
             onDiscard();
@@ -68,13 +78,14 @@ export function ContentDetailSaveToast({
           Discard
         </Button>
         <Button
+          disabled={isSaving}
           onClick={() => {
             onDismiss();
             onSave();
           }}
           size="sm"
         >
-          Save
+          {isSaving ? "Saving..." : "Save"}
         </Button>
       </div>
     </div>
