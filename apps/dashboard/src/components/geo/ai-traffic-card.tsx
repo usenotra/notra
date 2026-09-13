@@ -186,7 +186,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
         totals={totals}
       />
       <InstrumentSection eyebrow="Sources">
-        <div className="border-border overflow-hidden rounded-2xl border">
+        <div className="border-border rounded-2xl border">
           <TrafficSourcesGroup
             band="crawler"
             collapsed={crawlersCollapsed}
