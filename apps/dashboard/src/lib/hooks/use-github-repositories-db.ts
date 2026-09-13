@@ -56,6 +56,13 @@ export function useGitHubRepositoriesDb(
     });
   };
 
+  const invalidateIntegrationsList = () =>
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.integrations.list.queryKey({
+        input: { organizationId },
+      }),
+    });
+
   const persist = (
     rowId: string,
     transaction: { isPersisted: { promise: Promise<unknown> } },
@@ -63,6 +70,7 @@ export function useGitHubRepositoriesDb(
   ) => {
     markRowPending(collectionId, rowId);
     return transaction.isPersisted.promise
+      .then(invalidateIntegrationsList)
       .catch((error: unknown) => {
         toast.error(toErrorMessage(error, fallback));
         throw error;

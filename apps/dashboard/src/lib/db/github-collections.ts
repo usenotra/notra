@@ -59,6 +59,18 @@ function buildGitHubRepositoriesCollection(organizationId: string) {
             const originalRepository = original.repositories.find(
               (candidate) => candidate.id === repository.id
             );
+            if (
+              originalRepository &&
+              originalRepository.enabled !== repository.enabled
+            ) {
+              calls.push(
+                dashboardOrpc.integrations.repositories.update.call({
+                  organizationId,
+                  repositoryId: repository.id,
+                  enabled: repository.enabled,
+                })
+              );
+            }
             for (const output of repository.outputs ?? []) {
               const originalOutput = originalRepository?.outputs?.find(
                 (candidate) => candidate.outputType === output.outputType
