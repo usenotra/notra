@@ -437,8 +437,6 @@ export async function queryGeoCheckPromptHistory(
       )
     )
     .orderBy(desc(geoMentionChecks.capturedAt));
-  const rows = await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
-
   return await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
 }
 
