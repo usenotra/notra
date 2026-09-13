@@ -19,6 +19,7 @@ import { Effect } from "effect";
 import { nanoid } from "nanoid";
 
 import {
+  PostConcurrentModificationError,
   PostGenerationJobNotFoundError,
   PostGenerationQueueFailedError,
   PostInvalidMarkdownError,
@@ -74,6 +75,7 @@ const patchPostLookupColumns = {
   slug: true,
   contentType: true,
   status: true,
+  updatedAt: true,
 } as const;
 
 const failPostGenerationQueue = Effect.fnUntraced(function* (
@@ -310,10 +312,9 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
     return yield* new PostNotFoundError();
   }
 
-  const updateData: Partial<typeof posts.$inferInsert> = {
-    updatedAt: new Date(),
-  };
+  const updateData: Partial<typeof posts.$inferInsert> = {};
   const { body } = input;
+  let rederiveTitleFromMarkdown = false;
 
   if (body.title !== undefined) {
     updateData.title = body.title;
@@ -338,6 +339,7 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
     updateData.content = renderedContent;
 
     if (body.title === undefined) {
+      rederiveTitleFromMarkdown = true;
       updateData.title =
         extractTitleFromMarkdown(markdown) ?? existingPost.title;
     }
@@ -351,6 +353,8 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
     prepared: {
       updateData,
       previousStatus: existingPost.status,
+      expectedUpdatedAt: existingPost.updatedAt,
+      rederiveTitleFromMarkdown,
     },
   } satisfies PreparePatchPostProgramSuccess;
 });
@@ -358,15 +362,60 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
 export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
   input: CommitPatchPostProgramInput
 ) {
+  const freshPost = yield* database(() =>
+    input.db.query.posts.findFirst({
+      where: and(
+        eq(posts.id, input.postId),
+        eq(posts.organizationId, input.organizationId),
+        eq(posts.updatedAt, input.prepared.expectedUpdatedAt)
+      ),
+      columns: {
+        id: true,
+        title: true,
+      },
+    })
+  );
+
+  if (!freshPost) {
+    const stillExists = yield* database(() =>
+      input.db.query.posts.findFirst({
+        where: and(
+          eq(posts.id, input.postId),
+          eq(posts.organizationId, input.organizationId)
+        ),
+        columns: { id: true },
+      })
+    );
+
+    if (!stillExists) {
+      return yield* new PostNotFoundError();
+    }
+
+    return yield* new PostConcurrentModificationError();
+  }
+
+  const updateData: Partial<typeof posts.$inferInsert> = {
+    ...input.prepared.updateData,
+    updatedAt: new Date(),
+  };
+
+  if (input.prepared.rederiveTitleFromMarkdown) {
+    const markdown = updateData.markdown;
+    if (typeof markdown === "string") {
+      updateData.title = extractTitleFromMarkdown(markdown) ?? freshPost.title;
+    }
+  }
+
   const patchResult = yield* Effect.tryPromise({
     try: () =>
       input.db
         .update(posts)
-        .set(input.prepared.updateData)
+        .set(updateData)
         .where(
           and(
             eq(posts.id, input.postId),
-            eq(posts.organizationId, input.organizationId)
+            eq(posts.organizationId, input.organizationId),
+            eq(posts.updatedAt, input.prepared.expectedUpdatedAt)
           )
         )
         .returning({
@@ -398,7 +447,7 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
   const [updatedPost] = patchResult;
 
   if (!updatedPost) {
-    return yield* new PostNotFoundError();
+    return yield* new PostConcurrentModificationError();
   }
 
   return {

@@ -9,6 +9,7 @@ import type { Redis } from "@upstash/redis";
 import type { z } from "zod";
 
 import type {
+  PostConcurrentModificationError,
   PostGenerationJobNotFoundError,
   PostGenerationQueueFailedError,
   PostInvalidMarkdownError,
@@ -39,6 +40,7 @@ export type PostDomainError =
   | PostSlugNotSupportedError
   | PostInvalidMarkdownError
   | PostSlugDuplicateError
+  | PostConcurrentModificationError
   | PostGenerationJobNotFoundError
   | PostGenerationQueueFailedError;
 
@@ -87,6 +89,8 @@ export interface PatchPostProgramInput extends PostProgramInput {
 interface PatchPostPreparedUpdate {
   updateData: Partial<typeof posts.$inferInsert>;
   previousStatus: "draft" | "published";
+  expectedUpdatedAt: Date;
+  rederiveTitleFromMarkdown: boolean;
 }
 
 export interface PreparePatchPostProgramSuccess {

@@ -20,6 +20,11 @@ export class PostSlugDuplicateError extends Schema.TaggedError<PostSlugDuplicate
   {}
 ) {}
 
+export class PostConcurrentModificationError extends Schema.TaggedError<PostConcurrentModificationError>()(
+  "PostConcurrentModificationError",
+  {}
+) {}
+
 export class PostGenerationJobNotFoundError extends Schema.TaggedError<PostGenerationJobNotFoundError>()(
   "PostGenerationJobNotFoundError",
   {}

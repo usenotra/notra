@@ -87,6 +87,13 @@ export function respondToPostFailure(c: Context, failure: PostDomainError) {
     return c.json({ error: "A post with this slug already exists" }, 409);
   }
 
+  if (failure._tag === "PostConcurrentModificationError") {
+    return c.json(
+      { error: "Post was modified by another request; retry the update" },
+      409
+    );
+  }
+
   if (failure._tag === "PostGenerationJobNotFoundError") {
     return c.json({ error: "Generation job not found" }, 404);
   }

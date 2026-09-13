@@ -163,7 +163,7 @@ const patchPostRoute = createRoute({
     401: errorResponse("Missing or invalid API key"),
     403: errorResponse("Forbidden"),
     404: errorResponse("Post not found"),
-    409: errorResponse("Post slug already exists"),
+    409: errorResponse("Post slug already exists or concurrent modification"),
     429: rateLimitResponse(
       RATE_LIMITS.postUpdate.requests,
       RATE_LIMITS.postUpdate.window,
