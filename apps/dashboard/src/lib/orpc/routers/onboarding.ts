@@ -8,6 +8,7 @@ import {
   onboardingSuggestions,
   organizations,
 } from "@notra/db/schema";
+import { createGeoProject } from "@notra/geo-core/geo/projects";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   dismissSuggestionInputSchema,
@@ -16,6 +17,7 @@ import {
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { Effect } from "effect";
 
 import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
@@ -87,6 +89,24 @@ export const onboardingRouter = {
           url: null,
         };
       }
+    }),
+  createDevReplayProject: authorizedProcedure
+    .input(organizationIdInputSchema)
+    .handler(async ({ context, input }) => {
+      if (process.env.NODE_ENV !== "development") {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      const project = await Effect.runPromise(
+        createGeoProject(input.organizationId, "Onboarding replay")
+      );
+      return { projectId: project.id };
     }),
   get: authorizedProcedure
     .input(organizationIdInputSchema)

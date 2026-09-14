@@ -98,7 +98,23 @@ export interface CompetitorSearchProps {
   ownDomain: string | null;
   selected: readonly GeoCompetitor[];
   disabled: boolean;
-  onAdd: (result: GeoBrandSearchResult) => void;
+  onAdd: (result: CompetitorSearchResult) => void;
+}
+
+export interface CompetitorSearchResult extends Omit<
+  GeoBrandSearchResult,
+  "domain"
+> {
+  domain: string | null;
+  source: "manual" | "search";
+}
+
+export interface CompetitorSearchItemsInput {
+  ownDomain: string | null;
+  query: string;
+  searchResults: readonly GeoBrandSearchResult[];
+  searching: boolean;
+  selected: readonly GeoCompetitor[];
 }
 
 export interface VisibilityBrandDraft {
@@ -108,7 +124,10 @@ export interface VisibilityBrandDraft {
 }
 
 export interface OnboardingGeoPageProps {
-  searchParams: Promise<{ project?: string | string[] }>;
+  searchParams: Promise<{
+    project?: string | string[];
+    replay?: string | string[];
+  }>;
 }
 
 export interface OrgLogoFieldProps {

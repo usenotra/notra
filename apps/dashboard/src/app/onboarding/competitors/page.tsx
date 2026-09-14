@@ -39,23 +39,25 @@ export default async function OnboardingCompetitorsPage({
     redirect("/onboarding/workspace");
   }
 
-  const { project } = await searchParams;
+  const { project, replay } = await searchParams;
   const projectId =
     typeof project === "string" && project ? project : undefined;
+  const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
 
   const [stage, hasPaidHistory] = await Promise.all([
     getGeoOnboardingStage(organization.id, projectId),
     hasPaidSubscriptionHistory(organization.id),
   ]);
-  const inOnboardingFlow = !hasPaidHistory;
-  const nextHref = inOnboardingFlow
-    ? "/onboarding/pricing"
-    : geoDashboardPath(organization.slug, projectId);
+  const inOnboardingFlow = isDevReplay || !hasPaidHistory;
+  const nextHref =
+    inOnboardingFlow && !isDevReplay
+      ? "/onboarding/pricing"
+      : geoDashboardPath(organization.slug, projectId);
 
-  if (stage === "brand") {
+  if (!isDevReplay && stage === "brand") {
     redirect(geoOnboardingPath(projectId));
   }
-  if (stage === "complete") {
+  if (!isDevReplay && stage === "complete") {
     redirect(nextHref);
   }
 

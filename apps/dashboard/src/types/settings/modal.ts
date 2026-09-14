@@ -12,12 +12,13 @@ export type SettingsSectionId =
   | "usage"
   | "credits"
   | "logs"
+  | "dev"
   | "geo"
   | "geo-brand"
   | "geo-languages"
   | "geo-models";
 
-export type SettingsNavGroupId = "account" | "organization" | "geo";
+export type SettingsNavGroupId = "account" | "organization" | "geo" | "dev";
 
 export interface SettingsNavItem {
   id: SettingsSectionId;

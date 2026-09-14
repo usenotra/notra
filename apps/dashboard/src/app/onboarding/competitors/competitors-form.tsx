@@ -208,9 +208,24 @@ function CompetitorsPicker({
           ) : null}
           {suggestions.isPending ? <CompetitorSuggestionsSkeleton /> : null}
           {suggestions.isError ? (
-            <p className="text-muted-foreground text-xs">
-              Could not pull suggestions for {domain}. Search above instead.
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-muted-foreground text-xs">
+                Could not pull suggestions for {domain}. You can add a brand
+                above or try again.
+              </p>
+              <Button
+                className="h-auto shrink-0 px-0"
+                disabled={busy || suggestions.isFetching}
+                onClick={() => {
+                  suggestions.refetch();
+                }}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                {suggestions.isFetching ? "Trying again" : "Try again"}
+              </Button>
+            </div>
           ) : null}
           {suggestions.isSuccess && suggested.length === 0 ? (
             <p className="text-muted-foreground text-xs">
