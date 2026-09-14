@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 export type SettingsSectionId =
   | "account"
+  | "appearance"
   | "general"
   | "members"
   | "notifications"
@@ -10,12 +11,18 @@ export type SettingsSectionId =
   | "integrations"
   | "billing"
   | "usage"
+  | "usage-alerts"
   | "credits"
   | "logs"
   | "geo"
   | "geo-brand"
   | "geo-languages"
   | "geo-models";
+
+export type StandardSettingsSectionId = Exclude<
+  SettingsSectionId,
+  "geo" | "geo-brand" | "geo-languages" | "geo-models"
+>;
 
 export type SettingsNavGroupId = "account" | "organization" | "geo";
 

@@ -12,7 +12,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import dynamic from "next/dynamic";
-import { useId, useState } from "react";
+import { type ComponentType, useId, useState } from "react";
 
 import {
   SettingsHeaderProvider,
@@ -31,6 +31,7 @@ import type {
   SettingsModalBodyProps,
   SettingsModalSessionProps,
   SettingsSectionId,
+  StandardSettingsSectionId,
 } from "@/types/settings/modal";
 import { resolveSettingsSection } from "@/utils/settings-path";
 import {
@@ -53,6 +54,13 @@ const AccountSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/account-pane").then((mod) => ({
       default: mod.AccountSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const AppearanceSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/appearance-pane").then((mod) => ({
+      default: mod.AppearanceSettingsPane,
     })),
   { loading: SettingsPaneFallback }
 );
@@ -98,6 +106,13 @@ const UsageSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const UsageAlertsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/usage-alerts-pane").then((mod) => ({
+      default: mod.UsageAlertsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const CreditsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/credits-pane").then((mod) => ({
@@ -127,40 +142,39 @@ const GeoSettingsPane = dynamic(
   { loading: SettingsPaneFallback }
 );
 
+const STANDARD_SETTINGS_PANES = {
+  account: AccountSettingsPane,
+  appearance: AppearanceSettingsPane,
+  attachments: AttachmentsSettingsPane,
+  billing: BillingSettingsPane,
+  credits: CreditsSettingsPane,
+  general: GeneralSettingsPane,
+  integrations: IntegrationsSettingsPane,
+  logs: LogsSettingsPane,
+  members: MembersSettingsPane,
+  notifications: NotificationsSettingsPane,
+  usage: UsageSettingsPane,
+  "usage-alerts": UsageAlertsSettingsPane,
+} satisfies Record<StandardSettingsSectionId, ComponentType>;
+
+const GEO_SETTINGS_PANE_SECTIONS = {
+  geo: "brand",
+  "geo-brand": "brand",
+  "geo-languages": "languages",
+  "geo-models": "models",
+} as const;
+
 function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
-  switch (section) {
-    case "account":
-      return <AccountSettingsPane />;
-    case "general":
-      return <GeneralSettingsPane />;
-    case "members":
-      return <MembersSettingsPane />;
-    case "notifications":
-      return <NotificationsSettingsPane />;
-    case "attachments":
-      return <AttachmentsSettingsPane />;
-    case "billing":
-      return <BillingSettingsPane />;
-    case "usage":
-      return <UsageSettingsPane />;
-    case "credits":
-      return <CreditsSettingsPane />;
-    case "integrations":
-      return <IntegrationsSettingsPane />;
-    case "logs":
-      return <LogsSettingsPane />;
-    case "geo":
-    case "geo-brand":
-      return <GeoSettingsPane section="brand" />;
-    case "geo-languages":
-      return <GeoSettingsPane section="languages" />;
-    case "geo-models":
-      return <GeoSettingsPane section="models" />;
-    default: {
-      const exhaustive: never = section;
-      return exhaustive;
-    }
+  if (section in GEO_SETTINGS_PANE_SECTIONS) {
+    const geoSection =
+      GEO_SETTINGS_PANE_SECTIONS[
+        section as keyof typeof GEO_SETTINGS_PANE_SECTIONS
+      ];
+    return <GeoSettingsPane section={geoSection} />;
   }
+
+  const Pane = STANDARD_SETTINGS_PANES[section as StandardSettingsSectionId];
+  return <Pane />;
 }
 
 export function SettingsModal() {

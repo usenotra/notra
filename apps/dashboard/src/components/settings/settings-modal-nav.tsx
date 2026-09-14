@@ -169,7 +169,7 @@ export function SettingsModalNav({
               className="flex min-w-max flex-col gap-1 md:min-w-0"
               key={group.id}
             >
-              <p className="text-muted-foreground px-2 pt-1 text-[11px] font-medium tracking-wide uppercase">
+              <p className="text-muted-foreground px-2 pt-1 text-[11px] font-medium uppercase">
                 {group.label}
               </p>
               <div className="flex flex-row gap-1 md:flex-col">

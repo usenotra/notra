@@ -1,6 +1,8 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import { shouldBypassAutumnInDevelopment } from "@notra/ai/utils/autumn-development";
 
+import { getDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";
+
 const DEVELOPMENT_BALANCE = Number.MAX_SAFE_INTEGER;
 const MS_PER_DAY = 86_400_000;
 
@@ -27,7 +29,9 @@ function createDevelopmentAutumnCustomer() {
     env: "sandbox",
     metadata: {},
     sendEmailReceipts: false,
-    billingControls: {},
+    billingControls: {
+      usageAlerts: getDevelopmentUsageAlerts(),
+    },
     subscriptions: [],
     purchases: [],
     licenses: [],
