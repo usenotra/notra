@@ -37,7 +37,10 @@ import {
   generateGeoFromWebsite,
 } from "@notra/geo-core/geo/discover";
 import type { GeoRouterError } from "@notra/geo-core/geo/errors";
-import { loadGeoContentGaps } from "@notra/geo-core/geo/gaps";
+import {
+  loadGeoContentGaps,
+  setGeoPromptGapIgnored,
+} from "@notra/geo-core/geo/gaps";
 import {
   issueGeoIngestSetupResponse,
   rotateGeoIngestSetupResponse,
@@ -153,6 +156,7 @@ import {
   geoPromptHistoryInputSchema,
   geoPromptResultDetailInputSchema,
   geoPromptRescanInputSchema,
+  geoPromptGapIgnoreInputSchema,
   geoScanStatusInputSchema,
   geoPromptsImportInputSchema,
   geoPromptDeleteInputSchema,
@@ -1461,6 +1465,21 @@ export const geoRouter = {
   writerGaps: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoHandler((input) => loadGeoContentGaps(input))),
+  writerGapIgnore: authorizedProcedure
+    .input(geoPromptGapIgnoreInputSchema)
+    .handler(
+      geoHandler(
+        (input) => setGeoPromptGapIgnored(input),
+        ({ context, input }) => {
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_GAP_IGNORED,
+            properties: { ignored: input.ignored },
+          });
+        }
+      )
+    ),
   writerBriefsList: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoHandler((input) => listGeoContentBriefs(input))),

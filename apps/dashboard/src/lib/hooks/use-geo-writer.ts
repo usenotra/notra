@@ -79,6 +79,46 @@ function useInvalidateWriterQueries(organizationId: string) {
   };
 }
 
+export function useGeoPromptGapIgnore(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  const gapsQueryKey = dashboardOrpc.geo.writerGaps.queryKey({
+    input: { organizationId, projectId },
+  });
+  return useMutation({
+    mutationFn: (input: { promptId: string; ignored: boolean }) =>
+      dashboardOrpc.geo.writerGapIgnore.call({
+        ...input,
+        organizationId,
+        projectId,
+      }),
+    onMutate: async ({ promptId, ignored }) => {
+      if (!ignored) {
+        return { previous: undefined };
+      }
+      await queryClient.cancelQueries({ queryKey: gapsQueryKey });
+      const previous =
+        queryClient.getQueryData<GeoContentGapsResponse>(gapsQueryKey);
+      if (previous) {
+        queryClient.setQueryData<GeoContentGapsResponse>(gapsQueryKey, {
+          ...previous,
+          promptGaps: previous.promptGaps.filter((row) => row.id !== promptId),
+        });
+      }
+      return { previous };
+    },
+    onError: (error, _input, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(gapsQueryKey, context.previous);
+      }
+      toast.error(toErrorMessage(error, "Failed to update the gap"));
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: gapsQueryKey });
+    },
+  });
+}
+
 export function useGeoWriterPlan(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateWriterQueries(organizationId);

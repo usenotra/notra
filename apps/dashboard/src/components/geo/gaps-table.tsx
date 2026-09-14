@@ -13,6 +13,7 @@ import {
   GEO_GAPS_TABLE_HEIGHT,
   GEO_GAPS_WON_DETAIL,
   GEO_GAPS_WON_LABEL,
+  GEO_PROMPT_GAP_IGNORE_LABEL,
   GEO_PROMPTS_NAV_LINK,
   GEO_RESCAN_LABEL,
   GEO_RESCAN_TOOLTIP,
@@ -55,7 +56,7 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { GapDetailDialog } from "@/components/geo/gap-detail-dialog";
+import { GapDetailSheet } from "@/components/geo/gap-detail-sheet";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -174,9 +175,25 @@ function WriteCell({
   onWrite,
   onRescan,
   rescanDisabled = false,
+  onIgnore,
+  isIgnoring = false,
 }: GeoGapsWriteCellProps) {
   return (
     <span className="inline-flex items-center justify-end gap-1">
+      {onIgnore ? (
+        <Button
+          disabled={isIgnoring}
+          onClick={(event) => {
+            event.stopPropagation();
+            onIgnore();
+          }}
+          size="sm"
+          variant="ghost"
+        >
+          {isIgnoring ? <StatusSpinner /> : null}
+          {GEO_PROMPT_GAP_IGNORE_LABEL}
+        </Button>
+      ) : null}
       {onRescan ? (
         <Tooltip>
           <TooltipTrigger
@@ -700,6 +717,8 @@ export function GeoGapsTable({
   onDismissSearch,
   dismissingSearchId,
   onRescanPrompt,
+  onIgnorePrompt,
+  ignoringPromptId,
   onOpenPost,
 }: GeoGapsTableProps) {
   const [tab, setTab] = useState<GeoGapsTab>("prompt");
@@ -707,6 +726,10 @@ export function GeoGapsTable({
   const selectedSearch =
     detail?.kind === "search"
       ? (searchGaps.find((row) => row.id === detail.id) ?? null)
+      : null;
+  const selectedPrompt =
+    detail?.kind === "prompt"
+      ? (promptGaps.find((row) => row.id === detail.id) ?? null)
       : null;
   const [query, setQuery] = useQueryState(
     "q",
@@ -737,6 +760,46 @@ export function GeoGapsTable({
     () => filterSearchGaps(searchGaps, query),
     [query, searchGaps]
   );
+
+  const renderPromptActions = (row: GeoPromptGapRow, inSheet = false) => {
+    const action = gapWriteAction(row.brief);
+    const closeSheet = () => {
+      if (inSheet) {
+        setDetail(null);
+      }
+    };
+    return (
+      <WriteCell
+        action={action}
+        isIgnoring={ignoringPromptId === row.id}
+        onIgnore={
+          action === "write"
+            ? () => {
+                closeSheet();
+                onIgnorePrompt(row);
+              }
+            : undefined
+        }
+        onOpenPost={(postId) => {
+          closeSheet();
+          onOpenPost(postId);
+        }}
+        onRescan={
+          gapCanRescan(row.brief) ? () => onRescanPrompt(row) : undefined
+        }
+        onWrite={() => {
+          closeSheet();
+          onWritePrompt(row);
+        }}
+        opportunityBucket={gapMeterLevel(
+          maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity
+        )}
+        postId={row.brief?.postId}
+        rescanDisabled={isScanning}
+        sourceKind="prompt"
+      />
+    );
+  };
 
   const promptColumns: TableColumn<GeoPromptGapRow>[] = [
     {
@@ -796,20 +859,7 @@ export function GeoGapsTable({
       minWidth: "12.5rem",
       cell: (row) => (
         <span className="inline-flex items-center gap-1">
-          <WriteCell
-            action={gapWriteAction(row.brief)}
-            onOpenPost={onOpenPost}
-            onRescan={
-              gapCanRescan(row.brief) ? () => onRescanPrompt(row) : undefined
-            }
-            onWrite={() => onWritePrompt(row)}
-            opportunityBucket={gapMeterLevel(
-              maxOpportunity <= 0 ? 0 : row.opportunity / maxOpportunity
-            )}
-            postId={row.brief?.postId}
-            rescanDisabled={isScanning}
-            sourceKind="prompt"
-          />
+          {renderPromptActions(row)}
         </span>
       ),
     },
@@ -918,6 +968,27 @@ export function GeoGapsTable({
       />
     );
 
+  let sheetActions = null;
+  if (selectedPrompt) {
+    sheetActions = renderPromptActions(selectedPrompt, true);
+  } else if (selectedSearch) {
+    sheetActions = (
+      <SearchWriteCell
+        isDismissing={dismissingSearchId === selectedSearch.id}
+        onDismiss={() => onDismissSearch(selectedSearch)}
+        onOpenPost={(postId) => {
+          setDetail(null);
+          onOpenPost(postId);
+        }}
+        onWrite={(existingPageUrl) => {
+          setDetail(null);
+          onWriteSearch(selectedSearch, existingPageUrl);
+        }}
+        row={selectedSearch}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
@@ -948,35 +1019,17 @@ export function GeoGapsTable({
           table
         )}
       </div>
-      <GapDetailDialog
+      <GapDetailSheet
+        competitors={competitors}
+        maxOpportunity={maxOpportunity}
         onOpenChange={(open) => {
           if (!open) {
             setDetail(null);
           }
         }}
-        prompt={
-          detail?.kind === "prompt"
-            ? (promptGaps.find((row) => row.id === detail.id) ?? null)
-            : null
-        }
+        prompt={selectedPrompt}
         search={selectedSearch}
-        searchActions={
-          selectedSearch ? (
-            <SearchWriteCell
-              isDismissing={dismissingSearchId === selectedSearch.id}
-              onDismiss={() => onDismissSearch(selectedSearch)}
-              onOpenPost={(postId) => {
-                setDetail(null);
-                onOpenPost(postId);
-              }}
-              onWrite={(existingPageUrl) => {
-                setDetail(null);
-                onWriteSearch(selectedSearch, existingPageUrl);
-              }}
-              row={selectedSearch}
-            />
-          ) : null
-        }
+        actions={sheetActions}
       />
     </div>
   );

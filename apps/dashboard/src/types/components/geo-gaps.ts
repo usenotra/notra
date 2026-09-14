@@ -20,6 +20,8 @@ export interface GeoGapsWriteCellProps {
   onWrite: () => void;
   onRescan?: () => void;
   rescanDisabled?: boolean;
+  onIgnore?: () => void;
+  isIgnoring?: boolean;
 }
 
 export type GeoGapsTab = "prompt" | "search";
@@ -28,11 +30,39 @@ export type GeoGapDetailSelection =
   | { kind: "prompt"; id: string }
   | { kind: "search"; id: string };
 
-export interface GeoGapDetailDialogProps {
+export type GeoGapDetailRow =
+  | { kind: "prompt"; row: GeoPromptGapRow }
+  | { kind: "search"; row: GeoSearchGapRow };
+
+export interface GeoGapDetailSheetProps {
   prompt: GeoPromptGapRow | null;
   search: GeoSearchGapRow | null;
-  searchActions?: ReactNode;
+  competitors: GeoCompetitor[];
+  maxOpportunity: number;
+  actions?: ReactNode;
   onOpenChange: (open: boolean) => void;
+}
+
+export interface GeoGapDetailSectionProps {
+  title: string;
+  readout?: string;
+  children: ReactNode;
+}
+
+export interface GeoGapDetailStatProps {
+  label: string;
+  value: string;
+}
+
+export interface GeoGapEngineListProps {
+  families: readonly string[];
+  emptyLabel: string;
+}
+
+export interface GeoGapBrandListProps {
+  competitors: GeoCompetitor[];
+  tracked: readonly string[];
+  discovered: readonly string[];
 }
 
 export type GeoGapsMeterTone = "empty" | "low" | "mid" | "high";
@@ -71,6 +101,8 @@ export interface GeoGapsTableProps {
   onDismissSearch: (row: GeoSearchGapRow) => void;
   dismissingSearchId: string | null;
   onRescanPrompt: (row: GeoPromptGapRow) => void;
+  onIgnorePrompt: (row: GeoPromptGapRow) => void;
+  ignoringPromptId: string | null;
   onOpenPost: (postId: string) => void;
 }
 
