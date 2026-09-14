@@ -1363,7 +1363,8 @@ export const geoRouter = {
         scope.organizationId,
         scope.projectId,
         input.personaId,
-        input.brief
+        input.brief,
+        input.promptsOnly
       );
     }),
   personasGenerationStatus: authorizedProcedure

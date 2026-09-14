@@ -115,13 +115,26 @@ export function useGeoPersonasGenerate(organizationId: string) {
     Error,
     PersonaGenerationRequest
   >({
-    mutationFn: (request) =>
-      dashboardOrpc.geo.personasGenerate.call({
+    mutationFn: (request) => {
+      let personaId: string | undefined;
+      let brief: string | undefined;
+      let promptsOnly: true | undefined;
+      if (typeof request === "string") {
+        personaId = request;
+      } else if (request && "personaId" in request) {
+        personaId = request.personaId;
+        promptsOnly = request.promptsOnly;
+      } else if (request) {
+        brief = request.brief;
+      }
+      return dashboardOrpc.geo.personasGenerate.call({
         organizationId,
         projectId,
-        personaId: typeof request === "string" ? request : undefined,
-        brief: typeof request === "object" ? request.brief : undefined,
-      }),
+        personaId,
+        brief,
+        promptsOnly,
+      });
+    },
     onSuccess: (started) => {
       queryClient.setQueryData(statusOptions.queryKey, started);
     },

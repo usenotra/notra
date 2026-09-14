@@ -137,6 +137,7 @@ export function toGeoPersona(
     summary: row.summary,
     searchStyle: row.searchStyle,
     profile: row.profile,
+    conversationPrompts: row.conversationPrompts,
     enabled: row.enabled,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

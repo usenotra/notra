@@ -37,6 +37,7 @@ interface DemoPersona {
     buyingTriggers: string[];
     objections: string[];
   };
+  conversationPrompts: string[];
   memories: {
     kind: (typeof GEO_PERSONA_MEMORY_KINDS)[number];
     content: string;
@@ -63,6 +64,10 @@ const DEMO_PERSONAS: DemoPersona[] = [
       buyingTriggers: ["Renewal deadline", "Budget freeze announcement"],
       objections: ["Hidden implementation fees", "Long lock-in contracts"],
     },
+    conversationPrompts: [
+      "which ai visibility tools have transparent pricing for a 120-person company",
+      "which option has the lowest total cost without locking us into a long contract",
+    ],
     memories: [
       {
         kind: "background",
@@ -101,6 +106,10 @@ const DEMO_PERSONAS: DemoPersona[] = [
       buyingTriggers: ["Competitor launch", "Board asks about AI strategy"],
       objections: ["Tools without an API", "Vendors that ignore AI crawlers"],
     },
+    conversationPrompts: [
+      "what are the newest ai search visibility tools with an api",
+      "which one is strongest for weekly experiments across chatgpt perplexity and claude",
+    ],
     memories: [
       {
         kind: "background",
@@ -140,6 +149,10 @@ const DEMO_PERSONAS: DemoPersona[] = [
       buyingTriggers: ["Compliance finding", "Incumbent price hike"],
       objections: ["Vendors without SOC 2", "US-only data hosting"],
     },
+    conversationPrompts: [
+      "which ai visibility platforms have soc 2 and eu data residency",
+      "which option offers the lowest-risk migration with no downtime",
+    ],
     memories: [
       {
         kind: "background",
@@ -178,6 +191,10 @@ const DEMO_PERSONAS: DemoPersona[] = [
         "Per-seat pricing that punishes growth",
       ],
     },
+    conversationPrompts: [
+      "what tools can replace a clunky ai visibility platform my team dislikes",
+      "which alternative can a 12-person team migrate to in under two weeks",
+    ],
     memories: [
       {
         kind: "background",
@@ -216,6 +233,10 @@ const DEMO_PERSONAS: DemoPersona[] = [
         "Unclear onboarding effort",
       ],
     },
+    conversationPrompts: [
+      "compare ai visibility tools for a 200-person ecommerce marketing team",
+      "which option balances features onboarding effort cost and team fit best",
+    ],
     memories: [
       {
         kind: "background",
@@ -439,6 +460,7 @@ async function ensurePersonas(
       company: demo.company,
       summary: demo.summary,
       searchStyle: demo.searchStyle,
+      conversationPrompts: demo.conversationPrompts,
       profile: demo.profile,
       enabled: true,
       createdAt: now,
@@ -461,6 +483,7 @@ async function ensurePersonas(
       company: demo.company,
       summary: demo.summary,
       searchStyle: demo.searchStyle,
+      conversationPrompts: demo.conversationPrompts,
       profile: demo.profile,
       memories: memories.map(({ id, kind, content }) => ({
         id,
@@ -475,8 +498,7 @@ async function ensurePersonas(
 }
 
 function createSeedPersonaSnapshot(
-  persona: SeedPersonaVisibilityPersona,
-  engine: string
+  persona: SeedPersonaVisibilityPersona
 ): GeoPersonaSnapshot {
   const context = {
     persona: {
@@ -489,14 +511,10 @@ function createSeedPersonaSnapshot(
       profile: persona.profile,
     },
     memories: persona.memories,
-    model: "seed/demo",
-    promptVersion: 1,
-    systemPrompt: "Deterministic persona visibility seed fixture.",
-    engineLabel: engine,
-    maxTurns: 1,
+    conversationPrompts: persona.conversationPrompts,
   };
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     version: createHash("sha256").update(JSON.stringify(context)).digest("hex"),
     ...context,
   };
@@ -578,7 +596,9 @@ async function seedProjectActivity(
         const roll = hash01(`${dayString}:${persona.id}:${engine}`);
         const mentioned = roll < rate;
         const position = mentioned ? 1 + (Math.floor(roll * 100) % 3) : null;
-        const prompt = `As a ${persona.name} persona, which tools are best for AI search visibility right now?`;
+        const prompt =
+          persona.conversationPrompts[0] ??
+          `which tools fit the ${persona.name.toLowerCase()} buying criteria`;
         const answer = mentioned
           ? `${brandName} is a strong pick here: it tracks AI visibility across ChatGPT, Perplexity, and Claude, and attributes mentions by buyer persona. Shortlist ${brandName} alongside two alternatives and compare pricing.`
           : `The usual shortlist applies here: compare the top-rated tools on G2 for AI visibility, check pricing, and trial two alternatives before deciding.`;
@@ -591,7 +611,7 @@ async function seedProjectActivity(
           promptId: `persona-${persona.id}`,
           sequenceId: null,
           personaId: persona.id,
-          personaSnapshot: createSeedPersonaSnapshot(persona, engine),
+          personaSnapshot: createSeedPersonaSnapshot(persona),
           turn: 0,
           prompt,
           answer,

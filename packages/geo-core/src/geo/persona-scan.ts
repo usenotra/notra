@@ -1,12 +1,7 @@
-import { generatePersonaNextTurn } from "@notra/ai/agents/geo-persona";
-import type {
-  PersonaAgentPersona,
-  PersonaConversationTurn,
-  PersonaMemoryRecord,
-} from "@notra/ai/types/geo-personas";
 import { db } from "@notra/db/drizzle";
 import { geoPersonaMemories, geoPersonas, geoSettings } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
+import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -15,7 +10,6 @@ import { GEO_JUDGE_MODEL, GEO_SCAN_CONCURRENCY } from "../constants/geo";
 import {
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_PAIR_TIMEOUT_MS,
-  GEO_PERSONA_TURN_TIMEOUT_MS,
 } from "../constants/geo-personas";
 import type {
   GeoCheckContext,
@@ -27,7 +21,10 @@ import type {
   GeoSkipFields,
   GeoZdrMode,
 } from "../types/geo";
-import type { GeoPersonaRunResponse } from "../types/geo-personas";
+import type {
+  GeoPersonaMemory,
+  GeoPersonaRunResponse,
+} from "../types/geo-personas";
 import { resolveGeoGroundedZdrMode } from "../utils/geo-engines";
 import {
   resolveGroundedEngineByKey,
@@ -36,6 +33,7 @@ import {
 import { flushGeoLogEffect, geoLogWarn } from "../utils/geo-log";
 import { personaPromptId } from "../utils/geo-personas";
 import { geoScanPersonaTasks } from "../utils/geo-scan-plan";
+import { createPersonaSnapshot } from "../utils/persona-snapshot";
 import {
   addAgentTokenUsage as addTokenUsage,
   EMPTY_AGENT_TOKEN_USAGE as EMPTY_TOKEN_USAGE,
@@ -59,8 +57,9 @@ import { omitGeoScanTasks, updateGeoScanTaskStatus } from "./scan-task-status";
 import { resolveScanZdrPolicy } from "./zdr-policy";
 
 interface PersonaForScan {
-  persona: PersonaAgentPersona;
-  memories: PersonaMemoryRecord[];
+  persona: GeoPersonaSnapshotV2["persona"];
+  memories: GeoPersonaMemory[];
+  conversationPrompts: string[];
 }
 
 function personaFailureFields(
@@ -121,6 +120,7 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
       searchStyle: row.searchStyle,
       profile: row.profile,
     },
+    conversationPrompts: row.conversationPrompts,
     memories: memoryRows.map((memory) => ({
       id: memory.id,
       personaId: memory.personaId,
@@ -132,74 +132,38 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
   return loaded;
 });
 
-const askPersonaNextTurn = Effect.fn("geo.persona.nextTurn")(function* (
-  organizationId: string,
-  loaded: PersonaForScan,
-  engineLabel: string,
-  transcript: readonly PersonaConversationTurn[],
-  turnIndex: number
-) {
-  return yield* Effect.tryPromise({
-    try: (signal) =>
-      generatePersonaNextTurn(
-        {
-          organizationId,
-          persona: loaded.persona,
-          memories: loaded.memories,
-          engineLabel,
-          transcript,
-          turnIndex,
-          maxTurns: GEO_PERSONA_MAX_TURNS,
-        },
-        signal
-      ),
-    catch: (cause) =>
-      new GeoScanError({
-        message: `Persona ${loaded.persona.id} failed to write turn ${turnIndex + 1}`,
-        cause,
-      }),
-  }).pipe(
-    Effect.timeoutOrElse({
-      duration: GEO_PERSONA_TURN_TIMEOUT_MS,
-      orElse: () =>
-        Effect.fail(
-          new GeoScanError({
-            message: `Persona ${loaded.persona.id} timed out writing turn ${turnIndex + 1}`,
-          })
-        ),
-    })
-  );
-});
-
 /**
- * Plays one persona against one search-grounded engine. The persona agent
- * writes each message from its fixed memories and the transcript so far; the
- * engine answers with web search; the judge scores every reply. Rows carry
- * `personaId` so they stay out of the prompt aggregates.
+ * Plays one persona's fixed prompts against one search-grounded engine. Rows
+ * carry `personaId` so they stay out of the prompt aggregates.
  */
 export const runGeoPersonaConversation = Effect.fn(
   "geo.runPersonaConversation"
 )(function* (
   context: GeoCheckContext,
   loaded: PersonaForScan,
+  prompts: readonly string[],
   grounded: GeoGroundedEngine,
   zdr: GeoZdrMode
 ) {
+  const conversationPrompts = prompts.slice(0, GEO_PERSONA_MAX_TURNS);
+  const snapshot = createPersonaSnapshot(
+    loaded.persona,
+    loaded.memories,
+    conversationPrompts
+  );
   return yield* runGeoConversation(
     context,
     {
       promptId: personaPromptId(loaded.persona.id),
       personaId: loaded.persona.id,
-      maxTurns: GEO_PERSONA_MAX_TURNS,
+      maxTurns: conversationPrompts.length,
       timeoutMs: GEO_PERSONA_PAIR_TIMEOUT_MS,
-      next: (transcript, index) =>
-        askPersonaNextTurn(
-          context.organizationId,
-          loaded,
-          grounded.label,
-          transcript,
-          index
-        ),
+      next: (_transcript, index) =>
+        Effect.succeed({
+          message: conversationPrompts[index] ?? null,
+          usage: EMPTY_TOKEN_USAGE,
+          snapshot,
+        }),
     },
     grounded,
     zdr
@@ -248,6 +212,7 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   const outcome = yield* runGeoPersonaConversation(
     checkContext,
     loaded,
+    planned.prompts ?? [],
     grounded,
     planned.zdr
   );
@@ -304,9 +269,10 @@ export const runGeoScanPersonaBatch = Effect.fn("geo.runScanPersonaBatch")(
     const rows: GeoCheckWrite[] = [];
     let dropped = 0;
     let usage = EMPTY_TOKEN_USAGE;
-    for (const outcome of outcomes) {
+    for (const [index, outcome] of outcomes.entries()) {
       if (!outcome) {
-        dropped += GEO_PERSONA_MAX_TURNS;
+        const planned = plannedPersonas[index];
+        dropped += planned ? geoScanPersonaTasks(planned).length : 0;
         continue;
       }
       dropped += outcome.droppedTurns;
@@ -357,7 +323,7 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   if (!loaded) {
     return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
   }
-  if (!loaded.enabled) {
+  if (!loaded.enabled || loaded.conversationPrompts.length === 0) {
     return yield* Effect.fail(new GeoPersonaRunUnavailableError({}));
   }
 
@@ -433,7 +399,13 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
       Effect.forEach(
         groundedEngines,
         ({ grounded, zdr }) =>
-          runGeoPersonaConversation(context, loaded, grounded, zdr).pipe(
+          runGeoPersonaConversation(
+            context,
+            loaded,
+            loaded.conversationPrompts,
+            grounded,
+            zdr
+          ).pipe(
             geoSkip(
               "persona run failed",
               personaFailureFields(context, personaId, grounded.key)

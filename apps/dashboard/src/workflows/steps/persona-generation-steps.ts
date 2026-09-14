@@ -28,7 +28,8 @@ export async function generatePersonasStep(
         projectId: job.projectId,
       },
       job.personaId,
-      job.brief
+      job.brief,
+      job.promptsOnly
     ).pipe(Effect.provide(geoCoreDashboardLayer))
   );
   await trackServerEventAndFlush({

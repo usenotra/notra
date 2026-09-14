@@ -50,6 +50,7 @@ export interface PersonaDetailHeaderProps {
   active: GeoSequenceEngineThread | null;
   scans: GeoPersonaScanSummary[];
   selectedScanId: string | null;
+  view: PersonaDialogView;
   showConversation: boolean;
   isRunning: boolean;
   onRun: () => void;
@@ -58,7 +59,7 @@ export interface PersonaDetailHeaderProps {
   onViewChange: (view: PersonaDialogView) => void;
 }
 
-export type PersonaDialogView = "conversation" | "profile";
+export type PersonaDialogView = "conversation" | "prompts" | "profile";
 
 export interface PersonaAvatarProps {
   persona: Pick<GeoPersona, "id" | "name">;
@@ -77,6 +78,13 @@ export interface PersonaBulletListProps {
 
 export interface PersonaProfileProps {
   persona: GeoPersona;
+}
+
+export interface PersonaPromptsProps {
+  prompts: readonly string[];
+  disabled: boolean;
+  isGenerating: boolean;
+  onGenerate: () => void;
 }
 
 export interface PersonaProfileEditorProps extends PersonaProfileProps {

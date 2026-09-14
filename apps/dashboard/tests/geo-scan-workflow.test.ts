@@ -134,6 +134,7 @@ describe("GEO scan workflow orchestration", () => {
     plan.personas = [
       {
         personaId: "persona-test",
+        prompts: ["first question", "follow-up question"],
         engine: "test/engine",
         groundedKey: "test/engine",
         zdr: "none",

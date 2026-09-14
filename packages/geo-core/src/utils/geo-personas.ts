@@ -3,6 +3,8 @@ import {
   GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
   GEO_PERSONA_MEMORY_MAX_LENGTH,
+  GEO_PERSONA_MAX_TURNS,
+  GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MAX,
   GEO_PERSONA_SCAN_ID_PREFIX,
   GEO_PERSONA_SUMMARY_MAX_LENGTH,
@@ -68,6 +70,10 @@ export function normalizeGeneratedPersona(
       GEO_PERSONA_FIELD_MAX_LENGTH
     ),
     objections: clipList(persona.objections, GEO_PERSONA_FIELD_MAX_LENGTH),
+    conversationPrompts: persona.conversationPrompts
+      .map((prompt) => clip(prompt, GEO_PERSONA_PROMPT_MAX_LENGTH))
+      .filter(Boolean)
+      .slice(0, GEO_PERSONA_MAX_TURNS),
     memories: persona.memories
       .map((memory) => ({
         kind: memory.kind,

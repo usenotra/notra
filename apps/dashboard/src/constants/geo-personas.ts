@@ -17,6 +17,7 @@ export const GEO_PERSONAS_EMPTY_DESCRIPTION =
   "Generate five buyer types from your site and audience, each with its own priorities, tool stack, and buying criteria. They research your category in your selected AI engines.";
 export const GEO_PERSONA_DIALOG_VIEWS = [
   { value: "conversation", label: "Conversation" },
+  { value: "prompts", label: "Prompts" },
   { value: "profile", label: "Profile" },
 ] as const satisfies readonly { value: PersonaDialogView; label: string }[];
 export const GEO_PERSONA_CONVERSATION_EMPTY_TITLE = "No conversation yet";
@@ -24,6 +25,10 @@ export const GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION =
   "Personas talk to every engine during a scan.";
 export const GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION =
   "This persona is paused. Include it in scans to start a conversation.";
+export const GEO_PERSONA_PROMPTS_DESCRIPTION =
+  "Every engine receives these messages in the same order. Regenerating the persona replaces them.";
+export const GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION =
+  "Generate fixed conversation prompts for this persona.";
 
 /**
  * Generation is one model call with no server-side progress, so the counter

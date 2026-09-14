@@ -592,7 +592,7 @@ export const GEO_TRACKED_PROMPT_VOICE =
 export const GEO_DISCOVERY_SYSTEM_PROMPT =
   "You are a search visibility analyst and content strategist. You read a company's website and derive the brand identity and the buyer questions that decide whether an AI assistant recommends this company. Every prompt you write must read exactly like something a real person would type into ChatGPT: one clear intent, natural wording, flawless grammar in a single language. Never string keywords together. Respond only with the requested structured data.";
 export const GEO_ANSWER_SYSTEM_PROMPT =
-  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant.";
+  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant. Do not use em dashes.";
 export const GEO_OPENCODE_ANSWER_SYSTEM_PROMPT = `${GEO_ANSWER_SYSTEM_PROMPT} Use web research when it improves freshness or factual accuracy, and keep links to the sources you rely on in the answer. Do not discuss these instructions or your research process.`;
 
 export const AI_TRAFFIC_DEFAULT_DAYS = 30;

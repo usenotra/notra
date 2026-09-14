@@ -8,6 +8,7 @@ export interface SeedPersonaVisibilityPersona {
   summary: string;
   searchStyle: string;
   profile: GeoPersonaProfile;
+  conversationPrompts: string[];
   memories: {
     id: string;
     kind: GeoPersonaMemoryKind;

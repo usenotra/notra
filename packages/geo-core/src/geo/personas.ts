@@ -31,6 +31,7 @@ import {
   GEO_PERSONA_GENERATION_TRIGGER_ID,
   GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
+  GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_MIN_COUNT,
   GEO_PERSONA_ACTIVITY_DAYS,
   GEO_PERSONA_MIN_MEMORIES,
@@ -86,8 +87,15 @@ function buildPersonaGenerationPrompt(
   context: PersonaGenerationContext,
   target?: GeoPersona,
   peers: GeoPersona[] = [],
-  brief?: string
+  brief?: string,
+  promptsOnly = false
 ): string {
+  let generationInstruction = `Create exactly ${brief ? 1 : GEO_PERSONA_MIN_COUNT} distinct buyer archetypes for this company.`;
+  if (promptsOnly && target) {
+    generationInstruction = `Create fixed conversation prompts for this existing buyer archetype: ${JSON.stringify(target)}. Return the existing persona fields unchanged and add the prompts.`;
+  } else if (target) {
+    generationInstruction = `Create exactly one replacement buyer archetype for ${JSON.stringify({ name: target.name, summary: target.summary })}. Refresh its profile and memories while retaining its primary buying priority. Keep it distinct from these other personas, which will stay unchanged: ${JSON.stringify(peers.map((persona) => ({ name: persona.name, summary: persona.summary })))}.`;
+  }
   return `Company: ${context.companyName}
 Website: ${context.websiteUrl ?? "unknown"}
 
@@ -106,7 +114,7 @@ ${bulletList(context.pages.map((page) => `${page.title ?? "(untitled)"} — ${pa
 Questions it already tracks in AI assistants:
 ${bulletList(context.prompts)}
 
-${target ? `Create exactly one replacement buyer archetype for ${JSON.stringify({ name: target.name, summary: target.summary })}. Refresh its profile and memories while retaining its primary buying priority. Keep it distinct from these other personas, which will stay unchanged: ${JSON.stringify(peers.map((persona) => ({ name: persona.name, summary: persona.summary })))}.` : `Create exactly ${brief ? 1 : GEO_PERSONA_MIN_COUNT} distinct buyer archetypes for this company.`} Each archetype represents a recognizable way of choosing a product in this category, backed by a concrete customer profile that can research it in ChatGPT, Perplexity, or Claude. They do not know this company yet.
+${generationInstruction} Each archetype represents a recognizable way of choosing a product in this category, backed by a concrete customer profile that can research it in ChatGPT, Perplexity, or Claude. They do not know this company yet.
 
 Use these buying priorities as guidance${target ? " for the replacement" : " to design the set"}:
 1. Value: affordable pricing, clear ROI, and avoiding unnecessary spend.
@@ -126,6 +134,7 @@ ${!target && peers.length > 0 ? `These personas already exist and will stay unch
 - summary: two to four short key points. Lead with their defining buying priority and the trade-off they are willing to make, followed by their situation and why they are researching now. Return a single string with one point per newline, without bullet markers. Use concise phrases, not a paragraph.
 - searchStyle: short key points covering how they type into AI chats: tone, length, jargon, and details they always include. Return a single string with one point per newline, without bullet markers.
 - goals, painPoints, currentStack, buyingTriggers, objections: concise, concrete phrases, one idea per item, not full paragraphs or generic phrases. Keep profile points brief and put supporting detail in memories. currentStack must name real tools they plausibly use today, including at least one tracked competitor or adjacent tool where that fits.
+- conversationPrompts: exactly ${GEO_PERSONA_MAX_TURNS} ordered messages this buyer will use for every AI engine. Write the exact text they would type, following their search style, priorities, memories, and constraints. The opening message must express a real current need without naming ${context.companyName}. Later messages should narrow the research but must make sense after any plausible answer, so never refer to a specific recommendation or wording. Do not name an AI engine.
 - memories: between ${GEO_PERSONA_MIN_MEMORIES} and ${GEO_PERSONA_MAX_MEMORIES} first-person facts this person would remember. Use kind "background" for career and company facts, "experience" for specific things that happened with tools or vendors, "preference" for how they like to work and buy, and "constraint" for budget, compliance, or team limits. Each memory is one or two sentences, specific enough that the person could refer back to it in a conversation.
 
 Make the personas clearly different in what they optimize for, what they reject, and the questions they ask. Reflect each archetype's buying priority consistently in its stack, goals, objections, search style, and memories, while keeping the profile realistic rather than a caricature. Vary seniority, company size, and urgency where the supplied audience supports it; do not invent unrelated customer segments just to fill the set. Never mention ${context.companyName} inside a persona; they have not heard of it yet.`;
@@ -296,7 +305,8 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
   context: PersonaGenerationContext,
   target?: GeoPersona,
   peers: GeoPersona[] = [],
-  brief?: string
+  brief?: string,
+  promptsOnly = false
 ) {
   const result = yield* Effect.tryPromise({
     try: (signal) =>
@@ -309,7 +319,13 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
               : geoPersonaGenerationSchema,
         }),
         system: GEO_PERSONA_GENERATION_SYSTEM_PROMPT,
-        prompt: buildPersonaGenerationPrompt(context, target, peers, brief),
+        prompt: buildPersonaGenerationPrompt(
+          context,
+          target,
+          peers,
+          brief,
+          promptsOnly
+        ),
         maxOutputTokens: GEO_PERSONA_GENERATION_MAX_TOKENS,
         abortSignal: signal,
       }),
@@ -341,7 +357,8 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
     organizationId: string,
     projectId: string,
     generation: GeoPersonaGeneration,
-    target?: GeoPersona
+    target?: GeoPersona,
+    promptsOnly = false
   ) {
     const now = new Date();
     const personaRows: (typeof geoPersonas.$inferInsert)[] = [];
@@ -357,6 +374,7 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
         company: persona.company,
         summary: persona.summary,
         searchStyle: persona.searchStyle,
+        conversationPrompts: persona.conversationPrompts,
         profile: {
           goals: persona.goals,
           painPoints: persona.painPoints,
@@ -407,15 +425,21 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
               message: "Expected one replacement persona",
             });
           }
+          const replacementFields = promptsOnly
+            ? { conversationPrompts: replacement.conversationPrompts }
+            : {
+                name: replacement.name,
+                role: replacement.role,
+                company: replacement.company,
+                summary: replacement.summary,
+                searchStyle: replacement.searchStyle,
+                conversationPrompts: replacement.conversationPrompts,
+                profile: replacement.profile,
+              };
           const updated = await tx
             .update(geoPersonas)
             .set({
-              name: replacement.name,
-              role: replacement.role,
-              company: replacement.company,
-              summary: replacement.summary,
-              searchStyle: replacement.searchStyle,
-              profile: replacement.profile,
+              ...replacementFields,
               updatedAt: now,
             })
             .where(
@@ -429,13 +453,17 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
           if (updated.length !== 1) {
             throw new GeoPersonaNotFoundError({ personaId: target.id });
           }
-          await tx
-            .delete(geoPersonaMemories)
-            .where(eq(geoPersonaMemories.personaId, target.id));
+          if (!promptsOnly) {
+            await tx
+              .delete(geoPersonaMemories)
+              .where(eq(geoPersonaMemories.personaId, target.id));
+          }
         } else {
           await tx.insert(geoPersonas).values(personaRows);
         }
-        await tx.insert(geoPersonaMemories).values(memoryRows);
+        if (!promptsOnly) {
+          await tx.insert(geoPersonaMemories).values(memoryRows);
+        }
         return true;
       })
     );
@@ -455,7 +483,8 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
 export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
   input: GeoScopeInput,
   personaId?: string,
-  brief?: string
+  brief?: string,
+  promptsOnly = false
 ) {
   const billing = yield* GeoContentBillingService;
   const scope = yield* requireGeoProject(input);
@@ -463,6 +492,13 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
   const target = existing.find((persona) => persona.id === personaId);
   if (personaId && !target) {
     return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
+  }
+  if (promptsOnly && !target) {
+    return yield* Effect.fail(
+      new GeoPersonaGenerateError({
+        message: "A persona is required when generating prompts only",
+      })
+    );
   }
   const requestedCount = brief ? 1 : GEO_PERSONA_MIN_COUNT;
   if (!target && existing.length + requestedCount > GEO_PERSONA_MAX_COUNT) {
@@ -528,14 +564,16 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
     context,
     target,
     existing.filter((persona) => persona.id !== personaId),
-    brief
+    brief,
+    promptsOnly
   ).pipe(Effect.tapError(() => settle("release")));
 
   yield* persistGeneratedPersonas(
     scope.organizationId,
     scope.projectId,
     generated.generation,
-    target
+    target,
+    promptsOnly
   ).pipe(Effect.tapError(() => settle("release")));
 
   // The set is committed at this point, so the credits are spent no matter

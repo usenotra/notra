@@ -1,5 +1,4 @@
 import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
-import type { PersonaConversationTurn } from "@notra/ai/types/geo-personas";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import type { ModelMessage } from "ai";
 import { Effect } from "effect";
@@ -16,6 +15,7 @@ import type {
 import type {
   GeoConversationOutcome,
   GeoConversationSource,
+  PersonaConversationTurn,
 } from "../types/geo-conversations";
 import { normalizePosition } from "../utils/geo-check-evaluation";
 import { geoLogWarn, logGeoSkip } from "../utils/geo-log";

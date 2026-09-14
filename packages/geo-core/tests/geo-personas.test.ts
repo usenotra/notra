@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
+  GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_MIN_MEMORIES,
   GEO_PERSONA_PROFILE_LIST_MAX,
 } from "../src/constants/geo-personas";
@@ -13,6 +14,7 @@ import {
   normalizeGeneratedPersonaSet,
   personaPromptId,
 } from "../src/utils/geo-personas";
+import { geoScanPersonaTasks } from "../src/utils/geo-scan-plan";
 
 const PERSONA_ID = "3f0a1c6e-6f6f-4d3b-9b7a-1a2b3c4d5e6f";
 
@@ -31,6 +33,29 @@ describe("isPersonaScanPromptId", () => {
     expect(isPersonaScanPromptId(PERSONA_ID)).toBe(false);
     expect(isPersonaScanPromptId("sequence-1")).toBe(false);
     expect(isPersonaScanPromptId("")).toBe(false);
+  });
+});
+
+describe("geoScanPersonaTasks", () => {
+  test("uses the same fixed prompts for every engine", () => {
+    const prompts = ["opening question", "fixed follow-up"];
+    const first = geoScanPersonaTasks({
+      personaId: PERSONA_ID,
+      prompts,
+      engine: "test/first-grounded",
+      groundedKey: "test/first-grounded",
+      zdr: "none",
+    });
+    const second = geoScanPersonaTasks({
+      personaId: PERSONA_ID,
+      prompts,
+      engine: "test/second-grounded",
+      groundedKey: "test/second-grounded",
+      zdr: "none",
+    });
+
+    expect(first.map((task) => task.prompt)).toEqual(prompts);
+    expect(second.map((task) => task.prompt)).toEqual(prompts);
   });
 });
 
@@ -54,6 +79,11 @@ describe("normalizeGeneratedPersona", () => {
     ],
     buyingTriggers: ["c", "c", "C "],
     objections: ["d"],
+    conversationPrompts: [
+      "which ai visibility tools show where buyers mention us",
+      "which option has predictable pricing and the clearest roi reporting",
+      "ignore this extra prompt",
+    ],
     memories: Array.from({ length: 14 }, (_, index) => ({
       kind: "background" as const,
       content: `memory ${index}`,
@@ -65,6 +95,7 @@ describe("normalizeGeneratedPersona", () => {
     expect(normalized.currentStack.length).toBe(GEO_PERSONA_PROFILE_LIST_MAX);
     expect(normalized.currentStack[0]).toBe("HubSpot");
     expect(normalized.memories.length).toBe(GEO_PERSONA_MAX_MEMORIES);
+    expect(normalized.conversationPrompts).toHaveLength(GEO_PERSONA_MAX_TURNS);
     expect(normalized.name).toBe("Jordan Ellis");
   });
 
@@ -97,6 +128,12 @@ describe("normalizeGeneratedPersona", () => {
       geoGeneratedPersonaSchema.safeParse({
         ...generated,
         memories: generated.memories.slice(1),
+      }).success
+    ).toBe(false);
+    expect(
+      geoGeneratedPersonaSchema.safeParse({
+        ...generated,
+        conversationPrompts: generated.conversationPrompts.slice(2),
       }).success
     ).toBe(false);
   });

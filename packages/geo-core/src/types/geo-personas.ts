@@ -25,6 +25,7 @@ export interface GeoPersona {
   summary: string;
   searchStyle: string;
   profile: GeoPersonaProfile;
+  conversationPrompts: string[];
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -119,6 +120,7 @@ export interface GeoGeneratedPersona {
   currentStack: string[];
   buyingTriggers: string[];
   objections: string[];
+  conversationPrompts: string[];
   memories: GeoGeneratedPersonaMemory[];
 }
 

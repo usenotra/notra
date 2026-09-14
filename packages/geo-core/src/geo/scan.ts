@@ -1043,7 +1043,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       : yield* Effect.tryPromise({
           try: () =>
             db.query.geoPersonas.findMany({
-              columns: { id: true },
+              columns: { id: true, conversationPrompts: true },
               where: and(
                 eq(geoPersonas.projectId, settingsRow.projectId),
                 eq(geoPersonas.enabled, true)
@@ -1056,12 +1056,15 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         });
     const personas: GeoScanPlannedPersona[] = scanEnglish
       ? personaRows.flatMap((persona) =>
-          groundedEngines.map(({ grounded, zdr }) => ({
-            personaId: persona.id,
-            engine: grounded.key,
-            groundedKey: grounded.key,
-            zdr,
-          }))
+          persona.conversationPrompts.length > 0
+            ? groundedEngines.map(({ grounded, zdr }) => ({
+                personaId: persona.id,
+                prompts: persona.conversationPrompts,
+                engine: grounded.key,
+                groundedKey: grounded.key,
+                zdr,
+              }))
+            : []
         )
       : [];
 

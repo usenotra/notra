@@ -28,6 +28,7 @@ import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
 import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
+import { PersonaPrompts } from "@/components/geo/persona-prompts";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { GeoConversationSkeleton } from "@/components/geo/skeleton-parts";
 import {
@@ -36,6 +37,7 @@ import {
   GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION,
   GEO_PERSONA_DIALOG_VIEWS,
 } from "@/constants/geo-personas";
+import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
 import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
@@ -69,6 +71,7 @@ function PersonaDetailHeader({
   active,
   scans,
   selectedScanId,
+  view,
   showConversation,
   isRunning,
   onRun,
@@ -95,7 +98,11 @@ function PersonaDetailHeader({
         </div>
         <Button
           className="ml-auto"
-          disabled={!persona.enabled || isRunning}
+          disabled={
+            !persona.enabled ||
+            persona.conversationPrompts.length === 0 ||
+            isRunning
+          }
           onClick={onRun}
           size="sm"
           type="button"
@@ -112,7 +119,7 @@ function PersonaDetailHeader({
         <Tabs
           className="gap-0"
           onValueChange={(value) => onViewChange(value as PersonaDialogView)}
-          value={showConversation ? "conversation" : "profile"}
+          value={view}
         >
           <TabsList aria-label="View">
             {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
@@ -226,6 +233,7 @@ export function PersonaDetailDialog({
 }: PersonaDetailDialogProps) {
   const [view, setView] = useState<PersonaDialogView>(DEFAULT_VIEW);
   const showConversation = view === "conversation";
+  const generatePersona = useGeoPersonasGenerate(organizationId);
   const {
     runPersona,
     threads,
@@ -287,6 +295,7 @@ export function PersonaDetailDialog({
           persona={persona}
           scans={scans}
           selectedScanId={selectedScanId}
+          view={view}
           showConversation={showConversation}
           threads={threads}
         />
@@ -301,7 +310,23 @@ export function PersonaDetailDialog({
               enabled={persona.enabled}
             />
           ) : null}
-          <div hidden={showConversation} className="h-full">
+          {view === "prompts" ? (
+            <PersonaPrompts
+              disabled={generatePersona.isPending}
+              isGenerating={
+                generatePersona.isPending &&
+                generatePersona.generatingPersonaId === persona.id
+              }
+              onGenerate={() =>
+                generatePersona.mutate({
+                  personaId: persona.id,
+                  promptsOnly: true,
+                })
+              }
+              prompts={persona.conversationPrompts}
+            />
+          ) : null}
+          <div hidden={view !== "profile"} className="h-full">
             <PersonaProfileEditor
               key={`${persona.id}:${persona.updatedAt}`}
               persona={persona}

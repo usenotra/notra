@@ -5,6 +5,8 @@ import {
   GEO_PERSONA_MIN_COUNT,
   GEO_PERSONA_MIN_MEMORIES,
   GEO_PERSONA_FIELD_MAX_LENGTH,
+  GEO_PERSONA_MAX_TURNS,
+  GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MIN,
 } from "../constants/geo-personas";
 import { geoOrganizationInputSchema } from "./geo";
@@ -37,6 +39,9 @@ export const geoGeneratedPersonaSchema = object({
   currentStack: textList,
   buyingTriggers: textList,
   objections: textList,
+  conversationPrompts: array(
+    requiredText.max(GEO_PERSONA_PROMPT_MAX_LENGTH)
+  ).min(GEO_PERSONA_MAX_TURNS),
   memories: array(geoGeneratedPersonaMemorySchema).min(
     GEO_PERSONA_MIN_MEMORIES
   ),
@@ -50,12 +55,16 @@ export const geoPersonaRegenerationSchema = object({
   personas: array(geoGeneratedPersonaSchema).length(1),
 });
 
-export const geoPersonasGenerateInputSchema = geoOrganizationInputSchema.extend(
-  {
+export const geoPersonasGenerateInputSchema = geoOrganizationInputSchema
+  .extend({
     personaId: string().min(1).optional(),
     brief: string().trim().min(1).max(2000).optional(),
-  }
-);
+    promptsOnly: boolean().optional(),
+  })
+  .refine((input) => !input.promptsOnly || Boolean(input.personaId), {
+    message: "A persona is required when generating prompts only",
+    path: ["personaId"],
+  });
 
 const editableList = array(string().trim().min(1).max(200)).max(6);
 

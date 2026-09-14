@@ -1566,6 +1566,10 @@ export const geoPersonas = pgTable(
     summary: text("summary").notNull(),
     searchStyle: text("search_style").notNull(),
     profile: jsonb("profile").$type<GeoPersonaProfile>().notNull(),
+    conversationPrompts: text("conversation_prompts")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
