@@ -1,10 +1,21 @@
 import {
+  ResponsiveAlertDialog,
+  ResponsiveAlertDialogAction,
+  ResponsiveAlertDialogCancel,
+  ResponsiveAlertDialogContent,
+  ResponsiveAlertDialogDescription,
+  ResponsiveAlertDialogFooter,
+  ResponsiveAlertDialogHeader,
+  ResponsiveAlertDialogTitle,
+} from "@notra/ui/components/shared/responsive-alert-dialog";
+import {
   Popover,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -43,7 +54,7 @@ export function SentimentThemesEmpty({
         {canAnalyze ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button onClick={() => setConfirmOpen(true)}>
-              {retrying ? "Retry finding themes" : "Find themes"}
+              {retrying ? "Retry analysis" : "Analyze now"}
             </Button>
             <Popover>
               <PopoverTrigger render={<Button variant="outline" />}>
@@ -92,14 +103,3 @@ export function SentimentThemesEmpty({
     </div>
   );
 }
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useState } from "react";

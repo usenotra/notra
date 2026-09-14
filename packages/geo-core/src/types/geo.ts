@@ -350,6 +350,11 @@ export interface GeoPromptRescanInput extends GeoScopeInput {
   engines?: readonly string[];
 }
 
+export interface GeoPromptGapIgnoreInput extends GeoScopeInput {
+  promptId: string;
+  ignored: boolean;
+}
+
 export interface GeoRescanForPostInput {
   organizationId: string;
   postId: string;

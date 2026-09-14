@@ -7,6 +7,20 @@ import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "./charts";
 
 export const SENTIMENT_SCORE_HINT =
   "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50, and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage.";
+export const SENTIMENT_RETROACTIVE_EMPTY_MESSAGE =
+  "Sentiment ratings aren't available for earlier days in this range yet.";
+export const SENTIMENT_SHARES_PENDING_MESSAGE =
+  "Polarity shares appear once ratings cover the full selected range.";
+export const SENTIMENT_POLARITY_CTA = {
+  positive: {
+    subtext: "See what's working in saved answers.",
+    action: "Analyze positives",
+  },
+  negative: {
+    subtext: "Catch what's hurting before it spreads.",
+    action: "Analyze risks",
+  },
+} as const;
 export const SENTIMENT_SCORE_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
 });

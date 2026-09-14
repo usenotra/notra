@@ -14,8 +14,8 @@ export function getGitHubInstallationPermissionsUrl({
   }
 
   if (accountType === "Organization" && accountLogin) {
-    return `https://github.com/organizations/${encodeURIComponent(accountLogin)}/settings/installations/${installationId}/permissions`;
+    return `https://github.com/organizations/${encodeURIComponent(accountLogin)}/settings/installations/${installationId}`;
   }
 
-  return `https://github.com/settings/installations/${installationId}/permissions`;
+  return `https://github.com/settings/installations/${installationId}`;
 }

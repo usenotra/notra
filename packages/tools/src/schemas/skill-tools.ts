@@ -1,3 +1,8 @@
+import {
+  skillContentSchema,
+  skillDescriptionSchema,
+  skillNameSchema,
+} from "@notra/ai/schemas/skills";
 import { z } from "zod";
 
 export const skillNameInputSchema = z.object({
@@ -5,6 +10,18 @@ export const skillNameInputSchema = z.object({
 });
 
 export const listSkillsInputSchema = z.object({});
+
+export const createSkillInputSchema = z.object({
+  name: skillNameSchema.describe(
+    "Unique skill name in lowercase kebab-case: start and end with a letter or digit, letters, digits, and hyphens only."
+  ),
+  description: skillDescriptionSchema.describe(
+    "One-sentence description of when to apply this skill."
+  ),
+  content: skillContentSchema.describe(
+    "The full skill body: the reusable writing guidance applied when drafting content."
+  ),
+});
 
 export const updateSkillInputSchema = z
   .object({

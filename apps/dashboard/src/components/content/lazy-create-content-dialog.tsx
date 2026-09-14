@@ -34,7 +34,7 @@ export function LazyCreateContentDialog({
         setOpen(true);
       }
     },
-    { enabled: !open }
+    { conflictBehavior: "replace", enabled: !open }
   );
 
   return (

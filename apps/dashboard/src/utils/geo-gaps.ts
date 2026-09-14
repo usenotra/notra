@@ -6,6 +6,7 @@ import {
   GEO_SEARCH_GAP_WRITE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type {
+  GeoContentGapsResponse,
   GeoGapBriefRef,
   GeoGapWriteAction,
   GeoPromptGapRow,
@@ -26,6 +27,32 @@ import type {
 } from "@/types/components/geo-gaps";
 
 import { bestFuzzyScore, fuzzyMatches } from "./fuzzy";
+
+export function withoutPromptGap(
+  response: GeoContentGapsResponse,
+  promptId: string
+): GeoContentGapsResponse {
+  return {
+    ...response,
+    promptGaps: response.promptGaps.filter((row) => row.id !== promptId),
+  };
+}
+
+/** Re-insert one optimistically removed gap without touching other rows. */
+export function withRestoredPromptGap(
+  response: GeoContentGapsResponse,
+  gap: GeoPromptGapRow
+): GeoContentGapsResponse {
+  if (response.promptGaps.some((row) => row.id === gap.id)) {
+    return response;
+  }
+  return {
+    ...response,
+    promptGaps: [...response.promptGaps, gap].sort(
+      (a, b) => b.opportunity - a.opportunity
+    ),
+  };
+}
 
 /** Map 0–1 intensity onto a 1–5 inspo-style meter (empty when intensity is 0). */
 export function gapMeterLevel(

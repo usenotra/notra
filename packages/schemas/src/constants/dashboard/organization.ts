@@ -1,6 +1,8 @@
 export const RESERVED_ORGANIZATION_SLUGS = [
   "api",
   "auth",
+  "home",
+  "landing",
   "login",
   "signup",
   "forgot-password",

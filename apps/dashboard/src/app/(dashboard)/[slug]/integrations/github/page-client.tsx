@@ -89,7 +89,7 @@ export default function PageClient({
       />
       <LegacyAddIntegrationDialog
         onOpenChange={settings.setLegacyOpen}
-        onSuccess={() => settings.legacyQuery.refetch()}
+        onSuccess={() => settings.repositoriesDb.refetch()}
         open={settings.legacyOpen}
         organizationId={settings.organizationId}
         organizationSlug={organizationSlug}

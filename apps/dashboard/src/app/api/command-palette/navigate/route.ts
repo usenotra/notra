@@ -1,3 +1,4 @@
+import { UTILITY_MODEL_ID } from "@notra/ai/constants/models";
 import { gateway } from "@notra/ai/gateway";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
@@ -270,7 +271,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { object } = await generateObject({
-      model: gateway("anthropic/claude-sonnet-4.6", {
+      model: gateway(UTILITY_MODEL_ID, {
         organizationId,
       }),
       schema: commandPaletteNavigateResultSchema,
@@ -293,7 +294,7 @@ export async function POST(request: NextRequest) {
         `User query: ${query}`,
       ].join("\n"),
       providerOptions: withRouterDefaults(undefined, {
-        modelId: "anthropic/claude-sonnet-4.6",
+        modelId: UTILITY_MODEL_ID,
       }),
       abortSignal: request.signal,
       experimental_telemetry: buildExperimentalTelemetry({

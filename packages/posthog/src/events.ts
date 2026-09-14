@@ -85,6 +85,7 @@ export const POSTHOG_EVENTS = {
   GSC_CARD_DISMISSED: "gsc_card_dismissed",
   GEO_GAPS_VIEWED: "geo_gaps_viewed",
   GEO_GAP_WRITE_CLICKED: "geo_gap_write_clicked",
+  GEO_GAP_IGNORED: "geo_gap_ignored",
   GEO_WRITE_DIALOG_OPENED: "geo_write_dialog_opened",
   GEO_BRIEF_PLANNED: "geo_brief_planned",
   GEO_WRITER_STARTED: "geo_writer_started",

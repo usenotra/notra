@@ -30,6 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^21.0.0",
+    "@shadcn/lint": "0.1.0",
     "@types/node": "24.13.2",
     "bun-types": "1.4.0",
     "dotenv-cli": "^11.0.0",
@@ -39,7 +40,7 @@
     "knip": "^6.12.2",
     "openlogs": "^0.0.1",
     "oxfmt": "0.64.0",
-    "oxlint": "1.79.0",
+    "oxlint": "1.82.0",
     "turbo": "^2.10.12",
     "ultracite": "7.10.6"
   },

@@ -1,8 +1,16 @@
 import type { GeoCompetitor, GeoSettings } from "@notra/geo-core/types/geo";
 import type {
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_SORT_DIRECTIONS,
+  GEO_SHELF_SORT_KEYS,
+  GEO_SHELF_TICKET_FILTERS,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
+import type {
+  geoShelfBoardCountsSchema,
   geoShelfCitationSummarySchema,
   geoShelfCreateInputSchema,
   geoShelfFetchStatusSchema,
+  geoShelfListInputSchema,
   geoShelfListResponseSchema,
   geoShelfMemberSchema,
   geoShelfMembersResponseSchema,
@@ -20,14 +28,11 @@ import type {
   geoShelfSourceKindSchema,
   geoShelfSourceSchema,
   geoShelfUpdateInputSchema,
+  geoShelfUrlCheckResponseSchema,
 } from "@notra/schemas/dashboard/geo-shelf";
 import type { z } from "zod";
 
-import type {
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTERS,
-  GEO_SHELF_VIEWS,
-} from "@/constants/geo-shelf";
+import type { GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
 
 export type GeoShelfSourceKind = z.infer<typeof geoShelfSourceKindSchema>;
 export type GeoShelfOwnership = z.infer<typeof geoShelfOwnershipSchema>;
@@ -86,12 +91,58 @@ export type GeoShelfMutationResponse = z.infer<
   typeof geoShelfMutationResponseSchema
 >;
 export type GeoShelfPreview = z.infer<typeof geoShelfPreviewResponseSchema>;
+export type GeoShelfUrlCheckResponse = z.infer<
+  typeof geoShelfUrlCheckResponseSchema
+>;
 
 export type GeoShelfShelfFilter = (typeof GEO_SHELF_SHELF_FILTERS)[number];
 export type GeoShelfTicketFilter = (typeof GEO_SHELF_TICKET_FILTERS)[number];
+export type GeoShelfSortKey = (typeof GEO_SHELF_SORT_KEYS)[number];
+export type GeoShelfSortDirection = (typeof GEO_SHELF_SORT_DIRECTIONS)[number];
 export type GeoShelfView = (typeof GEO_SHELF_VIEWS)[number];
 export type GeoShelfBoardColumnId = GeoShelfOpportunityStatus | "untracked";
 export type GeoShelfBoardItems = Record<GeoShelfBoardColumnId, string[]>;
+export type GeoShelfBoardCounts = z.infer<typeof geoShelfBoardCountsSchema>;
+export type GeoShelfListInput = z.input<typeof geoShelfListInputSchema>;
+
+export interface GeoShelfSortState {
+  key: GeoShelfSortKey;
+  direction: GeoShelfSortDirection;
+}
+
+/** Search resolved against names that only live outside the shelf rows. */
+export interface GeoShelfSearchQuery {
+  text: string;
+  competitorIds: string[];
+  memberIds: string[];
+}
+
+export interface GeoShelfPageQuery {
+  offset: number;
+  limit: number;
+  shelf: GeoShelfShelfFilter;
+  ticket: GeoShelfTicketFilter;
+  currentMemberId: string | null;
+  search: GeoShelfSearchQuery | null;
+  sort: GeoShelfSortState;
+}
+
+export interface GeoShelfSourcePage {
+  sources: GeoShelfSource[];
+  nextOffset: number | null;
+  totalCount: number;
+  filteredCount: number;
+  boardCounts: GeoShelfBoardCounts;
+  hasScanData: boolean;
+  isSampleData: boolean;
+}
+
+export interface GeoShelfCitationState {
+  id: string;
+  url: string;
+  title: string | null;
+  citations: unknown;
+}
 
 export interface GeoShelfStoreKey {
   organizationId: string;
@@ -145,15 +196,19 @@ export interface GeoShelfUpdateResult {
   placementsChanged: boolean;
 }
 
-export interface GeoShelfSourceList {
-  sources: GeoShelfSource[];
-  isSampleData: boolean;
-}
-
 export interface GeoShelfDbApi {
+  /** Every loaded page, in server order. */
   sources: GeoShelfSource[];
   isLoading: boolean;
   isSampleData: boolean;
+  totalCount: number;
+  filteredCount: number;
+  boardCounts: GeoShelfBoardCounts;
+  hasScanData: boolean;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  loadMore: () => void;
   pendingSourceIds: ReadonlySet<string>;
   addSource: (source: GeoShelfSource) => void;
   updateOpportunity: (
@@ -165,12 +220,6 @@ export interface GeoShelfDbApi {
     competitorId: string | null,
     status: GeoShelfPlacementStatus
   ) => void;
-}
-
-/** Row selection keeps the URL so the detail dialog survives an id swap. */
-export interface GeoShelfSelection {
-  id: string;
-  url: string;
 }
 
 export interface GeoShelfToolbarProps {
@@ -191,8 +240,21 @@ export interface GeoShelfPageControlsProps extends GeoShelfToolbarProps {
   onViewChange: (view: GeoShelfView) => void;
 }
 
+/** Paging state shared by the table and the board. */
+export interface GeoShelfPagingProps {
+  filteredCount: number;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
+}
+
 export interface GeoShelfBoardProps {
   rows: GeoShelfRow[];
+  boardCounts: GeoShelfBoardCounts;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  onLoadMore: () => void;
   ticketFilter: GeoShelfTicketFilter;
   currentMemberId: string | null;
   pendingSourceIds: ReadonlySet<string>;
@@ -200,10 +262,13 @@ export interface GeoShelfBoardProps {
   onUpdateOpportunity: GeoShelfDbApi["updateOpportunity"];
 }
 
-export interface GeoShelfViewProps {
+export interface GeoShelfViewProps extends GeoShelfPagingProps {
   view: GeoShelfView;
   rows: GeoShelfRow[];
   totalCount: number;
+  boardCounts: GeoShelfBoardCounts;
+  sort: GeoShelfSortState;
+  onSortChange: (sort: GeoShelfSortState) => void;
   ticketFilter: GeoShelfTicketFilter;
   currentMemberId: string | null;
   pendingSourceIds: ReadonlySet<string>;
@@ -214,9 +279,11 @@ export interface GeoShelfViewProps {
   onSetPlacementStatus: GeoShelfDbApi["setPlacementStatus"];
 }
 
-export interface GeoShelfTableProps {
+export interface GeoShelfTableProps extends GeoShelfPagingProps {
   rows: GeoShelfRow[];
   totalCount: number;
+  sort: GeoShelfSortState;
+  onSortChange: (sort: GeoShelfSortState) => void;
   currentMemberId: string | null;
   onRowClick: (row: GeoShelfRow) => void;
   onUpdateOpportunity: GeoShelfDbApi["updateOpportunity"];
@@ -352,7 +419,6 @@ export interface GeoShelfPageStatusInput {
   isSettingsPending: boolean;
   hasSettings: boolean;
   isShelfLoading: boolean;
-  isFilteredShelfLoading: boolean;
   isMembersLoading: boolean;
 }
 
@@ -372,9 +438,17 @@ export interface GeoShelfPageReady {
   members: GeoShelfMember[];
   currentMemberId: string | null;
   currentMember: GeoShelfMember | null;
+  /** Loaded rows, already filtered and sorted by the server. */
   rows: GeoShelfRow[];
-  filteredRows: GeoShelfRow[];
+  totalCount: number;
+  filteredCount: number;
+  boardCounts: GeoShelfBoardCounts;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
   filters: GeoShelfFilterState;
+  sort: GeoShelfSortState;
   view: GeoShelfView;
   hasScanData: boolean;
   selectedRow: GeoShelfRow | null;
@@ -383,6 +457,7 @@ export interface GeoShelfPageReady {
   onSearchChange: (value: string) => void;
   onShelfFilterChange: (value: GeoShelfShelfFilter) => void;
   onTicketFilterChange: (value: GeoShelfTicketFilter) => void;
+  onSortChange: (sort: GeoShelfSortState) => void;
   onViewChange: (value: GeoShelfView) => void;
   onAddOpenChange: (open: boolean) => void;
   onRowClick: (row: GeoShelfRow) => void;

@@ -17,6 +17,7 @@ import {
 } from "@/constants/onboarding-agent";
 import { localStorageKeys } from "@/constants/storage";
 import type {
+  InitialOnboardingAgentRun,
   OnboardingRunSnapshot,
   OnboardingStatus,
   PendingOnboardingSuggestion,
@@ -51,7 +52,10 @@ export function useCompanyLogo(domain: string | null, name?: string | null) {
   );
 }
 
-export function useOnboardingAgentRun(organizationId: string) {
+export function useOnboardingAgentRun(
+  organizationId: string,
+  initialRun?: InitialOnboardingAgentRun
+) {
   const queryClient = useQueryClient();
   const previousRunRef = useRef<OnboardingRunSnapshot | null>(null);
 
@@ -59,9 +63,16 @@ export function useOnboardingAgentRun(organizationId: string) {
     dashboardOrpc.onboarding.agentRun.queryOptions({
       input: { organizationId },
       enabled: !!organizationId,
+      initialData:
+        initialRun?.organizationId === organizationId
+          ? initialRun.state
+          : undefined,
       staleTime: AGENT_RUN_STALE_TIME_MS,
       refetchInterval: (current) =>
-        current.state.data?.running ? AGENT_RUN_REFETCH_INTERVAL_MS : false,
+        current.state.data?.running
+          ? AGENT_RUN_REFETCH_INTERVAL_MS
+          : AGENT_RUN_STALE_TIME_MS,
+      refetchOnWindowFocus: "always",
     })
   );
 

@@ -5,56 +5,58 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 
 import {
-  SENTIMENT_SCORE_FORMAT,
   SENTIMENT_DELTA_FORMAT,
+  SENTIMENT_SCORE_FORMAT,
 } from "@/constants/geo-sentiment";
 import type { SentimentScoreProps } from "@/types/geo-sentiment";
 import { formatSentimentPeriod } from "@/utils/sentiment-dates";
 
 export function SentimentScore({ summary, comparison }: SentimentScoreProps) {
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[auto_minmax(0,1fr)]">
-      <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
-        {summary.score === null
-          ? "—"
-          : SENTIMENT_SCORE_FORMAT.format(summary.score)}{" "}
-        {summary.score !== null ? (
-          <span className="text-muted-foreground text-sm font-normal">
-            / 100
-          </span>
+    <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+      <div className="flex flex-col gap-1">
+        <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
+          {summary.score === null
+            ? "—"
+            : SENTIMENT_SCORE_FORMAT.format(summary.score)}{" "}
+          {summary.score !== null ? (
+            <span className="text-muted-foreground text-sm font-normal">
+              / 100
+            </span>
+          ) : null}
+        </p>
+        {comparison ? (
+          <Tooltip>
+            <TooltipTrigger
+              data-direction={Math.sign(comparison.delta ?? 0)}
+              className="text-muted-foreground focus-visible:outline-ring data-[direction='1']:text-geo-up data-[direction='-1']:text-geo-down min-h-6 w-fit rounded-sm text-xs tabular-nums focus-visible:outline-2"
+              aria-label="Score comparison and period dates"
+            >
+              {comparison.delta === null
+                ? "No comparable score"
+                : `${SENTIMENT_DELTA_FORMAT.format(comparison.delta)} pts vs. previous period`}
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                Current:{" "}
+                {formatSentimentPeriod(
+                  comparison.current.from,
+                  comparison.current.to
+                )}
+              </p>
+              <p>
+                Previous:{" "}
+                {formatSentimentPeriod(
+                  comparison.previous.from,
+                  comparison.previous.to
+                )}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         ) : null}
-      </p>
-      {comparison ? (
-        <Tooltip>
-          <TooltipTrigger
-            data-direction={Math.sign(comparison.delta ?? 0)}
-            className="text-muted-foreground focus-visible:outline-ring data-[direction='1']:text-geo-up data-[direction='-1']:text-geo-down min-h-6 rounded-sm text-xs tabular-nums focus-visible:outline-2"
-            aria-label="Score comparison and period dates"
-          >
-            {comparison.delta === null
-              ? "No comparable score"
-              : `${SENTIMENT_DELTA_FORMAT.format(comparison.delta)} pts vs. previous period`}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>
-              Current:{" "}
-              {formatSentimentPeriod(
-                comparison.current.from,
-                comparison.current.to
-              )}
-            </p>
-            <p>
-              Previous:{" "}
-              {formatSentimentPeriod(
-                comparison.previous.from,
-                comparison.previous.to
-              )}
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
+      </div>
       {summary.score !== null ? (
-        <div className="pt-2 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:self-center sm:pt-0">
+        <div className="pt-2 sm:pt-0">
           <meter
             aria-label="Sentiment score position"
             min={0}

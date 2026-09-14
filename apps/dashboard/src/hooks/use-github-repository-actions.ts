@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { toast } from "sonner";
 
+import { useGitHubRepositoriesDb } from "@/lib/hooks/use-github-repositories-db";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   GitHubRepositoryActionsProps,
@@ -12,10 +12,11 @@ export function useGitHubRepositoryActions({
   integration,
   organizationId,
 }: Pick<GitHubRepositoryActionsProps, "integration" | "organizationId">) {
-  const queryClient = useQueryClient();
+  const db = useGitHubRepositoriesDb(organizationId);
   const isEnabled =
     integration.enabled &&
     integration.repositories.every((repository) => repository.enabled);
+  const isPending = db.pendingRepositoryIds.has(integration.id);
   const [dialog, setDialog] = useState<GitHubRepositoryDialog>(null);
   const affectedSchedules = useQuery({
     ...dashboardOrpc.integrations.affectedSchedules.queryOptions({
@@ -24,47 +25,20 @@ export function useGitHubRepositoryActions({
     staleTime: 60 * 1000,
     enabled: dialog === "delete",
   });
-  const invalidate = () =>
-    Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.integrations.key(),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.github.app.get.queryKey({
-          input: { organizationId },
-        }),
-      }),
-    ]);
-  const toggle = useMutation({
-    mutationFn: () =>
-      dashboardOrpc.integrations.update.call({
-        organizationId,
-        integrationId: integration.id,
-        enabled: !isEnabled,
-      }),
-    onSuccess: () => {
-      toast.success(isEnabled ? "Repository paused" : "Repository enabled");
-    },
-    onError: (error) => toast.error(error.message),
-    onSettled: invalidate,
-  });
-  const remove = useMutation({
-    mutationFn: () =>
-      dashboardOrpc.integrations.delete.call({
-        organizationId,
-        integrationId: integration.id,
-      }),
-    onSuccess: async () => {
-      await Promise.all([
-        invalidate(),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.automation.key(),
-        }),
-      ]);
-      setDialog(null);
-      toast.success("Repository removed");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  return { isEnabled, dialog, setDialog, affectedSchedules, toggle, remove };
+  const toggle = () => {
+    void db.setRepositoryEnabled(integration.id, !isEnabled).catch(() => {});
+  };
+  const remove = () => {
+    setDialog(null);
+    void db.removeRepository(integration.id).catch(() => {});
+  };
+  return {
+    isEnabled,
+    isPending,
+    dialog,
+    setDialog,
+    affectedSchedules,
+    toggle,
+    remove,
+  };
 }

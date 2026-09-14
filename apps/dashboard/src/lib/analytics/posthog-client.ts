@@ -8,6 +8,7 @@ import {
   getPostHogInitGeneration,
   withPostHog,
 } from "@/lib/analytics/posthog-lazy";
+import { clearPostHogIdentity } from "@/utils/posthog";
 
 /** Cap so logout/checkout cannot wait on a hung PostHog chunk load. */
 const FLUSH_TRACK_EVENT_TIMEOUT_MS = 400;
@@ -63,4 +64,9 @@ export function trackClientException(
   properties?: PostHogProperties
 ): void {
   void withPostHog((posthog) => posthog.captureException(error, properties));
+}
+
+/** Clears persisted user and group attribution after a successful sign-out. */
+export function resetPostHogIdentity(): void {
+  void withPostHog(clearPostHogIdentity).catch(() => undefined);
 }

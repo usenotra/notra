@@ -12,7 +12,7 @@ function RepositoryList({
   githubIntegrations,
   organizationId,
   isLoadingLegacyIntegrations,
-  legacyQuery,
+  repositoriesDb,
   handleOpenRepositories,
   handleOpenConnect,
   isConnected,
@@ -21,14 +21,14 @@ function RepositoryList({
   if (isLoadingLegacyIntegrations) {
     return <GitHubRepositoriesSkeleton />;
   }
-  if (legacyQuery.isError && !legacyQuery.data) {
+  if (repositoriesDb.isError && !repositoriesDb.hasData) {
     return (
       <div role="alert" className="py-6">
         <p className="text-sm">Unable to load repositories.</p>
         <Button
           className="mt-2"
           variant="outline"
-          onClick={() => legacyQuery.refetch()}
+          onClick={() => repositoriesDb.refetch()}
         >
           Retry
         </Button>
@@ -82,19 +82,19 @@ function RepositoryList({
 export function GitHubRepositoriesSection(
   props: GitHubRepositoriesSectionProps
 ) {
-  const { githubIntegrations, isLoadingLegacyIntegrations, legacyQuery } =
+  const { githubIntegrations, isLoadingLegacyIntegrations, repositoriesDb } =
     props;
-  useRepositoryHashScroll(legacyQuery.data);
+  useRepositoryHashScroll(githubIntegrations);
   const empty =
     !isLoadingLegacyIntegrations &&
-    !legacyQuery.isError &&
+    !repositoriesDb.isError &&
     githubIntegrations.length === 0;
   return (
     <section
       aria-labelledby="github-repositories-heading"
       className={
         githubIntegrations.length > 0
-          ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] lg:gap-12"
+          ? "grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] 2xl:gap-12"
           : ""
       }
     >
@@ -114,7 +114,7 @@ export function GitHubRepositoriesSection(
         </p>
       </div>
       <div className="min-w-0 space-y-4">
-        {legacyQuery.isError && legacyQuery.data ? (
+        {repositoriesDb.isError && repositoriesDb.hasData ? (
           <div
             role="alert"
             className="flex items-center justify-between gap-3 text-sm"
@@ -123,7 +123,7 @@ export function GitHubRepositoriesSection(
             <Button
               variant="outline"
               size="sm"
-              onClick={() => legacyQuery.refetch()}
+              onClick={() => repositoriesDb.refetch()}
             >
               Retry
             </Button>

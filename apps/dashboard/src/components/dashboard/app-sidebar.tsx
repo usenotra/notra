@@ -20,17 +20,15 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 
 import { ChatHistoryNav } from "./chat-history-nav";
+import { DeferredSidebarStatus } from "./deferred-sidebar-status";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
 import { NavUtility } from "./nav-utility";
 import { OrgSelector } from "./org-selector";
 import { SidebarLabel } from "./sidebar-label";
-import { SidebarOnboarding } from "./sidebar-onboarding";
 import { SidebarProjectSwitcher } from "./sidebar-project-switcher";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
 import { SidebarSwap } from "./sidebar-swap";
-import { SidebarTrialExpired } from "./sidebar-trial-expired";
-import { SidebarUpgrade } from "./sidebar-upgrade";
 
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
   return (
@@ -141,9 +139,7 @@ export function DashboardSidebar({
         />
         <div className="mt-auto">
           <NavUtility slug={slug} />
-          <SidebarTrialExpired />
-          <SidebarOnboarding />
-          <SidebarUpgrade />
+          <DeferredSidebarStatus />
         </div>
       </SidebarContent>
       <SidebarFooter>

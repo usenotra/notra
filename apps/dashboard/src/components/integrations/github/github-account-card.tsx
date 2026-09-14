@@ -84,7 +84,7 @@ export function GitHubAccountCard({
         >
           <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuItem onClick={onAddRepositories}>
             Manage repositories
           </DropdownMenuItem>

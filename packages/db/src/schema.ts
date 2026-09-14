@@ -1465,6 +1465,11 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    // Prompt gaps the user ignored; hidden from Content Gaps and the planner.
+    ignoredGapPromptIds: text("ignored_gap_prompt_ids")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
     scanIntervalHours: integer("scan_interval_hours").notNull().default(24),
     sentimentAttemptedAt: timestamp("sentiment_attempted_at"),

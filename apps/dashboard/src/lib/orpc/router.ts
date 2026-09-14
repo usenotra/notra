@@ -17,6 +17,7 @@ import { searchRouter } from "./routers/search";
 import { skillsRouter } from "./routers/skills";
 import { socialAccountsRouter } from "./routers/social-accounts";
 import { uploadRouter } from "./routers/upload";
+import { usageAlertsRouter } from "./routers/usage-alerts";
 import { userRouter } from "./routers/user";
 
 export const dashboardRouter = {
@@ -39,6 +40,7 @@ export const dashboardRouter = {
   skills: skillsRouter,
   socialAccounts: socialAccountsRouter,
   upload: uploadRouter,
+  usageAlerts: usageAlertsRouter,
   user: userRouter,
 };
 

@@ -174,6 +174,38 @@ export interface GitHubPublishingSettingsProps {
   disabled?: boolean;
 }
 
+export interface GitHubBranchPickerProps {
+  organizationId: string;
+  repository: GitHubRepository;
+}
+
+export interface GitHubCreateBranchFormProps {
+  baseBranch: string;
+  errorMessage?: string;
+  isPending: boolean;
+  onCancel: () => void;
+  onChange: () => void;
+  onSubmit: (branchName: string) => void;
+}
+
+export interface GitHubBranchListProps {
+  branches: string[];
+  canCreate: boolean;
+  currentBranch: string | null;
+  isError: boolean;
+  isLoading: boolean;
+  isUpdating: boolean;
+  onCreate: () => void;
+  onRetry: () => void;
+  onSelect: (branchName: string) => void;
+}
+
+export interface GitHubBranchPanelTransitionProps {
+  branchList: React.ReactNode;
+  createForm: React.ReactNode;
+  creating: boolean;
+}
+
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
   contentLabel: string;
   contentType: GitHubPublishContentType;
@@ -202,11 +234,6 @@ export interface GitHubPublishingPathFieldsProps {
     contentPath: string | null;
     imagePath: string | null;
   }) => void;
-}
-
-export interface GitHubOutputMutationVariables {
-  enabled: boolean;
-  outputId?: string;
 }
 
 export interface GitHubDirectoryPickerProps {

@@ -1,5 +1,9 @@
 "use client";
 
+import { Label } from "@notra/ui/components/ui/label";
+import { Switch } from "@notra/ui/components/ui/switch";
+import { useId } from "react";
+
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { EditIntegrationDialog } from "@/components/integrations/edit-integration-dialog";
 import { GitHubRepositoryMenu } from "@/components/integrations/github/github-repository-menu";
@@ -9,8 +13,16 @@ import type { GitHubRepositoryActionsProps } from "@/types/integrations/github";
 
 export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
   const { integration, organizationId } = props;
-  const { isEnabled, dialog, setDialog, affectedSchedules, toggle, remove } =
-    useGitHubRepositoryActions(props);
+  const pauseSwitchId = useId();
+  const {
+    isEnabled,
+    isPending,
+    dialog,
+    setDialog,
+    affectedSchedules,
+    toggle,
+    remove,
+  } = useGitHubRepositoryActions(props);
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setDialog(null);
@@ -18,13 +30,32 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
   };
   return (
     <>
-      <GitHubRepositoryMenu
-        {...props}
-        isEnabled={isEnabled}
-        isPending={toggle.isPending || remove.isPending}
-        onToggle={() => toggle.mutate()}
-        onDialog={setDialog}
-      />
+      <div className="flex items-center gap-3">
+        <Label
+          className="text-muted-foreground cursor-pointer text-xs font-medium"
+          htmlFor={pauseSwitchId}
+        >
+          {isEnabled ? "Active" : "Paused"}
+        </Label>
+        <Switch
+          id={pauseSwitchId}
+          nativeButton
+          aria-label={
+            isEnabled
+              ? `Pause ${integration.displayName}`
+              : `Enable ${integration.displayName}`
+          }
+          checked={isEnabled}
+          onCheckedChange={toggle}
+        />
+        <GitHubRepositoryMenu
+          {...props}
+          isEnabled={isEnabled}
+          isPending={false}
+          onToggle={toggle}
+          onDialog={setDialog}
+        />
+      </div>
       {dialog === "edit" ? (
         <EditIntegrationDialog
           integration={integration}
@@ -44,9 +75,9 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
       <DeleteIntegrationDialog
         affectedSchedules={affectedSchedules.data?.affectedSchedules ?? []}
         integrationName={integration.displayName}
-        isDeleting={remove.isPending}
+        isDeleting={isPending}
         isLoadingSchedules={affectedSchedules.isLoading}
-        onConfirm={() => remove.mutate()}
+        onConfirm={remove}
         open={dialog === "delete"}
         onOpenChange={handleOpenChange}
       />

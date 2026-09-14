@@ -67,6 +67,7 @@ export function TrafficPagesCard({
   const groups = groupTrafficPages(pages);
   const observedHosts = hosts ?? trafficHostsFromPages(pages);
   const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();
+  const hostSelectValue = trafficHostSelectValue(hostQuery);
   const appliedHost = trafficLogHostFilter(hostQuery);
   const hostOptions = trafficHostSelectOptions(observedHosts, appliedHost);
   const showHostFilter = hostOptions.length > 1 || appliedHost.length > 0;
@@ -159,14 +160,18 @@ export function TrafficPagesCard({
                   );
                 }
               }}
-              value={trafficHostSelectValue(hostQuery)}
+              value={hostSelectValue}
             >
               <SelectTrigger
                 aria-label="Filter pages by domain"
                 className="w-full min-w-0 sm:max-w-52"
                 size="sm"
               >
-                <SelectValue placeholder="All domains" />
+                <SelectValue>
+                  {hostSelectValue === GEO_TRAFFIC_HOST_ALL
+                    ? "All domains"
+                    : hostSelectValue}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={GEO_TRAFFIC_HOST_ALL}>

@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
 import { SIDEBAR_WIDTH_COOKIE_NAME } from "@/constants/nav";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
+import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { toOrganizationSummary } from "@/utils/organization-summary";
 import { getSidebarWidthFromCookie } from "@/utils/sidebar-width";
 
@@ -37,10 +38,18 @@ export default async function OrganizationLayout({
     cookieStore.get(SIDEBAR_WIDTH_COOKIE_NAME)?.value
   );
   const organizationSummary = toOrganizationSummary(organization);
+  const initialOnboardingAgentRun = {
+    organizationId: organization.id,
+    state: resolveOnboardingAgentRunState({
+      ran: organization.onboardingAgentRan,
+      startedAt: organization.onboardingAgentStartedAt,
+    }),
+  };
 
   return (
     <DashboardClientWrapper
       initialActiveOrganization={organizationSummary}
+      initialOnboardingAgentRun={initialOnboardingAgentRun}
       initialSidebarOpen={initialSidebarOpen}
       initialSidebarWidth={initialSidebarWidth}
       modal={modal}

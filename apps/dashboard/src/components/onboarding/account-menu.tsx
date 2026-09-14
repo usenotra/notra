@@ -29,6 +29,7 @@ import { getUserAvatarUrl } from "@/utils/avatar";
 export function OnboardingAccountMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const signOut = authClient.useSignOut();
   const user = session?.user;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,7 +39,7 @@ export function OnboardingAccountMenu() {
   async function handleSignOut() {
     setIsSigningOut(true);
     try {
-      await authClient.signOut({
+      await signOut({
         fetchOptions: {
           onSuccess: () => {
             toast.success("Signed out successfully");

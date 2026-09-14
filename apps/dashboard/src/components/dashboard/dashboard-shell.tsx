@@ -1,6 +1,14 @@
 "use client";
 
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@notra/ui/components/shared/responsive-dialog";
 import { SidebarInset, SidebarProvider } from "@notra/ui/components/ui/sidebar";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
@@ -9,13 +17,14 @@ import { toast } from "sonner";
 
 import { SubscriptionGate } from "@/components/billing/subscription-gate";
 import { DashboardSidebar } from "@/components/dashboard/app-sidebar";
-import { DashboardAgentHost } from "@/components/dashboard/dashboard-agent-panel";
 import { SiteHeader } from "@/components/dashboard/header";
 import { RestoreSidebarHome } from "@/components/dashboard/restore-sidebar-home";
+import { RightPanel } from "@/components/dashboard/right-panel";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EVE_BANNER_HEIGHT } from "@/constants/onboarding-agent";
 import { RIGHT_PANEL_PORTAL_ID } from "@/constants/right-panel";
+import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import {
   useOnboardingAgentBannerDismissal,
   useOnboardingAgentRun,
@@ -23,6 +32,7 @@ import {
 } from "@/lib/hooks/use-onboarding";
 import { useSidebarWidth } from "@/lib/hooks/use-sidebar-width";
 import type {
+  DashboardOnboardingBannerProps,
   DashboardShellProps,
   DashboardSidebarStyle,
   DashboardShellStyle,
@@ -34,15 +44,131 @@ const OnboardingAgentBanner = dynamic(() =>
   )
 );
 
+function DashboardAgentPanelSkeleton() {
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4">
+      <Skeleton className="h-8 w-32" />
+      <div className="flex flex-1 flex-col gap-3">
+        <Skeleton className="h-16 w-4/5" />
+        <Skeleton className="h-16 w-3/5 self-end" />
+      </div>
+      <Skeleton className="h-20 w-full" />
+    </div>
+  );
+}
+
+function DashboardAgentHostLoading() {
+  const { active, closePanel, expanded } = useRightPanel();
+  const isDesktop = useDesktopBreakpoint();
+
+  if (isDesktop) {
+    return (
+      <RightPanel id="agent">
+        <DashboardAgentPanelSkeleton />
+      </RightPanel>
+    );
+  }
+
+  return (
+    <ResponsiveDialog
+      onOpenChange={(open) => {
+        if (!open) {
+          closePanel("agent");
+        }
+      }}
+      open={active === "agent"}
+    >
+      <ResponsiveDialogContent
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          expanded
+            ? "h-svh max-h-svh max-w-none rounded-none sm:max-w-none"
+            : "h-[85svh] max-h-[85svh] sm:max-w-md"
+        )}
+        drawerClassName={cn(
+          "[&>*:not([data-slot=sheet-header]):not([data-slot=sheet-footer]):not([data-slot=sheet-close])]:px-0",
+          expanded && "h-svh max-h-svh rounded-none"
+        )}
+        showCloseButton={false}
+      >
+        <ResponsiveDialogHeader className="sr-only">
+          <ResponsiveDialogTitle>Loading agent</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Loading the dashboard agent.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <DashboardAgentPanelSkeleton />
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+  );
+}
+
+const DashboardAgentHost = dynamic(
+  () =>
+    import("@/components/dashboard/dashboard-agent-panel").then(
+      (module) => module.DashboardAgentHost
+    ),
+  {
+    loading: DashboardAgentHostLoading,
+    ssr: false,
+  }
+);
+
+function DashboardOnboardingBanner({
+  available,
+  dismissing,
+  onDismiss,
+  onExitComplete,
+  onStart,
+  running,
+  starting,
+  visible,
+}: DashboardOnboardingBannerProps) {
+  if (!(available || dismissing)) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        "duration-normal w-full shrink-0 overflow-hidden transition-[max-height,opacity] ease-out motion-reduce:transition-none",
+        visible ? "opacity-100" : "opacity-0"
+      )}
+      onTransitionEnd={(event) => {
+        if (
+          event.target === event.currentTarget &&
+          event.propertyName === "max-height"
+        ) {
+          onExitComplete();
+        }
+      }}
+      style={{ maxHeight: visible ? EVE_BANNER_HEIGHT : "0rem" }}
+    >
+      <div style={{ height: EVE_BANNER_HEIGHT }}>
+        <OnboardingAgentBanner
+          onDismiss={onDismiss}
+          onStart={onStart}
+          starting={starting}
+          state={running ? "running" : "idle"}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function DashboardShell({
   children,
+  initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
   const { activeOrganization } = useOrganizationsContext();
   const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
-  const { data } = useOnboardingAgentRun(organizationId);
+  const { data } = useOnboardingAgentRun(
+    organizationId,
+    initialOnboardingAgentRun
+  );
   const runAgent = useRunOnboardingAgent();
   const { dismiss, dismissed } =
     useOnboardingAgentBannerDismissal(organizationId);
@@ -114,32 +240,16 @@ export function DashboardShell({
       className="bg-sidebar flex h-svh flex-col overflow-hidden overscroll-none"
       style={shellStyle}
     >
-      {bannerAvailable || dismissing ? (
-        <div
-          className={cn(
-            "duration-normal w-full shrink-0 overflow-hidden transition-[max-height,opacity] ease-out motion-reduce:transition-none",
-            visible ? "opacity-100" : "opacity-0"
-          )}
-          onTransitionEnd={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              event.propertyName === "max-height"
-            ) {
-              handleBannerExitComplete();
-            }
-          }}
-          style={{ maxHeight: visible ? EVE_BANNER_HEIGHT : "0rem" }}
-        >
-          <div style={{ height: EVE_BANNER_HEIGHT }}>
-            <OnboardingAgentBanner
-              onDismiss={handleDismiss}
-              onStart={handleStart}
-              starting={starting}
-              state={running ? "running" : "idle"}
-            />
-          </div>
-        </div>
-      ) : null}
+      <DashboardOnboardingBanner
+        available={bannerAvailable}
+        dismissing={dismissing}
+        onDismiss={handleDismiss}
+        onExitComplete={handleBannerExitComplete}
+        onStart={handleStart}
+        running={running}
+        starting={starting}
+        visible={visible}
+      />
       <SidebarProvider
         className={cn(
           "min-h-0! flex-1 overflow-hidden overscroll-none",

@@ -19,25 +19,28 @@ function GitHubAccounts({
   handleOpenConnect,
   setLegacyOpen,
 }: GitHubAppSectionProps) {
-  if (isLoading) {
-    return <GitHubIntegrationSkeleton />;
-  }
   if (githubAppQuery.isError && !githubAppQuery.data) {
     return (
       <div
         role="alert"
-        className="flex flex-wrap items-center gap-3 border-b pb-5"
+        className="flex min-h-36 flex-col items-center justify-center gap-3 px-5 py-6 text-center"
       >
-        <p className="text-sm">Unable to load GitHub accounts.</p>
+        <p className="text-muted-foreground text-sm">
+          Unable to load GitHub accounts.
+        </p>
         <Button
+          disabled={githubAppQuery.isFetching}
           variant="outline"
           size="sm"
           onClick={() => githubAppQuery.refetch()}
         >
-          Retry
+          {githubAppQuery.isFetching ? "Retrying" : "Retry"}
         </Button>
       </div>
     );
+  }
+  if (isLoading) {
+    return <GitHubIntegrationSkeleton />;
   }
   if (isConnected) {
     return (
@@ -88,7 +91,7 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
   return (
     <section
       aria-labelledby="github-app-heading"
-      className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] lg:gap-12"
+      className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] 2xl:gap-12"
     >
       <div className="space-y-1">
         <h2 id="github-app-heading" className="text-base font-semibold">

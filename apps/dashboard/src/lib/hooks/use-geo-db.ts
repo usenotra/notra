@@ -33,9 +33,6 @@ import {
   geoProjectsCollection,
   geoPromptsCollection,
   geoSequencesCollection,
-  geoShelfCollection,
-  getGeoShelfSampleData,
-  subscribeToGeoShelfSampleData,
 } from "@/lib/db/geo-collections";
 import {
   abandonProjectCreateHandoff,
@@ -54,18 +51,8 @@ import {
   subscribeToPendingRows,
 } from "@/lib/db/pending-rows";
 import type { GeoProjectCreateInput } from "@/types/geo";
-import type {
-  GeoShelfDbApi,
-  GeoShelfFilterState,
-  GeoShelfMember,
-  GeoShelfOpportunityWrite,
-  GeoShelfPlacementStatus,
-  GeoShelfSource,
-} from "@/types/geo-shelf";
 import { toErrorMessage } from "@/utils/error-message";
 import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
-import { mergeShelfOpportunity } from "@/utils/geo-shelf";
-import { matchesGeoShelfSourceFilters } from "@/utils/geo-shelf-live-query";
 
 /**
  * Dialogs that stay mounted while closed pass `enabled: false` so the collection
@@ -116,10 +103,11 @@ export function useGeoPromptsDb(
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ prompt: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data, isLoading } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
+    query: (q) => q.from({ prompt: definition }),
+    startSync: isEnabled,
+  });
 
   const prompts: GeoTrackedPrompt[] = data ?? [];
 
@@ -208,16 +196,15 @@ export function useGeoProjectsDb(
     () => getPendingDeleteSnapshots(collectionId)
   );
 
-  const { data, isLoading, isError, isReady } = useLiveQuery(
-    (q) =>
-      isEnabled && organizationId
-        ? q
-            .from({ project: definition })
-            .orderBy(({ project }) => project.createdAt, "asc")
-            .orderBy(({ project }) => project.id, "asc")
-        : undefined,
-    [definition, isEnabled, organizationId]
-  );
+  const { data, isLoading, isError, isReady } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
+    query: (q) =>
+      q
+        .from({ project: definition })
+        .orderBy(({ project }) => project.createdAt, "asc")
+        .orderBy(({ project }) => project.id, "asc"),
+    startSync: isEnabled && Boolean(organizationId),
+  });
 
   const projects = useMemo(() => {
     const merged = new Map<string, GeoProject>();
@@ -330,10 +317,14 @@ export function useGeoCompetitorsDb(
     projectId,
   });
 
-  const { data } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ competitor: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
+    query: (q) =>
+      q
+        .from({ competitor: definition })
+        .orderBy(({ competitor }) => competitor.name, "asc"),
+    startSync: isEnabled,
+  });
 
   const competitors: GeoCompetitor[] = data ?? [];
 
@@ -377,10 +368,11 @@ export function useGeoSequencesDb(
     projectId,
   });
 
-  const { data, isLoading } = useLiveQuery(
-    (q) => (isEnabled ? q.from({ sequence: definition }) : undefined),
-    [definition, isEnabled]
-  );
+  const { data, isLoading } = useLiveQuery({
+    queryKey: [definition.id, isEnabled],
+    query: (q) => q.from({ sequence: definition }),
+    startSync: isEnabled,
+  });
 
   const sequences: GeoPromptSequence[] = data ?? [];
 
@@ -427,177 +419,5 @@ export function useGeoSequencesDb(
     addSequence,
     updateSequence,
     removeSequence,
-  };
-}
-
-export function useGeoShelfFilteredSourcesDb(
-  organizationId: string,
-  input: {
-    filters: GeoShelfFilterState;
-    members: readonly GeoShelfMember[];
-    competitors: readonly GeoCompetitor[];
-    enabled?: boolean;
-  }
-) {
-  const isEnabled = input.enabled ?? true;
-  const { projectId } = useGeoProjectScope();
-  const shelfDefinition = geoShelfCollection({ organizationId, projectId });
-
-  const { data, isLoading } = useLiveQuery(
-    (q) => {
-      if (!isEnabled) {
-        return undefined;
-      }
-
-      return q
-        .from({ shelf: shelfDefinition })
-        .where(({ shelf }) => {
-          switch (input.filters.ticket) {
-            case "open":
-              return eq(shelf.opportunity?.status, "open");
-            case "in_progress":
-              return eq(shelf.opportunity?.status, "in_progress");
-            case "closed":
-              return and(
-                not(isNull(shelf.opportunity)),
-                inArray(shelf.opportunity?.status, ["won", "lost", "dismissed"])
-              );
-            case "unassigned":
-              return and(
-                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
-                isNull(shelf.opportunity?.assigneeMemberId)
-              );
-            case "mine":
-              if (!input.filters.currentMemberId) {
-                return eq(1, 0);
-              }
-              return and(
-                inArray(shelf.opportunity?.status, ["open", "in_progress"]),
-                or(
-                  eq(
-                    shelf.opportunity?.assigneeMemberId,
-                    input.filters.currentMemberId
-                  ),
-                  eq(
-                    shelf.opportunity?.pocMemberId,
-                    input.filters.currentMemberId
-                  )
-                )
-              );
-            default:
-              return eq(1, 1);
-          }
-        })
-        .fn.where((row) =>
-          matchesGeoShelfSourceFilters(
-            row.shelf,
-            input.filters,
-            input.members,
-            input.competitors
-          )
-        )
-        .select(({ shelf }) => shelf);
-    },
-    [
-      shelfDefinition,
-      isEnabled,
-      input.filters.search,
-      input.filters.shelf,
-      input.filters.ticket,
-      input.filters.currentMemberId,
-      input.members,
-      input.competitors,
-    ]
-  );
-
-  const sources: GeoShelfSource[] = data ?? [];
-
-  return {
-    sources,
-    isLoading,
-  };
-}
-
-export function useGeoShelfDb(organizationId: string): GeoShelfDbApi {
-  const { projectId } = useGeoProjectScope();
-  const dbClient = useDbClient();
-  const definition = geoShelfCollection({ organizationId, projectId });
-  const collection = dbClient.collection(definition);
-  const { pendingIds, track } = usePendingRows("shelf", {
-    organizationId,
-    projectId,
-  });
-
-  const { data, isLoading } = useLiveQuery({
-    query: (q) => q.from({ shelf: definition }),
-  });
-
-  const readSampleData = () =>
-    getGeoShelfSampleData({ organizationId, projectId });
-  const isSampleData = useSyncExternalStore(
-    subscribeToGeoShelfSampleData,
-    readSampleData,
-    readSampleData
-  );
-
-  const sources: GeoShelfSource[] = data ?? [];
-
-  const addSource = (source: GeoShelfSource) => {
-    track(source.id, collection.insert(source), "Failed to add shelf");
-  };
-
-  const updateOpportunity = (
-    sourceId: string,
-    changes: Partial<GeoShelfOpportunityWrite>
-  ) => {
-    const nowIso = new Date().toISOString();
-    track(
-      sourceId,
-      collection.update(sourceId, (draft) => {
-        draft.opportunity = mergeShelfOpportunity(
-          draft.opportunity,
-          changes,
-          nowIso
-        );
-        draft.updatedAt = nowIso;
-      }),
-      "Failed to update ticket"
-    );
-  };
-
-  const setPlacementStatus = (
-    sourceId: string,
-    competitorId: string | null,
-    status: GeoShelfPlacementStatus
-  ) => {
-    const nowIso = new Date().toISOString();
-    track(
-      sourceId,
-      collection.update(sourceId, (draft) => {
-        for (const placement of draft.placements) {
-          if (placement.competitorId === competitorId) {
-            placement.status = status;
-            placement.evidence = "manual";
-            placement.checkedAt = nowIso;
-            if (status !== "present") {
-              placement.position = null;
-              placement.hasLink = false;
-            }
-          }
-        }
-        draft.updatedAt = nowIso;
-      }),
-      "Failed to update placement"
-    );
-  };
-
-  return {
-    sources,
-    isLoading,
-    isSampleData,
-    pendingSourceIds: pendingIds,
-    addSource,
-    updateOpportunity,
-    setPlacementStatus,
   };
 }

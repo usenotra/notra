@@ -7,6 +7,12 @@ export interface SkillContent extends SkillSummary {
   content: string;
 }
 
+export interface CreateSkillInput {
+  name: string;
+  description: string;
+  content: string;
+}
+
 export interface SkillServiceContext {
   organizationId: string;
 }

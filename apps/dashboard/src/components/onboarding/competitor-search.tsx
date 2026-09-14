@@ -1,27 +1,15 @@
 "use client";
 
-import {
-  GEO_BRAND_SEARCH_DEBOUNCE_MS,
-  GEO_BRAND_SEARCH_MAX_QUERY_LENGTH,
-  GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
-} from "@notra/geo-core/constants/geo";
-import type { GeoBrandSearchResult } from "@notra/geo-core/types/geo";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@notra/ui/components/ui/combobox";
-import { useDebouncedValue } from "@tanstack/react-pacer";
+import { GEO_BRAND_SEARCH_MAX_QUERY_LENGTH } from "@notra/geo-core/constants/geo";
+import { Combobox, ComboboxInput } from "@notra/ui/components/ui/combobox";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
 
-import { CompetitorBrandLogo } from "@/components/onboarding/competitor-brand-logo";
-import { useGeoBrandSearch } from "@/lib/hooks/use-geo";
-import type { CompetitorSearchProps } from "@/types/onboarding";
-import { findCompetitor } from "@/utils/onboarding-competitors";
+import { CompetitorSearchContent } from "@/components/onboarding/competitor-search-content";
+import { useCompetitorSearchState } from "@/lib/hooks/use-competitor-search-state";
+import type {
+  CompetitorSearchProps,
+  CompetitorSearchResult,
+} from "@/types/onboarding";
 
 export function CompetitorSearch({
   organizationId,
@@ -30,33 +18,25 @@ export function CompetitorSearch({
   disabled,
   onAdd,
 }: CompetitorSearchProps) {
-  const [query, setQuery] = useState("");
-  const [debouncedQuery] = useDebouncedValue(query, {
-    wait: GEO_BRAND_SEARCH_DEBOUNCE_MS,
+  const search = useCompetitorSearchState({
+    organizationId,
+    ownDomain,
+    selected,
   });
-  const search = useGeoBrandSearch(organizationId, debouncedQuery);
-  const trimmed = query.trim();
-  const active = trimmed.length >= GEO_BRAND_SEARCH_MIN_QUERY_LENGTH;
-  const searching = active && (search.isFetching || query !== debouncedQuery);
-  const results = (search.data?.results ?? []).filter(
-    (entry) =>
-      entry.domain !== ownDomain &&
-      !findCompetitor(selected, entry.domain, entry.name)
-  );
 
   return (
-    <Combobox<GeoBrandSearchResult | null>
+    <Combobox<CompetitorSearchResult | null>
       disabled={disabled}
       filter={null}
-      inputValue={query}
-      items={results}
+      inputValue={search.query}
+      items={search.items}
       itemToStringLabel={(item) => item?.name ?? ""}
-      onInputValueChange={(value) => setQuery(value)}
+      onInputValueChange={search.setQuery}
       onValueChange={(item) => {
         if (item) {
           onAdd(item);
         }
-        setQuery("");
+        search.setQuery("");
       }}
       value={null}
     >
@@ -67,36 +47,20 @@ export function CompetitorSearch({
         placeholder="Type a name or domain"
         showTrigger={false}
       >
-        {searching ? (
+        {search.searching ? (
           <span className="text-muted-foreground flex items-center pr-3">
             <Loader2Icon className="size-4 animate-spin" />
           </span>
         ) : null}
       </ComboboxInput>
-      {active ? (
-        <ComboboxContent>
-          <ComboboxEmpty>
-            {searching ? "Looking" : "Nothing found"}
-          </ComboboxEmpty>
-          <ComboboxList>
-            {results.map((entry) => (
-              <ComboboxItem key={entry.domain} value={entry}>
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <CompetitorBrandLogo
-                    className="size-6 rounded-md"
-                    domain={entry.domain}
-                    logo={entry.logo}
-                    name={entry.name}
-                  />
-                  <span className="truncate font-medium">{entry.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {entry.domain}
-                  </span>
-                </span>
-              </ComboboxItem>
-            ))}
-          </ComboboxList>
-        </ComboboxContent>
+      {search.active ? (
+        <CompetitorSearchContent
+          items={search.items}
+          onRetry={search.retry}
+          searchError={search.searchError}
+          searchFetching={search.searchFetching}
+          searching={search.searching}
+        />
       ) : null}
     </Combobox>
   );

@@ -18,7 +18,7 @@ export function sentimentAnalysisStatus(state?: SentimentAnalysisState) {
     case "stale":
       return state.result
         ? "Showing previous themes. Analysis needs an update."
-        : "Run analysis to find themes";
+        : "";
     case "failed":
       return state.result
         ? "Analysis failed. Showing previous themes."

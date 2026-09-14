@@ -56,6 +56,18 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     cacheReadPerMillionTokens: 0.05,
     cacheWritePerMillionTokens: 0,
   },
+  "openai/gpt-5.4-nano": {
+    inputPerMillionTokens: 0.2,
+    outputPerMillionTokens: 1.25,
+    cacheReadPerMillionTokens: 0.02,
+    cacheWritePerMillionTokens: 0,
+  },
+  "openai/gpt-5.6-luna": {
+    inputPerMillionTokens: 0.2,
+    outputPerMillionTokens: 1.2,
+    cacheReadPerMillionTokens: 0.02,
+    cacheWritePerMillionTokens: 0.25,
+  },
   "openai/gpt-oss-120b": {
     inputPerMillionTokens: 0.1,
     outputPerMillionTokens: 0.4,

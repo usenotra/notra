@@ -104,6 +104,28 @@ export function headerMinWidth(
   return `${minColumnWidth}px`;
 }
 
+/** Sum of column floors so `table-layout: fixed` cannot crush titles. */
+export function tableMinWidthCss<T>(
+  columns: readonly Pick<TableColumn<T>, "header" | "sortable" | "minWidth">[],
+  minColumnWidth: number,
+  extraFixedWidths: readonly string[] = [],
+  extraChromePx = 0
+): string {
+  const parts = [
+    ...extraFixedWidths,
+    ...columns.map((column) =>
+      headerMinWidth(column, minColumnWidth, extraChromePx)
+    ),
+  ];
+  if (parts.length === 0) {
+    return "0px";
+  }
+  if (parts.length === 1) {
+    return parts[0] ?? "0px";
+  }
+  return `calc(${parts.join(" + ")})`;
+}
+
 export function colWidthStyle(
   width: string | undefined,
   flexible: boolean,

@@ -14,6 +14,14 @@ mock.module("@/lib/hooks/use-active-project", () => ({
 mock.module("@/lib/orpc/query", () => ({
   dashboardOrpc: {
     content: {
+      home: {
+        get: {
+          queryOptions: ({ input }: { input: unknown }) => ({
+            queryKey: ["content", "home", input],
+            queryFn: async () => ({ posts: [] }),
+          }),
+        },
+      },
       list: {
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ["content", "list", input],
@@ -24,11 +32,12 @@ mock.module("@/lib/orpc/query", () => ({
   },
 }));
 
-const { usePosts, useTodayPosts } = await import("../src/lib/hooks/use-posts");
+const { useDashboardHomeContent, usePosts } =
+  await import("../src/lib/hooks/use-posts");
 let organizationId = "org-1";
 
 function TodayPostsProbe() {
-  useTodayPosts(organizationId);
+  useDashboardHomeContent(organizationId);
   return null;
 }
 
@@ -43,7 +52,7 @@ beforeEach(() => {
 });
 
 describe("dashboard home post query", () => {
-  test("requests only three scoped posts for today's preview", () => {
+  test("requests the project-scoped dashboard home payload", () => {
     const client = new QueryClient();
     renderToStaticMarkup(
       <QueryClientProvider client={client}>
@@ -53,13 +62,10 @@ describe("dashboard home post query", () => {
 
     expect(client.getQueryCache().getAll()[0]?.queryKey).toEqual([
       "content",
-      "list",
+      "home",
       {
         organizationId: "org-1",
         projectId: "project-1",
-        page: 1,
-        pageSize: 3,
-        date: "today",
       },
     ]);
   });

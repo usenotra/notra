@@ -13,7 +13,8 @@
     "./schema": "./src/schemas/figma.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
+    "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
+    "test": "bun test tests"
   },
   "dependencies": {
     "opentype.js": "^2.0.0",

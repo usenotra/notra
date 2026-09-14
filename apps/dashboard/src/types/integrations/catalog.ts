@@ -16,3 +16,11 @@ export interface IntegrationsPageClientProps {
   organizationSlug: string;
   connectSlug?: string;
 }
+
+export interface IntegrationConnectDialogProps {
+  integrationId: IntegrationType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  organizationId: string;
+  organizationSlug: string;
+}

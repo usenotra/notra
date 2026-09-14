@@ -97,7 +97,7 @@ export function CitationRows({
 }: CitationRowsProps) {
   return (
     <div
-      className="flex h-full min-h-0 flex-col"
+      className="text-foreground flex h-full min-h-0 flex-col [--muted-foreground:#595959] dark:[--muted-foreground:#b8b8be]"
       role="region"
       aria-label="Recent AI crawlers"
     >

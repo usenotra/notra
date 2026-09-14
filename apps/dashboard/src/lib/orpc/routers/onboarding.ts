@@ -8,6 +8,7 @@ import {
   onboardingSuggestions,
   organizations,
 } from "@notra/db/schema";
+import { createGeoProject } from "@notra/geo-core/geo/projects";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   dismissSuggestionInputSchema,
@@ -17,10 +18,7 @@ import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/comp
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-import {
-  AGENT_RUN_HARD_LIMIT_MS,
-  SELF_SERVE_AGENT_ERROR_MESSAGES,
-} from "@/constants/onboarding-agent";
+import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
   getOnboardingAgentState,
@@ -35,7 +33,10 @@ import {
   writeCachedCompanyLogo,
 } from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
+import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
 import type { CompanyLogoResult } from "@/types/onboarding";
+import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { ratelimit } from "@/utils/ratelimit";
 
 export const onboardingRouter = {
@@ -89,6 +90,25 @@ export const onboardingRouter = {
           url: null,
         };
       }
+    }),
+  createDevReplayProject: authorizedProcedure
+    .input(organizationIdInputSchema)
+    .handler(async ({ context, input }) => {
+      if (process.env.NODE_ENV !== "development") {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      const project = await runOrpcEffect(
+        createGeoProject(input.organizationId, "Onboarding replay"),
+        toGeoOrpcError
+      );
+      return { projectId: project.id };
     }),
   get: authorizedProcedure
     .input(organizationIdInputSchema)
@@ -156,15 +176,9 @@ export const onboardingRouter = {
         user: context.user,
       });
 
-      const { ran, startedAt } = await getOnboardingAgentState(
-        input.organizationId
+      return resolveOnboardingAgentRunState(
+        await getOnboardingAgentState(input.organizationId)
       );
-      const running =
-        !ran &&
-        startedAt !== null &&
-        Date.now() - startedAt.getTime() < AGENT_RUN_HARD_LIMIT_MS;
-
-      return { ran, running, startedAt };
     }),
   runAgent: authorizedProcedure
     .input(organizationIdInputSchema)

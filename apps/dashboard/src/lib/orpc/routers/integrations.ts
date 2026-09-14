@@ -83,6 +83,7 @@ import {
   addRepositoryRequestSchema,
   beginMcpOAuthRequestSchema,
   configureOutputBodySchema,
+  createRepositoryBranchBodySchema,
   createGitHubIntegrationRequestSchema,
   createMcpServerRequestSchema,
   type IntegrationType,
@@ -791,6 +792,186 @@ export const integrationsRouter = {
           mapKnownIntegrationError(error);
         }
       }),
+    branches: {
+      list: baseProcedure
+        .input(repositoryInputSchema)
+        .handler(async ({ context, input }) => {
+          await assertOrganizationAccess({
+            headers: context.headers,
+            organizationId: input.organizationId,
+          });
+
+          const repository = await requireRepositoryInOrganization(
+            input.organizationId,
+            input.repositoryId
+          );
+          let token: string | null;
+          try {
+            token = await getTokenForIntegrationId(input.repositoryId, {
+              organizationId: input.organizationId,
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
+          } catch (error) {
+            if (
+              hasGitHubStatus(error, 401) ||
+              hasGitHubStatus(error, 404) ||
+              (error instanceof Error &&
+                error.message === "GitHub App installation not found")
+            ) {
+              throw forbidden(
+                "GitHub authentication failed. Reconnect GitHub and try again."
+              );
+            }
+            throw internalServerError(
+              "Failed to authenticate with GitHub",
+              error
+            );
+          }
+
+          try {
+            const octokit = createOctokit(token ?? undefined, {
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
+            const branches: string[] = [];
+            let page = 1;
+            let hasNextPage = true;
+
+            while (hasNextPage) {
+              const { data } = await octokit.request(
+                "GET /repos/{owner}/{repo}/branches",
+                {
+                  owner: repository.owner,
+                  repo: repository.repo,
+                  page,
+                  per_page: 100,
+                  headers: GITHUB_API_VERSION_HEADERS,
+                }
+              );
+
+              branches.push(...data.map((branch) => branch.name));
+              hasNextPage = data.length === 100;
+              page += 1;
+            }
+
+            return { branches };
+          } catch (error) {
+            if (hasGitHubStatus(error, 404)) {
+              throw notFound("GitHub repository not found");
+            }
+            if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
+              throw forbidden("GitHub repository access denied");
+            }
+            throw internalServerError("Failed to load GitHub branches", error);
+          }
+        }),
+      create: baseProcedure
+        .input(repositoryInputSchema.and(createRepositoryBranchBodySchema))
+        .handler(async ({ context, input }) => {
+          await assertOrganizationAccess({
+            headers: context.headers,
+            organizationId: input.organizationId,
+          });
+          await assertActiveSubscription(input.organizationId);
+
+          const repository = await requireRepositoryInOrganization(
+            input.organizationId,
+            input.repositoryId
+          );
+          const baseBranch = repository.defaultBranch;
+          if (!baseBranch) {
+            throw badRequest(
+              "Choose a publishing branch before creating a new branch"
+            );
+          }
+
+          let token: string | null;
+          try {
+            token = await getTokenForIntegrationId(input.repositoryId, {
+              organizationId: input.organizationId,
+              requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+            });
+          } catch (error) {
+            if (
+              hasGitHubStatus(error, 401) ||
+              hasGitHubStatus(error, 404) ||
+              (error instanceof Error &&
+                error.message === "GitHub App installation not found")
+            ) {
+              throw forbidden(
+                "GitHub authentication failed. Reconnect GitHub and try again."
+              );
+            }
+            throw internalServerError(
+              "Failed to authenticate with GitHub",
+              error
+            );
+          }
+
+          try {
+            const octokit = createOctokit(token ?? undefined);
+            const { data: baseRef } = await octokit.request(
+              "GET /repos/{owner}/{repo}/git/ref/{ref}",
+              {
+                owner: repository.owner,
+                repo: repository.repo,
+                ref: `heads/${baseBranch}`,
+                headers: GITHUB_API_VERSION_HEADERS,
+              }
+            );
+
+            await octokit.request("POST /repos/{owner}/{repo}/git/refs", {
+              owner: repository.owner,
+              repo: repository.repo,
+              ref: `refs/heads/${input.branchName}`,
+              sha: baseRef.object.sha,
+              headers: GITHUB_API_VERSION_HEADERS,
+            });
+          } catch (error) {
+            if (hasGitHubStatus(error, 409)) {
+              throw badRequest(
+                "The publishing branch does not have an initial commit"
+              );
+            }
+            if (hasGitHubStatus(error, 422)) {
+              throw conflict(
+                "This branch already exists or its name is not valid"
+              );
+            }
+            if (hasGitHubStatus(error, 404)) {
+              throw notFound(
+                "GitHub repository or publishing branch not found"
+              );
+            }
+            if (hasGitHubStatus(error, 401) || hasGitHubStatus(error, 403)) {
+              throw forbidden(
+                "GitHub needs write access to create this branch"
+              );
+            }
+            throw internalServerError("Failed to create GitHub branch", error);
+          }
+
+          const updated = await updateRepository(input.repositoryId, {
+            defaultBranch: input.branchName,
+          }).catch((error: unknown) => {
+            throw internalServerError(
+              "The branch was created, but it could not be selected for publishing",
+              error
+            );
+          });
+          if (!updated) {
+            throw internalServerError(
+              "The branch was created, but it could not be selected for publishing"
+            );
+          }
+
+          await invalidateStandaloneChatIntegrations(input.organizationId);
+          const refreshed = await requireRepositoryInOrganization(
+            input.organizationId,
+            input.repositoryId
+          );
+          return serializeRepository(refreshed);
+        }),
+    },
     contentDirectory: {
       get: baseProcedure
         .input(repositoryInputSchema.and(repositoryContentDirectoryInputSchema))

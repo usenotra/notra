@@ -1,6 +1,9 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import { shouldBypassAutumnInDevelopment } from "@notra/ai/utils/autumn-development";
 
+import type { DevelopmentBillingCustomerIdResolver } from "@/types/billing/development-usage-alerts";
+import { getDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";
+
 const DEVELOPMENT_BALANCE = Number.MAX_SAFE_INTEGER;
 const MS_PER_DAY = 86_400_000;
 
@@ -16,9 +19,9 @@ type DevelopmentAggregateEventsRequest = {
   range?: string;
 };
 
-function createDevelopmentAutumnCustomer() {
+function createDevelopmentAutumnCustomer(customerId: string) {
   return {
-    id: "development",
+    id: customerId,
     name: "Local development",
     email: null,
     createdAt: 0,
@@ -27,7 +30,9 @@ function createDevelopmentAutumnCustomer() {
     env: "sandbox",
     metadata: {},
     sendEmailReceipts: false,
-    billingControls: {},
+    billingControls: {
+      usageAlerts: getDevelopmentUsageAlerts(customerId),
+    },
     subscriptions: [],
     purchases: [],
     licenses: [],
@@ -158,7 +163,8 @@ async function readJsonBody(
 
 export function createDevelopmentAutumnHandler(
   nodeEnv: string | undefined,
-  secretKey: string | undefined
+  secretKey: string | undefined,
+  resolveCustomerId: DevelopmentBillingCustomerIdResolver
 ): ((request: Request) => Promise<Response>) | null {
   if (!shouldBypassAutumnInDevelopment(nodeEnv, secretKey)) {
     return null;
@@ -168,7 +174,11 @@ export function createDevelopmentAutumnHandler(
     const route = new URL(request.url).pathname.split("/").at(-1);
 
     if (route === "getOrCreateCustomer") {
-      return Response.json(createDevelopmentAutumnCustomer());
+      const customerId = await resolveCustomerId(request);
+      if (!customerId) {
+        return Response.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return Response.json(createDevelopmentAutumnCustomer(customerId));
     }
 
     if (route === "aggregateEvents") {

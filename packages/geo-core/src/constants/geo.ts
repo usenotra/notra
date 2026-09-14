@@ -231,6 +231,9 @@ export const GEO_SEARCH_GAP_WRITE_LABELS = {
   dismiss: "Dismiss",
 } as const;
 export const GEO_SEARCH_GAP_DISMISSED_TOAST = "Search gap dismissed";
+export const GEO_PROMPT_GAP_IGNORED_TOAST = "Gap ignored";
+export const GEO_PROMPT_GAP_RESTORED_TOAST = "Gap restored";
+export const GEO_PROMPT_GAP_IGNORE_LABEL = "Ignore";
 export const GEO_GAPS_EMPTY = {
   scanning: {
     title: "Scanning engines",

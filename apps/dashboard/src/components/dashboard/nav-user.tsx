@@ -45,6 +45,7 @@ export function NavUser() {
   const { activeOrganization } = useOrganizationsContext();
   const { hidePersonalData } = useHidePersonalData();
   const { openSettings } = useSettingsModal();
+  const signOut = authClient.useSignOut();
 
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
@@ -53,7 +54,7 @@ export function NavUser() {
     setIsSigningOut(true);
     await flushTrackEvent(POSTHOG_EVENTS.LOGOUT);
     try {
-      await authClient.signOut({
+      await signOut({
         fetchOptions: {
           onSuccess: () => {
             toast.success("Signed out successfully");

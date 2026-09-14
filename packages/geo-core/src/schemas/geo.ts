@@ -288,6 +288,11 @@ export const geoPromptRescanInputSchema = geoOrganizationInputSchema.extend({
     .optional(),
 });
 
+export const geoPromptGapIgnoreInputSchema = geoOrganizationInputSchema.extend({
+  promptId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+  ignored: boolean(),
+});
+
 export const geoTimeseriesInputSchema = geoOrganizationInputSchema.extend({
   ...geoWindowFields,
 });

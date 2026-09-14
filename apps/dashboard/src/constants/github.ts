@@ -119,3 +119,5 @@ export const GITHUB_APP_PERMISSIONS = [
   "Receive webhook events for the repositories you choose",
   "Access only the repositories you grant during installation",
 ] as const;
+
+export const PENDING_OUTPUT_ID_PREFIX = "pending-output:";

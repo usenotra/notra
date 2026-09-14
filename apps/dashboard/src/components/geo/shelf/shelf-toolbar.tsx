@@ -2,6 +2,11 @@
 
 import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  GEO_SHELF_SEARCH_MAX_LENGTH,
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_TICKET_FILTERS,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -13,9 +18,7 @@ import {
 
 import {
   GEO_SHELF_SHELF_FILTER_OPTIONS,
-  GEO_SHELF_SHELF_FILTERS,
   GEO_SHELF_TICKET_FILTER_OPTIONS,
-  GEO_SHELF_TICKET_FILTERS,
 } from "@/constants/geo-shelf";
 import type {
   GeoShelfShelfFilter,
@@ -48,6 +51,7 @@ export function ShelfToolbar({
         <Input
           aria-label="Filter shelves"
           className="pl-9 placeholder:truncate"
+          maxLength={GEO_SHELF_SEARCH_MAX_LENGTH}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Filter shelves..."
           value={filters.search}

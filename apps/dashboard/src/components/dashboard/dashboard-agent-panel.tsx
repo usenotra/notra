@@ -30,7 +30,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { toast } from "sonner";
 
@@ -50,22 +49,12 @@ import {
 import { localStorageKeys } from "@/constants/storage";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
-
-function subscribeToDesktopBreakpoint(onStoreChange: () => void) {
-  const mediaQuery = window.matchMedia("(min-width: 64rem)");
-  mediaQuery.addEventListener("change", onStoreChange);
-
-  return () => mediaQuery.removeEventListener("change", onStoreChange);
-}
-
-const getDesktopBreakpointSnapshot = () =>
-  window.matchMedia("(min-width: 64rem)").matches;
-const getServerDesktopBreakpointSnapshot = () => false;
 
 function DashboardAgentChat({
   hasOpened,
@@ -77,11 +66,7 @@ function DashboardAgentChat({
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const { active, expanded } = useRightPanel();
-  const isDesktop = useSyncExternalStore(
-    subscribeToDesktopBreakpoint,
-    getDesktopBreakpointSnapshot,
-    getServerDesktopBreakpointSnapshot
-  );
+  const isDesktop = useDesktopBreakpoint();
   const open = active === "agent";
   const [chatInputValue, setChatInputValue] = useState("");
   const [chatError, setChatError] = useState<string | null>(null);
