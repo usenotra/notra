@@ -112,6 +112,7 @@ export function PersonaProfileEditor({
               Company profile
             </label>
             <Textarea
+              className="max-h-none"
               id={`${id}-company`}
               name="company"
               defaultValue={persona.company}
@@ -128,6 +129,7 @@ export function PersonaProfileEditor({
               Motivations
             </label>
             <Textarea
+              className="max-h-none"
               id={`${id}-summary`}
               name="summary"
               defaultValue={persona.summary}
@@ -144,6 +146,7 @@ export function PersonaProfileEditor({
               How they search
             </label>
             <Textarea
+              className="max-h-none"
               id={`${id}-searchStyle`}
               name="searchStyle"
               defaultValue={persona.searchStyle}
@@ -220,6 +223,7 @@ export function PersonaProfileEditor({
                 </div>
               ) : (
                 <Textarea
+                  className="max-h-none"
                   id={`${id}-${section.key}`}
                   name={section.key}
                   defaultValue={persona.profile[section.key].join("\n")}

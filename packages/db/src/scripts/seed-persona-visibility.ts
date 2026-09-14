@@ -514,6 +514,13 @@ async function seedProjectActivity(
   }
 
   const personas = await ensurePersonas(organizationId, projectId);
+  const personasWithPrompts = personas.map((persona) => {
+    const prompt = persona.conversationPrompts[0];
+    if (!prompt) {
+      throw new Error(`Persona ${persona.id} has no conversation prompts.`);
+    }
+    return { persona, prompt };
+  });
 
   if (reset) {
     await db
@@ -560,17 +567,13 @@ async function seedProjectActivity(
     }
 
     const rows = [];
-    for (const persona of personas) {
+    for (const { persona, prompt } of personasWithPrompts) {
       // Later days mention slightly more: gives the 30d chart a live trend.
       const progress = (days - 1 - offset) / Math.max(days - 1, 1);
       const rate = Math.min(
         0.95,
         Math.max(0.02, persona.baseRate + persona.trend * progress)
       );
-      const prompt = persona.conversationPrompts[0];
-      if (!prompt) {
-        throw new Error(`Persona ${persona.id} has no conversation prompts.`);
-      }
       for (const engine of ENGINES) {
         const roll = hash01(`${dayString}:${persona.id}:${engine}`);
         const mentioned = roll < rate;
