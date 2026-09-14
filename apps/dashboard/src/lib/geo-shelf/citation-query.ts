@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
 import { foldShelfCitationRows } from "@/lib/geo-shelf/citations";
+import type { GeoShelfDbExecutor } from "@/lib/geo-shelf/store";
 
 import type {
   GeoShelfCitedPage,
@@ -45,7 +46,8 @@ function toStringList(value: string[] | null | undefined): string[] {
  * job would let this query be bounded to the citation window.
  */
 export async function queryCitedShelfPages(
-  key: GeoShelfStoreKey
+  key: GeoShelfStoreKey,
+  executor: GeoShelfDbExecutor = db
 ): Promise<GeoShelfCitedPage[]> {
   const windowFrom = new Date(
     Date.now() - GEO_SHELF_CITATION_WINDOW_DAYS * 86_400_000
@@ -61,7 +63,7 @@ export async function queryCitedShelfPages(
     else '[]'::jsonb
   end`;
 
-  const result = await db.execute(sql`
+  const result = await executor.execute(sql`
     with listed as (
       select
         ${geoMentionChecks.id} as check_id,

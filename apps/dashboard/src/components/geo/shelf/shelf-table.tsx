@@ -190,6 +190,7 @@ export function ShelfTable({
   sort,
   onSortChange,
   hasNextPage,
+  isFetching,
   isFetchingNextPage,
   onLoadMore,
   currentMemberId,
@@ -298,7 +299,9 @@ export function ShelfTable({
       isRowPinned={(row) => pendingSourceIds.has(row.id)}
       loading={isFetchingNextPage}
       manualSort
-      onEndReached={hasNextPage ? onLoadMore : undefined}
+      // The table only re-arms end-of-list after `loading` settles, so it must
+      // not fire during a filter or refetch that `loadMore` would ignore.
+      onEndReached={hasNextPage && !isFetching ? onLoadMore : undefined}
       onRowClick={onRowClick}
       onSortChange={(next) => onSortChange(toGeoShelfSortState(next))}
       renderRowContextMenu={(row) => (

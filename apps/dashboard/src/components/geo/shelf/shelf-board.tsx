@@ -25,9 +25,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { Button } from "@/components/button";
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";
 import { ShelfPlacementBadge } from "@/components/geo/shelf/shelf-placement-badge";
 import { ShelfTicketBadge } from "@/components/geo/shelf/shelf-ticket-badge";
@@ -242,15 +243,20 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
     overscan: GEO_SHELF_BOARD_OVERSCAN,
   });
   const virtualItems = virtualizer.getVirtualItems();
-  // An empty column has no last card to scroll to, so it asks right away.
-  const reachedEnd = (virtualItems.at(-1)?.index ?? -1) >= rows.length - 1;
-  const shouldLoadMore = onLoadMore !== undefined && reachedEnd;
 
-  useEffect(() => {
-    if (shouldLoadMore) {
-      onLoadMore?.();
+  // Pages are shared by every column, so only the column being read asks for
+  // more; a sparse column never pages through the shelf on its own.
+  const handleScroll = () => {
+    const element = scrollRef.current;
+    if (!(element && onLoadMore)) {
+      return;
     }
-  }, [shouldLoadMore, onLoadMore, rows.length]);
+    const distanceToEnd =
+      element.scrollHeight - element.scrollTop - element.clientHeight;
+    if (distanceToEnd < GEO_SHELF_BOARD_CARD_HEIGHT * 2) {
+      onLoadMore();
+    }
+  };
 
   return (
     <section
@@ -273,12 +279,17 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
         <span className="text-muted-foreground tabular-nums">{count}</span>
       </header>
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2" ref={scrollRef}>
-          {rows.length === 0 ? (
+        <div
+          className="min-h-0 flex-1 overflow-y-auto p-2"
+          onScroll={handleScroll}
+          ref={scrollRef}
+        >
+          {rows.length === 0 && !onLoadMore ? (
             <p className="text-muted-foreground px-1 py-6 text-center text-xs">
               Empty
             </p>
-          ) : (
+          ) : null}
+          {rows.length === 0 ? null : (
             <div
               className="relative w-full"
               style={{ height: virtualizer.getTotalSize() }}
@@ -307,6 +318,17 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
               })}
             </div>
           )}
+          {onLoadMore ? (
+            <Button
+              className="mt-1 w-full"
+              onClick={onLoadMore}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              Load more
+            </Button>
+          ) : null}
         </div>
       </SortableContext>
     </section>
@@ -317,6 +339,7 @@ export function ShelfBoard({
   rows,
   boardCounts,
   hasNextPage,
+  isFetching,
   onLoadMore,
   ticketFilter,
   currentMemberId,
@@ -506,7 +529,8 @@ export function ShelfBoard({
           const columnId = column.id as GeoShelfBoardColumnId;
           const columnRows = rowsForColumn(items[columnId], rowById);
           const serverCount = boardCounts[columnId];
-          const hasMore = hasNextPage && columnRows.length < serverCount;
+          const hasMore =
+            hasNextPage && !isFetching && columnRows.length < serverCount;
           return (
             <ShelfBoardColumn
               activeId={activeId}

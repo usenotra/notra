@@ -2,6 +2,7 @@
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
+  GEO_SHELF_SEARCH_MAX_LENGTH,
   GEO_SHELF_SHELF_FILTERS,
   GEO_SHELF_TICKET_FILTERS,
 } from "@notra/schemas/constants/dashboard/geo-shelf";
@@ -121,8 +122,10 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const hasSettings = settings !== null;
   const shelf = useGeoShelfSources(organizationId, {
     enabled: hasSettings,
+    currentMemberId: membersQuery.data?.currentMemberId ?? null,
     filters: {
-      search: debouncedSearch,
+      // A URL-restored search can exceed what the list endpoint accepts.
+      search: debouncedSearch.slice(0, GEO_SHELF_SEARCH_MAX_LENGTH),
       shelf: shelfFilter,
       ticket: ticketFilter,
     },

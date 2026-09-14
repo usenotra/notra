@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
 import type { GeoShelfSource } from "@/types/geo-shelf";
-import { applyShelfPlacementStatus } from "@/utils/geo-shelf";
+import {
+  applyShelfOpportunityChanges,
+  applyShelfPlacementStatus,
+} from "@/utils/geo-shelf";
 import {
   compareGeoShelfSources,
   countGeoShelfBoardColumns,
@@ -158,6 +161,24 @@ describe("geo shelf paging helpers", () => {
       won: 0,
       lost: 0,
       dismissed: 0,
+    });
+  });
+
+  test("drops a point of contact equal to the assignee, like the server", () => {
+    const next = applyShelfOpportunityChanges(
+      source({}),
+      { assigneeMemberId: "member-1" },
+      NOW
+    );
+    const withPoc = applyShelfOpportunityChanges(
+      next,
+      { pocMemberId: "member-1" },
+      NOW
+    );
+
+    expect(withPoc.opportunity).toMatchObject({
+      assigneeMemberId: "member-1",
+      pocMemberId: null,
     });
   });
 });

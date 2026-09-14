@@ -252,10 +252,8 @@ export function mergeShelfOpportunity(
     updatedAt: nowIso,
   };
   const next: GeoShelfOpportunity = { ...base, ...changes, updatedAt: nowIso };
-  if (
-    changes.assigneeMemberId !== undefined &&
-    next.pocMemberId === changes.assigneeMemberId
-  ) {
+  // Like the server, a point of contact equal to the assignee is not stored.
+  if (next.pocMemberId !== null && next.pocMemberId === next.assigneeMemberId) {
     next.pocMemberId = null;
   }
   next.resolvedAt = isOpenShelfStatus(next.status)

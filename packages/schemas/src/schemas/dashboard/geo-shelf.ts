@@ -7,6 +7,7 @@ import {
   GEO_SHELF_NOTES_MAX_LENGTH,
   GEO_SHELF_OPPORTUNITY_STATUSES,
   GEO_SHELF_ORIGINS,
+  GEO_SHELF_OFFSET_MAX,
   GEO_SHELF_OWNERSHIPS,
   GEO_SHELF_PAGE_SIZE_MAX,
   GEO_SHELF_PLACEMENT_EVIDENCES,
@@ -147,7 +148,7 @@ export const geoShelfMembersResponseSchema = z.object({
 export const geoShelfMembersInputSchema = geoOrganizationInputSchema;
 
 export const geoShelfListInputSchema = geoOrganizationInputSchema.extend({
-  offset: z.number().int().nonnegative().default(0),
+  offset: z.number().int().nonnegative().max(GEO_SHELF_OFFSET_MAX).default(0),
   limit: z.number().int().positive().max(GEO_SHELF_PAGE_SIZE_MAX),
   search: z.string().max(GEO_SHELF_SEARCH_MAX_LENGTH).default(""),
   shelf: z.enum(GEO_SHELF_SHELF_FILTERS).default("all"),
@@ -197,4 +198,8 @@ export const geoShelfPreviewResponseSchema = z.object({
   title: z.string().max(GEO_SHELF_TITLE_MAX_LENGTH).nullable(),
   description: z.string().nullable(),
   available: z.boolean(),
+});
+
+export const geoShelfUrlCheckResponseSchema = z.object({
+  onShelf: z.boolean(),
 });

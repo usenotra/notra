@@ -37,6 +37,11 @@ import {
   toShelfOpportunityWrite,
   toShelfPlacementWrites,
 } from "@/utils/geo-shelf";
+import {
+  matchesShelfSourceFilter,
+  matchesSourceSearch,
+  matchesTicketSourceFilter,
+} from "@/utils/geo-shelf-live-query";
 
 type GeoShelfListData = InfiniteData<GeoShelfListResponse, number>;
 
@@ -72,6 +77,7 @@ export function useGeoShelfSources(
   organizationId: string,
   input: {
     filters: Omit<GeoShelfFilterState, "currentMemberId">;
+    currentMemberId: string | null;
     sort: GeoShelfSortState;
     enabled: boolean;
   }
@@ -80,6 +86,9 @@ export function useGeoShelfSources(
   const queryClient = useQueryClient();
   const pendingKey = geoCollectionId("shelf", { organizationId, projectId });
   const inFlightBySourceId = useRef(new Map<string, number>());
+  const queueBySourceId = useRef(new Map<string, Promise<void>>());
+  // An optimistic add keeps its temporary id until the next refetch.
+  const serverIdByDraftId = useRef(new Map<string, string>());
   const pendingSourceIds = useSyncExternalStore(
     subscribeToPendingRows,
     () => getPendingRows(pendingKey),
@@ -113,6 +122,9 @@ export function useGeoShelfSources(
   const pages = query.data?.pages ?? [];
   const firstPage = pages.at(0);
 
+  const resolveSourceId = (sourceId: string) =>
+    serverIdByDraftId.current.get(sourceId) ?? sourceId;
+
   const patchSource = (
     sourceId: string,
     update: (source: GeoShelfSource) => GeoShelfSource
@@ -124,37 +136,69 @@ export function useGeoShelfSources(
     );
   };
 
-  const persist = async (
-    sourceId: string,
-    request: () => Promise<GeoShelfMutationResponse>,
-    fallbackMessage: string
-  ) => {
+  const settle = (sourceId: string) => {
     const inFlight = inFlightBySourceId.current;
-    inFlight.set(sourceId, (inFlight.get(sourceId) ?? 0) + 1);
-    markRowPending(pendingKey, sourceId);
-    try {
-      const { source } = await request();
-      // A newer edit of the same row is still optimistic: keep it on screen.
-      if (inFlight.get(sourceId) === 1) {
-        patchSource(sourceId, () => source);
-      }
-    } catch (error) {
-      toast.error(toErrorMessage(error, fallbackMessage));
-    } finally {
-      const remaining = (inFlight.get(sourceId) ?? 1) - 1;
-      if (remaining > 0) {
-        inFlight.set(sourceId, remaining);
-      } else {
-        inFlight.delete(sourceId);
-        clearRowPending(pendingKey, sourceId);
-      }
-      if (inFlight.size === 0) {
-        void queryClient.invalidateQueries({ queryKey: listKey });
-      }
+    const remaining = (inFlight.get(sourceId) ?? 1) - 1;
+    if (remaining > 0) {
+      inFlight.set(sourceId, remaining);
+    } else {
+      inFlight.delete(sourceId);
+      clearRowPending(pendingKey, sourceId);
+    }
+    if (inFlight.size === 0) {
+      void queryClient.invalidateQueries({ queryKey: listKey });
     }
   };
 
+  /**
+   * Saves of one row run one after another, so the server applies them in the
+   * order they were made and a slower, older response never lands last.
+   */
+  const persist = (
+    sourceId: string,
+    request: (serverId: string) => Promise<GeoShelfMutationResponse>,
+    fallbackMessage: string
+  ) => {
+    const inFlight = inFlightBySourceId.current;
+    const queues = queueBySourceId.current;
+    inFlight.set(sourceId, (inFlight.get(sourceId) ?? 0) + 1);
+    markRowPending(pendingKey, sourceId);
+    const run: Promise<void> = (queues.get(sourceId) ?? Promise.resolve())
+      .then(() => request(resolveSourceId(sourceId)))
+      .then(
+        ({ source }) => {
+          if (source.id !== sourceId) {
+            serverIdByDraftId.current.set(sourceId, source.id);
+          }
+          // A newer edit of the same row is still queued: keep it on screen.
+          if (inFlight.get(sourceId) === 1) {
+            patchSource(sourceId, () => source);
+          }
+        },
+        (error: unknown) => {
+          toast.error(toErrorMessage(error, fallbackMessage));
+        }
+      )
+      .then(() => {
+        settle(sourceId);
+        if (queues.get(sourceId) === run) {
+          queues.delete(sourceId);
+        }
+      });
+    queues.set(sourceId, run);
+  };
+
+  const matchesActiveFilters = (source: GeoShelfSource) =>
+    matchesShelfSourceFilter(source, input.filters.shelf) &&
+    matchesTicketSourceFilter(
+      source,
+      input.filters.ticket,
+      input.currentMemberId
+    ) &&
+    matchesSourceSearch(source, input.filters.search, [], []);
+
   const addSource = (source: GeoShelfSource) => {
+    const isVisible = matchesActiveFilters(source);
     void queryClient.cancelQueries({ queryKey: listKey });
     queryClient.setQueryData(options.queryKey, (data) => {
       const [first, ...rest] = data?.pages ?? [];
@@ -166,15 +210,15 @@ export function useGeoShelfSources(
         pages: [
           {
             ...first,
-            sources: [source, ...first.sources],
+            sources: isVisible ? [source, ...first.sources] : first.sources,
             totalCount: first.totalCount + 1,
-            filteredCount: first.filteredCount + 1,
+            filteredCount: first.filteredCount + (isVisible ? 1 : 0),
           },
           ...rest,
         ],
       };
     });
-    void persist(
+    persist(
       source.id,
       () =>
         dashboardOrpc.geo.shelfCreate.call({
@@ -195,16 +239,16 @@ export function useGeoShelfSources(
     changes
   ) => {
     const nowIso = new Date().toISOString();
-    patchSource(sourceId, (source) =>
+    patchSource(resolveSourceId(sourceId), (source) =>
       applyShelfOpportunityChanges(source, changes, nowIso)
     );
-    void persist(
+    persist(
       sourceId,
-      () =>
+      (serverId) =>
         dashboardOrpc.geo.shelfUpdate.call({
           organizationId,
           projectId,
-          sourceId,
+          sourceId: serverId,
           opportunity: changes,
         }),
       "Failed to update ticket"
@@ -217,16 +261,16 @@ export function useGeoShelfSources(
     status
   ) => {
     const nowIso = new Date().toISOString();
-    patchSource(sourceId, (source) =>
+    patchSource(resolveSourceId(sourceId), (source) =>
       applyShelfPlacementStatus(source, competitorId, status, nowIso)
     );
-    void persist(
+    persist(
       sourceId,
-      () =>
+      (serverId) =>
         dashboardOrpc.geo.shelfUpdate.call({
           organizationId,
           projectId,
-          sourceId,
+          sourceId: serverId,
           placements: [{ competitorId, status }],
         }),
       "Failed to update placement"
@@ -234,7 +278,8 @@ export function useGeoShelfSources(
   };
 
   const loadMore = () => {
-    if (query.hasNextPage && !query.isFetchingNextPage) {
+    // A refetch replaces the pages, so asking for the next one would race it.
+    if (query.hasNextPage && !query.isFetching) {
       void query.fetchNextPage({ cancelRefetch: false });
     }
   };
@@ -248,6 +293,7 @@ export function useGeoShelfSources(
     boardCounts: firstPage?.boardCounts ?? GEO_SHELF_EMPTY_BOARD_COUNTS,
     hasScanData: firstPage?.hasScanData ?? false,
     hasNextPage: query.hasNextPage,
+    isFetching: query.isFetching,
     isFetchingNextPage: query.isFetchingNextPage,
     loadMore,
     pendingSourceIds,

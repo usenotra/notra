@@ -28,6 +28,7 @@ import type {
   geoShelfSourceKindSchema,
   geoShelfSourceSchema,
   geoShelfUpdateInputSchema,
+  geoShelfUrlCheckResponseSchema,
 } from "@notra/schemas/dashboard/geo-shelf";
 import type { z } from "zod";
 
@@ -90,6 +91,9 @@ export type GeoShelfMutationResponse = z.infer<
   typeof geoShelfMutationResponseSchema
 >;
 export type GeoShelfPreview = z.infer<typeof geoShelfPreviewResponseSchema>;
+export type GeoShelfUrlCheckResponse = z.infer<
+  typeof geoShelfUrlCheckResponseSchema
+>;
 
 export type GeoShelfShelfFilter = (typeof GEO_SHELF_SHELF_FILTERS)[number];
 export type GeoShelfTicketFilter = (typeof GEO_SHELF_TICKET_FILTERS)[number];
@@ -202,6 +206,7 @@ export interface GeoShelfDbApi {
   boardCounts: GeoShelfBoardCounts;
   hasScanData: boolean;
   hasNextPage: boolean;
+  isFetching: boolean;
   isFetchingNextPage: boolean;
   loadMore: () => void;
   pendingSourceIds: ReadonlySet<string>;
@@ -239,6 +244,7 @@ export interface GeoShelfPageControlsProps extends GeoShelfToolbarProps {
 export interface GeoShelfPagingProps {
   filteredCount: number;
   hasNextPage: boolean;
+  isFetching: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
 }
@@ -247,6 +253,7 @@ export interface GeoShelfBoardProps {
   rows: GeoShelfRow[];
   boardCounts: GeoShelfBoardCounts;
   hasNextPage: boolean;
+  isFetching: boolean;
   onLoadMore: () => void;
   ticketFilter: GeoShelfTicketFilter;
   currentMemberId: string | null;
@@ -437,6 +444,7 @@ export interface GeoShelfPageReady {
   filteredCount: number;
   boardCounts: GeoShelfBoardCounts;
   hasNextPage: boolean;
+  isFetching: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
   filters: GeoShelfFilterState;

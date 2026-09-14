@@ -14,8 +14,9 @@ import {
   canonicalizeShelfUrl,
   shelfDomainFromUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
+import { after } from "next/server";
 
 import {
   GEO_SHELF_DUPLICATE_URL_MESSAGE,
@@ -32,6 +33,7 @@ import { buildGeoShelfFixture } from "@/lib/geo-shelf/fixtures";
 import { assertGeoShelfOpportunityMembers } from "@/lib/geo-shelf/members";
 import {
   findGeoShelfSourceByUrl,
+  type GeoShelfDbExecutor,
   insertGeoShelfSource,
   insertGeoShelfSources,
   listGeoShelfCitationStates,
@@ -50,6 +52,7 @@ import {
 } from "@/utils/geo-shelf-live-query";
 
 import type {
+  GeoShelfCitationState,
   GeoShelfCitedPage,
   GeoShelfCreateInput,
   GeoShelfMember,
@@ -166,13 +169,28 @@ function buildScanShelfSource(
  */
 async function syncGeoShelfCitations(seed: GeoShelfStoreSeed): Promise<number> {
   const key = storeKey(seed);
-  const [cited, stored] = await Promise.all([
-    queryCitedShelfPages(key),
-    listGeoShelfCitationStates(key),
-  ]);
-  if (cited.length === 0) {
-    return 0;
-  }
+  // A scan and a conversation run can finish together. Holding a per-project
+  // lock for read and write keeps an older snapshot from landing last.
+  return await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`geo-shelf-sync:${key.projectId}`}, 0))`
+    );
+    const cited = await queryCitedShelfPages(key, tx);
+    if (cited.length === 0) {
+      return 0;
+    }
+    const stored = await listGeoShelfCitationStates(key, tx);
+    return await writeCitedShelfPages(seed, cited, stored, tx);
+  });
+}
+
+async function writeCitedShelfPages(
+  seed: GeoShelfStoreSeed,
+  cited: GeoShelfCitedPage[],
+  stored: GeoShelfCitationState[],
+  executor: GeoShelfDbExecutor
+): Promise<number> {
+  const key = storeKey(seed);
 
   const nowIso = new Date().toISOString();
   const storedByUrl = new Map(stored.map((state) => [state.url, state]));
@@ -205,11 +223,39 @@ async function syncGeoShelfCitations(seed: GeoShelfStoreSeed): Promise<number> {
     }
   }
 
-  const [inserted] = await Promise.all([
-    insertGeoShelfSources(key, toInsert),
-    updateGeoShelfCitations(key, citationUpdates),
-  ]);
+  const inserted = await insertGeoShelfSources(key, toInsert, executor);
+  await updateGeoShelfCitations(key, citationUpdates, executor);
   return inserted.length;
+}
+
+/** Runs after the response, so a failed refresh never fails the run itself. */
+export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
+  const target = {
+    organizationId: scope.organizationId,
+    projectId: scope.projectId,
+  };
+  after(async () => {
+    try {
+      await syncGeoShelfCitationsForScope(target);
+    } catch (error) {
+      console.error("Could not refresh GEO shelf citations", {
+        ...target,
+        error,
+      });
+    }
+  });
+}
+
+export async function isGeoShelfUrlOnShelf(
+  seed: GeoShelfStoreSeed,
+  url: string
+): Promise<boolean> {
+  const source = await findGeoShelfSourceByUrl(
+    storeKey(seed),
+    seedFixture(seed),
+    canonicalizeShelfUrl(url)
+  );
+  return source !== null;
 }
 
 /** Entry point for background jobs that only know the project scope. */
@@ -295,7 +341,10 @@ export async function listGeoShelfSourcePage(
   const fixtures = seedFixture(seed)();
   if (fixtures.length > 0) {
     let persisted = await listPersistedGeoShelfSources(key);
-    if (persisted.length === 0 && (await syncGeoShelfCitations(seed)) > 0) {
+    if (
+      !hasGeoShelfScanData(persisted) &&
+      (await syncGeoShelfCitations(seed)) > 0
+    ) {
       persisted = await listPersistedGeoShelfSources(key);
     }
     const sourceByUrl = new Map(fixtures.map((source) => [source.url, source]));
@@ -306,9 +355,13 @@ export async function listGeoShelfSourcePage(
   }
 
   const page = await queryGeoShelfSourcePage(key, query);
-  // A project that never ran the post-scan sync (for example one whose last
-  // scan predates it) gets its cited pages on the first empty view.
-  if (page.totalCount > 0 || (await syncGeoShelfCitations(seed)) === 0) {
+  // A project whose last scan predates the post-scan sync has no scan rows
+  // yet, even when someone already added a shelf by hand.
+  if (
+    page.hasScanData ||
+    query.offset > 0 ||
+    (await syncGeoShelfCitations(seed)) === 0
+  ) {
     return { ...page, isSampleData: false };
   }
   return {

@@ -44,7 +44,10 @@ import {
   GEO_SHELF_TITLE_TOO_LONG_MESSAGE,
   GEO_SHELF_URL_TOO_LONG_MESSAGE,
 } from "@/constants/geo-shelf";
-import { useGeoShelfPreview } from "@/lib/hooks/use-geo-shelf";
+import {
+  useGeoShelfPreview,
+  useGeoShelfUrlCheck,
+} from "@/lib/hooks/use-geo-shelf";
 import type {
   GeoShelfAddDialogProps,
   GeoShelfNewSourceDraft,
@@ -81,6 +84,16 @@ function validateShelfUrl(
     (existing) => canonicalizeShelfUrlSafe(existing) === canonical
   );
   return isDuplicate ? GEO_SHELF_DUPLICATE_URL_MESSAGE : undefined;
+}
+
+function resolveShelfUrlError(
+  errors: readonly unknown[],
+  isServerDuplicate: boolean
+): string | null {
+  if (errors.length > 0) {
+    return String(errors[0]);
+  }
+  return isServerDuplicate ? GEO_SHELF_DUPLICATE_URL_MESSAGE : null;
 }
 
 function validateShelfTitle(value: string): string | undefined {
@@ -174,6 +187,10 @@ export function ShelfAddDialog({
       : null;
   const preview = useGeoShelfPreview(organizationId, previewUrl);
   const previewTitle = preview.data?.title ?? null;
+  // `existingUrls` only covers loaded rows; the server knows the whole shelf.
+  const urlCheck = useGeoShelfUrlCheck(organizationId, previewUrl);
+  const isServerDuplicate =
+    urlCheck.data?.onShelf === true && urlValue.trim() === debouncedUrl.trim();
   useEffect(() => {
     if (previewUrl !== null) {
       previewTitleRef.current = previewTitle;
@@ -231,35 +248,41 @@ export function ShelfAddDialog({
                 onChange: ({ value }) => validateShelfUrl(value, existingUrls),
               }}
             >
-              {(field) => (
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${id}-url`}>Page URL</Label>
-                  <Input
-                    aria-describedby={
-                      field.state.meta.errors.length > 0
-                        ? `${id}-url-error`
-                        : undefined
-                    }
-                    aria-invalid={field.state.meta.errors.length > 0}
-                    autoFocus
-                    id={`${id}-url`}
-                    inputMode="url"
-                    maxLength={GEO_SHELF_URL_MAX_LENGTH}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    placeholder="https://www.g2.com/categories/..."
-                    value={field.state.value}
-                  />
-                  {field.state.meta.errors.length > 0 ? (
-                    <p
-                      className="text-destructive text-xs"
-                      id={`${id}-url-error`}
-                    >
-                      {String(field.state.meta.errors[0])}
-                    </p>
-                  ) : null}
-                </div>
-              )}
+              {(field) => {
+                const urlError = resolveShelfUrlError(
+                  field.state.meta.errors,
+                  isServerDuplicate
+                );
+                return (
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`${id}-url`}>Page URL</Label>
+                    <Input
+                      aria-describedby={
+                        urlError ? `${id}-url-error` : undefined
+                      }
+                      aria-invalid={urlError !== null}
+                      autoFocus
+                      id={`${id}-url`}
+                      inputMode="url"
+                      maxLength={GEO_SHELF_URL_MAX_LENGTH}
+                      onBlur={field.handleBlur}
+                      onChange={(event) =>
+                        field.handleChange(event.target.value)
+                      }
+                      placeholder="https://www.g2.com/categories/..."
+                      value={field.state.value}
+                    />
+                    {urlError ? (
+                      <p
+                        className="text-destructive text-xs"
+                        id={`${id}-url-error`}
+                      >
+                        {urlError}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              }}
             </form.Field>
             <form.Field name="kind">
               {(field) => (
@@ -354,7 +377,9 @@ export function ShelfAddDialog({
             >
               {([url, canSubmit]) => (
                 <Button
-                  disabled={!(canSubmit && isAllowedShelfUrl(url))}
+                  disabled={
+                    !(canSubmit && isAllowedShelfUrl(url)) || isServerDuplicate
+                  }
                   type="submit"
                 >
                   Add shelf

@@ -120,6 +120,7 @@ export function toGeoShelfReadyFields(input: {
     filteredCount: shelf.filteredCount,
     boardCounts: shelf.boardCounts,
     hasNextPage: shelf.hasNextPage,
+    isFetching: shelf.isFetching,
     isFetchingNextPage: shelf.isFetchingNextPage,
     onLoadMore: shelf.loadMore,
     filters,

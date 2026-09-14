@@ -17,6 +17,11 @@ import type {
 
 type GeoShelfSourceRow = typeof geoShelfSources.$inferSelect;
 
+/** `db` or an open transaction, so a citation sync can hold its project lock. */
+export type GeoShelfDbExecutor =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 function toSource(row: GeoShelfSourceRow): GeoShelfSource {
   return geoShelfSourceSchema.parse({
     id: row.id,
@@ -254,9 +259,10 @@ export async function queryGeoShelfSourcePage(
 
 /** Only what the citation sync compares, instead of every full source row. */
 export async function listGeoShelfCitationStates(
-  key: GeoShelfStoreKey
+  key: GeoShelfStoreKey,
+  executor: GeoShelfDbExecutor = db
 ): Promise<GeoShelfCitationState[]> {
-  return await db
+  return await executor
     .select({
       id: geoShelfSources.id,
       url: geoShelfSources.url,
@@ -311,7 +317,8 @@ export async function insertGeoShelfSource(
 
 export async function insertGeoShelfSources(
   key: GeoShelfStoreKey,
-  sources: GeoShelfSource[]
+  sources: GeoShelfSource[],
+  executor: GeoShelfDbExecutor = db
 ): Promise<GeoShelfSource[]> {
   if (sources.length === 0) {
     return [];
@@ -324,13 +331,13 @@ export async function insertGeoShelfSources(
   ) {
     const chunk = sources.slice(index, index + GEO_SHELF_CITATION_INSERT_CHUNK);
     // react-doctor-disable-next-line react-doctor/async-await-in-loop -- sequential chunks bound database concurrency
-    await db
+    await executor
       .insert(geoShelfSources)
       .values(chunk.map((source) => toRow(source, key)))
       .onConflictDoNothing({
         target: [geoShelfSources.projectId, geoShelfSources.url],
       });
-    const rows = await db
+    const rows = await executor
       .select()
       .from(geoShelfSources)
       .where(
@@ -353,43 +360,43 @@ export async function updateGeoShelfCitations(
     id: string;
     citations: GeoShelfCitationSummary;
     title: string | null;
-  }[]
+  }[],
+  executor?: GeoShelfDbExecutor
 ): Promise<void> {
   if (updates.length === 0) {
     return;
   }
+  if (!executor) {
+    await db.transaction((tx) => updateGeoShelfCitations(key, updates, tx));
+    return;
+  }
   // One statement per chunk instead of one UPDATE per changed source. Chunking
   // keeps us under Postgres's bind-parameter limit (~21k rows at 3 params each).
-  await db.transaction(async (tx) => {
-    for (
-      let index = 0;
-      index < updates.length;
-      index += GEO_SHELF_CITATION_INSERT_CHUNK
-    ) {
-      const chunk = updates.slice(
-        index,
-        index + GEO_SHELF_CITATION_INSERT_CHUNK
-      );
-      const values = sql.join(
-        chunk.map(
-          (update) =>
-            sql`(${update.id}::text, ${JSON.stringify(update.citations)}::jsonb, ${update.title}::text)`
-        ),
-        sql`, `
-      );
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- one transaction connection executes queries serially
-      await tx.execute(sql`
-        update ${geoShelfSources} as target
-        set citations = incoming.citations,
-          title = coalesce(target.title, incoming.title),
-          updated_at = now() at time zone 'utc'
-        from (values ${values}) as incoming(id, citations, title)
-        where target.id = incoming.id
-          and target.organization_id = ${key.organizationId}
-          and target.project_id = ${key.projectId}
-      `);
-    }
-  });
+  for (
+    let index = 0;
+    index < updates.length;
+    index += GEO_SHELF_CITATION_INSERT_CHUNK
+  ) {
+    const chunk = updates.slice(index, index + GEO_SHELF_CITATION_INSERT_CHUNK);
+    const values = sql.join(
+      chunk.map(
+        (update) =>
+          sql`(${update.id}::text, ${JSON.stringify(update.citations)}::jsonb, ${update.title}::text)`
+      ),
+      sql`, `
+    );
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop -- one transaction connection executes queries serially
+    await executor.execute(sql`
+      update ${geoShelfSources} as target
+      set citations = incoming.citations,
+        title = coalesce(target.title, incoming.title),
+        updated_at = now() at time zone 'utc'
+      from (values ${values}) as incoming(id, citations, title)
+      where target.id = incoming.id
+        and target.organization_id = ${key.organizationId}
+        and target.project_id = ${key.projectId}
+    `);
+  }
 }
 
 export async function patchGeoShelfSource(

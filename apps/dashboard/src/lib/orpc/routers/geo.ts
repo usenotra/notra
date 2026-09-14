@@ -210,11 +210,11 @@ import {
   geoShelfPreviewInputSchema,
   geoShelfPreviewResponseSchema,
   geoShelfUpdateInputSchema,
+  geoShelfUrlCheckResponseSchema,
 } from "@notra/schemas/dashboard/geo-shelf";
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { after } from "next/server";
 
 import {
   GEO_COMPETITOR_SOURCES,
@@ -251,10 +251,11 @@ import {
 import { previewGeoShelfUrl } from "@/lib/geo-shelf/preview";
 import {
   createGeoShelfSource,
+  isGeoShelfUrlOnShelf,
   listGeoShelfSourcePage,
   loadGeoShelfContext,
   resolveGeoShelfSearch,
-  syncGeoShelfCitationsForScope,
+  scheduleGeoShelfCitationSync,
   updateGeoShelfSource,
 } from "@/lib/geo-shelf/service";
 import { assertGeoAccess } from "@/lib/geo/access";
@@ -789,6 +790,20 @@ export const geoRouter = {
         });
       }
       return geoShelfMutationResponseSchema.parse({ source: result.source });
+    }),
+  shelfUrlCheck: authorizedProcedure
+    .input(geoShelfPreviewInputSchema)
+    .handler(async ({ context, input }) => {
+      const seed = await loadGeoShelfSeed(context, input, {
+        withMembers: false,
+      });
+      const onShelf = seed.settings
+        ? await isGeoShelfUrlOnShelf(
+            { ...seed, settings: seed.settings },
+            input.url
+          )
+        : false;
+      return geoShelfUrlCheckResponseSchema.parse({ onShelf });
     }),
   shelfPreview: authorizedProcedure
     .input(geoShelfPreviewInputSchema)
@@ -1330,17 +1345,7 @@ export const geoRouter = {
         },
       });
       if (result.checks > 0) {
-        after(async () => {
-          try {
-            await syncGeoShelfCitationsForScope(input);
-          } catch (error) {
-            console.error("Could not refresh GEO shelf citations", {
-              organizationId: input.organizationId,
-              projectId: input.projectId,
-              error,
-            });
-          }
-        });
+        scheduleGeoShelfCitationSync(input);
       }
       return result;
     }),

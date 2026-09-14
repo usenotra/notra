@@ -136,6 +136,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
             filteredCount={page.filteredCount}
             hasNextPage={page.hasNextPage}
             hasScanData={page.hasScanData}
+            isFetching={page.isFetching}
             isFetchingNextPage={page.isFetchingNextPage}
             onAddShelf={() => page.onAddOpenChange(true)}
             onLoadMore={page.onLoadMore}

@@ -15,6 +15,7 @@ export function ShelfView({
   sort,
   onSortChange,
   hasNextPage,
+  isFetching,
   isFetchingNextPage,
   onLoadMore,
   ticketFilter,
@@ -41,6 +42,7 @@ export function ShelfView({
           filteredCount={filteredCount}
           hasNextPage={hasNextPage}
           hasScanData={hasScanData}
+          isFetching={isFetching}
           isFetchingNextPage={isFetchingNextPage}
           onAddShelf={onAddShelf}
           onLoadMore={onLoadMore}
@@ -60,6 +62,7 @@ export function ShelfView({
             boardCounts={boardCounts}
             currentMemberId={currentMemberId}
             hasNextPage={hasNextPage}
+            isFetching={isFetching}
             onLoadMore={onLoadMore}
             onRowClick={onRowClick}
             onUpdateOpportunity={onUpdateOpportunity}

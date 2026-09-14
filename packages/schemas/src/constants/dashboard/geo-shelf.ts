@@ -55,6 +55,7 @@ export const GEO_SHELF_SORT_KEYS = [
 ] as const;
 export const GEO_SHELF_SORT_DIRECTIONS = ["asc", "desc"] as const;
 export const GEO_SHELF_PAGE_SIZE_MAX = 200;
+export const GEO_SHELF_OFFSET_MAX = 100_000;
 export const GEO_SHELF_SEARCH_MAX_LENGTH = 200;
 export const GEO_SHELF_NOTES_MAX_LENGTH = 2000;
 export const GEO_SHELF_TITLE_MAX_LENGTH = 200;
