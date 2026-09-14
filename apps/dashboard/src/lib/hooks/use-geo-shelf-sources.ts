@@ -1,5 +1,6 @@
 "use client";
 
+import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 import {
   type InfiniteData,
   keepPreviousData,
@@ -26,6 +27,7 @@ import type {
   GeoShelfDbApi,
   GeoShelfFilterState,
   GeoShelfListResponse,
+  GeoShelfMember,
   GeoShelfMutationResponse,
   GeoShelfSortState,
   GeoShelfSource,
@@ -37,11 +39,7 @@ import {
   toShelfOpportunityWrite,
   toShelfPlacementWrites,
 } from "@/utils/geo-shelf";
-import {
-  matchesShelfSourceFilter,
-  matchesSourceSearch,
-  matchesTicketSourceFilter,
-} from "@/utils/geo-shelf-live-query";
+import { matchesGeoShelfSourceFilters } from "@/utils/geo-shelf-live-query";
 
 type GeoShelfListData = InfiniteData<GeoShelfListResponse, number>;
 
@@ -78,6 +76,8 @@ export function useGeoShelfSources(
   input: {
     filters: Omit<GeoShelfFilterState, "currentMemberId">;
     currentMemberId: string | null;
+    members: readonly GeoShelfMember[];
+    competitors: readonly GeoCompetitor[];
     sort: GeoShelfSortState;
     enabled: boolean;
   }
@@ -188,14 +188,14 @@ export function useGeoShelfSources(
     queues.set(sourceId, run);
   };
 
+  // Member and competitor names count for search, same as on the server.
   const matchesActiveFilters = (source: GeoShelfSource) =>
-    matchesShelfSourceFilter(source, input.filters.shelf) &&
-    matchesTicketSourceFilter(
+    matchesGeoShelfSourceFilters(
       source,
-      input.filters.ticket,
-      input.currentMemberId
-    ) &&
-    matchesSourceSearch(source, input.filters.search, [], []);
+      { ...input.filters, currentMemberId: input.currentMemberId },
+      input.members,
+      input.competitors
+    );
 
   const addSource = (source: GeoShelfSource) => {
     const isVisible = matchesActiveFilters(source);

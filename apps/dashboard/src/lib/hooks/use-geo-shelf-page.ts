@@ -114,7 +114,10 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const [sort, setSort] = useState<GeoShelfSortState>(GEO_SHELF_DEFAULT_SORT);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<GeoShelfSource | null>(null);
-  const [debouncedSearch] = useDebouncedValue(search, {
+  // A URL-restored query can exceed what the list endpoint accepts; the
+  // toolbar and the request both use the same trimmed value.
+  const normalizedSearch = search.slice(0, GEO_SHELF_SEARCH_MAX_LENGTH);
+  const [debouncedSearch] = useDebouncedValue(normalizedSearch, {
     wait: GEO_SHELF_SEARCH_DEBOUNCE_MS,
   });
 
@@ -123,9 +126,10 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const shelf = useGeoShelfSources(organizationId, {
     enabled: hasSettings,
     currentMemberId: membersQuery.data?.currentMemberId ?? null,
+    members: membersQuery.data?.members ?? [],
+    competitors,
     filters: {
-      // A URL-restored search can exceed what the list endpoint accepts.
-      search: debouncedSearch.slice(0, GEO_SHELF_SEARCH_MAX_LENGTH),
+      search: debouncedSearch,
       shelf: shelfFilter,
       ticket: ticketFilter,
     },
@@ -191,7 +195,7 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
       currentMemberId: membersQuery.data?.currentMemberId,
       shelf,
       selected,
-      search,
+      search: normalizedSearch,
       shelfFilter,
       ticketFilter,
       sort,

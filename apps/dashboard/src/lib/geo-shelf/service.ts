@@ -13,6 +13,7 @@ import {
 import {
   canonicalizeShelfUrl,
   shelfDomainFromUrl,
+  tryCanonicalizeShelfUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
 import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
@@ -32,11 +33,11 @@ import {
 import { buildGeoShelfFixture } from "@/lib/geo-shelf/fixtures";
 import { assertGeoShelfOpportunityMembers } from "@/lib/geo-shelf/members";
 import {
-  findGeoShelfSourceByUrl,
   type GeoShelfDbExecutor,
   insertGeoShelfSource,
   insertGeoShelfSources,
   listGeoShelfCitationStates,
+  listGeoShelfSourceUrls,
   listPersistedGeoShelfSources,
   patchGeoShelfSource,
   queryGeoShelfSourcePage,
@@ -165,7 +166,8 @@ function buildScanShelfSource(
  * Shelf space is cited scan pages plus anything added by hand. The cited pages
  * are folded in from the whole mention-check history, which is too expensive
  * for every page view, so this runs when a scan or conversation run finishes.
- * Returns how many new scan sources were inserted.
+ * Returns how many shelf sources it inserted or updated, so a caller that
+ * already read the page knows when to read it again.
  */
 async function syncGeoShelfCitations(seed: GeoShelfStoreSeed): Promise<number> {
   const key = storeKey(seed);
@@ -225,7 +227,7 @@ async function writeCitedShelfPages(
 
   const inserted = await insertGeoShelfSources(key, toInsert, executor);
   await updateGeoShelfCitations(key, citationUpdates, executor);
-  return inserted.length;
+  return inserted.length + citationUpdates.length;
 }
 
 /** Runs after the response, so a failed refresh never fails the run itself. */
@@ -246,16 +248,20 @@ export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
   });
 }
 
+/**
+ * Rows stored before URLs were canonicalized keep their raw URL, so both sides
+ * are canonicalized instead of matching the column exactly.
+ */
 export async function isGeoShelfUrlOnShelf(
   seed: GeoShelfStoreSeed,
   url: string
 ): Promise<boolean> {
-  const source = await findGeoShelfSourceByUrl(
-    storeKey(seed),
-    seedFixture(seed),
-    canonicalizeShelfUrl(url)
+  const canonical = canonicalizeShelfUrl(url);
+  const storedUrls = await listGeoShelfSourceUrls(storeKey(seed));
+  const fixtureUrls = seedFixture(seed)().map((source) => source.url);
+  return [...storedUrls, ...fixtureUrls].some(
+    (stored) => (tryCanonicalizeShelfUrl(stored) ?? stored) === canonical
   );
-  return source !== null;
 }
 
 /** Entry point for background jobs that only know the project scope. */
@@ -526,8 +532,7 @@ export async function createGeoShelfSource(
   const nowIso = new Date().toISOString();
   const url = canonicalizeShelfUrl(input.url);
   const key = storeKey(seed);
-  const seedSources = seedFixture(seed);
-  if (await findGeoShelfSourceByUrl(key, seedSources, url)) {
+  if (await isGeoShelfUrlOnShelf(seed, url)) {
     throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
   }
   // Validate before touching the store: a rejected record must not end up in

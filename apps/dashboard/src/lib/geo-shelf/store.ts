@@ -285,20 +285,15 @@ export async function listPersistedGeoShelfSources(
   return rows.map(toSource);
 }
 
-export async function findGeoShelfSourceByUrl(
-  key: GeoShelfStoreKey,
-  seed: () => GeoShelfSource[],
-  url: string
-): Promise<GeoShelfSource | null> {
-  const [row] = await db
-    .select()
+/** Only the URLs, for duplicate checks that canonicalize in application code. */
+export async function listGeoShelfSourceUrls(
+  key: GeoShelfStoreKey
+): Promise<string[]> {
+  const rows = await db
+    .select({ url: geoShelfSources.url })
     .from(geoShelfSources)
-    .where(and(scopeWhere(key), eq(geoShelfSources.url, url)))
-    .limit(1);
-  if (row) {
-    return toSource(row);
-  }
-  return seed().find((candidate) => candidate.url === url) ?? null;
+    .where(scopeWhere(key));
+  return rows.map((row) => row.url);
 }
 
 export async function insertGeoShelfSource(
