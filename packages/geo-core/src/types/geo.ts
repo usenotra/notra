@@ -609,8 +609,7 @@ export interface GeoScanPlannedSequence {
 
 export interface GeoScanPlannedPersona {
   personaId: string;
-  /** Optional while persisted workflow plans from before fixed prompts finish. */
-  prompts?: string[];
+  prompts: string[];
   engine: string;
   groundedKey: string;
   zdr: GeoZdrMode;

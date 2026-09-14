@@ -57,20 +57,6 @@ describe("geoScanPersonaTasks", () => {
     expect(first.map((task) => task.prompt)).toEqual(prompts);
     expect(second.map((task) => task.prompt)).toEqual(prompts);
   });
-
-  test("retains placeholder tasks for persisted plans without prompts", () => {
-    const tasks = geoScanPersonaTasks({
-      personaId: PERSONA_ID,
-      engine: "test/legacy-grounded",
-      groundedKey: "test/legacy-grounded",
-      zdr: "none",
-    });
-
-    expect(tasks.map((task) => task.prompt)).toEqual([
-      "Persona conversation, message 1",
-      "Persona conversation, message 2",
-    ]);
-  });
 });
 
 describe("normalizeGeneratedPersona", () => {

@@ -212,7 +212,7 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   const outcome = yield* runGeoPersonaConversation(
     checkContext,
     loaded,
-    tasks.map((task) => task.prompt),
+    planned.prompts,
     grounded,
     planned.zdr
   );
