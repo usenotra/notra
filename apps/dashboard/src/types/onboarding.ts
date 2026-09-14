@@ -117,6 +117,30 @@ export interface CompetitorSearchItemsInput {
   selected: readonly GeoCompetitor[];
 }
 
+export interface UseCompetitorSearchStateInput {
+  organizationId: string;
+  ownDomain: string | null;
+  selected: readonly GeoCompetitor[];
+}
+
+export interface CompetitorSearchContentProps {
+  items: readonly CompetitorSearchResult[];
+  onRetry: () => void;
+  searchError: boolean;
+  searchFetching: boolean;
+  searching: boolean;
+}
+
+export interface SearchRetryNoticeProps {
+  onRetry: () => void;
+  searchFetching: boolean;
+}
+
+export interface CompetitorSearchResultRowProps {
+  entry: CompetitorSearchResult;
+  searchUnavailable: boolean;
+}
+
 export interface VisibilityBrandDraft {
   companyName: string;
   aliases: readonly string[];

@@ -17,7 +17,6 @@ import {
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { Effect } from "effect";
 
 import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
@@ -34,6 +33,8 @@ import {
   writeCachedCompanyLogo,
 } from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
+import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
 import type { CompanyLogoResult } from "@/types/onboarding";
 import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { ratelimit } from "@/utils/ratelimit";
@@ -103,8 +104,9 @@ export const onboardingRouter = {
         user: context.user,
       });
 
-      const project = await Effect.runPromise(
-        createGeoProject(input.organizationId, "Onboarding replay")
+      const project = await runOrpcEffect(
+        createGeoProject(input.organizationId, "Onboarding replay"),
+        toGeoOrpcError
       );
       return { projectId: project.id };
     }),

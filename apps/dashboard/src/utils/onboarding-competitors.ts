@@ -1,5 +1,8 @@
 import { GEO_BRAND_SEARCH_MIN_QUERY_LENGTH } from "@notra/geo-core/constants/geo";
-import { competitorKey } from "@notra/geo-core/geo/domain";
+import {
+  competitorKey,
+  normalizeCompetitorDomain,
+} from "@notra/geo-core/geo/domain";
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 
 import type {
@@ -13,11 +16,15 @@ export function findCompetitor(
   name: string
 ): GeoCompetitor | undefined {
   const key = competitorKey(name);
-  return competitors.find((entry) =>
-    domain && entry.domain
-      ? entry.domain === domain
-      : competitorKey(entry.name) === key
-  );
+  const normalizedDomain = domain ? normalizeCompetitorDomain(domain) : null;
+  return competitors.find((entry) => {
+    const entryDomain = entry.domain
+      ? normalizeCompetitorDomain(entry.domain)
+      : null;
+    return normalizedDomain && entryDomain
+      ? entryDomain === normalizedDomain
+      : competitorKey(entry.name) === key;
+  });
 }
 
 export function createCompetitor(
@@ -46,22 +53,33 @@ export function competitorSearchItems({
     return [];
   }
 
+  const normalizedOwnDomain = ownDomain
+    ? normalizeCompetitorDomain(ownDomain)
+    : null;
   const results: CompetitorSearchResult[] = searchResults.flatMap((entry) =>
-    entry.domain !== ownDomain &&
+    normalizeCompetitorDomain(entry.domain) !== normalizedOwnDomain &&
     !findCompetitor(selected, entry.domain, entry.name)
       ? [{ ...entry, source: "search" }]
       : []
   );
-  const normalizedQuery = trimmed.toLowerCase();
+  const normalizedQuery = competitorKey(trimmed);
+  const normalizedQueryDomain = normalizeCompetitorDomain(trimmed);
   const hasExactResult = results.some(
     (entry) =>
-      entry.name.toLowerCase() === normalizedQuery ||
-      entry.domain?.toLowerCase() === normalizedQuery
+      competitorKey(entry.name) === normalizedQuery ||
+      normalizeCompetitorDomain(entry.domain ?? "") === normalizedQueryDomain
+  );
+  const matchesSelectedDomain = selected.some(
+    (entry) =>
+      normalizedQueryDomain !== null &&
+      entry.domain !== null &&
+      normalizeCompetitorDomain(entry.domain) === normalizedQueryDomain
   );
   const canAddManually =
     !searching &&
     !hasExactResult &&
-    normalizedQuery !== ownDomain?.toLowerCase() &&
+    normalizedQueryDomain !== normalizedOwnDomain &&
+    !matchesSelectedDomain &&
     !findCompetitor(selected, null, trimmed);
 
   return canAddManually

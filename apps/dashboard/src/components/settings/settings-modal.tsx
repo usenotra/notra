@@ -163,9 +163,11 @@ function SettingsSectionContent({ section }: { section: SettingsSectionId }) {
       return <GeoSettingsPane section="languages" />;
     case "geo-models":
       return <GeoSettingsPane section="models" />;
+    case "dev":
+      return <DevSettingsPane />;
     default: {
-      const devSection: "dev" = section;
-      return <DevSettingsPane key={devSection} />;
+      const exhaustive: never = section;
+      return exhaustive;
     }
   }
 }

@@ -85,32 +85,21 @@ function usePendingRows(name: string, scope: GeoScopeInput) {
     () => getPendingRows(collectionId)
   );
 
-  const trackMany = useCallback(
-    (rowIds: readonly string[], transaction: Transaction, fallback: string) => {
-      for (const rowId of rowIds) {
-        markRowPending(collectionId, rowId);
-      }
+  const track = useCallback(
+    (rowId: string, transaction: Transaction, fallback: string) => {
+      markRowPending(collectionId, rowId);
       transaction.isPersisted.promise
         .catch((error: unknown) => {
           toast.error(toErrorMessage(error, fallback));
         })
         .finally(() => {
-          for (const rowId of rowIds) {
-            clearRowPending(collectionId, rowId);
-          }
+          clearRowPending(collectionId, rowId);
         });
     },
     [collectionId]
   );
 
-  const track = useCallback(
-    (rowId: string, transaction: Transaction, fallback: string) => {
-      trackMany([rowId], transaction, fallback);
-    },
-    [trackMany]
-  );
-
-  return { pendingIds, track, trackMany };
+  return { pendingIds, track };
 }
 
 export function useGeoPromptsDb(
@@ -336,7 +325,7 @@ export function useGeoCompetitorsDb(
   const dbClient = useDbClient();
   const definition = geoCompetitorsCollection({ organizationId, projectId });
   const collection = dbClient.collection(definition);
-  const { pendingIds, track, trackMany } = usePendingRows("competitors", {
+  const { pendingIds, track } = usePendingRows("competitors", {
     organizationId,
     projectId,
   });
@@ -362,18 +351,6 @@ export function useGeoCompetitorsDb(
     track(competitor.id, transaction, "Failed to save competitor");
   };
 
-  const addCompetitors = (items: readonly GeoCompetitor[]) => {
-    if (items.length === 0) {
-      return;
-    }
-    const transaction = collection.insert([...items]);
-    trackMany(
-      items.map((item) => item.id),
-      transaction,
-      "Failed to save competitors"
-    );
-  };
-
   const removeCompetitor = (competitorId: string) => {
     track(
       competitorId,
@@ -386,7 +363,6 @@ export function useGeoCompetitorsDb(
     competitors,
     pendingCompetitorIds: pendingIds,
     saveCompetitor,
-    addCompetitors,
     removeCompetitor,
   };
 }

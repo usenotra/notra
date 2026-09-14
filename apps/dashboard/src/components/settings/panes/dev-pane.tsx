@@ -10,6 +10,7 @@ import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { DevSampleDataCard } from "@/components/settings/dev-sample-data-card";
 import { SettingsPane } from "@/components/settings/settings-pane";
+import { geoDbQueryKey } from "@/lib/db/geo-collections";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { errorMessageOr } from "@/lib/utils";
 import { geoOnboardingPath } from "@/utils/geo-paths";
@@ -20,17 +21,22 @@ export function DevSettingsPane() {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const replay = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!organizationId) {
         throw new Error("No active organization");
       }
-      return dashboardOrpc.onboarding.createDevReplayProject.call({
-        organizationId,
-      });
+      const result = await dashboardOrpc.onboarding.createDevReplayProject.call(
+        {
+          organizationId,
+        }
+      );
+      return { ...result, organizationId };
     },
-    onSuccess: async ({ projectId }) => {
+    onSuccess: async ({ organizationId: replayOrganizationId, projectId }) => {
       await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.key(),
+        queryKey: geoDbQueryKey("projects", {
+          organizationId: replayOrganizationId,
+        }),
       });
       router.push(geoOnboardingPath(projectId, true));
     },
