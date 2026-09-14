@@ -17,22 +17,26 @@ export function geoScanPersonaTasks(
   persona: GeoScanPlannedPersona
 ): GeoScanPlannedAnswer[] {
   const promptId = personaPromptId(persona.personaId);
-  return (persona.prompts ?? [])
-    .slice(0, GEO_PERSONA_MAX_TURNS)
-    .map((prompt, index) => ({
-      key: geoScanAnswerKey(
-        promptId,
-        persona.engine,
-        DEFAULT_LANGUAGE,
-        index + 1
-      ),
+  const prompts =
+    persona.prompts ??
+    Array.from(
+      { length: GEO_PERSONA_MAX_TURNS },
+      (_, index) => `Persona conversation, message ${index + 1}`
+    );
+  return prompts.slice(0, GEO_PERSONA_MAX_TURNS).map((prompt, index) => ({
+    key: geoScanAnswerKey(
       promptId,
-      personaId: persona.personaId,
-      prompt,
-      engine: persona.engine,
-      language: DEFAULT_LANGUAGE,
-      turn: index + 1,
-    }));
+      persona.engine,
+      DEFAULT_LANGUAGE,
+      index + 1
+    ),
+    promptId,
+    personaId: persona.personaId,
+    prompt,
+    engine: persona.engine,
+    language: DEFAULT_LANGUAGE,
+    turn: index + 1,
+  }));
 }
 
 export function geoScanAnswerKey(

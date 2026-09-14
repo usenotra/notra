@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { GEO_PERSONA_MEMORY_KINDS } from "../constants/geo-personas";
@@ -13,8 +11,8 @@ import {
   organizations,
   projects,
 } from "../schema";
-import type { GeoPersonaSnapshot } from "../types/geo-personas";
 import type { SeedPersonaVisibilityPersona } from "../types/seed-persona-visibility";
+import { createPersonaSnapshot } from "../utils/persona-snapshot";
 
 const ENGINES = [
   "openai/gpt-5.4-grounded",
@@ -497,29 +495,6 @@ async function ensurePersonas(
   return created;
 }
 
-function createSeedPersonaSnapshot(
-  persona: SeedPersonaVisibilityPersona
-): GeoPersonaSnapshot {
-  const context = {
-    persona: {
-      id: persona.id,
-      name: persona.name,
-      role: persona.role,
-      company: persona.company,
-      summary: persona.summary,
-      searchStyle: persona.searchStyle,
-      profile: persona.profile,
-    },
-    memories: persona.memories,
-    conversationPrompts: persona.conversationPrompts,
-  };
-  return {
-    schemaVersion: 2,
-    version: createHash("sha256").update(JSON.stringify(context)).digest("hex"),
-    ...context,
-  };
-}
-
 async function seedProjectActivity(
   organizationId: string,
   projectId: string,
@@ -611,7 +586,19 @@ async function seedProjectActivity(
           promptId: `persona-${persona.id}`,
           sequenceId: null,
           personaId: persona.id,
-          personaSnapshot: createSeedPersonaSnapshot(persona),
+          personaSnapshot: createPersonaSnapshot(
+            {
+              id: persona.id,
+              name: persona.name,
+              role: persona.role,
+              company: persona.company,
+              summary: persona.summary,
+              searchStyle: persona.searchStyle,
+              profile: persona.profile,
+            },
+            persona.memories,
+            persona.conversationPrompts
+          ),
           turn: 0,
           prompt,
           answer,

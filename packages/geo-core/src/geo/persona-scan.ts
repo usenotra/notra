@@ -3,6 +3,7 @@ import { geoPersonaMemories, geoPersonas, geoSettings } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -33,7 +34,6 @@ import {
 import { flushGeoLogEffect, geoLogWarn } from "../utils/geo-log";
 import { personaPromptId } from "../utils/geo-personas";
 import { geoScanPersonaTasks } from "../utils/geo-scan-plan";
-import { createPersonaSnapshot } from "../utils/persona-snapshot";
 import {
   addAgentTokenUsage as addTokenUsage,
   EMPTY_AGENT_TOKEN_USAGE as EMPTY_TOKEN_USAGE,
@@ -212,7 +212,7 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   const outcome = yield* runGeoPersonaConversation(
     checkContext,
     loaded,
-    planned.prompts ?? [],
+    tasks.map((task) => task.prompt),
     grounded,
     planned.zdr
   );
