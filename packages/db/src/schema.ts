@@ -1652,6 +1652,12 @@ export const geoScans = pgTable(
       .notNull()
       .default("running"),
     plan: jsonb("plan").$type<GeoScanPlanSnapshot>(),
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+    failedStage: text("failed_stage", {
+      enum: ["handoff", "execution", "stale"],
+    }),
+    retryable: boolean("retryable"),
     startedAt: timestamp("started_at").defaultNow().notNull(),
     finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
 import { and, eq, gte, isNull, lt, lte, notExists, or } from "drizzle-orm";
-import { Effect, Exit, Schedule } from "effect";
+import { Cause, Effect, Exit, Schedule } from "effect";
 
 import {
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
@@ -14,6 +14,55 @@ import {
   GeoScanError,
   GeoScanStartError,
 } from "./errors";
+
+interface GeoScanFailureMetadata {
+  readonly errorCode: string;
+  readonly errorMessage: string;
+  readonly failedStage: "handoff" | "execution" | "stale";
+  readonly retryable: boolean | null;
+}
+
+const HANDOFF_FAILURE: GeoScanFailureMetadata = {
+  errorCode: "scan_handoff_failed",
+  errorMessage: "The scan could not be started.",
+  failedStage: "handoff",
+  retryable: null,
+};
+
+const EXECUTION_FAILURE: GeoScanFailureMetadata = {
+  errorCode: "scan_execution_failed",
+  errorMessage: "The scan could not be completed.",
+  failedStage: "execution",
+  retryable: null,
+};
+
+function errorTagCode(tag: string): string {
+  return tag
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .toLowerCase();
+}
+
+function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
+  const error = Cause.squash(cause);
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "_tag" in error &&
+    typeof error._tag === "string"
+  ) {
+    return {
+      errorCode: errorTagCode(error._tag),
+      errorMessage:
+        error instanceof GeoScanError
+          ? error.message
+          : EXECUTION_FAILURE.errorMessage,
+      failedStage: "execution",
+      retryable: "timedOut" in error && error.timedOut === true ? true : null,
+    };
+  }
+  return EXECUTION_FAILURE;
+}
 
 /**
  * Atomically claims the project's scan slot, returning `null` when another
@@ -390,7 +439,14 @@ export const sweepStaleGeoScanRows = Effect.fn("geo.sweepStaleScanRows")(
     const failed = yield* geoDb("stale scan sweep failed", () =>
       db
         .update(geoScans)
-        .set({ status: "failed", finishedAt: new Date() })
+        .set({
+          status: "failed",
+          finishedAt: new Date(),
+          errorCode: "scan_stale",
+          errorMessage: "The scan stopped before it could be completed.",
+          failedStage: "stale",
+          retryable: true,
+        })
         .where(
           and(
             eq(geoScans.status, "running"),
@@ -436,7 +492,11 @@ export const failPendingGeoScanRow = Effect.fn("geo.failPendingScanRow")(
     yield* geoDb("scan row fail stamp failed", () =>
       db
         .update(geoScans)
-        .set({ status: "failed", finishedAt: new Date() })
+        .set({
+          status: "failed",
+          finishedAt: new Date(),
+          ...HANDOFF_FAILURE,
+        })
         .where(
           and(
             eq(geoScans.id, scanId),
@@ -452,12 +512,20 @@ export const failPendingGeoScanRow = Effect.fn("geo.failPendingScanRow")(
 export const finishGeoScanRow = Effect.fn("geo.finishScanRow")(function* (
   scope: GeoScanRunScope,
   scanId: string,
-  status: "completed" | "failed"
+  status: "completed" | "failed",
+  failure: GeoScanFailureMetadata = EXECUTION_FAILURE
 ) {
   yield* geoDb("scan row finish failed", () =>
     db
       .update(geoScans)
-      .set({ status, finishedAt: new Date() })
+      .set({
+        status,
+        finishedAt: new Date(),
+        errorCode: status === "failed" ? failure.errorCode : null,
+        errorMessage: status === "failed" ? failure.errorMessage : null,
+        failedStage: status === "failed" ? failure.failedStage : null,
+        retryable: status === "failed" ? failure.retryable : null,
+      })
       .where(
         and(
           eq(geoScans.id, scanId),
@@ -506,7 +574,10 @@ export function withGeoScanRun<A, E, R>(
             });
           }
           const status = Exit.isSuccess(exit) ? "completed" : "failed";
-          yield* finishGeoScanRow(scope, scanId, status).pipe(
+          const failure = Exit.isFailure(exit)
+            ? executionFailure(exit.cause)
+            : undefined;
+          yield* finishGeoScanRow(scope, scanId, status, failure).pipe(
             geoSkip("scan row finish failed", {
               event: "geo.scan.stamp_failed",
               projectId: scope.projectId,
