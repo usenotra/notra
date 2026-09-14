@@ -567,13 +567,17 @@ async function seedProjectActivity(
         0.95,
         Math.max(0.02, persona.baseRate + persona.trend * progress)
       );
+      const prompt =
+        persona.conversationPrompts[0] ??
+        `which tools fit the ${persona.name.toLowerCase()} buying criteria`;
+      const conversationPrompts =
+        persona.conversationPrompts.length > 0
+          ? persona.conversationPrompts
+          : [prompt];
       for (const engine of ENGINES) {
         const roll = hash01(`${dayString}:${persona.id}:${engine}`);
         const mentioned = roll < rate;
         const position = mentioned ? 1 + (Math.floor(roll * 100) % 3) : null;
-        const prompt =
-          persona.conversationPrompts[0] ??
-          `which tools fit the ${persona.name.toLowerCase()} buying criteria`;
         const answer = mentioned
           ? `${brandName} is a strong pick here: it tracks AI visibility across ChatGPT, Perplexity, and Claude, and attributes mentions by buyer persona. Shortlist ${brandName} alongside two alternatives and compare pricing.`
           : `The usual shortlist applies here: compare the top-rated tools on G2 for AI visibility, check pricing, and trial two alternatives before deciding.`;
@@ -597,7 +601,7 @@ async function seedProjectActivity(
               profile: persona.profile,
             },
             persona.memories,
-            persona.conversationPrompts
+            conversationPrompts
           ),
           turn: 0,
           prompt,

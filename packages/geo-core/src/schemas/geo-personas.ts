@@ -6,7 +6,6 @@ import {
   GEO_PERSONA_MIN_MEMORIES,
   GEO_PERSONA_FIELD_MAX_LENGTH,
   GEO_PERSONA_MAX_TURNS,
-  GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MIN,
 } from "../constants/geo-personas";
 import { geoOrganizationInputSchema } from "./geo";
@@ -39,9 +38,7 @@ export const geoGeneratedPersonaSchema = object({
   currentStack: textList,
   buyingTriggers: textList,
   objections: textList,
-  conversationPrompts: array(
-    requiredText.max(GEO_PERSONA_PROMPT_MAX_LENGTH)
-  ).min(GEO_PERSONA_MAX_TURNS),
+  conversationPrompts: array(requiredText).min(GEO_PERSONA_MAX_TURNS),
   memories: array(geoGeneratedPersonaMemorySchema).min(
     GEO_PERSONA_MIN_MEMORIES
   ),

@@ -5,6 +5,7 @@ import {
   GEO_PERSONA_MAX_MEMORIES,
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_MIN_MEMORIES,
+  GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MAX,
 } from "../src/constants/geo-personas";
 import { geoGeneratedPersonaSchema } from "../src/schemas/geo-personas";
@@ -101,6 +102,20 @@ describe("normalizeGeneratedPersona", () => {
 
   test("drops duplicate list items regardless of case and whitespace", () => {
     expect(normalizeGeneratedPersona(base).buyingTriggers.join(",")).toBe("c");
+  });
+
+  test("clips overlong prompts after model output validation", () => {
+    const overlongPrompt = "x".repeat(GEO_PERSONA_PROMPT_MAX_LENGTH + 1);
+    const generated = {
+      ...base,
+      role: "Marketing Director",
+      conversationPrompts: [overlongPrompt, "fixed follow-up"],
+    };
+
+    expect(geoGeneratedPersonaSchema.safeParse(generated).success).toBe(true);
+    expect(
+      normalizeGeneratedPersona(generated).conversationPrompts[0]
+    ).toHaveLength(GEO_PERSONA_PROMPT_MAX_LENGTH);
   });
 
   test("caps the persona count", () => {
