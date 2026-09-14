@@ -179,14 +179,6 @@ export default defineConfig({
   },
   overrides: [
     {
-      files: ["packages/ui/src/components/ui/**"],
-      rules: {
-        "shadcn/no-restyle": "off",
-        "shadcn/no-arbitrary-values": "off",
-        "shadcn/require-static-classes": "off",
-      },
-    },
-    {
       // Effect's TaggedError is a curried schema class factory, not an Error constructor.
       files: [
         "apps/api/src/errors/**/*.ts",
