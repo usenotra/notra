@@ -102,29 +102,31 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
           ignoreGap.isPending && ignoreGap.variables?.ignored
             ? ignoreGap.variables.promptId
             : null,
-        onIgnorePrompt: (row) => {
-          ignoreGap.mutate(
-            { promptId: row.id, ignored: true },
-            {
-              onSuccess: () => {
-                toast.success(GEO_PROMPT_GAP_IGNORED_TOAST, {
-                  action: {
-                    label: "Undo",
-                    onClick: () => {
-                      ignoreGap.mutate(
-                        { promptId: row.id, ignored: false },
-                        {
-                          onSuccess: () => {
-                            toast.success(GEO_PROMPT_GAP_RESTORED_TOAST);
-                          },
-                        }
-                      );
-                    },
-                  },
-                });
+        // `mutate` callbacks only fire for the latest call, so ignoring two gaps
+        // quickly would drop the first Undo toast. Each `mutateAsync` call
+        // settles on its own promise; failures are toasted by the hook.
+        onIgnorePrompt: async (row) => {
+          try {
+            await ignoreGap.mutateAsync({ promptId: row.id, ignored: true });
+          } catch {
+            return;
+          }
+          toast.success(GEO_PROMPT_GAP_IGNORED_TOAST, {
+            action: {
+              label: "Undo",
+              onClick: async () => {
+                try {
+                  await ignoreGap.mutateAsync({
+                    promptId: row.id,
+                    ignored: false,
+                  });
+                } catch {
+                  return;
+                }
+                toast.success(GEO_PROMPT_GAP_RESTORED_TOAST);
               },
-            }
-          );
+            },
+          });
         },
         onRunScan: () => startScan.mutate("gaps_empty"),
         onWritePrompt: (row) => {
