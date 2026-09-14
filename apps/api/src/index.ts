@@ -60,6 +60,7 @@ import { assertRequiredEnv } from "./utils/env";
 import { isPublicFeedbackIngestRequest } from "./utils/feedback";
 import { logError } from "./utils/logging";
 import { createApiShutdown } from "./utils/shutdown";
+import { publishSystemSkillsOnBoot } from "./utils/system-skills";
 
 const FRAMER_PLUGIN_ID = "8d4wmwtko6960jsu3ojmalvqm";
 
@@ -322,6 +323,8 @@ app.onError((error, c) => {
   trackApiException(c, error, 500);
   return c.json({ error: "Internal server error" }, 500);
 });
+
+publishSystemSkillsOnBoot();
 
 const apiShutdown = createApiShutdown(() =>
   Promise.allSettled([shutdownPostHogServer(), flushLogs()])

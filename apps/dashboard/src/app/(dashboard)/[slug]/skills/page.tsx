@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { SkillPageTransition } from "@/components/skills/skill-page-transition";
+
 import PageClient from "./page-client";
 
 export const metadata: Metadata = {
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
 
 async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return <PageClient slug={slug} />;
+  return (
+    <SkillPageTransition>
+      <PageClient slug={slug} />
+    </SkillPageTransition>
+  );
 }
 
 export default Page;

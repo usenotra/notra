@@ -10,7 +10,7 @@ import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
 import {
   buildGeoHumanizerPrompt,
-  GEO_HUMANIZER_SYSTEM,
+  buildGeoHumanizerSystem,
 } from "@notra/ai/prompts/geo_writer/humanizer";
 import {
   buildGeoPlannerPrompt,
@@ -20,6 +20,10 @@ import {
 import { buildGeoWriterInstructions } from "@notra/ai/prompts/geo_writer/writer";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import { geoContentBriefSchema } from "@notra/ai/schemas/geo-writer";
+import { HUMANIZER_SKILL_NAME } from "@notra/ai/skills/constants";
+import { loadSystemSkill } from "@notra/ai/skills/functions/service";
+import { HUMANIZER_CONTENT } from "@notra/ai/skills/humanizer-content";
+import { getLatestSystemSkill } from "@notra/ai/skills/registry";
 import {
   createGetBrandReferencesTool,
   createSearchBrandReferencesTool,
@@ -344,10 +348,45 @@ export function isHumanizedDraftAcceptable(
   return true;
 }
 
+/**
+ * Prefers the organization's own humanizer skill, so user edits reach the GEO
+ * writer, found by its registry name so a rename does not hide it. Falls back
+ * to the published registry version, then to the code definition, because a
+ * missing row must never skip the pass.
+ */
+async function resolveHumanizerContent(
+  organizationId: string
+): Promise<string> {
+  try {
+    const orgSkill = await loadSystemSkill(
+      { organizationId },
+      HUMANIZER_SKILL_NAME
+    );
+    if (orgSkill?.content.trim()) {
+      return orgSkill.content.trim();
+    }
+
+    const latest = await getLatestSystemSkill(db, HUMANIZER_SKILL_NAME);
+    if (latest?.content.trim()) {
+      return latest.content.trim();
+    }
+  } catch (error) {
+    console.warn("[GEO writer] humanizer skill lookup failed, using default", {
+      organizationId,
+      error: describeError(error),
+    });
+  }
+
+  return HUMANIZER_CONTENT.trim();
+}
+
 async function humanizeMarkdown(
   options: RunGeoWriterOptions,
   markdown: string
 ): Promise<{ markdown: string | null; usage: AgentTokenUsage }> {
+  const humanizerContent = await resolveHumanizerContent(
+    options.organizationId
+  );
   const model = createModel(
     options.organizationId,
     GEO_WRITER_MODEL,
@@ -359,7 +398,7 @@ async function humanizeMarkdown(
 
   const result = await generateText({
     model,
-    system: GEO_HUMANIZER_SYSTEM,
+    system: buildGeoHumanizerSystem(humanizerContent),
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
     providerOptions: withRouterDefaults(undefined, {

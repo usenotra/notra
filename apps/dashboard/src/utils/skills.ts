@@ -1,7 +1,16 @@
 import type {
+  SkillUpstreamDetail,
+  SkillUpstreamStatus,
+} from "@notra/ai/skills/types";
+
+import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
+import type {
+  SkillDiffThemeType,
+  SkillEditorView,
   SkillListItem,
   SkillSortKey,
   SkillSortState,
+  SkillStatus,
 } from "@/types/skills/page";
 
 const RELATIVE_UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
@@ -45,17 +54,60 @@ export function filterSkills<T extends SkillListItem>(
   );
 }
 
-function compareBy(key: SkillSortKey, a: SkillListItem, b: SkillListItem) {
-  switch (key) {
-    case "name":
-      return a.name.localeCompare(b.name);
-    case "type":
-      return Number(b.isSystem) - Number(a.isSystem);
-    case "updatedAt":
-      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-    default:
-      return 0;
+/** Drops the full version rows: list and detail responses carry status only. */
+export function toSkillUpstreamStatus(
+  detail: SkillUpstreamDetail
+): SkillUpstreamStatus {
+  return {
+    systemName: detail.systemName,
+    baseVersion: detail.baseVersion,
+    latestVersion: detail.latestVersion,
+    isModified: detail.isModified,
+    updateAvailable: detail.updateAvailable,
+    changelog: detail.changelog,
+  };
+}
+
+/**
+ * The four states of a system skill copy. Custom skills have no upstream and
+ * always read as `current`.
+ */
+export function getSkillStatus(
+  upstream: SkillUpstreamStatus | null | undefined
+): SkillStatus {
+  if (!upstream) {
+    return "current";
   }
+  if (upstream.updateAvailable) {
+    return upstream.isModified ? "conflict" : "update-available";
+  }
+  return upstream.isModified ? "modified" : "current";
+}
+
+/** `null` for an empty or valid skills.sh link; otherwise the message to show. */
+export function getSkillQuickstartError(url: string): string | null {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    return new URL(trimmed).host === "skills.sh"
+      ? null
+      : "Only skills.sh links are supported.";
+  } catch {
+    return "Enter a valid skills.sh URL.";
+  }
+}
+
+export function isSkillEditorView(value: unknown): value is SkillEditorView {
+  return (SKILL_EDITOR_VIEWS as readonly unknown[]).includes(value);
+}
+
+function compareBy(key: SkillSortKey, a: SkillListItem, b: SkillListItem) {
+  if (key === "updatedAt") {
+    return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+  }
+  return a.name.localeCompare(b.name);
 }
 
 export function sortSkills<T extends SkillListItem>(
@@ -77,4 +129,28 @@ export function toggleSkillSort(
     return { key, direction: key === "updatedAt" ? "desc" : "asc" };
   }
   return { key, direction: current.direction === "asc" ? "desc" : "asc" };
+}
+
+/**
+ * Diffs of two texts that only differ in a trailing newline otherwise render a
+ * "No newline at end of file" row on both sides.
+ */
+export function withTrailingNewline(text: string): string {
+  return text.endsWith("\n") ? text : `${text}\n`;
+}
+
+/**
+ * `next-themes` reports `undefined` until it has read the DOM; `system` lets
+ * `@pierre/diffs` pick from the media query in the meantime.
+ */
+export function resolveDiffThemeType(
+  resolvedTheme: string | undefined
+): SkillDiffThemeType {
+  if (resolvedTheme === "dark") {
+    return "dark";
+  }
+  if (resolvedTheme === "light") {
+    return "light";
+  }
+  return "system";
 }

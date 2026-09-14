@@ -152,8 +152,10 @@ export const API_SCOPE_RESOURCES = [
     openApiTag: "Chats",
   },
   {
+    // `/system-skills` is the global registry the org copies are forked from;
+    // it reads with the same `skills.read` scope.
     id: "skills",
-    paths: ["/skills"],
+    paths: ["/skills", "/system-skills"],
     label: "Skills",
     description: "Read and manage your skills",
     openApiTag: "Skills",

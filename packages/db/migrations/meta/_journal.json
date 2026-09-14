@@ -624,6 +624,13 @@
       "when": 1789283852941,
       "tag": "0088_geo_sentiment_attempt",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1789393173561,
+      "tag": "0089_system_skill_versions",
+      "breakpoints": true
     }
   ]
 }

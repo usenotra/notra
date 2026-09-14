@@ -2113,6 +2113,34 @@ export const posts = pgTable(
   ]
 );
 
+/**
+ * Global, org-independent registry of the system skills defined in code
+ * (`packages/ai/src/skills/definitions.ts`). Rows are immutable: publishing a
+ * changed definition appends a new version instead of rewriting the old one,
+ * because every org copy keeps pointing at the version it was forked from.
+ */
+export const systemSkillVersions = pgTable(
+  "system_skill_versions",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    version: integer("version").notNull(),
+    description: text("description").notNull(),
+    content: text("content").notNull(),
+    /** sha256 over `description + "\n" + content`; compared against the head version to skip republishes. A revert to an older text is a new version. */
+    contentHash: text("content_hash").notNull(),
+    changelog: text("changelog"),
+    publishedAt: timestamp("published_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("system_skill_versions_name_idx").on(table.name),
+    uniqueIndex("system_skill_versions_name_version_uidx").on(
+      table.name,
+      table.version
+    ),
+  ]
+);
+
 export const skills = pgTable(
   "skills",
   {
@@ -2124,6 +2152,11 @@ export const skills = pgTable(
     description: text("description").notNull(),
     content: text("content").notNull(),
     isSystem: boolean("is_system").default(false).notNull(),
+    /** The registry version this copy is based on. Non-null iff `is_system`. */
+    systemSkillVersionId: text("system_skill_version_id").references(
+      () => systemSkillVersions.id,
+      { onDelete: "restrict" }
+    ),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -2133,6 +2166,7 @@ export const skills = pgTable(
   (table) => [
     index("skills_organizationId_idx").on(table.organizationId),
     uniqueIndex("skills_org_name_uidx").on(table.organizationId, table.name),
+    index("skills_system_skill_version_id_idx").on(table.systemSkillVersionId),
   ]
 );
 
@@ -3297,7 +3331,18 @@ export const skillsRelations = relations(skills, ({ one }) => ({
     fields: [skills.organizationId],
     references: [organizations.id],
   }),
+  systemSkillVersion: one(systemSkillVersions, {
+    fields: [skills.systemSkillVersionId],
+    references: [systemSkillVersions.id],
+  }),
 }));
+
+export const systemSkillVersionsRelations = relations(
+  systemSkillVersions,
+  ({ many }) => ({
+    skills: many(skills),
+  })
+);
 
 export const autonomyMandatesRelations = relations(
   autonomyMandates,

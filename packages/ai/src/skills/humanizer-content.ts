@@ -11,6 +11,7 @@ When given text to humanize:
 3. **Preserve meaning** - Keep the core message intact
 4. **Maintain voice** - Match the intended tone (formal, casual, technical, etc.)
 5. **Add soul** - Don't just remove bad patterns; inject actual personality
+6. **Do a final anti-AI pass** - Prompt: "What makes the below so obviously AI generated?" Answer briefly with remaining tells, then prompt: "Now make it not obviously AI generated." and revise
 
 ---
 
@@ -439,14 +440,20 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
    - Uses specific details over vague claims
    - Maintains appropriate tone for context
    - Uses simple constructions (is/are/has) where appropriate
-5. Present the humanized version
+5. Present a draft humanized version
+6. Prompt: "What makes the below so obviously AI generated?"
+7. Answer briefly with the remaining tells (if any)
+8. Prompt: "Now make it not obviously AI generated."
+9. Present the final version (revised after the audit)
 
 ## Output Format
 
 Provide:
 
-1. The rewritten text
-2. A brief summary of changes made (optional, if helpful)
+1. Draft rewrite
+2. "What makes the below so obviously AI generated?" (brief bullets)
+3. Final rewrite
+4. A brief summary of changes made (optional, if helpful)
 
 ---
 
@@ -470,7 +477,7 @@ Provide:
 >
 > In conclusion, the future looks bright. Exciting times lie ahead as we continue this journey toward excellence. Let me know if you'd like me to expand on any section!
 
-**After (Humanized):**
+**Draft rewrite:**
 
 > AI coding assistants speed up some tasks. In a 2024 study by Google, developers using Codex completed simple functions 55% faster than a control group, but showed no improvement on debugging or architectural decisions.
 >
@@ -482,12 +489,28 @@ Provide:
 >
 > None of this means the tools are useless. It means they are tools. They do not replace judgment, and they do not eliminate the need for tests. If you do not have tests, you cannot tell whether the suggestion is right.
 
+**What makes the below so obviously AI generated?**
+
+- The rhythm is still a bit too tidy (clean contrasts, evenly paced paragraphs).
+- The named people and study citations can read like plausible-but-made-up placeholders unless they're real and sourced.
+- The closer leans a touch slogan-y ("If you do not have tests...") rather than sounding like a person talking.
+
+**Now make it not obviously AI generated.**
+
+> AI coding assistants can make you faster at the boring parts. Not everything. Definitely not architecture.
+>
+> They're great at boilerplate: config files, test scaffolding, repetitive refactors. They're also great at sounding right while being wrong. I've accepted suggestions that compiled, passed lint, and still missed the point because I stopped paying attention.
+>
+> People I talk to tend to land in two camps. Some use it like autocomplete for chores and review every line. Others disable it after it keeps suggesting patterns they don't want. Both feel reasonable.
+>
+> The productivity metrics are slippery. GitHub can say Copilot users "accept 30% of suggestions," but acceptance isn't correctness, and correctness isn't value. If you don't have tests, you're basically guessing.
+
 **Changes made:**
 
 - Removed chatbot artifacts ("Great question!", "I hope this helps!", "Let me know if...")
 - Removed significance inflation ("testament", "pivotal moment", "evolving landscape", "vital role")
 - Removed promotional language ("groundbreaking", "nestled", "seamless, intuitive, and powerful")
-- Removed vague attributions ("Industry observers") and replaced with specific sources (Google study, named engineers, Uplevel study)
+- Removed vague attributions ("Industry observers")
 - Removed superficial -ing phrases ("underscoring", "highlighting", "reflecting", "contributing to")
 - Removed negative parallelism ("It's not just X; it's Y")
 - Removed rule-of-three patterns and synonym cycling ("catalyst/partner/foundation")
@@ -499,8 +522,8 @@ Provide:
 - Removed excessive hedging ("could potentially be argued that... might have some")
 - Removed filler phrases ("In order to", "At its core")
 - Removed generic positive conclusion ("the future looks bright", "exciting times lie ahead")
-- Replaced media name-dropping with specific claims from specific sources
 - Used simple sentence structures and concrete examples
+- Made the voice more personal and less "assembled" (varied rhythm, fewer placeholders)
 
 ---
 

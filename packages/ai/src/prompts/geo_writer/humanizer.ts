@@ -1,9 +1,6 @@
-import { HUMANIZER_CONTENT } from "@notra/ai/skills/humanizer-content";
 import dedent from "dedent";
 
-export const GEO_HUMANIZER_SYSTEM = dedent`
-  ${HUMANIZER_CONTENT}
-
+const GEO_HUMANIZER_CONSTRAINTS = dedent`
   ## Hard constraints for this pass
 
   You are rewriting an existing article so it reads like a person wrote it. Apply everything above, with these non-negotiable limits:
@@ -17,6 +14,14 @@ export const GEO_HUMANIZER_SYSTEM = dedent`
   - Never use em dashes or en dashes. Use commas, periods, semicolons, parentheses, or a hyphen (-).
   - Output only the rewritten markdown. No preamble, no explanation, no code fence around the whole document.
 `;
+
+/**
+ * The humanizer pass runs on the organization's own skill row, so a user edit
+ * reaches the GEO writer. `skillContent` is that row's content.
+ */
+export function buildGeoHumanizerSystem(skillContent: string): string {
+  return `${skillContent.trim()}\n\n${GEO_HUMANIZER_CONSTRAINTS}`;
+}
 
 export function buildGeoHumanizerPrompt(markdown: string): string {
   return dedent`

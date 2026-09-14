@@ -1,0 +1,118 @@
+---
+title: "System Skills and Updates"
+description: "Track the Notra system skills your organization is based on, see when a newer version ships, and upgrade with discard, keep or merge."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/api/skills
+  type: how-to
+  applies_to:
+    - notra-api
+    - typescript
+  language: en
+  difficulty: intermediate
+  time_estimate: 6m
+  status: stable
+  aliases:
+    - system skills
+    - skill updates
+    - upgrade skill
+    - reset skill to default
+    - skill upstream
+  prev: ./agent-feedback.mdx
+---
+
+Every organization starts with a set of built-in skills — `changelog`, `blog-post`, `twitter`, `linkedin` and `humanizer`. These are **system skills** (`isSystem: true`): copies of a version published in Notra's global skill registry. You can edit and rename them, but not delete them. A renamed copy keeps receiving updates: `upstream.systemName` tells you which system skill it follows.
+
+When Notra improves a default skill, a new version is published to the registry. Copies you never touched are lifted onto it automatically. Copies you edited are left alone, and the API tells you an update is waiting.
+
+## The `upstream` object
+
+`GET /v1/skills` and `GET /v1/skills/{name}` return an `upstream` object on every system skill, and `null` on custom skills.
+
+```json
+{
+  "upstream": {
+    "systemName": "humanizer",
+    "baseVersion": 3,
+    "latestVersion": 4,
+    "isModified": true,
+    "updateAvailable": true,
+    "changelog": "Tighter guidance on concrete examples"
+  }
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `systemName` | The system skill your copy follows. Same as the skill name unless you renamed it |
+| `baseVersion` | The published version your copy was forked from |
+| `latestVersion` | The newest published version of that skill |
+| `isModified` | Your copy's content or description differs from `baseVersion` |
+| `updateAvailable` | `latestVersion > baseVersion` |
+| `changelog` | What changed in the latest version, if we wrote one |
+
+`isModified` is derived on every read, never stored, so editing a skill through `PATCH /v1/skills/{name}`, the dashboard or an MCP tool keeps the tracking correct.
+
+Four states follow from those two booleans:
+
+| State | `isModified` | `updateAvailable` | What to show |
+| --- | --- | --- | --- |
+| Current | `false` | `false` | Nothing |
+| Update available | `false` | `true` | Usually already applied automatically |
+| Modified | `true` | `false` | "Modified", offer a reset to the default |
+| Conflict | `true` | `true` | Offer merge, discard or keep |
+
+## Reading the registry
+
+The registry is global, not organization-specific. It reads with the `skills.read` scope.
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /v1/system-skills` | Latest version of every system skill, without content |
+| `GET /v1/system-skills/{name}` | Latest version with full content |
+| `GET /v1/system-skills/{name}/versions/{version}` | One specific version with full content |
+
+For a three-way merge, fetch `upstream.baseVersion` from the versions endpoint as the merge base, the latest version as the incoming side, and your own copy from `GET /v1/skills/{name}`.
+
+```bash
+curl https://api.usenotra.com/v1/system-skills/humanizer/versions/3 \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+## Upgrading
+
+`POST /v1/skills/{name}/upgrade` rebases your copy onto the latest version. It needs the `skills.write` scope and only works on system skills.
+
+| Strategy | Effect |
+| --- | --- |
+| `discard` | Replaces your content and description with the latest version. This is also "reset to default". |
+| `keep` | Leaves your text untouched and only moves the base to the latest version, so the update flag clears. |
+| `merge` | Stores the `content` you send (and `description`, defaulting to the latest version's) and moves the base. |
+
+```bash
+curl -X POST https://api.usenotra.com/v1/skills/humanizer/upgrade \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"strategy":"discard"}'
+```
+
+```json
+{ "name": "humanizer", "version": 4 }
+```
+
+`version` is the version your copy is now based on. Fetch the skill again to read the resulting text.
+
+### Errors
+
+| Status | When |
+| --- | --- |
+| 400 | Unknown strategy, or `merge` without a non-empty `content` |
+| 404 | No skill with that name in your organization, or the registry has no published version of it |
+| 409 | The skill exists but is custom, so there is nothing to upgrade |
+
+<Note>
+  Upgrading a skill changes what agents generate on the next run. Unmodified copies are upgraded for you when a new version is published, so a Notra release can change a default skill's output without any action on your side.
+</Note>

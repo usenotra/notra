@@ -9,8 +9,7 @@ export function SkillsPageSkeleton() {
   const id = useId();
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <Skeleton className="h-5 w-28" />
+      <div className="flex justify-end">
         <Skeleton className="h-9 w-full sm:max-w-72" />
       </div>
       <div className="border-border/80 overflow-hidden rounded-lg border">
@@ -25,7 +24,6 @@ export function SkillsPageSkeleton() {
           >
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-4 flex-1" />
-            <Skeleton className="h-5 w-16 rounded-full" />
             <Skeleton className="h-4 w-20" />
           </div>
         ))}

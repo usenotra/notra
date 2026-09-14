@@ -158,6 +158,7 @@ export const POSTHOG_EVENTS = {
   SKILL_CREATED: "skill_created",
   SKILL_IMPORTED_FROM_URL: "skill_imported_from_url",
   SKILL_UPDATED: "skill_updated",
+  SKILL_UPGRADED: "skill_upgraded",
   SKILL_DELETED: "skill_deleted",
   EVENT_TRIGGER_CREATED: "event_trigger_created",
   EVENT_TRIGGER_TOGGLED: "event_trigger_toggled",

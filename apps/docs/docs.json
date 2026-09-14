@@ -158,7 +158,8 @@
               "api/common-tasks",
               "api/pagination",
               "api/types",
-              "api/agent-feedback"
+              "api/agent-feedback",
+              "api/skills"
             ]
           },
           {
@@ -252,7 +253,11 @@
                   "POST /v1/skills",
                   "GET /v1/skills/{name}",
                   "PATCH /v1/skills/{name}",
-                  "DELETE /v1/skills/{name}"
+                  "DELETE /v1/skills/{name}",
+                  "POST /v1/skills/{name}/upgrade",
+                  "GET /v1/system-skills",
+                  "GET /v1/system-skills/{name}",
+                  "GET /v1/system-skills/{name}/versions/{version}"
                 ]
               },
               {

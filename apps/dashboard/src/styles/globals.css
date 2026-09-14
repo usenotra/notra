@@ -200,3 +200,84 @@
 .chat-branch-fade-in {
   animation: chat-branch-fade-in 220ms ease-out both;
 }
+
+/*
+ * Skill list <-> detail navigation (see `SkillPageTransition`). This mirrors
+ * the sidebar swap: the old page clears quickly while the new page fades over
+ * it with a longer deceleration.
+ */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.skill-swoosh-forward),
+::view-transition-old(.skill-swoosh-back) {
+  animation: skill-swoosh-out var(--transition-duration-normal)
+    var(--ease-emphasized) both;
+}
+
+::view-transition-new(.skill-swoosh-forward),
+::view-transition-new(.skill-swoosh-back) {
+  animation: skill-swoosh-in var(--transition-duration-slow)
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+::view-transition-image-pair(.skill-swoosh-forward),
+::view-transition-image-pair(.skill-swoosh-back) {
+  isolation: isolate;
+}
+
+::view-transition-old(.skill-swoosh-forward),
+::view-transition-old(.skill-swoosh-back),
+::view-transition-new(.skill-swoosh-forward),
+::view-transition-new(.skill-swoosh-back) {
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(.skill-swoosh-forward),
+::view-transition-new(.skill-swoosh-back) {
+  --skill-swoosh-offset: -20px;
+}
+
+::view-transition-new(.skill-swoosh-forward),
+::view-transition-old(.skill-swoosh-back) {
+  --skill-swoosh-offset: 20px;
+}
+
+@keyframes skill-swoosh-out {
+  to {
+    opacity: 0;
+    transform: translateX(var(--skill-swoosh-offset));
+  }
+}
+
+@keyframes skill-swoosh-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--skill-swoosh-offset));
+  }
+}
+
+@keyframes skill-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes skill-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(.skill-swoosh-forward),
+  ::view-transition-old(.skill-swoosh-back) {
+    animation-name: skill-fade-out;
+  }
+
+  ::view-transition-new(.skill-swoosh-forward),
+  ::view-transition-new(.skill-swoosh-back) {
+    animation-name: skill-fade-in;
+  }
+}

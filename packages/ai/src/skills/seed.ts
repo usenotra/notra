@@ -2,74 +2,63 @@ import { db } from "@notra/db/drizzle";
 import { skills } from "@notra/db/schema";
 import { nanoid } from "nanoid";
 
-import { getConversationalBlogPostPrompt } from "../prompts/blog_post/conversational";
-import { getConversationalChangelogPrompt } from "../prompts/changelog/conversational";
-import { getConversationalLinkedInPrompt } from "../prompts/linkedin/conversational";
-import { getConversationalTwitterPrompt } from "../prompts/twitter/conversational";
-import { HUMANIZER_CONTENT } from "./humanizer-content";
+import { listLatestSystemSkills, publishSystemSkills } from "./registry";
+import type { SystemSkillVersion } from "./types";
 
-interface SystemSkillDefinition {
-  name: string;
-  description: string;
-  content: string;
+async function loadSeedableSystemSkills(): Promise<SystemSkillVersion[]> {
+  const latest = await listLatestSystemSkills(db);
+
+  if (latest.length > 0) {
+    return latest;
+  }
+
+  // Fresh database: nothing has published yet, so seed would silently insert
+  // nothing and the org would start without system skills.
+  await publishSystemSkills(db);
+  return await listLatestSystemSkills(db);
 }
 
-function buildSystemSkills(): SystemSkillDefinition[] {
-  return [
-    {
-      name: "changelog",
-      description:
-        "Generate a comprehensive changelog from GitHub commits, pull requests, releases, and Linear issues for a given lookback window. Filters for high-signal changes and formats with Highlights + categorized More Updates.",
-      content: getConversationalChangelogPrompt(),
-    },
-    {
-      name: "blog-post",
-      description:
-        "Write a long-form blog post from GitHub and Linear data. Produces narrative prose with structure and voice, not a bullet-list changelog.",
-      content: getConversationalBlogPostPrompt(),
-    },
-    {
-      name: "twitter",
-      description:
-        "Compose a Twitter/X post from recent development activity. Short-form, attention-grabbing, with the brand's voice.",
-      content: getConversationalTwitterPrompt(),
-    },
-    {
-      name: "linkedin",
-      description:
-        "Compose a LinkedIn post from recent development activity. Professional tone, medium-form, optimized for the LinkedIn feed.",
-      content: getConversationalLinkedInPrompt(),
-    },
-    {
-      name: "humanizer",
-      description:
-        "Remove signs of AI-generated writing from text. Use as a sub-skill from other skills to humanize a near-final draft before publishing.",
-      content: HUMANIZER_CONTENT.trim(),
-    },
-  ];
-}
-
+/**
+ * Copies the latest registry version of every system skill into a new
+ * organization. A custom skill already occupying a system name wins; we skip it
+ * and log rather than overwrite the user's own skill.
+ */
 export async function seedSystemSkills(
   organizationId: string
 ): Promise<number> {
-  const definitions = buildSystemSkills();
+  const versions = await loadSeedableSystemSkills();
 
-  const rows = definitions.map((def) => ({
-    id: nanoid(),
-    organizationId,
-    name: def.name,
-    description: def.description,
-    content: def.content,
-    isSystem: true,
-  }));
+  if (versions.length === 0) {
+    return 0;
+  }
 
   const inserted = await db
     .insert(skills)
-    .values(rows)
+    .values(
+      versions.map((version) => ({
+        id: nanoid(),
+        organizationId,
+        name: version.name,
+        description: version.description,
+        content: version.content,
+        isSystem: true,
+        systemSkillVersionId: version.id,
+      }))
+    )
     .onConflictDoNothing({
       target: [skills.organizationId, skills.name],
     })
-    .returning({ id: skills.id });
+    .returning({ name: skills.name });
+
+  if (inserted.length < versions.length) {
+    const insertedNames = new Set(inserted.map((row) => row.name));
+    console.warn("[skills] system skill names already taken, seeding skipped", {
+      organizationId,
+      names: versions
+        .map((version) => version.name)
+        .filter((name) => !insertedNames.has(name)),
+    });
+  }
 
   return inserted.length;
 }

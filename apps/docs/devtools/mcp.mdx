@@ -223,6 +223,12 @@ Tool names are exactly as the server registers them; some clients prefix them wi
 - `create_skill`
 - `update_skill`
 - `delete_skill`
+- `upgrade_skill`
+- `list_system_skills`
+- `get_system_skill`
+- `get_system_skill_version`
+
+The hosted server is generated from the OpenAPI document, so `upgrade_skill` and the `system_skills` tools appear as soon as the API ships them. `list_skills` and `get_skill` also return the `upstream` object described in [System Skills and Updates](/api/skills), so an agent can tell you a skill has an update waiting and offer to merge it.
 
 **GEO projects and settings**
 

@@ -15,6 +15,9 @@ import {
   SCREENSHOT_FILENAME_PREFIX,
   URL_QUERY_OR_HASH_REGEX,
 } from "@notra/ai/constants/repo-image-skills";
+import { HUMANIZER_SKILL_NAME } from "@notra/ai/skills/constants";
+import { loadSystemSkill } from "@notra/ai/skills/functions/service";
+import type { SkillContent } from "@notra/ai/skills/types";
 import { db } from "@notra/db/drizzle";
 import {
   brandGuidelineAssets,
@@ -106,12 +109,10 @@ const injectHumanizerSkillEffect = Effect.fn("injectHumanizerSkill")(
   function* (params: { box: RepoImageBox; organizationId: string }) {
     const skill = yield* Effect.tryPromise({
       try: () =>
-        db.query.skills.findFirst({
-          where: and(
-            eq(skills.organizationId, params.organizationId),
-            eq(skills.name, "humanizer")
-          ),
-        }),
+        loadSystemSkill(
+          { organizationId: params.organizationId },
+          HUMANIZER_SKILL_NAME
+        ),
       catch: toSkillInjectionError("load humanizer skill"),
     });
 
@@ -183,7 +184,7 @@ function downloadSandboxAssetsEffect(params: {
   });
 }
 
-function renderSandboxSkillContent(skill: typeof skills.$inferSelect) {
+function renderSandboxSkillContent(skill: SkillContent) {
   const content = skill.content.trim();
   if (FRONTMATTER_START_REGEX.test(content)) {
     return `${content}\n`;

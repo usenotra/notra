@@ -7,6 +7,7 @@ import {
   skillContentSchema,
   skillDescriptionSchema,
   skillNameSchema,
+  skillUpgradePayloadSchema,
 } from "../shared/skills";
 
 export const createSkillSchema = z.object({
@@ -37,13 +38,16 @@ export const updateSkillSchema = z.object({
 export type CreateSkillInput = z.infer<typeof createSkillSchema>;
 export type UpdateSkillInput = z.infer<typeof updateSkillSchema>;
 
+/** Skills are addressed by id so a rename never changes a URL or cache key. */
+const skillIdSchema = z.string().trim().min(1, "Skill id is required");
+
 export const listSkillsInputSchema = z.object({
   organizationId: organizationIdSchema,
 });
 
 export const getSkillInputSchema = z.object({
   organizationId: organizationIdSchema,
-  name: skillNameSchema,
+  id: skillIdSchema,
 });
 
 export const createSkillInputSchema = z.object({
@@ -53,15 +57,29 @@ export const createSkillInputSchema = z.object({
 
 export const updateSkillInputSchema = z.object({
   organizationId: organizationIdSchema,
-  name: skillNameSchema,
+  id: skillIdSchema,
   payload: updateSkillSchema,
 });
 
 export const deleteSkillInputSchema = z.object({
   organizationId: organizationIdSchema,
-  name: skillNameSchema,
+  id: skillIdSchema,
 });
 
 export const importSkillFromUrlInputSchema = z.object({
   url: skillImportUrlSchema,
 });
+
+/** Base and latest published version of a system skill, for the diff and merge UI. */
+export const getSkillUpstreamInputSchema = z.object({
+  organizationId: organizationIdSchema,
+  id: skillIdSchema,
+});
+
+export const upgradeSkillInputSchema = z.object({
+  organizationId: organizationIdSchema,
+  id: skillIdSchema,
+  payload: skillUpgradePayloadSchema,
+});
+
+export type UpgradeSkillInput = z.infer<typeof upgradeSkillInputSchema>;

@@ -1,4 +1,5 @@
 import "zod/compile";
+import { SKILL_UPGRADE_STRATEGIES } from "@notra/ai/skills/constants";
 import { z } from "zod";
 
 import {
@@ -34,3 +35,35 @@ export const skillContentSchema = z
   .string()
   .min(1, "Content is required")
   .max(SKILL_CONTENT_MAX_LENGTH, "Content is too large");
+
+export const skillUpgradeStrategySchema = z.enum(SKILL_UPGRADE_STRATEGIES);
+
+/**
+ * Derived update state of one org copy of a system skill. `null` for custom
+ * skills, which have no upstream version to compare against.
+ */
+export const skillUpstreamSchema = z.object({
+  /** Registry name the copy follows; differs from the skill name after a rename. */
+  systemName: z.string(),
+  baseVersion: z.number().int(),
+  latestVersion: z.number().int(),
+  isModified: z.boolean(),
+  updateAvailable: z.boolean(),
+  changelog: z.string().nullable(),
+});
+
+export const skillUpgradePayloadSchema = z
+  .object({
+    strategy: skillUpgradeStrategySchema,
+    content: skillContentSchema.optional(),
+    description: skillDescriptionSchema.optional(),
+  })
+  .refine(
+    (value) => value.strategy !== "merge" || Boolean(value.content?.trim()),
+    {
+      message: 'The "merge" strategy requires the merged content',
+      path: ["content"],
+    }
+  );
+
+export type SkillUpgradePayload = z.infer<typeof skillUpgradePayloadSchema>;

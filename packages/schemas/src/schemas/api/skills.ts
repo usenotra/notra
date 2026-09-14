@@ -5,6 +5,8 @@ import {
   skillContentSchema as sharedSkillContentSchema,
   skillDescriptionSchema as sharedSkillDescriptionSchema,
   skillNameSchema as sharedSkillNameSchema,
+  skillUpgradePayloadSchema,
+  skillUpstreamSchema as sharedSkillUpstreamSchema,
 } from "../shared/skills";
 
 const skillNameSchema = sharedSkillNameSchema.openapi({
@@ -26,6 +28,21 @@ const skillContentSchema = sharedSkillContentSchema.openapi({
 export const skillParamsSchema = z.object({
   name: skillNameSchema,
 });
+
+export const systemSkillVersionParamsSchema = z.object({
+  name: skillNameSchema,
+  version: z.coerce.number().int().positive().openapi({
+    description: "Published version number of the system skill, starting at 1.",
+    example: 1,
+  }),
+});
+
+const skillUpstreamSchema = sharedSkillUpstreamSchema
+  .openapi({
+    description:
+      "Update state of a system skill relative to the Notra registry. Null for custom skills.",
+  })
+  .openapi("SkillUpstream");
 
 export const createSkillRequestSchema = z
   .object({
@@ -53,9 +70,10 @@ const skillSummarySchema = z
     description: z.string(),
     isSystem: z.boolean().openapi({
       description:
-        "True for built-in skills provided by Notra. System skills cannot be renamed or deleted.",
+        "True for built-in skills provided by Notra. System skills can be edited and renamed but not deleted.",
     }),
     updatedAt: z.string(),
+    upstream: skillUpstreamSchema.nullable(),
   })
   .openapi("SkillSummary");
 
@@ -95,3 +113,49 @@ export const deleteSkillResponseSchema = z
     success: z.literal(true),
   })
   .openapi("DeleteSkillResponse");
+
+export const upgradeSkillRequestSchema = skillUpgradePayloadSchema.openapi(
+  "UpgradeSkillRequest",
+  {
+    description:
+      'How to rebase the organization\'s copy onto the latest published version. "discard" takes the upstream text, "keep" only rebases and leaves your text alone, "merge" stores the content you resolved.',
+  }
+);
+
+export const upgradeSkillResponseSchema = z
+  .object({
+    name: z.string(),
+    version: z.number().int().openapi({
+      description: "Version the skill is now based on.",
+      example: 4,
+    }),
+  })
+  .openapi("UpgradeSkillResponse");
+
+const systemSkillSchema = z
+  .object({
+    name: z.string(),
+    version: z.number().int(),
+    description: z.string(),
+    changelog: z.string().nullable(),
+    publishedAt: z.string(),
+  })
+  .openapi("SystemSkill");
+
+const systemSkillDetailSchema = systemSkillSchema
+  .extend({
+    content: z.string(),
+  })
+  .openapi("SystemSkillDetail");
+
+export const listSystemSkillsResponseSchema = z
+  .object({
+    systemSkills: z.array(systemSkillSchema),
+  })
+  .openapi("ListSystemSkillsResponse");
+
+export const systemSkillResponseSchema = z
+  .object({
+    systemSkill: systemSkillDetailSchema,
+  })
+  .openapi("SystemSkillResponse");
