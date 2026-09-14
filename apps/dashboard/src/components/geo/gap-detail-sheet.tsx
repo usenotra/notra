@@ -354,6 +354,56 @@ function selectedDetail(
   return null;
 }
 
+function GapDetailHeader({ detail }: { detail: GeoGapDetailRow | null }) {
+  const row = detail?.row;
+  const headline = row?.brief?.workingTitle ?? row?.title ?? null;
+  let description =
+    detail?.kind === "search"
+      ? "Search demand without a page that answers it"
+      : "Engines answer this question without mentioning you";
+  if (headline && row && headline !== row.prompt) {
+    description = row.prompt;
+  }
+
+  return (
+    <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
+      <span className="text-muted-foreground text-xs">
+        {detail?.kind === "search" ? "Search gap" : "Prompt gap"}
+      </span>
+      <SheetTitle className="text-base leading-snug text-balance break-words">
+        {headline ?? row?.prompt ?? "Content gap"}
+      </SheetTitle>
+      <SheetDescription className="break-words">{description}</SheetDescription>
+    </SheetHeader>
+  );
+}
+
+function GapDetailBody({
+  detail,
+  competitors,
+  maxOpportunity,
+}: {
+  detail: GeoGapDetailRow | null;
+  competitors: GeoCompetitor[];
+  maxOpportunity: number;
+}) {
+  if (detail?.kind === "prompt") {
+    // Keyed per gap so local UI state (expanded brand list) resets on switch.
+    return (
+      <PromptGapBody
+        competitors={competitors}
+        key={detail.row.id}
+        maxOpportunity={maxOpportunity}
+        prompt={detail.row}
+      />
+    );
+  }
+  if (detail?.kind === "search") {
+    return <SearchGapBody key={detail.row.id} search={detail.row} />;
+  }
+  return null;
+}
+
 export function GapDetailSheet({
   prompt,
   search,
@@ -370,42 +420,17 @@ export function GapDetailSheet({
     setRetained(current);
   }
   const detail = current ?? retained;
-  const row = detail?.row;
-  const headline = row?.brief?.workingTitle ?? row?.title ?? null;
-  const title = headline ?? row?.prompt ?? "Content gap";
-  let description = "Engines answer this question without mentioning you";
-  if (detail?.kind === "search") {
-    description = "Search demand without a page that answers it";
-  }
-  if (headline && row && headline !== row.prompt) {
-    description = row.prompt;
-  }
 
   return (
     <Sheet onOpenChange={onOpenChange} open={current !== null}>
       <SheetContent className={GAP_SHEET_CONTENT_CLASS} side="right">
-        <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
-          <span className="text-muted-foreground text-xs">
-            {detail?.kind === "search" ? "Search gap" : "Prompt gap"}
-          </span>
-          <SheetTitle className="text-base leading-snug text-balance break-words">
-            {title}
-          </SheetTitle>
-          <SheetDescription className="break-words">
-            {description}
-          </SheetDescription>
-        </SheetHeader>
+        <GapDetailHeader detail={detail} />
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5 text-sm">
-          {detail?.kind === "prompt" ? (
-            <PromptGapBody
-              competitors={competitors}
-              maxOpportunity={maxOpportunity}
-              prompt={detail.row}
-            />
-          ) : null}
-          {detail?.kind === "search" ? (
-            <SearchGapBody search={detail.row} />
-          ) : null}
+          <GapDetailBody
+            competitors={competitors}
+            detail={detail}
+            maxOpportunity={maxOpportunity}
+          />
         </div>
         {actions ? (
           <SheetFooter className="shrink-0 flex-row justify-end border-t p-4">

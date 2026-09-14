@@ -94,22 +94,41 @@ export function useGeoPromptGapIgnore(organizationId: string) {
       }),
     onMutate: async ({ promptId, ignored }) => {
       if (!ignored) {
-        return { previous: undefined };
+        return { removed: undefined };
       }
       await queryClient.cancelQueries({ queryKey: gapsQueryKey });
-      const previous =
+      const current =
         queryClient.getQueryData<GeoContentGapsResponse>(gapsQueryKey);
-      if (previous) {
+      const removed = current?.promptGaps.find((row) => row.id === promptId);
+      if (current && removed) {
         queryClient.setQueryData<GeoContentGapsResponse>(gapsQueryKey, {
-          ...previous,
-          promptGaps: previous.promptGaps.filter((row) => row.id !== promptId),
+          ...current,
+          promptGaps: current.promptGaps.filter((row) => row.id !== promptId),
         });
       }
-      return { previous };
+      return { removed };
     },
     onError: (error, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(gapsQueryKey, context.previous);
+      // Restore only this row so concurrent ignores of other rows stay removed.
+      const removed = context?.removed;
+      if (removed) {
+        queryClient.setQueryData<GeoContentGapsResponse>(
+          gapsQueryKey,
+          (current) => {
+            if (
+              !current ||
+              current.promptGaps.some((row) => row.id === removed.id)
+            ) {
+              return current;
+            }
+            return {
+              ...current,
+              promptGaps: [...current.promptGaps, removed].sort(
+                (a, b) => b.opportunity - a.opportunity
+              ),
+            };
+          }
+        );
       }
       toast.error(toErrorMessage(error, "Failed to update the gap"));
     },

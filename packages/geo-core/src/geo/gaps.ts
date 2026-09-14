@@ -50,6 +50,7 @@ import {
 } from "../utils/geo-gaps";
 import { competitorKey } from "./domain";
 import { geoDb } from "./effect";
+import { GeoSettingsMissingError } from "./errors";
 import { requireGeoProject } from "./projects";
 import {
   customPromptScanId,
@@ -599,11 +600,17 @@ export const setGeoPromptGapIgnored = Effect.fn("geo.gaps.ignore")(function* (
   const next = input.ignored
     ? sql`CASE WHEN ${input.promptId} = ANY(${column}) THEN ${column} ELSE array_append(${column}, ${input.promptId}) END`
     : sql`array_remove(${column}, ${input.promptId})`;
-  yield* geoDb("ignore prompt gap failed", () =>
+  const updated = yield* geoDb("ignore prompt gap failed", () =>
     db
       .update(geoSettings)
       .set({ ignoredGapPromptIds: next })
       .where(eq(geoSettings.projectId, scope.projectId))
+      .returning({ id: geoSettings.id })
   );
+  if (updated.length === 0) {
+    return yield* Effect.fail(
+      new GeoSettingsMissingError({ organizationId: scope.organizationId })
+    );
+  }
   return { promptId: input.promptId, ignored: input.ignored };
 });
