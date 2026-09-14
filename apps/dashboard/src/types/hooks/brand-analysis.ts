@@ -19,6 +19,10 @@ export interface BrandSettingsResponse {
   voices: BrandSettings[];
 }
 
+export interface BrandSettingsQueryOptions {
+  enabled?: boolean;
+}
+
 export type ProgressStatus =
   | "idle"
   | "scraping"

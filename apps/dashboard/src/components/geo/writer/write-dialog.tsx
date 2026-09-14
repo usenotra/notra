@@ -211,12 +211,16 @@ function WriteDialogForm({
   );
 
   const planMutation = useGeoWriterPlan(organizationId);
-  const { data: brandData } = useBrandSettings(organizationId);
+  const { data: brandData } = useBrandSettings(organizationId, {
+    enabled: open,
+  });
   const { competitors } = useGeoCompetitorsDb(organizationId, {
     enabled: open,
   });
   const { prompts } = useGeoPromptsDb(organizationId, { enabled: open });
-  const sitemapQuery = useSitemaps(organizationId, brandVoiceId ?? "");
+  const sitemapQuery = useSitemaps(organizationId, brandVoiceId ?? "", {
+    enabled: open,
+  });
 
   const voices = useMemo(() => brandData?.voices ?? [], [brandData?.voices]);
   const sitemaps = useMemo(
