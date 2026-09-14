@@ -74,12 +74,12 @@ const nextConfig: NextConfig = {
       {
         source: "/home",
         destination: "https://www.usenotra.com/home",
-        permanent: false,
+        permanent: true,
       },
       {
         source: "/landing",
         destination: "https://www.usenotra.com/landing",
-        permanent: false,
+        permanent: true,
       },
       {
         source: "/",
