@@ -40,6 +40,7 @@ import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
   PersonaDetailDialogProps,
+  PersonaDetailHeaderProps,
   PersonaConversationProps,
   PersonaDialogView,
 } from "@/types/geo-personas-ui";
@@ -60,6 +61,105 @@ function latestCheckAt(threads: GeoSequenceEngineThread[]): string | null {
     }
   }
   return latest;
+}
+
+function PersonaDetailHeader({
+  persona,
+  threads,
+  active,
+  scans,
+  selectedScanId,
+  showConversation,
+  isRunning,
+  onRun,
+  onSelectScan,
+  onEngineChange,
+  onViewChange,
+}: PersonaDetailHeaderProps) {
+  const latestCheck = latestCheckAt(threads);
+  const selectedScan =
+    scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
+
+  return (
+    <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
+      <div className="flex items-center gap-3">
+        <PersonaAvatar className="size-12" persona={persona} size="lg" />
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <SheetTitle className="text-xl leading-snug font-semibold text-balance">
+            {persona.name}
+          </SheetTitle>
+          <SheetDescription className="text-muted-foreground text-sm">
+            {persona.role} · {persona.company}
+            {latestCheck ? ` · ${formatAiTrafficTimestamp(latestCheck)}` : null}
+          </SheetDescription>
+        </div>
+        <Button
+          className="ml-auto"
+          disabled={!persona.enabled || isRunning}
+          onClick={onRun}
+          size="sm"
+          type="button"
+        >
+          <HugeiconsIcon
+            className={isRunning ? "animate-spin" : undefined}
+            icon={isRunning ? Loading03Icon : PlayIcon}
+            size={14}
+          />
+          {isRunning ? "Running…" : "Run scan"}
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Tabs
+          className="gap-0"
+          onValueChange={(value) => onViewChange(value as PersonaDialogView)}
+          value={showConversation ? "conversation" : "profile"}
+        >
+          <TabsList aria-label="View">
+            {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
+              <TabsTrigger
+                className="px-2.5 text-xs"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+      {showConversation && active ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <PromptEngineSwitcher
+            active={active}
+            onChange={onEngineChange}
+            results={threads}
+          />
+          {selectedScan && selectedScanId ? (
+            <Select
+              disabled={isRunning}
+              onValueChange={onSelectScan}
+              value={selectedScanId}
+            >
+              <SelectTrigger aria-label="Persona scan history" className="w-44">
+                <SelectValue>
+                  {selectedScan.id === scans.at(0)?.id ? "Latest · " : ""}
+                  {formatAiTrafficTimestamp(selectedScan.capturedAt)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {scans.map((scan, index) => (
+                  <SelectItem key={scan.id} value={scan.id}>
+                    {index === 0 ? "Latest · " : ""}
+                    {formatAiTrafficTimestamp(scan.capturedAt)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+        </div>
+      ) : null}
+    </SheetHeader>
+  );
 }
 
 function ConversationEmpty({ enabled }: { enabled: boolean }) {
@@ -137,9 +237,6 @@ export function PersonaDetailDialog({
     selectScan,
     setEngine,
   } = usePersonaConversation(organizationId, persona, open, showConversation);
-  const latestCheck = latestCheckAt(threads);
-  const selectedScan =
-    scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
 
   if (!persona) {
     return null;
@@ -176,95 +273,23 @@ export function PersonaDetailDialog({
         side="right"
         className="flex flex-col gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),40rem)]"
       >
-        <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
-          <div className="flex items-center gap-3">
-            <PersonaAvatar className="size-12" persona={persona} size="lg" />
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <SheetTitle className="text-xl leading-snug font-semibold text-balance">
-                {persona.name}
-              </SheetTitle>
-              <SheetDescription className="text-muted-foreground text-sm">
-                {persona.role} · {persona.company}
-                {latestCheck
-                  ? ` · ${formatAiTrafficTimestamp(latestCheck)}`
-                  : null}
-              </SheetDescription>
-            </div>
-            <Button
-              className="ml-auto"
-              disabled={!persona.enabled || runPersona.isPending}
-              onClick={() =>
-                runPersona.mutate(persona.id, {
-                  onSuccess: () => selectScan(null),
-                })
-              }
-              size="sm"
-              type="button"
-            >
-              <HugeiconsIcon
-                className={runPersona.isPending ? "animate-spin" : undefined}
-                icon={runPersona.isPending ? Loading03Icon : PlayIcon}
-                size={14}
-              />
-              {runPersona.isPending ? "Running…" : "Run scan"}
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Tabs
-              className="gap-0"
-              onValueChange={(value) => setView(value as PersonaDialogView)}
-              value={view}
-            >
-              <TabsList aria-label="View">
-                {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
-                  <TabsTrigger
-                    className="px-2.5 text-xs"
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-          {showConversation && active ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <PromptEngineSwitcher
-                active={active}
-                onChange={(next) => {
-                  setEngine(next);
-                }}
-                results={threads}
-              />
-              {selectedScan && selectedScanId ? (
-                <Select
-                  disabled={runPersona.isPending}
-                  onValueChange={(value) => selectScan(value)}
-                  value={selectedScanId}
-                >
-                  <SelectTrigger
-                    aria-label="Persona scan history"
-                    className="w-44"
-                  >
-                    <SelectValue>
-                      {selectedScan.id === scans.at(0)?.id ? "Latest · " : ""}
-                      {formatAiTrafficTimestamp(selectedScan.capturedAt)}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {scans.map((scan, index) => (
-                      <SelectItem key={scan.id} value={scan.id}>
-                        {index === 0 ? "Latest · " : ""}
-                        {formatAiTrafficTimestamp(scan.capturedAt)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
-            </div>
-          ) : null}
-        </SheetHeader>
+        <PersonaDetailHeader
+          active={active}
+          isRunning={runPersona.isPending}
+          onEngineChange={setEngine}
+          onRun={() =>
+            runPersona.mutate(persona.id, {
+              onSuccess: () => selectScan(null),
+            })
+          }
+          onSelectScan={selectScan}
+          onViewChange={setView}
+          persona={persona}
+          scans={scans}
+          selectedScanId={selectedScanId}
+          showConversation={showConversation}
+          threads={threads}
+        />
 
         <div className="relative min-h-0 flex-1 overflow-hidden border-t">
           {showConversation ? (

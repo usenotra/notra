@@ -2,6 +2,7 @@ import type { GeoPersonaMemoryKind } from "@notra/db/types/geo-personas";
 import type {
   GeoPersona,
   GeoPersonaMemory,
+  GeoPersonaScanSummary,
 } from "@notra/geo-core/types/geo-personas";
 import type { ReactNode } from "react";
 
@@ -41,6 +42,20 @@ export interface PersonaDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   organizationId: string;
   persona: GeoPersona | null;
+}
+
+export interface PersonaDetailHeaderProps {
+  persona: GeoPersona;
+  threads: GeoSequenceEngineThread[];
+  active: GeoSequenceEngineThread | null;
+  scans: GeoPersonaScanSummary[];
+  selectedScanId: string | null;
+  showConversation: boolean;
+  isRunning: boolean;
+  onRun: () => void;
+  onSelectScan: (scanId: string | null) => void;
+  onEngineChange: (engine: string) => void;
+  onViewChange: (view: PersonaDialogView) => void;
 }
 
 export type PersonaDialogView = "conversation" | "profile";
