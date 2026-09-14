@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { toErrorMessage } from "@/utils/error-message";
+import { withoutPromptGap, withRestoredPromptGap } from "@/utils/geo-gaps";
 import { getConflictRevision } from "@/utils/orpc-errors";
 
 import { dashboardOrpc } from "../orpc/query";
@@ -101,10 +102,10 @@ export function useGeoPromptGapIgnore(organizationId: string) {
         queryClient.getQueryData<GeoContentGapsResponse>(gapsQueryKey);
       const removed = current?.promptGaps.find((row) => row.id === promptId);
       if (current && removed) {
-        queryClient.setQueryData<GeoContentGapsResponse>(gapsQueryKey, {
-          ...current,
-          promptGaps: current.promptGaps.filter((row) => row.id !== promptId),
-        });
+        queryClient.setQueryData<GeoContentGapsResponse>(
+          gapsQueryKey,
+          withoutPromptGap(current, promptId)
+        );
       }
       return { removed };
     },
@@ -114,20 +115,7 @@ export function useGeoPromptGapIgnore(organizationId: string) {
       if (removed) {
         queryClient.setQueryData<GeoContentGapsResponse>(
           gapsQueryKey,
-          (current) => {
-            if (
-              !current ||
-              current.promptGaps.some((row) => row.id === removed.id)
-            ) {
-              return current;
-            }
-            return {
-              ...current,
-              promptGaps: [...current.promptGaps, removed].sort(
-                (a, b) => b.opportunity - a.opportunity
-              ),
-            };
-          }
+          (current) => current && withRestoredPromptGap(current, removed)
         );
       }
       toast.error(toErrorMessage(error, "Failed to update the gap"));
