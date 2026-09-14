@@ -11,6 +11,7 @@ import {
   PaintBoardIcon,
   PlugIcon,
   Settings01Icon,
+  SourceCodeIcon,
   UserCircleIcon,
   UserGroupIcon,
   Wallet01Icon,
@@ -34,6 +35,7 @@ export const SETTINGS_SECTION_IDS = [
   "usage-alerts",
   "credits",
   "logs",
+  ...(process.env.NODE_ENV === "development" ? (["dev"] as const) : []),
   "geo",
   "geo-brand",
   "geo-languages",
@@ -286,6 +288,29 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
     ],
   },
+  ...(process.env.NODE_ENV === "development"
+    ? [
+        {
+          id: "dev" as const,
+          label: "Development",
+          items: [
+            {
+              id: "dev" as const,
+              label: "Dev",
+              description: "Replay onboarding and manage test data",
+              icon: SourceCodeIcon,
+              keywords: [
+                "developer",
+                "onboarding",
+                "replay",
+                "test",
+                "sample data",
+              ],
+            },
+          ],
+        },
+      ]
+    : []),
 ];
 
 export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
@@ -301,6 +326,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   "usage-alerts": "Usage alerts",
   credits: "Credits",
   logs: "Logs",
+  dev: "Dev",
   geo: "Brand",
   "geo-brand": "Brand",
   "geo-languages": "Languages",
@@ -321,6 +347,7 @@ export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
     "usage-alerts": "Configure alerts for usage and remaining balances",
     credits: "Monitor your AI credit balance and usage",
     logs: "View integration events and their delivery status",
+    dev: "Development-only tools for testing local flows",
     geo: "How your brand is identified in answers",
     "geo-brand": "How your brand is identified in answers",
     "geo-languages": "Languages your prompts are scanned in",

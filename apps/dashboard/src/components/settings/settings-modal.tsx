@@ -141,6 +141,13 @@ const GeoSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const DevSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/dev-pane").then((mod) => ({
+      default: mod.DevSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 
 const STANDARD_SETTINGS_PANES = {
   account: AccountSettingsPane,
@@ -148,6 +155,7 @@ const STANDARD_SETTINGS_PANES = {
   attachments: AttachmentsSettingsPane,
   billing: BillingSettingsPane,
   credits: CreditsSettingsPane,
+  dev: DevSettingsPane,
   general: GeneralSettingsPane,
   integrations: IntegrationsSettingsPane,
   logs: LogsSettingsPane,

@@ -8,6 +8,7 @@ import {
   onboardingSuggestions,
   organizations,
 } from "@notra/db/schema";
+import { createGeoProject } from "@notra/geo-core/geo/projects";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 import {
   dismissSuggestionInputSchema,
@@ -32,6 +33,8 @@ import {
   writeCachedCompanyLogo,
 } from "@/lib/onboarding/company-logo-cache";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { runOrpcEffect } from "@/lib/orpc/effect";
+import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
 import type { CompanyLogoResult } from "@/types/onboarding";
 import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { ratelimit } from "@/utils/ratelimit";
@@ -87,6 +90,25 @@ export const onboardingRouter = {
           url: null,
         };
       }
+    }),
+  createDevReplayProject: authorizedProcedure
+    .input(organizationIdInputSchema)
+    .handler(async ({ context, input }) => {
+      if (process.env.NODE_ENV !== "development") {
+        throw new ORPCError("NOT_FOUND");
+      }
+
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+
+      const project = await runOrpcEffect(
+        createGeoProject(input.organizationId, "Onboarding replay"),
+        toGeoOrpcError
+      );
+      return { projectId: project.id };
     }),
   get: authorizedProcedure
     .input(organizationIdInputSchema)

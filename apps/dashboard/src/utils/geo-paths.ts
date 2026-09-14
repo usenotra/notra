@@ -43,12 +43,31 @@ export function geoNavHref(
   return isGeoDashboardPath(path) ? withGeoProject(path, projectId) : path;
 }
 
-export function geoOnboardingPath(projectId?: string): string {
+export function geoOnboardingPath(projectId?: string, replay = false): string {
   const base = "/onboarding/visibility";
-  return projectId ? `${base}?project=${encodeURIComponent(projectId)}` : base;
+  return onboardingPath(base, projectId, replay);
 }
 
-export function geoOnboardingCompetitorsPath(projectId?: string): string {
+export function geoOnboardingCompetitorsPath(
+  projectId?: string,
+  replay = false
+): string {
   const base = "/onboarding/competitors";
-  return projectId ? `${base}?project=${encodeURIComponent(projectId)}` : base;
+  return onboardingPath(base, projectId, replay);
+}
+
+function onboardingPath(
+  base: string,
+  projectId: string | undefined,
+  replay: boolean
+): string {
+  const params = new URLSearchParams();
+  if (projectId) {
+    params.set("project", projectId);
+  }
+  if (replay) {
+    params.set("replay", "1");
+  }
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }

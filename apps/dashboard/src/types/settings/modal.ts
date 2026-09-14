@@ -14,6 +14,7 @@ export type SettingsSectionId =
   | "usage-alerts"
   | "credits"
   | "logs"
+  | "dev"
   | "geo"
   | "geo-brand"
   | "geo-languages"
@@ -24,7 +25,7 @@ export type StandardSettingsSectionId = Exclude<
   "geo" | "geo-brand" | "geo-languages" | "geo-models"
 >;
 
-export type SettingsNavGroupId = "account" | "organization" | "geo";
+export type SettingsNavGroupId = "account" | "organization" | "geo" | "dev";
 
 export interface SettingsNavItem {
   id: SettingsSectionId;

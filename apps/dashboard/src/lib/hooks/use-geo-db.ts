@@ -332,7 +332,10 @@ export function useGeoCompetitorsDb(
 
   const { data } = useLiveQuery({
     queryKey: [definition.id, isEnabled],
-    query: (q) => q.from({ competitor: definition }),
+    query: (q) =>
+      q
+        .from({ competitor: definition })
+        .orderBy(({ competitor }) => competitor.name, "asc"),
     startSync: isEnabled,
   });
 
