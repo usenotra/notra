@@ -21,7 +21,7 @@ export function OnboardingSplitLayout({
             Notra
           </span>
         </Link>
-        <div className="w-full max-w-md py-6">{children}</div>
+        <div className="w-full max-w-md min-w-0 py-6">{children}</div>
         <div aria-hidden="true" className="h-7" />
       </section>
 

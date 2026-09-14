@@ -54,7 +54,7 @@ function CompetitorsPicker({
   const id = useId();
   const router = useRouter();
   const suggestions = useGeoCompetitorSuggestions(organizationId, domain);
-  const { competitors, saveCompetitor, removeCompetitor } =
+  const { competitors, saveCompetitor, addCompetitors, removeCompetitor } =
     useGeoCompetitorsDb(organizationId);
   const startScan = useGeoStartScan(organizationId);
   const { isLocked: geoLocked } = useHasGeoFeature();
@@ -102,9 +102,12 @@ function CompetitorsPicker({
   };
 
   const addAllSuggestions = () => {
-    for (const entry of remainingSuggestions) {
-      add(entry.name, entry.domain);
-    }
+    const availableSlots = GEO_MAX_COMPETITORS - competitors.length;
+    addCompetitors(
+      remainingSuggestions
+        .slice(0, availableSlots)
+        .map((entry) => createCompetitor(entry.name, entry.domain))
+    );
   };
 
   const launch = () => {
@@ -233,7 +236,7 @@ function CompetitorsPicker({
             </p>
           ) : null}
           {suggested.length > 0 ? (
-            <ul className="space-y-1.5">
+            <ul className="w-full max-w-full min-w-0 space-y-1.5 overflow-hidden">
               {visibleSuggestions.map((entry) => {
                 const existing = findCompetitor(
                   competitors,

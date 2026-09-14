@@ -41,11 +41,12 @@ export function CompetitorSearch({
   const trimmed = query.trim();
   const active = trimmed.length >= GEO_BRAND_SEARCH_MIN_QUERY_LENGTH;
   const searching = active && (search.isFetching || query !== debouncedQuery);
+  const retryingFailedQuery = search.isError && query === debouncedQuery;
   const items = competitorSearchItems({
     ownDomain,
     query,
     searchResults: search.data?.results ?? [],
-    searching,
+    searching: searching && !retryingFailedQuery,
     selected,
   });
 
@@ -79,7 +80,7 @@ export function CompetitorSearch({
         ) : null}
       </ComboboxInput>
       {active ? (
-        <ComboboxContent>
+        <ComboboxContent className="min-w-(--anchor-width)">
           {search.isError ? (
             <div
               aria-live="polite"

@@ -85,21 +85,32 @@ function usePendingRows(name: string, scope: GeoScopeInput) {
     () => getPendingRows(collectionId)
   );
 
-  const track = useCallback(
-    (rowId: string, transaction: Transaction, fallback: string) => {
-      markRowPending(collectionId, rowId);
+  const trackMany = useCallback(
+    (rowIds: readonly string[], transaction: Transaction, fallback: string) => {
+      for (const rowId of rowIds) {
+        markRowPending(collectionId, rowId);
+      }
       transaction.isPersisted.promise
         .catch((error: unknown) => {
           toast.error(toErrorMessage(error, fallback));
         })
         .finally(() => {
-          clearRowPending(collectionId, rowId);
+          for (const rowId of rowIds) {
+            clearRowPending(collectionId, rowId);
+          }
         });
     },
     [collectionId]
   );
 
-  return { pendingIds, track };
+  const track = useCallback(
+    (rowId: string, transaction: Transaction, fallback: string) => {
+      trackMany([rowId], transaction, fallback);
+    },
+    [trackMany]
+  );
+
+  return { pendingIds, track, trackMany };
 }
 
 export function useGeoPromptsDb(
@@ -325,14 +336,17 @@ export function useGeoCompetitorsDb(
   const dbClient = useDbClient();
   const definition = geoCompetitorsCollection({ organizationId, projectId });
   const collection = dbClient.collection(definition);
-  const { pendingIds, track } = usePendingRows("competitors", {
+  const { pendingIds, track, trackMany } = usePendingRows("competitors", {
     organizationId,
     projectId,
   });
 
   const { data } = useLiveQuery({
     queryKey: [definition.id, isEnabled],
-    query: (q) => q.from({ competitor: definition }),
+    query: (q) =>
+      q
+        .from({ competitor: definition })
+        .orderBy(({ competitor }) => competitor.name, "asc"),
     startSync: isEnabled,
   });
 
@@ -348,6 +362,18 @@ export function useGeoCompetitorsDb(
     track(competitor.id, transaction, "Failed to save competitor");
   };
 
+  const addCompetitors = (items: readonly GeoCompetitor[]) => {
+    if (items.length === 0) {
+      return;
+    }
+    const transaction = collection.insert([...items]);
+    trackMany(
+      items.map((item) => item.id),
+      transaction,
+      "Failed to save competitors"
+    );
+  };
+
   const removeCompetitor = (competitorId: string) => {
     track(
       competitorId,
@@ -360,6 +386,7 @@ export function useGeoCompetitorsDb(
     competitors,
     pendingCompetitorIds: pendingIds,
     saveCompetitor,
+    addCompetitors,
     removeCompetitor,
   };
 }
