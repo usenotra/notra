@@ -365,7 +365,7 @@ function TwitterPost({
                     onScroll={(event) => {
                       syncHighlightScroll(event.currentTarget);
                     }}
-                    className="caret-foreground col-start-1 row-start-1 field-sizing-content min-h-[4rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
+                    className="caret-foreground col-start-1 row-start-1 field-sizing-content max-h-80 min-h-[4rem] min-w-0 resize-none overflow-y-auto rounded-none border-none bg-transparent p-0 shadow-none [scrollbar-gutter:stable] focus-visible:ring-0 dark:bg-transparent"
                     onChange={(e) => {
                       const value = e.target.value;
                       setLocalValue(value);

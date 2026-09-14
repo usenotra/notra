@@ -419,7 +419,7 @@ export function CreateScheduleDialog({
                       <div className="space-y-2">
                         <Textarea
                           aria-label="Instructions"
-                          className="min-h-24"
+                          className="max-h-80 min-h-24 resize-none overflow-y-auto"
                           id={field.name}
                           maxLength={MAX_SCHEDULE_INSTRUCTIONS_LENGTH}
                           onBlur={field.handleBlur}
