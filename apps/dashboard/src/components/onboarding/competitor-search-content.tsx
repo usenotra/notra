@@ -53,11 +53,11 @@ function CompetitorSearchResultRow({
 }: CompetitorSearchResultRowProps) {
   if (entry.source === "manual") {
     return (
-      <span className="flex min-w-0 items-center gap-2.5">
+      <span className="flex w-full min-w-0 items-center gap-2.5">
         <span className="bg-muted flex size-6 shrink-0 items-center justify-center rounded-md">
           <PlusIcon className="size-3.5" />
         </span>
-        <span className="truncate font-medium">
+        <span className="min-w-0 flex-1 truncate font-medium">
           Add “{entry.name}” manually
         </span>
         {searchUnavailable ? (
@@ -70,15 +70,15 @@ function CompetitorSearchResultRow({
   }
 
   return (
-    <span className="flex min-w-0 items-center gap-2.5">
+    <span className="flex w-full min-w-0 items-center gap-2.5">
       <CompetitorBrandLogo
         className="size-6 rounded-md"
         domain={entry.domain}
         logo={entry.logo}
         name={entry.name}
       />
-      <span className="truncate font-medium">{entry.name}</span>
-      <span className="text-muted-foreground truncate text-xs">
+      <span className="min-w-0 flex-1 truncate font-medium">{entry.name}</span>
+      <span className="text-muted-foreground min-w-0 shrink truncate text-xs">
         {entry.domain}
       </span>
     </span>

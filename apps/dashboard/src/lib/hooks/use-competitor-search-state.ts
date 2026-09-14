@@ -26,10 +26,12 @@ export function useCompetitorSearchState({
   // Once the provider has failed, keep the manual fallback available while a
   // user-triggered retry runs so recovery never depends on the provider.
   const retryingFailedQuery = search.isError && query === debouncedQuery;
+  const hasCurrentResults =
+    query === debouncedQuery && !search.isPlaceholderData;
   const items = competitorSearchItems({
     ownDomain,
     query,
-    searchResults: search.data?.results ?? [],
+    searchResults: hasCurrentResults ? (search.data?.results ?? []) : [],
     searching: searching && !retryingFailedQuery,
     selected,
   });
