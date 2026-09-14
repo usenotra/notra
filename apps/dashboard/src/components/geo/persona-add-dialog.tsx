@@ -61,7 +61,7 @@ export function PersonaAddDialog({
               maxLength={GEO_PERSONA_BRIEF_MAX_LENGTH}
               disabled={isPending}
               placeholder="An agency founder comparing AI visibility tools for clients, with a tight budget and little time for setup…"
-              className="min-h-28"
+              className="max-h-80 min-h-28 resize-none overflow-y-auto"
             />
             {atLimit ? (
               <p className="text-destructive text-sm" role="alert">
