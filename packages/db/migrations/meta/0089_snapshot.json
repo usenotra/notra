@@ -5597,7 +5597,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "geoMentionChecks_personaSnapshot_check": {
+          "name": "geoMentionChecks_personaSnapshot_check",
+          "value": "\"geo_mention_checks\".\"persona_id\" IS NULL OR \"geo_mention_checks\".\"persona_snapshot\" IS NOT NULL"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.geo_persona_memories": {
@@ -5784,6 +5789,13 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
+        },
+        "conversation_prompts": {
+          "name": "conversation_prompts",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
         },
         "enabled": {
           "name": "enabled",

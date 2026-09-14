@@ -1,8 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoPersonaMemories, geoPersonas, geoSettings } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
-import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
-import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
+import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
 import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -23,8 +22,8 @@ import type {
   GeoZdrMode,
 } from "../types/geo";
 import type {
-  GeoPersonaMemory,
   GeoPersonaRunResponse,
+  PersonaForScan,
 } from "../types/geo-personas";
 import { resolveGeoGroundedZdrMode } from "../utils/geo-engines";
 import {
@@ -55,12 +54,6 @@ import { requireGeoProject } from "./projects";
 import { buildGeoScanCheckContext } from "./scan-context";
 import { omitGeoScanTasks, updateGeoScanTaskStatus } from "./scan-task-status";
 import { resolveScanZdrPolicy } from "./zdr-policy";
-
-interface PersonaForScan {
-  persona: GeoPersonaSnapshotV2["persona"];
-  memories: GeoPersonaMemory[];
-  conversationPrompts: string[];
-}
 
 function personaFailureFields(
   context: GeoCheckContext,
@@ -123,8 +116,6 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
     conversationPrompts: row.conversationPrompts,
     memories: memoryRows.map((memory) => ({
       id: memory.id,
-      personaId: memory.personaId,
-      projectId: memory.projectId,
       kind: memory.kind,
       content: memory.content,
     })),
@@ -156,14 +147,9 @@ export const runGeoPersonaConversation = Effect.fn(
     {
       promptId: personaPromptId(loaded.persona.id),
       personaId: loaded.persona.id,
-      maxTurns: conversationPrompts.length,
+      prompts: conversationPrompts,
+      snapshot,
       timeoutMs: GEO_PERSONA_PAIR_TIMEOUT_MS,
-      next: (_transcript, index) =>
-        Effect.succeed({
-          message: conversationPrompts[index] ?? null,
-          usage: EMPTY_TOKEN_USAGE,
-          snapshot,
-        }),
     },
     grounded,
     zdr
@@ -217,28 +203,21 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
     planned.zdr
   );
   const remaining = tasks.slice(outcome.rows.length);
-  if (outcome.stoppedEarly) {
-    yield* omitGeoScanTasks(
-      checkContext,
-      remaining.map((task) => task.key)
-    ).pipe(geoSkip("scan plan update failed"));
-  } else {
-    yield* Effect.forEach(
-      remaining,
-      (task) =>
-        updateGeoScanTaskStatus(
-          checkContext,
-          {
-            prompt: { id: task.promptId, text: task.prompt },
-            engine: task.engine,
-            language: task.language,
-          },
-          "failed",
-          task.turn
-        ),
-      { concurrency: GEO_SCAN_CONCURRENCY }
-    );
-  }
+  yield* Effect.forEach(
+    remaining,
+    (task) =>
+      updateGeoScanTaskStatus(
+        checkContext,
+        {
+          prompt: { id: task.promptId, text: task.prompt },
+          engine: task.engine,
+          language: task.language,
+        },
+        "failed",
+        task.turn
+      ),
+    { concurrency: GEO_SCAN_CONCURRENCY }
+  );
   return outcome;
 });
 
@@ -282,13 +261,13 @@ export const runGeoScanPersonaBatch = Effect.fn("geo.runScanPersonaBatch")(
     let checks = 0;
     let mentions = 0;
     if (rows.length > 0) {
-      yield* Effect.tryPromise({
-        try: () => insertGeoMentionChecks(rows),
+      const inserted = yield* Effect.tryPromise({
+        try: () => insertGeoMentionChecksWithSummary(rows),
         catch: (cause) =>
           new GeoScanError({ message: "Failed to store GEO checks", cause }),
       });
-      checks = rows.length;
-      mentions = rows.filter((row) => row.mentioned).length;
+      checks = inserted.checks;
+      mentions = inserted.mentions;
     }
 
     const result: GeoScanBatchOutcome = {
@@ -422,8 +401,8 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   );
 
   const response: GeoPersonaRunResponse = {
-    checks: result.rows.length,
-    mentions: result.rows.filter((row) => row.mentioned).length,
+    checks: result.checks,
+    mentions: result.mentions,
     engines: groundedEngines.map(({ grounded }) => grounded.key),
   };
   return response;

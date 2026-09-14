@@ -1,7 +1,8 @@
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
-import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
+import type { GeoCheckInsertSummary } from "@notra/db/types/geo-checks";
+import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
 import { Effect } from "effect";
 
 import { GeoContentBillingService } from "../deps";
@@ -80,7 +81,7 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
           )
         );
 
-    let result: GeoConversationResult | undefined;
+    let result: (GeoConversationResult & GeoCheckInsertSummary) | undefined;
     let emptyUsage: AgentTokenUsage | undefined;
     return yield* Effect.gen(function* () {
       const claim = yield* claimGeoScanRun(projectId).pipe(
@@ -107,15 +108,15 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
                 new GeoScanError({ message: input.emptyMessage })
               );
             }
-            yield* Effect.tryPromise({
-              try: () => insertGeoMentionChecks(rows),
+            const inserted = yield* Effect.tryPromise({
+              try: () => insertGeoMentionChecksWithSummary(rows),
               catch: (cause) =>
                 new GeoScanError({
                   message: "Failed to store conversation results",
                   cause,
                 }),
             });
-            return { rows, usage };
+            return { rows, usage, ...inserted };
           }),
         claim
           ? {
@@ -132,7 +133,7 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
       Effect.ensuring(
         Effect.suspend(() => {
           if (result) {
-            return settle("confirm", result.rows.length, result.usage);
+            return settle("confirm", result.checks, result.usage);
           }
           if (emptyUsage) {
             return settle("confirm", 0, emptyUsage);

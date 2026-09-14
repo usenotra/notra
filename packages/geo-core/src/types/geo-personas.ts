@@ -11,6 +11,22 @@ import type { GeoAnswerSource } from "./geo";
 export type GeoPersonaRow = InferSelectModel<typeof geoPersonas>;
 export type GeoPersonaMemoryRow = InferSelectModel<typeof geoPersonaMemories>;
 
+export interface PersonaGenerationContext {
+  companyName: string;
+  websiteUrl: string | null;
+  companyDescription: string | null;
+  audience: string | null;
+  competitors: string[];
+  pages: { url: string; title: string | null }[];
+  prompts: string[];
+}
+
+export interface PersonaForScan {
+  persona: GeoPersonaSnapshot["persona"];
+  memories: GeoPersonaMemory[];
+  conversationPrompts: string[];
+}
+
 export interface GeoPersonaMemory {
   id: string;
   kind: GeoPersonaMemoryKind;

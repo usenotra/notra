@@ -4,9 +4,9 @@ import type { GeoWindowInput } from "@notra/geo-core/types/geo";
 import type {
   GeoPersona,
   GeoPersonaResultsResponse,
+  GeoPersonaUpdateInput,
   GeoPersonasResponse,
 } from "@notra/geo-core/types/geo-personas";
-import type { QueryClient } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -18,31 +18,15 @@ import {
   PERSONA_GENERATION_POLL_MS,
 } from "@/constants/persona-generation";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
 import type {
   PersonaGenerationJob,
   PersonaGenerationRequest,
 } from "@/types/persona-generation";
 import { toErrorMessage } from "@/utils/error-message";
-
-export function geoPersonaUpdateMutationKey(
-  organizationId: string,
-  projectId: string | undefined
-) {
-  return ["geo", "personaUpdate", organizationId, projectId ?? null] as const;
-}
-
-function invalidatePersonaList(
-  queryClient: QueryClient,
-  organizationId: string,
-  projectId: string | undefined
-) {
-  return queryClient.invalidateQueries({
-    queryKey: dashboardOrpc.geo.personasList.queryKey({
-      input: { organizationId, projectId },
-    }),
-  });
-}
+import {
+  geoPersonaUpdateMutationKey,
+  invalidatePersonaList,
+} from "@/utils/geo-persona-queries";
 
 export function useGeoPersonas(organizationId: string) {
   const { projectId } = useGeoProjectScope();
@@ -115,26 +99,12 @@ export function useGeoPersonasGenerate(organizationId: string) {
     Error,
     PersonaGenerationRequest
   >({
-    mutationFn: (request) => {
-      let personaId: string | undefined;
-      let brief: string | undefined;
-      let promptsOnly: true | undefined;
-      if (typeof request === "string") {
-        personaId = request;
-      } else if (request && "personaId" in request) {
-        personaId = request.personaId;
-        promptsOnly = request.promptsOnly;
-      } else if (request) {
-        brief = request.brief;
-      }
-      return dashboardOrpc.geo.personasGenerate.call({
+    mutationFn: (request) =>
+      dashboardOrpc.geo.personasGenerate.call({
         organizationId,
         projectId,
-        personaId,
-        brief,
-        promptsOnly,
-      });
-    },
+        ...request,
+      }),
     onSuccess: (started) => {
       queryClient.setQueryData(statusOptions.queryKey, started);
     },

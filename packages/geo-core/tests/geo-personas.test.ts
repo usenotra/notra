@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
+
 import {
   GEO_PERSONA_MAX_COUNT,
   GEO_PERSONA_MAX_MEMORIES,
@@ -8,9 +10,11 @@ import {
   GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MAX,
 } from "../src/constants/geo-personas";
-import { geoGeneratedPersonaSchema } from "../src/schemas/geo-personas";
 import {
-  isPersonaScanPromptId,
+  geoGeneratedPersonaSchema,
+  geoPersonaResultsInputSchema,
+} from "../src/schemas/geo-personas";
+import {
   normalizeGeneratedPersona,
   normalizeGeneratedPersonaSet,
   personaPromptId,
@@ -23,17 +27,47 @@ describe("personaPromptId", () => {
   test("prefixes the persona id", () => {
     expect(personaPromptId(PERSONA_ID)).toBe(`persona-${PERSONA_ID}`);
   });
+});
 
-  test("round-trips through isPersonaScanPromptId", () => {
-    expect(isPersonaScanPromptId(personaPromptId(PERSONA_ID))).toBe(true);
+describe("geoPersonaResultsInputSchema", () => {
+  test("requires a persona when selecting a scan", () => {
+    const input = { organizationId: "org", scanId: "scan" };
+    expect(geoPersonaResultsInputSchema.safeParse(input).success).toBe(false);
+    expect(
+      geoPersonaResultsInputSchema.safeParse({
+        ...input,
+        personaId: PERSONA_ID,
+      }).success
+    ).toBe(true);
   });
 });
 
-describe("isPersonaScanPromptId", () => {
-  test("rejects regular prompt ids", () => {
-    expect(isPersonaScanPromptId(PERSONA_ID)).toBe(false);
-    expect(isPersonaScanPromptId("sequence-1")).toBe(false);
-    expect(isPersonaScanPromptId("")).toBe(false);
+describe("createPersonaSnapshot", () => {
+  test("writes the current version discriminator", () => {
+    const snapshot = createPersonaSnapshot(
+      {
+        id: PERSONA_ID,
+        name: "Budgeter",
+        role: "Founder",
+        company: "Small SaaS company",
+        summary: "Optimizes for predictable ROI",
+        searchStyle: "Direct and concise",
+        profile: {
+          goals: ["Reduce spend"],
+          painPoints: ["Unclear pricing"],
+          currentStack: ["HubSpot"],
+          buyingTriggers: ["Budget review"],
+          objections: ["Long setup"],
+        },
+      },
+      [],
+      ["Which tools have predictable pricing?"]
+    );
+
+    expect(snapshot.schemaVersion).toBe(2);
+    expect(snapshot.conversationPrompts).toEqual([
+      "Which tools have predictable pricing?",
+    ]);
   });
 });
 
@@ -63,7 +97,7 @@ describe("geoScanPersonaTasks", () => {
 describe("normalizeGeneratedPersona", () => {
   const base = {
     name: "  Jordan Ellis ",
-    role: "Director of Marketing",
+    role: "Marketing Director",
     company: "210-person B2B SaaS company",
     summary: "Leads a team of six.",
     searchStyle: "Formal and detailed.",
@@ -108,7 +142,6 @@ describe("normalizeGeneratedPersona", () => {
     const overlongPrompt = "x".repeat(GEO_PERSONA_PROMPT_MAX_LENGTH + 1);
     const generated = {
       ...base,
-      role: "Marketing Director",
       conversationPrompts: [overlongPrompt, "fixed follow-up"],
     };
 
@@ -128,7 +161,6 @@ describe("normalizeGeneratedPersona", () => {
   test("requires the documented minimum memory set", () => {
     const generated = {
       ...base,
-      role: "Marketing Lead",
       memories: Array.from(
         { length: GEO_PERSONA_MIN_MEMORIES },
         (_, index) => ({

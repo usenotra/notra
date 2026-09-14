@@ -8,15 +8,27 @@ import type { ReactNode } from "react";
 
 import type { GeoSequenceEngineThread } from "@/types/geo";
 
+export interface GeoPersonasPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export interface GeoPersonasPageHeaderProps {
+  action?: ReactNode;
+}
+
+export interface PersonaGenerationCounterProps {
+  progress: PersonaGenerationProgress;
+}
+
 export interface PersonasTableProps {
   organizationId: string;
   personas: GeoPersona[];
 }
 
 export interface PersonaTableProps extends PersonasTableProps {
-  isAddingPersona?: boolean;
-  openPersonaId?: string;
-  onAutoOpenClose?: () => void;
+  isAddingPersona: boolean;
+  openPersonaId: string | undefined;
+  onAutoOpenClose: () => void;
 }
 
 export interface PersonaTableRowActionsProps {
@@ -51,7 +63,6 @@ export interface PersonaDetailHeaderProps {
   scans: GeoPersonaScanSummary[];
   selectedScanId: string | null;
   view: PersonaDialogView;
-  showConversation: boolean;
   isRunning: boolean;
   onRun: () => void;
   onSelectScan: (scanId: string | null) => void;
@@ -65,15 +76,6 @@ export interface PersonaAvatarProps {
   persona: Pick<GeoPersona, "id" | "name">;
   size?: "sm" | "default" | "lg";
   className?: string;
-}
-
-export interface PersonaSectionProps {
-  title: string;
-  children: ReactNode;
-}
-
-export interface PersonaBulletListProps {
-  items: readonly string[];
 }
 
 export interface PersonaProfileProps {

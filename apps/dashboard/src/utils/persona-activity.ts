@@ -94,5 +94,5 @@ export function personaMentionRate(
     mentions += point.mentions;
     checks += point.checks;
   }
-  return { checks, rate: checks ? (mentions / checks) * 100 : null };
+  return checks ? (mentions / checks) * 100 : null;
 }

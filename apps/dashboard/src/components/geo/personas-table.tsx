@@ -1,7 +1,10 @@
 "use client";
 
 import { GEO_PERSONA_MAX_TURNS } from "@notra/geo-core/constants/geo-personas";
-import type { GeoPersona } from "@notra/geo-core/types/geo-personas";
+import type {
+  GeoPersona,
+  GeoPersonaUpdateInput,
+} from "@notra/geo-core/types/geo-personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   Tooltip,
@@ -23,27 +26,25 @@ import { useGeoProjectScope } from "@/components/providers/geo-project-provider"
 import {
   GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
   GEO_PERSONAS_MEMORIES_COLUMN_WIDTH,
+  GEO_PERSONAS_MIN_TABLE_ROWS,
   GEO_PERSONAS_TURNS_COLUMN_WIDTH,
 } from "@/constants/geo-personas";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
-  geoPersonaUpdateMutationKey,
   useGeoPersonaDelete,
   useGeoPersonaRun,
   useGeoPersonasGenerate,
   useGeoPersonaUpdate,
 } from "@/lib/hooks/use-geo-personas";
-import type { GeoPersonaUpdateInput } from "@/types/geo-personas";
 import type { PersonaTableProps } from "@/types/geo-personas-ui";
+import { geoPersonaUpdateMutationKey } from "@/utils/geo-persona-queries";
 import { tableHeightFor } from "@/utils/table";
-
-const MIN_TABLE_ROWS = 3;
 
 export function PersonasTable({
   organizationId,
   personas,
-  isAddingPersona = false,
+  isAddingPersona,
   openPersonaId,
   onAutoOpenClose,
 }: PersonaTableProps) {
@@ -54,7 +55,7 @@ export function PersonasTable({
   const runPersona = useGeoPersonaRun(organizationId);
   const generationPending = generatePersona.isPending;
   const generatingPersonaId = generatePersona.generatingPersonaId;
-  const regenerate = generatePersona.mutate;
+  const regeneratePersona = generatePersona.mutate;
   const [viewing, setViewing] = useState<GeoPersona | null>(null);
   const [removing, setRemoving] = useState<GeoPersona | null>(null);
 
@@ -168,7 +169,7 @@ export function PersonasTable({
               deletingPersonaId !== null
             }
             onDelete={setRemoving}
-            onRegenerate={regenerate}
+            onRegenerate={(personaId) => regeneratePersona({ personaId })}
             persona={row}
           />
         ),
@@ -180,7 +181,7 @@ export function PersonasTable({
       personas.length,
       generationPending,
       generatingPersonaId,
-      regenerate,
+      regeneratePersona,
     ]
   );
 
@@ -194,7 +195,10 @@ export function PersonasTable({
         emptyState="No personas yet — generate a set to have them research your category during scans"
         getRowId={(row) => row.id}
         height={tableHeightFor(
-          Math.max(personas.length + (isAddingPersona ? 1 : 0), MIN_TABLE_ROWS)
+          Math.max(
+            personas.length + (isAddingPersona ? 1 : 0),
+            GEO_PERSONAS_MIN_TABLE_ROWS
+          )
         )}
         loading={isAddingPersona}
         onRowClick={(row) => {
@@ -212,7 +216,7 @@ export function PersonasTable({
               pendingPersonaIds.includes(row.id)
             }
             onDelete={setRemoving}
-            onRegenerate={generatePersona.mutate}
+            onRegenerate={(personaId) => regeneratePersona({ personaId })}
             onRun={runPersona.mutate}
             onToggle={(persona) =>
               updatePersona.mutate({
@@ -245,7 +249,7 @@ export function PersonasTable({
           if (!next) {
             setViewing(null);
             if (autoOpenPersona) {
-              onAutoOpenClose?.();
+              onAutoOpenClose();
             }
           }
         }}

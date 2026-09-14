@@ -72,7 +72,6 @@ function PersonaDetailHeader({
   scans,
   selectedScanId,
   view,
-  showConversation,
   isRunning,
   onRun,
   onSelectScan,
@@ -134,7 +133,7 @@ function PersonaDetailHeader({
           </TabsList>
         </Tabs>
       </div>
-      {showConversation && active ? (
+      {view === "conversation" && active ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <PromptEngineSwitcher
             active={active}
@@ -296,7 +295,6 @@ export function PersonaDetailDialog({
           scans={scans}
           selectedScanId={selectedScanId}
           view={view}
-          showConversation={showConversation}
           threads={threads}
         />
 

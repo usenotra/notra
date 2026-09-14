@@ -56,6 +56,11 @@ export interface GeoCheckWrite {
   capturedAt: Date;
 }
 
+export interface GeoCheckInsertSummary {
+  checks: number;
+  mentions: number;
+}
+
 export interface GeoCheckOverviewRow {
   engine: string;
   checks: number;
@@ -212,33 +217,6 @@ export interface GeoCheckSequenceResultRow {
   reasoningTokens: number | null;
   truncated: boolean | null;
   lastCheckedAt: Date;
-}
-
-export interface GeoCheckPersonaResultRow {
-  scanId: string;
-  personaId: string;
-  personaSnapshot: GeoPersonaSnapshot | null;
-  turn: number;
-  engine: string;
-  prompt: string;
-  answer: string;
-  mentioned: boolean;
-  position: number | null;
-  sentiment: string | null;
-  excerpt: string;
-  sources: GeoCheckSourceItem[];
-  grounding: GeoCheckGrounding;
-  finishReason: string | null;
-  promptTokens: number | null;
-  outputTokens: number | null;
-  reasoningTokens: number | null;
-  truncated: boolean | null;
-  lastCheckedAt: Date;
-}
-
-export interface GeoCheckPersonaScanRow {
-  scanId: string;
-  capturedAt: Date;
 }
 
 export interface GeoCheckScanRow {

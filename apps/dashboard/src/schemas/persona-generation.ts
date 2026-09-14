@@ -9,6 +9,6 @@ export const personaGenerationJobSchema = z.object({
   promptsOnly: z.boolean().optional(),
   status: z.enum(["queued", "running", "completed", "failed"]),
   startedAt: z.string(),
-  runId: z.string().nullable().default(null),
-  error: z.string().nullable().default(null),
+  runId: z.string().nullable(),
+  error: z.string().nullable(),
 });

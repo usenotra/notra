@@ -1,1 +1,0 @@
-ALTER TABLE "geo_personas" ADD COLUMN "conversation_prompts" text[] DEFAULT ARRAY[]::text[] NOT NULL;

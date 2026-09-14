@@ -2,11 +2,9 @@ import { createHash } from "node:crypto";
 
 import type { GeoPersonaSnapshotV2 } from "../types/geo-personas";
 
-type PersonaSnapshotMemory = GeoPersonaSnapshotV2["memories"][number];
-
 export function createPersonaSnapshot(
   persona: GeoPersonaSnapshotV2["persona"],
-  memories: readonly PersonaSnapshotMemory[],
+  memories: readonly GeoPersonaSnapshotV2["memories"][number][],
   conversationPrompts: readonly string[]
 ): GeoPersonaSnapshotV2 {
   const context = {

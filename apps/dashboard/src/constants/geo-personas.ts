@@ -6,7 +6,6 @@ import type {
 import type { PersonaDialogView } from "@/types/geo-personas-ui";
 
 export const GEO_PERSONAS_PAGE_TITLE = "Personas";
-export const GEO_PERSONA_EMPTY_TURNS = [] as const;
 export const GEO_PERSONA_RESULTS_POLL_MS = 15_000;
 export const GEO_PERSONA_FORECAST_DAYS = 7;
 export const GEO_PERSONA_FORECAST_SAMPLE_DAYS = 7;
@@ -45,6 +44,7 @@ export const GEO_PERSONA_GENERATION_TICK_MS = 500;
 export const GEO_PERSONAS_MEMORIES_COLUMN_WIDTH = "6.5rem";
 export const GEO_PERSONAS_TURNS_COLUMN_WIDTH = "9rem";
 export const GEO_PERSONAS_ACTIONS_COLUMN_WIDTH = "6rem";
+export const GEO_PERSONAS_MIN_TABLE_ROWS = 3;
 
 export const GEO_PERSONA_SKELETON_ROW_COUNT = 5;
 
@@ -87,6 +87,3 @@ export const GEO_PERSONA_PROFILE_SECTIONS = [
   key: keyof GeoPersonaProfile;
   label: string;
 }[];
-export const GEO_PERSONA_SENTENCE_SEGMENTER = new Intl.Segmenter(undefined, {
-  granularity: "sentence",
-});

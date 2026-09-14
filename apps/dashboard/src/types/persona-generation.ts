@@ -1,18 +1,10 @@
-export interface PersonaGenerationJob {
-  id: string;
-  organizationId: string;
-  projectId: string;
-  personaId?: string;
-  brief?: string;
-  promptsOnly?: boolean;
-  status: "queued" | "running" | "completed" | "failed";
-  startedAt: string;
-  runId: string | null;
-  error: string | null;
-}
+import type { z } from "zod";
+
+import type { personaGenerationJobSchema } from "@/schemas/persona-generation";
+
+export type PersonaGenerationJob = z.infer<typeof personaGenerationJobSchema>;
 
 export type PersonaGenerationRequest =
-  | string
+  | { personaId: string; promptsOnly?: true }
   | { brief: string }
-  | { personaId: string; promptsOnly: true }
   | void;

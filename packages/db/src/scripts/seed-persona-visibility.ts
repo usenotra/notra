@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { GEO_PERSONA_MEMORY_KINDS } from "../constants/geo-personas";
 import { db } from "../drizzle";
@@ -292,19 +292,19 @@ async function resolveTargets() {
     // persona activity yet. Projects without personas are left alone (seed
     // them explicitly via --org-slug / --project-id).
     const personaProjectRows = await db.execute(
-      sql`select distinct project_id from geo_personas`
+      sql<{ project_id: string }>`select distinct project_id from geo_personas`
     );
     const checkProjectRows = await db.execute(
-      sql`select distinct project_id from geo_mention_checks where persona_id is not null`
+      sql<{
+        project_id: string;
+      }>`select distinct project_id from geo_mention_checks where persona_id is not null`
     );
     const withChecks = new Set(
-      (checkProjectRows.rows as { project_id: string }[]).map(
-        (row) => row.project_id
-      )
+      checkProjectRows.rows.map((row: { project_id: string }) => row.project_id)
     );
-    const candidateIds = (personaProjectRows.rows as { project_id: string }[])
-      .map((row) => row.project_id)
-      .filter((id) => !withChecks.has(id));
+    const candidateIds = personaProjectRows.rows
+      .map((row: { project_id: string }) => row.project_id)
+      .filter((id: string) => !withChecks.has(id));
     if (candidateIds.length === 0) {
       return [];
     }
@@ -567,13 +567,10 @@ async function seedProjectActivity(
         0.95,
         Math.max(0.02, persona.baseRate + persona.trend * progress)
       );
-      const prompt =
-        persona.conversationPrompts[0] ??
-        `which tools fit the ${persona.name.toLowerCase()} buying criteria`;
-      const conversationPrompts =
-        persona.conversationPrompts.length > 0
-          ? persona.conversationPrompts
-          : [prompt];
+      const prompt = persona.conversationPrompts[0];
+      if (!prompt) {
+        throw new Error(`Persona ${persona.id} has no conversation prompts.`);
+      }
       for (const engine of ENGINES) {
         const roll = hash01(`${dayString}:${persona.id}:${engine}`);
         const mentioned = roll < rate;
@@ -601,7 +598,7 @@ async function seedProjectActivity(
               profile: persona.profile,
             },
             persona.memories,
-            conversationPrompts
+            persona.conversationPrompts
           ),
           turn: 0,
           prompt,
@@ -630,19 +627,7 @@ async function seedProjectActivity(
       const written = await db
         .insert(geoMentionChecks)
         .values(rows)
-        .onConflictDoUpdate({
-          target: [
-            geoMentionChecks.scanId,
-            geoMentionChecks.engine,
-            geoMentionChecks.promptId,
-            geoMentionChecks.turn,
-            geoMentionChecks.language,
-          ],
-          set: {
-            personaSnapshot: sql`excluded.persona_snapshot`,
-          },
-          setWhere: isNull(geoMentionChecks.personaSnapshot),
-        })
+        .onConflictDoNothing()
         .returning({ id: geoMentionChecks.id });
       checksWritten += written.length;
     }

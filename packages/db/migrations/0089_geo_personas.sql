@@ -18,6 +18,7 @@ CREATE TABLE "geo_personas" (
 	"summary" text NOT NULL,
 	"search_style" text NOT NULL,
 	"profile" jsonb NOT NULL,
+	"conversation_prompts" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"enabled" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -30,6 +31,7 @@ ALTER TABLE "geo_persona_memories" ADD CONSTRAINT "geo_persona_memories_organiza
 ALTER TABLE "geo_persona_memories" ADD CONSTRAINT "geo_persona_memories_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "geo_personas" ADD CONSTRAINT "geo_personas_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "geo_personas" ADD CONSTRAINT "geo_personas_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "geo_mention_checks" ADD CONSTRAINT "geoMentionChecks_personaSnapshot_check" CHECK ("geo_mention_checks"."persona_id" IS NULL OR "geo_mention_checks"."persona_snapshot" IS NOT NULL);--> statement-breakpoint
 CREATE INDEX "geoPersonaMemories_personaId_idx" ON "geo_persona_memories" USING btree ("persona_id");--> statement-breakpoint
 CREATE INDEX "geoPersonaMemories_projectId_idx" ON "geo_persona_memories" USING btree ("project_id");--> statement-breakpoint
 CREATE INDEX "geoPersonas_organizationId_idx" ON "geo_personas" USING btree ("organization_id");--> statement-breakpoint

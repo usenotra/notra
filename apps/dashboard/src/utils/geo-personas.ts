@@ -11,7 +11,6 @@ import {
   GEO_PERSONA_AVATAR_SIZE,
   GEO_PERSONA_MEMORY_KIND_LABELS,
   GEO_PERSONA_MEMORY_KIND_ORDER,
-  GEO_PERSONA_SENTENCE_SEGMENTER,
 } from "@/constants/geo-personas";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type { PersonaMemoryGroup } from "@/types/geo-personas-ui";
@@ -68,16 +67,4 @@ export function personaInitials(name: string): string {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
-}
-
-export function personaProfilePoints(text: string): string[] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.replace(/^\s*[-*•]\s+/, "").trim())
-    .filter(Boolean)
-    .flatMap((line) =>
-      Array.from(GEO_PERSONA_SENTENCE_SEGMENTER.segment(line), ({ segment }) =>
-        segment.trim()
-      )
-    );
 }

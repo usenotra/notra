@@ -1513,13 +1513,8 @@ const runGeoSequenceCheck = Effect.fn("geo.runSequenceCheck")(function* (
     {
       promptId: sequencePromptId(sequence.id),
       sequenceId: sequence.id,
-      maxTurns: steps.length,
+      prompts: steps,
       timeoutMs: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
-      next: (_transcript, index) =>
-        Effect.succeed({
-          message: steps[index] ?? null,
-          usage: EMPTY_TOKEN_USAGE,
-        }),
     },
     grounded,
     zdr

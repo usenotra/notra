@@ -1,6 +1,9 @@
 "use client";
 
-import { GEO_PERSONA_MAX_COUNT } from "@notra/geo-core/constants/geo-personas";
+import {
+  GEO_PERSONA_BRIEF_MAX_LENGTH,
+  GEO_PERSONA_MAX_COUNT,
+} from "@notra/geo-core/constants/geo-personas";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -55,7 +58,7 @@ export function PersonaAddDialog({
               value={brief}
               onChange={(event) => setBrief(event.target.value)}
               required
-              maxLength={2000}
+              maxLength={GEO_PERSONA_BRIEF_MAX_LENGTH}
               disabled={isPending}
               placeholder="An agency founder comparing AI visibility tools for clients, with a tight budget and little time for setup…"
               className="min-h-28"

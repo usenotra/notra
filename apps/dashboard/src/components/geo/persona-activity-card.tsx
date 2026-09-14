@@ -87,7 +87,7 @@ export function PersonaActivityCard({
         <>
           <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-5 pt-3 sm:grid-cols-3 lg:grid-cols-5">
             {personas.map((persona, index) => {
-              const { rate } = personaMentionRate(data, persona.id);
+              const rate = personaMentionRate(data, persona.id);
               const color = accountSeriesColorPair(index);
               const visible = !hiddenPersonaIds.has(persona.id);
               return (

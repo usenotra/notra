@@ -15,7 +15,6 @@ import type {
 import type {
   GeoConversationOutcome,
   GeoConversationSource,
-  PersonaConversationTurn,
 } from "../types/geo-conversations";
 import { normalizePosition } from "../utils/geo-check-evaluation";
 import { geoLogWarn, logGeoSkip } from "../utils/geo-log";
@@ -28,20 +27,16 @@ import { judgeAnswer, requireAnswerText } from "./check-evaluation";
 import { GeoScanError } from "./errors";
 
 /** Owns the transcript, deadline and partial results for both kinds of conversation. */
-export const runGeoConversation = Effect.fn("geo.runConversation")(function* <
-  R,
->(
+export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
   context: GeoCheckContext,
-  source: GeoConversationSource<R>,
+  source: GeoConversationSource,
   engine: GeoGroundedEngine,
   zdr: GeoZdrMode
 ) {
   const models = yield* GeoModelService;
   const rows: GeoCheckWrite[] = [];
-  const transcript: PersonaConversationTurn[] = [];
   const messages: ModelMessage[] = [];
   let usage = EMPTY_AGENT_TOKEN_USAGE;
-  let stoppedEarly = false;
   const fields: GeoSkipFields = {
     event: "geo.check.failed",
     organizationId: context.organizationId,
@@ -56,14 +51,8 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* <
   };
 
   const play = Effect.gen(function* () {
-    for (let index = 0; index < source.maxTurns; index++) {
-      const next = yield* source.next(transcript, index);
-      usage = addAgentTokenUsage(usage, next.usage);
-      if (next.message === null) {
-        stoppedEarly = true;
-        break;
-      }
-      messages.push({ role: "user", content: next.message });
+    for (const [index, prompt] of source.prompts.entries()) {
+      messages.push({ role: "user", content: prompt });
       const answer = yield* models.groundedAnswer({
         organizationId: context.organizationId,
         engine,
@@ -86,8 +75,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* <
         answer
       );
       messages.push({ role: "assistant", content: text });
-      transcript.push({ question: next.message, answer: text });
-      const judged = yield* judgeAnswer(context, next.message, text);
+      const judged = yield* judgeAnswer(context, prompt, text);
       rows.push({
         organizationId: context.organizationId,
         projectId: context.projectId,
@@ -96,9 +84,9 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* <
         promptId: source.promptId,
         sequenceId: source.sequenceId ?? null,
         personaId: source.personaId ?? null,
-        personaSnapshot: next.snapshot ?? null,
+        personaSnapshot: source.snapshot ?? null,
         turn: index + 1,
-        prompt: next.message,
+        prompt,
         answer: text,
         capturedAt: context.capturedAt,
         mentioned: judged.mentioned,
@@ -145,8 +133,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* <
   const outcome: GeoConversationOutcome = {
     rows,
     usage,
-    stoppedEarly,
-    droppedTurns: stoppedEarly ? 0 : source.maxTurns - rows.length,
+    droppedTurns: source.prompts.length - rows.length,
   };
   return outcome;
 });

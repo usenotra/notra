@@ -1,3 +1,7 @@
+import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+
+import { Button } from "@/components/button";
 import {
   GEO_PERSONA_PROMPTS_DESCRIPTION,
   GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION,
@@ -54,7 +58,3 @@ export function PersonaPrompts({
     </div>
   );
 }
-import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-
-import { Button } from "@/components/button";

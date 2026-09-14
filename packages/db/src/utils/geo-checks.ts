@@ -12,10 +12,7 @@ import {
 } from "drizzle-orm";
 
 import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
-import {
-  GEO_CHECK_ENGLISH_LANGUAGES,
-  GEO_PERSONA_SCAN_HISTORY_LIMIT,
-} from "../constants/geo-checks";
+import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks, geoScans, geoSettings } from "../schema";
 import type {
@@ -25,6 +22,7 @@ import type {
   GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
   GeoCheckFilterOptions,
+  GeoCheckInsertSummary,
   GeoCheckLanguageShareRow,
   GeoCheckLanguageShareTrendRow,
   GeoCheckOverviewRow,
@@ -36,8 +34,6 @@ import type {
   GeoCheckScanComparisonInput,
   GeoCheckScanComparisonRow,
   GeoCheckScope,
-  GeoCheckPersonaResultRow,
-  GeoCheckPersonaScanRow,
   GeoCheckSequenceResultRow,
   GeoCheckTimeseriesRow,
   GeoCheckWindow,
@@ -322,11 +318,19 @@ function mentionFilters(
 export async function insertGeoMentionChecks(
   rows: GeoCheckWrite[]
 ): Promise<number> {
+  const summary = await insertGeoMentionChecksWithSummary(rows);
+  return summary.checks;
+}
+
+export async function insertGeoMentionChecksWithSummary(
+  rows: GeoCheckWrite[]
+): Promise<GeoCheckInsertSummary> {
   if (rows.length === 0) {
-    return 0;
+    return { checks: 0, mentions: 0 };
   }
 
-  let written = 0;
+  let checks = 0;
+  let mentions = 0;
   for (let index = 0; index < rows.length; index += CHECK_INSERT_CHUNK) {
     const chunk = rows.slice(index, index + CHECK_INSERT_CHUNK).map((row) => ({
       id: row.id ?? crypto.randomUUID(),
@@ -369,10 +373,11 @@ export async function insertGeoMentionChecks(
           geoMentionChecks.language,
         ],
       })
-      .returning({ id: geoMentionChecks.id });
-    written += inserted.length;
+      .returning({ mentioned: geoMentionChecks.mentioned });
+    checks += inserted.length;
+    mentions += inserted.filter((row) => row.mentioned).length;
   }
-  return written;
+  return { checks, mentions };
 }
 
 export async function queryGeoCheckOverview(
@@ -1002,135 +1007,6 @@ export async function queryGeoCheckSequenceResults(
       },
     ];
   });
-}
-
-export async function queryGeoCheckPersonaResults(
-  scope: GeoCheckScope,
-  personaId: string | undefined,
-  scanId?: string
-): Promise<GeoCheckPersonaResultRow[]> {
-  const filters = [
-    scopeWhere(scope),
-    sql`${geoMentionChecks.personaId} is not null`,
-  ];
-  if (personaId) {
-    filters.push(eq(geoMentionChecks.personaId, personaId));
-  }
-  if (scanId) {
-    filters.push(eq(geoMentionChecks.scanId, scanId));
-  }
-
-  const rows = await db
-    .selectDistinctOn(
-      [
-        geoMentionChecks.personaId,
-        geoMentionChecks.turn,
-        geoMentionChecks.engine,
-      ],
-      {
-        scanId: geoMentionChecks.scanId,
-        personaId: geoMentionChecks.personaId,
-        personaSnapshot: geoMentionChecks.personaSnapshot,
-        turn: geoMentionChecks.turn,
-        engine: geoMentionChecks.engine,
-        prompt: geoMentionChecks.prompt,
-        answer: geoMentionChecks.answer,
-        mentioned: geoMentionChecks.mentioned,
-        position: geoMentionChecks.position,
-        sentiment: geoMentionChecks.sentiment,
-        excerpt: geoMentionChecks.excerpt,
-        sources: geoMentionChecks.sources,
-        grounding: geoMentionChecks.grounding,
-        finishReason: geoMentionChecks.finishReason,
-        promptTokens: geoMentionChecks.promptTokens,
-        outputTokens: geoMentionChecks.outputTokens,
-        reasoningTokens: geoMentionChecks.reasoningTokens,
-        lastCheckedAt: geoMentionChecks.capturedAt,
-      }
-    )
-    .from(geoMentionChecks)
-    .where(and(...filters))
-    .orderBy(
-      geoMentionChecks.personaId,
-      geoMentionChecks.turn,
-      geoMentionChecks.engine,
-      desc(geoMentionChecks.capturedAt)
-    );
-
-  return rows.flatMap((row) => {
-    if (!row.personaId) {
-      return [];
-    }
-    return [
-      {
-        scanId: row.scanId,
-        personaId: row.personaId,
-        personaSnapshot: row.personaSnapshot,
-        turn: row.turn,
-        engine: row.engine,
-        prompt: row.prompt,
-        answer: row.answer,
-        mentioned: row.mentioned,
-        position: row.position,
-        sentiment: row.sentiment,
-        excerpt: row.excerpt,
-        sources: row.sources,
-        grounding: parseGeoCheckGrounding(row.grounding),
-        finishReason: row.finishReason,
-        promptTokens: row.promptTokens,
-        outputTokens: row.outputTokens,
-        reasoningTokens: row.reasoningTokens,
-        truncated:
-          row.finishReason === null ? null : row.finishReason === "length",
-        lastCheckedAt: row.lastCheckedAt,
-      },
-    ];
-  });
-}
-
-export async function queryGeoCheckPersonaScans(
-  scope: GeoCheckScope,
-  personaId: string
-): Promise<GeoCheckPersonaScanRow[]> {
-  return db
-    .select({
-      scanId: geoMentionChecks.scanId,
-      capturedAt: sql`max(${geoMentionChecks.capturedAt})`.mapWith(toDate),
-    })
-    .from(geoMentionChecks)
-    .where(and(scopeWhere(scope), eq(geoMentionChecks.personaId, personaId)))
-    .groupBy(geoMentionChecks.scanId)
-    .orderBy(desc(sql`max(${geoMentionChecks.capturedAt})`))
-    .limit(GEO_PERSONA_SCAN_HISTORY_LIMIT);
-}
-
-export async function queryGeoCheckPersonaActivity(
-  scope: GeoCheckScope,
-  from: Date,
-  to: Date
-) {
-  const day = sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD')`;
-  return db
-    .select({
-      personaId: geoMentionChecks.personaId,
-      day,
-      checks: sql<number>`count(*)`.mapWith(Number),
-      mentions:
-        sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
-          Number
-        ),
-    })
-    .from(geoMentionChecks)
-    .where(
-      and(
-        scopeWhere(scope),
-        sql`${geoMentionChecks.personaId} is not null`,
-        gte(geoMentionChecks.capturedAt, from),
-        lt(geoMentionChecks.capturedAt, to)
-      )
-    )
-    .groupBy(geoMentionChecks.personaId, day)
-    .orderBy(day);
 }
 
 const SCAN_COMPARISON_SCAN_COUNT = 2;

@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Counter from "@notra/ui/components/shared/counter";
 import { useReducedMotion } from "motion/react";
 import Link from "next/link";
-import type { ReactNode } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -34,13 +33,14 @@ import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
-  PersonaGenerationProgress,
+  GeoPersonasPageHeaderProps,
+  PersonaGenerationCounterProps,
 } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
 
-function PageHeader({ action }: { action?: ReactNode }) {
+function PageHeader({ action }: GeoPersonasPageHeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div className="space-y-1">
@@ -54,11 +54,7 @@ function PageHeader({ action }: { action?: ReactNode }) {
   );
 }
 
-function GenerationCounter({
-  progress,
-}: {
-  progress: PersonaGenerationProgress;
-}) {
+function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
   const reducedMotion = useReducedMotion();
   return (
     <span

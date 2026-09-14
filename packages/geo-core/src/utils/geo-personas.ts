@@ -6,7 +6,7 @@ import {
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_PROMPT_MAX_LENGTH,
   GEO_PERSONA_PROFILE_LIST_MAX,
-  GEO_PERSONA_SCAN_ID_PREFIX,
+  GEO_PERSONA_PROMPT_ID_PREFIX,
   GEO_PERSONA_SUMMARY_MAX_LENGTH,
 } from "../constants/geo-personas";
 import type {
@@ -19,11 +19,7 @@ import type {
  * stored under a synthetic prompt id derived from the persona id.
  */
 export function personaPromptId(personaId: string): string {
-  return `${GEO_PERSONA_SCAN_ID_PREFIX}${personaId}`;
-}
-
-export function isPersonaScanPromptId(promptId: string): boolean {
-  return promptId.startsWith(GEO_PERSONA_SCAN_ID_PREFIX);
+  return `${GEO_PERSONA_PROMPT_ID_PREFIX}${personaId}`;
 }
 
 function clip(value: string, maxLength: number): string {
