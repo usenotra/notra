@@ -8,7 +8,14 @@ type RouteHandler = (request: Request) => Response | Promise<Response>;
 
 const developmentHandler = createDevelopmentAutumnHandler(
   process.env.NODE_ENV,
-  process.env.AUTUMN_SECRET_KEY
+  process.env.AUTUMN_SECRET_KEY,
+  async (request) => {
+    const session = await getAuthSession();
+    if (!session?.user) {
+      return null;
+    }
+    return resolveBillingOrganizationId(request, session);
+  }
 );
 
 const handlers: { GET: RouteHandler; POST: RouteHandler } = developmentHandler

@@ -2,6 +2,7 @@
 
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { MAX_USAGE_ALERTS } from "@notra/schemas/constants/usage-alerts";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Switch } from "@notra/ui/components/ui/switch";
@@ -13,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@notra/ui/components/ui/table";
+import { cn } from "@notra/ui/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +30,11 @@ import type {
   UsageAlertsSectionProps,
   UsageAlertsView,
 } from "@/types/billing/usage-alerts";
-import { usageAlertThresholdLabel } from "@/utils/usage-alerts";
+import {
+  usageAlertIdentity,
+  usageAlertsEqual,
+  usageAlertThresholdLabel,
+} from "@/utils/usage-alerts";
 
 interface MemberRow {
   role: string;
@@ -42,7 +48,7 @@ export function UsageAlertsSection({
   onUpdated,
 }: UsageAlertsSectionProps) {
   const [view, setView] = useState<UsageAlertsView>("list");
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingAlert, setEditingAlert] = useState<UsageAlert | null>(null);
   const addAlertButtonRef = useRef<HTMLButtonElement>(null);
   const { activeOrganization } = useOrganizationsContext();
   const { data: session } = authClient.useSession();
@@ -91,6 +97,7 @@ export function UsageAlertsSection({
   }
 
   const controlsDisabled = membersLoading || !isOwner || mutation.isPending;
+  const atAlertLimit = alerts.length >= MAX_USAGE_ALERTS;
   let alertsContent: ReactNode;
 
   function showList() {
@@ -99,20 +106,37 @@ export function UsageAlertsSection({
   }
 
   function showCreateForm() {
-    setEditingIndex(null);
+    setEditingAlert(null);
     setView("form");
   }
 
-  function showEditForm(index: number) {
-    setEditingIndex(index);
+  function showEditForm(alert: UsageAlert) {
+    setEditingAlert({ ...alert });
     setView("form");
   }
 
-  function saveFormAlert(alert: UsageAlert) {
-    const nextAlerts =
-      editingIndex === null
-        ? [...alerts, alert]
-        : alerts.map((item, index) => (index === editingIndex ? alert : item));
+  async function saveFormAlert(alert: UsageAlert) {
+    if (editingAlert === null) {
+      if (atAlertLimit) {
+        toast.error(
+          `You can configure up to ${MAX_USAGE_ALERTS} usage alerts.`
+        );
+        return false;
+      }
+      return saveAlerts([...alerts, alert]);
+    }
+
+    const currentIndex = alerts.findIndex((item) =>
+      usageAlertsEqual(item, editingAlert)
+    );
+    if (currentIndex === -1) {
+      toast.error("This usage alert changed. Go back and try again.");
+      return false;
+    }
+
+    const nextAlerts = alerts.map((item, index) =>
+      index === currentIndex ? alert : item
+    );
     return saveAlerts(nextAlerts);
   }
 
@@ -151,13 +175,17 @@ export function UsageAlertsSection({
 
               return (
                 <TableRow
-                  className="group relative cursor-pointer"
+                  className={cn(
+                    "group relative",
+                    !controlsDisabled && "cursor-pointer"
+                  )}
                   key={`${alert.featureId ?? "all"}-${alert.name ?? "unnamed"}-${alert.thresholdType}-${alert.threshold}`}
                 >
                   <TableCell className="max-w-56 font-medium whitespace-normal">
                     <button
-                      className="focus-visible:after:ring-ring text-left outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-inset"
-                      onClick={() => showEditForm(index)}
+                      className="focus-visible:after:ring-ring text-left outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-inset disabled:pointer-events-none"
+                      disabled={controlsDisabled}
+                      onClick={() => showEditForm(alert)}
                       type="button"
                     >
                       {rowLabel}
@@ -233,7 +261,7 @@ export function UsageAlertsSection({
                 </div>
                 <Button
                   className="shrink-0"
-                  disabled={controlsDisabled}
+                  disabled={controlsDisabled || atAlertLimit}
                   onClick={showCreateForm}
                   ref={addAlertButtonRef}
                   size="sm"
@@ -245,6 +273,13 @@ export function UsageAlertsSection({
               </div>
 
               {alertsContent}
+
+              {atAlertLimit ? (
+                <p className="text-muted-foreground text-xs">
+                  The limit of {MAX_USAGE_ALERTS} usage alerts has been reached.
+                  Delete an alert to add another.
+                </p>
+              ) : null}
 
               {!(membersLoading || isOwner) ? (
                 <p className="text-muted-foreground text-xs">
@@ -260,10 +295,8 @@ export function UsageAlertsSection({
           children: (
             <UsageAlertForm
               features={features}
-              initialAlert={
-                editingIndex === null ? undefined : alerts[editingIndex]
-              }
-              key={editingIndex ?? "create"}
+              initialAlert={editingAlert ?? undefined}
+              key={editingAlert ? usageAlertIdentity(editingAlert) : "create"}
               onCancel={showList}
               onSubmit={saveFormAlert}
               pending={mutation.isPending}

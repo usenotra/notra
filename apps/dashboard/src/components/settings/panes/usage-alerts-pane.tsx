@@ -1,6 +1,7 @@
 "use client";
 
 import { UsageAlertsSection } from "@/components/billing/usage-alerts-section";
+import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
@@ -11,6 +12,7 @@ import {
 import { normalizeUsageAlerts } from "@/utils/usage-alerts";
 
 export function UsageAlertsSettingsPane() {
+  const { activeOrganization } = useOrganizationsContext();
   const {
     data: customer,
     isLoading,
@@ -29,6 +31,7 @@ export function UsageAlertsSettingsPane() {
       <UsageAlertsSection
         alerts={normalizeUsageAlerts(customer?.billingControls?.usageAlerts)}
         features={features}
+        key={activeOrganization?.id ?? "no-organization"}
         loading={isLoading}
         onUpdated={refetch}
       />

@@ -70,6 +70,10 @@ export function UsageAlertForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (threshold.trim().length === 0) {
+      setError("Enter a threshold.");
+      return;
+    }
     const numericThreshold = Number(threshold);
     const isPercentage = thresholdType.endsWith("_percentage");
 
@@ -235,6 +239,7 @@ export function UsageAlertForm({
               setThreshold(event.target.value);
               setError(null);
             }}
+            required
             step="any"
             type="number"
             value={threshold}

@@ -26,7 +26,10 @@ export const usageAlertsRouter = {
       if (!autumn) {
         if (allowUnmeteredAiInDevelopment) {
           return {
-            alerts: setDevelopmentUsageAlerts(input.alerts),
+            alerts: setDevelopmentUsageAlerts(
+              input.organizationId,
+              input.alerts
+            ),
           };
         }
         throw serviceUnavailable("Billing is not configured");

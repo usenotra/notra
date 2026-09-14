@@ -24,10 +24,15 @@ export function normalizeUsageAlerts(value: unknown): UsageAlert[] {
     }
 
     const alert = candidate as Record<string, unknown>;
+    const percentageThreshold =
+      typeof alert.thresholdType === "string" &&
+      alert.thresholdType.endsWith("_percentage");
     if (
       typeof alert.enabled !== "boolean" ||
       typeof alert.threshold !== "number" ||
       !Number.isFinite(alert.threshold) ||
+      alert.threshold < 0 ||
+      (percentageThreshold && alert.threshold > 100) ||
       !isUsageAlertThresholdType(alert.thresholdType)
     ) {
       return [];
@@ -55,4 +60,24 @@ export function usageAlertThresholdLabel(alert: UsageAlert) {
     ? "remaining"
     : "used";
   return `${alert.threshold}${suffix} ${direction}`;
+}
+
+export function usageAlertsEqual(left: UsageAlert, right: UsageAlert) {
+  return (
+    left.enabled === right.enabled &&
+    left.featureId === right.featureId &&
+    left.name === right.name &&
+    left.threshold === right.threshold &&
+    left.thresholdType === right.thresholdType
+  );
+}
+
+export function usageAlertIdentity(alert: UsageAlert) {
+  return JSON.stringify([
+    alert.enabled,
+    alert.featureId ?? null,
+    alert.name ?? null,
+    alert.threshold,
+    alert.thresholdType,
+  ]);
 }

@@ -6,14 +6,21 @@ function developmentGlobal() {
   return globalThis as DevelopmentUsageAlertsGlobal;
 }
 
-export function getDevelopmentUsageAlerts(): UsageAlertInput[] {
-  return developmentGlobal().__notraDevelopmentUsageAlerts ?? [];
+export function getDevelopmentUsageAlerts(
+  customerId: string
+): UsageAlertInput[] {
+  return developmentGlobal().__notraDevelopmentUsageAlerts?.[customerId] ?? [];
 }
 
 export function setDevelopmentUsageAlerts(
+  customerId: string,
   alerts: readonly UsageAlertInput[]
 ): UsageAlertInput[] {
   const saved = alerts.map((alert) => ({ ...alert }));
-  developmentGlobal().__notraDevelopmentUsageAlerts = saved;
+  const current = developmentGlobal().__notraDevelopmentUsageAlerts ?? {};
+  developmentGlobal().__notraDevelopmentUsageAlerts = {
+    ...current,
+    [customerId]: saved,
+  };
   return saved;
 }
