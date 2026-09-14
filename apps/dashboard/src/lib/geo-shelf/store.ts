@@ -1,13 +1,17 @@
 import { db } from "@notra/db/drizzle";
 import { geoShelfSources } from "@notra/db/schema";
 import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, type SQL, sql } from "drizzle-orm";
 
 import { GEO_SHELF_CITATION_INSERT_CHUNK } from "@/constants/geo-shelf";
 
 import type {
+  GeoShelfCitationState,
   GeoShelfCitationSummary,
+  GeoShelfPageQuery,
+  GeoShelfSearchQuery,
   GeoShelfSource,
+  GeoShelfSourcePage,
   GeoShelfStoreKey,
 } from "../../types/geo-shelf";
 
@@ -60,6 +64,207 @@ function scopeWhere(key: GeoShelfStoreKey) {
     eq(geoShelfSources.organizationId, key.organizationId),
     eq(geoShelfSources.projectId, key.projectId)
   );
+}
+
+const placements = geoShelfSources.placements;
+const opportunityStatus = sql`${geoShelfSources.opportunity}->>'status'`;
+const OPEN_TICKET = sql`${opportunityStatus} in ('open', 'in_progress')`;
+const OWN_PRESENT = sql`${placements} @> '[{"competitorId":null,"status":"present"}]'::jsonb`;
+const OWN_UNKNOWN = sql`${placements} @> '[{"competitorId":null,"status":"unknown"}]'::jsonb`;
+const HAS_OWN_PLACEMENT = sql`jsonb_path_exists(${placements}, '$[*] ? (@.competitorId == null)')`;
+const COMPETITOR_PRESENT = sql`jsonb_path_exists(${placements}, '$[*] ? (@.competitorId != null && @.status == "present")')`;
+
+/** SQL twin of `matchesShelfSourceFilter` in `utils/geo-shelf-live-query`. */
+function shelfFilterWhere(shelf: GeoShelfPageQuery["shelf"]): SQL | undefined {
+  switch (shelf) {
+    case "opportunities":
+      return sql`(${geoShelfSources.ownership} = 'third_party' and not ${OWN_PRESENT} and ${COMPETITOR_PRESENT})`;
+    case "on_shelf":
+      return OWN_PRESENT;
+    case "unknown":
+      return sql`(not ${HAS_OWN_PLACEMENT} or ${OWN_UNKNOWN} or ${geoShelfSources.fetchStatus} in ('blocked', 'pending'))`;
+    default:
+      return undefined;
+  }
+}
+
+/** SQL twin of `matchesTicketSourceFilter`. */
+function ticketFilterWhere(
+  ticket: GeoShelfPageQuery["ticket"],
+  currentMemberId: string | null
+): SQL | undefined {
+  switch (ticket) {
+    case "open":
+      return sql`${opportunityStatus} = 'open'`;
+    case "in_progress":
+      return sql`${opportunityStatus} = 'in_progress'`;
+    case "mine":
+      if (!currentMemberId) {
+        return sql`false`;
+      }
+      // The point of contact falls back to the assignee.
+      return sql`(${OPEN_TICKET} and (${geoShelfSources.opportunity}->>'assigneeMemberId' = ${currentMemberId} or coalesce(${geoShelfSources.opportunity}->>'pocMemberId', ${geoShelfSources.opportunity}->>'assigneeMemberId') = ${currentMemberId}))`;
+    case "unassigned":
+      return sql`(${OPEN_TICKET} and ${geoShelfSources.opportunity}->>'assigneeMemberId' is null)`;
+    case "closed":
+      return sql`${opportunityStatus} in ('won', 'lost', 'dismissed')`;
+    default:
+      return undefined;
+  }
+}
+
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (match) => `\\${match}`);
+}
+
+function sqlList(values: readonly string[]): SQL {
+  return sql.join(
+    values.map((value) => sql`${value}`),
+    sql`, `
+  );
+}
+
+/** SQL twin of `matchesSourceSearch`. */
+function searchWhere(search: GeoShelfSearchQuery | null): SQL | undefined {
+  const text = search?.text.trim() ?? "";
+  if (!search || text.length === 0) {
+    return undefined;
+  }
+  const pattern = `%${escapeLikePattern(text)}%`;
+  const matches: SQL[] = [
+    sql`${geoShelfSources.title} ilike ${pattern}`,
+    sql`${geoShelfSources.domain} ilike ${pattern}`,
+    sql`${geoShelfSources.url} ilike ${pattern}`,
+    sql`${geoShelfSources.opportunity}->>'notes' ilike ${pattern}`,
+    sql`exists (select 1 from jsonb_array_elements(${placements}) as placement where placement->>'status' = 'present' and placement->>'brandName' ilike ${pattern})`,
+  ];
+  if (search.competitorIds.length > 0) {
+    matches.push(
+      sql`exists (select 1 from jsonb_array_elements(${placements}) as placement where placement->>'status' = 'present' and placement->>'competitorId' in (${sqlList(search.competitorIds)}))`
+    );
+  }
+  if (search.memberIds.length > 0) {
+    matches.push(
+      sql`${geoShelfSources.opportunity}->>'assigneeMemberId' in (${sqlList(search.memberIds)})`
+    );
+  }
+  return sql`(${sql.join(matches, sql` or `)})`;
+}
+
+function pageFilterWhere(query: GeoShelfPageQuery): SQL {
+  return (
+    and(
+      shelfFilterWhere(query.shelf),
+      ticketFilterWhere(query.ticket, query.currentMemberId),
+      searchWhere(query.search)
+    ) ?? sql`true`
+  );
+}
+
+/** Mirrors the table's client sort values so paging keeps a stable order. */
+function sortExpression(key: GeoShelfPageQuery["sort"]["key"]): SQL {
+  switch (key) {
+    case "title":
+      return sql`lower(coalesce(${geoShelfSources.title}, ${geoShelfSources.url}))`;
+    case "own":
+      return sql`coalesce(jsonb_path_query_first(${placements}, '$[*] ? (@.competitorId == null).status') #>> '{}', 'unknown')`;
+    case "ticket":
+      return sql`coalesce(${opportunityStatus}, 'zz')`;
+    default:
+      return sql`coalesce((${geoShelfSources.citations}->>'windowCount')::int, 0)`;
+  }
+}
+
+interface GeoShelfPageCountsRow {
+  total: number;
+  filtered: number;
+  has_scan: boolean;
+  untracked: number;
+  open: number;
+  in_progress: number;
+  won: number;
+  lost: number;
+  dismissed: number;
+}
+
+/**
+ * One page of shelf sources plus the counts the page chrome needs, filtered,
+ * sorted and sliced in Postgres so the payload stays bounded by `limit`.
+ */
+export async function queryGeoShelfSourcePage(
+  key: GeoShelfStoreKey,
+  query: GeoShelfPageQuery
+): Promise<Omit<GeoShelfSourcePage, "isSampleData">> {
+  const filter = pageFilterWhere(query);
+  const order = sortExpression(query.sort.key);
+  const [rows, counts] = await Promise.all([
+    db
+      .select()
+      .from(geoShelfSources)
+      .where(and(scopeWhere(key), filter))
+      .orderBy(
+        query.sort.direction === "asc" ? asc(order) : desc(order),
+        asc(geoShelfSources.id)
+      )
+      .limit(query.limit + 1)
+      .offset(query.offset),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        filtered: sql<number>`count(*) filter (where ${filter})::int`,
+        has_scan: sql<boolean>`coalesce(bool_or(${geoShelfSources.origin} = 'scan'), false)`,
+        untracked: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} is null)::int`,
+        open: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'open')::int`,
+        in_progress: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'in_progress')::int`,
+        won: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'won')::int`,
+        lost: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'lost')::int`,
+        dismissed: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'dismissed')::int`,
+      })
+      .from(geoShelfSources)
+      .where(scopeWhere(key)),
+  ]);
+  const count: GeoShelfPageCountsRow = counts[0] ?? {
+    total: 0,
+    filtered: 0,
+    has_scan: false,
+    untracked: 0,
+    open: 0,
+    in_progress: 0,
+    won: 0,
+    lost: 0,
+    dismissed: 0,
+  };
+  const hasMore = rows.length > query.limit;
+  return {
+    sources: rows.slice(0, query.limit).map(toSource),
+    nextOffset: hasMore ? query.offset + query.limit : null,
+    totalCount: count.total,
+    filteredCount: count.filtered,
+    boardCounts: {
+      untracked: count.untracked,
+      open: count.open,
+      in_progress: count.in_progress,
+      won: count.won,
+      lost: count.lost,
+      dismissed: count.dismissed,
+    },
+    hasScanData: count.has_scan,
+  };
+}
+
+/** Only what the citation sync compares, instead of every full source row. */
+export async function listGeoShelfCitationStates(
+  key: GeoShelfStoreKey
+): Promise<GeoShelfCitationState[]> {
+  return await db
+    .select({
+      id: geoShelfSources.id,
+      url: geoShelfSources.url,
+      title: geoShelfSources.title,
+      citations: geoShelfSources.citations,
+    })
+    .from(geoShelfSources)
+    .where(scopeWhere(key));
 }
 
 export async function listPersistedGeoShelfSources(

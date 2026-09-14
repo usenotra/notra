@@ -33,6 +33,29 @@ export const GEO_SHELF_OPPORTUNITY_STATUSES = [
   "dismissed",
 ] as const;
 export const GEO_SHELF_PRIORITIES = ["low", "medium", "high"] as const;
+export const GEO_SHELF_SHELF_FILTERS = [
+  "all",
+  "opportunities",
+  "on_shelf",
+  "unknown",
+] as const;
+export const GEO_SHELF_TICKET_FILTERS = [
+  "any",
+  "open",
+  "in_progress",
+  "mine",
+  "unassigned",
+  "closed",
+] as const;
+export const GEO_SHELF_SORT_KEYS = [
+  "citations",
+  "title",
+  "own",
+  "ticket",
+] as const;
+export const GEO_SHELF_SORT_DIRECTIONS = ["asc", "desc"] as const;
+export const GEO_SHELF_PAGE_SIZE_MAX = 200;
+export const GEO_SHELF_SEARCH_MAX_LENGTH = 200;
 export const GEO_SHELF_NOTES_MAX_LENGTH = 2000;
 export const GEO_SHELF_TITLE_MAX_LENGTH = 200;
 export const GEO_SHELF_URL_MAX_LENGTH = 2048;

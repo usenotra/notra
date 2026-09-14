@@ -43,6 +43,8 @@ export interface TableProps<T> {
   sort?: SortState | null;
   defaultSort?: SortState | null;
   onSortChange?: (sort: SortState | null) => void;
+  /** Rows already arrive sorted (for example by the server); header clicks only report the sort. */
+  manualSort?: boolean;
   /** Allow dragging the right edge of a header to resize that column. */
   resizable?: boolean;
   /** Minimum column width in px when resizing. */

@@ -49,6 +49,7 @@ import {
 } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";
 import type { GeoShelfRow, GeoShelfTableProps } from "@/types/geo-shelf";
+import { toGeoShelfSortState } from "@/utils/geo-shelf-page";
 
 /** Below `md` the page, citations and presence columns carry the story. */
 const MOBILE_HIDDEN_COLUMN_KEYS: readonly string[] = ["competitors"];
@@ -185,6 +186,12 @@ function TicketCell({ row }: { row: GeoShelfRow }) {
 export function ShelfTable({
   rows,
   totalCount,
+  filteredCount,
+  sort,
+  onSortChange,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   currentMemberId,
   onRowClick,
   onUpdateOpportunity,
@@ -201,7 +208,7 @@ export function ShelfTable({
         <span className="inline-flex items-center gap-1.5">
           Page
           <span className="text-muted-foreground font-normal tabular-nums">
-            ({rows.length})
+            ({filteredCount})
           </span>
         </span>
       ),
@@ -285,12 +292,15 @@ export function ShelfTable({
       className="rounded-2xl"
       columns={visibleColumns}
       data={rows}
-      defaultSort={{ key: "citations", direction: "desc" }}
       emptyState={GEO_SHELF_NO_MATCHES_MESSAGE}
       getRowId={(row) => row.id}
       height={GEO_SHELF_TABLE_HEIGHT}
       isRowPinned={(row) => pendingSourceIds.has(row.id)}
+      loading={isFetchingNextPage}
+      manualSort
+      onEndReached={hasNextPage ? onLoadMore : undefined}
       onRowClick={onRowClick}
+      onSortChange={(next) => onSortChange(toGeoShelfSortState(next))}
       renderRowContextMenu={(row) => (
         <ShelfTableContextMenu
           currentMemberId={currentMemberId}
@@ -303,6 +313,7 @@ export function ShelfTable({
       )}
       resizable
       rowHeight={GEO_SHELF_TABLE_ROW_HEIGHT}
+      sort={sort}
     />
   );
 }

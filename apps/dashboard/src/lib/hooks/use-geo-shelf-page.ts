@@ -1,7 +1,12 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_TICKET_FILTERS,
+} from "@notra/schemas/constants/dashboard/geo-shelf";
 import { useHotkey } from "@tanstack/react-hotkeys";
+import { useDebouncedValue } from "@tanstack/react-pacer";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 
@@ -9,25 +14,28 @@ import { useGeoProjectScope } from "@/components/providers/geo-project-provider"
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   GEO_SHELF_ADD_HOTKEY,
-  GEO_SHELF_SHELF_FILTERS,
-  GEO_SHELF_TICKET_FILTERS,
+  GEO_SHELF_DEFAULT_SORT,
+  GEO_SHELF_SEARCH_DEBOUNCE_MS,
   GEO_SHELF_VIEWS,
 } from "@/constants/geo-shelf";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
-import {
-  useGeoCompetitorsDb,
-  useGeoShelfDb,
-  useGeoShelfFilteredSourcesDb,
-} from "@/lib/hooks/use-geo-db";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoShelfMembers } from "@/lib/hooks/use-geo-shelf";
+import { useGeoShelfSources } from "@/lib/hooks/use-geo-shelf-sources";
 import type {
+  GeoShelfDbApi,
   GeoShelfPageModel,
   GeoShelfRow,
-  GeoShelfSelection,
+  GeoShelfSortState,
+  GeoShelfSource,
 } from "@/types/geo-shelf";
 import { resolveOrganizationId } from "@/utils/geo-overview-organization";
+import {
+  applyShelfOpportunityChanges,
+  applyShelfPlacementStatus,
+} from "@/utils/geo-shelf";
 import {
   resolveGeoShelfPageStatus,
   toGeoShelfPageModel,
@@ -79,9 +87,6 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const { competitors } = useGeoCompetitorsDb(organizationId);
   const { domain: ownDomain } = useGeoActiveProject(organizationId);
   const membersQuery = useGeoShelfMembers(organizationId);
-  const members = membersQuery.data?.members ?? [];
-  const currentMemberId = membersQuery.data?.currentMemberId ?? null;
-  const shelf = useGeoShelfDb(organizationId);
 
   const [search, setSearch] = useQueryState(
     "q",
@@ -105,42 +110,71 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
       .withDefault("table")
       .withOptions({ clearOnDefault: true })
   );
+  const [sort, setSort] = useState<GeoShelfSortState>(GEO_SHELF_DEFAULT_SORT);
   const [addOpen, setAddOpen] = useState(false);
-  const [selected, setSelected] = useState<GeoShelfSelection | null>(null);
-  const filteredShelf = useGeoShelfFilteredSourcesDb(organizationId, {
-    enabled: Boolean(settingsData?.settings),
+  const [selected, setSelected] = useState<GeoShelfSource | null>(null);
+  const [debouncedSearch] = useDebouncedValue(search, {
+    wait: GEO_SHELF_SEARCH_DEBOUNCE_MS,
+  });
+
+  const settings = settingsData?.settings ?? null;
+  const hasSettings = settings !== null;
+  const shelf = useGeoShelfSources(organizationId, {
+    enabled: hasSettings,
     filters: {
-      search,
+      search: debouncedSearch,
       shelf: shelfFilter,
       ticket: ticketFilter,
-      currentMemberId,
     },
-    members,
-    competitors,
+    sort,
   });
 
   useHotkey(GEO_SHELF_ADD_HOTKEY, () => setAddOpen(true), {
     enabled: !addOpen && selected === null,
   });
 
-  const settings = settingsData?.settings ?? null;
-  const hasSettings = settings !== null;
-
   useGeoShelfViewed({
     isSettingsPending,
-    isShelfLoading: shelf.isLoading,
+    isShelfLoading: hasSettings && shelf.isLoading,
     hasSettings,
-    shelfCount: shelf.sources.length,
+    shelfCount: shelf.totalCount,
     isSampleData: shelf.isSampleData,
     view,
   });
+
+  // The open dialog edits its snapshot too, so it stays current after the
+  // edit moves the row out of the filtered pages.
+  const updateOpportunity: GeoShelfDbApi["updateOpportunity"] = (
+    sourceId,
+    changes
+  ) => {
+    const nowIso = new Date().toISOString();
+    setSelected((current) =>
+      current?.id === sourceId
+        ? applyShelfOpportunityChanges(current, changes, nowIso)
+        : current
+    );
+    shelf.updateOpportunity(sourceId, changes);
+  };
+  const setPlacementStatus: GeoShelfDbApi["setPlacementStatus"] = (
+    sourceId,
+    competitorId,
+    status
+  ) => {
+    const nowIso = new Date().toISOString();
+    setSelected((current) =>
+      current?.id === sourceId
+        ? applyShelfPlacementStatus(current, competitorId, status, nowIso)
+        : current
+    );
+    shelf.setPlacementStatus(sourceId, competitorId, status);
+  };
 
   return toGeoShelfPageModel({
     status: resolveGeoShelfPageStatus({
       isSettingsPending,
       hasSettings,
       isShelfLoading: shelf.isLoading,
-      isFilteredShelfLoading: filteredShelf.isLoading,
       isMembersLoading: membersQuery.isPending,
     }),
     empty: { organizationSlug, projectId },
@@ -152,31 +186,30 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
       competitors,
       members: membersQuery.data?.members,
       currentMemberId: membersQuery.data?.currentMemberId,
-      sources: shelf.sources,
-      filteredSources: filteredShelf.sources,
+      shelf,
       selected,
       search,
       shelfFilter,
       ticketFilter,
+      sort,
       view,
       addOpen,
-      pendingSourceIds: shelf.pendingSourceIds,
       onSearchChange: setSearch,
       onShelfFilterChange: setShelfFilter,
       onTicketFilterChange: setTicketFilter,
+      onSortChange: setSort,
       onViewChange: setView,
       onAddOpenChange: setAddOpen,
       onRowClick: (row: GeoShelfRow) => {
-        setSelected({ id: row.id, url: row.url });
+        setSelected(row);
       },
       onSelectedOpenChange: (open) => {
         if (!open) {
           setSelected(null);
         }
       },
-      addSource: shelf.addSource,
-      updateOpportunity: shelf.updateOpportunity,
-      setPlacementStatus: shelf.setPlacementStatus,
+      updateOpportunity,
+      setPlacementStatus,
     }),
   });
 }

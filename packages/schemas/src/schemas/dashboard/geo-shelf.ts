@@ -8,10 +8,16 @@ import {
   GEO_SHELF_OPPORTUNITY_STATUSES,
   GEO_SHELF_ORIGINS,
   GEO_SHELF_OWNERSHIPS,
+  GEO_SHELF_PAGE_SIZE_MAX,
   GEO_SHELF_PLACEMENT_EVIDENCES,
   GEO_SHELF_PLACEMENT_STATUSES,
   GEO_SHELF_PRIORITIES,
+  GEO_SHELF_SEARCH_MAX_LENGTH,
+  GEO_SHELF_SHELF_FILTERS,
+  GEO_SHELF_SORT_DIRECTIONS,
+  GEO_SHELF_SORT_KEYS,
   GEO_SHELF_SOURCE_KINDS,
+  GEO_SHELF_TICKET_FILTERS,
   GEO_SHELF_TITLE_MAX_LENGTH,
   GEO_SHELF_URL_INVALID_MESSAGE,
   GEO_SHELF_URL_MAX_LENGTH,
@@ -108,8 +114,26 @@ export const geoShelfSourceSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
+const geoShelfCountSchema = z.number().int().nonnegative();
+
+export const geoShelfBoardCountsSchema = z.object({
+  untracked: geoShelfCountSchema,
+  open: geoShelfCountSchema,
+  in_progress: geoShelfCountSchema,
+  won: geoShelfCountSchema,
+  lost: geoShelfCountSchema,
+  dismissed: geoShelfCountSchema,
+});
+
 export const geoShelfListResponseSchema = z.object({
   sources: z.array(geoShelfSourceSchema),
+  /** Offset of the next page, `null` once every matching source is loaded. */
+  nextOffset: geoShelfCountSchema.nullable(),
+  /** Every source of the project, ignoring filters. */
+  totalCount: geoShelfCountSchema,
+  /** Sources matching the filters, across all pages. */
+  filteredCount: geoShelfCountSchema,
+  boardCounts: geoShelfBoardCountsSchema,
   hasScanData: z.boolean(),
   ownBrandName: z.string(),
   isSampleData: z.boolean(),
@@ -120,7 +144,17 @@ export const geoShelfMembersResponseSchema = z.object({
   currentMemberId: z.string().min(1).nullable(),
 });
 
-export const geoShelfListInputSchema = geoOrganizationInputSchema;
+export const geoShelfMembersInputSchema = geoOrganizationInputSchema;
+
+export const geoShelfListInputSchema = geoOrganizationInputSchema.extend({
+  offset: z.number().int().nonnegative().default(0),
+  limit: z.number().int().positive().max(GEO_SHELF_PAGE_SIZE_MAX),
+  search: z.string().max(GEO_SHELF_SEARCH_MAX_LENGTH).default(""),
+  shelf: z.enum(GEO_SHELF_SHELF_FILTERS).default("all"),
+  ticket: z.enum(GEO_SHELF_TICKET_FILTERS).default("any"),
+  sortKey: z.enum(GEO_SHELF_SORT_KEYS).default("citations"),
+  sortDirection: z.enum(GEO_SHELF_SORT_DIRECTIONS).default("desc"),
+});
 
 export const geoShelfPlacementWriteSchema = z.object({
   competitorId: z.string().min(1).nullable(),

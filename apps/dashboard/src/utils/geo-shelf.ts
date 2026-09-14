@@ -273,31 +273,42 @@ export function toShelfPlacementWrites(
   }));
 }
 
-/**
- * Placements carry fetch evidence the client cannot reproduce, so only the
- * entries whose status actually changed are sent back to the server.
- */
-export function changedShelfPlacementWrites(
-  modified: GeoShelfSource,
-  original: GeoShelfSource
-): GeoShelfPlacementWrite[] | undefined {
-  const previousStatusById = new Map(
-    original.placements.map((placement) => [
-      placement.competitorId,
-      placement.status,
-    ])
-  );
-  const changed = modified.placements.flatMap<GeoShelfPlacementWrite>(
-    (placement) => {
-      if (previousStatusById.get(placement.competitorId) === placement.status) {
-        return [];
+export function applyShelfOpportunityChanges(
+  source: GeoShelfSource,
+  changes: GeoShelfOpportunityPatch,
+  nowIso: string
+): GeoShelfSource {
+  return {
+    ...source,
+    opportunity: mergeShelfOpportunity(source.opportunity, changes, nowIso),
+    updatedAt: nowIso,
+  };
+}
+
+export function applyShelfPlacementStatus(
+  source: GeoShelfSource,
+  competitorId: string | null,
+  status: GeoShelfPlacement["status"],
+  nowIso: string
+): GeoShelfSource {
+  return {
+    ...source,
+    placements: source.placements.map((placement) => {
+      if (placement.competitorId !== competitorId) {
+        return placement;
       }
-      return [
-        { competitorId: placement.competitorId, status: placement.status },
-      ];
-    }
-  );
-  return changed.length > 0 ? changed : undefined;
+      const isPresent = status === "present";
+      return {
+        ...placement,
+        status,
+        evidence: "manual",
+        checkedAt: nowIso,
+        position: isPresent ? placement.position : null,
+        hasLink: isPresent ? placement.hasLink : false,
+      };
+    }),
+    updatedAt: nowIso,
+  };
 }
 
 export function toShelfOpportunityWrite(
@@ -315,45 +326,6 @@ export function toShelfOpportunityWrite(
     notes: opportunity.notes,
     dueAt: opportunity.dueAt,
   };
-}
-
-function isSameOpportunityWrite(
-  next: GeoShelfOpportunityWrite | null,
-  previous: GeoShelfOpportunityWrite | null
-): boolean {
-  if (next === null || previous === null) {
-    return next === previous;
-  }
-  return (
-    next.status === previous.status &&
-    next.priority === previous.priority &&
-    next.assigneeMemberId === previous.assigneeMemberId &&
-    next.pocMemberId === previous.pocMemberId &&
-    next.notes === previous.notes &&
-    next.dueAt === previous.dueAt
-  );
-}
-
-/** `undefined` means "leave the stored ticket alone". */
-export function changedShelfOpportunityWrite(
-  modified: GeoShelfSource,
-  original: GeoShelfSource
-): GeoShelfOpportunityPatch | null | undefined {
-  const next = toShelfOpportunityWrite(modified);
-  const previous = toShelfOpportunityWrite(original);
-  if (isSameOpportunityWrite(next, previous)) {
-    return undefined;
-  }
-  if (next === null || previous === null) {
-    return next;
-  }
-  const changes: GeoShelfOpportunityPatch = {};
-  for (const key of Object.keys(next) as (keyof GeoShelfOpportunityWrite)[]) {
-    if (next[key] !== previous[key]) {
-      Object.assign(changes, { [key]: next[key] });
-    }
-  }
-  return changes;
 }
 
 /** Canonicalize like the server so the optimistic row matches the created one. */

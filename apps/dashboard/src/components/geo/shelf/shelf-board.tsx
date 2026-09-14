@@ -25,7 +25,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";
@@ -203,16 +203,21 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
   columnId,
   name,
   rows,
+  count,
   pendingSourceIds,
   activeId,
   onRowClick,
+  onLoadMore,
 }: {
   columnId: GeoShelfBoardColumnId;
   name: string;
   rows: GeoShelfRow[];
+  count: number;
   pendingSourceIds: ReadonlySet<string>;
   activeId: string | null;
   onRowClick: (row: GeoShelfRow) => void;
+  /** Set while the server has more cards for this column than are loaded. */
+  onLoadMore: (() => void) | undefined;
 }) {
   "use no memo";
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -236,6 +241,16 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
     },
     overscan: GEO_SHELF_BOARD_OVERSCAN,
   });
+  const virtualItems = virtualizer.getVirtualItems();
+  // An empty column has no last card to scroll to, so it asks right away.
+  const reachedEnd = (virtualItems.at(-1)?.index ?? -1) >= rows.length - 1;
+  const shouldLoadMore = onLoadMore !== undefined && reachedEnd;
+
+  useEffect(() => {
+    if (shouldLoadMore) {
+      onLoadMore?.();
+    }
+  }, [shouldLoadMore, onLoadMore, rows.length]);
 
   return (
     <section
@@ -255,9 +270,7 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
         style={{ height: GEO_SHELF_BOARD_COLUMN_HEADER_HEIGHT }}
       >
         <h2 className="text-sm font-semibold">{name}</h2>
-        <span className="text-muted-foreground tabular-nums">
-          {rows.length}
-        </span>
+        <span className="text-muted-foreground tabular-nums">{count}</span>
       </header>
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
         <div className="min-h-0 flex-1 overflow-y-auto p-2" ref={scrollRef}>
@@ -270,7 +283,7 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
               className="relative w-full"
               style={{ height: virtualizer.getTotalSize() }}
             >
-              {virtualizer.getVirtualItems().map((item) => {
+              {virtualItems.map((item) => {
                 const row = rows[item.index];
                 if (!row) {
                   return null;
@@ -302,6 +315,9 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
 
 export function ShelfBoard({
   rows,
+  boardCounts,
+  hasNextPage,
+  onLoadMore,
   ticketFilter,
   currentMemberId,
   pendingSourceIds,
@@ -488,15 +504,24 @@ export function ShelfBoard({
       >
         {visibleColumns.map((column) => {
           const columnId = column.id as GeoShelfBoardColumnId;
+          const columnRows = rowsForColumn(items[columnId], rowById);
+          const serverCount = boardCounts[columnId];
+          const hasMore = hasNextPage && columnRows.length < serverCount;
           return (
             <ShelfBoardColumn
               activeId={activeId}
               columnId={columnId}
+              count={
+                hasNextPage
+                  ? Math.max(serverCount, columnRows.length)
+                  : columnRows.length
+              }
               key={columnId}
               name={column.name}
+              onLoadMore={hasMore ? onLoadMore : undefined}
               onRowClick={onRowClick}
               pendingSourceIds={pendingSourceIds}
-              rows={rowsForColumn(items[columnId], rowById)}
+              rows={columnRows}
             />
           );
         })}
