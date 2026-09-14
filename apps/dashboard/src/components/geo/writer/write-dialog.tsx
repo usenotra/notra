@@ -124,7 +124,7 @@ export function WriteDialog({
         key={`${session}:${initial?.sourceKind ?? "manual"}:${initial?.sourceId ?? ""}`}
         onOpenChange={onOpenChange}
         open={open}
-        organizationId={open ? organizationId : ""}
+        organizationId={organizationId}
         organizationSlug={organizationSlug}
       />
     </ResponsiveDialog>
