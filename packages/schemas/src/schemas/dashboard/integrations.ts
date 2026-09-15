@@ -15,8 +15,17 @@ import {
   cronFrequencySchema,
   cronIntervalDaysSchema as sharedCronIntervalDaysSchema,
   eventTriggerSourceConfigSchema,
+  isUnsafeIgnoreCommitPattern,
+  MAX_IGNORE_COMMIT_PATTERN_LENGTH,
+  MAX_IGNORE_COMMIT_PATTERNS,
   webhookEventTypeSchema,
 } from "../shared/automation";
+
+export {
+  isUnsafeIgnoreCommitPattern,
+  MAX_IGNORE_COMMIT_PATTERN_LENGTH,
+  MAX_IGNORE_COMMIT_PATTERNS,
+};
 
 export const INTEGRATION_CATEGORIES = ["input", "output"] as const;
 export type IntegrationCategory = (typeof INTEGRATION_CATEGORIES)[number];
@@ -430,6 +439,7 @@ export const triggerSourceTypeSchema = z.enum([
 export const triggerSourceConfigSchema = z.object({
   eventTypes: z.array(z.enum(WEBHOOK_EVENT_TYPES)).optional(),
   includePreReleases: z.boolean().optional(),
+  ignoreCommitPatterns: z.array(z.string()).optional(),
   cron: z
     .object({
       frequency: z.enum(CRON_FREQUENCIES),

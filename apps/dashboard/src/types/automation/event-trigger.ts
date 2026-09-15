@@ -29,6 +29,14 @@ export interface TriggerSwitchRowProps {
   onCheckedChange: (checked: boolean) => void;
 }
 
+export interface IgnoreCommitPatternsFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  errorMessage?: string;
+  fieldName: string;
+}
+
 export interface UseEventTriggerFormProps {
   organizationId: string;
   editTrigger?: Trigger;
