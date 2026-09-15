@@ -9,6 +9,7 @@ import {
 } from "../constants/geo";
 import type { GeoScanFailureMetadata } from "../types/geo";
 import { describeGeoCause, geoLogError } from "../utils/geo-log";
+import { classifyGeoScanExecutionFailure } from "../utils/geo-scan";
 import { geoDb, geoSkip } from "./effect";
 import {
   type GeoDatabaseError,
@@ -29,37 +30,6 @@ const EXECUTION_FAILURE: GeoScanFailureMetadata = {
   failedStage: "execution",
   retryable: null,
 };
-
-function errorTagCode(tag: string): string {
-  return tag
-    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-    .replace(/[^a-zA-Z0-9]+/g, "_")
-    .toLowerCase();
-}
-
-export function classifyGeoScanExecutionFailure(
-  error: unknown
-): GeoScanFailureMetadata {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "_tag" in error &&
-    typeof error._tag === "string"
-  ) {
-    return {
-      errorCode: errorTagCode(error._tag),
-      errorMessage:
-        (error instanceof GeoScanError || error._tag === "GeoScanError") &&
-        "message" in error &&
-        typeof error.message === "string"
-          ? error.message
-          : EXECUTION_FAILURE.errorMessage,
-      failedStage: "execution",
-      retryable: "timedOut" in error && error.timedOut === true ? true : null,
-    };
-  }
-  return EXECUTION_FAILURE;
-}
 
 function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
   return classifyGeoScanExecutionFailure(Cause.squash(cause));

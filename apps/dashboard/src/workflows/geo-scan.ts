@@ -5,7 +5,6 @@ import {
   GEO_SCAN_SEQUENCE_BATCH_SIZE,
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
-import { classifyGeoScanExecutionFailure } from "@notra/geo-core/geo/scan-status";
 import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
@@ -16,6 +15,7 @@ import type {
   GeoScanResult,
 } from "@notra/geo-core/types/geo";
 import {
+  classifyGeoScanExecutionFailure,
   chunkGeoScanItems,
   describeGeoScanFailure,
 } from "@notra/geo-core/utils/geo-scan";
