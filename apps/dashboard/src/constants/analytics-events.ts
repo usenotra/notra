@@ -55,6 +55,8 @@ export const WORKOS_AUTH_METHOD_TO_ANALYTICS: Record<
 export const LOGIN_ERROR_CODES = {
   PASSWORD_REJECTED: "password_rejected",
   VERIFICATION_REJECTED: "verification_rejected",
+  MFA_REJECTED: "mfa_rejected",
+  BACKUP_CODE_REJECTED: "backup_code_rejected",
 } as const;
 
 export const PASSWORD_RESET_OUTCOMES = {

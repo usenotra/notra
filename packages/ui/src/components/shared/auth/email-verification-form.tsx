@@ -2,7 +2,7 @@
 
 import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
-import type { EmailVerificationFormProps } from "../../../lib/auth-types";
+import type { EmailVerificationFormProps } from "../../../types/auth";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { CtaButton } from "../cta-button";
@@ -10,12 +10,13 @@ import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 
 const NON_DIGIT_REGEX = /\D/g;
+const CODE_LENGTH = 6;
+const VERIFY_ERROR_FALLBACK = "Verification failed. Please try again.";
 
 export function EmailVerificationForm({
-  pendingAuthenticationToken,
-  email,
+  step,
   returnTo,
-  onSuccess,
+  onResult,
   verifyEmailCode,
 }: EmailVerificationFormProps) {
   const [code, setCode] = useState("");
@@ -30,39 +31,27 @@ export function EmailVerificationForm({
     setIsPending(true);
 
     const result = await verifyEmailCode({
-      pendingAuthenticationToken,
+      pendingAuthenticationToken: step.pendingAuthenticationToken,
       code,
       returnTo,
     }).catch(() => null);
 
-    if (result?.status === "success") {
-      if (requestIdRef.current === requestId) {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      }
+    if (requestIdRef.current !== requestId) {
       return;
     }
-
-    const nextError =
-      result?.status === "error"
-        ? result.message
-        : "Verification failed. Please try again.";
-
-    setFormError((previous) =>
-      requestIdRef.current === requestId ? nextError : previous
+    if (result && onResult(result)) {
+      return;
+    }
+    setFormError(
+      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK
     );
-    setIsPending((previous) =>
-      requestIdRef.current === requestId ? false : previous
-    );
+    setIsPending(false);
   }
 
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
-        description={`We sent a 6-digit code to ${email || "your email address"}. Enter it below to continue.`}
+        description={`We sent a 6-digit code to ${step.email || "your email address"}. Enter it below to continue.`}
         title="Check your email"
       />
 
@@ -83,7 +72,7 @@ export function EmailVerificationForm({
             disabled={isPending}
             id="verification-code"
             inputMode="numeric"
-            maxLength={6}
+            maxLength={CODE_LENGTH}
             onChange={(event) =>
               setCode(event.target.value.replace(NON_DIGIT_REGEX, ""))
             }
@@ -97,7 +86,7 @@ export function EmailVerificationForm({
 
           <CtaButton
             className="w-full"
-            disabled={isPending || code.length !== 6}
+            disabled={isPending || code.length !== CODE_LENGTH}
             type="submit"
           >
             {isPending ? (

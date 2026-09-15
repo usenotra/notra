@@ -1758,6 +1758,8 @@ export default function DesignSystemClientPage() {
         </div>
       </section>
 
+      <Separator />
+
       <DesignSystemWriteDialogDemo />
       <DesignSystemClaudeCatalog />
       <DesignSystemCodexCatalog />

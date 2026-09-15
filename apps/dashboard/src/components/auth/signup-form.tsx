@@ -7,16 +7,13 @@ import { AuthFormError } from "@notra/ui/components/shared/auth/auth-form-error"
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { AuthOrDivider } from "@notra/ui/components/shared/auth/auth-or-divider";
 import { AuthPasswordField } from "@notra/ui/components/shared/auth/auth-password-field";
+import { AuthPendingStep } from "@notra/ui/components/shared/auth/auth-pending-step";
 import { AuthSocialButtons } from "@notra/ui/components/shared/auth/auth-social-buttons";
-import { EmailVerificationForm } from "@notra/ui/components/shared/auth/email-verification-form";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Separator } from "@notra/ui/components/ui/separator";
-import type {
-  AuthMethod,
-  PendingVerification,
-  SocialProvider,
-} from "@notra/ui/lib/auth-types";
+import { useAuthFlow } from "@notra/ui/hooks/use-auth-flow";
 import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
+import type { AuthMethod, SocialProvider } from "@notra/ui/types/auth";
 import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +24,10 @@ import { flushSync } from "react-dom";
 import { SignupCreditsBanner } from "@/components/auth/signup-credits-banner";
 import { SHOW_SIGNUP_CREDITS_BANNER } from "@/constants/signup-credits";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import {
+  redeemBackupCodeAction,
+  verifyMfaCodeAction,
+} from "@/lib/auth/mfa-actions";
 import {
   signUpWithPasswordAction,
   verifyEmailCodeAction,
@@ -62,8 +63,7 @@ export function SignupForm({
 }: SignupFormProps) {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [pendingVerification, setPendingVerification] =
-    useState<PendingVerification | null>(null);
+  const flow = useAuthFlow({ onSuccess });
   const authInFlightRef = useRef(false);
   const [attributionParams] = useQueryStates(marketingAttributionSearchParams, {
     history: "replace",
@@ -178,20 +178,10 @@ export function SignupForm({
           signupMethod: "email",
         });
 
-        if (result.status === "verification-required") {
+        flow.applyResult(result);
+        if (result.status !== "success") {
           authInFlightRef.current = false;
           setAuthMethod(null);
-          setPendingVerification({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            email: result.email,
-          });
-          return;
-        }
-
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
         }
       } catch (error) {
         console.error("Email signup error:", error);
@@ -202,16 +192,23 @@ export function SignupForm({
     },
   });
 
-  if (pendingVerification) {
+  if (flow.pending) {
     return (
-      <EmailVerificationForm
-        email={pendingVerification.email}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={
-          pendingVerification.pendingAuthenticationToken
-        }
+      <AuthPendingStep
+        onBack={flow.reset}
+        onFinish={flow.finish}
+        onRecovered={(email) => {
+          flow.reset();
+          setFormError(
+            `Backup code accepted. Two-factor authentication was turned off for ${email}. Sign in to continue.`
+          );
+        }}
+        onResult={flow.applyResult}
+        redeemBackupCode={redeemBackupCodeAction}
         returnTo={buildCallbackUrl("email")}
+        step={flow.pending}
         verifyEmailCode={verifyEmailCodeAction}
+        verifyMfaCode={verifyMfaCodeAction}
       />
     );
   }
@@ -246,8 +243,10 @@ export function SignupForm({
               name="email"
               validators={{
                 onBlur: ({ value }) =>
-                  signupSchema.shape.email.safeParse(value).error?.issues[0]
-                    ?.message,
+                  value.length > 0
+                    ? signupSchema.shape.email.safeParse(value).error?.issues[0]
+                        ?.message
+                    : undefined,
                 onSubmit: ({ value }) =>
                   signupSchema.shape.email.safeParse(value).error?.issues[0]
                     ?.message,
@@ -270,8 +269,10 @@ export function SignupForm({
               name="password"
               validators={{
                 onBlur: ({ value }) =>
-                  signupSchema.shape.password.safeParse(value).error?.issues[0]
-                    ?.message,
+                  value.length > 0
+                    ? signupSchema.shape.password.safeParse(value).error
+                        ?.issues[0]?.message
+                    : undefined,
                 onSubmit: ({ value }) =>
                   signupSchema.shape.password.safeParse(value).error?.issues[0]
                     ?.message,

@@ -12,14 +12,14 @@ import { getWorkOS, signOut, withAuth } from "@workos-inc/authkit-nextjs";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { ActionFailure } from "@/lib/actions/errors";
+import { runAction } from "@/lib/actions/run-action";
+import { validateActionInput } from "@/lib/actions/validate-input";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
-import { OrganizationActionError } from "@/lib/organizations/errors";
 import { requireSession } from "@/lib/organizations/guards";
-import { runOrganizationAction } from "@/lib/organizations/run-action";
-import { validateActionInput } from "@/lib/organizations/validate-input";
 import type { SessionUser } from "@/types/auth/session";
 import type {
   SignOutActionOptions,
@@ -31,7 +31,7 @@ import type { AccountInfo, ActionResult } from "@/types/organizations/actions";
 const tryAction = <T>(run: () => Promise<T>, message: string) =>
   Effect.tryPromise({
     try: run,
-    catch: (cause) => new OrganizationActionError({ message, cause }),
+    catch: (cause) => new ActionFailure({ message, cause }),
   });
 
 export async function signOutAction(options?: SignOutActionOptions) {
@@ -42,7 +42,7 @@ export async function signOutAction(options?: SignOutActionOptions) {
 export async function updateUserAction(
   rawInput: UpdateUserInput
 ): Promise<ActionResult<SessionUser>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(updateUserInputSchema, rawInput);
@@ -79,7 +79,7 @@ export async function updateUserAction(
 
       if (!updated) {
         return yield* Effect.fail(
-          new OrganizationActionError({ message: "User not found" })
+          new ActionFailure({ message: "User not found" })
         );
       }
 
@@ -110,7 +110,7 @@ export async function updateUserAction(
 export async function deleteUserAction(): Promise<
   ActionResult<{ deleted: boolean }>
 > {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
 
@@ -178,7 +178,7 @@ export async function deleteUserAction(): Promise<
 export async function requestPasswordResetAction(): Promise<
   ActionResult<{ sent: boolean }>
 > {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
 
@@ -198,7 +198,7 @@ export async function requestPasswordResetAction(): Promise<
 export async function listAccountsAction(): Promise<
   ActionResult<AccountInfo[]>
 > {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
 
@@ -224,7 +224,7 @@ export async function listAccountsAction(): Promise<
 export async function unlinkAccountAction(
   rawInput: UnlinkAccountInput
 ): Promise<ActionResult<{ removed: boolean }>> {
-  return runOrganizationAction(
+  return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
       const input = yield* validateActionInput(

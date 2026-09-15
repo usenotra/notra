@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react";
 import type {
   AuthSocialButtonsProps,
   SocialProvider,
-} from "../../../lib/auth-types";
+} from "../../../types/auth";
 import { Badge } from "../../ui/badge";
 import { Github } from "../../ui/svgs/github";
 import { Google } from "../../ui/svgs/google";

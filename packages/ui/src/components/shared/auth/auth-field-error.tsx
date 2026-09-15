@@ -8,7 +8,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { TRANSITION } from "@notra/ui/lib/motion";
-import type { AuthFieldErrorProps } from "../../../lib/auth-types";
+import type { AuthFieldErrorProps } from "../../../types/auth";
 
 export function AuthFieldError({ id, error }: AuthFieldErrorProps) {
   const reduceMotion = useReducedMotion();

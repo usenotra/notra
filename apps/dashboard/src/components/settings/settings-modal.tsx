@@ -57,6 +57,13 @@ const AccountSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const SecuritySettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/security-pane").then((mod) => ({
+      default: mod.SecuritySettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const AppearanceSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/appearance-pane").then((mod) => ({
@@ -151,6 +158,7 @@ const DevSettingsPane = dynamic(
 
 const STANDARD_SETTINGS_PANES = {
   account: AccountSettingsPane,
+  security: SecuritySettingsPane,
   appearance: AppearanceSettingsPane,
   attachments: AttachmentsSettingsPane,
   billing: BillingSettingsPane,

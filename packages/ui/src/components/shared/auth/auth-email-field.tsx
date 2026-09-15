@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuthEmailFieldProps } from "../../../lib/auth-types";
+import type { AuthEmailFieldProps } from "../../../types/auth";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { AuthFieldError } from "./auth-field-error";

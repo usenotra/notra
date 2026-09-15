@@ -3,7 +3,7 @@
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
-import type { AuthPasswordFieldProps } from "../../../lib/auth-types";
+import type { AuthPasswordFieldProps } from "../../../types/auth";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { AuthFieldError } from "./auth-field-error";

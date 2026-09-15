@@ -80,6 +80,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "auth-mfa",
+    label: "Auth · Two-factor",
+    href: "/design-system#auth-mfa",
+    level: "section",
+  },
+  {
     id: "claude-session",
     label: "Claude · Session",
     href: "/design-system#claude-session",

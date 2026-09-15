@@ -11,6 +11,7 @@ import {
   PaintBoardIcon,
   PlugIcon,
   Settings01Icon,
+  ShieldKeyIcon,
   SourceCodeIcon,
   UserCircleIcon,
   UserGroupIcon,
@@ -24,6 +25,7 @@ import type {
 
 export const SETTINGS_SECTION_IDS = [
   "account",
+  "security",
   "appearance",
   "general",
   "members",
@@ -67,6 +69,22 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
           "github",
           "name",
           "delete account",
+        ],
+      },
+      {
+        id: "security",
+        label: "Security",
+        description: "Two-factor authentication and backup codes",
+        icon: ShieldKeyIcon,
+        keywords: [
+          "security",
+          "2fa",
+          "mfa",
+          "two-factor",
+          "two factor",
+          "authenticator",
+          "totp",
+          "backup codes",
         ],
       },
       {
@@ -315,6 +333,7 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
 
 export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   account: "Account",
+  security: "Security",
   appearance: "Appearance",
   general: "General",
   members: "Members",
@@ -336,6 +355,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
 export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
   {
     account: "Manage your profile and account settings",
+    security: "Two-factor authentication and backup codes for your account",
     appearance: "Choose how Notra looks on this device",
     general: "Manage your organization settings",
     members: "Manage who has access to this organization",
