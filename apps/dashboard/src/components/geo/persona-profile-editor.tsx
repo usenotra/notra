@@ -79,9 +79,9 @@ export function PersonaProfileEditor({
     >
       <fieldset
         disabled={update.isPending}
-        className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-6"
+        className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5"
       >
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-sm font-medium" htmlFor={`${id}-name`}>
             Name
           </label>
@@ -93,145 +93,151 @@ export function PersonaProfileEditor({
             required
           />
         </div>
-        <section className="space-y-4">
+        <section className="space-y-2">
           <h3 className="text-base font-semibold">Employment</h3>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor={`${id}-role`}>
-              Job title
-            </label>
-            <Input
-              id={`${id}-role`}
-              name="role"
-              defaultValue={persona.role}
-              maxLength={200}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor={`${id}-company`}>
-              Company profile
-            </label>
-            <Textarea
-              className="resize-none"
-              id={`${id}-company`}
-              name="company"
-              defaultValue={persona.company}
-              maxLength={200}
-              required
-              rows={2}
-            />
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium" htmlFor={`${id}-role`}>
+                Job title
+              </label>
+              <Input
+                id={`${id}-role`}
+                name="role"
+                defaultValue={persona.role}
+                maxLength={200}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium" htmlFor={`${id}-company`}>
+                Company profile
+              </label>
+              <Textarea
+                className="resize-none"
+                id={`${id}-company`}
+                name="company"
+                defaultValue={persona.company}
+                maxLength={200}
+                required
+                rows={2}
+              />
+            </div>
           </div>
         </section>
-        <section className="space-y-4">
+        <section className="space-y-2">
           <h3 className="text-base font-semibold">Behavior</h3>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor={`${id}-summary`}>
-              Motivations
-            </label>
-            <Textarea
-              className="resize-none"
-              id={`${id}-summary`}
-              name="summary"
-              defaultValue={persona.summary}
-              maxLength={800}
-              required
-              rows={3}
-            />
-          </div>
-          <div className="space-y-2">
-            <label
-              className="text-sm font-medium"
-              htmlFor={`${id}-searchStyle`}
-            >
-              How they search
-            </label>
-            <Textarea
-              className="resize-none"
-              id={`${id}-searchStyle`}
-              name="searchStyle"
-              defaultValue={persona.searchStyle}
-              maxLength={800}
-              required
-              rows={3}
-            />
-          </div>
-          {GEO_PERSONA_PROFILE_SECTIONS.map((section) => (
-            <div className="space-y-2" key={section.key}>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium" htmlFor={`${id}-summary`}>
+                Motivations
+              </label>
+              <Textarea
+                className="resize-none"
+                id={`${id}-summary`}
+                name="summary"
+                defaultValue={persona.summary}
+                maxLength={800}
+                required
+                rows={3}
+              />
+            </div>
+            <div className="space-y-1.5">
               <label
                 className="text-sm font-medium"
-                htmlFor={`${id}-${section.key}`}
+                htmlFor={`${id}-searchStyle`}
               >
-                {section.label}
+                How they search
               </label>
-              {section.key === "currentStack" ? (
-                <div className="border-input flex flex-wrap items-center gap-1.5 rounded-lg border p-2">
-                  {stack.map((tool) => (
-                    <Badge
-                      className="max-w-full gap-1 pr-0.5 font-normal"
-                      variant="secondary"
-                      key={tool}
-                    >
-                      <span className="min-w-0 wrap-anywhere">{tool}</span>
-                      <button
-                        type="button"
-                        className="hover:bg-muted focus-visible:ring-ring flex size-6 shrink-0 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
-                        aria-label={`Remove ${tool}`}
-                        onClick={() => {
-                          setStack((items) =>
-                            items.filter((item) => item !== tool)
-                          );
-                          stackInput.current?.focus();
-                        }}
-                      >
-                        <span aria-hidden="true">×</span>
-                      </button>
-                    </Badge>
-                  ))}
-                  <input
-                    ref={stackInput}
-                    id={`${id}-${section.key}`}
-                    className="placeholder:text-muted-foreground focus-visible:ring-ring min-h-8 min-w-24 flex-1 rounded-sm bg-transparent px-1 text-base outline-none focus-visible:ring-2 md:text-sm"
-                    placeholder="Add tool…"
-                    maxLength={200}
-                    value={stackDraft}
-                    onChange={(event) => setStackDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (
-                        event.key !== "Enter" ||
-                        event.nativeEvent.isComposing
-                      ) {
-                        return;
-                      }
-                      event.preventDefault();
-                      const tool = stackDraft.trim();
-                      if (stack.includes(tool)) {
-                        setStackDraft("");
-                        return;
-                      }
-                      if (!tool) {
-                        return;
-                      }
-                      if (stack.length >= 6) {
-                        setError("Current stack can contain up to six tools.");
-                        return;
-                      }
-                      setStack((items) => [...items, tool]);
-                      setStackDraft("");
-                      setError(null);
-                    }}
-                  />
-                </div>
-              ) : (
-                <Textarea
-                  className="resize-none"
-                  id={`${id}-${section.key}`}
-                  name={section.key}
-                  defaultValue={persona.profile[section.key].join("\n")}
-                  rows={3}
-                />
-              )}
+              <Textarea
+                className="resize-none"
+                id={`${id}-searchStyle`}
+                name="searchStyle"
+                defaultValue={persona.searchStyle}
+                maxLength={800}
+                required
+                rows={3}
+              />
             </div>
-          ))}
+            {GEO_PERSONA_PROFILE_SECTIONS.map((section) => (
+              <div className="space-y-1.5" key={section.key}>
+                <label
+                  className="text-sm font-medium"
+                  htmlFor={`${id}-${section.key}`}
+                >
+                  {section.label}
+                </label>
+                {section.key === "currentStack" ? (
+                  <div className="border-input flex flex-wrap items-center gap-1.5 rounded-lg border p-2">
+                    {stack.map((tool) => (
+                      <Badge
+                        className="max-w-full gap-1 pr-0.5 font-normal"
+                        variant="secondary"
+                        key={tool}
+                      >
+                        <span className="min-w-0 wrap-anywhere">{tool}</span>
+                        <button
+                          type="button"
+                          className="hover:bg-muted focus-visible:ring-ring flex size-6 shrink-0 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                          aria-label={`Remove ${tool}`}
+                          onClick={() => {
+                            setStack((items) =>
+                              items.filter((item) => item !== tool)
+                            );
+                            stackInput.current?.focus();
+                          }}
+                        >
+                          <span aria-hidden="true">×</span>
+                        </button>
+                      </Badge>
+                    ))}
+                    <input
+                      ref={stackInput}
+                      id={`${id}-${section.key}`}
+                      className="placeholder:text-muted-foreground focus-visible:ring-ring min-h-8 min-w-24 flex-1 rounded-sm bg-transparent px-1 text-base outline-none focus-visible:ring-2 md:text-sm"
+                      placeholder="Add tool…"
+                      maxLength={200}
+                      value={stackDraft}
+                      onChange={(event) => setStackDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (
+                          event.key !== "Enter" ||
+                          event.nativeEvent.isComposing
+                        ) {
+                          return;
+                        }
+                        event.preventDefault();
+                        const tool = stackDraft.trim();
+                        if (stack.includes(tool)) {
+                          setStackDraft("");
+                          return;
+                        }
+                        if (!tool) {
+                          return;
+                        }
+                        if (stack.length >= 6) {
+                          setError(
+                            "Current stack can contain up to six tools."
+                          );
+                          return;
+                        }
+                        setStack((items) => [...items, tool]);
+                        setStackDraft("");
+                        setError(null);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Textarea
+                    className="resize-none"
+                    id={`${id}-${section.key}`}
+                    name={section.key}
+                    defaultValue={persona.profile[section.key].join("\n")}
+                    rows={3}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </section>
         {persona.memories.length > 0 ? (
           <details className="group/memories border-t pt-4">

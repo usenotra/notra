@@ -84,35 +84,41 @@ function PersonaDetailHeader({
 
   return (
     <SheetHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
-      <div className="flex items-center gap-3">
-        <PersonaAvatar className="size-12" persona={persona} size="lg" />
+      <div className="flex items-start gap-3">
+        <PersonaAvatar className="mt-0.5 size-12" persona={persona} size="lg" />
         <div className="min-w-0 flex-1 space-y-0.5">
-          <SheetTitle className="text-xl leading-snug font-semibold text-balance">
-            {persona.name}
-          </SheetTitle>
-          <SheetDescription className="text-muted-foreground text-sm">
+          <div className="flex min-w-0 items-center gap-3">
+            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance">
+              {persona.name}
+            </SheetTitle>
+            <Button
+              className="shrink-0"
+              disabled={
+                !persona.enabled ||
+                persona.conversationPrompts.length === 0 ||
+                isRunning
+              }
+              onClick={onRun}
+              size="sm"
+              type="button"
+            >
+              <HugeiconsIcon
+                className={isRunning ? "animate-spin" : undefined}
+                icon={isRunning ? Loading03Icon : PlayIcon}
+                size={14}
+              />
+              {isRunning ? "Running…" : "Run scan"}
+            </Button>
+          </div>
+          <SheetDescription className="text-muted-foreground text-sm leading-snug">
             {persona.role} · {persona.company}
-            {latestCheck ? ` · ${formatAiTrafficTimestamp(latestCheck)}` : null}
           </SheetDescription>
+          {latestCheck ? (
+            <SheetDescription className="text-muted-foreground text-xs leading-snug">
+              {formatAiTrafficTimestamp(latestCheck)}
+            </SheetDescription>
+          ) : null}
         </div>
-        <Button
-          className="ml-auto"
-          disabled={
-            !persona.enabled ||
-            persona.conversationPrompts.length === 0 ||
-            isRunning
-          }
-          onClick={onRun}
-          size="sm"
-          type="button"
-        >
-          <HugeiconsIcon
-            className={isRunning ? "animate-spin" : undefined}
-            icon={isRunning ? Loading03Icon : PlayIcon}
-            size={14}
-          />
-          {isRunning ? "Running…" : "Run scan"}
-        </Button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs
