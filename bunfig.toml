@@ -26,6 +26,7 @@ minimumReleaseAgeExcludes = [
   "cnfast",
   "next",
   "shadcn",
+  "@shadcn/lint",
   "@shadcn/react",
   "eve",
   "ai",
