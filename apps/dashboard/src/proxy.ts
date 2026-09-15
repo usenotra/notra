@@ -28,8 +28,11 @@ function localDevProxy(request: NextRequest) {
 // 500s without a live key. Per-request we still require loopback + email.
 export default isLocalDevAuthEnabled() ? localDevProxy : authkitProxy();
 
+// Machine-to-machine routes authenticate themselves (signatures, CRON_SECRET,
+// bearer tokens) and never read the AuthKit session, so running the proxy there
+// only adds an invocation per webhook, ingest event, cron and workflow callback.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|badges(?:/|$)|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt).*)",
+    "/((?!_next/static|_next/image|badges(?:/|$)|favicon.ico|apple-icon.png|icon0.svg|icon1.png|robots.txt|api/webhooks/|api/geo/ingest(?:/|$)|api/cron/|api/healthcheck(?:/|$)|api/workflows/|api/internal/|\\.well-known/workflow/|ingest/).*)",
   ],
 };
