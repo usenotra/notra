@@ -80,6 +80,10 @@ import {
   UserMessageTextBubble,
 } from "@/components/chat/user-message-actions";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import {
+  CHAT_ACTIVE_STREAM_CONFLICT_STATUS,
+  CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS,
+} from "@/constants/chat-active-stream";
 import { MAX_VISIBLE_CHAT_IMAGES } from "@/constants/chat-images";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { INTEGRATION_REFERENCE_TOKEN_SPLIT_REGEX } from "@/constants/integration-reference";
@@ -545,6 +549,12 @@ function StandaloneChatPageClient({
   const contextRef = useRef(context);
   const hasCustomizedContextRef = useRef(hasCustomizedContext);
   const organizationIdRef = useRef(organizationId);
+  // Latest user message the server rejected because another response for
+  // this chat was still streaming.
+  const activeStreamConflictRef = useRef<string | null>(null);
+  const requeueConflictedMessageRef = useRef<(messageId: string) => boolean>(
+    () => false
+  );
   const selectedModelRef = useRef(selectedModel);
   const thinkingLevelRef = useRef(thinkingLevel);
 
@@ -605,6 +615,12 @@ function StandaloneChatPageClient({
           }
 
           const triggerResponse = await fetch(input, init);
+          if (
+            triggerResponse.status === CHAT_ACTIVE_STREAM_CONFLICT_STATUS &&
+            latestMessageId
+          ) {
+            activeStreamConflictRef.current = latestMessageId;
+          }
           if (!triggerResponse.ok) {
             return triggerResponse;
           }
@@ -639,6 +655,12 @@ function StandaloneChatPageClient({
     // Populated after dispatchMessage is defined below.
   });
   const isDrainingRef = useRef(false);
+  // Moving a new chat to its own URL remounts this page, so it waits until no
+  // response is streaming or queued.
+  const hasPendingChatNavigationRef = useRef(false);
+  const navigateToNewChatRef = useRef<() => void>(() => {
+    // Populated after the queue refs are defined below.
+  });
 
   const handleFinish = useCallback(
     ({ message }: { message: ChatUIMessage }) => {
@@ -655,6 +677,7 @@ function StandaloneChatPageClient({
       });
       isDrainingRef.current = false;
       drainQueueRef.current();
+      navigateToNewChatRef.current();
     },
     [organizationId, queryClient]
   );
@@ -673,11 +696,23 @@ function StandaloneChatPageClient({
     transport,
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
     onFinish: handleFinish,
-    onError: (err) =>
-      handleStandaloneChatError(err, { setChatError, setPendingMessageId }),
+    onError: (err) => {
+      const conflictedMessageId = activeStreamConflictRef.current;
+      activeStreamConflictRef.current = null;
+      if (
+        conflictedMessageId &&
+        requeueConflictedMessageRef.current(conflictedMessageId)
+      ) {
+        return;
+      }
+      handleStandaloneChatError(err, { setChatError, setPendingMessageId });
+    },
   });
 
   const [isStopping, setIsStopping] = useState(false);
+  const [isWaitingForActiveStream, setIsWaitingForActiveStream] =
+    useState(false);
+  const isWaitingForActiveStreamRef = useRef(false);
 
   const handleModelChange = useCallback((model: string) => {
     const nextModel = parseStoredChatModel(model);
@@ -1431,6 +1466,7 @@ function StandaloneChatPageClient({
       }
       if (isFirstMessage) {
         hasUpdatedUrlRef.current = true;
+        hasPendingChatNavigationRef.current = true;
         window.history.replaceState(
           null,
           "",
@@ -1454,24 +1490,6 @@ function StandaloneChatPageClient({
       } else {
         await sendMessage({ text, metadata: authorMetadata });
       }
-      if (isFirstMessage) {
-        queryClient.setQueryData(
-          ["chat-history", organizationId, stableChatId],
-          {
-            messages: messagesRef.current,
-            lastResponseStopped: wasStoppedByUserRef.current,
-            activeStreamId: null,
-            externalChannelId: null,
-            slackThreadUrl: null,
-          }
-        );
-        router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
-          scroll: false,
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["chat-sessions", organizationId],
-        });
-      }
     },
     [
       addToolApprovalResponse,
@@ -1479,10 +1497,7 @@ function StandaloneChatPageClient({
       initialChatId,
       isProjectScopePending,
       isSlackMirrored,
-      organizationId,
       organizationSlug,
-      queryClient,
-      router,
       sendMessage,
       stableChatId,
       triggerFirstMessageTransition,
@@ -1498,7 +1513,7 @@ function StandaloneChatPageClient({
         }
         return;
       }
-      if (isLoading) {
+      if (isLoading || isWaitingForActiveStream) {
         if (attachments.length > 0) {
           return;
         }
@@ -1519,6 +1534,7 @@ function StandaloneChatPageClient({
       dispatchMessage,
       isLoading,
       isSlackMirrored,
+      isWaitingForActiveStream,
       relayMessage,
     ]
   );
@@ -1623,6 +1639,35 @@ function StandaloneChatPageClient({
     queuedMessagesRef.current = queuedMessages;
   }, [queuedMessages]);
 
+  const navigateToNewChat = useCallback(() => {
+    if (
+      !hasPendingChatNavigationRef.current ||
+      isDrainingRef.current ||
+      isWaitingForActiveStreamRef.current ||
+      queuedMessagesRef.current.length > 0
+    ) {
+      return;
+    }
+    hasPendingChatNavigationRef.current = false;
+    queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
+      messages: messagesRef.current,
+      lastResponseStopped: wasStoppedByUserRef.current,
+      activeStreamId: null,
+      externalChannelId: null,
+      slackThreadUrl: null,
+    });
+    router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
+      scroll: false,
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["chat-sessions", organizationId],
+    });
+  }, [organizationId, organizationSlug, queryClient, router, stableChatId]);
+
+  useEffect(() => {
+    navigateToNewChatRef.current = navigateToNewChat;
+  }, [navigateToNewChat]);
+
   const seenToolOutputsRef = useRef<Set<string>>(new Set());
   const prevIsLoadingRef = useRef(false);
 
@@ -1631,7 +1676,7 @@ function StandaloneChatPageClient({
       if (isSlackMirrored) {
         return;
       }
-      if (isDrainingRef.current) {
+      if (isDrainingRef.current || isWaitingForActiveStreamRef.current) {
         return;
       }
       if (wasStoppedByUserRef.current) {
@@ -1655,6 +1700,109 @@ function StandaloneChatPageClient({
       });
     };
   }, [dispatchMessage, isSlackMirrored]);
+
+  const activeStreamPollRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+
+  const stopActiveStreamPolling = useCallback(() => {
+    if (activeStreamPollRef.current) {
+      clearInterval(activeStreamPollRef.current);
+      activeStreamPollRef.current = null;
+    }
+  }, []);
+
+  const checkActiveStream = useCallback(async () => {
+    const response = await fetch(
+      `/api/organizations/${organizationId}/chat/${encodeURIComponent(stableChatId)}`
+    );
+    if (!(response.ok && activeStreamPollRef.current)) {
+      return;
+    }
+    const data: {
+      messages?: ChatUIMessage[] | null;
+      activeStreamId?: string | null;
+    } = await response.json();
+    if (data.activeStreamId || !activeStreamPollRef.current) {
+      return;
+    }
+    stopActiveStreamPolling();
+    // Continue from the server history so the finished response is kept
+    // instead of being overwritten by this client's stale copy.
+    if (data.messages?.length) {
+      setMessages(data.messages);
+    }
+    isWaitingForActiveStreamRef.current = false;
+    setIsWaitingForActiveStream(false);
+  }, [organizationId, setMessages, stableChatId, stopActiveStreamPolling]);
+
+  const startActiveStreamPolling = useCallback(() => {
+    stopActiveStreamPolling();
+    let isChecking = false;
+    activeStreamPollRef.current = setInterval(() => {
+      if (isChecking) {
+        return;
+      }
+      isChecking = true;
+      checkActiveStream()
+        .catch((error) => {
+          console.error("[Chat] Failed to check the active response:", error);
+        })
+        .finally(() => {
+          isChecking = false;
+        });
+    }, CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS);
+  }, [checkActiveStream, stopActiveStreamPolling]);
+
+  useEffect(() => stopActiveStreamPolling, [stopActiveStreamPolling]);
+
+  useEffect(() => {
+    requeueConflictedMessageRef.current = (messageId) => {
+      const current = messagesRef.current;
+      const index = current.findIndex((message) => message.id === messageId);
+      const message = current[index];
+      if (!message || message.role !== "user") {
+        return false;
+      }
+      const { text, attachments } = extractUserMessageContent(message);
+      // The queue carries text only; attachments keep the error and retry flow.
+      if (attachments.length > 0 || !text.trim()) {
+        return false;
+      }
+      setMessages(current.slice(0, index));
+      const requeued: QueuedMessage = {
+        id: nanoid(10),
+        text,
+        authorUserId: currentAuthorUserId,
+      };
+      queuedMessagesRef.current = [requeued, ...queuedMessagesRef.current];
+      setQueuedMessages(queuedMessagesRef.current);
+      isDrainingRef.current = false;
+      isWaitingForActiveStreamRef.current = true;
+      setIsWaitingForActiveStream(true);
+      setPendingMessageId(null);
+      startActiveStreamPolling();
+      return true;
+    };
+  }, [
+    currentAuthorUserId,
+    extractUserMessageContent,
+    setMessages,
+    startActiveStreamPolling,
+  ]);
+
+  const wasWaitingForActiveStreamRef = useRef(false);
+  useEffect(() => {
+    if (isWaitingForActiveStream) {
+      wasWaitingForActiveStreamRef.current = true;
+      return;
+    }
+    if (!wasWaitingForActiveStreamRef.current || isLoading) {
+      return;
+    }
+    wasWaitingForActiveStreamRef.current = false;
+    drainQueueRef.current();
+  }, [isLoading, isWaitingForActiveStream]);
 
   useEffect(() => {
     if (isLoading && !prevIsLoadingRef.current) {
@@ -2583,6 +2731,14 @@ function StandaloneChatPageClient({
             )}
           >
             <div className="mx-auto w-full max-w-2xl min-w-0">
+              {isWaitingForActiveStream && (
+                <p
+                  className="text-muted-foreground mx-auto mb-2 w-full max-w-2xl text-xs"
+                  role="status"
+                >
+                  Waiting for the previous response to finish before sending.
+                </p>
+              )}
               <ChatQueue
                 authorsById={messageAuthorsById}
                 messages={queuedMessages}

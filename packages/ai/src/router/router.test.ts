@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import type { LanguageModelV3StreamPart } from "@ai-sdk/provider";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import {
   ROUTER_METADATA_KEY,
   ROUTER_PROVIDER_OPTIONS_KEY,
@@ -617,7 +617,7 @@ describe("RoutedLanguageModel", () => {
 
   test("a stream error after emitted text surfaces without starting a fallback", async () => {
     let controller:
-      | ReadableStreamDefaultController<LanguageModelV3StreamPart>
+      | ReadableStreamDefaultController<LanguageModelV4StreamPart>
       | undefined;
     const openrouter = createFakeAdapter({ id: "openrouter" });
     const createModel = openrouter.createModel;
@@ -629,7 +629,7 @@ describe("RoutedLanguageModel", () => {
           const result = await model.doStream(options);
           return {
             ...result,
-            stream: new ReadableStream<LanguageModelV3StreamPart>({
+            stream: new ReadableStream<LanguageModelV4StreamPart>({
               start(upstream) {
                 controller = upstream;
               },

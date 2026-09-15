@@ -1,4 +1,4 @@
-import type { SharedV3ProviderMetadata } from "@ai-sdk/provider";
+import type { SharedV4ProviderMetadata } from "@ai-sdk/provider";
 import {
   DEFAULT_OPENROUTER_ACCOUNT_BASE_URL,
   OPENROUTER_PRIVACY_PROVIDER_ROUTING,
@@ -88,7 +88,7 @@ export function createOpenRouterAdapter(
     },
     getBalance,
     extractRouteMetadata(
-      providerMetadata: SharedV3ProviderMetadata | undefined
+      providerMetadata: SharedV4ProviderMetadata | undefined
     ) {
       const openrouter = providerMetadata?.openrouter;
       if (!openrouter || typeof openrouter !== "object") {

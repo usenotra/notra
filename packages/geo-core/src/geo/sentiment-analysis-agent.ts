@@ -18,7 +18,7 @@ export async function generateSentimentAnalysis(
 ): Promise<SentimentAgentResult> {
   const result = await generateText({
     model,
-    system: SENTIMENT_ANALYSIS_SYSTEM,
+    instructions: SENTIMENT_ANALYSIS_SYSTEM,
     prompt: JSON.stringify({ brand, answers: sample }),
     output: Output.object({ schema: sentimentThemeOutputSchema }),
     maxOutputTokens: 2500,
@@ -29,6 +29,6 @@ export async function generateSentimentAnalysis(
   return {
     output: result.output,
     usage: result.usage,
-    route: getRouteMetadata(result.providerMetadata),
+    route: getRouteMetadata(result.finalStep.providerMetadata),
   };
 }

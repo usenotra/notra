@@ -33,12 +33,14 @@ export function createModel(
     return wrapModelForDevTools(wrapModelWithObservability(base, log));
   }
 
-  const model = withSupermemory(base, organizationId, {
+  // @supermemory/tools is typed against AI SDK 5, but its wrapper is a Proxy
+  // that forwards the V4 model spec and stream parts unchanged.
+  const model = withSupermemory(base as never, organizationId, {
     apiKey: supermemoryApiKey,
     mode: "full",
     addMemory: "always",
     ...options?.supermemory,
-  });
+  }) as unknown as GatewayResult;
 
   return wrapModelForDevTools(wrapModelWithObservability(model, log));
 }
@@ -69,7 +71,7 @@ function createLazyDevToolsMiddleware(): LanguageModelMiddleware {
   };
 
   return {
-    specificationVersion: "v3",
+    specificationVersion: "v4",
     async transformParams(options) {
       const middleware = await getMiddleware();
       return middleware.transformParams

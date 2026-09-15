@@ -3,7 +3,7 @@ import {
   editOperationSchema,
 } from "@notra/ai/schemas/tools";
 import type { EditMarkdownContext } from "@notra/ai/types/tools";
-import { tool } from "ai";
+import { type Tool, tool } from "ai";
 import z from "zod";
 
 function getOperationLineNumber(op: EditOperation) {
@@ -35,7 +35,10 @@ function applyOperation(lines: string[], op: EditOperation) {
   }
 }
 
-export function createMarkdownTools(context: EditMarkdownContext) {
+export function createMarkdownTools(context: EditMarkdownContext): {
+  getMarkdown: Tool;
+  editMarkdown: Tool;
+} {
   const currentLines = context.currentMarkdown.split("\n");
 
   const getMarkdown = tool({

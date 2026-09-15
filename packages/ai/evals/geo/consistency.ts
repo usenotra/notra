@@ -71,14 +71,14 @@ async function askAndJudge(
   const answer = await generateText({
     model: gateway(ENGINE),
     prompt: promptText,
-    system: GEO_ANSWER_SYSTEM_PROMPT,
+    instructions: GEO_ANSWER_SYSTEM_PROMPT,
     maxOutputTokens: GEO_ANSWER_MAX_TOKENS,
   });
   const judged = await generateText({
     model: gateway(GEO_JUDGE_MODEL),
     output: Output.object({ schema: geoJudgeResultSchema }),
     prompt: buildJudgePrompt(promptText, answer.text),
-    system: JUDGE_SYSTEM_PROMPT,
+    instructions: JUDGE_SYSTEM_PROMPT,
     maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
   });
   return {

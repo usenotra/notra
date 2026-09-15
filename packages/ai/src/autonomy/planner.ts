@@ -57,7 +57,7 @@ const generatePlannerDraft = Effect.fn("iris.planner.generate")(function* (
           organizationId,
         }),
         output: Output.object({ schema: plannerDraftOutputSchema }),
-        system: buildIrisPlannerSystemPrompt(),
+        instructions: buildIrisPlannerSystemPrompt(),
         prompt,
         temperature: PLANNER_TEMPERATURE,
         maxOutputTokens: PLANNER_MAX_OUTPUT_TOKENS,

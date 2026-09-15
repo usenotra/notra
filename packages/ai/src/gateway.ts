@@ -1,4 +1,4 @@
-import type { SharedV3ProviderMetadata } from "@ai-sdk/provider";
+import type { SharedV4ProviderMetadata } from "@ai-sdk/provider";
 import { resolveOrganizationPlan } from "@notra/ai/billing/plan";
 import { resolveOrganizationZdrMode } from "@notra/ai/billing/zdr";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
@@ -130,7 +130,7 @@ export function assertRouteHasCredits(
 }
 
 export function getRouteMetadata(
-  providerMetadata: SharedV3ProviderMetadata | undefined
+  providerMetadata: SharedV4ProviderMetadata | undefined
 ): RouteMetadata | undefined {
   return getModelRouter().getRouteMetadata(providerMetadata);
 }

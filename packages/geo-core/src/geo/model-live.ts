@@ -1,5 +1,5 @@
 import { gateway, getRouteMetadata } from "@notra/ai/gateway";
-import { generateText, Output, stepCountIs } from "ai";
+import { generateText, isStepCount, Output } from "ai";
 import { Effect, Layer } from "effect";
 
 import {
@@ -44,7 +44,7 @@ export const geoModelLive = Layer.succeed(
               gateway: input.gateway,
             }),
             prompt: input.prompt,
-            system: GEO_ANSWER_SYSTEM_PROMPT,
+            instructions: GEO_ANSWER_SYSTEM_PROMPT,
             maxOutputTokens: GEO_ANSWER_MAX_TOKENS,
             abortSignal: signal,
           });
@@ -55,7 +55,8 @@ export const geoModelLive = Layer.succeed(
             finishReason: result.finishReason,
             usage: result.usage,
             zdrEnforced:
-              getRouteMetadata(result.providerMetadata)?.zdrEnforced ?? null,
+              getRouteMetadata(result.finalStep.providerMetadata)
+                ?.zdrEnforced ?? null,
           };
         },
         catch: (cause) =>
@@ -86,9 +87,9 @@ export const geoModelLive = Layer.succeed(
           const result = await generateText({
             model: invocation.model,
             tools: invocation.tools,
-            stopWhen: stepCountIs(4),
+            stopWhen: isStepCount(4),
             messages: input.messages,
-            system: GEO_ANSWER_SYSTEM_PROMPT,
+            instructions: GEO_ANSWER_SYSTEM_PROMPT,
             maxOutputTokens: GEO_GROUNDED_ANSWER_MAX_TOKENS,
             abortSignal: signal,
           });
@@ -106,8 +107,8 @@ export const geoModelLive = Layer.succeed(
               input.engine.provider
             )
               ? false
-              : (getRouteMetadata(result.providerMetadata)?.zdrEnforced ??
-                null),
+              : (getRouteMetadata(result.finalStep.providerMetadata)
+                  ?.zdrEnforced ?? null),
           };
         },
         catch: (cause) =>
@@ -138,7 +139,7 @@ export const geoModelLive = Layer.succeed(
               }),
               output: Output.object({ schema: geoJudgeResultSchema }),
               prompt: input.prompt,
-              system:
+              instructions:
                 "You analyze AI assistant answers for brand mentions. Respond only with the requested structured data.",
               maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
               abortSignal: signal,
@@ -170,7 +171,7 @@ export const geoModelLive = Layer.succeed(
               }),
               output: Output.object({ schema: geoTranslationResultSchema }),
               prompt: `Translate each prompt into ${input.language}. Keep brand and product names unchanged. Return the translations in the same order.\n\n${JSON.stringify(input.prompts)}`,
-              system:
+              instructions:
                 "You translate user prompts faithfully, preserving intent and named entities. Respond only with the requested structured data.",
               maxOutputTokens: GEO_TRANSLATION_MAX_TOKENS,
               abortSignal: signal,
@@ -204,7 +205,7 @@ export const geoModelLive = Layer.succeed(
               output: Output.object({
                 schema: geoSearchConsoleSuggestionSchema,
               }),
-              system: GEO_DISCOVERY_SYSTEM_PROMPT,
+              instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
               prompt: buildGscSuggestionPrompt(input),
               maxOutputTokens: GSC_SUGGESTION_MAX_TOKENS,
               abortSignal: signal,

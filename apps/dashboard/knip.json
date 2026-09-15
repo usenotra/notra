@@ -9,6 +9,7 @@
   "paths": {
     "@/*": ["./src/*"]
   },
+  "ignoreDependencies": ["@ai-sdk/code-mode"],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],

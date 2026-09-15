@@ -24,6 +24,7 @@ import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { chatRequestSchema } from "@notra/schemas/dashboard/content";
+import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
@@ -316,12 +317,12 @@ export const POST = withEvlog(async function POST(
       decision: routingDecision,
     });
 
-    return stream.toUIMessageStreamResponse({
+    const uiStream = toUIMessageStream({
+      stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: true,
-      headers: { "X-Chat-Id": chatId },
-      onFinish: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages }) => {
         const saved = await replaceContentChatHistory(
           organizationId,
           contentId,
@@ -341,6 +342,11 @@ export const POST = withEvlog(async function POST(
         console.error("[Content Chat] Stream error:", { requestId, error });
         return "An error occurred while processing your request.";
       },
+    });
+
+    return createUIMessageStreamResponse({
+      headers: { "X-Chat-Id": chatId },
+      stream: uiStream,
     });
   } catch (e) {
     console.error("[Content Chat] Error:", {
