@@ -10,6 +10,7 @@ import {
   recommendationsGuidance,
   sharedToolGuidance,
 } from "../_shared";
+import { toneRule } from "../_shared/tone";
 
 interface ChangelogPromptOptions {
   taskContext: string;
@@ -31,6 +32,7 @@ export function buildChangelogPrompt(options: ChangelogPromptOptions): string {
 
     <rules>
     - ${languageRule}
+    - ${toneRule}
     ${factualityRules}
 
     Audience filtering:

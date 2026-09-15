@@ -10,6 +10,7 @@ import {
   recommendationsGuidance,
   sharedToolGuidance,
 } from "../_shared";
+import { toneRule } from "../_shared/tone";
 
 interface BlogPostPromptOptions {
   taskContext: string;
@@ -48,6 +49,7 @@ export function buildBlogPostPrompt(options: BlogPostPromptOptions): string {
 
     <rules>
     - ${languageRule}
+    - ${toneRule}
     ${factualityRules}
     - Process all relevant pull requests and commits from available data before drafting. Do not cherry-pick a subset and ignore the rest.
     - This is a narrative blog post, not a changelog. Do not use changelog formatting (no Highlights or More Updates sections, no bullet-point lists of PRs).
