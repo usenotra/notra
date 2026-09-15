@@ -155,6 +155,16 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   yield* ingestEvent(event);
   // Analytics must not hold the 202 open for the site that sent the event.
   yield* Effect.sync(() =>
-    after(() => Effect.runPromise(trackGeoIngestAnalytics({ identity, event })))
+    after(async () => {
+      try {
+        await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
+      } catch (error) {
+        console.error("[geo-ingest] Deferred analytics failed", {
+          error,
+          organizationId: identity.organizationId,
+          projectId: identity.projectId,
+        });
+      }
+    })
   );
 });
