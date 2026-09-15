@@ -1,9 +1,3 @@
-import { experimental_codeModeTool as codeModeTool } from "@ai-sdk/code-mode";
-import {
-  CODE_MODE_TIMEOUT_MS,
-  CODE_MODE_TOOL_NAME,
-  STANDALONE_CODE_MODE_TOOL_NAMES,
-} from "@notra/ai/constants/code-mode";
 import { getEnabledMcpServerCount } from "@notra/ai/integrations/mcp-tool-index";
 import { createModel } from "@notra/ai/model";
 import { getStandaloneChatPrompt } from "@notra/ai/prompts/standalone-chat";
@@ -24,13 +18,13 @@ import type {
   StandaloneChatInput,
 } from "@notra/ai/types/standalone-chat";
 import { loadChatWorkspace } from "@notra/ai/utils/chat-workspace";
+import { withStandaloneCodeMode } from "@notra/ai/utils/code-mode";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { withToolErrorPayloads } from "@notra/ai/utils/tool-error-payload";
 import {
   convertToModelMessages,
-  type Experimental_ToolCallers,
   generateText,
   isStepCount,
   isToolUIPart,
@@ -38,7 +32,6 @@ import {
   Output,
   smoothStream,
   streamText,
-  type Tool,
   type UIMessage,
 } from "ai";
 
@@ -157,20 +150,10 @@ export async function orchestrateStandaloneChat(
       resolveGranolaContext: deps?.resolveGranolaContext,
     }
   );
-  const tools: Record<string, Tool> = {
-    ...withToolErrorPayloads(baseToolSet.tools),
-    [CODE_MODE_TOOL_NAME]: codeModeTool({
-      executionPolicy: { timeoutMs: CODE_MODE_TIMEOUT_MS },
-    }),
-  };
+  const { tools, toolCallers } = withStandaloneCodeMode(
+    withToolErrorPayloads(baseToolSet.tools)
+  );
   const notraToolNames = Object.keys(tools);
-  // The tool record is string-keyed, so the SDK cannot infer code_mode as a
-  // caller name from its type.
-  const toolCallers = Object.fromEntries(
-    STANDALONE_CODE_MODE_TOOL_NAMES.filter((toolName) => toolName in tools).map(
-      (toolName) => [toolName, [CODE_MODE_TOOL_NAME]]
-    )
-  ) as unknown as Experimental_ToolCallers<typeof tools>;
   const approvalToolNames = getStandaloneApprovalToolNames();
 
   const lazyMcpRuntime =
