@@ -22,6 +22,7 @@ export interface GeoScanPlanSummary {
 }
 
 export interface GeoScanPlannedAnswer {
+  personaId?: string;
   sequenceId?: string;
   turn?: number;
   key: string;

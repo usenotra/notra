@@ -14,7 +14,8 @@
   "scripts": {
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "seed:brand-identity": "bun run src/scripts/seed-brand-identity.ts",
-    "seed:chat-attachments": "bun run src/scripts/seed-chat-attachments.ts"
+    "seed:chat-attachments": "bun run src/scripts/seed-chat-attachments.ts",
+    "seed:persona-visibility": "bun run src/scripts/seed-persona-visibility.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

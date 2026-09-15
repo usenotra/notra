@@ -21,6 +21,7 @@ import {
   AGENT_FEEDBACK_STATUSES,
 } from "./constants/agent-feedback";
 import { BLOG_POST_SUBTYPES } from "./constants/content";
+import { GEO_PERSONA_MEMORY_KINDS } from "./constants/geo-personas";
 import { GEO_PROSPECT_REPORT_STATUSES } from "./constants/geo-prospect-reports";
 import {
   GEO_CONTENT_BRIEF_STATUSES,
@@ -32,6 +33,10 @@ import type {
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
 import type { GeoCheckGrounding } from "./types/geo-checks";
+import type {
+  GeoPersonaProfile,
+  GeoPersonaSnapshot,
+} from "./types/geo-personas";
 import type { GeoProspectReportJson } from "./types/geo-prospect-report";
 import type { GeoScanPlanSnapshot, GeoScanPlanSummary } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
@@ -1550,6 +1555,62 @@ export const geoPromptSequences = pgTable(
   ]
 );
 
+export const geoPersonas = pgTable(
+  "geo_personas",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    role: text("role").notNull(),
+    company: text("company").notNull(),
+    summary: text("summary").notNull(),
+    searchStyle: text("search_style").notNull(),
+    profile: jsonb("profile").$type<GeoPersonaProfile>().notNull(),
+    conversationPrompts: text("conversation_prompts")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("geoPersonas_organizationId_idx").on(table.organizationId),
+    index("geoPersonas_projectId_idx").on(table.projectId),
+  ]
+);
+
+export const geoPersonaMemories = pgTable(
+  "geo_persona_memories",
+  {
+    id: text("id").primaryKey(),
+    personaId: text("persona_id")
+      .notNull()
+      .references(() => geoPersonas.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: GEO_PERSONA_MEMORY_KINDS }).notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("geoPersonaMemories_personaId_idx").on(table.personaId),
+    index("geoPersonaMemories_projectId_idx").on(table.projectId),
+  ]
+);
+
 export const geoCompetitors = pgTable(
   "geo_competitors",
   {
@@ -1693,6 +1754,12 @@ export const geoMentionChecks = pgTable(
     engine: text("engine").notNull(),
     promptId: text("prompt_id").notNull(),
     sequenceId: text("sequence_id"),
+    // Set on turns played by a simulated buyer persona; null for tracked
+    // prompts and hand-written conversations.
+    personaId: text("persona_id").references(() => geoPersonas.id, {
+      onDelete: "cascade",
+    }),
+    personaSnapshot: jsonb("persona_snapshot").$type<GeoPersonaSnapshot>(),
     turn: integer("turn").notNull().default(0),
     prompt: text("prompt").notNull(),
     answer: text("answer").notNull(),
@@ -1725,6 +1792,10 @@ export const geoMentionChecks = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
+    check(
+      "geoMentionChecks_personaSnapshot_check",
+      sql`${table.personaId} IS NULL OR ${table.personaSnapshot} IS NOT NULL`
+    ),
     index("geoMentionChecks_organizationId_capturedAt_idx").on(
       table.organizationId,
       table.capturedAt
@@ -1772,6 +1843,10 @@ export const geoMentionChecks = pgTable(
       .on(table.sequenceId, table.turn, table.engine, table.capturedAt.desc())
       .where(sql`${table.sequenceId} IS NOT NULL`),
     index("geoMentionChecks_scanId_idx").on(table.scanId),
+    index("geoMentionChecks_personaId_capturedAt_idx").on(
+      table.personaId,
+      table.capturedAt
+    ),
     uniqueIndex("geoMentionChecks_scanEnginePromptTurnLanguage_uidx").on(
       table.scanId,
       table.engine,
@@ -2738,6 +2813,8 @@ export const organizationsRelations = relations(
     geoShelfSources: many(geoShelfSources),
     geoScans: many(geoScans),
     geoMentionChecks: many(geoMentionChecks),
+    geoPersonas: many(geoPersonas),
+    geoPersonaMemories: many(geoPersonaMemories),
     connectedSocialAccounts: many(connectedSocialAccounts),
     postCollections: many(postCollections),
     posts: many(posts),
@@ -3131,6 +3208,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   geoShelfSources: many(geoShelfSources),
   geoScans: many(geoScans),
   geoMentionChecks: many(geoMentionChecks),
+  geoPersonas: many(geoPersonas),
+  geoPersonaMemories: many(geoPersonaMemories),
   agentFeedback: many(agentFeedback),
 }));
 
@@ -3235,6 +3314,41 @@ export const geoMentionChecksRelations = relations(
     scan: one(geoScans, {
       fields: [geoMentionChecks.scanId],
       references: [geoScans.id],
+    }),
+    persona: one(geoPersonas, {
+      fields: [geoMentionChecks.personaId],
+      references: [geoPersonas.id],
+    }),
+  })
+);
+
+export const geoPersonasRelations = relations(geoPersonas, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [geoPersonas.organizationId],
+    references: [organizations.id],
+  }),
+  project: one(projects, {
+    fields: [geoPersonas.projectId],
+    references: [projects.id],
+  }),
+  memories: many(geoPersonaMemories),
+  mentionChecks: many(geoMentionChecks),
+}));
+
+export const geoPersonaMemoriesRelations = relations(
+  geoPersonaMemories,
+  ({ one }) => ({
+    persona: one(geoPersonas, {
+      fields: [geoPersonaMemories.personaId],
+      references: [geoPersonas.id],
+    }),
+    organization: one(organizations, {
+      fields: [geoPersonaMemories.organizationId],
+      references: [organizations.id],
+    }),
+    project: one(projects, {
+      fields: [geoPersonaMemories.projectId],
+      references: [projects.id],
     }),
   })
 );

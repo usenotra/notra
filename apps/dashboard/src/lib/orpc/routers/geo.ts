@@ -51,6 +51,15 @@ import {
   searchGeoBrands,
   suggestGeoCompetitors,
 } from "@notra/geo-core/geo/onboarding";
+import { runGeoPersonaNow } from "@notra/geo-core/geo/persona-scan";
+import {
+  deleteGeoPersona,
+  listGeoPersonas,
+  loadGeoPersonaResults,
+  loadGeoPersonaActivity,
+  requireGeoPersonaGenerationCapacity,
+  updateGeoPersona,
+} from "@notra/geo-core/geo/personas";
 import {
   addGeoTrackedEngine,
   addGeoTrackedLanguage,
@@ -181,6 +190,13 @@ import {
   geoWriterUpdateInputSchema,
 } from "@notra/geo-core/schemas/geo";
 import {
+  geoPersonaDeleteInputSchema,
+  geoPersonaResultsInputSchema,
+  geoPersonaRunInputSchema,
+  geoPersonaUpdateInputSchema,
+  geoPersonasGenerateInputSchema,
+} from "@notra/geo-core/schemas/geo-personas";
+import {
   geoScanRunInputSchema,
   geoScanRunsInputSchema,
 } from "@notra/geo-core/schemas/geo-scan-history";
@@ -264,6 +280,10 @@ import {
 } from "@/lib/geo-shelf/service";
 import { assertGeoAccess } from "@/lib/geo/access";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import {
+  getPersonaGeneration,
+  startPersonaGeneration,
+} from "@/lib/geo/persona-generation";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
@@ -1351,6 +1371,152 @@ export const geoRouter = {
       if (result.checks > 0) {
         scheduleGeoShelfCitationSync(input);
       }
+      return result;
+    }),
+  personasList: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoHandler((input) => listGeoPersonas(input))),
+  personasActivity: authorizedProcedure
+    .input(geoTimeseriesInputSchema)
+    .handler(geoHandler((input) => loadGeoPersonaActivity(input))),
+  personasGenerate: authorizedProcedure
+    .input(geoPersonasGenerateInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      const { scope, rate } = await Promise.all([
+        assertActiveSubscription(input.organizationId),
+        runOrpcEffect(
+          requireGeoPersonaGenerationCapacity(
+            input,
+            input.personaId,
+            input.brief
+          ).pipe(Effect.provide(geoCoreDashboardLayer)),
+          toGeoOrpcError
+        ),
+      ]).then(([, scope]) =>
+        ratelimit.geoPersonasGenerate
+          .limit(input.organizationId)
+          .then((rate) => ({ scope, rate }))
+      );
+      if (!rate.success) {
+        throw badRequest(
+          "Too many persona generations. Please wait a few minutes."
+        );
+      }
+      return startPersonaGeneration(
+        scope.organizationId,
+        scope.projectId,
+        input.personaId,
+        input.brief,
+        input.promptsOnly
+      );
+    }),
+  personasGenerationStatus: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      const scope = await runOrpcEffect(
+        requireGeoProject(input).pipe(Effect.provide(geoCoreDashboardLayer)),
+        toGeoOrpcError
+      );
+      return getPersonaGeneration(scope.organizationId, scope.projectId);
+    }),
+  personaUpdate: authorizedProcedure.input(geoPersonaUpdateInputSchema).handler(
+    geoHandler(
+      (input) => updateGeoPersona(input, input),
+      ({ context, input }) => {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_UPDATED,
+          properties: {
+            persona_id: input.personaId,
+            enabled: input.enabled ?? null,
+          },
+        });
+      }
+    )
+  ),
+  personaDelete: authorizedProcedure.input(geoPersonaDeleteInputSchema).handler(
+    geoHandler(
+      (input) => deleteGeoPersona(input, input.personaId),
+      ({ context, input }) => {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_DELETED,
+          properties: { persona_id: input.personaId },
+        });
+      }
+    )
+  ),
+  personaResults: authorizedProcedure
+    .input(geoPersonaResultsInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadGeoPersonaResults(input, input.personaId, input.scanId)
+      )
+    ),
+  personaRun: authorizedProcedure
+    .input(geoPersonaRunInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      await assertActiveSubscription(input.organizationId);
+      const rate = await ratelimit.geoPersonaRun.limit(input.organizationId);
+      trackGeoRouterEvent({
+        context,
+        input,
+        event: POSTHOG_EVENTS.GEO_PERSONA_RUN_NOW,
+        properties: {
+          persona_id: input.personaId,
+          rate_limited: !rate.success,
+        },
+      });
+      if (!rate.success) {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_RUN,
+          properties: {
+            persona_id: input.personaId,
+            outcome: GEO_SEQUENCE_RUN_OUTCOMES.RATE_LIMITED,
+            rate_limited: true,
+          },
+        });
+        throw badRequest("Too many runs. Please wait a few minutes.");
+      }
+
+      const result = await runOrpcEffect(
+        runGeoPersonaNow(input, input.personaId).pipe(
+          Effect.provide(geoCoreDashboardLayer)
+        ),
+        toGeoOrpcError
+      );
+      trackGeoRouterEvent({
+        context,
+        input,
+        event: POSTHOG_EVENTS.GEO_PERSONA_RUN,
+        properties: {
+          persona_id: input.personaId,
+          outcome: GEO_SEQUENCE_RUN_OUTCOMES.COMPLETED,
+          rate_limited: false,
+          checks: result.checks,
+          mentions: result.mentions,
+          engine_count: result.engines.length,
+        },
+      });
       return result;
     }),
   projectsList: authorizedProcedure

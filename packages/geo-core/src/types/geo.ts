@@ -10,6 +10,7 @@ import type {
   GeoCheckSourceItem,
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
+import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import type { FinishReason, LanguageModel, ToolSet } from "ai";
 
@@ -612,6 +613,15 @@ export interface GeoScanPlannedSequence {
   zdr: GeoZdrMode;
 }
 
+export interface GeoScanPlannedPersona {
+  personaId: string;
+  prompts: string[];
+  snapshot: GeoPersonaSnapshotV2;
+  engine: string;
+  groundedKey: string;
+  zdr: GeoZdrMode;
+}
+
 export interface GeoScanProjectContext {
   organizationId: string;
   projectId: string;
@@ -635,6 +645,7 @@ export interface GeoScanProjectPlan {
   claimedAt: string;
   tasks: GeoScanPlannedTask[];
   sequences: GeoScanPlannedSequence[];
+  personas: GeoScanPlannedPersona[];
   promptCount: number;
   languages: string[];
   engines: string[];
@@ -700,6 +711,7 @@ export interface GeoScanZdrPolicyFields {
   projectId: string;
   scanId?: string;
   sequenceId?: string;
+  personaId?: string;
 }
 
 /** Per-project ZDR inputs needed to decide how an engine may run. */

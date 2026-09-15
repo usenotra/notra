@@ -44,6 +44,7 @@ import {
   GEO_WRITER_TOPIC_MAX_LENGTH,
   GEO_WRITER_TOPIC_MIN_LENGTH,
 } from "../constants/geo";
+import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
 import { GEO_CSV_IMPORT_MAX_ROWS } from "../constants/geo-import";
 import { normalizeProjectDomain } from "../utils/geo-project-domains";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
@@ -56,7 +57,6 @@ import { publicWebsiteUrlSchema } from "./url";
 
 const GEO_SUPPORTED_LANGUAGE_SET = new Set<string>(SUPPORTED_LANGUAGES);
 const MAX_GEO_TRAFFIC_LOG_FILTER_VALUES = 3;
-const MAX_JUDGE_COMPETITORS = 15;
 const MAX_EXCERPT_LENGTH = 300;
 const MAX_DAYS = 365;
 const GEO_DAY_STRING_REGEX = /^\d{4}-\d{2}-\d{2}$/;

@@ -75,6 +75,7 @@ describe("model service in real scan batches", () => {
       claimedAt: new Date().toISOString(),
       tasks: [],
       sequences,
+      personas: [],
       promptCount: 0,
       engines: sequences.map((sequence) => sequence.engine),
       languages: ["English"],

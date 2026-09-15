@@ -1,4 +1,3 @@
-import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { FinishReason, LanguageModelUsage } from "ai";
 import { Data } from "effect";
 
@@ -162,12 +161,6 @@ export class GeoSequenceCreateFailedError extends Data.TaggedError(
   "GeoSequenceCreateFailedError"
 )<Record<string, never>> {}
 
-export class GeoSequenceEmptyError extends Data.TaggedError(
-  "GeoSequenceEmptyError"
-)<{
-  readonly usage: AgentTokenUsage;
-}> {}
-
 export class GeoSequenceRunUnavailableError extends Data.TaggedError(
   "GeoSequenceRunUnavailableError"
 )<Record<string, never>> {}
@@ -175,6 +168,34 @@ export class GeoSequenceRunUnavailableError extends Data.TaggedError(
 export class GeoSequenceRunError extends Data.TaggedError(
   "GeoSequenceRunError"
 )<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+export class GeoPersonaNotFoundError extends Data.TaggedError(
+  "GeoPersonaNotFoundError"
+)<{
+  readonly personaId: string;
+}> {}
+
+export class GeoPersonaLimitError extends Data.TaggedError(
+  "GeoPersonaLimitError"
+)<{
+  readonly limit: number;
+}> {}
+
+export class GeoPersonaGenerateError extends Data.TaggedError(
+  "GeoPersonaGenerateError"
+)<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+export class GeoPersonaRunUnavailableError extends Data.TaggedError(
+  "GeoPersonaRunUnavailableError"
+)<Record<string, never>> {}
+
+export class GeoPersonaRunError extends Data.TaggedError("GeoPersonaRunError")<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -237,6 +258,11 @@ export type GeoRouterError =
   | GeoContentBriefStateError
   | GeoDatabaseError
   | GeoDiscoveryError
+  | GeoPersonaGenerateError
+  | GeoPersonaLimitError
+  | GeoPersonaNotFoundError
+  | GeoPersonaRunError
+  | GeoPersonaRunUnavailableError
   | GeoProjectCreateFailedError
   | GeoProjectDeleteBlockedError
   | GeoProjectNotFoundError

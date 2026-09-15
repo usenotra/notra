@@ -22,6 +22,7 @@ import type {
   GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
   GeoCheckFilterOptions,
+  GeoCheckInsertSummary,
   GeoCheckLanguageShareRow,
   GeoCheckLanguageShareTrendRow,
   GeoCheckOverviewRow,
@@ -280,10 +281,19 @@ function capturedWithin(window: GeoCheckWindow | undefined): SQL[] {
   return parts;
 }
 
+/**
+ * Persona conversations are stored as mention checks under synthetic prompt
+ * IDs. They have their own page and must not leak into the competitor and
+ * language aggregates, which reason about tracked prompts.
+ */
+const withoutPersonaRows = isNull(geoMentionChecks.personaId);
+const withoutPersonaRowsSql = sql`and ${geoMentionChecks.personaId} is null`;
+
 function mentionOptionFilters(options?: GeoCheckFilterOptions): SQL[] {
   const parts: SQL[] = [];
   if (options?.sequences === "single") {
     parts.push(isNull(geoMentionChecks.sequenceId));
+    parts.push(isNull(geoMentionChecks.personaId));
   }
   if (options?.englishOnly) {
     parts.push(
@@ -308,11 +318,19 @@ function mentionFilters(
 export async function insertGeoMentionChecks(
   rows: GeoCheckWrite[]
 ): Promise<number> {
+  const summary = await insertGeoMentionChecksWithSummary(rows);
+  return summary.checks;
+}
+
+export async function insertGeoMentionChecksWithSummary(
+  rows: GeoCheckWrite[]
+): Promise<GeoCheckInsertSummary> {
   if (rows.length === 0) {
-    return 0;
+    return { checks: 0, mentions: 0 };
   }
 
-  let written = 0;
+  let checks = 0;
+  let mentions = 0;
   for (let index = 0; index < rows.length; index += CHECK_INSERT_CHUNK) {
     const chunk = rows.slice(index, index + CHECK_INSERT_CHUNK).map((row) => ({
       id: row.id ?? crypto.randomUUID(),
@@ -322,6 +340,8 @@ export async function insertGeoMentionChecks(
       engine: row.engine,
       promptId: row.promptId,
       sequenceId: row.sequenceId ?? null,
+      personaId: row.personaId ?? null,
+      personaSnapshot: row.personaSnapshot ?? null,
       turn: row.turn ?? 0,
       prompt: row.prompt,
       answer: row.answer,
@@ -353,10 +373,11 @@ export async function insertGeoMentionChecks(
           geoMentionChecks.language,
         ],
       })
-      .returning({ id: geoMentionChecks.id });
-    written += inserted.length;
+      .returning({ mentioned: geoMentionChecks.mentioned });
+    checks += inserted.length;
+    mentions += inserted.filter((row) => row.mentioned).length;
   }
-  return written;
+  return { checks, mentions };
 }
 
 export async function queryGeoCheckOverview(
@@ -639,6 +660,7 @@ export async function queryGeoCheckCompetitorShare(
     where ${geoMentionChecks.organizationId} = ${scope.organizationId}
       ${projectFilter}
       ${windowFilter}
+      ${withoutPersonaRowsSql}
       ${optionFilter}
     group by brand
     order by mentions desc
@@ -676,6 +698,7 @@ export async function queryGeoCheckCompetitorShareTimeseries(
     where ${geoMentionChecks.organizationId} = ${scope.organizationId}
       ${projectFilter}
       ${windowFilter}
+      ${withoutPersonaRowsSql}
     group by brand, (${geoMentionChecks.capturedAt})::date
     order by day asc
   `);
@@ -716,6 +739,7 @@ export async function queryGeoCheckCompetitorShareTrends(
       where ${geoMentionChecks.organizationId} = ${scope.organizationId}
         ${projectFilter}
         ${windowFilter}
+        ${withoutPersonaRowsSql}
       group by day, brand
     ), brands as (
       select brand
@@ -758,7 +782,11 @@ export async function queryGeoCheckCompetitorTimeseries(
   brand: string,
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckCompetitorTimeseriesRow[]> {
-  const filters = [scopeWhere(scope), ...capturedWithin(window)];
+  const filters = [
+    scopeWhere(scope),
+    withoutPersonaRows,
+    ...capturedWithin(window),
+  ];
 
   const rows = await db
     .select({
@@ -786,6 +814,7 @@ export async function queryGeoCheckCompetitorPrompts(
 ): Promise<GeoCheckCompetitorPromptRow[]> {
   const filters = [
     scopeWhere(scope),
+    withoutPersonaRows,
     sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`,
     ...capturedWithin(window),
   ];
@@ -826,7 +855,11 @@ export async function queryGeoCheckLanguageShare(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckLanguageShareRow[]> {
-  const filters = [scopeWhere(scope), ...capturedWithin(window)];
+  const filters = [
+    scopeWhere(scope),
+    withoutPersonaRows,
+    ...capturedWithin(window),
+  ];
 
   const rows = await db
     .select({
@@ -869,7 +902,11 @@ export async function queryGeoCheckLanguageShareTrends(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckLanguageShareTrendRow[]> {
-  const filters = [scopeWhere(scope), ...capturedWithin(window)];
+  const filters = [
+    scopeWhere(scope),
+    withoutPersonaRows,
+    ...capturedWithin(window),
+  ];
   const language = sql<string>`case when ${geoMentionChecks.language} = '' then 'English' else ${geoMentionChecks.language} end`;
   const day = sql<string>`(${geoMentionChecks.capturedAt})::date`;
 

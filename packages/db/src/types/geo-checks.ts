@@ -1,3 +1,5 @@
+import type { GeoPersonaSnapshot } from "./geo-personas";
+
 export interface GeoCheckScope {
   organizationId: string;
   projectId: string | null;
@@ -32,6 +34,8 @@ export interface GeoCheckWrite {
   engine: string;
   promptId: string;
   sequenceId?: string | null;
+  personaId?: string | null;
+  personaSnapshot?: GeoPersonaSnapshot | null;
   turn?: number;
   prompt: string;
   answer: string;
@@ -50,6 +54,11 @@ export interface GeoCheckWrite {
   reasoningTokens: number | null;
   zdrEnforced?: boolean | null;
   capturedAt: Date;
+}
+
+export interface GeoCheckInsertSummary {
+  checks: number;
+  mentions: number;
 }
 
 export interface GeoCheckOverviewRow {

@@ -39,6 +39,7 @@ export function scanPlan(
       zdr: "none",
     })),
     promptCount: taskCount,
+    personas: [],
     languages: ["English"],
     engines: ["test/engine"],
   };

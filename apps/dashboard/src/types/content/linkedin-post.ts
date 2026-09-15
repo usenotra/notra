@@ -30,3 +30,12 @@ export interface LinkedInPostProps extends ComponentProps<"div"> {
   truncationLimit?: number;
   defaultExpanded?: boolean;
 }
+
+export type LinkedInPostHeaderProps = Pick<
+  LinkedInPostProps,
+  "author" | "accountSelector" | "timestamp" | "onClose"
+>;
+export type LinkedInPostEngagementProps = Pick<
+  LinkedInPostProps,
+  "reactions" | "comments" | "reposts"
+>;

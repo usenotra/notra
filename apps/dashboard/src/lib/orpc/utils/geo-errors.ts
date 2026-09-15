@@ -39,6 +39,22 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return badRequest(failure.message);
     case "GeoSequenceCreateFailedError":
       return badRequest("Failed to create conversation");
+    case "GeoPersonaNotFoundError":
+      return notFound("Persona not found");
+    case "GeoPersonaLimitError":
+      return badRequest(
+        `You can have up to ${failure.limit} personas. Delete one before adding another.`
+      );
+    case "GeoPersonaGenerateError":
+      console.error("[GEO] persona generation failed:", failure);
+      return badRequest(failure.message);
+    case "GeoPersonaRunUnavailableError":
+      return badRequest(
+        "No search-grounded engines are available under your privacy settings"
+      );
+    case "GeoPersonaRunError":
+      console.error("[GEO] persona run failed:", failure);
+      return badRequest(failure.message);
     case "GeoCompetitorLimitError":
       return badRequest(
         `You can track up to ${failure.limit} competitors. Remove some before importing more.`

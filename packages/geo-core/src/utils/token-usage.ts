@@ -10,6 +10,7 @@ export const EMPTY_AGENT_TOKEN_USAGE: AgentTokenUsage = {
   totalTokens: 0,
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
+  totalUsd: 0,
 };
 
 function normalizeTokenUsage(usage: GeoTokenUsageInput): AgentTokenUsage {
