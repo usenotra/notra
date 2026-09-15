@@ -90,6 +90,7 @@
         "zod": "^4.5.0",
       },
       "devDependencies": {
+        "@electric-sql/pglite": "0.5.8",
         "@notra/typescript-config": "workspace:*",
         "@types/sanitize-html": "^2.16.0",
         "knip": "^6.12.1",

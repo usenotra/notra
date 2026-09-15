@@ -103,6 +103,7 @@ import {
 } from "../utils/geo-scan";
 import {
   geoScanPlanSnapshot,
+  geoScanPlanSummary,
   geoScanSequenceTasks,
 } from "../utils/geo-scan-plan";
 import { withGeoTiming } from "../utils/geo-timing";
@@ -1168,11 +1169,15 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       engines,
     };
     const planned: GeoScanProjectPlanResult = { status: "planned", plan };
+    const planSnapshot = geoScanPlanSnapshot(plan);
     yield* Effect.tryPromise({
       try: () =>
         db
           .update(geoScans)
-          .set({ plan: geoScanPlanSnapshot(plan) })
+          .set({
+            plan: planSnapshot,
+            planSummary: geoScanPlanSummary(planSnapshot),
+          })
           .where(
             and(
               eq(geoScans.id, scanId),

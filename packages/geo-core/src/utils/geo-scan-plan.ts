@@ -2,6 +2,7 @@ import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type {
   GeoScanPlannedAnswer,
   GeoScanPlanSnapshot,
+  GeoScanPlanSummary,
 } from "@notra/db/types/geo-scan";
 
 import { GEO_SEQUENCE_MAX_TURNS } from "../constants/geo";
@@ -63,5 +64,30 @@ export function geoScanPlanSnapshot(
     ).size,
     engines: [...plan.engines],
     languages: [...plan.languages],
+  };
+}
+
+export function geoScanPlanSummary(
+  snapshot: GeoScanPlanSnapshot
+): GeoScanPlanSummary {
+  const plannedChecksByEngine = new Map<string, number>();
+  for (const task of snapshot.tasks ?? []) {
+    plannedChecksByEngine.set(
+      task.engine,
+      (plannedChecksByEngine.get(task.engine) ?? 0) + 1
+    );
+  }
+
+  return {
+    plannedChecks: snapshot.totalChecks,
+    hasTasks: snapshot.tasks !== undefined,
+    engines: snapshot.engines,
+    taskCounts: [...plannedChecksByEngine]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([engine, plannedChecks]) => ({
+        engine,
+        plannedChecks,
+        failedChecks: 0,
+      })),
   };
 }

@@ -185,9 +185,17 @@ describe("scan history", () => {
       })),
       taskStates: {},
     };
-    await testDb
-      .insert(geoScans)
-      .values({ id: context.scanId, ...scope, plan });
+    await testDb.insert(geoScans).values({
+      id: context.scanId,
+      ...scope,
+      plan,
+      planSummary: {
+        plannedChecks: 2,
+        hasTasks: true,
+        engines: ["engine-a"],
+        taskCounts: [{ engine: "engine-a", plannedChecks: 2, failedChecks: 0 }],
+      },
+    });
     const queued = await Effect.runPromise(
       loadGeoScanRun({ ...context, offset: 0 })
     );
@@ -207,6 +215,26 @@ describe("scan history", () => {
       "running",
       "running",
     ]);
+    const firstTask = tasks[0];
+    if (!firstTask) {
+      throw new Error("Expected a GEO scan task fixture");
+    }
+    await Effect.runPromise(
+      updateGeoScanTaskStatus(context, firstTask, "failed")
+    );
+    let [scan] = await testDb
+      .select({ planSummary: geoScans.planSummary })
+      .from(geoScans)
+      .where(eq(geoScans.id, context.scanId));
+    expect(scan?.planSummary?.taskCounts[0]?.failedChecks).toBe(1);
+    await Effect.runPromise(
+      updateGeoScanTaskStatus(context, firstTask, "running")
+    );
+    [scan] = await testDb
+      .select({ planSummary: geoScans.planSummary })
+      .from(geoScans)
+      .where(eq(geoScans.id, context.scanId));
+    expect(scan?.planSummary?.taskCounts[0]?.failedChecks).toBe(0);
     await testDb.insert(geoMentionChecks).values({
       ...scope,
       id: "saved-german",

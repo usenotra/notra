@@ -33,7 +33,7 @@ import type {
 } from "./types/agent-readiness";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type { GeoProspectReportJson } from "./types/geo-prospect-report";
-import type { GeoScanPlanSnapshot } from "./types/geo-scan";
+import type { GeoScanPlanSnapshot, GeoScanPlanSummary } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 
@@ -1657,6 +1657,7 @@ export const geoScans = pgTable(
       .notNull()
       .default("running"),
     plan: jsonb("plan").$type<GeoScanPlanSnapshot>(),
+    planSummary: jsonb("plan_summary").$type<GeoScanPlanSummary>(),
     errorCode: text("error_code"),
     errorMessage: text("error_message"),
     failedStage: text("failed_stage", {

@@ -1,6 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { geoMentionChecks, geoScans } from "@notra/db/schema";
-import type { GeoScanPlanSnapshot } from "@notra/db/types/geo-scan";
+import type { GeoScanPlanSummary } from "@notra/db/types/geo-scan";
 import {
   loadAgentReadiness,
   startAgentReadinessScan,
@@ -18,6 +18,7 @@ import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { GeoScanNotFoundError, GeoSelectionInvalidError } from "../errors/geo";
+import { geoScanPlanSummarySelection } from "../utils/geo-scan-plan-summary";
 
 export interface ValidateGeoSelectionInput {
   readonly organizationId: string;
@@ -126,7 +127,7 @@ interface GeoScanRecord {
   readonly id: string;
   readonly projectId: string;
   readonly status: "running" | "completed" | "failed";
-  readonly plan: GeoScanPlanSnapshot | null;
+  readonly planSummary: GeoScanPlanSummary | null;
   readonly errorCode: string | null;
   readonly errorMessage: string | null;
   readonly failedStage: "handoff" | "execution" | "stale" | null;
@@ -134,6 +135,21 @@ interface GeoScanRecord {
   readonly startedAt: Date;
   readonly finishedAt: Date | null;
   readonly createdAt: Date;
+}
+
+function geoScanReadColumns() {
+  return {
+    id: true,
+    projectId: true,
+    status: true,
+    errorCode: true,
+    errorMessage: true,
+    failedStage: true,
+    retryable: true,
+    startedAt: true,
+    finishedAt: true,
+    createdAt: true,
+  } as const;
 }
 
 interface GeoScanEngineCounts {
@@ -147,26 +163,15 @@ function scanSummary(
   row: GeoScanRecord,
   storedCounts: readonly GeoScanEngineCounts[]
 ) {
-  const tasks = row.plan?.tasks;
-  const engines = new Set(row.plan?.engines ?? []);
-  const taskCountsByEngine = new Map<
-    string,
-    { plannedChecks: number; failedChecks: number }
-  >();
-  let failedChecks = 0;
-  for (const task of tasks ?? []) {
-    engines.add(task.engine);
-    const counts = taskCountsByEngine.get(task.engine) ?? {
-      plannedChecks: 0,
-      failedChecks: 0,
-    };
-    counts.plannedChecks += 1;
-    if (row.plan?.taskStates?.[task.key] === "failed") {
-      counts.failedChecks += 1;
-      failedChecks += 1;
-    }
-    taskCountsByEngine.set(task.engine, counts);
-  }
+  const engines = new Set(row.planSummary?.engines ?? []);
+  const taskCountsByEngine = new Map(
+    row.planSummary?.taskCounts.map((counts) => [counts.engine, counts]) ?? []
+  );
+  const failedChecks =
+    row.planSummary?.taskCounts.reduce(
+      (total, counts) => total + counts.failedChecks,
+      0
+    ) ?? 0;
 
   const storedCountsByEngine = new Map<string, GeoScanEngineCounts>();
   let completedChecks = 0;
@@ -183,7 +188,9 @@ function scanSummary(
     const counts = storedCountsByEngine.get(engine);
     return {
       engine,
-      plannedChecks: tasks ? (taskCounts?.plannedChecks ?? 0) : null,
+      plannedChecks: row.planSummary?.hasTasks
+        ? (taskCounts?.plannedChecks ?? 0)
+        : null,
       completedChecks: counts?.completedChecks ?? 0,
       mentionCount: counts?.mentionCount ?? 0,
       failedChecks: taskCounts?.failedChecks ?? 0,
@@ -191,7 +198,7 @@ function scanSummary(
   });
 
   return {
-    plannedChecks: row.plan?.totalChecks ?? null,
+    plannedChecks: row.planSummary?.plannedChecks ?? null,
     completedChecks,
     mentionCount,
     failedChecks,
@@ -264,6 +271,8 @@ export const listGeoScansForProject = Effect.fn("geo.scans.list")(function* (
     geoDb("list geo scans", () =>
       db.query.geoScans.findMany({
         where: scope,
+        columns: geoScanReadColumns(),
+        extras: { planSummary: geoScanPlanSummarySelection() },
         orderBy: [desc(geoScans.startedAt)],
         limit: input.limit,
         offset: (input.page - 1) * input.limit,
@@ -310,6 +319,8 @@ export const getGeoScanForProject = Effect.fn("geo.scans.get")(function* (
         eq(geoScans.projectId, input.projectId),
         eq(geoScans.organizationId, input.organizationId)
       ),
+      columns: geoScanReadColumns(),
+      extras: { planSummary: geoScanPlanSummarySelection() },
     })
   );
 

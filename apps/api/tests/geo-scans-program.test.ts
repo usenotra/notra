@@ -4,12 +4,20 @@ import { Effect } from "effect";
 
 type FindManyArgs = {
   where: unknown;
+  columns: Record<string, boolean>;
+  extras: Record<string, unknown>;
   limit: number;
   offset: number;
 };
 
 let capturedFindManyArgs: FindManyArgs | undefined;
-let capturedFindFirstArgs: { where: unknown } | undefined;
+let capturedFindFirstArgs:
+  | {
+      where: unknown;
+      columns: Record<string, boolean>;
+      extras: Record<string, unknown>;
+    }
+  | undefined;
 let capturedCountWhere: unknown;
 let capturedAggregateWhere: unknown;
 
@@ -24,6 +32,10 @@ function collectSqlText(fragment: unknown): string {
 
   if ("queryChunks" in fragment && Array.isArray(fragment.queryChunks)) {
     return fragment.queryChunks.map(collectSqlText).join("");
+  }
+
+  if ("sql" in fragment) {
+    return collectSqlText((fragment as { sql: unknown }).sql);
   }
 
   if (
@@ -84,10 +96,12 @@ function expectTenantScopedWhere(where: unknown) {
   expect(values).toContain("project");
 }
 
-const findFirst = mock(async (args: { where: unknown }) => {
-  capturedFindFirstArgs = args;
-  return null;
-});
+const findFirst = mock(
+  async (args: NonNullable<typeof capturedFindFirstArgs>) => {
+    capturedFindFirstArgs = args;
+    return null;
+  }
+);
 const findMany = mock(async (args: FindManyArgs) => {
   capturedFindManyArgs = args;
   return [];
@@ -132,10 +146,12 @@ beforeEach(() => {
   countSelect.mockClear();
   aggregateSelect.mockReset();
   aggregateSelect.mockImplementation(async () => []);
-  findFirst.mockImplementation(async (args: { where: unknown }) => {
-    capturedFindFirstArgs = args;
-    return null;
-  });
+  findFirst.mockImplementation(
+    async (args: NonNullable<typeof capturedFindFirstArgs>) => {
+      capturedFindFirstArgs = args;
+      return null;
+    }
+  );
   findMany.mockImplementation(async (args: FindManyArgs) => {
     capturedFindManyArgs = args;
     return [];
@@ -165,6 +181,10 @@ describe("listGeoScansForProject", () => {
     expect(capturedFindManyArgs).toBeDefined();
     expect(capturedFindManyArgs?.limit).toBe(20);
     expect(capturedFindManyArgs?.offset).toBe(0);
+    expect(capturedFindManyArgs?.columns).not.toHaveProperty("plan");
+    expect(collectSqlText(capturedFindManyArgs?.extras.planSummary)).toContain(
+      "jsonb_array_elements"
+    );
     expectTenantScopedWhere(capturedFindManyArgs?.where);
     expectTenantScopedWhere(capturedCountWhere);
     expect(aggregateSelect).not.toHaveBeenCalled();
@@ -179,36 +199,22 @@ describe("listGeoScansForProject", () => {
           id: "scan-1",
           projectId: "project",
           status: "running",
-          plan: {
-            totalChecks: 3,
-            promptCount: 3,
-            sequenceCount: 0,
+          planSummary: {
+            plannedChecks: 3,
+            hasTasks: true,
             engines: ["zeta", "alpha"],
-            languages: ["English"],
-            tasks: [
+            taskCounts: [
               {
-                key: "a",
-                promptId: "p1",
-                prompt: "One",
                 engine: "alpha",
-                language: "English",
+                plannedChecks: 1,
+                failedChecks: 0,
               },
               {
-                key: "b",
-                promptId: "p2",
-                prompt: "Two",
                 engine: "zeta",
-                language: "English",
-              },
-              {
-                key: "c",
-                promptId: "p3",
-                prompt: "Three",
-                engine: "zeta",
-                language: "English",
+                plannedChecks: 2,
+                failedChecks: 1,
               },
             ],
-            taskStates: { c: "failed" },
           },
           errorCode: "should_not_leak",
           errorMessage: "should not leak",
@@ -222,7 +228,7 @@ describe("listGeoScansForProject", () => {
           id: "scan-2",
           projectId: "project",
           status: "completed",
-          plan: null,
+          planSummary: null,
           errorCode: null,
           errorMessage: null,
           failedStage: null,
@@ -332,7 +338,7 @@ describe("getGeoScanForProject", () => {
         id: "scan-1",
         projectId: "project",
         status: "running",
-        plan: null,
+        planSummary: null,
         errorCode: null,
         errorMessage: null,
         failedStage: null,
@@ -384,34 +390,19 @@ describe("getGeoScanForProject", () => {
       { length: 64 },
       (_, index) => `engine-${index.toString().padStart(3, "0")}`
     );
-    const taskStates: Record<string, "failed"> = {};
-    const tasks = engineIds.flatMap((engine, engineIndex) =>
-      Array.from({ length: 64 }, (_, taskIndex) => {
-        const key = `${engine}-${taskIndex}`;
-        if (taskIndex % 10 === 0) {
-          taskStates[key] = "failed";
-        }
-        return {
-          key,
-          promptId: `prompt-${taskIndex}`,
-          prompt: `Prompt ${engineIndex}-${taskIndex}`,
-          engine,
-          language: "English",
-        };
-      })
-    );
     findFirst.mockImplementationOnce(async () => ({
       id: "scan-large",
       projectId: "project",
       status: "running",
-      plan: {
-        totalChecks: tasks.length,
-        promptCount: 64,
-        sequenceCount: 0,
+      planSummary: {
+        plannedChecks: 4096,
+        hasTasks: true,
         engines: [...engineIds].reverse(),
-        languages: ["English"],
-        tasks,
-        taskStates,
+        taskCounts: engineIds.map((engine) => ({
+          engine,
+          plannedChecks: 64,
+          failedChecks: 7,
+        })),
       },
       errorCode: null,
       errorMessage: null,
@@ -465,7 +456,7 @@ describe("getGeoScanForProject", () => {
       id: "scan-failed",
       projectId: "project",
       status: "failed",
-      plan: null,
+      planSummary: null,
       errorCode: "geo_scan_error",
       errorMessage: "Failed to store GEO checks",
       failedStage: "execution",

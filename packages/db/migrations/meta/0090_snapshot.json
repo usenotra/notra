@@ -5910,6 +5910,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "plan_summary": {
+          "name": "plan_summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "error_code": {
           "name": "error_code",
           "type": "text",
