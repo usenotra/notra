@@ -87,9 +87,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   try {
-    const repositoryPromise =
-      provider === "github" ? getRepositoryById(repositoryId) : null;
-    void repositoryPromise?.catch(() => undefined);
     const integration = await fetcher(integrationId);
 
     if (!integration) {
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     if (provider === "github") {
-      const repository = repositoryPromise ? await repositoryPromise : null;
+      const repository = await getRepositoryById(repositoryId);
       if (!repository) {
         return Response.json(
           { error: "Repository not found" },
