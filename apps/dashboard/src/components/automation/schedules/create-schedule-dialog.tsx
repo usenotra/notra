@@ -5,6 +5,7 @@ import {
   AlertCircleIcon,
   InformationCircleIcon,
   Loading03Icon,
+  Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
@@ -71,6 +72,10 @@ import { AddRepositoryDialog } from "@/components/integrations/add-repository-di
 import { LegacyAddIntegrationDialog as AddIntegrationDialog } from "@/components/integrations/legacy/add-integration-dialog";
 import { FORMAT_CARD_META, FORMAT_ORDER } from "@/constants/content-formats";
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
+import {
+  SCHEDULE_PRESETS,
+  type SchedulePresetId,
+} from "@/constants/schedule-presets";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   CreateScheduleDialogProps,
@@ -83,6 +88,7 @@ import {
   buildAutoScheduleName,
   formatTimeValue,
   getDefaultScheduleValues,
+  getPresetScheduleValues,
   parseTimeValue,
 } from "@/utils/schedule-form";
 
@@ -115,6 +121,9 @@ export function CreateScheduleDialog({
   );
 
   const [addRepoOpen, setAddRepoOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<SchedulePresetId | null>(
+    null
+  );
   const dialogOpen = open && !addRepoOpen;
   const comboboxAnchor = useComboboxAnchor();
 
@@ -195,11 +204,13 @@ export function CreateScheduleDialog({
     if (open) {
       form.reset(getDefaultScheduleValues(editTrigger));
       previousAutoNameRef.current = "";
+      setSelectedPreset(null);
     }
   }, [open, editTrigger, form]);
 
   const outputType = useStore(form.store, (s) => s.values.outputType);
   const schedule = useStore(form.store, (s) => s.values.schedule);
+  const lookbackWindow = useStore(form.store, (s) => s.values.lookbackWindow);
   const { frequency, hour, minute, dayOfWeek, dayOfMonth, intervalDays } =
     schedule;
   const repositoryCount = useStore(
@@ -301,6 +312,47 @@ export function CreateScheduleDialog({
     });
   };
 
+  const applyPreset = (presetId: SchedulePresetId) => {
+    const preset = getPresetScheduleValues(presetId);
+    form.setFieldValue("outputType", preset.outputType);
+    form.setFieldValue("schedule", preset.schedule);
+    form.setFieldValue("lookbackWindow", preset.lookbackWindow);
+    // Auto-publish is only supported by changelog / blog_post. Reset it so
+    // enabling it on one preset doesn't silently carry over to the next and
+    // back again (the submit path coerces it, but the switch state would lie).
+    form.setFieldValue("autoPublish", false);
+    setSelectedPreset(presetId);
+  };
+
+  // Clear the preset checkmark as soon as the form diverges from the preset
+  // (user tweaks format, cadence, time, day, or lookback after applying).
+  // anchorDate is intentionally ignored: it is stamped at click time and
+  // regenerated as "today" by getPresetScheduleValues, so comparing it would
+  // cause false mismatches.
+  useEffect(() => {
+    if (!selectedPreset) {
+      return;
+    }
+    const preset = getPresetScheduleValues(selectedPreset);
+    const scheduleMatches =
+      schedule.frequency === preset.schedule.frequency &&
+      schedule.hour === preset.schedule.hour &&
+      schedule.minute === preset.schedule.minute &&
+      (schedule.dayOfWeek ?? undefined) ===
+        (preset.schedule.dayOfWeek ?? undefined) &&
+      (schedule.dayOfMonth ?? undefined) ===
+        (preset.schedule.dayOfMonth ?? undefined) &&
+      (schedule.intervalDays ?? undefined) ===
+        (preset.schedule.intervalDays ?? undefined);
+    const matches =
+      outputType === preset.outputType &&
+      lookbackWindow === preset.lookbackWindow &&
+      scheduleMatches;
+    if (!matches) {
+      setSelectedPreset(null);
+    }
+  }, [selectedPreset, outputType, schedule, lookbackWindow]);
+
   const formError = useStore(form.store, (state) => {
     if (state.submissionAttempts === 0) {
       return null;
@@ -348,6 +400,64 @@ export function CreateScheduleDialog({
           >
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-8 p-6">
+                {!isEditMode && (
+                  <section className="space-y-3">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-semibold">
+                        Start from a preset
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Quick-start a common cadence, then tweak anything before
+                        saving.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {SCHEDULE_PRESETS.map((preset) => {
+                        const selected = selectedPreset === preset.id;
+                        return (
+                          <button
+                            aria-pressed={selected}
+                            className={cn(
+                              "group bg-card relative flex cursor-pointer flex-col gap-1 rounded-lg border p-4 text-left transition-colors",
+                              "hover:border-foreground/20",
+                              selected
+                                ? "border-foreground/40 bg-foreground/[0.02]"
+                                : "border-border"
+                            )}
+                            key={preset.id}
+                            onClick={() => applyPreset(preset.id)}
+                            type="button"
+                          >
+                            <span className="flex items-start justify-between gap-2">
+                              <span className="text-sm font-medium">
+                                {preset.label}
+                              </span>
+                              <span
+                                className={cn(
+                                  "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
+                                  selected
+                                    ? "border-foreground bg-foreground text-background"
+                                    : "border-muted-foreground/30 group-hover:border-muted-foreground/50"
+                                )}
+                              >
+                                {selected && (
+                                  <HugeiconsIcon
+                                    className="size-3"
+                                    icon={Tick01Icon}
+                                    strokeWidth={3}
+                                  />
+                                )}
+                              </span>
+                            </span>
+                            <span className="text-muted-foreground text-xs leading-relaxed">
+                              {preset.description}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
                 <section className="space-y-3">
                   <div className="space-y-1">
                     <h3 className="flex items-center gap-1 text-base font-semibold">
