@@ -1496,6 +1496,7 @@ function StandaloneChatPageClient({
       initialChatId,
       isProjectScopePending,
       isSlackMirrored,
+      organizationSlug,
       sendMessage,
       stableChatId,
       triggerFirstMessageTransition,
