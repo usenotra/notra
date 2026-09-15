@@ -45,6 +45,7 @@ import { legacyRedirectRoutes } from "./routes/legacy-redirects";
 import { postsRoutes } from "./routes/posts";
 import { schedulesRoutes } from "./routes/schedules";
 import { skillsRoutes } from "./routes/skills";
+import { workspaceRoutes } from "./routes/workspaces";
 import type { ApiEnv } from "./types/env";
 import type { ApiServerControl } from "./types/shutdown";
 import {
@@ -179,6 +180,10 @@ const oauthScopeMiddleware = async (c: Context, next: () => Promise<void>) => {
     // while making a newly added-but-unregistered operation unreachable.
     return c.json({ error: "Not found" }, 404);
   }
+  if (!requiredScope) {
+    return await authMiddleware({ legacyPermissions: [] })(c, next);
+  }
+
   // `expandLegacyApiScopes` is the registry's rule: `api.write` implies every
   // scope, `api.read` only the read scopes. So a read may fall back to either
   // legacy scope, while a write accepts `api.write` alone — offering
@@ -273,6 +278,7 @@ app.route("/v1", schedulesRoutes);
 app.route("/v1", eventTriggersRoutes);
 app.route("/v1", chatsRoutes);
 app.route("/v1", skillsRoutes);
+app.route("/v1", workspaceRoutes);
 app.route("/v1", feedbackRoutes);
 app.route("/v1", geoProjectsRoutes);
 app.route("/v1", geoSettingsRoutes);

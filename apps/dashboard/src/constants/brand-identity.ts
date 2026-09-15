@@ -18,12 +18,39 @@ export const ANALYSIS_STEPS = [
   { value: "saving", label: "Saving" },
 ];
 
-export const TONE_OPTIONS: { value: ToneProfile; label: string }[] = [
-  { value: "Conversational", label: "Conversational" },
-  { value: "Professional", label: "Professional" },
-  { value: "Casual", label: "Casual" },
-  { value: "Formal", label: "Formal" },
+export const TONE_OPTIONS: {
+  value: ToneProfile;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "Conversational",
+    label: "Conversational",
+    description: "Warm and direct, like talking to a peer.",
+  },
+  {
+    value: "Professional",
+    label: "Professional",
+    description: "Clear and confident without the fluff.",
+  },
+  {
+    value: "Casual",
+    label: "Casual",
+    description: "Relaxed, friendly, reads like a chat.",
+  },
+  {
+    value: "Formal",
+    label: "Formal",
+    description: "Precise and structured. No slang.",
+  },
 ];
+
+export const TONE_SELECT_ITEMS = Object.fromEntries(
+  TONE_OPTIONS.map((option) => [option.value, option.label])
+);
+
+export const TONE_SCOPE_NOTE =
+  "Tone only changes how things are phrased. Structure and facts stay the same. Pick Custom Tone to describe your own voice instead.";
 
 export const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES;
 

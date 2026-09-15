@@ -21,6 +21,7 @@ import {
   GEO_SCAN_STALE_MS,
 } from "../src/constants/geo";
 import { GeoContentBillingService, GeoWorkflowService } from "../src/deps";
+import { GeoScanError } from "../src/geo/errors";
 import { buildGeoPrompts } from "../src/geo/prompts";
 import type { GeoWorkflowServiceShape } from "../src/types/deps";
 import { EMPTY_AGENT_TOKEN_USAGE } from "../src/utils/token-usage";
@@ -583,6 +584,12 @@ describe("scheduled GEO scans", () => {
       .where(eq(geoScans.projectId, "refused"));
     expect(rows[0]?.status).toBe("failed");
     expect(rows[0]?.finishedAt).toBeInstanceOf(Date);
+    expect(rows[0]).toMatchObject({
+      errorCode: "scan_handoff_failed",
+      errorMessage: "The scan could not be started.",
+      failedStage: "handoff",
+      retryable: null,
+    });
     // The slot was already more than an interval overdue, so it is given up
     // rather than retried, and the row is no longer due.
     const refused = await settingsFor("refused");
@@ -762,6 +769,62 @@ describe("scan ownership and finalization", () => {
     }
   );
 
+  test("a failed project finalization persists its classified execution failure", async () => {
+    const scope = await seedProject("failed-finalization");
+    const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+    assert.ok(claim);
+    const scanId = await Effect.runPromise(createGeoScanRow(scope));
+
+    await Effect.runPromise(
+      finalizeGeoScanProject(
+        {
+          ...scope,
+          scanId,
+          runId: "run-test",
+          companyName: "Notra",
+          aliases: [],
+          startedAtMs: Date.now(),
+          gate: {
+            allowed: true,
+            mode: "unmetered",
+            featureId: null,
+            reserved: false,
+            lockId: null,
+            useMarkup: false,
+          },
+        },
+        {
+          checks: 0,
+          mentions: 0,
+          dropped: 1,
+          usage: EMPTY_AGENT_TOKEN_USAGE,
+        },
+        "failed",
+        claim.claimedAt.toISOString(),
+        {
+          errorCode: "geo_scan_error",
+          errorMessage: "The scan engine was unavailable.",
+          failedStage: "execution",
+          retryable: true,
+        }
+      ).pipe(
+        Effect.provideService(GeoContentBillingService, {
+          gateContentBilling: () => Effect.die("Unexpected billing gate"),
+          finalizeContentBilling: () => Effect.void,
+        })
+      )
+    );
+
+    expect((await testDb.select().from(geoScans))[0]).toMatchObject({
+      id: scanId,
+      status: "failed",
+      errorCode: "geo_scan_error",
+      errorMessage: "The scan engine was unavailable.",
+      failedStage: "execution",
+      retryable: true,
+    });
+  });
+
   test("only one claimant and one duplicate delivery can acquire or renew a token", async () => {
     await seedProject("claim");
     const claims = await Promise.all(
@@ -854,7 +917,13 @@ describe("scan ownership and finalization", () => {
             expect(id).toBe(scanId);
             return status === "completed"
               ? Effect.succeed("answer")
-              : Effect.fail(new Error("Engine unavailable"));
+              : Effect.fail(
+                  new GeoScanError({
+                    message: "The scan engine was unavailable.",
+                    timedOut: true,
+                    cause: new Error("secret provider response"),
+                  })
+                );
           },
           { scanId, claimedAt: claim.claimedAt }
         )
@@ -864,6 +933,26 @@ describe("scan ownership and finalization", () => {
       expect(scans).toHaveLength(1);
       expect(scans[0]).toMatchObject({ id: scanId, status });
       expect(scans[0]?.finishedAt).toBeInstanceOf(Date);
+      expect(scans[0]).toMatchObject(
+        status === "failed"
+          ? {
+              errorCode: "geo_scan_error",
+              errorMessage: "The scan engine was unavailable.",
+              failedStage: "execution",
+              retryable: true,
+            }
+          : {
+              errorCode: null,
+              errorMessage: null,
+              failedStage: null,
+              retryable: null,
+            }
+      );
+      if (status === "failed") {
+        expect(scans[0]?.errorMessage).not.toContain(
+          "secret provider response"
+        );
+      }
       expect((await settingsFor("run"))?.scanStartedAt).toBeNull();
       expect((await settingsFor("run"))?.lastScanAt).toBeInstanceOf(Date);
     }
@@ -917,6 +1006,12 @@ describe("scan ownership and finalization", () => {
     expect(rows.find((row) => row.id === "done")?.status).toBe("completed");
     expect(rows.find((row) => row.id === "dead")?.status).toBe("failed");
     expect(rows.find((row) => row.id === "released")?.status).toBe("failed");
+    expect(rows.find((row) => row.id === "dead")).toMatchObject({
+      errorCode: "scan_stale",
+      errorMessage: "The scan stopped before it could be completed.",
+      failedStage: "stale",
+      retryable: true,
+    });
   });
 
   test("insert failure releases the claim without starting a workflow", async () => {

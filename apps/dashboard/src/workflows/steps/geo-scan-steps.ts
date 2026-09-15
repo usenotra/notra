@@ -10,6 +10,7 @@ import {
 import { renewGeoScanClaimIfDue } from "@notra/geo-core/geo/scan-status";
 import type {
   GeoScanBatchOutcome,
+  GeoScanFailureMetadata,
   GeoScanPlannedPersona,
   GeoScanPlannedSequence,
   GeoScanPlannedTask,
@@ -169,14 +170,22 @@ export async function finalizeGeoScanProjectStep(
   totals: GeoScanProjectTotals,
   status: "completed" | "failed",
   claimedAt: string,
-  options: { retried: boolean; failureReason?: string }
+  options: {
+    retried: boolean;
+    failureReason?: string;
+    failure?: GeoScanFailureMetadata;
+  }
 ): Promise<void> {
   "use step";
   try {
     await Effect.runPromise(
-      finalizeGeoScanProject(context, totals, status, claimedAt).pipe(
-        Effect.provide(geoCoreDashboardLayer)
-      )
+      finalizeGeoScanProject(
+        context,
+        totals,
+        status,
+        claimedAt,
+        options.failure
+      ).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     const durationMs = Date.now() - context.startedAtMs;
     if (status === "completed") {

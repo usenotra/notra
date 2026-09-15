@@ -2,7 +2,7 @@ import type { V2KeysVerifyKeyResponseData } from "@unkey/api/models/components";
 
 type ApiKeyAuthData = V2KeysVerifyKeyResponseData;
 
-interface OAuthAuthData {
+export interface OAuthAuthData {
   type: "oauth";
   keyId: string;
   userId: string;
@@ -22,7 +22,8 @@ export interface IngestAuthData {
   };
 }
 
-export type AuthData = ApiKeyAuthData | OAuthAuthData | IngestAuthData;
+export type WorkspaceAuthData = ApiKeyAuthData | OAuthAuthData;
+export type AuthData = WorkspaceAuthData | IngestAuthData;
 
 export function getOrganizationIdFromAuth(auth: AuthData): string | null {
   return auth.identity?.externalId ?? null;
@@ -30,4 +31,8 @@ export function getOrganizationIdFromAuth(auth: AuthData): string | null {
 
 export function isIngestAuth(auth: AuthData): auth is IngestAuthData {
   return "type" in auth && auth.type === "ingest";
+}
+
+export function isOAuthAuth(auth: AuthData): auth is OAuthAuthData {
+  return "type" in auth && auth.type === "oauth";
 }

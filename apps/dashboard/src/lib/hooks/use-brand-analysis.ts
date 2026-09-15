@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import type {
   BrandSettings,
+  BrandSettingsQueryOptions,
   BrandSettingsResponse,
   ProgressResponse,
 } from "@/types/hooks/brand-analysis";
@@ -26,11 +27,14 @@ const IDLE_PROGRESS: ProgressResponse["progress"] = {
   totalSteps: 3,
 };
 
-export function useBrandSettings(organizationId: string) {
+export function useBrandSettings(
+  organizationId: string,
+  options?: BrandSettingsQueryOptions
+) {
   return useQuery<BrandSettingsResponse>(
     dashboardOrpc.brand.voices.list.queryOptions({
       input: { organizationId },
-      enabled: !!organizationId,
+      enabled: !!organizationId && (options?.enabled ?? true),
     })
   );
 }

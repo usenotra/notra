@@ -28,11 +28,12 @@ async function Page({
 }) {
   const { slug } = await params;
   await redirectOrgRootToStoredMode(slug, searchParams);
-  const [{ organization, user }, requestHeaders, search] = await Promise.all([
-    validateOrganizationAccess(slug),
-    headers(),
-    searchParams,
-  ]);
+  const [{ organization, user, member }, requestHeaders, search] =
+    await Promise.all([
+      validateOrganizationAccess(slug),
+      headers(),
+      searchParams,
+    ]);
   const projectId = await resolveInitialGeoProjectId(
     organization.id,
     slug,
@@ -47,7 +48,8 @@ async function Page({
       state={await dehydrateDashboardHomeQueries(
         organization.id,
         projectId,
-        requestHeaders
+        requestHeaders,
+        member && { userId: user.id, id: member.id, role: member.role }
       )}
     >
       <Suspense fallback={<DashboardPageSkeleton />}>

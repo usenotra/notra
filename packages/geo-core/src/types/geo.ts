@@ -662,6 +662,13 @@ export interface GeoScanBatchOutcome {
   usage: AgentTokenUsage;
 }
 
+export interface GeoScanFailureMetadata {
+  readonly errorCode: string;
+  readonly errorMessage: string;
+  readonly failedStage: "handoff" | "execution" | "stale";
+  readonly retryable: boolean | null;
+}
+
 export interface GeoScanProjectTotals {
   checks: number;
   mentions: number;

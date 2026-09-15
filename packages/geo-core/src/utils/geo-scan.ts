@@ -16,8 +16,10 @@ import {
   GEO_SCAN_SIZE_WARN_THRESHOLD,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
+import { GeoScanError } from "../geo/errors";
 import type {
   GeoEngineAttemptSummary,
+  GeoScanFailureMetadata,
   GeoScanSizeInput,
   GeoScanSizeSeverity,
 } from "../types/geo";
@@ -153,10 +155,53 @@ export function chunkGeoScanItems<T>(items: readonly T[], size: number): T[][] {
 }
 
 export function describeGeoScanFailure(error: unknown): string {
-  if (error instanceof Error && error.name.length > 0) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    typeof error.name === "string" &&
+    error.name.length > 0
+  ) {
     return error.name;
   }
   return "unknown";
+}
+
+function geoScanErrorTagCode(tag: string): string {
+  return tag
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .toLowerCase();
+}
+
+export function classifyGeoScanExecutionFailure(
+  error: unknown
+): GeoScanFailureMetadata {
+  const fallback: GeoScanFailureMetadata = {
+    errorCode: "scan_execution_failed",
+    errorMessage: "The scan could not be completed.",
+    failedStage: "execution",
+    retryable: null,
+  };
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("_tag" in error) ||
+    typeof error._tag !== "string"
+  ) {
+    return fallback;
+  }
+  return {
+    errorCode: geoScanErrorTagCode(error._tag),
+    errorMessage:
+      (error instanceof GeoScanError || error._tag === "GeoScanError") &&
+      "message" in error &&
+      typeof error.message === "string"
+        ? error.message
+        : fallback.errorMessage,
+    failedStage: "execution",
+    retryable: "timedOut" in error && error.timedOut === true ? true : null,
+  };
 }
 
 /** "day", "3 days", "36 hours" — the noun that follows "every". */

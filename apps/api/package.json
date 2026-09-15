@@ -25,6 +25,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.35.8",
     "@vercel/oidc": "^3.8.0",
+    "@workos-inc/node": "^10.10.0",
     "ai": "6.0.206",
     "autumn-js": "^1.2.5",
     "drizzle-orm": "^0.45.2",
@@ -39,6 +40,7 @@
     "zod": "^4.5.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@notra/typescript-config": "workspace:*",
     "@types/sanitize-html": "^2.16.0",
     "knip": "^6.12.1",

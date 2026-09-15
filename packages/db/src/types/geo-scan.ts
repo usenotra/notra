@@ -8,6 +8,19 @@ export interface GeoScanPlanSnapshot {
   languages: string[];
 }
 
+export interface GeoScanPlanEngineSummary {
+  readonly engine: string;
+  readonly plannedChecks: number;
+  readonly failedChecks: number;
+}
+
+export interface GeoScanPlanSummary {
+  readonly plannedChecks: number;
+  readonly hasTasks: boolean;
+  readonly engines: string[];
+  readonly taskCounts: GeoScanPlanEngineSummary[];
+}
+
 export interface GeoScanPlannedAnswer {
   personaId?: string;
   sequenceId?: string;

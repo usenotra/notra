@@ -9,9 +9,11 @@ import {
 } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import {
+  TRAFFIC_HERO_CHART_SURFACE_CLASS,
   TRAFFIC_HERO_FRAME_CLASS,
   TRAFFIC_HERO_METRIC_CELL_CLASS,
   TRAFFIC_HERO_METRICS_GRID_CLASS,
+  TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +35,12 @@ export function GeoTrafficSkeleton() {
         </header>
         <div className="flex flex-col gap-6">
           <div className={TRAFFIC_HERO_FRAME_CLASS}>
-            <div className={cn(TRAFFIC_HERO_METRICS_GRID_CLASS, "bg-muted/40")}>
+            <div
+              className={cn(
+                TRAFFIC_HERO_METRICS_GRID_CLASS,
+                TRAFFIC_HERO_METRICS_SURFACE_CLASS
+              )}
+            >
               {GEO_TRAFFIC_FUNNEL_STAGES.map((stage) => (
                 <div className={TRAFFIC_HERO_METRIC_CELL_CLASS} key={stage.key}>
                   <Skeleton className="h-5 w-28 @sm/hero:h-6 @sm/hero:w-32" />
@@ -44,7 +51,7 @@ export function GeoTrafficSkeleton() {
                 </div>
               ))}
             </div>
-            <div className="border-border border-t p-4">
+            <div className={TRAFFIC_HERO_CHART_SURFACE_CLASS}>
               <Skeleton className="h-52 w-full rounded-xl @md/hero:h-72" />
             </div>
           </div>

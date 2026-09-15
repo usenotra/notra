@@ -64,7 +64,7 @@ export interface ApiScopeResourceDefinition {
 export const API_OPENAPI_TAGS = [
   {
     name: "Discovery",
-    description: "Public API status and service discovery.",
+    description: "Public API status and authenticated workspace discovery.",
   },
   {
     name: "Content",
@@ -377,7 +377,10 @@ const MUTATION_METHODS: ReadonlySet<string> = new Set([
   "DELETE",
 ]);
 const VERSION_PREFIX_REGEX = /^\/v[12](?=\/|$)/;
-const UNSCOPED_PATHS: ReadonlySet<string> = new Set(["/status"]);
+const UNSCOPED_PATHS: ReadonlySet<string> = new Set([
+  "/status",
+  "/me/workspaces",
+]);
 
 function normalizeApiPath(pathname: string): string {
   return pathname.replace(VERSION_PREFIX_REGEX, "") || "/";

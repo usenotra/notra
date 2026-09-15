@@ -57,6 +57,44 @@ export const updateGeoScanTaskStatus = Effect.fn("geo.updateScanTaskStatus")(
         .update(geoScans)
         .set({
           plan: sql`jsonb_set(${geoScans.plan}, '{taskStates}', coalesce(${geoScans.plan}->'taskStates', '{}'::jsonb) || jsonb_build_object(${key}::text, ${status}::text))`,
+          planSummary: sql`
+            case
+              when ${geoScans.planSummary} is null then null
+              when ${geoScans.plan}->'taskStates'->>${key} is not distinct from ${status}::text
+                then ${geoScans.planSummary}
+              else jsonb_set(
+                ${geoScans.planSummary},
+                '{taskCounts}',
+                coalesce((
+                  select jsonb_agg(
+                    case
+                      when counts.item->>'engine' = ${task.engine}::text then
+                        jsonb_set(
+                          counts.item,
+                          '{failedChecks}',
+                          to_jsonb(greatest(
+                            0,
+                            coalesce((counts.item->>'failedChecks')::integer, 0) +
+                              case
+                                when ${geoScans.plan}->'taskStates'->>${key} = 'failed'
+                                  and ${status}::text <> 'failed' then -1
+                                when ${geoScans.plan}->'taskStates'->>${key} is distinct from 'failed'
+                                  and ${status}::text = 'failed' then 1
+                                else 0
+                              end
+                          ))
+                        )
+                      else counts.item
+                    end
+                    order by counts.ordinality
+                  )
+                  from jsonb_array_elements(
+                    coalesce(${geoScans.planSummary}->'taskCounts', '[]'::jsonb)
+                  ) with ordinality as counts(item, ordinality)
+                ), '[]'::jsonb)
+              )
+            end
+          `,
         })
         .where(
           and(
