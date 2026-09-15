@@ -219,6 +219,7 @@ import {
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { after } from "next/server";
 
 import {
   GEO_COMPETITOR_SOURCES,
@@ -906,7 +907,15 @@ export const geoRouter = {
     .input(sentimentPeriodInputSchema)
     .handler(
       geoHandler((input) =>
-        loadGeoSentimentAnalysis(input, geoWindow(input), true)
+        loadGeoSentimentAnalysis(input, geoWindow(input), true, (task) =>
+          after(async () => {
+            try {
+              await task();
+            } catch (error) {
+              console.error("Could not analyze GEO sentiment", { error });
+            }
+          })
+        )
       )
     ),
   sentimentEvidence: authorizedProcedure

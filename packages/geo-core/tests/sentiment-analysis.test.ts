@@ -341,6 +341,40 @@ test("read path never extracts; concurrent calls singleflight and ready calls id
   expect(outdated.result?.themes).toHaveLength(1);
 });
 
+test("deferred runs claim the lease and return pending before extraction", async () => {
+  const { store } = memoryStore();
+  let deferred: (() => Promise<void>) | undefined;
+  let calls = 0;
+  const run = {
+    key: "deferred-scope",
+    store,
+    snapshot: async () => ({ fingerprint: "a", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => {
+      calls++;
+      return output;
+    },
+    defer: (task: () => Promise<void>) => {
+      deferred = task;
+    },
+  };
+
+  expect(await runSentimentAnalysis(run)).toEqual({
+    status: "pending",
+    result: null,
+    message: null,
+  });
+  expect(calls).toBe(0);
+  expect(await store.locked("deferred-scope:lock")).toBe(true);
+  expect((await readSentimentAnalysis(run)).status).toBe("pending");
+
+  assert.ok(deferred);
+  await deferred();
+
+  expect(calls).toBe(1);
+  expect((await readSentimentAnalysis(run)).status).toBe("ready");
+});
+
 test("empty history does not call the model; cache results cannot cross scopes", async () => {
   const { store } = memoryStore();
   const run = {

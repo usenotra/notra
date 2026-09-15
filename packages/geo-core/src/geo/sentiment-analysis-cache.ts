@@ -8,6 +8,7 @@ import {
 } from "../constants/sentiment-analysis";
 import type {
   SentimentAnalysisRun,
+  SentimentAnalysisSnapshot,
   SentimentAnalysisState,
   SentimentAnalysisStore,
 } from "../types/sentiment-analysis";
@@ -67,28 +68,15 @@ export async function readSentimentAnalysis(
       };
 }
 
-export async function runSentimentAnalysis(
-  run: SentimentAnalysisRun
+async function completeSentimentAnalysis(
+  run: SentimentAnalysisRun,
+  snapshot: SentimentAnalysisSnapshot,
+  key: string,
+  lock: string,
+  token: string
 ): Promise<SentimentAnalysisState> {
-  const snapshot = await run.snapshot();
-  const key = `${run.key}:${snapshot.fingerprint}`;
-  const cached = await run.store.get(key);
-  if (cached?.status === "ready") {
-    return cached;
-  }
-  const token = crypto.randomUUID();
-  const lock = `${run.key}:lock`;
-  if (!(await run.store.claim(lock, token))) {
-    return { status: "pending", result: null, message: null };
-  }
   let state: SentimentAnalysisState;
   try {
-    // Another request can finish between our first read and acquiring the lease.
-    const settled = await run.store.get(key);
-    if (settled?.status === "ready") {
-      await run.store.commit(lock, key, token, settled, `${run.key}:latest`);
-      return settled;
-    }
     const sample = await run.sample();
     if ((await run.snapshot()).fingerprint !== snapshot.fingerprint) {
       throw new Error("Historical inputs changed");
@@ -133,4 +121,35 @@ export async function runSentimentAnalysis(
     };
   }
   return state;
+}
+
+export async function runSentimentAnalysis(
+  run: SentimentAnalysisRun
+): Promise<SentimentAnalysisState> {
+  const snapshot = await run.snapshot();
+  const key = `${run.key}:${snapshot.fingerprint}`;
+  const cached = await run.store.get(key);
+  if (cached?.status === "ready") {
+    return cached;
+  }
+  const token = crypto.randomUUID();
+  const lock = `${run.key}:lock`;
+  if (!(await run.store.claim(lock, token))) {
+    return { status: "pending", result: null, message: null };
+  }
+  // Another request can finish between our first read and acquiring the lease.
+  const settled = await run.store.get(key);
+  if (settled?.status === "ready") {
+    await run.store.commit(lock, key, token, settled, `${run.key}:latest`);
+    return settled;
+  }
+  const complete = () =>
+    completeSentimentAnalysis(run, snapshot, key, lock, token);
+  if (run.defer) {
+    run.defer(async () => {
+      await complete();
+    });
+    return { status: "pending", result: null, message: null };
+  }
+  return complete();
 }
