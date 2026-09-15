@@ -403,6 +403,8 @@ export async function runGeoWriter(
     brief,
     topic,
     brandName,
+    toneProfile,
+    customTone,
     sourceMetadata,
     log,
     telemetryMetadata,
@@ -425,6 +427,8 @@ export async function runGeoWriter(
   const instructions = buildGeoWriterInstructions({
     brief,
     brandName,
+    toneProfile,
+    customTone,
     topic,
     today: now.toISOString().slice(0, 10),
     monthYear: formatMonthYear(now),
