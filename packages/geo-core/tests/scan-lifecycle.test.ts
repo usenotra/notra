@@ -769,6 +769,62 @@ describe("scan ownership and finalization", () => {
     }
   );
 
+  test("a failed project finalization persists its classified execution failure", async () => {
+    const scope = await seedProject("failed-finalization");
+    const claim = await Effect.runPromise(claimGeoScanRun(scope.projectId));
+    assert.ok(claim);
+    const scanId = await Effect.runPromise(createGeoScanRow(scope));
+
+    await Effect.runPromise(
+      finalizeGeoScanProject(
+        {
+          ...scope,
+          scanId,
+          runId: "run-test",
+          companyName: "Notra",
+          aliases: [],
+          startedAtMs: Date.now(),
+          gate: {
+            allowed: true,
+            mode: "unmetered",
+            featureId: null,
+            reserved: false,
+            lockId: null,
+            useMarkup: false,
+          },
+        },
+        {
+          checks: 0,
+          mentions: 0,
+          dropped: 1,
+          usage: EMPTY_AGENT_TOKEN_USAGE,
+        },
+        "failed",
+        claim.claimedAt.toISOString(),
+        {
+          errorCode: "geo_scan_error",
+          errorMessage: "The scan engine was unavailable.",
+          failedStage: "execution",
+          retryable: true,
+        }
+      ).pipe(
+        Effect.provideService(GeoContentBillingService, {
+          gateContentBilling: () => Effect.die("Unexpected billing gate"),
+          finalizeContentBilling: () => Effect.void,
+        })
+      )
+    );
+
+    expect((await testDb.select().from(geoScans))[0]).toMatchObject({
+      id: scanId,
+      status: "failed",
+      errorCode: "geo_scan_error",
+      errorMessage: "The scan engine was unavailable.",
+      failedStage: "execution",
+      retryable: true,
+    });
+  });
+
   test("only one claimant and one duplicate delivery can acquire or renew a token", async () => {
     await seedProject("claim");
     const claims = await Promise.all(

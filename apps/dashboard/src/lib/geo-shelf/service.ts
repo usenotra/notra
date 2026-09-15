@@ -6,13 +6,18 @@ import {
   loadGeoSettings,
 } from "@notra/geo-core/geo/programs";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
-import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
+import {
+  geoShelfCitationSummarySchema,
+  geoShelfSourceSchema,
+} from "@notra/schemas/dashboard/geo-shelf";
 import {
   canonicalizeShelfUrl,
   shelfDomainFromUrl,
+  tryCanonicalizeShelfUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
+import { after } from "next/server";
 
 import {
   GEO_SHELF_DUPLICATE_URL_MESSAGE,
@@ -28,25 +33,38 @@ import {
 import { buildGeoShelfFixture } from "@/lib/geo-shelf/fixtures";
 import { assertGeoShelfOpportunityMembers } from "@/lib/geo-shelf/members";
 import {
-  findGeoShelfSourceByUrl,
+  type GeoShelfDbExecutor,
   insertGeoShelfSource,
   insertGeoShelfSources,
+  listGeoShelfCitationStates,
+  listGeoShelfSourceUrls,
   listPersistedGeoShelfSources,
   patchGeoShelfSource,
+  queryGeoShelfSourcePage,
   updateGeoShelfCitations,
 } from "@/lib/geo-shelf/store";
+import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { conflict } from "@/lib/orpc/utils/errors";
 import { getWebsiteDomain } from "@/utils/brand";
+import {
+  compareGeoShelfSources,
+  countGeoShelfBoardColumns,
+  matchesGeoShelfSourceFilters,
+} from "@/utils/geo-shelf-live-query";
 
 import type {
+  GeoShelfCitationState,
   GeoShelfCitedPage,
   GeoShelfCreateInput,
+  GeoShelfMember,
   GeoShelfOpportunity,
   GeoShelfOpportunityWrite,
+  GeoShelfPageQuery,
   GeoShelfPlacement,
   GeoShelfPlacementWrite,
+  GeoShelfSearchQuery,
   GeoShelfSource,
-  GeoShelfSourceList,
+  GeoShelfSourcePage,
   GeoShelfStoreKey,
   GeoShelfStoreSeed,
   GeoShelfUpdateInput,
@@ -145,22 +163,39 @@ function buildScanShelfSource(
 }
 
 /**
- * Shelf space is cited scan pages plus anything added by hand. Historical
- * mention-checks are folded in on read so Reddit (and other cited hosts)
- * show up without waiting for the next scan.
+ * Shelf space is cited scan pages plus anything added by hand. The cited pages
+ * are folded in from the whole mention-check history, which is too expensive
+ * for every page view, so this runs when a scan or conversation run finishes.
+ * Returns how many shelf sources it inserted or updated, so a caller that
+ * already read the page knows when to read it again.
  */
-async function syncCitedShelfSources(
+async function syncGeoShelfCitations(seed: GeoShelfStoreSeed): Promise<number> {
+  const key = storeKey(seed);
+  // A scan and a conversation run can finish together. Holding a per-project
+  // lock for read and write keeps an older snapshot from landing last.
+  return await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`geo-shelf-sync:${key.projectId}`}, 0))`
+    );
+    const cited = await queryCitedShelfPages(key, tx);
+    if (cited.length === 0) {
+      return 0;
+    }
+    const stored = await listGeoShelfCitationStates(key, tx);
+    return await writeCitedShelfPages(seed, cited, stored, tx);
+  });
+}
+
+async function writeCitedShelfPages(
   seed: GeoShelfStoreSeed,
-  persisted: GeoShelfSource[]
-): Promise<GeoShelfSource[]> {
-  const cited = await queryCitedShelfPages(storeKey(seed));
-  if (cited.length === 0) {
-    return persisted;
-  }
+  cited: GeoShelfCitedPage[],
+  stored: GeoShelfCitationState[],
+  executor: GeoShelfDbExecutor
+): Promise<number> {
+  const key = storeKey(seed);
 
   const nowIso = new Date().toISOString();
-  const remaining = new Map(persisted.map((source) => [source.url, source]));
-  const next: GeoShelfSource[] = [];
+  const storedByUrl = new Map(stored.map((state) => [state.url, state]));
   const toInsert: GeoShelfSource[] = [];
   const citationUpdates: {
     id: string;
@@ -169,62 +204,176 @@ async function syncCitedShelfSources(
   }[] = [];
 
   for (const page of cited) {
-    const existing = remaining.get(page.url);
+    const existing = storedByUrl.get(page.url);
     if (!existing) {
-      const source = buildScanShelfSource(seed, page, nowIso);
-      toInsert.push(source);
-      next.push(source);
+      toInsert.push(buildScanShelfSource(seed, page, nowIso));
       continue;
     }
-    remaining.delete(page.url);
     const title = existing.title ?? page.title;
-    const citationsChanged = !citationsEqual(
-      existing.citations,
-      page.citations
+    const storedCitations = geoShelfCitationSummarySchema.safeParse(
+      existing.citations
     );
-    const titleChanged = title !== existing.title;
-    if (citationsChanged || titleChanged) {
+    const citationsChanged =
+      !storedCitations.success ||
+      !citationsEqual(storedCitations.data, page.citations);
+    if (citationsChanged || title !== existing.title) {
       citationUpdates.push({
         id: existing.id,
         citations: page.citations,
         title,
       });
     }
-    next.push(
-      citationsChanged || titleChanged
-        ? { ...existing, title, citations: page.citations }
-        : existing
-    );
-  }
-  next.push(...remaining.values());
-
-  const [inserted] = await Promise.all([
-    insertGeoShelfSources(storeKey(seed), toInsert),
-    updateGeoShelfCitations(storeKey(seed), citationUpdates),
-  ]);
-  if (inserted.length === 0) {
-    return next;
   }
 
-  const insertedByUrl = new Map(inserted.map((source) => [source.url, source]));
-  return next.map((source) => insertedByUrl.get(source.url) ?? source);
+  const inserted = await insertGeoShelfSources(key, toInsert, executor);
+  await updateGeoShelfCitations(key, citationUpdates, executor);
+  return inserted.length + citationUpdates.length;
 }
 
-export async function listGeoShelfSources(
-  seed: GeoShelfStoreSeed
-): Promise<GeoShelfSourceList> {
+/** Runs after the response, so a failed refresh never fails the run itself. */
+export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
+  const target = {
+    organizationId: scope.organizationId,
+    projectId: scope.projectId,
+  };
+  after(async () => {
+    try {
+      await syncGeoShelfCitationsForScope(target);
+    } catch (error) {
+      console.error("Could not refresh GEO shelf citations", {
+        ...target,
+        error,
+      });
+    }
+  });
+}
+
+/**
+ * Rows stored before URLs were canonicalized keep their raw URL, so both sides
+ * are canonicalized instead of matching the column exactly.
+ */
+export async function isGeoShelfUrlOnShelf(
+  seed: GeoShelfStoreSeed,
+  url: string
+): Promise<boolean> {
+  const canonical = canonicalizeShelfUrl(url);
+  const storedUrls = await listGeoShelfSourceUrls(storeKey(seed));
+  const fixtureUrls = seedFixture(seed)().map((source) => source.url);
+  return [...storedUrls, ...fixtureUrls].some(
+    (stored) => (tryCanonicalizeShelfUrl(stored) ?? stored) === canonical
+  );
+}
+
+/** Entry point for background jobs that only know the project scope. */
+export async function syncGeoShelfCitationsForScope(
+  scope: GeoScopeInput
+): Promise<number> {
+  const context = await Effect.runPromise(
+    loadGeoShelfContext(scope).pipe(Effect.provide(geoCoreDashboardLayer))
+  );
+  if (!context.settings) {
+    return 0;
+  }
+  return await syncGeoShelfCitations({
+    ...context,
+    settings: context.settings,
+    members: [],
+  });
+}
+
+/**
+ * Member and competitor names are not stored on the shelf rows, so a search
+ * for them is resolved to ids before it reaches the page query.
+ */
+export function resolveGeoShelfSearch(
+  text: string,
+  members: readonly GeoShelfMember[],
+  competitors: readonly GeoShelfStoreSeed["competitors"][number][]
+): GeoShelfSearchQuery | null {
+  const query = text.trim().toLowerCase();
+  if (query.length === 0) {
+    return null;
+  }
+  return {
+    text: query,
+    competitorIds: competitors
+      .filter((competitor) => competitor.name.toLowerCase().includes(query))
+      .map((competitor) => competitor.id),
+    memberIds: members
+      .filter((member) => member.name.toLowerCase().includes(query))
+      .map((member) => member.id),
+  };
+}
+
+/** Sample data only exists in development, so paging it in memory is fine. */
+function pageSampleGeoShelfSources(
+  seed: GeoShelfStoreSeed,
+  sources: GeoShelfSource[],
+  query: GeoShelfPageQuery
+): GeoShelfSourcePage {
+  const filters = {
+    search: query.search?.text ?? "",
+    shelf: query.shelf,
+    ticket: query.ticket,
+    currentMemberId: query.currentMemberId,
+  };
+  const matching = sources
+    .filter((source) =>
+      matchesGeoShelfSourceFilters(
+        source,
+        filters,
+        seed.members,
+        seed.competitors
+      )
+    )
+    .sort((left, right) => compareGeoShelfSources(left, right, query.sort));
+  const end = query.offset + query.limit;
+  return {
+    sources: matching.slice(query.offset, end),
+    nextOffset: end < matching.length ? end : null,
+    totalCount: sources.length,
+    filteredCount: matching.length,
+    boardCounts: countGeoShelfBoardColumns(matching),
+    hasScanData: hasGeoShelfScanData(sources),
+    isSampleData: true,
+  };
+}
+
+export async function listGeoShelfSourcePage(
+  seed: GeoShelfStoreSeed,
+  query: GeoShelfPageQuery
+): Promise<GeoShelfSourcePage> {
   const key = storeKey(seed);
-  const persisted = await listPersistedGeoShelfSources(key);
-  const sources = await syncCitedShelfSources(seed, persisted);
   const fixtures = seedFixture(seed)();
-  if (fixtures.length === 0) {
-    return { sources, isSampleData: false };
+  if (fixtures.length > 0) {
+    let persisted = await listPersistedGeoShelfSources(key);
+    if (
+      !hasGeoShelfScanData(persisted) &&
+      (await syncGeoShelfCitations(seed)) > 0
+    ) {
+      persisted = await listPersistedGeoShelfSources(key);
+    }
+    const sourceByUrl = new Map(fixtures.map((source) => [source.url, source]));
+    for (const source of persisted) {
+      sourceByUrl.set(source.url, source);
+    }
+    return pageSampleGeoShelfSources(seed, [...sourceByUrl.values()], query);
   }
-  const sourceByUrl = new Map(fixtures.map((source) => [source.url, source]));
-  for (const source of sources) {
-    sourceByUrl.set(source.url, source);
+
+  const page = await queryGeoShelfSourcePage(key, query);
+  // A project whose last scan predates the post-scan sync has no scan rows
+  // yet, even when someone already added a shelf by hand.
+  if (
+    page.hasScanData ||
+    query.offset > 0 ||
+    (await syncGeoShelfCitations(seed)) === 0
+  ) {
+    return { ...page, isSampleData: false };
   }
-  return { sources: [...sourceByUrl.values()], isSampleData: true };
+  return {
+    ...(await queryGeoShelfSourcePage(key, query)),
+    isSampleData: false,
+  };
 }
 
 function isClosedStatus(status: GeoShelfOpportunityWrite["status"]): boolean {
@@ -383,8 +532,7 @@ export async function createGeoShelfSource(
   const nowIso = new Date().toISOString();
   const url = canonicalizeShelfUrl(input.url);
   const key = storeKey(seed);
-  const seedSources = seedFixture(seed);
-  if (await findGeoShelfSourceByUrl(key, seedSources, url)) {
+  if (await isGeoShelfUrlOnShelf(seed, url)) {
     throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
   }
   // Validate before touching the store: a rejected record must not end up in
@@ -479,6 +627,6 @@ export async function updateGeoShelfSource(
   return { source, assigneeChanged, placementsChanged };
 }
 
-export function hasGeoShelfScanData(sources: GeoShelfSource[]): boolean {
+function hasGeoShelfScanData(sources: GeoShelfSource[]): boolean {
   return sources.some((source) => source.origin === "scan");
 }

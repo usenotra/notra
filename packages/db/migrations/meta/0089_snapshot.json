@@ -1,5 +1,5 @@
 {
-  "id": "4268195e-e9b3-4596-966d-f830c0960d60",
+  "id": "a2d1f552-dbe6-44e4-85b8-4925a8a69417",
   "prevId": "e2bea0f8-7565-4fd7-a87d-c7fdf584d405",
   "version": "7",
   "dialect": "postgresql",
@@ -6172,30 +6172,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "error_code": {
-          "name": "error_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "error_message": {
-          "name": "error_message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "failed_stage": {
-          "name": "failed_stage",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "retryable": {
-          "name": "retryable",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
         "started_at": {
           "name": "started_at",
           "type": "timestamp",
@@ -6380,6 +6356,13 @@
         },
         "removed_auto_prompt_ids": {
           "name": "removed_auto_prompt_ids",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
+        },
+        "ignored_gap_prompt_ids": {
+          "name": "ignored_gap_prompt_ids",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,

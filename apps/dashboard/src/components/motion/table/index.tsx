@@ -38,6 +38,7 @@ export function Table<T>({
   sort: sortProp,
   defaultSort = null,
   onSortChange,
+  manualSort = false,
   resizable = false,
   minColumnWidth = DEFAULT_MIN_COLUMN_WIDTH,
   onColumnResize,
@@ -94,6 +95,7 @@ export function Table<T>({
     sort: sortProp,
     defaultSort,
     onSortChange,
+    manualSort,
   });
   const { widths, startResize, moveResize, endResize } = useColumnResize({
     orderedColumns,

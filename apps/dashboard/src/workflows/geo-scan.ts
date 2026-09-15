@@ -5,9 +5,11 @@ import {
   GEO_SCAN_SEQUENCE_BATCH_SIZE,
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
+import { classifyGeoScanExecutionFailure } from "@notra/geo-core/geo/scan-status";
 import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
 import type {
   GeoScanBatchOutcome,
+  GeoScanFailureMetadata,
   GeoScanProjectContext,
   GeoScanProjectPlan,
   GeoScanProjectTotals,
@@ -40,6 +42,7 @@ import {
   runGeoScanTaskBatchStep,
   trackGeoScanRetryScheduledStep,
 } from "./steps/geo-scan-steps";
+import { syncGeoShelfCitationsStep } from "./steps/sync-geo-shelf-citations";
 
 interface GeoScanProjectOutcome {
   totals: GeoScanProjectTotals;
@@ -156,15 +159,41 @@ async function finalizeProjectRun(
   options: {
     retried: boolean;
     failureReason?: string;
+    failure?: GeoScanFailureMetadata;
     retentionDays?: LogRetentionDays;
   }
 ): Promise<void> {
   await finalizeGeoScanProjectStep(plan.context, totals, status, claimedAt, {
     retried: options.retried,
     ...(options.failureReason ? { failureReason: options.failureReason } : {}),
+    ...(options.failure ? { failure: options.failure } : {}),
   });
   const { context } = plan;
   if (status === "completed" && totals.checks > 0) {
+    // Shelf space reads the synced citations instead of folding the whole
+    // mention-check history on every page view.
+    try {
+      await syncGeoShelfCitationsStep({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      });
+    } catch (error) {
+      await appendAutomationLogBestEffort({
+        organizationId: context.organizationId,
+        integrationId: context.projectId,
+        integrationType: "geo",
+        title: `GEO shelf space could not refresh for ${context.companyName}`,
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        referenceId: context.runId,
+        payload: {
+          scanId: context.scanId,
+        },
+        ...(options.retentionDays
+          ? { retentionDays: options.retentionDays }
+          : {}),
+      });
+    }
     try {
       await startGeoSentimentStep({
         organizationId: context.organizationId,
@@ -283,6 +312,7 @@ async function runGeoScanProjectRun(
     await finalizeProjectRun(plan, totals, "failed", state.claimedAt, {
       retried: options.retried,
       failureReason: describeGeoScanFailure(error),
+      failure: classifyGeoScanExecutionFailure(error),
       ...(retentionDays ? { retentionDays } : {}),
     });
     return { totals, attempted, noSuccessfulChecks: totals.checks === 0 };

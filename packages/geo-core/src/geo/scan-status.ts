@@ -7,6 +7,7 @@ import {
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
+import type { GeoScanFailureMetadata } from "../types/geo";
 import { describeGeoCause, geoLogError } from "../utils/geo-log";
 import { geoDb, geoSkip } from "./effect";
 import {
@@ -14,13 +15,6 @@ import {
   GeoScanError,
   GeoScanStartError,
 } from "./errors";
-
-interface GeoScanFailureMetadata {
-  readonly errorCode: string;
-  readonly errorMessage: string;
-  readonly failedStage: "handoff" | "execution" | "stale";
-  readonly retryable: boolean | null;
-}
 
 const HANDOFF_FAILURE: GeoScanFailureMetadata = {
   errorCode: "scan_handoff_failed",
@@ -43,8 +37,9 @@ function errorTagCode(tag: string): string {
     .toLowerCase();
 }
 
-function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
-  const error = Cause.squash(cause);
+export function classifyGeoScanExecutionFailure(
+  error: unknown
+): GeoScanFailureMetadata {
   if (
     typeof error === "object" &&
     error !== null &&
@@ -54,7 +49,9 @@ function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
     return {
       errorCode: errorTagCode(error._tag),
       errorMessage:
-        error instanceof GeoScanError
+        (error instanceof GeoScanError || error._tag === "GeoScanError") &&
+        "message" in error &&
+        typeof error.message === "string"
           ? error.message
           : EXECUTION_FAILURE.errorMessage,
       failedStage: "execution",
@@ -62,6 +59,10 @@ function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
     };
   }
   return EXECUTION_FAILURE;
+}
+
+function executionFailure(cause: Cause.Cause<unknown>): GeoScanFailureMetadata {
+  return classifyGeoScanExecutionFailure(Cause.squash(cause));
 }
 
 /**

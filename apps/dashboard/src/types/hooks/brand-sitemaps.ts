@@ -20,6 +20,10 @@ export interface Sitemap {
   updatedAt: string;
 }
 
+export interface SitemapsQueryOptions {
+  enabled?: boolean;
+}
+
 export interface SitemapPage {
   id: string;
   sitemapId: string;

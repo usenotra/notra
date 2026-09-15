@@ -153,7 +153,13 @@ export function chunkGeoScanItems<T>(items: readonly T[], size: number): T[][] {
 }
 
 export function describeGeoScanFailure(error: unknown): string {
-  if (error instanceof Error && error.name.length > 0) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    typeof error.name === "string" &&
+    error.name.length > 0
+  ) {
     return error.name;
   }
   return "unknown";

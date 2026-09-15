@@ -72,6 +72,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/home",
+        destination: "https://www.usenotra.com/home",
+        permanent: true,
+      },
+      {
+        source: "/landing",
+        destination: "https://www.usenotra.com/landing",
+        permanent: true,
+      },
+      {
         source: "/",
         destination: "/login",
         permanent: false,

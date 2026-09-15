@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { toErrorMessage } from "@/utils/error-message";
+import { withoutPromptGap, withRestoredPromptGap } from "@/utils/geo-gaps";
 import { getConflictRevision } from "@/utils/orpc-errors";
 
 import { dashboardOrpc } from "../orpc/query";
@@ -77,6 +78,52 @@ function useInvalidateWriterQueries(organizationId: string) {
       }),
     });
   };
+}
+
+export function useGeoPromptGapIgnore(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  const gapsQueryKey = dashboardOrpc.geo.writerGaps.queryKey({
+    input: { organizationId, projectId },
+  });
+  return useMutation({
+    mutationFn: (input: { promptId: string; ignored: boolean }) =>
+      dashboardOrpc.geo.writerGapIgnore.call({
+        ...input,
+        organizationId,
+        projectId,
+      }),
+    onMutate: async ({ promptId, ignored }) => {
+      if (!ignored) {
+        return { removed: undefined };
+      }
+      await queryClient.cancelQueries({ queryKey: gapsQueryKey });
+      const current =
+        queryClient.getQueryData<GeoContentGapsResponse>(gapsQueryKey);
+      const removed = current?.promptGaps.find((row) => row.id === promptId);
+      if (current && removed) {
+        queryClient.setQueryData<GeoContentGapsResponse>(
+          gapsQueryKey,
+          withoutPromptGap(current, promptId)
+        );
+      }
+      return { removed };
+    },
+    onError: (error, _input, context) => {
+      // Restore only this row so concurrent ignores of other rows stay removed.
+      const removed = context?.removed;
+      if (removed) {
+        queryClient.setQueryData<GeoContentGapsResponse>(
+          gapsQueryKey,
+          (current) => current && withRestoredPromptGap(current, removed)
+        );
+      }
+      toast.error(toErrorMessage(error, "Failed to update the gap"));
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: gapsQueryKey });
+    },
+  });
 }
 
 export function useGeoWriterPlan(organizationId: string) {

@@ -28,6 +28,7 @@ import type {
   GeoContentCollisionCandidate,
   GeoContentGapsResponse,
   GeoGapBriefRef,
+  GeoPromptGapIgnoreInput,
   GeoPromptGapRow,
   GeoScopeInput,
   GeoSearchGapRecommendation,
@@ -49,6 +50,7 @@ import {
 } from "../utils/geo-gaps";
 import { competitorKey } from "./domain";
 import { geoDb } from "./effect";
+import { GeoSettingsMissingError } from "./errors";
 import { requireGeoProject } from "./projects";
 import {
   customPromptScanId,
@@ -178,7 +180,11 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
     ),
     geoDb("settings lookup failed", () =>
       db.query.geoSettings.findFirst({
-        columns: { removedAutoPromptIds: true, competitors: true },
+        columns: {
+          removedAutoPromptIds: true,
+          ignoredGapPromptIds: true,
+          competitors: true,
+        },
         where: eq(geoSettings.projectId, projectId),
       })
     ),
@@ -187,6 +193,7 @@ const loadMentionGapInputs = Effect.fn("geo.mentionGapInputs")(function* (
     checks,
     prompts,
     removedAutoPromptIds: new Set(settingsRow?.removedAutoPromptIds ?? []),
+    ignoredGapPromptIds: new Set(settingsRow?.ignoredGapPromptIds ?? []),
     settingsCompetitors: settingsRow?.competitors ?? [],
   };
 });
@@ -285,7 +292,7 @@ function forEachWonGapWithBrief(
 export const loadPlannerGapPrompts = Effect.fn("geo.plannerGaps")(function* (
   projectId: string
 ) {
-  const { checks, prompts, removedAutoPromptIds } =
+  const { checks, prompts, removedAutoPromptIds, ignoredGapPromptIds } =
     yield* loadMentionGapInputs(projectId);
   const byPrompt = aggregateMentionChecks(checks);
   const gaps: GeoPlannerGapPrompt[] = [];
@@ -293,8 +300,11 @@ export const loadPlannerGapPrompts = Effect.fn("geo.plannerGaps")(function* (
     prompts,
     byPrompt,
     removedAutoPromptIds,
-    (_id, prompt, _title, entry) => {
-      if (gaps.length >= GEO_WRITER_PLANNER_GAP_LIMIT) {
+    (id, prompt, _title, entry) => {
+      if (
+        ignoredGapPromptIds.has(id) ||
+        gaps.length >= GEO_WRITER_PLANNER_GAP_LIMIT
+      ) {
         return;
       }
       gaps.push({ prompt, engines: entry.missing });
@@ -476,8 +486,13 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
       loadCollisionCandidates(scope),
     ]);
   // `loadMentionGapInputs` already read this project's geo_settings row.
-  const { checks, prompts, removedAutoPromptIds, settingsCompetitors } =
-    mentionInputs;
+  const {
+    checks,
+    prompts,
+    removedAutoPromptIds,
+    ignoredGapPromptIds,
+    settingsCompetitors,
+  } = mentionInputs;
 
   const trackedAliases = competitorCanonicalMap([
     ...competitorRows,
@@ -505,6 +520,9 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     entry: PromptGapAgg,
     won: boolean
   ) => {
+    if (ignoredGapPromptIds.has(id)) {
+      return;
+    }
     const { tracked, discovered } = splitGapCompetitors(
       entry.competitors,
       trackedAliases
@@ -572,4 +590,27 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
     hasScanData: checks.length > 0,
   };
   return response;
+});
+
+export const setGeoPromptGapIgnored = Effect.fn("geo.gaps.ignore")(function* (
+  input: GeoPromptGapIgnoreInput
+) {
+  const scope = yield* requireGeoProject(input);
+  const column = geoSettings.ignoredGapPromptIds;
+  const next = input.ignored
+    ? sql`CASE WHEN ${input.promptId} = ANY(${column}) THEN ${column} ELSE array_append(${column}, ${input.promptId}) END`
+    : sql`array_remove(${column}, ${input.promptId})`;
+  const updated = yield* geoDb("ignore prompt gap failed", () =>
+    db
+      .update(geoSettings)
+      .set({ ignoredGapPromptIds: next })
+      .where(eq(geoSettings.projectId, scope.projectId))
+      .returning({ id: geoSettings.id })
+  );
+  if (updated.length === 0) {
+    return yield* Effect.fail(
+      new GeoSettingsMissingError({ organizationId: scope.organizationId })
+    );
+  }
+  return { promptId: input.promptId, ignored: input.ignored };
 });

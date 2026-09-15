@@ -350,6 +350,11 @@ export interface GeoPromptRescanInput extends GeoScopeInput {
   engines?: readonly string[];
 }
 
+export interface GeoPromptGapIgnoreInput extends GeoScopeInput {
+  promptId: string;
+  ignored: boolean;
+}
+
 export interface GeoRescanForPostInput {
   organizationId: string;
   postId: string;
@@ -644,6 +649,13 @@ export interface GeoScanBatchOutcome {
   mentions: number;
   dropped: number;
   usage: AgentTokenUsage;
+}
+
+export interface GeoScanFailureMetadata {
+  readonly errorCode: string;
+  readonly errorMessage: string;
+  readonly failedStage: "handoff" | "execution" | "stale";
+  readonly retryable: boolean | null;
 }
 
 export interface GeoScanProjectTotals {

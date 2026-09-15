@@ -1,8 +1,11 @@
+import { createSkillSchema } from "@notra/ai/schemas/skills";
 import { renderSkillToolOutput } from "@notra/ai/skills/functions/guidance";
 import {
+  createSkill as createSkillRecord,
   listSkillCatalog,
   loadSkillByName,
 } from "@notra/ai/skills/functions/service";
+import { toolDescription } from "@notra/ai/utils/description";
 import { type Tool, tool } from "ai";
 import z from "zod";
 
@@ -48,6 +51,45 @@ export function getSkillByName(ctx: SkillsToolContext): Tool {
         description: skill.description,
         content: skill.content,
         skillContent: renderSkillToolOutput(skill),
+      };
+    },
+  });
+}
+
+export function createCreateSkillTool(ctx: SkillsToolContext): Tool {
+  return tool({
+    description: toolDescription({
+      toolName: "createSkill",
+      intro:
+        "Creates a new reusable writing skill (voice, format, structure guidance) for this organization.",
+      whenToUse:
+        "The user explicitly asks for a new skill, or a clearly new and recurring writing need appears that no existing skill covers.",
+      whenNotToUse:
+        "An existing skill already fits; reuse or edit that skill instead of creating a near-duplicate.",
+      usageNotes:
+        "Check listAvailableSkills for duplicates first. The name must be unique, lowercase kebab-case (letters, digits, hyphens only, max 64 chars). Provide a one-sentence description of when the skill applies plus the full skill body as content.",
+    }),
+    needsApproval: true,
+    inputSchema: createSkillSchema.extend({
+      name: createSkillSchema.shape.name.describe(
+        "Unique skill name in lowercase kebab-case."
+      ),
+      description: createSkillSchema.shape.description.describe(
+        "One-sentence description of when to apply this skill."
+      ),
+      content: createSkillSchema.shape.content.describe(
+        "The full skill body: the reusable writing guidance applied when drafting content."
+      ),
+    }),
+    execute: async ({ name, description, content }) => {
+      const skill = await createSkillRecord(
+        { organizationId: ctx.organizationId },
+        { name, description, content }
+      );
+
+      return {
+        name: skill.name,
+        status: "created",
       };
     },
   });

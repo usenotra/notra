@@ -1,5 +1,6 @@
 import {
   AiBrowserIcon,
+  Alert02Icon,
   AnalyticsUpIcon,
   Attachment01Icon,
   ChartAnalysisIcon,
@@ -7,6 +8,7 @@ import {
   CreditCardIcon,
   Globe02Icon,
   Notification01Icon,
+  PaintBoardIcon,
   PlugIcon,
   Settings01Icon,
   SourceCodeIcon,
@@ -22,6 +24,7 @@ import type {
 
 export const SETTINGS_SECTION_IDS = [
   "account",
+  "appearance",
   "general",
   "members",
   "notifications",
@@ -29,6 +32,7 @@ export const SETTINGS_SECTION_IDS = [
   "integrations",
   "billing",
   "usage",
+  "usage-alerts",
   "credits",
   "logs",
   ...(process.env.NODE_ENV === "development" ? (["dev"] as const) : []),
@@ -63,6 +67,21 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
           "github",
           "name",
           "delete account",
+        ],
+      },
+      {
+        id: "appearance",
+        label: "Appearance",
+        description: "Light, dark, or system mode",
+        icon: PaintBoardIcon,
+        keywords: [
+          "appearance",
+          "theme",
+          "mode",
+          "light",
+          "dark",
+          "system",
+          "color scheme",
         ],
       },
     ],
@@ -162,7 +181,7 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       {
         id: "usage",
         label: "Usage",
-        description: "Remaining quotas and usage",
+        description: "Quotas and usage history",
         icon: ChartAnalysisIcon,
         keywords: [
           "usage",
@@ -172,6 +191,20 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
           "answers",
           "cycle",
           "breakdown",
+        ],
+      },
+      {
+        id: "usage-alerts",
+        label: "Usage alerts",
+        description: "Threshold alerts for feature usage",
+        icon: Alert02Icon,
+        keywords: [
+          "usage",
+          "alerts",
+          "threshold",
+          "remaining",
+          "percentage",
+          "limits",
         ],
       },
       {
@@ -282,6 +315,7 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
 
 export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   account: "Account",
+  appearance: "Appearance",
   general: "General",
   members: "Members",
   notifications: "Notifications",
@@ -289,6 +323,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
   integrations: "Integrations",
   billing: "Billing",
   usage: "Usage",
+  "usage-alerts": "Usage alerts",
   credits: "Credits",
   logs: "Logs",
   dev: "Dev",
@@ -301,6 +336,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
 export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
   {
     account: "Manage your profile and account settings",
+    appearance: "Choose how Notra looks on this device",
     general: "Manage your organization settings",
     members: "Manage who has access to this organization",
     notifications: "Configure email notifications for your organization",
@@ -308,6 +344,7 @@ export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
     integrations: "Open GitHub, Linear, and other connected services",
     billing: "Manage your plan, invoices, and subscription",
     usage: "See remaining quotas and usage over time",
+    "usage-alerts": "Configure alerts for usage and remaining balances",
     credits: "Monitor your AI credit balance and usage",
     logs: "View integration events and their delivery status",
     dev: "Development-only tools for testing local flows",

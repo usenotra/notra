@@ -119,7 +119,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
         </header>
 
         <div className="space-y-3">
-          {page.rows.length > 0 ? (
+          {page.totalCount > 0 ? (
             <ShelfPageControls
               filters={page.filters}
               hasRows
@@ -131,16 +131,24 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
             />
           ) : null}
           <ShelfView
+            boardCounts={page.boardCounts}
             currentMemberId={page.currentMemberId}
+            filteredCount={page.filteredCount}
+            hasNextPage={page.hasNextPage}
             hasScanData={page.hasScanData}
+            isFetching={page.isFetching}
+            isFetchingNextPage={page.isFetchingNextPage}
             onAddShelf={() => page.onAddOpenChange(true)}
+            onLoadMore={page.onLoadMore}
             onRowClick={page.onRowClick}
             onSetPlacementStatus={page.setPlacementStatus}
+            onSortChange={page.onSortChange}
             onUpdateOpportunity={page.updateOpportunity}
             pendingSourceIds={page.pendingSourceIds}
-            rows={page.filteredRows}
+            rows={page.rows}
+            sort={page.sort}
             ticketFilter={page.filters.ticket}
-            totalCount={page.rows.length}
+            totalCount={page.totalCount}
             view={page.view}
           />
         </div>

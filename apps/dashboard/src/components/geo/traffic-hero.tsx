@@ -25,10 +25,13 @@ import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
 import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "@/constants/charts";
 import {
+  TRAFFIC_HERO_CHART_SURFACE_CLASS,
   TRAFFIC_HERO_FRAME_CLASS,
   TRAFFIC_HERO_METRIC_CELL_CLASS,
   TRAFFIC_HERO_METRIC_VALUE_CLASS,
   TRAFFIC_HERO_METRICS_GRID_CLASS,
+  TRAFFIC_HERO_METRICS_STANDALONE_CLASS,
+  TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
 import { cn } from "@/lib/utils";
 import type { ChartConfig, TooltipRowGroup } from "@/types/charts";
@@ -200,7 +203,9 @@ export function TrafficHero({
       <div
         className={cn(
           TRAFFIC_HERO_METRICS_GRID_CLASS,
-          showTrend && "bg-muted/40"
+          showTrend
+            ? TRAFFIC_HERO_METRICS_SURFACE_CLASS
+            : TRAFFIC_HERO_METRICS_STANDALONE_CLASS
         )}
       >
         {metrics.map((metric) => (
@@ -213,7 +218,7 @@ export function TrafficHero({
       </div>
       {showTrend ? (
         <div
-          className="border-border border-t p-4"
+          className={TRAFFIC_HERO_CHART_SURFACE_CLASS}
           data-chart-title="AI traffic"
         >
           <EChartsAreaChart
