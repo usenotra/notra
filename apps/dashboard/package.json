@@ -16,6 +16,7 @@
     "test": "bun test src && bun test tests"
   },
   "dependencies": {
+    "@ai-sdk/code-mode": "1.0.50",
     "@ai-sdk/otel": "1.0.93",
     "@ai-sdk/react": "4.0.96",
     "@aws-sdk/client-s3": "^3.990.0",
