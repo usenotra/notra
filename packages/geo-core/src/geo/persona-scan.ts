@@ -1,6 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoPersonaMemories, geoPersonas, geoSettings } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
+import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
 import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { and, asc, eq } from "drizzle-orm";
@@ -79,6 +80,14 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
   const row = yield* Effect.tryPromise({
     try: () =>
       db.query.geoPersonas.findFirst({
+        with: {
+          memories: {
+            orderBy: [
+              asc(geoPersonaMemories.createdAt),
+              asc(geoPersonaMemories.id),
+            ],
+          },
+        },
         where: and(
           eq(geoPersonas.id, personaId),
           eq(geoPersonas.projectId, projectId)
@@ -90,18 +99,6 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
   if (!row) {
     return null;
   }
-  const memoryRows = yield* Effect.tryPromise({
-    try: () =>
-      db.query.geoPersonaMemories.findMany({
-        where: eq(geoPersonaMemories.personaId, personaId),
-        orderBy: [
-          asc(geoPersonaMemories.createdAt),
-          asc(geoPersonaMemories.id),
-        ],
-      }),
-    catch: (cause) =>
-      new GeoScanError({ message: "Failed to load persona memories", cause }),
-  });
   const loaded: PersonaForScan & { enabled: boolean } = {
     enabled: row.enabled,
     persona: {
@@ -114,7 +111,7 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
       profile: row.profile,
     },
     conversationPrompts: row.conversationPrompts,
-    memories: memoryRows.map((memory) => ({
+    memories: row.memories.map((memory) => ({
       id: memory.id,
       kind: memory.kind,
       content: memory.content,
@@ -131,23 +128,16 @@ export const runGeoPersonaConversation = Effect.fn(
   "geo.runPersonaConversation"
 )(function* (
   context: GeoCheckContext,
-  loaded: PersonaForScan,
-  prompts: readonly string[],
+  snapshot: GeoPersonaSnapshotV2,
   grounded: GeoGroundedEngine,
   zdr: GeoZdrMode
 ) {
-  const conversationPrompts = prompts.slice(0, GEO_PERSONA_MAX_TURNS);
-  const snapshot = createPersonaSnapshot(
-    loaded.persona,
-    loaded.memories,
-    conversationPrompts
-  );
   return yield* runGeoConversation(
     context,
     {
-      promptId: personaPromptId(loaded.persona.id),
-      personaId: loaded.persona.id,
-      prompts: conversationPrompts,
+      promptId: personaPromptId(snapshot.persona.id),
+      personaId: snapshot.persona.id,
+      prompts: snapshot.conversationPrompts,
       snapshot,
       timeoutMs: GEO_PERSONA_PAIR_TIMEOUT_MS,
     },
@@ -162,18 +152,28 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
 ) {
   const tasks = geoScanPersonaTasks(planned);
   const grounded = resolveGroundedEngineByKey(planned.groundedKey);
-  if (!grounded) {
+  // Older persisted plans lack a snapshot and cannot reconstruct the original
+  // profile safely. Omit them rather than mix old prompts with current context.
+  if (!grounded || !planned.snapshot) {
     yield* omitGeoScanTasks(
       checkContext,
       tasks.map((task) => task.key)
     ).pipe(geoSkip("scan plan update failed"));
     return null;
   }
-  const loaded = yield* loadPersonaForScan(
-    checkContext.projectId,
-    planned.personaId
-  );
-  if (!loaded || !loaded.enabled) {
+  const current = yield* Effect.tryPromise({
+    try: () =>
+      db.query.geoPersonas.findFirst({
+        columns: { enabled: true },
+        where: and(
+          eq(geoPersonas.id, planned.personaId),
+          eq(geoPersonas.projectId, checkContext.projectId)
+        ),
+      }),
+    catch: (cause) =>
+      new GeoScanError({ message: "Failed to load the persona", cause }),
+  });
+  if (!current?.enabled) {
     yield* omitGeoScanTasks(
       checkContext,
       tasks.map((task) => task.key)
@@ -197,8 +197,7 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
   );
   const outcome = yield* runGeoPersonaConversation(
     checkContext,
-    loaded,
-    planned.prompts,
+    planned.snapshot,
     grounded,
     planned.zdr
   );
@@ -353,6 +352,11 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
   }
 
   const runId = `geo-persona-${personaId}-${crypto.randomUUID()}`;
+  const snapshot = createPersonaSnapshot(
+    loaded.persona,
+    loaded.memories,
+    loaded.conversationPrompts.slice(0, GEO_PERSONA_MAX_TURNS)
+  );
   const brand = yield* loadGeoProjectBrand({
     organizationId: scope.organizationId,
     projectId,
@@ -378,13 +382,7 @@ const runGeoPersonaNowProgram = Effect.fn("geo.runPersonaNow")(function* (
       Effect.forEach(
         groundedEngines,
         ({ grounded, zdr }) =>
-          runGeoPersonaConversation(
-            context,
-            loaded,
-            loaded.conversationPrompts,
-            grounded,
-            zdr
-          ).pipe(
+          runGeoPersonaConversation(context, snapshot, grounded, zdr).pipe(
             geoSkip(
               "persona run failed",
               personaFailureFields(context, personaId, grounded.key)

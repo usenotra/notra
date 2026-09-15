@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import {
   GEO_SCAN_BATCH_CONCURRENCY,
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
@@ -144,6 +145,25 @@ describe("GEO scan workflow orchestration", () => {
       {
         personaId: "persona-test",
         prompts: ["first question", "follow-up question"],
+        snapshot: createPersonaSnapshot(
+          {
+            id: "persona-test",
+            name: "Budgeter",
+            role: "Founder",
+            company: "Small company",
+            summary: "Reduces spend",
+            searchStyle: "Direct",
+            profile: {
+              goals: [],
+              painPoints: [],
+              currentStack: [],
+              buyingTriggers: [],
+              objections: [],
+            },
+          },
+          [],
+          ["first question", "follow-up question"]
+        ),
         engine: "test/engine",
         groundedKey: "test/engine",
         zdr: "none",

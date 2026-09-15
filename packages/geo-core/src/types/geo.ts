@@ -10,6 +10,7 @@ import type {
   GeoCheckSourceItem,
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
+import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import type { FinishReason, LanguageModel, ToolSet } from "ai";
 
@@ -615,6 +616,7 @@ export interface GeoScanPlannedSequence {
 export interface GeoScanPlannedPersona {
   personaId: string;
   prompts: string[];
+  snapshot: GeoPersonaSnapshotV2;
   engine: string;
   groundedKey: string;
   zdr: GeoZdrMode;

@@ -8,7 +8,15 @@ export function createPersonaSnapshot(
   conversationPrompts: readonly string[]
 ): GeoPersonaSnapshotV2 {
   const context = {
-    persona: structuredClone(persona),
+    persona: {
+      id: persona.id,
+      name: persona.name,
+      role: persona.role,
+      company: persona.company,
+      summary: persona.summary,
+      searchStyle: persona.searchStyle,
+      profile: structuredClone(persona.profile),
+    },
     memories: memories.map(({ id, kind, content }) => ({ id, kind, content })),
     conversationPrompts: [...conversationPrompts],
   } satisfies Omit<GeoPersonaSnapshotV2, "schemaVersion" | "version">;

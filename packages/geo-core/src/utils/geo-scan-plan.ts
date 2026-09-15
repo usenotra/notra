@@ -14,7 +14,7 @@ import type {
 import { personaPromptId } from "./geo-personas";
 
 export function geoScanPersonaTasks(
-  persona: GeoScanPlannedPersona
+  persona: Pick<GeoScanPlannedPersona, "personaId" | "prompts" | "engine">
 ): GeoScanPlannedAnswer[] {
   const promptId = personaPromptId(persona.personaId);
   return persona.prompts

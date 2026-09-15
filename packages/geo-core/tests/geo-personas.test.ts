@@ -78,15 +78,11 @@ describe("geoScanPersonaTasks", () => {
       personaId: PERSONA_ID,
       prompts,
       engine: "test/first-grounded",
-      groundedKey: "test/first-grounded",
-      zdr: "none",
     });
     const second = geoScanPersonaTasks({
       personaId: PERSONA_ID,
       prompts,
       engine: "test/second-grounded",
-      groundedKey: "test/second-grounded",
-      zdr: "none",
     });
 
     expect(first.map((task) => task.prompt)).toEqual(prompts);

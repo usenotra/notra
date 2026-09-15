@@ -67,10 +67,11 @@ import { startClaimedGeoScanRun } from "./scan-handoff";
 import { claimGeoScanRun } from "./scan-status";
 
 const loadPersonaRows = Effect.fn("geo.personas.load")(function* (
-  projectId: string
+  projectId: string,
+  database: Pick<typeof db, "query"> = db
 ) {
   const rows = yield* geoDb("personas lookup failed", () =>
-    db.query.geoPersonas.findMany({
+    database.query.geoPersonas.findMany({
       where: eq(geoPersonas.projectId, projectId),
       orderBy: [asc(geoPersonas.createdAt)],
     })
@@ -78,7 +79,7 @@ const loadPersonaRows = Effect.fn("geo.personas.load")(function* (
   const memories = yield* geoDb("persona memories lookup failed", () =>
     rows.length === 0
       ? Promise.resolve([] as GeoPersonaMemoryRow[])
-      : db.query.geoPersonaMemories.findMany({
+      : database.query.geoPersonaMemories.findMany({
           where: inArray(
             geoPersonaMemories.personaId,
             rows.map((row) => row.id)
@@ -341,7 +342,7 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
             (current.at(0)?.count ?? 0) + personaRows.length >
             GEO_PERSONA_MAX_COUNT
           ) {
-            return false;
+            return null;
           }
         }
         if (target) {
@@ -390,7 +391,7 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
         if (!promptsOnly) {
           await tx.insert(geoPersonaMemories).values(memoryRows);
         }
-        return true;
+        return Effect.runPromise(loadPersonaRows(projectId, tx));
       })
     );
     if (!persisted) {
@@ -398,6 +399,7 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
         new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
       );
     }
+    return persisted;
   }
 );
 
@@ -435,6 +437,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
   const context = yield* loadGenerationContext(
     scope.projectId,
     scope.brandSettingsId
+  );
+  const settings = yield* geoDb("settings lookup failed", () =>
+    db.query.geoSettings.findFirst({
+      columns: { enabled: true },
+      where: eq(geoSettings.projectId, scope.projectId),
+    })
   );
 
   const runId = `${GEO_PERSONA_GENERATION_TRIGGER_ID}-${crypto.randomUUID()}`;
@@ -494,7 +502,7 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
     promptsOnly
   ).pipe(Effect.tapError(() => settle("release")));
 
-  yield* persistGeneratedPersonas(
+  const personas = yield* persistGeneratedPersonas(
     scope.organizationId,
     scope.projectId,
     generated.generation,
@@ -506,17 +514,9 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
   // what happens while building the response below.
   yield* settle("confirm", generated.usage);
 
-  const personas = yield* loadPersonaRows(scope.projectId);
-
   // Personas only produce results inside a scan, so a fresh set kicks one off
-  // right away when the project scans at all. Losing the claim means a scan is
-  // already running; it will pick the new personas up on its next batch plan.
-  const settings = yield* geoDb("settings lookup failed", () =>
-    db.query.geoSettings.findFirst({
-      columns: { enabled: true },
-      where: eq(geoSettings.projectId, scope.projectId),
-    })
-  );
+  // right away when the project scans at all. An existing scan keeps its frozen
+  // plan; new personas will be picked up by the next project scan.
   if (settings?.enabled) {
     const claim = yield* claimGeoScanRun(scope.projectId).pipe(
       geoSkip("scan claim failed")

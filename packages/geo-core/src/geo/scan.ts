@@ -13,6 +13,7 @@ import {
 import { db } from "@notra/db/drizzle";
 import {
   geoPersonas,
+  geoPersonaMemories,
   geoPromptSequences,
   geoPrompts,
   geoScans,
@@ -20,6 +21,7 @@ import {
 } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -45,7 +47,10 @@ import {
 } from "../constants/geo";
 import { GEO_AI_OVERVIEW_ABSENT_ANSWER } from "../constants/geo-ai-overview";
 import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
-import { GEO_PERSONA_MAX_COUNT } from "../constants/geo-personas";
+import {
+  GEO_PERSONA_MAX_COUNT,
+  GEO_PERSONA_MAX_TURNS,
+} from "../constants/geo-personas";
 import { GeoContentBillingService, GeoModelService } from "../deps";
 import type {
   GeoCheckContext,
@@ -1043,7 +1048,14 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       : yield* Effect.tryPromise({
           try: () =>
             db.query.geoPersonas.findMany({
-              columns: { id: true, conversationPrompts: true },
+              with: {
+                memories: {
+                  orderBy: [
+                    asc(geoPersonaMemories.createdAt),
+                    asc(geoPersonaMemories.id),
+                  ],
+                },
+              },
               where: and(
                 eq(geoPersonas.projectId, settingsRow.projectId),
                 eq(geoPersonas.enabled, true)
@@ -1055,17 +1067,23 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
             new GeoScanError({ message: "Failed to load GEO personas", cause }),
         });
     const personas: GeoScanPlannedPersona[] = scanEnglish
-      ? personaRows.flatMap((persona) =>
-          persona.conversationPrompts.length > 0
+      ? personaRows.flatMap((persona) => {
+          const snapshot = createPersonaSnapshot(
+            persona,
+            persona.memories,
+            persona.conversationPrompts.slice(0, GEO_PERSONA_MAX_TURNS)
+          );
+          return snapshot.conversationPrompts.length > 0
             ? groundedEngines.map(({ grounded, zdr }) => ({
                 personaId: persona.id,
-                prompts: persona.conversationPrompts,
+                prompts: snapshot.conversationPrompts,
+                snapshot,
                 engine: grounded.key,
                 groundedKey: grounded.key,
                 zdr,
               }))
-            : []
-        )
+            : [];
+        })
       : [];
 
     const engines = [
