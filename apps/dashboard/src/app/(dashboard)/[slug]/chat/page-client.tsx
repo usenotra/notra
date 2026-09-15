@@ -655,6 +655,12 @@ function StandaloneChatPageClient({
     // Populated after dispatchMessage is defined below.
   });
   const isDrainingRef = useRef(false);
+  // Moving a new chat to its own URL remounts this page, so it waits until no
+  // response is streaming or queued.
+  const hasPendingChatNavigationRef = useRef(false);
+  const navigateToNewChatRef = useRef<() => void>(() => {
+    // Populated after the queue refs are defined below.
+  });
 
   const handleFinish = useCallback(
     ({ message }: { message: ChatUIMessage }) => {
@@ -671,6 +677,7 @@ function StandaloneChatPageClient({
       });
       isDrainingRef.current = false;
       drainQueueRef.current();
+      navigateToNewChatRef.current();
     },
     [organizationId, queryClient]
   );
@@ -706,10 +713,6 @@ function StandaloneChatPageClient({
   const [isWaitingForActiveStream, setIsWaitingForActiveStream] =
     useState(false);
   const isWaitingForActiveStreamRef = useRef(false);
-  // Moving a new chat to its own URL remounts this page, so it must wait until
-  // no response is streaming or queued.
-  const [hasPendingChatNavigation, setHasPendingChatNavigation] =
-    useState(false);
 
   const handleModelChange = useCallback((model: string) => {
     const nextModel = parseStoredChatModel(model);
@@ -1463,6 +1466,7 @@ function StandaloneChatPageClient({
       }
       if (isFirstMessage) {
         hasUpdatedUrlRef.current = true;
+        hasPendingChatNavigationRef.current = true;
         window.history.replaceState(
           null,
           "",
@@ -1486,9 +1490,6 @@ function StandaloneChatPageClient({
       } else {
         await sendMessage({ text, metadata: authorMetadata });
       }
-      if (isFirstMessage) {
-        setHasPendingChatNavigation(true);
-      }
     },
     [
       addToolApprovalResponse,
@@ -1502,42 +1503,6 @@ function StandaloneChatPageClient({
       triggerFirstMessageTransition,
     ]
   );
-
-  useEffect(() => {
-    if (
-      !hasPendingChatNavigation ||
-      isLoading ||
-      isWaitingForActiveStream ||
-      queuedMessages.length > 0 ||
-      isDrainingRef.current
-    ) {
-      return;
-    }
-    setHasPendingChatNavigation(false);
-    queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
-      messages: messagesRef.current,
-      lastResponseStopped: wasStoppedByUserRef.current,
-      activeStreamId: null,
-      externalChannelId: null,
-      slackThreadUrl: null,
-    });
-    router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
-      scroll: false,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["chat-sessions", organizationId],
-    });
-  }, [
-    hasPendingChatNavigation,
-    isLoading,
-    isWaitingForActiveStream,
-    organizationId,
-    organizationSlug,
-    queryClient,
-    queuedMessages.length,
-    router,
-    stableChatId,
-  ]);
 
   const handleSend = useCallback(
     async (text: string, attachments: ChatAttachment[] = []) => {
@@ -1674,6 +1639,35 @@ function StandaloneChatPageClient({
     queuedMessagesRef.current = queuedMessages;
   }, [queuedMessages]);
 
+  const navigateToNewChat = useCallback(() => {
+    if (
+      !hasPendingChatNavigationRef.current ||
+      isDrainingRef.current ||
+      isWaitingForActiveStreamRef.current ||
+      queuedMessagesRef.current.length > 0
+    ) {
+      return;
+    }
+    hasPendingChatNavigationRef.current = false;
+    queryClient.setQueryData(["chat-history", organizationId, stableChatId], {
+      messages: messagesRef.current,
+      lastResponseStopped: wasStoppedByUserRef.current,
+      activeStreamId: null,
+      externalChannelId: null,
+      slackThreadUrl: null,
+    });
+    router.replace(`/${organizationSlug}/chat/${stableChatId}`, {
+      scroll: false,
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["chat-sessions", organizationId],
+    });
+  }, [organizationId, organizationSlug, queryClient, router, stableChatId]);
+
+  useEffect(() => {
+    navigateToNewChatRef.current = navigateToNewChat;
+  }, [navigateToNewChat]);
+
   const seenToolOutputsRef = useRef<Set<string>>(new Set());
   const prevIsLoadingRef = useRef(false);
 
@@ -1707,6 +1701,61 @@ function StandaloneChatPageClient({
     };
   }, [dispatchMessage, isSlackMirrored]);
 
+  const activeStreamPollRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+
+  const stopActiveStreamPolling = useCallback(() => {
+    if (activeStreamPollRef.current) {
+      clearInterval(activeStreamPollRef.current);
+      activeStreamPollRef.current = null;
+    }
+  }, []);
+
+  const checkActiveStream = useCallback(async () => {
+    const response = await fetch(
+      `/api/organizations/${organizationId}/chat/${encodeURIComponent(stableChatId)}`
+    );
+    if (!(response.ok && activeStreamPollRef.current)) {
+      return;
+    }
+    const data: {
+      messages?: ChatUIMessage[] | null;
+      activeStreamId?: string | null;
+    } = await response.json();
+    if (data.activeStreamId || !activeStreamPollRef.current) {
+      return;
+    }
+    stopActiveStreamPolling();
+    // Continue from the server history so the finished response is kept
+    // instead of being overwritten by this client's stale copy.
+    if (data.messages?.length) {
+      setMessages(data.messages);
+    }
+    isWaitingForActiveStreamRef.current = false;
+    setIsWaitingForActiveStream(false);
+  }, [organizationId, setMessages, stableChatId, stopActiveStreamPolling]);
+
+  const startActiveStreamPolling = useCallback(() => {
+    stopActiveStreamPolling();
+    let isChecking = false;
+    activeStreamPollRef.current = setInterval(() => {
+      if (isChecking) {
+        return;
+      }
+      isChecking = true;
+      checkActiveStream()
+        .catch((error) => {
+          console.error("[Chat] Failed to check the active response:", error);
+        })
+        .finally(() => {
+          isChecking = false;
+        });
+    }, CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS);
+  }, [checkActiveStream, stopActiveStreamPolling]);
+
+  useEffect(() => stopActiveStreamPolling, [stopActiveStreamPolling]);
+
   useEffect(() => {
     requeueConflictedMessageRef.current = (messageId) => {
       const current = messagesRef.current;
@@ -1732,56 +1781,15 @@ function StandaloneChatPageClient({
       isWaitingForActiveStreamRef.current = true;
       setIsWaitingForActiveStream(true);
       setPendingMessageId(null);
+      startActiveStreamPolling();
       return true;
     };
-  }, [currentAuthorUserId, extractUserMessageContent, setMessages]);
-
-  useEffect(() => {
-    if (!(isWaitingForActiveStream && organizationId)) {
-      return;
-    }
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const poll = async () => {
-      try {
-        const response = await fetch(
-          `/api/organizations/${organizationId}/chat/${encodeURIComponent(stableChatId)}`
-        );
-        if (cancelled) {
-          return;
-        }
-        if (response.ok) {
-          const data: {
-            messages?: ChatUIMessage[] | null;
-            activeStreamId?: string | null;
-          } = await response.json();
-          if (cancelled) {
-            return;
-          }
-          if (!data.activeStreamId) {
-            // Continue from the server history so the finished response is
-            // kept instead of being overwritten by this client's stale copy.
-            if (data.messages?.length) {
-              setMessages(data.messages);
-            }
-            isWaitingForActiveStreamRef.current = false;
-            setIsWaitingForActiveStream(false);
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("[Chat] Failed to check the active response:", error);
-      }
-      if (!cancelled) {
-        timer = setTimeout(poll, CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS);
-      }
-    };
-    timer = setTimeout(poll, CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [isWaitingForActiveStream, organizationId, setMessages, stableChatId]);
+  }, [
+    currentAuthorUserId,
+    extractUserMessageContent,
+    setMessages,
+    startActiveStreamPolling,
+  ]);
 
   const wasWaitingForActiveStreamRef = useRef(false);
   useEffect(() => {
