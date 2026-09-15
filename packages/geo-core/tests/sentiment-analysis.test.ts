@@ -439,6 +439,30 @@ test("a result completed between lookup and lease acquisition does not generate 
   expect(await store.locked("scope:lock")).toBe(false);
 });
 
+test("a cache read failure after claiming the lease commits failure and allows retry", async () => {
+  const { store } = memoryStore();
+  const get = store.get;
+  let reads = 0;
+  store.get = async (key) => {
+    reads++;
+    if (reads === 2) {
+      throw new Error("cache unavailable");
+    }
+    return get(key);
+  };
+  const run = {
+    key: "cache-failure-scope",
+    store,
+    snapshot: async () => ({ fingerprint: "a", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => output,
+  };
+
+  expect((await runSentimentAnalysis(run)).status).toBe("failed");
+  expect(await store.locked("cache-failure-scope:lock")).toBe(false);
+  expect((await runSentimentAnalysis(run)).status).toBe("ready");
+});
+
 test("freshness changes and lease theft cannot publish old results; failed runs retry", async () => {
   const { store, values, locks } = memoryStore();
   let fingerprint = "a";

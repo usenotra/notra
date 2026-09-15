@@ -77,34 +77,40 @@ async function completeSentimentAnalysis(
 ): Promise<SentimentAnalysisState> {
   let state: SentimentAnalysisState;
   try {
-    const sample = await run.sample();
-    if ((await run.snapshot()).fingerprint !== snapshot.fingerprint) {
-      throw new Error("Historical inputs changed");
+    // Another request can finish between our first read and acquiring the lease.
+    const settled = await run.store.get(key);
+    if (settled?.status === "ready") {
+      state = settled;
+    } else {
+      const sample = await run.sample();
+      if ((await run.snapshot()).fingerprint !== snapshot.fingerprint) {
+        throw new Error("Historical inputs changed");
+      }
+      const themes = sample.length
+        ? validateSentimentThemes(
+            await run.extract(sample, () => run.store.renew(lock, token)),
+            sample
+          )
+        : [];
+      const fresh = (await run.snapshot()).fingerprint === snapshot.fingerprint;
+      state = fresh
+        ? {
+            status: "ready",
+            message: null,
+            result: {
+              fingerprint: snapshot.fingerprint,
+              generatedAt: new Date().toISOString(),
+              sampled: sample.length,
+              eligible: snapshot.eligible,
+              themes,
+            },
+          }
+        : {
+            status: "stale",
+            result: null,
+            message: "Saved answers changed. Refresh the analysis.",
+          };
     }
-    const themes = sample.length
-      ? validateSentimentThemes(
-          await run.extract(sample, () => run.store.renew(lock, token)),
-          sample
-        )
-      : [];
-    const fresh = (await run.snapshot()).fingerprint === snapshot.fingerprint;
-    state = fresh
-      ? {
-          status: "ready",
-          message: null,
-          result: {
-            fingerprint: snapshot.fingerprint,
-            generatedAt: new Date().toISOString(),
-            sampled: sample.length,
-            eligible: snapshot.eligible,
-            themes,
-          },
-        }
-      : {
-          status: "stale",
-          result: null,
-          message: "Saved answers changed. Refresh the analysis.",
-        };
   } catch {
     state = {
       status: "failed",
@@ -136,12 +142,6 @@ export async function runSentimentAnalysis(
   const lock = `${run.key}:lock`;
   if (!(await run.store.claim(lock, token))) {
     return { status: "pending", result: null, message: null };
-  }
-  // Another request can finish between our first read and acquiring the lease.
-  const settled = await run.store.get(key);
-  if (settled?.status === "ready") {
-    await run.store.commit(lock, key, token, settled, `${run.key}:latest`);
-    return settled;
   }
   const complete = () =>
     completeSentimentAnalysis(run, snapshot, key, lock, token);

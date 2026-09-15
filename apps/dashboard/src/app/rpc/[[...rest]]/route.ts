@@ -38,6 +38,7 @@ const handle = withEvlog(async (request: Request) => {
   const log = getRequestLogger();
   const path = new URL(request.url).pathname;
   const requestId = log.getContext().requestId;
+  let procedure: string | undefined;
   let requestMemo: ORPCRequestMemo | undefined;
   let status = 500;
   log.set({
@@ -56,6 +57,7 @@ const handle = withEvlog(async (request: Request) => {
       matched && response
         ? response
         : new Response("Not Found", { status: 404 });
+    procedure = matched ? path.slice("/rpc/".length) : undefined;
     status = result.status;
     log.set({
       outcome: status >= 400 ? "error" : "success",
@@ -79,7 +81,7 @@ const handle = withEvlog(async (request: Request) => {
             capture_reason: status >= 400 ? "error" : "slow",
             latency_ms: durationMs,
             method: request.method,
-            path,
+            procedure,
             request_id: typeof requestId === "string" ? requestId : undefined,
             route_id: "/rpc/[[...rest]]",
             status,
