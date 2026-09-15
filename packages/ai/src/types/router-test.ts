@@ -1,4 +1,4 @@
-import type { LanguageModelV3CallOptions } from "@ai-sdk/provider";
+import type { LanguageModelV4CallOptions } from "@ai-sdk/provider";
 import type {
   DecideGatewayInput,
   GatewayAdapter,
@@ -13,7 +13,7 @@ import type {
 export interface RecordedRouterCall {
   gateway: GatewayId;
   modelId: string;
-  options: LanguageModelV3CallOptions;
+  options: LanguageModelV4CallOptions;
 }
 
 export interface FakeAdapterOptions {

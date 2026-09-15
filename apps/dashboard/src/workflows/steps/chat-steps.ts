@@ -33,7 +33,7 @@ import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { flushPostHogServer } from "@notra/posthog/server";
-import type { UIMessageChunk } from "ai";
+import { toUIMessageStream, type UIMessageChunk } from "ai";
 import { nanoid } from "nanoid";
 
 import { AI_CREDITS_SOURCE_STANDALONE_CHAT } from "@/constants/studio-analytics";
@@ -343,7 +343,8 @@ export async function streamChatResponseStep(
       decision: routingDecision,
     });
 
-    const uiStream = stream.toUIMessageStream({
+    const uiStream = toUIMessageStream({
+      stream: stream.stream,
       originalMessages: messages,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
@@ -380,7 +381,7 @@ export async function streamChatResponseStep(
 
         return;
       },
-      onFinish: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages }) => {
         try {
           const saved = await replaceChatHistory(
             organizationId,
@@ -405,12 +406,19 @@ export async function streamChatResponseStep(
       },
     });
 
-    for await (const chunk of uiStream) {
-      if (abortController.signal.aborted) {
-        break;
+    const reader = uiStream.getReader();
+    try {
+      while (!abortController.signal.aborted) {
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- stream chunks must be forwarded in order
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        buffer.push(value as UIMessageChunk);
+        scheduleFlush();
       }
-      buffer.push(chunk as UIMessageChunk);
-      scheduleFlush();
+    } finally {
+      reader.releaseLock();
     }
 
     if (abortController.signal.aborted) {

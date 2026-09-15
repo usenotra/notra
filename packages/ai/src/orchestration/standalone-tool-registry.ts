@@ -67,6 +67,17 @@ import type {
 } from "@notra/ai/types/orchestration";
 import type { Tool } from "ai";
 
+/** Tools that write user-visible records and must pause for user approval. */
+export function getStandaloneApprovalToolNames(): Set<string> {
+  const toolNames = new Set<string>(["createSkill"]);
+  for (const contentType of contentTypeSchema.options) {
+    if (contentType !== "image") {
+      toolNames.add(getCreatePostToolName(contentType));
+    }
+  }
+  return toolNames;
+}
+
 export function buildStandaloneToolSet(
   params: BuildStandaloneToolSetParams,
   deps?: BuildStandaloneToolSetDeps
@@ -91,7 +102,6 @@ export function buildStandaloneToolSet(
       {
         organizationId,
         contentType,
-        needsApproval: true,
         chatId,
         sourceMetadata: chatId ? { chatId } : undefined,
       },

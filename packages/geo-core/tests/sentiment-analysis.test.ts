@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import assert from "node:assert/strict";
 
-import { MockLanguageModelV3 } from "ai/test";
+import { MockLanguageModelV4 } from "ai/test";
 import { Effect } from "effect";
 
 import { generateSentimentAnalysis } from "../src/geo/sentiment-analysis-agent";
@@ -269,7 +269,7 @@ test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and
 });
 
 test("real structured generation has no tools and treats injected answers as data", async () => {
-  const model = new MockLanguageModelV3({
+  const model = new MockLanguageModelV4({
     doGenerate: {
       content: [{ type: "text", text: JSON.stringify(output) }],
       finishReason: { unified: "stop", raw: "stop" },

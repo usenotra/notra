@@ -1,7 +1,7 @@
 import type {
-  LanguageModelV3,
-  SharedV3ProviderMetadata,
-  SharedV3ProviderOptions,
+  LanguageModelV4,
+  SharedV4ProviderMetadata,
+  SharedV4ProviderOptions,
 } from "@ai-sdk/provider";
 import type { routerProviderOptionsSchema } from "@notra/ai/schemas/router";
 import type { ProviderMetadata } from "ai";
@@ -118,18 +118,18 @@ export interface GatewayAdapter {
   readonly enforcesZdr: boolean;
   supportsModel(modelId: string): boolean;
   mapModelId(modelId: string): string;
-  createModel(modelId: string): LanguageModelV3;
+  createModel(modelId: string): LanguageModelV4;
   /**
    * Translate neutral provider options into the gateway-specific block. The
    * router removes the other gateway's block before delegating.
    */
   buildProviderOptions(
     input: BuildProviderOptionsInput
-  ): SharedV3ProviderOptions;
+  ): SharedV4ProviderOptions;
   checkHealth(): Promise<GatewayHealth>;
   getBalance(): Promise<GatewayBalance>;
   extractRouteMetadata(
-    providerMetadata: SharedV3ProviderMetadata | undefined
+    providerMetadata: SharedV4ProviderMetadata | undefined
   ): Partial<
     Pick<RouteMetadata, "generationId" | "upstreamProvider" | "model">
   >;
@@ -140,7 +140,7 @@ export interface GatewayAdapter {
 
 export interface BuildProviderOptionsInput {
   /** Caller provider options, already stripped of the router block. */
-  providerOptions: SharedV3ProviderOptions;
+  providerOptions: SharedV4ProviderOptions;
   router: RouterProviderOptions;
   /** When true privacy flags may be relaxed by the caller (dev only). */
   allowNonZdr: boolean;
@@ -252,11 +252,11 @@ export interface RoutedModelOptions {
 }
 
 export interface ModelRouter {
-  model(modelId: string, options?: RoutedModelOptions): LanguageModelV3;
+  model(modelId: string, options?: RoutedModelOptions): LanguageModelV4;
   resolveRoute(request: RouteRequest): Promise<RouteDecision>;
   assertRouteHasCredits(request: RouteRequest): Promise<RouteDecision>;
   getRouteMetadata(
-    providerMetadata: SharedV3ProviderMetadata | undefined
+    providerMetadata: SharedV4ProviderMetadata | undefined
   ): RouteMetadata | undefined;
   enrichRouteMetadata(metadata: RouteMetadata): Promise<RouteMetadata>;
   readonly adapters: Partial<Record<GatewayId, GatewayAdapter>>;
@@ -301,7 +301,7 @@ export interface UsableAdapter {
 export interface ResolvedRoute {
   decision: RouteDecision;
   adapter: GatewayAdapter;
-  model: LanguageModelV3;
+  model: LanguageModelV4;
 }
 
 export interface RoutedModelContext {

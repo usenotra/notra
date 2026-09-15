@@ -26,6 +26,7 @@ export interface LazyMcpRuntime {
   tools: Record<string, Tool>;
   initialActiveTools: string[];
   prepareStep: PrepareStepFunction<Record<string, Tool>>;
+  requiresApproval: (toolName: string) => boolean;
   descriptions: string[];
   cleanup: () => Promise<void>;
 }
@@ -68,5 +69,5 @@ export interface ExecuteMcpToolParams {
   clientEntry: McpClientEntry;
   indexedTool: IndexedMcpTool;
   input: unknown;
-  options: ToolExecutionOptions;
+  options: ToolExecutionOptions<unknown>;
 }

@@ -2,7 +2,7 @@ import { spyOn } from "bun:test";
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
 
-import type { LanguageModelV3StreamPart } from "@ai-sdk/provider";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { createCaptureLogger } from "@notra/ai/router/test-helpers";
 
 import { createModelCallTelemetry } from "./model-call-telemetry";
@@ -13,11 +13,11 @@ describe("stream terminal telemetry", () => {
   let clock: ReturnType<typeof spyOn>;
   let logger: ReturnType<typeof createCaptureLogger>;
   let abortController: AbortController;
-  let source: ReadableStreamDefaultController<LanguageModelV3StreamPart>;
-  let reader: ReadableStreamDefaultReader<LanguageModelV3StreamPart>;
+  let source: ReadableStreamDefaultController<LanguageModelV4StreamPart>;
+  let reader: ReadableStreamDefaultReader<LanguageModelV4StreamPart>;
   let cancelledWith: unknown;
   let onPull: (() => void) | undefined;
-  let finish: LanguageModelV3StreamPart;
+  let finish: LanguageModelV4StreamPart;
 
   beforeEach(() => {
     now = 0;
@@ -32,7 +32,7 @@ describe("stream terminal telemetry", () => {
       operation: "stream",
       signal: abortController.signal,
     });
-    const stream = new ReadableStream<LanguageModelV3StreamPart>(
+    const stream = new ReadableStream<LanguageModelV4StreamPart>(
       {
         start(controller) {
           source = controller;

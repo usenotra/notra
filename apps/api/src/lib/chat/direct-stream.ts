@@ -13,6 +13,7 @@ import { orchestrateStandaloneChat } from "@notra/ai/orchestration/orchestrate-s
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { nanoid } from "nanoid";
 
 import type { DirectStandaloneChatArgs } from "../../types/chats";
@@ -154,11 +155,11 @@ export async function createDirectStandaloneChatResponse({
       }
     );
 
-    return stream.toUIMessageStreamResponse({
+    const uiStream = toUIMessageStream({
+      stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
-      headers: { "X-Chat-Id": chatId },
       messageMetadata: ({ part }) => {
         const effectiveThinkingLevel =
           enableThinking === false
@@ -193,7 +194,7 @@ export async function createDirectStandaloneChatResponse({
 
         return;
       },
-      onFinish: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages }) => {
         try {
           const saved = await replaceChatHistory(
             organizationId,
@@ -226,6 +227,11 @@ export async function createDirectStandaloneChatResponse({
         }
         return "An error occurred while processing your request.";
       },
+    });
+
+    return createUIMessageStreamResponse({
+      headers: { "X-Chat-Id": chatId },
+      stream: uiStream,
     });
   } catch (error) {
     await cleanup();

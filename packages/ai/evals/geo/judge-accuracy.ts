@@ -335,7 +335,7 @@ async function runCase(testCase: JudgeCase): Promise<CaseOutcome> {
         testCase.prompt,
         testCase.answer
       ),
-      system: JUDGE_SYSTEM_PROMPT,
+      instructions: JUDGE_SYSTEM_PROMPT,
       maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
     });
     const judged = result.output;

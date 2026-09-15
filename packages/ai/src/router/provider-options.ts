@@ -1,4 +1,4 @@
-import type { JSONObject, SharedV3ProviderOptions } from "@ai-sdk/provider";
+import type { JSONObject, SharedV4ProviderOptions } from "@ai-sdk/provider";
 import {
   OPENROUTER_EFFORTS,
   OPENROUTER_OPTIONS_KEY,
@@ -57,9 +57,9 @@ function resolveZdrFlag(
 /**
  * Split the neutral router block from the caller's provider options.
  */
-export function splitRouterOptions(providerOptions?: SharedV3ProviderOptions): {
+export function splitRouterOptions(providerOptions?: SharedV4ProviderOptions): {
   router: RouterProviderOptions;
-  rest: SharedV3ProviderOptions;
+  rest: SharedV4ProviderOptions;
 } {
   if (!providerOptions) {
     return { router: {}, rest: {} };
@@ -77,8 +77,8 @@ export function splitRouterOptions(providerOptions?: SharedV3ProviderOptions): {
  */
 export function stripForeignGatewayOptions(
   gateway: GatewayId,
-  providerOptions: SharedV3ProviderOptions
-): SharedV3ProviderOptions {
+  providerOptions: SharedV4ProviderOptions
+): SharedV4ProviderOptions {
   const foreignKey =
     gateway === "vercel" ? OPENROUTER_OPTIONS_KEY : VERCEL_OPTIONS_KEY;
   if (!(foreignKey in providerOptions)) {
@@ -90,7 +90,7 @@ export function stripForeignGatewayOptions(
 
 export function buildVercelProviderOptions(
   input: BuildProviderOptionsInput
-): SharedV3ProviderOptions {
+): SharedV4ProviderOptions {
   const { providerOptions, router, allowNonZdr, relaxZdr = false } = input;
   const existing = asObject(providerOptions[VERCEL_OPTIONS_KEY]);
   const fallbackModels = resolveFallbackModels(
@@ -127,7 +127,7 @@ export function buildVercelProviderOptions(
 
 function deriveOpenRouterReasoning(
   router: RouterProviderOptions,
-  providerOptions: SharedV3ProviderOptions
+  providerOptions: SharedV4ProviderOptions
 ): Record<string, unknown> | undefined {
   if (router.reasoning?.budgetTokens) {
     return { max_tokens: router.reasoning.budgetTokens };
@@ -167,7 +167,7 @@ function deriveOpenRouterReasoning(
 
 export function buildOpenRouterProviderOptions(
   input: BuildProviderOptionsInput
-): SharedV3ProviderOptions {
+): SharedV4ProviderOptions {
   const { providerOptions, router, allowNonZdr, relaxZdr = false } = input;
   const existing = asObject(providerOptions[OPENROUTER_OPTIONS_KEY]);
   const existingProvider = asObject(existing.provider);
@@ -213,9 +213,9 @@ export function buildOpenRouterProviderOptions(
  * Attach the neutral router block to caller provider options.
  */
 export function withRouterProviderOptions(
-  providerOptions: SharedV3ProviderOptions | undefined,
+  providerOptions: SharedV4ProviderOptions | undefined,
   router: RouterProviderOptions
-): SharedV3ProviderOptions {
+): SharedV4ProviderOptions {
   const existing = asObject(providerOptions?.[ROUTER_PROVIDER_OPTIONS_KEY]);
   return {
     ...providerOptions,

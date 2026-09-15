@@ -13,8 +13,8 @@ import type {
   AgentFeedbackClassification,
   ClassifyAgentFeedbackParams,
 } from "@notra/ai/types/feedback-classifier";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
-import { generateObject } from "ai";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { generateText, Output } from "ai";
 
 function buildPrompt(params: ClassifyAgentFeedbackParams): string {
   const lines = [
@@ -32,25 +32,25 @@ export async function classifyAgentFeedback(
   params: ClassifyAgentFeedbackParams
 ): Promise<AgentFeedbackClassification | null> {
   try {
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: gateway(FEEDBACK_CLASSIFIER_MODEL_ID, {
         organizationId: params.organizationId,
       }),
-      schema: feedbackClassificationSchema,
-      system: FEEDBACK_CLASSIFIER_SYSTEM_PROMPT,
+      output: Output.object({ schema: feedbackClassificationSchema }),
+      instructions: FEEDBACK_CLASSIFIER_SYSTEM_PROMPT,
       prompt: buildPrompt(params),
       abortSignal: AbortSignal.timeout(FEEDBACK_CLASSIFIER_TIMEOUT_MS),
       providerOptions: withRouterDefaults(
         { openai: { reasoningEffort: FEEDBACK_CLASSIFIER_REASONING_EFFORT } },
         { modelId: FEEDBACK_CLASSIFIER_MODEL_ID }
       ),
-      experimental_telemetry: buildExperimentalTelemetry({
+      ...buildTelemetryOptions({
         feature: FEEDBACK_CLASSIFIER_FEATURE,
         organizationId: params.organizationId,
         feedbackId: params.feedbackId,
       }),
     });
-    return object;
+    return output;
   } catch (error) {
     console.error("[AgentFeedback] Classification failed", {
       organizationId: params.organizationId,
