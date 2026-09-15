@@ -455,13 +455,14 @@ export async function crawlSitemap(
 }
 
 export async function retrieveBrand(
-  domain: string
+  domain: string,
+  options?: { signal?: AbortSignal }
 ): Promise<ContextDevBrandRetrieveResponse> {
   const params = new URLSearchParams({ domain });
 
   return requestContextDev<ContextDevBrandRetrieveResponse>(
     `/brand/retrieve?${params.toString()}`,
-    { method: "GET" }
+    { method: "GET", signal: options?.signal }
   );
 }
 
@@ -482,7 +483,8 @@ export async function extractCompetitors(
 }
 
 export async function searchBrands(
-  query: string
+  query: string,
+  options?: { signal?: AbortSignal }
 ): Promise<ContextDevBrandSearchResponse> {
   const params = new URLSearchParams({
     query,
@@ -492,7 +494,7 @@ export async function searchBrands(
 
   return requestContextDev<ContextDevBrandSearchResponse>(
     `/brand/search?${params.toString()}`,
-    { method: "GET" }
+    { method: "GET", signal: options?.signal }
   );
 }
 

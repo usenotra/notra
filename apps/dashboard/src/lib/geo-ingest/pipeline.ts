@@ -8,7 +8,7 @@ import { isTrackedGeoVisitorType } from "@notra/geo-core/utils/ai-traffic";
 import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import { Effect } from "effect";
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
 import { trackGeoIngestAnalytics } from "@/lib/geo-ingest/analytics";
 import { classifyVisitor } from "@/lib/geo-ingest/classify-visitor";
@@ -26,7 +26,7 @@ import { isGeoIngestIdentityActive } from "@/lib/geo-ingest/identity";
 import { resolveJourneyId } from "@/lib/geo-ingest/journey";
 import { ratelimit } from "@/utils/ratelimit";
 
-const authenticate = Effect.fn("geoIngest.authenticate")(function* (
+const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
   request: NextRequest
 ) {
   const header = request.headers.get("authorization");
@@ -40,13 +40,6 @@ const authenticate = Effect.fn("geoIngest.authenticate")(function* (
 
   const identity = verifyGeoIngestToken(token);
   if (!identity) {
-    return yield* Effect.fail(new GeoIngestInvalidTokenError({}));
-  }
-
-  const active = yield* Effect.promise(() =>
-    isGeoIngestIdentityActive(identity)
-  );
-  if (!active) {
     return yield* Effect.fail(new GeoIngestInvalidTokenError({}));
   }
 
@@ -89,12 +82,10 @@ const parseUrl = Effect.fn("geoIngest.parseUrl")(function* (value: string) {
 
 const buildEvent = Effect.fn("geoIngest.buildEvent")(function* (
   identity: GeoIngestIdentity,
-  payload: GeoRequestPayload
+  payload: GeoRequestPayload,
+  allowedHosts: string[] | null
 ) {
   const url = yield* parseUrl(payload.url);
-  const allowedHosts = yield* Effect.promise(() =>
-    loadIngestAllowedHosts(identity)
-  );
   if (!acceptsIngestHost(url.hostname, allowedHosts)) {
     return null;
   }
@@ -140,13 +131,30 @@ const ingestEvent = Effect.fn("geoIngest.ingest")(function* (
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   request: NextRequest
 ) {
-  const identity = yield* authenticate(request);
-  const payload = yield* readPayload(request);
-  const event = yield* buildEvent(identity, payload);
+  const identity = yield* readBearerIdentity(request);
+  // Independent round trips; the token check still wins over a bad payload.
+  const [active, payload, allowedHosts] = yield* Effect.all(
+    [
+      Effect.promise(() => isGeoIngestIdentityActive(identity)),
+      Effect.result(readPayload(request)),
+      Effect.promise(() => loadIngestAllowedHosts(identity)),
+    ],
+    { concurrency: "unbounded" }
+  );
+  if (!active) {
+    return yield* Effect.fail(new GeoIngestInvalidTokenError({}));
+  }
+  if (payload._tag === "Failure") {
+    return yield* Effect.fail(payload.failure);
+  }
+  const event = yield* buildEvent(identity, payload.success, allowedHosts);
   if (!event) {
     return;
   }
   yield* enforceRateLimit(identity.organizationId);
   yield* ingestEvent(event);
-  yield* trackGeoIngestAnalytics({ identity, event });
+  // Analytics must not hold the 202 open for the site that sent the event.
+  yield* Effect.sync(() =>
+    after(() => Effect.runPromise(trackGeoIngestAnalytics({ identity, event })))
+  );
 });
