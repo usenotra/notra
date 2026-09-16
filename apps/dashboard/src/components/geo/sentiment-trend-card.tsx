@@ -16,10 +16,12 @@ import type {
 import {
   isolatedSentimentPointIndices,
   sentimentEmptyMessage,
-  sentimentHasDisplayableData,
   sentimentSummaryShowsEmpty,
 } from "@/utils/geo-sentiment";
-import { sentimentTailEstimate } from "@/utils/sentiment-estimate";
+import {
+  sentimentNoDataBaseline,
+  sentimentTailEstimate,
+} from "@/utils/sentiment-estimate";
 
 export function SentimentTrendCard({
   points,
@@ -61,33 +63,36 @@ function SentimentTrendContent(props: SentimentTrendCardProps) {
       </div>
     );
   }
-  const showData = sentimentHasDisplayableData(summary, points);
-  const summaryShowsEmpty = sentimentSummaryShowsEmpty(summary, points);
+  const summaryShowsEmpty = sentimentSummaryShowsEmpty(summary);
+  let content;
+  if (points) {
+    content = <SentimentTrendPlot points={points} />;
+  } else if (summaryShowsEmpty && !isScanning) {
+    content = (
+      <div
+        aria-hidden="true"
+        className="relative h-40 min-h-40 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_70%,transparent_100%)] opacity-30"
+      >
+        <EmptyStateTrendPreview />
+      </div>
+    );
+  } else {
+    content = (
+      <InstrumentEmpty
+        seed="Sentiment trend"
+        className="h-40 min-h-40 [&_p]:normal-case"
+        busy={isScanning}
+        message={
+          isScanning ? "Scan in progress" : sentimentEmptyMessage(summary)
+        }
+        preview={<EmptyStateTrendPreview />}
+      />
+    );
+  }
   return (
     <>
-      {showData && points ? (
-        <SentimentTrendPlot points={points} />
-      ) : summaryShowsEmpty && !isScanning ? (
-        <div
-          aria-hidden="true"
-          className="relative h-40 min-h-40 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_70%,transparent_100%)] opacity-40"
-        >
-          <EmptyStateTrendPreview />
-        </div>
-      ) : (
-        <InstrumentEmpty
-          seed="Sentiment trend"
-          className="h-40 min-h-40 [&_p]:normal-case"
-          busy={isScanning}
-          message={
-            isScanning
-              ? "Scan in progress"
-              : sentimentEmptyMessage(summary, points)
-          }
-          preview={<EmptyStateTrendPreview />}
-        />
-      )}
-      {isScanning && showData ? (
+      {content}
+      {isScanning && points ? (
         <p role="status" className="text-muted-foreground text-xs">
           Scan in progress
         </p>
@@ -98,6 +103,7 @@ function SentimentTrendContent(props: SentimentTrendCardProps) {
 
 function SentimentTrendPlot({ points }: SentimentTrendPlotProps) {
   const estimates = sentimentTailEstimate(points);
+  const noDataBaseline = sentimentNoDataBaseline(points, estimates);
   const hasEstimate = estimates.some((value) => value !== null);
   return (
     <EChartsAreaChart
@@ -111,6 +117,7 @@ function SentimentTrendPlot({ points }: SentimentTrendPlotProps) {
         day,
         score,
         estimate: estimates[index] ?? null,
+        noData: noDataBaseline[index] ?? null,
       }))}
       xDataKey="day"
     >
@@ -144,7 +151,18 @@ function SentimentTrendPlot({ points }: SentimentTrendPlotProps) {
           variant="none"
         />
       ) : null}
+      <EChartsAreaChart.Area
+        dataKey="noData"
+        curveType="linear"
+        gapMissing
+        connectNulls={false}
+        enableBufferLine={false}
+        strokeVariant="solid"
+        strokeWidth={1}
+        variant="none"
+      />
       <EChartsAreaChart.Tooltip
+        excludeKeys={["noData"]}
         hideZeros={false}
         labelKey="day"
         labelFormatter={formatDayLabel}
