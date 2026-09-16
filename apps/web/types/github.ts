@@ -60,8 +60,8 @@ export interface GitHubSearchCount {
 interface ContributorsStats {
   totalStars: number;
   totalForks: number;
-  totalIssues: number;
-  totalPullRequests: number;
+  totalIssues: number | null;
+  totalPullRequests: number | null;
   totalContributors: number;
 }
 

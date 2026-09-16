@@ -25,8 +25,8 @@ const EMPTY_DATA: ContributorsData = {
   stats: {
     totalStars: 0,
     totalForks: 0,
-    totalIssues: 0,
-    totalPullRequests: 0,
+    totalIssues: null,
+    totalPullRequests: null,
     totalContributors: 0,
   },
 };
@@ -110,8 +110,8 @@ export async function fetchContributorsData(): Promise<ContributorsData> {
     stats: {
       totalStars: repo?.stargazers_count ?? 0,
       totalForks: repo?.forks_count ?? 0,
-      totalIssues: issueSearch?.total_count ?? repo?.open_issues_count ?? 0,
-      totalPullRequests: prSearch?.total_count ?? 0,
+      totalIssues: issueSearch?.total_count ?? null,
+      totalPullRequests: prSearch?.total_count ?? null,
       totalContributors: contributors.length,
     },
   };
@@ -167,4 +167,8 @@ export function getIssueTypeFromLabels(labels: GitHubLabel[]): IssueTypeBadge {
     className:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
   };
+}
+
+export function formatViewAllLabel(total: number | null): string {
+  return total === null ? "View all" : `View all (${total})`;
 }

@@ -15,7 +15,11 @@ import {
   PRS_CARD_TITLE,
 } from "@/constants/contributors";
 import { SPONSORS } from "@/lib/sponsors/constants";
-import { fetchContributorsData, GITHUB_REPO_URL } from "@/utils/github";
+import {
+  fetchContributorsData,
+  formatViewAllLabel,
+  GITHUB_REPO_URL,
+} from "@/utils/github";
 
 export async function ContributorsContent() {
   const data = await fetchContributorsData();
@@ -41,7 +45,7 @@ export async function ContributorsContent() {
             description={ISSUES_CARD_DESCRIPTION}
             title={ISSUES_CARD_TITLE}
             viewAllHref={`${GITHUB_REPO_URL}/issues`}
-            viewAllLabel={`View all (${data.stats.totalIssues})`}
+            viewAllLabel={formatViewAllLabel(data.stats.totalIssues)}
           >
             <IssueList issues={data.issues} />
           </ActivityCard>
@@ -49,7 +53,7 @@ export async function ContributorsContent() {
             description={PRS_CARD_DESCRIPTION}
             title={PRS_CARD_TITLE}
             viewAllHref={`${GITHUB_REPO_URL}/pulls`}
-            viewAllLabel={`View all (${data.stats.totalPullRequests})`}
+            viewAllLabel={formatViewAllLabel(data.stats.totalPullRequests)}
           >
             <PullRequestList prs={data.prs} />
           </ActivityCard>
