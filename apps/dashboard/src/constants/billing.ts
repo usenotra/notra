@@ -117,13 +117,6 @@ export const USAGE_FEATURE_SKELETON_KEYS = [
 export const GEO_PLAN_REQUIRED_MESSAGE =
   "GEO requires a Starter, Growth, or Scale plan";
 
-/**
- * Kept byte-identical to the API's `FEEDBACK_PLAN_REQUIRED_ERROR` so a client
- * sees the same 402 copy whichever surface it hit.
- */
-export const AGENT_FEEDBACK_PLAN_REQUIRED_MESSAGE =
-  "Feedback is not enabled on this plan";
-
 export const ZDR_ADDON_BY_TIER: Record<string, string> = {
   [PLANS.STARTER]: ADDONS.ZDR_STARTER,
   [PLANS.GROWTH]: ADDONS.ZDR_GROWTH,

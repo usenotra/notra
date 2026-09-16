@@ -1,16 +1,10 @@
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
-import { hasFeedbackEntitlement } from "@notra/ai/utils/feedback-entitlement";
 import { Autumn } from "autumn-js";
 import { Context, Effect, Layer } from "effect";
 
 import { AI_CREDITS_FEATURE_ID } from "../constants/billing";
-import {
-  FeedbackBillingError,
-  GeoBillingError,
-  SubscriptionBillingError,
-} from "../errors/billing";
+import { GeoBillingError, SubscriptionBillingError } from "../errors/billing";
 import type {
-  FeedbackEntitlementCheckInput,
   GeoEntitlementCheckInput,
   SubscriptionAccessInput,
 } from "../types/billing";
@@ -22,9 +16,6 @@ export interface BillingOperations {
   readonly checkGeoEntitlement: (
     input: GeoEntitlementCheckInput
   ) => Effect.Effect<boolean, GeoBillingError>;
-  readonly checkFeedbackEntitlement: (
-    input: FeedbackEntitlementCheckInput
-  ) => Effect.Effect<boolean, FeedbackBillingError>;
 }
 
 export class BillingService extends Context.Service<
@@ -90,14 +81,6 @@ export function billingLayer(secretKey: string) {
           catch: (cause) => new GeoBillingError({ cause }),
         });
       }),
-      checkFeedbackEntitlement: Effect.fn("Billing.checkFeedbackEntitlement")(
-        function* (input: FeedbackEntitlementCheckInput) {
-          return yield* Effect.tryPromise({
-            try: () => hasFeedbackEntitlement(autumn, input.organizationId),
-            catch: (cause) => new FeedbackBillingError({ cause }),
-          });
-        }
-      ),
     })
   );
 }

@@ -30,7 +30,6 @@ export const API_TRIGGER_SOURCE = "api";
 export const API_PAYWALL_FEATURES = {
   SUBSCRIPTION: "subscription",
   AI_ANSWERS: "ai_answers",
-  AGENT_FEEDBACK: "feedback",
 } as const;
 export const API_FEEDBACK_VIA = {
   PUBLIC_SLUG: "public_slug",

@@ -4,7 +4,6 @@ import {
   AUTUMN_READ_TIMEOUT_MS,
 } from "@notra/ai/billing/autumn";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
-import { hasFeedbackEntitlement } from "@notra/ai/utils/feedback-entitlement";
 import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
@@ -13,10 +12,7 @@ import {
   ENTITLEMENT_FEATURES,
   ENTITLEMENT_SURFACES,
 } from "@/constants/analytics-events";
-import {
-  AGENT_FEEDBACK_PLAN_REQUIRED_MESSAGE,
-  GEO_PLAN_REQUIRED_MESSAGE,
-} from "@/constants/billing";
+import { GEO_PLAN_REQUIRED_MESSAGE } from "@/constants/billing";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
@@ -241,56 +237,5 @@ export async function assertGeoEntitlement(
   const outcome = await resolveGeoEntitlement(organizationId, headers);
   if (outcome === "denied") {
     rejectGeoEntitlementDenied(organizationId);
-  }
-}
-
-/**
- * Agent feedback is a boolean Autumn feature included on every plan — the
- * default free product included — so this is an on/off gate, not a quota. The
- * boolean lets billing pull or grant the feature per product without a deploy.
- * Call only after confirming organization membership.
- */
-export async function assertAgentFeedbackEntitlement(
-  organizationId: string,
-  headers?: Headers
-): Promise<void> {
-  if (allowUnmeteredAiInDevelopment) {
-    return;
-  }
-
-  if (!autumn) {
-    if (process.env.NODE_ENV === "production") {
-      throw internalServerError("Billing is not configured");
-    }
-    return;
-  }
-
-  let allowed: boolean;
-  try {
-    const memo = headers ? getORPCRequestMemo(headers) : undefined;
-    const memoKey = `${FEATURES.AGENT_FEEDBACK}:${organizationId}`;
-    let lookup = memo?.featureEntitlementByOrganization.get(memoKey);
-    if (!lookup) {
-      lookup = hasFeedbackEntitlement(autumn, organizationId);
-      memo?.featureEntitlementByOrganization.set(memoKey, lookup);
-    }
-    allowed = await lookup;
-  } catch (error) {
-    if (error instanceof ORPCError) {
-      throw error;
-    }
-    throw internalServerError("Failed to verify plan entitlement");
-  }
-
-  if (!allowed) {
-    trackServerEvent({
-      event: POSTHOG_EVENTS.ENTITLEMENT_DENIED,
-      organizationId,
-      properties: {
-        feature: ENTITLEMENT_FEATURES.AGENT_FEEDBACK,
-        surface: ENTITLEMENT_SURFACES.DASHBOARD,
-      },
-    });
-    throw paymentRequired(AGENT_FEEDBACK_PLAN_REQUIRED_MESSAGE);
   }
 }

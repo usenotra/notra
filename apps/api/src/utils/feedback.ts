@@ -47,8 +47,7 @@ export function isPublicFeedbackIngestRequest(
 
 /**
  * Any request aimed at the feedback resource — public slug ingest included.
- * The subscription gate skips the whole resource because access is decided by
- * the `feedback` Autumn feature via `feedbackEntitlementMiddleware`.
+ * The subscription gate skips the whole resource because feedback is free.
  */
 export function isFeedbackApiRequest(pathname: string): boolean {
   return FEEDBACK_API_PATH_REGEX.test(pathname);

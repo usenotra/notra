@@ -9,8 +9,3 @@ export class GeoBillingError extends Schema.TaggedError<GeoBillingError>()(
   "GeoBillingError",
   { cause: Schema.Defect() }
 ) {}
-
-export class FeedbackBillingError extends Schema.TaggedError<FeedbackBillingError>()(
-  "FeedbackBillingError",
-  { cause: Schema.Defect() }
-) {}
