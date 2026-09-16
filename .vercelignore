@@ -14,3 +14,12 @@
 !/scripts/
 /scripts/*
 !/scripts/prepare-effect.sh
+
+# Agent configuration and vendored skills are development-only, including in apps.
+**/.agents/
+**/.claude/
+**/.codex/
+**/.opencode/
+**/.amp/
+**/AGENTS.md
+**/CLAUDE.md

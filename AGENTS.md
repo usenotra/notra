@@ -1,5 +1,14 @@
 # AGENTS.md
 
+## Ponytail
+
+Codex, Claude Code, and OpenCode use Ponytail's native plugin; respect its current
+mode, including off. See CONTRIBUTING.md for setup. In Amp, for coding tasks,
+read and apply `.agents/skills/ponytail/SKILL.md` from the repository root,
+defaulting to full unless the user chooses another level or disables Ponytail.
+Explicit requirements and this repo's conventions take precedence. Companion
+`ponytail-*` skills are available on request.
+
 ## Cursor Cloud specific instructions
 
 This repo is a Bun + Turborepo monorepo (product: **Notra**, an AI content-generation
