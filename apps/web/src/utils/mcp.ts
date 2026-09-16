@@ -9,3 +9,7 @@ export function formatMcpMoreToolsLabel(hiddenCount: number): string {
 export function formatMcpWhatsNewDiscovery(toolCount: number): string {
   return `notra MCP · ${toolCount} tools discovered automatically`;
 }
+
+export function formatMcpUseCasesCalloutLabel(useCaseCount: number): string {
+  return `${useCaseCount} copy-paste workflows for visibility tracking, content and reporting, each with the exact prompt and the tools it calls.`;
+}
