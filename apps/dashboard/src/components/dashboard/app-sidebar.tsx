@@ -14,7 +14,7 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
@@ -73,10 +73,13 @@ export function DashboardSidebar({
   const isSubpage = panelId !== "main";
 
   const [hasMoreNavigation, setHasMoreNavigation] = useState(false);
-  const scrollEndRef = useCallback((node: HTMLDivElement | null) => {
+  const scrollEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = scrollEndRef.current;
     if (!node) {
       return;
     }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry) {
