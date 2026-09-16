@@ -58,12 +58,8 @@ export function validateSentimentThemes(
             `Sentiment evidence quote not found verbatim in check "${check.id}"`
           );
         }
-        // Check-level sentiment labels are too coarse for mixed answers — a
-        // positive-classified check can still hold a genuinely negative
-        // clause. Drop mismatched evidence instead of failing the analysis.
-        if (check.sentiment !== theme.polarity) {
-          return [];
-        }
+        // Check-level sentiment labels are too coarse for mixed answers. A
+        // verbatim clause can validly differ from the answer's overall label.
         // Identical checkId+quote pairs are redundant, not invalid — collapse
         // them (same dedup key the theme-level merge uses below) while still
         // allowing multiple distinct quotes from one check per claim.
@@ -81,10 +77,6 @@ export function validateSentimentThemes(
           },
         ];
       });
-      // Claims whose evidence is all mismatched carry no defensible proof.
-      if (!evidence.length) {
-        return [];
-      }
       return [{ statement: claim.statement, evidence }];
     });
     if (!claims.length) {

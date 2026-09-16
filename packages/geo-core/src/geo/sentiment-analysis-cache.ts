@@ -85,31 +85,39 @@ async function completeSentimentAnalysis(
     } else {
       const sample = await run.sample();
       const current = await run.snapshot();
-      const themes =
-        current.fingerprint === snapshot.fingerprint && sample.length
+      if (current.fingerprint !== snapshot.fingerprint) {
+        state = {
+          status: "stale",
+          result: null,
+          message: "Saved answers changed. Refresh the analysis.",
+        };
+      } else {
+        const themes = sample.length
           ? validateSentimentThemes(
               await run.extract(sample, () => run.store.renew(lock, token)),
               sample
             )
           : [];
-      const fresh = (await run.snapshot()).fingerprint === snapshot.fingerprint;
-      state = fresh
-        ? {
-            status: "ready",
-            message: null,
-            result: {
-              fingerprint: snapshot.fingerprint,
-              generatedAt: new Date().toISOString(),
-              sampled: sample.length,
-              eligible: snapshot.eligible,
-              themes,
-            },
-          }
-        : {
-            status: "stale",
-            result: null,
-            message: "Saved answers changed. Refresh the analysis.",
-          };
+        const fresh =
+          (await run.snapshot()).fingerprint === snapshot.fingerprint;
+        state = fresh
+          ? {
+              status: "ready",
+              message: null,
+              result: {
+                fingerprint: snapshot.fingerprint,
+                generatedAt: new Date().toISOString(),
+                sampled: sample.length,
+                eligible: snapshot.eligible,
+                themes,
+              },
+            }
+          : {
+              status: "stale",
+              result: null,
+              message: "Saved answers changed. Refresh the analysis.",
+            };
+      }
     }
   } catch (error) {
     logGeoSkip(

@@ -224,7 +224,7 @@ test("UTC equal-length periods include leap days, gaps and zero; invalid windows
   ).toBe(true);
 });
 
-test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and extra claims", () => {
+test("themes reject invalid evidence, deduplicate sources, and preserve mixed-answer clauses", () => {
   expect(validateSentimentThemes(output, sample)[0]?.evidence).toHaveLength(2);
   for (const evidence of [
     [{ checkId: "foreign", quote: "Notra makes onboarding easy." }],
@@ -267,26 +267,38 @@ test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and
     sample
   );
   expect(deduped[0]?.claims[0]?.evidence).toHaveLength(2);
-  // Polarity-mismatched evidence drops; a theme left without defensible
-  // claims drops too.
-  expect(
-    validateSentimentThemes(
-      { themes: [{ ...output.themes[0], polarity: "negative" }] },
-      sample
-    )
-  ).toEqual([]);
+  const firstSample = sample[0];
+  assert.ok(firstSample);
+  const mixedSample = [
+    {
+      ...firstSample,
+      answer: "Notra makes onboarding easy, but support is slow.",
+    },
+  ];
+  const mixedThemes = validateSentimentThemes(
+    {
+      themes: [
+        {
+          title: "Slow support",
+          polarity: "negative",
+          claims: [
+            {
+              statement: "Support is slow",
+              evidence: [{ checkId: "a", quote: "support is slow" }],
+            },
+          ],
+        },
+      ],
+    },
+    mixedSample
+  );
+  expect(mixedThemes[0]?.claims[0]?.evidence).toHaveLength(1);
   expect(() =>
     validateSentimentThemes(
       { themes: [{ ...output.themes[0], populationCount: 500 }] },
       sample
     )
   ).toThrow();
-  expect(
-    validateSentimentThemes(
-      output,
-      sample.map((row) => ({ ...row, sentiment: "neutral" }))
-    )
-  ).toEqual([]);
 });
 
 test("real structured generation has no tools and treats injected answers as data", async () => {
@@ -487,13 +499,14 @@ test("a cache read failure after claiming the lease commits failure and allows r
 
 test("input drift detected before extraction stays stale without a paid call", async () => {
   const { store } = memoryStore();
+  const fingerprints = ["a", "b", "a"];
   let snapshots = 0;
   let extracts = 0;
   const run = {
     key: "pre-extract-drift-scope",
     store,
     snapshot: async () => ({
-      fingerprint: snapshots++ === 0 ? "a" : "b",
+      fingerprint: fingerprints[snapshots++] ?? "a",
       eligible: 2,
     }),
     sample: async () => sample,
