@@ -5,10 +5,12 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { PlanCard } from "@/components/billing/plan-card";
+import { Button } from "@/components/button";
 import { OnboardingProgress } from "@/components/onboarding/progress";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
 import { ONBOARDING_STEPS, PLAN_SURFACES } from "@/constants/analytics-events";
@@ -174,8 +176,12 @@ export function PricingClient({ slug }: PricingClientProps) {
           Choose your plan
         </h1>
         <p className="text-muted-foreground">
-          Pick a plan to start using Notra. You can change or cancel anytime.
+          Use feedback for free, or upgrade for AI content and visibility
+          tracking.
         </p>
+        <Button render={<Link href={`/${slug}/feedback`} />} variant="outline">
+          Continue with free feedback
+        </Button>
       </div>
 
       <div className="mt-8 flex justify-center">

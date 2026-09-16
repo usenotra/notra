@@ -94,19 +94,16 @@ export async function resolveZdrEntitlement(
   }
 }
 
-export async function assertActiveSubscription(
-  organizationId: string,
-  procedure?: string
-): Promise<void> {
+export async function resolveAiProductAccess(organizationId: string) {
   if (allowUnmeteredAiInDevelopment) {
-    return;
+    return { hasAccess: true, activePlanId: null };
   }
 
   if (!autumn) {
     if (process.env.NODE_ENV === "production") {
       throw internalServerError("Billing is not configured");
     }
-    return;
+    return { hasAccess: true, activePlanId: null };
   }
 
   let hasAccess = false;
@@ -139,6 +136,16 @@ export async function assertActiveSubscription(
     }
     throw internalServerError("Failed to verify subscription status");
   }
+
+  return { hasAccess, activePlanId };
+}
+
+export async function assertActiveSubscription(
+  organizationId: string,
+  procedure?: string
+): Promise<void> {
+  const { hasAccess, activePlanId } =
+    await resolveAiProductAccess(organizationId);
 
   if (!hasAccess) {
     trackServerEvent({
