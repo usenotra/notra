@@ -53,10 +53,15 @@ export interface GitHubRepo {
   private: boolean;
 }
 
-export interface ContributorsStats {
+export interface GitHubSearchCount {
+  total_count: number;
+}
+
+interface ContributorsStats {
   totalStars: number;
   totalForks: number;
   totalIssues: number;
+  totalPullRequests: number;
   totalContributors: number;
 }
 

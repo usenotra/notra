@@ -1,34 +1,29 @@
 import Link from "next/link";
 import type { SponsorsProps } from "~types/sponsors";
 
+import { SPONSORS_CAPTION } from "@/constants/contributors";
+
 export function Sponsors({ sponsors }: SponsorsProps) {
   if (sponsors.length === 0) {
     return null;
   }
 
   return (
-    <section className="flex w-full flex-col gap-8 px-4 py-12 sm:px-6 md:px-8 md:py-16">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h2 className="font-display text-foreground text-2xl font-medium tracking-[-0.02em] md:text-3xl">
-          Our Sponsors
-        </h2>
-        <p className="text-muted-foreground max-w-2xl text-balance">
-          Notra is supported by sponsors who help keep the project running.
-          Thank you for backing open source.
-        </p>
-      </div>
-
-      <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-center gap-12 sm:gap-16">
+    <section className="flex w-full flex-col items-center gap-10 px-6 pt-20 antialiased sm:px-12 lg:px-20 lg:pt-35">
+      <p className="text-center font-sans text-base/6 font-medium tracking-[-0.01em] text-[#6A6B70] dark:text-white/60">
+        {SPONSORS_CAPTION}
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 sm:gap-x-16 lg:gap-x-24">
         {sponsors.map((sponsor) => (
           <Link
-            className="text-foreground focus-visible:ring-ring flex flex-col items-center gap-4 rounded-sm transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none"
+            className="flex items-center gap-2.5 text-[#1E1E1E] transition-opacity hover:opacity-70 dark:text-white"
             href={sponsor.url}
             key={sponsor.name}
             rel="noopener noreferrer"
             target="_blank"
           >
-            <sponsor.logo aria-hidden="true" className="h-10 w-auto" />
-            <span className="font-sans text-sm font-medium">
+            <sponsor.logo aria-hidden="true" className="h-7 w-auto" />
+            <span className="font-display text-2xl/8 font-semibold tracking-[-0.02em]">
               {sponsor.name}
             </span>
           </Link>

@@ -1,33 +1,15 @@
 import Link from "next/link";
+import type { ViewAllLinkProps } from "~types/contributors";
 
-export function ViewAllLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: string;
-}) {
+export function ViewAllLink({ href, children }: ViewAllLinkProps) {
   return (
     <Link
-      className="group text-primary inline-flex items-center gap-1 font-sans text-sm font-medium hover:underline"
+      className="text-primary shrink-0 font-sans text-sm font-medium hover:underline"
       href={href}
       rel="noopener noreferrer"
       target="_blank"
     >
       {children}
-      <svg
-        aria-hidden="true"
-        className="size-4 transition-transform group-hover:translate-x-0.5"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          clipRule="evenodd"
-          d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
-          fillRule="evenodd"
-        />
-      </svg>
     </Link>
   );
 }

@@ -1,9 +1,19 @@
+import { ActivityCard } from "@/components/contributors/activity-card";
 import { ContributorsGrid } from "@/components/contributors/contributors-grid";
 import { IssueList } from "@/components/contributors/issue-list";
 import { PullRequestList } from "@/components/contributors/pull-request-list";
+import { ContributorsSectionHeader } from "@/components/contributors/section-header";
 import { Sponsors } from "@/components/contributors/sponsors";
-import { Stats } from "@/components/contributors/stats";
-import { ViewAllLink } from "@/components/contributors/view-all-link";
+import {
+  ACTIVITY_HEADING,
+  ACTIVITY_SUBCOPY,
+  CONTRIBUTORS_HEADING,
+  CONTRIBUTORS_SUBCOPY,
+  ISSUES_CARD_DESCRIPTION,
+  ISSUES_CARD_TITLE,
+  PRS_CARD_DESCRIPTION,
+  PRS_CARD_TITLE,
+} from "@/constants/contributors";
 import { SPONSORS } from "@/lib/sponsors/constants";
 import { fetchContributorsData, GITHUB_REPO_URL } from "@/utils/github";
 
@@ -11,49 +21,38 @@ export async function ContributorsContent() {
   const data = await fetchContributorsData();
   return (
     <>
-      <Stats stats={data.stats} />
-
-      <section className="flex w-full flex-col gap-8 px-4 py-12 sm:px-6 md:px-8 md:py-16">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <h2 className="font-display text-foreground text-2xl font-medium tracking-[-0.02em] md:text-3xl">
-            Our Contributors
-          </h2>
-          <p className="text-muted-foreground max-w-2xl text-balance">
-            Thank you to everyone who has contributed code, issues, and ideas to
-            Notra.
-          </p>
-        </div>
-
-        <div className="mx-auto w-full max-w-4xl">
-          <ContributorsGrid contributors={data.contributors} />
-        </div>
+      <section className="flex w-full flex-col items-center gap-13.5 px-6 pt-20 antialiased sm:px-12 lg:px-20 lg:pt-35">
+        <ContributorsSectionHeader
+          description={CONTRIBUTORS_SUBCOPY}
+          title={CONTRIBUTORS_HEADING}
+        />
+        <ContributorsGrid contributors={data.contributors} />
       </section>
 
       <Sponsors sponsors={SPONSORS} />
 
-      <section className="border-border grid w-full grid-cols-1 gap-8 border-t px-4 py-12 sm:px-6 md:grid-cols-2 md:gap-10 md:px-8 md:py-16">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-foreground text-xl font-medium tracking-[-0.02em] md:text-2xl">
-              Open Issues
-            </h2>
-            <ViewAllLink href={`${GITHUB_REPO_URL}/issues`}>
-              View all
-            </ViewAllLink>
-          </div>
-          <IssueList issues={data.issues} />
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-foreground text-xl font-medium tracking-[-0.02em] md:text-2xl">
-              Open Pull Requests
-            </h2>
-            <ViewAllLink href={`${GITHUB_REPO_URL}/pulls`}>
-              View all
-            </ViewAllLink>
-          </div>
-          <PullRequestList prs={data.prs} />
+      <section className="mx-auto flex w-full max-w-360 flex-col items-center gap-13.5 px-6 pt-20 pb-20 antialiased sm:px-12 lg:px-20 lg:pt-35 lg:pb-35">
+        <ContributorsSectionHeader
+          description={ACTIVITY_SUBCOPY}
+          title={ACTIVITY_HEADING}
+        />
+        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
+          <ActivityCard
+            description={ISSUES_CARD_DESCRIPTION}
+            title={ISSUES_CARD_TITLE}
+            viewAllHref={`${GITHUB_REPO_URL}/issues`}
+            viewAllLabel={`View all (${data.stats.totalIssues})`}
+          >
+            <IssueList issues={data.issues} />
+          </ActivityCard>
+          <ActivityCard
+            description={PRS_CARD_DESCRIPTION}
+            title={PRS_CARD_TITLE}
+            viewAllHref={`${GITHUB_REPO_URL}/pulls`}
+            viewAllLabel={`View all (${data.stats.totalPullRequests})`}
+          >
+            <PullRequestList prs={data.prs} />
+          </ActivityCard>
         </div>
       </section>
     </>

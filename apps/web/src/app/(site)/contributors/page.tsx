@@ -8,6 +8,10 @@ import { ContributorsContent } from "@/components/contributors/contributors-cont
 import { ContributorsPageSkeleton } from "@/components/contributors/skeleton";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
+import {
+  CONTRIBUTORS_HERO_SUBTITLE,
+  CONTRIBUTORS_HERO_TITLE,
+} from "@/constants/contributors";
 import { GITHUB_REPO_URL } from "@/utils/github";
 import { TWITTER_HANDLE } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
@@ -41,15 +45,10 @@ export const metadata: Metadata = {
 
 export default function ContributorsPage() {
   return (
-    <div className="border-border/70 flex w-full flex-col items-center justify-start overflow-hidden border-b">
+    <div className="flex w-full flex-col items-center justify-start overflow-hidden">
       <MarketingHeroWash
-        className="mb-12 md:mb-16"
-        subtitle="Meet the developers who build Notra and the sponsors who back it. Browse open issues, check in on pull requests, and jump in anytime."
-        title={
-          <>
-            Contributors & <span className="text-primary">Community</span>
-          </>
-        }
+        subtitle={CONTRIBUTORS_HERO_SUBTITLE}
+        title={CONTRIBUTORS_HERO_TITLE}
       >
         <CtaButton
           nativeButton={false}
