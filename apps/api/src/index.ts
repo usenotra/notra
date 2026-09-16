@@ -18,6 +18,7 @@ import { trimTrailingSlash } from "hono/trailing-slash";
 
 import { apiAnalyticsMiddleware } from "./middleware/analytics";
 import { authMiddleware } from "./middleware/auth";
+import { feedbackEntitlementMiddleware } from "./middleware/feedback-entitlement";
 import {
   geoContextMiddleware,
   geoProjectContextMiddleware,
@@ -58,7 +59,10 @@ import {
 } from "./utils/agent-discovery";
 import { trackApiException } from "./utils/analytics";
 import { assertRequiredEnv } from "./utils/env";
-import { isPublicFeedbackIngestRequest } from "./utils/feedback";
+import {
+  isFeedbackApiRequest,
+  isPublicFeedbackIngestRequest,
+} from "./utils/feedback";
 import { logError } from "./utils/logging";
 import { createApiShutdown } from "./utils/shutdown";
 
@@ -205,14 +209,26 @@ const unlessPublicFeedbackIngest =
       ? next()
       : middleware(c, next);
 
+// The whole feedback resource — not just public ingest — sits behind the
+// `feedback` feature entitlement instead of the subscription gate, so
+// the default free plan can use it end to end.
+const unlessFeedbackRequest =
+  (middleware: (c: Context, next: () => Promise<void>) => Promise<unknown>) =>
+  (c: Context, next: () => Promise<void>) =>
+    isFeedbackApiRequest(new URL(c.req.url).pathname)
+      ? next()
+      : middleware(c, next);
+
 app.use("/v1/*", apiAnalyticsMiddleware);
 app.use("/v2/*", apiAnalyticsMiddleware);
 
 app.use("/v1/*", unlessPublicFeedbackIngest(oauthScopeMiddleware));
 app.use("/v2/*", oauthScopeMiddleware);
 
-app.use("/v1/*", unlessPublicFeedbackIngest(subscriptionMiddleware()));
+app.use("/v1/*", unlessFeedbackRequest(subscriptionMiddleware()));
 app.use("/v2/*", subscriptionMiddleware());
+
+app.use("/v1/feedback/*", feedbackEntitlementMiddleware());
 
 // GEO is a paid add-on, so every GEO endpoint — reads included — additionally
 // requires the `ai_answers` plan entitlement. `subscriptionMiddleware` above

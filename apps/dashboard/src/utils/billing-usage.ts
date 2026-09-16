@@ -40,6 +40,7 @@ function isHiddenFromFeatureList(featureId: string) {
   return (
     featureId === FEATURES.AI_ANSWERS ||
     featureId === FEATURES.AI_CREDITS ||
+    featureId === FEATURES.AGENT_FEEDBACK ||
     featureId === FEATURES.ZDR ||
     isLogRetentionFeature(featureId)
   );

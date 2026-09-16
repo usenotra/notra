@@ -3,6 +3,11 @@ export interface GeoEntitlementCheckInput {
   secretKey: string;
 }
 
+export interface FeedbackEntitlementCheckInput {
+  organizationId: string;
+  secretKey: string;
+}
+
 export interface SubscriptionAccessInput {
   organizationId: string;
   secretKey: string;

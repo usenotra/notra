@@ -5,6 +5,8 @@ type SessionData = Awaited<ReturnType<typeof getServerSession>>;
 
 export interface ORPCRequestMemo {
   readonly analyticsEnabledByOrganization: Map<string, Promise<boolean>>;
+  /** Keyed by `${featureId}:${organizationId}` for Autumn `check` lookups. */
+  readonly featureEntitlementByOrganization: Map<string, Promise<boolean>>;
   readonly geoEntitlementByOrganization: Map<
     string,
     Promise<"entitled" | "denied" | "skipped">
@@ -27,6 +29,7 @@ const requestMemosByHeaders = new WeakMap<Headers, ORPCRequestMemo>();
 function createRequestMemo(): ORPCRequestMemo {
   return {
     analyticsEnabledByOrganization: new Map(),
+    featureEntitlementByOrganization: new Map(),
     geoEntitlementByOrganization: new Map(),
     membershipByUserOrganization: new Map(),
   };

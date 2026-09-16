@@ -2,6 +2,7 @@ export const FEATURES = {
   TEAM_MEMBERS: "team_members",
   AI_CREDITS: "ai_credits",
   AI_ANSWERS: "ai_answers",
+  AGENT_FEEDBACK: "feedback",
   LONG_FORM_POSTS: "long_form_posts",
   SOCIAL_POSTS: "social_posts",
   IMAGE_GENERATIONS: "image_generations",

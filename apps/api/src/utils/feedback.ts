@@ -16,6 +16,7 @@ import type {
 } from "../types/feedback";
 
 const PUBLIC_FEEDBACK_INGEST_PATH_REGEX = /^\/v1\/feedback\/[^/]+\/?$/;
+const FEEDBACK_API_PATH_REGEX = /^\/v1\/feedback(?:\/|$)/;
 
 export function serializeFeedback(
   row: AgentFeedbackRow
@@ -42,6 +43,15 @@ export function isPublicFeedbackIngestRequest(
   method: string
 ): boolean {
   return method === "POST" && PUBLIC_FEEDBACK_INGEST_PATH_REGEX.test(pathname);
+}
+
+/**
+ * Any request aimed at the feedback resource — public slug ingest included.
+ * The subscription gate skips the whole resource because access is decided by
+ * the `feedback` Autumn feature via `feedbackEntitlementMiddleware`.
+ */
+export function isFeedbackApiRequest(pathname: string): boolean {
+  return FEEDBACK_API_PATH_REGEX.test(pathname);
 }
 
 export async function findOrganizationIdBySlug(

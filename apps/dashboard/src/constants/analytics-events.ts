@@ -72,6 +72,7 @@ export const QUOTA_FEATURES = {
 
 export const ENTITLEMENT_FEATURES = {
   AI_ANSWERS: "ai_answers",
+  AGENT_FEEDBACK: "feedback",
 } as const;
 
 export const ENTITLEMENT_SURFACES = {

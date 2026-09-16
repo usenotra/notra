@@ -1,3 +1,9 @@
+/**
+ * Kept byte-identical to the dashboard's `AGENT_FEEDBACK_PLAN_REQUIRED_MESSAGE`
+ * so a client sees the same 402 copy whichever surface it hit.
+ */
+export const FEEDBACK_PLAN_REQUIRED_ERROR =
+  "Feedback is not enabled on this plan";
 export const FEEDBACK_NOT_FOUND_ERROR = "Feedback not found";
 export const FEEDBACK_PROJECT_NOT_FOUND_ERROR = "Project not found";
 export const FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR =

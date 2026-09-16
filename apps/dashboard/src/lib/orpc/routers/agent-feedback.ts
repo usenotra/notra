@@ -17,6 +17,7 @@ import {
 import { buildAgentFeedbackSetup } from "@/lib/agent-feedback/snippet";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { assertAgentFeedbackEntitlement } from "@/lib/billing/subscription";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import { toAgentFeedbackOrpcError } from "@/lib/orpc/utils/agent-feedback-errors";
@@ -36,6 +37,7 @@ function agentFeedbackHandler<
       organizationId: input.organizationId,
       user: context.user,
     });
+    await assertAgentFeedbackEntitlement(input.organizationId, context.headers);
 
     return await runOrpcEffect(run(input), toAgentFeedbackOrpcError);
   };
@@ -53,6 +55,10 @@ export const agentFeedbackRouter = {
         organizationId: input.organizationId,
         user: context.user,
       });
+      await assertAgentFeedbackEntitlement(
+        input.organizationId,
+        context.headers
+      );
 
       const item = await runOrpcEffect(
         updateAgentFeedbackStatus(input),
