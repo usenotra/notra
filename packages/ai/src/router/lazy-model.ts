@@ -449,17 +449,18 @@ export class RoutedLanguageModel implements LanguageModelV4 {
 
   /**
    * Record a classified upstream failure so later routes avoid the gateway
-   * (or just the model on it) until the mark expires.
+   * (or just the model on it) until the mark expires. Returns whether a mark
+   * was recorded — an unmarked failure leaves routing untouched.
    */
   private recordUpstreamFailure(
     route: ResolvedRoute,
     reason: FallbackReason,
     error: unknown
-  ): void {
+  ): boolean {
     if (reason === "no-credits") {
       this.context.credits.markExhausted(route.decision.gateway);
       this.verifyExhaustion(route.decision.gateway);
-      return;
+      return true;
     }
     if (reason === "auth-failure") {
       // A rejected key is a fact about the gateway account, not the model:
@@ -471,7 +472,7 @@ export class RoutedLanguageModel implements LanguageModelV4 {
         organizationId: route.decision.organizationId,
         message: readMessage(error),
       });
-      return;
+      return true;
     }
     if (reason === "non-compliant") {
       // A missing ZDR host is a fact about this model on this gateway, so the
@@ -488,7 +489,9 @@ export class RoutedLanguageModel implements LanguageModelV4 {
         zdr: route.decision.zdr,
         message: readMessage(error),
       });
+      return true;
     }
+    return false;
   }
 
   /**
@@ -504,7 +507,11 @@ export class RoutedLanguageModel implements LanguageModelV4 {
     if (!reason) {
       return error;
     }
-    this.recordUpstreamFailure(route, reason, error);
+    if (this.recordUpstreamFailure(route, reason, error)) {
+      // The mark must win over the cached fallback route: drop it so the next
+      // call re-resolves instead of hitting the marked gateway again.
+      this.routePromise = undefined;
+    }
     if (reason === "auth-failure") {
       return new GatewayUnavailableError(
         route.decision.gateway,
@@ -522,7 +529,7 @@ export class RoutedLanguageModel implements LanguageModelV4 {
     if (!reason) {
       return undefined;
     }
-    this.recordUpstreamFailure(route, reason, error);
+    const marked = this.recordUpstreamFailure(route, reason, error);
 
     // Prefer a ZDR-capable route on the other gateway over dropping the
     // flag; a `preferred` request only relaxes once no such route exists.
@@ -532,6 +539,11 @@ export class RoutedLanguageModel implements LanguageModelV4 {
     }
     if (reason === "non-compliant" && this.canRelaxZdr(route)) {
       return this.relaxZdr(route, error);
+    }
+    if (marked) {
+      // No usable route survives: the mark must win over the cached route, so
+      // the next call re-resolves instead of hitting the marked gateway.
+      this.routePromise = undefined;
     }
     if (reason === "auth-failure") {
       // No eligible fallback: surface the normalized router error a

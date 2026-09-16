@@ -806,13 +806,18 @@ describe("RoutedLanguageModel", () => {
       },
     });
     const { router } = createTestRouter({ plans, openrouter, vercel: null });
+    const model = router.model(MODEL, { organizationId: FREE_ORG });
     await assert.rejects(
-      async () =>
-        await router
-          .model(MODEL, { organizationId: FREE_ORG })
-          .doGenerate(callOptions()),
+      async () => await model.doGenerate(callOptions()),
       GatewayUnavailableError
     );
+    // Reusing the same model honors the mark instead of calling the
+    // rejected gateway again.
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    assert.equal(openrouter.calls.length, 1);
     // The gateway stays marked, so route resolution fails fast as well.
     await assert.rejects(
       router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
@@ -834,11 +839,9 @@ describe("RoutedLanguageModel", () => {
       },
     });
     const { router, logger } = createTestRouter({ plans, openrouter, vercel });
+    const model = router.model(MODEL, { organizationId: FREE_ORG });
     await assert.rejects(
-      async () =>
-        await router
-          .model(MODEL, { organizationId: FREE_ORG })
-          .doGenerate(callOptions()),
+      async () => await model.doGenerate(callOptions()),
       GatewayUnavailableError
     );
     assert.deepEqual(
@@ -847,7 +850,13 @@ describe("RoutedLanguageModel", () => {
         .map((entry) => entry.fields?.gateway),
       ["openrouter", "vercel"]
     );
-    // Both gateways are marked, so later routes fail fast without new calls.
+    // Both gateways are marked and the cached fallback route is dropped, so
+    // reusing the same model and resolving later routes fail fast without
+    // new upstream calls.
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
     await assert.rejects(
       router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
       GatewayUnavailableError
