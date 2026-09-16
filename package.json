@@ -41,7 +41,7 @@
     "openlogs": "^0.0.1",
     "oxfmt": "0.64.0",
     "oxlint": "1.82.0",
-    "turbo": "^2.10.12",
+    "turbo": "^2.10.13",
     "ultracite": "7.10.6"
   },
   "overrides": {
