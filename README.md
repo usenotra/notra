@@ -1,6 +1,8 @@
-# Notra
-
-![Vercel Open Source Program 2026](https://vercel.com/oss/program-badge-2026.svg)
+<h1>
+  <img src="https://vercel.com/oss/program-badge-2026.svg" alt="Vercel Open Source Program 2026" width="240" height="24" align="right" />
+  <img src="apps/web/src/app/icon0.svg" alt="Notra logo" width="40" height="40" align="center" />
+  Notra
+</h1>
 
 **See where your brand shows up in AI answers, who gets recommended instead, and what to write next.**
 
