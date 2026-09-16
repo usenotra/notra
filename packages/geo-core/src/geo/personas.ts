@@ -19,7 +19,7 @@ import {
   queryGeoCheckPersonaScans,
 } from "@notra/db/utils/geo-persona-checks";
 import { generateText, Output } from "ai";
-import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -72,7 +72,10 @@ const loadPersonaRows = Effect.fn("geo.personas.load")(function* (
 ) {
   const rows = yield* geoDb("personas lookup failed", () =>
     database.query.geoPersonas.findMany({
-      where: eq(geoPersonas.projectId, projectId),
+      where: and(
+        eq(geoPersonas.projectId, projectId),
+        isNull(geoPersonas.archivedAt)
+      ),
       orderBy: [asc(geoPersonas.createdAt)],
     })
   );
@@ -130,7 +133,8 @@ export const requireGeoPersonaGenerationCapacity = Effect.fn(
       .where(
         and(
           eq(geoPersonas.projectId, scope.projectId),
-          eq(geoPersonas.organizationId, scope.organizationId)
+          eq(geoPersonas.organizationId, scope.organizationId),
+          isNull(geoPersonas.archivedAt)
         )
       )
   );
@@ -335,7 +339,8 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
             .where(
               and(
                 eq(geoPersonas.projectId, projectId),
-                eq(geoPersonas.organizationId, organizationId)
+                eq(geoPersonas.organizationId, organizationId),
+                isNull(geoPersonas.archivedAt)
               )
             );
           if (
@@ -373,7 +378,8 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
               and(
                 eq(geoPersonas.projectId, projectId),
                 eq(geoPersonas.organizationId, organizationId),
-                eq(geoPersonas.id, target.id)
+                eq(geoPersonas.id, target.id),
+                isNull(geoPersonas.archivedAt)
               )
             )
             .returning({ id: geoPersonas.id });
@@ -550,13 +556,15 @@ export const updateGeoPersona = Effect.fn("geo.personaUpdate")(function* (
       .set({
         ...(update.enabled === undefined ? {} : { enabled: update.enabled }),
         ...update.details,
+        ...(update.details ? { conversationPrompts: [] } : {}),
         updatedAt: new Date(),
       })
       .where(
         and(
           eq(geoPersonas.id, update.personaId),
           eq(geoPersonas.organizationId, scope.organizationId),
-          eq(geoPersonas.projectId, scope.projectId)
+          eq(geoPersonas.projectId, scope.projectId),
+          isNull(geoPersonas.archivedAt)
         )
       )
       .returning()
@@ -581,14 +589,17 @@ export const deleteGeoPersona = Effect.fn("geo.personaDelete")(function* (
   personaId: string
 ) {
   const scope = yield* requireGeoProject(input);
-  const rows = yield* geoDb("persona delete failed", () =>
+  const now = new Date();
+  const rows = yield* geoDb("persona archive failed", () =>
     db
-      .delete(geoPersonas)
+      .update(geoPersonas)
+      .set({ archivedAt: now, enabled: false, updatedAt: now })
       .where(
         and(
           eq(geoPersonas.id, personaId),
           eq(geoPersonas.organizationId, scope.organizationId),
-          eq(geoPersonas.projectId, scope.projectId)
+          eq(geoPersonas.projectId, scope.projectId),
+          isNull(geoPersonas.archivedAt)
         )
       )
       .returning({ id: geoPersonas.id })
@@ -679,7 +690,16 @@ export const loadGeoPersonaActivity = Effect.fn("geo.personaActivity")(
       from: rangeFrom.toISOString().slice(0, 10),
       to: rangeTo.toISOString().slice(0, 10),
       points: rows.flatMap((row) =>
-        row.personaId ? [{ ...row, personaId: row.personaId }] : []
+        row.personaId && row.snapshotVersion
+          ? [
+              {
+                ...row,
+                personaId: row.personaId,
+                snapshotVersion: row.snapshotVersion,
+                lastCheckedAt: row.lastCheckedAt.toISOString(),
+              },
+            ]
+          : []
       ),
     };
     return response;

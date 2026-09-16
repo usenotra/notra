@@ -10,7 +10,13 @@ import {
 } from "bun:test";
 import assert from "node:assert/strict";
 
-import { geoMentionChecks, geoPersonas } from "@notra/db/schema";
+import {
+  geoMentionChecks,
+  geoPersonaMemories,
+  geoPersonas,
+  geoScans,
+} from "@notra/db/schema";
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -34,7 +40,14 @@ import {
   testDb,
 } from "./utils/database";
 
-const { persistGeneratedPersonas } = await import("../src/geo/personas");
+const {
+  deleteGeoPersona,
+  listGeoPersonas,
+  loadGeoPersonaActivity,
+  persistGeneratedPersonas,
+  requireGeoPersonaGenerationCapacity,
+  updateGeoPersona,
+} = await import("../src/geo/personas");
 const { prepareGeoScanProject } = await import("../src/geo/scan");
 const { runGeoScanPersonaBatch } = await import("../src/geo/persona-scan");
 
@@ -66,6 +79,154 @@ describe("persona persistence", () => {
     } finally {
       read.mockRestore();
     }
+  });
+
+  test("archives a persona without deleting memories or historical checks", async () => {
+    const scope = await seedProject("persona-archive");
+    const [persona] = await Effect.runPromise(
+      persistGeneratedPersonas(scope.organizationId, scope.projectId, {
+        personas: [generatedPersona],
+      })
+    );
+    assert.ok(persona);
+    const scanId = "scan-persona-archive";
+    await testDb.insert(geoScans).values({
+      id: scanId,
+      organizationId: scope.organizationId,
+      projectId: scope.projectId,
+      status: "completed",
+    });
+    const snapshot = createPersonaSnapshot(
+      persona,
+      persona.memories,
+      persona.conversationPrompts
+    );
+    const revisedSnapshot = createPersonaSnapshot(
+      { ...persona, role: `${persona.role} with procurement ownership` },
+      persona.memories,
+      persona.conversationPrompts
+    );
+    await testDb.insert(geoMentionChecks).values([
+      {
+        id: "check-persona-archive",
+        organizationId: scope.organizationId,
+        projectId: scope.projectId,
+        scanId,
+        engine: "test/grounded",
+        promptId: `persona-${persona.id}`,
+        personaId: persona.id,
+        personaSnapshot: snapshot,
+        turn: 1,
+        prompt: persona.conversationPrompts[0] ?? "Which tool should I buy?",
+        answer: "Selected is a good choice.",
+        mentioned: true,
+        capturedAt: new Date(),
+      },
+      {
+        id: "check-persona-archive-revised",
+        organizationId: scope.organizationId,
+        projectId: scope.projectId,
+        scanId,
+        engine: "test/grounded",
+        promptId: `persona-${persona.id}`,
+        personaId: persona.id,
+        personaSnapshot: revisedSnapshot,
+        turn: 2,
+        prompt: persona.conversationPrompts[1] ?? "Which tool is safest?",
+        answer: "Another option is safer.",
+        mentioned: false,
+        capturedAt: new Date(),
+      },
+    ]);
+
+    await Effect.runPromise(deleteGeoPersona(scope, persona.id));
+
+    const [archived] = await testDb
+      .select()
+      .from(geoPersonas)
+      .where(eq(geoPersonas.id, persona.id));
+    expect(archived?.archivedAt).toBeInstanceOf(Date);
+    expect(archived?.enabled).toBe(false);
+    expect(await testDb.select().from(geoPersonaMemories)).toHaveLength(1);
+    expect(await testDb.select().from(geoMentionChecks)).toHaveLength(2);
+    const activity = await Effect.runPromise(
+      loadGeoPersonaActivity({ ...scope, days: 1 })
+    );
+    expect(activity.points).toHaveLength(2);
+    expect(
+      new Set(activity.points.map((point) => point.snapshotVersion))
+    ).toEqual(new Set([snapshot.version, revisedSnapshot.version]));
+    expect(activity.points.every((point) => point.lastCheckedAt)).toBe(true);
+    expect((await Effect.runPromise(listGeoPersonas(scope))).personas).toEqual(
+      []
+    );
+    await expect(
+      Effect.runPromise(
+        requireGeoPersonaGenerationCapacity(scope, undefined, "replacement")
+      )
+    ).resolves.toMatchObject(scope);
+  });
+
+  test("invalidates prompts on profile edits but not scan toggles", async () => {
+    const scope = await seedProject("persona-prompt-invalidation");
+    const [persona] = await Effect.runPromise(
+      persistGeneratedPersonas(scope.organizationId, scope.projectId, {
+        personas: [generatedPersona],
+      })
+    );
+    assert.ok(persona);
+
+    const paused = await Effect.runPromise(
+      updateGeoPersona(scope, { personaId: persona.id, enabled: false })
+    );
+    expect(paused.conversationPrompts).toEqual(persona.conversationPrompts);
+
+    const edited = await Effect.runPromise(
+      updateGeoPersona(scope, {
+        personaId: persona.id,
+        details: {
+          name: persona.name,
+          role: persona.role,
+          company: persona.company,
+          summary: "Now prioritizes low implementation risk",
+          searchStyle: persona.searchStyle,
+          profile: persona.profile,
+        },
+      })
+    );
+    expect(edited.conversationPrompts).toEqual([]);
+    expect(edited.enabled).toBe(false);
+
+    const originalMemoryIds = edited.memories.map((memory) => memory.id);
+    const regenerated = await Effect.runPromise(
+      persistGeneratedPersonas(
+        scope.organizationId,
+        scope.projectId,
+        {
+          personas: [
+            {
+              ...generatedPersona,
+              conversationPrompts: [
+                "Which tools minimize implementation risk?",
+                "Which option has the safest migration path?",
+              ],
+            },
+          ],
+        },
+        edited,
+        true
+      )
+    );
+    const refreshed = regenerated.find((entry) => entry.id === persona.id);
+    expect(refreshed?.conversationPrompts).toEqual([
+      "Which tools minimize implementation risk?",
+      "Which option has the safest migration path?",
+    ]);
+    expect(refreshed?.summary).toBe(edited.summary);
+    expect(refreshed?.enabled).toBe(false);
+    expect(refreshed?.memories.map((memory) => memory.id)).toEqual(
+      originalMemoryIds
+    );
   });
 
   test("rolls back generated personas when building the response fails", async () => {
@@ -210,10 +371,8 @@ describe("planned persona snapshots", () => {
       expect(persona.conversationPrompts).toContain(row.prompt);
     }
 
-    await testDb
-      .update(geoPersonas)
-      .set({ enabled: false })
-      .where(eq(geoPersonas.id, persona.id));
+    await Effect.runPromise(deleteGeoPersona(scope, persona.id));
+    const checksBeforeArchivedReplay = rows.length;
     const paused = await Effect.runPromise(
       runGeoScanPersonaBatch(plan.context, plan.personas).pipe(
         Effect.provideService(GeoModelService, fakeModels),
@@ -221,5 +380,8 @@ describe("planned persona snapshots", () => {
       )
     );
     expect(paused.checks).toBe(0);
+    expect(await testDb.select().from(geoMentionChecks)).toHaveLength(
+      checksBeforeArchivedReplay
+    );
   });
 });

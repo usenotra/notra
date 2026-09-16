@@ -22,9 +22,9 @@ import {
   accountSeriesColorPair,
   accountSeriesColors,
 } from "@/utils/chart-colors";
-import { chartKey } from "@/utils/chart-keys";
 import {
   buildPersonaActivityRows,
+  buildPersonaActivitySeries,
   personaMentionRate,
   personaForecastKey,
 } from "@/utils/persona-activity";
@@ -41,20 +41,31 @@ export function PersonaActivityCard({
     range.query
   );
   const isScanning = useIsGeoScanning(organizationId);
+  const series = data ? buildPersonaActivitySeries(data, personas) : [];
+  const personaIndexes = new Map(
+    personas.map((persona, index) => [persona.id, index])
+  );
   const config: ChartConfig = {};
-  for (const [index, persona] of personas.entries()) {
-    config[chartKey(persona.id)] = {
-      label: persona.name,
-      colors: accountSeriesColors(index),
-    };
-    config[personaForecastKey(persona.id)] = {
-      label: `${persona.name} (forecast)`,
-      colors: accountSeriesColors(index),
-    };
+  for (const item of series) {
+    const colors = accountSeriesColors(personaIndexes.get(item.personaId) ?? 0);
+    config[item.dataKey] = { label: item.label, colors };
+    if (item.isCurrent) {
+      config[personaForecastKey(item.personaId, item.snapshotVersion)] = {
+        label: `${item.label} (forecast)`,
+        colors,
+      };
+    }
   }
-  const rows = data ? buildPersonaActivityRows(data, personas) : [];
-  const hasForecast = Boolean(
-    data && rows.some((row) => String(row.day) > data.to)
+  const rows = data ? buildPersonaActivityRows(data, series) : [];
+  const hasForecast = series.some(
+    (item) =>
+      item.isCurrent &&
+      rows.some(
+        (row) =>
+          typeof row[
+            personaForecastKey(item.personaId, item.snapshotVersion)
+          ] === "number"
+      )
   );
   const hasResults = data?.points.some(
     (point) =>
@@ -87,7 +98,14 @@ export function PersonaActivityCard({
         <>
           <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-5 pt-3 sm:grid-cols-3 lg:grid-cols-5">
             {personas.map((persona, index) => {
-              const rate = personaMentionRate(data, persona.id);
+              const currentSeries = series.find(
+                (item) => item.personaId === persona.id && item.isCurrent
+              );
+              const rate = personaMentionRate(
+                data,
+                persona.id,
+                currentSeries?.snapshotVersion
+              );
               const color = accountSeriesColorPair(index);
               const visible = !hiddenPersonaIds.has(persona.id);
               return (
@@ -144,35 +162,40 @@ export function PersonaActivityCard({
               hideDots
               tickFormatter={(value) => `${value}%`}
             />
-            {personas.map((persona) => (
+            {series.map((item) => (
               <EChartsAreaChart.Area
-                key={persona.id}
-                dataKey={chartKey(persona.id)}
-                variant="gradient"
-                visible={!hiddenPersonaIds.has(persona.id)}
-                strokeVariant="solid"
+                key={item.dataKey}
+                dataKey={item.dataKey}
+                variant={item.isCurrent ? "gradient" : "none"}
+                visible={!hiddenPersonaIds.has(item.personaId)}
+                strokeVariant={item.isCurrent ? "solid" : "dashed"}
                 gapMissing
-                strokeWidth={2}
-              >
-                {data.from === rows.at(-1)?.day ? (
-                  <EChartsAreaChart.Dot variant="border" />
-                ) : null}
-                <EChartsAreaChart.ActiveDot variant="border" />
-              </EChartsAreaChart.Area>
-            ))}
-            {personas.map((persona) => (
-              <EChartsAreaChart.Area
-                key={personaForecastKey(persona.id)}
-                dataKey={personaForecastKey(persona.id)}
-                variant="none"
-                visible={!hiddenPersonaIds.has(persona.id)}
-                strokeVariant="dashed"
-                strokeWidth={1.5}
-                gapMissing
+                strokeWidth={item.isCurrent ? 2 : 1.5}
               >
                 <EChartsAreaChart.ActiveDot variant="border" />
               </EChartsAreaChart.Area>
             ))}
+            {series
+              .filter((item) => item.isCurrent)
+              .map((item) => {
+                const key = personaForecastKey(
+                  item.personaId,
+                  item.snapshotVersion
+                );
+                return (
+                  <EChartsAreaChart.Area
+                    key={key}
+                    dataKey={key}
+                    variant="none"
+                    visible={!hiddenPersonaIds.has(item.personaId)}
+                    strokeVariant="dashed"
+                    strokeWidth={1.5}
+                    gapMissing
+                  >
+                    <EChartsAreaChart.ActiveDot variant="border" />
+                  </EChartsAreaChart.Area>
+                );
+              })}
             <EChartsAreaChart.Tooltip
               labelFormatter={formatFullDayLabel}
               valueFormatter={(value) => `${Number(value).toFixed(1)}%`}

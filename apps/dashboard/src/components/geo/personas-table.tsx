@@ -115,8 +115,8 @@ export function PersonasTable({
               Memories
             </TooltipTrigger>
             <TooltipContent>
-              Background facts and preferences this persona uses in
-              conversations
+              Background facts and preferences used to generate this persona’s
+              fixed prompts
             </TooltipContent>
           </Tooltip>
         ),
@@ -233,6 +233,7 @@ export function PersonasTable({
             persona={row}
             scanDisabled={
               !row.enabled ||
+              row.conversationPrompts.length === 0 ||
               runPersona.isPending ||
               generationPending ||
               deletePersona.isPending ||
@@ -261,7 +262,7 @@ export function PersonasTable({
         }
       />
       <GeoRemoveDialog
-        description="Their memories and past conversations are removed with them. Scans will stop running this persona."
+        description="This persona will be removed from future scans. Its historical scan data will be retained."
         isPending={deletePersona.isPending}
         items={removing ? [removing.name] : []}
         nouns={{ singular: "persona", plural: "personas" }}

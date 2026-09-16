@@ -4,7 +4,7 @@ import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
 import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
 import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { GEO_JUDGE_MODEL, GEO_SCAN_CONCURRENCY } from "../constants/geo";
@@ -90,7 +90,8 @@ const loadPersonaForScan = Effect.fn("geo.persona.load")(function* (
         },
         where: and(
           eq(geoPersonas.id, personaId),
-          eq(geoPersonas.projectId, projectId)
+          eq(geoPersonas.projectId, projectId),
+          isNull(geoPersonas.archivedAt)
         ),
       }),
     catch: (cause) =>
@@ -167,7 +168,8 @@ const runPlannedPersona = Effect.fn("geo.runPlannedPersona")(function* (
         columns: { enabled: true },
         where: and(
           eq(geoPersonas.id, planned.personaId),
-          eq(geoPersonas.projectId, checkContext.projectId)
+          eq(geoPersonas.projectId, checkContext.projectId),
+          isNull(geoPersonas.archivedAt)
         ),
       }),
     catch: (cause) =>

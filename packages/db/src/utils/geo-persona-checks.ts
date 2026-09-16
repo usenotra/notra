@@ -128,10 +128,15 @@ export async function queryGeoCheckPersonaActivity(
   to: Date
 ) {
   const day = sql<string>`to_char(${geoMentionChecks.capturedAt}, 'YYYY-MM-DD')`;
+  const snapshotVersion = sql<string>`${geoMentionChecks.personaSnapshot} ->> 'version'`;
   return db
     .select({
       personaId: geoMentionChecks.personaId,
+      snapshotVersion,
       day,
+      lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`.mapWith(
+        (value) => (value instanceof Date ? value : new Date(String(value)))
+      ),
       checks: sql<number>`count(*)`.mapWith(Number),
       mentions:
         sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})`.mapWith(
@@ -143,10 +148,11 @@ export async function queryGeoCheckPersonaActivity(
       and(
         scopeWhere(scope),
         sql`${geoMentionChecks.personaId} is not null`,
+        sql`${snapshotVersion} is not null`,
         gte(geoMentionChecks.capturedAt, from),
         lt(geoMentionChecks.capturedAt, to)
       )
     )
-    .groupBy(geoMentionChecks.personaId, day)
-    .orderBy(day);
+    .groupBy(geoMentionChecks.personaId, snapshotVersion, day)
+    .orderBy(day, snapshotVersion);
 }

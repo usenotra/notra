@@ -70,7 +70,9 @@ export type GeoPersonaEditableDetails = Pick<
 
 export interface GeoPersonaActivityPoint {
   personaId: string;
+  snapshotVersion: string;
   day: string;
+  lastCheckedAt: string;
   checks: number;
   mentions: number;
 }
