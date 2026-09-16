@@ -18,8 +18,6 @@ Notra is a generative engine optimization (GEO) platform. It runs the questions 
   </picture>
 </a>
 
-[Light preview](.github/assets/landing-light.png) · [Dark preview](.github/assets/landing-dark.png). Captured from the live landing page with [Context.dev](https://www.context.dev/data/screenshot-api).
-
 ## From AI answers to your next draft
 
 - **Track buyer questions.** Add prompts yourself, generate them from your website, import a CSV, or use Google Search Console queries as suggestions. Run scans across engines including ChatGPT, Claude, Gemini, and Perplexity, with support for multiple languages and follow-up conversations.
