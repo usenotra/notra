@@ -14,13 +14,16 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 
 import { ChatHistoryNav } from "./chat-history-nav";
-import { DeferredSidebarStatus } from "./deferred-sidebar-status";
+import {
+  DeferredSidebarStatus,
+  DeferredSidebarUpgrade,
+} from "./deferred-sidebar-status";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
 import { NavUtility } from "./nav-utility";
@@ -68,6 +71,23 @@ export function DashboardSidebar({
   const section = pathnameSegments[1];
   const panelId = section === "chat" || section === "brand" ? section : "main";
   const isSubpage = panelId !== "main";
+
+  const [hasMoreNavigation, setHasMoreNavigation] = useState(false);
+  const scrollEndRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) {
+          setHasMoreNavigation(!entry.isIntersecting);
+        }
+      },
+      { root: node.parentElement }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const hasVisitedMainRef = useRef(false);
   const previousNavigationKeyRef = useRef(navigationKey);
@@ -141,7 +161,18 @@ export function DashboardSidebar({
           <NavUtility slug={slug} />
           <DeferredSidebarStatus />
         </div>
+        <div aria-hidden className="h-px shrink-0" ref={scrollEndRef} />
       </SidebarContent>
+      <div className="relative shrink-0">
+        {hasMoreNavigation && (
+          <div
+            aria-hidden
+            className="from-sidebar pointer-events-none absolute inset-x-0 bottom-full z-10 h-8 bg-linear-to-t to-transparent group-data-[collapsible=icon]:hidden"
+            data-sidebar="scroll-fade"
+          />
+        )}
+        <DeferredSidebarUpgrade />
+      </div>
       <SidebarFooter>
         <OrgSelector />
       </SidebarFooter>
