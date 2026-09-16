@@ -17,9 +17,12 @@ export function IssueList({ issues }: { issues: GitHubIssue[] }) {
       {issues.map((issue) => {
         const issueType = getIssueTypeFromLabels(issue.labels);
         return (
-          <div
-            className="border-border/60 bg-card hover:border-border duration-normal rounded-lg border p-4 transition-all hover:shadow-sm"
+          <Link
+            className="group border-border/60 bg-card hover:border-border duration-normal block rounded-lg border p-4 transition-all hover:shadow-sm"
+            href={issue.html_url}
             key={issue.id}
+            rel="noopener noreferrer"
+            target="_blank"
           >
             <div className="flex items-start gap-3">
               <Image
@@ -40,20 +43,15 @@ export function IssueList({ issues }: { issues: GitHubIssue[] }) {
                     #{issue.number}
                   </span>
                 </div>
-                <Link
-                  className="text-foreground hover:text-primary line-clamp-2 font-sans text-sm font-medium transition-colors"
-                  href={issue.html_url}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
+                <span className="text-foreground group-hover:text-primary line-clamp-2 font-sans text-sm font-medium transition-colors">
                   {issue.title}
-                </Link>
+                </span>
                 <p className="text-muted-foreground mt-1 text-xs">
                   by {issue.user.login} • {formatGitHubDate(issue.created_at)}
                 </p>
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

@@ -15,9 +15,12 @@ export function PullRequestList({ prs }: { prs: GitHubPR[] }) {
   return (
     <div className="space-y-3">
       {prs.map((pr) => (
-        <div
-          className="border-border/60 bg-card hover:border-border duration-normal rounded-lg border p-4 transition-all hover:shadow-sm"
+        <Link
+          className="group border-border/60 bg-card hover:border-border duration-normal block rounded-lg border p-4 transition-all hover:shadow-sm"
+          href={pr.html_url}
           key={pr.id}
+          rel="noopener noreferrer"
+          target="_blank"
         >
           <div className="flex items-start gap-3">
             <Image
@@ -42,20 +45,15 @@ export function PullRequestList({ prs }: { prs: GitHubPR[] }) {
                   #{pr.number}
                 </span>
               </div>
-              <Link
-                className="text-foreground hover:text-primary line-clamp-2 font-sans text-sm font-medium transition-colors"
-                href={pr.html_url}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
+              <span className="text-foreground group-hover:text-primary line-clamp-2 font-sans text-sm font-medium transition-colors">
                 {pr.title}
-              </Link>
+              </span>
               <p className="text-muted-foreground mt-1 text-xs">
                 by {pr.user.login} • {formatGitHubDate(pr.created_at)}
               </p>
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
