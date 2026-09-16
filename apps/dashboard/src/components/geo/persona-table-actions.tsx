@@ -42,39 +42,26 @@ export function PersonaTableRowActions({
     } else if (disabled) {
       tooltip = "Wait for the current persona action to finish.";
     }
-    const button = (
-      <Button
-        aria-label={`Reactivate ${persona.name}`}
-        disabled={reactivateDisabled}
-        onClick={(event) => {
-          event.stopPropagation();
-          onRestore(persona.id);
-        }}
-        size="icon"
-        type="button"
-        variant="ghost"
-      >
-        <HugeiconsIcon icon={ArchiveRestoreIcon} size={16} />
-      </Button>
-    );
     return (
       <Tooltip>
         <TooltipTrigger
           render={
-            reactivateDisabled ? (
-              // biome-ignore lint/a11y/useSemanticElements: a native button cannot wrap the disabled action button that needs the tooltip.
-              <span
-                aria-disabled="true"
-                aria-label={`Reactivate ${persona.name}`}
-                className="inline-flex cursor-not-allowed"
-                role="button"
-                tabIndex={0}
-              >
-                {button}
-              </span>
-            ) : (
-              button
-            )
+            <Button
+              aria-label={`Reactivate ${persona.name}`}
+              disabled={reactivateDisabled}
+              focusableWhenDisabled
+              onClick={(event) => {
+                event.stopPropagation();
+                if (!reactivateDisabled) {
+                  onRestore(persona.id);
+                }
+              }}
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <HugeiconsIcon icon={ArchiveRestoreIcon} size={16} />
+            </Button>
           }
         />
         <TooltipContent>{tooltip}</TooltipContent>
