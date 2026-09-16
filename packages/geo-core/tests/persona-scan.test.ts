@@ -300,6 +300,70 @@ describe("persona persistence", () => {
     );
   });
 
+  test("does not persist prompts generated from stale persona details", async () => {
+    const scope = await seedProject("persona-stale-prompts");
+    const [persona] = await Effect.runPromise(
+      persistGeneratedPersonas(scope.organizationId, scope.projectId, {
+        personas: [generatedPersona],
+      })
+    );
+    assert.ok(persona);
+
+    const generationTarget = await Effect.runPromise(
+      updateGeoPersona(scope, {
+        personaId: persona.id,
+        details: {
+          name: persona.name,
+          role: persona.role,
+          company: persona.company,
+          summary: "Needs a low-risk implementation",
+          searchStyle: persona.searchStyle,
+          profile: persona.profile,
+        },
+      })
+    );
+    const latest = await Effect.runPromise(
+      updateGeoPersona(scope, {
+        personaId: persona.id,
+        details: {
+          name: persona.name,
+          role: persona.role,
+          company: persona.company,
+          summary: "Needs a fast implementation",
+          searchStyle: persona.searchStyle,
+          profile: persona.profile,
+        },
+      })
+    );
+
+    await expect(
+      Effect.runPromise(
+        persistGeneratedPersonas(
+          scope.organizationId,
+          scope.projectId,
+          {
+            personas: [
+              {
+                ...generatedPersona,
+                conversationPrompts: [
+                  "Which tools minimize implementation risk?",
+                  "Which option has the safest migration path?",
+                ],
+              },
+            ],
+          },
+          generationTarget,
+          true
+        )
+      )
+    ).rejects.toMatchObject({ _tag: "GeoPersonaGenerateError" });
+
+    const [persisted] = (await Effect.runPromise(listGeoPersonas(scope)))
+      .personas;
+    expect(persisted?.summary).toBe(latest.summary);
+    expect(persisted?.conversationPrompts).toEqual([]);
+  });
+
   test("rolls back generated personas when building the response fails", async () => {
     const scope = await seedProject("persona-rollback");
     const transaction = database.postgres.transaction.bind(database.postgres);
@@ -376,8 +440,9 @@ describe("planned persona snapshots", () => {
     expect(snapshot.memories).toEqual(persona.memories);
     expect(snapshot.conversationPrompts).toEqual(persona.conversationPrompts);
 
+    let regenerationTarget = persona;
     for (const planned of plan.personas) {
-      await Effect.runPromise(
+      const regenerated = await Effect.runPromise(
         persistGeneratedPersonas(
           scope.organizationId,
           scope.projectId,
@@ -397,9 +462,12 @@ describe("planned persona snapshots", () => {
               },
             ],
           },
-          persona
+          regenerationTarget
         )
       );
+      regenerationTarget =
+        regenerated.find((entry) => entry.id === persona.id) ??
+        regenerationTarget;
       const result = await Effect.runPromise(
         runGeoScanPersonaBatch(plan.context, [planned]).pipe(
           Effect.provideService(GeoModelService, {

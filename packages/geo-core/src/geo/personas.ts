@@ -396,12 +396,19 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
                 eq(geoPersonas.projectId, projectId),
                 eq(geoPersonas.organizationId, organizationId),
                 eq(geoPersonas.id, target.id),
-                isNull(geoPersonas.archivedAt)
+                isNull(geoPersonas.archivedAt),
+                eq(geoPersonas.name, target.name),
+                eq(geoPersonas.role, target.role),
+                eq(geoPersonas.company, target.company),
+                eq(geoPersonas.summary, target.summary),
+                eq(geoPersonas.searchStyle, target.searchStyle),
+                eq(geoPersonas.profile, target.profile),
+                eq(geoPersonas.conversationPrompts, target.conversationPrompts)
               )
             )
             .returning({ id: geoPersonas.id });
           if (updated.length !== 1) {
-            throw new GeoPersonaNotFoundError({ personaId: target.id });
+            return null;
           }
           if (!promptsOnly) {
             await tx
@@ -418,6 +425,13 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
       })
     );
     if (!persisted) {
+      if (target) {
+        return yield* Effect.fail(
+          new GeoPersonaGenerateError({
+            message: "Persona changed while generation was in progress",
+          })
+        );
+      }
       return yield* Effect.fail(
         new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
       );
