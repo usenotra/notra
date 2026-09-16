@@ -4,6 +4,7 @@ import { apiKeysRouter } from "./routers/api-keys";
 import { attachmentsRouter } from "./routers/attachments";
 import { automationRouter } from "./routers/automation";
 import { brandRouter } from "./routers/brand";
+import { commentsRouter } from "./routers/comments";
 import { contentRouter } from "./routers/content";
 import { feedbackRouter } from "./routers/feedback";
 import { geoRouter } from "./routers/geo";
@@ -21,6 +22,7 @@ import { usageAlertsRouter } from "./routers/usage-alerts";
 import { userRouter } from "./routers/user";
 
 export const dashboardRouter = {
+  comments: commentsRouter,
   agentFeedback: agentFeedbackRouter,
   analytics: analyticsRouter,
   apiKeys: apiKeysRouter,

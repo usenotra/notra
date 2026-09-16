@@ -103,8 +103,6 @@ import { tableHeightFor } from "@/utils/table";
 
 const FAMILY_TREND_STROKE_WIDTH = 1.5;
 const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full";
-const FAMILY_SHEET_CONTENT_CLASS =
-  "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:border data-[side=right]:sm:max-w-2xl";
 const BRAND_ROW_CLASS =
   "grid h-9 grid-cols-[1.25rem_minmax(0,1fr)_minmax(4rem,7.5rem)_3rem] items-center gap-3 border-b text-sm last:border-b-0";
 const RIVAL_BAR_FILL_CLASS = "bg-foreground/25";
@@ -602,7 +600,7 @@ function EngineFamilySheetSession({
   return (
     <>
       <Sheet onOpenChange={onOpenChange} open={open}>
-        <SheetContent className={FAMILY_SHEET_CONTENT_CLASS}>
+        <SheetContent variant="inset">
           <SheetHeader className="bg-muted/50 border-b pr-14">
             <SheetTitle className="flex items-center gap-2">
               <EngineIcon className="size-5" engine={family.family} />
@@ -669,7 +667,7 @@ export function EngineFamilySheet({
   if (!family) {
     return (
       <Sheet onOpenChange={onOpenChange} open={open}>
-        <SheetContent className={FAMILY_SHEET_CONTENT_CLASS} />
+        <SheetContent variant="inset" />
       </Sheet>
     );
   }

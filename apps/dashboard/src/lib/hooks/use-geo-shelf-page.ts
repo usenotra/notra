@@ -124,7 +124,8 @@ export function useGeoShelfPage(organizationSlug: string): GeoShelfPageModel {
   const settings = settingsData?.settings ?? null;
   const hasSettings = settings !== null;
   const shelf = useGeoShelfSources(organizationId, {
-    enabled: hasSettings,
+    // The list endpoint checks settings itself; start it alongside settings.
+    enabled: organizationId.length > 0,
     currentMemberId: membersQuery.data?.currentMemberId ?? null,
     members: membersQuery.data?.members ?? [],
     competitors,

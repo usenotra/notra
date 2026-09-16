@@ -659,7 +659,7 @@ async function loadGeoShelfSeed(
       toGeoOrpcError
     ),
     options.withMembers
-      ? listGeoShelfMembers(input.organizationId)
+      ? listGeoShelfMembers(input.organizationId, context.headers)
       : Promise.resolve<GeoShelfMember[]>([]),
   ]);
   return { ...shelfContext, members };
@@ -669,7 +669,8 @@ async function loadGeoShelfSeed(
 async function resolveGeoShelfReadMembers(
   organizationId: string,
   loadedMembers: GeoShelfMember[],
-  sources: GeoShelfSource[]
+  sources: GeoShelfSource[],
+  headers: Headers
 ): Promise<GeoShelfMember[]> {
   if (loadedMembers.length > 0) {
     return loadedMembers;
@@ -677,7 +678,7 @@ async function resolveGeoShelfReadMembers(
   if (collectGeoShelfMemberIds(sources).size === 0) {
     return [];
   }
-  return await listGeoShelfMembers(organizationId);
+  return await listGeoShelfMembers(organizationId, headers);
 }
 
 export const geoRouter = {
@@ -725,7 +726,8 @@ export const geoRouter = {
       const shelfMembers = await resolveGeoShelfReadMembers(
         input.organizationId,
         seed.members,
-        page.sources
+        page.sources,
+        context.headers
       );
       return geoShelfListResponseSchema.parse({
         ...page,
@@ -741,7 +743,10 @@ export const geoRouter = {
         organizationId: input.organizationId,
         user: context.user,
       });
-      const members = await listGeoShelfMembers(input.organizationId);
+      const members = await listGeoShelfMembers(
+        input.organizationId,
+        context.headers
+      );
       return geoShelfMembersResponseSchema.parse({
         members,
         currentMemberId: findCurrentGeoShelfMemberId(members, context.user.id),
