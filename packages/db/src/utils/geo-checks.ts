@@ -293,7 +293,6 @@ function mentionOptionFilters(options?: GeoCheckFilterOptions): SQL[] {
   const parts: SQL[] = [];
   if (options?.sequences === "single") {
     parts.push(isNull(geoMentionChecks.sequenceId));
-    parts.push(isNull(geoMentionChecks.personaId));
   }
   if (options?.englishOnly) {
     parts.push(
@@ -311,6 +310,7 @@ function mentionFilters(
   return and(
     scopeWhere(scope),
     ...capturedWithin(window),
+    withoutPersonaRows,
     ...mentionOptionFilters(options)
   ) as SQL;
 }
