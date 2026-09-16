@@ -20,6 +20,7 @@ import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { GEO_PERSONA_MAX_COUNT } from "../src/constants/geo-personas";
 import {
   GeoContentBillingService,
   GeoEntitlementService,
@@ -46,6 +47,7 @@ const {
   loadGeoPersonaActivity,
   persistGeneratedPersonas,
   requireGeoPersonaGenerationCapacity,
+  restoreGeoPersona,
   updateGeoPersona,
 } = await import("../src/geo/personas");
 const { prepareGeoScanProject } = await import("../src/geo/scan");
@@ -157,14 +159,68 @@ describe("persona persistence", () => {
       new Set(activity.points.map((point) => point.snapshotVersion))
     ).toEqual(new Set([snapshot.version, revisedSnapshot.version]));
     expect(activity.points.every((point) => point.lastCheckedAt)).toBe(true);
-    expect((await Effect.runPromise(listGeoPersonas(scope))).personas).toEqual(
-      []
-    );
+    const listed = (await Effect.runPromise(listGeoPersonas(scope))).personas;
+    expect(listed).toHaveLength(1);
+    expect(listed[0]).toMatchObject({
+      id: persona.id,
+      enabled: false,
+    });
+    expect(listed[0]?.archivedAt).toBeTruthy();
     await expect(
       Effect.runPromise(
         requireGeoPersonaGenerationCapacity(scope, undefined, "replacement")
       )
     ).resolves.toMatchObject(scope);
+  });
+
+  test("restores an archived persona as paused and enforces the active limit", async () => {
+    const scope = await seedProject("persona-restore");
+    const [toArchive, active] = await Effect.runPromise(
+      persistGeneratedPersonas(scope.organizationId, scope.projectId, {
+        personas: [
+          { ...generatedPersona, name: "Restore later" },
+          { ...generatedPersona, name: "Stay active" },
+        ],
+      })
+    );
+    assert.ok(toArchive);
+    assert.ok(active);
+
+    await Effect.runPromise(deleteGeoPersona(scope, toArchive.id));
+
+    const archivedList = (await Effect.runPromise(listGeoPersonas(scope)))
+      .personas;
+    expect(archivedList.map((persona) => persona.id)).toEqual([
+      active.id,
+      toArchive.id,
+    ]);
+    expect(archivedList[1]?.archivedAt).toBeTruthy();
+
+    const restored = await Effect.runPromise(
+      restoreGeoPersona(scope, toArchive.id)
+    );
+    expect(restored).toMatchObject({
+      id: toArchive.id,
+      archivedAt: null,
+      enabled: false,
+    });
+
+    await Effect.runPromise(deleteGeoPersona(scope, toArchive.id));
+    await Effect.runPromise(
+      persistGeneratedPersonas(scope.organizationId, scope.projectId, {
+        personas: Array.from(
+          { length: GEO_PERSONA_MAX_COUNT - 1 },
+          (_, index) => ({ ...generatedPersona, name: `Active ${index + 2}` })
+        ),
+      })
+    );
+
+    await expect(
+      Effect.runPromise(restoreGeoPersona(scope, toArchive.id))
+    ).rejects.toMatchObject({
+      _tag: "GeoPersonaLimitError",
+      limit: GEO_PERSONA_MAX_COUNT,
+    });
   });
 
   test("invalidates prompts on profile edits but not scan toggles", async () => {
@@ -180,6 +236,21 @@ describe("persona persistence", () => {
       updateGeoPersona(scope, { personaId: persona.id, enabled: false })
     );
     expect(paused.conversationPrompts).toEqual(persona.conversationPrompts);
+
+    const unchanged = await Effect.runPromise(
+      updateGeoPersona(scope, {
+        personaId: persona.id,
+        details: {
+          name: paused.name,
+          role: paused.role,
+          company: paused.company,
+          summary: paused.summary,
+          searchStyle: paused.searchStyle,
+          profile: paused.profile,
+        },
+      })
+    );
+    expect(unchanged.conversationPrompts).toEqual(persona.conversationPrompts);
 
     const edited = await Effect.runPromise(
       updateGeoPersona(scope, {

@@ -58,6 +58,7 @@ import {
   loadGeoPersonaResults,
   loadGeoPersonaActivity,
   requireGeoPersonaGenerationCapacity,
+  restoreGeoPersona,
   updateGeoPersona,
 } from "@notra/geo-core/geo/personas";
 import {
@@ -192,6 +193,7 @@ import {
 import {
   geoPersonaDeleteInputSchema,
   geoPersonaResultsInputSchema,
+  geoPersonaRestoreInputSchema,
   geoPersonaRunInputSchema,
   geoPersonaUpdateInputSchema,
   geoPersonasGenerateInputSchema,
@@ -1461,12 +1463,27 @@ export const geoRouter = {
         trackGeoRouterEvent({
           context,
           input,
-          event: POSTHOG_EVENTS.GEO_PERSONA_DELETED,
+          event: POSTHOG_EVENTS.GEO_PERSONA_ARCHIVED,
           properties: { persona_id: input.personaId },
         });
       }
     )
   ),
+  personaRestore: authorizedProcedure
+    .input(geoPersonaRestoreInputSchema)
+    .handler(
+      geoHandler(
+        (input) => restoreGeoPersona(input, input.personaId),
+        ({ context, input }) => {
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_PERSONA_RESTORED,
+            properties: { persona_id: input.personaId },
+          });
+        }
+      )
+    ),
   personaResults: authorizedProcedure
     .input(geoPersonaResultsInputSchema)
     .handler(

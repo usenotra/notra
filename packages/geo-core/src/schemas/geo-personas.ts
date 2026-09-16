@@ -109,6 +109,10 @@ export const geoPersonaDeleteInputSchema = geoOrganizationInputSchema.extend({
   personaId: string().min(1),
 });
 
+export const geoPersonaRestoreInputSchema = geoOrganizationInputSchema.extend({
+  personaId: string().min(1),
+});
+
 export const geoPersonaResultsInputSchema = geoOrganizationInputSchema
   .extend({
     personaId: string().min(1).optional(),

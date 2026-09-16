@@ -43,7 +43,7 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return notFound("Persona not found");
     case "GeoPersonaLimitError":
       return badRequest(
-        `You can have up to ${failure.limit} personas. Delete one before adding another.`
+        `You can have up to ${failure.limit} active personas. Archive one before adding or reactivating another.`
       );
     case "GeoPersonaGenerateError":
       console.error("[GEO] persona generation failed:", failure);

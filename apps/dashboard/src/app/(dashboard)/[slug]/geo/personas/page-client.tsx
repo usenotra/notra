@@ -140,6 +140,8 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     useGeoPersonas(organizationId);
 
   const personas = personasData?.personas ?? [];
+  const activePersonas = personas.filter((persona) => !persona.archivedAt);
+  const hasStoredPersonas = personas.length > 0;
   const {
     addOpen,
     atPersonaLimit,
@@ -152,7 +154,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     progress,
     setAddOpen,
     submitPersona,
-  } = usePersonaAddFlow(organizationId, personas);
+  } = usePersonaAddFlow(organizationId, activePersonas);
 
   if (isSettingsPending) {
     return <GeoPersonasSkeleton />;
@@ -190,8 +192,8 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     );
   }
 
-  const isLoadingPersonas = isPersonasPending && !hasPersonas;
-  const showEmptyState = !(isLoadingPersonas || hasPersonas);
+  const isLoadingPersonas = isPersonasPending && !hasStoredPersonas;
+  const showEmptyState = !(isLoadingPersonas || hasStoredPersonas);
   // The empty state carries the primary action until personas exist.
   const headerAction =
     showEmptyState || isLoadingPersonas ? null : (
@@ -214,10 +216,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
         {hasPersonas ? (
           <PersonaActivityCard
             organizationId={organizationId}
-            personas={personas}
+            personas={activePersonas}
           />
         ) : null}
-        {hasPersonas ? (
+        {hasStoredPersonas ? (
           <PersonasTable
             isAddingPersona={isAddingPersona}
             onAutoOpenClose={clearAutoOpenPersona}

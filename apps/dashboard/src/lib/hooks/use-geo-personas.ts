@@ -173,6 +173,26 @@ export function useGeoPersonaDelete(organizationId: string) {
   });
 }
 
+export function useGeoPersonaRestore(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  return useMutation<GeoPersona, Error, string>({
+    mutationFn: (personaId: string) =>
+      dashboardOrpc.geo.personaRestore.call({
+        organizationId,
+        projectId,
+        personaId,
+      }),
+    onSuccess: async () => {
+      await invalidatePersonaList(queryClient, organizationId, projectId);
+      toast.success("Persona reactivated. Include it in scans when ready.");
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, "Failed to reactivate the persona"));
+    },
+  });
+}
+
 export function useGeoPersonaRun(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();

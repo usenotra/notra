@@ -36,6 +36,8 @@ export interface PersonaTableRowActionsProps {
   disabled: boolean;
   onDelete: (persona: GeoPersona) => void;
   onRegenerate: (personaId: string) => void;
+  onRestore: (personaId: string) => void;
+  restoreDisabled: boolean;
 }
 
 export interface PersonaTableContextMenuProps {
@@ -44,9 +46,11 @@ export interface PersonaTableContextMenuProps {
   scanDisabled: boolean;
   onDelete: (persona: GeoPersona) => void;
   onRegenerate: (personaId: string) => void;
+  onRestore: (personaId: string) => void;
   onRun: (personaId: string) => void;
   onToggle: (persona: GeoPersona) => void;
   onView: (persona: GeoPersona) => void;
+  restoreDisabled: boolean;
 }
 
 export interface PersonaDetailDialogProps {

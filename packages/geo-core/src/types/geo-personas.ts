@@ -43,6 +43,7 @@ export interface GeoPersona {
   profile: GeoPersonaProfile;
   conversationPrompts: string[];
   enabled: boolean;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
   memories: GeoPersonaMemory[];

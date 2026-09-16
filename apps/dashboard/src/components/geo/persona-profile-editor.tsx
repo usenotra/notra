@@ -4,6 +4,7 @@ import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_PERSONA_FIELD_MAX_LENGTH } from "@notra/geo-core/constants/geo-personas";
 import { geoPersonaEditableDetailsSchema } from "@notra/geo-core/schemas/geo-personas";
+import { hasGeoPersonaDetailsChanged } from "@notra/geo-core/utils/geo-personas";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
@@ -76,6 +77,13 @@ export function PersonaProfileEditor({
           return;
         }
         setError(null);
+        if (!hasGeoPersonaDetailsChanged(persona, parsed.data)) {
+          setStack([...new Set(parsed.data.profile.currentStack)]);
+          setStackDraft("");
+          toast.success("Persona saved");
+          onCancel();
+          return;
+        }
         update.mutate(
           { personaId: persona.id, details: parsed.data },
           {
@@ -87,6 +95,7 @@ export function PersonaProfileEditor({
                 personaId: persona.id,
                 promptsOnly: true,
               });
+              onCancel();
             },
           }
         );

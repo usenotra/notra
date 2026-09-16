@@ -139,6 +139,7 @@ export function toGeoPersona(
     profile: row.profile,
     conversationPrompts: row.conversationPrompts,
     enabled: row.enabled,
+    archivedAt: row.archivedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     memories: memories.map((memory) => ({
