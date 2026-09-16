@@ -1,9 +1,7 @@
 import type { BlogPostSubtype } from "@notra/db/types/content";
-import type {
-  ManualPostContentType,
-  OnDemandContentType,
-} from "@notra/schemas/dashboard/content";
+import type { OnDemandContentType } from "@notra/schemas/dashboard/content";
 import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
+import type { ManualPostContentType } from "@notra/schemas/shared/post";
 
 import type { FormatCardMeta } from "@/types/content/formats";
 

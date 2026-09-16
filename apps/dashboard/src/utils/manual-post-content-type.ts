@@ -1,11 +1,9 @@
-import { MANUAL_POST_CONTENT_TYPES } from "@notra/schemas/constants/content";
-import type { ManualPostContentType } from "@notra/schemas/dashboard/content";
+import { manualPostContentTypeSchema } from "@notra/schemas/shared/post";
+import type { ManualPostContentType } from "@notra/schemas/shared/post";
 
 import { CREATE_POST_DEFAULT_FORMAT } from "@/constants/content-formats";
 
 export function toManualPostContentType(value: string): ManualPostContentType {
-  return (
-    MANUAL_POST_CONTENT_TYPES.find((contentType) => contentType === value) ??
-    CREATE_POST_DEFAULT_FORMAT
-  );
+  const parsed = manualPostContentTypeSchema.safeParse(value);
+  return parsed.success ? parsed.data : CREATE_POST_DEFAULT_FORMAT;
 }

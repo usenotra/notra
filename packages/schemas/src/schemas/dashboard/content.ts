@@ -15,8 +15,8 @@ import { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
-import { MANUAL_POST_CONTENT_TYPES } from "../../constants/content";
 import { GITHUB_PUBLISH_CONTENT_TYPES } from "../../constants/dashboard/github";
+import { createPostFieldsSchema, postSlugSchema } from "../shared/post";
 import {
   LOOKBACK_WINDOWS,
   repositoryContentFilePathSchema,
@@ -324,12 +324,10 @@ export const chatRequestSchema = z.object({
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
 
-const slugFieldSchema = z.string().slugify().min(1).max(POST_SLUG_MAX_LENGTH);
-
 export const updateContentSchema = z
   .object({
     title: z.string().trim().min(1).max(POST_TITLE_MAX_LENGTH).optional(),
-    slug: slugFieldSchema.nullable().optional(),
+    slug: postSlugSchema.nullable().optional(),
     markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional(),
     status: postStatusSchema.optional(),
   })
@@ -346,22 +344,9 @@ export const updateContentSchema = z
 
 export type UpdateContentInput = z.infer<typeof updateContentSchema>;
 
-export const manualPostContentTypeSchema = z.enum(MANUAL_POST_CONTENT_TYPES);
-export type ManualPostContentType = z.infer<typeof manualPostContentTypeSchema>;
-
-export const postSlugPreviewSchema = z.string().trim().slugify();
-
-export const createPostSchema = z.object({
-  title: z.string().trim().min(1).max(POST_TITLE_MAX_LENGTH),
-  contentType: manualPostContentTypeSchema,
-  slug: slugFieldSchema.nullable().optional(),
-  markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional(),
-});
-export type CreatePostInput = z.infer<typeof createPostSchema>;
-
 export const createPostInputSchema = contentOrganizationIdInputSchema
   .extend(contentProjectIdInputSchema.shape)
-  .extend(createPostSchema.shape);
+  .extend(createPostFieldsSchema.shape);
 
 const githubMarkdownPathSchema = repositoryRelativePathSchema
   .transform((path) => (/\.(?:md|mdx)$/i.test(path) ? path : `${path}.md`))

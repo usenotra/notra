@@ -1,7 +1,7 @@
 import type {
-  CreatePostInput,
+  CreatePostFields,
   ManualPostContentType,
-} from "@notra/schemas/dashboard/content";
+} from "@notra/schemas/shared/post";
 
 export interface CreatePostDialogProps {
   open: boolean;
@@ -16,7 +16,7 @@ export interface CreatePostFormValues {
   slug: string;
 }
 
-export interface CreatePostMutationVariables extends CreatePostInput {
+export interface CreatePostMutationVariables extends CreatePostFields {
   organizationId: string;
   projectId: string | undefined;
 }

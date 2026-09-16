@@ -3,9 +3,10 @@
 import { POST_TITLE_MAX_LENGTH } from "@notra/ai/schemas/limits";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
 import {
+  createPostFieldsSchema,
   type ManualPostContentType,
-  postSlugPreviewSchema,
-} from "@notra/schemas/dashboard/content";
+  optionalPostSlugSchema,
+} from "@notra/schemas/shared/post";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -42,11 +43,8 @@ import type {
   CreatePostDialogProps,
   CreatePostFormValues,
 } from "@/types/content/create-post";
-import {
-  validateCreatePostSlug,
-  validateCreatePostTitle,
-} from "@/utils/create-post-validation";
 import { toErrorMessage } from "@/utils/error-message";
+import { firstFieldErrorMessage } from "@/utils/form-field-error";
 import { toManualPostContentType } from "@/utils/manual-post-content-type";
 import { getOutputTypeIconClass, OutputTypeIcon } from "@/utils/output-types";
 
@@ -69,7 +67,7 @@ export function CreatePostDialog({
       slug: "",
     } as CreatePostFormValues,
     onSubmit: async ({ value }) => {
-      const slug = postSlugPreviewSchema.parse(value.slug);
+      const slug = optionalPostSlugSchema.parse(value.slug);
       try {
         const result = await mutation.mutateAsync({
           organizationId,
@@ -92,7 +90,7 @@ export function CreatePostDialog({
   const contentType = useStore(form.store, (state) => state.values.contentType);
   const slugValue = useStore(form.store, (state) => state.values.slug);
   const showSlug = supportsPostSlug(contentType);
-  const slugPreview = postSlugPreviewSchema.parse(slugValue);
+  const slugPreview = optionalPostSlugSchema.parse(slugValue);
 
   const closeDialog = () => {
     form.reset();
@@ -175,15 +173,12 @@ export function CreatePostDialog({
 
           <form.Field
             name="title"
-            validators={{
-              onChange: ({ value }) => validateCreatePostTitle(value),
-            }}
+            validators={{ onChange: createPostFieldsSchema.shape.title }}
           >
             {(field) => {
-              const error =
-                field.state.meta.isTouched && field.state.meta.errors[0]
-                  ? String(field.state.meta.errors[0])
-                  : null;
+              const error = field.state.meta.isTouched
+                ? firstFieldErrorMessage(field.state.meta.errors)
+                : null;
               return (
                 <div className="space-y-1.5">
                   <Label htmlFor={`${id}-title`}>Name</Label>
@@ -199,7 +194,7 @@ export function CreatePostDialog({
                       if (!slugEditedRef.current) {
                         form.setFieldValue(
                           "slug",
-                          postSlugPreviewSchema.parse(event.target.value)
+                          optionalPostSlugSchema.parse(event.target.value)
                         );
                       }
                     }}
@@ -222,14 +217,10 @@ export function CreatePostDialog({
           {showSlug ? (
             <form.Field
               name="slug"
-              validators={{
-                onChange: ({ value }) => validateCreatePostSlug(value),
-              }}
+              validators={{ onChange: optionalPostSlugSchema }}
             >
               {(field) => {
-                const error = field.state.meta.errors[0]
-                  ? String(field.state.meta.errors[0])
-                  : null;
+                const error = firstFieldErrorMessage(field.state.meta.errors);
                 return (
                   <div className="space-y-1.5">
                     <Label htmlFor={`${id}-slug`}>
