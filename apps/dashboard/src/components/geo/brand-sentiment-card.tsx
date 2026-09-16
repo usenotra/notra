@@ -95,7 +95,7 @@ function PolarityPreview() {
         <p
           className={`text-sm font-medium ${SENTIMENT_POLARITY_STYLES.positive.text}`}
         >
-          0% Positive
+          — Positive
         </p>
         <p className="text-muted-foreground text-xs text-balance">
           {SENTIMENT_POLARITY_CTA.positive.subtext}{" "}
@@ -111,7 +111,7 @@ function PolarityPreview() {
         <p
           className={`text-sm font-medium ${SENTIMENT_POLARITY_STYLES.negative.text}`}
         >
-          0% Negative
+          — Negative
         </p>
         <p className="text-muted-foreground text-xs text-balance">
           {SENTIMENT_POLARITY_CTA.negative.subtext}{" "}
