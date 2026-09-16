@@ -13,6 +13,7 @@ import { createVercelAdapter } from "./adapters/vercel";
 import {
   GatewayCreditBalanceError,
   GatewayNotConfiguredError,
+  GatewayUnavailableError,
   NoCompliantRouteError,
   UnsupportedModelError,
 } from "./errors";
@@ -795,6 +796,64 @@ describe("RoutedLanguageModel", () => {
     });
     assert.equal(next.gateway, "vercel");
     assert.equal(next.fallbackReason, "auth-failure");
+  });
+
+  test("a 401 without an eligible fallback throws GatewayUnavailableError", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router } = createTestRouter({ plans, openrouter, vercel: null });
+    await assert.rejects(
+      async () =>
+        await router
+          .model(MODEL, { organizationId: FREE_ORG })
+          .doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    // The gateway stays marked, so route resolution fails fast as well.
+    await assert.rejects(
+      router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
+      GatewayUnavailableError
+    );
+  });
+
+  test("a 401 on the fallback gateway marks it and normalizes the error", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const vercel = createFakeAdapter({
+      id: "vercel",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router, logger } = createTestRouter({ plans, openrouter, vercel });
+    await assert.rejects(
+      async () =>
+        await router
+          .model(MODEL, { organizationId: FREE_ORG })
+          .doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    assert.deepEqual(
+      logger.entries
+        .filter((entry) => entry.event === "ai.router.auth_rejected")
+        .map((entry) => entry.fields?.gateway),
+      ["openrouter", "vercel"]
+    );
+    // Both gateways are marked, so later routes fail fast without new calls.
+    await assert.rejects(
+      router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
+      GatewayUnavailableError
+    );
+    assert.equal(openrouter.calls.length, 1);
+    assert.equal(vercel.calls.length, 1);
   });
 
   test("a spurious 402 heals once the balance check reports credits", async () => {

@@ -32,6 +32,7 @@ import type {
 import { createModelCallTelemetry } from "@notra/ai/utils/model-call-telemetry";
 import { observeModelStream } from "@notra/ai/utils/observe-model-stream";
 
+import { GatewayUnavailableError } from "./errors";
 import { otherGateway } from "./policy";
 import {
   splitRouterOptions,
@@ -386,7 +387,11 @@ export class RoutedLanguageModel implements LanguageModelV4 {
       if (!fallback) {
         throw error;
       }
-      return await run(fallback, this.buildParams(fallback, options));
+      try {
+        return await run(fallback, this.buildParams(fallback, options));
+      } catch (fallbackError) {
+        throw this.classifyFallbackFailure(fallback, fallbackError);
+      }
     }
   }
 
@@ -442,18 +447,21 @@ export class RoutedLanguageModel implements LanguageModelV4 {
       });
   }
 
-  private async tryFallbackRoute(
+  /**
+   * Record a classified upstream failure so later routes avoid the gateway
+   * (or just the model on it) until the mark expires.
+   */
+  private recordUpstreamFailure(
     route: ResolvedRoute,
+    reason: FallbackReason,
     error: unknown
-  ): Promise<ResolvedRoute | undefined> {
-    const reason = classifyUpstreamFailure(error);
-    if (!reason) {
-      return undefined;
-    }
+  ): void {
     if (reason === "no-credits") {
       this.context.credits.markExhausted(route.decision.gateway);
       this.verifyExhaustion(route.decision.gateway);
-    } else if (reason === "auth-failure") {
+      return;
+    }
+    if (reason === "auth-failure") {
       // A rejected key is a fact about the gateway account, not the model:
       // mark the whole gateway so later routes avoid it until the TTL heals.
       this.context.credits.markUnavailable(route.decision.gateway, reason);
@@ -463,7 +471,9 @@ export class RoutedLanguageModel implements LanguageModelV4 {
         organizationId: route.decision.organizationId,
         message: readMessage(error),
       });
-    } else if (reason === "non-compliant") {
+      return;
+    }
+    if (reason === "non-compliant") {
       // A missing ZDR host is a fact about this model on this gateway, so the
       // mark is model-scoped: other models keep routing here.
       this.context.credits.markUnavailable(
@@ -479,6 +489,40 @@ export class RoutedLanguageModel implements LanguageModelV4 {
         message: readMessage(error),
       });
     }
+  }
+
+  /**
+   * The fallback call failed too: classify and record it on the fallback
+   * gateway so later routes avoid it, and normalize rejected credentials to
+   * the same error a route-time failure would produce.
+   */
+  private classifyFallbackFailure(
+    route: ResolvedRoute,
+    error: unknown
+  ): unknown {
+    const reason = classifyUpstreamFailure(error);
+    if (!reason) {
+      return error;
+    }
+    this.recordUpstreamFailure(route, reason, error);
+    if (reason === "auth-failure") {
+      return new GatewayUnavailableError(
+        route.decision.gateway,
+        "authentication failed"
+      );
+    }
+    return error;
+  }
+
+  private async tryFallbackRoute(
+    route: ResolvedRoute,
+    error: unknown
+  ): Promise<ResolvedRoute | undefined> {
+    const reason = classifyUpstreamFailure(error);
+    if (!reason) {
+      return undefined;
+    }
+    this.recordUpstreamFailure(route, reason, error);
 
     // Prefer a ZDR-capable route on the other gateway over dropping the
     // flag; a `preferred` request only relaxes once no such route exists.
@@ -488,6 +532,14 @@ export class RoutedLanguageModel implements LanguageModelV4 {
     }
     if (reason === "non-compliant" && this.canRelaxZdr(route)) {
       return this.relaxZdr(route, error);
+    }
+    if (reason === "auth-failure") {
+      // No eligible fallback: surface the normalized router error a
+      // route-time auth rejection would throw, not the raw upstream 401.
+      throw new GatewayUnavailableError(
+        route.decision.gateway,
+        "authentication failed"
+      );
     }
     return undefined;
   }

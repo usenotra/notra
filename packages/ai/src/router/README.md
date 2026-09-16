@@ -72,8 +72,11 @@ missing ZDR host or no-training provider (`non-compliant`), an unknown model
 (404) and transient upstream errors (5xx, 408/409/425/429, network
 failures). Rejected credentials mark the whole gateway unavailable for
 `DEFAULT_UNAVAILABLE_TTL_MS`, so later requests resolve straight to the
-other gateway instead of failing one by one. Validation errors, aborts and
-prompt-level client errors still surface to the caller.
+other gateway instead of failing one by one. A failure on the fallback call
+is classified and marked the same way, and when no eligible route remains a
+rejected credential surfaces as `GatewayUnavailableError` rather than the
+raw upstream error. Validation errors, aborts and prompt-level client
+errors still surface to the caller.
 
 ## Provider options
 
