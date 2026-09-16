@@ -3,7 +3,7 @@ import { gateway } from "@notra/ai/gateway";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import type { ContextDevScrapingResult } from "@notra/ai/types/context-dev";
 import { scrapeWebsiteForBrandAnalysis } from "@notra/ai/utils/context-dev";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
@@ -79,12 +79,12 @@ Extract the following information:
 3. toneProfile: The tone of their communication - choose one of: "Conversational", "Professional", "Casual", "Formal"
 4. audience: A description of their target audience (1-2 sentences)
 5. language: The primary language of the website content. Must be one of: ${SUPPORTED_LANGUAGES.join(", ")}`,
-      system:
+      instructions:
         "You are a brand analyst expert. Your job is to analyze website content and extract key brand identity information. Be thorough but concise. Focus on understanding the company's essence, values, and how they communicate.",
       providerOptions: withRouterDefaults(undefined, {
         modelId: "anthropic/claude-sonnet-4.6",
       }),
-      experimental_telemetry: buildExperimentalTelemetry({
+      ...buildTelemetryOptions({
         feature: "brand_analysis",
         jobId: input.jobId,
         organizationId: input.organizationId,

@@ -317,6 +317,11 @@ function geoDaysSuffix(input: unknown): string | undefined {
 }
 
 const TOOL_COPY: Record<string, ToolCopy> = {
+  code_mode: {
+    verbs: ["Running", "Ran"],
+    noun: "tool program",
+  },
+  // Notra tool provisioning was replaced by code_mode; kept for older chats.
   searchNotraTools: {
     verbs: ["Searching", "Searched"],
     noun: "tools",

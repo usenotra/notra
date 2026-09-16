@@ -38,7 +38,12 @@ const nextConfig: NextConfig = {
     "@notra/utils",
     "@usenotra/geo",
   ],
-  serverExternalPackages: ["@resvg/resvg-js", "@cursor/sdk"],
+  serverExternalPackages: [
+    "@resvg/resvg-js",
+    "@cursor/sdk",
+    "@ai-sdk/code-mode",
+    "run",
+  ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
     const posthogHost =

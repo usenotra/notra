@@ -121,6 +121,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         sourceConfig: {
           eventTypes: trigger.sourceConfig.eventTypes ?? [values.eventType],
           includePreReleases: trigger.sourceConfig.includePreReleases ?? true,
+          ignoreCommitPatterns: trigger.sourceConfig.ignoreCommitPatterns ?? [],
         },
         targets: trigger.targets,
         outputType,

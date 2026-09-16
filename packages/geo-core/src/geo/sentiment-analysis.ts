@@ -14,7 +14,10 @@ import {
 } from "../constants/sentiment-analysis";
 import { GeoContentBillingService } from "../deps";
 import type { GeoScopeInput, GeoWindowInput } from "../types/geo";
-import type { SentimentAnalysisState } from "../types/sentiment-analysis";
+import type {
+  SentimentAnalysisDefer,
+  SentimentAnalysisState,
+} from "../types/sentiment-analysis";
 import { sentimentAnalysisKey } from "../utils/sentiment-analysis";
 import { sentimentPeriods } from "../utils/sentiment-period";
 import { geoDb } from "./effect";
@@ -28,7 +31,12 @@ import {
 } from "./sentiment-analysis-cache";
 
 export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
-  function* (input: GeoScopeInput, window: GeoWindowInput, analyze = false) {
+  function* (
+    input: GeoScopeInput,
+    window: GeoWindowInput,
+    analyze = false,
+    defer?: SentimentAnalysisDefer
+  ) {
     const scope = yield* resolveGeoScope(input);
     const billing = yield* GeoContentBillingService;
     const brand = yield* geoDb("sentiment brand lookup failed", () =>
@@ -118,6 +126,7 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
                 companyName
               ),
           }),
+        defer,
       });
     });
   }

@@ -205,7 +205,7 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
           model: gateway(IRIS_CONTENT_MODEL_ID, {
             organizationId: params.input.organizationId,
           }),
-          system: buildIrisContentSystemPrompt({
+          instructions: buildIrisContentSystemPrompt({
             objective: params.input.mandate.objective,
           }),
           prompt: params.prompt,

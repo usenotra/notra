@@ -1,11 +1,11 @@
 import type {
   JSONObject,
-  LanguageModelV3,
-  LanguageModelV3CallOptions,
-  LanguageModelV3GenerateResult,
-  LanguageModelV3StreamPart,
-  LanguageModelV3StreamResult,
-  SharedV3ProviderMetadata,
+  LanguageModelV4,
+  LanguageModelV4CallOptions,
+  LanguageModelV4GenerateResult,
+  LanguageModelV4StreamPart,
+  LanguageModelV4StreamResult,
+  SharedV4ProviderMetadata,
 } from "@ai-sdk/provider";
 import {
   HTTP_NOT_FOUND,
@@ -146,7 +146,7 @@ export function classifyUpstreamFailure(
 export function buildRouteMetadata(
   decision: RouteDecision,
   adapter: GatewayAdapter,
-  providerMetadata: SharedV3ProviderMetadata | undefined
+  providerMetadata: SharedV4ProviderMetadata | undefined
 ): RouteMetadata {
   const extracted = adapter.extractRouteMetadata(providerMetadata);
   return {
@@ -168,9 +168,9 @@ export function buildRouteMetadata(
 }
 
 function annotateProviderMetadata(
-  providerMetadata: SharedV3ProviderMetadata | undefined,
+  providerMetadata: SharedV4ProviderMetadata | undefined,
   route: ResolvedRoute
-): SharedV3ProviderMetadata {
+): SharedV4ProviderMetadata {
   const metadata = buildRouteMetadata(
     route.decision,
     route.adapter,
@@ -183,12 +183,12 @@ function annotateProviderMetadata(
 }
 
 function annotateStream(
-  stream: ReadableStream<LanguageModelV3StreamPart>,
+  stream: ReadableStream<LanguageModelV4StreamPart>,
   route: ResolvedRoute
-): ReadableStream<LanguageModelV3StreamPart> {
-  let observedProviderMetadata: SharedV3ProviderMetadata | undefined;
+): ReadableStream<LanguageModelV4StreamPart> {
+  let observedProviderMetadata: SharedV4ProviderMetadata | undefined;
   return stream.pipeThrough(
-    new TransformStream<LanguageModelV3StreamPart, LanguageModelV3StreamPart>({
+    new TransformStream<LanguageModelV4StreamPart, LanguageModelV4StreamPart>({
       transform(part, controller) {
         if ("providerMetadata" in part && part.providerMetadata) {
           observedProviderMetadata = {
@@ -230,13 +230,13 @@ function decisionLogFields(decision: RouteDecision) {
 }
 
 /**
- * LanguageModelV3 that resolves its route (plan lookup, gateway choice,
+ * LanguageModelV4 that resolves its route (plan lookup, gateway choice,
  * privacy options) lazily on first use and delegates to the concrete gateway
  * model. Compatible with wrapLanguageModel/middleware wrappers because it
- * only exposes the V3 surface.
+ * only exposes the V4 surface.
  */
-export class RoutedLanguageModel implements LanguageModelV3 {
-  readonly specificationVersion = "v3" as const;
+export class RoutedLanguageModel implements LanguageModelV4 {
+  readonly specificationVersion = "v4" as const;
   readonly provider = ROUTED_MODEL_PROVIDER;
   readonly modelId: string;
   readonly supportedUrls: PromiseLike<Record<string, RegExp[]>>;
@@ -261,8 +261,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   async doGenerate(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3GenerateResult> {
+    options: LanguageModelV4CallOptions
+  ): Promise<LanguageModelV4GenerateResult> {
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -290,8 +290,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   async doStream(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3StreamResult> {
+    options: LanguageModelV4CallOptions
+  ): Promise<LanguageModelV4StreamResult> {
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -353,8 +353,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
 
   private buildParams(
     route: ResolvedRoute,
-    options: LanguageModelV3CallOptions
-  ): LanguageModelV3CallOptions {
+    options: LanguageModelV4CallOptions
+  ): LanguageModelV4CallOptions {
     const { router, rest } = splitRouterOptions(options.providerOptions);
     const providerOptions = route.adapter.buildProviderOptions({
       providerOptions: stripForeignGatewayOptions(route.decision.gateway, rest),
@@ -366,10 +366,10 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   private async execute<T>(
-    options: LanguageModelV3CallOptions,
+    options: LanguageModelV4CallOptions,
     run: (
       route: ResolvedRoute,
-      params: LanguageModelV3CallOptions
+      params: LanguageModelV4CallOptions
     ) => Promise<T>
   ): Promise<T> {
     const route = await this.getRoute();

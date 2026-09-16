@@ -69,7 +69,6 @@ export function createCreateSkillTool(ctx: SkillsToolContext): Tool {
       usageNotes:
         "Check listAvailableSkills for duplicates first. The name must be unique, lowercase kebab-case (letters, digits, hyphens only, max 64 chars). Provide a one-sentence description of when the skill applies plus the full skill body as content.",
     }),
-    needsApproval: true,
     inputSchema: createSkillSchema.extend({
       name: createSkillSchema.shape.name.describe(
         "Unique skill name in lowercase kebab-case."

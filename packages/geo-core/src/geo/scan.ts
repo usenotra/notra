@@ -507,7 +507,7 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     finishReason: answer.finishReason,
     promptTokens: answer.usage?.inputTokens ?? null,
     outputTokens: answer.usage?.outputTokens ?? null,
-    reasoningTokens: answer.usage?.reasoningTokens ?? null,
+    reasoningTokens: answer.usage?.outputTokenDetails?.reasoningTokens ?? null,
     zdrEnforced: answer.zdrEnforced,
     language: task.language,
     sources: answer.sources,
@@ -1704,7 +1704,8 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
         finishReason: answer.finishReason,
         promptTokens: answer.usage?.inputTokens ?? null,
         outputTokens: answer.usage?.outputTokens ?? null,
-        reasoningTokens: answer.usage?.reasoningTokens ?? null,
+        reasoningTokens:
+          answer.usage?.outputTokenDetails?.reasoningTokens ?? null,
         zdrEnforced: answer.zdrEnforced,
         language: DEFAULT_LANGUAGE,
         sources: answer.sources,

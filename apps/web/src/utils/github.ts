@@ -4,6 +4,7 @@ import type {
   GitHubLabel,
   GitHubPR,
   GitHubRepo,
+  GitHubSearchCount,
   GitHubUser,
   IssueTypeBadge,
 } from "~types/github";
@@ -24,7 +25,8 @@ const EMPTY_DATA: ContributorsData = {
   stats: {
     totalStars: 0,
     totalForks: 0,
-    totalIssues: 0,
+    totalIssues: null,
+    totalPullRequests: null,
     totalContributors: 0,
   },
 };
@@ -66,16 +68,24 @@ function byNewest<T extends { created_at: string }>(a: T, b: T): number {
 export async function fetchContributorsData(): Promise<ContributorsData> {
   const base = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`;
 
-  const [repo, contributorsRaw, issuesRaw, prsRaw] = await Promise.all([
-    fetchJson<GitHubRepo>(base),
-    fetchJson<GitHubUser[]>(`${base}/contributors?per_page=100`),
-    fetchJson<GitHubIssue[]>(
-      `${base}/issues?state=open&per_page=20&sort=created&direction=desc`
-    ),
-    fetchJson<GitHubPR[]>(
-      `${base}/pulls?state=open&per_page=5&sort=created&direction=desc`
-    ),
-  ]);
+  const search = "https://api.github.com/search/issues";
+  const repoQuery = `repo:${GITHUB_OWNER}/${GITHUB_REPO}+state:open`;
+
+  const [repo, contributorsRaw, issuesRaw, prsRaw, issueSearch, prSearch] =
+    await Promise.all([
+      fetchJson<GitHubRepo>(base),
+      fetchJson<GitHubUser[]>(`${base}/contributors?per_page=100`),
+      fetchJson<GitHubIssue[]>(
+        `${base}/issues?state=open&per_page=20&sort=created&direction=desc`
+      ),
+      fetchJson<GitHubPR[]>(
+        `${base}/pulls?state=open&per_page=5&sort=created&direction=desc`
+      ),
+      fetchJson<GitHubSearchCount>(
+        `${search}?q=${repoQuery}+is:issue&per_page=1`
+      ),
+      fetchJson<GitHubSearchCount>(`${search}?q=${repoQuery}+is:pr&per_page=1`),
+    ]);
 
   if (!(repo || contributorsRaw || issuesRaw || prsRaw)) {
     return EMPTY_DATA;
@@ -100,7 +110,8 @@ export async function fetchContributorsData(): Promise<ContributorsData> {
     stats: {
       totalStars: repo?.stargazers_count ?? 0,
       totalForks: repo?.forks_count ?? 0,
-      totalIssues: repo?.open_issues_count ?? 0,
+      totalIssues: issueSearch?.total_count ?? null,
+      totalPullRequests: prSearch?.total_count ?? null,
       totalContributors: contributors.length,
     },
   };
@@ -156,4 +167,8 @@ export function getIssueTypeFromLabels(labels: GitHubLabel[]): IssueTypeBadge {
     className:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
   };
+}
+
+export function formatViewAllLabel(total: number | null): string {
+  return total === null ? "View all" : `View all (${total})`;
 }

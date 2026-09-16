@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import assert from "node:assert/strict";
 
-import { MockLanguageModelV3 } from "ai/test";
+import { MockLanguageModelV4 } from "ai/test";
 import { Effect } from "effect";
 
 import { generateSentimentAnalysis } from "../src/geo/sentiment-analysis-agent";
@@ -269,7 +269,7 @@ test("themes reject foreign IDs, changed quotes, polarity, duplicate sources and
 });
 
 test("real structured generation has no tools and treats injected answers as data", async () => {
-  const model = new MockLanguageModelV3({
+  const model = new MockLanguageModelV4({
     doGenerate: {
       content: [{ type: "text", text: JSON.stringify(output) }],
       finishReason: { unified: "stop", raw: "stop" },
@@ -341,6 +341,40 @@ test("read path never extracts; concurrent calls singleflight and ready calls id
   expect(outdated.result?.themes).toHaveLength(1);
 });
 
+test("deferred runs claim the lease and return pending before extraction", async () => {
+  const { store } = memoryStore();
+  let deferred: (() => Promise<void>) | undefined;
+  let calls = 0;
+  const run = {
+    key: "deferred-scope",
+    store,
+    snapshot: async () => ({ fingerprint: "a", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => {
+      calls++;
+      return output;
+    },
+    defer: (task: () => Promise<void>) => {
+      deferred = task;
+    },
+  };
+
+  expect(await runSentimentAnalysis(run)).toEqual({
+    status: "pending",
+    result: null,
+    message: null,
+  });
+  expect(calls).toBe(0);
+  expect(await store.locked("deferred-scope:lock")).toBe(true);
+  expect((await readSentimentAnalysis(run)).status).toBe("pending");
+
+  assert.ok(deferred);
+  await deferred();
+
+  expect(calls).toBe(1);
+  expect((await readSentimentAnalysis(run)).status).toBe("ready");
+});
+
 test("empty history does not call the model; cache results cannot cross scopes", async () => {
   const { store } = memoryStore();
   const run = {
@@ -403,6 +437,30 @@ test("a result completed between lookup and lease acquisition does not generate 
   });
   expect(state).toEqual(ready);
   expect(await store.locked("scope:lock")).toBe(false);
+});
+
+test("a cache read failure after claiming the lease commits failure and allows retry", async () => {
+  const { store } = memoryStore();
+  const get = store.get;
+  let reads = 0;
+  store.get = async (key) => {
+    reads++;
+    if (reads === 2) {
+      throw new Error("cache unavailable");
+    }
+    return get(key);
+  };
+  const run = {
+    key: "cache-failure-scope",
+    store,
+    snapshot: async () => ({ fingerprint: "a", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => output,
+  };
+
+  expect((await runSentimentAnalysis(run)).status).toBe("failed");
+  expect(await store.locked("cache-failure-scope:lock")).toBe(false);
+  expect((await runSentimentAnalysis(run)).status).toBe("ready");
 });
 
 test("freshness changes and lease theft cannot publish old results; failed runs retry", async () => {

@@ -188,7 +188,7 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
         }),
         output: Output.object({ schema: geoWebsiteDiscoverySchema }),
         prompt: buildDiscoveryPrompt(url, content),
-        system: GEO_DISCOVERY_SYSTEM_PROMPT,
+        instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
         maxOutputTokens: GEO_DISCOVERY_MAX_TOKENS,
       }),
     catch: (cause) =>

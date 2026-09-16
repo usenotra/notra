@@ -49,16 +49,16 @@ import type {
 } from "@notra/ai/types/post-tools";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
   generateText,
   type FinishReason,
+  isStepCount,
   type LanguageModelUsage,
   NoObjectGeneratedError,
   Output,
-  stepCountIs,
   ToolLoopAgent,
 } from "ai";
 import { and, eq } from "drizzle-orm";
@@ -211,7 +211,7 @@ export async function generateGeoContentBrief(
       const result = await generateText({
         model,
         output: Output.object({ schema: geoContentBriefSchema }),
-        system,
+        instructions: system,
         prompt,
         temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
@@ -359,13 +359,13 @@ async function humanizeMarkdown(
 
   const result = await generateText({
     model,
-    system: GEO_HUMANIZER_SYSTEM,
+    instructions: GEO_HUMANIZER_SYSTEM,
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
     providerOptions: withRouterDefaults(undefined, {
       modelId: GEO_WRITER_MODEL,
     }),
-    experimental_telemetry: buildExperimentalTelemetry({
+    ...buildTelemetryOptions({
       ...options.telemetryMetadata,
       stage: "geo_writer_humanize",
     }),
@@ -469,8 +469,8 @@ export async function runGeoWriter(
       fail: createFailTool(postToolsResult),
     },
     instructions,
-    stopWhen: stepCountIs(GEO_WRITER_MAX_STEPS),
-    experimental_telemetry: buildExperimentalTelemetry({
+    stopWhen: isStepCount(GEO_WRITER_MAX_STEPS),
+    ...buildTelemetryOptions({
       ...telemetryMetadata,
       stage: "geo_writer_draft",
     }),
@@ -492,7 +492,7 @@ export async function runGeoWriter(
   }
 
   const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.totalUsage, routeUsage.route);
+  let usage = toTokenUsage(result.usage, routeUsage.route);
 
   const draft = await db.query.posts.findFirst({
     columns: { markdown: true },

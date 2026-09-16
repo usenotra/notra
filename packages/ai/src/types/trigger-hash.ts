@@ -3,6 +3,7 @@ import type { TriggerCronConfig } from "../qstash/triggers";
 export interface TriggerHashSourceConfig {
   eventTypes?: string[];
   includePreReleases?: boolean;
+  ignoreCommitPatterns?: string[];
   cron?: TriggerCronConfig;
 }
 
