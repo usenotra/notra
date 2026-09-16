@@ -1,5 +1,7 @@
 # Notra
 
+![Vercel Open Source Program 2026](https://vercel.com/oss/program-badge-2026.svg)
+
 **See where your brand shows up in AI answers, who gets recommended instead, and what to write next.**
 
 Notra is a generative engine optimization (GEO) platform. It runs the questions your buyers ask across AI engines, tracks mentions and citations, and helps you turn missing visibility into content worth publishing.
