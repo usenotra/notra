@@ -11,6 +11,7 @@ import {
   HTTP_NOT_FOUND,
   HTTP_PAYMENT_REQUIRED,
   HTTP_SERVER_ERROR_MIN,
+  HTTP_UNAUTHORIZED,
   OPENROUTER_NO_ZDR_ENDPOINT_PATTERN,
   NO_TRAINING_PROVIDER_ERROR_PATTERN,
   RETRYABLE_STATUS_CODES,
@@ -92,7 +93,7 @@ function readIsRetryable(error: unknown): boolean {
 /**
  * Decide whether a failed upstream call may be retried on the other gateway
  * and why. Returns undefined for errors that must surface to the caller
- * (validation errors, aborts, auth errors, ...).
+ * (validation errors, aborts, prompt-level client errors, ...).
  */
 export function classifyUpstreamFailure(
   error: unknown
@@ -103,6 +104,11 @@ export function classifyUpstreamFailure(
   const status = readStatusCode(error);
   if (status === HTTP_PAYMENT_REQUIRED) {
     return "no-credits";
+  }
+  if (status === HTTP_UNAUTHORIZED) {
+    // Rejected credentials (expired/revoked key) fail every model on the
+    // gateway account: try the other gateway instead of surfacing the 401.
+    return "auth-failure";
   }
   if (NO_TRAINING_PROVIDER_ERROR_PATTERN.test(readMessage(error))) {
     return "non-compliant";
@@ -447,6 +453,16 @@ export class RoutedLanguageModel implements LanguageModelV4 {
     if (reason === "no-credits") {
       this.context.credits.markExhausted(route.decision.gateway);
       this.verifyExhaustion(route.decision.gateway);
+    } else if (reason === "auth-failure") {
+      // A rejected key is a fact about the gateway account, not the model:
+      // mark the whole gateway so later routes avoid it until the TTL heals.
+      this.context.credits.markUnavailable(route.decision.gateway, reason);
+      this.context.logger.error("ai.router.auth_rejected", {
+        gateway: route.decision.gateway,
+        requestedModel: route.decision.requestedModelId,
+        organizationId: route.decision.organizationId,
+        message: readMessage(error),
+      });
     } else if (reason === "non-compliant") {
       // A missing ZDR host is a fact about this model on this gateway, so the
       // mark is model-scoped: other models keep routing here.

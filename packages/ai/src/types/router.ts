@@ -24,6 +24,7 @@ export type FallbackReason =
   | "not-configured"
   | "unsupported-model"
   | "no-credits"
+  | "auth-failure"
   | "upstream-error"
   | "non-compliant";
 

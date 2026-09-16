@@ -64,6 +64,17 @@ request on Vercel first. Add OpenRouter-only ids (and an alias in
 `OPENROUTER_MODEL_ALIASES` when the OpenRouter id differs) when you add them
 to a catalog.
 
+## Upstream failures
+
+`classifyUpstreamFailure()` decides whether a failed call may retry once on
+the other gateway: credit exhaustion (402), rejected credentials (401), a
+missing ZDR host or no-training provider (`non-compliant`), an unknown model
+(404) and transient upstream errors (5xx, 408/409/425/429, network
+failures). Rejected credentials mark the whole gateway unavailable for
+`DEFAULT_UNAVAILABLE_TTL_MS`, so later requests resolve straight to the
+other gateway instead of failing one by one. Validation errors, aborts and
+prompt-level client errors still surface to the caller.
+
 ## Provider options
 
 Call sites use `withRouterDefaults()` from `@notra/ai/provider-options`, which
@@ -79,8 +90,9 @@ Anthropic thinking / OpenAI reasoning settings are mapped to
 - evlog events: `ai.router.route`, `ai.router.fallback`,
   `ai.router.fallback_unavailable`, `ai.router.no_compliant_route`,
   `ai.router.zdr_rejected`, `ai.router.zdr_bypassed`,
-  `ai.router.plan_lookup_failed`, `ai.router.credits`,
-  `ai.router.credits_check_failed`, `ai.router.generation_lookup_failed`.
+  `ai.router.auth_rejected`, `ai.router.plan_lookup_failed`,
+  `ai.router.credits`, `ai.router.credits_check_failed`,
+  `ai.router.generation_lookup_failed`.
 - `providerMetadata.notraRouter` on every result / stream `finish` part:
   gateway, generation ID, requested + mapped model, plan, reason and fallback
   info. `summarizeRouteUsage(steps)` (`@notra/ai/utils/route-usage`) also

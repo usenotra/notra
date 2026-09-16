@@ -12,6 +12,7 @@ import type {
 import {
   GatewayCreditBalanceError,
   GatewayNotConfiguredError,
+  GatewayUnavailableError,
   NoCompliantRouteError,
   UnsupportedModelError,
 } from "./errors";
@@ -170,6 +171,9 @@ function throwUnavailable(
   }
   if (reason === "no-credits") {
     throw new GatewayCreditBalanceError(0, gateway);
+  }
+  if (reason === "auth-failure") {
+    throw new GatewayUnavailableError(gateway, "authentication failed");
   }
   throw new NoCompliantRouteError(modelId, `${gateway}: ${reason}`);
 }

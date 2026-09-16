@@ -771,6 +771,32 @@ describe("RoutedLanguageModel", () => {
     assert.equal(next.fallbackReason, "no-credits");
   });
 
+  test("a 401 marks the gateway auth-failed so later routes avoid it", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router, vercel, logger } = createTestRouter({ plans, openrouter });
+    const result = await router
+      .model(MODEL, { organizationId: FREE_ORG })
+      .doGenerate(callOptions());
+    assert.equal(vercel?.calls.length, 1);
+    const metadata = metadataOf(result);
+    assert.equal(metadata?.gateway, "vercel");
+    assert.equal(metadata?.fallbackReason, "auth-failure");
+    assert.ok(
+      logger.entries.some((entry) => entry.event === "ai.router.auth_rejected")
+    );
+    const next = await router.resolveRoute({
+      modelId: MODEL,
+      organizationId: FREE_ORG,
+    });
+    assert.equal(next.gateway, "vercel");
+    assert.equal(next.fallbackReason, "auth-failure");
+  });
+
   test("a spurious 402 heals once the balance check reports credits", async () => {
     const openrouter = createFakeAdapter({
       id: "openrouter",
@@ -1112,6 +1138,10 @@ describe("assertRouteHasCredits", () => {
 describe("classifyUpstreamFailure", () => {
   test("maps status codes to fallback reasons", () => {
     assert.equal(classifyUpstreamFailure(httpError(402)), "no-credits");
+    assert.equal(
+      classifyUpstreamFailure(httpError(401, "API key expired")),
+      "auth-failure"
+    );
     assert.equal(classifyUpstreamFailure(httpError(404)), "unsupported-model");
     assert.equal(
       classifyUpstreamFailure(
