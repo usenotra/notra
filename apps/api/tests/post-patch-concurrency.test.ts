@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { PgDialect } from "drizzle-orm/pg-core";
+
 import {
   matchesPostUpdatedAt,
   normalizePostUpdatedAt,
@@ -69,12 +71,15 @@ describe("postUpdatedAtMatches", () => {
 });
 
 describe("matchesPostUpdatedAt", () => {
-  test("truncates updated_at and binds the expected millisecond timestamp", () => {
+  test("truncates updated_at and binds the expected timestamp as UTC", () => {
     const expected = new Date("2026-01-01T00:00:00.123Z");
-    const sql = collectSqlText(matchesPostUpdatedAt(expected));
+    const predicate = matchesPostUpdatedAt(expected);
+    const sql = collectSqlText(predicate);
+    const query = new PgDialect().sqlToQuery(predicate);
 
     expect(sql).toContain("date_trunc");
     expect(sql).toContain("updated_at");
     expect(sql).toContain(expected.toISOString());
+    expect(query.params).toEqual([expected.toISOString()]);
   });
 });
