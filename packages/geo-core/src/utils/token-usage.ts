@@ -1,5 +1,6 @@
 import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type { LanguageModelUsage } from "ai";
 
 import { GEO_JUDGE_MODEL } from "../constants/geo";
 import type { GeoTokenUsageInput } from "../types/token-usage";
@@ -12,6 +13,50 @@ export const EMPTY_AGENT_TOKEN_USAGE: AgentTokenUsage = {
   cacheWriteTokens: 0,
   totalUsd: 0,
 };
+
+function addTokenCounts(
+  first: number | undefined,
+  second: number | undefined
+): number | undefined {
+  return first === undefined && second === undefined
+    ? undefined
+    : (first ?? 0) + (second ?? 0);
+}
+
+export function addLanguageModelTokenUsage(
+  first: LanguageModelUsage,
+  second: LanguageModelUsage
+): LanguageModelUsage {
+  return {
+    inputTokens: addTokenCounts(first.inputTokens, second.inputTokens),
+    inputTokenDetails: {
+      noCacheTokens: addTokenCounts(
+        first.inputTokenDetails.noCacheTokens,
+        second.inputTokenDetails.noCacheTokens
+      ),
+      cacheReadTokens: addTokenCounts(
+        first.inputTokenDetails.cacheReadTokens,
+        second.inputTokenDetails.cacheReadTokens
+      ),
+      cacheWriteTokens: addTokenCounts(
+        first.inputTokenDetails.cacheWriteTokens,
+        second.inputTokenDetails.cacheWriteTokens
+      ),
+    },
+    outputTokens: addTokenCounts(first.outputTokens, second.outputTokens),
+    outputTokenDetails: {
+      textTokens: addTokenCounts(
+        first.outputTokenDetails.textTokens,
+        second.outputTokenDetails.textTokens
+      ),
+      reasoningTokens: addTokenCounts(
+        first.outputTokenDetails.reasoningTokens,
+        second.outputTokenDetails.reasoningTokens
+      ),
+    },
+    totalTokens: addTokenCounts(first.totalTokens, second.totalTokens),
+  };
+}
 
 function normalizeTokenUsage(usage: GeoTokenUsageInput): AgentTokenUsage {
   const cacheReadTokens =

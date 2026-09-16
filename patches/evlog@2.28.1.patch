@@ -1,0 +1,23 @@
+diff --git a/dist/next/index.mjs b/dist/next/index.mjs
+index cdac9ffc052009e1a1f30e3e95b1368c3bcfce83..d7f525545bd3dd742a1ecf009c3369426847fa9f 100644
+--- a/dist/next/index.mjs
++++ b/dist/next/index.mjs
+@@ -148,7 +148,17 @@ function createWithEvlog(options) {
+ 			const after = await resolveAfter();
+ 			const { logger, finish, finishResponse, skipped, runWith } = integration.start({ request }, {
+ 				...pickBaseEvlogOptions(state.options),
+-				...after ? { waitUntil: (promise) => after(() => promise) } : {}
++				...after ? {
++					waitUntil: (promise) => {
++						try {
++							after(() => promise);
++						} catch {
++							// `after` throws outside a request scope (e.g. when a
++							// streamed response finishes after the route returned);
++							// the drain promise still runs in-flight.
++						}
++					}
++				} : {}
+ 			});
+ 			if (skipped) return await handler(...args);
+ 			if (request) {

@@ -131,3 +131,63 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
     });
   }
 );
+
+/** Reads cached analysis state without requiring billing or starting a model run. */
+export const loadStoredGeoSentimentAnalysis = Effect.fn(
+  "geo.storedSentimentAnalysis"
+)(function* (input: GeoScopeInput, window: GeoWindowInput) {
+  const scope = yield* resolveGeoScope(input);
+  const brand = yield* geoDb("sentiment brand lookup failed", () =>
+    queryGeoSentimentBrand(geoCheckScope(scope))
+  );
+  if (!brand?.companyName) {
+    return {
+      status: "unavailable",
+      result: null,
+      message: "Set the project's GEO brand name before analyzing sentiment.",
+    } satisfies SentimentAnalysisState;
+  }
+  const period = sentimentPeriods(window).current;
+  const store = sentimentAnalysisStore();
+  if (!store) {
+    return {
+      status: "unavailable",
+      result: null,
+      message: "Sentiment analysis requires the Redis cache to be configured.",
+    } satisfies SentimentAnalysisState;
+  }
+  const checkScope = geoCheckScope(scope);
+  const checkWindow = toGeoCheckWindow(period);
+  if (!checkWindow) {
+    throw new Error("Missing sentiment window");
+  }
+  const key = sentimentAnalysisKey(
+    input.organizationId,
+    scope.projectId,
+    period.from,
+    period.to
+  );
+  return yield* geoDb("sentiment analysis failed", () =>
+    readSentimentAnalysis({
+      key,
+      store,
+      snapshot: async () => {
+        const currentBrand = await queryGeoSentimentBrand(checkScope);
+        const companyName = currentBrand?.companyName ?? "";
+        const value = await queryGeoSentimentAnalysisSnapshot(
+          checkScope,
+          checkWindow
+        );
+        return {
+          ...value,
+          fingerprint: sentimentAnalysisKey(
+            value.fingerprint,
+            null,
+            companyName,
+            ""
+          ),
+        };
+      },
+    })
+  );
+});

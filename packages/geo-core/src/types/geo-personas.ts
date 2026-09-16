@@ -43,6 +43,7 @@ export interface GeoPersona {
   profile: GeoPersonaProfile;
   conversationPrompts: string[];
   enabled: boolean;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
   memories: GeoPersonaMemory[];
@@ -70,7 +71,9 @@ export type GeoPersonaEditableDetails = Pick<
 
 export interface GeoPersonaActivityPoint {
   personaId: string;
+  snapshotVersion: string;
   day: string;
+  lastCheckedAt: string;
   checks: number;
   mentions: number;
 }

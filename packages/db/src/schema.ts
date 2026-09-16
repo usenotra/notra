@@ -1576,6 +1576,7 @@ export const geoPersonas = pgTable(
       .notNull()
       .default(sql`ARRAY[]::text[]`),
     enabled: boolean("enabled").notNull().default(true),
+    archivedAt: timestamp("archived_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

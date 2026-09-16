@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { GEO_PERSONA_MEMORY_KINDS } from "../constants/geo-personas";
 import { db } from "../drizzle";
@@ -419,7 +419,8 @@ async function ensurePersonas(
   const existing = await db.query.geoPersonas.findMany({
     where: and(
       eq(geoPersonas.projectId, projectId),
-      eq(geoPersonas.organizationId, organizationId)
+      eq(geoPersonas.organizationId, organizationId),
+      isNull(geoPersonas.archivedAt)
     ),
   });
   if (existing.length > 0) {

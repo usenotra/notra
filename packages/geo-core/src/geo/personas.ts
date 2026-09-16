@@ -19,7 +19,16 @@ import {
   queryGeoCheckPersonaScans,
 } from "@notra/db/utils/geo-persona-checks";
 import { generateText, Output } from "ai";
-import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+} from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -51,7 +60,10 @@ import type {
   GeoPersonaUpdateInput,
   PersonaGenerationContext,
 } from "../types/geo-personas";
-import { normalizeGeneratedPersonaSet } from "../utils/geo-personas";
+import {
+  hasGeoPersonaDetailsChanged,
+  normalizeGeneratedPersonaSet,
+} from "../utils/geo-personas";
 import { buildPersonaGenerationPrompt } from "../utils/persona-generation-prompt";
 import { geoDb, geoSkip } from "./effect";
 import {
@@ -68,12 +80,20 @@ import { claimGeoScanRun } from "./scan-status";
 
 const loadPersonaRows = Effect.fn("geo.personas.load")(function* (
   projectId: string,
-  database: Pick<typeof db, "query"> = db
+  database: Pick<typeof db, "query"> = db,
+  includeArchived = false
 ) {
   const rows = yield* geoDb("personas lookup failed", () =>
     database.query.geoPersonas.findMany({
-      where: eq(geoPersonas.projectId, projectId),
-      orderBy: [asc(geoPersonas.createdAt)],
+      where: includeArchived
+        ? eq(geoPersonas.projectId, projectId)
+        : and(
+            eq(geoPersonas.projectId, projectId),
+            isNull(geoPersonas.archivedAt)
+          ),
+      orderBy: includeArchived
+        ? [desc(geoPersonas.archivedAt), asc(geoPersonas.createdAt)]
+        : [asc(geoPersonas.createdAt)],
     })
   );
   const memories = yield* geoDb("persona memories lookup failed", () =>
@@ -111,7 +131,7 @@ export const listGeoPersonas = Effect.fn("geo.personasList")(function* (
     const empty: GeoPersonasResponse = { configured: false, personas: [] };
     return empty;
   }
-  const personas = yield* loadPersonaRows(scope.projectId);
+  const personas = yield* loadPersonaRows(scope.projectId, db, true);
   const response: GeoPersonasResponse = { configured: true, personas };
   return response;
 });
@@ -130,7 +150,8 @@ export const requireGeoPersonaGenerationCapacity = Effect.fn(
       .where(
         and(
           eq(geoPersonas.projectId, scope.projectId),
-          eq(geoPersonas.organizationId, scope.organizationId)
+          eq(geoPersonas.organizationId, scope.organizationId),
+          isNull(geoPersonas.archivedAt)
         )
       )
   );
@@ -335,7 +356,8 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
             .where(
               and(
                 eq(geoPersonas.projectId, projectId),
-                eq(geoPersonas.organizationId, organizationId)
+                eq(geoPersonas.organizationId, organizationId),
+                isNull(geoPersonas.archivedAt)
               )
             );
           if (
@@ -373,12 +395,20 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
               and(
                 eq(geoPersonas.projectId, projectId),
                 eq(geoPersonas.organizationId, organizationId),
-                eq(geoPersonas.id, target.id)
+                eq(geoPersonas.id, target.id),
+                isNull(geoPersonas.archivedAt),
+                eq(geoPersonas.name, target.name),
+                eq(geoPersonas.role, target.role),
+                eq(geoPersonas.company, target.company),
+                eq(geoPersonas.summary, target.summary),
+                eq(geoPersonas.searchStyle, target.searchStyle),
+                eq(geoPersonas.profile, target.profile),
+                eq(geoPersonas.conversationPrompts, target.conversationPrompts)
               )
             )
             .returning({ id: geoPersonas.id });
           if (updated.length !== 1) {
-            throw new GeoPersonaNotFoundError({ personaId: target.id });
+            return null;
           }
           if (!promptsOnly) {
             await tx
@@ -395,6 +425,13 @@ export const persistGeneratedPersonas = Effect.fn("geo.personas.persist")(
       })
     );
     if (!persisted) {
+      if (target) {
+        return yield* Effect.fail(
+          new GeoPersonaGenerateError({
+            message: "Persona changed while generation was in progress",
+          })
+        );
+      }
       return yield* Effect.fail(
         new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
       );
@@ -544,19 +581,53 @@ export const updateGeoPersona = Effect.fn("geo.personaUpdate")(function* (
   update: GeoPersonaUpdateInput
 ) {
   const scope = yield* requireGeoProject(input);
+  const existing = yield* geoDb("persona lookup failed", () =>
+    db.query.geoPersonas.findFirst({
+      with: {
+        memories: {
+          orderBy: [
+            asc(geoPersonaMemories.createdAt),
+            asc(geoPersonaMemories.id),
+          ],
+        },
+      },
+      where: and(
+        eq(geoPersonas.id, update.personaId),
+        eq(geoPersonas.organizationId, scope.organizationId),
+        eq(geoPersonas.projectId, scope.projectId),
+        isNull(geoPersonas.archivedAt)
+      ),
+    })
+  );
+  if (!existing) {
+    return yield* Effect.fail(
+      new GeoPersonaNotFoundError({ personaId: update.personaId })
+    );
+  }
+  const current = toGeoPersona(existing, existing.memories);
+  const detailsChanged = update.details
+    ? hasGeoPersonaDetailsChanged(current, update.details)
+    : false;
+  const enabledChanged =
+    update.enabled !== undefined && update.enabled !== existing.enabled;
+  if (!(detailsChanged || enabledChanged)) {
+    return current;
+  }
   const rows = yield* geoDb("persona update failed", () =>
     db
       .update(geoPersonas)
       .set({
-        ...(update.enabled === undefined ? {} : { enabled: update.enabled }),
-        ...update.details,
+        ...(enabledChanged ? { enabled: update.enabled } : {}),
+        ...(detailsChanged ? update.details : {}),
+        ...(detailsChanged ? { conversationPrompts: [] } : {}),
         updatedAt: new Date(),
       })
       .where(
         and(
           eq(geoPersonas.id, update.personaId),
           eq(geoPersonas.organizationId, scope.organizationId),
-          eq(geoPersonas.projectId, scope.projectId)
+          eq(geoPersonas.projectId, scope.projectId),
+          isNull(geoPersonas.archivedAt)
         )
       )
       .returning()
@@ -567,13 +638,7 @@ export const updateGeoPersona = Effect.fn("geo.personaUpdate")(function* (
       new GeoPersonaNotFoundError({ personaId: update.personaId })
     );
   }
-  const memories = yield* geoDb("persona memories lookup failed", () =>
-    db.query.geoPersonaMemories.findMany({
-      where: eq(geoPersonaMemories.personaId, row.id),
-      orderBy: [asc(geoPersonaMemories.createdAt)],
-    })
-  );
-  return toGeoPersona(row, memories);
+  return toGeoPersona(row, existing.memories);
 });
 
 export const deleteGeoPersona = Effect.fn("geo.personaDelete")(function* (
@@ -581,14 +646,17 @@ export const deleteGeoPersona = Effect.fn("geo.personaDelete")(function* (
   personaId: string
 ) {
   const scope = yield* requireGeoProject(input);
-  const rows = yield* geoDb("persona delete failed", () =>
+  const now = new Date();
+  const rows = yield* geoDb("persona archive failed", () =>
     db
-      .delete(geoPersonas)
+      .update(geoPersonas)
+      .set({ archivedAt: now, enabled: false, updatedAt: now })
       .where(
         and(
           eq(geoPersonas.id, personaId),
           eq(geoPersonas.organizationId, scope.organizationId),
-          eq(geoPersonas.projectId, scope.projectId)
+          eq(geoPersonas.projectId, scope.projectId),
+          isNull(geoPersonas.archivedAt)
         )
       )
       .returning({ id: geoPersonas.id })
@@ -597,6 +665,76 @@ export const deleteGeoPersona = Effect.fn("geo.personaDelete")(function* (
     return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
   }
   return { success: true };
+});
+
+export const restoreGeoPersona = Effect.fn("geo.personaRestore")(function* (
+  input: GeoScopeInput,
+  personaId: string
+) {
+  const scope = yield* requireGeoProject(input);
+  const now = new Date();
+  const result = yield* geoDb("persona restore failed", () =>
+    db.transaction(async (tx) => {
+      await Effect.runPromise(lockGeoProject(tx, scope.projectId));
+      const archived = await tx.query.geoPersonas.findFirst({
+        columns: { id: true },
+        where: and(
+          eq(geoPersonas.id, personaId),
+          eq(geoPersonas.organizationId, scope.organizationId),
+          eq(geoPersonas.projectId, scope.projectId),
+          isNotNull(geoPersonas.archivedAt)
+        ),
+      });
+      if (!archived) {
+        return { status: "missing" as const };
+      }
+      const current = await tx
+        .select({ count: count() })
+        .from(geoPersonas)
+        .where(
+          and(
+            eq(geoPersonas.projectId, scope.projectId),
+            eq(geoPersonas.organizationId, scope.organizationId),
+            isNull(geoPersonas.archivedAt)
+          )
+        );
+      if ((current.at(0)?.count ?? 0) >= GEO_PERSONA_MAX_COUNT) {
+        return { status: "limit" as const };
+      }
+      const [row] = await tx
+        .update(geoPersonas)
+        .set({ archivedAt: null, enabled: false, updatedAt: now })
+        .where(
+          and(
+            eq(geoPersonas.id, personaId),
+            eq(geoPersonas.organizationId, scope.organizationId),
+            eq(geoPersonas.projectId, scope.projectId),
+            isNotNull(geoPersonas.archivedAt)
+          )
+        )
+        .returning();
+      if (!row) {
+        return { status: "missing" as const };
+      }
+      const memories = await tx.query.geoPersonaMemories.findMany({
+        where: eq(geoPersonaMemories.personaId, row.id),
+        orderBy: [asc(geoPersonaMemories.createdAt)],
+      });
+      return {
+        status: "restored" as const,
+        persona: toGeoPersona(row, memories),
+      };
+    })
+  );
+  if (result.status === "missing") {
+    return yield* Effect.fail(new GeoPersonaNotFoundError({ personaId }));
+  }
+  if (result.status === "limit") {
+    return yield* Effect.fail(
+      new GeoPersonaLimitError({ limit: GEO_PERSONA_MAX_COUNT })
+    );
+  }
+  return result.persona;
 });
 
 export const loadGeoPersonaResults = Effect.fn("geo.personaResults")(function* (
@@ -679,7 +817,16 @@ export const loadGeoPersonaActivity = Effect.fn("geo.personaActivity")(
       from: rangeFrom.toISOString().slice(0, 10),
       to: rangeTo.toISOString().slice(0, 10),
       points: rows.flatMap((row) =>
-        row.personaId ? [{ ...row, personaId: row.personaId }] : []
+        row.personaId && row.snapshotVersion
+          ? [
+              {
+                ...row,
+                personaId: row.personaId,
+                snapshotVersion: row.snapshotVersion,
+                lastCheckedAt: row.lastCheckedAt.toISOString(),
+              },
+            ]
+          : []
       ),
     };
     return response;

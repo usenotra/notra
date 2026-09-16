@@ -1,4 +1,8 @@
-import type { ScheduleCron } from "@notra/schemas/dashboard/automation/schedule-form";
+import type { IconSvgElement } from "@hugeicons/react";
+import type {
+  ScheduleCron,
+  ScheduleFormValues,
+} from "@notra/schemas/dashboard/automation/schedule-form";
 
 import type { Trigger } from "@/types/triggers/triggers";
 
@@ -14,6 +18,7 @@ export interface CreateScheduleDialogProps {
   editTrigger?: Trigger;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  presetId?: SchedulePresetId | null;
 }
 
 export interface ScheduleFrequencyTabsProps {
@@ -42,4 +47,27 @@ export interface ScheduleIntegrationOption {
   value: string;
   label: string;
   type: "github" | "linear";
+}
+
+export type SchedulePresetId =
+  | "weekly-changelog"
+  | "daily-twitter"
+  | "monthly-blog"
+  | "biweekly-linkedin";
+
+export type SchedulePresetValues = Pick<
+  ScheduleFormValues,
+  "outputType" | "schedule" | "lookbackWindow"
+>;
+
+export interface SchedulePreset {
+  id: SchedulePresetId;
+  icon: IconSvgElement;
+  label: string;
+  description: string;
+  values: SchedulePresetValues;
+}
+
+export interface ScheduleQuickStartProps {
+  onSelect: (presetId: SchedulePresetId) => void;
 }

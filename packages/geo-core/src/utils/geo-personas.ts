@@ -11,6 +11,8 @@ import {
 } from "../constants/geo-personas";
 import type {
   GeoGeneratedPersona,
+  GeoPersona,
+  GeoPersonaEditableDetails,
   GeoPersonaGeneration,
 } from "../types/geo-personas";
 
@@ -20,6 +22,40 @@ import type {
  */
 export function personaPromptId(personaId: string): string {
   return `${GEO_PERSONA_PROMPT_ID_PREFIX}${personaId}`;
+}
+
+function stringListsMatch(
+  left: readonly string[],
+  right: readonly string[]
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
+export function hasGeoPersonaDetailsChanged(
+  persona: GeoPersona,
+  details: GeoPersonaEditableDetails
+): boolean {
+  return (
+    persona.name !== details.name ||
+    persona.role !== details.role ||
+    persona.company !== details.company ||
+    persona.summary !== details.summary ||
+    persona.searchStyle !== details.searchStyle ||
+    !stringListsMatch(persona.profile.goals, details.profile.goals) ||
+    !stringListsMatch(persona.profile.painPoints, details.profile.painPoints) ||
+    !stringListsMatch(
+      persona.profile.currentStack,
+      details.profile.currentStack
+    ) ||
+    !stringListsMatch(
+      persona.profile.buyingTriggers,
+      details.profile.buyingTriggers
+    ) ||
+    !stringListsMatch(persona.profile.objections, details.profile.objections)
+  );
 }
 
 function clip(value: string, maxLength: number): string {

@@ -1244,6 +1244,10 @@ export interface GeoRemoveDialogProps {
   isPending: boolean;
   nouns: GeoRemoveDialogNouns;
   description: string | ((items: string[]) => string);
+  actionLabel?: string;
+  destructive?: boolean;
+  pendingLabel?: string;
+  title?: string;
 }
 
 export interface PromptDetailDialogProps {

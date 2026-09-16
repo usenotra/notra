@@ -7,10 +7,50 @@ import { geoBoxTokenUsage } from "@notra/ai/utils/geo-opencode-usage";
 import { geoBoxAgentForEngine } from "../src/utils/geo-coding-agents";
 import {
   addAgentTokenUsage,
+  addLanguageModelTokenUsage,
   EMPTY_AGENT_TOKEN_USAGE,
 } from "../src/utils/token-usage";
 
 describe("GEO billing usage", () => {
+  test("adds usage from retried language-model calls", () => {
+    const usage = addLanguageModelTokenUsage(
+      {
+        inputTokens: 10,
+        outputTokens: 20,
+        totalTokens: 30,
+        inputTokenDetails: {
+          noCacheTokens: 7,
+          cacheReadTokens: 2,
+          cacheWriteTokens: 1,
+        },
+        outputTokenDetails: { textTokens: 5, reasoningTokens: 15 },
+      },
+      {
+        inputTokens: 4,
+        outputTokens: 6,
+        totalTokens: 10,
+        inputTokenDetails: {
+          noCacheTokens: 4,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        outputTokenDetails: { textTokens: 6, reasoningTokens: 0 },
+      }
+    );
+
+    expect(usage).toEqual({
+      inputTokens: 14,
+      outputTokens: 26,
+      totalTokens: 40,
+      inputTokenDetails: {
+        noCacheTokens: 11,
+        cacheReadTokens: 2,
+        cacheWriteTokens: 1,
+      },
+      outputTokenDetails: { textTokens: 11, reasoningTokens: 15 },
+    });
+  });
+
   test("keeps Box costs through turn, batch, and project aggregation", () => {
     const opusTarget = geoBoxAgentForEngine("claude-code/claude-opus-5");
     const codexTarget = geoBoxAgentForEngine("codex/gpt-6-astra");

@@ -2,6 +2,7 @@ import { getRouteMetadata } from "@notra/ai/gateway";
 import { generateText, Output, type LanguageModel } from "ai";
 
 import {
+  SENTIMENT_ANALYSIS_MAX_TOKENS,
   SENTIMENT_ANALYSIS_SYSTEM,
   SENTIMENT_ANALYSIS_TIMEOUT_MS,
 } from "../constants/sentiment-analysis";
@@ -21,7 +22,8 @@ export async function generateSentimentAnalysis(
     instructions: SENTIMENT_ANALYSIS_SYSTEM,
     prompt: JSON.stringify({ brand, answers: sample }),
     output: Output.object({ schema: sentimentThemeOutputSchema }),
-    maxOutputTokens: 2500,
+    maxOutputTokens: SENTIMENT_ANALYSIS_MAX_TOKENS,
+    reasoning: "low",
     maxRetries: 0,
     temperature: 0,
     abortSignal: AbortSignal.timeout(SENTIMENT_ANALYSIS_TIMEOUT_MS),

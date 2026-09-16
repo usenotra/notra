@@ -123,6 +123,14 @@ export type GeoCheckPromptSummaryRow = Pick<
   | "lastCheckedAt"
 > & { checkId: string };
 
+export interface GeoCheckPromptSummaryQuery {
+  offset: number;
+  limit: number;
+  engine?: string;
+  mentioned?: boolean;
+  query?: string;
+}
+
 export interface GeoCheckPromptHistoryRow {
   id: string;
   scanId: string;

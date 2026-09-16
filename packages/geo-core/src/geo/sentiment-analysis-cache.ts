@@ -12,6 +12,7 @@ import type {
   SentimentAnalysisState,
   SentimentAnalysisStore,
 } from "../types/sentiment-analysis";
+import { logGeoSkip } from "../utils/geo-log";
 import { validateSentimentThemes } from "../utils/sentiment-analysis";
 
 export function sentimentAnalysisStore(): SentimentAnalysisStore | null {
@@ -83,40 +84,54 @@ async function completeSentimentAnalysis(
       state = settled;
     } else {
       const sample = await run.sample();
-      if ((await run.snapshot()).fingerprint !== snapshot.fingerprint) {
-        throw new Error("Historical inputs changed");
+      const current = await run.snapshot();
+      if (current.fingerprint !== snapshot.fingerprint) {
+        state = {
+          status: "stale",
+          result: null,
+          message: "Saved answers changed. Refresh the analysis.",
+        };
+      } else {
+        const themes = sample.length
+          ? validateSentimentThemes(
+              await run.extract(sample, () => run.store.renew(lock, token)),
+              sample
+            )
+          : [];
+        const fresh =
+          (await run.snapshot()).fingerprint === snapshot.fingerprint;
+        state = fresh
+          ? {
+              status: "ready",
+              message: null,
+              result: {
+                fingerprint: snapshot.fingerprint,
+                generatedAt: new Date().toISOString(),
+                sampled: sample.length,
+                eligible: snapshot.eligible,
+                themes,
+              },
+            }
+          : {
+              status: "stale",
+              result: null,
+              message: "Saved answers changed. Refresh the analysis.",
+            };
       }
-      const themes = sample.length
-        ? validateSentimentThemes(
-            await run.extract(sample, () => run.store.renew(lock, token)),
-            sample
-          )
-        : [];
-      const fresh = (await run.snapshot()).fingerprint === snapshot.fingerprint;
-      state = fresh
-        ? {
-            status: "ready",
-            message: null,
-            result: {
-              fingerprint: snapshot.fingerprint,
-              generatedAt: new Date().toISOString(),
-              sampled: sample.length,
-              eligible: snapshot.eligible,
-              themes,
-            },
-          }
-        : {
-            status: "stale",
-            result: null,
-            message: "Saved answers changed. Refresh the analysis.",
-          };
     }
-  } catch {
+  } catch (error) {
+    logGeoSkip(
+      "Sentiment analysis failed",
+      { event: "geo.sentiment_analysis.failed" },
+      error
+    );
     state = {
       status: "failed",
       result: null,
       message:
-        "Analysis could not complete. Check AI credits and provider availability, then retry.",
+        error instanceof Error && error.message === "AI credits unavailable"
+          ? "Analysis could not complete. Check AI credits and provider availability, then retry."
+          : "Analysis could not complete. Please retry.",
     };
   }
   if (!(await run.store.commit(lock, key, token, state, `${run.key}:latest`))) {

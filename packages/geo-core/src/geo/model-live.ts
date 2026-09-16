@@ -25,6 +25,7 @@ import {
 } from "../schemas/geo";
 import { geoSearchConsoleSuggestionSchema } from "../schemas/google-search-console";
 import { GeoModelError } from "../schemas/model-errors";
+import { addLanguageModelTokenUsage } from "../utils/token-usage";
 import { buildGroundedInvocation } from "./engines";
 import { GeoJudgeError, GeoScanError, GeoTranslationError } from "./errors";
 import { extractGrounding } from "./grounding";
@@ -37,23 +38,36 @@ export const geoModelLive = Layer.succeed(
     answer: Effect.fn("GeoModel.answer")((input) =>
       Effect.tryPromise({
         try: async (signal) => {
-          const result = await generateText({
-            model: gateway(input.engine, {
-              organizationId: input.organizationId,
-              zdr: input.zdr,
-              gateway: input.gateway,
-            }),
+          const model = gateway(input.engine, {
+            organizationId: input.organizationId,
+            zdr: input.zdr,
+            gateway: input.gateway,
+          });
+          const options = {
             prompt: input.prompt,
             instructions: GEO_ANSWER_SYSTEM_PROMPT,
             maxOutputTokens: GEO_ANSWER_MAX_TOKENS,
             abortSignal: signal,
-          });
+          };
+          let result = await generateText({ model, ...options });
+          let usage = result.usage;
+          // Reasoning engines can spend the entire output budget on thought
+          // and return no text at all; retry once at low effort.
+          if (result.finishReason === "length" && !result.text.trim()) {
+            const retry = await generateText({
+              model,
+              ...options,
+              reasoning: "low",
+            });
+            usage = addLanguageModelTokenUsage(usage, retry.usage);
+            result = retry;
+          }
           return {
             text: result.text,
             grounding: extractGrounding(result),
             sources: collectSources(result.sources),
             finishReason: result.finishReason,
-            usage: result.usage,
+            usage,
             zdrEnforced:
               getRouteMetadata(result.finalStep.providerMetadata)
                 ?.zdrEnforced ?? null,

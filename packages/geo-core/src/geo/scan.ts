@@ -22,7 +22,7 @@ import {
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
 import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -1060,7 +1060,8 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
               },
               where: and(
                 eq(geoPersonas.projectId, settingsRow.projectId),
-                eq(geoPersonas.enabled, true)
+                eq(geoPersonas.enabled, true),
+                isNull(geoPersonas.archivedAt)
               ),
               orderBy: [asc(geoPersonas.createdAt)],
               limit: GEO_PERSONA_MAX_COUNT,

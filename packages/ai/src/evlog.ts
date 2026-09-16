@@ -32,8 +32,9 @@ function routeDrain(ctx: DrainContext) {
   try {
     runtime.flushScheduler?.(flushLogs);
   } catch {
-    // Next's after() is unavailable outside a request. Long-lived runtimes
-    // use the batch timer and explicitly flush during graceful shutdown.
+    // createLogFlushScheduler already falls back to a macrotask flush when the
+    // host hook (Next's after()) is unavailable; this is defense-in-depth so a
+    // scheduler failure can never break the drain call chain.
   }
 }
 

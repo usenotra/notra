@@ -4,6 +4,7 @@ import {
   eq,
   gte,
   inArray,
+  ilike,
   isNull,
   lt,
   or,
@@ -30,6 +31,7 @@ import type {
   GeoCheckPromptHistoryRow,
   GeoCheckPromptResultRow,
   GeoCheckPromptSummaryRow,
+  GeoCheckPromptSummaryQuery,
   GeoCheckScanComparison,
   GeoCheckScanComparisonInput,
   GeoCheckScanComparisonRow,
@@ -545,7 +547,8 @@ export async function queryGeoCheckPromptResults(
  */
 export async function queryGeoCheckById(
   checkId: string,
-  organizationId: string
+  organizationId: string,
+  projectId?: string
 ): Promise<GeoCheckPromptResultRow | null> {
   const [row] = await db
     .select(promptResultColumns)
@@ -553,7 +556,8 @@ export async function queryGeoCheckById(
     .where(
       and(
         eq(geoMentionChecks.id, checkId),
-        eq(geoMentionChecks.organizationId, organizationId)
+        eq(geoMentionChecks.organizationId, organizationId),
+        projectId ? eq(geoMentionChecks.projectId, projectId) : undefined
       )
     )
     .limit(1);
@@ -563,7 +567,8 @@ export async function queryGeoCheckById(
 
 export async function queryGeoCheckPromptSummaries(
   scope: GeoCheckScope,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  query?: GeoCheckPromptSummaryQuery
 ): Promise<GeoCheckPromptSummaryRow[]> {
   // Deliberately omits answer/grounding/sources/token counts: the list only
   // needs mention state, and those columns dominate the payload size.
@@ -592,10 +597,24 @@ export async function queryGeoCheckPromptSummaries(
     )
     .as("latest_geo_prompt_summaries");
 
-  return await db
+  const rows = db
     .select()
     .from(latest)
+    .where(
+      and(
+        query?.engine ? eq(latest.engine, query.engine) : undefined,
+        query?.mentioned === undefined
+          ? undefined
+          : eq(latest.mentioned, query.mentioned),
+        query?.query
+          ? ilike(latest.prompt, `%${query.query.replace(/[\\%_]/g, "\\$&")}%`)
+          : undefined
+      )
+    )
     .orderBy(desc(latest.lastCheckedAt), latest.promptId, latest.engine);
+  return query
+    ? await rows.limit(query.limit + 1).offset(query.offset)
+    : await rows;
 }
 
 export async function queryGeoCheckPromptHistory(

@@ -144,8 +144,8 @@ export function useGeoPersonaUpdate(organizationId: string) {
         enabled: variables.enabled,
         details: variables.details,
       }),
-    onSuccess: async () => {
-      await invalidatePersonaList(queryClient, organizationId, projectId);
+    onSuccess: () => {
+      void invalidatePersonaList(queryClient, organizationId, projectId);
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to update the persona"));
@@ -165,10 +165,30 @@ export function useGeoPersonaDelete(organizationId: string) {
       }),
     onSuccess: async () => {
       await invalidatePersonaList(queryClient, organizationId, projectId);
-      toast.success("Persona deleted");
+      toast.success("Persona archived");
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to delete the persona"));
+      toast.error(toErrorMessage(error, "Failed to archive the persona"));
+    },
+  });
+}
+
+export function useGeoPersonaRestore(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  return useMutation<GeoPersona, Error, string>({
+    mutationFn: (personaId: string) =>
+      dashboardOrpc.geo.personaRestore.call({
+        organizationId,
+        projectId,
+        personaId,
+      }),
+    onSuccess: async () => {
+      await invalidatePersonaList(queryClient, organizationId, projectId);
+      toast.success("Persona reactivated. Include it in scans when ready.");
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, "Failed to reactivate the persona"));
     },
   });
 }

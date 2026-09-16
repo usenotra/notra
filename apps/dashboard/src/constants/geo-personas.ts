@@ -25,9 +25,9 @@ export const GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION =
 export const GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION =
   "This persona is paused. Include it in scans to start a conversation.";
 export const GEO_PERSONA_PROMPTS_DESCRIPTION =
-  "Every engine receives these messages in the same order. Regenerating the persona replaces them.";
+  "Every engine receives these exact messages in the same order. They are generated from the persona’s profile and memories.";
 export const GEO_PERSONA_PROMPTS_EMPTY_DESCRIPTION =
-  "Generate fixed conversation prompts for this persona.";
+  "This persona is excluded from new scans until fixed prompts are generated from its current profile and memories.";
 
 /**
  * Generation is one model call with no server-side progress, so the counter

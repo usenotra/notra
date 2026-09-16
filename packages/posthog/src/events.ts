@@ -69,6 +69,8 @@ export const POSTHOG_EVENTS = {
   GEO_PERSONAS_GENERATED: "geo_personas_generated",
   GEO_PERSONA_UPDATED: "geo_persona_updated",
   GEO_PERSONA_DELETED: "geo_persona_deleted",
+  GEO_PERSONA_ARCHIVED: "geo_persona_archived",
+  GEO_PERSONA_RESTORED: "geo_persona_restored",
   GEO_PERSONA_RUN_NOW: "geo_persona_run_now",
   GEO_PERSONA_RUN: "geo_persona_run",
   GEO_PERSONA_DETAIL_OPENED: "geo_persona_detail_opened",

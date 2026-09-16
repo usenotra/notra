@@ -32,6 +32,8 @@ import type {
   CommitPatchPostProgramInput,
   CreatePostGenerationProgramInput,
   CreatePostGenerationProgramSuccess,
+  CreatePostProgramInput,
+  CreatePostProgramSuccess,
   DeletePostProgramInput,
   DeletePostProgramSuccess,
   GetPostGenerationProgramInput,
@@ -298,6 +300,99 @@ export const deletePost = Effect.fn("posts.delete")(function* (
   return {
     id: deletedPost.id,
   } satisfies DeletePostProgramSuccess;
+});
+
+export const createPost = Effect.fn("posts.create")(function* (
+  input: CreatePostProgramInput
+) {
+  const { body } = input;
+
+  if (body.slug && !supportsPostSlug(body.contentType)) {
+    return yield* new PostSlugNotSupportedError();
+  }
+
+  const markdown = body.markdown ?? "";
+  const content =
+    markdown.length > 0
+      ? yield* Effect.tryPromise({
+          try: () => renderMarkdownToHtml(markdown),
+          catch: () => new PostInvalidMarkdownError(),
+        })
+      : "";
+
+  const now = new Date();
+  const collectionId = nanoid();
+  const postId = nanoid();
+
+  const [createdPost] = yield* Effect.tryPromise({
+    try: () =>
+      input.db.transaction(async (tx) => {
+        await tx.insert(postCollections).values({
+          id: collectionId,
+          organizationId: input.organizationId,
+          source: "api",
+          sourceId: collectionId,
+          name: buildPostCollectionName([body.contentType], now),
+          nameSource: "generated",
+          contentTypes: [body.contentType],
+          expectedPostCount: 1,
+          completedPostCount: 1,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        return tx
+          .insert(posts)
+          .values({
+            id: postId,
+            organizationId: input.organizationId,
+            collectionId,
+            title: body.title,
+            slug: body.slug ?? null,
+            content,
+            markdown,
+            contentType: body.contentType,
+            status: body.status,
+            sourceMetadata: null,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returning({
+            id: posts.id,
+            title: posts.title,
+            slug: posts.slug,
+            content: posts.content,
+            htmlUrl: posts.htmlUrl,
+            markdown: posts.markdown,
+            recommendations: posts.recommendations,
+            contentType: posts.contentType,
+            sourceMetadata: posts.sourceMetadata,
+            status: posts.status,
+            createdAt: posts.createdAt,
+            updatedAt: posts.updatedAt,
+          });
+      }),
+    catch: (cause) => {
+      if (
+        isPgUniqueViolation(cause) &&
+        isConstraintViolation(cause, "posts_org_slug_uidx")
+      ) {
+        return new PostSlugDuplicateError();
+      }
+
+      return new PostDatabaseError({ cause });
+    },
+  });
+
+  if (!createdPost) {
+    return yield* new PostDatabaseError({
+      cause: new Error("Post insert returned no row"),
+    });
+  }
+
+  return {
+    post: createdPost,
+  } satisfies CreatePostProgramSuccess;
 });
 
 export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (

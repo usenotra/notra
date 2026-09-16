@@ -4,6 +4,7 @@ import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_PERSONA_FIELD_MAX_LENGTH } from "@notra/geo-core/constants/geo-personas";
 import { geoPersonaEditableDetailsSchema } from "@notra/geo-core/schemas/geo-personas";
+import { hasGeoPersonaDetailsChanged } from "@notra/geo-core/utils/geo-personas";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
@@ -12,7 +13,10 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/button";
 import { GEO_PERSONA_PROFILE_SECTIONS } from "@/constants/geo-personas";
-import { useGeoPersonaUpdate } from "@/lib/hooks/use-geo-personas";
+import {
+  useGeoPersonasGenerate,
+  useGeoPersonaUpdate,
+} from "@/lib/hooks/use-geo-personas";
 import type { PersonaProfileEditorProps } from "@/types/geo-personas-ui";
 import { groupPersonaMemories } from "@/utils/geo-personas";
 
@@ -23,6 +27,14 @@ export function PersonaProfileEditor({
 }: PersonaProfileEditorProps) {
   const id = useId();
   const update = useGeoPersonaUpdate(organizationId);
+  const generatePersona = useGeoPersonasGenerate(organizationId);
+  const isPending = update.isPending || generatePersona.isPending;
+  let submitLabel = "Save persona";
+  if (update.isPending) {
+    submitLabel = "Saving…";
+  } else if (generatePersona.isPending) {
+    submitLabel = "Regenerating prompts…";
+  }
   const [error, setError] = useState<string | null>(null);
   const [stack, setStack] = useState(() => [
     ...new Set(persona.profile.currentStack),
@@ -65,20 +77,32 @@ export function PersonaProfileEditor({
           return;
         }
         setError(null);
+        if (!hasGeoPersonaDetailsChanged(persona, parsed.data)) {
+          setStack([...new Set(parsed.data.profile.currentStack)]);
+          setStackDraft("");
+          toast.success("Persona saved");
+          onCancel();
+          return;
+        }
         update.mutate(
           { personaId: persona.id, details: parsed.data },
           {
             onSuccess: () => {
               setStack([...new Set(parsed.data.profile.currentStack)]);
               setStackDraft("");
-              toast.success("Persona saved");
+              toast.success("Persona saved. Regenerating prompts…");
+              generatePersona.mutate({
+                personaId: persona.id,
+                promptsOnly: true,
+              });
+              onCancel();
             },
           }
         );
       }}
     >
       <fieldset
-        disabled={update.isPending}
+        disabled={isPending}
         className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5"
       >
         <div className="space-y-1.5">
@@ -285,13 +309,13 @@ export function PersonaProfileEditor({
           <Button
             type="button"
             variant="outline"
-            disabled={update.isPending}
+            disabled={isPending}
             onClick={onCancel}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={update.isPending}>
-            {update.isPending ? "Saving…" : "Save persona"}
+          <Button type="submit" disabled={isPending}>
+            {submitLabel}
           </Button>
         </div>
       </footer>

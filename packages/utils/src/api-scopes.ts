@@ -212,9 +212,15 @@ export const API_SCOPE_RESOURCES = [
   {
     id: "visibility",
     paths: [],
-    pathPatterns: ["/projects/{projectId}/geo/visibility"],
+    pathPatterns: [
+      "/projects/{projectId}/geo/visibility",
+      "/projects/{projectId}/geo/changes",
+      "/projects/{projectId}/geo/sentiment",
+      "/projects/{projectId}/geo/shelf-sources",
+    ],
     label: "GEO visibility",
-    description: "Read GEO mention rates, trends and competitor share",
+    description:
+      "Read GEO mention rates, trends, scan changes, sentiment and citation sources",
     openApiTag: "GEO",
   },
   {
