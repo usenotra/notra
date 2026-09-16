@@ -1,4 +1,3 @@
-import { resolveOrganizationPlan } from "@notra/ai/billing/plan";
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -6,6 +5,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { validateOrganizationAccess } from "@/lib/auth/actions";
+import { resolveAiProductAccess } from "@/lib/billing/subscription";
 import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
 import { redirectOrgRootToStoredMode } from "@/lib/nav/org-root-redirect";
 import { getGreeting } from "@/utils/dashboard-greeting";
@@ -30,7 +30,8 @@ async function Page({
 }) {
   const { slug } = await params;
   const { organization, user, member } = await validateOrganizationAccess(slug);
-  if ((await resolveOrganizationPlan(organization.id)) === "free") {
+  const { hasAccess } = await resolveAiProductAccess(organization.id);
+  if (!hasAccess) {
     redirect(`/${slug}/feedback`);
   }
   await redirectOrgRootToStoredMode(slug, searchParams);
