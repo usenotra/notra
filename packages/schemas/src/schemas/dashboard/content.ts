@@ -15,6 +15,7 @@ import { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
+import { MANUAL_POST_CONTENT_TYPES } from "../../constants/content";
 import { GITHUB_PUBLISH_CONTENT_TYPES } from "../../constants/dashboard/github";
 import {
   LOOKBACK_WINDOWS,
@@ -344,6 +345,23 @@ export const updateContentSchema = z
   );
 
 export type UpdateContentInput = z.infer<typeof updateContentSchema>;
+
+export const manualPostContentTypeSchema = z.enum(MANUAL_POST_CONTENT_TYPES);
+export type ManualPostContentType = z.infer<typeof manualPostContentTypeSchema>;
+
+export const postSlugPreviewSchema = z.string().trim().slugify();
+
+export const createPostSchema = z.object({
+  title: z.string().trim().min(1).max(POST_TITLE_MAX_LENGTH),
+  contentType: manualPostContentTypeSchema,
+  slug: slugFieldSchema.nullable().optional(),
+  markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional(),
+});
+export type CreatePostInput = z.infer<typeof createPostSchema>;
+
+export const createPostInputSchema = contentOrganizationIdInputSchema
+  .extend(contentProjectIdInputSchema.shape)
+  .extend(createPostSchema.shape);
 
 const githubMarkdownPathSchema = repositoryRelativePathSchema
   .transform((path) => (/\.(?:md|mdx)$/i.test(path) ? path : `${path}.md`))

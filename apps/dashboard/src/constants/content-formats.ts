@@ -1,5 +1,8 @@
 import type { BlogPostSubtype } from "@notra/db/types/content";
-import type { OnDemandContentType } from "@notra/schemas/dashboard/content";
+import type {
+  ManualPostContentType,
+  OnDemandContentType,
+} from "@notra/schemas/dashboard/content";
 import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
 
 import type { FormatCardMeta } from "@/types/content/formats";
@@ -52,3 +55,12 @@ export const FORMAT_ORDER: ScheduleOutputType[] = [
 export const CREATE_CONTENT_FORMAT_ORDER: OnDemandContentType[] = [
   ...FORMAT_ORDER,
 ];
+
+export const CREATE_POST_FORMAT_ORDER: ManualPostContentType[] = [
+  "blog_post",
+  "changelog",
+  "linkedin_post",
+  "twitter_post",
+];
+
+export const CREATE_POST_DEFAULT_FORMAT: ManualPostContentType = "blog_post";

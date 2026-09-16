@@ -20,6 +20,7 @@ import { SUPPORTED_CONTENT_GENERATION_TYPES } from "@notra/content-generation/sc
 import { lookbackWindowEnum, postStatusEnum } from "@notra/db/schema";
 import { assertPublicHttpUrl } from "@notra/utils/url";
 
+import { MANUAL_POST_CONTENT_TYPES } from "../../constants/content";
 import { resourceIdSchema } from "./ids";
 
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
@@ -436,6 +437,41 @@ export const patchPostRequestSchema = z
   );
 
 export const patchPostResponseSchema = z.object({
+  organization: organizationResponseSchema,
+  post: postResponseSchema,
+});
+
+export const createPostRequestSchema = z.object({
+  title: z.string().trim().min(1).max(POST_TITLE_MAX_LENGTH).openapi({
+    example: "Ship notes for week 11",
+  }),
+  contentType: z.enum(MANUAL_POST_CONTENT_TYPES).openapi({
+    example: "blog_post",
+  }),
+  slug: z
+    .string()
+    .trim()
+    .slugify()
+    .min(1)
+    .max(POST_SLUG_MAX_LENGTH)
+    .nullable()
+    .optional()
+    .openapi({
+      description:
+        "Normalized to lowercase letters, numbers, and hyphens. Only accepted for blog posts and changelogs.",
+      example: "ship-notes-week-11",
+    }),
+  markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional().openapi({
+    description:
+      "Optional markdown body. Omit it to create an empty post you fill in later.",
+    example: "# Ship notes\n\nWe shipped a faster editor.",
+  }),
+  status: postStatusSchema.default("draft").openapi({
+    example: "draft",
+  }),
+});
+
+export const createPostResponseSchema = z.object({
   organization: organizationResponseSchema,
   post: postResponseSchema,
 });

@@ -1,6 +1,5 @@
 "use client";
 
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { useRouter } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
@@ -8,6 +7,7 @@ import { useMemo, useState } from "react";
 import { CollectionsTable } from "@/components/content/collections-table";
 import { CreateContentButton } from "@/components/content/create-content-button";
 import { CreateContentDialog } from "@/components/content/create-content-dialog";
+import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
@@ -48,10 +48,6 @@ export default function PageClient({
   );
   const [createOpen, setCreateOpen] = useState(false);
 
-  useHotkey("C", () => setCreateOpen(true), {
-    enabled: !createOpen && Boolean(organizationId),
-  });
-
   const pageCount = data?.pagination.totalPages ?? 1;
   const pagination: TablePaginationState = {
     page,
@@ -77,9 +73,10 @@ export default function PageClient({
               Every batch of generated content, organized into collections.
             </p>
           </div>
-          <CreateContentButton
-            disabled={!organizationId}
-            onClick={() => setCreateOpen(true)}
+          <LazyCreateContentDialog
+            entry="content_list"
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
           />
         </header>
 

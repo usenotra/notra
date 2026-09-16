@@ -55,6 +55,7 @@ import {
   contentOrganizationIdInputSchema,
   contentPreviewRequestSchema,
   createPostCollectionInputSchema,
+  createPostInputSchema,
   generateContentInputSchema,
   postCollectionInputSchema,
   postCollectionsListInputSchema,
@@ -665,6 +666,92 @@ export const contentRouter = {
             }
           : null,
       };
+    }),
+  create: baseProcedure
+    .input(createPostInputSchema)
+    .handler(async ({ context, input }) => {
+      const auth = await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+      });
+      await assertActiveSubscription(input.organizationId);
+
+      if (
+        input.projectId &&
+        !(await isProjectInOrganization(input.organizationId, input.projectId))
+      ) {
+        throw badRequest("Project not found");
+      }
+
+      if (input.slug && !supportsPostSlug(input.contentType)) {
+        throw badRequest("Slug can only be set for blog posts and changelogs");
+      }
+
+      const now = new Date();
+      const collectionId = nanoid();
+      const contentId = nanoid();
+      const markdown = input.markdown ?? "";
+      const content =
+        markdown.length > 0
+          ? sanitizeMarkdownHtml(await marked.parse(markdown))
+          : "";
+
+      try {
+        await db.transaction(async (tx) => {
+          await tx.insert(postCollections).values({
+            id: collectionId,
+            organizationId: input.organizationId,
+            projectId: input.projectId ?? null,
+            source: "manual",
+            sourceId: collectionId,
+            name: buildPostCollectionName([input.contentType], now),
+            nameSource: "generated",
+            contentTypes: [input.contentType],
+            expectedPostCount: 1,
+            completedPostCount: 1,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          await tx.insert(posts).values({
+            id: contentId,
+            organizationId: input.organizationId,
+            collectionId,
+            title: input.title,
+            slug: input.slug ?? null,
+            content,
+            markdown,
+            contentType: input.contentType,
+            status: "draft",
+            sourceMetadata: null,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          error.code === "23505"
+        ) {
+          throw conflict("A post with this slug already exists");
+        }
+        throw error;
+      }
+
+      trackServerEvent({
+        event: POSTHOG_EVENTS.CONTENT_SAVED,
+        headers: context.headers,
+        userId: auth.user.id,
+        organizationId: input.organizationId,
+        properties: {
+          content_id: contentId,
+          type: input.contentType,
+        },
+      });
+
+      return { contentId, collectionId };
     }),
   update: baseProcedure
     .input(contentInputSchema.and(updateContentSchema))
