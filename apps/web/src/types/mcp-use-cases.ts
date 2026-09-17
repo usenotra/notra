@@ -67,6 +67,12 @@ export interface McpUseCaseToolIconProps {
   className?: string;
 }
 
+export interface McpUseCaseToolBadgeProps {
+  toolId: McpUseCaseToolId;
+  label?: string;
+  className?: string;
+}
+
 export interface McpUseCasesBrowserProps {
   useCases: McpUseCase[];
   categories: McpUseCaseCategoryFilter[];

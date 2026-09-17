@@ -2,18 +2,23 @@
 
 import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import type { McpUseCasePromptBlockProps } from "@/types/mcp-use-cases";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 
-import { McpUseCaseStack } from "./use-case-tool-icon";
+import { McpUseCaseToolBadge } from "./use-case-tool-icon";
 
 const COPIED_STATE_DURATION_MS = 2000;
+
+const BAND_CLASS =
+  "flex flex-wrap items-center gap-x-4 gap-y-3 bg-[#F7F7F8] px-5 sm:px-6 dark:bg-white/[0.04]";
 
 export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const integrations = entry.stack.filter((toolId) => toolId !== "notra");
 
   useEffect(
     () => () => {
@@ -39,9 +44,11 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   }
 
   return (
-    <section className="flex w-full flex-col gap-5 rounded-[1.25rem] bg-white p-6 [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.1875rem] sm:p-8 dark:bg-white/[0.02] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="font-sans text-[1.125rem] leading-[1.33] font-semibold tracking-[-0.01em] text-[#1E1E1E] dark:text-white">
+    <section className="flex w-full flex-col overflow-clip rounded-[1.25rem] bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.1875rem] dark:bg-white/[0.02] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
+      <div
+        className={`${BAND_CLASS} justify-between border-b border-[#ECECEC] py-3.5 dark:border-white/10`}
+      >
+        <h2 className="font-sans text-[0.9375rem] leading-[1.33] font-semibold tracking-[-0.01em] text-[#1E1E1E] dark:text-white">
           Prompt
         </h2>
         <button
@@ -57,21 +64,35 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
           {copied ? "Copied" : "Copy prompt"}
         </button>
       </div>
-      <p className="font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] text-[#1E1E1E] dark:text-white/90">
+      <p className="px-5 py-6 font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] text-[#1E1E1E] sm:px-6 sm:py-7 dark:text-white/90">
         {entry.prompt}
       </p>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#ECECEC] pt-5 dark:border-white/10">
-        <McpUseCaseStack stack={entry.stack} />
-        <ul className="flex flex-wrap gap-1.5">
-          {entry.tools.map((tool) => (
-            <li
-              className="rounded-md bg-[#F4F4F5] px-2 py-1 font-mono text-[0.75rem] leading-[1.33] text-[#1E1E1EA6] dark:bg-white/[0.06] dark:text-white/60"
-              key={tool}
-            >
-              {tool}
-            </li>
-          ))}
-        </ul>
+      <div
+        className={`${BAND_CLASS} border-t border-[#ECECEC] py-3.5 dark:border-white/10`}
+      >
+        <span className="font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E80] dark:text-white/50">
+          Runs on
+        </span>
+        <Link
+          className="focus-visible:ring-primary rounded-full outline-none focus-visible:ring-2"
+          href="/mcp"
+        >
+          <McpUseCaseToolBadge
+            className="transition-colors hover:bg-[#FAFAFA] dark:hover:bg-white/[0.1]"
+            label="Notra MCP"
+            toolId="notra"
+          />
+        </Link>
+        {integrations.length > 0 ? (
+          <>
+            <span className="font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E80] dark:text-white/50">
+              with
+            </span>
+            {integrations.map((toolId) => (
+              <McpUseCaseToolBadge key={toolId} toolId={toolId} />
+            ))}
+          </>
+        ) : null}
       </div>
     </section>
   );

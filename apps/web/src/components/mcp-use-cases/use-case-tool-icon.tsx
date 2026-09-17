@@ -14,6 +14,7 @@ import { cn } from "@notra/ui/lib/utils";
 
 import type {
   McpUseCaseStackProps,
+  McpUseCaseToolBadgeProps,
   McpUseCaseToolIconProps,
   McpUseCaseToolId,
 } from "@/types/mcp-use-cases";
@@ -107,5 +108,25 @@ export function McpUseCaseStack({
         </li>
       ))}
     </ul>
+  );
+}
+
+export function McpUseCaseToolBadge({
+  toolId,
+  label,
+  className,
+}: McpUseCaseToolBadgeProps) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full bg-white py-1 pr-3 pl-1 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] dark:bg-white/[0.06] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem]",
+        className
+      )}
+    >
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#F4F4F5] p-1 dark:bg-white/[0.08]">
+        <McpUseCaseToolIcon toolId={toolId} />
+      </span>
+      {label ?? getMcpUseCaseToolLabel(toolId)}
+    </span>
   );
 }
