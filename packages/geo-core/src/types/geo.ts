@@ -889,6 +889,24 @@ export interface GeoJudgeResult {
   excerpt: string;
 }
 
+export type GeoMentionSentiment = NonNullable<GeoJudgeResult["sentiment"]>;
+
+/** Sentiment and list position from the typed evaluation model. */
+export interface GeoMentionEvaluation {
+  sentiment: GeoMentionSentiment;
+  position: number | null;
+  /** Model confidence per field (0–1), when reported. */
+  confidence: { sentiment?: number; position?: number };
+}
+
+export interface GeoMentionEvaluationInput {
+  organizationId: string;
+  companyName: string;
+  aliases: readonly string[];
+  prompt: string;
+  answer: string;
+}
+
 export type GeoVisitorType = "crawler" | "ai_referral" | "human" | "unknown";
 
 export interface GeoCliClientPattern {

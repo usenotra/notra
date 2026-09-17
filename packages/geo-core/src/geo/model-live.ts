@@ -1,3 +1,4 @@
+import { getEvaluationClient } from "@notra/ai/evaluation/client";
 import { gateway, getRouteMetadata } from "@notra/ai/gateway";
 import { generateText, isStepCount, Output } from "ai";
 import { Effect, Layer } from "effect";
@@ -11,6 +12,8 @@ import {
   GEO_GROUNDED_ANSWER_MAX_TOKENS,
   GEO_JUDGE_MAX_TOKENS,
   GEO_JUDGE_MODEL,
+  GEO_MENTION_EVALUATION_FEATURE,
+  GEO_MENTION_EVALUATION_TIMEOUT_MS,
   GEO_PROVIDER_TIMEOUT_MS,
   GEO_TRANSLATION_MAX_TOKENS,
 } from "../constants/geo";
@@ -25,6 +28,11 @@ import {
 } from "../schemas/geo";
 import { geoSearchConsoleSuggestionSchema } from "../schemas/google-search-console";
 import { GeoModelError } from "../schemas/model-errors";
+import {
+  buildMentionEvaluationState,
+  MENTION_EVALUATION_QUESTIONS,
+  toMentionEvaluation,
+} from "../utils/geo-check-evaluation";
 import { addLanguageModelTokenUsage } from "../utils/token-usage";
 import { buildGroundedInvocation } from "./engines";
 import { GeoJudgeError, GeoScanError, GeoTranslationError } from "./errors";
@@ -174,6 +182,19 @@ export const geoModelLive = Layer.succeed(
             ),
         })
       )
+    ),
+    evaluateMention: Effect.fn("GeoModel.evaluateMention")((input) =>
+      Effect.promise(async (signal) => {
+        const result = await getEvaluationClient().tryEvaluate({
+          feature: GEO_MENTION_EVALUATION_FEATURE,
+          organizationId: input.organizationId,
+          state: buildMentionEvaluationState(input),
+          questions: MENTION_EVALUATION_QUESTIONS,
+          timeoutMs: GEO_MENTION_EVALUATION_TIMEOUT_MS,
+          abortSignal: signal,
+        });
+        return result ? toMentionEvaluation(result) : null;
+      })
     ),
     translate: Effect.fn("GeoModel.translate")((input) =>
       Effect.tryPromise({

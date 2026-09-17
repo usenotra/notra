@@ -1318,3 +1318,10 @@ export const GEO_EMPTY_CHANGES_SUMMARY: GeoChangesSummary = {
   citationsAdded: 0,
   citationsRemoved: 0,
 };
+
+/** Typed sentiment/position evaluation (Jev) that runs beside the judge LLM. */
+export const GEO_MENTION_EVALUATION_FEATURE = "geo_mention_evaluation";
+export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
+/** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
+export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
+export const GEO_MENTION_EVALUATION_NO_POSITION = "none";
