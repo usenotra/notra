@@ -12,9 +12,6 @@ import { McpUseCaseToolBadge } from "./use-case-tool-icon";
 
 const COPIED_STATE_DURATION_MS = 2000;
 
-const BAND_CLASS =
-  "flex flex-wrap items-center gap-x-2.5 gap-y-3 bg-[#F4F4F5] px-5 sm:px-6 dark:bg-white/[0.07]";
-
 export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,16 +41,14 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   }
 
   return (
-    <section className="flex w-full flex-col overflow-clip rounded-[1.25rem] bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.1875rem] dark:bg-[#161618] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
-      <div
-        className={`${BAND_CLASS} justify-between border-b border-[#E6E6E8] py-3.5 dark:border-white/[0.08]`}
-      >
+    <section className="flex w-full flex-col rounded-[1.25rem] bg-[#F1F1F3] p-1 dark:bg-white/[0.06]">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
         <h2 className="font-sans text-[0.9375rem] leading-[1.33] font-semibold tracking-[-0.01em] text-[#1E1E1E] dark:text-white">
           Prompt
         </h2>
         <button
           aria-label={copied ? "Prompt copied" : "Copy prompt"}
-          className="focus-visible:ring-primary flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-colors outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
+          className="focus-visible:ring-primary flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#E4E4E7_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-colors outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
           onClick={handleCopy}
           type="button"
         >
@@ -64,12 +59,12 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
           {copied ? "Copied" : "Copy prompt"}
         </button>
       </div>
-      <p className="px-5 py-6 font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] text-[#1E1E1E] sm:px-6 sm:py-7 dark:text-white/90">
-        {entry.prompt}
-      </p>
-      <div
-        className={`${BAND_CLASS} border-t border-[#E6E6E8] py-3.5 dark:border-white/[0.08]`}
-      >
+      <div className="relative rounded-[1rem] bg-white px-5 py-5 [box-shadow:#E4E4E7_0_0_0_0.0625rem,#0A0D140A_0_0.0625rem_0.125rem] sm:px-6 sm:py-6 dark:bg-[#161618] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem,#FFFFFF0F_0_-0.0625rem_0_inset]">
+        <p className="font-sans text-[1.0625rem] leading-[1.6] tracking-[-0.005em] text-[#1E1E1E] dark:text-white/90">
+          {entry.prompt}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 px-4 py-3">
         <span className="font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E80] dark:text-white/50">
           Runs on
         </span>
