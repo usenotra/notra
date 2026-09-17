@@ -449,7 +449,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                     <Link
                       aria-label="Notra home"
                       className="group flex flex-1 items-center"
-                      href="/"
+                      href={isAuthenticated ? "/home" : "/"}
                       onContextMenu={(event) => {
                         event.preventDefault();
                         setLogoMenuOpen(true);
