@@ -171,6 +171,16 @@ const TO_VERB_REGEX =
   /\bto\s+(generate|create|send|build|track|manage|automate|write|deliver|host)\s+(.+)$/i;
 const WRAPPER_NOUN_REGEX =
   /\b(platform|tool|software|solution|service|app|product|toolkit|suite|system)\b/gi;
+/**
+ * "a developer-tools startup building deployment workflows" describes the
+ * company, not the category. Prefer what such a company builds or offers.
+ */
+const COMPANY_CLAUSE_REGEX =
+  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+(?:that\s+(?:builds|makes|offers|provides|helps\s+\S+\s+\S+)|building|making|offering|providing|developing|creating)\s+(.+)$/i;
+const COMPANY_NOUN_REGEX =
+  /\b(startup|company|business|agency|studio|vendor|provider)\b/gi;
+const SLASH_REGEX = /\s*\/\s*/g;
+const TRAILING_FOR_CLAUSE_REGEX = /\s+for\s+.+$/i;
 const TYPE_BEFORE_WRAPPER_REGEX =
   /^(.+?)\s+(?:platform|tool|software|solution|service|app|product|toolkit|suite|system)\b/i;
 const TRAILING_FLUFF_REGEX = /\s+(built|designed|made|created|used|offered)$/i;
@@ -201,6 +211,7 @@ function condense(value: string, maxWords: number): string {
 
 function cleanPhrase(value: string): string {
   return value
+    .replace(SLASH_REGEX, " and ")
     .replace(TRAILING_HYPE_REGEX, "")
     .replace(TRAILING_FLUFF_REGEX, "")
     .replace(TRAILING_PUNCTUATION_REGEX, "")
@@ -210,11 +221,17 @@ function cleanPhrase(value: string): string {
 
 function nounPhraseFromType(typePhrase: string): string {
   const trimmed = cleanPhrase(typePhrase);
+  const companyClause = trimmed.match(COMPANY_CLAUSE_REGEX)?.[1];
+  if (companyClause) {
+    return cleanPhrase(companyClause.replace(TRAILING_FOR_CLAUSE_REGEX, ""));
+  }
   const beforeWrapper = trimmed.match(TYPE_BEFORE_WRAPPER_REGEX)?.[1];
   if (beforeWrapper && !WEAK_CATEGORY_REGEX.test(beforeWrapper.trim())) {
     return cleanPhrase(beforeWrapper);
   }
-  return cleanPhrase(trimmed.replace(WRAPPER_NOUN_REGEX, ""));
+  return cleanPhrase(
+    trimmed.replace(WRAPPER_NOUN_REGEX, "").replace(COMPANY_NOUN_REGEX, "")
+  );
 }
 
 function finalizeCategory(value: string, brandTerms: string[]): string | null {
@@ -295,6 +312,7 @@ function deriveCategory(
 
   const leftover = stripped
     .replace(LEADING_FILLER_REGEX, "")
+    .replace(TRAILING_FOR_CLAUSE_REGEX, "")
     .replace(WRAPPER_NOUN_REGEX, "");
   return finalizeCategory(leftover, brandTerms) ?? CATEGORY_FALLBACK;
 }
@@ -332,38 +350,44 @@ export function buildGeoPrompts(
   );
   const audience = deriveAudience(brand?.audience ?? null, brandTerms);
 
+  // Same slug ids as before (pause/remove state is keyed by them), but each
+  // template opens differently so the list does not read as one sentence
+  // repeated eight times.
   const prompts: GeoPromptDefinition[] = [
-    { id: "best-tools", text: `what tools should I use for ${category}` },
+    {
+      id: "best-tools",
+      text: `what's the best option for ${category} right now`,
+    },
     {
       id: "alternatives",
-      text: `what's a good alternative for ${category}`,
+      text: `looking for an alternative for ${category}, what are people switching to`,
     },
     {
       id: "recommendation",
-      text: `what tool can I use for ${category}`,
+      text: `can you recommend something for ${category}`,
     },
     {
       id: "comparison",
-      text: `what tools should I compare for ${category}`,
+      text: `which tools for ${category} are worth comparing before i pick one`,
     },
     {
       id: "what-is",
-      text: `how do I get started with ${category}`,
+      text: `how do i get started with ${category}`,
     },
     {
       id: "how-to-choose",
-      text: `how do I pick a tool for ${category}`,
+      text: `what should i look for when choosing something for ${category}`,
     },
     {
       id: "top-list",
-      text: `what tools should I look at for ${category}`,
+      text: `top options for ${category} that people actually use`,
     },
   ];
 
   if (audience) {
     prompts.push({
       id: "audience-specific",
-      text: `what tools should I use for ${category} for ${audience}`,
+      text: `best ${category} option for ${audience}`,
     });
   }
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   applyAutoPromptChange,
+  buildGeoPrompts,
   customPromptScanId,
   generatedAutoPromptIds,
   isGeoAutoPromptId,
@@ -109,5 +110,46 @@ describe("shouldSkipUnmatchedGapScan", () => {
     expect(
       shouldSkipUnmatchedGapScan("sequence-abc", new Set(), new Set())
     ).toBe(true);
+  });
+});
+
+describe("buildGeoPrompts", () => {
+  test("derives the category from what a company builds, not how it describes itself", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription:
+        "Acme is a developer-tools/cloud-ai startup building efficient deployment workflows for engineering teams.",
+      audience: null,
+    });
+    for (const prompt of prompts) {
+      expect(prompt.text).toContain("efficient deployment workflows");
+      expect(prompt.text).not.toContain("startup");
+      expect(prompt.text).not.toContain("/");
+    }
+  });
+
+  test("drops the audience tail from a description without a verb", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription:
+        "AI content and GEO platform for modern marketing teams.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toBe(
+      "what's the best option for ai content and geo right now"
+    );
+  });
+
+  test("every auto prompt opens differently and reads like a typed message", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription: "A writing platform for teams",
+      audience: "content marketers",
+    });
+    const openers = new Set(
+      prompts.map((prompt) => prompt.text.split(" ").slice(0, 2).join(" "))
+    );
+    expect(openers.size).toBe(prompts.length);
+    for (const prompt of prompts) {
+      expect(prompt.text).toBe(prompt.text.toLowerCase());
+      expect(prompt.text.endsWith("?")).toBe(false);
+    }
   });
 });

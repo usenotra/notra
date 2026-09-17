@@ -198,7 +198,7 @@ export function PromptAddDialog({
                         handleAdd();
                       }
                     }}
-                    placeholder="what tools should I use for automating changelogs"
+                    placeholder="best way to turn github activity into a changelog for a small team"
                     ref={promptRef}
                     rows={4}
                     value={draft}
