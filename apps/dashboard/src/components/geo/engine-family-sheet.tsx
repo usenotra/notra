@@ -94,6 +94,7 @@ import {
   findOwnBrandDomain,
 } from "@/utils/geo-competitors";
 import { familyImproveInsight } from "@/utils/geo-family-improve";
+import { resolveOrganizationId } from "@/utils/geo-overview-organization";
 import { geoGapsEngineHref } from "@/utils/geo-paths";
 import {
   engineFamilyPromptHits,
@@ -550,13 +551,13 @@ function EngineFamilySheetSession({
     useState<WriteDialogInitialState | null>(null);
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
-  let organization = null;
-  if (organizationSlug && activeOrganization?.slug === organizationSlug) {
-    organization = activeOrganization;
-  } else if (organizationSlug) {
-    organization = getOrganization(organizationSlug);
-  }
-  const organizationId = organization?.id ?? "";
+  const organizationId = organizationSlug
+    ? resolveOrganizationId(
+        organizationSlug,
+        activeOrganization,
+        getOrganization(organizationSlug)
+      )
+    : "";
   const { domain: projectDomain } = useGeoActiveProject(organizationId);
   const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const canWrite = Boolean(organizationSlug) && Boolean(organizationId);

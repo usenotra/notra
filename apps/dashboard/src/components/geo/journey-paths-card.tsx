@@ -46,10 +46,11 @@ export function JourneyPathsCard({
 }: JourneyPathsCardProps) {
   const [limit, setLimit] = useState(PATHS_PAGE_SIZE);
   const hasMore = limit < overview.paths.length;
+  const pageNoun = overview.paths.length === 1 ? "page" : "pages";
 
   return (
     <JourneyStatCard
-      caption={overview.paths.length === 1 ? "page" : "pages"}
+      caption={overview.pathsSampled ? `${pageNoun} (sampled)` : pageNoun}
       emptyMessage="No fetched pages yet"
       emptySeed="geo-journey-paths"
       eyebrow="Fetched pages"

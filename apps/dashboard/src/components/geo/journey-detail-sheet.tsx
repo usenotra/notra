@@ -2,7 +2,7 @@
 
 import { Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { GeoJourneyEvent } from "@notra/geo-core/types/geo";
+import type { GeoJourney, GeoJourneyEvent } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoJourneySpan,
@@ -59,22 +59,9 @@ function SectionHeader({ title, meta }: { title: string; meta?: string }) {
   );
 }
 
-export function JourneyDetailSheet({
-  open,
-  onOpenChange,
-  organizationId,
-  journey: journeyProp,
-}: JourneyDetailSheetProps) {
-  const [journey, releaseJourney] = useRetainedValue(journeyProp);
-  const { data, isLoading } = useGeoJourneyDetail(
-    organizationId,
-    journey?.journeyId ?? null
-  );
-  const events = useMemo(() => data?.events ?? [], [data]);
-  const tree = useMemo(() => buildJourneyPathTree(events), [events]);
-  const branches = countJourneyBranches(tree);
-
-  const showReferer = !isLoading && hasGeoJourneyReferers(events);
+function buildJourneyColumns(
+  showReferer: boolean
+): TableColumn<GeoJourneyEvent>[] {
   const columns: TableColumn<GeoJourneyEvent>[] = [
     {
       key: "capturedAt",
@@ -124,20 +111,141 @@ export function JourneyDetailSheet({
         <span className="text-muted-foreground">-</span>
       ),
   });
+  return columns;
+}
 
-  const stats = journey
-    ? [
-        {
-          label: "Span",
-          value: formatGeoJourneySpan(journey.firstSeenAt, journey.lastSeenAt),
-        },
-        { label: "Fetches", value: journey.pages.toLocaleString() },
-        {
-          label: "Unique pages",
-          value: journey.distinctPaths.toLocaleString(),
-        },
-      ]
-    : [];
+function JourneyDetailContent({
+  journey,
+  events,
+  isLoading,
+}: {
+  journey: GeoJourney;
+  events: GeoJourneyEvent[];
+  isLoading: boolean;
+}) {
+  const tree = useMemo(() => buildJourneyPathTree(events), [events]);
+  const branches = countJourneyBranches(tree);
+  const columns = buildJourneyColumns(
+    !isLoading && hasGeoJourneyReferers(events)
+  );
+  const fetchLimitMeta =
+    !isLoading && events.length > 0 && events.length < journey.pages
+      ? `First ${events.length.toLocaleString()} of ${journey.pages.toLocaleString()} fetches`
+      : undefined;
+  const branchMeta =
+    branches > 0
+      ? `Branched ${branches} ${branches === 1 ? "time" : "times"}`
+      : undefined;
+  const pathMeta =
+    [fetchLimitMeta, branchMeta].filter(Boolean).join(" · ") || undefined;
+  const stats = [
+    {
+      label: "Span",
+      value: formatGeoJourneySpan(journey.firstSeenAt, journey.lastSeenAt),
+    },
+    { label: "Fetches", value: journey.pages.toLocaleString() },
+    {
+      label: "Unique pages",
+      value: journey.distinctPaths.toLocaleString(),
+    },
+  ];
+
+  return (
+    <>
+      <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
+        <SheetTitle className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <EngineIcon className="size-5" engine={journey.source} />
+          <span className="min-w-0 truncate">
+            {formatGeoSource(journey.source)}
+          </span>
+          <Badge variant="secondary">
+            {journey.visitorType === "crawler" ? "Crawler" : "AI referral"}
+          </Badge>
+        </SheetTitle>
+        <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+          <span>Last seen {formatAiTrafficTimestamp(journey.lastSeenAt)}</span>
+          <span className="inline-flex min-w-0 items-center gap-1">
+            <span className="bg-muted truncate rounded-sm px-1.5 py-0.5 font-mono text-xs">
+              {journey.journeyId}
+            </span>
+            <Button
+              aria-label="Copy journey id"
+              className="size-6"
+              onClick={() => copyToClipboard(journey.journeyId)}
+              size="icon"
+              variant="ghost"
+            >
+              <HugeiconsIcon className="size-3.5" icon={Copy01Icon} />
+            </Button>
+          </span>
+        </SheetDescription>
+      </SheetHeader>
+
+      <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
+        <dl className="grid grid-cols-3 gap-4">
+          {stats.map((stat) => (
+            <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
+              <dt className="text-muted-foreground text-xs">{stat.label}</dt>
+              <dd className="m-0 truncate text-2xl font-semibold tracking-tight tabular-nums">
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <section className="space-y-3">
+          <SectionHeader meta={pathMeta} title="Path" />
+          <div className="bg-muted/30 max-h-96 overflow-auto overscroll-contain rounded-xl border p-4">
+            {isLoading ? (
+              <div aria-hidden className="flex flex-col gap-3">
+                {JOURNEY_TREE_SKELETON.map((row) => (
+                  <Skeleton
+                    className={cn("h-6 rounded-full", row.className)}
+                    key={row.key}
+                  />
+                ))}
+              </div>
+            ) : (
+              <JourneyPathTree roots={tree} />
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <SectionHeader meta={fetchLimitMeta} title="Fetches" />
+          <Table
+            className="rounded-2xl"
+            columns={columns}
+            data={events}
+            emptyState="No fetches captured for this journey"
+            getRowId={(event, index) =>
+              `${event.capturedAt}-${event.path}-${index}`
+            }
+            height={tableHeightFor(
+              isLoading ? JOURNEY_SKELETON_ROWS : events.length
+            )}
+            loading={isLoading}
+            rowHeight={TABLE_ROW_HEIGHT}
+            skeletonRows={JOURNEY_SKELETON_ROWS}
+          />
+        </section>
+      </div>
+    </>
+  );
+}
+
+export function JourneyDetailSheet({
+  open,
+  onOpenChange,
+  organizationId,
+  journey: journeyProp,
+}: JourneyDetailSheetProps) {
+  const [journey, releaseJourney] = useRetainedValue(journeyProp);
+  const { data, isLoading } = useGeoJourneyDetail(
+    organizationId,
+    journey?.journeyId ?? null
+  );
+  const events = useMemo(() => data?.events ?? [], [data]);
 
   return (
     <Sheet
@@ -147,102 +255,11 @@ export function JourneyDetailSheet({
     >
       <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-3xl">
         {journey ? (
-          <>
-            <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
-              <SheetTitle className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-                <EngineIcon className="size-5" engine={journey.source} />
-                <span className="min-w-0 truncate">
-                  {formatGeoSource(journey.source)}
-                </span>
-                <Badge variant="secondary">
-                  {journey.visitorType === "crawler"
-                    ? "Crawler"
-                    : "AI referral"}
-                </Badge>
-              </SheetTitle>
-              <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                <span>
-                  Last seen {formatAiTrafficTimestamp(journey.lastSeenAt)}
-                </span>
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <span className="bg-muted truncate rounded-sm px-1.5 py-0.5 font-mono text-xs">
-                    {journey.journeyId}
-                  </span>
-                  <Button
-                    aria-label="Copy journey id"
-                    className="size-6"
-                    onClick={() => copyToClipboard(journey.journeyId)}
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <HugeiconsIcon className="size-3.5" icon={Copy01Icon} />
-                  </Button>
-                </span>
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
-              <dl className="grid grid-cols-3 gap-4">
-                {stats.map((stat) => (
-                  <div
-                    className="flex min-w-0 flex-col gap-1.5"
-                    key={stat.label}
-                  >
-                    <dt className="text-muted-foreground text-xs">
-                      {stat.label}
-                    </dt>
-                    <dd className="m-0 truncate text-2xl font-semibold tracking-tight tabular-nums">
-                      {stat.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-
-              <section className="space-y-3">
-                <SectionHeader
-                  meta={
-                    branches > 0
-                      ? `Branched ${branches} ${branches === 1 ? "time" : "times"}`
-                      : undefined
-                  }
-                  title="Path"
-                />
-                <div className="bg-muted/30 max-h-96 overflow-auto overscroll-contain rounded-xl border p-4">
-                  {isLoading ? (
-                    <div aria-hidden className="flex flex-col gap-3">
-                      {JOURNEY_TREE_SKELETON.map((row) => (
-                        <Skeleton
-                          className={cn("h-6 rounded-full", row.className)}
-                          key={row.key}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <JourneyPathTree roots={tree} />
-                  )}
-                </div>
-              </section>
-
-              <section className="space-y-3">
-                <SectionHeader title="Fetches" />
-                <Table
-                  className="rounded-2xl"
-                  columns={columns}
-                  data={events}
-                  emptyState="No fetches captured for this journey"
-                  getRowId={(event, index) =>
-                    `${event.capturedAt}-${event.path}-${index}`
-                  }
-                  height={tableHeightFor(
-                    isLoading ? JOURNEY_SKELETON_ROWS : events.length
-                  )}
-                  loading={isLoading}
-                  rowHeight={TABLE_ROW_HEIGHT}
-                  skeletonRows={JOURNEY_SKELETON_ROWS}
-                />
-              </section>
-            </div>
-          </>
+          <JourneyDetailContent
+            events={events}
+            isLoading={isLoading}
+            journey={journey}
+          />
         ) : null}
       </SheetContent>
     </Sheet>

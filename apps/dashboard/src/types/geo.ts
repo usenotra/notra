@@ -454,6 +454,9 @@ export interface GeoJourneyOverview {
   /** Every fetched page, most journeys first. */
   paths: GeoJourneyPathRow[];
   kindCounts: GeoJourneyKindCount[];
+  /** True when a loaded journey hit the per-journey path sample cap, so
+   * `paths` and `kindCounts` understate journeys with very many pages. */
+  pathsSampled: boolean;
 }
 
 export interface GeoJourneyTrail {

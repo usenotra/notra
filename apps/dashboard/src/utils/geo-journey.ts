@@ -264,6 +264,9 @@ export function buildJourneyOverview(
     ),
     paths,
     kindCounts,
+    pathsSampled: journeys.some(
+      (journey) => journey.distinctPaths > journey.samplePaths.length
+    ),
   };
 }
 

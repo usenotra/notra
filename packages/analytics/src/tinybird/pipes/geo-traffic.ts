@@ -385,7 +385,7 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
           uniqExact(path) AS distinct_paths,
           min(captured_at) AS first_seen_at,
           max(captured_at) AS last_seen_at,
-          arraySlice(groupUniqArray(path), 1, 5) AS sample_paths
+          arraySlice(groupUniqArray(path), 1, 1000) AS sample_paths
         FROM journey_events
         GROUP BY journey_id
         ORDER BY last_seen_at DESC, journey_id ASC
