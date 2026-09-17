@@ -4,6 +4,7 @@ import {
   autumn,
 } from "@notra/ai/billing/autumn";
 import { FEATURES } from "@notra/ai/billing/features";
+import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import { redis } from "@notra/ai/utils/redis";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
@@ -15,12 +16,19 @@ import {
 import { defineHook, type HookDefinition } from "eve/hooks";
 
 const USAGE_KEY_TTL_SECONDS = 60 * 60 * 24;
+const MICRO_USD_PER_USD = 1_000_000;
 
 interface AccumulatedUsage {
   inputTokens: number;
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  /**
+   * Cost of the steps behind this usage, summed per call. A turn's prompt
+   * grows with every step, so only per-call costs put each step on the right
+   * side of a long-context price threshold.
+   */
+  costMicroUsd?: number;
 }
 
 function accumulatorKey(sessionId: string, turnId: string) {
@@ -45,7 +53,14 @@ async function trackUsage(
     return;
   }
   const cost = calculateAiCreditCostCents(
-    { ...usage, totalTokens, modelId },
+    {
+      ...usage,
+      totalTokens,
+      modelId,
+      ...(usage.costMicroUsd === undefined
+        ? {}
+        : { tokenCostUsd: usage.costMicroUsd / MICRO_USD_PER_USD }),
+    },
     modelId,
     properties.markup_applied === "true"
   );
@@ -142,11 +157,25 @@ export function createUsageHook(
             return;
           }
           const key = accumulatorKey(ctx.session.id, event.data.turnId);
+          const stepCostMicroUsd = Math.round(
+            calculateTokenCostUsd(
+              {
+                ...stepUsage,
+                totalTokens:
+                  stepUsage.inputTokens +
+                  stepUsage.outputTokens +
+                  stepUsage.cacheReadTokens +
+                  stepUsage.cacheWriteTokens,
+              },
+              resolveModelId(event.data.turnId)
+            ) * MICRO_USD_PER_USD
+          );
           await Promise.all([
             redis.hincrby(key, "inputTokens", stepUsage.inputTokens),
             redis.hincrby(key, "outputTokens", stepUsage.outputTokens),
             redis.hincrby(key, "cacheReadTokens", stepUsage.cacheReadTokens),
             redis.hincrby(key, "cacheWriteTokens", stepUsage.cacheWriteTokens),
+            redis.hincrby(key, "costMicroUsd", stepCostMicroUsd),
             redis.expire(key, USAGE_KEY_TTL_SECONDS),
           ]);
         } catch (error) {
@@ -195,6 +224,9 @@ export function createUsageHook(
               outputTokens: Number(accumulated.outputTokens ?? 0),
               cacheReadTokens: Number(accumulated.cacheReadTokens ?? 0),
               cacheWriteTokens: Number(accumulated.cacheWriteTokens ?? 0),
+              // Turns that started before this field existed fall back to
+              // pricing the aggregate.
+              costMicroUsd: Number(accumulated.costMicroUsd ?? 0) || undefined,
             },
             {
               source: getSessionAttribute(ctx, "surface") ?? "agent",

@@ -259,6 +259,10 @@ export const POST = withEvlog(async function POST(
               totalTokens: usage.totalTokens ?? 0,
               cacheReadTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
               cacheWriteTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+              // This usage sums every step, and prices can depend on how big
+              // each single request was, so bill the per-step cost.
+              maxPromptTokens: routeUsage?.maxPromptTokens,
+              tokenCostUsd: routeUsage?.tokenCostUsd,
             },
             modelId,
             useMarkup

@@ -53,6 +53,18 @@ export interface AgentTokenUsage {
   cacheReadTokens: number;
   cacheWriteTokens: number;
   modelId?: string;
+  /**
+   * Prompt size of the largest single model call behind this usage. Set it
+   * when the usage aggregates several calls, so long-context pricing keys off
+   * one request instead of the sum. Defaults to this usage's own prompt.
+   */
+  maxPromptTokens?: number;
+  /**
+   * Token cost already summed per model call. Aggregated usage should carry
+   * it: prices can depend on the size of each individual request, which the
+   * sum no longer shows.
+   */
+  tokenCostUsd?: number;
   computeMs?: number;
   totalUsd?: number;
   /** Router metadata of the last model call (gateway, upstream provider). */
