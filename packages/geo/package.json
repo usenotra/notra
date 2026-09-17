@@ -1,6 +1,6 @@
 {
   "name": "@usenotra/geo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": false,
   "description": "Request capture SDK for AI traffic attribution and agent feedback collection",
   "keywords": [
