@@ -88,7 +88,13 @@ function shouldChargeAiCredits(ctx: Parameters<typeof getSessionAttribute>[0]) {
   return getSessionAttribute(ctx, "chargeAiCredits") !== "false";
 }
 
-export function createUsageHook(modelId: string): HookDefinition {
+/** `modelId` may resolve per turn for agents whose model is chosen at runtime. */
+export function createUsageHook(
+  modelId: string | ((turnId: string) => string)
+): HookDefinition {
+  const resolveModelId = (turnId: string) =>
+    typeof modelId === "string" ? modelId : modelId(turnId);
+
   return defineHook({
     events: {
       async "step.completed"(event, ctx) {
@@ -109,16 +115,21 @@ export function createUsageHook(modelId: string): HookDefinition {
           };
 
           if (!redis) {
-            await trackUsage(modelId, organizationId, stepUsage, {
-              source: getSessionAttribute(ctx, "surface") ?? "agent",
-              agent: ctx.agent.name,
-              session_id: ctx.session.id,
-              turn_id: event.data.turnId,
-              step_index: event.data.stepIndex,
-              markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
-                ? "true"
-                : "false",
-            });
+            await trackUsage(
+              resolveModelId(event.data.turnId),
+              organizationId,
+              stepUsage,
+              {
+                source: getSessionAttribute(ctx, "surface") ?? "agent",
+                agent: ctx.agent.name,
+                session_id: ctx.session.id,
+                turn_id: event.data.turnId,
+                step_index: event.data.stepIndex,
+                markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
+                  ? "true"
+                  : "false",
+              }
+            );
             return;
           }
 
@@ -177,7 +188,7 @@ export function createUsageHook(modelId: string): HookDefinition {
             return;
           }
           await trackUsage(
-            modelId,
+            resolveModelId(event.data.turnId),
             organizationId,
             {
               inputTokens: Number(accumulated.inputTokens ?? 0),

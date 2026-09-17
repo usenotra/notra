@@ -171,8 +171,7 @@ const onSlackEvent: NonNullable<SlackChannelConfig["onEvent"]> = async (
   }
 
   await runWithSlackTeam(ctx.envelope.team_id, () =>
-    ctx.receive({
-      message: relay.message,
+    ctx.send(relay.message, {
       target: { channelId: relay.channelId, threadTs: relay.threadTs },
       auth: relay.auth,
     })
