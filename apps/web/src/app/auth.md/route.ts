@@ -14,7 +14,7 @@ OAuth-capable clients should follow the authorization server advertised by the p
 
 ## Register
 
-Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Request \`openid\` and include \`offline_access\` for refresh tokens. The consent screen lets the user select a workspace and None, Read, or Read and write for each resource, including GEO. These signed choices are enforced as granular API permissions; missing choices grant no access. GEO tools also require a plan that includes GEO.
+Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Request \`openid\` and include \`offline_access\` for refresh tokens. The consent screen lets the user select a workspace and one access level: Read only, Write only, or Full access across all resources, including GEO. These signed choices are enforced as granular API permissions; missing choices grant no access. GEO tools also require a plan that includes GEO.
 
 ## Authorize
 

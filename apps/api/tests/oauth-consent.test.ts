@@ -110,21 +110,53 @@ describe("Connect consent authorization through API middleware", () => {
     expect(options[0].choices).toEqual([
       { value: "workspace-1", label: "My workspace" },
     ]);
-    expect(options.slice(1).map((option) => option.claim)).toEqual(
-      API_SCOPE_RESOURCES.map(({ id }) => `urn:notra:permission:${id}`)
-    );
-    expect(
-      options
-        .slice(1)
-        .every(
-          ({ choices }) =>
-            choices.map(({ value }) => value).join() === "none,read,write"
-        )
-    ).toBe(true);
+    expect(options).toHaveLength(2);
+    expect(options[1].claim).toBe("urn:notra:access");
+    expect(options[1].choices.map(({ value }) => value)).toEqual([
+      "read",
+      "write",
+      "full",
+    ]);
     expect(buildProtectedResourceMetadata().scopes_supported).toEqual([
       "openid",
       "offline_access",
     ]);
+  });
+
+  test("access levels enforce read, write and full across content and GEO", async () => {
+    for (const level of ["read", "write", "full"]) {
+      const token = await sign({
+        ...claims,
+        "urn:notra:access": level,
+        permissions: ["*"],
+      });
+      expect((await request(token)).status).toBe(level === "write" ? 403 : 200);
+      expect((await request(token, "/traffic")).status).toBe(
+        level === "write" ? 403 : 200
+      );
+      expect((await request(token, "/posts", "POST")).status).toBe(
+        level === "read" ? 403 : 200
+      );
+      expect((await request(token, "/scans", "POST")).status).toBe(
+        level === "read" ? 403 : 200
+      );
+      const grant = readOAuthConsentGrant({
+        ...claims,
+        "urn:notra:access": level,
+      });
+      expect(new Set(grant?.scopes)).toEqual(
+        new Set(
+          API_GRANULAR_SCOPES.filter(
+            (scope) => level === "full" || scope.endsWith(`.${level}`)
+          )
+        )
+      );
+    }
+    expect(
+      (await request(await sign({ ...claims, "urn:notra:access": "invalid" })))
+        .status
+    ).toBe(401);
+    expect(readOAuthConsentGrant({ "urn:notra:access": "full" })).toBeNull();
   });
 
   test("all 34 permissions remain available, including every GEO resource", () => {

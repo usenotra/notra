@@ -1,5 +1,12 @@
-import { API_SCOPE_RESOURCES, getApiScopeId } from "./api-scopes";
 import {
+  API_SCOPE_RESOURCES,
+  API_READ_SCOPES,
+  API_WRITE_SCOPES,
+  API_GRANULAR_SCOPES,
+  getApiScopeId,
+} from "./api-scopes";
+import {
+  OAUTH_ACCESS_CLAIM,
   OAUTH_PERMISSION_CLAIM_PREFIX,
   OAUTH_WORKSPACE_CLAIM,
 } from "./constants/oauth-consent";
@@ -19,16 +26,16 @@ export function buildOAuthConsentOptions(
       label: "Workspace",
       choices: workspaces.map(({ id, name }) => ({ value: id, label: name })),
     },
-    ...API_SCOPE_RESOURCES.map((resource): OAuthConsentOption => ({
-      claim: `${OAUTH_PERMISSION_CLAIM_PREFIX}${resource.id}`,
+    {
+      claim: OAUTH_ACCESS_CLAIM,
       type: "enum",
-      label: `${resource.label} access`,
+      label: "Permissions",
       choices: [
-        { value: "none", label: "None" },
-        { value: "read", label: "Read" },
-        { value: "write", label: "Read and write" },
+        { value: "read", label: "Read only" },
+        { value: "write", label: "Write only" },
+        { value: "full", label: "Full access (read and write)" },
       ],
-    })),
+    },
   ];
 }
 
@@ -36,14 +43,30 @@ export function readOAuthConsentGrant(
   payload: Record<string, unknown>
 ): OAuthConsentGrant | null | undefined {
   const organizationId = payload[OAUTH_WORKSPACE_CLAIM];
-  const hasConsentClaims = Object.keys(payload).some((key) =>
-    key.startsWith(OAUTH_PERMISSION_CLAIM_PREFIX)
-  );
+  const accessLevel = payload[OAUTH_ACCESS_CLAIM];
+  const hasConsentClaims =
+    accessLevel !== undefined ||
+    Object.keys(payload).some((key) =>
+      key.startsWith(OAUTH_PERMISSION_CLAIM_PREFIX)
+    );
   if (organizationId === undefined && !hasConsentClaims) {
     return undefined;
   }
   if (typeof organizationId !== "string" || !organizationId.trim()) {
     return null;
+  }
+
+  if (accessLevel !== undefined) {
+    switch (accessLevel) {
+      case "read":
+        return { organizationId, scopes: [...API_READ_SCOPES] };
+      case "write":
+        return { organizationId, scopes: [...API_WRITE_SCOPES] };
+      case "full":
+        return { organizationId, scopes: [...API_GRANULAR_SCOPES] };
+      default:
+        return null;
+    }
   }
 
   const scopes: OAuthConsentGrant["scopes"] = [];

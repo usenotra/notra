@@ -189,7 +189,7 @@ curl -X POST https://oauth.usenotra.com/oauth2/register \
   }'
 ```
 
-Request `openid` and add `offline_access` for refresh tokens. WorkOS does not allow custom OAuth scopes on dynamically registered clients, including ChatGPT CIMD clients. The consent screen instead asks the user to select a workspace and None, Read, or Read and write for each resource in the [scope table](#scopes). These choices are signed into access-token claims and mapped to the same granular permissions as API keys. Read and write includes both permissions. Missing choices grant no access, and broader role permissions cannot override these choices. The API checks current workspace membership on every request.
+Request `openid` and add `offline_access` for refresh tokens. WorkOS does not allow custom OAuth scopes on dynamically registered clients, including ChatGPT CIMD clients. The consent screen instead asks the user to select a workspace and one access level: Read only, Write only, or Full access for all resources in the [scope table](#scopes). These choices are signed into access-token claims and mapped to the same granular permissions as API keys. Read only grants every read scope, Write only grants every write scope, and Full access grants both. Missing choices grant no access, and broader role permissions cannot override these choices. The API checks current workspace membership on every request.
 
 ### Authorization code flow with PKCE
 
@@ -207,7 +207,7 @@ https://oauth.usenotra.com/oauth2/authorize
   &state=RANDOM_STATE
 ```
 
-3. The user signs in, picks the workspace and approves resource permissions. The browser is redirected to `redirect_uri` with `code` and `state`.
+3. The user signs in, picks the workspace and approves an access level. The browser is redirected to `redirect_uri` with `code` and `state`.
 4. Exchange the code for tokens:
 
 ```bash
