@@ -42,7 +42,12 @@ afterAll(() => {
 const db = {
   query: {
     users: { findFirst: async () => ({ id: "local-user" }) },
-    organizations: { findFirst: async () => ({ id: "workspace-1" }) },
+    organizations: {
+      findFirst: async ({ where }) => {
+        const [workosId] = new PgDialect().sqlToQuery(where).params;
+        return workosId === "workos-org" ? { id: "workspace-1" } : undefined;
+      },
+    },
     members: {
       findFirst: async ({ where }) => {
         membershipParams = new PgDialect().sqlToQuery(where).params;
@@ -104,15 +109,10 @@ function request(token: string, path = "/posts", method = "GET") {
 
 describe("Connect consent authorization through API middleware", () => {
   test("consent covers every API-key permission and discovery requests supported scopes", () => {
-    const options = buildOAuthConsentOptions([
-      { id: "workspace-1", name: "My workspace" },
-    ]);
-    expect(options[0].choices).toEqual([
-      { value: "workspace-1", label: "My workspace" },
-    ]);
-    expect(options).toHaveLength(2);
-    expect(options[1].claim).toBe("urn:notra:access");
-    expect(options[1].choices.map(({ value }) => value)).toEqual([
+    const options = buildOAuthConsentOptions();
+    expect(options).toHaveLength(1);
+    expect(options[0].claim).toBe("urn:notra:access");
+    expect(options[0].choices.map(({ value }) => value)).toEqual([
       "read",
       "write",
       "full",
@@ -157,6 +157,37 @@ describe("Connect consent authorization through API middleware", () => {
         .status
     ).toBe(401);
     expect(readOAuthConsentGrant({ "urn:notra:access": "full" })).toBeNull();
+  });
+
+  test("WorkOS organization selection resolves to a local organization and checks membership", async () => {
+    const token = await sign({
+      org_id: "workos-org",
+      "urn:notra:access": "full",
+    });
+    const response = await request(token);
+    expect(response.status).toBe(200);
+    expect((await response.json()).identity.externalId).toBe("workspace-1");
+    expect(membershipParams).toEqual(["local-user", "workspace-1"]);
+    member = false;
+    try {
+      expect((await request(token)).status).toBe(403);
+    } finally {
+      member = true;
+    }
+    expect(
+      (
+        await request(
+          await sign({ org_id: "unmapped-org", "urn:notra:access": "full" })
+        )
+      ).status
+    ).toBe(401);
+    expect(
+      (await request(await sign({ org_id: "", "urn:notra:access": "full" })))
+        .status
+    ).toBe(401);
+    expect(
+      (await request(await sign({ "urn:notra:access": "full" }))).status
+    ).toBe(401);
   });
 
   test("all 34 permissions remain available, including every GEO resource", () => {
@@ -235,7 +266,6 @@ describe("Connect consent authorization through API middleware", () => {
         await request(
           await sign({
             "urn:notra:permission:posts": "write",
-            org_id: "workos-org",
             permissions: ["*"],
           })
         )

@@ -1,8 +1,5 @@
-import { db } from "@notra/db/drizzle";
-import { members } from "@notra/db/schema";
 import { externalLoginCompleteResponseSchema } from "@notra/schemas/dashboard/auth/external-login";
 import { buildOAuthConsentOptions } from "@notra/utils/oauth-consent";
-import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { WorkOSAuthError } from "@/lib/auth/errors";
@@ -16,26 +13,6 @@ export const completeExternalLogin = Effect.fn("auth.external.complete")(
   function* (externalAuthId: string, user: SessionUser) {
     const [firstName, ...rest] = user.name.trim().split(NAME_SPLIT_REGEX);
 
-    const memberships = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findMany({
-          where: eq(members.userId, user.id),
-          columns: { organizationId: true },
-          with: { organizations: { columns: { id: true, name: true } } },
-        }),
-      catch: (error) => new WorkOSAuthError({ error }),
-    });
-    const workspaces = memberships.map(({ organizations }) => organizations);
-    if (workspaces.length === 0) {
-      return yield* Effect.fail(
-        new WorkOSAuthError({
-          error: {
-            message: "Join a workspace before connecting an OAuth application",
-          },
-        })
-      );
-    }
-
     const response = yield* Effect.tryPromise({
       try: () =>
         fetch(COMPLETE_ENDPOINT, {
@@ -46,7 +23,7 @@ export const completeExternalLogin = Effect.fn("auth.external.complete")(
           },
           body: JSON.stringify({
             external_auth_id: externalAuthId,
-            user_consent_options: buildOAuthConsentOptions(workspaces),
+            user_consent_options: buildOAuthConsentOptions(),
             user: {
               id: user.id,
               email: user.email,

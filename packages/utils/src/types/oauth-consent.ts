@@ -1,10 +1,5 @@
 import type { ApiGranularScope } from "../api-scopes";
 
-export interface OAuthConsentWorkspace {
-  id: string;
-  name: string;
-}
-
 export interface OAuthConsentOption {
   claim: string;
   type: "enum";
@@ -14,5 +9,6 @@ export interface OAuthConsentOption {
 
 export interface OAuthConsentGrant {
   organizationId: string;
+  organizationSource: "local" | "workos";
   scopes: ApiGranularScope[];
 }

@@ -343,7 +343,7 @@ async function verifyOAuthToken(
     const db = c.get("db");
     const [localUserId, localOrgId] = await Promise.all([
       resolveLocalUserId(db, payload.sub),
-      grant
+      grant?.organizationSource === "local"
         ? Promise.resolve(grant.organizationId)
         : resolveLocalOrganizationId(
             db,
