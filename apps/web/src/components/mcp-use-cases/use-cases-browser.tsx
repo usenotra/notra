@@ -87,7 +87,7 @@ export function McpUseCasesBrowser({
       >
         <div
           aria-label="Filter use cases by category"
-          className="flex w-full [scrollbar-width:none] items-center gap-2.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 flex [scrollbar-width:none] items-center gap-2.5 overflow-x-auto px-1 py-1 [&::-webkit-scrollbar]:hidden"
           role="group"
         >
           {categories.map((category) => {
