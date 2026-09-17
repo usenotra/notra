@@ -4,7 +4,7 @@ import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import type { McpUseCasePromptBlockProps } from "@/types/mcp-use-cases";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
@@ -113,8 +113,18 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
             <span className="font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E80] dark:text-white/50">
               with
             </span>
-            {integrations.map((toolId) => (
-              <McpUseCaseToolBadge key={toolId} toolId={toolId} />
+            {integrations.map((toolId, index) => (
+              <Fragment key={toolId}>
+                {index > 0 ? (
+                  <span
+                    aria-hidden="true"
+                    className="font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E80] dark:text-white/50"
+                  >
+                    +
+                  </span>
+                ) : null}
+                <McpUseCaseToolBadge toolId={toolId} />
+              </Fragment>
             ))}
           </>
         ) : null}
