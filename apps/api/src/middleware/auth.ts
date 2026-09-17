@@ -1,11 +1,12 @@
 import type { createDb } from "@notra/db/drizzle";
-import { organizations, users } from "@notra/db/schema";
+import { members, organizations, users } from "@notra/db/schema";
 import {
   LEGACY_API_READ_SCOPE,
   LEGACY_API_WRITE_SCOPE,
 } from "@notra/utils/api-scopes";
+import { readOAuthConsentGrant } from "@notra/utils/oauth-consent";
 import { Unkey } from "@unkey/api";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import {
   createRemoteJWKSet,
@@ -309,14 +310,26 @@ async function verifyOAuthToken(
       return { success: false, error: "Invalid token audience", status: 401 };
     }
 
-    const scopes = extractScopes(payload) ?? [];
+    const grant = readOAuthConsentGrant(payload);
+    if (grant === null) {
+      return {
+        success: false,
+        error: "Invalid OAuth consent grant",
+        status: 401,
+      };
+    }
+    // Explicit consent is the ceiling: role permissions must not expand it.
+    const scopes = grant?.scopes ?? extractScopes(payload) ?? [];
     const workosOrgId = payload.org_id;
 
     if (!payload.sub) {
       return { success: false, error: "Missing OAuth subject", status: 401 };
     }
 
-    if (!(typeof workosOrgId === "string" && workosOrgId.length > 0)) {
+    if (
+      !grant &&
+      !(typeof workosOrgId === "string" && workosOrgId.length > 0)
+    ) {
       return {
         success: false,
         error: "Missing OAuth organization",
@@ -331,7 +344,12 @@ async function verifyOAuthToken(
     const db = c.get("db");
     const [localUserId, localOrgId] = await Promise.all([
       resolveLocalUserId(db, payload.sub),
-      resolveLocalOrganizationId(db, workosOrgId),
+      grant
+        ? Promise.resolve(grant.organizationId)
+        : resolveLocalOrganizationId(
+            db,
+            typeof workosOrgId === "string" ? workosOrgId : ""
+          ),
     ]);
 
     if (!localUserId) {
@@ -348,6 +366,18 @@ async function verifyOAuthToken(
         error: "No local organization found for OAuth token",
         status: 401,
       };
+    }
+
+    // Recheck on every request; a still-valid token must not outlive membership.
+    const membership = await db.query.members.findFirst({
+      where: and(
+        eq(members.userId, localUserId),
+        eq(members.organizationId, localOrgId)
+      ),
+      columns: { id: true },
+    });
+    if (!membership) {
+      return { success: false, error: "Workspace access revoked", status: 403 };
     }
 
     return {

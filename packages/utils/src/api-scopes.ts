@@ -3,12 +3,10 @@
  *
  * Everything that talks about public-API permissions derives from
  * `API_SCOPE_RESOURCES`:
- * - `apps/api` resolves the required scope for an incoming request and
- *   advertises `scopes_supported` in its agent-discovery metadata.
+ * - `apps/api` resolves the required permission for an incoming request.
  * - `apps/dashboard` renders the API-key scope picker and validates submitted
  *   scopes.
- * - `apps/web` advertises `scopes_supported` in its protected-resource
- *   metadata.
+ * - OAuth consent uses the same None / Read / Write resource groups.
  *
  * HOW TO ADD A RESOURCE
  * 1. Append an entry to `API_SCOPE_RESOURCES` with `id`, `paths`, `label` and
@@ -262,9 +260,6 @@ export type ApiReadScope = `${ApiScopeResourceId}.read`;
 export type ApiWriteScope = `${ApiScopeResourceId}.write`;
 export type ApiGranularScope = ApiReadScope | ApiWriteScope;
 
-/** OAuth scope requesting a refresh token. Not tied to any resource. */
-export const OFFLINE_ACCESS_SCOPE = "offline_access";
-
 /** Pre-granular scopes. `api.write` implies every scope, `api.read` every read scope. */
 export const LEGACY_API_READ_SCOPE = "api.read";
 export const LEGACY_API_WRITE_SCOPE = "api.write";
@@ -305,18 +300,6 @@ export const API_ACCEPTED_SCOPES: readonly (
   | ApiGranularScope
   | LegacyApiScope
 )[] = [...API_GRANULAR_SCOPES, ...LEGACY_API_SCOPES];
-
-/**
- * Scopes advertised through OAuth discovery metadata: `offline_access` first,
- * then read/write grouped per resource.
- */
-export const PUBLIC_API_SCOPES: readonly string[] = [
-  OFFLINE_ACCESS_SCOPE,
-  ...API_SCOPE_RESOURCES.flatMap((resource) => [
-    getApiScopeId(resource.id, "read"),
-    getApiScopeId(resource.id, "write"),
-  ]),
-];
 
 const GRANULAR_SCOPE_SET: ReadonlySet<string> = new Set(API_GRANULAR_SCOPES);
 const LEGACY_SCOPE_SET: ReadonlySet<string> = new Set(LEGACY_API_SCOPES);

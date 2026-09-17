@@ -158,7 +158,7 @@ Everything a client needs is published as standard metadata:
 | Authorization server metadata | `https://api.usenotra.com/.well-known/oauth-authorization-server` |
 | Human and agent readable guide | `https://www.usenotra.com/auth.md` |
 
-The protected resource metadata lists the authorization server, `scopes_supported` (`offline_access` plus every `<resource>.read` and `<resource>.write` scope from the [table above](#scopes)) and `bearer_methods_supported: ["header"]`. Any `401` from the API or the MCP server carries `WWW-Authenticate: Bearer resource_metadata="..."` pointing at the matching document, so a client that starts with an unauthenticated request can discover the rest.
+The protected resource metadata lists the authorization server, `scopes_supported` (`openid` and `offline_access`) and `bearer_methods_supported: ["header"]`. Any `401` from the API or the MCP server carries `WWW-Authenticate: Bearer resource_metadata="..."` pointing at the matching document, so a client that starts with an unauthenticated request can discover the rest.
 
 The authorization server exposes:
 
@@ -189,7 +189,7 @@ curl -X POST https://oauth.usenotra.com/oauth2/register \
   }'
 ```
 
-Request the least privileged scopes your client needs, for example `posts.read posts.write`, and add `offline_access` if you want a refresh token. Scopes are checked exactly like API key scopes: `GET` needs `<resource>.read`, mutations need `<resource>.write`, and a token whose `scope` claim is `*` satisfies everything.
+Request `openid` and add `offline_access` for refresh tokens. WorkOS does not allow custom OAuth scopes on dynamically registered clients, including ChatGPT CIMD clients. The consent screen instead asks the user to select a workspace and None, Read, or Read and write for each resource in the [scope table](#scopes). These choices are signed into access-token claims and mapped to the same granular permissions as API keys. Read and write includes both permissions. Missing choices grant no access, and broader role permissions cannot override these choices. The API checks current workspace membership on every request.
 
 ### Authorization code flow with PKCE
 
@@ -201,13 +201,13 @@ https://oauth.usenotra.com/oauth2/authorize
   ?response_type=code
   &client_id=YOUR_CLIENT_ID
   &redirect_uri=http://127.0.0.1:8765/callback
-  &scope=posts.read%20posts.write%20offline_access
+  &scope=openid%20offline_access
   &code_challenge=YOUR_CODE_CHALLENGE
   &code_challenge_method=S256
   &state=RANDOM_STATE
 ```
 
-3. The user signs in, picks the organization and approves the scopes. The browser is redirected to `redirect_uri` with `code` and `state`.
+3. The user signs in, picks the workspace and approves resource permissions. The browser is redirected to `redirect_uri` with `code` and `state`.
 4. Exchange the code for tokens:
 
 ```bash
@@ -228,7 +228,7 @@ When there is no browser on the machine (SSH sessions, containers, CI runners wi
 ```bash
 curl -X POST https://oauth.usenotra.com/oauth2/device_authorization \
   -d client_id=YOUR_CLIENT_ID \
-  -d scope="posts.read posts.write offline_access"
+  -d scope="openid offline_access"
 ```
 
 Show the returned `verification_uri` and `user_code` to the user, then poll the token endpoint at the returned `interval` until they approve:
