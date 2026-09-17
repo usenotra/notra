@@ -68,7 +68,7 @@ const CONTENT_SLIDE = 56;
 const CONTENT_BLUR = "blur(0.75rem)";
 const CONTENT_SHARP = "blur(0)";
 const CONTENT_SCALE_OUT = 0.96;
-const CONTENT_ENTER_DELAY = 0.06;
+const CONTENT_ENTER_DELAY = 0.03;
 const PANEL_PERSPECTIVE = 2000;
 const PANEL_SCALE_IN = {
   opacity: 0,
@@ -86,7 +86,7 @@ const PANEL_SCALE_REST = {
   scale: 1,
 } as const;
 const ENTER_EXIT_TRANSITION = TRANSITION.enter;
-const MORPH_TRANSITION = tween("slow", "emphasizedInOut");
+const MORPH_TRANSITION = tween("fast", "emphasizedInOut");
 const SHELL_TRANSITION = tween("slow", "emphasized");
 const SCROLL_THRESHOLD = 64;
 const MOBILE_SCROLL_THRESHOLD = 16;
@@ -94,16 +94,16 @@ const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
 const ISLAND_CHROME =
   "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
 const SWAP_TRANSITION = {
-  x: { ...tween("slow", "emphasized"), delay: CONTENT_ENTER_DELAY },
-  scale: { ...tween("slow", "emphasized"), delay: CONTENT_ENTER_DELAY },
-  opacity: { ...tween("normal"), delay: CONTENT_ENTER_DELAY },
-  filter: { ...tween("normal"), delay: CONTENT_ENTER_DELAY },
+  x: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  scale: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  opacity: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
+  filter: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
 } as const;
 const SWAP_EXIT_TRANSITION = {
-  x: tween("normal", "emphasizedIn"),
-  scale: tween("normal", "emphasizedIn"),
-  opacity: tween("fast"),
-  filter: tween("fast"),
+  x: tween("instant", "emphasizedIn"),
+  scale: tween("instant", "emphasizedIn"),
+  opacity: tween("instant"),
+  filter: tween("instant"),
 } as const;
 const contentVariants = {
   enter: (direction: number) => ({

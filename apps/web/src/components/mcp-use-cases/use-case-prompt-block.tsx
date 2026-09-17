@@ -2,7 +2,6 @@
 
 import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { COMMAND_TABS_COPY_BUTTON_TRANSITION } from "@notra/ui/constants/command-tabs";
 import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +13,10 @@ import { McpUseCaseToolBadge } from "./use-case-tool-icon";
 
 const COPIED_STATE_DURATION_MS = 2000;
 const COPY_LABEL_SHIFT_PX = 6;
+const COPY_LABEL_TRANSITION = {
+  duration: 0.1,
+  ease: [0.23, 1, 0.32, 1] as const,
+};
 
 export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   const [copied, setCopied] = useState(false);
@@ -53,7 +56,7 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
         <LazyMotion features={domAnimation}>
           <button
             aria-label={copied ? "Prompt copied" : "Copy prompt"}
-            className="focus-visible:ring-primary grid cursor-pointer rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#E4E4E7_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-[background-color,transform] duration-150 ease-out outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
+            className="focus-visible:ring-primary grid cursor-pointer rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#E4E4E7_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-[background-color,transform] duration-75 ease-out outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
             onClick={handleCopy}
             type="button"
           >
@@ -65,7 +68,7 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
               aria-hidden={copied}
               className="col-start-1 row-start-1 flex items-center justify-center gap-1.5"
               initial={false}
-              transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
+              transition={COPY_LABEL_TRANSITION}
             >
               <HugeiconsIcon className="size-3.5" icon={Copy01Icon} />
               <span>Copy prompt</span>
@@ -78,7 +81,7 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
               aria-hidden={!copied}
               className="col-start-1 row-start-1 flex items-center justify-center gap-1.5"
               initial={false}
-              transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
+              transition={COPY_LABEL_TRANSITION}
             >
               <HugeiconsIcon className="size-3.5" icon={Tick02Icon} />
               <span>Copied</span>
