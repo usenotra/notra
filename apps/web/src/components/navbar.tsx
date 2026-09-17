@@ -64,9 +64,11 @@ import {
 } from "@/utils/navigation";
 
 const HOVER_CLOSE_DELAY = 120;
-const CONTENT_SLIDE = 24;
-const CONTENT_BLUR = "blur(0.25rem)";
+const CONTENT_SLIDE = 56;
+const CONTENT_BLUR = "blur(0.75rem)";
 const CONTENT_SHARP = "blur(0)";
+const CONTENT_SCALE_OUT = 0.96;
+const CONTENT_ENTER_DELAY = 0.06;
 const PANEL_PERSPECTIVE = 2000;
 const PANEL_SCALE_IN = {
   opacity: 0,
@@ -91,19 +93,32 @@ const MOBILE_SCROLL_THRESHOLD = 16;
 const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
 const ISLAND_CHROME =
   "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
-const SWAP_TRANSITION = tween("normal", "emphasized");
+const SWAP_TRANSITION = {
+  x: { ...tween("slow", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  scale: { ...tween("slow", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  opacity: { ...tween("normal"), delay: CONTENT_ENTER_DELAY },
+  filter: { ...tween("normal"), delay: CONTENT_ENTER_DELAY },
+} as const;
+const SWAP_EXIT_TRANSITION = {
+  x: tween("normal", "emphasizedIn"),
+  scale: tween("normal", "emphasizedIn"),
+  opacity: tween("fast"),
+  filter: tween("fast"),
+} as const;
 const contentVariants = {
   enter: (direction: number) => ({
     x: direction * CONTENT_SLIDE,
     opacity: 0,
+    scale: CONTENT_SCALE_OUT,
     filter: CONTENT_BLUR,
   }),
-  center: { x: 0, opacity: 1, filter: CONTENT_SHARP },
+  center: { x: 0, opacity: 1, scale: 1, filter: CONTENT_SHARP },
   exit: (direction: number) => ({
     x: direction * -CONTENT_SLIDE,
     opacity: 0,
+    scale: CONTENT_SCALE_OUT,
     filter: CONTENT_BLUR,
-    transition: TRANSITION.exit,
+    transition: SWAP_EXIT_TRANSITION,
   }),
 };
 
@@ -593,7 +608,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                           <AnimatePresence custom={direction} initial={false}>
                             <m.div
                               animate="center"
-                              className="absolute top-0 left-0 w-max"
+                              className="absolute top-0 left-0 w-max origin-center will-change-[transform,opacity,filter]"
                               custom={direction}
                               exit="exit"
                               initial="enter"
