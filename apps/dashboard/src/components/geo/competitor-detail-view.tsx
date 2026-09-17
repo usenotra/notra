@@ -32,6 +32,7 @@ import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-char
 import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import {
   BrandTrackingBadge,
   TrackBrandButton,
@@ -39,8 +40,13 @@ import {
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
+import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoCompetitorDetail, useGeoSettings } from "@/lib/hooks/use-geo";
+import {
+  useGeoCompetitorDetail,
+  useGeoPromptResults,
+  useGeoSettings,
+} from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
@@ -61,6 +67,7 @@ import {
   competitorPromptSummary,
   isOwnBrandName,
 } from "@/utils/geo-competitors";
+import { promptTableRowForId } from "@/utils/geo-prompts";
 import { tableHeightFor } from "@/utils/table";
 
 const CHART_CONFIG: ChartConfig = {
@@ -183,12 +190,14 @@ function CompetitorPromptAppearances({
   columns,
   tableHeight,
   showLoading,
+  onRowClick,
 }: {
   competitor: string;
   prompts: GeoCompetitorPromptRow[];
   columns: TableColumn<GeoCompetitorPromptRow>[];
   tableHeight: number;
   showLoading: boolean;
+  onRowClick: (row: GeoCompetitorPromptRow) => void;
 }) {
   if (showLoading) {
     return <Skeleton className="h-36 w-full rounded-2xl" />;
@@ -211,6 +220,7 @@ function CompetitorPromptAppearances({
       getRowId={(row) => `${row.promptId}-${row.engine}`}
       height={tableHeight}
       key={competitor}
+      onRowClick={onRowClick}
       rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
     />
   );
@@ -259,6 +269,16 @@ export function CompetitorDetailView({
     competitor
   );
   const showLoading = !organizationId || (isPending && !data);
+  // The answer sheet needs the prompt's full result set; the competitor
+  // detail only carries one row per prompt and engine.
+  const { data: promptResults } = useGeoPromptResults(organizationId);
+  const [selectedAnswer, setSelectedAnswer] = useState<{
+    promptId: string;
+    engine: string;
+  } | null>(null);
+  const selectedPromptRow = selectedAnswer
+    ? promptTableRowForId(selectedAnswer.promptId, promptResults?.results ?? [])
+    : null;
   const points = useMemo(
     () => buildGeoCompetitorPoints(data?.points ?? []),
     [data]
@@ -441,11 +461,26 @@ export function CompetitorDetailView({
         <CompetitorPromptAppearances
           columns={columns}
           competitor={competitor}
+          onRowClick={(row) =>
+            setSelectedAnswer({ promptId: row.promptId, engine: row.engine })
+          }
           prompts={prompts}
           showLoading={showLoading}
           tableHeight={tableHeight}
         />
       </div>
+      <PromptDetailDialog
+        initialEngine={selectedAnswer?.engine ?? null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setSelectedAnswer(null);
+          }
+        }}
+        open={selectedPromptRow !== null}
+        organizationId={organizationId || undefined}
+        row={selectedPromptRow}
+        surface={GEO_PROMPT_DETAIL_SURFACES.COMPETITOR_DETAIL}
+      />
       {ownBrand ? null : (
         <CompetitorEditDialog
           competitor={entry}
