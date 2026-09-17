@@ -15,7 +15,27 @@ describe("route usage summary", () => {
       { usage: { inputTokens: 60_000 } },
     ]);
 
-    expect(summary.maxPromptTokens).toBe(100_000);
+    // The cached tokens are part of the reported 90k, not on top of it.
+    expect(summary.maxPromptTokens).toBe(90_000);
+  });
+
+  test("prices each step once, cached tokens at the cached rate", async () => {
+    const summary = await summarizeRouteUsage(
+      [
+        {
+          usage: {
+            inputTokens: 100_000,
+            outputTokens: 1000,
+            inputTokenDetails: { cacheReadTokens: 90_000 },
+          },
+        },
+      ],
+      "anthropic/claude-sonnet-5"
+    );
+
+    expect(summary.tokenCostUsd).toBeCloseTo(
+      (10_000 * 2 + 90_000 * 0.2 + 1000 * 10) / 1_000_000
+    );
   });
 
   test("omits the prompt size when steps carry no usage", async () => {

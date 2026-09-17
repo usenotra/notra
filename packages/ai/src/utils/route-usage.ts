@@ -9,25 +9,11 @@ import type {
   RouteUsageStep,
   RouteUsageSummary,
 } from "@notra/ai/types/router";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 
 /** One step's usage in the shape the pricing helpers expect. */
 function stepUsage(step: RouteUsageStep): AgentTokenUsage | undefined {
-  const { usage } = step;
-  if (!usage) {
-    return undefined;
-  }
-  const inputTokens = usage.inputTokens ?? 0;
-  const outputTokens = usage.outputTokens ?? 0;
-  const cacheReadTokens = usage.inputTokenDetails?.cacheReadTokens ?? 0;
-  const cacheWriteTokens = usage.inputTokenDetails?.cacheWriteTokens ?? 0;
-  return {
-    inputTokens,
-    outputTokens,
-    cacheReadTokens,
-    cacheWriteTokens,
-    totalTokens:
-      inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
-  };
+  return step.usage ? toAgentTokenUsage(step.usage) : undefined;
 }
 
 /**

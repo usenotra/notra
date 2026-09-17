@@ -6,6 +6,7 @@ import {
 import { FEATURES } from "@notra/ai/billing/features";
 import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import { redis } from "@notra/ai/utils/redis";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
 import { getOrganizationId } from "@notra/tools/utils/organization";
@@ -122,11 +123,14 @@ export function createUsageHook(
           if (!(organizationId && usage)) {
             return;
           }
+          // eve reports the AI SDK counts, where the prompt total still
+          // contains the cached tokens.
+          const billable = toAgentTokenUsage(usage);
           const stepUsage: AccumulatedUsage = {
-            inputTokens: usage.inputTokens ?? 0,
-            outputTokens: usage.outputTokens ?? 0,
-            cacheReadTokens: usage.cacheReadTokens ?? 0,
-            cacheWriteTokens: usage.cacheWriteTokens ?? 0,
+            inputTokens: billable.inputTokens,
+            outputTokens: billable.outputTokens,
+            cacheReadTokens: billable.cacheReadTokens,
+            cacheWriteTokens: billable.cacheWriteTokens,
           };
 
           if (!redis) {
@@ -158,17 +162,8 @@ export function createUsageHook(
           }
           const key = accumulatorKey(ctx.session.id, event.data.turnId);
           const stepCostMicroUsd = Math.round(
-            calculateTokenCostUsd(
-              {
-                ...stepUsage,
-                totalTokens:
-                  stepUsage.inputTokens +
-                  stepUsage.outputTokens +
-                  stepUsage.cacheReadTokens +
-                  stepUsage.cacheWriteTokens,
-              },
-              resolveModelId(event.data.turnId)
-            ) * MICRO_USD_PER_USD
+            calculateTokenCostUsd(billable, resolveModelId(event.data.turnId)) *
+              MICRO_USD_PER_USD
           );
           await Promise.all([
             redis.hincrby(key, "inputTokens", stepUsage.inputTokens),

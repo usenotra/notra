@@ -31,6 +31,7 @@ import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import type { StandaloneChatContextItem } from "@notra/ai/types/standalone-chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { flushPostHogServer } from "@notra/posthog/server";
 import { toUIMessageStream, type UIMessageChunk } from "ai";
@@ -282,11 +283,7 @@ export async function streamChatResponseStep(
 
           const cost = calculateAiCreditCostCents(
             {
-              inputTokens: usage.inputTokens ?? 0,
-              outputTokens: usage.outputTokens ?? 0,
-              totalTokens: usage.totalTokens ?? 0,
-              cacheReadTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
-              cacheWriteTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+              ...toAgentTokenUsage(usage),
               // This usage sums every step, and prices can depend on how big
               // each single request was, so bill the per-step cost.
               maxPromptTokens: routeUsage?.maxPromptTokens,

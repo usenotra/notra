@@ -47,6 +47,7 @@ export interface AgentDataPointSettings {
 }
 
 export interface AgentTokenUsage {
+  /** Prompt tokens that were not served from cache. */
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;

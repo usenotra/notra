@@ -27,6 +27,7 @@ import type {
 } from "@notra/ai/types/post-tools";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { isStepCount, ToolLoopAgent } from "ai";
 
 export class ContentGenerationSkippedError extends Error {
@@ -217,11 +218,7 @@ export async function runBackgroundGen(
     title: primaryPost.title,
     posts: postToolsResult.posts,
     usage: {
-      inputTokens: result.usage.inputTokens ?? 0,
-      outputTokens: result.usage.outputTokens ?? 0,
-      totalTokens: result.usage.totalTokens ?? 0,
-      cacheReadTokens: result.usage.inputTokenDetails?.cacheReadTokens ?? 0,
-      cacheWriteTokens: result.usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+      ...toAgentTokenUsage(result.usage),
       route: routeUsage.route,
       raw: result.usage,
     },
