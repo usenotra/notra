@@ -138,6 +138,26 @@ describe("buildGeoPrompts", () => {
     );
   });
 
+  test("keeps a trailing for-clause that defines the domain rather than an audience", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription:
+        "Enterprise compliance software for the maritime logistics industry.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toContain("maritime logistics");
+  });
+
+  test("reads the action after a helps-clause regardless of audience length", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription:
+        "Acme is a provider that helps B2B sales teams close more deals.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toBe(
+      "what's the best option for close more deals right now"
+    );
+  });
+
   test("every auto prompt opens differently and reads like a typed message", () => {
     const prompts = buildGeoPrompts(SETTINGS, {
       companyDescription: "A writing platform for teams",

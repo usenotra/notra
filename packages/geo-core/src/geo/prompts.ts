@@ -176,11 +176,17 @@ const WRAPPER_NOUN_REGEX =
  * company, not the category. Prefer what such a company builds or offers.
  */
 const COMPANY_CLAUSE_REGEX =
-  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+(?:that\s+(?:builds|makes|offers|provides|helps\s+\S+\s+\S+)|building|making|offering|providing|developing|creating)\s+(.+)$/i;
+  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+(?:that\s+(?:builds|makes|offers|provides)|building|making|offering|providing|developing|creating)\s+(.+)$/i;
+/**
+ * "a provider that helps b2b sales teams close more deals": the audience can
+ * be any length, so anchor on the action verb instead of counting words.
+ */
+const COMPANY_HELPS_REGEX =
+  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+that\s+helps\s+.+?\s+(?:to\s+)?(generate|create|send|build|track|manage|automate|write|deliver|host|close|run|ship|grow|find|hire|sell|monitor|analyze|schedule|publish)\s+(.+)$/i;
 const COMPANY_NOUN_REGEX =
   /\b(startup|company|business|agency|studio|vendor|provider)\b/gi;
 const SLASH_REGEX = /\s*\/\s*/g;
-const TRAILING_FOR_CLAUSE_REGEX = /\s+for\s+.+$/i;
+const TRAILING_FOR_CLAUSE_REGEX = /\s+for\s+(.+)$/i;
 const TYPE_BEFORE_WRAPPER_REGEX =
   /^(.+?)\s+(?:platform|tool|software|solution|service|app|product|toolkit|suite|system)\b/i;
 const TRAILING_FLUFF_REGEX = /\s+(built|designed|made|created|used|offered)$/i;
@@ -219,11 +225,28 @@ function cleanPhrase(value: string): string {
     .trim();
 }
 
+/**
+ * Drop a trailing "for <audience>" but keep "for <domain>": "software for
+ * marketing teams" loses the tail, "compliance software for the maritime
+ * logistics industry" keeps it because that clause defines the category.
+ */
+function stripAudienceTail(value: string): string {
+  const match = value.match(TRAILING_FOR_CLAUSE_REGEX);
+  if (!match?.[1] || !AUDIENCE_LIKE_REGEX.test(match[1])) {
+    return value;
+  }
+  return value.slice(0, match.index);
+}
+
 function nounPhraseFromType(typePhrase: string): string {
   const trimmed = cleanPhrase(typePhrase);
+  const helps = trimmed.match(COMPANY_HELPS_REGEX);
+  if (helps?.[1] && helps[2]) {
+    return cleanPhrase(stripAudienceTail(`${helps[1]} ${helps[2]}`));
+  }
   const companyClause = trimmed.match(COMPANY_CLAUSE_REGEX)?.[1];
   if (companyClause) {
-    return cleanPhrase(companyClause.replace(TRAILING_FOR_CLAUSE_REGEX, ""));
+    return cleanPhrase(stripAudienceTail(companyClause));
   }
   const beforeWrapper = trimmed.match(TYPE_BEFORE_WRAPPER_REGEX)?.[1];
   if (beforeWrapper && !WEAK_CATEGORY_REGEX.test(beforeWrapper.trim())) {
@@ -310,10 +333,9 @@ function deriveCategory(
     }
   }
 
-  const leftover = stripped
-    .replace(LEADING_FILLER_REGEX, "")
-    .replace(TRAILING_FOR_CLAUSE_REGEX, "")
-    .replace(WRAPPER_NOUN_REGEX, "");
+  const leftover = stripAudienceTail(
+    stripped.replace(LEADING_FILLER_REGEX, "")
+  ).replace(WRAPPER_NOUN_REGEX, "");
   return finalizeCategory(leftover, brandTerms) ?? CATEGORY_FALLBACK;
 }
 
