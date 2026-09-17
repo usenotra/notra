@@ -3,7 +3,6 @@ import {
   Compass01Icon,
   QuillWrite01Icon,
   RepeatIcon,
-  WorkflowSquare01Icon,
 } from "@hugeicons/core-free-icons";
 
 import type {
@@ -22,10 +21,6 @@ export const MCP_USE_CASES_RELATED_LIMIT = 3;
 export const MCP_USE_CASES_BUILD_YOUR_OWN_URL = `${DOCS_URL}/devtools/mcp`;
 
 export const MCP_USE_CASES_SHARE_HREF = "/contact";
-
-export const MCP_USE_CASES_EYEBROW = "MCP use cases";
-
-export const MCP_USE_CASES_EYEBROW_ICON = WorkflowSquare01Icon;
 
 export const MCP_USE_CASES_SUBHEAD =
   "Copy a prompt, paste it into Claude Code, Cursor or Codex, and let your agent run the whole workflow against your Notra workspace.";

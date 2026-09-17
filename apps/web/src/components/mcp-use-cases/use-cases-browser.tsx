@@ -8,8 +8,6 @@ import { parseAsString, useQueryState } from "nuqs";
 import { HeroDither } from "@/components/landing/hero-dither";
 import {
   MCP_USE_CASES_ALL_CATEGORY_ID,
-  MCP_USE_CASES_EYEBROW,
-  MCP_USE_CASES_EYEBROW_ICON,
   MCP_USE_CASES_PRIMARY_CTA,
   MCP_USE_CASES_SECONDARY_CTA,
   MCP_USE_CASES_SHARE_HREF,
@@ -19,7 +17,6 @@ import type { McpUseCasesBrowserProps } from "@/types/mcp-use-cases";
 import { filterMcpUseCases } from "@/utils/mcp-use-cases";
 
 import { McpUseCaseCard } from "./use-case-card";
-import { McpUseCaseCategoryPill } from "./use-case-category-pill";
 
 const PILL_BASE =
   "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.75 font-medium font-sans text-[0.875rem] leading-[1.29] tracking-[-0.01em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary";
@@ -48,10 +45,6 @@ export function McpUseCasesBrowser({
             <HeroDither />
           </div>
           <div className="relative flex w-full flex-col items-center gap-6 px-6 pt-20 pb-16 lg:pt-24">
-            <McpUseCaseCategoryPill
-              icon={MCP_USE_CASES_EYEBROW_ICON}
-              label={MCP_USE_CASES_EYEBROW}
-            />
             <h1 className="font-display max-w-[47rem] text-center text-[2.5rem] leading-[1.12] font-medium tracking-[-0.015em] text-balance text-[#1E1E1E] sm:text-[3.25rem] lg:text-[4rem] dark:text-white">
               Real workflows built with{" "}
               <span className="text-primary">Notra MCP</span>.

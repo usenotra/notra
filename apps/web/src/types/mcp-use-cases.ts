@@ -76,11 +76,6 @@ export interface McpUseCasePromptBlockProps {
   entry: McpUseCase;
 }
 
-export interface McpUseCaseCategoryPillProps {
-  icon: IconSvgElement;
-  label: string;
-}
-
 export interface McpUseCaseDetailViewProps {
   entry: McpUseCase;
   related: McpUseCase[];
