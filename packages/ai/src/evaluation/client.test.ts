@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { EVALUATION_FLAG_ENV } from "@notra/ai/constants/evaluation";
+
 import { createEvaluationClient } from "./client";
 
 const QUESTIONS = {
@@ -115,5 +117,24 @@ describe("evaluation client", () => {
       })
     ).toBeNull();
     expect(calls).toHaveLength(0);
+  });
+
+  test("environment flag toggles availability despite credentials", () => {
+    const previous = process.env[EVALUATION_FLAG_ENV];
+    process.env[EVALUATION_FLAG_ENV] = "off";
+    try {
+      expect(createEvaluationClient({ apiKey: "key_test" }).isAvailable()).toBe(
+        false
+      );
+    } finally {
+      if (previous === undefined) {
+        delete process.env[EVALUATION_FLAG_ENV];
+      } else {
+        process.env[EVALUATION_FLAG_ENV] = previous;
+      }
+    }
+    expect(createEvaluationClient({ apiKey: "key_test" }).isAvailable()).toBe(
+      true
+    );
   });
 });
