@@ -4,6 +4,7 @@ import { McpCommandTabs } from "@/components/mcp/mcp-command-tabs";
 import { McpHero } from "@/components/mcp/mcp-hero";
 import { McpTerminalDemo } from "@/components/mcp/mcp-terminal-demo";
 import { McpToolsGrid } from "@/components/mcp/mcp-tools-grid";
+import { McpUseCasesCallout } from "@/components/mcp/mcp-use-cases-callout";
 import { MCP_FALLBACK_TOOL_CARDS } from "@/constants/mcp";
 import { fetchMcpTools } from "@/lib/mcp/tools";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -64,6 +65,7 @@ export default async function McpPage() {
           <McpCommandTabs className="max-w-[45rem]" />
         </section>
         <McpToolsGrid tools={tools} />
+        <McpUseCasesCallout />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { FEATURES } from "@notra/ai/billing/features";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { NoObjectGeneratedError } from "ai";
 import { Effect } from "effect";
 
@@ -33,11 +34,7 @@ export async function billSentimentAnalysis({
     attempted = true;
     const result = await generate();
     usage = {
-      inputTokens: result.usage.inputTokens ?? 0,
-      outputTokens: result.usage.outputTokens ?? 0,
-      totalTokens: result.usage.totalTokens ?? 0,
-      cacheReadTokens: result.usage.inputTokenDetails?.cacheReadTokens ?? 0,
-      cacheWriteTokens: result.usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+      ...toAgentTokenUsage(result.usage),
       modelId: SENTIMENT_ANALYSIS_MODEL,
       route: result.route,
     };
@@ -45,11 +42,7 @@ export async function billSentimentAnalysis({
   } catch (error) {
     if (NoObjectGeneratedError.isInstance(error) && error.usage) {
       usage = {
-        inputTokens: error.usage.inputTokens ?? 0,
-        outputTokens: error.usage.outputTokens ?? 0,
-        totalTokens: error.usage.totalTokens ?? 0,
-        cacheReadTokens: 0,
-        cacheWriteTokens: 0,
+        ...toAgentTokenUsage(error.usage),
         modelId: SENTIMENT_ANALYSIS_MODEL,
       };
     }

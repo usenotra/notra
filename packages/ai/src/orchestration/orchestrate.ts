@@ -144,7 +144,7 @@ export async function orchestrateChat(
       await deps?.onUsage?.(
         usage,
         routingDecision.model,
-        await summarizeRouteUsage(steps)
+        await summarizeRouteUsage(steps, routingDecision.model)
       );
     },
     onError({ error }) {

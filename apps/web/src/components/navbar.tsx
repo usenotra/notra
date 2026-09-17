@@ -64,7 +64,11 @@ import {
 } from "@/utils/navigation";
 
 const HOVER_CLOSE_DELAY = 120;
-const CONTENT_SLIDE = 48;
+const CONTENT_SLIDE = 56;
+const CONTENT_BLUR = "blur(0.75rem)";
+const CONTENT_SHARP = "blur(0)";
+const CONTENT_SCALE_OUT = 0.96;
+const CONTENT_ENTER_DELAY = 0.03;
 const PANEL_PERSPECTIVE = 2000;
 const PANEL_SCALE_IN = {
   opacity: 0,
@@ -82,23 +86,39 @@ const PANEL_SCALE_REST = {
   scale: 1,
 } as const;
 const ENTER_EXIT_TRANSITION = TRANSITION.enter;
-const MORPH_TRANSITION = tween("slow", "emphasized");
+const MORPH_TRANSITION = tween("fast", "emphasizedInOut");
 const SHELL_TRANSITION = tween("slow", "emphasized");
 const SCROLL_THRESHOLD = 64;
 const MOBILE_SCROLL_THRESHOLD = 16;
 const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
 const ISLAND_CHROME =
   "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
-const SWAP_TRANSITION = TRANSITION.fade;
+const SWAP_TRANSITION = {
+  x: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  scale: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
+  opacity: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
+  filter: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
+} as const;
+const SWAP_EXIT_TRANSITION = {
+  x: tween("instant", "emphasizedIn"),
+  scale: tween("instant", "emphasizedIn"),
+  opacity: tween("instant"),
+  filter: tween("instant"),
+} as const;
 const contentVariants = {
   enter: (direction: number) => ({
     x: direction * CONTENT_SLIDE,
     opacity: 0,
+    scale: CONTENT_SCALE_OUT,
+    filter: CONTENT_BLUR,
   }),
-  center: { x: 0, opacity: 1 },
+  center: { x: 0, opacity: 1, scale: 1, filter: CONTENT_SHARP },
   exit: (direction: number) => ({
     x: direction * -CONTENT_SLIDE,
     opacity: 0,
+    scale: CONTENT_SCALE_OUT,
+    filter: CONTENT_BLUR,
+    transition: direction === 0 ? { duration: 0 } : SWAP_EXIT_TRANSITION,
   }),
 };
 
@@ -181,7 +201,7 @@ function MegaPanel({
         ))}
       </div>
       {group.rail.length > 0 && (
-        <div className="flex flex-col items-start justify-end self-stretch border-l border-[#1E1E1E1A] p-8 dark:border-white/10">
+        <div className="flex flex-col items-start justify-center self-stretch border-l border-[#1E1E1E1A] p-8 dark:border-white/10">
           <div className="flex flex-col gap-3">
             {group.rail.map((item) => (
               <RailItem item={item} key={item.href} onSelect={onSelect} />
@@ -559,7 +579,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                   {activeGroupData && (
                     <m.div
                       animate={{ ...PANEL_SCALE_REST, x: "-50%" }}
-                      className="absolute top-full left-1/2 z-50 pt-2"
+                      className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[1.75rem]" : "pt-3"}`}
                       exit={{ ...PANEL_SCALE_OUT, x: "-50%" }}
                       initial={{ ...PANEL_SCALE_IN, x: "-50%" }}
                       key="navbar-dropdown"
@@ -588,7 +608,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                           <AnimatePresence custom={direction} initial={false}>
                             <m.div
                               animate="center"
-                              className="absolute top-0 left-0 w-max"
+                              className="absolute top-0 left-0 w-max origin-center"
                               custom={direction}
                               exit="exit"
                               initial="enter"
