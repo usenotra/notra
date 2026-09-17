@@ -181,7 +181,7 @@ function MegaPanel({
         ))}
       </div>
       {group.rail.length > 0 && (
-        <div className="flex flex-col items-start justify-end self-stretch border-l border-[#1E1E1E1A] p-8 dark:border-white/10">
+        <div className="flex flex-col items-start justify-center self-stretch border-l border-[#1E1E1E1A] p-8 dark:border-white/10">
           <div className="flex flex-col gap-3">
             {group.rail.map((item) => (
               <RailItem item={item} key={item.href} onSelect={onSelect} />
@@ -559,7 +559,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                   {activeGroupData && (
                     <m.div
                       animate={{ ...PANEL_SCALE_REST, x: "-50%" }}
-                      className="absolute top-full left-1/2 z-50 pt-2"
+                      className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[2.125rem]" : "pt-3"}`}
                       exit={{ ...PANEL_SCALE_OUT, x: "-50%" }}
                       initial={{ ...PANEL_SCALE_IN, x: "-50%" }}
                       key="navbar-dropdown"
