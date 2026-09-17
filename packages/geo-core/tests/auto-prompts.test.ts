@@ -185,6 +185,14 @@ describe("buildGeoPrompts", () => {
     );
   });
 
+  test("does not treat domain nouns with people-like endings as audiences", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription: "Monitoring tooling for plants.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toContain("monitoring tooling for plants");
+  });
+
   test("takes the verb after the audience when an audience word is also a verb", () => {
     const prompts = buildGeoPrompts(SETTINGS, {
       companyDescription:

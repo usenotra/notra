@@ -200,12 +200,13 @@ const COMPANY_HELPS_REGEX = new RegExp(
 );
 /**
  * "for freelancers" / "for students" are audiences even though the noun is
- * not in AUDIENCE_LIKE_REGEX: an explicit list of buyer roles plus suffixes
- * that only ever describe people. Anything else ("for kubernetes clusters",
- * "for the maritime logistics industry") stays part of the category.
+ * not in AUDIENCE_LIKE_REGEX: an explicit list of buyer roles. No suffix
+ * heuristics, because "plants" or "variants" share endings with people
+ * nouns. Anything else ("for kubernetes clusters", "for the maritime
+ * logistics industry") stays part of the category.
  */
 const PEOPLE_TAIL_REGEX =
-  /\b(freelancers?|students?|creators?|sellers?|merchants?|recruiters?|professionals?|consultants?|coaches|solopreneurs?|entrepreneurs?|owners?|managers?|leaders?|executives?|admins?|teachers?|educators?|schools?|universities|nonprofits?|restaurants?|hotels?|retailers?|brands?|shops?|stores?|clinics?|doctors?|dentists?|lawyers?|firms?|accountants?|realtors?|landlords?|parents?|kids|gamers?|artists?|musicians?|photographers?|writers?|bloggers?|podcasters?|influencers?|streamers?|smbs?|smes?|saas|b2b|b2c|\p{L}+(?:ists|ants|ians|eurs|ees))\b/iu;
+  /\b(freelancers?|students?|creators?|sellers?|merchants?|recruiters?|professionals?|consultants?|coaches|solopreneurs?|entrepreneurs?|owners?|managers?|leaders?|executives?|admins?|teachers?|educators?|schools?|universities|nonprofits?|restaurants?|hotels?|retailers?|brands?|shops?|stores?|clinics?|doctors?|dentists?|lawyers?|firms?|accountants?|realtors?|landlords?|parents?|kids|gamers?|artists?|musicians?|photographers?|writers?|bloggers?|podcasters?|influencers?|streamers?|smbs?|smes?|saas|b2b|b2c|specialists?|therapists?|dentists?|scientists?|analysts?|journalists?|accountants?|assistants?|consultants?|technicians?|physicians?|clinicians?|electricians?|musicians?|employees?|trainees?|attendees?|entrepreneurs?)\b/i;
 const COMPANY_NOUN_REGEX =
   /\b(startup|company|business|agency|studio|vendor|provider)\b/gi;
 const SLASH_REGEX = /\s*\/\s*/g;
