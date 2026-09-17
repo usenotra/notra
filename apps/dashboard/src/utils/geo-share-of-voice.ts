@@ -1,9 +1,15 @@
-import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
+import { GEO_SPARKLINE_MIN_POINTS } from "@notra/geo-core/constants/geo";
+import type {
+  GeoSparklinePoint,
+  ShareOfVoiceRow,
+} from "@notra/geo-core/types/geo";
+import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 
 import {
   SHARE_OF_VOICE_AGGREGATE_ID,
   SHARE_OF_VOICE_AGGREGATE_LABEL,
   SHARE_OF_VOICE_RANKING_LIMIT,
+  CHART_PERCENT_SCALE,
 } from "@/constants/charts";
 import type { ChartConfig } from "@/types/charts";
 import type {
@@ -20,6 +26,80 @@ import {
   shareOfVoiceRivalIndex,
   shareOfVoiceSliceColor,
 } from "@/utils/geo-competitors";
+
+/** A brand without mentions ranks behind every brand that has some. */
+function shareOfVoiceRank(
+  mentions: number,
+  rows: readonly { mentions: number }[]
+): number {
+  if (mentions > 0) {
+    return rows.filter((entry) => entry.mentions > mentions).length + 1;
+  }
+  return rows.filter((entry) => entry.mentions > 0).length + 1;
+}
+
+function sumWindow(
+  trend: readonly GeoSparklinePoint[],
+  days: ReadonlySet<string>
+): number {
+  let total = 0;
+  for (const point of trend) {
+    if (days.has(point.day)) {
+      total += point.value;
+    }
+  }
+  return total;
+}
+
+/**
+ * Own share (in points) and rank compared between the second and the first
+ * half of the settled days in range, matching `mentionCountDelta`.
+ */
+export function shareOfVoiceOwnTrends(
+  rows: readonly ShareOfVoiceRow[],
+  own: ShareOfVoiceRow | null,
+  today = todayIsoDate()
+): { shareDelta: number | null; rankDelta: number | null } {
+  const empty = { shareDelta: null, rankDelta: null };
+  if (!own) {
+    return empty;
+  }
+  const days = [
+    ...new Set(rows.flatMap((row) => row.trend.map((point) => point.day))),
+  ]
+    .filter((day) => day < today)
+    .sort();
+  if (days.length < GEO_SPARKLINE_MIN_POINTS) {
+    return empty;
+  }
+  const mid = Math.floor(days.length / 2);
+  const previousDays = new Set(days.slice(0, mid));
+  const currentDays = new Set(days.slice(mid));
+  const windowOf = (window: ReadonlySet<string>) => {
+    const totals = rows.map((row) => ({
+      id: row.id,
+      mentions: sumWindow(row.trend, window),
+    }));
+    const total = totals.reduce((sum, row) => sum + row.mentions, 0);
+    const ownMentions = sumWindow(own.trend, window);
+    return {
+      share: total > 0 ? ownMentions / total : null,
+      rank: total > 0 ? shareOfVoiceRank(ownMentions, totals) : null,
+    };
+  };
+  const previous = windowOf(previousDays);
+  const current = windowOf(currentDays);
+  return {
+    shareDelta:
+      previous.share === null || current.share === null
+        ? null
+        : (current.share - previous.share) * CHART_PERCENT_SCALE,
+    rankDelta:
+      previous.rank === null || current.rank === null
+        ? null
+        : current.rank - previous.rank,
+  };
+}
 
 export function buildShareOfVoiceChartModel({
   points,
@@ -44,10 +124,7 @@ export function buildShareOfVoiceChartModel({
   });
   const ranked: ShareOfVoiceRankingRow[] = rows.map((row) => ({
     ...row,
-    rank:
-      row.mentions > 0
-        ? rows.filter((entry) => entry.mentions > row.mentions).length + 1
-        : null,
+    rank: shareOfVoiceRank(row.mentions, rows),
     own: isOwnBrandName(row.brand, companyName, aliases),
   }));
   const own: ShareOfVoiceRankingRow | null =
@@ -62,9 +139,13 @@ export function buildShareOfVoiceChartModel({
           trend: [],
           tracked: true,
           own: true,
-          rank: null,
+          rank: shareOfVoiceRank(0, rows),
         }
       : null);
+  const brandCount = ranked.some((row) => row.own)
+    ? ranked.length
+    : ranked.length + (own ? 1 : 0);
+  const ownTrends = shareOfVoiceOwnTrends(rows, own);
   const leaders = ranked.slice(0, limit);
   const ranking =
     own && !leaders.some((row) => row.own) ? [...leaders, own] : leaders;
@@ -101,5 +182,15 @@ export function buildShareOfVoiceChartModel({
       ),
     };
   }
-  return { ranking, own, slices, others, other, config, totalMentions };
+  return {
+    ranking,
+    own,
+    slices,
+    others,
+    other,
+    config,
+    totalMentions,
+    brandCount,
+    ...ownTrends,
+  };
 }

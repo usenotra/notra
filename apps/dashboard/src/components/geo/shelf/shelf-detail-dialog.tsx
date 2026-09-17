@@ -2,7 +2,6 @@
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import {
   Sheet,
@@ -19,7 +18,7 @@ import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate } from "@/utils/geo-shelf";
+import { formatShelfDate, groupShelfCitationEngines } from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -131,15 +130,21 @@ export function ShelfDetailDialog({
                 <div className="space-y-2">
                   <p className="text-muted-foreground text-xs">Cited by</p>
                   <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    {citations.engines.map((engine) => (
-                      <li
-                        className="flex items-center gap-1.5 text-xs"
-                        key={engine}
-                      >
-                        <EngineIcon className="size-4" engine={engine} />
-                        {engineFamilyLabel(engine)}
-                      </li>
-                    ))}
+                    {groupShelfCitationEngines(citations.engines).map(
+                      ({ family, label, models }) => (
+                        <li
+                          className="flex items-center gap-1.5 text-xs"
+                          key={family}
+                          title={models.join(", ")}
+                        >
+                          <EngineIcon
+                            className="size-4"
+                            engine={models[0] ?? family}
+                          />
+                          {label}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               ) : (
