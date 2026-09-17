@@ -18,6 +18,7 @@ import { PromptReceiptViewSwitch } from "@/components/geo/prompt-receipt-view-sw
 import { GEO_PROMPT_DEFAULT_FILTERS } from "@/constants/geo-prompts";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoScanAnswerProps } from "@/types/geo-scan-activity";
 import { formatEngineWithMode } from "@/utils/geo-charts";
 import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
@@ -25,12 +26,14 @@ import { buildPromptTableRows } from "@/utils/geo-prompts";
 
 export function ScanAnswerSheet({
   organizationId,
-  checkId,
+  checkId: checkIdProp,
   onClose,
   scanId,
   initialLanguage,
 }: GeoScanAnswerProps) {
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
+  const open = checkIdProp !== null;
+  const [checkId, releaseCheckId] = useRetainedValue(checkIdProp);
   const detail = useGeoPromptResultDetail(organizationId, checkId);
   const result = detail.data?.result;
   const { prompts } = useGeoPromptsDb(organizationId);
@@ -51,12 +54,13 @@ export function ScanAnswerSheet({
         initialEngine={result?.engine}
         initialLanguage={initialLanguage}
         scanId={scanId}
-        onOpenChange={(open) => {
-          if (!open) {
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
             onClose();
           }
         }}
-        open={checkId !== null}
+        onOpenChangeComplete={releaseCheckId}
+        open={open}
         organizationId={organizationId}
         row={{ ...row, prompt: result?.prompt ?? row.prompt }}
       />
@@ -65,12 +69,13 @@ export function ScanAnswerSheet({
 
   return (
     <Sheet
-      onOpenChange={(open) => {
-        if (!open) {
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
           onClose();
         }
       }}
-      open={checkId !== null}
+      onOpenChangeComplete={releaseCheckId}
+      open={open}
     >
       <SheetContent className="gap-0 overflow-hidden p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-3xl">
         <SheetHeader className="shrink-0 gap-3 border-b p-4">

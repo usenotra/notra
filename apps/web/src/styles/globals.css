@@ -4,6 +4,7 @@
 @import "@c15t/nextjs/styles.css";
 @import "../../../../packages/ui/src/styles/cta-button.css";
 @import "../../../../packages/ui/src/styles/motion.css";
+@import "../../../../packages/ui/src/styles/skeleton-shimmer.css";
 @import "../../../../packages/ui/src/styles/status.css";
 
 @source "../../mdx-components.tsx";

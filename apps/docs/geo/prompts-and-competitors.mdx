@@ -33,7 +33,7 @@ The **Prompts** page lists every prompt that goes into a scan. There are two sou
 - **Custom** prompts you add by hand, import, or accept from a suggestion. They are stored per project with an `enabled` flag.
 - **Auto** prompts derived from the project's brand context. Notra reads the brand identity's company description and audience, extracts a product category and an audience phrase, and generates a small set of category questions that never name your brand. Auto prompts are regenerated from the brand context on every read; they are always listed as enabled and have no `createdAt`.
 
-Each prompt is written the way a person types into ChatGPT: lowercase, one intent, no trailing question mark. A custom prompt must be between 8 and 300 characters. Suggested prompts that contain your company name or an alias are dropped during onboarding, because a branded question tells you nothing about unaided recall.
+Each prompt is written the way a person types into ChatGPT: lowercase, one intent, no trailing question mark, usually with a concrete detail about the person's situation (role, team size, budget, stack) and never in the brand's own category jargon. A custom prompt must be between 8 and 300 characters. Suggested prompts that contain your company name or an alias are dropped during onboarding, because a branded question tells you nothing about unaided recall.
 
 ### Adding and pausing prompts
 

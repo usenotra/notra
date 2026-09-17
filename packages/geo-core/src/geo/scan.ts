@@ -861,7 +861,11 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       projectId: settingsRow.projectId,
       scanId,
     });
-    const scanEngines = scopeGeoScanEngines(settings.engines, requestedEngines);
+    const scanEngines = scopeGeoScanEngines(
+      catalog,
+      settings.engines,
+      requestedEngines
+    );
     const trackedEngines: { engine: string; zdr: GeoZdrMode }[] = [];
     for (const engine of new Set(scanEngines)) {
       const zdr = resolveGeoZdrMode(catalog, engine, zdrPolicy);

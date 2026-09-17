@@ -293,10 +293,29 @@ function buildNetlifySnippet(appUrl: string): string {
   ].join("\n");
 }
 
+function buildTanStackSnippet(appUrl: string): string {
+  return [
+    'import { createMiddleware, createStart } from "@tanstack/react-start";',
+    'import { createGeoMiddleware } from "@usenotra/geo/tanstack";',
+    "",
+    "const geo = createMiddleware().server(createGeoMiddleware({",
+    `  token: ${processTokenExpr()},`,
+    `  endpoint: "${appUrl}",`,
+    "}));",
+    "",
+    "export const startInstance = createStart(() => ({",
+    "  requestMiddleware: [geo],",
+    "}));",
+  ].join("\n");
+}
+
 export function buildGeoSnippet(
   appUrl: string,
   framework: GeoIngestFramework = "next"
 ): string {
+  if (framework === "tanstack") {
+    return buildTanStackSnippet(appUrl);
+  }
   if (framework === "nuxt") {
     return buildNuxtSnippet(appUrl);
   }
@@ -311,6 +330,7 @@ export function buildGeoSnippets(appUrl: string): GeoIngestSnippets {
     next: buildGeoSnippet(appUrl, "next"),
     nuxt: buildGeoSnippet(appUrl, "nuxt"),
     netlify: buildGeoSnippet(appUrl, "netlify"),
+    tanstack: buildGeoSnippet(appUrl, "tanstack"),
   };
 }
 

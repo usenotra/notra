@@ -62,6 +62,7 @@ import {
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
@@ -93,6 +94,7 @@ import {
   findOwnBrandDomain,
 } from "@/utils/geo-competitors";
 import { familyImproveInsight } from "@/utils/geo-family-improve";
+import { resolveOrganizationId } from "@/utils/geo-overview-organization";
 import { geoGapsEngineHref } from "@/utils/geo-paths";
 import {
   engineFamilyPromptHits,
@@ -538,20 +540,24 @@ function EngineFamilySheetSession({
   competitors,
   open,
   onOpenChange,
-}: Omit<EngineFamilySheetProps, "family"> & { family: GeoEngineFamily }) {
+  onOpenChangeComplete,
+}: Omit<EngineFamilySheetProps, "family"> & {
+  family: GeoEngineFamily;
+  onOpenChangeComplete: (open: boolean) => void;
+}) {
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
   const [writeInitial, setWriteInitial] =
     useState<WriteDialogInitialState | null>(null);
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
-  let organization = null;
-  if (organizationSlug && activeOrganization?.slug === organizationSlug) {
-    organization = activeOrganization;
-  } else if (organizationSlug) {
-    organization = getOrganization(organizationSlug);
-  }
-  const organizationId = organization?.id ?? "";
+  const organizationId = organizationSlug
+    ? resolveOrganizationId(
+        organizationSlug,
+        activeOrganization,
+        getOrganization(organizationSlug)
+      )
+    : "";
   const { domain: projectDomain } = useGeoActiveProject(organizationId);
   const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
   const canWrite = Boolean(organizationSlug) && Boolean(organizationId);
@@ -601,7 +607,11 @@ function EngineFamilySheetSession({
 
   return (
     <>
-      <Sheet onOpenChange={onOpenChange} open={open}>
+      <Sheet
+        onOpenChange={onOpenChange}
+        onOpenChangeComplete={onOpenChangeComplete}
+        open={open}
+      >
         <SheetContent className={FAMILY_SHEET_CONTENT_CLASS}>
           <SheetHeader className="bg-muted/50 border-b pr-14">
             <SheetTitle className="flex items-center gap-2">
@@ -656,7 +666,7 @@ function EngineFamilySheetSession({
 }
 
 export function EngineFamilySheet({
-  family,
+  family: familyProp,
   timeseriesPoints = GEO_EMPTY_TIMESERIES,
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   organizationSlug,
@@ -666,6 +676,7 @@ export function EngineFamilySheet({
   open,
   onOpenChange,
 }: EngineFamilySheetProps) {
+  const [family, releaseFamily] = useRetainedValue(familyProp);
   if (!family) {
     return (
       <Sheet onOpenChange={onOpenChange} open={open}>
@@ -682,6 +693,7 @@ export function EngineFamilySheet({
       family={family}
       key={family.family}
       onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseFamily}
       open={open}
       organizationSlug={organizationSlug}
       promptResults={promptResults}

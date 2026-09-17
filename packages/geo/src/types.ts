@@ -126,3 +126,8 @@ export interface NitroEventLike {
   node?: { req: NodeRequestLike };
   request?: Request;
 }
+
+export interface TanStackMiddlewareContext<T> {
+  request: Request;
+  next(): T | Promise<T>;
+}
