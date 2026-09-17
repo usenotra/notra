@@ -28,19 +28,22 @@ beforeEach(() => {
 });
 
 describe("dashboard proxy authentication", () => {
-  test.each(["/acme", "/acme/geo/prompts?project=one", "/login-team/geo"])(
-    "redirects logged-out requests before rendering %s",
-    async (path) => {
-      const response = await proxy(
-        new NextRequest(`https://app.example${path}`)
-      );
-      const destination = new URL(response.headers.get("location") ?? "");
-      expect(destination.pathname).toBe("/login");
-      expect(destination.searchParams.get("returnTo")).toBe(path);
-      expect(response.status).toBe(307);
-      expect(readSession).toHaveBeenCalledTimes(1);
-    }
-  );
+  test.each([
+    "/acme",
+    "/acme/geo/prompts?project=one",
+    "/login-team/geo",
+    "/acme.example",
+    "/acme.svg",
+    "/acme.example/geo",
+    "/window.svg-team",
+  ])("redirects logged-out requests before rendering %s", async (path) => {
+    const response = await proxy(new NextRequest(`https://app.example${path}`));
+    const destination = new URL(response.headers.get("location") ?? "");
+    expect(destination.pathname).toBe("/login");
+    expect(destination.searchParams.get("returnTo")).toBe(path);
+    expect(response.status).toBe(307);
+    expect(readSession).toHaveBeenCalledTimes(1);
+  });
 
   test.each([
     "/login",
@@ -60,6 +63,17 @@ describe("dashboard proxy authentication", () => {
     "/brands/hermes.png",
     "/testimonials/will.webp",
     "/web-app-manifest-192x192.png",
+    "/web-app-manifest-512x512.png",
+    "/window.svg",
+    "/globe.svg",
+    "/next.svg",
+    "/vercel.svg",
+    "/file.svg",
+    "/icon0.svg",
+    "/icon1.png",
+    "/apple-icon.png",
+    "/favicon.ico",
+    "/robots.txt",
   ])("leaves independent routes accessible: %s", async (path) => {
     const response = await proxy(new NextRequest(`https://app.example${path}`));
     expect(response.headers.get("location")).toBeNull();
