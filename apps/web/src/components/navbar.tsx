@@ -64,7 +64,9 @@ import {
 } from "@/utils/navigation";
 
 const HOVER_CLOSE_DELAY = 120;
-const CONTENT_SLIDE = 48;
+const CONTENT_SLIDE = 24;
+const CONTENT_BLUR = "blur(0.25rem)";
+const CONTENT_SHARP = "blur(0)";
 const PANEL_PERSPECTIVE = 2000;
 const PANEL_SCALE_IN = {
   opacity: 0,
@@ -82,23 +84,26 @@ const PANEL_SCALE_REST = {
   scale: 1,
 } as const;
 const ENTER_EXIT_TRANSITION = TRANSITION.enter;
-const MORPH_TRANSITION = tween("slow", "emphasized");
+const MORPH_TRANSITION = tween("slow", "emphasizedInOut");
 const SHELL_TRANSITION = tween("slow", "emphasized");
 const SCROLL_THRESHOLD = 64;
 const MOBILE_SCROLL_THRESHOLD = 16;
 const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
 const ISLAND_CHROME =
   "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
-const SWAP_TRANSITION = TRANSITION.fade;
+const SWAP_TRANSITION = tween("normal", "emphasized");
 const contentVariants = {
   enter: (direction: number) => ({
     x: direction * CONTENT_SLIDE,
     opacity: 0,
+    filter: CONTENT_BLUR,
   }),
-  center: { x: 0, opacity: 1 },
+  center: { x: 0, opacity: 1, filter: CONTENT_SHARP },
   exit: (direction: number) => ({
     x: direction * -CONTENT_SLIDE,
     opacity: 0,
+    filter: CONTENT_BLUR,
+    transition: TRANSITION.exit,
   }),
 };
 
