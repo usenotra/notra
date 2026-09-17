@@ -26,7 +26,7 @@ export function McpUseCaseDetailView({
           </div>
           <div className="relative flex w-full flex-col items-center gap-6 px-6 pt-20 pb-16 lg:pt-24">
             <Link
-              className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-[0.875rem] leading-[1.29] font-medium whitespace-nowrap text-[#1E1E1E99] transition-colors hover:text-[#1E1E1E] dark:text-white/60 dark:hover:text-white"
+              className="absolute top-[5.5rem] left-5 inline-flex cursor-pointer items-center gap-1.5 font-sans text-[0.875rem] leading-[1.29] font-medium whitespace-nowrap text-[#1E1E1E99] transition-colors hover:text-[#1E1E1E] lg:top-[5.75rem] lg:left-6 min-[87rem]:left-[calc((100%-80.9375rem)/2)] dark:text-white/60 dark:hover:text-white"
               href={MCP_USE_CASES_PATH}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
