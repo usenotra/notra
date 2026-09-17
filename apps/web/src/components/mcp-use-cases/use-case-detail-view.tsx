@@ -90,7 +90,7 @@ export function McpUseCaseDetailView({
         <McpUseCasePromptBlock entry={entry} />
 
         <section className="mx-auto flex w-full max-w-[44rem] flex-col gap-6">
-          <h2 className="font-display text-center text-[2rem] leading-[1.15] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] md:text-[2.5rem]/12 dark:text-white">
+          <h2 className="font-display text-[2rem] leading-[1.15] font-medium tracking-[-0.02em] text-balance text-[#1E1E1E] md:text-[2.5rem]/12 dark:text-white">
             What this use case can do for you
           </h2>
           <div className="flex flex-col gap-5">
