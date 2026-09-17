@@ -1,3 +1,4 @@
+import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 import type {
   GeoScanResultSummary,
   GeoScanRunSummary,
@@ -29,9 +30,22 @@ export interface GeoScanControlsProviderProps {
   children: ReactNode;
 }
 
+export interface GeoScanModelOption {
+  id: string;
+  label: string;
+  answerMode: string | null;
+  tracked: boolean;
+  zdrBlocked: boolean;
+}
+
 export interface GeoScanModelMenuProps {
   disabledReason?: string;
+  /** Tracked models, preselected every time the menu opens. */
   engines: readonly string[];
+  /** Full catalog the organization can scan; falls back to `engines`. */
+  catalog?: readonly GeoModelCatalogEntry[];
+  enforceZdr?: boolean;
+  nonZdrApprovedEngines?: readonly string[];
   disabled?: boolean;
   compact?: boolean;
   label?: string;

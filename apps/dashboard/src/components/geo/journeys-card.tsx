@@ -10,7 +10,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useState } from "react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { JourneyDetailDialog } from "@/components/geo/journey-detail-dialog";
+import { JourneyDetailSheet } from "@/components/geo/journey-detail-sheet";
 import { JourneyPathTrail } from "@/components/geo/journey-path-trail";
 import {
   InstrumentEmpty,
@@ -19,11 +19,17 @@ import {
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { trackEvent } from "@/lib/analytics/posthog-client";
+import { usePrefetchGeoJourneyDetail } from "@/lib/hooks/use-geo";
 import type { JourneysCardProps } from "@/types/geo";
 import { tableHeightFor } from "@/utils/table";
 
+const JOURNEYS_PAGE_SIZE = 50;
+
 export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
   const [selected, setSelected] = useState<GeoJourney | null>(null);
+  const [limit, setLimit] = useState(JOURNEYS_PAGE_SIZE);
+  const hasMore = limit < journeys.length;
+  const prefetchJourney = usePrefetchGeoJourneyDetail(organizationId);
   const openJourney = (journey: GeoJourney) => {
     trackEvent(POSTHOG_EVENTS.GEO_JOURNEY_OPENED, {
       visitor_type: journey.visitorType,
@@ -87,36 +93,35 @@ export function JourneysCard({ journeys, organizationId }: JourneysCardProps) {
   ];
 
   return (
-    <InstrumentSection
-      eyebrow="Agent journeys"
-      readout={
-        journeys.length > 0
-          ? `${journeys.length.toLocaleString()} captured`
-          : "no journeys yet"
-      }
-    >
+    <InstrumentSection eyebrow="Agent journeys">
       {journeys.length === 0 ? (
         <InstrumentEmpty
           message="No agent journeys captured yet"
           seed="geo-journeys"
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          <Table
-            className="rounded-2xl"
-            columns={columns}
-            data={journeys}
-            defaultSort={{ key: "lastSeenAt", direction: "desc" }}
-            emptyState="No agent journeys captured yet"
-            getRowId={(row) => row.journeyId}
-            height={tableHeightFor(journeys.length)}
-            onRowClick={openJourney}
-            resizable
-            rowHeight={TABLE_ROW_HEIGHT}
-          />
-        </div>
+        <Table
+          className="rounded-2xl"
+          columns={columns}
+          data={journeys}
+          defaultSort={{ key: "lastSeenAt", direction: "desc" }}
+          emptyState="No agent journeys captured yet"
+          getRowId={(row) => row.journeyId}
+          height={tableHeightFor(journeys.length)}
+          onEndReached={
+            hasMore
+              ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
+              : undefined
+          }
+          onRowClick={openJourney}
+          onRowPointerEnter={(row) => prefetchJourney(row.journeyId)}
+          pageSize={limit}
+          resizable
+          rowHeight={TABLE_ROW_HEIGHT}
+          scrollFade
+        />
       )}
-      <JourneyDetailDialog
+      <JourneyDetailSheet
         journey={selected}
         onOpenChange={(next) => {
           if (!next) {

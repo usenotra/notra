@@ -87,7 +87,7 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
     case "GeoScanEnginesEmptyError":
       return {
         status: 400,
-        error: "Select at least one tracked engine to scan",
+        error: "Select at least one available model to scan",
       };
     case "GeoCompetitorLimitError":
       return {

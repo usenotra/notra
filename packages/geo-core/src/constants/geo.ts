@@ -1005,10 +1005,8 @@ export const GEO_JOURNEY_SEARCH_PREFIXES = [
   "/find",
 ] as const;
 
-export const GEO_JOURNEY_OVERVIEW_SOURCES = 5;
-export const GEO_JOURNEY_OVERVIEW_PATHS = 5;
+export const GEO_JOURNEY_OVERVIEW_ROWS = 5;
 export const GEO_JOURNEY_TRAIL_TABLE_LIMIT = 4;
-export const GEO_JOURNEY_TRAIL_DETAIL_LIMIT = 10;
 export const GEO_JOURNEY_PATH_LABEL_MAX = 28;
 
 export const AI_TRAFFIC_CONFIDENCE_LABELS: Record<string, string> = {

@@ -17,6 +17,7 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-table";
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
 import { formatShelfDate } from "@/utils/geo-shelf";
@@ -41,7 +42,7 @@ function SectionHeader({
 export function ShelfDetailDialog({
   open,
   onOpenChange,
-  row,
+  row: rowProp,
   members,
   currentMemberId,
   ownBrandName,
@@ -49,6 +50,7 @@ export function ShelfDetailDialog({
   onSetPlacementStatus,
   isPending,
 }: GeoShelfDetailDialogProps) {
+  const [row, releaseRow] = useRetainedValue(rowProp);
   if (!row) {
     return null;
   }
@@ -71,7 +73,11 @@ export function ShelfDetailDialog({
     : null;
 
   return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseRow}
+      open={open}
+    >
       <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
         <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
           <SheetTitle className="text-xl font-semibold tracking-tight text-pretty wrap-break-word">

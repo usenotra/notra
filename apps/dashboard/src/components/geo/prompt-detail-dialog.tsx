@@ -49,6 +49,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type {
   PromptAnswerPageProps,
@@ -565,7 +566,8 @@ function PromptAnswerPage({
 export function PromptDetailDialog({
   open,
   onOpenChange,
-  row,
+  onOpenChangeComplete,
+  row: rowProp,
   isScanning = false,
   surface,
   organizationId,
@@ -576,9 +578,17 @@ export function PromptDetailDialog({
   const { activeOrganization } = useOrganizationsContext();
   const scanControls = useGeoScanControls();
   const resolvedOrganizationId = organizationId ?? activeOrganization?.id ?? "";
+  const [row, releaseRow] = useRetainedValue(rowProp);
 
   const content = row ? (
-    <Sheet onOpenChange={onOpenChange} open={open}>
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={(nextOpen) => {
+        releaseRow(nextOpen);
+        onOpenChangeComplete?.(nextOpen);
+      }}
+      open={open}
+    >
       <PromptAnswerPage
         onPrepareScan={() => onOpenChange(false)}
         initialEngine={initialEngine}

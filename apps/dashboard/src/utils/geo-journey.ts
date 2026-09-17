@@ -4,8 +4,6 @@ import {
   GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_DOCS_PREFIXES,
   GEO_JOURNEY_HOME_PATHS,
-  GEO_JOURNEY_OVERVIEW_PATHS,
-  GEO_JOURNEY_OVERVIEW_SOURCES,
   GEO_JOURNEY_PATH_KIND_LABELS,
   GEO_JOURNEY_PATH_KINDS,
   GEO_JOURNEY_PATH_LABEL_MAX,
@@ -24,6 +22,7 @@ import type {
   GeoJourneyPathRow,
   GeoJourneySourceRow,
   GeoJourneyTrail,
+  GeoJourneyTreeNode,
 } from "@/types/geo";
 
 const WWW_PREFIX = /^www\./;
@@ -208,8 +207,10 @@ export function buildJourneyOverview(
       });
     }
 
-    for (const path of journey.samplePaths) {
-      const normalized = normalizeGeoJourneyPath(path);
+    const journeyPaths = new Set(
+      journey.samplePaths.map((path) => normalizeGeoJourneyPath(path))
+    );
+    for (const normalized of journeyPaths) {
       const pathRow = pathCounts.get(normalized);
       if (pathRow) {
         pathRow.journeys += 1;
@@ -249,8 +250,7 @@ export function buildJourneyOverview(
 
   return {
     total: journeys.length,
-    sources: sources.slice(0, GEO_JOURNEY_OVERVIEW_SOURCES),
-    uniqueSources: sources.length,
+    sources,
     medianPages: medianValue(journeys.map((journey) => journey.pages)),
     singleFetchShare: shareOf(
       journeys.filter((journey) => journey.pages <= 1).length,
@@ -262,8 +262,7 @@ export function buildJourneyOverview(
       ).length,
       journeys.length
     ),
-    paths: paths.slice(0, GEO_JOURNEY_OVERVIEW_PATHS),
-    uniquePaths: paths.length,
+    paths,
     kindCounts,
   };
 }
@@ -288,4 +287,112 @@ export function buildJourneyDepthSummary(
   const overview = buildJourneyOverview(journeys);
   const share = (value: number) => `${Math.round(value * 100)}%`;
   return `median ${overview.medianPages} ${overview.medianPages === 1 ? "page" : "pages"} · ${share(overview.deepShare)} crawl ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ · ${share(overview.singleFetchShare)} single-fetch`;
+}
+
+function refererPath(event: GeoJourneyEvent): string | null {
+  const referer = event.referer.trim();
+  if (!referer) {
+    return null;
+  }
+  try {
+    const url = new URL(referer);
+    const host = event.host.replace(WWW_PREFIX, "");
+    if (!host || url.hostname.replace(WWW_PREFIX, "") !== host) {
+      return null;
+    }
+    return normalizeGeoJourneyPath(url.pathname);
+  } catch {
+    return null;
+  }
+}
+
+/** Deepest visited section page the path lives under, e.g. /docs for /docs/a. */
+function closestVisitedSection(
+  path: string,
+  nodes: ReadonlyMap<string, GeoJourneyTreeNode>
+): GeoJourneyTreeNode | null {
+  const segments = path.split("/").filter(Boolean);
+  for (let depth = segments.length - 1; depth > 0; depth -= 1) {
+    const section = nodes.get(`/${segments.slice(0, depth).join("/")}`);
+    if (section) {
+      return section;
+    }
+  }
+  return null;
+}
+
+/**
+ * Rebuilds how an agent moved through the site from its ordered fetches.
+ * A same-site referer is the strongest signal. Without one, a page hangs off
+ * the section it lives under, else off the page fetched before it. Fetching a
+ * page again moves the agent back there, so the next new page branches off it.
+ */
+export function buildJourneyPathTree(
+  events: readonly GeoJourneyEvent[]
+): GeoJourneyTreeNode[] {
+  const roots: GeoJourneyTreeNode[] = [];
+  const nodes = new Map<string, GeoJourneyTreeNode>();
+  let cursor: GeoJourneyTreeNode | null = null;
+
+  for (const event of events) {
+    const path = normalizeGeoJourneyPath(event.path);
+    const existing = nodes.get(path);
+    if (existing) {
+      existing.hits += 1;
+      cursor = existing;
+      continue;
+    }
+
+    const node: GeoJourneyTreeNode = {
+      ...toGeoJourneyPathNode(path),
+      id: `${path}:${nodes.size}`,
+      hits: 1,
+      firstSeenAt: event.capturedAt,
+      children: [],
+    };
+    const referer = refererPath(event);
+    const parent =
+      (referer && referer !== path ? nodes.get(referer) : undefined) ??
+      closestVisitedSection(path, nodes) ??
+      cursor;
+    if (parent) {
+      parent.children.push(node);
+    } else {
+      roots.push(node);
+    }
+    nodes.set(path, node);
+    cursor = node;
+  }
+
+  return roots;
+}
+
+export function countJourneyBranches(roots: readonly GeoJourneyTreeNode[]) {
+  let branches = 0;
+  const stack = [...roots];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (!node) {
+      continue;
+    }
+    branches += Math.max(node.children.length - 1, 0);
+    stack.push(...node.children);
+  }
+  return branches;
+}
+
+/** Docs, posts and everything else, counted by unique page. */
+export function journeyPageKindStats(overview: GeoJourneyOverview) {
+  const count = (kind: GeoJourneyPathKind) =>
+    overview.kindCounts.find((entry) => entry.kind === kind)?.paths ?? 0;
+  const docs = count("docs");
+  const posts = count("blog");
+  const other = overview.paths.length - docs - posts;
+  const label = (value: number) =>
+    `${value.toLocaleString()} ${value === 1 ? "page" : "pages"}`;
+  return [
+    { label: GEO_JOURNEY_PATH_KIND_LABELS.docs, value: label(docs) },
+    { label: GEO_JOURNEY_PATH_KIND_LABELS.blog, value: label(posts) },
+    { label: "Other", value: label(other) },
+  ];
 }

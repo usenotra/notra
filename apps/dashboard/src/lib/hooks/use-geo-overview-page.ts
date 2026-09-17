@@ -127,11 +127,12 @@ export function useGeoOverviewPage(
     geoRange.query,
     activeTab === "visibility"
   );
-  const { data: trafficJourneys } = useGeoTrafficJourneys(
-    organizationId,
-    geoRange.query,
-    activeTab === "journeys"
-  );
+  const { data: trafficJourneys, isPending: isJourneysPending } =
+    useGeoTrafficJourneys(
+      organizationId,
+      geoRange.query,
+      activeTab === "journeys"
+    );
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [preflightOpen, setPreflightOpen] = useState(false);
@@ -176,6 +177,7 @@ export function useGeoOverviewPage(
     promptResults: promptResults?.results,
     promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
+    journeysLoading: activeTab === "journeys" && isJourneysPending,
     isScanning,
     revealActive,
     scanPreflight: {

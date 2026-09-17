@@ -446,13 +446,13 @@ export interface GeoJourneyKindCount {
 
 export interface GeoJourneyOverview {
   total: number;
+  /** Every source, most journeys first. */
   sources: GeoJourneySourceRow[];
-  uniqueSources: number;
   medianPages: number;
   singleFetchShare: number;
   deepShare: number;
+  /** Every fetched page, most journeys first. */
   paths: GeoJourneyPathRow[];
-  uniquePaths: number;
   kindCounts: GeoJourneyKindCount[];
 }
 
@@ -461,17 +461,44 @@ export interface GeoJourneyTrail {
   omitted: number;
 }
 
+export interface GeoJourneyTreeNode extends GeoJourneyPathNode {
+  id: string;
+  /** Fetches of this path in the journey, revisits included. */
+  hits: number;
+  firstSeenAt: string;
+  children: GeoJourneyTreeNode[];
+}
+
+export interface JourneysTabProps {
+  journeys: GeoJourney[];
+  loading: boolean;
+  organizationId: string;
+  revealActive: boolean;
+}
+
 export interface JourneysCardProps {
   journeys: GeoJourney[];
   organizationId: string;
 }
 
+export interface JourneyStatCardProps {
+  eyebrow: string;
+  total: number;
+  caption: string;
+  stats: { label: string; value: string }[];
+  emptyMessage: string;
+  emptySeed: string;
+  children: ReactNode;
+}
+
 export interface JourneyOverviewCardProps {
-  journeys: GeoJourney[];
+  overview: GeoJourneyOverview;
+  previewRows: number;
 }
 
 export interface JourneyPathsCardProps {
-  journeys: GeoJourney[];
+  overview: GeoJourneyOverview;
+  previewRows: number;
 }
 
 export interface JourneyPathPillProps {
@@ -485,7 +512,11 @@ export interface JourneyPathTrailProps {
   className?: string;
 }
 
-export interface JourneyDetailDialogProps {
+export interface JourneyPathTreeProps {
+  roots: GeoJourneyTreeNode[];
+}
+
+export interface JourneyDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
@@ -708,6 +739,7 @@ export interface GeoTabsProps {
   promptCount: number;
   isScanning: boolean;
   journeys: GeoJourney[];
+  journeysLoading: boolean;
   organizationId: string;
 }
 
@@ -1255,6 +1287,8 @@ export interface PromptDetailDialogProps {
   initialLanguage?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Fires once the open or close animation has finished. */
+  onOpenChangeComplete?: (open: boolean) => void;
   row: GeoPromptTableRow | null;
   isScanning?: boolean;
   surface?: GeoPromptDetailSurface;

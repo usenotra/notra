@@ -62,6 +62,7 @@ import {
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
@@ -538,7 +539,11 @@ function EngineFamilySheetSession({
   competitors,
   open,
   onOpenChange,
-}: Omit<EngineFamilySheetProps, "family"> & { family: GeoEngineFamily }) {
+  onOpenChangeComplete,
+}: Omit<EngineFamilySheetProps, "family"> & {
+  family: GeoEngineFamily;
+  onOpenChangeComplete: (open: boolean) => void;
+}) {
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
   const [writeInitial, setWriteInitial] =
@@ -601,7 +606,11 @@ function EngineFamilySheetSession({
 
   return (
     <>
-      <Sheet onOpenChange={onOpenChange} open={open}>
+      <Sheet
+        onOpenChange={onOpenChange}
+        onOpenChangeComplete={onOpenChangeComplete}
+        open={open}
+      >
         <SheetContent className={FAMILY_SHEET_CONTENT_CLASS}>
           <SheetHeader className="bg-muted/50 border-b pr-14">
             <SheetTitle className="flex items-center gap-2">
@@ -656,7 +665,7 @@ function EngineFamilySheetSession({
 }
 
 export function EngineFamilySheet({
-  family,
+  family: familyProp,
   timeseriesPoints = GEO_EMPTY_TIMESERIES,
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   organizationSlug,
@@ -666,6 +675,7 @@ export function EngineFamilySheet({
   open,
   onOpenChange,
 }: EngineFamilySheetProps) {
+  const [family, releaseFamily] = useRetainedValue(familyProp);
   if (!family) {
     return (
       <Sheet onOpenChange={onOpenChange} open={open}>
@@ -682,6 +692,7 @@ export function EngineFamilySheet({
       family={family}
       key={family.family}
       onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseFamily}
       open={open}
       organizationSlug={organizationSlug}
       promptResults={promptResults}

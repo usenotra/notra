@@ -1797,13 +1797,12 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     return yield* Effect.fail(new GeoSettingsDisabledError({ projectId }));
   }
 
-  const storedEngines = row.engines ?? [];
-  if (
-    engines &&
-    storedEngines.length > 0 &&
-    scopeGeoScanEngines(storedEngines, engines).length === 0
-  ) {
-    return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
+  if (engines) {
+    const catalog = yield* loadGeoModelCatalog(scope.organizationId);
+    const tracked = row.engines ?? [];
+    if (scopeGeoScanEngines(catalog, tracked, engines).length === 0) {
+      return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
+    }
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings

@@ -71,6 +71,7 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
+  scrollFade = false,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -129,6 +130,7 @@ export function Table<T>({
     scrolls,
     paddingTop,
     paddingBottom,
+    atEnd,
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
@@ -301,6 +303,15 @@ export function Table<T>({
             rowRefs={rowRefs}
           />
         </table>
+        {scrollFade ? (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "from-background pointer-events-none sticky bottom-0 left-0 -mt-8 h-8 bg-linear-to-t to-transparent transition-opacity duration-200 motion-reduce:transition-none",
+              atEnd ? "opacity-0" : "opacity-100"
+            )}
+          />
+        ) : null}
       </div>
       <TableFooterSurface footer={footer} flushBottom={flushBottom} />
       {hasRowMenu && activeRow ? (
