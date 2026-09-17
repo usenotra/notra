@@ -318,7 +318,6 @@ async function verifyOAuthToken(
         status: 401,
       };
     }
-    // Explicit consent is the ceiling: role permissions must not expand it.
     const scopes = grant?.scopes ?? extractScopes(payload) ?? [];
     const workosOrgId = payload.org_id;
 
@@ -368,7 +367,6 @@ async function verifyOAuthToken(
       };
     }
 
-    // Recheck on every request; a still-valid token must not outlive membership.
     const membership = await db.query.members.findFirst({
       where: and(
         eq(members.userId, localUserId),

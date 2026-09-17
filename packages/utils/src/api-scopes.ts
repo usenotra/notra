@@ -3,10 +3,8 @@
  *
  * Everything that talks about public-API permissions derives from
  * `API_SCOPE_RESOURCES`:
- * - `apps/api` resolves the required permission for an incoming request.
  * - `apps/dashboard` renders the API-key scope picker and validates submitted
  *   scopes.
- * - OAuth consent uses the same None / Read / Write resource groups.
  *
  * HOW TO ADD A RESOURCE
  * 1. Append an entry to `API_SCOPE_RESOURCES` with `id`, `paths`, `label` and

@@ -9,7 +9,6 @@ import type {
   OAuthConsentWorkspace,
 } from "./types/oauth-consent";
 
-/** Workspaces must come from the authenticated user's current memberships. */
 export function buildOAuthConsentOptions(
   workspaces: readonly OAuthConsentWorkspace[]
 ): OAuthConsentOption[] {
@@ -33,9 +32,6 @@ export function buildOAuthConsentOptions(
   ];
 }
 
-/** Only call after verifying the JWT signature, issuer and audience.
- * Undefined means a legacy token; null means a malformed consent grant.
- */
 export function readOAuthConsentGrant(
   payload: Record<string, unknown>
 ): OAuthConsentGrant | null | undefined {
