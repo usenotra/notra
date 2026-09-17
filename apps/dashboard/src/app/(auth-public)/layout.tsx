@@ -11,7 +11,7 @@ export default function AuthPublicLayout({
     <div className="flex h-screen w-full justify-center lg:grid lg:grid-cols-2">
       <div className="relative hidden lg:flex">
         <div className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="corner-squircle relative h-full w-full overflow-hidden rounded-xl supports-[corner-shape:squircle]:rounded-2xl">
+          <div className="corner-squircle relative h-full w-full overflow-hidden rounded-md supports-[corner-shape:squircle]:rounded-2xl">
             <PixelBlastBackground />
           </div>
         </div>

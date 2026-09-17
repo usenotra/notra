@@ -49,6 +49,19 @@ export function readSortValue<T>(
   return (row as Record<string, string | number>)[column.key] ?? "";
 }
 
+/** Slice `rows` to the current page; unpaged when `pageSize` is unset. */
+export function pageRows<T>(
+  rows: TableRow<T>[],
+  page: number,
+  pageSize?: number
+): TableRow<T>[] {
+  if (pageSize == null) {
+    return rows;
+  }
+  const pageStart = Math.max(0, page - 1) * pageSize;
+  return rows.slice(pageStart, pageStart + pageSize);
+}
+
 /** After column sort, move matching rows to the front without pinning them sticky. */
 export function pinRowsFirst<T>(
   rows: readonly TableRow<T>[],

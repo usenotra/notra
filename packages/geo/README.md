@@ -51,6 +51,25 @@ The handler accepts an H3 event with a `node.req`, or any object exposing a stan
 web `request`. Geo headers are usually absent behind Nitro, so those fields stay
 undefined and ingest falls back to IP based lookup.
 
+## TanStack Start
+
+```ts
+// src/start.ts
+import { createMiddleware, createStart } from "@tanstack/react-start";
+import { createGeoMiddleware } from "@usenotra/geo/tanstack";
+
+const geo = createMiddleware().server(createGeoMiddleware({
+  token: process.env.NOTRA_GEO_TOKEN!,
+  endpoint: "https://app.usenotra.com",
+}));
+
+export const startInstance = createStart(() => ({
+  requestMiddleware: [geo],
+}));
+```
+
+The middleware captures requests alongside your route handler and waits for the send before returning, so tracking completes on serverless hosts. It preserves the downstream response and errors. If `src/start.ts` already exists, add `geo` to its existing `requestMiddleware` array.
+
 ## Netlify Edge Functions
 
 ```ts

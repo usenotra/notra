@@ -40,6 +40,7 @@ import {
   GEO_SHELF_BOARD_HEIGHT,
   GEO_SHELF_BOARD_OVERSCAN,
   GEO_SHELF_NO_MATCHES_MESSAGE,
+  GEO_SHELF_SOURCE_KIND_LABELS,
 } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";
 import type {
@@ -172,7 +173,9 @@ function ShelfBoardCardBody({ row }: { row: GeoShelfRow }) {
     <div className="space-y-2">
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{title}</p>
-        <p className="text-muted-foreground truncate text-xs">{row.domain}</p>
+        <p className="text-muted-foreground truncate text-xs">
+          {GEO_SHELF_SOURCE_KIND_LABELS[row.kind]}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         {row.opportunity ? (

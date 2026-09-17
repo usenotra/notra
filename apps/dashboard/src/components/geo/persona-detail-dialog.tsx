@@ -39,6 +39,7 @@ import {
 } from "@/constants/geo-personas";
 import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
 import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
   PersonaDetailDialogProps,
@@ -234,8 +235,9 @@ export function PersonaDetailDialog({
   open,
   onOpenChange,
   organizationId,
-  persona,
+  persona: personaProp,
 }: PersonaDetailDialogProps) {
+  const [persona, releasePersona] = useRetainedValue(personaProp);
   const [view, setView] = useState<PersonaDialogView>(DEFAULT_VIEW);
   const showConversation = view === "conversation";
   const generatePersona = useGeoPersonasGenerate(organizationId);
@@ -256,7 +258,11 @@ export function PersonaDetailDialog({
   }
 
   return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releasePersona}
+      open={open}
+    >
       <SheetContent
         onKeyDown={(event) => {
           if (!showConversation || !active || event.defaultPrevented) {

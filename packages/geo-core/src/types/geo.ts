@@ -49,7 +49,7 @@ export interface GeoScopeInput {
 }
 
 export interface GeoScanStartInput extends GeoScopeInput {
-  /** This-run subset of tracked engines. Omitted runs every tracked engine. */
+  /** This-run engine selection from the catalog. Omitted runs every tracked engine. */
   engines?: readonly string[];
 }
 
@@ -691,7 +691,7 @@ export interface GeoScanProgramOptions {
   /** Explicit project subset for a retry pass; overrides `projectId` scoping. */
   projectIds?: readonly string[];
   promptIds?: readonly string[];
-  /** This-run subset of tracked engines. Omitted runs every tracked engine. */
+  /** This-run engine selection from the catalog. Omitted runs every tracked engine. */
   engines?: readonly string[];
 }
 
@@ -1080,7 +1080,7 @@ export interface GeoTrafficPagesResponse {
   pages: GeoTrafficPage[];
 }
 
-export type GeoIngestFramework = "next" | "nuxt" | "netlify";
+export type GeoIngestFramework = "next" | "nuxt" | "netlify" | "tanstack";
 
 export type GeoIngestPackageManager = "bun" | "pnpm" | "yarn" | "npm";
 

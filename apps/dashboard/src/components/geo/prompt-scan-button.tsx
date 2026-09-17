@@ -5,7 +5,11 @@ import {
   GeoScanControlsProvider,
   useGeoScanControls,
 } from "@/components/providers/geo-scan-controls-provider";
-import { useGeoSettings, useIsGeoScanning } from "@/lib/hooks/use-geo";
+import {
+  useGeoModelCatalog,
+  useGeoSettings,
+  useIsGeoScanning,
+} from "@/lib/hooks/use-geo";
 import type { PromptScanButtonProps } from "@/types/geo";
 
 export function PromptScanButton(props: PromptScanButtonProps) {
@@ -28,6 +32,7 @@ function PromptScanMenu({
 }: PromptScanButtonProps) {
   const controls = useGeoScanControls();
   const { data } = useGeoSettings(organizationId);
+  const { data: catalog } = useGeoModelCatalog(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   let disabledReason: string | undefined;
   if (isScanning) {
@@ -45,7 +50,10 @@ function PromptScanMenu({
       compact={compact}
       disabled={!row.enabled || !data?.settings?.enabled || isScanning}
       disabledReason={disabledReason}
+      catalog={catalog?.models}
+      enforceZdr={data?.settings?.enforceZdr}
       engines={data?.settings?.engines ?? []}
+      nonZdrApprovedEngines={data?.settings?.nonZdrApprovedEngines}
       label={compact ? `Run scan: ${row.prompt}` : "Run scan"}
       onContinue={(engines) => {
         onPrepare?.();

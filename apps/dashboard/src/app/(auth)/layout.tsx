@@ -64,7 +64,7 @@ export default async function AuthLayout({
 
       <div className="relative hidden lg:flex">
         <div className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="corner-squircle relative h-full w-full overflow-hidden rounded-xl supports-[corner-shape:squircle]:rounded-2xl">
+          <div className="corner-squircle relative h-full w-full overflow-hidden rounded-md supports-[corner-shape:squircle]:rounded-2xl">
             <AuthBrandPanel />
           </div>
         </div>

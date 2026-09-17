@@ -840,6 +840,27 @@ export function useGeoJourneyDetail(
   });
 }
 
+export function usePrefetchGeoJourneyDetail(organizationId: string) {
+  const queryClient = useQueryClient();
+  const { projectId } = useGeoProjectScope();
+
+  return (journeyId: string) => {
+    if (!organizationId || journeyId.length === 0) {
+      return;
+    }
+    return queryClient.prefetchQuery(
+      dashboardOrpc.geo.journeyDetail.queryOptions({
+        input: {
+          organizationId,
+          projectId,
+          journeyId,
+          ...toGeoWindowInput(undefined),
+        },
+      })
+    );
+  };
+}
+
 export function useGeoIngestSetup(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoIngestSetupResponse>({

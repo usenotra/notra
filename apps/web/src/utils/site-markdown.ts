@@ -109,7 +109,7 @@ export function buildFeaturesMarkdown() {
     markdownSection("AI traffic, attributed", [
       FEATURES_TRAFFIC_COPY.description,
       "",
-      "No script tag. You add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt or Netlify site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
+      "No script tag. You add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt or TanStack Start site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
       "",
       "Every hit is labelled by purpose: model training, search index, cited in answer (an assistant read the page while answering someone) or referral (a person clicked through from an AI answer).",
     ]),

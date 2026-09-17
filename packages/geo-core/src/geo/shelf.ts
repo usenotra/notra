@@ -1,6 +1,7 @@
+import { GEO_SHELF_ROOT_URL_PATTERN_SOURCE } from "@notra/db/constants/geo-shelf";
 import { db } from "@notra/db/drizzle";
 import { geoShelfSources } from "@notra/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import type { GeoScopeInput } from "../types/geo";
@@ -18,7 +19,9 @@ export const loadGeoShelfSources = Effect.fn("geo.shelfSources")(function* (
       .where(
         and(
           eq(geoShelfSources.organizationId, input.organizationId),
-          eq(geoShelfSources.projectId, scope.projectId)
+          eq(geoShelfSources.projectId, scope.projectId),
+          // Homepages cited by scans are not shelf space; mirrors the dashboard store.
+          sql`not (${geoShelfSources.origin} = 'scan' and ${geoShelfSources.url} ~ ${GEO_SHELF_ROOT_URL_PATTERN_SOURCE})`
         )
       )
       .orderBy(desc(geoShelfSources.updatedAt), geoShelfSources.id)

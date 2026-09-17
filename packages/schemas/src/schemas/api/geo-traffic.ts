@@ -249,6 +249,7 @@ const ingestSetupFieldsSchema = z.object({
     next: z.string(),
     nuxt: z.string(),
     netlify: z.string(),
+    tanstack: z.string(),
   }),
   organization: organizationResponseSchema,
 });

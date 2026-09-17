@@ -10,6 +10,7 @@ import type { CompetitorShareCardProps } from "@/types/geo";
 
 export function CompetitorShareCard({
   points,
+  timeseries,
   companyName,
   aliases,
   competitors,
@@ -51,6 +52,7 @@ export function CompetitorShareCard({
         onSlicePointerEnter={organizationSlug ? prefetchRow : undefined}
         organizationId={organizationId}
         points={points}
+        timeseries={timeseries}
       />
     </InstrumentSection>
   );

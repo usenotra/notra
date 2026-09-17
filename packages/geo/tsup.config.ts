@@ -6,6 +6,7 @@ export default defineConfig({
     "src/next.ts",
     "src/nuxt.ts",
     "src/netlify.ts",
+    "src/tanstack.ts",
     "src/signatures.ts",
     "src/classify.ts",
     "src/markdown.ts",
