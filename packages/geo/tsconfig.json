@@ -6,6 +6,6 @@
     "strictNullChecks": true,
     "types": []
   },
-  "include": ["src"],
+  "include": ["src", "tests/types"],
   "exclude": ["node_modules"]
 }
