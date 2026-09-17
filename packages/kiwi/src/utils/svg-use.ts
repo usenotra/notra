@@ -783,8 +783,10 @@ function resolveTarget(
       next,
       target,
       {
-        width: Number.isFinite(width) ? width : (viewport?.width ?? NaN),
-        height: Number.isFinite(height) ? height : (viewport?.height ?? NaN),
+        width: Number.isFinite(width) ? width : (viewport?.width ?? Number.NaN),
+        height: Number.isFinite(height)
+          ? height
+          : (viewport?.height ?? Number.NaN),
       },
       ctx,
       out
@@ -919,10 +921,12 @@ function resolveChildNodes(
           nestedBase,
           child,
           {
-            width: Number.isFinite(width) ? width : (viewport?.width ?? NaN),
+            width: Number.isFinite(width)
+              ? width
+              : (viewport?.width ?? Number.NaN),
             height: Number.isFinite(height)
               ? height
-              : (viewport?.height ?? NaN),
+              : (viewport?.height ?? Number.NaN),
           },
           ctx,
           out
