@@ -126,6 +126,18 @@ describe("GEO mention evaluation", () => {
     );
   });
 
+  test("preserves a judge position beyond the evaluator's ranks", () => {
+    const farDown = { ...judgeResult, position: 14 };
+    const evaluation = toMentionEvaluation(evaluationResult("neutral", "3"));
+    expect(applyMentionEvaluation(farDown, true, evaluation)).toEqual({
+      ...farDown,
+      sentiment: "neutral",
+      position: 14,
+    });
+    const none = toMentionEvaluation(evaluationResult("neutral", "none"));
+    expect(applyMentionEvaluation(farDown, true, none).position).toBe(14);
+  });
+
   test("clears sentiment and position when the brand is not mentioned", () => {
     const evaluation = toMentionEvaluation(evaluationResult("positive", "1"));
     expect(

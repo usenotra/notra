@@ -109,9 +109,16 @@ export function toMentionEvaluation(
   };
 }
 
+/** The evaluator only offers ranks 1–MAX_POSITION and "none". */
+function isEvaluablePosition(position: number | null): boolean {
+  return position === null || position <= GEO_MENTION_EVALUATION_MAX_POSITION;
+}
+
 /**
  * `mentioned` is deterministic; sentiment and position prefer the typed
- * evaluation and fall back to the judge LLM when it was skipped.
+ * evaluation and fall back to the judge LLM when it was skipped. A judge
+ * position beyond the evaluator's ranks is preserved: Jev cannot express it
+ * and would replace it with `null` or a wrong in-range rank.
  */
 export function applyMentionEvaluation(
   judged: GeoJudgeResult,
@@ -121,10 +128,14 @@ export function applyMentionEvaluation(
   if (!mentioned) {
     return { ...judged, mentioned, position: null, sentiment: null };
   }
+  const position =
+    evaluation && isEvaluablePosition(judged.position)
+      ? evaluation.position
+      : judged.position;
   return {
     ...judged,
     mentioned,
-    position: evaluation ? evaluation.position : judged.position,
+    position,
     sentiment: evaluation ? evaluation.sentiment : judged.sentiment,
   };
 }
