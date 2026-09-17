@@ -71,7 +71,7 @@ export function McpUseCaseDetailView({
                 className="w-full sm:w-auto"
                 nativeButton={false}
                 render={
-                  <a
+                  <Link
                     href={MCP_USE_CASES_BUILD_YOUR_OWN_URL}
                     rel="noopener"
                     target="_blank"

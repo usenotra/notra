@@ -608,7 +608,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                           <AnimatePresence custom={direction} initial={false}>
                             <m.div
                               animate="center"
-                              className="absolute top-0 left-0 w-max origin-center will-change-[transform,opacity,filter]"
+                              className="absolute top-0 left-0 w-max origin-center"
                               custom={direction}
                               exit="exit"
                               initial="enter"
