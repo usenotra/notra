@@ -160,6 +160,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
     config,
     totalMentions,
     brandCount,
+    mentionSparklines,
     shareDelta,
     rankDelta,
   } = buildShareOfVoiceChartModel(props);
@@ -353,6 +354,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
           aliases={aliases}
           companyName={companyName}
           competitors={competitors}
+          mentionSparklines={mentionSparklines}
           onBrandClick={onSliceClick}
           onBrandPointerEnter={onSlicePointerEnter}
           onOpenChange={setOtherOpen}

@@ -22,6 +22,7 @@ import {
   toShareOfVoiceDonutSlices,
 } from "@/utils/geo-charts";
 import {
+  buildShareOfVoiceMentionSparklines,
   isOwnBrandName,
   shareOfVoiceRivalIndex,
   shareOfVoiceSliceColor,
@@ -39,11 +40,11 @@ function shareOfVoiceRank(
 }
 
 function sumWindow(
-  trend: readonly GeoSparklinePoint[],
+  series: readonly GeoSparklinePoint[],
   days: ReadonlySet<string>
 ): number {
   let total = 0;
-  for (const point of trend) {
+  for (const point of series) {
     if (days.has(point.day)) {
       total += point.value;
     }
@@ -53,19 +54,23 @@ function sumWindow(
 
 /**
  * Own share (in points) and rank compared between the second and the first
- * half of the settled days in range, matching `mentionCountDelta`.
+ * half of the settled days in range, matching `mentionCountDelta`. Works on
+ * daily mention counts, not on the daily share fractions in `row.trend`.
  */
 export function shareOfVoiceOwnTrends(
   rows: readonly ShareOfVoiceRow[],
   own: ShareOfVoiceRow | null,
+  mentionSparklines: ReadonlyMap<string, GeoSparklinePoint[]>,
   today = todayIsoDate()
 ): { shareDelta: number | null; rankDelta: number | null } {
   const empty = { shareDelta: null, rankDelta: null };
   if (!own) {
     return empty;
   }
+  const seriesOf = (row: ShareOfVoiceRow) =>
+    mentionSparklines.get(row.id) ?? [];
   const days = [
-    ...new Set(rows.flatMap((row) => row.trend.map((point) => point.day))),
+    ...new Set(rows.flatMap((row) => seriesOf(row).map((point) => point.day))),
   ]
     .filter((day) => day < today)
     .sort();
@@ -78,17 +83,21 @@ export function shareOfVoiceOwnTrends(
   const windowOf = (window: ReadonlySet<string>) => {
     const totals = rows.map((row) => ({
       id: row.id,
-      mentions: sumWindow(row.trend, window),
+      mentions: sumWindow(seriesOf(row), window),
     }));
     const total = totals.reduce((sum, row) => sum + row.mentions, 0);
-    const ownMentions = sumWindow(own.trend, window);
+    const ownMentions = sumWindow(seriesOf(own), window);
     return {
+      ownMentions,
       share: total > 0 ? ownMentions / total : null,
       rank: total > 0 ? shareOfVoiceRank(ownMentions, totals) : null,
     };
   };
   const previous = windowOf(previousDays);
   const current = windowOf(currentDays);
+  if (previous.ownMentions === 0 && current.ownMentions === 0) {
+    return empty;
+  }
   return {
     shareDelta:
       previous.share === null || current.share === null
@@ -103,6 +112,7 @@ export function shareOfVoiceOwnTrends(
 
 export function buildShareOfVoiceChartModel({
   points,
+  timeseries = [],
   competitors,
   companyName,
   aliases,
@@ -145,7 +155,6 @@ export function buildShareOfVoiceChartModel({
   const brandCount = ranked.some((row) => row.own)
     ? ranked.length
     : ranked.length + (own ? 1 : 0);
-  const ownTrends = shareOfVoiceOwnTrends(rows, own);
   const leaders = ranked.slice(0, limit);
   const ranking =
     own && !leaders.some((row) => row.own) ? [...leaders, own] : leaders;
@@ -165,6 +174,24 @@ export function buildShareOfVoiceChartModel({
           tracked: false,
         }
       : null;
+  // Daily mentions per brand; the aggregate sums every brand outside the
+  // displayed ranking, so it is built against the ranking rather than all rows.
+  const mentionSparklines = buildShareOfVoiceMentionSparklines(
+    timeseries,
+    rows,
+    competitors
+  );
+  if (other) {
+    const aggregateSeries = buildShareOfVoiceMentionSparklines(
+      timeseries,
+      [...ranking, other],
+      competitors
+    ).get(other.id);
+    if (aggregateSeries) {
+      mentionSparklines.set(other.id, aggregateSeries);
+    }
+  }
+  const ownTrends = shareOfVoiceOwnTrends(rows, own, mentionSparklines);
   const slices = toShareOfVoiceDonutSlices(
     other ? [...ranking, other] : ranking
   );
@@ -191,6 +218,7 @@ export function buildShareOfVoiceChartModel({
     config,
     totalMentions,
     brandCount,
+    mentionSparklines,
     ...ownTrends,
   };
 }

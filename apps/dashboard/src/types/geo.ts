@@ -1083,6 +1083,8 @@ export interface ShareOfVoiceBrandsDialogProps {
   onOpenChange: (open: boolean) => void;
   other: ShareOfVoiceRow;
   others: readonly ShareOfVoiceRow[];
+  /** Daily mentions keyed by row id, for the change indicators. */
+  mentionSparklines: ReadonlyMap<string, GeoSparklinePoint[]>;
   competitors?: GeoCompetitor[];
   companyName?: string | null;
   aliases?: readonly string[];
@@ -1096,6 +1098,7 @@ export type ShareOfVoiceBrandFilter = "all" | "tracked" | "discovered";
 
 export interface ShareOfVoiceBrandRowProps {
   row: ShareOfVoiceRow;
+  mentionSeries: readonly GeoSparklinePoint[];
   own: boolean;
   competitors?: GeoCompetitor[];
   ownDomain?: string | null;
@@ -1106,6 +1109,8 @@ export interface ShareOfVoiceBrandRowProps {
 
 export interface ShareOfVoiceChartProps {
   points: GeoCompetitorSharePoint[];
+  /** Daily mentions per brand; drives the change indicators. */
+  timeseries?: GeoCompetitorShareTimeseriesPoint[];
   competitors?: GeoCompetitor[];
   limit?: number;
   isScanning?: boolean;
@@ -1132,6 +1137,7 @@ export interface ShareOfVoiceRankingRowProps {
 
 export interface CompetitorShareCardProps {
   points: GeoCompetitorSharePoint[];
+  timeseries?: GeoCompetitorShareTimeseriesPoint[];
   companyName: string | null;
   aliases?: readonly string[];
   competitors?: GeoCompetitor[];

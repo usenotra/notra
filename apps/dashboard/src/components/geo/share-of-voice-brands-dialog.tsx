@@ -42,6 +42,7 @@ const BRANDS_SHEET_CONTENT_CLASS =
 
 function ShareOfVoiceBrandRow({
   row,
+  mentionSeries,
   own,
   competitors,
   ownDomain,
@@ -102,7 +103,7 @@ function ShareOfVoiceBrandRow({
       <td className="hidden px-3 sm:table-cell">
         <span className="flex h-7 items-center justify-end">
           <GeoStatDelta
-            delta={mentionCountDelta(row.trend)}
+            delta={mentionCountDelta(mentionSeries)}
             hint={GEO_FAMILY_STAT_TREND_HINT}
             label={`${row.brand} mentions`}
           />
@@ -139,6 +140,7 @@ function ShareOfVoiceBrandsContent({
   onOpenChange,
   other,
   others,
+  mentionSparklines,
   competitors,
   companyName,
   aliases,
@@ -184,7 +186,7 @@ function ShareOfVoiceBrandsContent({
             <dd className="mt-1 flex items-center gap-2 text-xl font-medium tabular-nums">
               {formatChartInteger(other.mentions)}
               <GeoStatDelta
-                delta={mentionCountDelta(other.trend)}
+                delta={mentionCountDelta(mentionSparklines.get(other.id) ?? [])}
                 hint={GEO_FAMILY_STAT_TREND_HINT}
                 label="Other brands mentions"
               />
@@ -273,6 +275,7 @@ function ShareOfVoiceBrandsContent({
               <ShareOfVoiceBrandRow
                 competitors={competitors}
                 key={row.id}
+                mentionSeries={mentionSparklines.get(row.id) ?? []}
                 onOpen={
                   onBrandClick
                     ? (brand) => {

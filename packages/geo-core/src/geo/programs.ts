@@ -970,8 +970,8 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     const checkWindow = toGeoCheckWindow(window);
 
     if (summaryOnly) {
-      // The competitors page only renders aggregate shares. Avoid the two
-      // additional full-range scans used for overview sparklines and charts.
+      // Callers that only render aggregate shares skip the two additional
+      // full-range scans used for sparklines, charts and change indicators.
       const rows = yield* geoDb("competitor share query failed", () =>
         queryGeoCheckCompetitorShare(
           checkScope,
