@@ -16,7 +16,8 @@
     "mcp",
     "netlify",
     "nextjs",
-    "nuxt"
+    "nuxt",
+    "tanstack"
   ],
   "homepage": "https://github.com/usenotra/notra/tree/main/packages/geo",
   "license": "MIT",
@@ -47,6 +48,10 @@
       "types": "./dist/netlify.d.ts",
       "default": "./dist/netlify.js"
     },
+    "./tanstack": {
+      "types": "./dist/tanstack.d.ts",
+      "default": "./dist/tanstack.js"
+    },
     "./signatures": {
       "types": "./dist/signatures.d.ts",
       "default": "./dist/signatures.js"
@@ -74,6 +79,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "test": "bun test tests",
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "prepublishOnly": "bun run build"
   },

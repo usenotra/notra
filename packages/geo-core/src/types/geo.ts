@@ -1080,7 +1080,7 @@ export interface GeoTrafficPagesResponse {
   pages: GeoTrafficPage[];
 }
 
-export type GeoIngestFramework = "next" | "nuxt" | "netlify";
+export type GeoIngestFramework = "next" | "nuxt" | "netlify" | "tanstack";
 
 export type GeoIngestPackageManager = "bun" | "pnpm" | "yarn" | "npm";
 
