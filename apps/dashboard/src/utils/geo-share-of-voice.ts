@@ -119,12 +119,19 @@ export function buildShareOfVoiceChartModel({
   limit = SHARE_OF_VOICE_RANKING_LIMIT,
 }: ShareOfVoiceChartProps) {
   const ownBrand = { companyName, aliases };
+  // Mentions under an own-brand alias count for the company name, both in
+  // the totals and in the daily series behind the change indicators.
+  const normalizeBrand = (brand: string) =>
+    companyName && isOwnBrandName(brand, companyName, aliases)
+      ? companyName
+      : brand;
   const normalizedPoints = points.map((point) => ({
     ...point,
-    brand:
-      companyName && isOwnBrandName(point.brand, companyName, aliases)
-        ? companyName
-        : point.brand,
+    brand: normalizeBrand(point.brand),
+  }));
+  const normalizedTimeseries = timeseries.map((point) => ({
+    ...point,
+    brand: normalizeBrand(point.brand),
   }));
   const { rows } = buildShareOfVoiceBreakdown(normalizedPoints, {
     competitors,
@@ -177,13 +184,13 @@ export function buildShareOfVoiceChartModel({
   // Daily mentions per brand; the aggregate sums every brand outside the
   // displayed ranking, so it is built against the ranking rather than all rows.
   const mentionSparklines = buildShareOfVoiceMentionSparklines(
-    timeseries,
+    normalizedTimeseries,
     rows,
     competitors
   );
   if (other) {
     const aggregateSeries = buildShareOfVoiceMentionSparklines(
-      timeseries,
+      normalizedTimeseries,
       [...ranking, other],
       competitors
     ).get(other.id);
