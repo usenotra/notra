@@ -579,7 +579,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                   {activeGroupData && (
                     <m.div
                       animate={{ ...PANEL_SCALE_REST, x: "-50%" }}
-                      className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[2.125rem]" : "pt-3"}`}
+                      className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[1.75rem]" : "pt-3"}`}
                       exit={{ ...PANEL_SCALE_OUT, x: "-50%" }}
                       initial={{ ...PANEL_SCALE_IN, x: "-50%" }}
                       key="navbar-dropdown"
