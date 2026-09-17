@@ -9,14 +9,21 @@ import {
   MCP_USE_CASES_PATH,
 } from "@/constants/mcp-use-cases";
 import type { McpUseCaseDetailViewProps } from "@/types/mcp-use-cases";
+import { getMcpUseCaseCategory } from "@/utils/mcp-use-cases";
 
 import { McpUseCaseCard } from "./use-case-card";
+import {
+  MCP_USE_CASE_PILL_CLASS,
+  McpUseCaseCategoryPill,
+} from "./use-case-category-pill";
 import { McpUseCasePromptBlock } from "./use-case-prompt-block";
 
 export function McpUseCaseDetailView({
   entry,
   related,
 }: McpUseCaseDetailViewProps) {
+  const category = getMcpUseCaseCategory(entry.category);
+
   return (
     <div className="flex w-full flex-col items-center pb-14">
       <section className="w-full px-6 pt-6 antialiased [font-synthesis:none]">
@@ -26,12 +33,16 @@ export function McpUseCaseDetailView({
           </div>
           <div className="relative flex w-full flex-col items-center gap-6 px-6 pt-20 pb-16 lg:pt-24">
             <Link
-              className="absolute top-[5.5rem] left-5 inline-flex cursor-pointer items-center gap-1.5 font-sans text-[0.875rem] leading-[1.29] font-medium whitespace-nowrap text-[#1E1E1E99] transition-colors hover:text-[#1E1E1E] lg:top-[5.75rem] lg:left-6 min-[87rem]:left-[calc((100%-80.9375rem)/2)] dark:text-white/60 dark:hover:text-white"
+              className={`${MCP_USE_CASE_PILL_CLASS} focus-visible:ring-primary absolute top-20 left-5 cursor-pointer pr-3.5 pl-2.5 transition-colors outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 lg:top-24 lg:left-6 min-[87rem]:left-[calc((100%-80.9375rem)/2)] dark:hover:bg-white/[0.12]`}
               href={MCP_USE_CASES_PATH}
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
               <span>All use cases</span>
             </Link>
+            <McpUseCaseCategoryPill
+              icon={category.icon}
+              label={category.label}
+            />
             <h1 className="font-display max-w-[47rem] text-center text-[2.5rem] leading-[1.12] font-medium tracking-[-0.015em] text-balance text-[#1E1E1E] sm:text-[3.25rem] lg:text-[4rem] dark:text-white">
               {entry.title}
             </h1>
