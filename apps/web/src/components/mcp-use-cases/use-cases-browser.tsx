@@ -3,10 +3,11 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import Link from "next/link";
-import { parseAsString, useQueryState } from "nuqs";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 import { HeroDither } from "@/components/landing/hero-dither";
 import {
+  MCP_USE_CASE_FILTER_IDS,
   MCP_USE_CASES_ALL_CATEGORY_ID,
   MCP_USE_CASES_PRIMARY_CTA,
   MCP_USE_CASES_SECONDARY_CTA,
@@ -31,7 +32,7 @@ export function McpUseCasesBrowser({
 }: McpUseCasesBrowserProps) {
   const [activeCategory, setActiveCategory] = useQueryState(
     "category",
-    parseAsString
+    parseAsStringLiteral(MCP_USE_CASE_FILTER_IDS)
       .withDefault(MCP_USE_CASES_ALL_CATEGORY_ID)
       .withOptions({ clearOnDefault: true, scroll: false })
   );

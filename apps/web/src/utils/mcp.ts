@@ -11,5 +11,5 @@ export function formatMcpWhatsNewDiscovery(toolCount: number): string {
 }
 
 export function formatMcpUseCasesCalloutLabel(useCaseCount: number): string {
-  return `${useCaseCount} copy-paste workflows for visibility tracking, content and reporting, each with the exact prompt and the tools it calls.`;
+  return `${useCaseCount} copy-paste workflows for visibility tracking, content and reporting, each with the exact prompt and the integrations it uses.`;
 }

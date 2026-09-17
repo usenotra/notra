@@ -118,7 +118,7 @@ const contentVariants = {
     opacity: 0,
     scale: CONTENT_SCALE_OUT,
     filter: CONTENT_BLUR,
-    transition: SWAP_EXIT_TRANSITION,
+    transition: direction === 0 ? { duration: 0 } : SWAP_EXIT_TRANSITION,
   }),
 };
 

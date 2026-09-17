@@ -14,7 +14,7 @@ import { DOCS_URL } from "@/utils/urls";
 
 export const MCP_USE_CASES_PATH = "/mcp/use-cases";
 
-export const MCP_USE_CASES_ALL_CATEGORY_ID = "all";
+export const MCP_USE_CASES_ALL_CATEGORY_ID = "all" as const;
 
 export const MCP_USE_CASES_RELATED_LIMIT = 3;
 
@@ -57,6 +57,10 @@ export const MCP_USE_CASE_CATEGORY_FILTERS: McpUseCaseCategoryFilter[] = [
   { id: MCP_USE_CASES_ALL_CATEGORY_ID, label: "All" },
   ...MCP_USE_CASE_CATEGORIES,
 ];
+
+export const MCP_USE_CASE_FILTER_IDS = MCP_USE_CASE_CATEGORY_FILTERS.map(
+  (filter) => filter.id
+);
 
 export const MCP_USE_CASES: McpUseCase[] = [
   {
