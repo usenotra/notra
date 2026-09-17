@@ -1,4 +1,4 @@
-import { ArrowLeft01Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import Link from "next/link";
@@ -12,10 +12,7 @@ import type { McpUseCaseDetailViewProps } from "@/types/mcp-use-cases";
 import { getMcpUseCaseCategory } from "@/utils/mcp-use-cases";
 
 import { McpUseCaseCard } from "./use-case-card";
-import {
-  MCP_USE_CASE_PILL_CLASS,
-  McpUseCaseCategoryPill,
-} from "./use-case-category-pill";
+import { McpUseCaseCategoryPill } from "./use-case-category-pill";
 import { McpUseCasePromptBlock } from "./use-case-prompt-block";
 
 export function McpUseCaseDetailView({
@@ -32,13 +29,6 @@ export function McpUseCaseDetailView({
             <HeroDither />
           </div>
           <div className="relative flex w-full flex-col items-center gap-6 px-6 pt-20 pb-16 lg:pt-24">
-            <Link
-              className={`${MCP_USE_CASE_PILL_CLASS} focus-visible:ring-primary absolute top-20 left-5 cursor-pointer pr-3.5 pl-2.5 transition-colors outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 lg:top-24 lg:left-6 min-[87rem]:left-[calc((100%-80.9375rem)/2)] dark:hover:bg-white/[0.12]`}
-              href={MCP_USE_CASES_PATH}
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
-              <span>All use cases</span>
-            </Link>
             <McpUseCaseCategoryPill
               icon={category.icon}
               label={category.label}

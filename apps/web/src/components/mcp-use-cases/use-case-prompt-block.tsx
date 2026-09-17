@@ -3,13 +3,7 @@
 import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { COMMAND_TABS_COPY_BUTTON_TRANSITION } from "@notra/ui/constants/command-tabs";
-import {
-  AnimatePresence,
-  domAnimation,
-  LazyMotion,
-  m,
-  useReducedMotion,
-} from "motion/react";
+import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -19,9 +13,7 @@ import { copyToClipboard } from "@/utils/copy-to-clipboard";
 import { McpUseCaseToolBadge } from "./use-case-tool-icon";
 
 const COPIED_STATE_DURATION_MS = 2000;
-const COPY_LABEL_BLUR = "blur(0.3125rem)";
-const COPY_LABEL_SHARP = "blur(0)";
-const COPY_LABEL_SHIFT = "70%";
+const COPY_LABEL_SHIFT_PX = 6;
 
 export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
   const [copied, setCopied] = useState(false);
@@ -59,47 +51,39 @@ export function McpUseCasePromptBlock({ entry }: McpUseCasePromptBlockProps) {
           Prompt
         </h2>
         <LazyMotion features={domAnimation}>
-          <m.button
+          <button
             aria-label={copied ? "Prompt copied" : "Copy prompt"}
-            className="focus-visible:ring-primary flex cursor-pointer items-center overflow-hidden rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#E4E4E7_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-[background-color,transform] duration-150 ease-out outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 active:scale-[0.97] dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
-            layout={!reduceMotion}
+            className="focus-visible:ring-primary grid cursor-pointer rounded-full bg-white px-3.5 py-1.75 font-sans text-[0.8125rem] leading-[1.23] font-medium text-[#1E1E1E] [box-shadow:#E4E4E7_0_0_0_0.0625rem,#28282814_0_0.0625rem_0.125rem] transition-[background-color,transform] duration-150 ease-out outline-none hover:bg-[#FAFAFA] focus-visible:ring-2 active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:[box-shadow:#FFFFFF1F_0_0_0_0.0625rem] dark:hover:bg-white/[0.12]"
             onClick={handleCopy}
-            transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
             type="button"
           >
-            <AnimatePresence initial={false} mode="popLayout">
-              <m.span
-                animate={{
-                  filter: COPY_LABEL_SHARP,
-                  opacity: 1,
-                  transform: "translateY(0%)",
-                }}
-                className="flex items-center gap-1.5"
-                exit={{
-                  filter: reduceMotion ? COPY_LABEL_SHARP : COPY_LABEL_BLUR,
-                  opacity: 0,
-                  transform: reduceMotion
-                    ? "translateY(0%)"
-                    : `translateY(-${COPY_LABEL_SHIFT})`,
-                }}
-                initial={{
-                  filter: reduceMotion ? COPY_LABEL_SHARP : COPY_LABEL_BLUR,
-                  opacity: 0,
-                  transform: reduceMotion
-                    ? "translateY(0%)"
-                    : `translateY(${COPY_LABEL_SHIFT})`,
-                }}
-                key={copied ? "copied" : "copy"}
-                transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
-              >
-                <HugeiconsIcon
-                  className="size-3.5"
-                  icon={copied ? Tick02Icon : Copy01Icon}
-                />
-                <span>{copied ? "Copied" : "Copy prompt"}</span>
-              </m.span>
-            </AnimatePresence>
-          </m.button>
+            <m.span
+              animate={{
+                opacity: copied ? 0 : 1,
+                y: copied && !reduceMotion ? -COPY_LABEL_SHIFT_PX : 0,
+              }}
+              aria-hidden={copied}
+              className="col-start-1 row-start-1 flex items-center justify-center gap-1.5"
+              initial={false}
+              transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
+            >
+              <HugeiconsIcon className="size-3.5" icon={Copy01Icon} />
+              <span>Copy prompt</span>
+            </m.span>
+            <m.span
+              animate={{
+                opacity: copied ? 1 : 0,
+                y: copied || reduceMotion ? 0 : COPY_LABEL_SHIFT_PX,
+              }}
+              aria-hidden={!copied}
+              className="col-start-1 row-start-1 flex items-center justify-center gap-1.5"
+              initial={false}
+              transition={COMMAND_TABS_COPY_BUTTON_TRANSITION}
+            >
+              <HugeiconsIcon className="size-3.5" icon={Tick02Icon} />
+              <span>Copied</span>
+            </m.span>
+          </button>
         </LazyMotion>
       </div>
       <div className="relative rounded-[1rem] bg-white px-5 py-5 [box-shadow:#E4E4E7_0_0_0_0.0625rem,#0A0D140A_0_0.0625rem_0.125rem] sm:px-6 sm:py-6 dark:bg-[#161618] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem,#FFFFFF0F_0_-0.0625rem_0_inset]">

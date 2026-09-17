@@ -2,7 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import { SPRING, TRANSITION } from "@notra/ui/lib/motion";
+import { TRANSITION } from "@notra/ui/lib/motion";
 import {
   AnimatePresence,
   domAnimation,
@@ -27,13 +27,14 @@ import { filterMcpUseCases } from "@/utils/mcp-use-cases";
 import { McpUseCaseCard } from "./use-case-card";
 
 const PILL_BASE =
-  "relative flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.75 font-medium font-sans text-[0.875rem] leading-[1.29] tracking-[-0.01em] outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-primary";
-const PILL_ACTIVE = "text-white dark:text-[#1E1E1E]";
+  "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.75 font-medium font-sans text-[0.875rem] leading-[1.29] tracking-[-0.01em] outline-none transition-[color,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-primary";
+const PILL_ACTIVE =
+  "bg-[#1E1E1E] text-white [box-shadow:#1E1E1E_0_0_0_0.0625rem] dark:bg-white dark:text-[#1E1E1E] dark:[box-shadow:#FFFFFF_0_0_0_0.0625rem]";
 const PILL_INACTIVE =
   "bg-white text-[#1E1E1EA6] [box-shadow:#ECECEC_0_0_0_0.0625rem] hover:text-[#1E1E1E] dark:bg-white/[0.04] dark:text-white/60 dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem] dark:hover:text-white";
 
-const CARD_HIDDEN = { opacity: 0, scale: 0.97 } as const;
-const CARD_VISIBLE = { opacity: 1, scale: 1 } as const;
+const GRID_HIDDEN = { opacity: 0 } as const;
+const GRID_VISIBLE = { opacity: 1 } as const;
 
 export function McpUseCasesBrowser({
   useCases,
@@ -48,17 +49,9 @@ export function McpUseCasesBrowser({
   const reduceMotion = useReducedMotion();
 
   const filtered = filterMcpUseCases(useCases, activeCategory);
-  const indicatorTransition = reduceMotion
+  const gridTransition = reduceMotion
     ? { duration: 0 }
-    : SPRING.indicatorFlat;
-  const gridTransition = reduceMotion ? { duration: 0 } : SPRING.snappy;
-  const cardTransition = reduceMotion
-    ? { duration: 0 }
-    : {
-        layout: SPRING.snappy,
-        opacity: TRANSITION.fade,
-        scale: TRANSITION.fade,
-      };
+    : { opacity: TRANSITION.fade };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -114,14 +107,6 @@ export function McpUseCasesBrowser({
                   onClick={() => setActiveCategory(category.id)}
                   type="button"
                 >
-                  {isActive ? (
-                    <m.span
-                      aria-hidden="true"
-                      className="absolute inset-0 -z-10 rounded-full bg-[#1E1E1E] dark:bg-white"
-                      layoutId="mcp-use-cases-filter-indicator"
-                      transition={indicatorTransition}
-                    />
-                  ) : null}
                   {category.icon ? (
                     <HugeiconsIcon className="size-3.5" icon={category.icon} />
                   ) : null}
@@ -130,28 +115,21 @@ export function McpUseCasesBrowser({
               );
             })}
           </div>
-          <m.div
-            aria-live="polite"
-            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-            layout
-            transition={gridTransition}
-          >
-            <AnimatePresence initial={false} mode="popLayout">
+          <AnimatePresence initial={false} mode="wait">
+            <m.div
+              animate={GRID_VISIBLE}
+              aria-live="polite"
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+              exit={GRID_HIDDEN}
+              initial={GRID_HIDDEN}
+              key={activeCategory}
+              transition={gridTransition}
+            >
               {filtered.map((entry) => (
-                <m.div
-                  animate={CARD_VISIBLE}
-                  className="h-full"
-                  exit={CARD_HIDDEN}
-                  initial={CARD_HIDDEN}
-                  key={entry.slug}
-                  layout
-                  transition={cardTransition}
-                >
-                  <McpUseCaseCard entry={entry} />
-                </m.div>
+                <McpUseCaseCard entry={entry} key={entry.slug} />
               ))}
-            </AnimatePresence>
-          </m.div>
+            </m.div>
+          </AnimatePresence>
           {filtered.length === 0 ? (
             <p className="py-14 text-center font-sans text-[0.9375rem] text-[#1E1E1E80] dark:text-white/50">
               No use cases in this category yet.
