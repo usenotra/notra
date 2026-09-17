@@ -345,6 +345,7 @@ export interface RouteUsageStep {
     inputTokens?: number;
     outputTokens?: number;
     inputTokenDetails?: {
+      noCacheTokens?: number;
       cacheReadTokens?: number;
       cacheWriteTokens?: number;
     };
