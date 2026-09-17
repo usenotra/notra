@@ -47,10 +47,6 @@ export function translateTransform(x: number, y: number): Transform {
   return { m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y };
 }
 
-/**
- * Parse a `href`/`xlink:href` value. Only local fragment references (`#id`)
- * are supported; external URLs resolve to null so callers skip them silently.
- */
 export function parseUseHref(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   if (!trimmed) {
@@ -87,7 +83,6 @@ function transformNumbers(args: string): number[] {
   return out;
 }
 
-/** Parse an SVG `transform` attribute into a 2D matrix. Unknown functions are ignored. */
 export function parseSvgTransformAttr(
   value: string | null | undefined
 ): Transform {
@@ -240,7 +235,6 @@ export function parsePreserveAspectRatio(
   };
 }
 
-/** Map a viewBox onto a viewport, honoring preserveAspectRatio. */
 export function computeViewBoxTransform(
   viewBox: SvgViewBox,
   viewport: SvgUseViewport,
@@ -287,17 +281,11 @@ function tagOf(el: Element): string {
   return el.tagName.toLowerCase();
 }
 
-/** Viewport dimensions used to resolve percentage lengths. May hold NaN. */
 interface ViewportSize {
   width: number;
   height: number;
 }
 
-/**
- * Parse an SVG length. Percentages resolve against `reference` and yield NaN
- * when no usable viewport size is known (callers fall back to viewBox
- * dimensions instead of misreading e.g. "50%" as 50 user units).
- */
 function resolveSvgLength(
   raw: string | null | undefined,
   reference: number | null
@@ -320,14 +308,12 @@ function resolveSvgLength(
   return Number.isFinite(num) ? num : Number.NaN;
 }
 
-/** Determinable size of an `<svg>` viewport element, or null. */
 function viewportSizeOfSvg(svgEl: Element): ViewportSize | null {
   const width = resolveSvgLength(svgEl.getAttribute("width"), null);
   const height = resolveSvgLength(svgEl.getAttribute("height"), null);
   if (Number.isFinite(width) && Number.isFinite(height)) {
     return { width, height };
   }
-  // Percentage (or missing) dimensions: fall back to the viewBox extent.
   const viewBox = parseSvgViewBox(svgEl.getAttribute("viewBox"));
   if (viewBox) {
     return { width: viewBox.width, height: viewBox.height };
@@ -335,11 +321,6 @@ function viewportSizeOfSvg(svgEl: Element): ViewportSize | null {
   return null;
 }
 
-/**
- * Viewport hosting `useEl`: the nearest ancestor `<svg>` with a
- * determinable size, else the root. Null when nothing can be determined
- * (percentages then degrade to viewBox fallbacks downstream).
- */
 function hostViewportOf(useEl: Element, svgRoot: Element): ViewportSize | null {
   let node: Element | null = useEl.parentElement;
   while (node) {
@@ -366,29 +347,31 @@ function escapeIdForQuery(id: string): string | null {
       return null;
     }
   }
-  // No CSS.escape (e.g. unit tests): fall back to a safe manual escape.
   if (/^[A-Za-z_][A-Za-z0-9_-]*$/.test(id)) {
     return id;
   }
   return null;
 }
 
+function querySelectorSafe(
+  root: Element,
+  selector: string
+): Element | null {
+  try {
+    return root.querySelector(selector);
+  } catch {
+    return null;
+  }
+}
+
 function findElementById(svgRoot: Element, id: string): Element | null {
-  // Prefer the in-root match so duplicate IDs in other inline SVGs on the
-  // same page can't hijack the reference. Fall back to the document lookup
-  // to support sprite sheets where <symbol> lives in a hidden SVG.
   const escaped = escapeIdForQuery(id);
   if (escaped) {
-    try {
-      const scoped = svgRoot.querySelector(`#${escaped}`);
-      if (scoped) {
-        return scoped;
-      }
-    } catch {
-      // Fall through to document lookup.
+    const scoped = querySelectorSafe(svgRoot, `#${escaped}`);
+    if (scoped) {
+      return scoped;
     }
   } else {
-    // IDs that can't be expressed as a selector: linear scan of the root.
     const stack: Element[] = [svgRoot];
     while (stack.length > 0) {
       const el = stack.pop();
@@ -437,10 +420,6 @@ function screenTransformOf(el: Element): Transform | null {
   }
 }
 
-/**
- * Direct element children in document order. Duck-types the collection so
- * unit-test doubles without a real DOM still work.
- */
 function elementChildren(node: Element): Element[] {
   const out: Element[] = [];
   const kids = node.children as unknown as ArrayLike<Element>;
@@ -456,11 +435,8 @@ function elementChildren(node: Element): Element[] {
 
 interface UseResolutionContext {
   svgRoot: Element;
-  /** Outermost use first; grows as nested uses resolve. */
   useChain: Element[];
-  /** Ancestors of the outermost use up to the svg root, for paint fallback. */
   useAncestors: Element[];
-  /** Inner paint chains (nested use + its in-symbol ancestors), innermost last. */
   innerPaintChains: Element[][];
   seenIds: Set<string>;
   depth: number;
@@ -479,7 +455,6 @@ function ancestorChain(el: Element, stop: Element | null): Element[] {
   return chain;
 }
 
-/** Leaf-to-container paint chain, container included. */
 function paintChainTo(leaf: Element, container: Element): Element[] {
   const chain: Element[] = [leaf];
   let node: Element | null = leaf.parentElement;
@@ -493,10 +468,6 @@ function paintChainTo(leaf: Element, container: Element): Element[] {
   return chain;
 }
 
-/**
- * Product of `transform` attributes from the container's child down to `el`
- * itself. The container's own transform is excluded (callers apply it once).
- */
 function matrixFromAncestorChain(el: Element, stop: Element): Transform {
   const chain: Element[] = [];
   let node: Element | null = el;
@@ -518,11 +489,6 @@ function matrixFromAncestorChain(el: Element, stop: Element): Transform {
   return result;
 }
 
-/**
- * Paint declared directly on `el`: inline style first (it beats presentation
- * attributes in the cascade), then the presentation attribute. Returns null
- * when the element declares nothing, so callers keep walking outward.
- */
 function elementPaintAttr(el: Element, name: string): string | null {
   try {
     const style = (
@@ -535,7 +501,7 @@ function elementPaintAttr(el: Element, name: string): string | null {
       return inline;
     }
   } catch {
-    // Non-DOM test doubles: fall through to attributes.
+    return el.getAttribute(name)?.trim() || null;
   }
   return el.getAttribute(name)?.trim() || null;
 }
@@ -553,11 +519,6 @@ function firstPaintAttr(chains: Element[][], name: string): string | null {
   return null;
 }
 
-/**
- * Stylesheet-origin paint for the referenced node. getComputedStyle folds
- * inheritance from the referenced ancestors automatically; the caller only
- * consults it when attributes/inline styles specify nothing.
- */
 function computedPaintOf(el: Element, name: "fill" | "stroke"): string | null {
   try {
     const getStyle = (
@@ -578,13 +539,6 @@ function computedPaintOf(el: Element, name: "fill" | "stroke"): string | null {
   }
 }
 
-/**
- * The CSS initial value of `fill` is black, which is also what an unstyled
- * node computes to. Exclude it so genuinely unstyled content still inherits
- * the `<use>` context instead of being pinned to black. (Explicit
- * `fill: black` via stylesheet + a conflicting use color is a known,
- * accepted corner.)
- */
 const INITIAL_FILL_VALUES = new Set([
   "black",
   "#000",
@@ -645,8 +599,6 @@ function pushResolvedGeometry(
       ? "evenodd"
       : "nonzero";
   const fill = firstPaintAttr(chains, "fill");
-  // Stylesheet-origin fill: only when nothing is declared, and only when it
-  // carries author intent (see isInitialFillValue).
   let fillComputed: string | null = null;
   if (!fill) {
     const computed = computedPaintOf(target, "fill");
@@ -655,8 +607,6 @@ function pushResolvedGeometry(
     }
   }
   const stroke = firstPaintAttr(chains, "stroke");
-  // Unspecified strokes compute to "none", which the caller already maps to
-  // "no paint", so no initial-value guard is needed here.
   const strokeComputed = !stroke ? computedPaintOf(target, "stroke") : null;
   out.push({
     subpaths,
@@ -777,7 +727,6 @@ function resolveTarget(
         )
       );
     }
-    // Width/height default to 100%: unresolvable extents inherit the host.
     resolveChildNodes(
       target,
       next,
@@ -795,7 +744,6 @@ function resolveTarget(
   }
 
   if (tag === "use") {
-    // Nested use reached directly (defensive; container traversal handles the rest).
     const id = parseUseHref(
       target.getAttribute("href") ?? target.getAttribute("xlink:href")
     );
@@ -806,8 +754,6 @@ function resolveTarget(
     if (!nestedTarget) {
       return;
     }
-    // Recursion-stack semantics: allow the same id as a sibling later, but
-    // block true cycles (A -> B -> A) while on the stack.
     ctx.seenIds.add(id);
     ctx.useChain.push(target);
     ctx.depth += 1;
@@ -839,8 +785,6 @@ function resolveTarget(
     return;
   }
 
-  // Transparent containers (g, a, defs, switch, unknown): apply their own
-  // transform once, then resolve children with per-descendant chains.
   const next = multiplyTransforms(
     base,
     parseSvgTransformAttr(target.getAttribute("transform"))
@@ -848,17 +792,6 @@ function resolveTarget(
   resolveChildNodes(target, next, target, viewport, ctx, out);
 }
 
-/**
- * Walk a container's children in document order so later content keeps its
- * SVG paint stacking above earlier content.
- *
- * - `node` is the element whose direct children are visited (descends
- *   transparently through g/a/switch without disturbing order);
- * - `base` is the transform accumulated up to `container`;
- * - `container` bounds the paint/matrix chains (a nested `<svg>` becomes the
- *   new container with viewport-aware geometry);
- * - `viewport` is the established viewport for percentage lengths.
- */
 function resolveChildNodes(
   node: Element,
   base: Transform,
@@ -869,8 +802,6 @@ function resolveChildNodes(
 ): void {
   for (const child of elementChildren(node)) {
     const tag = tagOf(child);
-    // Nested definitions instantiate through <use> only; the directly
-    // targeted container itself was already entered by the caller.
     if (DEFINITION_TAGS.has(tag)) {
       continue;
     }
@@ -913,7 +844,6 @@ function resolveChildNodes(
           )
         );
       }
-      // Preserve paint inheritance across the viewport boundary.
       ctx.innerPaintChains.push(paintChainTo(child, container));
       try {
         resolveChildNodes(
@@ -990,21 +920,10 @@ function resolveChildNodes(
       );
       continue;
     }
-    // Transparent container: descend in place so siblings keep their order.
-    // `base`/`container` are unchanged; the leaf folds the full chain, which
-    // only spans transform attributes (viewport crossings always recurse).
     resolveChildNodes(child, base, container, viewport, ctx, out);
   }
 }
 
-/**
- * Resolve a rendered `<use>` element to absolute geometry shapes.
- *
- * Only local `#id` references are supported. Paints inherit from the
- * referenced node first, then from the use element and its ancestors, so the
- * caller can fall back to computed styles for anything still unspecified.
- * Unresolvable references yield no shapes (graceful fallback).
- */
 export function resolveUseShapes(
   useEl: Element,
   svgRoot: Element
@@ -1024,14 +943,7 @@ export function resolveUseShapes(
   if (!screen) {
     return out;
   }
-  // getScreenCTM() already folds the use element's own `transform` attribute
-  // AND its supplemental x/y translation (SVG 1.1 §5.6: x/y append
-  // translate(x,y) to the transform list), so use it directly. Appending
-  // another translate(x,y) here would offset every instance twice.
   const base = screen;
-  // Ancestor transforms above the referenced node do not apply to the
-  // instance (only the use location does), so chains stop at the target.
-  // The one exception is transparent containers, handled per-descendant.
   const ctx: UseResolutionContext = {
     svgRoot,
     useChain: [useEl],

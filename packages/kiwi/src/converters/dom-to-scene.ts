@@ -627,10 +627,6 @@ function pushResolvedUseShape(
   if (resolved.subpaths.length === 0) {
     return;
   }
-  // Paint priority per shadow-DOM inheritance: declared paints on the
-  // referenced content (attributes, inline styles) win, then
-  // stylesheet-origin computed paints carried on the shape, and only then
-  // the <use> context. An unstyled shape keeps inheriting the use paint.
   const fill = svgPaintValue(
     resolved.fill ?? resolved.fillComputed,
     useStyle.fill ?? null,
@@ -740,8 +736,6 @@ function extractLayout(node: Node): LayoutNode | null {
       if (!(geomEl instanceof SVGGraphicsElement)) {
         continue;
       }
-      // Definition contents (symbol sprites, defs) are not rendered directly;
-      // they materialize through <use> instances resolved below.
       if (geomEl.closest("defs, symbol")) {
         continue;
       }
@@ -827,9 +821,6 @@ function extractLayout(node: Node): LayoutNode | null {
       );
     }
 
-    // Resolve <use href="#id"> instances (icon systems, symbol sprites).
-    // Uses inside definitions are skipped here; they resolve recursively as
-    // part of the outer instance that instantiates them.
     for (const useEl of Array.from(svg.querySelectorAll("use"))) {
       if (!(useEl instanceof Element)) {
         continue;
