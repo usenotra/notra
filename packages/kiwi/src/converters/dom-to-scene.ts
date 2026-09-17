@@ -627,13 +627,17 @@ function pushResolvedUseShape(
   if (resolved.subpaths.length === 0) {
     return;
   }
+  // Paint priority per shadow-DOM inheritance: declared paints on the
+  // referenced content (attributes, inline styles) win, then
+  // stylesheet-origin computed paints carried on the shape, and only then
+  // the <use> context. An unstyled shape keeps inheriting the use paint.
   const fill = svgPaintValue(
-    resolved.fill,
+    resolved.fill ?? resolved.fillComputed,
     useStyle.fill ?? null,
     currentColor
   );
   const stroke = svgPaintValue(
-    resolved.stroke,
+    resolved.stroke ?? resolved.strokeComputed,
     useStyle.stroke ?? null,
     currentColor
   );

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { Transform } from "../types/scene";
+import type { Transform } from "../src/types/scene";
 import {
   computeViewBoxTransform,
   parsePreserveAspectRatio,
@@ -8,7 +8,7 @@ import {
   parseSvgViewBox,
   parseUseHref,
   resolveUseShapes,
-} from "./svg-use";
+} from "../src/utils/svg-use";
 
 function applyMatrix(t: Transform, x: number, y: number): [number, number] {
   return [t.m00 * x + t.m01 * y + t.m02, t.m10 * x + t.m11 * y + t.m12];
@@ -71,6 +71,28 @@ class FakeElement {
 
   getAttribute(name: string): string | null {
     return this.attrs[name] ?? null;
+  }
+
+  /** Minimal inline-style support so paint-priority tests can use style="". */
+  get style(): { getPropertyValue(prop: string): string } {
+    return {
+      getPropertyValue: (prop: string): string => {
+        const raw = this.attrs["style"] ?? "";
+        for (const declaration of raw.split(";")) {
+          const separator = declaration.indexOf(":");
+          if (separator < 0) {
+            continue;
+          }
+          if (
+            declaration.slice(0, separator).trim().toLowerCase() ===
+            prop.toLowerCase()
+          ) {
+            return declaration.slice(separator + 1).trim();
+          }
+        }
+        return "";
+      },
+    };
   }
 
   querySelectorAll(selector: string): FakeElement[] {
@@ -529,5 +551,131 @@ describe("resolveUseShapes", () => {
     const [x, y] = applyMatrix(shapes[0]?.transform as Transform, 0, 0);
     expect(x).toBeCloseTo(5, 10);
     expect(y).toBeCloseTo(7, 10);
+  });
+
+  test("emits interleaved content in document order", () => {
+    const first = new FakeElement("rect", {
+      x: "0",
+      y: "0",
+      width: "2",
+      height: "2",
+      fill: "red",
+    });
+    const innerPath = new FakeElement("path", {
+      d: "M0 0H2V2H0Z",
+      fill: "green",
+    });
+    const inner = new FakeElement("symbol", { id: "mid" }, [innerPath]);
+    const middle = new FakeElement("use", { href: "#mid" });
+    const last = new FakeElement("circle", {
+      cx: "1",
+      cy: "1",
+      r: "1",
+      fill: "blue",
+    });
+    const symbol = new FakeElement("symbol", { id: "ordered" }, [
+      first,
+      middle,
+      last,
+    ]);
+    const defs = new FakeElement("defs", {}, [inner, symbol]);
+    const use = new FakeElement("use", { href: "#ordered" });
+    use.ctm = { ...IDENTITY_CTM };
+    const svg = new FakeElement("svg", {}, [defs, use]);
+    const doc = new FakeDocument();
+    attachDoc(svg, doc);
+    const shapes = resolveUseShapes(
+      use as unknown as Element,
+      svg as unknown as Element
+    );
+    // Stacking must follow document order, not geometry-first batching.
+    expect(shapes.map((shape) => shape.fill)).toEqual(["red", "green", "blue"]);
+  });
+
+  test("falls back to viewBox when symbol dimensions are percentages", () => {
+    const path = new FakeElement("path", {
+      d: "M0 0H10V10H0Z",
+      fill: "red",
+    });
+    const symbol = new FakeElement(
+      "symbol",
+      { id: "pct", viewBox: "0 0 10 10" },
+      [path]
+    );
+    const defs = new FakeElement("defs", {}, [symbol]);
+    // "50%" with no determinable host viewport must not be read as 50 units.
+    const use = new FakeElement("use", {
+      href: "#pct",
+      width: "50%",
+      height: "50%",
+    });
+    use.ctm = { ...IDENTITY_CTM };
+    const svg = new FakeElement("svg", {}, [defs, use]);
+    const doc = new FakeDocument();
+    attachDoc(svg, doc);
+    const shapes = resolveUseShapes(
+      use as unknown as Element,
+      svg as unknown as Element
+    );
+    expect(shapes).toHaveLength(1);
+    const [x, y] = applyMatrix(shapes[0]?.transform as Transform, 10, 10);
+    expect(x).toBeCloseTo(10, 10);
+    expect(y).toBeCloseTo(10, 10);
+  });
+
+  test("resolves use percentage widths against the host viewport", () => {
+    const path = new FakeElement("path", {
+      d: "M0 0H10V10H0Z",
+      fill: "red",
+    });
+    const symbol = new FakeElement(
+      "symbol",
+      { id: "pct-host", viewBox: "0 0 10 10" },
+      [path]
+    );
+    const defs = new FakeElement("defs", {}, [symbol]);
+    const use = new FakeElement("use", {
+      href: "#pct-host",
+      width: "50%",
+      height: "50%",
+    });
+    use.ctm = { ...IDENTITY_CTM };
+    const svg = new FakeElement(
+      "svg",
+      { width: "40", height: "20", viewBox: "0 0 40 20" },
+      [defs, use]
+    );
+    const doc = new FakeDocument();
+    attachDoc(svg, doc);
+    const shapes = resolveUseShapes(
+      use as unknown as Element,
+      svg as unknown as Element
+    );
+    expect(shapes).toHaveLength(1);
+    // 50% of the 40x20 host viewport => 20x10 viewport; meet-fit of the
+    // 10x10 viewBox => scale 1 with 5 units of horizontal centering.
+    const [x, y] = applyMatrix(shapes[0]?.transform as Transform, 10, 10);
+    expect(x).toBeCloseTo(15, 10);
+    expect(y).toBeCloseTo(10, 10);
+  });
+
+  test("inline styles on referenced content beat use paints", () => {
+    const path = new FakeElement("path", {
+      d: "M0 0H4V4H0Z",
+      style: "fill: orange",
+    });
+    const symbol = new FakeElement("symbol", { id: "styled" }, [path]);
+    const defs = new FakeElement("defs", {}, [symbol]);
+    const use = new FakeElement("use", { href: "#styled", fill: "green" });
+    use.ctm = { ...IDENTITY_CTM };
+    const svg = new FakeElement("svg", {}, [defs, use]);
+    const doc = new FakeDocument();
+    attachDoc(svg, doc);
+    const shapes = resolveUseShapes(
+      use as unknown as Element,
+      svg as unknown as Element
+    );
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0]?.fill).toBe("orange");
   });
 });

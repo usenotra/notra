@@ -1,4 +1,3 @@
-import { SVG_GEOMETRY_SELECTOR } from "../constants/dom-to-scene";
 import type { Transform } from "../types/scene";
 import type { SvgPrimitiveAttrs } from "../types/svg-primitive";
 import type {
@@ -288,13 +287,74 @@ function tagOf(el: Element): string {
   return el.tagName.toLowerCase();
 }
 
-function attrNumber(el: Element, name: string, fallback = 0): number {
-  const raw = el.getAttribute(name);
-  if (raw == null || raw === "") {
-    return fallback;
+/** Viewport dimensions used to resolve percentage lengths. May hold NaN. */
+interface ViewportSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * Parse an SVG length. Percentages resolve against `reference` and yield NaN
+ * when no usable viewport size is known (callers fall back to viewBox
+ * dimensions instead of misreading e.g. "50%" as 50 user units).
+ */
+function resolveSvgLength(
+  raw: string | null | undefined,
+  reference: number | null
+): number {
+  const trimmed = raw?.trim();
+  if (!trimmed) {
+    return Number.NaN;
   }
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  if (trimmed.endsWith("%")) {
+    const num = Number.parseFloat(trimmed);
+    if (!Number.isFinite(num)) {
+      return Number.NaN;
+    }
+    if (reference == null || !Number.isFinite(reference)) {
+      return Number.NaN;
+    }
+    return (num / 100) * reference;
+  }
+  const num = Number.parseFloat(trimmed);
+  return Number.isFinite(num) ? num : Number.NaN;
+}
+
+/** Determinable size of an `<svg>` viewport element, or null. */
+function viewportSizeOfSvg(svgEl: Element): ViewportSize | null {
+  const width = resolveSvgLength(svgEl.getAttribute("width"), null);
+  const height = resolveSvgLength(svgEl.getAttribute("height"), null);
+  if (Number.isFinite(width) && Number.isFinite(height)) {
+    return { width, height };
+  }
+  // Percentage (or missing) dimensions: fall back to the viewBox extent.
+  const viewBox = parseSvgViewBox(svgEl.getAttribute("viewBox"));
+  if (viewBox) {
+    return { width: viewBox.width, height: viewBox.height };
+  }
+  return null;
+}
+
+/**
+ * Viewport hosting `useEl`: the nearest ancestor `<svg>` with a
+ * determinable size, else the root. Null when nothing can be determined
+ * (percentages then degrade to viewBox fallbacks downstream).
+ */
+function hostViewportOf(useEl: Element, svgRoot: Element): ViewportSize | null {
+  let node: Element | null = useEl.parentElement;
+  while (node) {
+    if (tagOf(node) === "svg") {
+      const size = viewportSizeOfSvg(node);
+      if (size) {
+        return size;
+      }
+    }
+    if (node === svgRoot) {
+      break;
+    }
+    node = node.parentElement;
+  }
+  return viewportSizeOfSvg(svgRoot);
 }
 
 function escapeIdForQuery(id: string): string | null {
@@ -377,12 +437,21 @@ function screenTransformOf(el: Element): Transform | null {
   }
 }
 
-function queryDescendants(container: Element, selector: string): Element[] {
-  try {
-    return Array.from(container.querySelectorAll(selector));
-  } catch {
-    return [];
+/**
+ * Direct element children in document order. Duck-types the collection so
+ * unit-test doubles without a real DOM still work.
+ */
+function elementChildren(node: Element): Element[] {
+  const out: Element[] = [];
+  const kids = node.children as unknown as ArrayLike<Element>;
+  const count = kids.length ?? 0;
+  for (let i = 0; i < count; i += 1) {
+    const kid = kids[i] as Element | undefined;
+    if (kid && typeof kid.tagName === "string") {
+      out.push(kid);
+    }
   }
+  return out;
 }
 
 interface UseResolutionContext {
@@ -449,42 +518,32 @@ function matrixFromAncestorChain(el: Element, stop: Element): Transform {
   return result;
 }
 
-/** True when `el` sits under a <defs>/<symbol> that is not instantiated here. */
-function isUnderNestedDefinition(el: Element, stop: Element): boolean {
-  let node: Element | null = el.parentElement;
-  while (node && node !== stop) {
-    if (DEFINITION_TAGS.has(tagOf(node))) {
-      return true;
-    }
-    node = node.parentElement;
-  }
-  return false;
-}
-
 /**
- * True when `el` sits under a nested `<svg>` viewport (not `stop` itself).
- * Such subtrees need viewport-aware recursion (x/y + viewBox), so the flat
- * transform-only path must skip them; they are handled by recursing into the
- * nested viewport instead.
+ * Paint declared directly on `el`: inline style first (it beats presentation
+ * attributes in the cascade), then the presentation attribute. Returns null
+ * when the element declares nothing, so callers keep walking outward.
  */
-function isUnderNestedViewport(el: Element, stop: Element): boolean {
-  let node: Element | null = el.parentElement;
-  while (node && node !== stop) {
-    if (tagOf(node) === "svg") {
-      return true;
+function elementPaintAttr(el: Element, name: string): string | null {
+  try {
+    const style = (
+      el as unknown as {
+        style?: { getPropertyValue(prop: string): string | null };
+      }
+    ).style;
+    const inline = style?.getPropertyValue(name)?.trim();
+    if (inline) {
+      return inline;
     }
-    if (DEFINITION_TAGS.has(tagOf(node))) {
-      return true;
-    }
-    node = node.parentElement;
+  } catch {
+    // Non-DOM test doubles: fall through to attributes.
   }
-  return false;
+  return el.getAttribute(name)?.trim() || null;
 }
 
 function firstPaintAttr(chains: Element[][], name: string): string | null {
   for (const chain of chains) {
     for (const el of chain) {
-      const raw = el.getAttribute(name)?.trim();
+      const raw = elementPaintAttr(el, name);
       if (!raw || raw.toLowerCase() === "inherit") {
         continue;
       }
@@ -492,6 +551,50 @@ function firstPaintAttr(chains: Element[][], name: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Stylesheet-origin paint for the referenced node. getComputedStyle folds
+ * inheritance from the referenced ancestors automatically; the caller only
+ * consults it when attributes/inline styles specify nothing.
+ */
+function computedPaintOf(el: Element, name: "fill" | "stroke"): string | null {
+  try {
+    const getStyle = (
+      globalThis as {
+        getComputedStyle?: (node: Element) => CSSStyleDeclaration;
+      }
+    ).getComputedStyle;
+    if (typeof getStyle !== "function") {
+      return null;
+    }
+    const value = getStyle(el)?.getPropertyValue(name)?.trim();
+    if (!value || value.toLowerCase() === "inherit") {
+      return null;
+    }
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The CSS initial value of `fill` is black, which is also what an unstyled
+ * node computes to. Exclude it so genuinely unstyled content still inherits
+ * the `<use>` context instead of being pinned to black. (Explicit
+ * `fill: black` via stylesheet + a conflicting use color is a known,
+ * accepted corner.)
+ */
+const INITIAL_FILL_VALUES = new Set([
+  "black",
+  "#000",
+  "#000000",
+  "rgb(0,0,0)",
+  "rgba(0,0,0,1)",
+]);
+
+function isInitialFillValue(value: string): boolean {
+  return INITIAL_FILL_VALUES.has(value.toLowerCase().replace(/\s+/g, ""));
 }
 
 function paintChainsFor(
@@ -541,12 +644,28 @@ function pushResolvedGeometry(
     firstPaintAttr(chains, "clip-rule") === "evenodd"
       ? "evenodd"
       : "nonzero";
+  const fill = firstPaintAttr(chains, "fill");
+  // Stylesheet-origin fill: only when nothing is declared, and only when it
+  // carries author intent (see isInitialFillValue).
+  let fillComputed: string | null = null;
+  if (!fill) {
+    const computed = computedPaintOf(target, "fill");
+    if (computed && !isInitialFillValue(computed)) {
+      fillComputed = computed;
+    }
+  }
+  const stroke = firstPaintAttr(chains, "stroke");
+  // Unspecified strokes compute to "none", which the caller already maps to
+  // "no paint", so no initial-value guard is needed here.
+  const strokeComputed = !stroke ? computedPaintOf(target, "stroke") : null;
   out.push({
     subpaths,
     transform: base,
-    fill: firstPaintAttr(chains, "fill"),
+    fill,
+    fillComputed,
     fillRule,
-    stroke: firstPaintAttr(chains, "stroke"),
+    stroke,
+    strokeComputed,
     strokeLineCap: firstPaintAttr(chains, "stroke-linecap"),
     strokeLineJoin: firstPaintAttr(chains, "stroke-linejoin"),
     strokeDasharray: firstPaintAttr(chains, "stroke-dasharray"),
@@ -558,7 +677,8 @@ function resolveTarget(
   target: Element,
   base: Transform,
   ctx: UseResolutionContext,
-  out: ResolvedUseShape[]
+  out: ResolvedUseShape[],
+  viewport: ViewportSize | null
 ): void {
   if (ctx.depth > MAX_USE_DEPTH) {
     return;
@@ -578,10 +698,13 @@ function resolveTarget(
     const viewBox = parseSvgViewBox(target.getAttribute("viewBox"));
     const refUse = ctx.useChain.at(-1);
     const widthAttr = refUse
-      ? attrNumber(refUse, "width", Number.NaN)
+      ? resolveSvgLength(refUse.getAttribute("width"), viewport?.width ?? null)
       : Number.NaN;
     const heightAttr = refUse
-      ? attrNumber(refUse, "height", Number.NaN)
+      ? resolveSvgLength(
+          refUse.getAttribute("height"),
+          viewport?.height ?? null
+        )
       : Number.NaN;
     const viewportWidth = Number.isFinite(widthAttr)
       ? widthAttr
@@ -607,21 +730,43 @@ function resolveTarget(
         )
       );
     }
-    resolveContainerChildren(target, next, ctx, out);
+    resolveChildNodes(
+      target,
+      next,
+      target,
+      { width: viewportWidth, height: viewportHeight },
+      ctx,
+      out
+    );
     return;
   }
 
   if (tag === "svg") {
-    const x = attrNumber(target, "x");
-    const y = attrNumber(target, "y");
-    const width = attrNumber(target, "width", Number.NaN);
-    const height = attrNumber(target, "height", Number.NaN);
+    const x = resolveSvgLength(
+      target.getAttribute("x"),
+      viewport?.width ?? null
+    );
+    const y = resolveSvgLength(
+      target.getAttribute("y"),
+      viewport?.height ?? null
+    );
+    const width = resolveSvgLength(
+      target.getAttribute("width"),
+      viewport?.width ?? null
+    );
+    const height = resolveSvgLength(
+      target.getAttribute("height"),
+      viewport?.height ?? null
+    );
     const viewBox = parseSvgViewBox(target.getAttribute("viewBox"));
     let next = multiplyTransforms(
       base,
       parseSvgTransformAttr(target.getAttribute("transform"))
     );
-    next = multiplyTransforms(next, translateTransform(x, y));
+    next = multiplyTransforms(
+      next,
+      translateTransform(Number.isFinite(x) ? x : 0, Number.isFinite(y) ? y : 0)
+    );
     if (viewBox && Number.isFinite(width) && Number.isFinite(height)) {
       next = multiplyTransforms(
         next,
@@ -632,7 +777,18 @@ function resolveTarget(
         )
       );
     }
-    resolveContainerChildren(target, next, ctx, out);
+    // Width/height default to 100%: unresolvable extents inherit the host.
+    resolveChildNodes(
+      target,
+      next,
+      target,
+      {
+        width: Number.isFinite(width) ? width : (viewport?.width ?? NaN),
+        height: Number.isFinite(height) ? height : (viewport?.height ?? NaN),
+      },
+      ctx,
+      out
+    );
     return;
   }
 
@@ -654,14 +810,25 @@ function resolveTarget(
     ctx.useChain.push(target);
     ctx.depth += 1;
     try {
+      const useX = resolveSvgLength(
+        target.getAttribute("x"),
+        viewport?.width ?? null
+      );
+      const useY = resolveSvgLength(
+        target.getAttribute("y"),
+        viewport?.height ?? null
+      );
       const nestedBase = multiplyTransforms(
         multiplyTransforms(
           base,
           parseSvgTransformAttr(target.getAttribute("transform"))
         ),
-        translateTransform(attrNumber(target, "x"), attrNumber(target, "y"))
+        translateTransform(
+          Number.isFinite(useX) ? useX : 0,
+          Number.isFinite(useY) ? useY : 0
+        )
       );
-      resolveTarget(nestedTarget, nestedBase, ctx, out);
+      resolveTarget(nestedTarget, nestedBase, ctx, out, viewport);
     } finally {
       ctx.depth -= 1;
       ctx.useChain.pop();
@@ -676,113 +843,153 @@ function resolveTarget(
     base,
     parseSvgTransformAttr(target.getAttribute("transform"))
   );
-  resolveContainerChildren(target, next, ctx, out);
+  resolveChildNodes(target, next, target, viewport, ctx, out);
 }
 
-function resolveContainerChildren(
-  container: Element,
+/**
+ * Walk a container's children in document order so later content keeps its
+ * SVG paint stacking above earlier content.
+ *
+ * - `node` is the element whose direct children are visited (descends
+ *   transparently through g/a/switch without disturbing order);
+ * - `base` is the transform accumulated up to `container`;
+ * - `container` bounds the paint/matrix chains (a nested `<svg>` becomes the
+ *   new container with viewport-aware geometry);
+ * - `viewport` is the established viewport for percentage lengths.
+ */
+function resolveChildNodes(
+  node: Element,
   base: Transform,
+  container: Element,
+  viewport: ViewportSize | null,
   ctx: UseResolutionContext,
   out: ResolvedUseShape[]
 ): void {
-  const geometries = queryDescendants(container, SVG_GEOMETRY_SELECTOR);
-  for (const geomEl of geometries) {
-    if (
-      tagOf(geomEl) === "use" ||
-      isUnderNestedDefinition(geomEl, container) ||
-      isUnderNestedViewport(geomEl, container)
-    ) {
+  for (const child of elementChildren(node)) {
+    const tag = tagOf(child);
+    // Nested definitions instantiate through <use> only; the directly
+    // targeted container itself was already entered by the caller.
+    if (DEFINITION_TAGS.has(tag)) {
       continue;
     }
-    const finalMatrix = multiplyTransforms(
-      base,
-      matrixFromAncestorChain(geomEl, container)
-    );
-    pushResolvedGeometry(
-      geomEl,
-      paintChainTo(geomEl, container),
-      finalMatrix,
-      ctx,
-      out
-    );
-  }
-
-  // Recurse into nested <svg> viewports with full x/y + viewBox handling.
-  // Geometries/uses under them were skipped above and resolve here instead.
-  for (const nestedSvg of queryDescendants(container, "svg")) {
-    if (
-      isUnderNestedDefinition(nestedSvg, container) ||
-      isUnderNestedViewport(nestedSvg, container)
-    ) {
-      continue;
-    }
-    const x = attrNumber(nestedSvg, "x");
-    const y = attrNumber(nestedSvg, "y");
-    const width = attrNumber(nestedSvg, "width", Number.NaN);
-    const height = attrNumber(nestedSvg, "height", Number.NaN);
-    const viewBox = parseSvgViewBox(nestedSvg.getAttribute("viewBox"));
-    let nestedBase = multiplyTransforms(
-      base,
-      matrixFromAncestorChain(nestedSvg, container)
-    );
-    nestedBase = multiplyTransforms(nestedBase, translateTransform(x, y));
-    if (viewBox && Number.isFinite(width) && Number.isFinite(height)) {
+    if (tag === "svg") {
+      const x = resolveSvgLength(
+        child.getAttribute("x"),
+        viewport?.width ?? null
+      );
+      const y = resolveSvgLength(
+        child.getAttribute("y"),
+        viewport?.height ?? null
+      );
+      const width = resolveSvgLength(
+        child.getAttribute("width"),
+        viewport?.width ?? null
+      );
+      const height = resolveSvgLength(
+        child.getAttribute("height"),
+        viewport?.height ?? null
+      );
+      const viewBox = parseSvgViewBox(child.getAttribute("viewBox"));
+      let nestedBase = multiplyTransforms(
+        base,
+        matrixFromAncestorChain(child, container)
+      );
       nestedBase = multiplyTransforms(
         nestedBase,
-        computeViewBoxTransform(
-          viewBox,
-          { x: 0, y: 0, width, height },
-          parsePreserveAspectRatio(
-            nestedSvg.getAttribute("preserveAspectRatio")
-          )
+        translateTransform(
+          Number.isFinite(x) ? x : 0,
+          Number.isFinite(y) ? y : 0
         )
       );
-    }
-    // Preserve paint inheritance across the viewport boundary.
-    ctx.innerPaintChains.push(paintChainTo(nestedSvg, container));
-    ctx.depth += 1;
-    try {
-      resolveContainerChildren(nestedSvg, nestedBase, ctx, out);
-    } finally {
-      ctx.depth -= 1;
-      ctx.innerPaintChains.pop();
-    }
-  }
-
-  const nestedUses = queryDescendants(container, "use");
-  for (const nestedUse of nestedUses) {
-    if (
-      isUnderNestedDefinition(nestedUse, container) ||
-      isUnderNestedViewport(nestedUse, container)
-    ) {
+      if (viewBox && Number.isFinite(width) && Number.isFinite(height)) {
+        nestedBase = multiplyTransforms(
+          nestedBase,
+          computeViewBoxTransform(
+            viewBox,
+            { x: 0, y: 0, width, height },
+            parsePreserveAspectRatio(child.getAttribute("preserveAspectRatio"))
+          )
+        );
+      }
+      // Preserve paint inheritance across the viewport boundary.
+      ctx.innerPaintChains.push(paintChainTo(child, container));
+      try {
+        resolveChildNodes(
+          child,
+          nestedBase,
+          child,
+          {
+            width: Number.isFinite(width) ? width : (viewport?.width ?? NaN),
+            height: Number.isFinite(height)
+              ? height
+              : (viewport?.height ?? NaN),
+          },
+          ctx,
+          out
+        );
+      } finally {
+        ctx.innerPaintChains.pop();
+      }
       continue;
     }
-    const id = parseUseHref(
-      nestedUse.getAttribute("href") ?? nestedUse.getAttribute("xlink:href")
-    );
-    if (!id || ctx.seenIds.has(id)) {
+    if (tag === "use") {
+      const id = parseUseHref(
+        child.getAttribute("href") ?? child.getAttribute("xlink:href")
+      );
+      if (!id || ctx.seenIds.has(id)) {
+        continue;
+      }
+      const nestedTarget = findElementById(ctx.svgRoot, id);
+      if (!nestedTarget) {
+        continue;
+      }
+      ctx.seenIds.add(id);
+      const useX = resolveSvgLength(
+        child.getAttribute("x"),
+        viewport?.width ?? null
+      );
+      const useY = resolveSvgLength(
+        child.getAttribute("y"),
+        viewport?.height ?? null
+      );
+      const nestedBase = multiplyTransforms(
+        multiplyTransforms(base, matrixFromAncestorChain(child, container)),
+        translateTransform(
+          Number.isFinite(useX) ? useX : 0,
+          Number.isFinite(useY) ? useY : 0
+        )
+      );
+      ctx.innerPaintChains.push(paintChainTo(child, container));
+      ctx.useChain.push(child);
+      ctx.depth += 1;
+      try {
+        resolveTarget(nestedTarget, nestedBase, ctx, out, viewport);
+      } finally {
+        ctx.depth -= 1;
+        ctx.useChain.pop();
+        ctx.innerPaintChains.pop();
+        ctx.seenIds.delete(id);
+      }
       continue;
     }
-    const nestedTarget = findElementById(ctx.svgRoot, id);
-    if (!nestedTarget) {
+    if (GEOMETRY_TAGS.has(tag)) {
+      const finalMatrix = multiplyTransforms(
+        base,
+        matrixFromAncestorChain(child, container)
+      );
+      pushResolvedGeometry(
+        child,
+        paintChainTo(child, container),
+        finalMatrix,
+        ctx,
+        out
+      );
       continue;
     }
-    ctx.seenIds.add(id);
-    const nestedBase = multiplyTransforms(
-      multiplyTransforms(base, matrixFromAncestorChain(nestedUse, container)),
-      translateTransform(attrNumber(nestedUse, "x"), attrNumber(nestedUse, "y"))
-    );
-    ctx.innerPaintChains.push(paintChainTo(nestedUse, container));
-    ctx.useChain.push(nestedUse);
-    ctx.depth += 1;
-    try {
-      resolveTarget(nestedTarget, nestedBase, ctx, out);
-    } finally {
-      ctx.depth -= 1;
-      ctx.useChain.pop();
-      ctx.innerPaintChains.pop();
-      ctx.seenIds.delete(id);
-    }
+    // Transparent container: descend in place so siblings keep their order.
+    // `base`/`container` are unchanged; the leaf folds the full chain, which
+    // only spans transform attributes (viewport crossings always recurse).
+    resolveChildNodes(child, base, container, viewport, ctx, out);
   }
 }
 
@@ -829,6 +1036,6 @@ export function resolveUseShapes(
     seenIds: new Set([id]),
     depth: 0,
   };
-  resolveTarget(target, base, ctx, out);
+  resolveTarget(target, base, ctx, out, hostViewportOf(useEl, svgRoot));
   return out;
 }
