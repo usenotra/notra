@@ -45,15 +45,22 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   "anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "vercel/anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "anthropic/claude-haiku-4.5": {
-    inputPerMillionTokens: 0.8,
-    outputPerMillionTokens: 4.0,
-    cacheReadPerMillionTokens: 0.08,
-    cacheWritePerMillionTokens: 1.0,
+    inputPerMillionTokens: 1.0,
+    outputPerMillionTokens: 5.0,
+    cacheReadPerMillionTokens: 0.1,
+    cacheWritePerMillionTokens: 1.25,
+  },
+  // OpenAI list prices up to 272k input tokens; longer prompts cost more.
+  "openai/gpt-5.4": {
+    inputPerMillionTokens: 2.5,
+    outputPerMillionTokens: 15.0,
+    cacheReadPerMillionTokens: 0.25,
+    cacheWritePerMillionTokens: 0,
   },
   "openai/gpt-5.4-mini": {
-    inputPerMillionTokens: 0.1,
-    outputPerMillionTokens: 0.4,
-    cacheReadPerMillionTokens: 0.05,
+    inputPerMillionTokens: 0.75,
+    outputPerMillionTokens: 4.5,
+    cacheReadPerMillionTokens: 0.075,
     cacheWritePerMillionTokens: 0,
   },
   "openai/gpt-5.4-nano": {
@@ -62,16 +69,40 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     cacheReadPerMillionTokens: 0.02,
     cacheWritePerMillionTokens: 0,
   },
+  "openai/gpt-5.5": {
+    inputPerMillionTokens: 5.0,
+    outputPerMillionTokens: 30.0,
+    cacheReadPerMillionTokens: 0.5,
+    cacheWritePerMillionTokens: 0,
+  },
   "openai/gpt-5.6-luna": {
     inputPerMillionTokens: 0.2,
     outputPerMillionTokens: 1.2,
     cacheReadPerMillionTokens: 0.02,
     cacheWritePerMillionTokens: 0.25,
   },
+  "openai/gpt-5.6-terra": {
+    inputPerMillionTokens: 2.0,
+    outputPerMillionTokens: 12.0,
+    cacheReadPerMillionTokens: 0.2,
+    cacheWritePerMillionTokens: 2.5,
+  },
+  "openai/gpt-5.6-sol": {
+    inputPerMillionTokens: 2.0,
+    outputPerMillionTokens: 10.0,
+    cacheReadPerMillionTokens: 0.2,
+    cacheWritePerMillionTokens: 2.5,
+  },
   "openai/gpt-oss-120b": {
     inputPerMillionTokens: 0.1,
-    outputPerMillionTokens: 0.4,
+    outputPerMillionTokens: 0.5,
     cacheReadPerMillionTokens: 0.05,
+    cacheWritePerMillionTokens: 0,
+  },
+  "zai/glm-5.3-flash": {
+    inputPerMillionTokens: 0.15,
+    outputPerMillionTokens: 0.5,
+    cacheReadPerMillionTokens: 0.03,
     cacheWritePerMillionTokens: 0,
   },
 };
