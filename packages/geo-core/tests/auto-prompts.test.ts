@@ -158,6 +158,44 @@ describe("buildGeoPrompts", () => {
     );
   });
 
+  test("strips short plural audience tails that are not in the audience noun list", () => {
+    const students = buildGeoPrompts(SETTINGS, {
+      companyDescription: "AI content platform for students.",
+      audience: null,
+    });
+    expect(students[0]?.text).toBe(
+      "what's the best option for ai content right now"
+    );
+    const freelancers = buildGeoPrompts(SETTINGS, {
+      companyDescription: "Acme is an invoicing tool for freelancers.",
+      audience: null,
+    });
+    expect(freelancers[0]?.text).toBe(
+      "what's the best option for invoicing right now"
+    );
+  });
+
+  test("keeps a for-clause that names a domain object", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription: "Deployment tooling for kubernetes clusters.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toContain(
+      "deployment tooling for kubernetes clusters"
+    );
+  });
+
+  test("takes the verb after the audience when an audience word is also a verb", () => {
+    const prompts = buildGeoPrompts(SETTINGS, {
+      companyDescription:
+        "Acme is a company that helps track teams find their best times.",
+      audience: null,
+    });
+    expect(prompts[0]?.text).toBe(
+      "what's the best option for find their best times right now"
+    );
+  });
+
   test("every auto prompt opens differently and reads like a typed message", () => {
     const prompts = buildGeoPrompts(SETTINGS, {
       companyDescription: "A writing platform for teams",

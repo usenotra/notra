@@ -181,8 +181,31 @@ const COMPANY_CLAUSE_REGEX =
  * "a provider that helps b2b sales teams close more deals": the audience can
  * be any length, so anchor on the action verb instead of counting words.
  */
-const COMPANY_HELPS_REGEX =
-  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+that\s+helps\s+.+?\s+(?:to\s+)?(generate|create|send|build|track|manage|automate|write|deliver|host|close|run|ship|grow|find|hire|sell|monitor|analyze|schedule|publish)\s+(.+)$/i;
+const HELPS_ACTION_VERBS =
+  "generate|create|send|build|track|manage|automate|write|deliver|host|close|run|ship|grow|find|hire|sell|monitor|analyze|schedule|publish";
+const COMPANY_NOUNS = "startup|company|business|agency|studio|vendor|provider";
+const AUDIENCE_NOUNS =
+  "teams?|companies|businesses|developers|marketers|startups|enterprises|agencies|people|users|customers|organizations|founders|engineers|designers";
+/**
+ * Prefer the verb right after the audience noun ("helps track teams find …"
+ * reads "find …", not "track …"); fall back to the last verb in the clause.
+ */
+const COMPANY_HELPS_AUDIENCE_REGEX = new RegExp(
+  `\\b(?:${COMPANY_NOUNS})\\s+that\\s+helps\\s+(?:.+?\\s+)?(?:${AUDIENCE_NOUNS})\\s+(?:to\\s+)?(${HELPS_ACTION_VERBS})\\s+(.+)$`,
+  "i"
+);
+const COMPANY_HELPS_REGEX = new RegExp(
+  `\\b(?:${COMPANY_NOUNS})\\s+that\\s+helps\\s+.+\\s+(?:to\\s+)?(${HELPS_ACTION_VERBS})\\s+(.+)$`,
+  "i"
+);
+/**
+ * "for freelancers" / "for students" are audiences even though the noun is
+ * not in AUDIENCE_LIKE_REGEX: an explicit list of buyer roles plus suffixes
+ * that only ever describe people. Anything else ("for kubernetes clusters",
+ * "for the maritime logistics industry") stays part of the category.
+ */
+const PEOPLE_TAIL_REGEX =
+  /\b(freelancers?|students?|creators?|sellers?|merchants?|recruiters?|professionals?|consultants?|coaches|solopreneurs?|entrepreneurs?|owners?|managers?|leaders?|executives?|admins?|teachers?|educators?|schools?|universities|nonprofits?|restaurants?|hotels?|retailers?|brands?|shops?|stores?|clinics?|doctors?|dentists?|lawyers?|firms?|accountants?|realtors?|landlords?|parents?|kids|gamers?|artists?|musicians?|photographers?|writers?|bloggers?|podcasters?|influencers?|streamers?|smbs?|smes?|saas|b2b|b2c|\p{L}+(?:ists|ants|ians|eurs|ees))\b/iu;
 const COMPANY_NOUN_REGEX =
   /\b(startup|company|business|agency|studio|vendor|provider)\b/gi;
 const SLASH_REGEX = /\s*\/\s*/g;
@@ -230,17 +253,24 @@ function cleanPhrase(value: string): string {
  * marketing teams" loses the tail, "compliance software for the maritime
  * logistics industry" keeps it because that clause defines the category.
  */
+function isAudienceTail(clause: string): boolean {
+  return AUDIENCE_LIKE_REGEX.test(clause) || PEOPLE_TAIL_REGEX.test(clause);
+}
+
 function stripAudienceTail(value: string): string {
   const match = value.match(TRAILING_FOR_CLAUSE_REGEX);
-  if (!match?.[1] || !AUDIENCE_LIKE_REGEX.test(match[1])) {
+  if (!match?.[1] || match.index === undefined || !isAudienceTail(match[1])) {
     return value;
   }
-  return value.slice(0, match.index);
+  const head = value.slice(0, match.index).trim();
+  return head.length > 0 ? head : value;
 }
 
 function nounPhraseFromType(typePhrase: string): string {
   const trimmed = cleanPhrase(typePhrase);
-  const helps = trimmed.match(COMPANY_HELPS_REGEX);
+  const helps =
+    trimmed.match(COMPANY_HELPS_AUDIENCE_REGEX) ??
+    trimmed.match(COMPANY_HELPS_REGEX);
   if (helps?.[1] && helps[2]) {
     return cleanPhrase(stripAudienceTail(`${helps[1]} ${helps[2]}`));
   }
