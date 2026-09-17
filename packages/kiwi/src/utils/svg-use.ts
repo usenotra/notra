@@ -353,10 +353,7 @@ function escapeIdForQuery(id: string): string | null {
   return null;
 }
 
-function querySelectorSafe(
-  root: Element,
-  selector: string
-): Element | null {
+function querySelectorSafe(root: Element, selector: string): Element | null {
   try {
     return root.querySelector(selector);
   } catch {
