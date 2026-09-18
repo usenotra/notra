@@ -43,10 +43,3 @@ export function reportGeoError(
     // The SDK never throws, including from onError.
   }
 }
-
-export function waitForGeoWork(work: Promise<unknown>): Promise<void> {
-  return work.then(
-    () => undefined,
-    () => undefined
-  );
-}
