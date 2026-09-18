@@ -617,10 +617,18 @@ function StandaloneChatPageClient({
 
   const handleChatCreated = useCallback(
     async (chatId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: ["chat-sessions", organizationId],
-      });
-      markChatTitleReady(queryClient, organizationId, activeProjectId, chatId);
+      try {
+        await queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        });
+      } finally {
+        markChatTitleReady(
+          queryClient,
+          organizationId,
+          activeProjectId,
+          chatId
+        );
+      }
     },
     [activeProjectId, organizationId, queryClient]
   );

@@ -83,7 +83,7 @@ export function createStandaloneChatTransport({
 
       const createdChatId = requestBody?.chatId;
       if (createdChatId) {
-        await onChatCreated?.(createdChatId);
+        void onChatCreated?.(createdChatId);
       }
 
       const contentType = triggerResponse.headers.get("content-type") ?? "";
