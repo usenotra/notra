@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import PageClient from "../page-client";
+import { ChatPageSkeleton } from "../skeleton";
 
 export const metadata: Metadata = {
   title: "Chat",
@@ -25,7 +26,7 @@ export default function Page({
   params: Promise<{ slug: string; chatId: string }>;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ChatPageSkeleton />}>
       <PageContent params={params} />
     </Suspense>
   );

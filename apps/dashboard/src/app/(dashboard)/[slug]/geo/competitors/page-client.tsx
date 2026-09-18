@@ -32,7 +32,7 @@ import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 
-import { GeoPageSkeleton } from "../skeleton";
+import { GeoCompetitorsSkeleton } from "./skeleton";
 
 const CompetitorShareCard = dynamic(
   () =>
@@ -81,7 +81,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   });
 
   if (isPending) {
-    return <GeoPageSkeleton />;
+    return <GeoCompetitorsSkeleton />;
   }
 
   const settings = settingsData?.settings ?? null;

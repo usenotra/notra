@@ -6,8 +6,8 @@ import { Suspense } from "react";
 import { validateOrganizationAccess } from "@/lib/auth/actions";
 import { dehydrateContentDetailQueries } from "@/utils/content-prefetch.server";
 
-import Loading from "../loading";
 import PageClient from "./page-client";
+import { ContentDetailSkeleton } from "./skeleton";
 
 interface PageProps {
   params: Promise<{
@@ -51,7 +51,7 @@ async function PageContent({ params }: PageProps) {
 
 function Page({ params }: PageProps) {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<ContentDetailSkeleton />}>
       <PageContent params={params} />
     </Suspense>
   );
