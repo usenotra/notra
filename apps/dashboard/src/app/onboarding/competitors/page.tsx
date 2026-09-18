@@ -6,10 +6,12 @@ import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { ONBOARDING_STEP_COMPETITORS } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import { geoDashboardPath, geoOnboardingPath } from "@/utils/geo-paths";
+import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { CompetitorsForm } from "./competitors-form";
 
@@ -57,9 +59,6 @@ export default async function OnboardingCompetitorsPage({
   if (!isDevReplay && stage === "brand") {
     redirect(geoOnboardingPath(projectId));
   }
-  if (!isDevReplay && stage === "complete") {
-    redirect(nextHref);
-  }
 
   return (
     <CompetitorsForm
@@ -68,6 +67,14 @@ export default async function OnboardingCompetitorsPage({
       inOnboardingFlow={inOnboardingFlow}
       nextHref={nextHref}
       organizationId={organization.id}
+      progressHrefs={onboardingProgressHrefs({
+        current: ONBOARDING_STEP_COMPETITORS,
+        hasBrand: true,
+        hasOrganization: true,
+        projectId,
+        replay: isDevReplay,
+        stage,
+      })}
       projectId={projectId}
     />
   );

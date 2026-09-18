@@ -295,6 +295,7 @@ export function CompetitorsForm({
   companyName,
   nextHref,
   inOnboardingFlow,
+  progressHrefs,
 }: CompetitorsFormProps) {
   return (
     <GeoProjectProvider projectId={projectId}>
@@ -303,11 +304,12 @@ export function CompetitorsForm({
           inOnboardingFlow={inOnboardingFlow}
           step={ONBOARDING_STEPS.COMPETITORS}
         />
-        {inOnboardingFlow ? (
-          <div className="flex justify-center">
-            <OnboardingProgress current={ONBOARDING_STEP_COMPETITORS} />
-          </div>
-        ) : null}
+        <div className="flex justify-center">
+          <OnboardingProgress
+            current={ONBOARDING_STEP_COMPETITORS}
+            hrefs={progressHrefs}
+          />
+        </div>
 
         <AuthFormHeader
           description={`When AI recommends someone instead of ${companyName || "you"}, who is it? Pick the brands you want to be measured against.`}

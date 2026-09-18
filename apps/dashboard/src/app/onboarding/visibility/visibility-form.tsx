@@ -188,6 +188,7 @@ export function VisibilityForm({
   nextHref,
   skipHref,
   inOnboardingFlow,
+  progressHrefs,
 }: VisibilityFormProps) {
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
@@ -250,11 +251,12 @@ export function VisibilityForm({
           inOnboardingFlow={inOnboardingFlow}
           step={ONBOARDING_STEPS.VISIBILITY}
         />
-        {inOnboardingFlow ? (
-          <div className="flex justify-center">
-            <OnboardingProgress current={ONBOARDING_STEP_VISIBILITY} />
-          </div>
-        ) : null}
+        <div className="flex justify-center">
+          <OnboardingProgress
+            current={ONBOARDING_STEP_VISIBILITY}
+            hrefs={progressHrefs}
+          />
+        </div>
 
         <AuthFormHeader
           description="We ask ChatGPT, Claude, Gemini and Perplexity what your buyers ask them, then check if you come up."

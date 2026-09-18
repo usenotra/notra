@@ -32,7 +32,6 @@ import {
   ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS,
   ONBOARDING_STEP_WORKSPACE,
 } from "@/constants/onboarding";
-import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import { extractDomain } from "@/lib/onboarding/company-logo";
 import {
   readFileAsDataUrl,
@@ -40,6 +39,7 @@ import {
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type { WorkspaceFormProps } from "@/types/onboarding";
+import { getGoogleFaviconUrl } from "@/utils/brand";
 import {
   getHeardAboutNotraLabel,
   isHeardAboutNotraSource,
@@ -61,7 +61,10 @@ function getValidationMessage(error: unknown) {
   return "Please check this field";
 }
 
-export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
+export function WorkspaceForm({
+  existingOrg,
+  progressHrefs,
+}: WorkspaceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
@@ -72,9 +75,9 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
     wait: COMPANY_LOGO_DEBOUNCE_MS,
   });
   const companyDomain = extractDomain(debouncedWebsite);
-  const { data: companyLogo, isFetching: isCompanyLogoLoading } =
-    useCompanyLogo(logoFile ? null : companyDomain);
-  const fetchedLogoUrl = logoFile ? null : (companyLogo?.url ?? null);
+  const fetchedLogoUrl = logoFile
+    ? null
+    : (getGoogleFaviconUrl(companyDomain) ?? null);
   const isResuming = !!existingOrg;
 
   const handleLogoSelect = async (file: File) => {
@@ -121,14 +124,10 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
       setIsSubmitting(true);
 
       try {
-        const submittedDomain = extractDomain(value.websiteUrl);
-        const matchesSubmittedDomain =
-          !!submittedDomain && submittedDomain === companyDomain;
-
         await submitWorkspaceForm({
           existingOrg,
           logoFile,
-          logoSourceUrl: matchesSubmittedDomain ? fetchedLogoUrl : null,
+          logoSourceUrl: null,
           value,
         });
         window.location.assign("/onboarding/visibility");
@@ -148,7 +147,10 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
         step={ONBOARDING_STEPS.WORKSPACE}
       />
       <div className="flex justify-center">
-        <OnboardingProgress current={ONBOARDING_STEP_WORKSPACE} />
+        <OnboardingProgress
+          current={ONBOARDING_STEP_WORKSPACE}
+          hrefs={progressHrefs}
+        />
       </div>
 
       <AuthFormHeader
@@ -184,7 +186,6 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
               <div className="flex items-center gap-2">
                 <OrgLogoField
                   disabled={isSubmitting}
-                  isLoading={isCompanyLogoLoading}
                   onSelect={handleLogoSelect}
                   previewUrl={logoPreviewUrl ?? fetchedLogoUrl}
                 />
@@ -308,114 +309,116 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
           )}
         </form.Field>
 
-        <form.Field
-          name="heardAboutNotraSource"
-          validators={{
-            onChange:
-              onboardingWorkspaceFormFieldsSchema.shape.heardAboutNotraSource,
-          }}
-        >
-          {(field) => (
-            <div>
-              <div className="grid gap-2">
-                <Label htmlFor="heard-about-notra">
-                  Where did you hear about Notra?{" "}
-                  {field.state.value !== "other" ? (
-                    <span className="text-muted-foreground text-xs">
-                      (optional)
-                    </span>
-                  ) : null}
-                </Label>
-                <Select
-                  onValueChange={(value) => {
-                    if (!isHeardAboutNotraSource(value)) {
-                      return;
-                    }
-
-                    field.handleChange(value);
-                    if (value !== "other") {
-                      form.setFieldValue("heardAboutNotraOther", "");
-                    }
-                  }}
-                  value={field.state.value}
-                >
-                  <SelectTrigger
-                    aria-invalid={field.state.meta.errors.length > 0}
-                    className="w-full rounded-xl px-3.5 data-[size=default]:h-11"
-                    disabled={isSubmitting || isAttributionLocked}
-                    id="heard-about-notra"
-                  >
-                    <SelectValue placeholder="Select an option">
-                      {(value) =>
-                        getHeardAboutNotraLabel(value) ?? "Select an option"
+        {isAttributionLocked ? null : (
+          <form.Field
+            name="heardAboutNotraSource"
+            validators={{
+              onChange:
+                onboardingWorkspaceFormFieldsSchema.shape.heardAboutNotraSource,
+            }}
+          >
+            {(field) => (
+              <div>
+                <div className="grid gap-2">
+                  <Label htmlFor="heard-about-notra">
+                    Where did you hear about Notra?{" "}
+                    {field.state.value !== "other" ? (
+                      <span className="text-muted-foreground text-xs">
+                        (optional)
+                      </span>
+                    ) : null}
+                  </Label>
+                  <Select
+                    onValueChange={(value) => {
+                      if (!isHeardAboutNotraSource(value)) {
+                        return;
                       }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {field.state.meta.errors.length > 0 ? (
-                  <p className="text-destructive text-sm">
-                    {getValidationMessage(field.state.meta.errors[0])}
-                  </p>
-                ) : null}
-              </div>
 
-              <div
-                aria-hidden={field.state.value !== "other"}
-                className={`duration-normal grid transition-[grid-template-rows,opacity] ease-out motion-reduce:transition-none ${field.state.value === "other" ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}
-              >
-                <div className="min-h-0 overflow-hidden">
-                  <form.Field
-                    name="heardAboutNotraOther"
-                    validators={{
-                      onChange:
-                        onboardingWorkspaceFormFieldsSchema.shape
-                          .heardAboutNotraOther,
+                      field.handleChange(value);
+                      if (value !== "other") {
+                        form.setFieldValue("heardAboutNotraOther", "");
+                      }
                     }}
+                    value={field.state.value}
                   >
-                    {(otherField) => (
-                      <div className="grid gap-2 pt-5">
-                        <Label htmlFor="heard-about-notra-other">
-                          Tell us where
-                        </Label>
-                        <Textarea
-                          aria-invalid={otherField.state.meta.errors.length > 0}
-                          className="resize-none focus-visible:ring-inset"
-                          disabled={
-                            isSubmitting ||
-                            isAttributionLocked ||
-                            field.state.value !== "other"
-                          }
-                          id="heard-about-notra-other"
-                          onBlur={otherField.handleBlur}
-                          onChange={(e) =>
-                            otherField.handleChange(e.target.value)
-                          }
-                          placeholder="Podcast, community, friend, etc."
-                          rows={3}
-                          value={otherField.state.value}
-                        />
-                        {otherField.state.meta.errors.length > 0 ? (
-                          <p className="text-destructive text-sm">
-                            {getValidationMessage(
-                              otherField.state.meta.errors[0]
-                            )}
-                          </p>
-                        ) : null}
-                      </div>
-                    )}
-                  </form.Field>
+                    <SelectTrigger
+                      aria-invalid={field.state.meta.errors.length > 0}
+                      className="w-full rounded-xl px-3.5 data-[size=default]:h-11"
+                      disabled={isSubmitting}
+                      id="heard-about-notra"
+                    >
+                      <SelectValue placeholder="Select an option">
+                        {(value) =>
+                          getHeardAboutNotraLabel(value) ?? "Select an option"
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {field.state.meta.errors.length > 0 ? (
+                    <p className="text-destructive text-sm">
+                      {getValidationMessage(field.state.meta.errors[0])}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div
+                  aria-hidden={field.state.value !== "other"}
+                  className={`duration-normal grid transition-[grid-template-rows,opacity] ease-out motion-reduce:transition-none ${field.state.value === "other" ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <form.Field
+                      name="heardAboutNotraOther"
+                      validators={{
+                        onChange:
+                          onboardingWorkspaceFormFieldsSchema.shape
+                            .heardAboutNotraOther,
+                      }}
+                    >
+                      {(otherField) => (
+                        <div className="grid gap-2 pt-5">
+                          <Label htmlFor="heard-about-notra-other">
+                            Tell us where
+                          </Label>
+                          <Textarea
+                            aria-invalid={
+                              otherField.state.meta.errors.length > 0
+                            }
+                            className="resize-none focus-visible:ring-inset"
+                            disabled={
+                              isSubmitting || field.state.value !== "other"
+                            }
+                            id="heard-about-notra-other"
+                            onBlur={otherField.handleBlur}
+                            onChange={(e) =>
+                              otherField.handleChange(e.target.value)
+                            }
+                            placeholder="Podcast, community, friend, etc."
+                            rows={3}
+                            value={otherField.state.value}
+                          />
+                          {otherField.state.meta.errors.length > 0 ? (
+                            <p className="text-destructive text-sm">
+                              {getValidationMessage(
+                                otherField.state.meta.errors[0]
+                              )}
+                            </p>
+                          ) : null}
+                        </div>
+                      )}
+                    </form.Field>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </form.Field>
+            )}
+          </form.Field>
+        )}
 
         <form.Field name="dailySummary">
           {(dailyField) => (
