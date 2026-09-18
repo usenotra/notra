@@ -621,6 +621,7 @@ function StandaloneChatPageClient({
     thinkingLevel,
   ]);
 
+  // react-doctor-disable-next-line react-hooks-js/refs -- the transport only reads these refs inside fetch callbacks, never during render
   const [transport] = useState(() =>
     createStandaloneChatTransport({
       getSendableMessages,

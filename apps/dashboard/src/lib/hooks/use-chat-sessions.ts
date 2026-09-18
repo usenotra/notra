@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import {
+  excludeArrivedGeneratingIds,
   excludeArrivedPendingSessions,
   mergePendingChatSessions,
 } from "@/utils/chat-history-groups";
@@ -172,21 +173,35 @@ export function useChatSessions() {
   );
 
   useEffect(() => {
-    const pendingSessions = pendingQuery.data ?? [];
-    if (pendingSessions.length === 0) {
-      return;
-    }
+    const serverSessions = query.data ?? [];
 
+    const pendingSessions = pendingQuery.data ?? [];
     const nextPending = excludeArrivedPendingSessions(
       pendingSessions,
-      query.data ?? []
+      serverSessions
     );
-    if (nextPending.length === pendingSessions.length) {
-      return;
+    if (nextPending.length !== pendingSessions.length) {
+      queryClient.setQueryData(pendingQueryKey, nextPending);
     }
 
-    queryClient.setQueryData(pendingQueryKey, nextPending);
-  }, [pendingQuery.data, pendingQueryKey, query.data, queryClient]);
+    // The create request awaits title generation, so an arrived chat's title
+    // is final. Clear the skeleton even when the post-create refetch failed.
+    const generatingIds = generatingQuery.data ?? [];
+    const nextGenerating = excludeArrivedGeneratingIds(
+      generatingIds,
+      serverSessions
+    );
+    if (nextGenerating.length !== generatingIds.length) {
+      queryClient.setQueryData(generatingQueryKey, nextGenerating);
+    }
+  }, [
+    generatingQuery.data,
+    generatingQueryKey,
+    pendingQuery.data,
+    pendingQueryKey,
+    query.data,
+    queryClient,
+  ]);
 
   return {
     sessions,

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  excludeArrivedGeneratingIds,
   excludeArrivedPendingSessions,
   mergePendingChatSessions,
 } from "./chat-history-groups";
@@ -65,5 +66,22 @@ describe("excludeArrivedPendingSessions", () => {
         [session("chat-1", "Fallback title")]
       )
     ).toEqual([]);
+  });
+});
+
+describe("excludeArrivedGeneratingIds", () => {
+  test("keeps generating ids whose chat has not arrived yet", () => {
+    expect(
+      excludeArrivedGeneratingIds(["chat-1"], [session("chat-2", "Other")])
+    ).toEqual(["chat-1"]);
+  });
+
+  test("drops generating ids once the real session arrives so a failed reconcile cannot pin the skeleton", () => {
+    expect(
+      excludeArrivedGeneratingIds(
+        ["chat-1", "chat-2"],
+        [session("chat-1", "Generated title")]
+      )
+    ).toEqual(["chat-2"]);
   });
 });

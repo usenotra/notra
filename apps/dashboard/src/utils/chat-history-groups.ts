@@ -124,3 +124,15 @@ export function excludeArrivedPendingSessions(
   const existingIds = new Set(sessions.map((session) => session.chatId));
   return pendingSessions.filter((session) => !existingIds.has(session.chatId));
 }
+
+export function excludeArrivedGeneratingIds(
+  generatingIds: string[],
+  sessions: ChatSessionSummary[]
+): string[] {
+  if (generatingIds.length === 0) {
+    return generatingIds;
+  }
+
+  const existingIds = new Set(sessions.map((session) => session.chatId));
+  return generatingIds.filter((id) => !existingIds.has(id));
+}
