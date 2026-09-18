@@ -2421,7 +2421,9 @@ function StandaloneChatPageClient({
 
     const now = isHydrated ? new Date() : null;
     const greeting = now ? getGreeting(now) : "Welcome";
-    const userName = session?.user?.name?.split(" ")[0];
+    const userName = isHydrated
+      ? session?.user?.name?.split(" ")[0]
+      : undefined;
     const dateStr = now ? formatLongDate(now) : "\u00A0";
 
     return (
