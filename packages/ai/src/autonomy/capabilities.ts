@@ -102,7 +102,6 @@ const CHANGELOG_MAX_OUTPUT_TOKENS = 3000;
 const BLOG_POST_MAX_OUTPUT_TOKENS = 4000;
 const SOCIAL_POST_MAX_OUTPUT_TOKENS = 800;
 const IMAGE_REVIEW_MAX_OUTPUT_TOKENS = 700;
-const CONTENT_TEMPERATURE = 0.6;
 const ISO_DATE_LENGTH = 10;
 
 export const IRIS_CONTENT_MODEL_ID = AGENT_DEFAULT_MODEL;
@@ -209,7 +208,6 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
             objective: params.input.mandate.objective,
           }),
           prompt: params.prompt,
-          temperature: CONTENT_TEMPERATURE,
           maxOutputTokens: params.maxOutputTokens,
           providerOptions: withRouterDefaults(undefined, {
             modelId: IRIS_CONTENT_MODEL_ID,

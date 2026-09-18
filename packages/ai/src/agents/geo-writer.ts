@@ -4,7 +4,6 @@ import {
   GEO_WRITER_MODEL,
   GEO_WRITER_PLANNER_MAX_TOKENS,
   GEO_WRITER_PLANNER_REPAIR_ATTEMPTS,
-  GEO_WRITER_PLANNER_TEMPERATURE,
 } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
@@ -210,7 +209,6 @@ export async function generateGeoContentBrief(
         output: Output.object({ schema: geoContentBriefSchema }),
         instructions: system,
         prompt,
-        temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
         providerOptions: withRouterDefaults(undefined, {
           modelId: GEO_WRITER_MODEL,

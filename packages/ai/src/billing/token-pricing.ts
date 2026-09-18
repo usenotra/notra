@@ -34,7 +34,25 @@ const CLAUDE_OPUS_4_8_PRICING: ModelPricing = {
   cacheWritePerMillionTokens: 6.25,
 };
 
+const CLAUDE_FABLE_5_1_PRICING: ModelPricing = {
+  inputPerMillionTokens: 10.0,
+  outputPerMillionTokens: 50.0,
+  cacheReadPerMillionTokens: 0.25,
+  cacheWritePerMillionTokens: 12.5,
+};
+
+const CLAUDE_FABLE_5_PRICING: ModelPricing = {
+  inputPerMillionTokens: 10.0,
+  outputPerMillionTokens: 50.0,
+  cacheReadPerMillionTokens: 1.0,
+  cacheWritePerMillionTokens: 12.5,
+};
+
 export const MODEL_PRICING: Record<string, ModelPricing> = {
+  "anthropic/claude-fable-5.1": CLAUDE_FABLE_5_1_PRICING,
+  // Claude Code reports Fable 5.1 usage with the dashed id.
+  "anthropic/claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
+  "anthropic/claude-fable-5": CLAUDE_FABLE_5_PRICING,
   "opencode/claude-opus-5": CLAUDE_OPUS_5_PRICING,
   "anthropic/claude-opus-5": CLAUDE_OPUS_5_PRICING,
   "vercel/anthropic/claude-opus-5": CLAUDE_OPUS_5_PRICING,
@@ -76,6 +94,25 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     inputPerMillionTokens: 0.2,
     outputPerMillionTokens: 1.25,
     cacheReadPerMillionTokens: 0.02,
+    cacheWritePerMillionTokens: 0,
+  },
+  "openai/gpt-6-astra": {
+    inputPerMillionTokens: 10.0,
+    outputPerMillionTokens: 50.0,
+    cacheReadPerMillionTokens: 1.0,
+    cacheWritePerMillionTokens: 12.5,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 20.0,
+      outputPerMillionTokens: 75.0,
+      cacheReadPerMillionTokens: 2.0,
+      cacheWritePerMillionTokens: 25.0,
+    },
+  },
+  "google/gemini-3.8-flash": {
+    inputPerMillionTokens: 0.75,
+    outputPerMillionTokens: 3.75,
+    cacheReadPerMillionTokens: 0.075,
     cacheWritePerMillionTokens: 0,
   },
   "openai/gpt-5.5": {

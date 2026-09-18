@@ -25,7 +25,6 @@ export async function generateSentimentAnalysis(
     maxOutputTokens: SENTIMENT_ANALYSIS_MAX_TOKENS,
     reasoning: "low",
     maxRetries: 0,
-    temperature: 0,
     abortSignal: AbortSignal.timeout(SENTIMENT_ANALYSIS_TIMEOUT_MS),
   });
   return {

@@ -29,6 +29,17 @@ export async function sendRequestLog(
       signal: AbortSignal.timeout(INGEST_TIMEOUT_MS),
     });
   } catch (error) {
-    options.onError?.(error);
+    reportGeoError(options.onError, error);
+  }
+}
+
+export function reportGeoError(
+  onError: GeoTrackerOptions["onError"],
+  error: unknown
+): void {
+  try {
+    onError?.(error);
+  } catch {
+    // The SDK never throws, including from onError.
   }
 }

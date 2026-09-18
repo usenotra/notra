@@ -1408,7 +1408,7 @@ export interface GeoPromptAnswerThreadProps {
 export interface CompetitorLogoProps {
   name: string;
   domain?: string | null;
-  /** Tracked competitors — used to resolve a domain before the context.dev lookup. */
+  /** Tracked competitors — used to resolve a domain for the favicon. */
   competitors?: readonly GeoCompetitor[];
   className?: string;
   onSettled?: () => void;

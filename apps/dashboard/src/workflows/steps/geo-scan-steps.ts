@@ -78,6 +78,7 @@ export async function prepareGeoScanProjectStep(
         scanId: options.scanId,
         promptIds: options.promptIds,
         engines: options.engines,
+        retried: options.retried,
       }).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     if (result.status === "skipped") {

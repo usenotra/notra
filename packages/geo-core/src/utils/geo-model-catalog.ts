@@ -6,7 +6,9 @@ import {
   GEO_MODEL_EXCLUDED_IDS,
   GEO_MODEL_EXCLUDED_SLUG_PATTERN,
   GEO_MODEL_EXCLUDED_TAGS,
+  GEO_MODEL_HIDDEN_ID_PATTERN,
   GEO_MODEL_PROVIDERS,
+  GEO_MODEL_VERSION_PATTERN,
   GEO_MODELS_PER_PROVIDER,
   GEO_STATIC_ENGINE_ENV,
 } from "../constants/geo-model-catalog";
@@ -20,6 +22,9 @@ import type {
 const MS_PER_SECOND = 1000;
 const DAY_LENGTH = 10;
 const DEFAULT_ENGINE_SET = new Set<string>(GEO_DEFAULT_ENGINE_IDS);
+const SEED_RELEASE_DATES = new Map(
+  GEO_MODEL_CATALOG_SEED.map((entry) => [entry.id, entry.released])
+);
 
 function isEligibleFeedModel(model: GeoGatewayModel): boolean {
   if (model.type !== "language" || model.deprecated_at) {
@@ -44,14 +49,15 @@ function toCatalogEntry(
     provider,
     label: model.name,
     zdr: model.zdr,
-    released: toDayString(model.released),
+    released:
+      toDayString(model.released) || (SEED_RELEASE_DATES.get(model.id) ?? ""),
     default: DEFAULT_ENGINE_SET.has(model.id),
     gateways: ["vercel"],
   };
 }
 
 function toDayString(seconds: number | undefined): string {
-  if (seconds === undefined) {
+  if (!seconds) {
     return "";
   }
   return new Date(seconds * MS_PER_SECOND).toISOString().slice(0, DAY_LENGTH);
@@ -91,15 +97,14 @@ export function buildGeoModelCatalogFromFeed(
       .filter(
         (model) => model.owned_by === provider.id && isEligibleFeedModel(model)
       )
-      .sort((left, right) => (right.released ?? 0) - (left.released ?? 0))
-      .map((model) => toCatalogEntry(model, provider.id));
+      .map((model) => toCatalogEntry(model, provider.id))
+      .sort(byReleaseDescending);
     const newest = entries.slice(0, GEO_MODELS_PER_PROVIDER);
     const olderDefaults = entries
       .slice(GEO_MODELS_PER_PROVIDER)
       .filter((entry) => entry.default);
     models.push(
-      ...newest,
-      ...olderDefaults,
+      ...markHiddenGeoModels([...newest, ...olderDefaults]),
       ...staticEntriesForProvider(provider.id)
     );
   }
@@ -109,12 +114,45 @@ export function buildGeoModelCatalogFromFeed(
   return { providers, models };
 }
 
+function byReleaseDescending(
+  left: GeoModelCatalogEntry,
+  right: GeoModelCatalogEntry
+): number {
+  return right.released.localeCompare(left.released);
+}
+
+/** Model id without provider prefix and version numbers. */
+function geoModelFamily(id: string): string {
+  const slug = id.slice(id.indexOf("/") + 1);
+  return slug.replace(GEO_MODEL_VERSION_PATTERN, "");
+}
+
+/**
+ * Hide superseded releases (an older version of the same model family) and
+ * niche variants from the picker. Defaults are never hidden. Hidden models
+ * stay in the catalog so stored selections keep resolving.
+ */
+function markHiddenGeoModels(
+  entries: readonly GeoModelCatalogEntry[]
+): GeoModelCatalogEntry[] {
+  const families = new Set<string>();
+  return [...entries].sort(byReleaseDescending).map((entry) => {
+    const family = geoModelFamily(entry.id);
+    const superseded = families.has(family);
+    families.add(family);
+    const hidden =
+      !entry.default &&
+      (superseded || GEO_MODEL_HIDDEN_ID_PATTERN.test(entry.id));
+    return hidden ? { ...entry, hidden } : entry;
+  });
+}
+
 export function seedGeoModelCatalog(): GeoModelCatalog {
   const models: GeoModelCatalogEntry[] = [];
   for (const provider of GEO_MODEL_PROVIDERS) {
     models.push(
-      ...GEO_MODEL_CATALOG_SEED.filter(
-        (entry) => entry.provider === provider.id
+      ...markHiddenGeoModels(
+        GEO_MODEL_CATALOG_SEED.filter((entry) => entry.provider === provider.id)
       ),
       ...staticEntriesForProvider(provider.id)
     );
@@ -161,12 +199,21 @@ const STATIC_ENGINE_IDS = new Set(
   GEO_MODEL_CATALOG_STATIC.map((entry) => entry.id)
 );
 
+/**
+ * Picker models for one provider. Hidden models are only listed while
+ * `selected` still contains them, so a project can switch them off.
+ */
 export function geoModelsForProvider(
   catalog: GeoModelCatalog,
-  providerId: GeoModelProviderId
+  providerId: GeoModelProviderId,
+  selected: ReadonlySet<string> = new Set()
 ): GeoModelCatalogEntry[] {
   return catalog.models
-    .filter((model) => model.provider === providerId)
+    .filter(
+      (model) =>
+        model.provider === providerId &&
+        (!model.hidden || selected.has(model.id))
+    )
     .sort((left, right) => {
       const leftStatic = STATIC_ENGINE_IDS.has(left.id);
       const rightStatic = STATIC_ENGINE_IDS.has(right.id);

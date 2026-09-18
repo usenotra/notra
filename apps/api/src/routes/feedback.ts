@@ -9,6 +9,8 @@ import {
   submitFeedbackResponseSchema,
   updateFeedbackRequestSchema,
 } from "@notra/schemas/api/feedback";
+import type { Context } from "hono";
+import type { z } from "zod";
 
 import { API_FEEDBACK_VIA } from "../constants/analytics";
 import {
@@ -20,13 +22,14 @@ import { ORGANIZATION_SCOPED_API_KEY_ERROR } from "../constants/skills";
 import {
   getFeedback as getFeedbackProgram,
   listFeedback as listFeedbackProgram,
+  resolveOrganizationIdBySlug,
   submitFeedback as submitFeedbackProgram,
   updateFeedback as updateFeedbackProgram,
 } from "../programs/feedback";
+import type { SubmitFeedbackProgramSuccess } from "../types/feedback";
 import { trackFeedbackReceived } from "../utils/analytics";
 import { getOrganizationId } from "../utils/auth";
 import {
-  findOrganizationIdBySlug,
   getIngestProjectId,
   respondToFeedbackFailure,
   runFeedbackProgram,
@@ -179,32 +182,35 @@ const updateFeedbackRoute = createRoute({
   },
 });
 
-feedbackRoutes.openapi(submitOrganizationFeedbackRoute, async (c) => {
-  const ipLimited = await enforceRatelimit(c, ratelimit.feedbackIngestIp, "ip");
-  if (ipLimited) {
-    return ipLimited;
-  }
+async function handleSubmitFeedbackAccepted(
+  c: Context,
+  organizationId: string,
+  via: (typeof API_FEEDBACK_VIA)[keyof typeof API_FEEDBACK_VIA],
+  success: SubmitFeedbackProgramSuccess
+) {
+  const feedback = serializeFeedback(success.feedback);
 
-  const { organizationSlug } = c.req.valid("param");
-  const organizationId = await findOrganizationIdBySlug(c, organizationSlug);
-  if (!organizationId) {
-    return c.json({ error: FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR }, 404);
-  }
+  trackFeedbackReceived(c, {
+    organizationId,
+    feedback,
+    deduplicated: success.deduplicated,
+    via,
+  });
 
-  const organizationLimited = await enforceRatelimitForKey(
-    c,
-    ratelimit.feedbackIngestOrganization,
-    organizationId
-  );
-  if (organizationLimited) {
-    return organizationLimited;
-  }
+  return c.json({ feedback, deduplicated: success.deduplicated }, 202);
+}
 
+async function submitFeedbackHandler(
+  c: Context,
+  organizationId: string,
+  via: (typeof API_FEEDBACK_VIA)[keyof typeof API_FEEDBACK_VIA],
+  body: z.infer<typeof submitFeedbackRequestSchema>
+) {
   const result = await runFeedbackProgram(
     submitFeedbackProgram({
       db: c.get("db"),
       organizationId,
-      body: c.req.valid("json"),
+      body,
       ingestProjectId: getIngestProjectId(c),
       userAgent: c.req.header("user-agent") ?? null,
     })
@@ -217,16 +223,47 @@ feedbackRoutes.openapi(submitOrganizationFeedbackRoute, async (c) => {
     throw result.failure;
   }
 
-  const feedback = serializeFeedback(result.success.feedback);
+  return handleSubmitFeedbackAccepted(c, organizationId, via, result.success);
+}
 
-  trackFeedbackReceived(c, {
+feedbackRoutes.openapi(submitOrganizationFeedbackRoute, async (c) => {
+  const ipLimited = await enforceRatelimit(c, ratelimit.feedbackIngestIp, "ip");
+  if (ipLimited) {
+    return ipLimited;
+  }
+
+  const { organizationSlug } = c.req.valid("param");
+  const organizationResult = await runFeedbackProgram(
+    resolveOrganizationIdBySlug({
+      db: c.get("db"),
+      slug: organizationSlug,
+    })
+  );
+  if (organizationResult._tag === "Failure") {
+    const response = respondToFeedbackFailure(c, organizationResult.failure);
+    if (response) {
+      return response;
+    }
+    throw organizationResult.failure;
+  }
+
+  const organizationId = organizationResult.success;
+
+  const organizationLimited = await enforceRatelimitForKey(
+    c,
+    ratelimit.feedbackIngestOrganization,
+    organizationId
+  );
+  if (organizationLimited) {
+    return organizationLimited;
+  }
+
+  return submitFeedbackHandler(
+    c,
     organizationId,
-    feedback,
-    deduplicated: result.success.deduplicated,
-    via: API_FEEDBACK_VIA.PUBLIC_SLUG,
-  });
-
-  return c.json({ feedback, deduplicated: result.success.deduplicated }, 202);
+    API_FEEDBACK_VIA.PUBLIC_SLUG,
+    c.req.valid("json")
+  );
 });
 
 feedbackRoutes.openapi(submitFeedbackRoute, async (c) => {
@@ -240,33 +277,12 @@ feedbackRoutes.openapi(submitFeedbackRoute, async (c) => {
     return rateLimited;
   }
 
-  const result = await runFeedbackProgram(
-    submitFeedbackProgram({
-      db: c.get("db"),
-      organizationId,
-      body: c.req.valid("json"),
-      ingestProjectId: getIngestProjectId(c),
-      userAgent: c.req.header("user-agent") ?? null,
-    })
-  );
-  if (result._tag === "Failure") {
-    const response = respondToFeedbackFailure(c, result.failure);
-    if (response) {
-      return response;
-    }
-    throw result.failure;
-  }
-
-  const feedback = serializeFeedback(result.success.feedback);
-
-  trackFeedbackReceived(c, {
+  return submitFeedbackHandler(
+    c,
     organizationId,
-    feedback,
-    deduplicated: result.success.deduplicated,
-    via: API_FEEDBACK_VIA.TOKEN,
-  });
-
-  return c.json({ feedback, deduplicated: result.success.deduplicated }, 202);
+    API_FEEDBACK_VIA.TOKEN,
+    c.req.valid("json")
+  );
 });
 
 feedbackRoutes.openapi(listFeedbackRoute, async (c) => {
@@ -282,6 +298,7 @@ feedbackRoutes.openapi(listFeedbackRoute, async (c) => {
       query: c.req.valid("query"),
     })
   );
+  // listFeedback only fails on database errors; domain 404s are not produced here.
   if (result._tag === "Failure") {
     throw result.failure;
   }

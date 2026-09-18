@@ -107,9 +107,14 @@ export const uploadRouter = {
         throw badRequest("Logo source is not allowed");
       }
 
-      const response = await fetch(sourceUrl, {
-        signal: AbortSignal.timeout(COMPANY_LOGO_FETCH_TIMEOUT_MS),
-      });
+      let response: Response;
+      try {
+        response = await fetch(sourceUrl, {
+          signal: AbortSignal.timeout(COMPANY_LOGO_FETCH_TIMEOUT_MS),
+        });
+      } catch {
+        throw badRequest("Could not fetch the logo image");
+      }
 
       if (!response.ok) {
         throw badRequest("Could not fetch the logo image");

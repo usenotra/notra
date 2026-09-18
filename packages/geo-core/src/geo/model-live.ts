@@ -28,6 +28,7 @@ import {
 } from "../schemas/geo";
 import { geoSearchConsoleSuggestionSchema } from "../schemas/google-search-console";
 import { GeoModelError } from "../schemas/model-errors";
+import type { GeoModelTokenUsage } from "../types/token-usage";
 import {
   buildMentionEvaluationState,
   MENTION_EVALUATION_QUESTIONS,
@@ -38,6 +39,13 @@ import { buildGroundedInvocation } from "./engines";
 import { GeoJudgeError, GeoScanError, GeoTranslationError } from "./errors";
 import { extractGrounding } from "./grounding";
 import { buildGscSuggestionPrompt } from "./suggestion-prompt";
+
+function usageWithModel(
+  usage: GeoModelTokenUsage,
+  modelId: string
+): GeoModelTokenUsage {
+  return { ...usage, modelId: usage.modelId ?? modelId };
+}
 
 /** Retains SDK default retries; no additional Effect retry policy. */
 export const geoModelLive = Layer.succeed(
@@ -75,7 +83,7 @@ export const geoModelLive = Layer.succeed(
             grounding: extractGrounding(result),
             sources: collectSources(result.sources),
             finishReason: result.finishReason,
-            usage,
+            usage: usageWithModel(usage, input.engine),
             zdrEnforced:
               getRouteMetadata(result.finalStep.providerMetadata)
                 ?.zdrEnforced ?? null,
@@ -124,7 +132,7 @@ export const geoModelLive = Layer.succeed(
             sources: sources.length
               ? sources
               : grounding.sources.map(({ title, url }) => ({ title, url })),
-            usage: result.usage,
+            usage: usageWithModel(result.usage, input.engine.key),
             zdrEnforced: GEO_DIRECT_GROUNDED_PROVIDERS.has(
               input.engine.provider
             )
@@ -153,20 +161,23 @@ export const geoModelLive = Layer.succeed(
     ),
     judge: Effect.fn("GeoModel.judge")((input) =>
       Effect.tryPromise({
-        try: async (signal) =>
-          (
-            await generateText({
-              model: gateway(GEO_JUDGE_MODEL, {
-                organizationId: input.organizationId,
-              }),
-              output: Output.object({ schema: geoJudgeResultSchema }),
-              prompt: input.prompt,
-              instructions:
-                "You analyze AI assistant answers for brand mentions. Respond only with the requested structured data.",
-              maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
-              abortSignal: signal,
-            })
-          ).output,
+        try: async (signal) => {
+          const result = await generateText({
+            model: gateway(GEO_JUDGE_MODEL, {
+              organizationId: input.organizationId,
+            }),
+            output: Output.object({ schema: geoJudgeResultSchema }),
+            prompt: input.prompt,
+            instructions:
+              "You analyze AI assistant answers for brand mentions. Respond only with the requested structured data.",
+            maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
+            abortSignal: signal,
+          });
+          return {
+            ...result.output,
+            usage: usageWithModel(result.usage, GEO_JUDGE_MODEL),
+          };
+        },
         catch: (cause) =>
           new GeoJudgeError({ message: "Judge model failed", cause }),
       }).pipe(
@@ -198,20 +209,23 @@ export const geoModelLive = Layer.succeed(
     ),
     translate: Effect.fn("GeoModel.translate")((input) =>
       Effect.tryPromise({
-        try: async (signal) =>
-          (
-            await generateText({
-              model: gateway(GEO_JUDGE_MODEL, {
-                organizationId: input.organizationId,
-              }),
-              output: Output.object({ schema: geoTranslationResultSchema }),
-              prompt: `Translate each prompt into ${input.language}. Keep brand and product names unchanged. Return the translations in the same order.\n\n${JSON.stringify(input.prompts)}`,
-              instructions:
-                "You translate user prompts faithfully, preserving intent and named entities. Respond only with the requested structured data.",
-              maxOutputTokens: GEO_TRANSLATION_MAX_TOKENS,
-              abortSignal: signal,
-            })
-          ).output.translations,
+        try: async (signal) => {
+          const result = await generateText({
+            model: gateway(GEO_JUDGE_MODEL, {
+              organizationId: input.organizationId,
+            }),
+            output: Output.object({ schema: geoTranslationResultSchema }),
+            prompt: `Translate each prompt into ${input.language}. Keep brand and product names unchanged. Return the translations in the same order.\n\n${JSON.stringify(input.prompts)}`,
+            instructions:
+              "You translate user prompts faithfully, preserving intent and named entities. Respond only with the requested structured data.",
+            maxOutputTokens: GEO_TRANSLATION_MAX_TOKENS,
+            abortSignal: signal,
+          });
+          return {
+            translations: result.output.translations,
+            usage: usageWithModel(result.usage, GEO_JUDGE_MODEL),
+          };
+        },
         catch: (cause) =>
           new GeoTranslationError({
             message: `Translation to ${input.language} failed`,
@@ -233,19 +247,22 @@ export const geoModelLive = Layer.succeed(
     ),
     suggest: Effect.fn("GeoModel.suggest")((input) =>
       Effect.tryPromise({
-        try: async (signal) =>
-          (
-            await generateText({
-              model: gateway(GSC_SUGGESTION_MODEL, {}),
-              output: Output.object({
-                schema: geoSearchConsoleSuggestionSchema,
-              }),
-              instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
-              prompt: buildGscSuggestionPrompt(input),
-              maxOutputTokens: GSC_SUGGESTION_MAX_TOKENS,
-              abortSignal: signal,
-            })
-          ).output.prompts,
+        try: async (signal) => {
+          const result = await generateText({
+            model: gateway(GSC_SUGGESTION_MODEL, {}),
+            output: Output.object({
+              schema: geoSearchConsoleSuggestionSchema,
+            }),
+            instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
+            prompt: buildGscSuggestionPrompt(input),
+            maxOutputTokens: GSC_SUGGESTION_MAX_TOKENS,
+            abortSignal: signal,
+          });
+          return {
+            prompts: result.output.prompts,
+            usage: usageWithModel(result.usage, GSC_SUGGESTION_MODEL),
+          };
+        },
         catch: (cause) => new GeoModelError({ operation: "suggest", cause }),
       })
     ),
