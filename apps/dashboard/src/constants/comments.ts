@@ -6,3 +6,5 @@ export const COMMENT_REACTIONS = [
   { emoji: "👀", label: "Eyes" },
   { emoji: "👑", label: "Crown" },
 ] as const;
+
+export const COMMENT_REPLY_PREVIEW_COUNT = 3;

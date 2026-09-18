@@ -24,10 +24,7 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
-import {
-  engineFamilyLabel,
-  engineFamilyOf,
-} from "@notra/geo-core/utils/geo-engine-family";
+import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
@@ -53,18 +50,15 @@ import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
-import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHART_PERCENT_SCALE, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_PROMPT_DETAIL_SURFACES,
   GEO_WRITE_DIALOG_ENTRIES,
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
+import { useEngineFamilySheet } from "@/lib/hooks/use-engine-family-sheet";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
-import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type {
   EngineFamilyBrandRow,
   EngineFamilyBrandScope,
@@ -88,17 +82,6 @@ import {
   formatMentionRate,
   mentionTrendEmptyLabel,
 } from "@/utils/geo-charts";
-import {
-  engineFamilyBrandRows,
-  findOwnBrandDomain,
-} from "@/utils/geo-competitors";
-import { familyImproveInsight } from "@/utils/geo-family-improve";
-import { geoGapsEngineHref } from "@/utils/geo-paths";
-import {
-  engineFamilyPromptHits,
-  promptTableRowForId,
-} from "@/utils/geo-prompts";
-import { writeDialogStateFromGap } from "@/utils/geo-write-entry";
 import { tableHeightFor } from "@/utils/table";
 
 const FAMILY_TREND_STROKE_WIDTH = 1.5;
@@ -537,65 +520,32 @@ function EngineFamilySheetSession({
   open,
   onOpenChange,
 }: Omit<EngineFamilySheetProps, "family"> & { family: GeoEngineFamily }) {
-  const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
-  const [writeOpen, setWriteOpen] = useState(false);
-  const [writeInitial, setWriteInitial] =
-    useState<WriteDialogInitialState | null>(null);
-  const { projectId } = useGeoProjectScope();
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  let organization = null;
-  if (organizationSlug && activeOrganization?.slug === organizationSlug) {
-    organization = activeOrganization;
-  } else if (organizationSlug) {
-    organization = getOrganization(organizationSlug);
-  }
-  const organizationId = organization?.id ?? "";
-  const { domain: projectDomain } = useGeoActiveProject(organizationId);
-  const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
-  const canWrite = Boolean(organizationSlug) && Boolean(organizationId);
-  const name = engineFamilyLabel(family.family);
-  const selectedRow = selectedPromptId
-    ? promptTableRowForId(selectedPromptId, promptResults)
-    : null;
-  const selectedEngine =
-    selectedRow?.results.find(
-      (result) => engineFamilyOf(result.engine) === family.family
-    )?.engine ?? null;
-  const promptHits = engineFamilyPromptHits(family.family, promptResults);
-  const brandScope: EngineFamilyBrandScope = {
+  const {
+    timeseriesPoints: points,
+    organizationId,
+    canWrite,
+    name,
+    selectedRow,
+    selectedEngine,
+    promptHits,
+    brandScope,
+    brandRows,
+    improveInsight,
+    gapsHref,
+    writeOpen,
+    setWriteOpen,
+    writeInitial,
+    setSelectedPromptId,
+    handleWrite,
+  } = useEngineFamilySheet({
+    family,
+    timeseriesPoints,
+    promptResults,
+    organizationSlug,
     companyName,
     aliases,
     competitors,
-    ownDomain,
-  };
-  const brandRows = engineFamilyBrandRows(
-    family.family,
-    promptResults,
-    brandScope
-  );
-  const missedCount = promptHits.filter(
-    (hit) => !(hit.mentioned || hit.ownedSourceCited)
-  ).length;
-  const improveInsight = familyImproveInsight({
-    familyLabel: name,
-    search: engineFamilyModeTotals(family, "search"),
-    memory: engineFamilyModeTotals(family, "memory"),
-    missed: missedCount,
   });
-  const gapsHref =
-    canWrite && organizationSlug
-      ? geoGapsEngineHref(organizationSlug, family.family, projectId)
-      : undefined;
-
-  function handleWrite(hit: EngineFamilyPromptHit) {
-    setWriteInitial(
-      writeDialogStateFromGap({
-        promptId: hit.promptId,
-        prompt: hit.prompt,
-      })
-    );
-    setWriteOpen(true);
-  }
 
   return (
     <>
@@ -609,8 +559,8 @@ function EngineFamilySheetSession({
             <FamilySheetDescription family={family} />
           </SheetHeader>
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
-            <FamilyStats family={family} points={timeseriesPoints} />
-            <FamilyTrend family={family} points={timeseriesPoints} />
+            <FamilyStats family={family} points={points} />
+            <FamilyTrend family={family} points={points} />
             {improveInsight ? (
               <FamilyImproveCard gapsHref={gapsHref} insight={improveInsight} />
             ) : null}

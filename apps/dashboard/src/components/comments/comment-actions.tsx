@@ -47,65 +47,58 @@ export function CommentActions({
     duration: reduceMotion ? 0 : 0.2,
     ease: "easeOut" as const,
   };
+  const hasReactions = comment.reactions.length > 0;
   return (
     <div>
       <LazyMotion features={domAnimation} strict>
-        <m.div
-          initial={false}
-          animate={{
-            height: comment.reactions.length ? "auto" : 0,
-            opacity: comment.reactions.length ? 1 : 0,
-          }}
-          transition={transition}
-          className="overflow-hidden"
+        <div
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none ${hasReactions ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
-          <div className="flex flex-wrap items-center gap-1 pt-2">
-            <AnimatePresence initial={false}>
-              {COMMENT_REACTIONS.map(({ emoji, label }) => {
-                const reactions = comment.reactions.filter(
-                  (reaction) => reaction.emoji === emoji
-                );
-                const active = reactions.some(
-                  (reaction) => reaction.userId === currentUserId
-                );
-                return reactions.length ? (
-                  <m.button
-                    key={emoji}
-                    layout={!reduceMotion}
-                    initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
-                    transition={transition}
-                    aria-label={`${label}, ${reactions.length} reactions`}
-                    aria-pressed={active}
-                    className={`flex h-6 items-center gap-1 rounded-md border px-1.5 text-xs transition-colors ${active ? "border-foreground/20 bg-muted" : "border-border hover:bg-muted"}`}
-                    disabled={disabled}
-                    onClick={() => onReact(comment.id, emoji, !active)}
-                  >
-                    <span aria-hidden="true">{emoji}</span>
-                    <span
-                      aria-hidden="true"
-                      className="relative grid h-4 min-w-[1ch] items-center overflow-hidden tabular-nums"
+          <div className="min-h-0">
+            <div className="flex flex-wrap items-center gap-1 pt-2">
+              <AnimatePresence initial={false}>
+                {COMMENT_REACTIONS.map(({ emoji, label }) => {
+                  const reactions = comment.reactions.filter(
+                    (reaction) => reaction.emoji === emoji
+                  );
+                  const active = reactions.some(
+                    (reaction) => reaction.userId === currentUserId
+                  );
+                  return reactions.length ? (
+                    <m.button
+                      key={emoji}
+                      layout={!reduceMotion}
+                      initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+                      transition={transition}
+                      aria-label={`${label}, ${reactions.length} reactions`}
+                      aria-pressed={active}
+                      className={`flex h-6 items-center gap-1 rounded-md border px-1.5 text-xs transition-colors ${active ? "border-foreground/20 bg-muted" : "border-border hover:bg-muted"}`}
+                      disabled={disabled}
+                      onClick={() => onReact(comment.id, emoji, !active)}
                     >
-                      <AnimatePresence initial={false} mode="popLayout">
+                      <span aria-hidden="true">{emoji}</span>
+                      <span
+                        aria-hidden="true"
+                        className="relative grid h-4 min-w-[1ch] items-center overflow-hidden tabular-nums"
+                      >
                         <m.span
                           key={reactions.length}
                           initial={{ opacity: 0, y: reduceMotion ? 0 : 5 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: reduceMotion ? 0 : -5 }}
-                          transition={transition}
                           className="block leading-4"
                         >
                           {reactions.length}
                         </m.span>
-                      </AnimatePresence>
-                    </span>
-                  </m.button>
-                ) : null;
-              })}
-            </AnimatePresence>
+                      </span>
+                    </m.button>
+                  ) : null;
+                })}
+              </AnimatePresence>
+            </div>
           </div>
-        </m.div>
+        </div>
       </LazyMotion>
       <div className="text-muted-foreground absolute top-1 right-0 flex items-center gap-0.5 transition-opacity duration-150 focus-within:opacity-100 has-[[data-popup-open]]:opacity-100 [&_button]:size-7 [&_svg]:size-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/comment:opacity-100">
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>

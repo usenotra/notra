@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import type { z } from "zod";
 
 import type { commentTargetSchema } from "@/schemas/comments";
@@ -35,4 +36,67 @@ export type CommentActionsProps = Pick<
 
 export interface CommentBodyProps {
   body: string;
+}
+
+export interface CommentTimestampProps {
+  createdAt: string;
+}
+
+export interface CommentThreadLinesProps {
+  parentId: string | null;
+  isLastReply: boolean;
+}
+
+export interface CommentRepliesProps {
+  replies: DiscussionComment[];
+  itemProps: CommentItemProps;
+}
+
+export interface CommentContentProps extends CommentEditFormProps {
+  editing: boolean;
+  deleted: boolean;
+  body: string;
+}
+
+export interface CommentEditFormProps {
+  draft: string;
+  disabled: boolean;
+  onDraftChange: (value: string) => void;
+  onCancel: () => void;
+  onSave: () => Promise<void>;
+}
+
+export type CommentItemMenuProps = Pick<
+  CommentItemProps,
+  "comment" | "currentUserId" | "onReply" | "onReact" | "onDelete"
+> & {
+  disabled: boolean;
+  onStartEdit: () => void;
+};
+
+export interface DiscussionFeedProps extends DiscussionListProps {
+  isPending: boolean;
+  isError: boolean;
+  onRetry: () => void;
+}
+
+export interface DiscussionListProps {
+  items: DiscussionComment[];
+  currentUserId: string;
+  busy: boolean;
+  onReply: CommentItemProps["onReply"];
+  onEdit: CommentItemProps["onEdit"];
+  onDelete: CommentItemProps["onDelete"];
+  onReact: CommentItemProps["onReact"];
+}
+
+export interface DiscussionComposerProps {
+  draft: string;
+  reply: DiscussionComment | null;
+  busy: boolean;
+  canSubmit: boolean;
+  textarea: RefObject<HTMLTextAreaElement | null>;
+  onDraftChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancelReply: () => void;
 }
