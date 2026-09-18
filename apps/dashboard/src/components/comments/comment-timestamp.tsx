@@ -24,6 +24,7 @@ export function CommentTimestamp({ createdAt }: CommentTimestampProps) {
   const [absolute, setAbsolute] = useState(createdAt);
 
   useEffect(() => {
+    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
     setAbsolute(
       new Date(createdAt).toLocaleString(undefined, ABSOLUTE_TIME_OPTIONS)
     );
