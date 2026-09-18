@@ -577,6 +577,7 @@ function StandaloneChatPageClient({
   const contextRef = useRef(context);
   const hasCustomizedContextRef = useRef(hasCustomizedContext);
   const organizationIdRef = useRef(organizationId);
+  const activeProjectIdRef = useRef(activeProjectId);
   // Latest user message the server rejected because another response for
   // this chat was still streaming.
   const activeStreamConflictRef = useRef<string | null>(null);
@@ -586,72 +587,61 @@ function StandaloneChatPageClient({
   const selectedModelRef = useRef(selectedModel);
   const thinkingLevelRef = useRef(thinkingLevel);
 
+  const handleChatCreated = useCallback(
+    (chatId: string) => {
+      void queryClient
+        .invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        })
+        .finally(() => {
+          markChatTitleReady(
+            queryClient,
+            organizationId,
+            activeProjectId,
+            chatId
+          );
+        });
+    },
+    [activeProjectId, organizationId, queryClient]
+  );
+  const onChatCreatedRef = useRef(
+    initialChatId ? undefined : handleChatCreated
+  );
+
   useEffect(() => {
     contextRef.current = context;
     hasCustomizedContextRef.current = hasCustomizedContext;
     selectedModelRef.current = selectedModel;
     thinkingLevelRef.current = thinkingLevel;
     organizationIdRef.current = organizationId;
+    activeProjectIdRef.current = activeProjectId;
+    onChatCreatedRef.current = initialChatId ? undefined : handleChatCreated;
   }, [
+    activeProjectId,
     context,
+    handleChatCreated,
     hasCustomizedContext,
+    initialChatId,
+    organizationId,
     selectedModel,
     thinkingLevel,
-    organizationId,
   ]);
 
-  const getChatTransportContext = useCallback(
-    () => ({
-      context: contextRef.current,
-      hasCustomizedContext: hasCustomizedContextRef.current,
-      organizationId: organizationIdRef.current,
-      selectedModel: selectedModelRef.current,
-      thinkingLevel: thinkingLevelRef.current,
-    }),
-    []
-  );
-
-  const handleStreamConflict = useCallback((messageId: string) => {
-    activeStreamConflictRef.current = messageId;
-  }, []);
-
-  const handleChatCreated = useCallback(
-    async (chatId: string) => {
-      try {
-        await queryClient.invalidateQueries({
-          queryKey: ["chat-sessions", organizationId],
-        });
-      } finally {
-        markChatTitleReady(
-          queryClient,
-          organizationId,
-          activeProjectId,
-          chatId
-        );
-      }
-    },
-    [activeProjectId, organizationId, queryClient]
-  );
-
-  const transport = useMemo(
-    () =>
-      createStandaloneChatTransport({
-        activeProjectId,
-        getContext: getChatTransportContext,
-        getSendableMessages,
-        onChatCreated: initialChatId ? undefined : handleChatCreated,
-        onStreamConflict: handleStreamConflict,
-        organizationId,
-        setPendingMessageId,
-      }),
-    [
-      activeProjectId,
-      getChatTransportContext,
-      handleChatCreated,
-      handleStreamConflict,
-      initialChatId,
-      organizationId,
-    ]
+  const [transport] = useState(() =>
+    createStandaloneChatTransport({
+      getSendableMessages,
+      live: {
+        activeProjectId: activeProjectIdRef,
+        context: contextRef,
+        hasCustomizedContext: hasCustomizedContextRef,
+        onChatCreated: onChatCreatedRef,
+        organizationId: organizationIdRef,
+        selectedModel: selectedModelRef,
+        streamConflict: activeStreamConflictRef,
+        thinkingLevel: thinkingLevelRef,
+      },
+      setPendingMessageId,
+    })
   );
 
   const [wasStoppedByUser, setWasStoppedByUser] = useState(false);

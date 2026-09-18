@@ -1,53 +1,48 @@
 import { chatTransportRequestInputSchema } from "@notra/ai/schemas/chat";
 import type { ChatUIMessage, ContextItem } from "@notra/ai/types/chat";
 import { DefaultChatTransport } from "ai";
+import type { RefObject } from "react";
 
 import { CHAT_ACTIVE_STREAM_CONFLICT_STATUS } from "@/constants/chat-active-stream";
 
-export type StandaloneChatTransportContext = {
-  context: ContextItem[];
-  hasCustomizedContext: boolean;
-  organizationId: string;
-  selectedModel: string;
-  thinkingLevel: string;
+export type StandaloneChatTransportLive = {
+  activeProjectId: RefObject<string | null>;
+  context: RefObject<ContextItem[]>;
+  hasCustomizedContext: RefObject<boolean>;
+  onChatCreated: RefObject<((chatId: string) => void) | undefined>;
+  organizationId: RefObject<string>;
+  selectedModel: RefObject<string>;
+  streamConflict: RefObject<string | null>;
+  thinkingLevel: RefObject<string>;
 };
 
 export function createStandaloneChatTransport({
-  activeProjectId,
-  getContext,
   getSendableMessages,
-  onChatCreated,
-  onStreamConflict,
-  organizationId,
+  live,
   setPendingMessageId,
 }: {
-  activeProjectId: string | null;
-  getContext: () => StandaloneChatTransportContext;
   getSendableMessages: (messages: ChatUIMessage[]) => ChatUIMessage[];
-  onChatCreated?: (chatId: string) => void | Promise<void>;
-  onStreamConflict: (messageId: string) => void;
-  organizationId: string;
+  live: StandaloneChatTransportLive;
   setPendingMessageId: (id: string | null) => void;
 }) {
   return new DefaultChatTransport<ChatUIMessage>({
-    api: `/api/organizations/${organizationId}/chat`,
-    prepareSendMessagesRequest: ({ id, messages }) => {
-      const context = getContext();
-      return {
-        body: {
-          chatId: id,
-          projectId: activeProjectId ?? undefined,
-          messages: getSendableMessages(messages),
-          context: context.hasCustomizedContext ? context.context : undefined,
-          model: context.selectedModel,
-          enableThinking: context.thinkingLevel !== "off",
-          thinkingLevel: context.thinkingLevel,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      };
-    },
+    api: "/api/organizations/chat",
+    prepareSendMessagesRequest: ({ id, messages }) => ({
+      body: {
+        chatId: id,
+        projectId: live.activeProjectId.current ?? undefined,
+        messages: getSendableMessages(messages),
+        context: live.hasCustomizedContext.current
+          ? live.context.current
+          : undefined,
+        model: live.selectedModel.current,
+        enableThinking: live.thinkingLevel.current !== "off",
+        thinkingLevel: live.thinkingLevel.current,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    }),
     prepareReconnectToStreamRequest: ({ id }) => ({
-      api: `/api/organizations/${getContext().organizationId}/chat/${id}/stream`,
+      api: `/api/organizations/${live.organizationId.current}/chat/${id}/stream`,
       headers: { "x-chat-reconnect": "true" },
     }),
     fetch: async (input, init) => {
@@ -70,12 +65,16 @@ export function createStandaloneChatTransport({
         setPendingMessageId(latestMessageId);
       }
 
-      const triggerResponse = await fetch(input, init);
+      const organizationId = live.organizationId.current;
+      const triggerResponse = await fetch(
+        `/api/organizations/${organizationId}/chat`,
+        init
+      );
       if (
         triggerResponse.status === CHAT_ACTIVE_STREAM_CONFLICT_STATUS &&
         latestMessageId
       ) {
-        onStreamConflict(latestMessageId);
+        live.streamConflict.current = latestMessageId;
       }
       if (!triggerResponse.ok) {
         return triggerResponse;
@@ -83,7 +82,7 @@ export function createStandaloneChatTransport({
 
       const createdChatId = requestBody?.chatId;
       if (createdChatId) {
-        void onChatCreated?.(createdChatId);
+        live.onChatCreated.current?.(createdChatId);
       }
 
       const contentType = triggerResponse.headers.get("content-type") ?? "";
@@ -96,7 +95,7 @@ export function createStandaloneChatTransport({
       }
 
       return fetch(
-        `/api/organizations/${getContext().organizationId}/chat/${requestBody.chatId}/stream`,
+        `/api/organizations/${live.organizationId.current}/chat/${requestBody.chatId}/stream`,
         {
           method: "GET",
           headers: init?.headers,
