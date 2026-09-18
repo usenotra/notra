@@ -35,6 +35,7 @@ import type {
 } from "@/types/onboarding";
 import { stripWebsitePrefix } from "@/utils/onboarding";
 import {
+  selectedVisibilityPrompts,
   toVisibilityBrandInput,
   uniqueVisibilityPrompts,
 } from "@/utils/onboarding-brand";
@@ -63,9 +64,7 @@ function VisibilityReview({
       aliases: [...(discovery?.aliases ?? [])],
     })
   );
-  const selectedPrompts = prompts.filter(
-    (entry) => !droppedKeys.has(promptKey(entry.prompt))
-  );
+  const selectedPrompts = selectedVisibilityPrompts(prompts, droppedKeys);
   const canSubmit = companyName.trim().length > 0 && !busy;
   const websiteHost = stripWebsitePrefix(websiteUrl);
 

@@ -4,7 +4,6 @@ import {
   onboardingWorkspaceFormFieldsSchema,
   onboardingWorkspaceFormSchema,
 } from "@notra/schemas/dashboard/onboarding/workspace";
-import { slugSchema } from "@notra/schemas/dashboard/organization";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
@@ -44,18 +43,11 @@ import type { WorkspaceFormProps } from "@/types/onboarding";
 import {
   getHeardAboutNotraLabel,
   isHeardAboutNotraSource,
+  slugify,
+  slugifyWhileTyping,
 } from "@/utils/onboarding";
 
 const WEBSITE_PREFIX_REGEX = /^https?:\/\//i;
-
-function slugify(value: string): string {
-  return slugSchema.safeParse(value).data ?? "";
-}
-
-function slugifyWhileTyping(value: string): string {
-  const slug = slugify(value);
-  return slug && /[-\s]$/.test(value) ? `${slug}-` : slug;
-}
 
 function getValidationMessage(error: unknown) {
   if (typeof error === "string") {
