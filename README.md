@@ -35,7 +35,7 @@ Use Notra from your own applications and agents:
 
 - **REST API:** projects, prompts, scans, visibility, content gaps, briefs, readiness, and traffic. See the [OpenAPI specification](https://api.usenotra.com/openapi.json).
 - **MCP server:** connect AI clients at [`https://mcp.usenotra.com/mcp`](https://mcp.usenotra.com/mcp).
-- **Traffic SDK:** [`@usenotra/geo`](packages/geo), with Next.js, Nuxt, TanStack Start, and Netlify integrations.
+- **Traffic SDK:** [`@usenotra/geo`](packages/geo), with Next.js, Nuxt, TanStack Start, Astro, SvelteKit, and Netlify integrations.
 
 See the [product documentation](https://docs.usenotra.com) for setup and authentication.
 

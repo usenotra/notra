@@ -11,6 +11,7 @@ import {
 import { matchesAnyRule, shouldTrackRequest } from "./exclude";
 import { tagHtmlLinks } from "./html";
 import { getJourneyId, mintJourneyId, tagMarkdownLinks } from "./markdown";
+import { reportGeoError } from "./send";
 import type {
   GeoExcludeRule,
   GeoTagLinksConfig,
@@ -150,7 +151,7 @@ export async function tagMarkdownResponse(
       headers: taggedHeaders(origin.headers),
     });
   } catch (error) {
-    options.onError?.(error);
+    reportGeoError(options.onError, error);
     return;
   }
 }

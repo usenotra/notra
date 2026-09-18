@@ -24,7 +24,6 @@ import { generateText, Output } from "ai";
 import { Effect } from "effect";
 
 const PLANNER_MAX_OUTPUT_TOKENS = 4000;
-const PLANNER_TEMPERATURE = 0.2;
 const PLANNER_REPAIR_ATTEMPTS = 1;
 
 export const IRIS_PLANNER_MODEL_ID = AGENT_DEFAULT_MODEL;
@@ -59,7 +58,6 @@ const generatePlannerDraft = Effect.fn("iris.planner.generate")(function* (
         output: Output.object({ schema: plannerDraftOutputSchema }),
         instructions: buildIrisPlannerSystemPrompt(),
         prompt,
-        temperature: PLANNER_TEMPERATURE,
         maxOutputTokens: PLANNER_MAX_OUTPUT_TOKENS,
         providerOptions: withRouterDefaults(undefined, {
           modelId: IRIS_PLANNER_MODEL_ID,

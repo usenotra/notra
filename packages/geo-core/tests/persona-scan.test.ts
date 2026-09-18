@@ -433,6 +433,7 @@ describe("planned persona snapshots", () => {
     );
     assert.ok(prepared.status === "planned");
     const { plan } = prepared;
+    expect(plan.tasks.every((task) => task.groundedKey !== null)).toBe(true);
     expect(plan.personas.length).toBeGreaterThan(1);
     const snapshot = plan.personas[0]?.snapshot;
     assert.ok(snapshot);

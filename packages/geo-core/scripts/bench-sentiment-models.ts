@@ -156,7 +156,6 @@ for (const candidate of candidates.filter(
         maxOutputTokens: SENTIMENT_ANALYSIS_MAX_TOKENS,
         ...(candidate.reasoning ? { reasoning: candidate.reasoning } : {}),
         maxRetries: 0,
-        temperature: 0,
         abortSignal: AbortSignal.timeout(SENTIMENT_ANALYSIS_TIMEOUT_MS),
       });
       const ms = Date.now() - started;

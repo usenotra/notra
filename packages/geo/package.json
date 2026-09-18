@@ -1,12 +1,13 @@
 {
   "name": "@usenotra/geo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": false,
   "description": "Request capture SDK for AI traffic attribution and agent feedback collection",
   "keywords": [
     "agents",
     "ai",
     "analytics",
+    "astro",
     "attribution",
     "crawler",
     "edge",
@@ -17,6 +18,7 @@
     "netlify",
     "nextjs",
     "nuxt",
+    "sveltekit",
     "tanstack"
   ],
   "homepage": "https://github.com/usenotra/notra/tree/main/packages/geo",
@@ -51,6 +53,14 @@
     "./tanstack": {
       "types": "./dist/tanstack.d.ts",
       "default": "./dist/tanstack.js"
+    },
+    "./astro": {
+      "types": "./dist/astro.d.ts",
+      "default": "./dist/astro.js"
+    },
+    "./sveltekit": {
+      "types": "./dist/sveltekit.d.ts",
+      "default": "./dist/sveltekit.js"
     },
     "./signatures": {
       "types": "./dist/signatures.d.ts",
