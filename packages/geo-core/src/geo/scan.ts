@@ -919,7 +919,8 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
     const skipReason = geoScanEmptyEngineSkipReason(
       scanEngines,
       searchTrackedEngines.length + groundedEngines.length,
-      requestedEngines
+      requestedEngines,
+      trackedEngines.length + groundedEngines.length
     );
     if (skipReason) {
       yield* geoLogWarn({

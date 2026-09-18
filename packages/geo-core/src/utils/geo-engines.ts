@@ -76,13 +76,14 @@ export function isGeoNativeSearchEngine(
 export function geoScanEmptyEngineSkipReason(
   scanEngines: readonly string[],
   runnableEngineCount: number,
-  requestedEngines?: readonly string[]
+  requestedEngines?: readonly string[],
+  zdrPassedCount = 0
 ): GeoScanSkipReason | null {
   if (requestedEngines !== undefined && scanEngines.length === 0) {
     return "scoped_engines_missing";
   }
   if (scanEngines.length > 0 && runnableEngineCount === 0) {
-    return "zdr";
+    return zdrPassedCount > 0 ? "no_search_engines" : "zdr";
   }
   return null;
 }

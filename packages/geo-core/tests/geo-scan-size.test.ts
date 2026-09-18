@@ -6,7 +6,10 @@ import {
   GEO_MODEL_PROVIDERS,
 } from "../src/constants/geo-model-catalog";
 import type { GeoResolvedModelCatalog } from "../src/types/geo";
-import { isGeoNativeSearchEngine } from "../src/utils/geo-engines";
+import {
+  geoScanEmptyEngineSkipReason,
+  isGeoNativeSearchEngine,
+} from "../src/utils/geo-engines";
 import { resolveGroundedEngines } from "../src/utils/geo-grounded-engines";
 import { calcGeoScanSize } from "../src/utils/geo-scan";
 
@@ -69,6 +72,25 @@ describe("native search engines", () => {
     expect(isGeoNativeSearchEngine(catalog, "deepseek/deepseek-v4-pro")).toBe(
       false
     );
+  });
+});
+
+describe("empty engine skip reason", () => {
+  test("a Cursor-only selection is not a ZDR skip", () => {
+    expect(
+      geoScanEmptyEngineSkipReason(["cursor/composer-2.5"], 0, undefined, 1)
+    ).toBe("no_search_engines");
+  });
+
+  test("ZDR still wins when nothing passed the retention filter", () => {
+    expect(
+      geoScanEmptyEngineSkipReason(
+        ["anthropic/claude-sonnet-5"],
+        0,
+        undefined,
+        0
+      )
+    ).toBe("zdr");
   });
 });
 

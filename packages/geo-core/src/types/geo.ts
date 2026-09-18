@@ -207,7 +207,8 @@ export type GeoScanSkipReason =
   | "superseded"
   | "already_running"
   | "scoped_prompts_missing"
-  | "scoped_engines_missing";
+  | "scoped_engines_missing"
+  | "no_search_engines";
 
 export interface GeoErrorFields {
   errorName: string;
