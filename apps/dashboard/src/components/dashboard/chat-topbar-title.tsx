@@ -45,6 +45,52 @@ interface ChatTopbarTitleProps {
   chatId: string;
 }
 
+function ChatTopbarTitleLabel({
+  displayTitle,
+  hasTitle,
+  isGeneratingTitle,
+}: {
+  displayTitle: string;
+  hasTitle: boolean;
+  isGeneratingTitle: boolean;
+}) {
+  let titleMotionKey = "fallback";
+  if (isGeneratingTitle) {
+    titleMotionKey = "generating";
+  } else if (hasTitle) {
+    titleMotionKey = "title";
+  }
+
+  return (
+    <span className="relative block min-w-0 truncate">
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          className="block truncate"
+          exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
+          initial={{
+            opacity: 0,
+            y: hasTitle ? 4 : 0,
+            filter: hasTitle ? "blur(4px)" : "blur(0px)",
+          }}
+          key={titleMotionKey}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          {isGeneratingTitle ? (
+            <Skeleton
+              aria-label="Generating title"
+              className="h-4 w-28"
+              role="status"
+            />
+          ) : (
+            displayTitle
+          )}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   const { activeOrganization } = useOrganizationsContext();
   const router = useRouter();
@@ -134,12 +180,6 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
 
   const displayTitle = title ?? formatChatIdFallback(chatId);
   const hasTitle = Boolean(title) && !isGeneratingTitle;
-  let titleMotionKey = "fallback";
-  if (isGeneratingTitle) {
-    titleMotionKey = "generating";
-  } else if (hasTitle) {
-    titleMotionKey = "title";
-  }
 
   return (
     <>
@@ -195,32 +235,11 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     startEditing();
                   }}
                 >
-                  <span className="relative block min-w-0 truncate">
-                    <AnimatePresence initial={false} mode="popLayout">
-                      <motion.span
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        className="block truncate"
-                        exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
-                        initial={{
-                          opacity: 0,
-                          y: hasTitle ? 4 : 0,
-                          filter: hasTitle ? "blur(4px)" : "blur(0px)",
-                        }}
-                        key={titleMotionKey}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                      >
-                        {isGeneratingTitle ? (
-                          <Skeleton
-                            aria-label="Generating title"
-                            className="h-4 w-28"
-                            role="status"
-                          />
-                        ) : (
-                          displayTitle
-                        )}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
+                  <ChatTopbarTitleLabel
+                    displayTitle={displayTitle}
+                    hasTitle={hasTitle}
+                    isGeneratingTitle={isGeneratingTitle}
+                  />
                   <HugeiconsIcon
                     className={cn(
                       "text-muted-foreground duration-normal size-3.5 shrink-0 transition-transform",
