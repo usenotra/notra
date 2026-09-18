@@ -1,4 +1,4 @@
-import { sendRequestLog } from "./send";
+import { reportGeoError, sendRequestLog, waitForGeoWork } from "./send";
 import { Tracker as CoreTracker } from "./tracker";
 import type {
   GeoLocation,
@@ -44,13 +44,15 @@ export class Tracker {
       }
 
       const geo = toGeoLocation(context?.geo) ?? payload.geo;
-      const pending = sendRequestLog({ ...payload, geo }, this.options);
+      const pending = waitForGeoWork(
+        sendRequestLog({ ...payload, geo }, this.options)
+      );
 
       if (typeof context?.waitUntil === "function") {
         context.waitUntil(pending);
       }
     } catch (error) {
-      this.options.onError?.(error);
+      reportGeoError(this.options.onError, error);
     }
   }
 }

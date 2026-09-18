@@ -1,3 +1,4 @@
+import { waitForGeoWork } from "./send";
 import { Tracker as CoreTracker } from "./tracker";
 import type {
   GeoTrackerOptions,
@@ -59,7 +60,7 @@ export class Tracker {
     if (!request) {
       return;
     }
-    await this.tracker.track(request);
+    await waitForGeoWork(this.tracker.track(request));
   }
 }
 

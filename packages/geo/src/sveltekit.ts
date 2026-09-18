@@ -1,3 +1,4 @@
+import { waitForGeoWork } from "./send";
 import { Tracker } from "./tracker";
 import type { GeoTrackerOptions, SvelteKitHandleInput } from "./types";
 
@@ -8,7 +9,7 @@ export function createGeoHandle(options: GeoTrackerOptions) {
     event,
     resolve,
   }: SvelteKitHandleInput<TEvent, TResponse>): Promise<TResponse> => {
-    const pending = tracker.track(event.request);
+    const pending = waitForGeoWork(tracker.track(event.request));
     try {
       return await resolve(event);
     } finally {

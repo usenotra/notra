@@ -1,3 +1,4 @@
+import { waitForGeoWork } from "./send";
 import { Tracker } from "./tracker";
 import type { GeoTrackerOptions, TanStackMiddlewareContext } from "./types";
 
@@ -8,7 +9,7 @@ export function createGeoMiddleware(options: GeoTrackerOptions) {
     request,
     next,
   }: TanStackMiddlewareContext<T>): Promise<T> => {
-    const pending = tracker.track(request);
+    const pending = waitForGeoWork(tracker.track(request));
     try {
       return await next();
     } finally {

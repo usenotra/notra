@@ -1,3 +1,4 @@
+import { waitForGeoWork } from "./send";
 import { resolveTagLinksConfig, tagMarkdownResponse } from "./tag-response";
 import { Tracker as CoreTracker } from "./tracker";
 import type {
@@ -18,7 +19,7 @@ export class Tracker {
   }
 
   track(request: Request, event?: WaitUntilContext): void {
-    const pending = this.tracker.track(request);
+    const pending = waitForGeoWork(this.tracker.track(request));
     if (typeof event?.waitUntil === "function") {
       event.waitUntil(pending);
     }
