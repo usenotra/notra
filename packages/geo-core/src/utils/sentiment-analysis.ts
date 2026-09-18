@@ -42,7 +42,7 @@ export function validateSentimentThemes(
 ): SentimentTheme[] {
   const parsed = sentimentThemeOutputSchema.parse(output);
   const checks = new Map(sample.map((check) => [check.id, check]));
-  return parsed.themes.flatMap((theme) => {
+  const themes = parsed.themes.flatMap((theme) => {
     const statements = new Set<string>();
     const claims = theme.claims.flatMap((claim) => {
       const normalized = claim.statement.toLowerCase().replace(/\s+/g, " ");
@@ -53,14 +53,15 @@ export function validateSentimentThemes(
       const seen = new Set<string>();
       const evidence = claim.evidence.flatMap((reference) => {
         const check = checks.get(reference.checkId);
-        const quote = compactSentimentQuote(reference.quote);
+        const quote = reference.quote.trim();
+        const compactQuote = compactSentimentQuote(quote);
         // Grounding is a filter: one paraphrased or unknown cite must not
         // fail a paid run that still has other verbatim evidence.
         if (
           !(
             check &&
-            quote &&
-            compactSentimentQuote(check.answer).includes(quote)
+            compactQuote &&
+            compactSentimentQuote(check.answer).includes(compactQuote)
           )
         ) {
           return [];
@@ -70,7 +71,7 @@ export function validateSentimentThemes(
         // Identical checkId+quote pairs are redundant, not invalid — collapse
         // them (same dedup key the theme-level merge uses below) while still
         // allowing multiple distinct quotes from one check per claim.
-        const key = `${check.id}::${quote}`;
+        const key = `${check.id}::${compactQuote}`;
         if (seen.has(key)) {
           return [];
         }
@@ -102,4 +103,8 @@ export function validateSentimentThemes(
     ];
     return [{ title: theme.title, polarity: theme.polarity, evidence, claims }];
   });
+  if (parsed.themes.length > 0 && themes.length === 0) {
+    throw new Error("Sentiment analysis produced no grounded evidence");
+  }
+  return themes;
 }

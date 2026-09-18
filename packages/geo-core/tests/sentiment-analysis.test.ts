@@ -230,7 +230,7 @@ test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixe
     [{ checkId: "foreign", quote: "Notra makes onboarding easy." }],
     [{ checkId: "a", quote: "Notra is perfect." }],
   ]) {
-    expect(
+    expect(() =>
       validateSentimentThemes(
         {
           themes: [
@@ -242,8 +242,9 @@ test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixe
         },
         sample
       )
-    ).toEqual([]);
+    ).toThrow("no grounded evidence");
   }
+  expect(validateSentimentThemes({ themes: [] }, sample)).toEqual([]);
   const mixedEvidence = validateSentimentThemes(
     {
       themes: [
@@ -283,7 +284,7 @@ test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixe
               evidence: [
                 {
                   checkId: "a",
-                  quote: "onboarding is frictionless - most teams",
+                  quote: "onboarding is frictionless — most teams",
                 },
               ],
             },
@@ -299,6 +300,36 @@ test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixe
     ]
   );
   expect(collapsed[0]?.claims[0]?.evidence[0]?.quote).toBe(
+    "onboarding is frictionless — most teams"
+  );
+  const hyphenated = validateSentimentThemes(
+    {
+      themes: [
+        {
+          title: "Easy onboarding",
+          polarity: "positive",
+          claims: [
+            {
+              statement: "Easy onboarding",
+              evidence: [
+                {
+                  checkId: "a",
+                  quote: "onboarding is frictionless - most teams",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    [
+      {
+        ...firstSample,
+        answer: "Notra's onboarding is frictionless — most teams ship today.",
+      },
+    ]
+  );
+  expect(hyphenated[0]?.claims[0]?.evidence[0]?.quote).toBe(
     "onboarding is frictionless - most teams"
   );
   // Identical checkId+quote pairs collapse; distinct quotes from the same
