@@ -53,6 +53,7 @@ export interface AgentTokenUsage {
   totalTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  reasoningTokens?: number;
   modelId?: string;
   /**
    * Prompt size of the largest single model call behind this usage. Set it

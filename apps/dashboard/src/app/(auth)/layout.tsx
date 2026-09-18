@@ -1,8 +1,8 @@
-import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
+import { AuthWordmark } from "@/components/auth/auth-wordmark";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -25,17 +25,7 @@ export default async function AuthLayout({
   return (
     <div className="flex h-screen w-full justify-center lg:grid lg:grid-cols-2">
       <section className="flex h-full min-h-0 w-full flex-col items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
-        <Link
-          className="flex items-center gap-2 self-start"
-          href="https://usenotra.com"
-        >
-          <span aria-hidden="true">
-            <Notra className="size-7" />
-          </span>
-          <h1 className="text-foreground text-lg font-semibold tracking-tight">
-            Notra
-          </h1>
-        </Link>
+        <AuthWordmark href="https://usenotra.com" />
         <div className="w-full max-w-md">{children}</div>
         <div>
           <p className="text-muted-foreground px-8 text-center text-xs">

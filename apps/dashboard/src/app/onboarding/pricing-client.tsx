@@ -35,7 +35,7 @@ import {
   zdrAddonToggle,
 } from "@/utils/billing-plans";
 
-export function PricingClient({ slug }: PricingClientProps) {
+export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -169,7 +169,10 @@ export function PricingClient({ slug }: PricingClientProps) {
     <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-12">
       <OnboardingStepViewTracker step={ONBOARDING_STEPS.PRICING} />
       <div className="mb-6 flex justify-center">
-        <OnboardingProgress current={ONBOARDING_STEP_PRICING} />
+        <OnboardingProgress
+          current={ONBOARDING_STEP_PRICING}
+          hrefs={progressHrefs}
+        />
       </div>
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">

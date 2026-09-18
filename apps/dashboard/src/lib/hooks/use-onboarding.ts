@@ -45,7 +45,7 @@ export function useCompanyLogo(domain: string | null, name?: string | null) {
   return useQuery(
     dashboardOrpc.onboarding.companyLogo.queryOptions({
       input: { query, searchByName: !domain },
-      enabled: query.length > 0,
+      enabled: !domain && query.length > 0,
       staleTime: COMPANY_LOGO_STALE_TIME_MS,
       retry: false,
     })

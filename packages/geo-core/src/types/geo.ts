@@ -11,6 +11,7 @@ import type {
   GeoCheckWrite,
 } from "@notra/db/types/geo-checks";
 import type { GeoPersonaSnapshotV2 } from "@notra/db/types/geo-personas";
+import type { GeoScanUsageByRole } from "@notra/db/types/geo-scan";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import type { FinishReason, LanguageModel, ToolSet } from "ai";
 
@@ -185,11 +186,15 @@ export interface GeoGroundedAnswer extends GeoEngineAnswer {
 export interface GeoCheckOutcome {
   row: GeoCheckWrite | null;
   usage: AgentTokenUsage;
+  engineUsage?: AgentTokenUsage;
+  judgeUsage?: AgentTokenUsage;
 }
 
 export interface GeoSequenceCheckOutcome {
   rows: GeoCheckWrite[];
   usage: AgentTokenUsage;
+  engineUsage?: AgentTokenUsage;
+  judgeUsage?: AgentTokenUsage;
   droppedTurns: number;
 }
 
@@ -662,6 +667,8 @@ export interface GeoScanProjectPlan {
   promptCount: number;
   languages: string[];
   engines: string[];
+  /** Translate-call usage (judge role) from prepare. */
+  usage?: AgentTokenUsage;
 }
 
 export type GeoScanProjectPlanResult =
@@ -673,6 +680,8 @@ export interface GeoScanBatchOutcome {
   mentions: number;
   dropped: number;
   usage: AgentTokenUsage;
+  engineUsage?: AgentTokenUsage;
+  judgeUsage?: AgentTokenUsage;
 }
 
 export interface GeoScanFailureMetadata {
@@ -687,6 +696,23 @@ export interface GeoScanProjectTotals {
   mentions: number;
   dropped: number;
   usage: AgentTokenUsage;
+  engineUsage?: AgentTokenUsage;
+  judgeUsage?: AgentTokenUsage;
+}
+
+export interface GeoScanFinishTotals {
+  runId: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  reasoningTokens: number;
+  totalUsd: number;
+  checksTotal: number;
+  checksFailed: number;
+  mentions: number;
+  durationMs: number;
+  usageByRole: GeoScanUsageByRole;
 }
 
 export interface GeoScanProgramOptions {
@@ -892,6 +918,7 @@ export interface GeoJudgeResult {
   sentiment: "positive" | "neutral" | "negative" | null;
   competitors: string[];
   excerpt: string;
+  usage?: GeoModelTokenUsage;
 }
 
 export type GeoMentionSentiment = NonNullable<GeoJudgeResult["sentiment"]>;
@@ -1326,6 +1353,11 @@ export interface GeoModelCatalogEntry {
   default: boolean;
   /** Gateways that serve the model; OpenRouter-only models are pinned. */
   gateways: readonly GeoModelGateway[];
+  /**
+   * Superseded or niche model: still scannable for projects that track it,
+   * but not offered in the picker.
+   */
+  hidden?: boolean;
 }
 
 export interface GeoModelCatalog {

@@ -29,5 +29,7 @@ export interface GeoConversationSource {
 export interface GeoConversationOutcome {
   rows: GeoCheckWrite[];
   usage: AgentTokenUsage;
+  engineUsage?: AgentTokenUsage;
+  judgeUsage?: AgentTokenUsage;
   droppedTurns: number;
 }
