@@ -79,7 +79,7 @@ export function buildFeaturesMarkdown() {
       "The buyer questions you want to show up for, in the words a buyer would use. Write them yourself, let Notra pull them from your website or import a CSV. Connect Google Search Console and Notra turns your real search queries into prompt suggestions every week.",
       "",
       "### Engines and models",
-      "ChatGPT, Claude, Gemini and Perplexity with web search. Models from OpenAI, Anthropic, Google, Moonshot, Z.AI, DeepSeek, Mistral, Meta and Grok without search. You pick which ones run and the list refreshes as new releases ship.",
+      "ChatGPT, Claude, Gemini and Perplexity with web search, plus Google AI Overview and coding agents that research live. You pick which ones run and the list refreshes as new releases ship.",
       "",
       "### Languages",
       "Run the same prompts in up to five languages. Each language gets its own mention rate, so you can see where you win in English and lose in German.",

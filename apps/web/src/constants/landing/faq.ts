@@ -15,7 +15,7 @@ export const FAQ_CONTENT: FaqContent = {
       id: "engines",
       question: "Which engines and models do you scan?",
       answer:
-        "ChatGPT, Claude, Gemini and Perplexity with web search, plus models from OpenAI, Anthropic, Google, Moonshot, Z.AI, DeepSeek, Mistral, Meta and Grok without search. You pick which ones run, and the model list refreshes as new releases ship.",
+        "ChatGPT, Claude, Gemini and Perplexity with web search, plus Google AI Overview and coding agents that research live. You pick which ones run, and the model list refreshes as new releases ship.",
       defaultOpen: false,
     },
     {

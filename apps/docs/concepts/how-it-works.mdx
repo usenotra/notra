@@ -33,7 +33,7 @@ Notra runs two loops. The **visibility loop** asks AI engines the questions your
   </Step>
 
   <Step title="Scan">
-    On every scan Notra sends each prompt to each enabled model without web access, and a fixed set of grounded engines (ChatGPT, Claude Sonnet, Gemini, and Perplexity) also answers a subset of prompts with live web search. Notra keeps the full answer and, for grounded checks, the search queries and cited sources. A separate judge step checks every answer for mentions of your brand, your aliases and each tracked competitor.
+    On every scan Notra sends each prompt to engines that search the live web: ChatGPT, Claude, Gemini and Perplexity, plus Google AI Overview and coding agents that research live. Notra keeps the full answer and the search queries and cited sources. A separate judge step checks every answer for mentions of your brand, your aliases and each tracked competitor.
   </Step>
 
   <Step title="Measure">
@@ -65,7 +65,7 @@ A prompt is a question a buyer might ask an AI assistant, such as "best tools fo
 
 ### Engines and models
 
-Onboarding tracks ChatGPT, Claude, Gemini and Perplexity. GEO Settings exposes a larger model catalog across providers, and every enabled model runs on every prompt. Scans in additional languages run a translated copy of each prompt.
+Onboarding tracks ChatGPT, Claude, Gemini and Perplexity. GEO Settings exposes a larger model catalog; only models with a live web-search route are scanned. Scans in additional languages run a translated copy of each prompt.
 
 ### Judging
 

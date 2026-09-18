@@ -57,20 +57,33 @@ export function scopeGeoScanEngines(
 }
 
 /**
+ * Bare catalog calls that still search the web: Google AI Overview (SerpApi)
+ * and Box coding agents. Cursor is excluded — it runs with no tools.
+ */
+export function isGeoNativeSearchEngine(
+  catalog: GeoModelCatalog,
+  engine: string
+): boolean {
+  const gateway = resolveGeoEngineGateway(catalog, engine);
+  return gateway === "serpapi" || gateway === "box";
+}
+
+/**
  * Empty engine scope must not become a successful zero-check scan. A requested
- * selection with no catalog model left, or a set that ZDR rejects in
- * full, is a skip — not a completed pollable run.
+ * selection with no catalog model left, a set that ZDR rejects in full, or a
+ * set with no web-search route is a skip — not a completed pollable run.
  */
 export function geoScanEmptyEngineSkipReason(
   scanEngines: readonly string[],
   runnableEngineCount: number,
-  requestedEngines?: readonly string[]
+  requestedEngines?: readonly string[],
+  zdrPassedCount = 0
 ): GeoScanSkipReason | null {
   if (requestedEngines !== undefined && scanEngines.length === 0) {
     return "scoped_engines_missing";
   }
   if (scanEngines.length > 0 && runnableEngineCount === 0) {
-    return "zdr";
+    return zdrPassedCount > 0 ? "no_search_engines" : "zdr";
   }
   return null;
 }
