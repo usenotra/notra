@@ -250,6 +250,8 @@ const ingestSetupFieldsSchema = z.object({
     nuxt: z.string(),
     netlify: z.string(),
     tanstack: z.string(),
+    astro: z.string(),
+    sveltekit: z.string(),
   }),
   organization: organizationResponseSchema,
 });

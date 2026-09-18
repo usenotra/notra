@@ -70,6 +70,35 @@ export const startInstance = createStart(() => ({
 
 The middleware captures requests alongside your route handler and waits for the send before returning, so tracking completes on serverless hosts. It preserves the downstream response and errors. If `src/start.ts` already exists, add `geo` to its existing `requestMiddleware` array.
 
+## Astro
+
+```ts
+// src/middleware.ts
+import { createGeoMiddleware } from "@usenotra/geo/astro";
+
+export const onRequest = createGeoMiddleware({
+  token: import.meta.env.NOTRA_GEO_TOKEN ?? "",
+  endpoint: "https://app.usenotra.com",
+});
+```
+
+The middleware captures requests alongside your route handler and waits for the send before returning. If `src/middleware.ts` already exists, compose with `sequence` from `astro:middleware`. Astro must serve pages from a server adapter (`output: "server"` or hybrid) so requests exist at runtime; a static build has nothing to capture after deploy.
+
+## SvelteKit
+
+```ts
+// src/hooks.server.ts
+import { env } from "$env/dynamic/private";
+import { createGeoHandle } from "@usenotra/geo/sveltekit";
+
+export const handle = createGeoHandle({
+  token: env.NOTRA_GEO_TOKEN ?? "",
+  endpoint: "https://app.usenotra.com",
+});
+```
+
+The handle captures requests alongside `resolve` and waits for the send before returning. If `src/hooks.server.ts` already has a `handle`, compose with `sequence` from `@sveltejs/kit/hooks`.
+
 ## Netlify Edge Functions
 
 ```ts
@@ -102,7 +131,7 @@ send alive.
 ### What gets captured
 
 Only `GET` requests that look like pages. Asset requests are skipped: anything under
-`/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/static/`, and any path ending in a
+`/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/`, `/static/`, and any path ending in a
 common static extension such as `.css`, `.js`, `.png`, `.svg`, `.xml` or `.txt`.
 `llms.txt` and `llms-full.txt` are the exception: they are always captured.
 
@@ -288,7 +317,7 @@ no envelope.
 
 ### Other stacks
 
-`tagMarkdownLinks` stays the way to tag per route on Nuxt, Netlify or anything else.
+`tagMarkdownLinks` stays the way to tag per route on Nuxt, Astro, SvelteKit, Netlify or anything else.
 Call it inside the handler that builds the markdown, as shown above.
 
 ## Core API

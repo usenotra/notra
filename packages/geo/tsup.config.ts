@@ -7,6 +7,8 @@ export default defineConfig({
     "src/nuxt.ts",
     "src/netlify.ts",
     "src/tanstack.ts",
+    "src/astro.ts",
+    "src/sveltekit.ts",
     "src/signatures.ts",
     "src/classify.ts",
     "src/markdown.ts",

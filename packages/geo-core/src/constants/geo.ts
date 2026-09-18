@@ -636,6 +636,8 @@ export const GEO_INGEST_FRAMEWORK_OPTIONS = [
   { value: "next", label: "Next.js", file: "proxy.ts" },
   { value: "nuxt", label: "Nuxt", file: "server/middleware/geo.ts" },
   { value: "tanstack", label: "TanStack Start", file: "src/start.ts" },
+  { value: "astro", label: "Astro", file: "src/middleware.ts" },
+  { value: "sveltekit", label: "SvelteKit", file: "src/hooks.server.ts" },
   {
     value: "netlify",
     label: "Netlify",
