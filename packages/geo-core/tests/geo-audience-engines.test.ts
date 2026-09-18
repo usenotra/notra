@@ -68,3 +68,15 @@ test("general falls back to the defaults when its models left the catalog", () =
     geoDefaultEngines(catalog)
   );
 });
+
+test("a partly available general set falls back to the defaults", () => {
+  const seed = seedGeoModelCatalog();
+  const [missing] = GEO_GENERAL_AUDIENCE_ENGINE_IDS;
+  const catalog = {
+    ...seed,
+    models: seed.models.filter((model) => model.id !== missing),
+  };
+  const defaults = geoDefaultEngines(catalog);
+  expect(geoEnginesForAudience(catalog, "general")).toEqual(defaults);
+  expect(geoEnginesForAudience(catalog, "commerce")).toEqual(defaults);
+});
