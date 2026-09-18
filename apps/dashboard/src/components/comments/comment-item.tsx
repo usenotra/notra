@@ -27,7 +27,7 @@ import type {
 function hasVisibleThread(
   comment: DiscussionComment,
   comments: DiscussionComment[]
-) {
+): boolean {
   return (
     !comment.deletedAt ||
     comments.some(
