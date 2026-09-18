@@ -132,6 +132,7 @@ import { askCursorEngine } from "./cursor";
 import { geoSkip } from "./effect";
 import {
   GeoEmptyAnswerError,
+  GeoJudgeError,
   GeoScanError,
   GeoSequenceNotFoundError,
   GeoSequenceRunError,
@@ -211,7 +212,7 @@ function sequenceFailureFields(
 
 function droppedCheckOutcome(
   fields: GeoSkipFields,
-  error: GeoEmptyAnswerError
+  error: GeoEmptyAnswerError | GeoJudgeError
 ): GeoCheckOutcome {
   logGeoSkip("check failed", fields, error);
   const engineUsage = error.usage
@@ -487,7 +488,18 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     task.language,
     answer
   );
-  const judged = yield* judgeAnswer(context, task.prompt.text, answerText);
+  const judged = yield* judgeAnswer(context, task.prompt.text, answerText).pipe(
+    Effect.mapError((error) =>
+      error._tag === "GeoJudgeError"
+        ? new GeoJudgeError({
+            message: error.message,
+            timedOut: error.timedOut,
+            cause: error.cause,
+            usage: answer.usage,
+          })
+        : error
+    )
+  );
   const durationMs = Math.round(performance.now() - startedMs);
   const ownedSourceCited = hasOwnedSourceCitation(
     context.websiteUrl,
@@ -1303,6 +1315,9 @@ const runGeoScanTaskBatchBody = Effect.fn("geo.runScanTaskBatch.body")(
               Effect.catchTag("GeoEmptyAnswerError", (error) =>
                 Effect.sync(() => droppedCheckOutcome(fields, error))
               ),
+              Effect.catchTag("GeoJudgeError", (error) =>
+                Effect.sync(() => droppedCheckOutcome(fields, error))
+              ),
               geoSkip("check failed", fields),
               Effect.tap((result) =>
                 result?.row
@@ -1858,8 +1873,22 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
                 message: `Sequence ${sequence.id} on ${engine} timed out after ${GEO_SEQUENCE_PAIR_TIMEOUT_MS}ms`,
               })
             ),
-        })
+        }),
+        Effect.catchTag("GeoJudgeError", (error) =>
+          Effect.sync(() => {
+            logGeoSkip(
+              "sequence turn failed",
+              { ...failureFields, turn: index + 1 },
+              error
+            );
+            return null;
+          })
+        )
       );
+      if (judged === null) {
+        droppedTurns = steps.length - index;
+        break;
+      }
       judgeUsage = addTokenUsage(judgeUsage, agentTokenUsageFrom(judged.usage));
       const ownedSourceCited = hasOwnedSourceCitation(
         context.websiteUrl,
@@ -1889,7 +1918,10 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
         ...geoCheckWriteUsage(
           answer.usage,
           judged.usage,
-          Math.round(performance.now() - turnStartedMs)
+          // ponytail: Box computeMs stands in for engine wall-clock; the conversation already finished before this loop.
+          Math.round(
+            (answer.usage?.computeMs ?? 0) + (performance.now() - turnStartedMs)
+          )
         ),
         zdrEnforced: answer.zdrEnforced,
         language: DEFAULT_LANGUAGE,

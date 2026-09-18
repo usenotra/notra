@@ -31,6 +31,7 @@ export class GeoJudgeError extends Data.TaggedError("GeoJudgeError")<{
   readonly message: string;
   readonly timedOut?: boolean;
   readonly cause: unknown;
+  readonly usage?: LanguageModelUsage;
 }> {}
 
 export class GeoTranslationError extends Data.TaggedError(

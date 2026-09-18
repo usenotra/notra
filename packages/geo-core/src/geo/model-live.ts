@@ -28,12 +28,12 @@ import {
 } from "../schemas/geo";
 import { geoSearchConsoleSuggestionSchema } from "../schemas/google-search-console";
 import { GeoModelError } from "../schemas/model-errors";
+import type { GeoModelTokenUsage } from "../types/token-usage";
 import {
   buildMentionEvaluationState,
   MENTION_EVALUATION_QUESTIONS,
   toMentionEvaluation,
 } from "../utils/geo-check-evaluation";
-import type { GeoModelTokenUsage } from "../types/token-usage";
 import { addLanguageModelTokenUsage } from "../utils/token-usage";
 import { buildGroundedInvocation } from "./engines";
 import { GeoJudgeError, GeoScanError, GeoTranslationError } from "./errors";
