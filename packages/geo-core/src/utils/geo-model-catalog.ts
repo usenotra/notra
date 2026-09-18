@@ -1,5 +1,6 @@
 import {
   GEO_DEFAULT_ENGINE_IDS,
+  GEO_GENERAL_AUDIENCE_ENGINE_IDS,
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_CATALOG_STATIC,
   GEO_MODEL_EXCLUDED_ID_PATTERN,
@@ -13,6 +14,7 @@ import {
   GEO_STATIC_ENGINE_ENV,
 } from "../constants/geo-model-catalog";
 import type {
+  GeoAudienceType,
   GeoGatewayModel,
   GeoModelCatalog,
   GeoModelCatalogEntry,
@@ -232,4 +234,21 @@ export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {
     return defaults;
   }
   return catalog.models.slice(0, 1).map((model) => model.id);
+}
+
+/**
+ * Engines seeded at onboarding. A general audience gets the models the
+ * assistant apps default to; anything else, or a catalog missing those models, keeps the
+ * full default set.
+ */
+export function geoEnginesForAudience(
+  catalog: GeoModelCatalog,
+  audienceType: GeoAudienceType | undefined
+): string[] {
+  if (audienceType !== "general") {
+    return geoDefaultEngines(catalog);
+  }
+  const known = new Set(catalog.models.map((model) => model.id));
+  const engines = GEO_GENERAL_AUDIENCE_ENGINE_IDS.filter((id) => known.has(id));
+  return engines.length > 0 ? engines : geoDefaultEngines(catalog);
 }

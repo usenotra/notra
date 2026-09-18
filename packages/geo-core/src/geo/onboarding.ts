@@ -19,6 +19,7 @@ import type {
 } from "../types/geo";
 import { resolveTrackedEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { normalizeWebsiteUrl } from "../utils/geo-website";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { discoverGeoWebsite } from "./discover";
@@ -40,7 +41,10 @@ export const saveGeoOnboardingBrand = Effect.fn("geo.onboardingBrand")(
       aliases: input.aliases,
       competitors: [],
       languages: trackedGeoLanguages(input.languages ?? []),
-      engines: resolveTrackedEngines(catalog, input.engines),
+      engines: resolveTrackedEngines(
+        catalog,
+        input.engines ?? geoEnginesForAudience(catalog, input.audienceType)
+      ),
       enforceZdr: input.enforceZdr ?? true,
       nonZdrApprovedEngines: input.nonZdrApprovedEngines ?? [],
       enabled: true,

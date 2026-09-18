@@ -87,6 +87,7 @@ function VisibilityReview({
     const brandInput = toVisibilityBrandInput({
       companyName,
       aliases: discovery?.aliases ?? [],
+      audienceType: discovery?.audienceType,
       prompts: selectedPrompts,
     });
     save.mutate(brandInput, {

@@ -66,7 +66,8 @@ Derive the brand tracking configuration for this company:
 1. companyName: the company or product name exactly as it brands itself.
 2. aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} alternative spellings that identify this company - product names, the bare domain, and common misspellings. Never include generic words that could refer to anything else.
 3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
-4. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+4. audienceType: "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "general" for everyone else (e-commerce, consumer brands, local and professional services, non-technical B2B), whose buyers just use whatever model their assistant ships with.
+5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
 
 Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
 

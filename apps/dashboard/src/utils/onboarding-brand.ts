@@ -56,6 +56,7 @@ export function toVisibilityBrandInput(
       const trimmed = alias.trim();
       return trimmed ? [trimmed] : [];
     }),
+    audienceType: input.audienceType,
     prompts: uniqueVisibilityPrompts(
       input.prompts,
       buildBrandTerms({
