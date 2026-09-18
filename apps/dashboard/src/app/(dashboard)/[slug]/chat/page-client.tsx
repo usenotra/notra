@@ -424,9 +424,9 @@ function UserImageGrid({ children }: UserImageGridProps) {
 
 function ProjectScopeLoadingInput() {
   return (
-    <div
+    <Skeleton
       aria-label="Loading project"
-      className="bg-muted/50 h-24 animate-pulse rounded-xl"
+      className="bg-muted/50 h-24 rounded-xl"
       role="status"
     />
   );

@@ -1,6 +1,9 @@
 import { Effect } from "effect";
 
-import { bumpAnalyticsVersions } from "../cache/query-cache";
+import {
+  bumpAnalyticsVersions,
+  bumpPurgeGeneration,
+} from "../cache/query-cache";
 import type {
   PurgeGeoProjectInput,
   PurgeSocialAccountInput,
@@ -136,8 +139,11 @@ export function purgeGeoProjectData(
     for (const datasource of GEO_DATASOURCES) {
       yield* deleteFromDatasource(datasource, condition);
     }
-    yield* Effect.tryPromise(() =>
-      bumpAnalyticsVersions("geo", [input.organizationId])
+    // The geo scope is TTL-cached without a version to bump; advancing the
+    // purge generation orphans every entry written before the deletion,
+    // including writes from in-flight pre-purge reads that land afterwards.
+    yield* Effect.promise(() =>
+      bumpPurgeGeneration("geo", input.organizationId)
     );
   });
   return Effect.runPromise(program);

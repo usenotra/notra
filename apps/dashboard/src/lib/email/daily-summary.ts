@@ -295,7 +295,6 @@ async function sendDailySummaryForOrganization({
       scansCompleted: summary.scansCompleted,
       gained: summary.gained,
       lost: summary.lost,
-      netChange: summary.netChange,
       items: summary.items,
       remainingCount: summary.remainingCount,
       dashboardLink: `${appUrl}/${org.slug}/geo`,

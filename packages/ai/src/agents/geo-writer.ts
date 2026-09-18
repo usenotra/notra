@@ -4,7 +4,6 @@ import {
   GEO_WRITER_MODEL,
   GEO_WRITER_PLANNER_MAX_TOKENS,
   GEO_WRITER_PLANNER_REPAIR_ATTEMPTS,
-  GEO_WRITER_PLANNER_TEMPERATURE,
 } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
@@ -50,6 +49,7 @@ import type {
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
@@ -82,11 +82,7 @@ function toTokenUsage(
   route?: AgentTokenUsage["route"]
 ): AgentTokenUsage {
   return {
-    inputTokens: usage?.inputTokens ?? 0,
-    outputTokens: usage?.outputTokens ?? 0,
-    totalTokens: usage?.totalTokens ?? 0,
-    cacheReadTokens: usage?.inputTokenDetails?.cacheReadTokens ?? 0,
-    cacheWriteTokens: usage?.inputTokenDetails?.cacheWriteTokens ?? 0,
+    ...toAgentTokenUsage(usage),
     modelId: GEO_WRITER_MODEL,
     route,
     raw: usage,
@@ -213,7 +209,6 @@ export async function generateGeoContentBrief(
         output: Output.object({ schema: geoContentBriefSchema }),
         instructions: system,
         prompt,
-        temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
         providerOptions: withRouterDefaults(undefined, {
           modelId: GEO_WRITER_MODEL,

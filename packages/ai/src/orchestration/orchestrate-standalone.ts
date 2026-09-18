@@ -333,7 +333,7 @@ export async function orchestrateStandaloneChat(
       await deps?.onUsage?.(
         usage,
         routingDecision.model,
-        await summarizeRouteUsage(steps)
+        await summarizeRouteUsage(steps, routingDecision.model)
       );
       await lazyMcpRuntime?.cleanup();
     },

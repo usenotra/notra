@@ -1,4 +1,4 @@
-import { logoLinkUrl } from "@notra/utils/logo-link";
+import { googleFaviconUrl } from "@notra/utils/google-favicon";
 
 import { GEO_AVATAR_FALLBACK_BASE } from "../constants/geo";
 
@@ -10,9 +10,9 @@ export function competitorLogoSources(
   if (logo) {
     sources.push(logo);
   }
-  const logoLink = logoLinkUrl(domain);
-  if (logoLink) {
-    sources.push(logoLink);
+  const favicon = googleFaviconUrl(domain);
+  if (favicon) {
+    sources.push(favicon);
   }
   return sources;
 }

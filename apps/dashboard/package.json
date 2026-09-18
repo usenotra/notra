@@ -16,9 +16,9 @@
     "test": "bun test src && bun test tests"
   },
   "dependencies": {
-    "@ai-sdk/code-mode": "1.0.50",
-    "@ai-sdk/otel": "1.0.93",
-    "@ai-sdk/react": "4.0.96",
+    "@ai-sdk/code-mode": "1.0.62",
+    "@ai-sdk/otel": "1.0.105",
+    "@ai-sdk/react": "4.0.108",
     "@aws-sdk/client-s3": "^3.990.0",
     "@aws-sdk/s3-request-presigner": "^3.990.0",
     "@base-ui/react": "^1.8.0",
@@ -69,12 +69,12 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/realtime": "^1.0.3",
     "@upstash/redis": "^1.35.8",
-    "@usenotra/geo": "npm:@usenotra/geo@^0.3.0",
+    "@usenotra/geo": "npm:@usenotra/geo@^0.5.0",
     "@vercel/oidc": "^3.8.0",
     "@vercel/otel": "^2.1.2",
     "@workos-inc/authkit-nextjs": "^4.3.1",
     "@workos-inc/node": "^10.10.0",
-    "ai": "7.0.93",
+    "ai": "7.0.105",
     "autumn-js": "^1.2.7",
     "cmdk": "^1.1.1",
     "cnfast": "^0.0.6",
@@ -114,7 +114,7 @@
     "sonner": "^2.0.7",
     "sugar-high": "^1.2.1",
     "three": "^0.167.1",
-    "workflow": "^4.6.0",
+    "workflow": "^4.8.8",
     "zod": "^4.5.0"
   },
   "devDependencies": {

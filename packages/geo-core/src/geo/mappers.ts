@@ -55,6 +55,7 @@ export function toGeoSettings(
     engines: resolveTrackedEngines(catalog, row.engines),
     enforceZdr: row.enforceZdr,
     nonZdrApprovedEngines: remapRetiredGeoEngineIds(row.nonZdrApprovedEngines),
+    trackWithoutSearch: row.trackWithoutSearch,
     pausedAutoPromptIds: row.pausedAutoPromptIds,
     removedAutoPromptIds: row.removedAutoPromptIds,
     enabled: row.enabled,

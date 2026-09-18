@@ -10,6 +10,7 @@
     "./router/*": "./src/router/*.ts",
     "./router/adapters/*": "./src/router/adapters/*.ts",
     "./evlog": "./src/evlog.ts",
+    "./evaluation/*": "./src/evaluation/*.ts",
     "./realtime": "./src/realtime.ts",
     "./agents/*": "./src/agents/*.ts",
     "./autonomy/*": "./src/autonomy/*.ts",
@@ -39,10 +40,10 @@
     "test": "bun test src && bun test tests"
   },
   "dependencies": {
-    "@ai-sdk/code-mode": "1.0.50",
-    "@ai-sdk/gateway": "4.0.75",
-    "@ai-sdk/mcp": "2.0.45",
-    "@ai-sdk/provider": "4.0.10",
+    "@ai-sdk/code-mode": "1.0.62",
+    "@ai-sdk/gateway": "4.0.85",
+    "@ai-sdk/mcp": "2.0.52",
+    "@ai-sdk/provider": "4.0.17",
     "@aws-sdk/client-s3": "^3.990.0",
     "@linear/sdk": "^80.0.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -59,7 +60,7 @@
     "@upstash/qstash": "2.9.0-rc",
     "@upstash/realtime": "^1.0.3",
     "@upstash/redis": "^1.35.8",
-    "ai": "7.0.93",
+    "ai": "7.0.105",
     "autumn-js": "^1.2.7",
     "dedent": "^1.7.1",
     "drizzle-orm": "^0.45.2",
@@ -76,7 +77,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@ai-sdk/devtools": "1.0.15",
+    "@ai-sdk/devtools": "1.0.22",
     "@notra/typescript-config": "workspace:*",
     "@types/react": "^19.2.18",
     "@types/sanitize-html": "^2.16.0",

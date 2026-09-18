@@ -1,0 +1,161 @@
+## Usage-Based Pricing
+
+Pay-per-use (usage-based) pricing charges customers based on how much of a feature they actually consume, billed at the end of each billing period. This is ideal for products where usage varies significantly between customers.
+
+> **Example** <br />
+> A notification service charges $1 per 1,000 notifications sent. A customer who sends 5,000 notifications in a month pays $5 at the end of that month.
+
+## Setting up
+
+Create a consumable feature with a `usage_based` price:
+
+```ts autumn.config.ts
+import { atmn, feature, plan } from "atmn";
+
+export const notifications = feature({
+  featureId: "notifications",
+  name: "Notifications",
+  type: "metered",
+  consumable: true,
+});
+
+export const payAsYouGo = plan({
+  planId: "pay_as_you_go",
+  versionSlug: "v1",
+  active: true,
+  name: "Pay As You Go",
+  group: "main",
+  items: [
+    {
+      featureId: notifications.featureId,
+      included: 1000,
+      reset: { interval: "month" },
+      price: {
+        amount: 1,
+        interval: "month",
+        billingUnits: 1000,
+        billingMethod: "usage_based",
+      },
+    },
+  ],
+});
+
+export default atmn({ features: [notifications], plans: [payAsYouGo] });
+```
+
+Preview with `atmn push`, then apply with `atmn push --yes`.
+
+## How it works
+
+1. A customer's usage is tracked via the [track](/documentation/customers/tracking-usage) endpoint throughout the billing period
+2. Usage first draws down from the **included** amount (if any) at no charge
+3. Usage beyond the included amount is **overage** — billed at the configured rate
+4. At the end of the billing period, Autumn generates a Stripe invoice for the total overage
+
+Usage-based features allow overage by default. The `check` endpoint will return `allowed: true` even if the customer has exceeded their included balance, as long as a usage-based price is configured.
+
+## Tracking usage
+
+Track usage as it occurs — Autumn accumulates it over the billing period:
+
+<CodeGroup>
+
+```typescript TypeScript
+import { Autumn } from "autumn-js";
+
+const autumn = new Autumn({ secretKey: "am_sk_..." });
+
+await autumn.track({
+  customer_id: "user_123",
+  feature_id: "notifications",
+  value: 500,
+});
+```
+
+```python Python
+from autumn_sdk import Autumn
+
+autumn = Autumn("am_sk_...")
+
+await autumn.track(
+    customer_id="user_123",
+    feature_id="notifications",
+    value=500,
+)
+```
+
+```bash cURL
+curl -X POST "https://api.useautumn.com/v1/track" \
+  -H "Authorization: Bearer am_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "user_123",
+    "feature_id": "notifications",
+    "value": 500
+  }'
+```
+
+</CodeGroup>
+
+## Checking access
+
+Check if the customer can use the feature. For usage-based features with overage, `allowed` is `true` as long as the feature exists on the customer's plan:
+
+<CodeGroup>
+
+```typescript TypeScript
+const { data } = await autumn.check({
+  customer_id: "user_123",
+  feature_id: "notifications",
+});
+
+console.log(data.allowed); // true (overage allowed)
+console.log(data.balance);
+```
+
+```python Python
+response = await autumn.check(
+    customer_id="user_123",
+    feature_id="notifications",
+)
+
+print(response.allowed)  # True (overage allowed)
+print(response.balance)
+```
+
+```bash cURL
+curl -X POST "https://api.useautumn.com/v1/check" \
+  -H "Authorization: Bearer am_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "user_123",
+    "feature_id": "notifications"
+  }'
+```
+
+</CodeGroup>
+
+```json
+{
+  "allowed": true,
+  "customerId": "user_123",
+  "balance": {
+    "featureId": "notifications",
+    "granted": 1000,
+    "remaining": -500,
+    "usage": 1500,
+    "unlimited": false,
+    "overageAllowed": true,
+    "nextResetAt": 1757192635393
+  }
+}
+```
+
+## Combining with free tiers
+
+A common pattern is pairing usage-based pricing with a [free plan](/documentation/modelling-pricing/free-plans). Free users are blocked when they exceed their limit, while paying users are billed for overages.
+
+| Plan | Over limit | Result |
+|------|------------|--------|
+| Free | Yes | Blocked (`allowed: false`) |
+| Pay-as-you-go | Yes | Allowed, billed at end of period |

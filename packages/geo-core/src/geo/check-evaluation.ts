@@ -3,7 +3,10 @@ import { Effect } from "effect";
 import { GeoModelService } from "../deps";
 import type { GeoCheckContext, GeoEngineAnswer } from "../types/geo";
 import { findBrandMention } from "../utils/geo-brand-mention";
-import { buildJudgePrompt } from "../utils/geo-check-evaluation";
+import {
+  applyMentionEvaluation,
+  buildJudgePrompt,
+} from "../utils/geo-check-evaluation";
 import { geoLogWarn } from "../utils/geo-log";
 import { GeoEmptyAnswerError } from "./errors";
 
@@ -13,12 +16,28 @@ export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
   answer: string
 ) {
   const models = yield* GeoModelService;
-  const judged = yield* models.judge({
-    organizationId: context.organizationId,
-    prompt: buildJudgePrompt(context, promptText, answer),
-  });
   const mentioned =
     findBrandMention(answer, context.companyName, context.aliases) !== null;
+  // The judge LLM still supplies competitors and excerpt; the typed
+  // evaluation only runs when there is a mention to rate.
+  const [judged, evaluation] = yield* Effect.all(
+    [
+      models.judge({
+        organizationId: context.organizationId,
+        prompt: buildJudgePrompt(context, promptText, answer),
+      }),
+      mentioned && models.evaluateMention
+        ? models.evaluateMention({
+            organizationId: context.organizationId,
+            companyName: context.companyName,
+            aliases: context.aliases,
+            prompt: promptText,
+            answer,
+          })
+        : Effect.succeed(null),
+    ],
+    { concurrency: "unbounded" }
+  );
   if (judged.mentioned !== mentioned) {
     yield* geoLogWarn({
       event: "geo.check.judge_mention_mismatch",
@@ -30,12 +49,7 @@ export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
       excerpt: judged.excerpt,
     });
   }
-  return {
-    ...judged,
-    mentioned,
-    position: mentioned ? judged.position : null,
-    sentiment: mentioned ? judged.sentiment : null,
-  };
+  return applyMentionEvaluation(judged, mentioned, evaluation);
 });
 
 export const requireAnswerText = Effect.fn("geo.requireAnswerText")(function* (

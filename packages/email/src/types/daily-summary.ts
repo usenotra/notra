@@ -18,7 +18,6 @@ export interface DailySummaryEmailProps {
   scansCompleted: number;
   gained: number;
   lost: number;
-  netChange: number;
   items: DailySummaryEmailItem[];
   remainingCount: number;
   dashboardLink: string;

@@ -31,7 +31,6 @@ export interface BuiltDailySummary {
   scansCompleted: number;
   gained: number;
   lost: number;
-  netChange: number;
   items: DailySummaryEmailItem[];
   remainingCount: number;
 }

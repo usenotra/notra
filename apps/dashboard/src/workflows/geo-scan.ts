@@ -64,7 +64,17 @@ function addBatchOutcome(
   totals.checks += outcome.checks;
   totals.mentions += outcome.mentions;
   totals.dropped += outcome.dropped;
-  totals.usage = addAgentTokenUsage(totals.usage, outcome.usage);
+  const engine = outcome.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  const judge = outcome.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  totals.engineUsage = addAgentTokenUsage(
+    totals.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage
+  );
+  totals.judgeUsage = addAgentTokenUsage(
+    totals.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    judge
+  );
+  totals.usage = addAgentTokenUsage(totals.engineUsage, totals.judgeUsage);
 }
 
 function isClaimRenewalDue(claimedAt: string, now: number): boolean {
@@ -289,7 +299,9 @@ async function runGeoScanProjectRun(
       checks: 0,
       mentions: 0,
       dropped: 0,
-      usage: EMPTY_AGENT_TOKEN_USAGE,
+      usage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
+      engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+      judgeUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
     } satisfies GeoScanProjectTotals,
   };
   const { totals } = state;

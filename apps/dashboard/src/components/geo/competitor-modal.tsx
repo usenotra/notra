@@ -1,21 +1,24 @@
 "use client";
 
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 import { useRouter } from "next/navigation";
 
 import type { CompetitorSheetProps } from "@/types/geo";
+
+const COMPETITOR_SHEET_CONTENT_CLASS =
+  "gap-0 overflow-y-auto p-6 transition-[filter] data-[nested-dialog-open]:blur-xs data-[nested-dialog-open]:brightness-95 data-[side=right]:w-full sm:rounded-xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-auto data-[side=right]:sm:max-w-3xl [&>*]:min-w-0";
 
 export function CompetitorModal({ title, children }: CompetitorSheetProps) {
   const router = useRouter();
 
   return (
-    <ResponsiveDialog
+    <Sheet
       onOpenChange={(open) => {
         if (!open) {
           router.back();
@@ -23,15 +26,15 @@ export function CompetitorModal({ title, children }: CompetitorSheetProps) {
       }}
       open
     >
-      <ResponsiveDialogContent className="duration-normal max-h-[90svh] gap-5 overflow-y-auto p-6 transition-[filter] data-[nested-dialog-open]:blur-xs data-[nested-dialog-open]:brightness-95 sm:max-w-3xl [&>*]:min-w-0">
-        <ResponsiveDialogHeader className="sr-only">
-          <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
+      <SheetContent className={COMPETITOR_SHEET_CONTENT_CLASS}>
+        <SheetHeader className="sr-only">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>
             How AI engines mention {title} across your tracked prompts
-          </ResponsiveDialogDescription>
-        </ResponsiveDialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         {children}
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,4 +1,4 @@
-export type AnalyticsCacheScope = "social" | "geo" | "traffic";
+export type AnalyticsCacheScope = "social" | "geo";
 
 export interface CachedQueryOptions<TResult> {
   scope: AnalyticsCacheScope;

@@ -1,11 +1,6 @@
 import type { InferOutputRow, InferParams } from "@tinybirdco/sdk";
 
 import type {
-  aiTrafficLog,
-  aiTrafficOverview,
-  aiTrafficTimeseries,
-} from "../tinybird/pipes/ai-traffic";
-import type {
   geoJourneyDetail,
   geoTrafficJourneys,
   geoTrafficLog,
@@ -43,9 +38,6 @@ export type FollowerGrowthRow = InferOutputRow<typeof followerGrowth>;
 
 export type NotraAdoptionRow = InferOutputRow<typeof notraAdoption>;
 export type PostMetricsLookupRow = InferOutputRow<typeof postMetricsLookup>;
-export type AiTrafficOverviewRow = InferOutputRow<typeof aiTrafficOverview>;
-export type AiTrafficTimeseriesRow = InferOutputRow<typeof aiTrafficTimeseries>;
-export type AiTrafficLogRow = InferOutputRow<typeof aiTrafficLog>;
 export type GeoTrafficOverviewRow = InferOutputRow<typeof geoTrafficOverview>;
 export type GeoTrafficTimeseriesRow = InferOutputRow<
   typeof geoTrafficTimeseries

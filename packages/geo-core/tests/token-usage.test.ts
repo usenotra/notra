@@ -142,4 +142,41 @@ describe("GEO billing usage", () => {
       1
     );
   });
+
+  test("prices untagged tokens as the judge model, not an engine", () => {
+    const tokens = {
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      totalTokens: 1_000_000,
+    };
+    const untagged = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, tokens);
+    const asJudge = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, {
+      ...tokens,
+      modelId: "openai/gpt-5.4-nano",
+    });
+    const asEngine = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, {
+      ...tokens,
+      modelId: "anthropic/claude-opus-5",
+    });
+    expect(untagged.totalUsd).toBe(asJudge.totalUsd);
+    expect(asEngine.totalUsd).not.toBe(untagged.totalUsd);
+  });
+
+  test("carries reasoning tokens through aggregation", () => {
+    const total = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, {
+      inputTokens: 10,
+      outputTokens: 20,
+      totalTokens: 30,
+      outputTokenDetails: { textTokens: 5, reasoningTokens: 15 },
+    });
+    expect(total.reasoningTokens).toBe(15);
+    expect(
+      addAgentTokenUsage(total, {
+        inputTokens: 1,
+        outputTokens: 2,
+        totalTokens: 3,
+        reasoningTokens: 4,
+      }).reasoningTokens
+    ).toBe(19);
+  });
 });

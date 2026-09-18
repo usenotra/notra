@@ -115,24 +115,24 @@ export function buildDailySummaryHeadline({
   lost: number;
   mentionRateLabel: string;
 }) {
-  const net = gained - lost;
-  const promptNoun = Math.abs(net) === 1 ? "prompt" : "prompts";
-
-  if (net > 0) {
-    return `You're +${net} ${promptNoun} better than yesterday.`;
+  if (gained > 0 && lost > 0) {
+    const gainedNoun = gained === 1 ? "prompt" : "prompts";
+    return `You gained ${gained} ${gainedNoun} but lost ${lost} yesterday.`;
   }
 
-  if (net < 0) {
-    return `You lost ${Math.abs(net)} ${promptNoun} yesterday.`;
+  if (gained > 0) {
+    const promptNoun = gained === 1 ? "prompt" : "prompts";
+    return `You gained ${gained} ${promptNoun} yesterday.`;
   }
 
-  if (gained === 0 && lost === 0) {
-    return mentionRateLabel === "—"
-      ? "Yesterday's scan finished. Your GEO recap is ready."
-      : `Yesterday's visibility: ${mentionRateLabel}.`;
+  if (lost > 0) {
+    const promptNoun = lost === 1 ? "prompt" : "prompts";
+    return `You lost ${lost} ${promptNoun} yesterday.`;
   }
 
-  return "Gains and losses evened out yesterday.";
+  return mentionRateLabel === "—"
+    ? "Yesterday's scan finished. Your GEO recap is ready."
+    : `Yesterday's visibility: ${mentionRateLabel}.`;
 }
 
 export function emptyChangesSummary(): GeoChangesSummary {
@@ -176,8 +176,6 @@ export function buildDailySummary({
     yesterday.rate,
     previousDay.rate
   );
-  const netChange = changes.gained - changes.lost;
-
   return {
     dateLabel: formatUtcDateLabel(windowStart),
     headline: buildDailySummaryHeadline({
@@ -190,7 +188,6 @@ export function buildDailySummary({
     scansCompleted,
     gained: changes.gained,
     lost: changes.lost,
-    netChange,
     items,
     remainingCount,
   };

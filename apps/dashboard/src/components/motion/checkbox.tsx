@@ -46,7 +46,7 @@ export function Checkbox({
   return (
     <label
       className={cn(
-        "inline-flex items-center gap-3",
+        "flex items-center gap-3",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
         className
       )}
@@ -56,7 +56,7 @@ export function Checkbox({
         aria-checked={indeterminate ? "mixed" : checked}
         aria-label={ariaLabel}
         className={cn(
-          "duration-normal inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md border-2 transition-colors outline-none",
+          "duration-normal flex size-5 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border-2 p-0 leading-none transition-colors outline-none",
           "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-60",
           showMark

@@ -5,8 +5,16 @@ import {
   FEEDBACK_CLASSIFIER_REASONING_EFFORT,
   FEEDBACK_CLASSIFIER_TIMEOUT_MS,
 } from "@notra/ai/constants/feedback-classifier";
+import { getEvaluationClient } from "@notra/ai/evaluation/client";
 import { gateway } from "@notra/ai/gateway";
-import { FEEDBACK_CLASSIFIER_SYSTEM_PROMPT } from "@notra/ai/prompts/feedback-classifier";
+import {
+  buildFeedbackEvaluationState,
+  mergeFeedbackClassification,
+} from "@notra/ai/jobs/feedback-evaluation";
+import {
+  FEEDBACK_CLASSIFIER_SYSTEM_PROMPT,
+  FEEDBACK_EVALUATION_QUESTIONS,
+} from "@notra/ai/prompts/feedback-classifier";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import { feedbackClassificationSchema } from "@notra/ai/schemas/feedback-classifier";
 import type {
@@ -28,7 +36,7 @@ function buildPrompt(params: ClassifyAgentFeedbackParams): string {
   return lines.filter((line) => line !== null).join("\n");
 }
 
-export async function classifyAgentFeedback(
+async function generateClassification(
   params: ClassifyAgentFeedbackParams
 ): Promise<AgentFeedbackClassification | null> {
   try {
@@ -59,4 +67,25 @@ export async function classifyAgentFeedback(
     });
     return null;
   }
+}
+
+/**
+ * Kind and sentiment come from the typed evaluation model; the LLM runs in
+ * parallel for the title and covers everything when the evaluation is
+ * unavailable.
+ */
+export async function classifyAgentFeedback(
+  params: ClassifyAgentFeedbackParams
+): Promise<AgentFeedbackClassification | null> {
+  const [evaluation, generated] = await Promise.all([
+    getEvaluationClient().tryEvaluate({
+      feature: FEEDBACK_CLASSIFIER_FEATURE,
+      organizationId: params.organizationId,
+      state: buildFeedbackEvaluationState(params),
+      questions: FEEDBACK_EVALUATION_QUESTIONS,
+      timeoutMs: FEEDBACK_CLASSIFIER_TIMEOUT_MS,
+    }),
+    generateClassification(params),
+  ]);
+  return mergeFeedbackClassification(params, evaluation, generated);
 }

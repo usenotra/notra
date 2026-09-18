@@ -31,7 +31,7 @@ export const FEATURES_PAGE_TRACKING_CARDS: FeaturesPageCard[] = [
   {
     title: "Engines and models",
     description:
-      "ChatGPT, Claude, Gemini and Perplexity with web search. Models from OpenAI, Anthropic, Google, Moonshot, Z.AI, DeepSeek, Mistral, Meta and Grok without. The list refreshes as new releases ship.",
+      "ChatGPT, Claude, Gemini and Perplexity with web search, plus Google AI Overview and coding agents that research live. The list refreshes as new releases ship.",
   },
   {
     title: "Languages",
@@ -104,7 +104,7 @@ export const FEATURES_PAGE_DEVELOPER_CARDS: FeaturesPageCard[] = [
   {
     title: "@usenotra/geo",
     description:
-      "One package for Next.js, Nuxt and Netlify. Server-side capture, 66 agent signatures, journey tagging and an MCP feedback tool.",
+      "One package for Next.js, Nuxt, TanStack Start, Astro and SvelteKit. Server-side capture, 66 agent signatures, journey tagging and an MCP feedback tool.",
   },
 ];
 

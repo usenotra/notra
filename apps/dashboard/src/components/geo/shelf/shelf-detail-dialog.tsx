@@ -2,14 +2,12 @@
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 
@@ -19,10 +17,10 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-table";
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
-import { useRetainedDetail } from "@/lib/hooks/use-retained-detail";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate } from "@/utils/geo-shelf";
+import { formatShelfDate, groupShelfCitationEngines } from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -45,7 +43,7 @@ export function ShelfDetailDialog({
   organizationId,
   open,
   onOpenChange,
-  row: selectedDetail,
+  row: rowProp,
   members,
   currentMemberId,
   ownBrandName,
@@ -53,7 +51,7 @@ export function ShelfDetailDialog({
   onSetPlacementStatus,
   isPending,
 }: GeoShelfDetailDialogProps) {
-  const row = useRetainedDetail(selectedDetail);
+  const [row, releaseRow] = useRetainedValue(rowProp);
   if (!row) {
     return null;
   }
@@ -76,8 +74,12 @@ export function ShelfDetailDialog({
     : null;
 
   return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent variant="inset">
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseRow}
+      open={open}
+    >
+      <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
         <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
           <SheetTitle className="text-xl font-semibold tracking-tight text-pretty wrap-break-word">
             {row.title ?? row.domain}
@@ -99,115 +101,119 @@ export function ShelfDetailDialog({
           </SheetDescription>
         </SheetHeader>
 
-        <SheetScrollArea>
-          <div className="mx-auto w-full max-w-3xl space-y-8">
-            <section className="space-y-3">
-              <SectionHeader title="Citations" />
-              <div className="space-y-5">
-                <dl className="grid grid-cols-3 gap-4 py-1">
-                  {stats.map((stat) => (
-                    <div
-                      className="flex min-w-0 flex-col gap-1.5"
-                      key={stat.label}
-                    >
-                      <dt className="text-muted-foreground text-xs">
-                        {stat.label}
-                      </dt>
-                      <dd className="m-0 text-2xl font-semibold tracking-tight tabular-nums">
-                        {stat.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="text-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-xs">
-                  <span>
-                    First cited{" "}
-                    <span className="text-foreground">
-                      {formatShelfDate(citations.firstCitedAt)}
-                    </span>
+        <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
+          <section className="space-y-3">
+            <SectionHeader title="Citations" />
+            <div className="space-y-5">
+              <dl className="grid grid-cols-3 gap-4 py-1">
+                {stats.map((stat) => (
+                  <div
+                    className="flex min-w-0 flex-col gap-1.5"
+                    key={stat.label}
+                  >
+                    <dt className="text-muted-foreground text-xs">
+                      {stat.label}
+                    </dt>
+                    <dd className="m-0 text-2xl font-semibold tracking-tight tabular-nums">
+                      {stat.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="text-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                <span>
+                  First cited{" "}
+                  <span className="text-foreground">
+                    {formatShelfDate(citations.firstCitedAt)}
                   </span>
-                  <span>
-                    Last cited{" "}
-                    <span className="text-foreground">
-                      {formatShelfDate(citations.lastCitedAt)}
-                    </span>
+                </span>
+                <span>
+                  Last cited{" "}
+                  <span className="text-foreground">
+                    {formatShelfDate(citations.lastCitedAt)}
                   </span>
-                </div>
-                {citations.engines.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-muted-foreground text-xs">Cited by</p>
-                    <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                      {citations.engines.map((engine) => (
+                </span>
+              </div>
+              {citations.engines.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-xs">Cited by</p>
+                  <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {groupShelfCitationEngines(citations.engines).map(
+                      ({ family, label, models }) => (
                         <li
                           className="flex items-center gap-1.5 text-xs"
-                          key={engine}
+                          key={family}
+                          title={models.join(", ")}
                         >
-                          <EngineIcon className="size-4" engine={engine} />
-                          {engineFamilyLabel(engine)}
+                          <EngineIcon
+                            className="size-4"
+                            engine={models[0] ?? family}
+                          />
+                          {label}
                         </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-xs">
-                    No engine has cited this page for your prompts yet.
-                  </p>
-                )}
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <SectionHeader title="Who is on the shelf" />
-              <ShelfPlacementsTable
-                disabled={isPending}
-                onSetPlacementStatus={onSetPlacementStatus}
-                ownBrandName={ownBrandName}
-                row={row}
-              />
-            </section>
-
-            <section className="space-y-3">
-              <SectionHeader meta={ticketMeta} title="Ticket" />
-              {row.opportunity ? (
-                <ShelfTicketForm
-                  currentMemberId={currentMemberId}
-                  disabled={isPending}
-                  key={row.id}
-                  members={members}
-                  onChange={(changes) => onUpdateOpportunity(row.id, changes)}
-                  opportunity={row.opportunity}
-                />
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed px-4 py-4">
-                  <p className="text-muted-foreground text-sm text-pretty">
-                    {row.isOpportunity
-                      ? "Competitors are listed here and you are not. Open a ticket to work on it."
-                      : "No one is working on this page."}
-                  </p>
-                  <Button
-                    disabled={isPending}
-                    onClick={() =>
-                      onUpdateOpportunity(row.id, {
-                        status: "open",
-                        assigneeMemberId: currentMemberId,
-                      })
-                    }
-                    size="sm"
-                    variant="outline"
-                  >
-                    Open ticket
-                  </Button>
+                      )
+                    )}
+                  </ul>
                 </div>
+              ) : (
+                <p className="text-muted-foreground text-xs">
+                  No engine has cited this page for your prompts yet.
+                </p>
               )}
-            </section>
-            <Discussion
-              key={row.id}
-              organizationId={organizationId}
-              targetId={row.id}
-              targetType="shelf"
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <SectionHeader title="Who is on the shelf" />
+            <ShelfPlacementsTable
+              disabled={isPending}
+              onSetPlacementStatus={onSetPlacementStatus}
+              ownBrandName={ownBrandName}
+              row={row}
             />
-          </div>
-        </SheetScrollArea>
+          </section>
+
+          <section className="space-y-3">
+            <SectionHeader meta={ticketMeta} title="Ticket" />
+            {row.opportunity ? (
+              <ShelfTicketForm
+                currentMemberId={currentMemberId}
+                disabled={isPending}
+                key={row.id}
+                members={members}
+                onChange={(changes) => onUpdateOpportunity(row.id, changes)}
+                opportunity={row.opportunity}
+              />
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed px-4 py-4">
+                <p className="text-muted-foreground text-sm text-pretty">
+                  {row.isOpportunity
+                    ? "Competitors are listed here and you are not. Open a ticket to work on it."
+                    : "No one is working on this page."}
+                </p>
+                <Button
+                  disabled={isPending}
+                  onClick={() =>
+                    onUpdateOpportunity(row.id, {
+                      status: "open",
+                      assigneeMemberId: currentMemberId,
+                    })
+                  }
+                  size="sm"
+                  variant="outline"
+                >
+                  Open ticket
+                </Button>
+              </div>
+            )}
+          </section>
+          <Discussion
+            key={row.id}
+            organizationId={organizationId}
+            targetId={row.id}
+            targetType="shelf"
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );

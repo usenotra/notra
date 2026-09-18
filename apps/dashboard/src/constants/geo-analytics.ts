@@ -19,6 +19,7 @@ export const GEO_PROMPT_DETAIL_SURFACES = {
   ENGINE_SHEET: "engine_sheet",
   GAPS: "gaps",
   OVERVIEW: "overview",
+  COMPETITOR_DETAIL: "competitor_detail",
 } as const;
 
 export const GEO_COMPETITOR_DETAIL_SURFACES = {

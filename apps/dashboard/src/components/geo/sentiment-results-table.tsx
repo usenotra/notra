@@ -13,6 +13,7 @@ import { Table } from "@/components/motion/table";
 import type { TableColumn } from "@/components/motion/table/types";
 import { SENTIMENT_POLARITY_STYLES } from "@/constants/geo-sentiment";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   SentimentDetailRow,
   SentimentThemeTableProps,
@@ -31,7 +32,8 @@ export function SentimentResultsTable({
     () => (pending ? [] : sentimentTableRows(themes)),
     [themes, pending]
   );
-  const selected = rows.find((row) => row.id === selectedId);
+  const current = rows.find((row) => row.id === selectedId) ?? null;
+  const [selected, releaseSelected] = useRetainedValue(current);
   const columns = useMemo<TableColumn<SentimentDetailRow>[]>(
     () => [
       {
@@ -161,12 +163,13 @@ export function SentimentResultsTable({
         className="[&_tr:focus-visible]:outline-ring rounded-2xl [&_tr:focus-visible]:outline-2 [&_tr:focus-visible]:-outline-offset-2"
       />
       <Sheet
-        open={Boolean(selected)}
+        open={current !== null}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedId(null);
           }
         }}
+        onOpenChangeComplete={releaseSelected}
       >
         <SheetContent
           finalFocus={returnFocus}

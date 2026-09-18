@@ -86,10 +86,10 @@ A scan is the unit of work behind every visibility number. It runs inside the No
     The scan takes every enabled prompt (custom and auto-derived), every enabled engine from your Settings, and every tracked language. Prompts in languages other than English are translated first. Each engine, prompt, and language combination becomes one task; tasks run four at a time.
   </Step>
   <Step title="Ask the engines">
-    **Engines** come from the model catalog: a live model list grouped by provider (Anthropic, OpenAI, Google, Moonshot AI, Meta, Z.AI, DeepSeek, Mistral AI, and others as the feed changes). Each enabled model answers each prompt without web access. This is what the dashboard labels **Without search**.
+    **Engines** come from the model catalog: a live model list grouped by provider. Selected models that support live web search answer each prompt with retrieval: ChatGPT, Claude, Gemini and Perplexity, plus Google AI Overview and coding agents that research live. Bare catalog models and Cursor are not scanned.
   </Step>
   <Step title="Grounded scanning">
-    A fixed set of **grounded** engines also answers with live web search: ChatGPT, Claude Sonnet, Gemini, and Perplexity. Notra records the search queries the engine issued and the sources it cited, so you can see which pages an engine read before it answered. Grounded checks cover the first six prompts per scan in English and the first three per additional language. The dashboard labels these results **Search**.
+    Grounded engines record the search queries they issued and the sources they cited, so you can see which pages an engine read before it answered. The dashboard labels these results **Search**.
   </Step>
   <Step title="Judge every answer">
     A separate judge model reads each answer and records whether your brand (company name or any alias) is mentioned, at what position, with which sentiment, which tracked competitors appear, and a short excerpt.
@@ -136,7 +136,7 @@ The Overview page (`/geo`) is titled **GEO** with the subtitle "How AI engines t
 
 - **Mentions**: a per-provider mention rate card with the delta against the first half of the range.
 - **Mention activity**: the daily mention trend across all providers, with a per-provider breakdown.
-- **Mention rate by engine**: a table with **Engine**, **Mentions**, **Mention rate**, **Avg position**, **Last checked**, and **Trend** columns. Rows group into provider families; a family sheet shows the Search versus Without search split.
+- **Mention rate by engine**: a table with **Engine**, **Mentions**, **Mention rate**, **Avg position**, **Last checked**, and **Trend** columns. Rows group into provider families.
 - **Share of voice**: your brand against tracked competitors, as a donut and a table, with the top five brands broken out and the rest grouped under Other.
 - **Performance by language**: **Language**, **Mention rate**, and **Trend** for each tracked language.
 

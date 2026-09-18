@@ -63,7 +63,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
       -H "Authorization: Bearer $NOTRA_API_KEY"
     ```
 
-    Both return `ingestUrl`, `snippet` (the Next.js snippet), and `snippets` with `next`, `nuxt`, and `netlify` keys. The token endpoint adds `token`. The ingest routes are organization-level; pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier. Install the same project token on every domain the project tracks; add extra hostnames under **Tracked domains** in GEO settings.
+    Both return `ingestUrl`, `snippet` (the Next.js snippet), and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit`, and `netlify` keys. The token endpoint adds `token`. The ingest routes are organization-level; pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier. Install the same project token on every domain the project tracks; add extra hostnames under **Tracked domains** in GEO settings.
   </Step>
   <Step title="Install the package">
     ```bash
@@ -113,6 +113,48 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
         Geo headers are usually absent behind Nitro, so location fields stay undefined and ingest falls back to an IP-based lookup.
       </Tab>
+      <Tab title="TanStack Start">
+        ```typescript src/start.ts
+        import { createMiddleware, createStart } from "@tanstack/react-start";
+        import { createGeoMiddleware } from "@usenotra/geo/tanstack";
+
+        const geo = createMiddleware().server(createGeoMiddleware({
+          token: process.env.NOTRA_GEO_TOKEN!,
+          endpoint: "https://app.usenotra.com",
+        }));
+
+        export const startInstance = createStart(() => ({
+          requestMiddleware: [geo],
+        }));
+        ```
+
+        The middleware captures requests alongside your route handler and waits for the send before returning, so tracking completes on serverless hosts. It preserves the downstream response and errors. If `src/start.ts` already exists, add `geo` to its existing `requestMiddleware` array.
+      </Tab>
+      <Tab title="Astro">
+        ```typescript src/middleware.ts
+        import { createGeoMiddleware } from "@usenotra/geo/astro";
+
+        export const onRequest = createGeoMiddleware({
+          token: import.meta.env.NOTRA_GEO_TOKEN!,
+          endpoint: "https://app.usenotra.com",
+        });
+        ```
+
+        The middleware captures requests alongside your route handler and waits for the send before returning. If `src/middleware.ts` already exists, compose with `sequence` from `astro:middleware`. Astro must serve pages from a server adapter (`output: "server"` or hybrid) so requests exist at runtime.
+      </Tab>
+      <Tab title="SvelteKit">
+        ```typescript src/hooks.server.ts
+        import { env } from "$env/dynamic/private";
+        import { createGeoHandle } from "@usenotra/geo/sveltekit";
+
+        export const handle = createGeoHandle({
+          token: env.NOTRA_GEO_TOKEN!,
+          endpoint: "https://app.usenotra.com",
+        });
+        ```
+
+        The handle captures requests alongside `resolve` and waits for the send before returning. If `src/hooks.server.ts` already has a `handle`, compose with `sequence` from `@sveltejs/kit/hooks`.
+      </Tab>
       <Tab title="Netlify">
         ```typescript netlify/edge-functions/geo.ts
         import { createGeoHandler } from "@usenotra/geo/netlify";
@@ -148,7 +190,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 | `onError` | none | Called with anything that goes wrong. The SDK never throws |
 | `fetch` | global `fetch` | Injectable fetch, for tests |
 
-Only `GET` requests that look like pages are captured. Anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/static/`, and any path ending in a common static extension is skipped. `llms.txt` and `llms-full.txt` are always captured. `exclude` entries can be a string prefix, a `RegExp`, or a `(request, url) => boolean` function.
+Only `GET` requests that look like pages are captured. Anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/immutable/`, `/static/`, and any path ending in a common static extension is skipped. `llms.txt` and `llms-full.txt` are always captured. `exclude` entries can be a string prefix, a `RegExp`, or a `(request, url) => boolean` function.
 
 The envelope contains the timestamp, method, URL, client IP, edge location headers when present, referer, user agent, accept and accept-language headers, and a request id. No request body, no cookies, and no other headers are read or sent. The POST uses `keepalive` and a 2 second timeout.
 

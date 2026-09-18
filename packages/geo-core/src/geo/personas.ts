@@ -1,6 +1,7 @@
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { gateway } from "@notra/ai/gateway";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
@@ -286,13 +287,7 @@ const generatePersonaSet = Effect.fn("geo.personas.generate")(function* (
   const generation: GeoPersonaGeneration = normalizeGeneratedPersonaSet(
     result.output
   );
-  const usage: AgentTokenUsage = {
-    inputTokens: result.usage.inputTokens ?? 0,
-    outputTokens: result.usage.outputTokens ?? 0,
-    totalTokens: result.usage.totalTokens ?? 0,
-    cacheReadTokens: result.usage.inputTokenDetails?.cacheReadTokens ?? 0,
-    cacheWriteTokens: result.usage.inputTokenDetails?.cacheWriteTokens ?? 0,
-  };
+  const usage: AgentTokenUsage = toAgentTokenUsage(result.usage);
   return { generation, usage };
 });
 

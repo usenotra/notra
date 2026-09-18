@@ -1,0 +1,30 @@
+name: Sync Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SKILL.md'
+      - 'references/**'
+      - 'scripts/**'
+      - 'assets/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync on resend-skills
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_SKILLS_TO_RESEND_SKILLS }}
+        run: |
+          gh workflow run sync-from-repo.yml \
+            --repo resend/resend-skills \
+            --field repo=email-best-practices \
+            --field skill-path=. \
+            --field skill-name=email-best-practices \
+            --field sha=${{ github.sha }} \
+            --field reviewer=${{ github.actor }}

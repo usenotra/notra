@@ -333,8 +333,21 @@ export interface VercelAdapterConfig {
 export interface RouteUsageSummary {
   /** Route metadata of the last model call (gateway, upstream provider, ...). */
   route?: RouteMetadata;
+  /** Prompt size of the largest step, for long-context pricing. */
+  maxPromptTokens?: number;
+  /** Token cost of the steps, summed per call. */
+  tokenCostUsd?: number;
 }
 
 export interface RouteUsageStep {
   providerMetadata?: ProviderMetadata;
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    inputTokenDetails?: {
+      noCacheTokens?: number;
+      cacheReadTokens?: number;
+      cacheWriteTokens?: number;
+    };
+  };
 }

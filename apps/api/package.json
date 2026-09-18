@@ -10,7 +10,7 @@
     "knip": "knip"
   },
   "dependencies": {
-    "@ai-sdk/otel": "1.0.93",
+    "@ai-sdk/otel": "1.0.105",
     "@contextcompany/otel": "^1.1.1",
     "@hono/zod-openapi": "^1.2.2",
     "@notra/ai": "workspace:*",
@@ -27,7 +27,7 @@
     "@upstash/redis": "^1.35.8",
     "@vercel/oidc": "^3.8.0",
     "@workos-inc/node": "^10.10.0",
-    "ai": "7.0.93",
+    "ai": "7.0.105",
     "autumn-js": "^1.2.5",
     "drizzle-orm": "^0.45.2",
     "effect": "4.0.0-rc.112",

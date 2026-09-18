@@ -54,93 +54,6 @@ function toneFromDelta(label: string): DailySummaryChangeTone {
   return "neutral";
 }
 
-function toneFromNet(net: number): DailySummaryChangeTone {
-  if (net > 0) {
-    return "up";
-  }
-  if (net < 0) {
-    return "down";
-  }
-  return "neutral";
-}
-
-function splitHeadlineNumber(
-  headline: string,
-  netChange: number
-): { before: string; number: string; after: string } | null {
-  if (netChange > 0) {
-    return splitToken(headline, `+${netChange}`);
-  }
-
-  if (netChange < 0) {
-    const match = headline.match(new RegExp(`\\b${Math.abs(netChange)}\\b`));
-    if (!match || match.index === undefined) {
-      return null;
-    }
-
-    return {
-      before: headline.slice(0, match.index),
-      number: match[0],
-      after: headline.slice(match.index + match[0].length),
-    };
-  }
-
-  // Scan once: an unanchored digit regex retries long runs without a trailing %.
-  let start = 0;
-  for (let index = 0; index < headline.length; index += 1) {
-    const character = headline.charAt(index);
-    if (character >= "0" && character <= "9") {
-      continue;
-    }
-    if (character === "%" && start < index) {
-      return {
-        before: headline.slice(0, start),
-        number: headline.slice(start, index + 1),
-        after: headline.slice(index + 1),
-      };
-    }
-    start = index + 1;
-  }
-
-  return null;
-}
-
-function splitToken(headline: string, token: string) {
-  const index = headline.indexOf(token);
-  if (index === -1) {
-    return null;
-  }
-
-  return {
-    before: headline.slice(0, index),
-    number: token,
-    after: headline.slice(index + token.length),
-  };
-}
-
-function HeadlineNumber({
-  headline,
-  netChange,
-}: {
-  headline: string;
-  netChange: number;
-}) {
-  const parts = splitHeadlineNumber(headline, netChange);
-  if (!parts) {
-    return headline;
-  }
-
-  return (
-    <>
-      {parts.before}
-      <span style={{ color: PILL[toneFromNet(netChange)].color }}>
-        {parts.number}
-      </span>
-      {parts.after}
-    </>
-  );
-}
-
 function toneMark(tone: DailySummaryChangeTone): string {
   if (tone === "up") {
     return "+";
@@ -167,11 +80,12 @@ export const DailySummaryEmail = ({
   organizationName = "Acme Inc",
   organizationSlug = "acme",
   dateLabel = "September 4, 2026",
-  headline = "You're +7 prompts better than yesterday.",
+  headline = "You gained 8 prompts but lost 1 yesterday.",
   mentionRateLabel = "42%",
   mentionRateDeltaLabel = "+3 pts",
   scansCompleted = 1,
-  netChange = 7,
+  gained = 8,
+  lost = 1,
   items = [
     {
       title: "What is the best changelog tool for startups?",
@@ -199,7 +113,7 @@ export const DailySummaryEmail = ({
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: DailySummaryEmailProps) => {
   const rateTone = toneFromDelta(mentionRateDeltaLabel);
-  const netLabel = netChange > 0 ? `+${netChange}` : String(netChange);
+  const promptChangesLabel = `+${gained}/-${lost}`;
   const subtext = dailySummarySubtext(organizationName, scansCompleted);
 
   return (
@@ -212,7 +126,7 @@ export const DailySummaryEmail = ({
             <EmailLogo className="mt-0 text-center" variant="wordmark" />
 
             <Heading className="mt-5 mb-3 text-center text-2xl font-medium text-black">
-              <HeadlineNumber headline={headline} netChange={netChange} />
+              {headline}
             </Heading>
             <Text className="mt-0 mb-8 text-center text-base leading-relaxed text-[#737373]">
               {subtext}
@@ -241,7 +155,7 @@ export const DailySummaryEmail = ({
                     tone={rateTone}
                     value={mentionRateLabel}
                   />
-                  <MetricCell last label="Prompts" value={netLabel} />
+                  <MetricCell last label="Prompts" value={promptChangesLabel} />
                 </Row>
               </EmailTitleCard>
             </Section>
@@ -482,13 +396,12 @@ DailySummaryEmail.PreviewProps = {
   organizationName: "Acme Inc",
   organizationSlug: "acme",
   dateLabel: "September 4, 2026",
-  headline: "You're +7 prompts better than yesterday.",
+  headline: "You gained 8 prompts but lost 1 yesterday.",
   mentionRateLabel: "42%",
   mentionRateDeltaLabel: "+3 pts",
   scansCompleted: 1,
   gained: 8,
   lost: 1,
-  netChange: 7,
   items: [
     {
       title: "What is the best changelog tool for startups?",

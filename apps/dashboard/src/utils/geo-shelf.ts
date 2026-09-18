@@ -1,5 +1,9 @@
 import type { GeoCompetitor } from "@notra/geo-core/types/geo";
 import {
+  engineFamilyLabel,
+  engineFamilyOf,
+} from "@notra/geo-core/utils/geo-engine-family";
+import {
   canonicalizeShelfUrl,
   isAllowedShelfUrl,
   shelfDomainFromUrl,
@@ -425,4 +429,28 @@ export function shelfDueDateToIso(date: Date): string {
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12)
   );
   return noon.toISOString();
+}
+
+/**
+ * One entry per engine family: several models of the same provider would
+ * otherwise repeat the same logo. `models` keeps the exact engine ids.
+ */
+export function groupShelfCitationEngines(
+  engines: readonly string[]
+): { family: string; label: string; models: string[] }[] {
+  const byFamily = new Map<string, string[]>();
+  for (const engine of engines) {
+    const family = engineFamilyOf(engine);
+    const models = byFamily.get(family);
+    if (models) {
+      models.push(engine);
+    } else {
+      byFamily.set(family, [engine]);
+    }
+  }
+  return [...byFamily.entries()].map(([family, models]) => ({
+    family,
+    label: engineFamilyLabel(family),
+    models,
+  }));
 }

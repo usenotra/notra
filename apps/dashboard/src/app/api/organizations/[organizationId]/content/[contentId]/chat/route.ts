@@ -20,6 +20,7 @@ import {
 } from "@notra/ai/integrations/linear";
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -254,11 +255,11 @@ export const POST = withEvlog(async function POST(
 
           const cost = calculateAiCreditCostCents(
             {
-              inputTokens: usage.inputTokens ?? 0,
-              outputTokens: usage.outputTokens ?? 0,
-              totalTokens: usage.totalTokens ?? 0,
-              cacheReadTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
-              cacheWriteTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+              ...toAgentTokenUsage(usage),
+              // This usage sums every step, and prices can depend on how big
+              // each single request was, so bill the per-step cost.
+              maxPromptTokens: routeUsage?.maxPromptTokens,
+              tokenCostUsd: routeUsage?.tokenCostUsd,
             },
             modelId,
             useMarkup
