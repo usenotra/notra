@@ -11,7 +11,6 @@ import { resolveOnboardingAgentRunState } from "@/utils/onboarding-agent-run";
 import { toOrganizationSummary } from "@/utils/organization-summary";
 import { getSidebarWidthFromCookie } from "@/utils/sidebar-width";
 
-// Membership + cookies gate. A Suspense wrap would paint unauthorized UI first.
 export const instant = false;
 
 interface OrganizationLayoutProps {

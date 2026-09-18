@@ -6,9 +6,6 @@ import type { GeoLayoutProps } from "@/types/geo";
 
 import { GeoProjectScope } from "./geo-project-scope";
 
-// Nested GEO pages must stay visible while project scope loads. Awaiting
-// params at the top (or a GeoPageSkeleton fallback) flashes Overview on
-// Content Gaps and every other sibling route.
 export const instant = true;
 
 export default function GeoLayout({ children, modal, params }: GeoLayoutProps) {

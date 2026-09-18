@@ -103,10 +103,9 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  // placeholderData makes isPending false, so settings would otherwise treat
-  // `[activeOrg]` as the complete membership list.
-  const isLoadingOrgs = isPendingOrgs || Boolean(isOrgListPlaceholder);
-  const isLoading = isLoadingOrgs || isLoadingActive;
+  const isOrganizationListPending =
+    isPendingOrgs || Boolean(isOrgListPlaceholder);
+  const isLoading = isOrganizationListPending || isLoadingActive;
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
@@ -176,7 +175,7 @@ export function OrganizationsProvider({
   // Auto-select first organization if no active organization is set
   useEffect(() => {
     if (
-      !(isLoadingOrgs || isLoadingActive) &&
+      !(isOrganizationListPending || isLoadingActive) &&
       organizationsData &&
       organizationsData.length > 0 &&
       !activeOrganization &&
@@ -218,7 +217,7 @@ export function OrganizationsProvider({
       hasAutoSelectedRef.current = false;
     }
   }, [
-    isLoadingOrgs,
+    isOrganizationListPending,
     isLoadingActive,
     organizationsData,
     activeOrganization,
