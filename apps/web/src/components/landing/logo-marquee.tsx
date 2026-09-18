@@ -17,7 +17,7 @@ export function LogoMarquee() {
         {MARQUEE_CAPTION}
       </p>
       <Marquee
-        className="text-[#6B7280] dark:text-[#9CA3AF]"
+        className="text-[#6B7280] dark:text-[#9CA3AF] focus-within:[&_.rfm-marquee]:[animation-play-state:paused]!"
         style={{
           maskImage: MARQUEE_EDGE_MASK,
           WebkitMaskImage: MARQUEE_EDGE_MASK,
@@ -31,6 +31,8 @@ export function LogoMarquee() {
                   aria-label={label}
                   className="block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
                   href={href}
+                  rel="noopener noreferrer nofollow"
+                  target="_blank"
                 >
                   <Logo className="h-9 w-auto shrink-0 sm:h-10 lg:h-10.5" />
                 </a>
