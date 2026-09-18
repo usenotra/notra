@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { mergePendingChatSessions } from "./chat-history-groups";
+import {
+  excludeArrivedPendingSessions,
+  mergePendingChatSessions,
+} from "./chat-history-groups";
 
 function session(
   chatId: string,
@@ -28,11 +31,10 @@ describe("mergePendingChatSessions", () => {
       [pending]
     );
 
-    expect(merged.sessions.map((item) => item.chatId)).toEqual([
+    expect(merged.map((item) => item.chatId)).toEqual([
       "pending-1",
       "existing-1",
     ]);
-    expect([...merged.generatingTitleChatIds]).toEqual(["pending-1"]);
   });
 
   test("drops the pending copy once the real session arrives", () => {
@@ -42,7 +44,26 @@ describe("mergePendingChatSessions", () => {
       [pending]
     );
 
-    expect(merged.sessions).toEqual([session("chat-1", "Generated title")]);
-    expect(merged.generatingTitleChatIds.size).toBe(0);
+    expect(merged).toEqual([session("chat-1", "Generated title")]);
+  });
+});
+
+describe("excludeArrivedPendingSessions", () => {
+  test("keeps pending rows that are not in the server list", () => {
+    expect(
+      excludeArrivedPendingSessions(
+        [session("pending-1", "New chat")],
+        [session("existing-1", "Older chat")]
+      ).map((item) => item.chatId)
+    ).toEqual(["pending-1"]);
+  });
+
+  test("drops pending rows after their real session arrives so delete cannot resurrect them", () => {
+    expect(
+      excludeArrivedPendingSessions(
+        [session("chat-1", "New chat")],
+        [session("chat-1", "Fallback title")]
+      )
+    ).toEqual([]);
   });
 });

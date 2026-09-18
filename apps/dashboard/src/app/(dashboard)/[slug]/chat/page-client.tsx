@@ -104,7 +104,10 @@ import {
   relaySlackMirrorMessage,
 } from "@/lib/chat/slack-relay";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
-import { useChatSessionMutations } from "@/lib/hooks/use-chat-sessions";
+import {
+  markChatTitleReady,
+  useChatSessionMutations,
+} from "@/lib/hooks/use-chat-sessions";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
@@ -538,6 +541,15 @@ function createStandaloneChatTransport({
       }
 
       if (!initialChatId) {
+        const createdChatId = requestBody?.chatId;
+        if (createdChatId) {
+          markChatTitleReady(
+            queryClient,
+            organizationId,
+            activeProjectId,
+            createdChatId
+          );
+        }
         queryClient.invalidateQueries({
           queryKey: ["chat-sessions", organizationId],
         });

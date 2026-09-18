@@ -11,19 +11,33 @@ import {
   chatSessionsQueryKey,
   sortChatSessions,
 } from "@notra/ai/utils/chat";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
-import { mergePendingChatSessions } from "@/utils/chat-history-groups";
+import {
+  excludeArrivedPendingSessions,
+  mergePendingChatSessions,
+} from "@/utils/chat-history-groups";
 
 function chatSessionsPendingQueryKey(
   organizationId: string | undefined,
   projectId?: string | null
 ) {
   return ["chat-sessions-pending", organizationId, projectId ?? null] as const;
+}
+
+function chatTitleGeneratingQueryKey(
+  organizationId: string | undefined,
+  projectId?: string | null
+) {
+  return ["chat-title-generating", organizationId, projectId ?? null] as const;
 }
 
 function createPendingChatSession(chatId: string): ChatSessionSummary {
@@ -38,13 +52,35 @@ function createPendingChatSession(chatId: string): ChatSessionSummary {
 }
 
 const EMPTY_PENDING_CHAT_SESSIONS: ChatSessionSummary[] = [];
+const EMPTY_GENERATING_TITLE_IDS: string[] = [];
+
+export function markChatTitleReady(
+  queryClient: QueryClient,
+  organizationId: string | undefined,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  if (!organizationId) {
+    return;
+  }
+
+  queryClient.setQueryData<string[]>(
+    chatTitleGeneratingQueryKey(organizationId, projectId),
+    (current = []) => current.filter((id) => id !== chatId)
+  );
+}
 
 export function useChatSessions() {
+  const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
   const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
+  const generatingQueryKey = chatTitleGeneratingQueryKey(
     organizationId,
     projectId
   );
@@ -75,15 +111,40 @@ export function useChatSessions() {
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
   });
+  const generatingQuery = useQuery({
+    queryKey: generatingQueryKey,
+    queryFn: async () => EMPTY_GENERATING_TITLE_IDS,
+    enabled: false,
+    initialData: EMPTY_GENERATING_TITLE_IDS,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
 
-  const { sessions, generatingTitleChatIds } = mergePendingChatSessions(
+  const sessions = mergePendingChatSessions(
     query.data ?? [],
     pendingQuery.data ?? []
   );
 
+  useEffect(() => {
+    const pendingSessions = pendingQuery.data ?? [];
+    if (pendingSessions.length === 0) {
+      return;
+    }
+
+    const nextPending = excludeArrivedPendingSessions(
+      pendingSessions,
+      query.data ?? []
+    );
+    if (nextPending.length === pendingSessions.length) {
+      return;
+    }
+
+    queryClient.setQueryData(pendingQueryKey, nextPending);
+  }, [pendingQuery.data, pendingQueryKey, query.data, queryClient]);
+
   return {
     sessions,
-    generatingTitleChatIds,
+    generatingTitleChatIds: new Set(generatingQuery.data ?? []),
     isLoading: query.isPending && query.fetchStatus !== "idle",
     organizationId,
     queryKey,
@@ -97,6 +158,10 @@ export function useChatSessionMutations() {
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
   const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
+  const generatingQueryKey = chatTitleGeneratingQueryKey(
     organizationId,
     projectId
   );
@@ -122,6 +187,13 @@ export function useChatSessionMutations() {
         return [createPendingChatSession(chatId), ...current];
       }
     );
+    queryClient.setQueryData<string[]>(generatingQueryKey, (current = []) =>
+      current.includes(chatId) ? current : [...current, chatId]
+    );
+  }
+
+  function markTitleReady(chatId: string) {
+    markChatTitleReady(queryClient, organizationId, projectId, chatId);
   }
 
   function removePendingChatSession(chatId: string) {
@@ -129,6 +201,7 @@ export function useChatSessionMutations() {
       pendingQueryKey,
       (current = []) => current.filter((item) => item.chatId !== chatId)
     );
+    markTitleReady(chatId);
   }
 
   function replaceSessionInCache(
@@ -250,6 +323,7 @@ export function useChatSessionMutations() {
       queryClient.setQueryData<ChatSessionSummary[]>(queryKey, (current = []) =>
         current.filter((item) => item.chatId !== chatId)
       );
+      removePendingChatSession(chatId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey }),
         queryClient.invalidateQueries({

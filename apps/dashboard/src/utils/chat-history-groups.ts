@@ -104,27 +104,23 @@ export function getChatHistoryGroups(
 export function mergePendingChatSessions(
   sessions: ChatSessionSummary[],
   pendingSessions: ChatSessionSummary[]
-): {
-  sessions: ChatSessionSummary[];
-  generatingTitleChatIds: Set<string>;
-} {
+): ChatSessionSummary[] {
+  const stillPending = excludeArrivedPendingSessions(pendingSessions, sessions);
+  if (stillPending.length === 0) {
+    return sessions;
+  }
+
+  return [...stillPending, ...sessions];
+}
+
+export function excludeArrivedPendingSessions(
+  pendingSessions: ChatSessionSummary[],
+  sessions: ChatSessionSummary[]
+): ChatSessionSummary[] {
   if (pendingSessions.length === 0) {
-    return { sessions, generatingTitleChatIds: new Set() };
+    return pendingSessions;
   }
 
   const existingIds = new Set(sessions.map((session) => session.chatId));
-  const stillPending = pendingSessions.filter(
-    (session) => !existingIds.has(session.chatId)
-  );
-
-  if (stillPending.length === 0) {
-    return { sessions, generatingTitleChatIds: new Set() };
-  }
-
-  return {
-    sessions: [...stillPending, ...sessions],
-    generatingTitleChatIds: new Set(
-      stillPending.map((session) => session.chatId)
-    ),
-  };
+  return pendingSessions.filter((session) => !existingIds.has(session.chatId));
 }
