@@ -710,6 +710,8 @@ function StandaloneChatPageClient({
       handleStandaloneChatError(err, { setChatError, setPendingMessageId });
     },
   });
+  const setMessagesRef = useRef(setMessages);
+  setMessagesRef.current = setMessages;
 
   const [isStopping, setIsStopping] = useState(false);
   const [isWaitingForActiveStream, setIsWaitingForActiveStream] =
@@ -1063,7 +1065,7 @@ function StandaloneChatPageClient({
       setContext,
       setGeneratedChatId,
       setHasCustomizedContext,
-      setMessages,
+      setMessages: (next) => setMessagesRef.current(next),
       setPendingMessageId,
       setQueuedMessages,
       setWasStoppedByUser,
@@ -1570,7 +1572,7 @@ function StandaloneChatPageClient({
         setContext,
         setGeneratedChatId,
         setHasCustomizedContext,
-        setMessages,
+        setMessages: (next) => setMessagesRef.current(next),
         setPendingMessageId,
         setQueuedMessages,
         setWasStoppedByUser,
@@ -1617,7 +1619,6 @@ function StandaloneChatPageClient({
     isProjectResolved,
     organizationId,
     setInitialQuery,
-    setMessages,
   ]);
 
   const handleRemoveQueued = useCallback((id: string) => {
