@@ -54,6 +54,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -710,8 +711,9 @@ function StandaloneChatPageClient({
       handleStandaloneChatError(err, { setChatError, setPendingMessageId });
     },
   });
-  const setMessagesRef = useRef(setMessages);
-  setMessagesRef.current = setMessages;
+  const replaceChatMessages = useEffectEvent((next: []) => {
+    setMessages(next);
+  });
 
   const [isStopping, setIsStopping] = useState(false);
   const [isWaitingForActiveStream, setIsWaitingForActiveStream] =
@@ -1065,7 +1067,7 @@ function StandaloneChatPageClient({
       setContext,
       setGeneratedChatId,
       setHasCustomizedContext,
-      setMessages: (next) => setMessagesRef.current(next),
+      setMessages: replaceChatMessages,
       setPendingMessageId,
       setQueuedMessages,
       setWasStoppedByUser,
@@ -1572,7 +1574,7 @@ function StandaloneChatPageClient({
         setContext,
         setGeneratedChatId,
         setHasCustomizedContext,
-        setMessages: (next) => setMessagesRef.current(next),
+        setMessages: replaceChatMessages,
         setPendingMessageId,
         setQueuedMessages,
         setWasStoppedByUser,
