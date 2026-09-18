@@ -822,6 +822,10 @@ describe("scan ownership and finalization", () => {
       errorMessage: "The scan engine was unavailable.",
       failedStage: "execution",
       retryable: true,
+      runId: "run-test",
+      checksTotal: 1,
+      checksFailed: 1,
+      mentions: 0,
     });
   });
 

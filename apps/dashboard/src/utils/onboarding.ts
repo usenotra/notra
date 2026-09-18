@@ -1,5 +1,6 @@
 import { ONBOARDING_WEBSITE_PREFIX_REGEX } from "@notra/geo-core/constants/website-url";
 import { ONBOARDING_HEARD_ABOUT_NOTRA_SOURCES } from "@notra/schemas/constants/dashboard/onboarding";
+import { slugSchema } from "@notra/schemas/dashboard/organization";
 import type { OnboardingHeardAboutNotraSource } from "@notra/schemas/types/dashboard/onboarding";
 
 import { ONBOARDING_HEARD_ABOUT_NOTRA_LABELS } from "@/constants/onboarding";
@@ -24,4 +25,13 @@ export function getHeardAboutNotraLabel(value: string | null | undefined) {
 
 export function stripWebsitePrefix(value: string): string {
   return value.replace(ONBOARDING_WEBSITE_PREFIX_REGEX, "");
+}
+
+export function slugify(value: string): string {
+  return slugSchema.safeParse(value).data ?? "";
+}
+
+export function slugifyWhileTyping(value: string): string {
+  const slug = slugify(value);
+  return slug && /[-\s]$/.test(value) ? `${slug}-` : slug;
 }

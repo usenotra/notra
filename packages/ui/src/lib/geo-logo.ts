@@ -1,6 +1,6 @@
-import { logoLinkUrl } from "@notra/utils/logo-link";
+import { googleFaviconUrl } from "@notra/utils/google-favicon";
 
 export function competitorLogoSources(domain: string | null): string[] {
-  const logoLink = logoLinkUrl(domain);
-  return logoLink ? [logoLink] : [];
+  const favicon = googleFaviconUrl(domain);
+  return favicon ? [favicon] : [];
 }

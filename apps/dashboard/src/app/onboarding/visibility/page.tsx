@@ -5,13 +5,16 @@ import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { ONBOARDING_STEP_VISIBILITY } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoDashboardPath,
   geoOnboardingCompetitorsPath,
+  geoOnboardingPricingPath,
 } from "@/utils/geo-paths";
+import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { VisibilityForm } from "./visibility-form";
 
@@ -53,14 +56,9 @@ export default async function OnboardingVisibilityPage({
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const dashboardHref = geoDashboardPath(organization.slug, projectId);
   const skipHref =
-    inOnboardingFlow && !isDevReplay ? "/onboarding/pricing" : dashboardHref;
-
-  if (!isDevReplay && stage === "complete") {
-    redirect(skipHref);
-  }
-  if (!isDevReplay && stage === "competitors") {
-    redirect(geoOnboardingCompetitorsPath(projectId));
-  }
+    inOnboardingFlow && !isDevReplay
+      ? geoOnboardingPricingPath(projectId)
+      : dashboardHref;
 
   return (
     <VisibilityForm
@@ -68,6 +66,14 @@ export default async function OnboardingVisibilityPage({
       inOnboardingFlow={inOnboardingFlow}
       nextHref={geoOnboardingCompetitorsPath(projectId, isDevReplay)}
       organizationId={organization.id}
+      progressHrefs={onboardingProgressHrefs({
+        current: ONBOARDING_STEP_VISIBILITY,
+        hasBrand: true,
+        hasOrganization: true,
+        projectId,
+        replay: isDevReplay,
+        stage,
+      })}
       projectId={projectId}
       skipHref={skipHref}
       websiteUrl={brand.websiteUrl}

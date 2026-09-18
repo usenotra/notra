@@ -53,6 +53,9 @@ export interface GeoCheckWrite {
   outputTokens: number | null;
   reasoningTokens: number | null;
   zdrEnforced?: boolean | null;
+  durationMs?: number | null;
+  costUsd?: number | null;
+  judgeTokens?: number | null;
   capturedAt: Date;
 }
 

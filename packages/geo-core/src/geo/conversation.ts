@@ -21,7 +21,9 @@ import { geoLogWarn, logGeoSkip } from "../utils/geo-log";
 import { hasOwnedSourceCitation } from "../utils/geo-owned-source";
 import {
   addAgentTokenUsage,
+  agentTokenUsageFrom,
   EMPTY_AGENT_TOKEN_USAGE,
+  geoCheckWriteUsage,
 } from "../utils/token-usage";
 import { judgeAnswer, requireAnswerText } from "./check-evaluation";
 import { GeoScanError } from "./errors";
@@ -36,7 +38,8 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
   const models = yield* GeoModelService;
   const rows: GeoCheckWrite[] = [];
   const messages: ModelMessage[] = [];
-  let usage = EMPTY_AGENT_TOKEN_USAGE;
+  let engineUsage = EMPTY_AGENT_TOKEN_USAGE;
+  let judgeUsage = EMPTY_AGENT_TOKEN_USAGE;
   const fields: GeoSkipFields = {
     event: "geo.check.failed",
     organizationId: context.organizationId,
@@ -52,6 +55,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
 
   const play = Effect.gen(function* () {
     for (const [index, prompt] of source.prompts.entries()) {
+      const turnStartedMs = performance.now();
       messages.push({ role: "user", content: prompt });
       const answer = yield* models.groundedAnswer({
         organizationId: context.organizationId,
@@ -59,7 +63,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
         messages,
         zdr,
       });
-      usage = addAgentTokenUsage(usage, answer.usage);
+      engineUsage = addAgentTokenUsage(engineUsage, answer.usage);
       if (zdr !== "none" && answer.zdrEnforced === false) {
         yield* geoLogWarn({
           ...fields,
@@ -76,6 +80,10 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
       );
       messages.push({ role: "assistant", content: text });
       const judged = yield* judgeAnswer(context, prompt, text);
+      judgeUsage = addAgentTokenUsage(
+        judgeUsage,
+        agentTokenUsageFrom(judged.usage)
+      );
       rows.push({
         organizationId: context.organizationId,
         projectId: context.projectId,
@@ -101,10 +109,11 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
         excerpt: judged.excerpt.slice(0, GEO_EXCERPT_MAX_LENGTH),
         grounding: answer.grounding,
         finishReason: answer.finishReason,
-        promptTokens: answer.usage.inputTokens ?? null,
-        outputTokens: answer.usage.outputTokens ?? null,
-        reasoningTokens:
-          answer.usage.outputTokenDetails?.reasoningTokens ?? null,
+        ...geoCheckWriteUsage(
+          answer.usage,
+          judged.usage,
+          Math.round(performance.now() - turnStartedMs)
+        ),
         zdrEnforced: answer.zdrEnforced,
         language: DEFAULT_LANGUAGE,
         sources: answer.sources,
@@ -133,7 +142,9 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
   );
   const outcome: GeoConversationOutcome = {
     rows,
-    usage,
+    usage: addAgentTokenUsage(engineUsage, judgeUsage),
+    engineUsage,
+    judgeUsage,
     droppedTurns: source.prompts.length - rows.length,
   };
   return outcome;

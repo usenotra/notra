@@ -7,7 +7,7 @@ import {
   GEO_SCAN_CLAIM_RENEW_AFTER_MS,
   GEO_SCAN_STALE_MS,
 } from "../constants/geo";
-import type { GeoScanFailureMetadata } from "../types/geo";
+import type { GeoScanFailureMetadata, GeoScanFinishTotals } from "../types/geo";
 import { describeGeoCause, geoLogError } from "../utils/geo-log";
 import { classifyGeoScanExecutionFailure } from "../utils/geo-scan";
 import { geoDb, geoSkip } from "./effect";
@@ -484,7 +484,8 @@ export const finishGeoScanRow = Effect.fn("geo.finishScanRow")(function* (
   scope: GeoScanRunScope,
   scanId: string,
   status: "completed" | "failed",
-  failure: GeoScanFailureMetadata = EXECUTION_FAILURE
+  failure: GeoScanFailureMetadata = EXECUTION_FAILURE,
+  totals?: GeoScanFinishTotals
 ) {
   yield* geoDb("scan row finish failed", () =>
     db
@@ -496,6 +497,22 @@ export const finishGeoScanRow = Effect.fn("geo.finishScanRow")(function* (
         errorMessage: status === "failed" ? failure.errorMessage : null,
         failedStage: status === "failed" ? failure.failedStage : null,
         retryable: status === "failed" ? failure.retryable : null,
+        ...(totals
+          ? {
+              runId: totals.runId,
+              inputTokens: totals.inputTokens,
+              outputTokens: totals.outputTokens,
+              cacheReadTokens: totals.cacheReadTokens,
+              cacheWriteTokens: totals.cacheWriteTokens,
+              reasoningTokens: totals.reasoningTokens,
+              totalUsd: totals.totalUsd,
+              checksTotal: totals.checksTotal,
+              checksFailed: totals.checksFailed,
+              mentions: totals.mentions,
+              durationMs: totals.durationMs,
+              usageByRole: totals.usageByRole,
+            }
+          : {}),
       })
       .where(
         and(
