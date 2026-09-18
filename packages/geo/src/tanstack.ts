@@ -8,7 +8,7 @@ export function createGeoMiddleware(options: GeoTrackerOptions) {
     request,
     next,
   }: TanStackMiddlewareContext<T>): Promise<T> => {
-    const pending = tracker.track(request);
+    const pending = tracker.track(request).catch(() => undefined);
     try {
       return await next();
     } finally {

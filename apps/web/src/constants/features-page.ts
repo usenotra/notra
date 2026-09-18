@@ -104,7 +104,7 @@ export const FEATURES_PAGE_DEVELOPER_CARDS: FeaturesPageCard[] = [
   {
     title: "@usenotra/geo",
     description:
-      "One package for Next.js, Nuxt and TanStack Start. Server-side capture, 66 agent signatures, journey tagging and an MCP feedback tool.",
+      "One package for Next.js, Nuxt, TanStack Start, Astro and SvelteKit. Server-side capture, 66 agent signatures, journey tagging and an MCP feedback tool.",
   },
 ];
 

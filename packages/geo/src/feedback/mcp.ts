@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { reportGeoError } from "../send";
 import { FeedbackSubmitError, submitFeedback } from "./client";
 import {
   DEFAULT_TOOL_NAME,
@@ -102,7 +103,7 @@ export function createFeedbackToolHandler(options: FeedbackToolOptions) {
         structuredContent: result,
       };
     } catch (error) {
-      options.onError?.(error);
+      reportGeoError(options.onError, error);
       return {
         content: [{ type: "text", text: toErrorText(error) }],
         isError: true,

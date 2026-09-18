@@ -8,7 +8,7 @@ import {
   test,
 } from "bun:test";
 
-import { createGeoMiddleware } from "../src/tanstack";
+import { createGeoMiddleware } from "../src/astro";
 import { Tracker } from "../src/tracker";
 
 const send = spyOn(globalThis, "fetch");
@@ -21,8 +21,8 @@ afterEach(() => {
   send.mockReset();
 });
 
-describe("TanStack Start middleware", () => {
-  test("sends the request envelope and preserves the downstream result", async () => {
+describe("Astro middleware", () => {
+  test("sends the request envelope and preserves the downstream response", async () => {
     send.mockResolvedValue(new Response(null, { status: 204 }));
     const request = new Request(
       "https://example.com/docs?utm_source=chatgpt.com",
@@ -30,14 +30,11 @@ describe("TanStack Start middleware", () => {
         headers: { "user-agent": "GPTBot", referer: "https://chatgpt.com/" },
       }
     );
-    const result = {
-      response: new Response("page"),
-      context: { user: "test" },
-    };
-    const next = mock(async () => result);
+    const response = new Response("page");
+    const next = mock(async () => response);
     const middleware = createGeoMiddleware({ token: "test-token" });
 
-    expect(await middleware({ request, next })).toBe(result);
+    expect(await middleware({ request }, next)).toBe(response);
     expect(next).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledTimes(1);
     const [url, init] = send.mock.calls[0] ?? [];
@@ -56,10 +53,10 @@ describe("TanStack Start middleware", () => {
   test("accepts a synchronous next result", async () => {
     const response = new Response("page");
     expect(
-      await createGeoMiddleware({ token: "" })({
-        request: new Request("https://example.com/"),
-        next: () => response,
-      })
+      await createGeoMiddleware({ token: "" })(
+        { request: new Request("https://example.com/") },
+        () => response
+      )
     ).toBe(response);
   });
 
@@ -68,10 +65,10 @@ describe("TanStack Start middleware", () => {
     send.mockReturnValue(sent.promise);
     const next = mock(async () => new Response("page"));
     let completed = false;
-    const pending = createGeoMiddleware({ token: "test-token" })({
-      request: new Request("https://example.com/"),
-      next,
-    }).then((result) => {
+    const pending = createGeoMiddleware({ token: "test-token" })(
+      { request: new Request("https://example.com/") },
+      next
+    ).then((result) => {
       completed = true;
       return result;
     });
@@ -88,10 +85,10 @@ describe("TanStack Start middleware", () => {
     send.mockRejectedValue(error);
     const onError = mock();
     const response = new Response("page");
-    const result = await createGeoMiddleware({ token: "test-token", onError })({
-      request: new Request("https://example.com/"),
-      next: async () => response,
-    });
+    const result = await createGeoMiddleware({ token: "test-token", onError })(
+      { request: new Request("https://example.com/") },
+      async () => response
+    );
     expect(result).toBe(response);
     expect(onError).toHaveBeenCalledWith(error);
   });
@@ -104,10 +101,7 @@ describe("TanStack Start middleware", () => {
       onError: () => {
         throw new Error("callback failed");
       },
-    })({
-      request: new Request("https://example.com/"),
-      next: async () => response,
-    });
+    })({ request: new Request("https://example.com/") }, async () => response);
     expect(result).toBe(response);
   });
 
@@ -118,10 +112,10 @@ describe("TanStack Start middleware", () => {
     const response = new Response("page");
     try {
       expect(
-        await createGeoMiddleware({ token: "test-token" })({
-          request: new Request("https://example.com/"),
-          next: async () => response,
-        })
+        await createGeoMiddleware({ token: "test-token" })(
+          { request: new Request("https://example.com/") },
+          async () => response
+        )
       ).toBe(response);
     } finally {
       track.mockRestore();
@@ -135,10 +129,10 @@ describe("TanStack Start middleware", () => {
     const error = new Error("route failed");
     try {
       await expect(
-        createGeoMiddleware({ token: "test-token" })({
-          request: new Request("https://example.com/"),
-          next: () => Promise.reject(error),
-        })
+        createGeoMiddleware({ token: "test-token" })(
+          { request: new Request("https://example.com/") },
+          () => Promise.reject(error)
+        )
       ).rejects.toBe(error);
     } finally {
       track.mockRestore();
@@ -149,10 +143,10 @@ describe("TanStack Start middleware", () => {
     const sent = Promise.withResolvers<Response>();
     send.mockReturnValue(sent.promise);
     const error = new Error("route failed");
-    const pending = createGeoMiddleware({ token: "test-token" })({
-      request: new Request("https://example.com/"),
-      next: () => Promise.reject(error),
-    });
+    const pending = createGeoMiddleware({ token: "test-token" })(
+      { request: new Request("https://example.com/") },
+      () => Promise.reject(error)
+    );
     sent.resolve(new Response(null, { status: 204 }));
     await expect(pending).rejects.toBe(error);
     expect(send).toHaveBeenCalledTimes(1);
@@ -161,16 +155,25 @@ describe("TanStack Start middleware", () => {
   test.each([
     { token: "", path: "/docs" },
     { token: "test-token", path: "/api/private" },
-    { token: "test-token", path: "/assets/app.js" },
+    { token: "test-token", path: "/_astro/index.js" },
     { token: "test-token", path: "/docs", sample: 0 },
     { token: "test-token", path: "/private", exclude: ["/private"] },
   ])("skips ineligible requests: %j", async ({ path, ...options }) => {
     const next = mock(async () => new Response("page"));
-    await createGeoMiddleware(options)({
-      request: new Request(`https://example.com${path}`),
-      next,
-    });
+    await createGeoMiddleware(options)(
+      { request: new Request(`https://example.com${path}`) },
+      next
+    );
     expect(send).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  test("still captures a page under /_app that is not SvelteKit's immutable assets", async () => {
+    send.mockResolvedValue(new Response(null, { status: 204 }));
+    await createGeoMiddleware({ token: "test-token" })(
+      { request: new Request("https://example.com/_app/docs") },
+      async () => new Response("page")
+    );
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });
