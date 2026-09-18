@@ -83,7 +83,7 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
           value={view}
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {target === "figma" ? (
             <Button
               className="border-border gap-2 border bg-white text-neutral-900 shadow-sm hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
