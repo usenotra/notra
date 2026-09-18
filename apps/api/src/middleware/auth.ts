@@ -160,6 +160,13 @@ async function resolveLocalUserId(
   });
 
   if (!user) {
+    user = await db.query.users.findFirst({
+      where: eq(users.id, workosUserId),
+      columns: { id: true },
+    });
+  }
+
+  if (!user) {
     // Standalone Connect stores our local ID as the WorkOS external_id without
     // necessarily populating users.workosUserId. Resolve that server-side link;
     // never infer identity from an email or an untrusted token claim.

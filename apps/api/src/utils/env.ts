@@ -12,7 +12,7 @@ export function assertRequiredEnv() {
   const required =
     process.env.NODE_ENV === "development"
       ? REQUIRED_ENV_VARS
-      : [...REQUIRED_ENV_VARS, "AUTUMN_SECRET_KEY", "WORKOS_API_KEY"];
+      : [...REQUIRED_ENV_VARS, "AUTUMN_SECRET_KEY"];
   const missing = required.filter((name) => !process.env[name]);
   if (missing.length > 0) {
     throw new Error(
