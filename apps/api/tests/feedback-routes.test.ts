@@ -4,19 +4,13 @@ import { FEEDBACK_ORGANIZATION_NOT_FOUND_ERROR } from "../src/constants/feedback
 import type { AuthData } from "../src/types/auth";
 import { createOpenApiApp } from "../src/utils/openapi-app";
 
+const actualRatelimit = await import("../src/utils/ratelimit");
+
 mock.module("../src/utils/ratelimit", () => ({
+  RATE_LIMITS: actualRatelimit.RATE_LIMITS,
+  ratelimit: actualRatelimit.ratelimit,
   enforceRatelimit: mock(async () => null),
   enforceRatelimitForKey: mock(async () => null),
-  RATE_LIMITS: {
-    feedbackIngest: { requests: 120, window: "1 minute" },
-    feedbackIngestIp: { requests: 60, window: "1 minute" },
-    feedbackIngestOrganization: { requests: 30, window: "1 minute" },
-  },
-  ratelimit: {
-    feedbackIngest: {},
-    feedbackIngestIp: {},
-    feedbackIngestOrganization: {},
-  },
 }));
 
 const { feedbackRoutes } = await import("../src/routes/feedback");
