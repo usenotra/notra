@@ -41,7 +41,7 @@ export const ASSET_PATH_PREFIXES = [
   "/_nuxt/",
   "/_vercel/",
   "/_astro/",
-  "/_app/",
+  "/_app/immutable/",
   "/__nextjs",
   "/static/",
 ];

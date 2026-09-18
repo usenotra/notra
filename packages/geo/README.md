@@ -131,7 +131,7 @@ send alive.
 ### What gets captured
 
 Only `GET` requests that look like pages. Asset requests are skipped: anything under
-`/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/`, `/static/`, and any path ending in a
+`/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/immutable/`, `/static/`, and any path ending in a
 common static extension such as `.css`, `.js`, `.png`, `.svg`, `.xml` or `.txt`.
 `llms.txt` and `llms-full.txt` are the exception: they are always captured.
 

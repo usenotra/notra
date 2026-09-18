@@ -190,7 +190,7 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 | `onError` | none | Called with anything that goes wrong. The SDK never throws |
 | `fetch` | global `fetch` | Injectable fetch, for tests |
 
-Only `GET` requests that look like pages are captured. Anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/`, `/static/`, and any path ending in a common static extension is skipped. `llms.txt` and `llms-full.txt` are always captured. `exclude` entries can be a string prefix, a `RegExp`, or a `(request, url) => boolean` function.
+Only `GET` requests that look like pages are captured. Anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/immutable/`, `/static/`, and any path ending in a common static extension is skipped. `llms.txt` and `llms-full.txt` are always captured. `exclude` entries can be a string prefix, a `RegExp`, or a `(request, url) => boolean` function.
 
 The envelope contains the timestamp, method, URL, client IP, edge location headers when present, referer, user agent, accept and accept-language headers, and a request id. No request body, no cookies, and no other headers are read or sent. The POST uses `keepalive` and a 2 second timeout.
 

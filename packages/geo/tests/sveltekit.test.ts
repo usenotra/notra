@@ -92,6 +92,21 @@ describe("SvelteKit handle", () => {
     expect(onError).toHaveBeenCalledWith(error);
   });
 
+  test("keeps serving the page if onError throws", async () => {
+    send.mockRejectedValue(new Error("network unavailable"));
+    const response = new Response("page");
+    const result = await createGeoHandle({
+      token: "test-token",
+      onError: () => {
+        throw new Error("callback failed");
+      },
+    })({
+      event: { request: new Request("https://example.com/") },
+      resolve: async () => response,
+    });
+    expect(result).toBe(response);
+  });
+
   test("preserves downstream errors and still finishes tracking", async () => {
     const sent = Promise.withResolvers<Response>();
     send.mockReturnValue(sent.promise);

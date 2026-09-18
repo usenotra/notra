@@ -92,6 +92,18 @@ describe("Astro middleware", () => {
     expect(onError).toHaveBeenCalledWith(error);
   });
 
+  test("keeps serving the page if onError throws", async () => {
+    send.mockRejectedValue(new Error("network unavailable"));
+    const response = new Response("page");
+    const result = await createGeoMiddleware({
+      token: "test-token",
+      onError: () => {
+        throw new Error("callback failed");
+      },
+    })({ request: new Request("https://example.com/") }, async () => response);
+    expect(result).toBe(response);
+  });
+
   test("preserves downstream errors and still finishes tracking", async () => {
     const sent = Promise.withResolvers<Response>();
     send.mockReturnValue(sent.promise);
@@ -119,5 +131,14 @@ describe("Astro middleware", () => {
     );
     expect(send).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  test("still captures a page under /_app that is not SvelteKit's immutable assets", async () => {
+    send.mockResolvedValue(new Response(null, { status: 204 }));
+    await createGeoMiddleware({ token: "test-token" })(
+      { request: new Request("https://example.com/_app/docs") },
+      async () => new Response("page")
+    );
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });
