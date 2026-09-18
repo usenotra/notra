@@ -29,9 +29,8 @@ import type {
 } from "../types/dom-to-scene";
 import type { Guid, Transform } from "../types/scene";
 import type { PathSubpath } from "../types/svg-path";
-import type { ResolvedUseShape } from "../types/svg-use";
 import { svgPrimitiveToSubpaths } from "../utils/svg-primitive";
-import { resolveUseShapes } from "../utils/svg-use";
+import { inlineSvgUses } from "../utils/svg-use";
 import { TextLayoutCache } from "../utils/text-layout";
 
 export type { BuildSceneFromElementOptions } from "../types/dom-to-scene";
@@ -588,78 +587,6 @@ function uniformBorder(borders: BoxBorders): BorderSide | null {
   return null;
 }
 
-function pushSvgShape(
-  shapes: SvgShape[],
-  subpaths: PathSubpath[],
-  shape: Omit<SvgShape, "subpaths">,
-  matrix: Transform
-): void {
-  if (subpaths.length === 0) {
-    return;
-  }
-  const transformed: PathSubpath[] = subpaths.map((sub) => ({
-    closed: sub.closed,
-    points: sub.points.map((p) => ({
-      x: matrix.m00 * p.x + matrix.m01 * p.y + matrix.m02,
-      y: matrix.m10 * p.x + matrix.m11 * p.y + matrix.m12,
-    })),
-  }));
-  const strokeScale = Math.hypot(matrix.m00, matrix.m10) || 1;
-  shapes.push({
-    subpaths: transformed,
-    fill: shape.fill,
-    fillRule: shape.fillRule,
-    stroke: shape.stroke,
-    strokeLineCap: shape.strokeLineCap,
-    strokeLineJoin: shape.strokeLineJoin,
-    strokeDasharray:
-      shape.strokeDasharray?.map((dash) => dash * strokeScale) ?? null,
-    strokeWidth: shape.strokeWidth * strokeScale,
-  });
-}
-
-function pushResolvedUseShape(
-  shapes: SvgShape[],
-  resolved: ResolvedUseShape,
-  useStyle: CSSStyleDeclaration,
-  currentColor: string
-): void {
-  if (resolved.subpaths.length === 0) {
-    return;
-  }
-  const fill = svgPaintValue(
-    resolved.fill ?? resolved.fillComputed,
-    useStyle.fill ?? null,
-    currentColor
-  );
-  const stroke = svgPaintValue(
-    resolved.stroke ?? resolved.strokeComputed,
-    useStyle.stroke ?? null,
-    currentColor
-  );
-  if (!fill && !stroke) {
-    return;
-  }
-  const fillRule: "nonzero" | "evenodd" = resolved.fillRule;
-  pushSvgShape(
-    shapes,
-    resolved.subpaths,
-    {
-      fill,
-      fillRule,
-      stroke,
-      strokeLineCap: resolved.strokeLineCap ?? useStyle.strokeLinecap,
-      strokeLineJoin: resolved.strokeLineJoin ?? useStyle.strokeLinejoin,
-      strokeDasharray:
-        parseSvgDasharray(resolved.strokeDasharray) ??
-        parseSvgDasharray(useStyle.getPropertyValue("stroke-dasharray")) ??
-        null,
-      strokeWidth: parsePx(resolved.strokeWidth ?? useStyle.strokeWidth),
-    },
-    resolved.transform
-  );
-}
-
 function extractLayout(node: Node): LayoutNode | null {
   if (node.nodeType === Node.TEXT_NODE) {
     const text = (node.nodeValue ?? "")
@@ -731,6 +658,7 @@ function extractLayout(node: Node): LayoutNode | null {
     const fallbackColor = style.color;
 
     const shapes: SvgShape[] = [];
+    const restoreUses = inlineSvgUses(svg);
     const geomEls = svg.querySelectorAll(SVG_GEOMETRY_SELECTOR);
     for (const geomEl of geomEls) {
       if (!(geomEl instanceof SVGGraphicsElement)) {
@@ -788,61 +716,38 @@ function extractLayout(node: Node): LayoutNode | null {
         geomEl.getAttribute("clip-rule") === "evenodd"
           ? "evenodd"
           : "nonzero";
-      pushSvgShape(
-        shapes,
-        subpaths,
-        {
-          fill,
-          fillRule,
-          stroke,
-          strokeLineCap:
-            geomEl.getAttribute("stroke-linecap") ??
-            svg.getAttribute("stroke-linecap") ??
-            geomStyle.strokeLinecap,
-          strokeLineJoin:
-            geomEl.getAttribute("stroke-linejoin") ??
-            svg.getAttribute("stroke-linejoin") ??
-            geomStyle.strokeLinejoin,
-          strokeDasharray: strokeDasharray ?? null,
-          strokeWidth: parsePx(
+      const transformed: PathSubpath[] = subpaths.map((sub) => ({
+        closed: sub.closed,
+        points: sub.points.map((p) => ({
+          x: ctm.a * p.x + ctm.c * p.y + ctm.e,
+          y: ctm.b * p.x + ctm.d * p.y + ctm.f,
+        })),
+      }));
+      const strokeScale = Math.hypot(ctm.a, ctm.b) || 1;
+      shapes.push({
+        subpaths: transformed,
+        fill,
+        fillRule,
+        stroke,
+        strokeLineCap:
+          geomEl.getAttribute("stroke-linecap") ??
+          svg.getAttribute("stroke-linecap") ??
+          geomStyle.strokeLinecap,
+        strokeLineJoin:
+          geomEl.getAttribute("stroke-linejoin") ??
+          svg.getAttribute("stroke-linejoin") ??
+          geomStyle.strokeLinejoin,
+        strokeDasharray:
+          strokeDasharray?.map((dash) => dash * strokeScale) ?? null,
+        strokeWidth:
+          parsePx(
             geomEl.getAttribute("stroke-width") ??
               svg.getAttribute("stroke-width") ??
               geomStyle.strokeWidth
-          ),
-        },
-        {
-          m00: ctm.a,
-          m01: ctm.c,
-          m02: ctm.e,
-          m10: ctm.b,
-          m11: ctm.d,
-          m12: ctm.f,
-        }
-      );
+          ) * strokeScale,
+      });
     }
-
-    for (const useEl of Array.from(svg.querySelectorAll("use"))) {
-      if (!(useEl instanceof Element)) {
-        continue;
-      }
-      if (useEl.closest("defs, symbol")) {
-        continue;
-      }
-      let resolved: ResolvedUseShape[];
-      try {
-        resolved = resolveUseShapes(useEl, svg);
-      } catch {
-        continue;
-      }
-      if (resolved.length === 0) {
-        continue;
-      }
-      const useStyle = getComputedStyle(useEl);
-      const useColor = useStyle.color || fallbackColor;
-      for (const shape of resolved) {
-        pushResolvedUseShape(shapes, shape, useStyle, useColor);
-      }
-    }
+    restoreUses();
 
     return {
       kind: "svg",
