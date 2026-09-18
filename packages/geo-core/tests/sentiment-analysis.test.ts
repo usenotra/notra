@@ -224,13 +224,13 @@ test("UTC equal-length periods include leap days, gaps and zero; invalid windows
   ).toBe(true);
 });
 
-test("themes reject invalid evidence, deduplicate sources, and preserve mixed-answer clauses", () => {
+test("themes drop ungrounded evidence, match collapsed quotes, and preserve mixed-answer clauses", () => {
   expect(validateSentimentThemes(output, sample)[0]?.evidence).toHaveLength(2);
   for (const evidence of [
     [{ checkId: "foreign", quote: "Notra makes onboarding easy." }],
     [{ checkId: "a", quote: "Notra is perfect." }],
   ]) {
-    expect(() =>
+    expect(
       validateSentimentThemes(
         {
           themes: [
@@ -242,8 +242,65 @@ test("themes reject invalid evidence, deduplicate sources, and preserve mixed-an
         },
         sample
       )
-    ).toThrow();
+    ).toEqual([]);
   }
+  const mixedEvidence = validateSentimentThemes(
+    {
+      themes: [
+        {
+          ...output.themes[0],
+          claims: [
+            {
+              statement: "Easy onboarding",
+              evidence: [
+                { checkId: "a", quote: "Notra makes onboarding easy." },
+                { checkId: "a", quote: "Notra is perfect." },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    sample
+  );
+  expect(mixedEvidence[0]?.claims[0]?.evidence).toEqual([
+    expect.objectContaining({
+      checkId: "a",
+      quote: "Notra makes onboarding easy.",
+    }),
+  ]);
+  const firstSample = sample[0];
+  assert.ok(firstSample);
+  const collapsed = validateSentimentThemes(
+    {
+      themes: [
+        {
+          title: "Easy onboarding",
+          polarity: "positive",
+          claims: [
+            {
+              statement: "Easy onboarding",
+              evidence: [
+                {
+                  checkId: "a",
+                  quote: "onboarding is frictionless - most teams",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    [
+      {
+        ...firstSample,
+        answer: "Notra's onboarding is frictionless — most teams ship today.",
+      },
+    ]
+  );
+  expect(collapsed[0]?.claims[0]?.evidence[0]?.quote).toBe(
+    "onboarding is frictionless - most teams"
+  );
   // Identical checkId+quote pairs collapse; distinct quotes from the same
   // check stay.
   const deduped = validateSentimentThemes(
@@ -267,8 +324,6 @@ test("themes reject invalid evidence, deduplicate sources, and preserve mixed-an
     sample
   );
   expect(deduped[0]?.claims[0]?.evidence).toHaveLength(2);
-  const firstSample = sample[0];
-  assert.ok(firstSample);
   const mixedSample = [
     {
       ...firstSample,
@@ -320,6 +375,7 @@ test("real structured generation has no tools and treats injected answers as dat
   expect(call.tools ?? []).toHaveLength(0);
   expect(call.maxOutputTokens).toBe(8000);
   expect(call.reasoning).toBe("low");
+  expect(call.temperature).toBeUndefined();
   expect(JSON.stringify(call.prompt[0])).toContain("UNTRUSTED DATA");
   expect(JSON.stringify(call.prompt[1])).toContain("IGNORE ALL RULES");
   expect(call.responseFormat?.type).toBe("json");
