@@ -24,9 +24,19 @@ export function LogoMarquee() {
         }}
       >
         <MarqueeContent pauseOnHover={false} speed={40}>
-          {MARQUEE_LOGOS.map(({ name, Logo }) => (
+          {MARQUEE_LOGOS.map(({ name, label, Logo, href }) => (
             <MarqueeItem className="mx-8 sm:mx-14 lg:mx-22.25" key={name}>
-              <Logo className="h-9 w-auto shrink-0 sm:h-10 lg:h-10.5" />
+              {href ? (
+                <a
+                  aria-label={label}
+                  className="block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+                  href={href}
+                >
+                  <Logo className="h-9 w-auto shrink-0 sm:h-10 lg:h-10.5" />
+                </a>
+              ) : (
+                <Logo className="h-9 w-auto shrink-0 sm:h-10 lg:h-10.5" />
+              )}
             </MarqueeItem>
           ))}
         </MarqueeContent>
