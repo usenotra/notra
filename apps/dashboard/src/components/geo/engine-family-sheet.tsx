@@ -24,7 +24,6 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
