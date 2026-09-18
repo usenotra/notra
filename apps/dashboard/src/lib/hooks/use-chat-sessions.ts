@@ -17,12 +17,37 @@ import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { mergePendingChatSessions } from "@/utils/chat-history-groups";
+
+function chatSessionsPendingQueryKey(
+  organizationId: string | undefined,
+  projectId?: string | null
+) {
+  return ["chat-sessions-pending", organizationId, projectId ?? null] as const;
+}
+
+function createPendingChatSession(chatId: string): ChatSessionSummary {
+  const now = new Date().toISOString();
+  return {
+    chatId,
+    title: "New chat",
+    createdAt: now,
+    updatedAt: now,
+    pinnedAt: null,
+  };
+}
+
+const EMPTY_PENDING_CHAT_SESSIONS: ChatSessionSummary[] = [];
 
 export function useChatSessions() {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
+  const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
 
   const query = useQuery({
     queryKey,
@@ -42,9 +67,23 @@ export function useChatSessions() {
     enabled: Boolean(organizationId) && isResolved,
     staleTime: 1000 * 60,
   });
+  const pendingQuery = useQuery({
+    queryKey: pendingQueryKey,
+    queryFn: async () => EMPTY_PENDING_CHAT_SESSIONS,
+    enabled: false,
+    initialData: EMPTY_PENDING_CHAT_SESSIONS,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+
+  const { sessions, generatingTitleChatIds } = mergePendingChatSessions(
+    query.data ?? [],
+    pendingQuery.data ?? []
+  );
 
   return {
-    sessions: query.data ?? [],
+    sessions,
+    generatingTitleChatIds,
     isLoading: query.isPending && query.fetchStatus !== "idle",
     organizationId,
     queryKey,
@@ -57,7 +96,40 @@ export function useChatSessionMutations() {
   const organizationId = activeOrganization?.id;
   const { projectId, isResolved } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
+  const pendingQueryKey = chatSessionsPendingQueryKey(
+    organizationId,
+    projectId
+  );
   const renameInFlightRef = useRef<Set<string>>(new Set());
+
+  function insertPendingChatSession(chatId: string) {
+    if (!organizationId || !isResolved) {
+      return;
+    }
+
+    const existing =
+      queryClient.getQueryData<ChatSessionSummary[]>(queryKey) ?? [];
+    if (existing.some((item) => item.chatId === chatId)) {
+      return;
+    }
+
+    queryClient.setQueryData<ChatSessionSummary[]>(
+      pendingQueryKey,
+      (current = []) => {
+        if (current.some((item) => item.chatId === chatId)) {
+          return current;
+        }
+        return [createPendingChatSession(chatId), ...current];
+      }
+    );
+  }
+
+  function removePendingChatSession(chatId: string) {
+    queryClient.setQueryData<ChatSessionSummary[]>(
+      pendingQueryKey,
+      (current = []) => current.filter((item) => item.chatId !== chatId)
+    );
+  }
 
   function replaceSessionInCache(
     chatId: string,
@@ -193,5 +265,11 @@ export function useChatSessionMutations() {
     }
   }
 
-  return { renameChat, togglePinned, deleteChat };
+  return {
+    insertPendingChatSession,
+    removePendingChatSession,
+    renameChat,
+    togglePinned,
+    deleteChat,
+  };
 }

@@ -98,6 +98,7 @@ import {
   relaySlackMirrorMessage,
 } from "@/lib/chat/slack-relay";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { useChatSessionMutations } from "@/lib/hooks/use-chat-sessions";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
@@ -452,6 +453,8 @@ function StandaloneChatPageClient({
     useActiveProject();
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
+  const { insertPendingChatSession, removePendingChatSession } =
+    useChatSessionMutations();
   const { data: membersData } = useQuery({
     queryKey: ["members", organizationId],
     queryFn: async () => {
@@ -625,6 +628,12 @@ function StandaloneChatPageClient({
             return triggerResponse;
           }
 
+          if (!initialChatId) {
+            queryClient.invalidateQueries({
+              queryKey: ["chat-sessions", organizationId],
+            });
+          }
+
           const contentType = triggerResponse.headers.get("content-type") ?? "";
           if (contentType.includes("text/event-stream")) {
             return triggerResponse;
@@ -645,7 +654,7 @@ function StandaloneChatPageClient({
           );
         },
       }),
-    [activeProjectId, organizationId]
+    [activeProjectId, initialChatId, organizationId, queryClient]
   );
 
   const [wasStoppedByUser, setWasStoppedByUser] = useState(false);
@@ -704,6 +713,12 @@ function StandaloneChatPageClient({
         requeueConflictedMessageRef.current(conflictedMessageId)
       ) {
         return;
+      }
+      if (!initialChatId) {
+        removePendingChatSession(stableChatId);
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", organizationId],
+        });
       }
       handleStandaloneChatError(err, { setChatError, setPendingMessageId });
     },
@@ -1038,13 +1053,13 @@ function StandaloneChatPageClient({
   }, [chatHistoryData, setMessages]);
 
   const hasUpdatedUrlRef = useRef(false);
-  const hasRunInitialChatIdEffectRef = useRef(false);
+  const previousInitialChatIdRef = useRef(initialChatId);
 
   useEffect(() => {
-    if (!hasRunInitialChatIdEffectRef.current) {
-      hasRunInitialChatIdEffectRef.current = true;
+    if (previousInitialChatIdRef.current === initialChatId) {
       return;
     }
+    previousInitialChatIdRef.current = initialChatId;
 
     if (initialChatId) {
       clearPendingChatClientState({
@@ -1472,6 +1487,7 @@ function StandaloneChatPageClient({
           "",
           `/${organizationSlug}/chat/${stableChatId}`
         );
+        insertPendingChatSession(stableChatId);
       }
       if (attachments.length > 0) {
         const parts: ChatMessagePart[] = [];
@@ -1495,6 +1511,7 @@ function StandaloneChatPageClient({
       addToolApprovalResponse,
       authorMetadata,
       initialChatId,
+      insertPendingChatSession,
       isProjectScopePending,
       isSlackMirrored,
       organizationSlug,

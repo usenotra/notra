@@ -100,3 +100,31 @@ export function getChatHistoryGroups(
     ];
   });
 }
+
+export function mergePendingChatSessions(
+  sessions: ChatSessionSummary[],
+  pendingSessions: ChatSessionSummary[]
+): {
+  sessions: ChatSessionSummary[];
+  generatingTitleChatIds: Set<string>;
+} {
+  if (pendingSessions.length === 0) {
+    return { sessions, generatingTitleChatIds: new Set() };
+  }
+
+  const existingIds = new Set(sessions.map((session) => session.chatId));
+  const stillPending = pendingSessions.filter(
+    (session) => !existingIds.has(session.chatId)
+  );
+
+  if (stillPending.length === 0) {
+    return { sessions, generatingTitleChatIds: new Set() };
+  }
+
+  return {
+    sessions: [...stillPending, ...sessions],
+    generatingTitleChatIds: new Set(
+      stillPending.map((session) => session.chatId)
+    ),
+  };
+}

@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Input } from "@notra/ui/components/ui/input";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -49,11 +50,12 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   const router = useRouter();
   const slug = activeOrganization?.slug;
 
-  const { sessions } = useChatSessions();
+  const { sessions, generatingTitleChatIds } = useChatSessions();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const session = sessions.find((item) => item.chatId === chatId);
   const title = session?.title ?? null;
+  const isGeneratingTitle = generatingTitleChatIds.has(chatId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
@@ -72,7 +74,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   }, [isEditing]);
 
   function startEditing() {
-    if (!session) {
+    if (!session || isGeneratingTitle) {
       return;
     }
     setDraftTitle(session.title);
@@ -131,7 +133,13 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   }
 
   const displayTitle = title ?? formatChatIdFallback(chatId);
-  const hasTitle = Boolean(title);
+  const hasTitle = Boolean(title) && !isGeneratingTitle;
+  let titleMotionKey = "fallback";
+  if (isGeneratingTitle) {
+    titleMotionKey = "generating";
+  } else if (hasTitle) {
+    titleMotionKey = "title";
+  }
 
   return (
     <>
@@ -198,10 +206,18 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                           y: hasTitle ? 4 : 0,
                           filter: hasTitle ? "blur(4px)" : "blur(0px)",
                         }}
-                        key={hasTitle ? "title" : "fallback"}
+                        key={titleMotionKey}
                         transition={{ duration: 0.25, ease: "easeOut" }}
                       >
-                        {displayTitle}
+                        {isGeneratingTitle ? (
+                          <Skeleton
+                            aria-label="Generating title"
+                            className="h-4 w-28"
+                            role="status"
+                          />
+                        ) : (
+                          displayTitle
+                        )}
                       </motion.span>
                     </AnimatePresence>
                   </span>
@@ -227,7 +243,10 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     />
                     {session?.pinnedAt ? "Unpin" : "Pin"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem disabled={!session} onClick={startEditing}>
+                  <DropdownMenuItem
+                    disabled={!session || isGeneratingTitle}
+                    onClick={startEditing}
+                  >
                     <HugeiconsIcon icon={PencilEdit02Icon} />
                     Rename
                   </DropdownMenuItem>
