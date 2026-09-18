@@ -70,6 +70,52 @@ export function markChatTitleReady(
   );
 }
 
+function createdChatIsInSessionList(
+  queryClient: QueryClient,
+  organizationId: string,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  const sessions =
+    queryClient.getQueryData<ChatSessionSummary[]>(
+      chatSessionsQueryKey(organizationId, projectId)
+    ) ?? [];
+  return sessions.some((session) => session.chatId === chatId);
+}
+
+export async function reconcileCreatedChatTitle(
+  queryClient: QueryClient,
+  organizationId: string | undefined,
+  projectId: string | null | undefined,
+  chatId: string
+) {
+  if (!organizationId) {
+    return;
+  }
+
+  const orgId = organizationId;
+
+  async function reconcileOnce() {
+    await queryClient.invalidateQueries({
+      queryKey: ["chat-sessions", orgId],
+    });
+    if (!createdChatIsInSessionList(queryClient, orgId, projectId, chatId)) {
+      throw new Error("Created chat is missing from the session list");
+    }
+    markChatTitleReady(queryClient, orgId, projectId, chatId);
+  }
+
+  try {
+    await reconcileOnce();
+  } catch {
+    try {
+      await reconcileOnce();
+    } catch {
+      // Keep the generating skeleton until a later refetch succeeds.
+    }
+  }
+}
+
 export function useChatSessions() {
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();

@@ -98,7 +98,7 @@ import {
 import { createStandaloneChatTransport } from "@/lib/chat/standalone-chat-transport";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
 import {
-  markChatTitleReady,
+  reconcileCreatedChatTitle,
   useChatSessionMutations,
 } from "@/lib/hooks/use-chat-sessions";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
@@ -589,18 +589,12 @@ function StandaloneChatPageClient({
 
   const handleChatCreated = useCallback(
     (chatId: string) => {
-      void queryClient
-        .invalidateQueries({
-          queryKey: ["chat-sessions", organizationId],
-        })
-        .finally(() => {
-          markChatTitleReady(
-            queryClient,
-            organizationId,
-            activeProjectId,
-            chatId
-          );
-        });
+      void reconcileCreatedChatTitle(
+        queryClient,
+        organizationId,
+        activeProjectId,
+        chatId
+      );
     },
     [activeProjectId, organizationId, queryClient]
   );
