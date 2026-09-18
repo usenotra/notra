@@ -949,13 +949,16 @@ function ChatComposerContextPicker({
       <TooltipTrigger
         render={
           contextPickerDisabledReason ? (
+            // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
             <span
               aria-disabled="true"
               aria-label="Add tools or context"
-              className="inline-flex cursor-not-allowed"
+              className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
+              role="button"
+              tabIndex={0}
             />
           ) : (
-            <span className="inline-flex" />
+            <span className="inline-flex size-7 shrink-0 items-center justify-center" />
           )
         }
       >
