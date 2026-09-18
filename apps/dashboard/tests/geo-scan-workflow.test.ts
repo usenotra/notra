@@ -176,7 +176,14 @@ describe("GEO scan workflow orchestration", () => {
     expect(personaBatch).toHaveBeenCalledWith(plan.context, plan.personas);
     expect(finalize).toHaveBeenCalledWith(
       plan.context,
-      { checks: 1, mentions: 0, dropped: 0, usage: EMPTY_AGENT_TOKEN_USAGE },
+      {
+        checks: 1,
+        mentions: 0,
+        dropped: 0,
+        usage: EMPTY_AGENT_TOKEN_USAGE,
+        engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
+      },
       "completed",
       plan.claimedAt,
       { retried: false }
@@ -334,6 +341,14 @@ describe("GEO scan workflow orchestration", () => {
           totalTokens: 30,
           totalUsd: 0.25,
         },
+        engineUsage: {
+          ...EMPTY_AGENT_TOKEN_USAGE,
+          inputTokens: 20,
+          outputTokens: 10,
+          totalTokens: 30,
+          totalUsd: 0.25,
+        },
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
       },
       "completed",
       plan.claimedAt,
@@ -548,6 +563,8 @@ describe("GEO scan workflow orchestration", () => {
         mentions: 1,
         dropped: 1,
         usage: { ...EMPTY_AGENT_TOKEN_USAGE, totalUsd: 0 },
+        engineUsage: EMPTY_AGENT_TOKEN_USAGE,
+        judgeUsage: EMPTY_AGENT_TOKEN_USAGE,
       },
       "failed",
       plan.claimedAt,

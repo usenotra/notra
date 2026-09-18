@@ -323,7 +323,7 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
 
   const values: (typeof geoPromptSuggestions.$inferInsert)[] = [];
   const claimedQueries = new Set<string>();
-  for (const item of generated) {
+  for (const item of generated.prompts) {
     const prompt = item.prompt.trim();
     const key = normalizeSuggestionKey(prompt);
     if (

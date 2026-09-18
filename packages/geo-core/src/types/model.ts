@@ -50,11 +50,15 @@ export interface GeoModelServiceShape {
     organizationId: string;
     language: string;
     prompts: string[];
-  }) => Effect.Effect<string[], GeoTranslationError>;
-  readonly suggest: (
-    input: GscSuggestionGenerationParams
-  ) => Effect.Effect<
-    z.infer<typeof geoSearchConsoleSuggestionSchema>["prompts"],
+  }) => Effect.Effect<
+    { translations: string[]; usage?: GeoEngineAnswer["usage"] },
+    GeoTranslationError
+  >;
+  readonly suggest: (input: GscSuggestionGenerationParams) => Effect.Effect<
+    {
+      prompts: z.infer<typeof geoSearchConsoleSuggestionSchema>["prompts"];
+      usage?: GeoEngineAnswer["usage"];
+    },
     GeoModelError
   >;
 }

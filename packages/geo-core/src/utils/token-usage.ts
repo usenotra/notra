@@ -1,5 +1,9 @@
 import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type {
+  GeoScanRoleUsage,
+  GeoScanUsageByRole,
+} from "@notra/db/types/geo-scan";
 import type { LanguageModelUsage } from "ai";
 
 import { GEO_JUDGE_MODEL } from "../constants/geo";
@@ -11,6 +15,7 @@ export const EMPTY_AGENT_TOKEN_USAGE: AgentTokenUsage = {
   totalTokens: 0,
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
+  reasoningTokens: 0,
   totalUsd: 0,
 };
 
@@ -74,6 +79,8 @@ function normalizeTokenUsage(usage: GeoTokenUsageInput): AgentTokenUsage {
     totalTokens: usage.totalTokens ?? 0,
     cacheReadTokens,
     cacheWriteTokens,
+    reasoningTokens:
+      usage.outputTokenDetails?.reasoningTokens ?? usage.reasoningTokens ?? 0,
   };
 }
 
@@ -99,6 +106,67 @@ export function addAgentTokenUsage(
     totalTokens: total.totalTokens + next.totalTokens,
     cacheReadTokens: total.cacheReadTokens + next.cacheReadTokens,
     cacheWriteTokens: total.cacheWriteTokens + next.cacheWriteTokens,
+    reasoningTokens: (total.reasoningTokens ?? 0) + (next.reasoningTokens ?? 0),
     totalUsd: usageCostUsd(total) + usageCostUsd(next),
+  };
+}
+
+export function agentTokenUsageFrom(
+  usage: GeoTokenUsageInput | undefined
+): AgentTokenUsage {
+  return usage
+    ? addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, usage)
+    : EMPTY_AGENT_TOKEN_USAGE;
+}
+
+export function snapshotRoleUsage(usage: AgentTokenUsage): GeoScanRoleUsage {
+  return {
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+    totalTokens: usage.totalTokens,
+    cacheReadTokens: usage.cacheReadTokens,
+    cacheWriteTokens: usage.cacheWriteTokens,
+    reasoningTokens: usage.reasoningTokens ?? 0,
+    totalUsd: usage.totalUsd ?? 0,
+  };
+}
+
+export function snapshotUsageByRole(
+  engine: AgentTokenUsage,
+  judge: AgentTokenUsage
+): GeoScanUsageByRole {
+  return {
+    engine: snapshotRoleUsage(engine),
+    judge: snapshotRoleUsage(judge),
+  };
+}
+
+function geoCheckCostFields(
+  engineUsage: GeoTokenUsageInput | undefined,
+  judgeUsage: GeoTokenUsageInput | undefined,
+  durationMs: number
+): { durationMs: number; costUsd: number; judgeTokens: number } {
+  const engine = agentTokenUsageFrom(engineUsage);
+  const judge = agentTokenUsageFrom(judgeUsage);
+  return {
+    durationMs,
+    costUsd: addAgentTokenUsage(engine, judge).totalUsd ?? 0,
+    judgeTokens: judge.totalTokens,
+  };
+}
+
+export function geoCheckWriteUsage(
+  engineUsage: GeoTokenUsageInput | undefined,
+  judgeUsage: GeoTokenUsageInput | undefined,
+  durationMs: number
+) {
+  return {
+    promptTokens: engineUsage?.inputTokens ?? null,
+    outputTokens: engineUsage?.outputTokens ?? null,
+    reasoningTokens:
+      engineUsage?.outputTokenDetails?.reasoningTokens ??
+      engineUsage?.reasoningTokens ??
+      null,
+    ...geoCheckCostFields(engineUsage, judgeUsage, durationMs),
   };
 }
