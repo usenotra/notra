@@ -17,18 +17,25 @@ import {
   HTML_EXPORT_PLACEHOLDER,
 } from "@/lib/html-to-figma/constants";
 import { copyHtmlAsFigma, copyHtmlAsPaper } from "@/lib/html-to-figma/export";
-import type { HtmlExportToolProps } from "@/types/html-to-figma";
+import type {
+  HtmlExportTarget,
+  HtmlExportToolProps,
+} from "@/types/html-to-figma";
 
 const PANEL_CLASS =
   "h-[60svh] max-h-[44rem] min-h-[24rem] w-full overflow-hidden rounded-2xl border border-[#1E1E1E14] bg-background dark:border-white/10";
 
 export default function HtmlExportTool({ target }: HtmlExportToolProps) {
   const [html, setHtml] = useState("");
-  const [pending, setPending] = useState(false);
+  const [pendingTarget, setPendingTarget] = useState<HtmlExportTarget | null>(
+    null
+  );
   const [view, setView] = useState("html");
 
   const copy = HTML_EXPORT_COPY[target];
+  const paperCopy = HTML_EXPORT_COPY.paper;
   const isEmpty = html.trim().length === 0;
+  const isPending = pendingTarget !== null;
 
   const tabs = [
     {
@@ -43,26 +50,27 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
     },
   ];
 
-  async function handleCopy() {
-    if (pending || isEmpty) {
+  async function handleCopy(copyTarget: HtmlExportTarget) {
+    if (isPending || isEmpty) {
       return;
     }
 
-    setPending(true);
+    setPendingTarget(copyTarget);
 
     const result =
-      target === "figma"
+      copyTarget === "figma"
         ? await copyHtmlAsFigma(html, HTML_EXPORT_LABEL)
         : await copyHtmlAsPaper(html, HTML_EXPORT_LABEL);
 
-    setPending(false);
+    setPendingTarget(null);
 
+    const messages = HTML_EXPORT_COPY[copyTarget];
     if (result.copied) {
-      toast.success(copy.successMessage);
+      toast.success(messages.successMessage);
       return;
     }
 
-    toast.error(result.error ?? copy.errorMessage);
+    toast.error(result.error ?? messages.errorMessage);
   }
 
   return (
@@ -75,21 +83,38 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
           value={view}
         />
 
-        <Button
-          className="border-border gap-2 border bg-white text-neutral-900 shadow-sm hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
-          disabled={isEmpty || pending}
-          onClick={handleCopy}
-          size="lg"
-          type="button"
-          variant="outline"
-        >
+        <div className="flex items-center gap-2">
           {target === "figma" ? (
-            <Figma className="size-4" />
-          ) : (
-            <Paper className="size-4" />
-          )}
-          {pending ? copy.pendingLabel : copy.buttonLabel}
-        </Button>
+            <Button
+              className="border-border gap-2 border bg-white text-neutral-900 shadow-sm hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+              disabled={isEmpty || isPending}
+              onClick={() => handleCopy("paper")}
+              size="lg"
+              type="button"
+              variant="outline"
+            >
+              <Paper className="size-4" />
+              {pendingTarget === "paper"
+                ? paperCopy.pendingLabel
+                : paperCopy.buttonLabel}
+            </Button>
+          ) : null}
+          <Button
+            className="border-border gap-2 border bg-white text-neutral-900 shadow-sm hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+            disabled={isEmpty || isPending}
+            onClick={() => handleCopy(target)}
+            size="lg"
+            type="button"
+            variant="outline"
+          >
+            {target === "figma" ? (
+              <Figma className="size-4" />
+            ) : (
+              <Paper className="size-4" />
+            )}
+            {pendingTarget === target ? copy.pendingLabel : copy.buttonLabel}
+          </Button>
+        </div>
       </div>
 
       {view === "preview" ? (
