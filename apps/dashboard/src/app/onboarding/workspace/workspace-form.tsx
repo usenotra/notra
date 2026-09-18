@@ -52,6 +52,11 @@ function slugify(value: string): string {
   return slugSchema.safeParse(value).data ?? "";
 }
 
+function slugifyWhileTyping(value: string): string {
+  const slug = slugify(value);
+  return slug && /[-\s]$/.test(value) ? `${slug}-` : slug;
+}
+
 function getValidationMessage(error: unknown) {
   if (typeof error === "string") {
     return error;
@@ -232,7 +237,7 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
             <div className="grid gap-2">
               <Label htmlFor="slug">Slug</Label>
               <div
-                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
+                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
                 <label
                   className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -241,12 +246,21 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
                   app.usenotra.com/
                 </label>
                 <input
-                  className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-full min-w-0 flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting || isResuming}
                   id="slug"
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(slugify(e.target.value))}
+                  onBlur={() => {
+                    field.handleChange(slugify(field.state.value));
+                    field.handleBlur();
+                  }}
+                  onChange={(e) =>
+                    field.handleChange(slugifyWhileTyping(e.target.value))
+                  }
                   placeholder="acme-inc"
+                  spellCheck={false}
                   type="text"
                   value={field.state.value}
                 />
@@ -270,7 +284,7 @@ export function WorkspaceForm({ existingOrg }: WorkspaceFormProps) {
             <div className="grid gap-2">
               <Label htmlFor="website">Website</Label>
               <div
-                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
+                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
                 <label
                   className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"

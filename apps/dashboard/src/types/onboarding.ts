@@ -88,6 +88,13 @@ export interface CompetitorChoiceRowProps {
   onToggle: () => void;
 }
 
+export interface PromptChoiceRowProps {
+  prompt: string;
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}
+
 export type CompetitorsPickerProps = Omit<
   CompetitorsFormProps,
   "projectId" | "inOnboardingFlow" | "companyName"
