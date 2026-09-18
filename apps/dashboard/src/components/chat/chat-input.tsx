@@ -787,7 +787,7 @@ function ChatComposerModelPicker({
   onModelChange,
   setIsModelPickerOpen,
 }: {
-  attachmentsRef: Ref<{ mediaType: string }[]>;
+  attachmentsRef: RefObject<{ mediaType: string }[]>;
   currentModel: (typeof AVAILABLE_MODELS)[number];
   isLoading: boolean;
   isModelPickerOpen: boolean;

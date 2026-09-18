@@ -12,7 +12,7 @@ mock.module("@/lib/auth/actions", () => ({
 mock.module("@/lib/billing/subscription", () => ({
   hasPaidSubscriptionHistory: async (organizationId: string) => {
     started += 1;
-    await Bun.sleep(20);
+    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(started).toBe(2);
     return organizationId === "org-b";
   },
