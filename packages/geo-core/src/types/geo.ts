@@ -73,6 +73,8 @@ export interface GeoSettings {
   enforceZdr: boolean;
   /** Models without a ZDR host the user approved to run anyway. */
   nonZdrApprovedEngines: string[];
+  /** Also scan search-capable models without web search (hidden setting). */
+  trackWithoutSearch: boolean;
   pausedAutoPromptIds: string[];
   removedAutoPromptIds: string[];
   enabled: boolean;
@@ -102,6 +104,7 @@ export interface GeoSettingsRow {
   engines: string[] | null;
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
+  trackWithoutSearch: boolean;
   pausedAutoPromptIds: string[];
   removedAutoPromptIds: string[];
   enabled: boolean;
@@ -427,6 +430,7 @@ export interface GeoSettingsUpsertInput {
   engines: string[];
   enforceZdr: boolean;
   nonZdrApprovedEngines: string[];
+  trackWithoutSearch?: boolean;
   pausedAutoPromptIds?: string[];
   removedAutoPromptIds?: string[];
   enabled: boolean;
@@ -1333,6 +1337,7 @@ export interface GeoScanSizeInput {
   promptCount: number;
   engines: readonly string[];
   languages: readonly string[];
+  trackWithoutSearch?: boolean;
   catalog: GeoResolvedModelCatalog;
   sequences: readonly Pick<
     GeoPromptSequence,

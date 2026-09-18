@@ -174,6 +174,7 @@ export const geoSettingsUpsertInputSchema = geoOrganizationInputSchema.extend({
   nonZdrApprovedEngines: array(
     string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)
   ).max(GEO_MAX_ENGINES),
+  trackWithoutSearch: boolean().optional(),
   pausedAutoPromptIds: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .max(GEO_MAX_PROMPTS)
     .optional(),

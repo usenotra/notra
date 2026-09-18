@@ -5,7 +5,7 @@ import {
   geoScanSizeSeverity,
 } from "@notra/geo-core/utils/geo-scan";
 
-import { useGeoModelCatalog } from "@/lib/hooks/use-geo";
+import { useGeoModelCatalog, useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import type { GeoScanEstimateInput } from "@/types/geo-scan-size";
 
@@ -17,6 +17,7 @@ export function useGeoScanEstimate({
   includeSequences = true,
 }: GeoScanEstimateInput) {
   const { data: catalog } = useGeoModelCatalog(organizationId);
+  const { data: settingsData } = useGeoSettings(organizationId);
   const { sequences, isLoading: sequencesLoading } =
     useGeoSequencesDb(organizationId);
 
@@ -32,6 +33,7 @@ export function useGeoScanEstimate({
     promptCount,
     engines,
     languages,
+    trackWithoutSearch: settingsData?.settings?.trackWithoutSearch ?? false,
     catalog,
     sequences: includeSequences ? sequences : [],
   });
