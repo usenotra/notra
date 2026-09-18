@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/button";
 import { DiscussionComposer } from "@/components/comments/discussion-composer";
 import { DiscussionList } from "@/components/comments/discussion-list";
 import { useDiscussion } from "@/lib/hooks/use-discussion";
@@ -20,21 +19,23 @@ function DiscussionFeed({
 }: DiscussionFeedProps) {
   if (isPending) {
     return (
-      <div role="status" className="space-y-3 py-4">
-        <span className="sr-only">Loading comments</span>
-        <div className="bg-muted h-4 w-32 rounded motion-safe:animate-pulse" />
-        <div className="bg-muted h-4 w-3/4 rounded motion-safe:animate-pulse" />
-      </div>
+      <p className="sr-only" role="status">
+        Loading comments
+      </p>
     );
   }
   if (isError) {
     return (
-      <div className="py-4 text-sm">
+      <p className="text-muted-foreground py-2 text-sm" role="alert">
         Could not load comments.{" "}
-        <Button size="sm" variant="ghost" onClick={onRetry}>
-          Retry
-        </Button>
-      </div>
+        <button
+          className="text-foreground underline-offset-4 hover:underline"
+          onClick={onRetry}
+          type="button"
+        >
+          Try again
+        </button>
+      </p>
     );
   }
   if (!items.length) {
@@ -77,7 +78,7 @@ export function Discussion(target: CommentTarget) {
       className="w-full border-t pt-6"
       aria-label="Comments"
     >
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-baseline gap-2">
         <h3 className="text-sm font-medium">Comments</h3>
         {items.length ? (
           <span className="text-muted-foreground text-xs tabular-nums">

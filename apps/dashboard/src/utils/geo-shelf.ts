@@ -36,6 +36,11 @@ import {
   isShelfOpportunitySource,
 } from "./geo-shelf-live-query";
 
+/** Demo rows from `buildGeoShelfFixture`; they are not stored, so comments cannot attach. */
+export function isGeoShelfFixtureSourceId(id: string) {
+  return id.startsWith("shelf-src-");
+}
+
 export function isOpenShelfStatus(
   status: GeoShelfOpportunity["status"] | null | undefined
 ): boolean {

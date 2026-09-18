@@ -54,7 +54,6 @@ export interface CommentRepliesProps {
 
 export interface CommentContentProps extends CommentEditFormProps {
   editing: boolean;
-  deleted: boolean;
   body: string;
 }
 

@@ -20,7 +20,11 @@ import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate, groupShelfCitationEngines } from "@/utils/geo-shelf";
+import {
+  formatShelfDate,
+  groupShelfCitationEngines,
+  isGeoShelfFixtureSourceId,
+} from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -207,12 +211,14 @@ export function ShelfDetailDialog({
               </div>
             )}
           </section>
-          <Discussion
-            key={row.id}
-            organizationId={organizationId}
-            targetId={row.id}
-            targetType="shelf"
-          />
+          {isGeoShelfFixtureSourceId(row.id) ? null : (
+            <Discussion
+              key={row.id}
+              organizationId={organizationId}
+              targetId={row.id}
+              targetType="shelf"
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>

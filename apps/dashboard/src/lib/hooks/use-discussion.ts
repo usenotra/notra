@@ -1,6 +1,7 @@
 "use client";
 
 import type { RealtimeSchema } from "@notra/ai/realtime";
+import { ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@upstash/realtime/client";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,9 +27,15 @@ export function useDiscussion(target: CommentTarget) {
   const query = useQuery({
     ...options,
     staleTime: 15000,
-    refetchInterval: () => (lock.current ? false : 10000),
-    refetchOnWindowFocus: () => !lock.current,
-    refetchOnReconnect: () => !lock.current,
+    retry: (failureCount, error) =>
+      !(error instanceof ORPCError && error.code === "NOT_FOUND") &&
+      failureCount < 1,
+    refetchInterval: (current) =>
+      lock.current || current.state.status === "error" ? false : 10000,
+    refetchOnWindowFocus: (current) =>
+      !lock.current && current.state.status !== "error",
+    refetchOnReconnect: (current) =>
+      !lock.current && current.state.status !== "error",
   });
   const { status } = useRealtime<RealtimeSchema, "discussion.changed">({
     channels: [commentChannel(target)],
