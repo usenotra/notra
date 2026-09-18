@@ -232,6 +232,10 @@ export const geoTrafficEvents = defineDatasource("geo_traffic_events", {
     ttl: "captured_at + toIntervalDay(396)",
     settings: { ttl_only_drop_parts: 1 },
   }),
+  // One-off migration of host from String to LowCardinality(String).
+  // Remove once the deployment carrying it is live.
+  forwardQuery:
+    "SELECT organization_id, project_id, captured_at, visitor_type, source, agent, category, confidence, path, CAST(host, 'LowCardinality(String)') AS host, method, referer, ua, country, language, request_id, journey_id, wants_markdown",
 });
 
 export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
