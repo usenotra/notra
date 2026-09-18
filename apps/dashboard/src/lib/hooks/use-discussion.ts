@@ -10,6 +10,7 @@ import { COMMENT_REACTIONS } from "@/constants/comments";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { CommentTarget, DiscussionComment } from "@/types/comments";
 import { commentChannel } from "@/utils/comment-channel";
+import { commentSubmitId } from "@/utils/comment-submit-id";
 
 export function useDiscussion(target: CommentTarget) {
   const client = useQueryClient();
@@ -49,6 +50,11 @@ export function useDiscussion(target: CommentTarget) {
   const [busy, setBusy] = useState(false);
   const section = useRef<HTMLElement>(null);
   const scrollToComment = useRef<string | null>(null);
+  const retry = useRef<{
+    id: string;
+    body: string;
+    parentId: string | null;
+  } | null>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const items = useMemo(() => query.data?.items ?? [], [query.data?.items]);
   const user = query.data?.currentUser;
@@ -123,42 +129,49 @@ export function useDiscussion(target: CommentTarget) {
     if (!body || !user || lock.current) {
       return;
     }
-    const id = crypto.randomUUID();
     const parent = reply;
+    const parentId = parent?.id ?? null;
+    const id = commentSubmitId(retry.current, body, parentId);
+    retry.current = { id, body, parentId };
     scrollToComment.current = id;
     setDraft("");
     setReply(null);
     void update(
-      (comments) => [
-        ...comments,
-        {
-          id,
-          parentId: parent?.id ?? null,
-          depth: parent ? parent.depth + 1 : 0,
-          userId: user.id,
-          name: user.name,
-          image: user.image,
-          body,
-          createdAt: new Date().toISOString(),
-          editedAt: null,
-          deletedAt: null,
-          reactions: [],
-          pending: true,
-        },
-      ],
+      (comments) =>
+        comments.some((item) => item.id === id)
+          ? comments
+          : [
+              ...comments,
+              {
+                id,
+                parentId,
+                depth: parent ? parent.depth + 1 : 0,
+                userId: user.id,
+                name: user.name,
+                image: user.image,
+                body,
+                createdAt: new Date().toISOString(),
+                editedAt: null,
+                deletedAt: null,
+                reactions: [],
+                pending: true,
+              },
+            ],
       () =>
         dashboardOrpc.comments.create.call({
           ...target,
           id,
-          parentId: parent?.id ?? null,
+          parentId,
           body,
         })
     ).then((saved) => {
-      if (!saved) {
-        scrollToComment.current = null;
-        setDraft((current) => (current ? `${body}\n\n${current}` : body));
-        setReply(parent);
+      if (saved) {
+        retry.current = null;
+        return;
       }
+      scrollToComment.current = null;
+      setDraft((current) => (current ? `${body}\n\n${current}` : body));
+      setReply(parent);
     });
   }
 

@@ -13,6 +13,16 @@ import type { CommentRepliesProps } from "@/types/comments";
 
 export function CommentReplies({ replies, itemProps }: CommentRepliesProps) {
   const [expanded, setExpanded] = useState(false);
+  const [seenCount, setSeenCount] = useState(replies.length);
+  if (replies.length !== seenCount) {
+    if (
+      replies.length > seenCount &&
+      replies.length > COMMENT_REPLY_PREVIEW_COUNT
+    ) {
+      setExpanded(true);
+    }
+    setSeenCount(replies.length);
+  }
   const remainingCount = Math.max(
     0,
     replies.length - COMMENT_REPLY_PREVIEW_COUNT

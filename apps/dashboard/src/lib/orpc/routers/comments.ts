@@ -127,16 +127,19 @@ export const commentsRouter = {
         ? await findComment({ ...input, commentId: input.parentId })
         : null;
       const depth = replyDepth(parent);
-      await db.insert(discussionComments).values({
-        id: input.id,
-        organizationId: input.organizationId,
-        feedbackId: input.targetType === "feedback" ? input.targetId : null,
-        shelfSourceId: input.targetType === "shelf" ? input.targetId : null,
-        parentId: input.parentId,
-        depth,
-        userId: context.user.id,
-        body: input.body,
-      });
+      await db
+        .insert(discussionComments)
+        .values({
+          id: input.id,
+          organizationId: input.organizationId,
+          feedbackId: input.targetType === "feedback" ? input.targetId : null,
+          shelfSourceId: input.targetType === "shelf" ? input.targetId : null,
+          parentId: input.parentId,
+          depth,
+          userId: context.user.id,
+          body: input.body,
+        })
+        .onConflictDoNothing();
       await publishCommentChange(input);
       return { id: input.id };
     }),
