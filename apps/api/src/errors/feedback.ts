@@ -1,5 +1,10 @@
 import { Schema } from "effect";
 
+export class FeedbackOrganizationNotFoundError extends Schema.TaggedError<FeedbackOrganizationNotFoundError>()(
+  "FeedbackOrganizationNotFoundError",
+  {}
+) {}
+
 export class FeedbackProjectNotFoundError extends Schema.TaggedError<FeedbackProjectNotFoundError>()(
   "FeedbackProjectNotFoundError",
   {}
