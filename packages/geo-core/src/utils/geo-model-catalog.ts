@@ -1,4 +1,5 @@
 import {
+  GEO_COMMERCE_AUDIENCE_ENGINE_IDS,
   GEO_DEFAULT_ENGINE_IDS,
   GEO_GENERAL_AUDIENCE_ENGINE_IDS,
   GEO_MODEL_CATALOG_SEED,
@@ -236,19 +237,29 @@ export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {
   return catalog.models.slice(0, 1).map((model) => model.id);
 }
 
+const AUDIENCE_ENGINE_IDS: Readonly<
+  Partial<Record<GeoAudienceType, readonly string[]>>
+> = {
+  general: GEO_GENERAL_AUDIENCE_ENGINE_IDS,
+  commerce: GEO_COMMERCE_AUDIENCE_ENGINE_IDS,
+};
+
 /**
- * Engines seeded at onboarding. A general audience gets the models the
- * assistant apps default to; anything else, or a catalog missing those models, keeps the
- * full default set.
+ * Engines seeded at onboarding. Non-technical audiences get the models the
+ * assistant apps default to; anything else, or a catalog missing those
+ * models, keeps the full default set.
  */
 export function geoEnginesForAudience(
   catalog: GeoModelCatalog,
   audienceType: GeoAudienceType | undefined
 ): string[] {
-  if (audienceType !== "general") {
+  const preferred = audienceType
+    ? AUDIENCE_ENGINE_IDS[audienceType]
+    : undefined;
+  if (!preferred) {
     return geoDefaultEngines(catalog);
   }
   const known = new Set(catalog.models.map((model) => model.id));
-  const engines = GEO_GENERAL_AUDIENCE_ENGINE_IDS.filter((id) => known.has(id));
+  const engines = preferred.filter((id) => known.has(id));
   return engines.length > 0 ? engines : geoDefaultEngines(catalog);
 }
