@@ -10,7 +10,11 @@ import { ONBOARDING_STEP_COMPETITORS } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { hasPaidSubscriptionHistory } from "@/lib/billing/subscription";
 import type { OnboardingGeoPageProps } from "@/types/onboarding";
-import { geoDashboardPath, geoOnboardingPath } from "@/utils/geo-paths";
+import {
+  geoDashboardPath,
+  geoOnboardingPath,
+  geoOnboardingPricingPath,
+} from "@/utils/geo-paths";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { CompetitorsForm } from "./competitors-form";
@@ -53,7 +57,7 @@ export default async function OnboardingCompetitorsPage({
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const nextHref =
     inOnboardingFlow && !isDevReplay
-      ? "/onboarding/pricing"
+      ? geoOnboardingPricingPath(projectId)
       : geoDashboardPath(organization.slug, projectId);
 
   if (!isDevReplay && stage === "brand") {

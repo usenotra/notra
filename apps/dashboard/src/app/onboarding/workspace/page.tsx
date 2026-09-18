@@ -11,11 +11,14 @@ import { redirect } from "next/navigation";
 import { ONBOARDING_STEP_WORKSPACE } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { WorkspaceForm } from "./workspace-form";
 
-export default async function OnboardingWorkspacePage() {
+export default async function OnboardingWorkspacePage({
+  searchParams,
+}: OnboardingGeoPageProps) {
   const session = await getSession();
 
   if (!session?.user) {
@@ -27,6 +30,11 @@ export default async function OnboardingWorkspacePage() {
     await redirectIfAnyOrganizationHasPaidHistory();
     return <WorkspaceForm />;
   }
+
+  const { project, replay } = await searchParams;
+  const projectId =
+    typeof project === "string" && project ? project : undefined;
+  const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
 
   const [brand, existingOrgRow, notificationSettings, stage] =
     await Promise.all([
@@ -52,13 +60,15 @@ export default async function OnboardingWorkspacePage() {
           marketingEmails: true,
         },
       }),
-      getGeoOnboardingStage(existing.id),
+      getGeoOnboardingStage(existing.id, projectId),
     ]);
 
   const progressHrefs = onboardingProgressHrefs({
     current: ONBOARDING_STEP_WORKSPACE,
     hasOrganization: true,
     hasBrand: Boolean(brand),
+    projectId,
+    replay: isDevReplay,
     stage,
   });
 

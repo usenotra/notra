@@ -12,6 +12,7 @@ import type { OnboardingGeoPageProps } from "@/types/onboarding";
 import {
   geoDashboardPath,
   geoOnboardingCompetitorsPath,
+  geoOnboardingPricingPath,
 } from "@/utils/geo-paths";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
@@ -55,7 +56,9 @@ export default async function OnboardingVisibilityPage({
   const inOnboardingFlow = isDevReplay || !hasPaidHistory;
   const dashboardHref = geoDashboardPath(organization.slug, projectId);
   const skipHref =
-    inOnboardingFlow && !isDevReplay ? "/onboarding/pricing" : dashboardHref;
+    inOnboardingFlow && !isDevReplay
+      ? geoOnboardingPricingPath(projectId)
+      : dashboardHref;
 
   return (
     <VisibilityForm
