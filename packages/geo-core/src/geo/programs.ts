@@ -659,6 +659,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
       columns: {
         engines: true,
         nonZdrApprovedEngines: true,
+        trackWithoutSearch: true,
         conversionPaths: true,
         domains: true,
         pausedAutoPromptIds: true,
@@ -675,6 +676,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     input.pausedAutoPromptIds ?? existingSettings?.pausedAutoPromptIds ?? [];
   const removedAutoPromptIds =
     input.removedAutoPromptIds ?? existingSettings?.removedAutoPromptIds ?? [];
+  const trackWithoutSearch =
+    input.trackWithoutSearch ?? existingSettings?.trackWithoutSearch ?? false;
   const conversionPaths = normalizeConversionPaths(
     input.conversionPaths ?? existingSettings?.conversionPaths ?? []
   );
@@ -737,6 +740,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
+        trackWithoutSearch,
         pausedAutoPromptIds,
         removedAutoPromptIds,
         enabled: input.enabled,
@@ -754,6 +758,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
+          trackWithoutSearch,
           pausedAutoPromptIds,
           removedAutoPromptIds,
           enabled: input.enabled,

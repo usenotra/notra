@@ -2,7 +2,7 @@ import {
   GEO_ENGINE_LABELS,
   GEO_MENTION_TREND_BACKFILL_DAYS,
   GEO_MENTION_TREND_TOTAL_KEY,
-  GEO_SEARCH_LABEL,
+  GEO_WITHOUT_SEARCH_LABEL,
   GEO_SHARE_OF_VOICE_TOP_BRANDS,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_STAT_DELTA_NEW_LABEL,
@@ -41,6 +41,7 @@ import {
   engineFamilyOf,
   engineModelOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { hasGroundedVariant } from "@notra/geo-core/utils/geo-grounded-engines";
 import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
@@ -432,7 +433,10 @@ export function formatEngineFamily(engine: string): string {
 }
 
 export function engineAnswerMode(engine: string): string | null {
-  return isGroundedEngine(engine) ? GEO_SEARCH_LABEL : null;
+  if (isGroundedEngine(engine)) {
+    return null;
+  }
+  return hasGroundedVariant(engine) ? GEO_WITHOUT_SEARCH_LABEL : null;
 }
 
 export function sharedEngineAnswerMode(
@@ -451,7 +455,7 @@ export function sharedEngineAnswerMode(
 export function formatEngineWithMode(engine: string): string {
   const family = formatEngineFamily(engine);
   const mode = engineAnswerMode(engine);
-  return mode ? `${family} ${mode}` : family;
+  return mode ? `${family} (${mode})` : family;
 }
 
 export function engineFamilySources(

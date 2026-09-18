@@ -12,7 +12,7 @@
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.1.1",
     "@tanstack/hotkeys": "^0.8.0",
-    "@usenotra/geo": "npm:@usenotra/geo@^0.3.0",
+    "@usenotra/geo": "npm:@usenotra/geo@^0.5.0",
     "blume": "1.5.3"
   },
   "devDependencies": {

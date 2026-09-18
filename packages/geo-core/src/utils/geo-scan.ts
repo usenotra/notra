@@ -2,9 +2,7 @@ import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 
 import {
   GEO_OPENCODE_ENGINE_ID,
-  GEO_GROUNDED_MAX_PROMPTS,
   GEO_LANGUAGE_MAX_PROMPTS,
-  GEO_LANGUAGE_GROUNDED_MAX_PROMPTS,
   GEO_MAX_LANGUAGES,
   GEO_MAX_SEQUENCES,
   GEO_SEQUENCE_MAX_TURNS,
@@ -269,23 +267,19 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
       (model) => model.id === engine && model.supportsGroundedChecks
     )
   ).length;
+  const rawCount = input.trackWithoutSearch
+    ? engines.length
+    : engines.length - groundedCount;
+  const passes = rawCount + groundedCount;
   const scanEnglish = input.languages.includes(DEFAULT_LANGUAGE);
   const extraLanguages = input.languages
     .filter((language) => language !== DEFAULT_LANGUAGE)
     .slice(0, GEO_MAX_LANGUAGES).length;
-  const englishChecks = scanEnglish
-    ? input.promptCount * engines.length +
-      Math.min(input.promptCount, GEO_GROUNDED_MAX_PROMPTS) * groundedCount
-    : 0;
+  const englishChecks = scanEnglish ? input.promptCount * passes : 0;
   const localizedChecks =
     extraLanguages *
-    (Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) * engines.length +
-      Math.min(
-        input.promptCount,
-        GEO_LANGUAGE_MAX_PROMPTS,
-        GEO_LANGUAGE_GROUNDED_MAX_PROMPTS
-      ) *
-        groundedCount);
+    Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) *
+    passes;
   const sequenceEngines =
     groundedCount +
     engines.filter(

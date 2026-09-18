@@ -390,7 +390,7 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
 };
 
 export const GEO_SEARCH_LABEL = "Search";
-export const GEO_WITHOUT_SEARCH_LABEL = "Without search";
+export const GEO_WITHOUT_SEARCH_LABEL = "w/o Search";
 
 export const GEO_MAX_PROMPTS = 8;
 export const GEO_MAX_SEQUENCES = 10;
@@ -457,7 +457,6 @@ export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
 export const GEO_SEQUENCE_MAX_TURNS = 5;
-export const GEO_GROUNDED_MAX_PROMPTS = 6;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
@@ -651,7 +650,7 @@ export const GEO_INGEST_SECRET_ENV = "GEO_INGEST_SECRET";
 export const GEO_INGEST_SECRET_FALLBACK_ENV = "BEACON_INGEST_SECRET";
 export const GEO_INGEST_TOKEN_SEPARATOR = ".";
 export const GEO_INGEST_BEARER_PREFIX = "Bearer ";
-export const GEO_MAX_STORED_UA_LENGTH = 512;
+export const GEO_MAX_STORED_UA_LENGTH = 200;
 export const AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT = 25;
 
 export const OWN_BRAND_ROW_ID = "own-brand";
@@ -1171,7 +1170,6 @@ export const GEO_DOMAIN_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export const GEO_SETTINGS_AUTO_SAVE_MS = 800;
 export const GEO_MAX_LANGUAGES = 4;
 export const GEO_LANGUAGE_MAX_PROMPTS = 5;
-export const GEO_LANGUAGE_GROUNDED_MAX_PROMPTS = 3;
 export const GEO_TRANSLATION_MAX_TOKENS = 2000;
 
 export const COPY_FEEDBACK_MS = 2000;

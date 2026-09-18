@@ -46,6 +46,13 @@ export const feedbackToolInputSchema = {
 
 const feedbackToolArgsSchema = z.object(feedbackToolInputSchema);
 
+export const feedbackToolOutputSchema = {
+  id: z.string().describe("Identifier of the recorded feedback entry"),
+  deduplicated: z
+    .boolean()
+    .describe("True when identical feedback was already recorded and reused"),
+};
+
 export function buildFeedbackToolDescription(productName?: string): string {
   const subject = productName ? `the ${productName} team` : "the product team";
   return `Send feedback about ${productName ?? "this product"} to ${subject}. Use it to report bugs, request features, ask questions or share what worked well. Include the exact steps or URL when reporting a problem.`;
@@ -92,6 +99,7 @@ export function createFeedbackToolHandler(options: FeedbackToolOptions) {
               : "Thanks, the feedback was sent to the team.",
           },
         ],
+        structuredContent: result,
       };
     } catch (error) {
       options.onError?.(error);
@@ -121,6 +129,7 @@ export function registerFeedbackTool(
         openWorldHint: true,
       },
       inputSchema: feedbackToolInputSchema,
+      outputSchema: feedbackToolOutputSchema,
     },
     createFeedbackToolHandler(options)
   );

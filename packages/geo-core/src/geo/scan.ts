@@ -32,9 +32,7 @@ import {
   GEO_CODING_AGENT_ENGINE_IDS,
   GEO_CURSOR_TIMEOUT_MS,
   GEO_EXCERPT_MAX_LENGTH,
-  GEO_GROUNDED_MAX_PROMPTS,
   GEO_JUDGE_MODEL,
-  GEO_LANGUAGE_GROUNDED_MAX_PROMPTS,
   GEO_LANGUAGE_MAX_PROMPTS,
   GEO_MAX_LANGUAGES,
   GEO_MAX_PROMPTS,
@@ -83,6 +81,7 @@ import {
   geoBoxAgentForEngine,
   isGeoBoxCodingAgent,
 } from "../utils/geo-coding-agents";
+import { engineModelOf } from "../utils/geo-engine-family";
 import {
   geoScanEmptyEngineSkipReason,
   resolveGeoEngineGateway,
@@ -883,21 +882,6 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       trackedEngines.push({ engine, zdr });
     }
     const scanEnglish = settings.languages.includes(DEFAULT_LANGUAGE);
-    const tasks: GeoScanPlannedTask[] = [];
-    if (scanEnglish) {
-      for (const { engine, zdr } of trackedEngines) {
-        for (const prompt of prompts) {
-          tasks.push({
-            engine,
-            groundedKey: null,
-            prompt,
-            language: DEFAULT_LANGUAGE,
-            zdr,
-          });
-        }
-      }
-    }
-
     const groundedEngines: { grounded: GeoGroundedEngine; zdr: GeoZdrMode }[] =
       [];
     for (const grounded of resolveGroundedEngines(scanEngines, catalog)) {
@@ -914,6 +898,26 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         continue;
       }
       groundedEngines.push({ grounded, zdr });
+    }
+    const searchModels = new Set(
+      groundedEngines.map(({ grounded }) => engineModelOf(grounded.key))
+    );
+    const rawEngines = settings.trackWithoutSearch
+      ? trackedEngines
+      : trackedEngines.filter(({ engine }) => !searchModels.has(engine));
+    const tasks: GeoScanPlannedTask[] = [];
+    if (scanEnglish) {
+      for (const { engine, zdr } of rawEngines) {
+        for (const prompt of prompts) {
+          tasks.push({
+            engine,
+            groundedKey: null,
+            prompt,
+            language: DEFAULT_LANGUAGE,
+            zdr,
+          });
+        }
+      }
     }
     const skipReason = geoScanEmptyEngineSkipReason(
       scanEngines,
@@ -936,9 +940,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       };
       return skipped;
     }
-    const groundedPrompts = scanEnglish
-      ? prompts.slice(0, GEO_GROUNDED_MAX_PROMPTS)
-      : [];
+    const groundedPrompts = scanEnglish ? prompts : [];
     for (const { grounded, zdr } of groundedEngines) {
       for (const prompt of groundedPrompts) {
         tasks.push({
@@ -985,17 +987,13 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         continue;
       }
       const { language, localized } = entry;
-      for (const { engine, zdr } of trackedEngines) {
+      for (const { engine, zdr } of rawEngines) {
         for (const prompt of localized) {
           tasks.push({ engine, groundedKey: null, prompt, language, zdr });
         }
       }
-      const localizedGrounded = localized.slice(
-        0,
-        GEO_LANGUAGE_GROUNDED_MAX_PROMPTS
-      );
       for (const { grounded, zdr } of groundedEngines) {
-        for (const prompt of localizedGrounded) {
+        for (const prompt of localized) {
           tasks.push({
             engine: grounded.key,
             groundedKey: grounded.key,

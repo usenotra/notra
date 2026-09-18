@@ -2,8 +2,6 @@
 
 import { AGENT_READINESS_POLL_INTERVAL_MS } from "@notra/geo-core/constants/agent-readiness";
 import {
-  AI_TRAFFIC_LOG_FETCH_LIMIT,
-  AI_TRAFFIC_PAGES_FETCH_LIMIT,
   GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
   GEO_BRAND_SEARCH_STALE_MS,
   GEO_MODEL_CATALOG_STALE_MS,
@@ -48,11 +46,6 @@ import type {
   GscSitesResponse,
   GscSyncResult,
 } from "@notra/geo-core/types/google-search-console";
-import {
-  toGeoTrafficLogPurposeFilter,
-  toGeoTrafficLogVisitorFilter,
-} from "@notra/geo-core/utils/ai-traffic";
-import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -87,6 +80,8 @@ import { withGeoProject } from "@/utils/geo-paths";
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
+  geoTrafficLogQueryInput,
+  geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { toGeoWindowInput } from "@/utils/geo-range";
 
@@ -747,13 +742,27 @@ export function useAgentReadinessScan(organizationId: string) {
   });
 }
 
+// keepPreviousData, but only while the project scope is unchanged: carrying
+// rows across a project switch would briefly render the previous project's
+// traffic under the new one. The ref still holds the previous project while
+// the first render of a new scope runs, so the placeholder is skipped there.
+function useProjectScopedPreviousData<TData>(projectId: string | undefined) {
+  const previousProjectId = useRef(projectId);
+  useEffect(() => {
+    previousProjectId.current = projectId;
+  }, [projectId]);
+  return (previousData: TData | undefined): TData | undefined =>
+    previousProjectId.current === projectId ? previousData : undefined;
+}
+
 export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
   const { projectId } = useGeoProjectScope();
   return useQuery<AiTrafficResponse>({
     ...dashboardOrpc.geo.aiTraffic.queryOptions({
-      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+      input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
     enabled: !!organizationId,
+    placeholderData: useProjectScopedPreviousData<AiTrafficResponse>(projectId),
     meta: { errorMessage: "Failed to load AI traffic" },
   });
 }
@@ -766,14 +775,11 @@ export function useGeoTrafficLog(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficLogResponse>({
     ...dashboardOrpc.geo.trafficLog.queryOptions({
-      input: {
-        organizationId,
-        projectId,
-        limit: AI_TRAFFIC_LOG_FETCH_LIMIT,
-        visitorTypes: toGeoTrafficLogVisitorFilter(filters.visitorTypes),
-        categories: toGeoTrafficLogPurposeFilter(filters.categories),
-        host: trafficLogHostFilter(options?.host),
-      },
+      input: geoTrafficLogQueryInput(
+        { organizationId, projectId },
+        filters,
+        options?.host
+      ),
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
@@ -791,15 +797,15 @@ export function useGeoTrafficPages(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficPagesResponse>({
     ...dashboardOrpc.geo.trafficPages.queryOptions({
-      input: {
-        organizationId,
-        projectId,
-        limit: AI_TRAFFIC_PAGES_FETCH_LIMIT,
-        ...toGeoWindowInput(range),
-        host: trafficLogHostFilter(host),
-      },
+      input: geoTrafficPagesQueryInput(
+        { organizationId, projectId },
+        range,
+        host
+      ),
     }),
     enabled: !!organizationId,
+    placeholderData:
+      useProjectScopedPreviousData<GeoTrafficPagesResponse>(projectId),
     meta: { errorMessage: "Failed to load top AI pages" },
   });
 }
@@ -865,7 +871,7 @@ export function useGeoIngestSetup(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoIngestSetupResponse>({
     ...dashboardOrpc.geo.ingestSetup.queryOptions({
-      input: { organizationId, projectId },
+      input: geoSettingsQueryInput({ organizationId, projectId }),
     }),
     enabled: !!organizationId,
     meta: { errorMessage: "Failed to load tracking setup" },

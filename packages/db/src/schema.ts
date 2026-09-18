@@ -1452,6 +1452,10 @@ export const geoSettings = pgTable(
     engines: text("engines").array(),
     // Pro feature: ask every model host for zero data retention.
     enforceZdr: boolean("enforce_zdr").notNull().default(true),
+    // Hidden setting: also run every search-capable model without web search.
+    trackWithoutSearch: boolean("track_without_search")
+      .notNull()
+      .default(false),
     // Engines without a ZDR host the user explicitly approved anyway.
     nonZdrApprovedEngines: text("non_zdr_approved_engines")
       .array()

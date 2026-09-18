@@ -41,7 +41,7 @@
     "@toolwind/corner-shape": "^0.0.8-3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.35.8",
-    "@usenotra/geo": "npm:@usenotra/geo@^0.3.0",
+    "@usenotra/geo": "npm:@usenotra/geo@^0.5.0",
     "dompurify": "^3.4.12",
     "effect": "4.0.0-rc.112",
     "fumadocs-core": "^16.6.17",
