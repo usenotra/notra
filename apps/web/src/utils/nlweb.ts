@@ -140,6 +140,10 @@ function toResult(
 export function retrieveNlwebResults(query: string): NlwebResult[] {
   const terms = queryTerms(query);
   if (terms.length === 0) {
+    if (!query.toLocaleLowerCase().match(WORD)?.includes("notra")) {
+      return [];
+    }
+
     const [page] = PAGES;
     const [section] = sections(page.content);
     return section ? [toResult(page, section)] : [];
