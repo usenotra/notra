@@ -3,7 +3,7 @@ import type { ToneProfile } from "@notra/ai/schemas/tone";
 import dedent from "dedent";
 
 export const toneRule = dedent`
-  TONE RULE: If a <tone> block is provided, it is the voice of the linked brand identity and overrides the default tone described in this skill. Match it in word choice, sentence rhythm, and register. It changes how things are phrased, never the structure, facts, audience, language, length, or formatting rules above. If <tone> contains custom notes, follow those notes instead of any named profile.
+  TONE RULE: If a <tone> block is provided, it is the voice of the linked brand identity and is authoritative for voice. It overrides the default tone described in this skill and any voice, style, or sentence patterns found in brand references or voice examples. Match it in word choice, sentence rhythm, and register. Use references and examples only for facts, product vocabulary, and terminology that fit the <tone> block. It changes how things are phrased, never the structure, facts, audience, language, length, or formatting rules above. If <tone> contains custom notes, follow those notes instead of any named profile.
 `;
 
 export function buildToneContext(input: {

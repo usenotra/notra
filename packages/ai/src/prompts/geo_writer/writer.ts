@@ -138,7 +138,7 @@ export function buildGeoWriterInstructions(
     ${GEO_WRITING_RULES}
 
     Voice:
-    - Call getBrandReferences first and mirror the brand's vocabulary and sentence patterns.
+    - Call getBrandReferences first. Use it for facts and product vocabulary. If no <tone> block is provided, also mirror the brand's sentence patterns.
     - ${toneRule}
 
     Factual rules:
