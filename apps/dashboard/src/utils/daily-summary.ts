@@ -64,13 +64,14 @@ export function groupDailySummaryItems(
 
 export function formatDailySummaryChangeDetail(
   kind: GeoChangeKind,
-  count: number
+  competitors: readonly string[]
 ) {
-  if (count <= 1 || !kind.startsWith("citation_")) {
-    return GEO_CHANGE_KIND_LABELS[kind];
+  const label = GEO_CHANGE_KIND_LABELS[kind];
+  if (kind !== "competitor_cited" || competitors.length === 0) {
+    return label;
   }
 
-  return `${count} citations ${kind === "citation_added" ? "added" : "removed"}`;
+  return `${label}: ${competitors.join(", ")}`;
 }
 
 export function aggregateMentionTotals(

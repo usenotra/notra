@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import {
+  geoCompetitors,
   geoScans,
   members,
   organizationNotificationSettings,
@@ -14,6 +15,7 @@ import {
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { engineEmailLogoSrc } from "@notra/email/utils/engine-logo";
 import { getResend } from "@notra/email/utils/resend";
+import { toGeoCompetitor } from "@notra/geo-core/geo/mappers";
 import type { GeoChangeEvent, GeoChangeKind } from "@notra/geo-core/types/geo";
 import {
   diffScanChecks,
@@ -213,10 +215,15 @@ async function sendDailySummaryForOrganization({
         }),
     Promise.all(
       projectIds.map(async (projectId) => {
-        const comparison = await queryGeoScanComparison({
-          projectId,
-          window: { from: start, toExclusive: end },
-        });
+        const [comparison, competitorRows] = await Promise.all([
+          queryGeoScanComparison({
+            projectId,
+            window: { from: start, toExclusive: end },
+          }),
+          db.query.geoCompetitors.findMany({
+            where: eq(geoCompetitors.projectId, projectId),
+          }),
+        ]);
         if (
           !comparison.currentScan ||
           !yesterdayScanIds.has(comparison.currentScan.id)
@@ -226,7 +233,8 @@ async function sendDailySummaryForOrganization({
 
         const events = diffScanChecks(
           comparison.previous.map(toGeoScanCheckSnapshot),
-          comparison.current.map(toGeoScanCheckSnapshot)
+          comparison.current.map(toGeoScanCheckSnapshot),
+          competitorRows.map(toGeoCompetitor)
         );
 
         return { projectId, events };
@@ -327,10 +335,7 @@ function toSummaryChangeItem(
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
   const engineLabel = engineFamilyLabel(family);
-  const detail = formatDailySummaryChangeDetail(
-    event.kind,
-    event.domains.length
-  );
+  const detail = formatDailySummaryChangeDetail(event.kind, event.competitors);
 
   return {
     id: `${projectId}:${event.promptId}:${event.engine}`,
