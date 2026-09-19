@@ -1,3 +1,4 @@
+import type { ToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterBrief } from "@notra/ai/types/geo-writer";
 import type { GeoWriterSourceKind } from "@notra/db/types/geo-writer";
 import type {
@@ -1510,6 +1511,8 @@ export interface GeoWriterContext {
   postId: string | null;
   brandName: string;
   language: string | null;
+  toneProfile: ToneProfile;
+  customTone: string | null;
   topic: string;
   brief: GeoWriterBrief;
   sourceKind: GeoWriterSourceKind;

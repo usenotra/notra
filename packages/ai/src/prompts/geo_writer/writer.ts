@@ -1,4 +1,5 @@
 import { prohibitedLanguage } from "@notra/ai/prompts/_shared/index";
+import { buildToneContext, toneRule } from "@notra/ai/prompts/_shared/tone";
 import { GEO_WRITING_RULES } from "@notra/ai/prompts/geo_writer/planner";
 import type { GeoWriterPromptInput } from "@notra/ai/types/geo-writer";
 import dedent from "dedent";
@@ -114,6 +115,7 @@ export function buildGeoWriterInstructions(
     </topic-notes>
 
     Today's date: ${input.today}
+    ${buildToneContext({ toneProfile: input.toneProfile, customTone: input.customTone })}
 
     Do these steps in order:
 
@@ -134,6 +136,10 @@ export function buildGeoWriterInstructions(
 
     GEO writing rules:
     ${GEO_WRITING_RULES}
+
+    Voice:
+    - Call getBrandReferences first and mirror the brand's vocabulary and sentence patterns.
+    - ${toneRule}
 
     Factual rules:
     - Only state facts that come from the brief, the topic notes, brand references, GEO context, or fetched pages. Never invent statistics, quotes, customer names, pricing, or competitor features.
