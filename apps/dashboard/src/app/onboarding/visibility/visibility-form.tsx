@@ -94,6 +94,7 @@ function VisibilityReview({
       onSuccess: () => {
         trackEvent(POSTHOG_EVENTS.ONBOARDING_BRAND_SAVED, {
           alias_count: brandInput.aliases.length,
+          audience_type: brandInput.audienceType ?? null,
           prompt_count: brandInput.prompts.length,
         });
         setIsLeaving(true);
