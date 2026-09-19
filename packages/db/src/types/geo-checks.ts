@@ -242,6 +242,7 @@ export interface GeoCheckScanComparisonRow {
   promptId: string;
   prompt: string;
   mentioned: boolean;
+  ownedSourceCited: boolean;
   position: number | null;
   competitors: string[];
   grounding: GeoCheckGrounding;

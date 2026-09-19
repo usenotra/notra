@@ -947,12 +947,19 @@ export const loadGeoChanges = Effect.fn("geo.changes")(function* (
   input: GeoScopeInput
 ) {
   const scope = yield* requireGeoProject(input);
-  const comparison = yield* geoDb("scan comparison query failed", () =>
-    queryGeoScanComparison({ projectId: scope.projectId })
+  const [comparison, competitors] = yield* Effect.all(
+    [
+      geoDb("scan comparison query failed", () =>
+        queryGeoScanComparison({ projectId: scope.projectId })
+      ),
+      loadCompetitorsByProject(scope.projectId),
+    ],
+    { concurrency: "unbounded" }
   );
   const events = diffScanChecks(
     comparison.previous.map(toGeoScanCheckSnapshot),
-    comparison.current.map(toGeoScanCheckSnapshot)
+    comparison.current.map(toGeoScanCheckSnapshot),
+    competitors
   );
 
   const response: GeoChangesResponse = {
