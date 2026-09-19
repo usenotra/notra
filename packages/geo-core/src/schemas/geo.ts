@@ -44,7 +44,9 @@ import {
   GEO_WRITER_TOPIC_MAX_LENGTH,
   GEO_WRITER_TOPIC_MIN_LENGTH,
 } from "../constants/geo";
+import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
 import { GEO_CSV_IMPORT_MAX_ROWS } from "../constants/geo-import";
+import { GEO_AUDIENCE_TYPES } from "../constants/geo-model-catalog";
 import { normalizeProjectDomain } from "../utils/geo-project-domains";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import {
@@ -56,7 +58,6 @@ import { publicWebsiteUrlSchema } from "./url";
 
 const GEO_SUPPORTED_LANGUAGE_SET = new Set<string>(SUPPORTED_LANGUAGES);
 const MAX_GEO_TRAFFIC_LOG_FILTER_VALUES = 3;
-const MAX_JUDGE_COMPETITORS = 15;
 const MAX_EXCERPT_LENGTH = 300;
 const MAX_DAYS = 365;
 const GEO_DAY_STRING_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -174,6 +175,7 @@ export const geoSettingsUpsertInputSchema = geoOrganizationInputSchema.extend({
   nonZdrApprovedEngines: array(
     string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)
   ).max(GEO_MAX_ENGINES),
+  trackWithoutSearch: boolean().optional(),
   pausedAutoPromptIds: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .max(GEO_MAX_PROMPTS)
     .optional(),
@@ -375,6 +377,7 @@ export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
     })
   ).max(GEO_ONBOARDING_MAX_PROMPTS),
   languages: geoTrackingLanguagesSchema.optional(),
+  audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
   engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .min(1)
     .max(GEO_MAX_ENGINES)
@@ -415,6 +418,7 @@ export const geoBrandSearchInputSchema = geoOrganizationInputSchema.extend({
 export const geoWebsiteDiscoverySchema = object({
   companyName: string().min(1),
   aliases: array(string().min(1)).max(GEO_DISCOVERY_MAX_ALIASES),
+  audienceType: enumType(GEO_AUDIENCE_TYPES),
   competitors: array(
     object({
       name: string().min(1),

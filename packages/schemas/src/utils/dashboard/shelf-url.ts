@@ -1,3 +1,5 @@
+import { GEO_SHELF_ROOT_URL_PATTERN } from "@notra/db/constants/geo-shelf";
+
 import {
   GEO_SHELF_BLOCKED_HOSTNAME_SUFFIXES,
   GEO_SHELF_BLOCKED_HOSTNAMES,
@@ -129,6 +131,11 @@ export function canonicalizeShelfUrl(raw: string): string {
     url.pathname = url.pathname.slice(0, -1);
   }
   return url.toString();
+}
+
+/** True for a homepage URL with no path or query, e.g. `https://e2b.dev/`. */
+export function isShelfRootUrl(raw: string): boolean {
+  return GEO_SHELF_ROOT_URL_PATTERN.test(raw.trim());
 }
 
 export function shelfDomainFromUrl(url: string): string {

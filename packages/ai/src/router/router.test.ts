@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import type { LanguageModelV3StreamPart } from "@ai-sdk/provider";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import {
   ROUTER_METADATA_KEY,
   ROUTER_PROVIDER_OPTIONS_KEY,
@@ -13,6 +13,7 @@ import { createVercelAdapter } from "./adapters/vercel";
 import {
   GatewayCreditBalanceError,
   GatewayNotConfiguredError,
+  GatewayUnavailableError,
   NoCompliantRouteError,
   UnsupportedModelError,
 } from "./errors";
@@ -617,7 +618,7 @@ describe("RoutedLanguageModel", () => {
 
   test("a stream error after emitted text surfaces without starting a fallback", async () => {
     let controller:
-      | ReadableStreamDefaultController<LanguageModelV3StreamPart>
+      | ReadableStreamDefaultController<LanguageModelV4StreamPart>
       | undefined;
     const openrouter = createFakeAdapter({ id: "openrouter" });
     const createModel = openrouter.createModel;
@@ -629,7 +630,7 @@ describe("RoutedLanguageModel", () => {
           const result = await model.doStream(options);
           return {
             ...result,
-            stream: new ReadableStream<LanguageModelV3StreamPart>({
+            stream: new ReadableStream<LanguageModelV4StreamPart>({
               start(upstream) {
                 controller = upstream;
               },
@@ -769,6 +770,99 @@ describe("RoutedLanguageModel", () => {
     });
     assert.equal(next.gateway, "vercel");
     assert.equal(next.fallbackReason, "no-credits");
+  });
+
+  test("a 401 marks the gateway auth-failed so later routes avoid it", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router, vercel, logger } = createTestRouter({ plans, openrouter });
+    const result = await router
+      .model(MODEL, { organizationId: FREE_ORG })
+      .doGenerate(callOptions());
+    assert.equal(vercel?.calls.length, 1);
+    const metadata = metadataOf(result);
+    assert.equal(metadata?.gateway, "vercel");
+    assert.equal(metadata?.fallbackReason, "auth-failure");
+    assert.ok(
+      logger.entries.some((entry) => entry.event === "ai.router.auth_rejected")
+    );
+    const next = await router.resolveRoute({
+      modelId: MODEL,
+      organizationId: FREE_ORG,
+    });
+    assert.equal(next.gateway, "vercel");
+    assert.equal(next.fallbackReason, "auth-failure");
+  });
+
+  test("a 401 without an eligible fallback throws GatewayUnavailableError", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router } = createTestRouter({ plans, openrouter, vercel: null });
+    const model = router.model(MODEL, { organizationId: FREE_ORG });
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    // Reusing the same model honors the mark instead of calling the
+    // rejected gateway again.
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    assert.equal(openrouter.calls.length, 1);
+    // The gateway stays marked, so route resolution fails fast as well.
+    await assert.rejects(
+      router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
+      GatewayUnavailableError
+    );
+  });
+
+  test("a 401 on the fallback gateway marks it and normalizes the error", async () => {
+    const openrouter = createFakeAdapter({
+      id: "openrouter",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const vercel = createFakeAdapter({
+      id: "vercel",
+      onCall: () => {
+        throw httpError(401, "API key expired");
+      },
+    });
+    const { router, logger } = createTestRouter({ plans, openrouter, vercel });
+    const model = router.model(MODEL, { organizationId: FREE_ORG });
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    assert.deepEqual(
+      logger.entries
+        .filter((entry) => entry.event === "ai.router.auth_rejected")
+        .map((entry) => entry.fields?.gateway),
+      ["openrouter", "vercel"]
+    );
+    // Both gateways are marked and the cached fallback route is dropped, so
+    // reusing the same model and resolving later routes fail fast without
+    // new upstream calls.
+    await assert.rejects(
+      async () => await model.doGenerate(callOptions()),
+      GatewayUnavailableError
+    );
+    await assert.rejects(
+      router.resolveRoute({ modelId: MODEL, organizationId: FREE_ORG }),
+      GatewayUnavailableError
+    );
+    assert.equal(openrouter.calls.length, 1);
+    assert.equal(vercel.calls.length, 1);
   });
 
   test("a spurious 402 heals once the balance check reports credits", async () => {
@@ -1112,6 +1206,10 @@ describe("assertRouteHasCredits", () => {
 describe("classifyUpstreamFailure", () => {
   test("maps status codes to fallback reasons", () => {
     assert.equal(classifyUpstreamFailure(httpError(402)), "no-credits");
+    assert.equal(
+      classifyUpstreamFailure(httpError(401, "API key expired")),
+      "auth-failure"
+    );
     assert.equal(classifyUpstreamFailure(httpError(404)), "unsupported-model");
     assert.equal(
       classifyUpstreamFailure(

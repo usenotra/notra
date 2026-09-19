@@ -188,7 +188,7 @@ export const GEO_SHELF_TABLE_HEIGHT = 560;
 /** `title` flexes; other columns size to their header/content so the row fits. */
 export const GEO_SHELF_TABLE_COLUMN = {
   title: { width: "1fr", minWidth: "10rem" },
-  citations: { width: "8rem" },
+  citations: { width: "10rem" },
   own: { width: "9rem" },
   competitors: { width: "7.5rem" },
   ticket: { width: "7rem" },

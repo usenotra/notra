@@ -50,6 +50,7 @@ import { toast } from "sonner";
 import { BrandVoiceCell } from "@/components/automation/brand-voice-cell";
 import { OnboardingSuggestions } from "@/components/automation/onboarding-suggestions";
 import { CreateScheduleDialog } from "@/components/automation/schedules/create-schedule-dialog";
+import { ScheduleQuickStart } from "@/components/automation/schedules/schedule-quick-start";
 import { SourcesCell } from "@/components/automation/sources-cell";
 import { TriggerStatusBadge } from "@/components/automation/triggers/trigger-status-badge";
 import { Button } from "@/components/button";
@@ -64,6 +65,7 @@ import {
 } from "@/constants/empty-state";
 import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { SchedulePresetId } from "@/types/automation/schedule";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
 import { formatRelative } from "@/utils/format-relative";
@@ -122,6 +124,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     false | "asc" | "desc"
   >(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createPresetId, setCreatePresetId] = useState<SchedulePresetId | null>(
+    null
+  );
   const { beginCreate, cancelCreate, handleCreateSuccess, pendingSuggestion } =
     useCreateFromSuggestion(organizationId);
 
@@ -387,6 +392,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             onOpenChange={(open) => {
               setCreateOpen(open);
               if (!open) {
+                setCreatePresetId(null);
                 cancelCreate(pendingSuggestion);
               }
             }}
@@ -407,6 +413,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             }}
             open={createOpen}
             organizationId={organizationId ?? ""}
+            presetId={createPresetId}
             trigger={
               <Button className="w-fit gap-2">
                 <span className="inline-flex items-center gap-1.5">
@@ -467,6 +474,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               />
             }
             title="No schedules yet"
+          />
+        )}
+
+        {!isPending && (
+          <ScheduleQuickStart
+            onSelect={(presetId) => {
+              setCreatePresetId(presetId);
+              setCreateOpen(true);
+            }}
           />
         )}
 

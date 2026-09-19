@@ -5,6 +5,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_MODULES_REVEAL_MS } from "@/constants/geo-overview";
@@ -106,32 +107,48 @@ export function useGeoOverviewPage(
 
   const { data: settingsData, isPending: isSettingsPending } =
     useGeoSettings(organizationId);
-  const { data: overview } = useGeoOverview(organizationId, geoRange.query);
-  const { data: timeseries } = useGeoTimeseries(organizationId, geoRange.query);
-  const { prompts, isLoading: isPromptsLoading } =
-    useGeoPromptsDb(organizationId);
+  const hasSettings = Boolean(settingsData?.settings);
+  const queriesEnabled =
+    Boolean(organizationId) && !isSettingsPending && hasSettings;
+  const { data: overview } = useGeoOverview(
+    organizationId,
+    geoRange.query,
+    queriesEnabled
+  );
+  const { data: timeseries } = useGeoTimeseries(
+    organizationId,
+    geoRange.query,
+    queriesEnabled
+  );
+  const { prompts, isLoading: isPromptsLoading } = useGeoPromptsDb(
+    organizationId,
+    { enabled: queriesEnabled }
+  );
   const { data: promptResults } = useGeoPromptResults(
     organizationId,
     geoRange.query,
-    activeTab === "visibility"
+    queriesEnabled && activeTab === "visibility"
   );
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
     geoRange.query,
     false,
-    activeTab === "visibility"
+    queriesEnabled && activeTab === "visibility"
   );
-  const { competitors } = useGeoCompetitorsDb(organizationId);
+  const { competitors } = useGeoCompetitorsDb(organizationId, {
+    enabled: queriesEnabled,
+  });
   const { data: languageShare } = useGeoLanguageShare(
     organizationId,
     geoRange.query,
-    activeTab === "visibility"
+    queriesEnabled && activeTab === "visibility"
   );
-  const { data: trafficJourneys } = useGeoTrafficJourneys(
-    organizationId,
-    geoRange.query,
-    activeTab === "journeys"
-  );
+  const { data: trafficJourneys, isPending: isJourneysPending } =
+    useGeoTrafficJourneys(
+      organizationId,
+      geoRange.query,
+      queriesEnabled && activeTab === "journeys"
+    );
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [preflightOpen, setPreflightOpen] = useState(false);
@@ -176,13 +193,25 @@ export function useGeoOverviewPage(
     promptResults: promptResults?.results,
     promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
+    journeysLoading: activeTab === "journeys" && isJourneysPending,
     isScanning,
     revealActive,
     scanPreflight: {
       open: preflightOpen,
       onOpenChange: setPreflightOpen,
       onConfirm: (engines) => {
-        startScan.mutate(engines ? { engines } : undefined);
+        // Await the promise instead of passing onSuccess to mutate: observer
+        // callbacks never run if this page unmounts first, the promise does.
+        void (async () => {
+          try {
+            await startScan.mutateAsync(engines ? { engines } : undefined);
+            toast.success(
+              "Scan started. It runs in the background. You can leave this page."
+            );
+          } catch {
+            // The mutation reports the error itself.
+          }
+        })();
         setPreflightOpen(false);
       },
       isPending: startScan.isPending,

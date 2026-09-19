@@ -47,6 +47,13 @@ export type TableFooterSurfaceProps = Pick<
   "footer" | "flushBottom"
 >;
 
+export interface TableScrollFadeProps extends Pick<
+  TableProps<unknown>,
+  "scrollFade"
+> {
+  atEnd: boolean;
+}
+
 export interface TableColumnGroupProps<T> {
   columns: TableColumn<T>[];
   widths: Record<string, number>;

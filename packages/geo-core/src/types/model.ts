@@ -14,6 +14,8 @@ import type {
   GeoGroundedAnswer,
   GeoGroundedEngine,
   GeoJudgeResult,
+  GeoMentionEvaluation,
+  GeoMentionEvaluationInput,
   GeoModelGateway,
   GeoZdrMode,
 } from "./geo";
@@ -37,15 +39,26 @@ export interface GeoModelServiceShape {
     organizationId: string;
     prompt: string;
   }) => Effect.Effect<GeoJudgeResult, GeoJudgeError>;
+  /**
+   * Fast typed sentiment/position evaluation. Optional: hosts without the
+   * Vercel gateway omit it, and `null` means the call was skipped or failed.
+   */
+  readonly evaluateMention?: (
+    input: GeoMentionEvaluationInput
+  ) => Effect.Effect<GeoMentionEvaluation | null>;
   readonly translate: (input: {
     organizationId: string;
     language: string;
     prompts: string[];
-  }) => Effect.Effect<string[], GeoTranslationError>;
-  readonly suggest: (
-    input: GscSuggestionGenerationParams
-  ) => Effect.Effect<
-    z.infer<typeof geoSearchConsoleSuggestionSchema>["prompts"],
+  }) => Effect.Effect<
+    { translations: string[]; usage?: GeoEngineAnswer["usage"] },
+    GeoTranslationError
+  >;
+  readonly suggest: (input: GscSuggestionGenerationParams) => Effect.Effect<
+    {
+      prompts: z.infer<typeof geoSearchConsoleSuggestionSchema>["prompts"];
+      usage?: GeoEngineAnswer["usage"];
+    },
     GeoModelError
   >;
 }

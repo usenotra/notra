@@ -1,6 +1,8 @@
 import { LoginErrorTracker } from "@/components/auth/login-error-tracker";
 import { LoginForm } from "@/components/auth/login-form";
 
+export const instant = true;
+
 const ERROR_MESSAGES: Record<string, string> = {
   "social-sign-in-failed": "Social sign-in failed. Please try again.",
   "external-login-failed":

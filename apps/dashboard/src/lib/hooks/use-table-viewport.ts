@@ -55,6 +55,31 @@ export function useTableViewport<T>({
     }
   }, [loading]);
 
+  // And once the row count changes (client-side infinite scroll).
+  useEffect(() => {
+    endReachedRef.current = false;
+  }, [rows.length]);
+
+  const [atEnd, setAtEnd] = useState(true);
+
+  // Keep the end fade in sync when content or viewport size changes without a
+  // scroll event (initial render, rows appended, container resized).
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+    const measure = () => {
+      setAtEnd(
+        element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [rows.length]);
+
   // Classic horizontal scrollbars consume height; compensate to avoid clipping a row.
   useEffect(() => {
     const element = scrollRef.current;
@@ -84,6 +109,9 @@ export function useTableViewport<T>({
     if (headerScrollRef.current) {
       headerScrollRef.current.scrollLeft = element.scrollLeft;
     }
+    setAtEnd(
+      element.scrollTop + element.clientHeight + 1 >= element.scrollHeight
+    );
     if (!onEndReached || loading || endReachedRef.current) {
       return;
     }
@@ -104,5 +132,6 @@ export function useTableViewport<T>({
     renderedRows,
     paddingTop,
     paddingBottom,
+    atEnd,
   };
 }

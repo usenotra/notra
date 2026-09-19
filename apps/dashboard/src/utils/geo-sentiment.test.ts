@@ -7,6 +7,8 @@ import {
   isolatedSentimentPointIndices,
   sentimentFamilyRows,
   sentimentEmptyMessage,
+  sentimentHasDisplayableData,
+  sentimentSummaryShowsEmpty,
   sentimentThemesState,
 } from "./geo-sentiment";
 
@@ -57,6 +59,22 @@ test("empty copy distinguishes absent answers from saved but unrated mentions", 
       ])
     )
   ).toBe("No rated mentions in this period.");
+});
+
+test("available ratings remain visible when the selected range starts before rating history", () => {
+  const summary = summarizeSentiment([
+    {
+      positive: 1,
+      neutral: 0,
+      negative: 0,
+      mentions: 1,
+      totalChecks: 10,
+      lastCheckedAt: null,
+    },
+  ]);
+
+  expect(sentimentHasDisplayableData(summary)).toBe(true);
+  expect(sentimentSummaryShowsEmpty(summary)).toBe(false);
 });
 
 test("markers preserve isolated observations while contiguous series stay clean", () => {

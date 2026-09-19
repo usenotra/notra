@@ -15,6 +15,7 @@ export default defineConfig({
     ...core.ignorePatterns,
     "packages/ui/src/**",
     ".agents/skills/**",
+    ".claude/skills/**",
     "apps/dashboard/src/components/evilcharts/**",
     "packages/db/migrations/**",
     ".temp/**",

@@ -33,6 +33,7 @@ const settingsSchema = z
     engines: z.array(z.string()),
     enforceZdr: z.boolean(),
     nonZdrApprovedEngines: z.array(z.string()),
+    trackWithoutSearch: z.boolean(),
     pausedAutoPromptIds: z.array(z.string()),
     removedAutoPromptIds: z.array(z.string()),
     enabled: z.boolean(),
@@ -98,6 +99,10 @@ export const patchSettingsRequestSchema = z
     nonZdrApprovedEngines: z
       .array(createGeoShortTextSchema())
       .max(GEO_MAX_ENGINES),
+    trackWithoutSearch: z.boolean().optional().openapi({
+      description:
+        "Also scan search-capable models without web search. Omit to keep the stored value (default false).",
+    }),
     pausedAutoPromptIds: z
       .array(createGeoShortTextSchema())
       .max(GEO_MAX_PROMPTS)

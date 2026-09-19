@@ -4,6 +4,7 @@ import z from "zod/v4";
 import { redis } from "./utils/redis";
 
 const schema = {
+  discussion: { changed: z.object({ version: z.string() }) },
   ai: { chunk: z.any() as z.ZodType<unknown> },
   mirror: {
     message: z.any() as z.ZodType<unknown>,

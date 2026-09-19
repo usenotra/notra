@@ -34,12 +34,14 @@ import type {
   GeoScopeInput,
   GeoWebsiteDiscovery,
 } from "../types/geo";
+import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
 import { geoSkip } from "./effect";
 import { GeoDiscoveryError } from "./errors";
 import { invalidateGeoIngestHostsCache } from "./ingest-hosts-cache";
 import { toGeoProject } from "./mappers";
+import { loadGeoModelCatalog } from "./model-catalog";
 import {
   insertPromptsInTransaction,
   reconcileCompetitorsInTransaction,
@@ -66,14 +68,21 @@ Derive the brand tracking configuration for this company:
 1. companyName: the company or product name exactly as it brands itself.
 2. aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} alternative spellings that identify this company - product names, the bare domain, and common misspellings. Never include generic words that could refer to anything else.
 3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
-4. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+4. audienceType: who pays this company, judged by its own buyers and never by the industry it serves. "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "commerce" when consumers find it by searching Google for something to buy, book or visit (online shops, consumer products, restaurants, travel, local businesses and trades). "general" for everyone else (professional services, non-technical B2B, media, education), whose buyers just use whatever model their assistant ships with. Software or services sold to shops, restaurants or other businesses are "general" or "technical", not "commerce": a store builder or an email tool for merchants is "general".
+5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+
+Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
 
 Prompt rules:
-- A prompt is the exact text a real buyer would type into ChatGPT while researching this category - before they know this company exists. ${GEO_TRACKED_PROMPT_VOICE}
-- Never mention the company name, product name, domain, or any alias. Not even once. Competitor names are allowed only in alternatives or comparison prompts, still in the same lowercase voice ("what's a good hootsuite alternative").
-- Never copy taglines, product descriptions, or marketing copy from the website into a prompt. Do not explain what the company is.
-- Never concatenate keywords, never mix languages within a prompt, and never write anything you would not plausibly type yourself.
-- Cover different intents across the set in that same voice: what tools to use, how to do a task, what to compare, what a competitor alternative is. Do not append "${year}".
+- ${GEO_TRACKED_PROMPT_VOICE}
+- Cover these intents across the set:
+  - 4 or 5 recommendation prompts: someone looking for something to solve this problem, each from a different angle (role, budget, stack, scale, stage, region).
+  - 3 problem-first prompts: describe the pain or the task in the words a person would use, without naming any tool category ("my transactional emails keep landing in spam, what am i doing wrong").
+  - 2 comparison or alternative prompts built on the competitors you listed, phrased the way a person would ("is mailchimp worth it or should i just use something simpler", "switching away from hubspot, what are people using now"). Never compare against the company itself.
+  - 1 or 2 evaluation prompts: how to choose, what it should cost, or whether they need a dedicated tool at all.
+- Never mention the company name, product name, domain, or any alias. Not even once. Never copy taglines, feature names, coined terms, or marketing copy from the website. Do not explain what the company is.
+- Use the words "tool", "software", "platform" or "solution" in at most 4 prompts; real people often describe the outcome instead.
+- Write every prompt in the language the website's audience speaks (a German website gets German prompts). Never mix languages within a prompt. Do not append "${year}".
 - Each prompt must be between ${MIN_PROMPT_LENGTH} and ${MAX_PROMPT_LENGTH} characters.
 
 Title rules:
@@ -188,7 +197,7 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
         }),
         output: Output.object({ schema: geoWebsiteDiscoverySchema }),
         prompt: buildDiscoveryPrompt(url, content),
-        system: GEO_DISCOVERY_SYSTEM_PROMPT,
+        instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
         maxOutputTokens: GEO_DISCOVERY_MAX_TOKENS,
       }),
     catch: (cause) =>
@@ -223,6 +232,21 @@ export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   return result;
 });
 
+/**
+ * Engines a newly created settings row starts with. Technical brands stay on
+ * null so they keep following the default set.
+ */
+const resolveSeedEngines = Effect.fn("geo.discover.seedEngines")(function* (
+  organizationId: string,
+  discovery: GeoWebsiteDiscovery
+) {
+  if (discovery.audienceType === "technical") {
+    return null;
+  }
+  const catalog = yield* loadGeoModelCatalog(organizationId);
+  return geoEnginesForAudience(catalog, discovery.audienceType);
+});
+
 const persistGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.persist"
 )(function* (
@@ -232,7 +256,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
   companyName: string,
   aliases: string[],
   entries: readonly GeoPromptInsert[],
-  discoveredCompetitors: readonly GeoCompetitorSeed[]
+  discoveredCompetitors: readonly GeoCompetitorSeed[],
+  seedEngines: string[] | null
 ) {
   yield* Effect.tryPromise({
     try: () =>
@@ -245,6 +270,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
           companyName,
           aliases,
           competitors: [],
+          // Only a new row is seeded; an existing selection is left alone.
+          engines: seedEngines,
           enabled: true,
         })
         .onConflictDoUpdate({
@@ -386,6 +413,8 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
         existing?.aliases
       );
 
+    const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
+
     const summary = yield* Effect.tryPromise({
       try: () =>
         db.transaction((tx) =>
@@ -397,7 +426,8 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
               companyName,
               aliases,
               entries,
-              discovery.competitors
+              discovery.competitors,
+              seedEngines
             )
           )
         ),
@@ -431,6 +461,7 @@ export const createGeoProjectFromWebsite = Effect.fn(
   const { discovery } = yield* discoverGeoWebsite(organizationId, url);
   const { aliases, companyName, entries } =
     yield* prepareGeoWebsiteGeneration(discovery);
+  const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
 
   const project = yield* Effect.tryPromise({
     try: () =>
@@ -457,7 +488,8 @@ export const createGeoProjectFromWebsite = Effect.fn(
             companyName,
             aliases,
             entries,
-            discovery.competitors
+            discovery.competitors,
+            seedEngines
           )
         );
         return toGeoProject(row);

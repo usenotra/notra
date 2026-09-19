@@ -20,10 +20,12 @@ import {
 } from "@notra/ai/integrations/linear";
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { chatRequestSchema } from "@notra/schemas/dashboard/content";
+import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
@@ -253,11 +255,11 @@ export const POST = withEvlog(async function POST(
 
           const cost = calculateAiCreditCostCents(
             {
-              inputTokens: usage.inputTokens ?? 0,
-              outputTokens: usage.outputTokens ?? 0,
-              totalTokens: usage.totalTokens ?? 0,
-              cacheReadTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
-              cacheWriteTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+              ...toAgentTokenUsage(usage),
+              // This usage sums every step, and prices can depend on how big
+              // each single request was, so bill the per-step cost.
+              maxPromptTokens: routeUsage?.maxPromptTokens,
+              tokenCostUsd: routeUsage?.tokenCostUsd,
             },
             modelId,
             useMarkup
@@ -316,12 +318,12 @@ export const POST = withEvlog(async function POST(
       decision: routingDecision,
     });
 
-    return stream.toUIMessageStreamResponse({
+    const uiStream = toUIMessageStream({
+      stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: true,
-      headers: { "X-Chat-Id": chatId },
-      onFinish: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages }) => {
         const saved = await replaceContentChatHistory(
           organizationId,
           contentId,
@@ -341,6 +343,11 @@ export const POST = withEvlog(async function POST(
         console.error("[Content Chat] Stream error:", { requestId, error });
         return "An error occurred while processing your request.";
       },
+    });
+
+    return createUIMessageStreamResponse({
+      headers: { "X-Chat-Id": chatId },
+      stream: uiStream,
     });
   } catch (e) {
     console.error("[Content Chat] Error:", {

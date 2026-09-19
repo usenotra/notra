@@ -4,34 +4,44 @@ import {
   organizationNotificationSettings,
   organizations,
 } from "@notra/db/schema";
+import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
+import { ONBOARDING_STEP_WORKSPACE } from "@/constants/onboarding";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { redirectIfAnyOrganizationHasPaidHistory } from "@/lib/onboarding/billing-gate";
+import type { OnboardingGeoPageProps } from "@/types/onboarding";
+import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
 import { WorkspaceForm } from "./workspace-form";
 
-export default async function OnboardingWorkspacePage() {
+export default async function OnboardingWorkspacePage({
+  searchParams,
+}: OnboardingGeoPageProps) {
   const session = await getSession();
 
   if (!session?.user) {
     redirect("/login");
   }
 
-  await redirectIfAnyOrganizationHasPaidHistory();
-
   const existing = await getLastActiveOrganization();
-  if (existing) {
-    const brand = await db.query.brandSettings.findFirst({
-      where: eq(brandSettings.organizationId, existing.id),
-      columns: { id: true },
-    });
-    if (brand) {
-      redirect("/onboarding/pricing");
-    }
+  if (!existing) {
+    await redirectIfAnyOrganizationHasPaidHistory();
+    return <WorkspaceForm />;
+  }
 
-    const [existingOrgRow, notificationSettings] = await Promise.all([
+  const { project, replay } = await searchParams;
+  const projectId =
+    typeof project === "string" && project ? project : undefined;
+  const isDevReplay = process.env.NODE_ENV === "development" && replay === "1";
+
+  const [brand, existingOrgRow, notificationSettings, stage] =
+    await Promise.all([
+      db.query.brandSettings.findFirst({
+        where: eq(brandSettings.organizationId, existing.id),
+        columns: { id: true },
+      }),
       db.query.organizations.findFirst({
         where: eq(organizations.id, existing.id),
         columns: {
@@ -50,20 +60,30 @@ export default async function OnboardingWorkspacePage() {
           marketingEmails: true,
         },
       }),
+      getGeoOnboardingStage(existing.id, projectId),
     ]);
 
-    if (existingOrgRow) {
-      return (
-        <WorkspaceForm
-          existingOrg={{
-            ...existingOrgRow,
-            dailySummary: notificationSettings?.dailySummary ?? true,
-            marketingEmails: notificationSettings?.marketingEmails ?? true,
-          }}
-        />
-      );
-    }
+  const progressHrefs = onboardingProgressHrefs({
+    current: ONBOARDING_STEP_WORKSPACE,
+    hasOrganization: true,
+    hasBrand: Boolean(brand),
+    projectId,
+    replay: isDevReplay,
+    stage,
+  });
+
+  if (!existingOrgRow) {
+    return <WorkspaceForm progressHrefs={progressHrefs} />;
   }
 
-  return <WorkspaceForm />;
+  return (
+    <WorkspaceForm
+      existingOrg={{
+        ...existingOrgRow,
+        dailySummary: notificationSettings?.dailySummary ?? true,
+        marketingEmails: notificationSettings?.marketingEmails ?? true,
+      }}
+      progressHrefs={progressHrefs}
+    />
+  );
 }

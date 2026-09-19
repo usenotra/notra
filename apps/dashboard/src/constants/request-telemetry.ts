@@ -1,0 +1,1 @@
+export const DASHBOARD_RPC_SLOW_REQUEST_MS = 1000;

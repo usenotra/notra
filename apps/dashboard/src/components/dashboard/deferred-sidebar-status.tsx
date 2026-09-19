@@ -12,14 +12,6 @@ const SidebarOnboarding = dynamic(
   { ssr: false }
 );
 
-const SidebarTrialExpired = dynamic(
-  () =>
-    import("@/components/dashboard/sidebar-trial-expired").then(
-      (module) => module.SidebarTrialExpired
-    ),
-  { ssr: false }
-);
-
 const SidebarUpgrade = dynamic(
   () =>
     import("@/components/dashboard/sidebar-upgrade").then(
@@ -35,11 +27,11 @@ export function DeferredSidebarStatus() {
     return null;
   }
 
-  return (
-    <>
-      <SidebarTrialExpired />
-      <SidebarOnboarding />
-      <SidebarUpgrade />
-    </>
-  );
+  return <SidebarOnboarding />;
+}
+
+export function DeferredSidebarUpgrade() {
+  const ready = useDeferredMount();
+
+  return ready ? <SidebarUpgrade /> : null;
 }

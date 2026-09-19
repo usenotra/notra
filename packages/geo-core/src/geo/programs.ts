@@ -659,6 +659,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
       columns: {
         engines: true,
         nonZdrApprovedEngines: true,
+        trackWithoutSearch: true,
         conversionPaths: true,
         domains: true,
         pausedAutoPromptIds: true,
@@ -675,6 +676,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
     input.pausedAutoPromptIds ?? existingSettings?.pausedAutoPromptIds ?? [];
   const removedAutoPromptIds =
     input.removedAutoPromptIds ?? existingSettings?.removedAutoPromptIds ?? [];
+  const trackWithoutSearch =
+    input.trackWithoutSearch ?? existingSettings?.trackWithoutSearch ?? false;
   const conversionPaths = normalizeConversionPaths(
     input.conversionPaths ?? existingSettings?.conversionPaths ?? []
   );
@@ -737,6 +740,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
+        trackWithoutSearch,
         pausedAutoPromptIds,
         removedAutoPromptIds,
         enabled: input.enabled,
@@ -754,6 +758,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
+          trackWithoutSearch,
           pausedAutoPromptIds,
           removedAutoPromptIds,
           enabled: input.enabled,
@@ -942,12 +947,19 @@ export const loadGeoChanges = Effect.fn("geo.changes")(function* (
   input: GeoScopeInput
 ) {
   const scope = yield* requireGeoProject(input);
-  const comparison = yield* geoDb("scan comparison query failed", () =>
-    queryGeoScanComparison({ projectId: scope.projectId })
+  const [comparison, competitors] = yield* Effect.all(
+    [
+      geoDb("scan comparison query failed", () =>
+        queryGeoScanComparison({ projectId: scope.projectId })
+      ),
+      loadCompetitorsByProject(scope.projectId),
+    ],
+    { concurrency: "unbounded" }
   );
   const events = diffScanChecks(
     comparison.previous.map(toGeoScanCheckSnapshot),
-    comparison.current.map(toGeoScanCheckSnapshot)
+    comparison.current.map(toGeoScanCheckSnapshot),
+    competitors
   );
 
   const response: GeoChangesResponse = {
@@ -970,8 +982,8 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     const checkWindow = toGeoCheckWindow(window);
 
     if (summaryOnly) {
-      // The competitors page only renders aggregate shares. Avoid the two
-      // additional full-range scans used for overview sparklines and charts.
+      // Callers that only render aggregate shares skip the two additional
+      // full-range scans used for sparklines, charts and change indicators.
       const rows = yield* geoDb("competitor share query failed", () =>
         queryGeoCheckCompetitorShare(
           checkScope,
@@ -1797,13 +1809,12 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     return yield* Effect.fail(new GeoSettingsDisabledError({ projectId }));
   }
 
-  const storedEngines = row.engines ?? [];
-  if (
-    engines &&
-    storedEngines.length > 0 &&
-    scopeGeoScanEngines(storedEngines, engines).length === 0
-  ) {
-    return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
+  if (engines) {
+    const catalog = yield* loadGeoModelCatalog(scope.organizationId);
+    const tracked = row.engines ?? [];
+    if (scopeGeoScanEngines(catalog, tracked, engines).length === 0) {
+      return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
+    }
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings

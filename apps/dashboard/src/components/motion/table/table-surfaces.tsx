@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type {
   TableFooterSurfaceProps,
   TableHeaderSurfaceProps,
+  TableScrollFadeProps,
 } from "@/types/table";
 
 export function TableHeaderSurface({
@@ -23,6 +24,21 @@ export function TableHeaderSurface({
       ) : null}
       {children}
     </div>
+  );
+}
+
+export function TableScrollFade({ scrollFade, atEnd }: TableScrollFadeProps) {
+  if (!scrollFade) {
+    return null;
+  }
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(
+        "from-background pointer-events-none sticky bottom-0 left-0 -mt-8 h-8 bg-linear-to-t to-transparent transition-opacity duration-200 motion-reduce:transition-none",
+        atEnd ? "opacity-0" : "opacity-100"
+      )}
+    />
   );
 }
 

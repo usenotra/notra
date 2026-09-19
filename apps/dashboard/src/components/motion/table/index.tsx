@@ -2,7 +2,7 @@
 // beui.dev/components/motion/table
 
 import { useReducedMotion } from "motion/react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import { useTableViewport } from "@/lib/hooks/use-table-viewport";
 import { cn } from "@/lib/utils";
@@ -11,8 +11,14 @@ import { RowHandle } from "./row-handle";
 import { TableBody } from "./table-body";
 import { TableColumnGroup } from "./table-column-group";
 import { TableHeader } from "./table-header";
-import { TableFooterSurface, TableHeaderSurface } from "./table-surfaces";
+import {
+  TableFooterSurface,
+  TableHeaderSurface,
+  TableScrollFade,
+} from "./table-surfaces";
 import type { HeaderCellRefs, TableProps } from "./types";
+import { useActiveColumn } from "./use-active-column";
+import { useActiveRow } from "./use-active-row";
 import { useColumnReorder } from "./use-column-reorder";
 import { useColumnResize } from "./use-column-resize";
 import { useColumnSort } from "./use-column-sort";
@@ -20,6 +26,7 @@ import { useRowSelection } from "./use-row-selection";
 import {
   CHECKBOX_WIDTH,
   DEFAULT_MIN_COLUMN_WIDTH,
+  pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
   tableMinWidthCss,
@@ -71,6 +78,7 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
+  scrollFade = false,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -111,11 +119,7 @@ export function Table<T>({
       onSelectionChange,
     });
   const displayRows = pinRowsFirst(sortedRows, isRowPinned);
-  const pageStart = Math.max(0, page - 1) * (pageSize ?? 0);
-  const pagedRows =
-    pageSize == null
-      ? displayRows
-      : displayRows.slice(pageStart, pageStart + pageSize);
+  const pagedRows = pageRows(displayRows, page, pageSize);
 
   const {
     headerScrollRef,
@@ -129,6 +133,7 @@ export function Table<T>({
     scrolls,
     paddingTop,
     paddingBottom,
+    atEnd,
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
@@ -156,7 +161,7 @@ export function Table<T>({
     orderedColumns.length > 0 &&
     orderedColumns.every((column) => widths[column.key] != null);
   const tableClassName = cn(
-    "border-collapse",
+    "border-collapse tabular-nums",
     sized ? "w-max min-w-full" : "w-full"
   );
   const minTableWidth = tableMinWidthCss(
@@ -167,45 +172,9 @@ export function Table<T>({
   );
   const tableStyle = { tableLayout: "fixed" as const, minWidth: minTableWidth };
 
-  const [activeColumn, setActiveColumn] = useState<string | null>(null);
-  // Let the pointer cross the gap to the portal handle before deactivating.
-  const deactivateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activateColumn = (key: string) => {
-    if (deactivateTimer.current) {
-      clearTimeout(deactivateTimer.current);
-    }
-    deactivateTimer.current = null;
-    setActiveColumn(key);
-  };
-  const deactivateColumn = () => {
-    if (deactivateTimer.current) {
-      clearTimeout(deactivateTimer.current);
-    }
-    deactivateTimer.current = setTimeout(() => setActiveColumn(null), 100);
-  };
-  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
-  const [activeRowEl, setActiveRowEl] = useState<HTMLTableRowElement | null>(
-    null
-  );
-  const [activeRow, setActiveRow] = useState<{
-    id: string;
-    index: number;
-  } | null>(null);
-  const rowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activateRow = (id: string, index: number) => {
-    if (rowTimer.current) {
-      clearTimeout(rowTimer.current);
-    }
-    rowTimer.current = null;
-    setActiveRowEl(rowRefs.current[id] ?? null);
-    setActiveRow({ id, index });
-  };
-  const deactivateRow = () => {
-    if (rowTimer.current) {
-      clearTimeout(rowTimer.current);
-    }
-    rowTimer.current = setTimeout(() => setActiveRow(null), 100);
-  };
+  const { activeColumn, activateColumn, deactivateColumn } = useActiveColumn();
+  const { activeRow, activeRowEl, rowRefs, activateRow, deactivateRow } =
+    useActiveRow();
   const columnMenuProps = hasColumnMenu
     ? {
         activeColumn,
@@ -301,6 +270,7 @@ export function Table<T>({
             rowRefs={rowRefs}
           />
         </table>
+        <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
       </div>
       <TableFooterSurface footer={footer} flushBottom={flushBottom} />
       {hasRowMenu && activeRow ? (

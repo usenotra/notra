@@ -1,11 +1,13 @@
 import type { createDb } from "@notra/db/drizzle";
-import { organizations, users } from "@notra/db/schema";
+import { members, organizations, users } from "@notra/db/schema";
 import {
   LEGACY_API_READ_SCOPE,
   LEGACY_API_WRITE_SCOPE,
 } from "@notra/utils/api-scopes";
+import { readOAuthConsentGrant } from "@notra/utils/oauth-consent";
 import { Unkey } from "@unkey/api";
-import { eq } from "drizzle-orm";
+import { NotFoundException, WorkOS } from "@workos-inc/node";
+import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import {
   createRemoteJWKSet,
@@ -143,7 +145,8 @@ function setCachedLocalId(cacheKey: string, localId: string) {
 
 async function resolveLocalUserId(
   db: ReturnType<typeof createDb>,
-  workosUserId: string
+  workosUserId: string,
+  apiKey: string | undefined
 ): Promise<string | null> {
   const cacheKey = `user:${workosUserId}`;
   const cached = getCachedLocalId(cacheKey);
@@ -151,13 +154,43 @@ async function resolveLocalUserId(
     return cached;
   }
 
-  const user = await db.query.users.findFirst({
+  let user = await db.query.users.findFirst({
     where: eq(users.workosUserId, workosUserId),
     columns: { id: true },
   });
 
   if (!user) {
-    return null;
+    user = await db.query.users.findFirst({
+      where: eq(users.id, workosUserId),
+      columns: { id: true },
+    });
+  }
+
+  if (!user) {
+    // Standalone Connect stores our local ID as the WorkOS external_id without
+    // necessarily populating users.workosUserId. Resolve that server-side link;
+    // never infer identity from an email or an untrusted token claim.
+    if (!apiKey) {
+      throw new Error("WorkOS API key is required to resolve OAuth subjects");
+    }
+    const remote = await new WorkOS(apiKey).userManagement
+      .getUser(workosUserId)
+      .catch((error: unknown) => {
+        if (error instanceof NotFoundException) {
+          return null;
+        }
+        throw error;
+      });
+    if (!remote?.externalId) {
+      return null;
+    }
+    user = await db.query.users.findFirst({
+      where: eq(users.id, remote.externalId),
+      columns: { id: true },
+    });
+    if (!user) {
+      return null;
+    }
   }
 
   setCachedLocalId(cacheKey, user.id);
@@ -309,14 +342,25 @@ async function verifyOAuthToken(
       return { success: false, error: "Invalid token audience", status: 401 };
     }
 
-    const scopes = extractScopes(payload) ?? [];
+    const grant = readOAuthConsentGrant(payload);
+    if (grant === null) {
+      return {
+        success: false,
+        error: "Invalid OAuth consent grant",
+        status: 401,
+      };
+    }
+    const scopes = grant?.scopes ?? extractScopes(payload) ?? [];
     const workosOrgId = payload.org_id;
 
     if (!payload.sub) {
       return { success: false, error: "Missing OAuth subject", status: 401 };
     }
 
-    if (!(typeof workosOrgId === "string" && workosOrgId.length > 0)) {
+    if (
+      !grant &&
+      !(typeof workosOrgId === "string" && workosOrgId.length > 0)
+    ) {
       return {
         success: false,
         error: "Missing OAuth organization",
@@ -330,8 +374,13 @@ async function verifyOAuthToken(
 
     const db = c.get("db");
     const [localUserId, localOrgId] = await Promise.all([
-      resolveLocalUserId(db, payload.sub),
-      resolveLocalOrganizationId(db, workosOrgId),
+      resolveLocalUserId(db, payload.sub, c.env.WORKOS_API_KEY),
+      grant?.organizationSource === "local"
+        ? Promise.resolve(grant.organizationId)
+        : resolveLocalOrganizationId(
+            db,
+            typeof workosOrgId === "string" ? workosOrgId : ""
+          ),
     ]);
 
     if (!localUserId) {
@@ -348,6 +397,17 @@ async function verifyOAuthToken(
         error: "No local organization found for OAuth token",
         status: 401,
       };
+    }
+
+    const membership = await db.query.members.findFirst({
+      where: and(
+        eq(members.userId, localUserId),
+        eq(members.organizationId, localOrgId)
+      ),
+      columns: { id: true },
+    });
+    if (!membership) {
+      return { success: false, error: "Workspace access revoked", status: 403 };
     }
 
     return {

@@ -1,3 +1,4 @@
+import { GEO_SHELF_ROOT_URL_PATTERN_SOURCE } from "@notra/db/constants/geo-shelf";
 import { db } from "@notra/db/drizzle";
 import { geoShelfSources } from "@notra/db/schema";
 import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
@@ -69,6 +70,16 @@ function scopeWhere(key: GeoShelfStoreKey) {
     eq(geoShelfSources.organizationId, key.organizationId),
     eq(geoShelfSources.projectId, key.projectId)
   );
+}
+
+/**
+ * Scan rows stored before homepages were excluded from the citation sync stay
+ * in the table but out of every read, so the shelf never lists a bare domain.
+ */
+const HIDE_SCAN_ROOT_URLS = sql`not (${geoShelfSources.origin} = 'scan' and ${geoShelfSources.url} ~ ${GEO_SHELF_ROOT_URL_PATTERN_SOURCE})`;
+
+function visibleScopeWhere(key: GeoShelfStoreKey) {
+  return and(scopeWhere(key), HIDE_SCAN_ROOT_URLS);
 }
 
 const placements = geoShelfSources.placements;
@@ -206,7 +217,7 @@ export async function queryGeoShelfSourcePage(
     db
       .select()
       .from(geoShelfSources)
-      .where(and(scopeWhere(key), filter))
+      .where(and(visibleScopeWhere(key), filter))
       .orderBy(
         query.sort.direction === "asc" ? asc(order) : desc(order),
         asc(geoShelfSources.id)
@@ -226,7 +237,7 @@ export async function queryGeoShelfSourcePage(
         dismissed: sql<number>`count(*) filter (where ${filter} and ${opportunityStatus} = 'dismissed')::int`,
       })
       .from(geoShelfSources)
-      .where(scopeWhere(key)),
+      .where(visibleScopeWhere(key)),
   ]);
   const count: GeoShelfPageCountsRow = counts[0] ?? {
     total: 0,
@@ -279,7 +290,7 @@ export async function listPersistedGeoShelfSources(
   const rows = await db
     .select()
     .from(geoShelfSources)
-    .where(scopeWhere(key))
+    .where(visibleScopeWhere(key))
     // `id` breaks ties: batched writes share an `updated_at` timestamp.
     .orderBy(desc(geoShelfSources.updatedAt), desc(geoShelfSources.id));
   return rows.map(toSource);

@@ -4,7 +4,6 @@ import {
   GEO_WRITER_MODEL,
   GEO_WRITER_PLANNER_MAX_TOKENS,
   GEO_WRITER_PLANNER_REPAIR_ATTEMPTS,
-  GEO_WRITER_PLANNER_TEMPERATURE,
 } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
 import { createModel } from "@notra/ai/model";
@@ -49,16 +48,17 @@ import type {
 } from "@notra/ai/types/post-tools";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
   generateText,
   type FinishReason,
+  isStepCount,
   type LanguageModelUsage,
   NoObjectGeneratedError,
   Output,
-  stepCountIs,
   ToolLoopAgent,
 } from "ai";
 import { and, eq } from "drizzle-orm";
@@ -82,11 +82,7 @@ function toTokenUsage(
   route?: AgentTokenUsage["route"]
 ): AgentTokenUsage {
   return {
-    inputTokens: usage?.inputTokens ?? 0,
-    outputTokens: usage?.outputTokens ?? 0,
-    totalTokens: usage?.totalTokens ?? 0,
-    cacheReadTokens: usage?.inputTokenDetails?.cacheReadTokens ?? 0,
-    cacheWriteTokens: usage?.inputTokenDetails?.cacheWriteTokens ?? 0,
+    ...toAgentTokenUsage(usage),
     modelId: GEO_WRITER_MODEL,
     route,
     raw: usage,
@@ -211,9 +207,8 @@ export async function generateGeoContentBrief(
       const result = await generateText({
         model,
         output: Output.object({ schema: geoContentBriefSchema }),
-        system,
+        instructions: system,
         prompt,
-        temperature: GEO_WRITER_PLANNER_TEMPERATURE,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
         providerOptions: withRouterDefaults(undefined, {
           modelId: GEO_WRITER_MODEL,
@@ -359,13 +354,13 @@ async function humanizeMarkdown(
 
   const result = await generateText({
     model,
-    system: GEO_HUMANIZER_SYSTEM,
+    instructions: GEO_HUMANIZER_SYSTEM,
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
     providerOptions: withRouterDefaults(undefined, {
       modelId: GEO_WRITER_MODEL,
     }),
-    experimental_telemetry: buildExperimentalTelemetry({
+    ...buildTelemetryOptions({
       ...options.telemetryMetadata,
       stage: "geo_writer_humanize",
     }),
@@ -473,8 +468,8 @@ export async function runGeoWriter(
       fail: createFailTool(postToolsResult),
     },
     instructions,
-    stopWhen: stepCountIs(GEO_WRITER_MAX_STEPS),
-    experimental_telemetry: buildExperimentalTelemetry({
+    stopWhen: isStepCount(GEO_WRITER_MAX_STEPS),
+    ...buildTelemetryOptions({
       ...telemetryMetadata,
       stage: "geo_writer_draft",
     }),
@@ -496,7 +491,7 @@ export async function runGeoWriter(
   }
 
   const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.totalUsage, routeUsage.route);
+  let usage = toTokenUsage(result.usage, routeUsage.route);
 
   const draft = await db.query.posts.findFirst({
     columns: { markdown: true },

@@ -1008,7 +1008,7 @@ function buildMainAxes(ctx: OptionBuildContext): {
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
-    min: isExpanded ? undefined : yAxisSlot.min,
+    min: isExpanded ? 0 : yAxisSlot.min,
     max: isExpanded ? 1 : yAxisSlot.max,
     interval: isExpanded ? undefined : yAxisSlot.interval,
     scale: !isExpanded && yAxisSlot.scale,

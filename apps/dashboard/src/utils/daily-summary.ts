@@ -1,4 +1,9 @@
-import type { GeoChangesSummary } from "@notra/geo-core/types/geo";
+import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
+import { GEO_CHANGE_KIND_LABELS } from "@notra/geo-core/constants/geo";
+import type {
+  GeoChangeKind,
+  GeoChangesSummary,
+} from "@notra/geo-core/types/geo";
 
 import type {
   BuildDailySummaryInput,
@@ -38,6 +43,35 @@ export function truncatePrompt(prompt: string, maxLength: number) {
   }
 
   return `${collapsed.slice(0, Math.max(maxLength - 1, 1)).trimEnd()}…`;
+}
+
+export function groupDailySummaryItems(
+  items: readonly DailySummaryEmailItem[]
+): DailySummaryEmailItem[] {
+  const grouped = new Map<string, DailySummaryEmailItem>();
+
+  for (const item of items) {
+    const existing = grouped.get(item.id);
+    if (existing) {
+      existing.changes.push(...item.changes);
+    } else {
+      grouped.set(item.id, { ...item, changes: [...item.changes] });
+    }
+  }
+
+  return [...grouped.values()];
+}
+
+export function formatDailySummaryChangeDetail(
+  kind: GeoChangeKind,
+  competitors: readonly string[]
+) {
+  const label = GEO_CHANGE_KIND_LABELS[kind];
+  if (kind !== "competitor_cited" || competitors.length === 0) {
+    return label;
+  }
+
+  return `${label}: ${competitors.join(", ")}`;
 }
 
 export function aggregateMentionTotals(
@@ -115,24 +149,24 @@ export function buildDailySummaryHeadline({
   lost: number;
   mentionRateLabel: string;
 }) {
-  const net = gained - lost;
-  const promptNoun = Math.abs(net) === 1 ? "prompt" : "prompts";
-
-  if (net > 0) {
-    return `You're +${net} ${promptNoun} better than yesterday.`;
+  if (gained > 0 && lost > 0) {
+    const gainedNoun = gained === 1 ? "prompt" : "prompts";
+    return `You gained ${gained} ${gainedNoun} but lost ${lost} yesterday.`;
   }
 
-  if (net < 0) {
-    return `You lost ${Math.abs(net)} ${promptNoun} yesterday.`;
+  if (gained > 0) {
+    const promptNoun = gained === 1 ? "prompt" : "prompts";
+    return `You gained ${gained} ${promptNoun} yesterday.`;
   }
 
-  if (gained === 0 && lost === 0) {
-    return mentionRateLabel === "—"
-      ? "Yesterday's scan finished. Your GEO recap is ready."
-      : `Yesterday's visibility: ${mentionRateLabel}.`;
+  if (lost > 0) {
+    const promptNoun = lost === 1 ? "prompt" : "prompts";
+    return `You lost ${lost} ${promptNoun} yesterday.`;
   }
 
-  return "Gains and losses evened out yesterday.";
+  return mentionRateLabel === "—"
+    ? "Yesterday's scan finished. Your GEO recap is ready."
+    : `Yesterday's visibility: ${mentionRateLabel}.`;
 }
 
 export function emptyChangesSummary(): GeoChangesSummary {
@@ -176,8 +210,6 @@ export function buildDailySummary({
     yesterday.rate,
     previousDay.rate
   );
-  const netChange = changes.gained - changes.lost;
-
   return {
     dateLabel: formatUtcDateLabel(windowStart),
     headline: buildDailySummaryHeadline({
@@ -190,7 +222,6 @@ export function buildDailySummary({
     scansCompleted,
     gained: changes.gained,
     lost: changes.lost,
-    netChange,
     items,
     remainingCount,
   };

@@ -2,6 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_FAMILY_STAT_TREND_HINT } from "@notra/geo-core/constants/geo";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ import { ChartColorScope } from "@/components/charts/chart-color-scope";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
+import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { TrackBrandButton } from "@/components/geo/share-of-voice-brand-tag";
 import { ShareOfVoiceBrandsDialog } from "@/components/geo/share-of-voice-brands-dialog";
@@ -63,9 +65,9 @@ function ShareOfVoiceRankingRow({
     <tr
       className={cn(
         "border-border min-h-12 border-b last:border-b-0",
-        row.own &&
-          "bg-primary/5 [&>td:first-child]:rounded-l-lg [&>td:last-child]:rounded-r-lg",
-        onOpen && "hover:bg-muted/50 cursor-pointer"
+        row.own && "bg-primary/5",
+        onOpen && "cursor-pointer",
+        onOpen && (row.own ? "hover:bg-primary/10" : "hover:bg-muted/50")
       )}
       onClick={
         onOpen
@@ -97,7 +99,7 @@ function ShareOfVoiceRankingRow({
       onPointerEnter={onOpen ? () => onPrefetch?.(row) : undefined}
       tabIndex={onOpen ? 0 : undefined}
     >
-      <td className="text-muted-foreground w-6 py-3 pr-3 align-middle text-xs tabular-nums">
+      <td className="text-muted-foreground w-9 py-3 pr-2 pl-3 align-middle text-xs tabular-nums">
         {row.rank ?? "—"}
       </td>
       <td className="min-w-0 py-3 pr-3 align-middle">
@@ -119,15 +121,17 @@ function ShareOfVoiceRankingRow({
         {formatChartInteger(row.mentions)}
         <span className="sr-only"> mentions</span>
       </td>
-      <td className="w-24 py-3 text-right align-middle whitespace-nowrap">
-        {row.own ? (
-          <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[0.6875rem]">
-            You
-          </span>
-        ) : null}
-        {!row.own && !row.tracked && onTrack ? (
-          <TrackBrandButton brand={row.brand} onTrack={onTrack} />
-        ) : null}
+      <td className="w-24 py-2 pr-3 align-middle whitespace-nowrap">
+        <span className="flex h-7 items-center justify-end">
+          {row.own ? (
+            <span className="bg-primary/10 text-primary inline-flex h-6 items-center rounded-md px-2 text-xs font-medium">
+              You
+            </span>
+          ) : null}
+          {!row.own && !row.tracked && onTrack ? (
+            <TrackBrandButton brand={row.brand} onTrack={onTrack} />
+          ) : null}
+        </span>
       </td>
     </tr>
   );
@@ -147,8 +151,19 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
   const [trackBrand, setTrackBrand] = useState<string | null>(null);
   const { domain: projectDomain } = useGeoActiveProject(organizationId ?? "");
   const ownDomain = projectDomain ?? findOwnBrandDomain(aliases ?? []);
-  const { ranking, own, slices, others, other, config, totalMentions } =
-    buildShareOfVoiceChartModel(props);
+  const {
+    ranking,
+    own,
+    slices,
+    others,
+    other,
+    config,
+    totalMentions,
+    brandCount,
+    mentionSparklines,
+    shareDelta,
+    rankDelta,
+  } = buildShareOfVoiceChartModel(props);
   const summary = own ?? ranking[0];
 
   if (totalMentions === 0) {
@@ -178,10 +193,18 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             variant="table"
             bodyClassName="flex flex-col p-5"
           >
-            <div className="flex items-baseline justify-between gap-3">
+            <div className="flex items-center gap-3">
               <span className="text-3xl font-medium tracking-tight tabular-nums">
                 {formatUsageShare(summary?.share ?? 0)}
               </span>
+              {own ? (
+                <GeoStatDelta
+                  delta={shareDelta}
+                  hint={GEO_FAMILY_STAT_TREND_HINT}
+                  kind="rate"
+                  label="Share of voice"
+                />
+              ) : null}
             </div>
             <div className="relative mx-auto my-2 w-full max-w-72">
               <EChartsPieChart
@@ -250,15 +273,25 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             variant="table"
             bodyClassName="flex flex-col p-5"
           >
-            <div className="mb-5 flex items-baseline justify-between gap-3">
-              <span className="text-3xl font-medium tracking-tight tabular-nums">
-                {summary?.rank ? `#${summary.rank}` : "—"}
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3">
+                <span className="text-3xl font-medium tracking-tight tabular-nums">
+                  {summary?.rank ? `#${summary.rank}` : "—"}
+                </span>
+                {own ? (
+                  <GeoStatDelta
+                    delta={rankDelta}
+                    hint={GEO_FAMILY_STAT_TREND_HINT}
+                    kind="position"
+                    label="Rank"
+                  />
+                ) : null}
               </span>
-              <span className="text-muted-foreground text-xs">
-                {summary?.rank
-                  ? "By share of mentions"
-                  : "No mentions recorded"}
-              </span>
+              {summary?.rank ? (
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  of {formatChartInteger(brandCount)} brands
+                </span>
+              ) : null}
             </div>
             <table
               aria-label="Brand ranking by share of voice"
@@ -266,7 +299,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             >
               <thead>
                 <tr className="text-muted-foreground border-border border-b text-[0.6875rem]">
-                  <th className="w-6 py-0 pr-3 pb-2 font-normal">
+                  <th className="w-9 py-0 pr-2 pb-2 pl-3 font-normal">
                     <span className="sr-only">Rank</span>
                   </th>
                   <th className="min-w-0 py-0 pr-3 pb-2 text-left font-normal">
@@ -278,7 +311,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
                     Mentions
                   </th>
-                  <th className="w-24 py-0 pb-2 font-normal">
+                  <th className="w-24 py-0 pr-3 pb-2 font-normal">
                     <span className="sr-only">Tracking</span>
                   </th>
                 </tr>
@@ -321,6 +354,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
           aliases={aliases}
           companyName={companyName}
           competitors={competitors}
+          mentionSparklines={mentionSparklines}
           onBrandClick={onSliceClick}
           onBrandPointerEnter={onSlicePointerEnter}
           onOpenChange={setOtherOpen}

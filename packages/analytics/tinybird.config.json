@@ -2,7 +2,6 @@
   "include": [
     "src/tinybird/datasources.ts",
     "src/tinybird/pipes/social.ts",
-    "src/tinybird/pipes/ai-traffic.ts",
     "src/tinybird/pipes/geo-traffic.ts"
   ],
   "token": "${TINYBIRD_TOKEN}",

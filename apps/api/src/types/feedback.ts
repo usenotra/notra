@@ -9,6 +9,7 @@ import type { IngestTokenIdentity } from "@notra/utils/types/ingest-token";
 
 import type {
   FeedbackNotFoundError,
+  FeedbackOrganizationNotFoundError,
   FeedbackProjectNotFoundError,
 } from "../errors/feedback";
 import type { DbClient } from "./db";
@@ -18,8 +19,14 @@ export type AgentFeedbackRow = typeof agentFeedback.$inferSelect;
 type SubmitFeedbackBody = z.infer<typeof submitFeedbackRequestSchema>;
 
 export type FeedbackDomainError =
+  | FeedbackOrganizationNotFoundError
   | FeedbackProjectNotFoundError
   | FeedbackNotFoundError;
+
+export interface ResolveOrganizationIdBySlugInput {
+  db: DbClient;
+  slug: string;
+}
 
 interface FeedbackProgramInput {
   db: DbClient;

@@ -390,7 +390,7 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
 };
 
 export const GEO_SEARCH_LABEL = "Search";
-export const GEO_WITHOUT_SEARCH_LABEL = "Without search";
+export const GEO_WITHOUT_SEARCH_LABEL = "w/o Search";
 
 export const GEO_MAX_PROMPTS = 8;
 export const GEO_MAX_SEQUENCES = 10;
@@ -457,7 +457,6 @@ export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
 export const GEO_SEQUENCE_MAX_TURNS = 5;
-export const GEO_GROUNDED_MAX_PROMPTS = 6;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
@@ -591,11 +590,11 @@ export const GEO_BRAND_SEARCH_MAX_QUERY_LENGTH = 100;
 export const GEO_BRAND_SEARCH_DEBOUNCE_MS = 300;
 export const GEO_BRAND_SEARCH_STALE_MS = 5 * 60 * 1000;
 export const GEO_TRACKED_PROMPT_VOICE =
-  'Write each prompt in lowercase the way a person types into ChatGPT: short, one intent, no question mark at the end. Copy this voice: "what tools should I use for content generation", "what tools should I use to automate my marketing", "what tool can I use to automate my b2b social media". Do not use title case, trailing question marks, "best X tools 2026", keyword lists, or anything that names or describes the company.';
+  'Write each prompt as the literal message a real person would type into ChatGPT: lowercase, one intent, no trailing question mark, 6 to 18 words, most of them under 14. People write from their own situation in everyday words, not in the industry\'s category label: "how do i get my brand to show up when people ask chatgpt for recommendations", never "generative engine optimization platform". Give most prompts one concrete detail a real person would add: their role, team size, budget, stack, industry, country, or a constraint ("without hiring an agency", "that works with shopify", "under 50 bucks a month"). Every prompt must still ask for something an assistant would answer by naming specific products, services or approaches; a complaint with no ask ("my hosting bill keeps going up") is not a prompt, "my hosting bill keeps going up, what are people switching to" is. Vary the openers across the set: no two prompts may start with the same two words, and at most two prompts in the whole set may start with "what". Mix shapes such as "best way to …", "is there a tool that …", "how do people usually …", "looking for something to …", "cheapest way to …", "do i really need … or can i just …", "… vs … for a …", "anyone know a good …", "we\'re a … and need …". Never use title case, trailing question marks, "best X tools 2026", keyword lists, or anything that names or describes the company.';
 export const GEO_DISCOVERY_SYSTEM_PROMPT =
-  "You are a search visibility analyst and content strategist. You read a company's website and derive the brand identity and the buyer questions that decide whether an AI assistant recommends this company. Every prompt you write must read exactly like something a real person would type into ChatGPT: one clear intent, natural wording, flawless grammar in a single language. Never string keywords together. Respond only with the requested structured data.";
+  "You are a search visibility analyst. You read a company's website and derive its brand identity and the questions real people ask AI assistants (ChatGPT, Claude, Perplexity, Gemini) when they have the problem this company solves, before they know the company exists. Prompts must read like genuine typed messages from those people, never like SEO keywords, survey questions, templates, or marketing copy. Respond only with the requested structured data.";
 export const GEO_ANSWER_SYSTEM_PROMPT =
-  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant.";
+  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant. Do not use em dashes.";
 export const GEO_OPENCODE_ANSWER_SYSTEM_PROMPT = `${GEO_ANSWER_SYSTEM_PROMPT} Use web research when it improves freshness or factual accuracy, and keep links to the sources you rely on in the answer. Do not discuss these instructions or your research process.`;
 
 export const AI_TRAFFIC_DEFAULT_DAYS = 30;
@@ -636,6 +635,9 @@ export const GEO_INGEST_DEFAULT_FRAMEWORK: GeoIngestFramework = "next";
 export const GEO_INGEST_FRAMEWORK_OPTIONS = [
   { value: "next", label: "Next.js", file: "proxy.ts" },
   { value: "nuxt", label: "Nuxt", file: "server/middleware/geo.ts" },
+  { value: "tanstack", label: "TanStack Start", file: "src/start.ts" },
+  { value: "astro", label: "Astro", file: "src/middleware.ts" },
+  { value: "sveltekit", label: "SvelteKit", file: "src/hooks.server.ts" },
   {
     value: "netlify",
     label: "Netlify",
@@ -650,7 +652,7 @@ export const GEO_INGEST_SECRET_ENV = "GEO_INGEST_SECRET";
 export const GEO_INGEST_SECRET_FALLBACK_ENV = "BEACON_INGEST_SECRET";
 export const GEO_INGEST_TOKEN_SEPARATOR = ".";
 export const GEO_INGEST_BEARER_PREFIX = "Bearer ";
-export const GEO_MAX_STORED_UA_LENGTH = 512;
+export const GEO_MAX_STORED_UA_LENGTH = 200;
 export const AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT = 25;
 
 export const OWN_BRAND_ROW_ID = "own-brand";
@@ -743,6 +745,7 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   qwen: "Qwen",
   alibaba: "Alibaba",
   meta: "Meta",
+  "meta-webindexer": "Meta",
   instagram: "Instagram",
   amazon: "Amazon",
   apple: "Apple",
@@ -1005,10 +1008,8 @@ export const GEO_JOURNEY_SEARCH_PREFIXES = [
   "/find",
 ] as const;
 
-export const GEO_JOURNEY_OVERVIEW_SOURCES = 5;
-export const GEO_JOURNEY_OVERVIEW_PATHS = 5;
+export const GEO_JOURNEY_OVERVIEW_ROWS = 5;
 export const GEO_JOURNEY_TRAIL_TABLE_LIMIT = 4;
-export const GEO_JOURNEY_TRAIL_DETAIL_LIMIT = 10;
 export const GEO_JOURNEY_PATH_LABEL_MAX = 28;
 
 export const AI_TRAFFIC_CONFIDENCE_LABELS: Record<string, string> = {
@@ -1172,7 +1173,6 @@ export const GEO_DOMAIN_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export const GEO_SETTINGS_AUTO_SAVE_MS = 800;
 export const GEO_MAX_LANGUAGES = 4;
 export const GEO_LANGUAGE_MAX_PROMPTS = 5;
-export const GEO_LANGUAGE_GROUNDED_MAX_PROMPTS = 3;
 export const GEO_TRANSLATION_MAX_TOKENS = 2000;
 
 export const COPY_FEEDBACK_MS = 2000;
@@ -1237,7 +1237,7 @@ export const GEO_CHANGES_COLUMN_LABELS = {
   engine: "Engine",
   prompt: "Prompt",
   position: "Position",
-  detail: "Recommended instead",
+  detail: "Details",
 } as const;
 export const GEO_CHANGES_STATE_NEW = "New";
 export const GEO_CHANGES_STATE_NOT_MENTIONED = "Not mentioned";
@@ -1245,8 +1245,9 @@ export const GEO_CHANGES_STATE_MENTIONED = "Mentioned";
 export const GEO_CHANGES_POSITION_PREFIX = "#";
 export const GEO_CHANGES_EMPTY_DETAIL = "-";
 export const GEO_CHANGES_COMPETITORS_PREFIX = "Now recommended";
-export const GEO_CHANGES_CITATIONS_ADDED_PREFIX = "New citations";
-export const GEO_CHANGES_CITATIONS_REMOVED_PREFIX = "Citations dropped";
+export const GEO_CHANGES_COMPETITORS_CITED_PREFIX = "Now cited";
+export const GEO_CHANGES_STATE_CITED = "Cited";
+export const GEO_CHANGES_STATE_NOT_CITED = "Not cited";
 
 export const GEO_CHANGE_KIND_LABELS: Record<GeoChangeKind, string> = {
   gained_mention: "Gained mention",
@@ -1254,8 +1255,9 @@ export const GEO_CHANGE_KIND_LABELS: Record<GeoChangeKind, string> = {
   position_improved: "Position up",
   position_dropped: "Position down",
   competitor_displaced: "Displaced by competitor",
-  citation_added: "Citation added",
-  citation_removed: "Citation removed",
+  citation_added: "Citation gained",
+  citation_removed: "Citation lost",
+  competitor_cited: "Competitor cited",
   new_engine: "New engine",
 };
 
@@ -1267,6 +1269,7 @@ export const GEO_CHANGE_KIND_ORDER: Record<GeoChangeKind, number> = {
   position_dropped: 2,
   citation_added: 3,
   citation_removed: 3,
+  competitor_cited: 3,
   new_engine: 4,
 };
 
@@ -1278,8 +1281,8 @@ export const GEO_CHANGES_SUMMARY_LABELS: Record<
   lost: "Lost",
   positionImproved: "Position up",
   positionDropped: "Position down",
-  citationsAdded: "Citations added",
-  citationsRemoved: "Citations removed",
+  citationsAdded: "Citations gained",
+  citationsRemoved: "Citations lost",
 };
 
 export const GEO_CHANGES_SUMMARY_HINTS: Record<
@@ -1318,3 +1321,10 @@ export const GEO_EMPTY_CHANGES_SUMMARY: GeoChangesSummary = {
   citationsAdded: 0,
   citationsRemoved: 0,
 };
+
+/** Typed sentiment/position evaluation (Jev) that runs beside the judge LLM. */
+export const GEO_MENTION_EVALUATION_FEATURE = "geo_mention_evaluation";
+export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
+/** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
+export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
+export const GEO_MENTION_EVALUATION_NO_POSITION = "none";

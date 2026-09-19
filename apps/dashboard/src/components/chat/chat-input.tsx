@@ -63,11 +63,16 @@ import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  type Dispatch,
+  type KeyboardEvent,
   type Ref,
+  type RefObject,
+  type SetStateAction,
   useCallback,
   useEffect,
   useId,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -77,6 +82,7 @@ import { toast } from "sonner";
 
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
+import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -203,6 +209,13 @@ export function ModelIcon({
 const THINKING_LEVELS = ["off", "low", "medium", "high"] as const;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 
+const THINKING_LABELS: Record<ThinkingLevel, string> = {
+  off: "None",
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
 function getSubmitTooltipText({
   canQueue,
   isEmpty,
@@ -236,6 +249,143 @@ function getSubmitTooltipText({
   return "Enter to send. Shift+Enter for a new line.";
 }
 
+function getComposerSendState({
+  attachmentCount,
+  hasUnsupportedAttachments,
+  isEmpty,
+  isLoading,
+  isQueued,
+  isStopping,
+  isUsageBlocked,
+  onCancelQueue,
+  onSend,
+  onStop,
+  pendingUploadCount,
+}: {
+  attachmentCount: number;
+  hasUnsupportedAttachments: boolean;
+  isEmpty: boolean;
+  isLoading: boolean;
+  isQueued: boolean;
+  isStopping: boolean;
+  isUsageBlocked: boolean;
+  onCancelQueue: () => void;
+  onSend: () => void;
+  onStop?: () => void;
+  pendingUploadCount: number;
+}) {
+  const hasAnyContent =
+    !isEmpty || attachmentCount > 0 || pendingUploadCount > 0;
+  const canQueue =
+    isLoading && !isEmpty && attachmentCount === 0 && pendingUploadCount === 0;
+
+  let disabled = hasUnsupportedAttachments || !hasAnyContent;
+  if (isQueued || canQueue) {
+    disabled = false;
+  } else if (isLoading && isEmpty) {
+    disabled = !onStop || isStopping;
+  } else if (isUsageBlocked) {
+    disabled = true;
+  }
+
+  let onClick = onSend;
+  if (isQueued) {
+    onClick = onCancelQueue;
+  } else if (isLoading && isEmpty && onStop) {
+    onClick = onStop;
+  }
+
+  let icon: "send" | "stop" | "queued" = "send";
+  if (isQueued) {
+    icon = "queued";
+  } else if (isLoading && isEmpty) {
+    icon = "stop";
+  }
+
+  let label = "Send message";
+  if (isLoading && isEmpty) {
+    label = "Stop generating";
+  } else if (canQueue) {
+    label = "Queue message";
+  }
+
+  return {
+    busy: Boolean(isLoading && isStopping),
+    disabled,
+    icon,
+    label,
+    onClick,
+    tooltip: getSubmitTooltipText({
+      canQueue,
+      isEmpty,
+      isLoading,
+      isQueued,
+      isStopping,
+      isUsageBlocked,
+    }),
+  };
+}
+
+function ChatComposerSendButton({
+  attachmentCount,
+  hasUnsupportedAttachments,
+  isEmpty,
+  isLoading,
+  isQueued,
+  isStopping,
+  isUsageBlocked,
+  onCancelQueue,
+  onSend,
+  onStop,
+  pendingUploadCount,
+}: {
+  attachmentCount: number;
+  hasUnsupportedAttachments: boolean;
+  isEmpty: boolean;
+  isLoading: boolean;
+  isQueued: boolean;
+  isStopping: boolean;
+  isUsageBlocked: boolean;
+  onCancelQueue: () => void;
+  onSend: () => void;
+  onStop?: () => void;
+  pendingUploadCount: number;
+}) {
+  const send = getComposerSendState({
+    attachmentCount,
+    hasUnsupportedAttachments,
+    isEmpty,
+    isLoading,
+    isQueued,
+    isStopping,
+    isUsageBlocked,
+    onCancelQueue,
+    onSend,
+    onStop,
+    pendingUploadCount,
+  });
+
+  return (
+    <Composer.Send
+      busy={send.busy}
+      disabled={send.disabled}
+      label={send.label}
+      onClick={send.onClick}
+      tooltip={send.tooltip}
+    >
+      {send.icon === "queued" ? (
+        <Loader2Icon className="size-4 animate-spin" />
+      ) : (
+        <HugeiconsIcon
+          className="size-4"
+          icon={send.icon === "stop" ? StopIcon : ArrowUp02Icon}
+          strokeWidth={send.icon === "send" ? 2 : undefined}
+        />
+      )}
+    </Composer.Send>
+  );
+}
+
 function getContextPickerDisabledReason(
   isLoading: boolean,
   isQueued: boolean
@@ -249,6 +399,102 @@ function getContextPickerDisabledReason(
   return null;
 }
 
+function getChatComposerUsage({
+  checkResult,
+  customer,
+  externalError,
+  internalError,
+}: {
+  checkResult: {
+    allowed?: boolean;
+    balance?: { remaining?: number } | null;
+  } | null;
+  customer: Parameters<typeof hasIncludedChatPlan>[0];
+  externalError?: string | null;
+  internalError: string | null;
+}) {
+  const chatIncludedInPlan = hasIncludedChatPlan(customer);
+  const remainingChatCredits =
+    typeof checkResult?.balance?.remaining === "number"
+      ? checkResult.balance.remaining
+      : null;
+  const shouldShowLowCredits =
+    !chatIncludedInPlan &&
+    remainingChatCredits !== null &&
+    remainingChatCredits > 0 &&
+    remainingChatCredits <= 10;
+
+  return {
+    chatIncludedInPlan,
+    isUsageBlocked: checkResult?.allowed === false && !chatIncludedInPlan,
+    remainingChatCredits,
+    shouldShowLowCredits,
+    usageLimitError:
+      externalError ??
+      internalError ??
+      (checkResult?.allowed === false && !chatIncludedInPlan
+        ? CHAT_INPUT_LIMIT_MESSAGE
+        : null),
+  };
+}
+
+function getComposerNudgeVisibility({
+  attachmentCount,
+  contextCount,
+  pendingUploadCount,
+  shouldShowLowCredits,
+  usageLimitError,
+}: {
+  attachmentCount: number;
+  contextCount: number;
+  pendingUploadCount: number;
+  shouldShowLowCredits: boolean;
+  usageLimitError: string | null;
+}) {
+  return (
+    contextCount > 0 ||
+    attachmentCount > 0 ||
+    pendingUploadCount > 0 ||
+    shouldShowLowCredits ||
+    Boolean(usageLimitError)
+  );
+}
+
+function ChatComposerAttachButton({
+  attachmentCount,
+  disabled,
+  fileInputRef,
+  pendingUploadCount,
+  tooltip,
+}: {
+  attachmentCount: number;
+  disabled: boolean;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  pendingUploadCount: number;
+  tooltip: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Composer.ToolbarButton
+            aria-label="Attach files"
+            className="size-7 justify-center px-0"
+            disabled={
+              disabled ||
+              attachmentCount + pendingUploadCount >= MAX_CHAT_ATTACHMENTS
+            }
+            onClick={() => fileInputRef.current?.click()}
+          />
+        }
+      >
+        <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+      </TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function ContextChipIcon({ item }: { item: ContextItem }) {
   if (item.type === "github-repo") {
     return <Github className="size-3.5 shrink-0" />;
@@ -257,6 +503,577 @@ function ContextChipIcon({ item }: { item: ContextItem }) {
     return <Linear className="size-3.5 shrink-0" />;
   }
   return <McpIcon className="size-3.5" />;
+}
+
+interface PendingUploadItem {
+  id: string;
+  filename: string;
+}
+
+function ChatComposerDropOverlay({
+  acceptedFileTypesLabel,
+}: {
+  acceptedFileTypesLabel: string;
+}) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      aria-hidden="true"
+      className="fade-in-0 animate-in bg-background/75 duration-fast pointer-events-none fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
+    >
+      <div className="flex flex-col items-center gap-5">
+        <HugeiconsIcon
+          className="text-foreground size-14"
+          icon={Upload04Icon}
+          strokeWidth={1.5}
+        />
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-foreground text-2xl font-semibold tracking-tight">
+            Add Attachment
+          </p>
+          <p className="text-muted-foreground text-sm">
+            Drop a file here to attach it to your message
+          </p>
+          {acceptedFileTypesLabel ? (
+            <p className="text-muted-foreground/70 text-xs">
+              Accepted file types: {acceptedFileTypesLabel}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function ChatMentionMenu({
+  contextOptionsCount,
+  filteredMentionItems,
+  insertMention,
+  isInContext,
+  mentionIndex,
+  mentionListRef,
+  organizationSlug,
+}: {
+  contextOptionsCount: number;
+  filteredMentionItems: ChatContextOption[];
+  insertMention: (option: ChatContextOption) => void;
+  isInContext: (item: ContextItem) => boolean;
+  mentionIndex: number;
+  mentionListRef: Ref<HTMLDivElement>;
+  organizationSlug?: string;
+}) {
+  return (
+    <div
+      className="absolute bottom-full left-1 z-50 mb-1 w-72"
+      ref={mentionListRef}
+    >
+      <div className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md">
+        {filteredMentionItems.length > 0 ? (
+          <>
+            {filteredMentionItems.map((option, idx) => {
+              const inContext = isInContext(option.contextItem);
+              const previousOption = filteredMentionItems[idx - 1];
+              const startsGroup =
+                idx === 0 ||
+                (previousOption?.kind === "mcp") !== (option.kind === "mcp");
+              return (
+                <div key={option.id}>
+                  {startsGroup ? (
+                    <div className="px-2 py-1.5 text-xs font-semibold">
+                      {option.kind === "mcp" ? "MCP tools" : "Context"}
+                    </div>
+                  ) : null}
+                  <button
+                    className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
+                      idx === mentionIndex
+                        ? "bg-accent text-accent-foreground"
+                        : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      insertMention(option);
+                    }}
+                    type="button"
+                  >
+                    <ChatContextOptionContent option={option} />
+                    {inContext ? (
+                      <span className="text-success shrink-0 text-xs">
+                        Added
+                      </span>
+                    ) : null}
+                  </button>
+                </div>
+              );
+            })}
+            {organizationSlug ? (
+              <>
+                <div className="bg-border -mx-1 my-1 h-px" />
+                <Link
+                  className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
+                  href={`/${organizationSlug}/integrations`}
+                  onMouseDown={(event) => {
+                    event.stopPropagation();
+                  }}
+                >
+                  Manage integrations
+                </Link>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-1 px-3 py-4 text-center">
+            <span className="text-muted-foreground text-xs">
+              {contextOptionsCount === 0
+                ? "No context or MCP tools connected"
+                : "No matches found"}
+            </span>
+            {contextOptionsCount === 0 && organizationSlug ? (
+              <Link
+                className="text-primary text-xs hover:underline"
+                href={`/${organizationSlug}/integrations`}
+              >
+                Connect integrations
+              </Link>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ChatComposerNudge({
+  attachments,
+  context,
+  isQueued,
+  organizationSlug,
+  pendingUploads,
+  remainingChatCredits,
+  removeAttachment,
+  removeContext,
+  setPreviewAttachment,
+  shouldShowLowCredits,
+  usageLimitError,
+}: {
+  attachments: ChatAttachment[];
+  context: ContextItem[];
+  isQueued: boolean;
+  organizationSlug?: string;
+  pendingUploads: PendingUploadItem[];
+  remainingChatCredits: number;
+  removeAttachment: (key: string) => void;
+  removeContext: (item: ContextItem) => void;
+  setPreviewAttachment: (attachment: ChatAttachment) => void;
+  shouldShowLowCredits: boolean;
+  usageLimitError: string | null;
+}) {
+  const hasContextChips = context.length > 0;
+  const hasAttachmentChips =
+    attachments.length > 0 || pendingUploads.length > 0;
+  return (
+    <Composer.Nudge
+      action={
+        usageLimitError && organizationSlug ? (
+          <Button
+            nativeButton={false}
+            render={<Link href={`/${organizationSlug}/settings/billing`} />}
+            size="xs"
+            variant="outline"
+          >
+            Upgrade
+          </Button>
+        ) : null
+      }
+      title={
+        shouldShowLowCredits &&
+        !hasContextChips &&
+        !hasAttachmentChips &&
+        !usageLimitError
+          ? `${remainingChatCredits} chat messages left`
+          : undefined
+      }
+    >
+      {hasContextChips || hasAttachmentChips ? (
+        <>
+          {context.map((item) => {
+            const label = getReferenceDisplay(item);
+            return (
+              <Composer.Chip
+                icon={<ContextChipIcon item={item} />}
+                key={contextItemKey(item)}
+                label={label}
+                onRemove={
+                  isQueued
+                    ? undefined
+                    : () => {
+                        removeContext(item);
+                      }
+                }
+                removeLabel={`Remove ${label}`}
+              />
+            );
+          })}
+          {attachments.map((attachment) => (
+            <Composer.Chip
+              icon={
+                isImageMimeType(attachment.mediaType) ? (
+                  <Image
+                    alt={attachment.filename}
+                    className="size-4 rounded object-cover"
+                    height={16}
+                    src={attachment.url}
+                    width={16}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    className="text-muted-foreground size-3.5"
+                    icon={File02Icon}
+                  />
+                )
+              }
+              key={attachment.key}
+              label={attachment.filename}
+              onClick={() => {
+                setPreviewAttachment(attachment);
+              }}
+              onRemove={
+                isQueued
+                  ? undefined
+                  : () => {
+                      removeAttachment(attachment.key);
+                    }
+              }
+            />
+          ))}
+          {pendingUploads.map((pending) => (
+            <Composer.Chip
+              icon={<Loader2Icon className="size-3 animate-spin" />}
+              key={pending.id}
+              label={pending.filename}
+              pending
+            />
+          ))}
+          {shouldShowLowCredits ? (
+            <span className="text-muted-foreground text-xs">
+              {remainingChatCredits} chat messages left
+            </span>
+          ) : null}
+        </>
+      ) : null}
+      {usageLimitError ? (
+        <span className="flex min-w-0 items-center gap-1.5 text-sm">
+          <HugeiconsIcon
+            className="text-warning size-4 shrink-0"
+            icon={Alert02Icon}
+          />
+          <span className="truncate">{usageLimitError}</span>
+        </span>
+      ) : null}
+    </Composer.Nudge>
+  );
+}
+
+function ChatComposerModelPicker({
+  attachmentsRef,
+  currentModel,
+  isLoading,
+  isModelPickerOpen,
+  isQueued,
+  model,
+  onModelChange,
+  setIsModelPickerOpen,
+}: {
+  attachmentsRef: RefObject<{ mediaType: string }[]>;
+  currentModel: (typeof AVAILABLE_MODELS)[number];
+  isLoading: boolean;
+  isModelPickerOpen: boolean;
+  isQueued: boolean;
+  model: string;
+  onModelChange?: (model: string) => void;
+  setIsModelPickerOpen: (open: boolean) => void;
+}) {
+  return (
+    <Popover modal onOpenChange={setIsModelPickerOpen} open={isModelPickerOpen}>
+      <PopoverTrigger
+        render={<Composer.ToolbarButton disabled={isLoading || isQueued} />}
+      >
+        <ModelIcon className="size-3.5" provider={currentModel.provider} />
+        {currentModel.label}
+        <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-72 p-0"
+        showBackdrop
+        sideOffset={6}
+      >
+        <Command>
+          <CommandInput placeholder="Search models..." />
+          <CommandList>
+            <CommandEmpty>No models found.</CommandEmpty>
+            <CommandGroup>
+              {AVAILABLE_MODELS.map((availableModel) => (
+                <CommandItem
+                  data-checked={model === availableModel.id}
+                  key={availableModel.id}
+                  keywords={[
+                    availableModel.label,
+                    availableModel.provider,
+                    availableModel.description,
+                  ]}
+                  onSelect={() => {
+                    const attachments = attachmentsRef.current ?? [];
+                    if (
+                      availableModel.id === "openai/gpt-5.4" &&
+                      attachments.some(
+                        (attachment) =>
+                          !isAllowedChatMimeType(
+                            attachment.mediaType,
+                            availableModel.id
+                          )
+                      )
+                    ) {
+                      toast.error(
+                        getUnsupportedAttachmentMessage(availableModel.label)
+                      );
+                      return;
+                    }
+                    onModelChange?.(availableModel.id);
+                    setIsModelPickerOpen(false);
+                  }}
+                  value={availableModel.id}
+                >
+                  <ModelIcon
+                    className="size-4 shrink-0"
+                    provider={availableModel.provider}
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm">{availableModel.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {availableModel.description}
+                    </span>
+                    <span className="text-muted-foreground/70 text-[0.625rem]">
+                      {availableModel.pricing}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ChatComposerThinkingMenu({
+  isLoading,
+  isQueued,
+  onThinkingLevelChange,
+  thinkingLevel,
+}: {
+  isLoading: boolean;
+  isQueued: boolean;
+  onThinkingLevelChange?: (level: ThinkingLevel) => void;
+  thinkingLevel: ThinkingLevel;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Composer.ToolbarButton disabled={isLoading || isQueued} />}
+      >
+        <HugeiconsIcon className="size-3.5" icon={AiBrain01Icon} />
+        {THINKING_LABELS[thinkingLevel]}
+        <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-44">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Thinking effort</DropdownMenuLabel>
+        </DropdownMenuGroup>
+        {THINKING_LEVELS.map((level) => (
+          <DropdownMenuItem
+            key={level}
+            onClick={() => onThinkingLevelChange?.(level)}
+          >
+            <span className="text-sm capitalize">
+              {level === "off" ? "Off" : THINKING_LABELS[level]}
+            </span>
+            {thinkingLevel === level ? (
+              <HugeiconsIcon
+                className="text-primary ml-auto size-3.5"
+                icon={Tick02Icon}
+              />
+            ) : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function ChatComposerContextPicker({
+  addContext,
+  contextOptions,
+  contextPickerDisabledReason,
+  contextPickerId,
+  integrationContextOptions,
+  isContextPickerOpen,
+  isInContext,
+  isLoading,
+  isQueued,
+  mcpToolOptions,
+  organizationSlug,
+  removeContext,
+  setIsContextPickerOpen,
+}: {
+  addContext: (option: ChatContextOption) => void;
+  contextOptions: ChatContextOption[];
+  contextPickerDisabledReason: string | null;
+  contextPickerId: string;
+  integrationContextOptions: ChatContextOption[];
+  isContextPickerOpen: boolean;
+  isInContext: (item: ContextItem) => boolean;
+  isLoading: boolean;
+  isQueued: boolean;
+  mcpToolOptions: ChatContextOption[];
+  organizationSlug?: string;
+  removeContext: (item: ContextItem) => void;
+  setIsContextPickerOpen: (open: boolean) => void;
+}) {
+  return (
+    <Tooltip disabled={isContextPickerOpen}>
+      <TooltipTrigger
+        render={
+          contextPickerDisabledReason ? (
+            // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
+            <span
+              aria-disabled="true"
+              aria-label="Add tools or context"
+              className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
+              role="button"
+              tabIndex={0}
+            />
+          ) : (
+            <span className="inline-flex size-7 shrink-0 items-center justify-center" />
+          )
+        }
+      >
+        <Popover
+          modal
+          onOpenChange={setIsContextPickerOpen}
+          open={isContextPickerOpen}
+        >
+          <PopoverTrigger
+            render={
+              <Composer.ToolbarButton
+                aria-controls={contextPickerId}
+                aria-expanded={isContextPickerOpen}
+                aria-haspopup="listbox"
+                aria-label="Add tools or context"
+                className="size-7 justify-center px-0"
+                disabled={isLoading || isQueued}
+                role="combobox"
+              />
+            }
+          >
+            <HugeiconsIcon className="size-4" icon={AtIcon} />
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-80 p-0"
+            id={contextPickerId}
+            showBackdrop
+            sideOffset={6}
+          >
+            <Command>
+              <CommandInput placeholder="Search tools and context..." />
+              <CommandList>
+                <CommandEmpty>
+                  {contextOptions.length === 0
+                    ? "No matching integrations."
+                    : "No matching tools or context found."}
+                </CommandEmpty>
+                {contextOptions.length === 0 && organizationSlug ? (
+                  <ChatContextConnectSuggestions
+                    onSelect={() => setIsContextPickerOpen(false)}
+                    organizationSlug={organizationSlug}
+                  />
+                ) : null}
+                {integrationContextOptions.length > 0 ? (
+                  <CommandGroup heading="Context">
+                    {integrationContextOptions.map((option) => {
+                      const inContext = isInContext(option.contextItem);
+                      return (
+                        <CommandItem
+                          data-checked={inContext}
+                          key={option.id}
+                          keywords={[option.searchText]}
+                          onSelect={() => {
+                            if (inContext) {
+                              removeContext(option.contextItem);
+                            } else {
+                              addContext(option);
+                            }
+                            setIsContextPickerOpen(false);
+                          }}
+                          value={option.id}
+                        >
+                          <ChatContextOptionContent option={option} />
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                ) : null}
+                {mcpToolOptions.length > 0 ? (
+                  <CommandGroup heading="MCP tools">
+                    {mcpToolOptions.map((option) => {
+                      const inContext = isInContext(option.contextItem);
+                      return (
+                        <CommandItem
+                          data-checked={inContext}
+                          key={option.id}
+                          keywords={[option.searchText]}
+                          onSelect={() => {
+                            if (inContext) {
+                              removeContext(option.contextItem);
+                            } else {
+                              addContext(option);
+                            }
+                            setIsContextPickerOpen(false);
+                          }}
+                          value={option.id}
+                        >
+                          <ChatContextOptionContent option={option} />
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                ) : null}
+              </CommandList>
+              {organizationSlug ? (
+                <div className="border-border border-t p-1">
+                  <Link
+                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
+                    href={`/${organizationSlug}/integrations`}
+                    onClick={() => setIsContextPickerOpen(false)}
+                  >
+                    Manage integrations
+                  </Link>
+                </div>
+              ) : null}
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </TooltipTrigger>
+      <TooltipContent>
+        {contextPickerDisabledReason ?? "Tools and context"}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 interface ChatInputAdvancedProps {
@@ -284,22 +1101,180 @@ interface ChatInputAdvancedProps {
   ref?: Ref<ChatInputHandle>;
 }
 
-const THINKING_LABELS: Record<ThinkingLevel, string> = {
-  off: "None",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
-
-interface PendingUploadItem {
-  id: string;
-  filename: string;
-}
-
 interface QueuedSendSnapshot {
   value: string;
   attachments: ChatAttachment[];
   pendingUploadIds: string[];
+}
+
+function handleComposerEditorKeyDown(
+  event: KeyboardEvent<HTMLDivElement>,
+  {
+    editor,
+    filteredMentionItems,
+    handleSend,
+    insertMention,
+    mentionAnchorRef,
+    mentionIndex,
+    mentionQuery,
+    setMentionIndex,
+    setMentionQuery,
+  }: {
+    editor: HTMLDivElement | null;
+    filteredMentionItems: ChatContextOption[];
+    handleSend: () => void;
+    insertMention: (option: ChatContextOption) => void;
+    mentionAnchorRef: RefObject<{ node: Node; offset: number } | null>;
+    mentionIndex: number;
+    mentionQuery: string | null;
+    setMentionIndex: Dispatch<SetStateAction<number>>;
+    setMentionQuery: Dispatch<SetStateAction<string | null>>;
+  }
+) {
+  if (mentionQuery !== null && filteredMentionItems.length > 0) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setMentionIndex((prev) =>
+        prev < filteredMentionItems.length - 1 ? prev + 1 : 0
+      );
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setMentionIndex((prev) =>
+        prev > 0 ? prev - 1 : filteredMentionItems.length - 1
+      );
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const selected = filteredMentionItems[mentionIndex];
+      if (selected) {
+        insertMention(selected);
+      }
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setMentionQuery(null);
+      mentionAnchorRef.current = null;
+      return;
+    }
+  }
+
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    handleSend();
+    return;
+  }
+
+  if (event.key === "Enter" && event.shiftKey) {
+    event.preventDefault();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const br = document.createElement("br");
+    range.insertNode(br);
+    const after = document.createRange();
+    after.setStartAfter(br);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+    editor?.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+function sendOrQueueComposer({
+  chatIncludedInPlan,
+  check,
+  clearComposer,
+  clearError,
+  customer,
+  editor,
+  hasUnsupportedAttachmentsForModel,
+  isLoading,
+  isUploading,
+  isUsageBlocked,
+  onSend,
+  performSend,
+  readEditorText,
+  setInternalError,
+  setPendingSend,
+  attachments,
+  pendingUploads,
+}: {
+  attachments: ChatAttachment[];
+  chatIncludedInPlan: boolean;
+  check: (input: {
+    featureId: string;
+    requiredBalance: number;
+  }) => { allowed?: boolean } | null | undefined;
+  clearComposer: () => void;
+  clearError: () => void;
+  customer: unknown;
+  editor: HTMLDivElement;
+  hasUnsupportedAttachmentsForModel: boolean;
+  isLoading: boolean;
+  isUploading: boolean;
+  isUsageBlocked: boolean;
+  onSend?: (value: string, attachments: ChatAttachment[]) => void;
+  performSend: () => boolean;
+  pendingUploads: PendingUploadItem[];
+  readEditorText: () => string;
+  setInternalError: Dispatch<SetStateAction<string | null>>;
+  setPendingSend: Dispatch<SetStateAction<QueuedSendSnapshot | null>>;
+}) {
+  if (isLoading) {
+    const hasText = readEditorText().trim().length > 0;
+    const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
+    if (!hasText || hasAttachments) {
+      return;
+    }
+    clearError();
+    if (isUsageBlocked) {
+      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+      return;
+    }
+    if (customer && !chatIncludedInPlan) {
+      const result = check({
+        featureId: FEATURES.AI_CREDITS,
+        requiredBalance: 1,
+      });
+      if (result?.allowed === false) {
+        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+        return;
+      }
+    }
+    onSend?.(serializeEditorWithReferences(editor).trim(), []);
+    clearComposer();
+    return;
+  }
+  if (isUploading) {
+    const hasText = readEditorText().trim().length > 0;
+    const hasContent =
+      hasText || attachments.length > 0 || pendingUploads.length > 0;
+    if (!hasContent) {
+      return;
+    }
+    if (hasUnsupportedAttachmentsForModel) {
+      return;
+    }
+    if (isUsageBlocked) {
+      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
+      return;
+    }
+    clearError();
+    setPendingSend({
+      value: serializeEditorWithReferences(editor).trim(),
+      attachments: [...attachments],
+      pendingUploadIds: pendingUploads.map((pending) => pending.id),
+    });
+    return;
+  }
+  performSend();
 }
 
 export function ChatInputAdvanced({
@@ -336,6 +1311,9 @@ export function ChatInputAdvanced({
   const [mentionIndex, setMentionIndex] = useState(0);
   const mentionAnchorRef = useRef<{ node: Node; offset: number } | null>(null);
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const persistDraftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const mentionListRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastInitialValueRef = useRef<string | undefined>(undefined);
@@ -640,21 +1618,17 @@ export function ChatInputAdvanced({
     });
   }, [check, customer]);
 
-  const chatIncludedInPlan = hasIncludedChatPlan(customer);
-  const remainingChatCredits =
-    typeof checkResult?.balance?.remaining === "number"
-      ? checkResult.balance.remaining
-      : null;
-  const shouldShowLowCredits =
-    !chatIncludedInPlan &&
-    remainingChatCredits !== null &&
-    remainingChatCredits > 0 &&
-    remainingChatCredits <= 10;
-  const isUsageBlocked = checkResult?.allowed === false && !chatIncludedInPlan;
-  const usageLimitError =
-    externalError ??
-    internalError ??
-    (isUsageBlocked ? CHAT_INPUT_LIMIT_MESSAGE : null);
+  const chatUsage = getChatComposerUsage({
+    checkResult,
+    customer,
+    externalError,
+    internalError,
+  });
+  const chatIncludedInPlan = chatUsage.chatIncludedInPlan;
+  const remainingChatCredits = chatUsage.remainingChatCredits;
+  const shouldShowLowCredits = chatUsage.shouldShowLowCredits;
+  const isUsageBlocked = chatUsage.isUsageBlocked;
+  const usageLimitError = chatUsage.usageLimitError;
 
   const clearError = useCallback(() => {
     setInternalError(null);
@@ -890,13 +1864,44 @@ export function ChatInputAdvanced({
     [draftStorageKey]
   );
 
+  const schedulePersistDraft = useCallback(
+    (draftContext: readonly ContextItem[]) => {
+      if (persistDraftTimeoutRef.current !== null) {
+        clearTimeout(persistDraftTimeoutRef.current);
+      }
+      persistDraftTimeoutRef.current = setTimeout(() => {
+        persistDraftTimeoutRef.current = null;
+        persistDraft(draftContext);
+      }, CHAT_COMPOSER_DRAFT_PERSIST_MS);
+    },
+    [persistDraft]
+  );
+
+  const flushPendingDraft = useCallback(() => {
+    if (persistDraftTimeoutRef.current === null) {
+      return;
+    }
+    clearTimeout(persistDraftTimeoutRef.current);
+    persistDraftTimeoutRef.current = null;
+    persistDraft(contextRef.current);
+  }, [persistDraft]);
+
+  useLayoutEffect(() => {
+    return flushPendingDraft;
+  }, [flushPendingDraft]);
+
+  useEffect(() => {
+    window.addEventListener("pagehide", flushPendingDraft);
+    return () => window.removeEventListener("pagehide", flushPendingDraft);
+  }, [flushPendingDraft]);
+
   const handleInput = useCallback(() => {
     const editor = editorRef.current;
     if (!editor) {
       return;
     }
     setIsEmpty(readEditorText().trim().length === 0);
-    persistDraft(contextRef.current);
+    schedulePersistDraft(contextRef.current);
 
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) {
@@ -946,7 +1951,7 @@ export function ChatInputAdvanced({
 
     mentionAnchorRef.current = null;
     setMentionQuery(null);
-  }, [persistDraft, readEditorText]);
+  }, [schedulePersistDraft, readEditorText]);
 
   const restoredDraftKeyRef = useRef<string | null>(null);
 
@@ -1215,60 +2220,25 @@ export function ChatInputAdvanced({
     if (!editor) {
       return;
     }
-    if (isLoading) {
-      const hasText = readEditorText().trim().length > 0;
-      const hasAttachments =
-        attachmentsRef.current.length > 0 ||
-        pendingUploadsRef.current.length > 0;
-      if (!hasText || hasAttachments) {
-        return;
-      }
-      clearError();
-      if (isUsageBlocked) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
-        return;
-      }
-      if (customer && !chatIncludedInPlan) {
-        const result = check({
-          featureId: FEATURES.AI_CREDITS,
-          requiredBalance: 1,
-        });
-        if (result?.allowed === false) {
-          setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
-          return;
-        }
-      }
-      onSend?.(serializeEditorWithReferences(editor).trim(), []);
-      clearComposer();
-      return;
-    }
-    if (isUploading) {
-      const hasText = readEditorText().trim().length > 0;
-      const hasContent =
-        hasText ||
-        attachmentsRef.current.length > 0 ||
-        pendingUploadsRef.current.length > 0;
-      if (!hasContent) {
-        return;
-      }
-      if (hasUnsupportedAttachmentsForModel) {
-        return;
-      }
-      if (isUsageBlocked) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
-        return;
-      }
-      clearError();
-      setPendingSend({
-        value: serializeEditorWithReferences(editor).trim(),
-        attachments: [...attachmentsRef.current],
-        pendingUploadIds: pendingUploadsRef.current.map(
-          (pending) => pending.id
-        ),
-      });
-      return;
-    }
-    performSend();
+    sendOrQueueComposer({
+      attachments: attachmentsRef.current,
+      chatIncludedInPlan,
+      check,
+      clearComposer,
+      clearError,
+      customer,
+      editor,
+      hasUnsupportedAttachmentsForModel,
+      isLoading,
+      isUploading,
+      isUsageBlocked,
+      onSend,
+      pendingUploads: pendingUploadsRef.current,
+      performSend,
+      readEditorText,
+      setInternalError,
+      setPendingSend,
+    });
   }, [
     check,
     clearComposer,
@@ -1420,301 +2390,72 @@ export function ChatInputAdvanced({
   );
 
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (mentionQuery !== null && filteredMentionItems.length > 0) {
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          setMentionIndex((prev) =>
-            prev < filteredMentionItems.length - 1 ? prev + 1 : 0
-          );
-          return;
-        }
-        if (event.key === "ArrowUp") {
-          event.preventDefault();
-          setMentionIndex((prev) =>
-            prev > 0 ? prev - 1 : filteredMentionItems.length - 1
-          );
-          return;
-        }
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const selected = filteredMentionItems[mentionIndex];
-          if (selected) {
-            insertMention(selected);
-          }
-          return;
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          setMentionQuery(null);
-          mentionAnchorRef.current = null;
-          return;
-        }
-      }
-
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        handleSend();
-        return;
-      }
-
-      if (event.key === "Enter" && event.shiftKey) {
-        event.preventDefault();
-        const sel = window.getSelection();
-        if (!sel || sel.rangeCount === 0) {
-          return;
-        }
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        const br = document.createElement("br");
-        range.insertNode(br);
-        const after = document.createRange();
-        after.setStartAfter(br);
-        after.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(after);
-        editorRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
-        return;
-      }
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      handleComposerEditorKeyDown(event, {
+        editor: editorRef.current,
+        filteredMentionItems,
+        handleSend,
+        insertMention,
+        mentionAnchorRef,
+        mentionIndex,
+        mentionQuery,
+        setMentionIndex,
+        setMentionQuery,
+      });
     },
     [
-      mentionQuery,
       filteredMentionItems,
-      mentionIndex,
-      insertMention,
       handleSend,
+      insertMention,
+      mentionIndex,
+      mentionQuery,
     ]
   );
 
-  const hasContextChips = context.length > 0;
-  const hasAttachmentChips =
-    attachments.length > 0 || pendingUploads.length > 0;
-  const showComposerNudge =
-    hasContextChips ||
-    hasAttachmentChips ||
-    shouldShowLowCredits ||
-    Boolean(usageLimitError);
+  const showComposerNudge = getComposerNudgeVisibility({
+    attachmentCount: attachments.length,
+    contextCount: context.length,
+    pendingUploadCount: pendingUploads.length,
+    shouldShowLowCredits,
+    usageLimitError,
+  });
 
   return (
     <>
-      {isDraggingFile &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            aria-hidden="true"
-            className="fade-in-0 animate-in bg-background/75 duration-fast pointer-events-none fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
-          >
-            <div className="flex flex-col items-center gap-5">
-              <HugeiconsIcon
-                className="text-foreground size-14"
-                icon={Upload04Icon}
-                strokeWidth={1.5}
-              />
-              <div className="flex flex-col items-center gap-2 text-center">
-                <p className="text-foreground text-2xl font-semibold tracking-tight">
-                  Add Attachment
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  Drop a file here to attach it to your message
-                </p>
-                {acceptedFileTypesLabel && (
-                  <p className="text-muted-foreground/70 text-xs">
-                    Accepted file types: {acceptedFileTypesLabel}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      {isDraggingFile ? (
+        <ChatComposerDropOverlay
+          acceptedFileTypesLabel={acceptedFileTypesLabel}
+        />
+      ) : null}
       <div className="relative w-full min-w-0">
-        {mentionQuery !== null && (
-          <div
-            className="absolute bottom-full left-1 z-50 mb-1 w-72"
-            ref={mentionListRef}
-          >
-            <div className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md">
-              {filteredMentionItems.length > 0 ? (
-                <>
-                  {filteredMentionItems.map((option, idx) => {
-                    const inContext = isInContext(option.contextItem);
-                    const previousOption = filteredMentionItems[idx - 1];
-                    const startsGroup =
-                      idx === 0 ||
-                      (previousOption?.kind === "mcp") !==
-                        (option.kind === "mcp");
-                    return (
-                      <div key={option.id}>
-                        {startsGroup && (
-                          <div className="px-2 py-1.5 text-xs font-semibold">
-                            {option.kind === "mcp" ? "MCP tools" : "Context"}
-                          </div>
-                        )}
-                        <button
-                          className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
-                            idx === mentionIndex
-                              ? "bg-accent text-accent-foreground"
-                              : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                          }`}
-                          onMouseDown={(event) => {
-                            event.preventDefault();
-                            insertMention(option);
-                          }}
-                          type="button"
-                        >
-                          <ChatContextOptionContent option={option} />
-                          {inContext && (
-                            <span className="text-success shrink-0 text-xs">
-                              Added
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {organizationSlug && (
-                    <>
-                      <div className="bg-border -mx-1 my-1 h-px" />
-                      <Link
-                        className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
-                        href={`/${organizationSlug}/integrations`}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        Manage integrations
-                      </Link>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-1 px-3 py-4 text-center">
-                  <span className="text-muted-foreground text-xs">
-                    {contextOptions.length === 0
-                      ? "No context or MCP tools connected"
-                      : "No matches found"}
-                  </span>
-                  {contextOptions.length === 0 && organizationSlug && (
-                    <Link
-                      className="text-primary text-xs hover:underline"
-                      href={`/${organizationSlug}/integrations`}
-                    >
-                      Connect integrations
-                    </Link>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+        {mentionQuery === null ? null : (
+          <ChatMentionMenu
+            contextOptionsCount={contextOptions.length}
+            filteredMentionItems={filteredMentionItems}
+            insertMention={insertMention}
+            isInContext={isInContext}
+            mentionIndex={mentionIndex}
+            mentionListRef={mentionListRef}
+            organizationSlug={organizationSlug}
+          />
         )}
         <Composer.Frame
           connectedTop={connectedTop}
           nudge={
             showComposerNudge ? (
-              <Composer.Nudge
-                action={
-                  usageLimitError && organizationSlug ? (
-                    <Button
-                      nativeButton={false}
-                      render={
-                        <Link href={`/${organizationSlug}/settings/billing`} />
-                      }
-                      size="xs"
-                      variant="outline"
-                    >
-                      Upgrade
-                    </Button>
-                  ) : null
-                }
-                title={
-                  shouldShowLowCredits &&
-                  !hasContextChips &&
-                  !hasAttachmentChips &&
-                  !usageLimitError
-                    ? `${remainingChatCredits} chat messages left`
-                    : undefined
-                }
-              >
-                {hasContextChips || hasAttachmentChips ? (
-                  <>
-                    {context.map((item) => {
-                      const label = getReferenceDisplay(item);
-                      return (
-                        <Composer.Chip
-                          icon={<ContextChipIcon item={item} />}
-                          key={contextItemKey(item)}
-                          label={label}
-                          onRemove={
-                            isQueued
-                              ? undefined
-                              : () => {
-                                  removeContext(item);
-                                }
-                          }
-                          removeLabel={`Remove ${label}`}
-                        />
-                      );
-                    })}
-                    {attachments.map((attachment) => {
-                      const isImage = isImageMimeType(attachment.mediaType);
-                      return (
-                        <Composer.Chip
-                          icon={
-                            isImage ? (
-                              <Image
-                                alt={attachment.filename}
-                                className="size-4 rounded object-cover"
-                                height={16}
-                                src={attachment.url}
-                                width={16}
-                              />
-                            ) : (
-                              <HugeiconsIcon
-                                className="text-muted-foreground size-3.5"
-                                icon={File02Icon}
-                              />
-                            )
-                          }
-                          key={attachment.key}
-                          label={attachment.filename}
-                          onClick={() => {
-                            setPreviewAttachment(attachment);
-                          }}
-                          onRemove={
-                            isQueued
-                              ? undefined
-                              : () => {
-                                  removeAttachment(attachment.key);
-                                }
-                          }
-                        />
-                      );
-                    })}
-                    {pendingUploads.map((pending) => (
-                      <Composer.Chip
-                        icon={<Loader2Icon className="size-3 animate-spin" />}
-                        key={pending.id}
-                        label={pending.filename}
-                        pending
-                      />
-                    ))}
-                    {shouldShowLowCredits ? (
-                      <span className="text-muted-foreground text-xs">
-                        {remainingChatCredits} chat messages left
-                      </span>
-                    ) : null}
-                  </>
-                ) : null}
-                {usageLimitError ? (
-                  <span className="flex min-w-0 items-center gap-1.5 text-sm">
-                    <HugeiconsIcon
-                      className="text-warning size-4 shrink-0"
-                      icon={Alert02Icon}
-                    />
-                    <span className="truncate">{usageLimitError}</span>
-                  </span>
-                ) : null}
-              </Composer.Nudge>
+              <ChatComposerNudge
+                attachments={attachments}
+                context={context}
+                isQueued={isQueued}
+                organizationSlug={organizationSlug}
+                pendingUploads={pendingUploads}
+                remainingChatCredits={remainingChatCredits ?? 0}
+                removeAttachment={removeAttachment}
+                removeContext={removeContext}
+                setPreviewAttachment={setPreviewAttachment}
+                shouldShowLowCredits={shouldShowLowCredits}
+                usageLimitError={usageLimitError}
+              />
             ) : null
           }
         >
@@ -1769,339 +2510,61 @@ export function ChatInputAdvanced({
               </div>
             </div>
             <Composer.Toolbar>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Composer.ToolbarButton
-                      aria-label="Attach files"
-                      className="size-7 justify-center px-0"
-                      disabled={
-                        isLoading ||
-                        isQueued ||
-                        attachments.length + pendingUploads.length >=
-                          MAX_CHAT_ATTACHMENTS
-                      }
-                      onClick={() => fileInputRef.current?.click()}
-                    />
-                  }
-                >
-                  <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-                </TooltipTrigger>
-                <TooltipContent>{attachmentTooltipText}</TooltipContent>
-              </Tooltip>
+              <ChatComposerAttachButton
+                attachmentCount={attachments.length}
+                disabled={isLoading || isQueued}
+                fileInputRef={fileInputRef}
+                pendingUploadCount={pendingUploads.length}
+                tooltip={attachmentTooltipText}
+              />
 
-              <Popover
-                modal
-                onOpenChange={setIsModelPickerOpen}
-                open={isModelPickerOpen}
-              >
-                <PopoverTrigger
-                  render={
-                    <Composer.ToolbarButton disabled={isLoading || isQueued} />
-                  }
-                >
-                  <ModelIcon
-                    className="size-3.5"
-                    provider={currentModel.provider}
-                  />
-                  {currentModel.label}
-                  <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="w-72 p-0"
-                  showBackdrop
-                  sideOffset={6}
-                >
-                  <Command>
-                    <CommandInput placeholder="Search models..." />
-                    <CommandList>
-                      <CommandEmpty>No models found.</CommandEmpty>
-                      <CommandGroup>
-                        {AVAILABLE_MODELS.map((m) => (
-                          <CommandItem
-                            data-checked={model === m.id}
-                            key={m.id}
-                            keywords={[m.label, m.provider, m.description]}
-                            onSelect={() => {
-                              if (
-                                m.id === "openai/gpt-5.4" &&
-                                attachmentsRef.current.some(
-                                  (attachment) =>
-                                    !isAllowedChatMimeType(
-                                      attachment.mediaType,
-                                      m.id
-                                    )
-                                )
-                              ) {
-                                toast.error(
-                                  getUnsupportedAttachmentMessage(m.label)
-                                );
-                                return;
-                              }
-                              onModelChange?.(m.id);
-                              setIsModelPickerOpen(false);
-                            }}
-                            value={m.id}
-                          >
-                            <ModelIcon
-                              className="size-4 shrink-0"
-                              provider={m.provider}
-                            />
-                            <div className="flex min-w-0 flex-col">
-                              <span className="text-sm">{m.label}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {m.description}
-                              </span>
-                              <span className="text-muted-foreground/70 text-[0.625rem]">
-                                {m.pricing}
-                              </span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <ChatComposerModelPicker
+                attachmentsRef={attachmentsRef}
+                currentModel={currentModel}
+                isLoading={isLoading}
+                isModelPickerOpen={isModelPickerOpen}
+                isQueued={isQueued}
+                model={model}
+                onModelChange={onModelChange}
+                setIsModelPickerOpen={setIsModelPickerOpen}
+              />
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Composer.ToolbarButton disabled={isLoading || isQueued} />
-                  }
-                >
-                  <HugeiconsIcon className="size-3.5" icon={AiBrain01Icon} />
-                  {THINKING_LABELS[thinkingLevel]}
-                  <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-44">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Thinking effort</DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  {THINKING_LEVELS.map((level) => (
-                    <DropdownMenuItem
-                      key={level}
-                      onClick={() => onThinkingLevelChange?.(level)}
-                    >
-                      <span className="text-sm capitalize">
-                        {level === "off" ? "Off" : THINKING_LABELS[level]}
-                      </span>
-                      {thinkingLevel === level ? (
-                        <HugeiconsIcon
-                          className="text-primary ml-auto size-3.5"
-                          icon={Tick02Icon}
-                        />
-                      ) : null}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ChatComposerThinkingMenu
+                isLoading={isLoading}
+                isQueued={isQueued}
+                onThinkingLevelChange={onThinkingLevelChange}
+                thinkingLevel={thinkingLevel}
+              />
 
-              <Tooltip disabled={isContextPickerOpen}>
-                <TooltipTrigger
-                  render={
-                    contextPickerDisabledReason ? (
-                      // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
-                      <span
-                        aria-disabled="true"
-                        aria-label="Add tools or context"
-                        className="inline-flex cursor-not-allowed"
-                        role="button"
-                        tabIndex={0}
-                      />
-                    ) : (
-                      <span className="inline-flex" />
-                    )
-                  }
-                >
-                  <Popover
-                    modal
-                    onOpenChange={setIsContextPickerOpen}
-                    open={isContextPickerOpen}
-                  >
-                    <PopoverTrigger
-                      render={
-                        <Composer.ToolbarButton
-                          aria-controls={contextPickerId}
-                          aria-expanded={isContextPickerOpen}
-                          aria-haspopup="listbox"
-                          aria-label="Add tools or context"
-                          className="size-7 justify-center px-0"
-                          disabled={isLoading || isQueued}
-                          role="combobox"
-                        />
-                      }
-                    >
-                      <HugeiconsIcon className="size-4" icon={AtIcon} />
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      className="w-80 p-0"
-                      id={contextPickerId}
-                      showBackdrop
-                      sideOffset={6}
-                    >
-                      <Command>
-                        <CommandInput placeholder="Search tools and context..." />
-                        <CommandList>
-                          <CommandEmpty>
-                            {contextOptions.length === 0
-                              ? "No matching integrations."
-                              : "No matching tools or context found."}
-                          </CommandEmpty>
-                          {contextOptions.length === 0 && organizationSlug ? (
-                            <ChatContextConnectSuggestions
-                              onSelect={() => setIsContextPickerOpen(false)}
-                              organizationSlug={organizationSlug}
-                            />
-                          ) : null}
-                          {integrationContextOptions.length > 0 && (
-                            <CommandGroup heading="Context">
-                              {integrationContextOptions.map((option) => {
-                                const inContext = isInContext(
-                                  option.contextItem
-                                );
-                                return (
-                                  <CommandItem
-                                    data-checked={inContext}
-                                    key={option.id}
-                                    keywords={[option.searchText]}
-                                    onSelect={() => {
-                                      if (inContext) {
-                                        removeContext(option.contextItem);
-                                      } else {
-                                        addContext(option);
-                                      }
-                                      setIsContextPickerOpen(false);
-                                    }}
-                                    value={option.id}
-                                  >
-                                    <ChatContextOptionContent option={option} />
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          )}
-                          {mcpToolOptions.length > 0 && (
-                            <CommandGroup heading="MCP tools">
-                              {mcpToolOptions.map((option) => {
-                                const inContext = isInContext(
-                                  option.contextItem
-                                );
-                                return (
-                                  <CommandItem
-                                    data-checked={inContext}
-                                    key={option.id}
-                                    keywords={[option.searchText]}
-                                    onSelect={() => {
-                                      if (inContext) {
-                                        removeContext(option.contextItem);
-                                      } else {
-                                        addContext(option);
-                                      }
-                                      setIsContextPickerOpen(false);
-                                    }}
-                                    value={option.id}
-                                  >
-                                    <ChatContextOptionContent option={option} />
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          )}
-                        </CommandList>
-                        {organizationSlug && (
-                          <div className="border-border border-t p-1">
-                            <Link
-                              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
-                              href={`/${organizationSlug}/integrations`}
-                              onClick={() => setIsContextPickerOpen(false)}
-                            >
-                              Manage integrations
-                            </Link>
-                          </div>
-                        )}
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {contextPickerDisabledReason ?? "Tools and context"}
-                </TooltipContent>
-              </Tooltip>
+              <ChatComposerContextPicker
+                addContext={addContext}
+                contextOptions={contextOptions}
+                contextPickerDisabledReason={contextPickerDisabledReason}
+                contextPickerId={contextPickerId}
+                integrationContextOptions={integrationContextOptions}
+                isContextPickerOpen={isContextPickerOpen}
+                isInContext={isInContext}
+                isLoading={isLoading}
+                isQueued={isQueued}
+                mcpToolOptions={mcpToolOptions}
+                organizationSlug={organizationSlug}
+                removeContext={removeContext}
+                setIsContextPickerOpen={setIsContextPickerOpen}
+              />
 
-              {(() => {
-                const hasAnyContent =
-                  !isEmpty ||
-                  attachments.length > 0 ||
-                  pendingUploads.length > 0;
-                const canQueue =
-                  isLoading &&
-                  !isEmpty &&
-                  attachments.length === 0 &&
-                  pendingUploads.length === 0;
-                let submitDisabled: boolean;
-                if (isQueued) {
-                  submitDisabled = false;
-                } else if (isLoading && isEmpty) {
-                  submitDisabled = !onStop || isStopping;
-                } else if (isUsageBlocked) {
-                  submitDisabled = true;
-                } else if (canQueue) {
-                  submitDisabled = false;
-                } else {
-                  submitDisabled =
-                    hasUnsupportedAttachmentsForModel || !hasAnyContent;
-                }
-                let submitOnClick: (() => void) | undefined;
-                if (isQueued) {
-                  submitOnClick = () => setPendingSend(null);
-                } else if (isLoading && isEmpty) {
-                  submitOnClick = onStop;
-                } else {
-                  submitOnClick = handleSend;
-                }
-                const sendBusy = Boolean(isLoading && isStopping);
-                let sendIcon = (
-                  <HugeiconsIcon
-                    className="size-4"
-                    icon={ArrowUp02Icon}
-                    strokeWidth={2}
-                  />
-                );
-                if (isQueued) {
-                  sendIcon = <Loader2Icon className="size-4 animate-spin" />;
-                } else if (isLoading && isEmpty) {
-                  sendIcon = (
-                    <HugeiconsIcon className="size-4" icon={StopIcon} />
-                  );
-                }
-                let sendLabel = "Send message";
-                if (isLoading && isEmpty) {
-                  sendLabel = "Stop generating";
-                } else if (canQueue) {
-                  sendLabel = "Queue message";
-                }
-                return (
-                  <Composer.Send
-                    busy={sendBusy}
-                    disabled={submitDisabled}
-                    label={sendLabel}
-                    onClick={submitOnClick}
-                    tooltip={getSubmitTooltipText({
-                      canQueue,
-                      isEmpty,
-                      isLoading,
-                      isQueued,
-                      isStopping,
-                      isUsageBlocked,
-                    })}
-                  >
-                    {sendIcon}
-                  </Composer.Send>
-                );
-              })()}
+              <ChatComposerSendButton
+                attachmentCount={attachments.length}
+                hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                isQueued={isQueued}
+                isStopping={isStopping}
+                isUsageBlocked={isUsageBlocked}
+                onCancelQueue={() => setPendingSend(null)}
+                onSend={handleSend}
+                onStop={onStop}
+                pendingUploadCount={pendingUploads.length}
+              />
             </Composer.Toolbar>
           </section>
         </Composer.Frame>

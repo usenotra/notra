@@ -5,10 +5,12 @@ import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { PlanCard } from "@/components/billing/plan-card";
+import { Button } from "@/components/button";
 import { OnboardingProgress } from "@/components/onboarding/progress";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
 import { ONBOARDING_STEPS, PLAN_SURFACES } from "@/constants/analytics-events";
@@ -33,7 +35,7 @@ import {
   zdrAddonToggle,
 } from "@/utils/billing-plans";
 
-export function PricingClient({ slug }: PricingClientProps) {
+export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -167,15 +169,22 @@ export function PricingClient({ slug }: PricingClientProps) {
     <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-12">
       <OnboardingStepViewTracker step={ONBOARDING_STEPS.PRICING} />
       <div className="mb-6 flex justify-center">
-        <OnboardingProgress current={ONBOARDING_STEP_PRICING} />
+        <OnboardingProgress
+          current={ONBOARDING_STEP_PRICING}
+          hrefs={progressHrefs}
+        />
       </div>
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
           Choose your plan
         </h1>
         <p className="text-muted-foreground">
-          Pick a plan to start using Notra. You can change or cancel anytime.
+          Use feedback for free, or upgrade for AI content and visibility
+          tracking.
         </p>
+        <Button render={<Link href={`/${slug}/feedback`} />} variant="outline">
+          Continue with free feedback
+        </Button>
       </div>
 
       <div className="mt-8 flex justify-center">

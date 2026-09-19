@@ -2,9 +2,7 @@ import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 
 import {
   GEO_OPENCODE_ENGINE_ID,
-  GEO_GROUNDED_MAX_PROMPTS,
   GEO_LANGUAGE_MAX_PROMPTS,
-  GEO_LANGUAGE_GROUNDED_MAX_PROMPTS,
   GEO_MAX_LANGUAGES,
   GEO_MAX_SEQUENCES,
   GEO_SEQUENCE_MAX_TURNS,
@@ -24,6 +22,7 @@ import type {
   GeoScanSizeSeverity,
 } from "../types/geo";
 import { isGeoBoxCodingAgent } from "./geo-coding-agents";
+import { isGeoNativeSearchEngine } from "./geo-engines";
 
 function toTimestamp(value: Date | string | null | undefined): number | null {
   if (!value) {
@@ -257,7 +256,9 @@ export function summarizeGeoEngineAttempts(
 
 /**
  * Counts prompt checks and sequence turns using the scan planner's limits.
- * ZDR filtering and failed translations can reduce the actual number of checks.
+ * Only web-search engines are counted: grounded catalog models, SerpApi, and
+ * Box agents. ZDR filtering and failed translations can reduce the actual
+ * number of checks.
  */
 export function calcGeoScanSize(input: GeoScanSizeInput): number {
   if (!Number.isFinite(input.promptCount) || input.promptCount < 0) {
@@ -269,23 +270,19 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
       (model) => model.id === engine && model.supportsGroundedChecks
     )
   ).length;
+  const nativeSearchCount = engines.filter((engine) =>
+    isGeoNativeSearchEngine(input.catalog, engine)
+  ).length;
+  const passes = nativeSearchCount + groundedCount;
   const scanEnglish = input.languages.includes(DEFAULT_LANGUAGE);
   const extraLanguages = input.languages
     .filter((language) => language !== DEFAULT_LANGUAGE)
     .slice(0, GEO_MAX_LANGUAGES).length;
-  const englishChecks = scanEnglish
-    ? input.promptCount * engines.length +
-      Math.min(input.promptCount, GEO_GROUNDED_MAX_PROMPTS) * groundedCount
-    : 0;
+  const englishChecks = scanEnglish ? input.promptCount * passes : 0;
   const localizedChecks =
     extraLanguages *
-    (Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) * engines.length +
-      Math.min(
-        input.promptCount,
-        GEO_LANGUAGE_MAX_PROMPTS,
-        GEO_LANGUAGE_GROUNDED_MAX_PROMPTS
-      ) *
-        groundedCount);
+    Math.min(input.promptCount, GEO_LANGUAGE_MAX_PROMPTS) *
+    passes;
   const sequenceEngines =
     groundedCount +
     engines.filter(

@@ -24,7 +24,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -55,10 +55,17 @@ import { isSquareTwitterAvatar } from "@/utils/twitter";
 export function GeneralSettingsPane() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { activeOrganization: organization, organizations } =
-    useOrganizationsContext();
+  const {
+    activeOrganization: organization,
+    organizations,
+    requestOrganizations,
+  } = useOrganizationsContext();
   const slug = organization?.slug ?? "";
   const [isRemovingOrganization, setIsRemovingOrganization] = useState(false);
+
+  useEffect(() => {
+    requestOrganizations();
+  }, [requestOrganizations]);
 
   const {
     data: ownedOrganizations = [],

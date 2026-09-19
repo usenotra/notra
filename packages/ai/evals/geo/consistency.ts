@@ -2,8 +2,8 @@ import { gateway } from "@notra/ai/gateway";
 import { generateText, Output } from "ai";
 import { array, boolean, enum as enumType, number, object, string } from "zod";
 
-// Mirrors apps/dashboard/src/lib/geo/scan.ts (ask + judge) and
-// apps/dashboard/src/constants/geo.ts. Re-sync by hand if either changes.
+// Mirrors packages/geo-core/src/geo/scan.ts (ask + judge) and
+// packages/geo-core/src/constants/geo.ts. Re-sync by hand if either changes.
 const ENGINE = "google/gemini-3-flash";
 const GEO_JUDGE_MODEL = "openai/gpt-5.4-nano";
 const GEO_ANSWER_MAX_TOKENS = 4096;
@@ -14,7 +14,7 @@ const MAX_JUDGE_COMPETITORS_SCHEMA = 15;
 const MAX_EXCERPT_LENGTH = 300;
 const RUNS_PER_PROMPT = 3;
 const GEO_ANSWER_SYSTEM_PROMPT =
-  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant.";
+  "You are a helpful AI assistant. Answer the user's question directly and concretely, naming specific products or companies where relevant. Do not use em dashes.";
 const JUDGE_SYSTEM_PROMPT =
   "You analyze AI assistant answers for brand mentions. Respond only with the requested structured data.";
 
@@ -71,14 +71,14 @@ async function askAndJudge(
   const answer = await generateText({
     model: gateway(ENGINE),
     prompt: promptText,
-    system: GEO_ANSWER_SYSTEM_PROMPT,
+    instructions: GEO_ANSWER_SYSTEM_PROMPT,
     maxOutputTokens: GEO_ANSWER_MAX_TOKENS,
   });
   const judged = await generateText({
     model: gateway(GEO_JUDGE_MODEL),
     output: Output.object({ schema: geoJudgeResultSchema }),
     prompt: buildJudgePrompt(promptText, answer.text),
-    system: JUDGE_SYSTEM_PROMPT,
+    instructions: JUDGE_SYSTEM_PROMPT,
     maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
   });
   return {

@@ -119,7 +119,10 @@ export function GeoIngestSetup({ setup, className }: GeoIngestSetupPanelProps) {
             onValueChange={(value) => setFramework(value as GeoIngestFramework)}
             value={framework}
           >
-            <TabsList aria-label="Framework">
+            <TabsList
+              aria-label="Framework"
+              className="h-auto min-h-8 flex-wrap justify-end"
+            >
               {GEO_INGEST_FRAMEWORK_OPTIONS.map((option) => (
                 <TabsTrigger
                   className="px-2 text-xs"

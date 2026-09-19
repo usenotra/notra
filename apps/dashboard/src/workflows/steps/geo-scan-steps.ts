@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
 import {
   finalizeGeoScanProject,
   listGeoScanProjects,
@@ -10,6 +11,7 @@ import { renewGeoScanClaimIfDue } from "@notra/geo-core/geo/scan-status";
 import type {
   GeoScanBatchOutcome,
   GeoScanFailureMetadata,
+  GeoScanPlannedPersona,
   GeoScanPlannedSequence,
   GeoScanPlannedTask,
   GeoScanProjectContext,
@@ -76,6 +78,7 @@ export async function prepareGeoScanProjectStep(
         scanId: options.scanId,
         promptIds: options.promptIds,
         engines: options.engines,
+        retried: options.retried,
       }).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     if (result.status === "skipped") {
@@ -139,6 +142,22 @@ export async function runGeoScanSequenceBatchStep(
   try {
     return await Effect.runPromise(
       runGeoScanSequenceBatch(context, sequences).pipe(
+        Effect.provide(geoCoreDashboardLayer)
+      )
+    );
+  } finally {
+    await flushObservability();
+  }
+}
+
+export async function runGeoScanPersonaBatchStep(
+  context: GeoScanProjectContext,
+  personas: GeoScanPlannedPersona[]
+): Promise<GeoScanBatchOutcome> {
+  "use step";
+  try {
+    return await Effect.runPromise(
+      runGeoScanPersonaBatch(context, personas).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );

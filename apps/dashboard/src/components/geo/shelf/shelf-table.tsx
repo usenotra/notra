@@ -2,7 +2,6 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
@@ -49,15 +48,16 @@ import {
 } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";
 import type { GeoShelfRow, GeoShelfTableProps } from "@/types/geo-shelf";
+import { groupShelfCitationEngines } from "@/utils/geo-shelf";
 import { toGeoShelfSortState } from "@/utils/geo-shelf-page";
 
 /** Below `md` the page, citations and presence columns carry the story. */
 const MOBILE_HIDDEN_COLUMN_KEYS: readonly string[] = ["competitors"];
 
+/** The logo already carries the domain, so the subtitle only names the kind. */
 function pageSubtitle(row: GeoShelfRow): string {
   const kind = GEO_SHELF_SOURCE_KIND_LABELS[row.kind];
-  const base = `${kind} · ${row.domain}`;
-  return row.origin === "manual" ? `${base} · added manually` : base;
+  return row.origin === "manual" ? `${kind} · added manually` : kind;
 }
 
 function PageCell({ row }: { row: GeoShelfRow }) {
@@ -83,21 +83,28 @@ function PageCell({ row }: { row: GeoShelfRow }) {
 
 function CitationsCell({ row }: { row: GeoShelfRow }) {
   const count = row.citations.windowCount;
+  const families = groupShelfCitationEngines(row.citations.engines).map(
+    ({ family, label, models }) => ({
+      key: family,
+      label,
+      detail: models.join(", "),
+      renderIcon: (className: string) => (
+        <EngineIcon className={className} engine={models[0] ?? family} />
+      ),
+    })
+  );
   return (
-    <span className="flex min-w-0 items-center gap-2">
-      <span className="tabular-nums">{count > 0 ? count : "-"}</span>
-      {row.citations.engines.length > 0 ? (
-        <LogoStack
-          items={row.citations.engines.map((engine) => ({
-            key: engine,
-            label: engineFamilyLabel(engine),
-            detail: engine,
-            renderIcon: (className) => (
-              <EngineIcon className={className} engine={engine} />
-            ),
-          }))}
-          limit={GEO_SHELF_ENGINE_STACK_LIMIT}
-        />
+    <span className="flex min-w-0 items-center gap-2.5">
+      <span
+        className={cn(
+          "w-8 shrink-0 text-right tabular-nums",
+          count === 0 && "text-muted-foreground"
+        )}
+      >
+        {count > 0 ? count : "–"}
+      </span>
+      {families.length > 0 ? (
+        <LogoStack items={families} limit={GEO_SHELF_ENGINE_STACK_LIMIT} />
       ) : null}
     </span>
   );

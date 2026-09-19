@@ -13,8 +13,8 @@
     "devtools": "bun x @ai-sdk/devtools"
   },
   "dependencies": {
-    "@ai-sdk/devtools": "1.0.1",
-    "@ai-sdk/gateway": "3.0.132",
+    "@ai-sdk/devtools": "1.0.22",
+    "@ai-sdk/gateway": "4.0.85",
     "@aws-sdk/client-s3": "^3.1009.0",
     "@linear/sdk": "^80.0.0",
     "@notra/ai": "workspace:*",
@@ -26,10 +26,10 @@
     "@upstash/box": "^0.5.0",
     "@upstash/redis": "^1.35.7",
     "@vercel/oidc": "^3.8.0",
-    "ai": "^7.0.38",
+    "ai": "7.0.105",
     "drizzle-orm": "^0.45.2",
     "effect": "4.0.0-rc.112",
-    "eve": "0.27.13",
+    "eve": "0.58.1",
     "marked": "^17.0.1",
     "pg": "^8.20.0",
     "sanitize-html": "^2.17.1",

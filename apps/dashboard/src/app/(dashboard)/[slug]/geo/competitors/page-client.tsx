@@ -32,7 +32,7 @@ import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 
-import { GeoPageSkeleton } from "../skeleton";
+import { GeoCompetitorsSkeleton } from "./skeleton";
 
 const CompetitorShareCard = dynamic(
   () =>
@@ -64,10 +64,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const geoRange = useGeoRange();
   const { data: settingsData, isPending } = useGeoSettings(organizationId);
+  // Full response: the share-of-voice change indicators need the daily
+  // mention timeseries, which the summary-only variant leaves out.
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
-    geoRange.query,
-    true
+    geoRange.query
   );
   const { competitors } = useGeoCompetitorsDb(organizationId);
   const { domain: ownDomain } = useGeoActiveProject(organizationId);
@@ -80,7 +81,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   });
 
   if (isPending) {
-    return <GeoPageSkeleton />;
+    return <GeoCompetitorsSkeleton />;
   }
 
   const settings = settingsData?.settings ?? null;
@@ -154,6 +155,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           organizationId={organizationId}
           organizationSlug={organizationSlug}
           points={competitorShare?.points ?? []}
+          timeseries={competitorShare?.timeseries ?? []}
         />
       </div>
       <CompetitorEditDialog

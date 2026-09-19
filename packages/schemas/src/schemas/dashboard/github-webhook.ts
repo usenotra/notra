@@ -85,6 +85,10 @@ export const githubWebhookPayloadSchema = z.object({
 
 export type GitHubWebhookPayload = z.infer<typeof githubWebhookPayloadSchema>;
 
+export const githubPushEventCommitsSchema = z.object({
+  commits: z.array(commitSchema.pick({ message: true }).loose()),
+});
+
 export const GITHUB_EVENT_TYPES = [
   "release",
   "push",

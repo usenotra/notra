@@ -47,6 +47,7 @@ export function toGeoOverviewReadyPage(input: {
   promptResults: GeoPromptResultSummary[] | undefined;
   promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
+  journeysLoading: boolean;
   isScanning: boolean;
   revealActive: boolean;
   scanPreflight: Omit<
@@ -89,6 +90,7 @@ export function toGeoOverviewReadyPage(input: {
       promptResults,
       isScanning: input.isScanning,
       journeys,
+      journeysLoading: input.journeysLoading,
       organizationId: input.organizationId,
     },
     scanPreflight: {

@@ -31,6 +31,7 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { cn } from "@notra/ui/lib/utils";
 import { CheckIcon, XIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { type ReactNode, useState } from "react";
 
 import { McpIcon } from "@/components/integrations/mcp-icon";
@@ -45,13 +46,20 @@ import {
   isMcpToolName,
 } from "./chat-tool-block/mcp/utils";
 import { ToolDraftPreview } from "./chat-tool-block/tool-draft-preview";
-import { ToolOutputChart } from "./chat-tool-block/tool-output-chart";
 import { ToolOutputImages } from "./chat-tool-block/tool-output-images";
 import type { ChatToolBlockProps, ToolCopy } from "./chat-tool-block/types";
 import { resolveChatToolBlockVisuals } from "./chat-tool-block/visuals";
 
 const TOOL_DETAILS_PANEL_CLASSNAME =
   "h-[var(--collapsible-panel-height)] overflow-hidden outline-none transition-[height,opacity] duration-normal ease-emphasized data-[ending-style]:h-0 data-[starting-style]:h-0 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-none";
+
+const ToolOutputChart = dynamic(
+  () =>
+    import("./chat-tool-block/tool-output-chart").then(
+      (mod) => mod.ToolOutputChart
+    ),
+  { ssr: false }
+);
 
 function firstStringValue<T extends object>(
   values: T,
@@ -317,6 +325,11 @@ function geoDaysSuffix(input: unknown): string | undefined {
 }
 
 const TOOL_COPY: Record<string, ToolCopy> = {
+  code_mode: {
+    verbs: ["Running", "Ran"],
+    noun: "tool program",
+  },
+  // Notra tool provisioning was replaced by code_mode; kept for older chats.
   searchNotraTools: {
     verbs: ["Searching", "Searched"],
     noun: "tools",

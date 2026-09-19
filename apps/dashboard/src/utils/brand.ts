@@ -1,4 +1,5 @@
 import { brandIdentityToolOutputSchema } from "@notra/schemas/dashboard/brand";
+import { googleFaviconUrl } from "@notra/utils/google-favicon";
 import { logoLinkUrl } from "@notra/utils/logo-link";
 
 export function getWebsiteDomain(websiteUrl: string | null): string | null {
@@ -17,6 +18,10 @@ export function getWebsiteDomain(websiteUrl: string | null): string | null {
 
 export function getBrandFaviconUrl(websiteUrl: string | null) {
   return logoLinkUrl(getWebsiteDomain(websiteUrl)) ?? undefined;
+}
+
+export function getGoogleFaviconUrl(domain: string | null): string | undefined {
+  return googleFaviconUrl(domain) ?? undefined;
 }
 
 export function getBrandFaviconFromToolOutput(

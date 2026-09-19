@@ -170,7 +170,7 @@ export function PerplexityComposer({
     >
       <textarea
         aria-label="Follow-up"
-        className="min-h-[2.75rem] w-full resize-none bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1a1a1a] outline-none placeholder:text-[#8d8d8d] dark:text-foreground"
+        className="field-sizing-content max-h-80 min-h-[2.75rem] w-full resize-none overflow-y-auto bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1a1a1a] outline-none placeholder:text-[#8d8d8d] dark:text-foreground"
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}

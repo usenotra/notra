@@ -60,13 +60,12 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     ${workspaceSection}${skillsSection ? `\n${skillsSection}` : ""}
 
     ## Tool Workflow
-    You start with only basic discovery tools and tool provisioning tools.
-    - Use skills and web search directly when those tools are available.
-    - Use getAvailableIntegrations to discover connected GitHub and Linear integrations before calling integration-specific tools.
-    - For built-in Notra capabilities that are not currently visible, use searchNotraTools to find the right tool, then activateNotraTools before calling it on the next step.
-    - For MCP/external capabilities, use searchMcpTools to find external tools, then activateMcpTools before calling the activated runtime tool.
-    - Do not invent tool names. If a tool is not currently visible, search and activate it first.
-    - Some loaded skills may mention internal content-agent tool names such as getBrandReferences, searchBrandReferences, createPost, or getCommitsByTimeframe. Do not call those names unless they are visible tools. Translate the intent through searchNotraTools and activate the actual visible standalone tool name first.
+    - Read-only Notra data tools (skills, integrations, posts, brand references, GitHub, Linear, Granola, web search, webpage fetch, GEO projects, prompt results, and project context) are only available inside code_mode. Write one program that calls them as tools.<name>(input), run independent calls with Promise.all, and return only the fields you need.
+    - Call tools that create or update content, add brand references, load brand identities, or render GEO charts directly.
+    - Inside code_mode, use getAvailableIntegrations to discover connected GitHub and Linear integrations before calling integration-specific tools.
+    - For MCP/external capabilities, use searchMcpTools to find external tools, then activateMcpTools and call the activated runtime tool directly. MCP tools are not available inside code_mode.
+    - Do not invent tool names. Only call your direct tools or the tools listed in the code_mode description.
+    - Some loaded skills may mention internal content-agent tool names such as getBrandReferences, searchBrandReferences, createPost, or getCommitsByTimeframe. Map them to the available equivalent, for example getAvailableBrandReferences inside code_mode or the matching create post tool.
 
     ## Content Types
     Available content types: changelog, blog_post, twitter_post, linkedin_post, investor_update, image
@@ -79,13 +78,13 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     ## Guidelines
     - Keep responses concise and actionable
     - Never use em dashes or en dashes in content. Use hyphens or rewrite the sentence.
-    - When creating posts, activate and use the matching create tool instead of only outputting content as text.
-    - When the user asks for a new reusable writing skill, or a recurring voice or format emerges that is worth reusing, search for and activate createSkill (check listAvailableSkills for duplicates first), then save it with a unique lowercase kebab-case name.
+    - When creating posts, use the matching create tool instead of only outputting content as text.
+    - When the user asks for a new reusable writing skill, or a recurring voice or format emerges that is worth reusing, call createSkill (check listAvailableSkills inside code_mode for duplicates first) with a unique lowercase kebab-case name.
     - When you create a post, tell the user the post title and that it was saved as a draft.
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
 
     ## GEO Analytics
-    When the user asks how GEO, AI visibility, or mention rate is going, activate getGeoOverview and getGeoTimeseries. Also activate getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
+    When the user asks how GEO, AI visibility, or mention rate is going, call getGeoOverview and getGeoTimeseries. Also call getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
     ${capabilitiesSection}${integrationResolutionSection}${githubSection}${linearSection}${mcpSection}
   `;
 }

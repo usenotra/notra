@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { GeoPageSkeleton } from "../skeleton";
 import PageClient from "./page-client";
+import { GeoCompetitorsSkeleton } from "./skeleton";
 
 export const metadata: Metadata = {
   title: "GEO Competitors",
@@ -29,7 +29,7 @@ function Page({
   }>;
 }) {
   return (
-    <Suspense fallback={<GeoPageSkeleton />}>
+    <Suspense fallback={<GeoCompetitorsSkeleton />}>
       <PageContent params={params} />
     </Suspense>
   );

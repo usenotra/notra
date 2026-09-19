@@ -138,6 +138,7 @@ export default function PageClient({
             <LazyCreateContentDialog
               entry="home"
               organizationId={organizationId}
+              organizationSlug={organizationSlug}
             />
           </div>
 

@@ -1,9 +1,10 @@
 {
-  "$schema": "https://v2-10-12.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-13.turborepo.dev/schema.json",
   "ui": "tui",
   "globalDependencies": [".npmrc", "bunfig.toml", "scripts/prepare-effect.sh"],
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
+    "NOTRA_JEV_CLASSIFIERS",
     "APP_URL",
     "AUTUMN_PROD_SECRET_KEY",
     "AUTUMN_SECRET_KEY",

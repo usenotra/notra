@@ -1,16 +1,17 @@
 import type {
   JSONObject,
-  LanguageModelV3,
-  LanguageModelV3CallOptions,
-  LanguageModelV3GenerateResult,
-  LanguageModelV3StreamPart,
-  LanguageModelV3StreamResult,
-  SharedV3ProviderMetadata,
+  LanguageModelV4,
+  LanguageModelV4CallOptions,
+  LanguageModelV4GenerateResult,
+  LanguageModelV4StreamPart,
+  LanguageModelV4StreamResult,
+  SharedV4ProviderMetadata,
 } from "@ai-sdk/provider";
 import {
   HTTP_NOT_FOUND,
   HTTP_PAYMENT_REQUIRED,
   HTTP_SERVER_ERROR_MIN,
+  HTTP_UNAUTHORIZED,
   OPENROUTER_NO_ZDR_ENDPOINT_PATTERN,
   NO_TRAINING_PROVIDER_ERROR_PATTERN,
   RETRYABLE_STATUS_CODES,
@@ -31,6 +32,7 @@ import type {
 import { createModelCallTelemetry } from "@notra/ai/utils/model-call-telemetry";
 import { observeModelStream } from "@notra/ai/utils/observe-model-stream";
 
+import { GatewayUnavailableError } from "./errors";
 import { otherGateway } from "./policy";
 import {
   splitRouterOptions,
@@ -92,7 +94,7 @@ function readIsRetryable(error: unknown): boolean {
 /**
  * Decide whether a failed upstream call may be retried on the other gateway
  * and why. Returns undefined for errors that must surface to the caller
- * (validation errors, aborts, auth errors, ...).
+ * (validation errors, aborts, prompt-level client errors, ...).
  */
 export function classifyUpstreamFailure(
   error: unknown
@@ -103,6 +105,11 @@ export function classifyUpstreamFailure(
   const status = readStatusCode(error);
   if (status === HTTP_PAYMENT_REQUIRED) {
     return "no-credits";
+  }
+  if (status === HTTP_UNAUTHORIZED) {
+    // Rejected credentials (expired/revoked key) fail every model on the
+    // gateway account: try the other gateway instead of surfacing the 401.
+    return "auth-failure";
   }
   if (NO_TRAINING_PROVIDER_ERROR_PATTERN.test(readMessage(error))) {
     return "non-compliant";
@@ -146,7 +153,7 @@ export function classifyUpstreamFailure(
 export function buildRouteMetadata(
   decision: RouteDecision,
   adapter: GatewayAdapter,
-  providerMetadata: SharedV3ProviderMetadata | undefined
+  providerMetadata: SharedV4ProviderMetadata | undefined
 ): RouteMetadata {
   const extracted = adapter.extractRouteMetadata(providerMetadata);
   return {
@@ -168,9 +175,9 @@ export function buildRouteMetadata(
 }
 
 function annotateProviderMetadata(
-  providerMetadata: SharedV3ProviderMetadata | undefined,
+  providerMetadata: SharedV4ProviderMetadata | undefined,
   route: ResolvedRoute
-): SharedV3ProviderMetadata {
+): SharedV4ProviderMetadata {
   const metadata = buildRouteMetadata(
     route.decision,
     route.adapter,
@@ -183,12 +190,12 @@ function annotateProviderMetadata(
 }
 
 function annotateStream(
-  stream: ReadableStream<LanguageModelV3StreamPart>,
+  stream: ReadableStream<LanguageModelV4StreamPart>,
   route: ResolvedRoute
-): ReadableStream<LanguageModelV3StreamPart> {
-  let observedProviderMetadata: SharedV3ProviderMetadata | undefined;
+): ReadableStream<LanguageModelV4StreamPart> {
+  let observedProviderMetadata: SharedV4ProviderMetadata | undefined;
   return stream.pipeThrough(
-    new TransformStream<LanguageModelV3StreamPart, LanguageModelV3StreamPart>({
+    new TransformStream<LanguageModelV4StreamPart, LanguageModelV4StreamPart>({
       transform(part, controller) {
         if ("providerMetadata" in part && part.providerMetadata) {
           observedProviderMetadata = {
@@ -230,13 +237,13 @@ function decisionLogFields(decision: RouteDecision) {
 }
 
 /**
- * LanguageModelV3 that resolves its route (plan lookup, gateway choice,
+ * LanguageModelV4 that resolves its route (plan lookup, gateway choice,
  * privacy options) lazily on first use and delegates to the concrete gateway
  * model. Compatible with wrapLanguageModel/middleware wrappers because it
- * only exposes the V3 surface.
+ * only exposes the V4 surface.
  */
-export class RoutedLanguageModel implements LanguageModelV3 {
-  readonly specificationVersion = "v3" as const;
+export class RoutedLanguageModel implements LanguageModelV4 {
+  readonly specificationVersion = "v4" as const;
   readonly provider = ROUTED_MODEL_PROVIDER;
   readonly modelId: string;
   readonly supportedUrls: PromiseLike<Record<string, RegExp[]>>;
@@ -261,8 +268,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   async doGenerate(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3GenerateResult> {
+    options: LanguageModelV4CallOptions
+  ): Promise<LanguageModelV4GenerateResult> {
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -290,8 +297,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   async doStream(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3StreamResult> {
+    options: LanguageModelV4CallOptions
+  ): Promise<LanguageModelV4StreamResult> {
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -353,8 +360,8 @@ export class RoutedLanguageModel implements LanguageModelV3 {
 
   private buildParams(
     route: ResolvedRoute,
-    options: LanguageModelV3CallOptions
-  ): LanguageModelV3CallOptions {
+    options: LanguageModelV4CallOptions
+  ): LanguageModelV4CallOptions {
     const { router, rest } = splitRouterOptions(options.providerOptions);
     const providerOptions = route.adapter.buildProviderOptions({
       providerOptions: stripForeignGatewayOptions(route.decision.gateway, rest),
@@ -366,10 +373,10 @@ export class RoutedLanguageModel implements LanguageModelV3 {
   }
 
   private async execute<T>(
-    options: LanguageModelV3CallOptions,
+    options: LanguageModelV4CallOptions,
     run: (
       route: ResolvedRoute,
-      params: LanguageModelV3CallOptions
+      params: LanguageModelV4CallOptions
     ) => Promise<T>
   ): Promise<T> {
     const route = await this.getRoute();
@@ -380,7 +387,11 @@ export class RoutedLanguageModel implements LanguageModelV3 {
       if (!fallback) {
         throw error;
       }
-      return await run(fallback, this.buildParams(fallback, options));
+      try {
+        return await run(fallback, this.buildParams(fallback, options));
+      } catch (fallbackError) {
+        throw this.classifyFallbackFailure(fallback, fallbackError);
+      }
     }
   }
 
@@ -436,18 +447,34 @@ export class RoutedLanguageModel implements LanguageModelV3 {
       });
   }
 
-  private async tryFallbackRoute(
+  /**
+   * Record a classified upstream failure so later routes avoid the gateway
+   * (or just the model on it) until the mark expires. Returns whether a mark
+   * was recorded — an unmarked failure leaves routing untouched.
+   */
+  private recordUpstreamFailure(
     route: ResolvedRoute,
+    reason: FallbackReason,
     error: unknown
-  ): Promise<ResolvedRoute | undefined> {
-    const reason = classifyUpstreamFailure(error);
-    if (!reason) {
-      return undefined;
-    }
+  ): boolean {
     if (reason === "no-credits") {
       this.context.credits.markExhausted(route.decision.gateway);
       this.verifyExhaustion(route.decision.gateway);
-    } else if (reason === "non-compliant") {
+      return true;
+    }
+    if (reason === "auth-failure") {
+      // A rejected key is a fact about the gateway account, not the model:
+      // mark the whole gateway so later routes avoid it until the TTL heals.
+      this.context.credits.markUnavailable(route.decision.gateway, reason);
+      this.context.logger.error("ai.router.auth_rejected", {
+        gateway: route.decision.gateway,
+        requestedModel: route.decision.requestedModelId,
+        organizationId: route.decision.organizationId,
+        message: readMessage(error),
+      });
+      return true;
+    }
+    if (reason === "non-compliant") {
       // A missing ZDR host is a fact about this model on this gateway, so the
       // mark is model-scoped: other models keep routing here.
       this.context.credits.markUnavailable(
@@ -462,7 +489,47 @@ export class RoutedLanguageModel implements LanguageModelV3 {
         zdr: route.decision.zdr,
         message: readMessage(error),
       });
+      return true;
     }
+    return false;
+  }
+
+  /**
+   * The fallback call failed too: classify and record it on the fallback
+   * gateway so later routes avoid it, and normalize rejected credentials to
+   * the same error a route-time failure would produce.
+   */
+  private classifyFallbackFailure(
+    route: ResolvedRoute,
+    error: unknown
+  ): unknown {
+    const reason = classifyUpstreamFailure(error);
+    if (!reason) {
+      return error;
+    }
+    if (this.recordUpstreamFailure(route, reason, error)) {
+      // The mark must win over the cached fallback route: drop it so the next
+      // call re-resolves instead of hitting the marked gateway again.
+      this.routePromise = undefined;
+    }
+    if (reason === "auth-failure") {
+      return new GatewayUnavailableError(
+        route.decision.gateway,
+        "authentication failed"
+      );
+    }
+    return error;
+  }
+
+  private async tryFallbackRoute(
+    route: ResolvedRoute,
+    error: unknown
+  ): Promise<ResolvedRoute | undefined> {
+    const reason = classifyUpstreamFailure(error);
+    if (!reason) {
+      return undefined;
+    }
+    const marked = this.recordUpstreamFailure(route, reason, error);
 
     // Prefer a ZDR-capable route on the other gateway over dropping the
     // flag; a `preferred` request only relaxes once no such route exists.
@@ -472,6 +539,19 @@ export class RoutedLanguageModel implements LanguageModelV3 {
     }
     if (reason === "non-compliant" && this.canRelaxZdr(route)) {
       return this.relaxZdr(route, error);
+    }
+    if (marked) {
+      // No usable route survives: the mark must win over the cached route, so
+      // the next call re-resolves instead of hitting the marked gateway.
+      this.routePromise = undefined;
+    }
+    if (reason === "auth-failure") {
+      // No eligible fallback: surface the normalized router error a
+      // route-time auth rejection would throw, not the raw upstream 401.
+      throw new GatewayUnavailableError(
+        route.decision.gateway,
+        "authentication failed"
+      );
     }
     return undefined;
   }

@@ -199,7 +199,7 @@ export function ClaudeChatComposer({
       >
         <textarea
           aria-label="Message"
-          className="min-h-[3.25rem] w-full resize-none bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1f1e1b] outline-none placeholder:text-[#9b9b9b] dark:text-foreground"
+          className="field-sizing-content max-h-80 min-h-[3.25rem] w-full resize-none overflow-y-auto bg-transparent px-1.5 pt-0.5 pb-2 font-sans text-[15px] leading-6 text-[#1f1e1b] outline-none placeholder:text-[#9b9b9b] dark:text-foreground"
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}

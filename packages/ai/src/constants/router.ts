@@ -78,6 +78,7 @@ export const OPENROUTER_EFFORTS: ReadonlySet<string> = new Set([
 ]);
 
 export const HTTP_BAD_REQUEST = 400;
+export const HTTP_UNAUTHORIZED = 401;
 export const HTTP_PAYMENT_REQUIRED = 402;
 export const HTTP_FORBIDDEN = 403;
 export const HTTP_NOT_FOUND = 404;

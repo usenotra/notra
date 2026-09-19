@@ -293,15 +293,71 @@ function buildNetlifySnippet(appUrl: string): string {
   ].join("\n");
 }
 
+function buildTanStackSnippet(appUrl: string): string {
+  return [
+    'import { createMiddleware, createStart } from "@tanstack/react-start";',
+    'import { createGeoMiddleware } from "@usenotra/geo/tanstack";',
+    "",
+    "const geo = createMiddleware().server(createGeoMiddleware({",
+    `  token: ${processTokenExpr()},`,
+    `  endpoint: "${appUrl}",`,
+    "}));",
+    "",
+    "export const startInstance = createStart(() => ({",
+    "  requestMiddleware: [geo],",
+    "}));",
+  ].join("\n");
+}
+
+function importMetaTokenExpr(): string {
+  return `import.meta.env.${GEO_INGEST_TOKEN_ENV}!`;
+}
+
+function svelteKitTokenExpr(): string {
+  return `env.${GEO_INGEST_TOKEN_ENV}!`;
+}
+
+function buildAstroSnippet(appUrl: string): string {
+  return [
+    'import { createGeoMiddleware } from "@usenotra/geo/astro";',
+    "",
+    "export const onRequest = createGeoMiddleware({",
+    `  token: ${importMetaTokenExpr()},`,
+    `  endpoint: "${appUrl}",`,
+    "});",
+  ].join("\n");
+}
+
+function buildSvelteKitSnippet(appUrl: string): string {
+  return [
+    'import { env } from "$env/dynamic/private";',
+    'import { createGeoHandle } from "@usenotra/geo/sveltekit";',
+    "",
+    "export const handle = createGeoHandle({",
+    `  token: ${svelteKitTokenExpr()},`,
+    `  endpoint: "${appUrl}",`,
+    "});",
+  ].join("\n");
+}
+
 export function buildGeoSnippet(
   appUrl: string,
   framework: GeoIngestFramework = "next"
 ): string {
+  if (framework === "tanstack") {
+    return buildTanStackSnippet(appUrl);
+  }
   if (framework === "nuxt") {
     return buildNuxtSnippet(appUrl);
   }
   if (framework === "netlify") {
     return buildNetlifySnippet(appUrl);
+  }
+  if (framework === "astro") {
+    return buildAstroSnippet(appUrl);
+  }
+  if (framework === "sveltekit") {
+    return buildSvelteKitSnippet(appUrl);
   }
   return buildNextSnippet(appUrl);
 }
@@ -311,6 +367,9 @@ export function buildGeoSnippets(appUrl: string): GeoIngestSnippets {
     next: buildGeoSnippet(appUrl, "next"),
     nuxt: buildGeoSnippet(appUrl, "nuxt"),
     netlify: buildGeoSnippet(appUrl, "netlify"),
+    tanstack: buildGeoSnippet(appUrl, "tanstack"),
+    astro: buildGeoSnippet(appUrl, "astro"),
+    sveltekit: buildGeoSnippet(appUrl, "sveltekit"),
   };
 }
 

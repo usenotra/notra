@@ -13,7 +13,10 @@ import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { UseEventTriggerFormProps } from "@/types/automation/event-trigger";
 import type { Trigger } from "@/types/triggers/triggers";
-import { getDefaultEventTriggerValues } from "@/utils/event-trigger-form";
+import {
+  getDefaultEventTriggerValues,
+  parseIgnoreCommitPatternsText,
+} from "@/utils/event-trigger-form";
 
 export function useEventTriggerForm({
   organizationId,
@@ -38,6 +41,10 @@ export function useEventTriggerForm({
           eventTypes: [value.eventType],
           includePreReleases:
             value.eventType === "release" ? value.includePreReleases : true,
+          ignoreCommitPatterns:
+            value.eventType === "push"
+              ? parseIgnoreCommitPatternsText(value.ignoreCommitPatternsText)
+              : [],
         },
         targets: { repositoryIds: value.repositoryIds },
         outputType: value.outputType,

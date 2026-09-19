@@ -65,6 +65,7 @@ export interface SentimentAnalysisSnapshot {
   fingerprint: string;
   eligible: number;
 }
+export type SentimentAnalysisDefer = (task: () => Promise<void>) => void;
 export interface SentimentAnalysisRun {
   key: string;
   store: SentimentAnalysisStore;
@@ -74,4 +75,5 @@ export interface SentimentAnalysisRun {
     sample: SentimentAnalysisSample[],
     owns: () => Promise<boolean>
   ) => Promise<unknown>;
+  defer?: SentimentAnalysisDefer;
 }

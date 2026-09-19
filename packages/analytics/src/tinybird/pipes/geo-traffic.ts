@@ -23,11 +23,7 @@ import {
   GEO_PROJECT_SCOPE_SQL,
   GEO_WINDOW_PARAMS,
 } from "../../constants/geo-queries";
-import {
-  geoTrafficDaily,
-  geoTrafficPagesByHostDaily,
-  geoTrafficPagesDaily,
-} from "../datasources";
+import { geoTrafficDaily, geoTrafficPagesByHostDaily } from "../datasources";
 
 const GEO_TRAFFIC_PAGES_BY_HOST_DAILY_SQL = `
           SELECT
@@ -70,33 +66,6 @@ export const geoTrafficDailyMv = defineMaterializedView(
         FROM geo_traffic_events
         GROUP BY day, organization_id, project_id, visitor_type, source
       `,
-      }),
-    ],
-  }
-);
-
-export const geoTrafficPagesDailyMv = defineMaterializedView(
-  "geo_traffic_pages_daily_mv",
-  {
-    description:
-      "Rolls geo_traffic_events into geo_traffic_pages_daily on every ingest",
-    datasource: geoTrafficPagesDaily,
-    nodes: [
-      node({
-        name: "traffic_pages_daily",
-        sql: `
-          SELECT
-            toDate(captured_at) AS day,
-            organization_id,
-            project_id,
-            visitor_type,
-            source,
-            path,
-            countState() AS visits_state,
-            maxState(captured_at) AS last_seen_state
-          FROM geo_traffic_events
-          GROUP BY day, organization_id, project_id, visitor_type, source, path
-        `,
       }),
     ],
   }
@@ -236,8 +205,9 @@ export const geoTrafficPages = defineEndpoint("geo_traffic_pages", {
   nodes: [
     node({
       name: "top_pages",
-      // Keep the host filter on geo_traffic_events until
-      // geo_traffic_pages_by_host_daily_backfill has replaced the rollup.
+      // Reads the raw event table on purpose: the by-host rollup would
+      // require a one-time backfill to serve full history, and the 30s
+      // query cache bounds the raw scan cost.
       sql: `
         SELECT
           host,
@@ -323,6 +293,7 @@ export const geoTrafficLog = defineEndpoint("geo_traffic_log", {
             {{String(category, '')}} = ''
             OR has(splitByChar(',', {{String(category, '')}}), category)
           )
+          AND captured_at >= now() - toIntervalDay(90)
           ${GEO_HOST_FILTER_SQL}
         ORDER BY captured_at DESC
         LIMIT {{Int32(limit, 50)}}
@@ -385,7 +356,7 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
           uniqExact(path) AS distinct_paths,
           min(captured_at) AS first_seen_at,
           max(captured_at) AS last_seen_at,
-          arraySlice(groupUniqArray(path), 1, 5) AS sample_paths
+          arraySlice(groupUniqArray(path), 1, 1000) AS sample_paths
         FROM journey_events
         GROUP BY journey_id
         ORDER BY last_seen_at DESC, journey_id ASC

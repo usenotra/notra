@@ -1,4 +1,5 @@
 import "zod/compile";
+import { storedIgnoreCommitPatternsSchema } from "@notra/ai/schemas/ignore-commit-patterns";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -430,6 +431,7 @@ export const triggerSourceTypeSchema = z.enum([
 export const triggerSourceConfigSchema = z.object({
   eventTypes: z.array(z.enum(WEBHOOK_EVENT_TYPES)).optional(),
   includePreReleases: z.boolean().optional(),
+  ignoreCommitPatterns: storedIgnoreCommitPatternsSchema.optional(),
   cron: z
     .object({
       frequency: z.enum(CRON_FREQUENCIES),

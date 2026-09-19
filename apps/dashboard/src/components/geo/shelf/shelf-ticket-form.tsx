@@ -208,6 +208,7 @@ export function ShelfTicketForm({
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor={`${id}-notes`}>Notes</Label>
         <Textarea
+          className="max-h-80 resize-none overflow-y-auto"
           id={`${id}-notes`}
           maxLength={GEO_SHELF_NOTES_MAX_LENGTH}
           onBlur={flushNotes}

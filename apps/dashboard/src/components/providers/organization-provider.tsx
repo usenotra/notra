@@ -34,6 +34,7 @@ interface OrganizationsContextValue {
   activeOrganization: Organization | null;
   isLoading: boolean;
   getOrganization: (slug: string) => Organization | undefined;
+  requestOrganizations: () => void;
 }
 
 const OrganizationsContext = createContext<OrganizationsContextValue | null>(
@@ -45,6 +46,7 @@ const FALLBACK_ORGANIZATIONS_CONTEXT: OrganizationsContextValue = {
   activeOrganization: null,
   isLoading: true,
   getOrganization: () => undefined,
+  requestOrganizations: () => undefined,
 };
 
 export function OrganizationsProvider({
@@ -60,9 +62,19 @@ export function OrganizationsProvider({
   const hasAutoSelectedRef = useRef(false);
   const [optimisticActiveOrg, setOptimisticActiveOrg] =
     useState<Organization | null>(null);
+  const [orgListRequested, setOrgListRequested] = useState(
+    !initialActiveOrganization
+  );
+  const requestOrganizations = useCallback(() => {
+    setOrgListRequested(true);
+  }, []);
 
   const [
-    { data: organizationsData, isPending: isLoadingOrgs },
+    {
+      data: organizationsData,
+      isPending: isPendingOrgs,
+      isPlaceholderData: isOrgListPlaceholder,
+    },
     { data: activeOrganization, isPending: isLoadingActive },
   ] = useQueries({
     queries: [
@@ -72,8 +84,13 @@ export function OrganizationsProvider({
           const result = await authClient.organization.list();
           return result.data ?? [];
         },
+        enabled: orgListRequested,
+        placeholderData: initialActiveOrganization
+          ? [initialActiveOrganization]
+          : undefined,
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
+        refetchOnMount: false,
       },
       slugFromPath
         ? organizationSummaryQueryOptions(
@@ -86,7 +103,9 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  const isLoading = isLoadingOrgs || isLoadingActive;
+  const isOrganizationListPending =
+    isPendingOrgs || Boolean(isOrgListPlaceholder);
+  const isLoading = isOrganizationListPending || isLoadingActive;
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
@@ -156,7 +175,7 @@ export function OrganizationsProvider({
   // Auto-select first organization if no active organization is set
   useEffect(() => {
     if (
-      !(isLoadingOrgs || isLoadingActive) &&
+      !(isOrganizationListPending || isLoadingActive) &&
       organizationsData &&
       organizationsData.length > 0 &&
       !activeOrganization &&
@@ -198,7 +217,7 @@ export function OrganizationsProvider({
       hasAutoSelectedRef.current = false;
     }
   }, [
-    isLoadingOrgs,
+    isOrganizationListPending,
     isLoadingActive,
     organizationsData,
     activeOrganization,
@@ -221,8 +240,15 @@ export function OrganizationsProvider({
       activeOrganization: resolvedActiveOrganization,
       isLoading,
       getOrganization,
+      requestOrganizations,
     }),
-    [organizations, resolvedActiveOrganization, isLoading, getOrganization]
+    [
+      organizations,
+      resolvedActiveOrganization,
+      isLoading,
+      getOrganization,
+      requestOrganizations,
+    ]
   );
 
   return (

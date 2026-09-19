@@ -75,7 +75,7 @@ export function buildIntegrationsManifest(): IntegrationsManifest {
       [OAUTH_CREDENTIAL_ID]: {
         type: "oauth2",
         label: "Notra OAuth 2.1",
-        setup: `Read the protected resource metadata at ${MCP_PROTECTED_RESOURCE_METADATA_URL} to find the authorization server, register a client at https://oauth.usenotra.com/oauth2/register, and run the authorization code flow with PKCE. Request least privilege scopes such as projects.read and visibility.read and include offline_access when you need a refresh token. Headless clients can use the device authorization grant instead, which is what notra auth login does. Send the access token as an Authorization bearer token.`,
+        setup: `Read the protected resource metadata at ${MCP_PROTECTED_RESOURCE_METADATA_URL} to find the authorization server, register a client at https://oauth.usenotra.com/oauth2/register, and run the authorization code flow with PKCE. Request openid and include offline_access when you need a refresh token. The user selects a workspace and an access level (Read only, Write only, or Full access) on the consent screen. Headless clients can use the device authorization grant instead, which is what notra auth login does. Send the access token as an Authorization bearer token.`,
       },
     },
     surfaces: [

@@ -33,11 +33,13 @@ import { feedbackRoutes } from "./routes/feedback";
 import { geoAgentReadinessRoutes } from "./routes/geo-agent-readiness";
 import { geoBriefsRoutes } from "./routes/geo-briefs";
 import { geoCompetitorsRoutes } from "./routes/geo-competitors";
+import { geoDiagnosticsRoutes } from "./routes/geo-diagnostics";
 import { geoProjectsRoutes } from "./routes/geo-projects";
 import { geoPromptsRoutes } from "./routes/geo-prompts";
 import { geoScansRoutes } from "./routes/geo-scans";
 import { geoSequencesRoutes } from "./routes/geo-sequences";
 import { geoSettingsRoutes } from "./routes/geo-settings";
+import { geoShelfRoutes } from "./routes/geo-shelf";
 import { geoTrafficRoutes } from "./routes/geo-traffic";
 import { geoVisibilityRoutes } from "./routes/geo-visibility";
 import { integrationsRoutes } from "./routes/integrations";
@@ -58,7 +60,10 @@ import {
 } from "./utils/agent-discovery";
 import { trackApiException } from "./utils/analytics";
 import { assertRequiredEnv } from "./utils/env";
-import { isPublicFeedbackIngestRequest } from "./utils/feedback";
+import {
+  isFeedbackApiRequest,
+  isPublicFeedbackIngestRequest,
+} from "./utils/feedback";
 import { logError } from "./utils/logging";
 import { createApiShutdown } from "./utils/shutdown";
 
@@ -205,13 +210,22 @@ const unlessPublicFeedbackIngest =
       ? next()
       : middleware(c, next);
 
+// Feedback is the only API resource available without a paid plan. Auth and
+// scopes still apply to every request except the public ingest endpoint.
+const unlessFeedbackRequest =
+  (middleware: (c: Context, next: () => Promise<void>) => Promise<unknown>) =>
+  (c: Context, next: () => Promise<void>) =>
+    isFeedbackApiRequest(new URL(c.req.url).pathname)
+      ? next()
+      : middleware(c, next);
+
 app.use("/v1/*", apiAnalyticsMiddleware);
 app.use("/v2/*", apiAnalyticsMiddleware);
 
 app.use("/v1/*", unlessPublicFeedbackIngest(oauthScopeMiddleware));
 app.use("/v2/*", oauthScopeMiddleware);
 
-app.use("/v1/*", unlessPublicFeedbackIngest(subscriptionMiddleware()));
+app.use("/v1/*", unlessFeedbackRequest(subscriptionMiddleware()));
 app.use("/v2/*", subscriptionMiddleware());
 
 // GEO is a paid add-on, so every GEO endpoint — reads included — additionally
@@ -287,6 +301,8 @@ app.route("/v1", geoSequencesRoutes);
 app.route("/v1", geoCompetitorsRoutes);
 app.route("/v1", geoScansRoutes);
 app.route("/v1", geoVisibilityRoutes);
+app.route("/v1", geoDiagnosticsRoutes);
+app.route("/v1", geoShelfRoutes);
 app.route("/v1", geoBriefsRoutes);
 app.route("/v1", geoAgentReadinessRoutes);
 app.route("/v1", geoTrafficRoutes);

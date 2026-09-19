@@ -4,7 +4,9 @@ import {
   autumn,
 } from "@notra/ai/billing/autumn";
 import { FEATURES } from "@notra/ai/billing/features";
+import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import { redis } from "@notra/ai/utils/redis";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
 import { getOrganizationId } from "@notra/tools/utils/organization";
@@ -15,12 +17,19 @@ import {
 import { defineHook, type HookDefinition } from "eve/hooks";
 
 const USAGE_KEY_TTL_SECONDS = 60 * 60 * 24;
+const MICRO_USD_PER_USD = 1_000_000;
 
 interface AccumulatedUsage {
   inputTokens: number;
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  /**
+   * Cost of the steps behind this usage, summed per call. A turn's prompt
+   * grows with every step, so only per-call costs put each step on the right
+   * side of a long-context price threshold.
+   */
+  costMicroUsd?: number;
 }
 
 function accumulatorKey(sessionId: string, turnId: string) {
@@ -45,7 +54,14 @@ async function trackUsage(
     return;
   }
   const cost = calculateAiCreditCostCents(
-    { ...usage, totalTokens, modelId },
+    {
+      ...usage,
+      totalTokens,
+      modelId,
+      ...(usage.costMicroUsd === undefined
+        ? {}
+        : { tokenCostUsd: usage.costMicroUsd / MICRO_USD_PER_USD }),
+    },
     modelId,
     properties.markup_applied === "true"
   );
@@ -88,7 +104,13 @@ function shouldChargeAiCredits(ctx: Parameters<typeof getSessionAttribute>[0]) {
   return getSessionAttribute(ctx, "chargeAiCredits") !== "false";
 }
 
-export function createUsageHook(modelId: string): HookDefinition {
+/** `modelId` may resolve per turn for agents whose model is chosen at runtime. */
+export function createUsageHook(
+  modelId: string | ((turnId: string) => string)
+): HookDefinition {
+  const resolveModelId = (turnId: string) =>
+    typeof modelId === "string" ? modelId : modelId(turnId);
+
   return defineHook({
     events: {
       async "step.completed"(event, ctx) {
@@ -101,24 +123,32 @@ export function createUsageHook(modelId: string): HookDefinition {
           if (!(organizationId && usage)) {
             return;
           }
+          // eve reports the AI SDK counts, where the prompt total still
+          // contains the cached tokens.
+          const billable = toAgentTokenUsage(usage);
           const stepUsage: AccumulatedUsage = {
-            inputTokens: usage.inputTokens ?? 0,
-            outputTokens: usage.outputTokens ?? 0,
-            cacheReadTokens: usage.cacheReadTokens ?? 0,
-            cacheWriteTokens: usage.cacheWriteTokens ?? 0,
+            inputTokens: billable.inputTokens,
+            outputTokens: billable.outputTokens,
+            cacheReadTokens: billable.cacheReadTokens,
+            cacheWriteTokens: billable.cacheWriteTokens,
           };
 
           if (!redis) {
-            await trackUsage(modelId, organizationId, stepUsage, {
-              source: getSessionAttribute(ctx, "surface") ?? "agent",
-              agent: ctx.agent.name,
-              session_id: ctx.session.id,
-              turn_id: event.data.turnId,
-              step_index: event.data.stepIndex,
-              markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
-                ? "true"
-                : "false",
-            });
+            await trackUsage(
+              resolveModelId(event.data.turnId),
+              organizationId,
+              stepUsage,
+              {
+                source: getSessionAttribute(ctx, "surface") ?? "agent",
+                agent: ctx.agent.name,
+                session_id: ctx.session.id,
+                turn_id: event.data.turnId,
+                step_index: event.data.stepIndex,
+                markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
+                  ? "true"
+                  : "false",
+              }
+            );
             return;
           }
 
@@ -131,11 +161,16 @@ export function createUsageHook(modelId: string): HookDefinition {
             return;
           }
           const key = accumulatorKey(ctx.session.id, event.data.turnId);
+          const stepCostMicroUsd = Math.round(
+            calculateTokenCostUsd(billable, resolveModelId(event.data.turnId)) *
+              MICRO_USD_PER_USD
+          );
           await Promise.all([
             redis.hincrby(key, "inputTokens", stepUsage.inputTokens),
             redis.hincrby(key, "outputTokens", stepUsage.outputTokens),
             redis.hincrby(key, "cacheReadTokens", stepUsage.cacheReadTokens),
             redis.hincrby(key, "cacheWriteTokens", stepUsage.cacheWriteTokens),
+            redis.hincrby(key, "costMicroUsd", stepCostMicroUsd),
             redis.expire(key, USAGE_KEY_TTL_SECONDS),
           ]);
         } catch (error) {
@@ -177,13 +212,16 @@ export function createUsageHook(modelId: string): HookDefinition {
             return;
           }
           await trackUsage(
-            modelId,
+            resolveModelId(event.data.turnId),
             organizationId,
             {
               inputTokens: Number(accumulated.inputTokens ?? 0),
               outputTokens: Number(accumulated.outputTokens ?? 0),
               cacheReadTokens: Number(accumulated.cacheReadTokens ?? 0),
               cacheWriteTokens: Number(accumulated.cacheWriteTokens ?? 0),
+              // Turns that started before this field existed fall back to
+              // pricing the aggregate.
+              costMicroUsd: Number(accumulated.costMicroUsd ?? 0) || undefined,
             },
             {
               source: getSessionAttribute(ctx, "surface") ?? "agent",

@@ -13,11 +13,25 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  outputFileTracingIncludes: {
-    "/*": ["./src/lib/ai/skills/**/*", "../../packages/ai/src/skills/**/*"],
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
   experimental: {
-    optimizePackageImports: ["@hugeicons/core-free-icons", "lucide-react"],
+    optimizePackageImports: [
+      "@base-ui/react",
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "cmdk",
+      "date-fns",
+      "echarts",
+      "lucide-react",
+      "motion/react",
+      "nuqs",
+      "recharts",
+    ],
     hideLogsAfterAbort: true,
     instantInsights: {
       validationLevel: "manual-warning",
@@ -38,7 +52,12 @@ const nextConfig: NextConfig = {
     "@notra/utils",
     "@usenotra/geo",
   ],
-  serverExternalPackages: ["@resvg/resvg-js", "@cursor/sdk"],
+  serverExternalPackages: [
+    "@resvg/resvg-js",
+    "@cursor/sdk",
+    "@ai-sdk/code-mode",
+    "run",
+  ],
   skipTrailingSlashRedirect: true,
   async rewrites() {
     const posthogHost =
@@ -153,6 +172,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "logos.context.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "www.google.com",
+        pathname: "/s2/favicons",
       },
       {
         protocol: "https",

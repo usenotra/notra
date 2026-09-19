@@ -48,12 +48,26 @@ export function geoOnboardingPath(projectId?: string, replay = false): string {
   return onboardingPath(base, projectId, replay);
 }
 
+export function geoOnboardingWorkspacePath(
+  projectId?: string,
+  replay = false
+): string {
+  return onboardingPath("/onboarding/workspace", projectId, replay);
+}
+
 export function geoOnboardingCompetitorsPath(
   projectId?: string,
   replay = false
 ): string {
   const base = "/onboarding/competitors";
   return onboardingPath(base, projectId, replay);
+}
+
+export function geoOnboardingPricingPath(
+  projectId?: string,
+  replay = false
+): string {
+  return onboardingPath("/onboarding/pricing", projectId, replay);
 }
 
 function onboardingPath(

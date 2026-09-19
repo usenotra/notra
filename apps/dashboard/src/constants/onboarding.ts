@@ -6,6 +6,12 @@ export const ONBOARDING_STEP_WORKSPACE = 1;
 export const ONBOARDING_STEP_VISIBILITY = 2;
 export const ONBOARDING_STEP_COMPETITORS = 3;
 export const ONBOARDING_STEP_PRICING = 4;
+export const ONBOARDING_STEP_LABELS = [
+  "Workspace",
+  "Visibility",
+  "Competitors",
+  "Pricing",
+] as const;
 export const ONBOARDING_VISIBILITY_MAX_PROMPTS = 20;
 export const ONBOARDING_VISIBLE_SUGGESTIONS = 3;
 export const ONBOARDING_SUGGESTION_SKELETON_ROWS = [0, 1, 2, 3] as const;

@@ -5,6 +5,16 @@ export interface ModelPricing {
   outputPerMillionTokens: number;
   cacheReadPerMillionTokens: number;
   cacheWritePerMillionTokens: number;
+  /**
+   * Providers that charge more for long prompts bill the whole request at the
+   * higher rate once its prompt exceeds `promptTokens`.
+   */
+  longContext?: LongContextPricing;
+}
+
+export interface LongContextPricing extends Omit<ModelPricing, "longContext"> {
+  /** Prompt size, in tokens, above which the higher rates apply. */
+  promptTokens: number;
 }
 
 export type AiCreditBillingBasis = "reported_total_usd" | "tokens";

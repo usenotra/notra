@@ -11,9 +11,6 @@ import type { AnalyticsCacheScope } from "../types/cache";
 import type {
   AccountLeaderboardParams,
   AccountLeaderboardRow,
-  AiTrafficLogRow,
-  AiTrafficOverviewRow,
-  AiTrafficTimeseriesRow,
   EngagementTimeseriesParams,
   EngagementTimeseriesRow,
   FollowerGrowthParams,
@@ -36,8 +33,6 @@ import type {
   TopPostsRow,
 } from "../types/tinybird-endpoints";
 import {
-  type AiTrafficEventRow,
-  aiTrafficEvents,
   type GeoTrafficEventRow,
   geoTrafficEvents,
   type SocialAccountRow,
@@ -51,11 +46,6 @@ import {
   socialPostStats,
   socialPosts,
 } from "./datasources";
-import {
-  aiTrafficLog,
-  aiTrafficOverview,
-  aiTrafficTimeseries,
-} from "./pipes/ai-traffic";
 import {
   geoJourneyDetail,
   geoTrafficJourneys,
@@ -100,7 +90,6 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       socialPosts,
       socialPostStats,
       socialPostSources,
-      aiTrafficEvents,
       geoTrafficEvents,
     },
     pipes: {
@@ -112,9 +101,6 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       notraAdoption,
       postMetricsLookup,
       accountLeaderboard,
-      aiTrafficOverview,
-      aiTrafficTimeseries,
-      aiTrafficLog,
       geoTrafficOverview,
       geoTrafficTimeseries,
       geoTrafficPages,
@@ -245,17 +231,6 @@ export function ingestSocialPostSources(
   );
 }
 
-export function ingestAiTrafficEvents(
-  rows: AiTrafficEventRow[]
-): Promise<IngestResult | null> {
-  return ingestRows(
-    rows,
-    "traffic",
-    rows.map((row) => row.organization_id),
-    (client, batch) => client.aiTrafficEvents.ingestBatch(batch)
-  );
-}
-
 export function ingestGeoTrafficEvents(
   rows: GeoTrafficEventRow[]
 ): Promise<IngestResult | null> {
@@ -368,45 +343,6 @@ export function queryPostMetricsLookup(params: {
         organization_id: params.organization_id,
         post_ids: [params.post_ids.join(",")],
       })
-  );
-}
-
-export function queryAiTrafficOverview(params: {
-  organization_id: string;
-  days?: number;
-}): Promise<QueryResult<AiTrafficOverviewRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_overview",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficOverview.query(params)
-  );
-}
-
-export function queryAiTrafficTimeseries(params: {
-  organization_id: string;
-  days?: number;
-}): Promise<QueryResult<AiTrafficTimeseriesRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_timeseries",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficTimeseries.query(params)
-  );
-}
-
-export function queryAiTrafficLog(params: {
-  organization_id: string;
-  limit?: number;
-}): Promise<QueryResult<AiTrafficLogRow> | null> {
-  return cachedPipeQuery(
-    "traffic",
-    "ai_traffic_log",
-    params,
-    params.organization_id,
-    (client) => client.aiTrafficLog.query(params)
   );
 }
 

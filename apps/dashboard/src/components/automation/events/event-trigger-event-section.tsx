@@ -4,6 +4,7 @@ import { EVENT_TYPE_ORDER } from "@/constants/event-triggers";
 import type { EventTriggerFormSectionProps } from "@/types/automation/event-trigger";
 
 import { EventTypeCard } from "./event-type-card";
+import { IgnoreCommitPatternsField } from "./ignore-commit-patterns-field";
 import { TriggerSwitchRow } from "./trigger-switch-row";
 
 export function EventTriggerEventSection({
@@ -42,6 +43,21 @@ export function EventTriggerEventSection({
               tooltip="When off, releases marked as pre-release on GitHub will not fire this trigger."
             />
           )}
+        </form.Field>
+      )}
+      {eventType === "push" && (
+        <form.Field name="ignoreCommitPatternsText">
+          {(field) => {
+            return (
+              <IgnoreCommitPatternsField
+                errors={field.state.meta.errors}
+                fieldName={field.name}
+                onBlur={field.handleBlur}
+                onChange={field.handleChange}
+                value={field.state.value}
+              />
+            );
+          }}
         </form.Field>
       )}
     </section>

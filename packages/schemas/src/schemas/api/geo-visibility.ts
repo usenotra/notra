@@ -94,6 +94,57 @@ const promptResultSchema = z.object({
   lastCheckedAt: z.string(),
 });
 
+const promptResultSummarySchema = promptResultSchema
+  .pick({
+    promptId: true,
+    engine: true,
+    prompt: true,
+    mentioned: true,
+    ownedSourceCited: true,
+    position: true,
+    sentiment: true,
+    competitors: true,
+    lastCheckedAt: true,
+  })
+  .extend({ checkId: z.string() });
+
+export const promptResultSummaryQuerySchema = geoWindowQuerySchema.extend({
+  cursor: z.coerce.number().int().min(0).max(100_000).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  engine: z.string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
+  mentioned: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .optional(),
+  query: z.string().trim().min(1).max(300).optional(),
+});
+
+export const visibilityPromptResultSummariesResponseSchema = z
+  .object({
+    configured: z.boolean(),
+    results: z.array(promptResultSummarySchema),
+    nextCursor: z.string().nullable(),
+    organization: organizationResponseSchema,
+  })
+  .openapi("GeoVisibilityPromptResultSummariesResponse");
+
+export const promptResultDetailParamsSchema = projectParamsSchema.extend({
+  checkId: z.string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+});
+
+export const visibilityPromptResultDetailResponseSchema = z
+  .object({
+    result: promptResultSchema.extend({
+      finishReason: z.string().nullable(),
+      promptTokens: z.number().int().nullable(),
+      outputTokens: z.number().int().nullable(),
+      reasoningTokens: z.number().int().nullable(),
+      truncated: z.boolean().nullable(),
+    }),
+    organization: organizationResponseSchema,
+  })
+  .openapi("GeoVisibilityPromptResultDetailResponse");
+
 export const visibilityPromptResultsResponseSchema = z
   .object({
     configured: z.boolean(),

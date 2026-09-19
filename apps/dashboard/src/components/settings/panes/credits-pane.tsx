@@ -5,7 +5,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Confetti } from "@neoconfetti/react";
 import { FEATURES } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useAggregateEvents } from "autumn-js/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +15,6 @@ import { useEffect, useRef, useState } from "react";
 import { CreditActivity } from "@/components/billing/credit-activity";
 import { CreditSummaryCards } from "@/components/billing/credit-summary-cards";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
-import { CreditUsageChart } from "@/components/billing/credit-usage-chart";
 import { Button } from "@/components/button";
 import { NotFoundContent } from "@/components/not-found-content";
 import { SettingsPane } from "@/components/settings/settings-pane";
@@ -21,6 +22,16 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import type { CreditRangeOption } from "@/types/billing/credits";
+
+const CreditUsageChart = dynamic(
+  () =>
+    import("@/components/billing/credit-usage-chart").then(
+      (mod) => mod.CreditUsageChart
+    ),
+  {
+    loading: () => <Skeleton className="h-[280px] w-full rounded-lg" />,
+  }
+);
 
 export function CreditsSettingsPane() {
   const { slug } = useParams<{ slug: string }>();

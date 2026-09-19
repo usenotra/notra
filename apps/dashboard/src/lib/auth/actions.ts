@@ -63,24 +63,7 @@ export async function getSession() {
   return session;
 }
 
-/**
- * Authenticated user, without resolving the active organization. Callers that
- * need the active organization should read the session via `getSession`.
- */
-export async function requireAuthIdentity() {
-  const identity = await getAuthIdentity();
-
-  if (!identity?.user) {
-    if (await isSessionBanned()) {
-      redirect("/auth/banned");
-    }
-    redirect("/login");
-  }
-
-  return identity;
-}
-
-async function getLastActiveOrganizationForUser(userId: string) {
+const getLastActiveOrganizationForUser = cache(async (userId: string) => {
   const cookieStore = await cookies();
   const lastVisitedOrgSlug = cookieStore.get(
     LAST_VISITED_ORGANIZATION_COOKIE
@@ -147,9 +130,9 @@ async function getLastActiveOrganizationForUser(userId: string) {
     : undefined;
 
   return { ...organization, projectId: project?.id };
-}
+});
 
-export async function getLastActiveOrganization() {
+export const getLastActiveOrganization = cache(async () => {
   const session = await getAuthSession();
 
   if (!session?.user) {
@@ -157,7 +140,7 @@ export async function getLastActiveOrganization() {
   }
 
   return getLastActiveOrganizationForUser(session.user.id);
-}
+});
 
 async function getAllOrganizationsForUser(userId: string) {
   return retryTransientDbError(() =>
@@ -169,7 +152,7 @@ async function getAllOrganizationsForUser(userId: string) {
   );
 }
 
-export async function getAllUserOrganizations() {
+export const getAllUserOrganizations = cache(async () => {
   const session = await getAuthSession();
 
   if (!session?.user) {
@@ -177,4 +160,4 @@ export async function getAllUserOrganizations() {
   }
 
   return getAllOrganizationsForUser(session.user.id);
-}
+});
