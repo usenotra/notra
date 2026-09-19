@@ -24,6 +24,7 @@ import type { UIMessage } from "ai";
 import type { Context } from "hono";
 import { nanoid } from "nanoid";
 
+import type { AuthData } from "../../types/auth";
 import { createDirectStandaloneChatResponse } from "./direct-stream";
 import { buildApiChatTelemetryMetadata } from "./tcc";
 
@@ -118,7 +119,7 @@ export async function runChatMessage({
   }
 
   const chatId = resolvedChatId ?? generateChatId();
-  const auth = c.get("auth") as { keyId?: string } | undefined;
+  const auth: AuthData | undefined = c.get("auth");
 
   const userMessage: UIMessage = {
     id: nanoid(),
@@ -172,6 +173,7 @@ export async function runChatMessage({
 
     return await createDirectStandaloneChatResponse({
       organizationId,
+      auth,
       chatId,
       messages,
       context,

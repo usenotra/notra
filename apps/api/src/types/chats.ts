@@ -5,12 +5,15 @@ import type { ValidatedIntegration } from "@notra/ai/types/orchestration";
 import type { TccMetadata } from "@notra/ai/types/tcc";
 import type { UIMessage } from "ai";
 
+import type { AuthData } from "./auth";
+
 type ChatLogger = ReturnType<typeof useLogger>;
 
 type ChatThinkingLevel = "off" | "low" | "medium" | "high";
 
 export interface DirectStandaloneChatArgs {
   organizationId: string;
+  auth?: AuthData;
   chatId: string;
   messages: UIMessage[];
   context: StandaloneChatContextItem[];
