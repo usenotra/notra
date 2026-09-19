@@ -49,13 +49,12 @@ function tokens(value: string) {
 }
 
 function queryTerms(query: string) {
-  const terms = new Set(tokens(query));
-  for (const term of terms) {
-    for (const alias of NLWEB_QUERY_ALIASES[term] ?? []) {
-      terms.add(alias);
-    }
-  }
-  return [...terms];
+  return [...new Set(tokens(query))].map((term) => ({
+    term,
+    aliases: (NLWEB_QUERY_ALIASES[term] ?? []).filter(
+      (alias) => alias !== term
+    ),
+  }));
 }
 
 function cleanMarkdown(value: string) {
@@ -85,22 +84,65 @@ function scoreSection(
   pageTitle: string,
   heading: string,
   content: string,
-  terms: string[]
+  terms: ReturnType<typeof queryTerms>
 ) {
-  const headingTokens = tokens(`${pageTitle} ${heading}`);
+  const pageTokens = tokens(pageTitle);
+  const headingTokens = tokens(heading);
   const contentTokens = tokens(content);
 
-  return terms.reduce((score, term) => {
-    const headingMatches = headingTokens.filter((word) => word === term).length;
-    const contentMatches = contentTokens.filter((word) => word === term).length;
-    return score + headingMatches * 6 + Math.min(contentMatches, 4);
-  }, 0);
+  const scored = terms.map(({ aliases, term }) => {
+    const originalMatches =
+      headingTokens.filter((word) => word === term).length * 12 +
+      pageTokens.filter((word) => word === term).length * 2 +
+      Math.min(contentTokens.filter((word) => word === term).length, 3) * 2;
+    const aliasMatches = aliases.reduce(
+      (score, alias) =>
+        score +
+        headingTokens.filter((word) => word === alias).length * 3 +
+        pageTokens.filter((word) => word === alias).length +
+        Math.min(contentTokens.filter((word) => word === alias).length, 2),
+      0
+    );
+
+    return {
+      matched: originalMatches + aliasMatches > 0,
+      score: originalMatches + aliasMatches,
+    };
+  });
+  const coverage = scored.filter(({ matched }) => matched).length;
+
+  return (
+    scored.reduce((total, result) => total + result.score, 0) +
+    coverage ** 2 * 3
+  );
+}
+
+function toResult(
+  page: (typeof PAGES)[number],
+  section: ReturnType<typeof sections>[number]
+): NlwebResult {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.title
+      .toLocaleLowerCase()
+      .endsWith(section.heading.toLocaleLowerCase())
+      ? page.title
+      : `${page.title}: ${section.heading}`,
+    url: page.url,
+    description: cleanMarkdown(section.content).slice(0, 600),
+    grounding: {
+      source: page.url,
+    },
+  };
 }
 
 export function retrieveNlwebResults(query: string): NlwebResult[] {
   const terms = queryTerms(query);
   if (terms.length === 0) {
-    return [];
+    const [page] = PAGES;
+    const [section] = sections(page.content);
+    return section ? [toResult(page, section)] : [];
   }
 
   const seenUrls = new Set<string>();
@@ -122,20 +164,7 @@ export function retrieveNlwebResults(query: string): NlwebResult[] {
       return true;
     })
     .slice(0, NLWEB_MAX_RESULTS)
-    .map(({ page, section }) => ({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: page.title
-        .toLocaleLowerCase()
-        .endsWith(section.heading.toLocaleLowerCase())
-        ? page.title
-        : `${page.title}: ${section.heading}`,
-      url: page.url,
-      description: cleanMarkdown(section.content).slice(0, 600),
-      grounding: {
-        source: page.url,
-      },
-    }));
+    .map(({ page, section }) => toResult(page, section));
 }
 
 export function nlwebMeta<T extends "answer" | "failure">(responseType: T) {
