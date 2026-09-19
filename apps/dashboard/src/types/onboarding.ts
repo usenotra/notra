@@ -1,4 +1,5 @@
 import type {
+  GeoAudienceType,
   GeoBrandSearchResult,
   GeoCompetitor,
   GeoDiscoveredPrompt,
@@ -168,6 +169,7 @@ export interface CompetitorSearchResultRowProps {
 export interface VisibilityBrandDraft {
   companyName: string;
   aliases: readonly string[];
+  audienceType?: GeoAudienceType;
   prompts: readonly GeoDiscoveredPrompt[];
 }
 

@@ -88,25 +88,25 @@ export const DailySummaryEmail = ({
   lost = 1,
   items = [
     {
+      id: "prompt-1:openai",
       title: "What is the best changelog tool for startups?",
-      detail: "Gained mention",
+      changes: [{ id: "gained_mention", detail: "Gained mention", tone: "up" }],
       engineLabel: "ChatGPT",
       engineIconSrc: engineEmailLogoSrc("openai"),
-      tone: "up",
     },
     {
+      id: "prompt-2:perplexity",
       title: "How should small SaaS teams write release notes?",
-      detail: "Lost mention",
+      changes: [{ id: "lost_mention", detail: "Lost mention", tone: "down" }],
       engineLabel: "Perplexity",
       engineIconSrc: engineEmailLogoSrc("perplexity"),
-      tone: "down",
     },
     {
+      id: "prompt-3:gemini",
       title: "Which AI tools generate changelogs from GitHub?",
-      detail: "Position up",
+      changes: [{ id: "position_improved", detail: "Position up", tone: "up" }],
       engineLabel: "Gemini",
       engineIconSrc: engineEmailLogoSrc("gemini"),
-      tone: "up",
     },
   ],
   remainingCount = 2,
@@ -167,7 +167,7 @@ export const DailySummaryEmail = ({
                     <ChangeRow
                       first={index === 0}
                       item={item}
-                      key={`${item.tone}-${item.title}`}
+                      key={item.id}
                       last={index === items.length - 1}
                     />
                   ))}
@@ -298,35 +298,46 @@ function ChangeRow({
       </Text>
       <Row>
         <Column style={{ paddingTop: "6px" }}>
-          <GeoToneMark tone={item.tone} />
-          <span
-            style={{
-              color: EMAIL_THEME.mutedForeground,
-              fontSize: "12px",
-              verticalAlign: "middle",
-            }}
-          >
-            {item.detail}
-            {item.engineLabel ? (
-              <>
-                {" · "}
-                {item.engineIconSrc ? (
-                  <Img
-                    alt=""
-                    height="14"
-                    src={item.engineIconSrc}
-                    style={{
-                      display: "inline-block",
-                      margin: "0 4px 0 0",
-                      verticalAlign: "middle",
-                    }}
-                    width="14"
-                  />
-                ) : null}
-                {item.engineLabel}
-              </>
-            ) : null}
-          </span>
+          {item.changes.map((change) => (
+            <span
+              key={change.id}
+              style={{
+                color: EMAIL_THEME.mutedForeground,
+                display: "inline-block",
+                fontSize: "12px",
+                marginRight: "8px",
+                verticalAlign: "middle",
+              }}
+            >
+              <GeoToneMark tone={change.tone} />
+              {change.detail}
+            </span>
+          ))}
+          {item.engineLabel ? (
+            <span
+              style={{
+                color: EMAIL_THEME.mutedForeground,
+                display: "inline-block",
+                fontSize: "12px",
+                verticalAlign: "middle",
+              }}
+            >
+              {item.engineIconSrc ? (
+                <Img
+                  alt=""
+                  height="14"
+                  src={item.engineIconSrc}
+                  style={{
+                    display: "inline-block",
+                    margin: "0 4px 0 0",
+                    verticalAlign: "middle",
+                  }}
+                  width="14"
+                />
+              ) : null}
+              {item.engineLabel}
+            </span>
+          ) : null}
         </Column>
       </Row>
     </Section>
@@ -404,28 +415,48 @@ DailySummaryEmail.PreviewProps = {
   lost: 1,
   items: [
     {
-      title: "What is the best changelog tool for startups?",
-      detail: "Gained mention",
-      engineLabel: "ChatGPT",
-      engineIconSrc: engineEmailLogoSrc("openai"),
-      tone: "up",
+      id: "prompt-1:anthropic",
+      title:
+        "can you recommend something for ai-powered desktop transcription application",
+      changes: [
+        {
+          id: "citation_added",
+          detail: "12 citations added",
+          tone: "up",
+        },
+        {
+          id: "citation_removed",
+          detail: "7 citations removed",
+          tone: "down",
+        },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "How should small SaaS teams write release notes?",
-      detail: "Lost mention",
-      engineLabel: "Perplexity",
-      engineIconSrc: engineEmailLogoSrc("perplexity"),
-      tone: "down",
+      id: "prompt-2:anthropic",
+      title:
+        "how do i get started with ai-powered desktop transcription application",
+      changes: [
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "Which AI tools generate changelogs from GitHub?",
-      detail: "Position up",
-      engineLabel: "Gemini",
-      engineIconSrc: engineEmailLogoSrc("gemini"),
-      tone: "up",
+      id: "prompt-3:anthropic",
+      title:
+        "looking for an alternative for ai-powered desktop transcription application, what should i try?",
+      changes: [
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+      ],
+      engineLabel: "Claude",
+      engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
   ],
-  remainingCount: 2,
+  remainingCount: 18,
   dashboardLink: "https://app.usenotra.com/acme/geo",
 } satisfies DailySummaryEmailProps;
 

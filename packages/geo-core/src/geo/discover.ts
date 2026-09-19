@@ -34,12 +34,14 @@ import type {
   GeoScopeInput,
   GeoWebsiteDiscovery,
 } from "../types/geo";
+import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
 import { geoSkip } from "./effect";
 import { GeoDiscoveryError } from "./errors";
 import { invalidateGeoIngestHostsCache } from "./ingest-hosts-cache";
 import { toGeoProject } from "./mappers";
+import { loadGeoModelCatalog } from "./model-catalog";
 import {
   insertPromptsInTransaction,
   reconcileCompetitorsInTransaction,
@@ -66,7 +68,8 @@ Derive the brand tracking configuration for this company:
 1. companyName: the company or product name exactly as it brands itself.
 2. aliases: up to ${GEO_DISCOVERY_MAX_ALIASES} alternative spellings that identify this company - product names, the bare domain, and common misspellings. Never include generic words that could refer to anything else.
 3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
-4. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+4. audienceType: who pays this company, judged by its own buyers and never by the industry it serves. "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "commerce" when consumers find it by searching Google for something to buy, book or visit (online shops, consumer products, restaurants, travel, local businesses and trades). "general" for everyone else (professional services, non-technical B2B, media, education), whose buyers just use whatever model their assistant ships with. Software or services sold to shops, restaurants or other businesses are "general" or "technical", not "commerce": a store builder or an email tool for merchants is "general".
+5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
 
 Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
 
@@ -229,6 +232,21 @@ export const discoverGeoWebsite = Effect.fn("geo.discoverWebsite")(function* (
   return result;
 });
 
+/**
+ * Engines a newly created settings row starts with. Technical brands stay on
+ * null so they keep following the default set.
+ */
+const resolveSeedEngines = Effect.fn("geo.discover.seedEngines")(function* (
+  organizationId: string,
+  discovery: GeoWebsiteDiscovery
+) {
+  if (discovery.audienceType === "technical") {
+    return null;
+  }
+  const catalog = yield* loadGeoModelCatalog(organizationId);
+  return geoEnginesForAudience(catalog, discovery.audienceType);
+});
+
 const persistGeoWebsiteGeneration = Effect.fn(
   "geo.generateFromWebsite.persist"
 )(function* (
@@ -238,7 +256,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
   companyName: string,
   aliases: string[],
   entries: readonly GeoPromptInsert[],
-  discoveredCompetitors: readonly GeoCompetitorSeed[]
+  discoveredCompetitors: readonly GeoCompetitorSeed[],
+  seedEngines: string[] | null
 ) {
   yield* Effect.tryPromise({
     try: () =>
@@ -251,6 +270,8 @@ const persistGeoWebsiteGeneration = Effect.fn(
           companyName,
           aliases,
           competitors: [],
+          // Only a new row is seeded; an existing selection is left alone.
+          engines: seedEngines,
           enabled: true,
         })
         .onConflictDoUpdate({
@@ -392,6 +413,8 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
         existing?.aliases
       );
 
+    const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
+
     const summary = yield* Effect.tryPromise({
       try: () =>
         db.transaction((tx) =>
@@ -403,7 +426,8 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
               companyName,
               aliases,
               entries,
-              discovery.competitors
+              discovery.competitors,
+              seedEngines
             )
           )
         ),
@@ -437,6 +461,7 @@ export const createGeoProjectFromWebsite = Effect.fn(
   const { discovery } = yield* discoverGeoWebsite(organizationId, url);
   const { aliases, companyName, entries } =
     yield* prepareGeoWebsiteGeneration(discovery);
+  const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
 
   const project = yield* Effect.tryPromise({
     try: () =>
@@ -463,7 +488,8 @@ export const createGeoProjectFromWebsite = Effect.fn(
             companyName,
             aliases,
             entries,
-            discovery.competitors
+            discovery.competitors,
+            seedEngines
           )
         );
         return toGeoProject(row);

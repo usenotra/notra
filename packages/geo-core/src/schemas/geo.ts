@@ -46,6 +46,7 @@ import {
 } from "../constants/geo";
 import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
 import { GEO_CSV_IMPORT_MAX_ROWS } from "../constants/geo-import";
+import { GEO_AUDIENCE_TYPES } from "../constants/geo-model-catalog";
 import { normalizeProjectDomain } from "../utils/geo-project-domains";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import {
@@ -376,6 +377,7 @@ export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
     })
   ).max(GEO_ONBOARDING_MAX_PROMPTS),
   languages: geoTrackingLanguagesSchema.optional(),
+  audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
   engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .min(1)
     .max(GEO_MAX_ENGINES)
@@ -416,6 +418,7 @@ export const geoBrandSearchInputSchema = geoOrganizationInputSchema.extend({
 export const geoWebsiteDiscoverySchema = object({
   companyName: string().min(1),
   aliases: array(string().min(1)).max(GEO_DISCOVERY_MAX_ALIASES),
+  audienceType: enumType(GEO_AUDIENCE_TYPES),
   competitors: array(
     object({
       name: string().min(1),

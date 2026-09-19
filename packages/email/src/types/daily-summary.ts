@@ -1,9 +1,15 @@
 export type DailySummaryChangeTone = "up" | "down" | "neutral";
 
-export interface DailySummaryEmailItem {
-  title: string;
+export interface DailySummaryEmailChange {
+  id: string;
   detail: string;
   tone: DailySummaryChangeTone;
+}
+
+export interface DailySummaryEmailItem {
+  id: string;
+  title: string;
+  changes: DailySummaryEmailChange[];
   engineLabel?: string;
   engineIconSrc?: string;
 }

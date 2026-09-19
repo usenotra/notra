@@ -161,7 +161,7 @@ export function Table<T>({
     orderedColumns.length > 0 &&
     orderedColumns.every((column) => widths[column.key] != null);
   const tableClassName = cn(
-    "border-collapse",
+    "border-collapse tabular-nums",
     sized ? "w-max min-w-full" : "w-full"
   );
   const minTableWidth = tableMinWidthCss(

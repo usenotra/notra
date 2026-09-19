@@ -15,6 +15,7 @@ import type { GeoScanUsageByRole } from "@notra/db/types/geo-scan";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import type { FinishReason, LanguageModel, ToolSet } from "ai";
 
+import type { GEO_AUDIENCE_TYPES } from "../constants/geo-model-catalog";
 import type { GeoModelTokenUsage } from "./token-usage";
 
 export interface GeoProject {
@@ -850,9 +851,12 @@ export interface GeoDiscoveredPrompt {
   title: string;
 }
 
+export type GeoAudienceType = (typeof GEO_AUDIENCE_TYPES)[number];
+
 export interface GeoWebsiteDiscovery {
   companyName: string;
   aliases: string[];
+  audienceType: GeoAudienceType;
   competitors: GeoCompetitorSeed[];
   prompts: GeoDiscoveredPrompt[];
 }
@@ -878,6 +882,7 @@ export interface GeoOnboardingBrandInput {
   aliases: string[];
   prompts: GeoDiscoveredPrompt[];
   languages?: string[];
+  audienceType?: GeoAudienceType;
   engines?: string[];
   enforceZdr?: boolean;
   nonZdrApprovedEngines?: string[];

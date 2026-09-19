@@ -1,5 +1,7 @@
 import {
+  GEO_COMMERCE_AUDIENCE_ENGINE_IDS,
   GEO_DEFAULT_ENGINE_IDS,
+  GEO_GENERAL_AUDIENCE_ENGINE_IDS,
   GEO_MODEL_CATALOG_SEED,
   GEO_MODEL_CATALOG_STATIC,
   GEO_MODEL_EXCLUDED_ID_PATTERN,
@@ -13,6 +15,7 @@ import {
   GEO_STATIC_ENGINE_ENV,
 } from "../constants/geo-model-catalog";
 import type {
+  GeoAudienceType,
   GeoGatewayModel,
   GeoModelCatalog,
   GeoModelCatalogEntry,
@@ -232,4 +235,29 @@ export function geoDefaultEngines(catalog: GeoModelCatalog): string[] {
     return defaults;
   }
   return catalog.models.slice(0, 1).map((model) => model.id);
+}
+
+/**
+ * Engines seeded at onboarding. Non-technical audiences get the models the
+ * assistant apps default to, but only while the catalog has all of them: a
+ * partial set would be stored as the project's selection for good, so it
+ * falls back to the full default set instead. The Google AI Overview is the
+ * one optional engine, since it depends on a credential.
+ */
+export function geoEnginesForAudience(
+  catalog: GeoModelCatalog,
+  audienceType: GeoAudienceType | undefined
+): string[] {
+  if (audienceType !== "general" && audienceType !== "commerce") {
+    return geoDefaultEngines(catalog);
+  }
+  const known = new Set(catalog.models.map((model) => model.id));
+  if (!GEO_GENERAL_AUDIENCE_ENGINE_IDS.every((id) => known.has(id))) {
+    return geoDefaultEngines(catalog);
+  }
+  const preferred =
+    audienceType === "commerce"
+      ? GEO_COMMERCE_AUDIENCE_ENGINE_IDS
+      : GEO_GENERAL_AUDIENCE_ENGINE_IDS;
+  return preferred.filter((id) => known.has(id));
 }

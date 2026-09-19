@@ -1,4 +1,9 @@
-import type { GeoChangesSummary } from "@notra/geo-core/types/geo";
+import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
+import { GEO_CHANGE_KIND_LABELS } from "@notra/geo-core/constants/geo";
+import type {
+  GeoChangeKind,
+  GeoChangesSummary,
+} from "@notra/geo-core/types/geo";
 
 import type {
   BuildDailySummaryInput,
@@ -38,6 +43,34 @@ export function truncatePrompt(prompt: string, maxLength: number) {
   }
 
   return `${collapsed.slice(0, Math.max(maxLength - 1, 1)).trimEnd()}…`;
+}
+
+export function groupDailySummaryItems(
+  items: readonly DailySummaryEmailItem[]
+): DailySummaryEmailItem[] {
+  const grouped = new Map<string, DailySummaryEmailItem>();
+
+  for (const item of items) {
+    const existing = grouped.get(item.id);
+    if (existing) {
+      existing.changes.push(...item.changes);
+    } else {
+      grouped.set(item.id, { ...item, changes: [...item.changes] });
+    }
+  }
+
+  return [...grouped.values()];
+}
+
+export function formatDailySummaryChangeDetail(
+  kind: GeoChangeKind,
+  count: number
+) {
+  if (count <= 1 || !kind.startsWith("citation_")) {
+    return GEO_CHANGE_KIND_LABELS[kind];
+  }
+
+  return `${count} citations ${kind === "citation_added" ? "added" : "removed"}`;
 }
 
 export function aggregateMentionTotals(

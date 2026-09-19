@@ -14,7 +14,6 @@ import {
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { engineEmailLogoSrc } from "@notra/email/utils/engine-logo";
 import { getResend } from "@notra/email/utils/resend";
-import { GEO_CHANGE_KIND_LABELS } from "@notra/geo-core/constants/geo";
 import type { GeoChangeEvent, GeoChangeKind } from "@notra/geo-core/types/geo";
 import {
   diffScanChecks,
@@ -36,7 +35,9 @@ import type { DailySummaryOrganizationResult } from "@/types/email/daily-summary
 import {
   aggregateMentionTotals,
   buildDailySummary,
+  formatDailySummaryChangeDetail,
   getPreviousUtcDayWindow,
+  groupDailySummaryItems,
   isQuietDailySummary,
   isUnchangedDailySummary,
   mergeChangesSummaries,
@@ -238,18 +239,21 @@ async function sendDailySummaryForOrganization({
   );
   const includeProjectName = projectIds.length > 1;
   const changeEvents = projectChanges.flatMap((entry) => entry?.events ?? []);
-  const summaryItems = projectChanges.flatMap((entry) => {
-    if (!entry) {
-      return [];
-    }
+  const summaryItems = groupDailySummaryItems(
+    projectChanges.flatMap((entry) => {
+      if (!entry) {
+        return [];
+      }
 
-    const projectName = projectNames.get(entry.projectId);
-    return entry.events.map((event) =>
-      toSummaryChangeItem(event, {
-        projectName: includeProjectName ? projectName : undefined,
-      })
-    );
-  });
+      const projectName = projectNames.get(entry.projectId);
+      return entry.events.map((event) =>
+        toSummaryChangeItem(event, {
+          projectId: entry.projectId,
+          projectName: includeProjectName ? projectName : undefined,
+        })
+      );
+    })
+  );
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
@@ -318,19 +322,22 @@ async function sendDailySummaryForOrganization({
 
 function toSummaryChangeItem(
   event: GeoChangeEvent,
-  { projectName }: { projectName?: string }
+  { projectId, projectName }: { projectId: string; projectName?: string }
 ) {
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
   const engineLabel = engineFamilyLabel(family);
-  const kindLabel = GEO_CHANGE_KIND_LABELS[event.kind];
+  const detail = formatDailySummaryChangeDetail(
+    event.kind,
+    event.domains.length
+  );
 
   return {
+    id: `${projectId}:${event.promptId}:${event.engine}`,
     title: projectName ? `${projectName}: ${prompt}` : prompt,
-    detail: kindLabel,
+    changes: [{ id: event.kind, detail, tone: changeTone(event.kind) }],
     engineLabel,
     engineIconSrc: engineEmailLogoSrc(family),
-    tone: changeTone(event.kind),
   };
 }
 
