@@ -1,7 +1,7 @@
 export const NLWEB_VERSION = "0.55";
 export const NLWEB_RESPONSE_FORMAT = "conversational_search";
 export const NLWEB_MAX_RESULTS = 5;
-export const NLWEB_MIN_SCORE = 2;
+export const NLWEB_MIN_SCORE = 1;
 
 export const NLWEB_STOP_WORDS = new Set([
   "about",
