@@ -19,10 +19,12 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import { recordContentPublication } from "@notra/ai/utils/content-publication";
 import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
+import { retryWrite } from "@notra/ai/utils/retry-write";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
 import {
@@ -1159,6 +1161,31 @@ export const contentRouter = {
           outputType: input.contentType,
           repositoryId: integration.id,
         });
+        // The pull request already exists; losing the mention mapping must not
+        // report the publish as failed. Retry the mapping so a later mention
+        // can still find the post.
+        const publication = {
+          organizationId: input.organizationId,
+          postId: input.contentId,
+          repositoryId: integration.id,
+          owner: integration.owner,
+          repo: integration.repo,
+          path: result.path,
+          branch: result.branchName,
+          pullRequestNumber: result.pullRequestNumber,
+          pullRequestUrl: result.pullRequestUrl,
+          headSha: result.headSha,
+        };
+        await retryWrite(() => recordContentPublication(publication)).catch(
+          (error) => {
+            console.error("Failed to record content publication", {
+              organizationId: input.organizationId,
+              contentId: input.contentId,
+              pullRequestUrl: result.pullRequestUrl,
+              error,
+            });
+          }
+        );
         return result;
       } catch (error) {
         throw await toGitHubPublishOrpcError(error, {

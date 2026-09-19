@@ -170,10 +170,14 @@ function toPullRequestResult(
   pullRequest: GitHubPullRequestSummary,
   branchName: string,
   path: string,
-  operation: GitHubPullRequestOperation
+  operation: GitHubPullRequestOperation,
+  headSha: string
 ) {
   return {
     branchName,
+    // The commit this publish put on the branch. Mentions compare it with the
+    // pull request head to notice pushes made outside Notra.
+    headSha,
     operation,
     path,
     pullRequestNumber: pullRequest.number,
@@ -946,7 +950,8 @@ export async function publishContentDraftPullRequest(
         existingPullRequest,
         branchName,
         params.path,
-        "updated"
+        "updated",
+        commitSha
       );
     }
     if (await isContentOnDefaultBranch(octokit, params)) {
@@ -954,7 +959,8 @@ export async function publishContentDraftPullRequest(
         existingPullRequest,
         branchName,
         params.path,
-        "updated"
+        "updated",
+        commitSha
       );
     }
     existingPullRequest = undefined;
@@ -998,7 +1004,13 @@ export async function publishContentDraftPullRequest(
       repo: params.repo,
     });
 
-    return toPullRequestResult(pullRequest, branchName, params.path, "created");
+    return toPullRequestResult(
+      pullRequest,
+      branchName,
+      params.path,
+      "created",
+      commitSha
+    );
   } catch (error) {
     if (
       error instanceof GitHubContentBranchConflictError ||
@@ -1044,7 +1056,8 @@ export async function publishContentDraftPullRequest(
           existingPullRequest,
           branchName,
           params.path,
-          "created"
+          "created",
+          commitSha
         );
       }
     } catch (reconciliationError) {

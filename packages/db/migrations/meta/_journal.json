@@ -673,6 +673,13 @@
       "when": 1789710740136,
       "tag": "0095_discussion_comments",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1789767380396,
+      "tag": "0096_content_publications",
+      "breakpoints": true
     }
   ]
 }

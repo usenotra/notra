@@ -72,6 +72,22 @@ export const updatePostInputSchema = z.object({
     ),
 });
 
+export const updatePublishedContentInputSchema = z.object({
+  postId: z.string().describe("The ID of the published Notra post to update"),
+  markdown: z
+    .string()
+    .describe("Updated markdown for the published GitHub file"),
+  title: z
+    .string()
+    .max(POST_TITLE_MAX_LENGTH)
+    .optional()
+    .describe("Optional updated title"),
+  commitMessage: z
+    .string()
+    .optional()
+    .describe("Commit headline for the GitHub content pull request"),
+});
+
 export const viewPostInputSchema = z.object({
   postId: z.string().describe("The ID of the post to view"),
 });
