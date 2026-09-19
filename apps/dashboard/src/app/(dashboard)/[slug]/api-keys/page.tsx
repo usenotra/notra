@@ -88,6 +88,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import { AccountApiKeysSection } from "@/components/api-keys/account-api-keys-section";
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
 import { ApiKeyPermissionSelector } from "@/components/api-keys/permission-selector";
 import { TrackingTokenCard } from "@/components/api-keys/tracking-token-card";
@@ -1013,6 +1014,8 @@ export default function ApiKeysPage() {
           }
           onEdit={openEditDialog}
         />
+
+        <AccountApiKeysSection />
 
         <ApiKeyQuickStart onSelect={handlePresetSelect} />
 

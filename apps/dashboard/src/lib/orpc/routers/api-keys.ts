@@ -1,7 +1,9 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   createApiKeySchema,
+  deleteAccountKeyInputSchema,
   deleteKeyInputSchema,
+  updateAccountKeyInputSchema,
   updateKeyInputSchema,
 } from "@notra/schemas/dashboard/api-keys";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -80,14 +82,14 @@ function isListKeysResponseBody(
   return "data" in result && Array.isArray(result.data);
 }
 
-async function listOrganizationKeys(
+async function listKeysByExternalId(
   client: NonNullable<typeof unkey>,
   apiId: string,
-  organizationId: string
+  externalId: string
 ) {
   const result = (await client.apis.listKeys({
     apiId,
-    externalId: organizationId,
+    externalId,
   })) as ListKeysResult;
 
   if (isListKeysResponseBody(result)) {
@@ -102,14 +104,98 @@ async function listOrganizationKeys(
   return keys;
 }
 
-async function findOrganizationKey(
+async function findKeyByExternalId(
   client: NonNullable<typeof unkey>,
   apiId: string,
-  organizationId: string,
+  externalId: string,
   keyId: string
 ) {
-  const keys = await listOrganizationKeys(client, apiId, organizationId);
+  const keys = await listKeysByExternalId(client, apiId, externalId);
   return keys.find((key) => key.keyId === keyId) ?? null;
+}
+
+// `user:<userId>` mirrors apps/api `ACCOUNT_KEY_EXTERNAL_ID_PREFIX`. Org keys
+// keep the bare organization id as externalId and are unaffected.
+function toAccountExternalId(userId: string): string {
+  return `user:${userId}`;
+}
+
+function toKeyListItem(key: KeyResponseData) {
+  const meta = key.meta ?? {};
+  const permissions = Array.isArray(key.permissions)
+    ? key.permissions.filter(
+        (permission): permission is string => typeof permission === "string"
+      )
+    : [];
+
+  const scopes = expandLegacyApiKeyScopes(permissions);
+  const accessMode = getApiKeyAccessMode(permissions, meta.accessMode);
+
+  return {
+    accessMode,
+    accountWide: meta.accountWide === true,
+    createdAt: key.createdAt,
+    createdBy: meta.createdBy ?? null,
+    enabled: key.enabled,
+    expires: key.expires ?? null,
+    keyId: key.keyId,
+    name: key.name ?? "Unnamed",
+    permission: summarizeApiKeyScopes(scopes),
+    permissions,
+    start: key.start,
+  };
+}
+
+function resolveUpdatePayload(
+  key: KeyResponseData,
+  payload: {
+    accessMode?: string;
+    scopes: readonly string[];
+    expiration: string;
+  }
+) {
+  const meta =
+    key.meta && typeof key.meta === "object"
+      ? (key.meta as Record<string, unknown>)
+      : {};
+
+  const currentExpiration = inferExpirationOption(
+    key.createdAt,
+    key.expires ?? null
+  );
+
+  let expires: number | null;
+  if (payload.expiration === currentExpiration) {
+    expires = key.expires ?? null;
+  } else if (payload.expiration === "never") {
+    expires = null;
+  } else {
+    expires =
+      Date.now() +
+      (API_KEY_EXPIRATION_MS[
+        payload.expiration as keyof typeof API_KEY_EXPIRATION_MS
+      ] ?? 0);
+  }
+
+  const currentPermissions = Array.isArray(key.permissions)
+    ? key.permissions.filter(
+        (permission): permission is string => typeof permission === "string"
+      )
+    : [];
+  const accessMode =
+    payload.accessMode ??
+    getApiKeyAccessMode(currentPermissions, meta.accessMode);
+  const unknownPermissions = getUnknownApiKeyPermissions(currentPermissions);
+  const permissions = [
+    ...getApiKeyPermissionsForAccessMode(
+      accessMode as Parameters<typeof getApiKeyPermissionsForAccessMode>[0],
+      payload.scopes
+    ),
+    ...unknownPermissions,
+  ];
+  const scopes = expandLegacyApiKeyScopes(permissions);
+
+  return { accessMode, expires, meta, permissions, scopes };
 }
 
 export const apiKeysRouter = {
@@ -123,37 +209,13 @@ export const apiKeysRouter = {
       });
 
       const { apiId, client } = requireUnkeyConfig();
-      const keysData = await listOrganizationKeys(
+      const keysData = await listKeysByExternalId(
         client,
         apiId,
         input.organizationId
       );
 
-      return keysData.map((key) => {
-        const meta = key.meta ?? {};
-        const permissions = Array.isArray(key.permissions)
-          ? key.permissions.filter(
-              (permission): permission is string =>
-                typeof permission === "string"
-            )
-          : [];
-
-        const scopes = expandLegacyApiKeyScopes(permissions);
-        const accessMode = getApiKeyAccessMode(permissions, meta.accessMode);
-
-        return {
-          accessMode,
-          createdAt: key.createdAt,
-          createdBy: meta.createdBy ?? null,
-          enabled: key.enabled,
-          expires: key.expires ?? null,
-          keyId: key.keyId,
-          name: key.name ?? "Unnamed",
-          permission: summarizeApiKeyScopes(scopes),
-          permissions,
-          start: key.start,
-        };
-      });
+      return keysData.map(toKeyListItem);
     }),
   create: authorizedProcedure
     .input(organizationIdInputSchema.extend(createApiKeySchema.shape))
@@ -229,7 +291,7 @@ export const apiKeysRouter = {
         throw badRequest("Key ID mismatch");
       }
 
-      const key = await findOrganizationKey(
+      const key = await findKeyByExternalId(
         client,
         apiId,
         input.organizationId,
@@ -240,41 +302,12 @@ export const apiKeysRouter = {
         throw notFound("API key not found");
       }
 
-      const meta =
-        key.meta && typeof key.meta === "object"
-          ? (key.meta as Record<string, unknown>)
-          : {};
-
-      const currentExpiration = inferExpirationOption(
-        key.createdAt,
-        key.expires ?? null
-      );
-
-      let expires: number | null;
-      if (input.payload.expiration === currentExpiration) {
-        expires = key.expires ?? null;
-      } else if (input.payload.expiration === "never") {
-        expires = null;
-      } else {
-        expires =
-          Date.now() + (API_KEY_EXPIRATION_MS[input.payload.expiration] ?? 0);
-      }
-
-      const currentPermissions = Array.isArray(key.permissions)
-        ? key.permissions.filter(
-            (permission): permission is string => typeof permission === "string"
-          )
-        : [];
-      const accessMode =
-        input.payload.accessMode ??
-        getApiKeyAccessMode(currentPermissions, meta.accessMode);
-      const unknownPermissions =
-        getUnknownApiKeyPermissions(currentPermissions);
-      const permissions = [
-        ...getApiKeyPermissionsForAccessMode(accessMode, input.payload.scopes),
-        ...unknownPermissions,
-      ];
-      const scopes = expandLegacyApiKeyScopes(permissions);
+      const { accessMode, expires, meta, permissions, scopes } =
+        resolveUpdatePayload(key, {
+          accessMode: input.payload.accessMode,
+          expiration: input.payload.expiration,
+          scopes: input.payload.scopes,
+        });
 
       await client.keys.updateKey({
         expires,
@@ -297,7 +330,9 @@ export const apiKeysRouter = {
           permission_preset: summarizeApiKeyScopes(scopes),
           scope_count: scopes.length,
           expiration: input.payload.expiration,
-          expiration_changed: input.payload.expiration !== currentExpiration,
+          expiration_changed:
+            input.payload.expiration !==
+            inferExpirationOption(key.createdAt, key.expires ?? null),
         },
       });
 
@@ -318,7 +353,7 @@ export const apiKeysRouter = {
         throw badRequest("Key ID mismatch");
       }
 
-      const key = await findOrganizationKey(
+      const key = await findKeyByExternalId(
         client,
         apiId,
         input.organizationId,
@@ -343,4 +378,163 @@ export const apiKeysRouter = {
 
       return { success: true };
     }),
+  account: {
+    list: authorizedProcedure.handler(async ({ context }) => {
+      const { apiId, client } = requireUnkeyConfig();
+      const keysData = await listKeysByExternalId(
+        client,
+        apiId,
+        toAccountExternalId(context.user.id)
+      );
+
+      return keysData.map(toKeyListItem);
+    }),
+    create: authorizedProcedure
+      .input(createApiKeySchema)
+      .handler(async ({ context, input }) => {
+        // Intentionally no assertActiveSubscription: account keys are personal
+        // credentials, not org-billed. Entitlements are enforced per request
+        // when the key acts in an org.
+        const { apiId, client } = requireUnkeyConfig();
+        const expiresMs = API_KEY_EXPIRATION_MS[input.expiration];
+        const expires = expiresMs ? Date.now() + expiresMs : undefined;
+        const permissions = getApiKeyPermissionsForAccessMode(
+          input.accessMode,
+          input.scopes
+        );
+        const scopes = expandLegacyApiKeyScopes(permissions);
+
+        const created = await client.keys.createKey({
+          apiId,
+          expires,
+          externalId: toAccountExternalId(context.user.id),
+          meta: {
+            accessMode: input.accessMode,
+            accountWide: true,
+            createdBy: context.user.name,
+          },
+          name: input.name,
+          permissions,
+          prefix: "ntra",
+        });
+
+        const fullKey = created.data?.key;
+        const keyId = created.data?.keyId;
+
+        if (!(fullKey && keyId)) {
+          throw internalServerError("Failed to create API key");
+        }
+
+        trackServerEvent({
+          event: POSTHOG_EVENTS.API_KEY_CREATED,
+          headers: context.headers,
+          userId: context.user.id,
+          properties: {
+            key_id: keyId,
+            permission_preset: summarizeApiKeyScopes(scopes),
+            scope_count: scopes.length,
+            expiration: input.expiration,
+            account_wide: true,
+          },
+        });
+
+        return {
+          key: fullKey,
+          keyId,
+          name: input.name,
+        };
+      }),
+    update: authorizedProcedure
+      .input(updateAccountKeyInputSchema)
+      .handler(async ({ context, input }) => {
+        // Mirrors account.create: no subscription gate (see above).
+        const { apiId, client } = requireUnkeyConfig();
+
+        if (input.payload.keyId !== input.keyIdParam) {
+          throw badRequest("Key ID mismatch");
+        }
+
+        const key = await findKeyByExternalId(
+          client,
+          apiId,
+          toAccountExternalId(context.user.id),
+          input.payload.keyId
+        );
+
+        if (!key) {
+          throw notFound("API key not found");
+        }
+
+        const { accessMode, expires, meta, permissions, scopes } =
+          resolveUpdatePayload(key, {
+            accessMode: input.payload.accessMode,
+            expiration: input.payload.expiration,
+            scopes: input.payload.scopes,
+          });
+
+        await client.keys.updateKey({
+          expires,
+          keyId: input.payload.keyId,
+          meta: {
+            ...meta,
+            accountWide: true,
+            accessMode,
+          },
+          name: input.payload.name,
+          permissions,
+        });
+
+        trackServerEvent({
+          event: POSTHOG_EVENTS.API_KEY_UPDATED,
+          headers: context.headers,
+          userId: context.user.id,
+          properties: {
+            key_id: input.payload.keyId,
+            permission_preset: summarizeApiKeyScopes(scopes),
+            scope_count: scopes.length,
+            expiration: input.payload.expiration,
+            expiration_changed:
+              input.payload.expiration !==
+              inferExpirationOption(key.createdAt, key.expires ?? null),
+            account_wide: true,
+          },
+        });
+
+        return { success: true };
+      }),
+    delete: authorizedProcedure
+      .input(deleteAccountKeyInputSchema)
+      .handler(async ({ context, input }) => {
+        const { apiId, client } = requireUnkeyConfig();
+
+        if (input.payload.keyId !== input.keyIdParam) {
+          throw badRequest("Key ID mismatch");
+        }
+
+        const key = await findKeyByExternalId(
+          client,
+          apiId,
+          toAccountExternalId(context.user.id),
+          input.payload.keyId
+        );
+
+        if (!key) {
+          throw notFound("API key not found");
+        }
+
+        await client.keys.deleteKey({ keyId: input.payload.keyId });
+
+        trackServerEvent({
+          event: POSTHOG_EVENTS.API_KEY_DELETED,
+          headers: context.headers,
+          userId: context.user.id,
+          properties: {
+            key_id: input.payload.keyId,
+            account_wide: true,
+          },
+        });
+
+        return { success: true };
+      }),
+  },
 };
