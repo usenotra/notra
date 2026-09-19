@@ -88,20 +88,23 @@ export const DailySummaryEmail = ({
   lost = 1,
   items = [
     {
+      id: "prompt-1:openai",
       title: "What is the best changelog tool for startups?",
-      changes: [{ detail: "Gained mention", tone: "up" }],
+      changes: [{ id: "gained_mention", detail: "Gained mention", tone: "up" }],
       engineLabel: "ChatGPT",
       engineIconSrc: engineEmailLogoSrc("openai"),
     },
     {
+      id: "prompt-2:perplexity",
       title: "How should small SaaS teams write release notes?",
-      changes: [{ detail: "Lost mention", tone: "down" }],
+      changes: [{ id: "lost_mention", detail: "Lost mention", tone: "down" }],
       engineLabel: "Perplexity",
       engineIconSrc: engineEmailLogoSrc("perplexity"),
     },
     {
+      id: "prompt-3:gemini",
       title: "Which AI tools generate changelogs from GitHub?",
-      changes: [{ detail: "Position up", tone: "up" }],
+      changes: [{ id: "position_improved", detail: "Position up", tone: "up" }],
       engineLabel: "Gemini",
       engineIconSrc: engineEmailLogoSrc("gemini"),
     },
@@ -164,7 +167,7 @@ export const DailySummaryEmail = ({
                     <ChangeRow
                       first={index === 0}
                       item={item}
-                      key={`${item.engineLabel}-${item.title}`}
+                      key={item.id}
                       last={index === items.length - 1}
                     />
                   ))}
@@ -295,9 +298,9 @@ function ChangeRow({
       </Text>
       <Row>
         <Column style={{ paddingTop: "6px" }}>
-          {item.changes.map((change, index) => (
+          {item.changes.map((change) => (
             <span
-              key={`${change.detail}-${index}`}
+              key={change.id}
               style={{
                 color: EMAIL_THEME.mutedForeground,
                 display: "inline-block",
@@ -412,28 +415,42 @@ DailySummaryEmail.PreviewProps = {
   lost: 1,
   items: [
     {
-      title: "can you recommend something for ai-powered desktop transcription application",
+      id: "prompt-1:anthropic",
+      title:
+        "can you recommend something for ai-powered desktop transcription application",
       changes: [
-        { detail: "12 citations added", tone: "up" },
-        { detail: "7 citations removed", tone: "down" },
+        {
+          id: "citation_added",
+          detail: "12 citations added",
+          tone: "up",
+        },
+        {
+          id: "citation_removed",
+          detail: "7 citations removed",
+          tone: "down",
+        },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "how do i get started with ai-powered desktop transcription application",
+      id: "prompt-2:anthropic",
+      title:
+        "how do i get started with ai-powered desktop transcription application",
       changes: [
-        { detail: "Citation added", tone: "up" },
-        { detail: "Citation removed", tone: "down" },
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      title: "looking for an alternative for ai-powered desktop transcription application, what should i try?",
+      id: "prompt-3:anthropic",
+      title:
+        "looking for an alternative for ai-powered desktop transcription application, what should i try?",
       changes: [
-        { detail: "Citation added", tone: "up" },
-        { detail: "Citation removed", tone: "down" },
+        { id: "citation_added", detail: "Citation added", tone: "up" },
+        { id: "citation_removed", detail: "Citation removed", tone: "down" },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),

@@ -51,12 +51,11 @@ export function groupDailySummaryItems(
   const grouped = new Map<string, DailySummaryEmailItem>();
 
   for (const item of items) {
-    const key = `${item.title}\u0000${item.engineLabel ?? ""}`;
-    const existing = grouped.get(key);
+    const existing = grouped.get(item.id);
     if (existing) {
       existing.changes.push(...item.changes);
     } else {
-      grouped.set(key, { ...item, changes: [...item.changes] });
+      grouped.set(item.id, { ...item, changes: [...item.changes] });
     }
   }
 

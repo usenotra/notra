@@ -248,6 +248,7 @@ async function sendDailySummaryForOrganization({
       const projectName = projectNames.get(entry.projectId);
       return entry.events.map((event) =>
         toSummaryChangeItem(event, {
+          projectId: entry.projectId,
           projectName: includeProjectName ? projectName : undefined,
         })
       );
@@ -321,7 +322,7 @@ async function sendDailySummaryForOrganization({
 
 function toSummaryChangeItem(
   event: GeoChangeEvent,
-  { projectName }: { projectName?: string }
+  { projectId, projectName }: { projectId: string; projectName?: string }
 ) {
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
@@ -332,8 +333,9 @@ function toSummaryChangeItem(
   );
 
   return {
+    id: `${projectId}:${event.promptId}:${event.engine}`,
     title: projectName ? `${projectName}: ${prompt}` : prompt,
-    changes: [{ detail, tone: changeTone(event.kind) }],
+    changes: [{ id: event.kind, detail, tone: changeTone(event.kind) }],
     engineLabel,
     engineIconSrc: engineEmailLogoSrc(family),
   };
