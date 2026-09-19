@@ -1060,6 +1060,7 @@ export async function queryGeoScanComparison(
       promptId: geoMentionChecks.promptId,
       prompt: geoMentionChecks.prompt,
       mentioned: geoMentionChecks.mentioned,
+      ownedSourceCited: geoMentionChecks.ownedSourceCited,
       position: geoMentionChecks.position,
       competitors: geoMentionChecks.competitors,
       // The diff only reads source domains. Search queries and titles make up
@@ -1100,6 +1101,7 @@ export async function queryGeoScanComparison(
       promptId: row.promptId,
       prompt: row.prompt,
       mentioned: row.mentioned,
+      ownedSourceCited: row.ownedSourceCited,
       position: row.position,
       competitors: row.competitors,
       grounding: parseGeoCheckGrounding(row.grounding),

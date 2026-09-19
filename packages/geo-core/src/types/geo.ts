@@ -1726,6 +1726,7 @@ export type GeoChangeKind =
   | "competitor_displaced"
   | "citation_added"
   | "citation_removed"
+  | "competitor_cited"
   | "new_engine";
 
 export interface GeoChangeCheckState {
@@ -1737,6 +1738,7 @@ export interface GeoScanCheckSnapshot extends GeoChangeCheckState {
   promptId: string;
   prompt: string;
   engine: string;
+  ownedSourceCited: boolean;
   competitors: string[];
   domains: string[];
 }

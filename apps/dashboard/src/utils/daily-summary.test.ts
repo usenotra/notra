@@ -6,16 +6,16 @@ import {
   truncatePrompt,
 } from "@/utils/daily-summary";
 
-test("shows citation counts when several domains changed", () => {
-  expect(formatDailySummaryChangeDetail("citation_added", 12)).toBe(
-    "12 citations added"
+test("names the competitors that were newly cited", () => {
+  expect(formatDailySummaryChangeDetail("citation_added", [])).toBe(
+    "Citation gained"
   );
-  expect(formatDailySummaryChangeDetail("citation_removed", 7)).toBe(
-    "7 citations removed"
+  expect(formatDailySummaryChangeDetail("citation_removed", [])).toBe(
+    "Citation lost"
   );
-  expect(formatDailySummaryChangeDetail("citation_added", 1)).toBe(
-    "Citation added"
-  );
+  expect(
+    formatDailySummaryChangeDetail("competitor_cited", ["Rival", "Other"])
+  ).toBe("Competitor cited: Rival, Other");
 });
 
 test("groups changes for the same prompt and engine", () => {
@@ -23,14 +23,16 @@ test("groups changes for the same prompt and engine", () => {
     {
       id: "prompt-1:anthropic",
       title: "Which transcription app should I use?",
-      changes: [{ id: "citation_added", detail: "Citation added", tone: "up" }],
+      changes: [
+        { id: "citation_added", detail: "Citation gained", tone: "up" },
+      ],
       engineLabel: "Claude",
     },
     {
       id: "prompt-1:anthropic",
       title: "Which transcription app should I use?",
       changes: [
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        { id: "citation_removed", detail: "Citation lost", tone: "down" },
       ],
       engineLabel: "Claude",
     },
@@ -41,8 +43,8 @@ test("groups changes for the same prompt and engine", () => {
       id: "prompt-1:anthropic",
       title: "Which transcription app should I use?",
       changes: [
-        { id: "citation_added", detail: "Citation added", tone: "up" },
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        { id: "citation_added", detail: "Citation gained", tone: "up" },
+        { id: "citation_removed", detail: "Citation lost", tone: "down" },
       ],
       engineLabel: "Claude",
     },

@@ -1,12 +1,13 @@
 import {
   GEO_CHANGE_KIND_LABELS,
-  GEO_CHANGES_CITATIONS_ADDED_PREFIX,
-  GEO_CHANGES_CITATIONS_REMOVED_PREFIX,
+  GEO_CHANGES_COMPETITORS_CITED_PREFIX,
   GEO_CHANGES_COMPETITORS_PREFIX,
   GEO_CHANGES_POSITION_PREFIX,
   GEO_CHANGES_SCANNING_SUBLINE,
+  GEO_CHANGES_STATE_CITED,
   GEO_CHANGES_STATE_MENTIONED,
   GEO_CHANGES_STATE_NEW,
+  GEO_CHANGES_STATE_NOT_CITED,
   GEO_CHANGES_STATE_NOT_MENTIONED,
   GEO_CHANGES_SUBLINE_PREFIX,
 } from "@notra/geo-core/constants/geo";
@@ -62,17 +63,37 @@ export function describeGeoChangeState(
 }
 
 function describeChangeNote(event: GeoChangeEvent): string | null {
-  if (event.competitors.length > 0) {
-    return `${GEO_CHANGES_COMPETITORS_PREFIX}: ${joinNames(event.competitors)}`;
-  }
-  if (event.domains.length === 0) {
+  if (event.competitors.length === 0) {
     return null;
   }
   const prefix =
-    event.kind === "citation_removed"
-      ? GEO_CHANGES_CITATIONS_REMOVED_PREFIX
-      : GEO_CHANGES_CITATIONS_ADDED_PREFIX;
-  return `${prefix}: ${event.domains.join(", ")}`;
+    event.kind === "competitor_cited"
+      ? GEO_CHANGES_COMPETITORS_CITED_PREFIX
+      : GEO_CHANGES_COMPETITORS_PREFIX;
+  return `${prefix}: ${joinNames(event.competitors)}`;
+}
+
+// Citation rows track whether your pages were cited, not where the brand
+// ranks, so they describe the cited state instead of the mention state.
+function describeChangeStates(
+  event: GeoChangeEvent
+): Pick<GeoChangeDetail, "before" | "after"> {
+  if (event.kind === "citation_added") {
+    return {
+      before: GEO_CHANGES_STATE_NOT_CITED,
+      after: GEO_CHANGES_STATE_CITED,
+    };
+  }
+  if (event.kind === "citation_removed") {
+    return {
+      before: GEO_CHANGES_STATE_CITED,
+      after: GEO_CHANGES_STATE_NOT_CITED,
+    };
+  }
+  return {
+    before: describeGeoChangeState(event.previous),
+    after: describeGeoChangeState(event.current),
+  };
 }
 
 export function describeGeoChangeDetail(
@@ -81,8 +102,7 @@ export function describeGeoChangeDetail(
   return {
     title: GEO_CHANGE_KIND_LABELS[event.kind],
     engine: geoChangeEngineLabel(event.engine),
-    before: describeGeoChangeState(event.previous),
-    after: describeGeoChangeState(event.current),
+    ...describeChangeStates(event),
     note: describeChangeNote(event),
   };
 }
