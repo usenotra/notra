@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { PixelBlastBackground } from "@/components/auth/pixel-blast-background";
 
+export const instant = true;
+
 export default function AuthPublicLayout({
   children,
 }: {

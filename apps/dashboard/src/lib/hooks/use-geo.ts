@@ -289,13 +289,17 @@ export function useGeoSettingsLanguageAdd(organizationId: string) {
   });
 }
 
-export function useGeoOverview(organizationId: string, range?: GeoRangeQuery) {
+export function useGeoOverview(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  enabled = true
+) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoOverviewResponse>({
     ...dashboardOrpc.geo.overview.queryOptions({
       input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI visibility overview" },
   });
@@ -303,14 +307,15 @@ export function useGeoOverview(organizationId: string, range?: GeoRangeQuery) {
 
 export function useGeoTimeseries(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTimeseriesResponse>({
     ...dashboardOrpc.geo.timeseries.queryOptions({
       input: { organizationId, projectId, ...toGeoWindowInput(range) },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI visibility trend" },
   });

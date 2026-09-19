@@ -3,7 +3,34 @@
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useId } from "react";
 
+import { PageContainer } from "@/components/layout/container";
 import { SKILL_TABLE_SKELETON_ROWS } from "@/constants/skills";
+
+export function SkillEditorSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="max-w-2xl space-y-5">
+        <Skeleton className="h-10 w-full max-w-md" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+      <Skeleton className="h-[28rem] w-full rounded-xl" />
+    </div>
+  );
+}
+
+export function SkillDetailSkeleton() {
+  return (
+    <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="w-full space-y-8 px-4 lg:px-6">
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <SkillEditorSkeleton />
+      </div>
+    </PageContainer>
+  );
+}
 
 export function SkillsPageSkeleton() {
   const id = useId();

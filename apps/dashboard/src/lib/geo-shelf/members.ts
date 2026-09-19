@@ -3,6 +3,7 @@ import { members } from "@notra/db/schema";
 import { desc, eq } from "drizzle-orm";
 
 import { retryTransientDbError } from "@/lib/db/retry";
+import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { badRequest } from "@/lib/orpc/utils/errors";
 
 import type {
@@ -12,7 +13,7 @@ import type {
   GeoShelfSource,
 } from "../../types/geo-shelf";
 
-export async function listGeoShelfMembers(
+async function queryGeoShelfMembers(
   organizationId: string
 ): Promise<GeoShelfMember[]> {
   const rows = await retryTransientDbError(() =>
@@ -42,6 +43,18 @@ export async function listGeoShelfMembers(
       },
     ];
   });
+}
+
+/** Share one read between the shelf list and member picker in an RPC batch. */
+export function listGeoShelfMembers(organizationId: string, headers: Headers) {
+  const memo = getORPCRequestMemo(headers)?.shelfMembersByOrganization;
+  const pending = memo?.get(organizationId);
+  if (pending) {
+    return pending;
+  }
+  const query = queryGeoShelfMembers(organizationId);
+  memo?.set(organizationId, query);
+  return query;
 }
 
 export function findCurrentGeoShelfMemberId(

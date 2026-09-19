@@ -18,7 +18,10 @@ export function createDb(databaseUrl: string): NodePgDatabase<typeof schema> {
   }
 
   const client = drizzle({
-    connection: { connectionString: databaseUrl },
+    connection: {
+      connectionString: databaseUrl,
+      connectionTimeoutMillis: 10_000,
+    },
     cache:
       upstashUrl && upstashToken
         ? upstashCache({

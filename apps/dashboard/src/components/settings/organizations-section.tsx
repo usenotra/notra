@@ -13,7 +13,7 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -37,8 +37,12 @@ import { settingsPath } from "@/utils/settings-path";
 export function OrganizationsSection() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { organizations, activeOrganization, isLoading } =
+  const { organizations, activeOrganization, isLoading, requestOrganizations } =
     useOrganizationsContext();
+
+  useEffect(() => {
+    requestOrganizations();
+  }, [requestOrganizations]);
 
   const [isSwitching, setIsSwitching] = useState<string | null>(null);
   const [isProcessingOrgAction, setIsProcessingOrgAction] = useState<

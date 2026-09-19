@@ -49,7 +49,8 @@ export function useGeoPersonaActivity(
       input: { organizationId, projectId, ...window },
     }),
     enabled: Boolean(organizationId),
-    refetchInterval: 15_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load persona activity" },
   });
 }

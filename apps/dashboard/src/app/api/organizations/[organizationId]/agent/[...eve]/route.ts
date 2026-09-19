@@ -119,14 +119,13 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const rateLimited = await enforceChatGenerationRatelimit(
-    organizationId,
-    auth.context.user.id
-  );
+  const [rateLimited, credits] = await Promise.all([
+    enforceChatGenerationRatelimit(organizationId, auth.context.user.id),
+    checkAiCredits(organizationId),
+  ]);
   if (rateLimited) {
     return rateLimited;
   }
-  const credits = await checkAiCredits(organizationId);
   if (credits.error) {
     return credits.error;
   }

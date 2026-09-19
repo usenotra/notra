@@ -12,6 +12,7 @@ import {
 } from "@notra/ui/components/ui/sheet";
 
 import { Button } from "@/components/button";
+import { Discussion } from "@/components/comments/discussion";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-table";
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
@@ -19,7 +20,11 @@ import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate, groupShelfCitationEngines } from "@/utils/geo-shelf";
+import {
+  formatShelfDate,
+  groupShelfCitationEngines,
+  isGeoShelfFixtureSourceId,
+} from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -39,6 +44,7 @@ function SectionHeader({
 }
 
 export function ShelfDetailDialog({
+  organizationId,
   open,
   onOpenChange,
   row: rowProp,
@@ -205,6 +211,14 @@ export function ShelfDetailDialog({
               </div>
             )}
           </section>
+          {isGeoShelfFixtureSourceId(row.id) ? null : (
+            <Discussion
+              key={row.id}
+              organizationId={organizationId}
+              targetId={row.id}
+              targetType="shelf"
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>

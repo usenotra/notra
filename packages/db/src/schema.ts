@@ -3654,3 +3654,72 @@ export const geoProspectReportsRelations = relations(
     }),
   })
 );
+
+export const discussionComments = pgTable(
+  "discussion_comments",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    feedbackId: text("feedback_id").references(() => agentFeedback.id, {
+      onDelete: "cascade",
+    }),
+    shelfSourceId: text("shelf_source_id").references(
+      () => geoShelfSources.id,
+      { onDelete: "cascade" }
+    ),
+    parentId: text("parent_id"),
+    depth: integer("depth").notNull().default(0),
+    userId: text("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    editedAt: timestamp("edited_at"),
+    deletedAt: timestamp("deleted_at"),
+  },
+  (table) => [
+    index("discussionComments_feedback_idx").on(
+      table.feedbackId,
+      table.createdAt
+    ),
+    index("discussionComments_shelf_idx").on(
+      table.shelfSourceId,
+      table.createdAt
+    ),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }).onDelete("cascade"),
+    check(
+      "discussionComments_target_check",
+      sql`num_nonnulls(${table.feedbackId}, ${table.shelfSourceId}) = 1`
+    ),
+    check(
+      "discussionComments_depth_check",
+      sql`${table.depth} between 0 and 5`
+    ),
+  ]
+);
+
+export const discussionReactions = pgTable(
+  "discussion_reactions",
+  {
+    id: text("id").primaryKey(),
+    commentId: text("comment_id")
+      .notNull()
+      .references(() => discussionComments.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
+  },
+  (table) => [
+    uniqueIndex("discussionReactions_unique").on(
+      table.commentId,
+      table.userId,
+      table.emoji
+    ),
+  ]
+);

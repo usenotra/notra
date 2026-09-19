@@ -58,7 +58,7 @@ function ComposerFrame({
       <div
         className={cn(
           COMPOSER_INNER_FRAME,
-          hasNudge ? "rounded-t-xl rounded-b-2xl" : "rounded-2xl",
+          hasNudge ? "rounded-xl" : "rounded-2xl",
           connectedTop && !hasNudge ? "rounded-t-none border-t-0" : null
         )}
       >
@@ -74,13 +74,13 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2.5 pt-1 pb-1.5",
+        "flex items-center gap-2 px-2 pb-1",
         COMPOSER_NUDGE_ENTER,
         hasChips ? "flex-wrap" : null
       )}
     >
       {title && !hasChips ? (
-        <p className="min-w-0 flex-1 text-sm font-medium">{title}</p>
+        <p className="min-w-0 flex-1 text-xs font-medium">{title}</p>
       ) : null}
       {hasChips ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
@@ -156,7 +156,7 @@ function ComposerChip({
 
 function ComposerToolbar({ children, className }: ComposerToolbarProps) {
   return (
-    <div className={cn("flex items-center gap-1 px-2.5 pb-2.5", className)}>
+    <div className={cn("flex items-center gap-1 px-2 pb-2", className)}>
       {children}
     </div>
   );

@@ -50,7 +50,20 @@ export async function authorizeRealtimeChannels({
   const authorizedOrganizationIds = new Set<string>();
 
   for (const channel of channels) {
-    const parsed = parseChatChannel(channel);
+    const discussion =
+      /^discussion:([^:*?\s]+):(feedback|shelf):([^:*?\s]+)$/.exec(channel);
+    let parsed = parseChatChannel(channel);
+    if (discussion?.[1] && discussion[2] && discussion[3]) {
+      try {
+        parsed = {
+          organizationId: decodeURIComponent(discussion[1]),
+          chatId: discussion[3],
+          streamId: discussion[2],
+        };
+      } catch {
+        return jsonResponse(403, { error: "Forbidden channel" });
+      }
+    }
     if (!parsed) {
       return jsonResponse(403, { error: "Forbidden channel" });
     }
