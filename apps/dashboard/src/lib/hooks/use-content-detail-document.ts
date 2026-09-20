@@ -3,6 +3,7 @@
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ import {
   parseGeoWriterDraft,
 } from "@/utils/geo-write-entry";
 import { isImageExportTarget } from "@/utils/image-export";
+import { isNotFoundError } from "@/utils/orpc-errors";
 import { shakeElements } from "@/utils/shake-element";
 
 interface UseContentDetailDocumentParams {
@@ -61,12 +63,16 @@ export function useContentDetailDocument({
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
+  const isGeoWriterBriefMissing =
+    geoWriterBriefQuery.error !== null &&
+    isNotFoundError(geoWriterBriefQuery.error);
   const isGeoWriterPlanMode = Boolean(
-    geoWriterDraft && briefStatus !== "completed"
+    geoWriterDraft && !isGeoWriterBriefMissing && briefStatus !== "completed"
   );
   const isGeoWriterPlanReviewableNow = isGeoWriterPlanReviewable(briefStatus);
   const isGeoWriterChatLocked =
     Boolean(geoWriterDraft) &&
+    !isGeoWriterBriefMissing &&
     !isGeoWriterPlanReviewableNow &&
     briefStatus !== "completed";
 
@@ -297,6 +303,14 @@ export function useContentDetailDocument({
     setPersistedSlug,
     setPersistedTitle,
   ]);
+
+  useHotkey(
+    "Mod+S",
+    () => {
+      void handleSave();
+    },
+    { enabled: hasChanges && !isSaving }
+  );
 
   const handleDiscard = useCallback(() => {
     setEditedMarkdown(null);
