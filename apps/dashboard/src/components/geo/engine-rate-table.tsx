@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
+  GEO_ENGINE_COLUMN_HINTS,
   GEO_ENGINE_PERFORMANCE_HINT,
   GEO_FAMILY_STAT_TREND_HINT,
   GEO_SPARKLINE_MIN_POINTS,
@@ -115,6 +116,7 @@ export function EngineRateTable({
       {
         key: "mentions",
         header: "Visible",
+        hint: GEO_ENGINE_COLUMN_HINTS.visible,
         width: "10rem",
         sortable: true,
         cell: (row) => {
@@ -144,6 +146,7 @@ export function EngineRateTable({
         key: "citations",
         collapsePriority: 3,
         header: "Citations",
+        hint: GEO_ENGINE_COLUMN_HINTS.citations,
         width: "8rem",
         sortable: true,
         cell: (row) => {
@@ -164,6 +167,7 @@ export function EngineRateTable({
       {
         key: "rate",
         header: "Brand visibility",
+        hint: GEO_ENGINE_COLUMN_HINTS.rate,
         width: "1.4fr",
         sortable: true,
         cell: (row) => <RateCell family={row} />,
@@ -173,6 +177,7 @@ export function EngineRateTable({
         key: "avgPosition",
         collapsePriority: 2,
         header: "Avg position",
+        hint: GEO_ENGINE_COLUMN_HINTS.avgPosition,
         width: "8.5rem",
         sortable: true,
         cell: (row) => (

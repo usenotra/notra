@@ -96,13 +96,19 @@ export const HEADER_PAD_X_PX = 32;
 export const SORT_ICON_PX = 18;
 /** Reorder grip (`w-6`). */
 export const REORDER_HANDLE_PX = 24;
+
+/** Info icon plus its gap, so a hint never squeezes the header label. */
+export const HINT_ICON_PX = 18;
 /** Default resize/layout floor, used as `Table`'s `minColumnWidth`. */
 export const DEFAULT_MIN_COLUMN_WIDTH = 64;
 /** Extra `ch` so wide glyphs (M, W) are not clipped vs the `0`-width `ch` unit. */
 const HEADER_CH_BUFFER = 1;
 
 export function headerMinWidth(
-  column: Pick<TableColumn<unknown>, "header" | "sortable" | "minWidth">,
+  column: Pick<
+    TableColumn<unknown>,
+    "header" | "hint" | "sortable" | "minWidth"
+  >,
   minColumnWidth: number,
   extraChromePx = 0
 ): string {
@@ -110,7 +116,10 @@ export function headerMinWidth(
     return column.minWidth;
   }
   const chromePx =
-    HEADER_PAD_X_PX + (column.sortable ? SORT_ICON_PX : 0) + extraChromePx;
+    HEADER_PAD_X_PX +
+    (column.sortable ? SORT_ICON_PX : 0) +
+    (column.hint ? HINT_ICON_PX : 0) +
+    extraChromePx;
   if (typeof column.header === "string" && column.header.length > 0) {
     return `max(${minColumnWidth}px, calc(${column.header.length + HEADER_CH_BUFFER}ch + ${chromePx}px))`;
   }
@@ -119,7 +128,10 @@ export function headerMinWidth(
 
 /** Sum of column floors so `table-layout: fixed` cannot crush titles. */
 export function tableMinWidthCss<T>(
-  columns: readonly Pick<TableColumn<T>, "header" | "sortable" | "minWidth">[],
+  columns: readonly Pick<
+    TableColumn<T>,
+    "header" | "hint" | "sortable" | "minWidth"
+  >[],
   minColumnWidth: number,
   extraFixedWidths: readonly string[] = [],
   extraChromePx = 0

@@ -12,6 +12,12 @@ export interface TableColumn<T> {
   key: string;
   /** Header content. */
   header: ReactNode;
+  /**
+   * Explains what the column counts, on an info icon beside the header. For
+   * columns whose name alone leaves the reader guessing how they relate to
+   * their neighbours.
+   */
+  hint?: ReactNode;
   /** Allow clicking the header to sort by this column. */
   sortable?: boolean;
   /** Cell text alignment. */

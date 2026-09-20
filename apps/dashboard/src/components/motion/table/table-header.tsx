@@ -6,11 +6,21 @@ import {
   ArrowUp01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
+  InformationCircleIcon,
   MoreHorizontalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { motion } from "motion/react";
-import { type PointerEvent as ReactPointerEvent, useEffect } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  type ReactElement,
+  useEffect,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { Checkbox } from "@/components/motion/checkbox";
@@ -150,6 +160,49 @@ function ColumnHandle<T>({
   );
 }
 
+const HINT_ICON_PX_SIZE = 13;
+
+/** Header text plus its info icon. The icon is decoration: the element around
+ * it is the tooltip trigger, so a sortable header stays a single button. */
+function HeaderLabel<T>({ column }: { column: TableColumn<T> }) {
+  if (!column.hint) {
+    return <span className="whitespace-nowrap">{column.header}</span>;
+  }
+  return (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      {column.header}
+      <HugeiconsIcon
+        aria-hidden
+        className="shrink-0 opacity-60"
+        icon={InformationCircleIcon}
+        size={HINT_ICON_PX_SIZE}
+      />
+    </span>
+  );
+}
+
+/** Wraps the header's own button/span as the tooltip trigger, so the hint
+ * never adds a nested button or a second tab stop. */
+function WithHeaderHint<T>({
+  column,
+  children,
+}: {
+  column: TableColumn<T>;
+  children: ReactElement;
+}) {
+  if (!column.hint) {
+    return children;
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger render={children} />
+      <TooltipContent side="top">
+        <div className="max-w-64 text-xs">{column.hint}</div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function TableHeader<T>({
   columns,
   rowHeight,
@@ -277,42 +330,40 @@ export function TableHeader<T>({
                     </button>
                   ) : null}
                   {column.sortable ? (
-                    <button
-                      className={cn(
-                        "hover:text-foreground flex h-full flex-1 items-center gap-1 px-4 transition-colors select-none",
-                        alignFlex(column.align),
-                        active && "text-foreground"
-                      )}
-                      onClick={() => onToggleSort(column.key)}
-                      type="button"
-                    >
-                      {column.align === "right" ? null : (
-                        <span className="whitespace-nowrap">
-                          {column.header}
-                        </span>
-                      )}
-                      <motion.span
-                        animate={{
-                          rotate:
-                            active && sort?.direction === "desc" ? 180 : 0,
-                          opacity: active ? 1 : 0.35,
-                        }}
-                        aria-hidden
-                        className="inline-flex shrink-0"
-                        transition={
-                          reduce
-                            ? { duration: 0 }
-                            : { duration: 0.18, ease: EASE_OUT }
-                        }
+                    <WithHeaderHint column={column}>
+                      <button
+                        className={cn(
+                          "hover:text-foreground flex h-full flex-1 items-center gap-1 px-4 transition-colors select-none",
+                          alignFlex(column.align),
+                          active && "text-foreground"
+                        )}
+                        onClick={() => onToggleSort(column.key)}
+                        type="button"
                       >
-                        <HugeiconsIcon icon={ArrowUp01Icon} size={14} />
-                      </motion.span>
-                      {column.align === "right" ? (
-                        <span className="whitespace-nowrap">
-                          {column.header}
-                        </span>
-                      ) : null}
-                    </button>
+                        {column.align === "right" ? null : (
+                          <HeaderLabel column={column} />
+                        )}
+                        <motion.span
+                          animate={{
+                            rotate:
+                              active && sort?.direction === "desc" ? 180 : 0,
+                            opacity: active ? 1 : 0.35,
+                          }}
+                          aria-hidden
+                          className="inline-flex shrink-0"
+                          transition={
+                            reduce
+                              ? { duration: 0 }
+                              : { duration: 0.18, ease: EASE_OUT }
+                          }
+                        >
+                          <HugeiconsIcon icon={ArrowUp01Icon} size={14} />
+                        </motion.span>
+                        {column.align === "right" ? (
+                          <HeaderLabel column={column} />
+                        ) : null}
+                      </button>
+                    </WithHeaderHint>
                   ) : null}
                   {!column.sortable && onColumnRename ? (
                     <input
@@ -331,14 +382,16 @@ export function TableHeader<T>({
                     />
                   ) : null}
                   {!column.sortable && !onColumnRename ? (
-                    <span
-                      className={cn(
-                        "flex-1 px-4 whitespace-nowrap",
-                        alignText(column.align)
-                      )}
-                    >
-                      {column.header}
-                    </span>
+                    <WithHeaderHint column={column}>
+                      <span
+                        className={cn(
+                          "flex-1 px-4 whitespace-nowrap",
+                          alignText(column.align)
+                        )}
+                      >
+                        <HeaderLabel column={column} />
+                      </span>
+                    </WithHeaderHint>
                   ) : null}
                 </motion.div>
                 {resizable ? (

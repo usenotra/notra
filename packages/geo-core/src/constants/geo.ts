@@ -1088,6 +1088,20 @@ export const GEO_LANGUAGE_PERFORMANCE_HINT =
   "The same prompts run in each tracked language. Visibility includes brand mentions and citations from owned sources.";
 export const GEO_ENGINE_PERFORMANCE_HINT =
   "How often each engine mentioned your brand or cited an owned source in this range. Manage engines in GEO settings.";
+/*
+ * Visible counts `mentioned OR ownedSourceCited`, Citations counts
+ * `ownedSourceCited` alone, so Citations is a subset of Visible and the two
+ * never add up. Spell that out: side by side the numbers read as rival totals.
+ */
+export const GEO_ENGINE_COLUMN_HINTS = {
+  visible:
+    "Answers where you showed up at all — your brand was named, one of your pages was cited as a source, or both. Citations are counted inside this number, not next to it.",
+  citations:
+    "Answers that cited one of your own pages as a source, whether or not the brand itself was named. Always a subset of Visible.",
+  rate: "Visible answers divided by every answer checked on this engine.",
+  avgPosition:
+    "Average rank of your brand across the answers that named it. Answers that only cited you carry no rank and are left out.",
+} as const;
 export const GEO_PROMPT_AUTO_MANAGED_LABEL = "Managed automatically";
 export const GEO_PROMPT_AUTO_MANAGED_HINT =
   "Generated from your site. Pause it to skip it in scans, or remove it if you do not want it tracked.";
