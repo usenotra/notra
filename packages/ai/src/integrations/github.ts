@@ -29,6 +29,7 @@ import {
   GitHubResponseError,
 } from "../schemas/github-operations";
 import type {
+  GitHubAppPublishAccess,
   GitHubInstallationReference,
   GitHubCredentialDependencies,
   SelectGitHubRepositoriesParams,
@@ -45,7 +46,6 @@ import type {
   WebhookConfig,
 } from "../types/integrations";
 import type { GitHubToolRepositoryContext } from "../types/tools";
-import type { GitHubAppPublishAccess } from "../utils/github-app-publish-access";
 import { createOctokit } from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";

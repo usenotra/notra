@@ -1,9 +1,17 @@
 import type { ContentType } from "@notra/ai/schemas/content";
+import type { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { createOctokit } from "@notra/ai/utils/octokit";
 import type { ContentPublicationStatus } from "@notra/db/types/content";
+import type { z } from "zod";
 
 export type GitHubMentionOctokit = ReturnType<typeof createOctokit>;
+
+export type GitHubAppWebhookPayload = z.infer<
+  typeof githubAppWebhookPayloadSchema
+>;
+
+export type GitHubCommentKind = "issue" | "review";
 
 export interface GitHubMentionSender {
   id: number;
@@ -226,9 +234,41 @@ export interface GitHubMentionWriteTarget {
   pullRequestUrl: string;
 }
 
+export interface GitHubMentionWriteState {
+  writeBranch: string | null;
+  writePullNumber: number | null;
+  writePullRequestUrl: string | null;
+  commitSha?: string | null;
+}
+
+export interface GitHubMentionToolState extends GitHubMentionWriteState {
+  committed: boolean;
+  commitSha: string | null;
+  pullRequestUrl: string | null;
+  /** The published file on the pull request head, read once before the run. */
+  publishedFile: string | null;
+  /** Edits the agent proposed instead of committing, one per file. */
+  proposals: GitHubMentionProposal[];
+  /** GitHub refused a call for lack of permission. Retrying cannot fix that. */
+  permissionDenied: boolean;
+}
+
 export interface GitHubMentionFileChange {
   path: string;
   contents: string;
+}
+
+export interface GitHubMentionContentFinding {
+  path: string;
+  reason: string;
+  line: string;
+}
+
+/** Old lines become `newLines`; a count of 0 inserts before `oldStart`. */
+export interface GitHubMentionLineHunk {
+  oldStart: number;
+  oldCount: number;
+  newLines: string[];
 }
 
 export interface GitHubCreateCommitOnBranchResult {

@@ -87,7 +87,3 @@ export const githubMentionDestinationModeSchema = z.enum([
   "new_pull_request",
   "reply_only",
 ]);
-
-export type GitHubAppWebhookPayload = z.infer<
-  typeof githubAppWebhookPayloadSchema
->;

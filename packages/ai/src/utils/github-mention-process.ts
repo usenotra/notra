@@ -5,37 +5,17 @@ import {
   releaseGitHubMentionBilling,
   reserveGitHubMentionBilling,
 } from "@notra/ai/billing/github-mention-billing";
-import {
-  GITHUB_MENTION_COMMENT_MAX_LENGTH,
-  GITHUB_MENTION_LOG_EVENTS,
-} from "@notra/ai/constants/github-mention";
+import { GITHUB_MENTION_LOG_EVENTS } from "@notra/ai/constants/github-mention";
 import {
   getGitHubAppInstallationPublishAccess,
   isGitHubAppConfigured,
 } from "@notra/ai/integrations/github";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
-import type { GitHubAppWebhookPayload } from "@notra/ai/schemas/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
-  GitHubMentionChangedFile,
   GitHubMentionContext,
-  GitHubMentionLogTarget,
   GitHubMentionProcessResult,
-  GitHubMentionProposal,
-  GitHubMentionPullRequest,
-  GitHubMentionResolveResult,
 } from "@notra/ai/types/github-mention";
-import { findContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
-import {
-  commentMentionsNotra,
-  isGitHubBotSender,
-} from "@notra/ai/utils/github-mention";
-import {
-  findGitHubIntegrationForMention,
-  listOrganizationsForGitHubInstallation,
-  resolveGitHubMentionAuth,
-} from "@notra/ai/utils/github-mention-auth";
-import { resolveGitHubMentionDestination } from "@notra/ai/utils/github-mention-destination";
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import {
   buildGitHubMentionPermissionReply,
@@ -44,396 +24,21 @@ import {
 } from "@notra/ai/utils/github-mention-permissions";
 import { consumeGitHubMentionRateLimit } from "@notra/ai/utils/github-mention-rate-limit";
 import {
-  buildGitHubMentionProposalFallbackReply,
-  buildGitHubMentionProposalReply,
   buildGitHubMentionRateLimitReply,
   buildGitHubMentionReply,
-  findGitHubMentionReplyAnchor,
 } from "@notra/ai/utils/github-mention-reply";
 import {
-  fitGitHubMentionSuggestionsToRange,
-  formatGitHubMentionSuggestionBlock,
-} from "@notra/ai/utils/github-mention-suggestion";
+  clipGitHubComment,
+  postGitHubMentionProposal,
+  postGitHubMentionReply,
+} from "@notra/ai/utils/github-mention-reply-delivery";
 import {
   addGitHubCommentReaction,
-  getGitHubChangedFiles,
-  getPullRequestHead,
   postGitHubIssueComment,
-  postGitHubReviewComment,
-  postGitHubSuggestionReview,
   removeGitHubCommentReaction,
-  replyToGitHubReviewThread,
-} from "@notra/ai/utils/github-pr-commit";
+} from "@notra/ai/utils/github-pr-comments";
+import { getGitHubChangedFiles } from "@notra/ai/utils/github-pr-commit";
 import { createOctokit } from "@notra/ai/utils/octokit";
-
-function clipComment(body: string) {
-  if (body.length <= GITHUB_MENTION_COMMENT_MAX_LENGTH) {
-    return body;
-  }
-  return body.slice(0, GITHUB_MENTION_COMMENT_MAX_LENGTH);
-}
-
-export async function resolveGitHubMentionContext(params: {
-  payload: GitHubAppWebhookPayload;
-  deliveryId: string | null;
-}): Promise<GitHubMentionResolveResult> {
-  const sender = params.payload.sender;
-  const repository = params.payload.repository;
-  const comment = params.payload.comment;
-  const issue = params.payload.issue;
-  const installation = params.payload.installation;
-
-  // Review comments carry the pull request instead of an issue.
-  const issueNumber = issue?.number ?? params.payload.pull_request?.number;
-  if (!(sender && repository && comment && issueNumber && installation)) {
-    return { status: "ignored", reason: "missing_payload_fields" };
-  }
-  if (params.payload.action && params.payload.action !== "created") {
-    return { status: "ignored", reason: "not_created" };
-  }
-  if (isGitHubBotSender(sender)) {
-    return { status: "ignored", reason: "bot_sender" };
-  }
-  if (!commentMentionsNotra(comment.body)) {
-    return { status: "ignored", reason: "not_mentioned" };
-  }
-
-  const organizations = await listOrganizationsForGitHubInstallation(
-    String(installation.id)
-  );
-  if (organizations.length === 0) {
-    return { status: "ignored", reason: "unknown_installation" };
-  }
-
-  // An installation can be linked to several organizations. Check them together
-  // and only proceed when exactly one has both the member and the repository.
-  const resolved = await Promise.all(
-    organizations.map(async ({ organizationId }) => {
-      const auth = await resolveGitHubMentionAuth({
-        githubUserId: sender.id,
-        organizationId,
-      });
-      if (!auth) {
-        return null;
-      }
-      const integration = await findGitHubIntegrationForMention({
-        organizationId,
-        githubRepositoryId: String(repository.id),
-        owner: repository.owner.login,
-        repo: repository.name,
-      });
-      if (!integration?.owner || !integration.repo) {
-        return null;
-      }
-      return {
-        organizationId,
-        userId: auth.userId,
-        integrationId: integration.id,
-        owner: integration.owner,
-        repo: integration.repo,
-      };
-    })
-  );
-  const candidates = resolved.filter((candidate) => candidate !== null);
-
-  if (candidates.length > 1) {
-    return { status: "ignored", reason: "ambiguous_organization" };
-  }
-
-  const match = candidates[0];
-  if (match) {
-    const { organizationId, userId, integrationId, owner, repo } = match;
-
-    let pullRequest: GitHubMentionPullRequest | null = null;
-    if (issue?.pull_request || params.payload.pull_request) {
-      const payloadPullRequest = params.payload.pull_request;
-      if (payloadPullRequest) {
-        pullRequest = {
-          number: payloadPullRequest.number,
-          title: payloadPullRequest.title,
-          body: payloadPullRequest.body ?? null,
-          htmlUrl: payloadPullRequest.html_url,
-          headRef: payloadPullRequest.head.ref,
-          headSha: payloadPullRequest.head.sha,
-          headRepoFullName: payloadPullRequest.head.repo?.full_name ?? null,
-          baseRef: payloadPullRequest.base.ref,
-          draft: Boolean(payloadPullRequest.draft),
-        };
-      } else {
-        const token = await getGitHubPublishToken(integrationId, {
-          organizationId,
-        });
-        if (token) {
-          const octokit = createOctokit(token);
-          try {
-            pullRequest = await getPullRequestHead({
-              octokit,
-              owner,
-              repo,
-              pullNumber: issueNumber,
-            });
-          } catch (error) {
-            if (!isGitHubPermissionError(error)) {
-              throw error;
-            }
-            await postGitHubIssueComment({
-              octokit,
-              owner,
-              repo,
-              issueNumber,
-              body: buildGitHubMentionPermissionReply({
-                missing: ["Pull requests: Read"],
-                settingsUrl: null,
-              }),
-            });
-            return { status: "ignored", reason: "permission_reply_posted" };
-          }
-        }
-      }
-    }
-
-    const publication = pullRequest
-      ? await findContentPublicationForPullRequest({
-          organizationId,
-          owner,
-          repo,
-          pullRequestNumber: pullRequest.number,
-        })
-      : null;
-
-    return {
-      status: "ready",
-      context: {
-        deliveryId: params.deliveryId,
-        installationId: String(installation.id),
-        organizationId,
-        userId,
-        integrationId,
-        owner,
-        repo,
-        defaultBranch: repository.default_branch,
-        issueNumber,
-        comment: {
-          id: comment.id,
-          body: comment.body,
-          htmlUrl: comment.html_url,
-          review: comment.path
-            ? {
-                path: comment.path,
-                line: comment.line ?? null,
-                startLine: comment.start_line ?? null,
-                commitSha: comment.commit_id ?? null,
-                diffHunk: comment.diff_hunk ?? null,
-                rootCommentId: comment.in_reply_to_id ?? comment.id,
-              }
-            : null,
-        },
-        sender: {
-          id: sender.id,
-          login: sender.login,
-          type: sender.type,
-        },
-        pullRequest,
-        destination: resolveGitHubMentionDestination({
-          commentBody: comment.body,
-          pullRequest,
-        }),
-        publication,
-      },
-    };
-  }
-
-  let logTarget: GitHubMentionLogTarget | undefined;
-  for (const organization of organizations) {
-    const integration = await findGitHubIntegrationForMention({
-      organizationId: organization.organizationId,
-      githubRepositoryId: String(repository.id),
-      owner: repository.owner.login,
-      repo: repository.name,
-    });
-    if (integration?.owner && integration.repo) {
-      logTarget = {
-        organizationId: organization.organizationId,
-        integrationId: integration.id,
-        owner: integration.owner,
-        repo: integration.repo,
-      };
-      break;
-    }
-  }
-  return { status: "unauthorized", reason: "not_org_member", logTarget };
-}
-
-/**
- * Replies where the conversation is: inside the review thread the mention came
- * from, or, after a commit, anchored to the changed lines under "Files changed".
- * Anything GitHub refuses (line outside the diff, outdated thread) falls back
- * to a regular comment so the reply is never lost.
- */
-async function postGitHubMentionReply(params: {
-  octokit: ReturnType<typeof createOctokit>;
-  context: GitHubMentionContext;
-  body: string;
-  commitSha: string | null;
-  changedFiles: readonly GitHubMentionChangedFile[];
-}) {
-  const { octokit, context, body } = params;
-  const pullNumber = context.pullRequest?.number;
-  try {
-    // Someone who wrote in a review thread is answered there, also after a
-    // commit: a second thread at the changed lines would split the conversation.
-    if (context.comment.review && pullNumber) {
-      return await replyToGitHubReviewThread({
-        octokit,
-        owner: context.owner,
-        repo: context.repo,
-        pullNumber,
-        rootCommentId: context.comment.review.rootCommentId,
-        body,
-      });
-    }
-    const anchor = params.commitSha
-      ? findGitHubMentionReplyAnchor(
-          params.changedFiles,
-          context.publication?.path ?? null
-        )
-      : null;
-    if (anchor && params.commitSha && pullNumber) {
-      return await postGitHubReviewComment({
-        octokit,
-        owner: context.owner,
-        repo: context.repo,
-        pullNumber,
-        commitSha: params.commitSha,
-        path: anchor.path,
-        startLine: anchor.startLine,
-        line: anchor.line,
-        body,
-      });
-    }
-  } catch (error) {
-    logGitHubMentionEvent(
-      GITHUB_MENTION_LOG_EVENTS.ignored,
-      {
-        deliveryId: context.deliveryId,
-        reason: "inline_reply_failed",
-        error: error instanceof Error ? error.message : String(error),
-      },
-      "warn"
-    );
-  }
-  return await postGitHubIssueComment({
-    octokit,
-    owner: context.owner,
-    repo: context.repo,
-    issueNumber: context.issueNumber,
-    body,
-  });
-}
-
-/**
- * The suggestion for the review thread the mention was written in, when the
- * whole proposal sits on that thread's lines and they still read the same.
- */
-function fitProposalToReviewThread(
-  context: GitHubMentionContext,
-  proposals: readonly GitHubMentionProposal[]
-) {
-  const review = context.comment.review;
-  const [proposal] = proposals;
-  if (
-    !(review?.line && proposal) ||
-    proposals.length > 1 ||
-    proposal.path !== review.path ||
-    proposal.commitSha !== review.commitSha
-  ) {
-    return null;
-  }
-  // The hunk ends on the commented line. If the file reads differently there,
-  // the thread's numbers are stale and a suggestion would replace other text.
-  const commentedLine = review.diffHunk?.split("\n").at(-1)?.slice(1);
-  if (commentedLine !== proposal.previous.split("\n")[review.line - 1]) {
-    return null;
-  }
-  return fitGitHubMentionSuggestionsToRange({
-    suggestions: proposal.suggestions,
-    previous: proposal.previous,
-    range: { startLine: review.startLine ?? review.line, line: review.line },
-  });
-}
-
-/**
- * Posts a proposed edit as GitHub suggestions: inside the review thread when
- * it fits there, otherwise as one review with a comment per changed region.
- * If GitHub refuses them, the same proposal goes out as a plain diff.
- */
-async function postGitHubMentionProposal(params: {
-  octokit: ReturnType<typeof createOctokit>;
-  context: GitHubMentionContext;
-  text: string;
-  proposals: readonly GitHubMentionProposal[];
-}) {
-  const { octokit, context, text, proposals } = params;
-  const pullNumber = context.pullRequest?.number;
-  const commitSha = proposals[0]?.commitSha;
-  try {
-    const inline = fitProposalToReviewThread(context, proposals);
-    const body = clipComment(
-      buildGitHubMentionProposalReply({ text, proposals, inline })
-    );
-    if (inline && context.comment.review && pullNumber) {
-      await replyToGitHubReviewThread({
-        octokit,
-        owner: context.owner,
-        repo: context.repo,
-        pullNumber,
-        rootCommentId: context.comment.review.rootCommentId,
-        body,
-      });
-      return body;
-    }
-    if (pullNumber && commitSha) {
-      await postGitHubSuggestionReview({
-        octokit,
-        owner: context.owner,
-        repo: context.repo,
-        pullNumber,
-        commitSha,
-        body,
-        comments: proposals.flatMap((proposal) =>
-          proposal.suggestions.map((suggestion) => ({
-            path: suggestion.path,
-            startLine: suggestion.startLine,
-            line: suggestion.line,
-            body: formatGitHubMentionSuggestionBlock(suggestion.replacement),
-          }))
-        ),
-      });
-      return body;
-    }
-  } catch (error) {
-    logGitHubMentionEvent(
-      GITHUB_MENTION_LOG_EVENTS.ignored,
-      {
-        deliveryId: context.deliveryId,
-        reason: "suggestion_failed",
-        error: error instanceof Error ? error.message : String(error),
-      },
-      "warn"
-    );
-  }
-  const body = clipComment(
-    buildGitHubMentionProposalFallbackReply({ text, proposals })
-  );
-  await postGitHubMentionReply({
-    octokit,
-    context,
-    body,
-    commitSha: null,
-    changedFiles: [],
-  });
-  return body;
-}
 
 export async function processGitHubMention(
   context: GitHubMentionContext
@@ -714,7 +319,7 @@ export async function processGitHubMention(
     const openedFollowUp =
       context.destination.mode === "new_pull_request" &&
       agentResult.pullRequestUrl !== context.pullRequest?.htmlUrl;
-    const reply = clipComment(
+    const reply = clipGitHubComment(
       buildGitHubMentionReply({
         text:
           agentResult.reply ||

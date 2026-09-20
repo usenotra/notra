@@ -7,7 +7,7 @@ import type {
   GitHubMentionContext,
   GitHubMentionFileChange,
   GitHubMentionOctokit,
-  GitHubMentionProposal,
+  GitHubMentionToolState,
 } from "@notra/ai/types/github-mention";
 import { findOpenContentPublicationForPost } from "@notra/ai/utils/content-publication";
 import { reviewGitHubMentionChange } from "@notra/ai/utils/github-mention-change-review";
@@ -21,7 +21,6 @@ import {
   isGitHubMentionSuggestionCommentable,
 } from "@notra/ai/utils/github-mention-suggestion";
 import {
-  type GitHubMentionWriteState,
   ensureFollowUpPullRequest,
   resolveGitHubMentionWriteTarget,
 } from "@notra/ai/utils/github-mention-write-target";
@@ -42,18 +41,6 @@ import { type Tool, type ToolExecutionOptions, tool } from "ai";
 import { and, eq } from "drizzle-orm";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
-
-export interface GitHubMentionToolState extends GitHubMentionWriteState {
-  committed: boolean;
-  commitSha: string | null;
-  pullRequestUrl: string | null;
-  /** The published file on the pull request head, read once before the run. */
-  publishedFile: string | null;
-  /** Edits the agent proposed instead of committing, one per file. */
-  proposals: GitHubMentionProposal[];
-  /** GitHub refused a call for lack of permission. Retrying cannot fix that. */
-  permissionDenied: boolean;
-}
 
 async function recordWrite(
   params: {

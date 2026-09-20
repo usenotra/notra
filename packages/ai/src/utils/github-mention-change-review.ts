@@ -1,12 +1,10 @@
 import { GITHUB_MENTION_LOG_EVENTS } from "@notra/ai/constants/github-mention";
 import type {
+  GitHubMentionContentFinding,
   GitHubMentionContext,
   GitHubMentionOctokit,
 } from "@notra/ai/types/github-mention";
-import {
-  findNewActiveContent,
-  type GitHubMentionContentFinding,
-} from "@notra/ai/utils/github-mention-content-policy";
+import { findNewActiveContent } from "@notra/ai/utils/github-mention-content-policy";
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import { getGitHubMentionPathBlockReason } from "@notra/ai/utils/github-mention-path-policy";
 import { getRepositoryFileContents } from "@notra/ai/utils/github-pr-commit";

@@ -9,8 +9,10 @@ mock.module("@notra/ai/utils/redis", () => ({
   redis: { set: async () => "OK", del: async () => 1 },
 }));
 
-mock.module("@notra/ai/utils/github-mention-process", () => ({
+mock.module("@notra/ai/utils/github-mention-context", () => ({
   resolveGitHubMentionContext,
+}));
+mock.module("@notra/ai/utils/github-mention-process", () => ({
   processGitHubMention,
 }));
 mock.module("@notra/ai/utils/content-publication", () => ({

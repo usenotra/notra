@@ -2,6 +2,7 @@ import { FEATURES } from "@notra/ai/billing/features";
 
 import { USAGE_FEATURE_LABELS, USAGE_FEATURE_ORDER } from "@/constants/billing";
 import type {
+  BalanceRecord,
   FeatureData,
   UsageAggregateRow,
   UsageBreakdownPoint,
@@ -12,13 +13,6 @@ import {
   formatFullDate,
   formatPercent,
 } from "@/utils/format";
-
-type BalanceRecord = {
-  remaining?: number | null;
-  granted?: number | null;
-  unlimited?: boolean;
-  nextResetAt?: number | null;
-};
 
 function formatFeatureName(id: string): string {
   return id.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());

@@ -27,7 +27,24 @@ export default defineConfig({
   // Keep the full presets as the source of truth while baselining rules that
   // conflict with existing code. Newly added Ultracite rules stay enabled.
   rules: {
-    "shadcn/no-restyle": ["warn", { allow: ["layout"] }],
+    "shadcn/no-restyle": [
+      "warn",
+      {
+        allow: ["layout"],
+        contracts: [
+          {
+            pattern: "^Card$",
+            allow: ["layout", "gap-6", "p-6"],
+          },
+          { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          {
+            pattern: "^TitleCard$",
+            allow: ["layout", "border-t-0", "pt-0"],
+          },
+          { pattern: "^TooltipTrigger$", allow: ["*"] },
+        ],
+      },
+    ],
     "shadcn/no-raw-colors": "warn",
     "shadcn/no-arbitrary-values": ["warn", { allow: ["layout"] }],
     "shadcn/no-inline-styles": "warn",

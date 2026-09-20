@@ -3,12 +3,10 @@ import { describe, expect, test } from "bun:test";
 import type {
   GitHubMentionContext,
   GitHubMentionOctokit,
+  GitHubMentionWriteState,
 } from "@notra/ai/types/github-mention";
 
-import {
-  type GitHubMentionWriteState,
-  resolveGitHubMentionWriteTarget,
-} from "./github-mention-write-target";
+import { resolveGitHubMentionWriteTarget } from "./github-mention-write-target";
 
 function fakeOctokit(head: { ref: string; repoFullName: string | null }) {
   return {

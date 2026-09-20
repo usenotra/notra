@@ -1,5 +1,5 @@
 import type { GitHubMentionDestination } from "@notra/ai/types/github-mention";
-import type { GitHubAppPublishAccess } from "@notra/ai/utils/github-app-publish-access";
+import type { GitHubAppPublishAccess } from "@notra/ai/types/github-operations";
 
 const PERMISSION_ERROR_MESSAGES = [
   "resource not accessible by integration",

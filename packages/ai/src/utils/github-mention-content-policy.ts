@@ -2,6 +2,7 @@ import {
   GITHUB_MENTION_ACTIVE_CONTENT_RULES,
   GITHUB_MENTION_MARKUP_EXTENSIONS,
 } from "@notra/ai/constants/github-mention";
+import type { GitHubMentionContentFinding } from "@notra/ai/types/github-mention";
 import { removeHtmlComments } from "@notra/ai/utils/remove-html-comments";
 
 const MARKUP_EXTENSIONS = new Set<string>(GITHUB_MENTION_MARKUP_EXTENSIONS);
@@ -21,12 +22,6 @@ const EXPRESSION_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
 const EXPRESSION_KEY_PATTERN = /[\w$]+\s*:/g;
 const EXPRESSION_KEYWORD_PATTERN = /\b(?:true|false|null)\b/g;
 const LITERAL_REMAINDER_PATTERN = /^[\s\d.,[\]{}-]*$/;
-
-export interface GitHubMentionContentFinding {
-  path: string;
-  reason: string;
-  line: string;
-}
 
 function extensionOf(path: string) {
   const fileName = path.split("/").at(-1) ?? "";

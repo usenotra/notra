@@ -7,15 +7,13 @@ import {
   getGitHubMentionPrompt,
 } from "@notra/ai/prompts/github-mention";
 import { withRouterDefaults } from "@notra/ai/provider-options";
-import {
-  buildGitHubMentionTools,
-  type GitHubMentionToolState,
-} from "@notra/ai/tools/github-mention";
+import { buildGitHubMentionTools } from "@notra/ai/tools/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   GitHubMentionAgentResult,
   GitHubMentionContext,
   GitHubMentionOctokit,
+  GitHubMentionToolState,
 } from "@notra/ai/types/github-mention";
 import { buildGitHubMentionThread } from "@notra/ai/utils/github-mention";
 import {
@@ -26,7 +24,7 @@ import { loadGitHubMentionVoice } from "@notra/ai/utils/github-mention-voice";
 import {
   listGitHubIssueComments,
   listGitHubReviewComments,
-} from "@notra/ai/utils/github-pr-commit";
+} from "@notra/ai/utils/github-pr-comments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { stepCountIs, ToolLoopAgent } from "ai";

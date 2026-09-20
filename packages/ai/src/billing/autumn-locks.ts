@@ -1,4 +1,4 @@
-import type { CheckResponse } from "autumn-js";
+import type { AutumnFeatureCheck } from "@notra/ai/types/billing";
 
 import { autumn } from "./autumn";
 
@@ -23,12 +23,6 @@ function getErrorStatus(error: unknown): number | undefined {
     return error.statusCode;
   }
   return undefined;
-}
-
-export interface AutumnFeatureCheck {
-  response: CheckResponse | null;
-  /** The lock already exists, so an earlier attempt reserved this same run. */
-  duplicateLock: boolean;
 }
 
 /**

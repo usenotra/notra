@@ -1,5 +1,6 @@
 import { GITHUB_MENTION_SUGGESTION } from "@notra/ai/constants/github-mention";
 import type {
+  GitHubMentionLineHunk,
   GitHubMentionLineRange,
   GitHubMentionSuggestion,
 } from "@notra/ai/types/github-mention";
@@ -7,13 +8,6 @@ import type {
 const HUNK_HEADER_PATTERN = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
 const BACKTICK_RUN_PATTERN = /`{3,}/g;
 const FINAL_NEWLINE_PATTERN = /\n$/;
-
-/** Old lines `oldStart..oldStart+oldCount-1` become `newLines`; a count of 0 inserts before `oldStart`. */
-interface LineHunk {
-  oldStart: number;
-  oldCount: number;
-  newLines: string[];
-}
 
 function commonPrefixLength(a: readonly string[], b: readonly string[]) {
   let length = 0;
@@ -72,8 +66,8 @@ function diffLines(previous: readonly string[], next: readonly string[]) {
 
   const table = lcsTable(a, b);
   const width = b.length + 1;
-  const hunks: LineHunk[] = [];
-  let open: LineHunk | null = null;
+  const hunks: GitHubMentionLineHunk[] = [];
+  let open: GitHubMentionLineHunk | null = null;
   let i = 0;
   let j = 0;
   while (i < a.length || j < b.length) {
@@ -104,7 +98,7 @@ function diffLines(previous: readonly string[], next: readonly string[]) {
 
 /** The old lines a hunk needs a suggestion to cover. An insertion borrows a neighbour. */
 function rangeOf(
-  hunk: LineHunk,
+  hunk: GitHubMentionLineHunk,
   previousLength: number
 ): GitHubMentionLineRange {
   if (hunk.oldCount > 0) {
@@ -119,7 +113,7 @@ function rangeOf(
 
 function renderRange(
   previous: readonly string[],
-  hunks: readonly LineHunk[],
+  hunks: readonly GitHubMentionLineHunk[],
   range: GitHubMentionLineRange
 ) {
   const lines: string[] = [];
@@ -153,8 +147,10 @@ export function buildGitHubMentionSuggestions(params: {
 }): GitHubMentionSuggestion[] {
   const previous = splitLines(params.previous);
   const hunks = diffLines(previous, splitLines(params.next));
-  const groups: Array<{ range: GitHubMentionLineRange; hunks: LineHunk[] }> =
-    [];
+  const groups: Array<{
+    range: GitHubMentionLineRange;
+    hunks: GitHubMentionLineHunk[];
+  }> = [];
   for (const hunk of hunks) {
     const range = rangeOf(hunk, previous.length);
     const last = groups.at(-1);

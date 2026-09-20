@@ -1,10 +1,4 @@
-export interface GitHubAppPublishAccess {
-  contents?: string;
-  issues?: string;
-  pullRequests?: string;
-  /** The installation's settings page on GitHub. */
-  settingsUrl?: string;
-}
+import type { GitHubAppPublishAccess } from "@notra/ai/types/github-operations";
 
 export function githubAppInstallationCanPublishContent(
   access: GitHubAppPublishAccess | null

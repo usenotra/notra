@@ -14,7 +14,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useAggregateEvents } from "autumn-js/react";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -85,10 +85,10 @@ function RemainingBar({
     >
       <div
         className={cn(
-          "duration-slower h-full rounded-full transition-[width]",
+          "duration-slower transition-width h-full w-(--remaining) rounded-full",
           remainingBarColor(remaining)
         )}
-        style={{ width: `${remaining}%` }}
+        style={{ "--remaining": `${remaining}%` } as CSSProperties}
       />
     </div>
   );
@@ -132,7 +132,10 @@ function BalanceCard({
     >
       <div className="space-y-3">
         <div className="space-y-1">
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p
+            className="min-w-0 truncate text-3xl font-bold tracking-tight tabular-nums"
+            title={value}
+          >
             {value}
           </p>
           {hint ? (

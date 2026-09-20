@@ -398,7 +398,7 @@ function LinkedInPost({
 
       <div className="px-4 pb-2">
         {isEditable ? (
-          <div className="max-h-80 overflow-y-auto [scrollbar-gutter:stable]">
+          <div className="max-h-80 [scrollbar-gutter:stable] overflow-y-auto">
             <div className="relative grid w-full grid-cols-1">
               <div
                 aria-hidden

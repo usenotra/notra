@@ -1,3 +1,5 @@
+import type { CheckResponse } from "autumn-js";
+
 import type { AgentTokenUsage } from "./agents";
 
 export interface ModelPricing {
@@ -91,6 +93,12 @@ export interface GitHubMentionBillingReservation {
   useMarkup: boolean;
   reason?: GitHubMentionBillingDenialReason;
   balanceRemaining?: number | null;
+}
+
+export interface AutumnFeatureCheck {
+  response: CheckResponse | null;
+  /** The lock already exists, so an earlier attempt reserved this same run. */
+  duplicateLock: boolean;
 }
 
 export type ChatBillingMode = "unmetered" | "ai_credits" | "plan_included";

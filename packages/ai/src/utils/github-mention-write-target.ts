@@ -1,6 +1,7 @@
 import type {
   GitHubMentionContext,
   GitHubMentionOctokit,
+  GitHubMentionWriteState,
   GitHubMentionWriteTarget,
 } from "@notra/ai/types/github-mention";
 import {
@@ -9,13 +10,6 @@ import {
   getGitHubBranchHeadSha,
   getPullRequestHead,
 } from "@notra/ai/utils/github-pr-commit";
-
-export interface GitHubMentionWriteState {
-  writeBranch: string | null;
-  writePullNumber: number | null;
-  writePullRequestUrl: string | null;
-  commitSha?: string | null;
-}
 
 function followUpBranchName(context: GitHubMentionContext) {
   const kind = context.comment.review ? "review" : "issue";

@@ -2,25 +2,21 @@ import {
   GITHUB_MENTION_APP_WEBHOOK_SECRET_ENV,
   GITHUB_MENTION_LOG_EVENTS,
 } from "@notra/ai/constants/github-mention";
-import {
-  type GitHubAppWebhookPayload,
-  githubAppWebhookPayloadSchema,
-} from "@notra/ai/schemas/github-mention";
+import { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
 import type {
+  GitHubAppWebhookPayload,
   GitHubMentionContext,
   GitHubMentionProcessResult,
   GitHubMentionWebhookLog,
 } from "@notra/ai/types/github-mention";
 import { closeContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
+import { resolveGitHubMentionContext } from "@notra/ai/utils/github-mention-context";
 import {
   buildAcceptedMentionWebhookLog,
   buildUnauthorizedMentionWebhookLog,
   logGitHubMentionEvent,
 } from "@notra/ai/utils/github-mention-log";
-import {
-  processGitHubMention,
-  resolveGitHubMentionContext,
-} from "@notra/ai/utils/github-mention-process";
+import { processGitHubMention } from "@notra/ai/utils/github-mention-process";
 import { verifyGitHubWebhookSignature } from "@notra/ai/utils/github-webhook-signature";
 import { redis } from "@notra/ai/utils/redis";
 
