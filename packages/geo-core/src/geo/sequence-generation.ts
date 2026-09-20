@@ -8,7 +8,7 @@ import {
   geoSettings,
 } from "@notra/db/schema";
 import { generateText, Output } from "ai";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -35,6 +35,7 @@ import type {
 import { buildConversationGenerationPrompt } from "../utils/conversation-generation-prompt";
 import { geoDb } from "./effect";
 import { GeoDiscoveryError } from "./errors";
+import { lockGeoProject } from "./lock";
 import { toGeoSequence } from "./mappers";
 import { requireGeoProject } from "./projects";
 import { buildBrandTerms, promptMentionsBrand } from "./suggestion-keywords";
@@ -130,6 +131,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
               companyName: true,
               companyDescription: true,
               audience: true,
+              language: true,
             },
             where: eq(brandSettings.id, scope.brandSettingsId),
           })
@@ -180,6 +182,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       companyName,
       companyDescription: brand?.companyDescription ?? null,
       audience: brand?.audience ?? null,
+      language: brand?.language ?? null,
       competitors: competitors.map((row) => row.name),
       prompts: prompts.map((row) => row.prompt),
       existingNames: existing.map((row) => row.name),
@@ -224,20 +227,41 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       );
     }
 
+    // The capacity check above happened before a slow model call, so recount
+    // under the project lock: two generations in flight would otherwise both
+    // read the same room and push the project past the limit.
     const rows = yield* geoDb("sequences insert failed", () =>
-      db
-        .insert(geoPromptSequences)
-        .values(
-          conversations.map((conversation) => ({
-            id: crypto.randomUUID(),
-            organizationId: scope.organizationId,
-            projectId: scope.projectId,
-            name: conversation.name,
-            steps: conversation.steps,
-          }))
-        )
-        .returning()
+      db.transaction(async (tx) => {
+        await Effect.runPromise(lockGeoProject(tx, scope.projectId));
+        const current = await tx
+          .select({ count: count() })
+          .from(geoPromptSequences)
+          .where(eq(geoPromptSequences.projectId, scope.projectId));
+        const remaining = GEO_MAX_SEQUENCES - (current.at(0)?.count ?? 0);
+        if (remaining <= 0) {
+          return [];
+        }
+        return await tx
+          .insert(geoPromptSequences)
+          .values(
+            conversations.slice(0, remaining).map((conversation) => ({
+              id: crypto.randomUUID(),
+              organizationId: scope.organizationId,
+              projectId: scope.projectId,
+              name: conversation.name,
+              steps: conversation.steps,
+            }))
+          )
+          .returning();
+      })
     );
+    if (rows.length === 0) {
+      return yield* Effect.fail(
+        new GeoDiscoveryError({
+          message: `You already have ${GEO_MAX_SEQUENCES} conversations. Remove one to generate more.`,
+        })
+      );
+    }
 
     const response: GeoSequencesGenerateResponse = {
       sequences: rows.map(toGeoSequence),

@@ -25,6 +25,7 @@ const sourceRowId = (row: GeoJourneySourceStats) =>
 
 export function JourneyOverviewCard({
   sources,
+  failed,
   previewRows,
   onOpenSource,
 }: JourneyOverviewCardProps) {
@@ -66,7 +67,11 @@ export function JourneyOverviewCard({
     <JourneyStatCard
       caption={totals.journeys === 1 ? "journey" : "journeys"}
       delta={trafficVisitDelta(totals.journeys, totals.previousJourneys)}
-      emptyMessage="No agent journeys captured yet"
+      emptyMessage={
+        failed
+          ? "Could not load agent journeys"
+          : "No agent journeys captured yet"
+      }
       emptySeed="geo-journey-overview"
       eyebrow="Journeys"
       stats={[

@@ -201,3 +201,30 @@ export function resolveColumnWidths<T>(
     return `calc((${remainder}) * ${fr} / ${totalFr})`;
   });
 }
+
+/**
+ * Folds collapsed columns back into an order that only covers the visible
+ * ones, so a consumer persisting the result does not silently drop what the
+ * narrow layout hid. A hidden key lands right after its left neighbour —
+ * the same slot `useColumnReorder` gives a column that appears at runtime.
+ */
+export function mergeHiddenColumnKeys(
+  allKeys: readonly string[],
+  visibleOrder: readonly string[]
+): string[] {
+  const merged = [...visibleOrder];
+  const present = new Set(merged);
+  for (const [index, key] of allKeys.entries()) {
+    if (present.has(key)) {
+      continue;
+    }
+    let at = 0;
+    if (index > 0) {
+      const neighbor = merged.indexOf(allKeys[index - 1] ?? "");
+      at = neighbor === -1 ? index : neighbor + 1;
+    }
+    merged.splice(at, 0, key);
+    present.add(key);
+  }
+  return merged;
+}

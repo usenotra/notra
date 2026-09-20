@@ -41,15 +41,32 @@ export function isTrackedGeoVisitorType(value: GeoVisitorType): boolean {
   return !GEO_UNTRACKED_VISITOR_TYPES.includes(value);
 }
 
+/**
+ * Own string members only: sources and agents come from request headers, so a
+ * visitor sending "constructor" would otherwise be labelled with an inherited
+ * `Object` member instead of a string.
+ */
+function lookupLabel(
+  labels: Record<string, string>,
+  key: string,
+  fallback: string
+): string {
+  if (!Object.hasOwn(labels, key)) {
+    return fallback;
+  }
+  const label = labels[key];
+  return typeof label === "string" ? label : fallback;
+}
+
 export function formatGeoSource(source: string): string {
   const trimmed = source.trim();
-  return GEO_SOURCE_LABELS[trimmed.toLowerCase()] ?? trimmed;
+  return lookupLabel(GEO_SOURCE_LABELS, trimmed.toLowerCase(), trimmed);
 }
 
 /** Bot name as its vendor writes it, e.g. "meta-externalagent" → "Meta-ExternalAgent". */
 export function formatGeoAgent(agent: string): string {
   const trimmed = agent.trim();
-  return GEO_AGENT_LABELS[trimmed.toLowerCase()] ?? trimmed;
+  return lookupLabel(GEO_AGENT_LABELS, trimmed.toLowerCase(), trimmed);
 }
 
 export function isCitedTrafficSource(

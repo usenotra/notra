@@ -475,6 +475,7 @@ export interface GeoJourneyTreeNode extends GeoJourneyPathNode {
 export interface JourneysTabProps {
   journeys: GeoJourney[];
   journeyStats: GeoJourneyStatsResponse | null;
+  journeyStatsFailed: boolean;
   loading: boolean;
   organizationId: string;
   revealActive: boolean;
@@ -527,6 +528,7 @@ export interface JourneyGroupSectionTitleProps {
 }
 
 export interface JourneyPathSummaryProps {
+  entryPath: string;
   paths: readonly string[];
   /** Distinct pages in the journey; may exceed the sampled `paths`. */
   distinctPaths: number;
@@ -546,12 +548,16 @@ export interface JourneyStatCardProps {
 
 export interface JourneyOverviewCardProps {
   sources: GeoJourneySourceStats[];
+  /** Renders the failure copy instead of the empty state. */
+  failed: boolean;
   previewRows: number;
   onOpenSource: (row: GeoJourneySourceStats) => void;
 }
 
 export interface JourneyPathsCardProps {
   pages: GeoJourneyPageStats[];
+  /** Renders the failure copy instead of the empty state. */
+  failed: boolean;
   totalPages: number;
   previousTotalPages: number;
   previewRows: number;
@@ -807,6 +813,7 @@ export interface GeoTabsProps {
   isScanning: boolean;
   journeys: GeoJourney[];
   journeyStats: GeoJourneyStatsResponse | null;
+  journeyStatsFailed: boolean;
   journeysLoading: boolean;
   organizationId: string;
 }
@@ -1286,6 +1293,8 @@ export interface CompetitorEditFormProps {
 export interface CompetitorSummaryStatsProps {
   competitor: string;
   summary: GeoCompetitorPromptSummary | null;
+  /** The detail request failed, so a null summary is unknown rather than empty. */
+  unavailable: boolean;
 }
 
 export interface CompetitorPromptAppearancesProps {
@@ -1294,6 +1303,7 @@ export interface CompetitorPromptAppearancesProps {
   columns: TableColumn<GeoCompetitorPromptRow>[];
   tableHeight: number;
   showLoading: boolean;
+  unavailable: boolean;
   onRowClick: (row: GeoCompetitorPromptRow) => void;
 }
 

@@ -150,12 +150,15 @@ export function useGeoOverviewPage(
       geoRange.query,
       queriesEnabled && activeTab === "journeys"
     );
-  const { data: journeyStats, isPending: isJourneyStatsPending } =
-    useGeoJourneyStats(
-      organizationId,
-      geoRange.query,
-      queriesEnabled && activeTab === "journeys"
-    );
+  const {
+    data: journeyStats,
+    isPending: isJourneyStatsPending,
+    isError: isJourneyStatsError,
+  } = useGeoJourneyStats(
+    organizationId,
+    geoRange.query,
+    queriesEnabled && activeTab === "journeys"
+  );
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [preflightOpen, setPreflightOpen] = useState(false);
@@ -201,6 +204,7 @@ export function useGeoOverviewPage(
     promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
     journeyStats,
+    journeyStatsFailed: isJourneyStatsError && journeyStats === undefined,
     journeysLoading:
       activeTab === "journeys" && (isJourneysPending || isJourneyStatsPending),
     isScanning,

@@ -72,10 +72,11 @@ export function JourneysCard({
       cell: (row) => (
         <JourneyPathSummary
           distinctPaths={row.distinctPaths}
+          entryPath={row.entryPath}
           paths={row.samplePaths}
         />
       ),
-      sortValue: (row) => row.samplePaths[0] ?? "",
+      sortValue: (row) => row.entryPath,
     },
   ];
 

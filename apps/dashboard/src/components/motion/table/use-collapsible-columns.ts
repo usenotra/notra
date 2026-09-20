@@ -72,6 +72,9 @@ export function useCollapsibleColumns<T>(
   // Columns are usually rebuilt every render; only their floors matter here,
   // so effects key on this signature and read the latest columns from a ref.
   const signature = columns.map(columnSignature).join("|");
+  // Chrome widths shift the floors too, and the fixed ones arrive as a fresh
+  // array every render, so they join the deps as a string like the columns do.
+  const chromeSignature = `${extraFixedWidths.join("|")}@${extraChromePx}`;
   const latest = useRef({ columns, extraFixedWidths, extraChromePx });
   useLayoutEffect(() => {
     latest.current = { columns, extraFixedWidths, extraChromePx };
@@ -123,7 +126,7 @@ export function useCollapsibleColumns<T>(
     const observer = new ResizeObserver(update);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [collapseKeys, signature, minColumnWidth]);
+  }, [collapseKeys, signature, minColumnWidth, chromeSignature]);
 
   const visibleColumns = useMemo(() => {
     if (hiddenCount === 0) {

@@ -8,8 +8,15 @@ import {
 } from "../constants/geo";
 import type { GeoConversationGenerationContext } from "../types/geo";
 
-/** Shared by website discovery and on-demand generation so both write the same kind of conversation. */
-export function geoConversationRules(companyName: string): string {
+/**
+ * Shared by website discovery and on-demand generation so both write the same
+ * kind of conversation. Discovery has no brand identity yet and leaves
+ * `language` unset, so the model infers it from the scraped site.
+ */
+export function geoConversationRules(
+  companyName: string,
+  language?: string | null
+): string {
   return `Conversation rules:
 - Each conversation is one buyer researching a purchase across ${GEO_GENERATED_CONVERSATION_MIN_TURNS} or ${GEO_GENERATED_CONVERSATION_MAX_TURNS} messages they send to an AI assistant, in order.
 - ${GEO_TRACKED_PROMPT_VOICE}
@@ -18,7 +25,7 @@ export function geoConversationRules(companyName: string): string {
 - Never name ${companyName}, its products, its domain, or any alias in any message.
 - Give each conversation a different buyer and a different angle.
 - name: a short label for the buyer or scenario, under ${GEO_GENERATED_CONVERSATION_NAME_MAX_LENGTH} characters, e.g. "Agency comparing options" or "Startup on a tight budget".
-- Write every message in the language the audience speaks, each between ${GEO_PROMPT_MIN_LENGTH} and ${GEO_PROMPT_MAX_LENGTH} characters.`;
+- Write every message in ${language?.trim() || "the language the audience speaks"}, each between ${GEO_PROMPT_MIN_LENGTH} and ${GEO_PROMPT_MAX_LENGTH} characters.`;
 }
 
 export function buildConversationGenerationPrompt(
@@ -42,5 +49,5 @@ ${list(context.existingNames)}
 
 Write exactly ${context.count} multi-turn conversations.
 
-${geoConversationRules(context.companyName)}`;
+${geoConversationRules(context.companyName, context.language)}`;
 }

@@ -1240,6 +1240,9 @@ export const loadGeoTrafficJourneys = Effect.fn("geo.trafficJourneys")(
         distinctPaths: Number(row.distinct_paths),
         firstSeenAt: row.first_seen_at,
         lastSeenAt: row.last_seen_at,
+        // `sample_paths` is a set with no ordering guarantee, so it is only a
+        // fallback for pipe versions deployed before `entry_path` existed.
+        entryPath: row.entry_path ?? row.sample_paths[0] ?? "",
         samplePaths: row.sample_paths,
       })),
     };
@@ -1300,14 +1303,17 @@ export const loadGeoJourneyStats = Effect.fn("geo.journeyStats")(function* (
       lastSeenAt: journeyLastSeen(row.last_seen_at),
       daily: toJourneyDailyPoints(row.days, row.daily_journeys),
     })),
-    pages: pageRows.map((row) => ({
-      path: row.path,
-      journeys: Number(row.journeys),
-      previousJourneys: Number(row.previous_journeys),
-      entries: Number(row.entries),
-      lastSeenAt: journeyLastSeen(row.last_seen_at),
-      daily: toJourneyDailyPoints(row.days, row.daily_journeys),
-    })),
+    // Rows with no journeys in the window only ride along to carry the totals.
+    pages: pageRows
+      .filter((row) => Number(row.journeys) > 0)
+      .map((row) => ({
+        path: row.path,
+        journeys: Number(row.journeys),
+        previousJourneys: Number(row.previous_journeys),
+        entries: Number(row.entries),
+        lastSeenAt: journeyLastSeen(row.last_seen_at),
+        daily: toJourneyDailyPoints(row.days, row.daily_journeys),
+      })),
     totalPages: Number(pageRows[0]?.total_paths ?? 0),
     previousTotalPages: Number(pageRows[0]?.previous_total_paths ?? 0),
   };

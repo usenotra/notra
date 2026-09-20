@@ -20,6 +20,7 @@ const pathRowId = (row: GeoJourneyPageStats) => row.path;
 
 export function JourneyPathsCard({
   pages,
+  failed,
   totalPages,
   previousTotalPages,
   previewRows,
@@ -60,10 +61,12 @@ export function JourneyPathsCard({
     <JourneyStatCard
       caption={sampled ? `${pageNoun} (top ${pages.length} shown)` : pageNoun}
       delta={trafficVisitDelta(totalPages, previousTotalPages)}
-      emptyMessage="No fetched pages yet"
+      emptyMessage={
+        failed ? "Could not load fetched pages" : "No fetched pages yet"
+      }
       emptySeed="geo-journey-paths"
       eyebrow="Fetched pages"
-      stats={journeyPageKindStats(kindCounts, pages.length)}
+      stats={journeyPageKindStats(kindCounts, totalPages)}
       total={totalPages}
     >
       <Table

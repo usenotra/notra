@@ -468,6 +468,8 @@ export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
 export const GEO_SEQUENCE_MAX_TURNS = 5;
 /** Conversations generated at setup or on demand; small on purpose, every turn is a check per engine in each scan. */
 export const GEO_GENERATED_CONVERSATIONS_MAX = 3;
+/** Website setup asks for fewer than the on-demand maximum: the brand is still unverified at that point. */
+export const GEO_DISCOVERY_CONVERSATIONS = 2;
 export const GEO_GENERATED_CONVERSATION_MIN_TURNS = 3;
 export const GEO_GENERATED_CONVERSATION_MAX_TURNS = 4;
 export const GEO_GENERATED_CONVERSATION_NAME_MAX_LENGTH = 48;

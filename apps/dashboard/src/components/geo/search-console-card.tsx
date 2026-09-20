@@ -322,9 +322,6 @@ function connectedMeta(status: GeoSearchConsoleStatus): string {
       ? `Last synced ${formatRelative(status.lastSyncedAt)}`
       : "Not synced yet"
   );
-  if (status.lastError) {
-    parts.push(status.lastError);
-  }
   return parts.join(" · ");
 }
 
@@ -407,6 +404,11 @@ function ConnectedState({
             <p className="text-muted-foreground truncate text-sm">
               {formatGscSiteUrl(status.siteUrl ?? "")} · {connectedMeta(status)}
             </p>
+            {status.lastError ? (
+              <p className="text-destructive text-sm text-pretty">
+                {status.lastError}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">

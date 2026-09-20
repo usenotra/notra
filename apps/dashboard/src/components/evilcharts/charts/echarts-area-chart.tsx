@@ -2265,9 +2265,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     // 2D gradient textures are baked at renderer size — rebuild them once the
     // size settles.
-    const stopResizeObserver = observeChartResize(mount, chart, () =>
-      live.repush()
-    );
+    // The brush overlay is raw zrender, outside the option — nothing resizes it,
+    // so it is repositioned with every resize while the repush stays deferred.
+    const stopResizeObserver = observeChartResize(mount, chart, {
+      onResized: () => syncBrushOverlayNow(),
+      onSettled: () => live.repush(),
+    });
 
     // Light/dark flips change no React state — re-resolve and push directly.
     const themeObserver = new MutationObserver(() => {

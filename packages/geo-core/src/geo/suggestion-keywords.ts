@@ -19,7 +19,10 @@ export function normalizeSuggestionKey(value: string): string {
 }
 
 function normalizeForBrandMatch(value: string): string {
-  return normalizeSuggestionKey(value)
+  // NFC so an accent written as a combining mark folds back into its letter;
+  // the punctuation pass below would otherwise strip the bare mark and make
+  // decomposed "Nestlé" stop matching the composed alias.
+  return normalizeSuggestionKey(value.normalize("NFC"))
     .replace(/[-_]+/g, " ")
     .replace(/[^\p{L}\p{N}\s]+/gu, " ")
     .replace(/\s+/g, " ")
@@ -38,7 +41,7 @@ export function promptMentionsBrand(
 }
 
 export function stripBrandTerms(text: string, brandTerms: string[]): string {
-  let result = text;
+  let result = text.normalize("NFC");
   const sorted = [...brandTerms].sort(
     (left, right) => right.length - left.length
   );

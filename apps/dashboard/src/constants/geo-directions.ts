@@ -350,6 +350,7 @@ export const GEO_DIRECTIONS_JOURNEYS: readonly GeoJourney[] = [
     distinctPaths: 12,
     firstSeenAt: "2026-08-04T09:02:00Z",
     lastSeenAt: "2026-08-04T09:24:00Z",
+    entryPath: "/changelog",
     samplePaths: ["/changelog", "/docs/sdk", "/pricing"],
   },
   {
@@ -360,6 +361,7 @@ export const GEO_DIRECTIONS_JOURNEYS: readonly GeoJourney[] = [
     distinctPaths: 5,
     firstSeenAt: "2026-08-04T06:41:00Z",
     lastSeenAt: "2026-08-04T06:49:00Z",
+    entryPath: "/docs/sdk",
     samplePaths: ["/docs/sdk", "/docs/sdk/quickstart"],
   },
   {
@@ -370,6 +372,7 @@ export const GEO_DIRECTIONS_JOURNEYS: readonly GeoJourney[] = [
     distinctPaths: 7,
     firstSeenAt: "2026-08-03T21:10:00Z",
     lastSeenAt: "2026-08-03T21:24:00Z",
+    entryPath: "/blog/geo-guide",
     samplePaths: ["/blog/geo-guide", "/changelog"],
   },
 ];

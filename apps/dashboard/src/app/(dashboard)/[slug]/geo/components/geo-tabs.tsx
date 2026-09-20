@@ -73,6 +73,7 @@ export function GeoTabs({
   isScanning,
   journeys,
   journeyStats,
+  journeyStatsFailed,
   journeysLoading,
   organizationId,
 }: GeoTabsProps) {
@@ -198,6 +199,7 @@ export function GeoTabs({
       {activeTab === "journeys" ? (
         <JourneysTab
           journeyStats={journeyStats}
+          journeyStatsFailed={journeyStatsFailed}
           journeys={journeys}
           loading={journeysLoading}
           organizationId={organizationId}

@@ -11,6 +11,7 @@ import {
   GEO_DISCOVERY_CACHE_PREFIX,
   GEO_DISCOVERY_CACHE_TTL_SECONDS,
   GEO_DISCOVERY_COMPETITOR_LIMIT,
+  GEO_DISCOVERY_CONVERSATIONS,
   GEO_DISCOVERY_MAX_ALIASES,
   GEO_DISCOVERY_MAX_COMPETITORS,
   GEO_DISCOVERY_MAX_PROMPTS,
@@ -20,7 +21,6 @@ import {
   GEO_DISCOVERY_MODEL,
   GEO_DISCOVERY_SYSTEM_PROMPT,
   GEO_GAP_TITLE_MAX_LENGTH,
-  GEO_GENERATED_CONVERSATIONS_MAX,
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
   GEO_TRACKED_PROMPT_VOICE,
@@ -77,7 +77,7 @@ Derive the brand tracking configuration for this company:
 3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
 4. audienceType: who pays this company, judged by its own buyers and never by the industry it serves. "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "commerce" when consumers find it by searching Google for something to buy, book or visit (online shops, consumer products, restaurants, travel, local businesses and trades). "general" for everyone else (professional services, non-technical B2B, media, education), whose buyers just use whatever model their assistant ships with. Software or services sold to shops, restaurants or other businesses are "general" or "technical", not "commerce": a store builder or an email tool for merchants is "general".
 5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
-6. conversations: exactly 2 multi-turn conversations, each with a "name" and "steps" (the messages in order). Follow the conversation rules below.
+6. conversations: exactly ${GEO_DISCOVERY_CONVERSATIONS} multi-turn conversations, each with a "name" and "steps" (the messages in order). Follow the conversation rules below.
 
 Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
 
@@ -180,7 +180,7 @@ const prepareGeoWebsiteGeneration = Effect.fn(
   const conversations = normalizeGeneratedConversations(
     discovery.conversations,
     brandTerms,
-    GEO_GENERATED_CONVERSATIONS_MAX
+    GEO_DISCOVERY_CONVERSATIONS
   );
 
   return { aliases, companyName, entries, conversations };

@@ -83,12 +83,22 @@ function CompetitorMentionsChart({
   points,
   incompleteTail,
   showLoading,
+  unavailable,
 }: {
   competitor: string;
   points: GeoCompetitorDetailPoint[];
   incompleteTail: boolean;
   showLoading: boolean;
+  unavailable: boolean;
 }) {
+  if (unavailable) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        Mentions for {competitor} could not be loaded.
+      </p>
+    );
+  }
+
   if (showLoading) {
     return (
       <Skeleton
@@ -155,30 +165,32 @@ function CompetitorMentionStats({
 function CompetitorSummaryStats({
   competitor,
   summary,
+  unavailable,
 }: CompetitorSummaryStatsProps) {
   const withYouShare =
     summary && summary.answers > 0
       ? Math.round((summary.ownMentioned / summary.answers) * 100)
       : null;
+  const missing = unavailable ? "—" : undefined;
   const stats = [
     {
       label: "Answers",
-      value: summary?.answers.toLocaleString(),
+      value: summary?.answers.toLocaleString() ?? missing,
       detail: `latest answers naming ${competitor}`,
     },
     {
       label: "Prompts",
-      value: summary?.prompts.toLocaleString(),
+      value: summary?.prompts.toLocaleString() ?? missing,
       detail: "tracked prompts",
     },
     {
       label: "Engines",
-      value: summary?.engines.toLocaleString(),
+      value: summary?.engines.toLocaleString() ?? missing,
       detail: "AI engines",
     },
     {
       label: "With your brand",
-      value: summary ? `${withYouShare ?? 0}%` : undefined,
+      value: summary ? `${withYouShare ?? 0}%` : missing,
       detail: summary
         ? `${summary.ownMentioned.toLocaleString()} of ${summary.answers.toLocaleString()} answers`
         : "",
@@ -207,6 +219,7 @@ function CompetitorPromptAppearances({
   columns,
   tableHeight,
   showLoading,
+  unavailable,
   onRowClick,
 }: CompetitorPromptAppearancesProps) {
   return (
@@ -215,7 +228,11 @@ function CompetitorPromptAppearances({
       columns={columns}
       data={prompts}
       defaultSort={{ key: "capturedAt", direction: "desc" }}
-      emptyState={`${competitor} has not shown up in your tracked prompts yet.`}
+      emptyState={
+        unavailable
+          ? "Prompt appearances could not be loaded."
+          : `${competitor} has not shown up in your tracked prompts yet.`
+      }
       getRowId={(row) => `${row.promptId}-${row.engine}`}
       height={showLoading ? tableHeightFor(3) : tableHeight}
       key={competitor}
@@ -272,11 +289,14 @@ export function CompetitorDetailView({
   const discovered = entry === null && !ownBrand;
   const domain = entry?.domain ?? null;
   const [editOpen, setEditOpen] = useState(false);
-  const { data, isPending } = useGeoCompetitorDetail(
+  const { data, isPending, isError } = useGeoCompetitorDetail(
     organizationId,
     competitor
   );
   const showLoading = !organizationId || (isPending && !data);
+  // A failed request leaves `data` undefined with nothing pending — summarising
+  // that would read as a competitor with zero answers instead of a failure.
+  const unavailable = isError && data === undefined;
   // The answer sheet needs the prompt's full result set; the competitor
   // detail only carries one row per prompt and engine.
   const { data: promptResults } = useGeoPromptResults(organizationId);
@@ -292,14 +312,13 @@ export function CompetitorDetailView({
     [data]
   );
   const stats = useMemo(
-    () => (showLoading ? null : competitorMentionStats(points)),
-    [points, showLoading]
+    () => (showLoading || unavailable ? null : competitorMentionStats(points)),
+    [points, showLoading, unavailable]
   );
   const incompleteTail = competitorChartHasIncompleteTail(points);
   const prompts = data?.prompts ?? [];
-  const promptSummary: GeoCompetitorPromptSummary | null = showLoading
-    ? null
-    : competitorPromptSummary(prompts);
+  const promptSummary: GeoCompetitorPromptSummary | null =
+    showLoading || unavailable ? null : competitorPromptSummary(prompts);
 
   const columns: TableColumn<GeoCompetitorPromptRow>[] = [
     {
@@ -450,7 +469,11 @@ export function CompetitorDetailView({
         </div>
       </div>
 
-      <CompetitorSummaryStats competitor={competitor} summary={promptSummary} />
+      <CompetitorSummaryStats
+        competitor={competitor}
+        summary={promptSummary}
+        unavailable={unavailable}
+      />
 
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-3">
@@ -464,6 +487,7 @@ export function CompetitorDetailView({
           incompleteTail={incompleteTail}
           points={points}
           showLoading={showLoading}
+          unavailable={unavailable}
         />
       </div>
 
@@ -476,6 +500,7 @@ export function CompetitorDetailView({
         prompts={prompts}
         showLoading={showLoading}
         tableHeight={tableHeight}
+        unavailable={unavailable}
       />
       <PromptDetailDialog
         initialEngine={selectedAnswer?.engine ?? null}

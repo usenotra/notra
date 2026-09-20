@@ -58,6 +58,12 @@ export async function dehydrateGeoOverviewQueries(
       }),
       queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
     });
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.journeyStats.queryOptions({
+        input: input.journeyStats,
+      }),
+      queryFn: () => client.geo.journeyStats(input.journeyStats),
+    });
   }
   if (input.activeTab === "visibility") {
     void queryClient.prefetchQuery({

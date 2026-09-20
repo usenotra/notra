@@ -871,6 +871,7 @@ export interface GeoConversationGenerationContext {
   companyName: string;
   companyDescription: string | null;
   audience: string | null;
+  language: string | null;
   competitors: string[];
   prompts: string[];
   existingNames: string[];
@@ -1059,6 +1060,8 @@ export interface GeoJourney {
   distinctPaths: number;
   firstSeenAt: string;
   lastSeenAt: string;
+  /** First page fetched in the journey; `samplePaths` has no ordering. */
+  entryPath: string;
   samplePaths: string[];
 }
 

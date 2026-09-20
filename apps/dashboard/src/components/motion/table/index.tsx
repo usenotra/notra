@@ -27,6 +27,7 @@ import { useRowSelection } from "./use-row-selection";
 import {
   CHECKBOX_WIDTH,
   DEFAULT_MIN_COLUMN_WIDTH,
+  mergeHiddenColumnKeys,
   pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
@@ -95,6 +96,17 @@ export function Table<T>({
     extraFixedWidths: selectable ? [CHECKBOX_WIDTH] : [],
     extraChromePx: reorderable ? REORDER_HANDLE_PX : 0,
   });
+  // Reordering only sees the visible columns, so what a consumer persists has
+  // to be widened back to every column before it leaves the table.
+  const emitColumnOrder = onColumnOrderChange
+    ? (keys: string[]) =>
+        onColumnOrderChange(
+          mergeHiddenColumnKeys(
+            columns.map((column) => column.key),
+            keys
+          )
+        )
+    : undefined;
   const {
     orderedColumns,
     dragKey,
@@ -105,7 +117,7 @@ export function Table<T>({
   } = useColumnReorder({
     columns: visibleColumns,
     thRefs,
-    onColumnOrderChange,
+    onColumnOrderChange: emitColumnOrder,
   });
   const { sort, sortedRows, toggleSort } = useColumnSort({
     rows,

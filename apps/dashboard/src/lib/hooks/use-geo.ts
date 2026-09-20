@@ -4,7 +4,6 @@ import { AGENT_READINESS_POLL_INTERVAL_MS } from "@notra/geo-core/constants/agen
 import {
   GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
   GEO_BRAND_SEARCH_STALE_MS,
-  GEO_JOURNEY_RECENT_LIMIT,
   GEO_MODEL_CATALOG_STALE_MS,
   GEO_SCAN_POLL_INTERVAL_MS,
   GEO_START_SCAN_MUTATION_KEY,
@@ -83,6 +82,7 @@ import { withGeoProject } from "@/utils/geo-paths";
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
+  geoTrafficJourneysQueryInput,
   geoTrafficLogQueryInput,
   geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
@@ -830,12 +830,7 @@ export function useGeoTrafficJourneys(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficJourneysResponse>({
     ...dashboardOrpc.geo.trafficJourneys.queryOptions({
-      input: {
-        organizationId,
-        projectId,
-        ...toGeoWindowInput(range),
-        limit: GEO_JOURNEY_RECENT_LIMIT,
-      },
+      input: geoTrafficJourneysQueryInput({ organizationId, projectId }, range),
     }),
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
@@ -851,11 +846,14 @@ export function useGeoJourneyStats(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoJourneyStatsResponse>({
     ...dashboardOrpc.geo.journeyStats.queryOptions({
-      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+      input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load journey trends" },
+    meta: {
+      errorMessage: "Failed to load journey trends",
+      showRetryAction: true,
+    },
   });
 }
 
@@ -1151,7 +1149,9 @@ export function useGeoSequencesGenerate(organizationId: string) {
         `Added ${count} ${count === 1 ? "conversation" : "conversations"}`
       );
     },
-    meta: { errorMessage: "Failed to generate conversations" },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, "Failed to generate conversations"));
+    },
   });
 }
 

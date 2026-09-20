@@ -64,6 +64,7 @@ function JourneysTabSkeleton() {
 export function JourneysTab({
   journeys,
   journeyStats,
+  journeyStatsFailed,
   loading,
   organizationId,
   revealActive,
@@ -108,6 +109,7 @@ export function JourneysTab({
       <InstrumentGrid className="grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
         <InstrumentReveal active={revealActive} className="h-full" order={0}>
           <JourneyOverviewCard
+            failed={journeyStatsFailed}
             onOpenSource={(row) =>
               setGroup({
                 kind: "source",
@@ -121,6 +123,7 @@ export function JourneysTab({
         </InstrumentReveal>
         <InstrumentReveal active={revealActive} className="h-full" order={1}>
           <JourneyPathsCard
+            failed={journeyStatsFailed}
             onOpenPath={(row) => setGroup({ kind: "page", path: row.path })}
             pages={pages}
             previewRows={previewRows}

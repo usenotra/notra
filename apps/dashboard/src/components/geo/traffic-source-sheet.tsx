@@ -4,10 +4,14 @@ import {
   AI_TRAFFIC_PURPOSE_LABELS,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
-import type { GeoTrafficSource } from "@notra/geo-core/types/geo";
+import type {
+  GeoTrafficSource,
+  GeoVisitorType,
+} from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoAgent,
+  formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
 import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
@@ -20,6 +24,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useMemo } from "react";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
@@ -44,11 +49,15 @@ import { tableHeightFor } from "@/utils/table";
 const TOP_PAGES_LIMIT = 10;
 const SHEET_TABLE_MAX_ROWS = 6;
 
-function memberColumns(total: number): TableColumn<GeoTrafficSource>[] {
+function memberColumns(
+  total: number,
+  visitorType: GeoVisitorType
+): TableColumn<GeoTrafficSource>[] {
+  const isCrawler = visitorType === "crawler";
   return [
     {
       key: "agent",
-      header: "Bot",
+      header: isCrawler ? "Bot" : "Source",
       width: "1fr",
       cell: (row) => (
         <span className="flex min-w-0 items-center gap-2 text-sm">
@@ -61,7 +70,9 @@ function memberColumns(total: number): TableColumn<GeoTrafficSource>[] {
             }}
           />
           <span className="truncate">
-            {formatGeoAgent(row.agent || row.source)}
+            {isCrawler
+              ? formatGeoAgent(row.agent || row.source)
+              : formatGeoSource(row.source)}
           </span>
         </span>
       ),
@@ -192,7 +203,7 @@ function TrafficSourceSheetContent({
           </h3>
           <Table
             className="rounded-2xl"
-            columns={memberColumns(group.visits)}
+            columns={memberColumns(group.visits, group.visitorType)}
             data={members}
             getRowId={(row) => `${row.source}-${row.visitorType}`}
             height={tableHeightFor(
@@ -209,7 +220,13 @@ function TrafficSourceSheetContent({
             className="rounded-2xl"
             columns={PAGE_COLUMNS}
             data={topPages}
-            emptyState="No pages recorded for this source"
+            // `pages` is the site-wide busiest-pages list, so a quiet source can
+            // contribute none of them even though it did visit pages.
+            emptyState={
+              group.paths > 0
+                ? "This source's pages are outside the site's busiest pages"
+                : "No pages recorded for this source"
+            }
             getRowId={(row) => row.key}
             height={tableHeightFor(
               Math.min(topPages.length, SHEET_TABLE_MAX_ROWS)
@@ -229,20 +246,26 @@ export function TrafficSourceSheet({
   pages,
   onOpenChange,
 }: TrafficSourceSheetProps) {
-  const [group, releaseGroup] = useRetainedValue(groupProp);
+  // The parent drops the series the moment the sheet closes, so it travels with
+  // the group and the visits chart survives the exit animation.
+  const open = useMemo(
+    () => (groupProp === null ? null : { group: groupProp, series }),
+    [groupProp, series]
+  );
+  const [retained, release] = useRetainedValue(open);
 
   return (
     <Sheet
       onOpenChange={onOpenChange}
-      onOpenChangeComplete={releaseGroup}
+      onOpenChangeComplete={release}
       open={groupProp !== null}
     >
       <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
-        {group ? (
+        {retained ? (
           <TrafficSourceSheetContent
-            group={group}
+            group={retained.group}
             pages={pages}
-            series={series}
+            series={retained.series}
           />
         ) : null}
       </SheetContent>

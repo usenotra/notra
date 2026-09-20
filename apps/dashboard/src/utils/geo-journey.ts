@@ -339,7 +339,11 @@ export function countJourneyBranches(roots: readonly GeoJourneyTreeNode[]) {
   return branches;
 }
 
-/** Docs, posts and everything else, counted by unique page. */
+/**
+ * Docs, posts and everything else, counted by unique page. `totalPages` is the
+ * window's full page count, so pages the response sampled away land in "Other"
+ * rather than making the breakdown fall short of the card's headline.
+ */
 export function journeyPageKindStats(
   kindCounts: readonly GeoJourneyKindCount[],
   totalPages: number

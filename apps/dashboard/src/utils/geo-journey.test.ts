@@ -83,6 +83,7 @@ describe("buildJourneyOverview", () => {
         distinctPaths: 2,
         firstSeenAt: "2026-09-16 10:00:00",
         lastSeenAt: "2026-09-16 10:01:00",
+        entryPath: "/",
         samplePaths: ["/", "/pricing", "/"],
       },
     ]);

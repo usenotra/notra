@@ -359,6 +359,7 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
           uniqExact(path) AS distinct_paths,
           min(captured_at) AS first_seen_at,
           max(captured_at) AS last_seen_at,
+          argMin(path, captured_at) AS entry_path,
           arraySlice(groupUniqArray(path), 1, 1000) AS sample_paths
         FROM journey_events
         GROUP BY journey_id
@@ -375,6 +376,7 @@ export const geoTrafficJourneys = defineEndpoint("geo_traffic_journeys", {
     distinct_paths: t.uint64(),
     first_seen_at: t.dateTime(),
     last_seen_at: t.dateTime(),
+    entry_path: t.string(),
     sample_paths: t.array(t.string()),
   },
 });
@@ -553,10 +555,13 @@ export const geoJourneyPages = defineEndpoint("geo_journey_pages", {
     }),
     node({
       name: "journey_pages",
+      // Previous-window-only pages stay in so the totals on every row survive a
+      // window with no journeys at all; they sort last and the caller drops
+      // them from the page list.
       sql: `
         SELECT *
         FROM journey_page_counts
-        WHERE journeys > 0
+        WHERE journeys > 0 OR previous_journeys > 0
         ORDER BY journeys DESC, path ASC
         LIMIT {{Int32(limit, 500)}}
       `,

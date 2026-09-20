@@ -1,6 +1,5 @@
 "use client";
 
-import { toGeoTrafficTotals } from "@notra/geo-core/utils/ai-traffic";
 import { Button } from "@notra/ui/components/ui/button";
 import { useMemo, useState } from "react";
 
@@ -10,19 +9,18 @@ import { DESIGN_SYSTEM_TRAFFIC_RESPONSE } from "@/constants/design-system-traffi
 
 export default function GeoTrafficDesignSystemClientPage() {
   const [addedVisits, setAddedVisits] = useState(0);
-  const traffic = useMemo(() => {
-    const sources = DESIGN_SYSTEM_TRAFFIC_RESPONSE.sources.map(
-      (source, index) =>
-        index === 0
-          ? { ...source, visits: source.visits + addedVisits }
-          : source
-    );
-    return {
+  // Only the hero totals move: the source rows stay byte-identical so the demo
+  // shows the number transition without the tables re-sorting underneath it.
+  const traffic = useMemo(
+    () => ({
       ...DESIGN_SYSTEM_TRAFFIC_RESPONSE,
-      sources,
-      totals: toGeoTrafficTotals(sources),
-    };
-  }, [addedVisits]);
+      totals: {
+        ...DESIGN_SYSTEM_TRAFFIC_RESPONSE.totals,
+        crawler: DESIGN_SYSTEM_TRAFFIC_RESPONSE.totals.crawler + addedVisits,
+      },
+    }),
+    [addedVisits]
+  );
 
   return (
     <DesignSystemFrame

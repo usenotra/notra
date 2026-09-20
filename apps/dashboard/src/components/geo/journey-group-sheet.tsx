@@ -132,6 +132,7 @@ function journeyColumns(showSource: boolean): TableColumn<GeoJourney>[] {
       cell: (row) => (
         <JourneyPathSummary
           distinctPaths={row.distinctPaths}
+          entryPath={row.entryPath}
           paths={row.samplePaths}
         />
       ),

@@ -10,11 +10,11 @@ import {
  * without clipping mid-pill; the journey sheet shows the whole path.
  */
 export function JourneyPathSummary({
+  entryPath,
   paths,
   distinctPaths,
 }: JourneyPathSummaryProps) {
-  const entry = paths[0];
-  if (entry === undefined) {
+  if (!entryPath) {
     return <span className="text-muted-foreground text-xs">—</span>;
   }
   const sampled = new Set(paths.map(normalizeGeoJourneyPath)).size;
@@ -22,7 +22,10 @@ export function JourneyPathSummary({
 
   return (
     <span className="flex min-w-0 items-center gap-2" title={paths.join(" → ")}>
-      <JourneyPathPill className="min-w-0" node={toGeoJourneyPathNode(entry)} />
+      <JourneyPathPill
+        className="min-w-0"
+        node={toGeoJourneyPathNode(entryPath)}
+      />
       {more > 0 ? (
         <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
           +{more.toLocaleString()} {more === 1 ? "page" : "pages"}

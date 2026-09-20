@@ -23,12 +23,15 @@ function whenIdle(task: () => void): () => void {
  * frame; resizing synchronously and rebuilding the option on each of those
  * cost ~40ms per frame. Resizes are coalesced to one per animation frame, and
  * `onSettled` (the expensive option repush) runs once the size stops changing.
+ * `onResized` runs with every resize instead, for cheap work that must not lag
+ * the new size — overlays drawn outside the option, for one.
  */
 export function observeChartResize(
   mount: HTMLElement,
   chart: ECharts,
-  onSettled?: () => void
+  callbacks: { onResized?: () => void; onSettled?: () => void } = {}
 ): () => void {
+  const { onResized, onSettled } = callbacks;
   let frame = 0;
   let settleTimer: ReturnType<typeof setTimeout> | undefined;
   let cancelIdle: (() => void) | undefined;
@@ -49,6 +52,7 @@ export function observeChartResize(
         return;
       }
       chart.resize({ animation: { duration: 0 } });
+      onResized?.();
       if (onSettled) {
         clearTimeout(settleTimer);
         cancelIdle?.();
