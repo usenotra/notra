@@ -97,9 +97,13 @@ export async function startStandaloneChatRun(
 }
 
 export async function startContentPublicationReconciliation(
-  publication: Parameters<typeof contentPublicationReconciliationWorkflow>[0]
+  publication: Parameters<typeof contentPublicationReconciliationWorkflow>[0],
+  publishedAt: string
 ): Promise<void> {
-  await start(contentPublicationReconciliationWorkflow, [publication]);
+  await start(contentPublicationReconciliationWorkflow, [
+    publication,
+    publishedAt,
+  ]);
 }
 
 export async function startOnboardingAgentRun(

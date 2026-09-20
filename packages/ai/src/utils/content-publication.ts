@@ -4,7 +4,7 @@ import type {
 } from "@notra/ai/types/github-mention";
 import { db } from "@notra/db/drizzle";
 import { contentPublications, posts } from "@notra/db/schema";
-import { and, desc, eq, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, ne, or, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 
 const generatePublicationId = customAlphabet(
@@ -119,6 +119,34 @@ export async function recordContentPublication(
 
     return row ?? null;
   });
+}
+
+/**
+ * The delayed retry of a publication write that failed at publish time. The
+ * post may have been published again since, and replaying the older write
+ * would close that newer mapping, so it is skipped then.
+ */
+export async function reconcileContentPublication(
+  params: RecordContentPublicationParams,
+  publishedAt: string
+) {
+  const newer = await db.query.contentPublications.findFirst({
+    where: and(
+      eq(contentPublications.organizationId, params.organizationId),
+      eq(contentPublications.postId, params.postId),
+      eq(contentPublications.status, "open"),
+      gt(contentPublications.createdAt, new Date(publishedAt)),
+      or(
+        ne(contentPublications.repositoryId, params.repositoryId),
+        ne(contentPublications.pullRequestNumber, params.pullRequestNumber)
+      )
+    ),
+    columns: { id: true },
+  });
+  if (newer) {
+    return null;
+  }
+  return await recordContentPublication(params);
 }
 
 export async function closeContentPublicationForPullRequest(params: {

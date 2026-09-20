@@ -61,7 +61,8 @@ export function createUpdatePublishedContentTool() {
           pullNumber: publication.pullRequestNumber,
         })
       );
-      if (publication.headSha !== head.headSha) {
+      // Publications recorded before heads were tracked have no baseline.
+      if (publication.headSha && publication.headSha !== head.headSha) {
         return {
           updated: false,
           error:

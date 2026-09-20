@@ -1,10 +1,11 @@
-import { recordContentPublication } from "@notra/ai/utils/content-publication";
+import { reconcileContentPublication } from "@notra/ai/utils/content-publication";
 
 export async function reconcileContentPublicationStep(
-  publication: Parameters<typeof recordContentPublication>[0]
+  publication: Parameters<typeof reconcileContentPublication>[0],
+  publishedAt: string
 ) {
   "use step";
-  await recordContentPublication(publication);
+  await reconcileContentPublication(publication, publishedAt);
 }
 
 reconcileContentPublicationStep.maxRetries = 11;

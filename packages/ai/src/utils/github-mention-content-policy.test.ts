@@ -134,21 +134,15 @@ describe("findNewActiveContent", () => {
     ).toEqual(["adds a script tag"]);
   });
 
-  test("nested and unterminated HTML comments stay comments", () => {
-    expect(
-      reasons(
-        "docs/guide.md",
-        "# Guide",
-        "# Guide\n<!-<!--\n<script>alert(1)</script>\n-->- -->"
-      )
-    ).toEqual([]);
-    expect(
-      reasons(
-        "docs/guide.md",
-        "# Guide",
-        "# Guide\n<!--\n<script>alert(1)</script>"
-      )
-    ).toEqual([]);
+  test("nested and unterminated comments in the old file make nothing known", () => {
+    for (const previous of [
+      "# Guide\n<!-<!--\n<script>alert(1)</script>\n-->- -->",
+      "# Guide\n<!--\n<script>alert(1)</script>",
+    ]) {
+      expect(
+        reasons("docs/guide.md", previous, "# Guide\n<script>alert(1)</script>")
+      ).toEqual(["adds a script tag"]);
+    }
   });
 
   test("encoded javascript URLs and unquoted handlers are blocked", () => {
@@ -176,6 +170,20 @@ describe("findNewActiveContent", () => {
       "adds a javascript: URL",
       "adds an inline event handler",
     ]);
+  });
+
+  test("comment markers inside an attribute do not hide active content", () => {
+    expect(
+      reasons(
+        "docs/guide.md",
+        "# Guide",
+        [
+          "# Guide",
+          '<img title="<!--" onerror=alert(1) alt="-->">',
+          '<a title="<!--" href="javascript:alert(1)" rel="-->">x</a>',
+        ].join("\n")
+      )
+    ).toEqual(["adds an inline event handler", "adds a javascript: URL"]);
   });
 
   test("a handler only counts inside a tag", () => {

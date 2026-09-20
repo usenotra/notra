@@ -1179,19 +1179,34 @@ export const contentRouter = {
           pullRequestUrl: result.pullRequestUrl,
           headSha: result.headSha,
         };
-        await retryWrite(() => recordContentPublication(publication)).catch(
-          async (error) => {
-            console.error("Failed to record content publication", {
-              organizationId: input.organizationId,
-              contentId: input.contentId,
-              pullRequestUrl: result.pullRequestUrl,
-              error,
-            });
-            // The PR already exists, so hand the idempotent mapping write to a
-            // durable workflow instead of relying on this request process.
-            await startContentPublicationReconciliation(publication);
+        const publishedAt = new Date().toISOString();
+        const logContext = {
+          organizationId: input.organizationId,
+          contentId: input.contentId,
+          pullRequestUrl: result.pullRequestUrl,
+        };
+        try {
+          await retryWrite(() => recordContentPublication(publication));
+        } catch (error) {
+          console.error("Failed to record content publication", {
+            ...logContext,
+            error,
+          });
+          // The PR already exists, so hand the idempotent mapping write to a
+          // durable workflow instead of relying on this request process. The
+          // publish itself succeeded, whatever happens to the handover.
+          try {
+            await startContentPublicationReconciliation(
+              publication,
+              publishedAt
+            );
+          } catch (startError) {
+            console.error(
+              "Failed to start content publication reconciliation",
+              { ...logContext, error: startError }
+            );
           }
-        );
+        }
         return result;
       } catch (error) {
         throw await toGitHubPublishOrpcError(error, {

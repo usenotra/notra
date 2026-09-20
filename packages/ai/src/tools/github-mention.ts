@@ -205,7 +205,9 @@ export function buildGitHubMentionTools(params: {
           owner: context.owner,
           repo: context.repo,
           path,
-          ref: head.headSha,
+          // After a write the branch that was written is ahead of the pull
+          // request head, also on a follow-up branch.
+          ref: state.commitSha ?? head.headSha,
         });
         if (
           Buffer.byteLength(contents, "utf8") >

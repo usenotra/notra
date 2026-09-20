@@ -39,7 +39,7 @@ function extensionOf(path: string) {
 function renderedLines(markdown: string, preserveCode = false) {
   const lines: string[] = [];
   let openFence: string | null = null;
-  for (const raw of removeHtmlComments(markdown).split("\n")) {
+  for (const raw of markdown.split("\n")) {
     const fence = raw.match(FENCE_PATTERN)?.[1]?.[0];
     if (fence && !openFence) {
       openFence = fence;
@@ -196,7 +196,12 @@ export function findNewActiveContent(params: {
   if (!MARKUP_EXTENSIONS.has(extension)) {
     return [];
   }
-  const previousLines = renderedLines(params.previous ?? "");
+  // Commented-out lines of the old file are not known, or uncommenting a
+  // script would pass. The new file is never stripped: `<!--` inside an
+  // attribute value is no comment, and stripping it would hide a handler.
+  const previousLines = renderedLines(
+    removeHtmlComments(params.previous ?? "")
+  );
   const nextLines = renderedLines(params.next);
   const known = new Set(previousLines);
   const tagLines = linesInsideTags(nextLines);
