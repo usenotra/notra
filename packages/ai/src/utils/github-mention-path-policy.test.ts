@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  getGitHubMentionPathBlockReason,
-  partitionGitHubMentionPaths,
-} from "./github-mention-path-policy";
+import { getGitHubMentionPathBlockReason } from "./github-mention-path-policy";
 
 describe("getGitHubMentionPathBlockReason", () => {
   test("allows content and the data files next to it", () => {
@@ -84,5 +81,3 @@ describe("getGitHubMentionPathBlockReason", () => {
     }
   });
 });
-
-describe("partitionGitHubMentionPaths", () => {});

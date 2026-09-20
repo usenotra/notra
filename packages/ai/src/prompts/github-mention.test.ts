@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  getGitHubMentionInstructions,
-  getGitHubMentionPrompt,
-} from "./github-mention";
+import { getGitHubMentionPrompt } from "./github-mention";
 
 describe("getGitHubMentionPrompt", () => {
   test("bounds untrusted publication data and pull request titles", () => {

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  buildGitHubMentionPermissionReply,
   findMissingGitHubMentionPermissions,
   isGitHubPermissionError,
 } from "@notra/ai/utils/github-mention-permissions";

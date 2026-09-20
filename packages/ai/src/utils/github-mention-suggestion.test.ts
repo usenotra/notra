@@ -4,9 +4,6 @@ import {
   buildGitHubMentionSuggestions,
   commentableLinesFromPatch,
   fitGitHubMentionSuggestionsToRange,
-  formatGitHubMentionSuggestionBlock,
-  formatGitHubMentionSuggestionDiff,
-  isGitHubMentionSuggestionCommentable,
 } from "@notra/ai/utils/github-mention-suggestion";
 
 const PATH = "docs/getting-started.md";
