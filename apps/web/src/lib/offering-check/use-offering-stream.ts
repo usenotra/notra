@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { OFFERING_CHECK_API_PATH } from "@/constants/offering-check";
 import { offeringStreamEventSchema } from "@/schemas/offering-check";
@@ -111,45 +111,103 @@ async function readEvents(
   }
 }
 
+async function streamOfferingCheck(
+  input: OfferingCheckInput,
+  signal: AbortSignal,
+  onEvent: (event: OfferingStreamEvent) => void,
+  onFailure: (status: OfferingReportStatus) => void
+) {
+  const response = await fetch(OFFERING_CHECK_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  }).catch(() => null);
+  if (signal.aborted) {
+    return;
+  }
+  if (!response?.ok) {
+    onFailure(STATUS_BY_RESPONSE[response?.status ?? 0] ?? "error");
+    return;
+  }
+
+  let finished = false;
+  await readEvents(response, (event) => {
+    finished = finished || event.type === "result" || event.type === "error";
+    onEvent(event);
+  }).catch(() => null);
+  if (!(finished || signal.aborted)) {
+    onFailure("error");
+  }
+}
+
+function createOfferingStreamStore(
+  input: OfferingCheckInput,
+  initialResult: OfferingCheckResult | null
+) {
+  let state = initialState(initialResult);
+  let start: ReturnType<typeof setTimeout> | null = null;
+  let controller: AbortController | null = null;
+  const listeners = new Set<() => void>();
+  const update = (action: Action) => {
+    state = reduce(state, action);
+    for (const listener of listeners) {
+      listener();
+    }
+  };
+
+  return {
+    getSnapshot: () => state,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      if (!(initialResult || start || controller)) {
+        start = setTimeout(() => {
+          start = null;
+          controller = new AbortController();
+          const { signal } = controller;
+          void streamOfferingCheck(
+            input,
+            signal,
+            (event) => {
+              if (!signal.aborted) {
+                update({ type: "event", event });
+              }
+            },
+            (status) => update({ type: "failed", status })
+          );
+        }, 0);
+      }
+      return () => {
+        listeners.delete(listener);
+        if (listeners.size === 0) {
+          if (start) {
+            clearTimeout(start);
+            start = null;
+          }
+          controller?.abort();
+          controller = null;
+        }
+      };
+    },
+  };
+}
+
 export function useOfferingStream(
   input: OfferingCheckInput,
   initialResult: OfferingCheckResult | null
 ): OfferingLiveState {
-  const [state, dispatch] = useReducer(reduce, initialResult, initialState);
-  const startedRef = useRef(false);
   const { domain, feature, description } = input;
-
-  useEffect(() => {
-    if (initialResult || startedRef.current) {
-      return;
-    }
-    startedRef.current = true;
-
-    const run = async () => {
-      const response = await fetch(OFFERING_CHECK_API_PATH, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain, feature, description }),
-      }).catch(() => null);
-      if (!response?.ok) {
-        dispatch({
-          type: "failed",
-          status: STATUS_BY_RESPONSE[response?.status ?? 0] ?? "error",
-        });
-        return;
-      }
-      let finished = false;
-      await readEvents(response, (event) => {
-        finished =
-          finished || event.type === "result" || event.type === "error";
-        dispatch({ type: "event", event });
-      }).catch(() => null);
-      if (!finished) {
-        dispatch({ type: "failed", status: "error" });
-      }
-    };
-    run();
-  }, [domain, feature, description, initialResult]);
-
-  return state;
+  const store = useMemo(
+    () =>
+      createOfferingStreamStore(
+        { domain, feature, description },
+        initialResult
+      ),
+    [domain, feature, description, initialResult]
+  );
+  return useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getSnapshot
+  );
 }

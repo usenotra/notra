@@ -149,19 +149,24 @@ export async function runOfferingCheck(
     askModel(input, "memory", emit, abortSignal),
     askModel(input, "search", emit, abortSignal),
   ]);
+  const memoryAnswer = stripAnswerCitations(memory.answer);
+  const searchAnswer = stripAnswerCitations(search.answer);
+  if (!(memoryAnswer && searchAnswer)) {
+    throw new Error("Model returned an empty answer");
+  }
   const judgement = await judgeAnswers(input, memory, search, abortSignal);
 
   const memoryResult = {
     verdict: judgement.memoryVerdict,
     summary: judgement.memorySummary,
-    answer: stripAnswerCitations(memory.answer),
+    answer: memoryAnswer,
     reasoning: memory.reasoning,
     seconds: memory.seconds,
   };
   const searchResult = {
     verdict: judgement.searchVerdict,
     summary: judgement.searchSummary,
-    answer: stripAnswerCitations(search.answer),
+    answer: searchAnswer,
     reasoning: search.reasoning,
     seconds: search.seconds,
   };

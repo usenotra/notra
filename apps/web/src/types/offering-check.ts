@@ -136,6 +136,29 @@ export interface OfferingChatWindowProps {
   state: OfferingLiveState;
 }
 
+export interface OfferingChatReasoningProps {
+  mode: OfferingCheckMode;
+  hasAnswer: boolean;
+  state: OfferingLiveState;
+}
+
+export interface OfferingReasoningTraceProps {
+  answered: boolean;
+  seconds: number;
+  reasoning: string;
+  hasSearchActivity: boolean;
+  queries: readonly string[];
+  domains: readonly string[];
+}
+
+export interface OfferingMarkdownNode {
+  type: string;
+  tagName?: string;
+  value?: string;
+  properties?: Record<string, unknown>;
+  children?: OfferingMarkdownNode[];
+}
+
 export interface OfferingSearchActivityProps {
   queries: readonly string[];
   domains: readonly string[];

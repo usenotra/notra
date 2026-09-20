@@ -3,7 +3,9 @@ import {
   OFFERING_CHECK_MAX_SOURCE_PAGES,
 } from "@/constants/offering-check";
 import type {
+  OfferingChatPhase,
   OfferingCheckInput,
+  OfferingMarkdownNode,
   OfferingModeResult,
   OfferingOverall,
   OfferingSourceDomain,
@@ -152,21 +154,73 @@ export function buildOfferingQuestion(input: OfferingCheckInput): string {
   return `Does ${input.domain} offer a feature called "${feature}"? What does it do? If you do not know it, tell me what they offer instead.`;
 }
 
+export function getOfferingChatPhase(
+  done: boolean,
+  answered: boolean,
+  hasAnswer: boolean,
+  waitingForSearch: boolean
+): OfferingChatPhase {
+  if (done) {
+    return "done";
+  }
+  if (answered) {
+    return "grading";
+  }
+  if (hasAnswer) {
+    return "writing";
+  }
+  return waitingForSearch ? "searching" : "thinking";
+}
+
 const REGEX_SPECIAL_PATTERN = /[.*+?^${}()|[\]\\]/g;
 
-export const OFFERING_MENTION_HREF = "#mention";
-
-export function markFeatureMentions(text: string, feature: string): string {
-  const needle = feature.replaceAll('"', "").trim();
-  if (needle.length === 0) {
-    return text;
+function highlightFeatureText(
+  node: OfferingMarkdownNode,
+  pattern: RegExp
+): void {
+  if (!node.children || node.tagName === "code" || node.tagName === "pre") {
+    return;
   }
+  node.children = node.children.flatMap((child): OfferingMarkdownNode[] => {
+    if (child.type !== "text" || typeof child.value !== "string") {
+      highlightFeatureText(child, pattern);
+      return [child];
+    }
+    return child.value.split(pattern).flatMap((value, index) =>
+      value
+        ? [
+            index % 2 === 0
+              ? { type: "text", value }
+              : {
+                  type: "element",
+                  tagName: "mark",
+                  properties: {
+                    className: [
+                      "rounded",
+                      "bg-[#8B5CF626]",
+                      "box-decoration-clone",
+                      "px-0.5",
+                      "text-inherit",
+                      "dark:bg-[#8B5CF640]",
+                    ],
+                  },
+                  children: [{ type: "text", value }],
+                },
+          ]
+        : []
+    );
+  });
+}
+
+export function createFeatureHighlightPlugin(feature: string) {
+  const needle = feature.replaceAll('"', "").trim();
   const pattern = new RegExp(
-    needle.replace(REGEX_SPECIAL_PATTERN, "\\$&"),
+    `(${needle.replace(REGEX_SPECIAL_PATTERN, "\\$&")})`,
     "gi"
   );
-  return text.replace(
-    pattern,
-    (match) => `[${match}](${OFFERING_MENTION_HREF})`
-  );
+  return () => (tree: OfferingMarkdownNode) => {
+    if (needle.length > 0) {
+      highlightFeatureText(tree, pattern);
+    }
+  };
 }

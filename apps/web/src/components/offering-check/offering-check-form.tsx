@@ -26,7 +26,10 @@ import type {
   OfferingCheckFormProps,
   OfferingCheckInput,
 } from "@/types/offering-check";
-import { offeringReportHref } from "@/utils/offering-report";
+import {
+  offeringReportHref,
+  storeOfferingReportDescription,
+} from "@/utils/offering-report";
 
 import { OfferingFavicon } from "./offering-favicon";
 
@@ -66,6 +69,12 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
       setPending(false);
       return;
     }
+    if (!response?.ok) {
+      setBlocked(OFFERING_REPORT_FAILURE_MESSAGES.error);
+      setPending(false);
+      return;
+    }
+    storeOfferingReportDescription(input);
     router.push(offeringReportHref(input));
   };
 
@@ -187,8 +196,8 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
                 value={description}
               />
               <p className="font-sans text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
-                The model never sees this. We only use it to grade whether its
-                answer matches what you ship.
+                The model sees this only in a separate grading request, not
+                while answering your question.
               </p>
             </div>
           </CollapsibleContent>

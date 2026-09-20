@@ -60,12 +60,43 @@ export const OFFERING_CHECK_CACHE_SECONDS = 60 * 60 * 24;
 export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v5";
 
 export const OFFERING_CHECK_RATE_LIMITS = {
-  perIpHour: { requests: 5, window: "1h" },
-  perIpDay: { requests: 15, window: "1d" },
-  perBrandDay: { requests: 25, window: "1d" },
-  perBrandFeatureDay: { requests: 2, window: "1d" },
-  globalDay: { requests: 1000, window: "1d" },
+  perIpHour: { requests: 5, windowMs: 60 * 60 * 1000 },
+  perIpDay: { requests: 15, windowMs: 24 * 60 * 60 * 1000 },
+  perBrandDay: { requests: 25, windowMs: 24 * 60 * 60 * 1000 },
+  perBrandFeatureDay: { requests: 2, windowMs: 24 * 60 * 60 * 1000 },
+  globalDay: { requests: 1000, windowMs: 24 * 60 * 60 * 1000 },
 } as const;
+
+export const OFFERING_CHECK_RATE_LIMIT_SCRIPT = `
+local now = tonumber(ARGV[1])
+local consume = ARGV[2] == "1"
+
+for keyIndex = 1, #KEYS, 2 do
+  local limitIndex = (keyIndex + 1) / 2
+  local limit = tonumber(ARGV[limitIndex * 2 + 1])
+  local window = tonumber(ARGV[limitIndex * 2 + 2])
+  local current = tonumber(redis.call("GET", KEYS[keyIndex]) or "0")
+  local previous = tonumber(redis.call("GET", KEYS[keyIndex + 1]) or "0")
+  local weightedPrevious = math.floor((1 - (now % window) / window) * previous)
+
+  if current + weightedPrevious >= limit then
+    return {0, limitIndex}
+  end
+end
+
+if consume then
+  for keyIndex = 1, #KEYS, 2 do
+    local limitIndex = (keyIndex + 1) / 2
+    local window = tonumber(ARGV[limitIndex * 2 + 2])
+    local current = redis.call("INCR", KEYS[keyIndex])
+    if current == 1 then
+      redis.call("PEXPIRE", KEYS[keyIndex], window * 2 + 1000)
+    end
+  end
+end
+
+return {1, 0}
+`;
 
 export const OFFERING_CHECK_QUERY_KEYS = {
   domain: "domain",
