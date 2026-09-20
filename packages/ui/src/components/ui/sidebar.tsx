@@ -539,7 +539,10 @@ const sidebarMenuButtonVariants = cva(
 			size: {
 				default: "h-8 text-sm",
 				sm: "h-7 text-xs",
-				lg: "h-12 text-sm group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!",
+				// Collapsed: pad the leading icon into the middle of the icon rail
+				// instead of centering it. Centering inside a button whose width is
+				// animating throws the icon to the far side and slides it back.
+				lg: "h-12 text-sm transition-[padding] duration-(--sidebar-duration) ease-(--sidebar-ease) motion-reduce:transition-none group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:pl-[calc((var(--sidebar-width-icon)-0.875rem-var(--sidebar-lg-icon,2rem))/2)]!",
 			},
 		},
 		defaultVariants: {

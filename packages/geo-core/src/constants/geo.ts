@@ -1048,7 +1048,7 @@ export const GEO_MENTION_FADE_HEIGHT_REM = 2;
 export const GEO_MENTION_UNTRACKED_HINT =
   "This visibility comes from earlier scans. Add the model back in GEO settings to keep tracking it.";
 export const GEO_PROVIDER_COLUMN_LABEL = "Provider";
-export const GEO_PROVIDER_MENTIONS_COLUMN_LABEL = "Visibility · change";
+export const GEO_PROVIDER_MENTIONS_COLUMN_LABEL = "Visibility";
 export const GEO_BRAND_TRACKED_LABEL = "Tracked";
 export const GEO_BRAND_DISCOVERED_LABEL = "Discovered";
 export const GEO_BRAND_TRACK_ACTION = "Track";
