@@ -122,7 +122,7 @@ export const FEATURES_SHARE_ROWS: (ShareRow & { type: string })[] = [
   {
     id: "notra",
     brand: "Notra",
-    logo: { src: "/notra-mark.svg" },
+    logo: { src: "/notra-mark.svg", tileOnDark: true },
     share: 31,
     mentions: 96,
     color: "#8B5CF6",
