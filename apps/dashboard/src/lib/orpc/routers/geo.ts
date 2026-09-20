@@ -1301,6 +1301,13 @@ export const geoRouter = {
   sequencesGenerate: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(async (options) => {
+      // Membership first: the limiter is keyed by organization, so without this
+      // any signed-in user could drain another organization's generation budget.
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
       const rate = await ratelimit.geoSequencesGenerate.limit(
         options.input.organizationId
       );
