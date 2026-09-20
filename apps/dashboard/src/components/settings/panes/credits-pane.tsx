@@ -9,7 +9,8 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useAggregateEvents } from "autumn-js/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 
 import { CreditActivity } from "@/components/billing/credit-activity";
@@ -35,8 +36,7 @@ const CreditUsageChart = dynamic(
 
 export function CreditsSettingsPane() {
   const { slug } = useParams<{ slug: string }>();
-  const searchParams = useSearchParams();
-  const success = searchParams.get("success") === "true";
+  const [success] = useQueryState("success", parseAsBoolean.withDefault(false));
   const [range, setRange] = useState<CreditRangeOption>("30d");
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupSuccess, setTopupSuccess] = useState(false);

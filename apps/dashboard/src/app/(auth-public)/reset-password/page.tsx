@@ -5,7 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,10 +14,12 @@ import { Button } from "@/components/button";
 import { resetPasswordAction } from "@/lib/auth/password-actions";
 
 function ResetPasswordForm() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
-  const error = searchParams.get("error");
+  const [token] = useQueryState("token", parseAsString);
+  const [error] = useQueryState(
+    "error",
+    parseAsStringLiteral(["INVALID_TOKEN"])
+  );
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

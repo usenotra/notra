@@ -16,20 +16,20 @@ export function GeoPageSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
+        <header className="space-y-1">
+          <div className="flex items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
-            <p className="text-muted-foreground">
-              How AI engines talk about your brand
-            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <Skeleton className="h-7 w-16 rounded-full" />
+              <Button className="w-fit gap-2" size="sm">
+                Run Scan
+                <Kbd className="hidden sm:inline-flex">R</Kbd>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-7 w-16 rounded-full" />
-            <Button className="w-fit gap-2" size="sm">
-              Run Scan
-              <Kbd className="hidden sm:inline-flex">R</Kbd>
-            </Button>
-          </div>
+          <p className="text-muted-foreground">
+            How AI engines talk about your brand
+          </p>
         </header>
         <div className="bg-muted/40 flex w-fit shrink-0 items-center gap-0.5 rounded-lg border p-0.5">
           {Array.from({ length: 3 }, (_, index) => (

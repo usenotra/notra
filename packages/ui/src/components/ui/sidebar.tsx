@@ -34,6 +34,11 @@ import * as React from "react";
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
+// Width a menu button ends up with once the sidebar is collapsed: the icon rail
+// minus the p-2 that SidebarHeader/SidebarContent put around it. That box is
+// itself centered in the rail, so centering an icon inside it centers it in the
+// rail. Inset and floating sidebars override this: their container is 2px wider
+// to make room for the inset border.
 const SIDEBAR_RAIL_CONTENT = "calc(var(--sidebar-width-icon) - 1rem)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 const SIDEBAR_DURATION = "var(--transition-duration-slow)";
@@ -541,6 +546,11 @@ const sidebarMenuButtonVariants = cva(
 			size: {
 				default: "h-8 text-sm",
 				sm: "h-7 text-xs",
+				// Collapsed: pad the leading icon to where centering would put it
+				// instead of using justify-center. The collapsible state flips at
+				// once while the width animates, so centering measures the still-wide
+				// button and throws the icon to the far side before sliding it back.
+				// Callers whose leading icon is not 2rem set --sidebar-lg-icon.
 				lg: "h-12 text-sm transition-[padding] duration-(--sidebar-duration) ease-(--sidebar-ease) motion-reduce:transition-none group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:pl-[calc((var(--sidebar-rail-content)_-_var(--sidebar-lg-icon,_2rem))_/_2)]!",
 			},
 		},

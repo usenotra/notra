@@ -49,8 +49,10 @@
   }
 
   /*
-   * Container widths must change continuously while the sidebar or right panel
-   * animates. Stepped max-widths make centered content jump at each breakpoint.
+   * Container variants. Widths are continuous functions of the container
+   * (cqw) instead of stepped breakpoints: a stepped max-width snaps when the
+   * sidebar or right panel animates the container across a breakpoint, and the
+   * centered content then drifts until the animation ends.
    */
   .page-container,
   .page-container-relaxed,

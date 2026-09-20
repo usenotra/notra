@@ -22,7 +22,8 @@ import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { cn } from "@notra/ui/lib/utils";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
 import { useId } from "react";
 
 import { useCommandPalette } from "@/components/command-palette/command-palette-context";
@@ -157,14 +158,14 @@ export function SiteHeader() {
 
 function DashboardHeaderBreadcrumbs() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [geoTabParam] = useQueryState("tab", parseAsString);
   const [geoProjectParam] = useGeoProjectQueryState();
   const id = useId();
 
   return (
     <Breadcrumb className="min-w-0">
       <BreadcrumbList className="text-foreground min-w-0 flex-nowrap gap-2 text-sm font-medium">
-        {headerBreadcrumbItems(pathname, searchParams, geoProjectParam, id)}
+        {headerBreadcrumbItems(pathname, geoTabParam, geoProjectParam, id)}
       </BreadcrumbList>
     </Breadcrumb>
   );
@@ -172,7 +173,7 @@ function DashboardHeaderBreadcrumbs() {
 
 function headerBreadcrumbItems(
   pathname: string,
-  searchParams: ReturnType<typeof useSearchParams>,
+  geoTabParam: string | null,
   geoProjectParam: string | null,
   id: string
 ) {
@@ -209,8 +210,8 @@ function headerBreadcrumbItems(
     return geoHeaderBreadcrumbs({
       breadcrumbSegments,
       geoProjectId: geoProjectParam ?? undefined,
+      geoTabParam,
       id,
-      searchParams,
       segments,
       slug,
     });
@@ -349,21 +350,20 @@ function genericHeaderBreadcrumbs({
 function geoHeaderBreadcrumbs({
   breadcrumbSegments,
   geoProjectId,
+  geoTabParam,
   id,
-  searchParams,
   segments,
   slug,
 }: {
   breadcrumbSegments: string[];
   geoProjectId: string | undefined;
+  geoTabParam: string | null;
   id: string;
-  searchParams: ReturnType<typeof useSearchParams>;
   segments: string[];
   slug: string | undefined;
 }) {
   const geoSectionSegments = breadcrumbSegments.slice(1);
-  const geoTabLabel =
-    GEO_TAB_BREADCRUMB_LABELS[toGeoTab(searchParams.get("tab"))];
+  const geoTabLabel = GEO_TAB_BREADCRUMB_LABELS[toGeoTab(geoTabParam)];
 
   const geoSectionBreadcrumbs =
     geoSectionSegments.length > 0

@@ -11,7 +11,8 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
@@ -37,8 +38,7 @@ function buildConnectedPath(callbackPath: string): string {
 
 function LinkedInConnectContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const [token] = useQueryState("token", parseAsString.withDefault(""));
   const { data, isLoading, isError, error } = useLinkedInSelection(token);
   const completeMutation = useCompleteLinkedInSelection();
   const [deselectedIds, setDeselectedIds] = useState<ReadonlySet<string>>(

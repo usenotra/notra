@@ -4,7 +4,7 @@ import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -37,16 +37,16 @@ export function ReferencesList({
   const { data, isPending } = useReferences(organizationId, voiceId);
   const deleteMutation = useDeleteReference(organizationId, voiceId);
   const updateMutation = useUpdateReference(organizationId, voiceId);
-  const searchParams = useSearchParams();
+  const [twitterConnected, setTwitterConnected] = useQueryState(
+    "twitterConnected",
+    parseAsBoolean.withOptions({ history: "replace" })
+  );
   const queryClient = useQueryClient();
   const handledCallback = useRef(false);
   const [initialStep, setInitialStep] = useState<"import-x" | undefined>();
 
   useEffect(() => {
-    if (
-      searchParams.get("twitterConnected") === "true" &&
-      !handledCallback.current
-    ) {
+    if (twitterConnected && !handledCallback.current) {
       handledCallback.current = true;
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.CONNECTED_ACCOUNTS.list(organizationId),
@@ -54,11 +54,15 @@ export function ReferencesList({
       toast.success("X account connected");
       setInitialStep("import-x");
       onDialogOpenChange(true);
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete("twitterConnected");
-      window.history.replaceState({}, "", cleanUrl.toString());
+      void setTwitterConnected(null);
     }
-  }, [searchParams, queryClient, organizationId, onDialogOpenChange]);
+  }, [
+    twitterConnected,
+    setTwitterConnected,
+    queryClient,
+    organizationId,
+    onDialogOpenChange,
+  ]);
 
   const references = data?.references ?? [];
   const [deletingId, setDeletingId] = useState<string | null>(null);

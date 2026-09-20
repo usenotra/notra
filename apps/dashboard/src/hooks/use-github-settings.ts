@@ -1,6 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,23 +22,17 @@ export function useGitHubSettings(organizationSlug: string) {
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id ?? "";
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [{ githubConnected, githubAccountId }, setCallbackParams] =
+    useQueryStates(
+      { githubConnected: parseAsBoolean, githubAccountId: parseAsString },
+      { history: "replace" }
+    );
   const queryClient = useQueryClient();
   const [connectOpen, setConnectOpen] = useState(false);
-  const [reposOpen, setReposOpen] = useState(
-    () => searchParams.get("githubConnected") === "true"
-  );
+  const [reposOpen, setReposOpen] = useState(() => githubConnected === true);
   const [legacyOpen, setLegacyOpen] = useState(false);
-  useResumeGitHubInstall({
-    callbackPath: pathname,
-    organizationId,
-    reauthorizationInstallationId: searchParams.get(
-      "githubReauthorizeInstallationId"
-    ),
-    reauthorizationState: searchParams.get("githubReauthorizeState"),
-    shouldResume: searchParams.get("githubAccountConnected") === "true",
-  });
-  useGitHubCallbackErrorToast(searchParams.get("githubError"));
+  useResumeGitHubInstall({ callbackPath: pathname, organizationId });
+  useGitHubCallbackErrorToast();
   const {
     query: githubAppQuery,
     accounts,
@@ -50,7 +45,7 @@ export function useGitHubSettings(organizationSlug: string) {
   } = useGitHubRepositorySelection({
     organizationId,
     refetchOnMount: false,
-    initialAccountId: searchParams.get("githubAccountId"),
+    initialAccountId: githubAccountId,
     onSaved: () => setReposOpen(false),
   });
   const repositoriesDb = useGitHubRepositoriesDb(organizationId);
@@ -63,13 +58,10 @@ export function useGitHubSettings(organizationSlug: string) {
     isLoadingOrganizations ||
     (!!organizationId && repositoriesDb.isLoading && !repositoriesDb.hasData);
   useEffect(() => {
-    if (searchParams.get("githubConnected") !== "true" || !organization?.id) {
+    if (!githubConnected || !organization?.id) {
       return;
     }
-    const nextUrl = new URL(window.location.href);
-    nextUrl.searchParams.delete("githubConnected");
-    nextUrl.searchParams.delete("githubAccountId");
-    window.history.replaceState(null, "", nextUrl);
+    void setCallbackParams({ githubConnected: null, githubAccountId: null });
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.github.app.get.queryKey({
         input: { organizationId: organization.id },
@@ -78,7 +70,7 @@ export function useGitHubSettings(organizationSlug: string) {
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.integrations.key(),
     });
-  }, [searchParams, organization?.id, queryClient]);
+  }, [githubConnected, setCallbackParams, organization?.id, queryClient]);
   const startInstall = async () => {
     if (!organizationId) {
       return;

@@ -2,14 +2,13 @@
 
 import { normalizePublicWebsiteUrl } from "@notra/geo-core/schemas/url";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
+import { useQueryState } from "nuqs";
 import { useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
 import * as z from "zod";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { BRAND_IDENTITY_TAB_VALUES } from "@/constants/brand-identity";
 import type { PageClientProps } from "@/types/brand-identity";
 import {
   brandIdentityUiReducer,
@@ -17,6 +16,10 @@ import {
   getInitialBrandIdentityUiState,
   isBrandAnalysisRunning,
 } from "@/utils/brand-identity";
+import {
+  brandIdentityViewParser,
+  brandIdentityVoiceParser,
+} from "@/utils/brand-identity-search-params";
 import {
   findSelectedBrandIdentity,
   readStoredBrandIdentityId,
@@ -90,13 +93,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   );
   const [activeVoiceId, setActiveVoiceId] = useQueryState(
     "voice",
-    parseAsString.withOptions({ history: "replace" })
+    brandIdentityVoiceParser
   );
   const [activeTab, setActiveTab] = useQueryState(
     "view",
-    parseAsStringLiteral(BRAND_IDENTITY_TAB_VALUES)
-      .withDefault("identity")
-      .withOptions({ history: "replace" })
+    brandIdentityViewParser.withDefault("identity")
   );
   const [newIdentityParam, setNewIdentityParam] = useQueryState("new");
   const isAddIdentityOpen =
