@@ -1,24 +1,22 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
 export function useLinearConnectionToast() {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
+  const [{ linearConnected, error }, setParams] = useQueryStates(
+    { linearConnected: parseAsBoolean, error: parseAsString },
+    { history: "replace" }
+  );
 
   useEffect(() => {
-    const connected = searchParams.get("linearConnected");
-    const error = searchParams.get("error");
-
-    if (connected === "true") {
+    if (linearConnected) {
       toast.success("Linear workspace connected successfully");
-      router.replace(pathname, { scroll: false });
+      void setParams({ linearConnected: null, error: null });
     } else if (error === "workspace_already_connected") {
       toast.error("This Linear workspace is already connected");
-      router.replace(pathname, { scroll: false });
+      void setParams({ linearConnected: null, error: null });
     }
-  }, [searchParams, pathname, router]);
+  }, [linearConnected, error, setParams]);
 }

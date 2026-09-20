@@ -22,12 +22,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { getBrandFaviconUrl } from "@/utils/brand";
+import {
+  brandIdentityViewParser,
+  brandIdentityVoiceParser,
+} from "@/utils/brand-identity-search-params";
 import {
   findSelectedBrandIdentity,
   readStoredBrandIdentityId,
@@ -76,12 +81,14 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [{ voice: voiceParam, view }] = useQueryStates({
+    voice: brandIdentityVoiceParser,
+    view: brandIdentityViewParser,
+  });
 
   const { data } = useBrandSettings(organizationId);
   const voices = data?.voices ?? [];
-  const voiceParam = searchParams.get("voice");
-  const isReferencesView = searchParams.get("view") === "references";
+  const isReferencesView = view === "references";
   const storedVoiceId = useSyncExternalStore(
     subscribeToStoredBrandIdentity,
     () => (organizationId ? readStoredBrandIdentityId(organizationId) : null),

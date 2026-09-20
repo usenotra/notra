@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -12,6 +13,10 @@ import {
   buildBrandIdentityNavItems,
   resolveBrandIdentityNavView,
 } from "@/utils/brand-identity-nav";
+import {
+  brandIdentityViewParser,
+  brandIdentityVoiceParser,
+} from "@/utils/brand-identity-search-params";
 import {
   findSelectedBrandIdentity,
   readStoredBrandIdentityId,
@@ -32,7 +37,10 @@ export function useNavBrandIdentity(
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [{ voice, view }] = useQueryStates({
+    voice: brandIdentityVoiceParser,
+    view: brandIdentityViewParser,
+  });
   const { data } = useBrandSettings(organizationId);
   const voices = data?.voices ?? [];
   const brandBasePath = `/${slug}/brand/identity`;
@@ -41,11 +49,7 @@ export function useNavBrandIdentity(
     () => (organizationId ? readStoredBrandIdentityId(organizationId) : null),
     getServerStoredVoiceId
   );
-  const activeVoice = findSelectedBrandIdentity(
-    voices,
-    searchParams.get("voice"),
-    storedVoiceId
-  );
+  const activeVoice = findSelectedBrandIdentity(voices, voice, storedVoiceId);
   const activeVoiceId = activeVoice?.id;
   const { data: referencesData } = useReferences(
     organizationId,
@@ -64,11 +68,7 @@ export function useNavBrandIdentity(
     items: buildBrandIdentityNavItems({
       basePath: brandBasePath,
       voiceId: activeVoiceId,
-      activeView: resolveBrandIdentityNavView(
-        pathname,
-        brandBasePath,
-        searchParams.get("view")
-      ),
+      activeView: resolveBrandIdentityNavView(pathname, brandBasePath, view),
       counts: {
         references: referencesData?.references.length ?? 0,
         sitemap: sitemapsData?.sitemaps.length ?? 0,
