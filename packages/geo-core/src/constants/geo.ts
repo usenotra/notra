@@ -1267,8 +1267,14 @@ export const GEO_CHANGES_COLUMN_LABELS = {
   engine: "Engine",
   prompt: "Prompt",
   position: "Position",
-  detail: "Details",
+  /*
+   * Only "Displaced by competitor" and "Competitor cited" rows fill this, and
+   * they always fill it with brands. "Details" said nothing about that.
+   */
+  detail: "Competitors",
 } as const;
+/** One named brand fits the column; the rest collapse into a "+N" tooltip. */
+export const GEO_CHANGES_COMPETITOR_STACK_LIMIT = 1;
 export const GEO_CHANGES_STATE_NEW = "New";
 export const GEO_CHANGES_STATE_NOT_MENTIONED = "Not mentioned";
 export const GEO_CHANGES_STATE_MENTIONED = "Mentioned";

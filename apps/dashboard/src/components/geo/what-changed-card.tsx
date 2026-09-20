@@ -10,6 +10,7 @@ import {
   GEO_CHANGE_KIND_LABELS,
   GEO_CHANGE_KIND_ORDER,
   GEO_CHANGES_COLUMN_LABELS,
+  GEO_CHANGES_COMPETITOR_STACK_LIMIT,
   GEO_CHANGES_EMPTY_DETAIL,
   GEO_CHANGES_EMPTY_NEEDS_SCANS,
   GEO_CHANGES_EMPTY_NO_CHANGES,
@@ -247,7 +248,17 @@ function CompetitorLogosCell({
       ),
     };
   });
-  return <LogoStack items={items} />;
+  /*
+   * One named brand beats four anonymous logos: the column is narrow, and the
+   * row already says what happened, so the only open question is "to whom".
+   */
+  return (
+    <LogoStack
+      items={items}
+      limit={GEO_CHANGES_COMPETITOR_STACK_LIMIT}
+      showLabel
+    />
+  );
 }
 
 function DetailCell({ event, competitors }: GeoChangeCompetitorsCellProps) {

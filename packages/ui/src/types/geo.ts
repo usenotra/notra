@@ -143,6 +143,12 @@ export interface LogoStackProps {
   items: LogoStackItem[];
   limit?: number;
   emptyLabel?: string;
+  /**
+   * Spells out the brand next to each visible logo. Bare logos only work where
+   * the reader already knows the set (engines); for competitors they force a
+   * hover just to learn who is in the row.
+   */
+  showLabel?: boolean;
 }
 
 export interface StatTile {
