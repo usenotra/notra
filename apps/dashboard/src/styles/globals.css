@@ -66,7 +66,7 @@
 
   /* Relaxed variant - balanced for readability */
   .page-container-relaxed {
-    max-width: min(calc(40rem + 100cqw * 5 / 12), 80rem);
+    max-width: min(calc(40rem + 41.667cqw), 80rem);
   }
 
   /* Compact variant - focused for forms/settings */
