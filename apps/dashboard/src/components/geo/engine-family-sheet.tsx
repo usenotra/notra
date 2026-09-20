@@ -346,7 +346,7 @@ function FamilyTrend({
         <EChartsAreaChart.Tooltip
           barMax={CHART_PERCENT_SCALE}
           confine={false}
-          emptyLabel={(row) => mentionTrendEmptyLabel(row, modeKeys)}
+          emptyLabel={(row) => mentionTrendEmptyLabel(row, visibleModes)}
           labelFormatter={formatFullDayLabel}
           labelKey="rawDay"
           layout="activity"

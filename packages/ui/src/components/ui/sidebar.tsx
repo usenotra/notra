@@ -34,6 +34,7 @@ import * as React from "react";
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
+const SIDEBAR_RAIL_CONTENT = "calc(var(--sidebar-width-icon) - 1rem)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 const SIDEBAR_DURATION = "var(--transition-duration-slow)";
 const SIDEBAR_EASE = "var(--ease-emphasized)";
@@ -162,6 +163,7 @@ function SidebarProvider({
 					{
 						"--sidebar-width": SIDEBAR_WIDTH,
 						"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+						"--sidebar-rail-content": SIDEBAR_RAIL_CONTENT,
 						"--sidebar-duration": SIDEBAR_DURATION,
 						"--sidebar-ease": SIDEBAR_EASE,
 						...style,
@@ -258,7 +260,7 @@ function Sidebar({
 						: "right-0 group-data-[collapsible=offExamples]:right-[calc(var(--sidebar-width)*-1)]",
 					// Adjust the padding for floating and inset variants.
 					variant === "floating" || variant === "inset"
-						? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
+						? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)] [--sidebar-rail-content:calc(var(--sidebar-width-icon)_-_1rem_+_2px)]"
 						: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
 					className,
 				)}
@@ -539,7 +541,7 @@ const sidebarMenuButtonVariants = cva(
 			size: {
 				default: "h-8 text-sm",
 				sm: "h-7 text-xs",
-				lg: "h-12 text-sm group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!",
+				lg: "h-12 text-sm transition-[padding] duration-(--sidebar-duration) ease-(--sidebar-ease) motion-reduce:transition-none group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:pl-[calc((var(--sidebar-rail-content)_-_var(--sidebar-lg-icon,_2rem))_/_2)]!",
 			},
 		},
 		defaultVariants: {

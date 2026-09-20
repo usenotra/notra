@@ -2,7 +2,7 @@ export const RIGHT_PANEL_PORTAL_ID = "dashboard-right-panel";
 export const RIGHT_PANEL_CLASSNAME =
   "hidden min-h-0 min-w-0 shrink-0 overflow-hidden lg:block";
 export const RIGHT_PANEL_SLOT_MOTION_CLASSNAME =
-  "transition-[width] duration-normal ease-emphasized motion-reduce:transition-none";
+  "transition-[width] duration-(--sidebar-duration) ease-(--sidebar-ease) motion-reduce:transition-none";
 export const RIGHT_PANEL_OPEN_WIDTH_CLASSNAME = "w-[calc(24rem+0.5rem+1px)]";
 export const RIGHT_PANEL_EXPANDED_WIDTH_CLASSNAME = "min-w-0 flex-1 shrink";
 export const RIGHT_PANEL_FRAME_CLASSNAME =

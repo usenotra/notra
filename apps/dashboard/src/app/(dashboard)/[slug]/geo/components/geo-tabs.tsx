@@ -110,10 +110,10 @@ export function GeoTabs({
 
       {activeTab === "visibility" ? (
         <div className="mt-6 flex flex-col gap-6 overflow-visible">
-          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible lg:grid-cols-12">
+          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
             <TabSection
               active={revealActive}
-              className="relative z-20 overflow-visible lg:col-span-5"
+              className="relative z-20 overflow-visible @min-[44rem]/main:col-span-5"
               order={0}
             >
               <MentionRateCard
@@ -129,7 +129,7 @@ export function GeoTabs({
             </TabSection>
             <TabSection
               active={revealActive}
-              className="lg:col-span-7"
+              className="@min-[44rem]/main:col-span-7"
               order={1}
             >
               <MentionTrendCard
@@ -160,7 +160,7 @@ export function GeoTabs({
               trackedEngines={settings.engines}
             />
           </TabSection>
-          <InstrumentGrid className="grid-cols-1 gap-4 lg:grid-cols-2">
+          <InstrumentGrid className="grid-cols-1 gap-4 @min-[44rem]/main:grid-cols-2">
             <TabSection active={revealActive} order={4}>
               <ShareOfVoiceCard
                 aliases={settings.aliases}

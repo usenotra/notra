@@ -2548,7 +2548,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // them here, right before the push, rather than round-tripping through state.
     live.resolved = resolveColors(container, config, seriesKeys);
 
-    const push = (withEntrance: boolean) => {
+    const push = (withEntrance: boolean, withUpdate = true) => {
       const option = buildOption();
       const merged = chartOptions ? { ...option, ...chartOptions } : option;
       applyChartMarkers(
@@ -2558,11 +2558,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         live.resolved?.tokens.background ?? "rgba(255, 255, 255, 1)"
       );
       Object.assign(merged, {
-        // Keep animation on for series updates (the axis pointer itself snaps).
-        // Duration 0 still skips the intro draw-in when withEntrance is false.
-        animation: true,
+        // Animate data/selection updates, but never a resize repush: morphing
+        // the same series after the container stops moving causes a late jump.
+        animation: withEntrance || withUpdate,
         animationDuration: withEntrance ? REVEAL_DURATION : 0,
-        animationDurationUpdate: withEntrance ? 0 : CHART_UPDATE_MS,
+        animationDurationUpdate:
+          withEntrance || !withUpdate ? 0 : CHART_UPDATE_MS,
         animationEasingUpdate: "cubicInOut",
         // The active dot is the emphasis state of an invisible symbol, so its
         // hop between categories is the state transition — keep it brisk.
@@ -2597,7 +2598,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // and push an update-style option.
     live.repush = () => {
       live.resolved = resolveColors(container, config, seriesKeys);
-      push(false);
+      push(false, false);
     };
   }, [
     live,
