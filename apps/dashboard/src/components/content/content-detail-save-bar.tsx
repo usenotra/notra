@@ -72,7 +72,6 @@ export function ContentDetailSaveToast({
       <div className="bg-background flex items-center gap-3 rounded-lg px-4 py-3">
         <span className="text-muted-foreground text-sm">Unsaved changes</span>
         <Button
-          aria-keyshortcuts="Meta+S Control+S"
           disabled={isSaving}
           onClick={() => {
             onDismiss();
@@ -84,6 +83,7 @@ export function ContentDetailSaveToast({
           Discard
         </Button>
         <Button
+          aria-keyshortcuts="Meta+S Control+S"
           disabled={isSaving}
           onClick={() => {
             onDismiss();
