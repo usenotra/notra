@@ -33,6 +33,7 @@ describe("commentMentionsNotra", () => {
   test("accepts the Notra handle family regardless of the App slug", () => {
     for (const handle of [
       "@notra",
+      "@usenotra",
       "@Notra-AI",
       "@notrabot",
       "@notra-bot",

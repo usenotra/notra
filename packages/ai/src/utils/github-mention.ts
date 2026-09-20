@@ -15,8 +15,8 @@ const QUOTED_LINE_PATTERN = /^[ \t]*>.*$/gm;
 // `@org/team` is a team mention, so a handle followed by a slash is skipped too.
 const MENTION_PATTERN =
   /(?<![\w.@/-])@([a-z0-9][a-z0-9-]*)(?:\[bot\])?(?![\w/-])/gi;
-// People rarely type the exact App slug. Any handle from the Notra family
-// counts: @notra, @notra-ai, @notrabot, @notra-dev-acme, ...
+// People rarely type the exact App slug. @usenotra and any handle from the
+// Notra family count: @notra, @notra-ai, @notrabot, @notra-dev-acme, ...
 const NOTRA_FAMILY_HANDLE_PATTERN = /^notra(?:-[a-z0-9-]*|ai|bot|app)?$/;
 
 function normalizeHandle(value: string) {
@@ -63,7 +63,10 @@ export function commentMentionsNotra(
 }
 
 export function isNotraMentionHandle(handle: string) {
-  return NOTRA_FAMILY_HANDLE_PATTERN.test(normalizeHandle(handle));
+  const normalized = normalizeHandle(handle);
+  return (
+    normalized === "usenotra" || NOTRA_FAMILY_HANDLE_PATTERN.test(normalized)
+  );
 }
 
 export function isGitHubBotSender(sender: { login: string; type?: string }) {
