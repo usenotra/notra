@@ -740,6 +740,8 @@ export interface EngineFamilyBrandScope {
 
 export interface EngineRateTableProps extends EngineFamilyBrandScope {
   engines: GeoOverviewEngine[];
+  /** Engines the workspace still scans. Omit to show every scanned engine. */
+  trackedEngines?: readonly string[];
   timeseriesPoints?: readonly GeoTimeseriesPoint[];
   promptResults?: readonly GeoPromptResultSummary[];
   isScanning?: boolean;

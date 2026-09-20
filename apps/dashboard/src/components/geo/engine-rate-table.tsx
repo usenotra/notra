@@ -39,6 +39,7 @@ import {
   engineFamilyTotals,
   formatMentionRate,
   groupEngineFamilies,
+  keepTrackedFamilies,
   mentionRateSparkline,
 } from "@/utils/geo-charts";
 import { tableHeightFor } from "@/utils/table";
@@ -73,6 +74,7 @@ function avgPositionOf(family: GeoEngineFamily): string {
 
 export function EngineRateTable({
   engines,
+  trackedEngines,
   timeseriesPoints = GEO_EMPTY_TIMESERIES,
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   isScanning = false,
@@ -81,7 +83,15 @@ export function EngineRateTable({
   aliases,
   competitors,
 }: EngineRateTableProps) {
-  const families = useMemo(() => groupEngineFamilies(engines), [engines]);
+  /*
+   * Engines the workspace stopped scanning keep their old rows, so an
+   * untracked engine sits here frozen at 0 visible / 0% and reads as a bad
+   * result rather than an absent one. Only show what is still being scanned.
+   */
+  const families = useMemo(
+    () => keepTrackedFamilies(groupEngineFamilies(engines), trackedEngines),
+    [engines, trackedEngines]
+  );
   const [selected, setSelected] = useState<GeoEngineFamily | null>(null);
   const [query, setQuery] = useState("");
 
