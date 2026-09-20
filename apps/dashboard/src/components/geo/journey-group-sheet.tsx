@@ -4,7 +4,6 @@ import {
   GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_RECENT_LIMIT,
   GEO_SPARKLINE_MIN_POINTS,
-  GEO_TRAFFIC_STAT_TREND_HINT,
 } from "@notra/geo-core/constants/geo";
 import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
@@ -25,8 +24,8 @@ import { useMemo } from "react";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
+import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -36,6 +35,7 @@ import type {
   JourneyGroupContentProps,
   JourneyGroupSectionTitleProps,
   JourneyGroupSheetProps,
+  SheetStat,
 } from "@/types/geo";
 import {
   buildJourneyOverview,
@@ -206,7 +206,7 @@ function JourneyGroupContent({
     value: row ? row.journeys.toLocaleString() : "—",
     delta: row ? trafficVisitDelta(row.journeys, row.previousJourneys) : null,
   };
-  let stats: { label: string; value: string; delta?: number | null }[];
+  let stats: SheetStat[];
   if (sourceRow) {
     stats = [
       journeyStat,
@@ -299,27 +299,7 @@ function JourneyGroupContent({
       </SheetHeader>
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
-        <dl className="bg-muted/30 grid grid-cols-3 gap-4 rounded-xl border p-4">
-          {stats.map((stat) => (
-            <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
-              <dt className="text-muted-foreground truncate text-xs">
-                {stat.label}
-              </dt>
-              <dd className="m-0 flex min-w-0 items-center gap-2">
-                <span className="truncate text-xl leading-none font-semibold tracking-tight tabular-nums">
-                  {stat.value}
-                </span>
-                {stat.delta === undefined ? null : (
-                  <GeoStatDelta
-                    delta={stat.delta}
-                    hint={GEO_TRAFFIC_STAT_TREND_HINT}
-                    label={stat.label}
-                  />
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <SheetStatGrid stats={stats} />
 
         {trend.length >= GEO_SPARKLINE_MIN_POINTS ? (
           <section className="space-y-3">

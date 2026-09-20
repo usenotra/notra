@@ -3,7 +3,6 @@
 import {
   AI_TRAFFIC_PURPOSE_LABELS,
   GEO_SPARKLINE_MIN_POINTS,
-  GEO_TRAFFIC_STAT_TREND_HINT,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficSource } from "@notra/geo-core/types/geo";
 import {
@@ -23,7 +22,7 @@ import {
 } from "@notra/ui/components/ui/sheet";
 
 import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
-import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TRAFFIC_SOURCE_BAND_BADGE } from "@/constants/geo-traffic-sources";
@@ -31,6 +30,7 @@ import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   GeoTrafficGroupPage,
+  SheetStat,
   TrafficSourceSheetContentProps,
   TrafficSourceSheetProps,
 } from "@/types/geo";
@@ -139,7 +139,7 @@ function TrafficSourceSheetContent({
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
   const showMarkdown = group.band !== "ai_referral";
-  const stats: { label: string; value: string; delta?: number | null }[] = [
+  const stats: SheetStat[] = [
     {
       label: "Visits",
       value: group.visits.toLocaleString(),
@@ -177,27 +177,7 @@ function TrafficSourceSheetContent({
       </SheetHeader>
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
-        <dl className="bg-muted/30 grid grid-cols-3 gap-4 rounded-xl border p-4">
-          {stats.map((stat) => (
-            <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
-              <dt className="text-muted-foreground truncate text-xs">
-                {stat.label}
-              </dt>
-              <dd className="m-0 flex min-w-0 items-center gap-2">
-                <span className="truncate text-xl leading-none font-semibold tracking-tight tabular-nums">
-                  {stat.value}
-                </span>
-                {stat.delta === undefined ? null : (
-                  <GeoStatDelta
-                    delta={stat.delta}
-                    hint={GEO_TRAFFIC_STAT_TREND_HINT}
-                    label={stat.label}
-                  />
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <SheetStatGrid stats={stats} />
 
         {series.length >= GEO_SPARKLINE_MIN_POINTS ? (
           <section className="space-y-3">

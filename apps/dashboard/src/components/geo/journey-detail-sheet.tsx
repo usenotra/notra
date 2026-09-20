@@ -22,6 +22,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathTree } from "@/components/geo/journey-path-tree";
+import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -182,16 +183,7 @@ function JourneyDetailContent({
       </SheetHeader>
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
-        <dl className="bg-muted/30 grid grid-cols-3 gap-4 rounded-xl border p-4">
-          {stats.map((stat) => (
-            <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
-              <dt className="text-muted-foreground text-xs">{stat.label}</dt>
-              <dd className="m-0 truncate text-xl leading-none font-semibold tracking-tight tabular-nums">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <SheetStatGrid stats={stats} />
 
         <section className="space-y-3">
           <SectionHeader meta={pathMeta} title="Path" />

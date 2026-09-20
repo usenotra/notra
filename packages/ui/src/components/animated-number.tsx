@@ -3,7 +3,7 @@
 import { TRANSITION } from "@notra/ui/lib/motion";
 import type { AnimatedNumberProps } from "@notra/ui/types/animated-number";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { cn } from "../lib/utils";
 
@@ -21,8 +21,12 @@ const rest = {
 export function AnimatedNumber({ value, className }: AnimatedNumberProps) {
   const reduceMotion = useReducedMotion();
   const previousValue = useRef(value);
-  // New slots (99 → 100) should roll in, but not on the first paint.
-  const [hasMounted, setHasMounted] = useState(false);
+  /*
+   * New slots (99 → 100) should roll in, but not on the first paint. A ref
+   * rather than state: state would force a second render right after mount
+   * just to flip a flag nothing else reads.
+   */
+  const hasMounted = useRef(false);
   const direction = value >= previousValue.current ? 1 : -1;
   const formattedValue = value.toLocaleString();
   const chars = Array.from(formattedValue);
@@ -32,7 +36,7 @@ export function AnimatedNumber({ value, className }: AnimatedNumberProps) {
   }, [value]);
 
   useEffect(() => {
-    setHasMounted(true);
+    hasMounted.current = true;
   }, []);
 
   const offset = reduceMotion ? 0 : 45 * direction;
@@ -59,7 +63,7 @@ export function AnimatedNumber({ value, className }: AnimatedNumberProps) {
               layout="position"
               transition={transition}
             >
-              <AnimatePresence initial={hasMounted} mode="popLayout">
+              <AnimatePresence initial={hasMounted.current} mode="popLayout">
                 <motion.span
                   animate={rest}
                   className="col-start-1 row-start-1 block"

@@ -500,6 +500,18 @@ export interface JourneyGroupSheetProps {
   onPrefetchJourney: (journey: GeoJourney) => void;
 }
 
+/** One cell of the three-up stat header the GEO detail sheets open with. */
+export interface SheetStat {
+  label: string;
+  value: string;
+  /** Omit when the sheet has no comparison period; `null` renders nothing. */
+  delta?: number | null;
+}
+
+export interface SheetStatGridProps {
+  stats: readonly SheetStat[];
+}
+
 export interface JourneyGroupContentProps {
   selection: GeoJourneyGroupSelection;
   journeys: readonly GeoJourney[];

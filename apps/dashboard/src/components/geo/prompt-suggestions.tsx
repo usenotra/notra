@@ -13,7 +13,7 @@ import {
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
-import { useRef, useState } from "react";
+import { type RefObject, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
 import { SearchConsoleToolbar } from "@/components/geo/search-console-card";
@@ -32,6 +32,7 @@ import {
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
 import type {
   PromptSuggestionsProps,
+  SuggestionColumnsOptions,
   SuggestionRowActionsProps,
 } from "@/types/components/geo";
 import type { GeoPromptSuggestion } from "@/types/geo";
@@ -99,62 +100,34 @@ function SuggestionRowActions({
   );
 }
 
-export function PromptSuggestions({
-  organizationId,
-  callbackPath,
-}: PromptSuggestionsProps) {
-  const { data } = useGeoSuggestions(organizationId);
-  const { data: searchConsoleStatus, isPending: isSearchConsolePending } =
-    useGscStatus(organizationId);
-  const connectionSucceeded = useGscConnectionToast();
-  const { dismiss: dismissCard, dismissed } =
-    useGscCardDismissal(organizationId);
-  const checking = useGscAnalyzing(organizationId);
-  const accept = useGeoSuggestionAccept(organizationId);
-  const acceptAll = useGeoSuggestionsAcceptAll(organizationId);
-  const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
-  const [acceptingSuggestionIds, setAcceptingSuggestionIds] = useState<
-    ReadonlySet<string>
-  >(() => new Set());
-  const [dismissingSuggestionIds, setDismissingSuggestionIds] = useState<
-    ReadonlySet<string>
-  >(() => new Set());
-  const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
-  const [confirmDismiss, setConfirmDismiss] =
-    useState<GeoPromptSuggestion | null>(null);
-  const [propertyPickerOpen, setPropertyPickerOpen] =
-    useState(connectionSucceeded);
-  const pendingSuggestionRequests = useRef(new Map<string, Promise<unknown>>());
-  const trackAllQueued = useRef(false);
-  const suggestions = data?.suggestions ?? [];
-  const hasSuggestions = suggestions.length > 0;
-  const trackAllPending = isTrackAllQueued || acceptAll.isPending;
-  const connectPromo =
-    !isSearchConsolePending &&
-    searchConsoleStatus !== undefined &&
-    !searchConsoleStatus.connected;
-  const showSearchConsole = !(
-    dismissed &&
-    (isSearchConsolePending || !searchConsoleStatus || connectPromo)
+/**
+ * Per-row pending state for a suggestion mutation. Accept and dismiss share
+ * one in-flight map so "Track all" can wait for both and a row can never fire
+ * twice. `isBlocked` is a getter, not a boolean: "Track all" flips its ref
+ * synchronously, before React re-renders these closures.
+ */
+function useSuggestionRowAction(
+  mutateAsync: (input: { suggestionId: string }) => Promise<unknown>,
+  pendingRequests: RefObject<Map<string, Promise<unknown>>>,
+  isBlocked: () => boolean
+) {
+  const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(
+    () => new Set()
   );
 
-  const acceptSuggestion = (suggestionId: string) => {
-    if (
-      pendingSuggestionRequests.current.has(suggestionId) ||
-      trackAllQueued.current ||
-      acceptAll.isPending
-    ) {
+  const run = (suggestionId: string) => {
+    if (pendingRequests.current.has(suggestionId) || isBlocked()) {
       return;
     }
 
-    const request = accept.mutateAsync({ suggestionId });
-    pendingSuggestionRequests.current.set(suggestionId, request);
-    setAcceptingSuggestionIds((current) => new Set(current).add(suggestionId));
+    const request = mutateAsync({ suggestionId });
+    pendingRequests.current.set(suggestionId, request);
+    setPendingIds((current) => new Set(current).add(suggestionId));
     void request
       .catch(() => undefined)
       .finally(() => {
-        pendingSuggestionRequests.current.delete(suggestionId);
-        setAcceptingSuggestionIds((current) => {
+        pendingRequests.current.delete(suggestionId);
+        setPendingIds((current) => {
           const next = new Set(current);
           next.delete(suggestionId);
           return next;
@@ -162,54 +135,17 @@ export function PromptSuggestions({
       });
   };
 
-  const dismissPromptSuggestion = (suggestionId: string) => {
-    if (
-      pendingSuggestionRequests.current.has(suggestionId) ||
-      trackAllQueued.current ||
-      acceptAll.isPending
-    ) {
-      return;
-    }
+  return [pendingIds, run] as const;
+}
 
-    const request = dismissSuggestion.mutateAsync({ suggestionId });
-    pendingSuggestionRequests.current.set(suggestionId, request);
-    setDismissingSuggestionIds((current) => new Set(current).add(suggestionId));
-    void request
-      .catch(() => undefined)
-      .finally(() => {
-        pendingSuggestionRequests.current.delete(suggestionId);
-        setDismissingSuggestionIds((current) => {
-          const next = new Set(current);
-          next.delete(suggestionId);
-          return next;
-        });
-      });
-  };
-
-  const acceptAllSuggestions = async () => {
-    if (trackAllQueued.current || acceptAll.isPending) {
-      return;
-    }
-
-    trackAllQueued.current = true;
-    setIsTrackAllQueued(true);
-    try {
-      const pendingResults = await Promise.allSettled([
-        ...pendingSuggestionRequests.current.values(),
-      ]);
-      if (pendingResults.some((result) => result.status === "rejected")) {
-        return;
-      }
-      await acceptAll.mutateAsync();
-    } catch {
-      // The mutation hook reports the error.
-    } finally {
-      trackAllQueued.current = false;
-      setIsTrackAllQueued(false);
-    }
-  };
-
-  const columns: TableColumn<GeoPromptSuggestion>[] = [
+function suggestionColumns({
+  acceptingSuggestionIds,
+  dismissingSuggestionIds,
+  disabled,
+  onAccept,
+  onDismiss,
+}: SuggestionColumnsOptions): TableColumn<GeoPromptSuggestion>[] {
+  return [
     {
       key: "prompt",
       header: "Prompt",
@@ -281,16 +217,93 @@ export function PromptSuggestions({
         return (
           <SuggestionRowActions
             accepting={accepting}
-            disabled={checking || trackAllPending || accepting || dismissing}
+            disabled={disabled || accepting || dismissing}
             dismissing={dismissing}
-            onAccept={() => acceptSuggestion(row.id)}
-            onDismiss={() => setConfirmDismiss(row)}
+            onAccept={() => onAccept(row.id)}
+            onDismiss={() => onDismiss(row)}
             suggestion={row}
           />
         );
       },
     },
   ];
+}
+
+export function PromptSuggestions({
+  organizationId,
+  callbackPath,
+}: PromptSuggestionsProps) {
+  const { data } = useGeoSuggestions(organizationId);
+  const { data: searchConsoleStatus, isPending: isSearchConsolePending } =
+    useGscStatus(organizationId);
+  const connectionSucceeded = useGscConnectionToast();
+  const { dismiss: dismissCard, dismissed } =
+    useGscCardDismissal(organizationId);
+  const checking = useGscAnalyzing(organizationId);
+  const accept = useGeoSuggestionAccept(organizationId);
+  const acceptAll = useGeoSuggestionsAcceptAll(organizationId);
+  const dismissSuggestion = useGeoSuggestionDismiss(organizationId);
+  const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
+  const [confirmDismiss, setConfirmDismiss] =
+    useState<GeoPromptSuggestion | null>(null);
+  const [propertyPickerOpen, setPropertyPickerOpen] =
+    useState(connectionSucceeded);
+  const pendingSuggestionRequests = useRef(new Map<string, Promise<unknown>>());
+  const trackAllQueued = useRef(false);
+  const rowActionsBlocked = () => trackAllQueued.current || acceptAll.isPending;
+  const [acceptingSuggestionIds, acceptSuggestion] = useSuggestionRowAction(
+    accept.mutateAsync,
+    pendingSuggestionRequests,
+    rowActionsBlocked
+  );
+  const [dismissingSuggestionIds, dismissPromptSuggestion] =
+    useSuggestionRowAction(
+      dismissSuggestion.mutateAsync,
+      pendingSuggestionRequests,
+      rowActionsBlocked
+    );
+  const suggestions = data?.suggestions ?? [];
+  const hasSuggestions = suggestions.length > 0;
+  const trackAllPending = isTrackAllQueued || acceptAll.isPending;
+  const connectPromo =
+    !isSearchConsolePending &&
+    searchConsoleStatus !== undefined &&
+    !searchConsoleStatus.connected;
+  const showSearchConsole = !(
+    dismissed &&
+    (isSearchConsolePending || !searchConsoleStatus || connectPromo)
+  );
+
+  const acceptAllSuggestions = async () => {
+    if (trackAllQueued.current || acceptAll.isPending) {
+      return;
+    }
+
+    trackAllQueued.current = true;
+    setIsTrackAllQueued(true);
+    try {
+      const pendingResults = await Promise.allSettled([
+        ...pendingSuggestionRequests.current.values(),
+      ]);
+      if (pendingResults.some((result) => result.status === "rejected")) {
+        return;
+      }
+      await acceptAll.mutateAsync();
+    } catch {
+      // The mutation hook reports the error.
+    } finally {
+      trackAllQueued.current = false;
+      setIsTrackAllQueued(false);
+    }
+  };
+
+  const columns = suggestionColumns({
+    acceptingSuggestionIds,
+    dismissingSuggestionIds,
+    disabled: checking || trackAllPending,
+    onAccept: acceptSuggestion,
+    onDismiss: setConfirmDismiss,
+  });
 
   if (!(checking || hasSuggestions || showSearchConsole)) {
     return null;
