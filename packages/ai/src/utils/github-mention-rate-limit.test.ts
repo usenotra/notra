@@ -14,21 +14,16 @@ describe("consumeGitHubMentionRateLimit", () => {
     evaluate.mockReset();
   });
 
-  test("reports what is left in the window", async () => {
+  test("reports what is left and refuses once the window is full", async () => {
     evaluate.mockResolvedValueOnce(7);
+    const allowed = await consumeGitHubMentionRateLimit("org_1");
+    expect(allowed).toMatchObject({ allowed: true, limit: 20, remaining: 7 });
+    expect(allowed.resetAt).toBeGreaterThan(Date.now());
+    expect(evaluate.mock.calls[0]?.[1]?.[0]).toStartWith(
+      "ratelimit:github-mention:org_1:"
+    );
 
-    const result = await consumeGitHubMentionRateLimit("org_1");
-
-    expect(result).toMatchObject({ allowed: true, limit: 20, remaining: 7 });
-    expect(result.resetAt).toBeGreaterThan(Date.now());
-    const [, keys] = evaluate.mock.calls[0] ?? [];
-    expect(keys).toHaveLength(2);
-    expect(keys[0]).toStartWith("ratelimit:github-mention:org_1:");
-  });
-
-  test("refuses once the window is full", async () => {
     evaluate.mockResolvedValueOnce(-1);
-
     expect(await consumeGitHubMentionRateLimit("org_1")).toMatchObject({
       allowed: false,
       remaining: 0,

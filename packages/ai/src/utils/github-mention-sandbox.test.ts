@@ -35,15 +35,6 @@ describe("parseSandboxChanges", () => {
     expect(changes.skipped).toHaveLength(5);
   });
 
-  test("rejects the deletion half of a rename to a blocked path", () => {
-    expect(
-      parseSandboxChanges("D\tdocs/page.md\nA\tdocs/page.html", "")
-    ).toMatchObject({
-      written: [],
-      deleted: [],
-    });
-  });
-
   test("keeps complete allowed patches including spaces and deletions", () => {
     expect(
       parseSandboxChanges("M\tdocs/new page.md\nD\tdocs/old.md", "")

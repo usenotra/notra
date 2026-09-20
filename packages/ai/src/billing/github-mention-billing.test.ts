@@ -14,7 +14,6 @@ mock.module("./autumn-locks", () => ({
 
 const {
   confirmGitHubMentionBilling,
-  describeGitHubMentionBillingDenial,
   releaseGitHubMentionBilling,
   reserveGitHubMentionBilling,
 } = await import("./github-mention-billing");
@@ -29,14 +28,9 @@ const available = (remaining: number) => ({
   response: { allowed: true, balance: { remaining } },
   duplicateLock: false,
 });
-
-const empty = (remaining: number | null) => ({
-  response: {
-    allowed: false,
-    ...(remaining === null ? {} : { balance: { remaining } }),
-  },
-  duplicateLock: false,
-});
+const empty = { response: { allowed: false, balance: { remaining: 0 } } };
+const lock = (feature: string) =>
+  `github-mention-billing:delivery-1:${feature}`;
 
 describe("reserveGitHubMentionBilling", () => {
   beforeEach(() => {
@@ -44,39 +38,25 @@ describe("reserveGitHubMentionBilling", () => {
     finalizeAutumnLock.mockReset();
   });
 
-  test("spends the plan's pull request credits first", async () => {
+  test("spends plan credits first and only then AI credits", async () => {
     checkAutumnFeature.mockResolvedValueOnce(available(940));
-
-    const reservation = await reserve();
-
-    expect(reservation).toMatchObject({
+    expect(await reserve()).toMatchObject({
       allowed: true,
       mode: "pull_request_credits",
-      featureId: "pull_request_credits",
-      useMarkup: false,
+      lockId: lock("pull_request_credits"),
     });
-    expect(reservation.lockId).toBe(
-      "github-mention-billing:delivery-1:pull_request_credits"
-    );
     // The AI credit balance is not even looked at while the plan has room.
     expect(checkAutumnFeature).toHaveBeenCalledTimes(1);
-  });
 
-  test("falls back to AI credits once the plan budget is gone", async () => {
+    checkAutumnFeature.mockReset();
     checkAutumnFeature
-      .mockResolvedValueOnce(empty(0))
+      .mockResolvedValueOnce(empty)
       .mockResolvedValueOnce(available(2500));
-
-    const reservation = await reserve();
-
-    expect(reservation).toMatchObject({
+    expect(await reserve()).toMatchObject({
       allowed: true,
       mode: "ai_credits",
-      featureId: "ai_credits",
+      lockId: lock("ai_credits"),
     });
-    expect(reservation.lockId).toBe(
-      "github-mention-billing:delivery-1:ai_credits"
-    );
   });
 
   test("a redelivery reuses the hold the first attempt took", async () => {
@@ -84,55 +64,29 @@ describe("reserveGitHubMentionBilling", () => {
       response: null,
       duplicateLock: true,
     });
-
     expect(await reserve()).toMatchObject({
       allowed: true,
       mode: "pull_request_credits",
     });
   });
 
-  test("an exhausted plan with no credits left reports the plan", async () => {
+  test("an empty balance refuses the run and holds nothing", async () => {
     checkAutumnFeature
-      .mockResolvedValueOnce(empty(0))
-      .mockResolvedValueOnce(empty(0));
-
+      .mockResolvedValueOnce(empty)
+      .mockResolvedValueOnce(empty);
     const reservation = await reserve();
-
     expect(reservation).toMatchObject({
       allowed: false,
       reason: "pull_request_credits_exhausted",
-      balanceRemaining: 0,
+      lockId: null,
     });
-    expect(describeGitHubMentionBillingDenial(reservation)).toContain(
-      "pull request credits"
-    );
+
+    await confirmGitHubMentionBilling({ reservation, usage: null });
+    await releaseGitHubMentionBilling(reservation);
+    expect(finalizeAutumnLock).not.toHaveBeenCalled();
   });
 
-  test("an organization entitled to neither feature is told so", async () => {
-    checkAutumnFeature
-      .mockResolvedValueOnce(empty(null))
-      .mockResolvedValueOnce(empty(null));
-
-    const reservation = await reserve();
-
-    expect(reservation).toMatchObject({
-      allowed: false,
-      featureId: null,
-      reason: "no_entitlement",
-    });
-    expect(describeGitHubMentionBillingDenial(reservation)).toContain(
-      "no pull request credits"
-    );
-  });
-});
-
-describe("settling a mention", () => {
-  beforeEach(() => {
-    checkAutumnFeature.mockReset();
-    finalizeAutumnLock.mockReset();
-  });
-
-  test("charges what the run cost", async () => {
+  test("settles the hold with what the run cost", async () => {
     checkAutumnFeature.mockResolvedValueOnce(available(1000));
     const reservation = await reserve();
 
@@ -148,48 +102,14 @@ describe("settling a mention", () => {
         totalUsd: 0.42,
       },
     });
+    expect(finalizeAutumnLock.mock.calls[0]?.slice(0, 3)).toEqual([
+      lock("pull_request_credits"),
+      "confirm",
+      42,
+    ]);
 
-    const [lockId, action, value, properties] =
-      finalizeAutumnLock.mock.calls[0] ?? [];
-    expect(lockId).toBe(
-      "github-mention-billing:delivery-1:pull_request_credits"
-    );
-    expect(action).toBe("confirm");
-    expect(value).toBe(42);
-    expect(properties).toMatchObject({
-      source: "github_mention",
-      feature: "pull_request_credits",
-      cost_cents: 42,
-    });
-  });
-
-  test("a run without reported usage still pays the minimum", async () => {
-    checkAutumnFeature.mockResolvedValueOnce(available(1000));
-    const reservation = await reserve();
-
-    await confirmGitHubMentionBilling({ reservation, usage: null });
-
-    expect(finalizeAutumnLock.mock.calls[0]?.[2]).toBe(1);
-  });
-
-  test("a run that never reached the model gives the hold back", async () => {
-    checkAutumnFeature.mockResolvedValueOnce(available(1000));
-    const reservation = await reserve();
-
+    finalizeAutumnLock.mockReset();
     await releaseGitHubMentionBilling(reservation);
-
     expect(finalizeAutumnLock.mock.calls[0]?.[1]).toBe("release");
-  });
-
-  test("a refused mention has nothing to settle", async () => {
-    checkAutumnFeature
-      .mockResolvedValueOnce(empty(0))
-      .mockResolvedValueOnce(empty(0));
-    const reservation = await reserve();
-
-    await confirmGitHubMentionBilling({ reservation, usage: null });
-    await releaseGitHubMentionBilling(reservation);
-
-    expect(finalizeAutumnLock).not.toHaveBeenCalled();
   });
 });

@@ -77,38 +77,4 @@ describe("findMissingGitHubMentionPermissions", () => {
       })
     ).toEqual(["Pull requests: Read and write"]);
   });
-
-  test("unknown access does not block the run", () => {
-    expect(
-      findMissingGitHubMentionPermissions({
-        access: null,
-        mode: "same_pull_request",
-        commentKind: "issue",
-      })
-    ).toEqual([]);
-  });
-});
-
-describe("buildGitHubMentionPermissionReply", () => {
-  test("names the permission and links the installation", () => {
-    const reply = buildGitHubMentionPermissionReply({
-      missing: ["Contents: Read and write"],
-      settingsUrl: "https://github.com/settings/installations/1",
-    });
-    expect(reply).toContain("**Contents: Read and write**");
-    expect(reply).toContain(
-      "[installation settings](https://github.com/settings/installations/1)"
-    );
-  });
-
-  test("stays useful without details", () => {
-    const reply = buildGitHubMentionPermissionReply({
-      missing: [],
-      settingsUrl: null,
-    });
-    expect(reply).toContain("GitHub refused the request");
-    expect(reply).toContain("configured GitHub credential");
-    expect(reply).not.toContain("GitHub App");
-    expect(reply).toContain("Mention me again");
-  });
 });

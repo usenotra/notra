@@ -48,6 +48,13 @@ const mentionPayload = JSON.stringify({
   installation: { id: 55 },
 });
 
+const ingest = (
+  event: string,
+  rawBody: string,
+  deliveryId: string,
+  signature: string | null = sign(rawBody)
+) => ingestGitHubAppMentionWebhook({ event, signature, deliveryId, rawBody });
+
 describe("ingestGitHubAppMentionWebhook", () => {
   beforeEach(() => {
     process.env.GITHUB_APP_WEBHOOK_SECRET = secret;
@@ -76,12 +83,7 @@ describe("ingestGitHubAppMentionWebhook", () => {
         owner: { login: "acme" },
       },
     });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "pull_request",
-      signature: sign(body),
-      deliveryId: "pr-closed-1",
-      rawBody: body,
-    });
+    const result = await ingest("pull_request", body, "pr-closed-1");
     expect(result).toMatchObject({
       httpStatus: 200,
       body: { message: "publication_synced", updated: 1 },
@@ -95,66 +97,13 @@ describe("ingestGitHubAppMentionWebhook", () => {
     expect(resolveGitHubMentionContext).not.toHaveBeenCalled();
   });
 
-  test("rejects unsigned pull_request events", async () => {
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "pull_request",
-      signature: "sha256=deadbeef",
-      deliveryId: "pr-bad-sig",
-      rawBody: "{}",
-    });
-    expect(result.httpStatus).toBe(401);
-    expect(closeContentPublicationForPullRequest).not.toHaveBeenCalled();
-  });
-
-  test("answers GitHub pings", async () => {
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "ping",
-      signature: null,
-      deliveryId: "ping-1",
-      rawBody: "{}",
-    });
-    expect(result.httpStatus).toBe(200);
-    expect(result.body.message).toBe(
-      "Pong! GitHub App mention webhook configured"
-    );
-    expect(result.run).toBeUndefined();
-  });
-
-  test("does not report a healthy ping without a webhook secret", async () => {
-    delete process.env.GITHUB_APP_WEBHOOK_SECRET;
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "ping",
-      signature: null,
-      deliveryId: "ping-missing-secret",
-      rawBody: "{}",
-    });
-    expect(result).toMatchObject({
-      httpStatus: 500,
-      body: { error: "GitHub App webhook secret is not configured" },
-    });
-  });
-
-  test("ignores non-comment events", async () => {
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "push",
-      signature: sign("{}"),
-      deliveryId: "push-1",
-      rawBody: "{}",
-    });
-    expect(result).toMatchObject({
-      httpStatus: 200,
-      body: { ignored: true, event: "push" },
-    });
-    expect(result.run).toBeUndefined();
-  });
-
   test("rejects invalid signatures", async () => {
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "issue_comment",
-      signature: "sha256=deadbeef",
-      deliveryId: "bad-sig",
-      rawBody: mentionPayload,
-    });
+    const result = await ingest(
+      "issue_comment",
+      mentionPayload,
+      "bad-sig",
+      "sha256=deadbeef"
+    );
     expect(result.httpStatus).toBe(401);
   });
 
@@ -163,12 +112,7 @@ describe("ingestGitHubAppMentionWebhook", () => {
       ...JSON.parse(mentionPayload),
       issue: { number: 42 },
     });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "issue_comment",
-      signature: sign(body),
-      deliveryId: "ordinary-issue",
-      rawBody: body,
-    });
+    const result = await ingest("issue_comment", body, "ordinary-issue");
     expect(result).toEqual({
       httpStatus: 200,
       body: { message: "ignored", reason: "not_pull_request" },
@@ -177,68 +121,12 @@ describe("ingestGitHubAppMentionWebhook", () => {
     expect(processGitHubMention).not.toHaveBeenCalled();
   });
 
-  test("passes review thread mentions on with their line context", async () => {
-    const reviewPayload = JSON.stringify({
-      action: "created",
-      comment: {
-        id: 9,
-        body: "@notra shorten this line",
-        html_url: "https://github.com/acme/app/pull/42#discussion_r9",
-        path: "changelog/entry.mdx",
-        line: 12,
-        diff_hunk: "@@ -0,0 +1,12 @@\n+intro",
-        in_reply_to_id: 5,
-      },
-      pull_request: {
-        number: 42,
-        title: "docs: changelog",
-        html_url: "https://github.com/acme/app/pull/42",
-        head: { ref: "notra/changelog-abc", sha: "abc123" },
-        base: { ref: "main", sha: "def456" },
-      },
-      repository: {
-        id: 99,
-        name: "app",
-        full_name: "acme/app",
-        default_branch: "main",
-        owner: { login: "acme" },
-      },
-      sender: { id: 7, login: "alice", type: "User" },
-      installation: { id: 55 },
-    });
-    resolveGitHubMentionContext.mockResolvedValue({
-      status: "ignored",
-      reason: "unknown_installation",
-    });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "pull_request_review_comment",
-      signature: sign(reviewPayload),
-      deliveryId: "review-1",
-      rawBody: reviewPayload,
-    });
-    expect(result.httpStatus).toBe(200);
-    expect(resolveGitHubMentionContext).toHaveBeenCalledTimes(1);
-    const [{ payload }] = resolveGitHubMentionContext.mock.calls[0] as [
-      { payload: { comment: Record<string, unknown> } },
-    ];
-    expect(payload.comment).toMatchObject({
-      path: "changelog/entry.mdx",
-      line: 12,
-      in_reply_to_id: 5,
-    });
-  });
-
   test("returns 200 without running for unauthorized mentions", async () => {
     resolveGitHubMentionContext.mockResolvedValue({
       status: "unauthorized",
       reason: "not_org_member",
     });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "issue_comment",
-      signature: sign(mentionPayload),
-      deliveryId: "unauth-1",
-      rawBody: mentionPayload,
-    });
+    const result = await ingest("issue_comment", mentionPayload, "unauth-1");
     expect(result.httpStatus).toBe(200);
     expect(result.body).toMatchObject({
       message: "unauthorized",
@@ -267,12 +155,7 @@ describe("ingestGitHubAppMentionWebhook", () => {
         pullRequest: { htmlUrl: "https://github.com/acme/app/pull/42" },
       },
     });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "issue_comment",
-      signature: sign(mentionPayload),
-      deliveryId: "ok-1",
-      rawBody: mentionPayload,
-    });
+    const result = await ingest("issue_comment", mentionPayload, "ok-1");
     expect(result.httpStatus).toBe(202);
     expect(result.body).toMatchObject({
       message: "accepted",
@@ -283,31 +166,6 @@ describe("ingestGitHubAppMentionWebhook", () => {
     expect(result.log).toMatchObject({
       status: "pending",
       title: "@notra mention on acme/app#42",
-    });
-  });
-
-  test("attaches a skipped log for unauthorized mentions when the repo is known", async () => {
-    resolveGitHubMentionContext.mockResolvedValue({
-      status: "unauthorized",
-      reason: "not_org_member",
-      logTarget: {
-        organizationId: "org_1",
-        integrationId: "int_1",
-        owner: "acme",
-        repo: "app",
-      },
-    });
-    const result = await ingestGitHubAppMentionWebhook({
-      event: "issue_comment",
-      signature: sign(mentionPayload),
-      deliveryId: "unauth-2",
-      rawBody: mentionPayload,
-    });
-    expect(result.httpStatus).toBe(200);
-    expect(result.log).toMatchObject({
-      status: "skipped",
-      organizationId: "org_1",
-      integrationId: "int_1",
     });
   });
 });

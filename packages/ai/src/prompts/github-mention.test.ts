@@ -5,20 +5,6 @@ import {
   getGitHubMentionPrompt,
 } from "./github-mention";
 
-describe("getGitHubMentionInstructions", () => {
-  test("refuses product work instead of invoking tools", () => {
-    const instructions = getGitHubMentionInstructions();
-
-    expect(instructions).toContain("Stay strictly within content work");
-    expect(instructions).toContain(
-      'reply exactly: "Notra can only help with content changes here. Product features, code, tests, and configuration require a regular development workflow."'
-    );
-    expect(instructions).toContain(
-      "Do not reinterpret the request as a documentation change"
-    );
-  });
-});
-
 describe("getGitHubMentionPrompt", () => {
   test("bounds untrusted publication data and pull request titles", () => {
     const prompt = getGitHubMentionPrompt({

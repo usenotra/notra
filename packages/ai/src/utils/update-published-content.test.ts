@@ -10,9 +10,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     const result = spawnSync(
       process.execPath,
       ["test", fileURLToPath(import.meta.url)],
-      {
-        env: { ...process.env, NOTRA_PUBLICATION_TEST_WORKER: "1" },
-      }
+      { env: { ...process.env, NOTRA_PUBLICATION_TEST_WORKER: "1" } }
     );
     expect(result.status, result.stderr?.toString()).toBe(0);
   });
@@ -29,6 +27,39 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     await import("./update-published-content");
   const { commitFilesToPullRequest } = await import("./github-pr-commit");
 
+  const committingOctokit = (oid: string) =>
+    ({
+      request: async () => ({
+        data: {
+          login: "publisher",
+          author: null,
+          commit: { verification: { verified: false } },
+        },
+      }),
+      graphql: async () => ({ createCommitOnBranch: { commit: { oid } } }),
+    }) as unknown as GitHubMentionOctokit;
+
+  const publication = {
+    id: "pub",
+    postId: "post",
+    path: "docs/page.md",
+    owner: "acme",
+    repo: "docs",
+    headSha: "original",
+  };
+
+  const commitParams = {
+    organizationId: "org",
+    postId: "post",
+    markdown: "# Updated",
+    owner: "acme",
+    repo: "docs",
+    expectedHeadOid: "read-revision",
+    path: "docs/page.md",
+    publicationId: "publication",
+    commitMessage: "docs: update",
+  };
+
   beforeEach(() => {
     postWrite.mockReset();
     headWrite.mockReset();
@@ -40,31 +71,11 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       expect(outcomes).toEqual(["landed"]);
       throw new Error("database unavailable");
     });
-    const octokit = {
-      request: async () => ({
-        data: {
-          login: "publisher",
-          author: null,
-          commit: { verification: { verified: false } },
-        },
-      }),
-      graphql: async () => ({
-        createCommitOnBranch: { commit: { oid: "landed" } },
-      }),
-    } as unknown as GitHubMentionOctokit;
     await expect(
       updatePublishedContentAndCommit({
-        octokit,
-        organizationId: "org",
-        postId: "post",
-        markdown: "# Updated",
-        owner: "acme",
-        repo: "docs",
+        ...commitParams,
+        octokit: committingOctokit("landed"),
         branch: "content",
-        expectedHeadOid: "read-revision",
-        path: "docs/page.md",
-        publicationId: "publication",
-        commitMessage: "docs: update",
         onCommitted: (sha) => {
           outcomes.push(sha);
         },
@@ -79,14 +90,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       await syncPublishedPostAfterCommit({
         octokit: {} as GitHubMentionOctokit,
         organizationId: "org",
-        publication: {
-          id: "pub",
-          postId: "post",
-          path: "docs/page.md",
-          owner: "acme",
-          repo: "docs",
-          headSha: "original",
-        },
+        publication,
         files: [{ path: "README.md", contents: "# Other" }],
         commitSha: "new",
         branch: "content",
@@ -98,30 +102,12 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
   });
 
   test("a commit on a follow-up branch leaves the post as published", async () => {
-    const octokit = {
-      request: async () => ({
-        data: {
-          login: "publisher",
-          author: null,
-          commit: { verification: { verified: false } },
-        },
-      }),
-      graphql: async () => ({
-        createCommitOnBranch: { commit: { oid: "follow-up" } },
-      }),
-    } as unknown as GitHubMentionOctokit;
+    const octokit = committingOctokit("follow-up");
+    const branch = "notra/mention-1-issue-2";
     const result = await updatePublishedContentAndCommit({
+      ...commitParams,
       octokit,
-      organizationId: "org",
-      postId: "post",
-      markdown: "# Updated",
-      owner: "acme",
-      repo: "docs",
-      branch: "notra/mention-1-issue-2",
-      expectedHeadOid: "read-revision",
-      path: "docs/page.md",
-      publicationId: "publication",
-      commitMessage: "docs: update",
+      branch,
       recordPublicationHead: false,
     });
     expect(result.commitSha).toBe("follow-up");
@@ -129,17 +115,10 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       await syncPublishedPostAfterCommit({
         octokit,
         organizationId: "org",
-        publication: {
-          id: "pub",
-          postId: "post",
-          path: "docs/page.md",
-          owner: "acme",
-          repo: "docs",
-          headSha: "original",
-        },
+        publication,
         files: [{ path: "docs/page.md", contents: "# Updated" }],
         commitSha: "follow-up",
-        branch: "notra/mention-1-issue-2",
+        branch,
         recordPublicationHead: false,
       })
     ).toBe(false);
@@ -165,11 +144,8 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       octokit,
       organizationId: "org",
       publication: {
-        id: "pub",
-        postId: "post",
+        ...publication,
         path: "page.md",
-        owner: "acme",
-        repo: "docs",
         headSha: "recorded",
         markdown: "![A](https://cdn/a.png)\n![B](https://cdn/b.png)",
       },

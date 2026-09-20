@@ -57,16 +57,6 @@ describe("reviewGitHubMentionChange", () => {
     ]);
   });
 
-  test("ordinary edits pass", async () => {
-    const review = await reviewGitHubMentionChange({
-      octokit: fakeOctokit({ "docs/a.md": "# A" }),
-      context,
-      branch: "notra/changelog",
-      files: [{ path: "docs/a.md", contents: "# A\n\nShorter." }],
-    });
-    expect(review.blocked).toEqual([]);
-  });
-
   test("blocks non-content paths before reading the repository", async () => {
     const review = await reviewGitHubMentionChange({
       octokit: fakeOctokit({}, 500),

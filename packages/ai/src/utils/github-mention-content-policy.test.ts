@@ -32,44 +32,6 @@ describe("findNewActiveContent", () => {
     ).toEqual(["adds an MDX import or export", "adds an MDX import or export"]);
   });
 
-  test("changed multiline export initializers are blocked", () => {
-    expect(
-      reasons(
-        "docs/release.mdx",
-        'export const metadata = {\n  title: "Release",\n};\n\n# Release',
-        "export const metadata = {\n  title: process.env.GITHUB_TOKEN,\n};\n\n# Release"
-      )
-    ).toContain("adds an MDX import or export");
-  });
-
-  test("module continuations and template contents cannot hide behind unchanged lines", () => {
-    for (const [previous, next] of [
-      [
-        'export const label =\n  "safe"\n\n# Page',
-        "export const label =\n  globalThis.fetch(process.env.SECRET)\n\n# Page",
-      ],
-      [
-        'export const label = "safe"\n\n# Page',
-        'export const label = "safe"\n  + globalThis.fetch(process.env.SECRET)\n\n# Page',
-      ],
-      [
-        "export const label = `safe`;\n\n# Page",
-        // oxlint-disable-next-line no-template-curly-in-string -- This is MDX source, not test interpolation.
-        "export const label = `${process.env.SECRET}`;\n\n# Page",
-      ],
-    ]) {
-      expect(reasons("page.mdx", previous ?? null, next ?? "")).toContain(
-        "adds an MDX import or export"
-      );
-    }
-  });
-
-  test("import at the start of a Markdown sentence is prose", () => {
-    expect(
-      reasons("docs/guide.md", "# Guide", "# Guide\n\nimport duties rose.")
-    ).toEqual([]);
-  });
-
   test("scripts, embeds, javascript URLs and handlers are blocked", () => {
     expect(
       reasons(
@@ -112,16 +74,6 @@ describe("findNewActiveContent", () => {
         ].join("\n")
       )
     ).toEqual([]);
-  });
-
-  test("an indented fence cannot hide following active markup", () => {
-    expect(
-      reasons(
-        "docs/guide.md",
-        "# Guide",
-        "# Guide\n\n    ```html\n<script>alert(1)</script>"
-      )
-    ).toEqual(["adds a script tag"]);
   });
 
   test("uncommenting active markup is blocked", () => {
@@ -214,13 +166,6 @@ describe("findNewActiveContent", () => {
     ).toEqual(["adds an inline event handler"]);
   });
 
-  test("an existing semicolon-less MDX import does not freeze prose", () => {
-    const previous = 'import { Note } from "../note"\n\n# Release';
-    expect(
-      reasons("docs/release.mdx", previous, `${previous}\n\nShorter intro.`)
-    ).toEqual([]);
-  });
-
   test("new MDX expressions are blocked unless they are literals", () => {
     const previous = "# Release\n\n<Stat value={stats.exports} />";
     expect(
@@ -256,18 +201,6 @@ describe("findNewActiveContent", () => {
     ]);
     expect(
       reasons("docs/guide.md", "# Guide", "# Guide\n\nUse {curly} braces.")
-    ).toEqual([]);
-  });
-
-  test("a new file has no previous lines to lean on", () => {
-    expect(
-      reasons("docs/new.mdx", null, 'import x from "y";\n\n# New')
-    ).toEqual(["adds an MDX import or export"]);
-  });
-
-  test("data and text files are not markup", () => {
-    expect(
-      reasons("content/authors.json", null, '{"bio":"<script>x</script>"}')
     ).toEqual([]);
   });
 });

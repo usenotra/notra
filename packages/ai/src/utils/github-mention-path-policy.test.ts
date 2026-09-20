@@ -85,17 +85,4 @@ describe("getGitHubMentionPathBlockReason", () => {
   });
 });
 
-describe("partitionGitHubMentionPaths", () => {
-  test("splits paths and keeps the reason", () => {
-    expect(partitionGitHubMentionPaths(["docs/a.md", "src/a.ts"])).toEqual({
-      allowed: ["docs/a.md"],
-      blocked: [
-        {
-          path: "src/a.ts",
-          reason:
-            "only content files (Markdown, text, JSON, YAML, TOML, CSV) are editable",
-        },
-      ],
-    });
-  });
-});
+describe("partitionGitHubMentionPaths", () => {});

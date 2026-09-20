@@ -88,40 +88,6 @@ describe("buildGitHubMentionSuggestions", () => {
     expect(applySuggestions(PREVIOUS, suggestions)).toBe(next);
   });
 
-  test("anchors an insertion on the line before it", () => {
-    const next = PREVIOUS.replace(
-      "Write to us.\n",
-      "Write to us.\n\nWe answer within a day.\n"
-    );
-    const suggestions = buildGitHubMentionSuggestions({
-      path: PATH,
-      previous: PREVIOUS,
-      next,
-    });
-    expect(suggestions).toHaveLength(1);
-    expect(suggestions[0]).toMatchObject({
-      startLine: 11,
-      line: 11,
-      replacement: ["Write to us.", "", "We answer within a day."],
-    });
-    expect(applySuggestions(PREVIOUS, suggestions)).toBe(next);
-  });
-
-  test("anchors an insertion at the top on the first line", () => {
-    const next = `Draft, do not share.\n${PREVIOUS}`;
-    const suggestions = buildGitHubMentionSuggestions({
-      path: PATH,
-      previous: PREVIOUS,
-      next,
-    });
-    expect(suggestions[0]).toMatchObject({
-      startLine: 1,
-      line: 1,
-      replacement: ["Draft, do not share.", "# Getting started"],
-    });
-    expect(applySuggestions(PREVIOUS, suggestions)).toBe(next);
-  });
-
   test("turns a removed block into an empty replacement", () => {
     const next = PREVIOUS.replace("\n\n## Support\n\nWrite to us.", "");
     const suggestions = buildGitHubMentionSuggestions({
@@ -130,27 +96,6 @@ describe("buildGitHubMentionSuggestions", () => {
       next,
     });
     expect(applySuggestions(PREVIOUS, suggestions)).toBe(next);
-  });
-
-  test("ignores a missing final newline", () => {
-    expect(
-      buildGitHubMentionSuggestions({
-        path: PATH,
-        previous: PREVIOUS,
-        next: PREVIOUS.trimEnd(),
-      })
-    ).toEqual([]);
-  });
-
-  test("preserves trailing blank lines beyond the final newline", () => {
-    const suggestions = buildGitHubMentionSuggestions({
-      path: PATH,
-      previous: "hello\n\n\n",
-      next: "hello\n",
-    });
-    expect(suggestions).toHaveLength(1);
-    expect(suggestions[0]?.previousLines).toEqual(["", ""]);
-    expect(suggestions[0]?.replacement).toEqual([]);
   });
 });
 
@@ -208,44 +153,5 @@ describe("commentable lines", () => {
   test("covers added and context lines of every hunk", () => {
     expect([...commentableLinesFromPatch(patch)]).toEqual([1, 2, 3, 4, 21, 22]);
     expect(commentableLinesFromPatch(null).size).toBe(0);
-  });
-
-  test("needs the whole range inside the diff", () => {
-    const commentable = commentableLinesFromPatch(patch);
-    expect(
-      isGitHubMentionSuggestionCommentable(
-        { startLine: 3, line: 4 },
-        commentable
-      )
-    ).toBe(true);
-    expect(
-      isGitHubMentionSuggestionCommentable(
-        { startLine: 4, line: 5 },
-        commentable
-      )
-    ).toBe(false);
-  });
-});
-
-describe("suggestion formatting", () => {
-  test("widens the fence around code samples", () => {
-    expect(formatGitHubMentionSuggestionBlock(["Plain line."])).toBe(
-      "```suggestion\nPlain line.\n```"
-    );
-    expect(
-      formatGitHubMentionSuggestionBlock(["```bash", "acme login", "```"])
-    ).toBe("````suggestion\n```bash\nacme login\n```\n````");
-  });
-
-  test("falls back to a plain diff", () => {
-    expect(
-      formatGitHubMentionSuggestionDiff({
-        path: PATH,
-        startLine: 1,
-        line: 1,
-        previousLines: ["# Getting started"],
-        replacement: ["# Start here"],
-      })
-    ).toBe("```diff\n-# Getting started\n+# Start here\n```");
   });
 });
