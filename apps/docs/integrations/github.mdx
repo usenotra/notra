@@ -96,7 +96,7 @@ Every delivery is written to the organization's webhook log (**Settings**, then 
 
 ## Mention Notra on pull requests
 
-Mention Notra in a pull request comment, for example `@usenotra shorten the intro`. Mentions on ordinary issues are ignored without a reply or reaction. You do not need the exact App name: `@usenotra`, `@notra`, `@notra-ai`, and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done. The reply and any commits come from the App's bot account.
+Mention Notra in a pull request comment, for example `@usenotra shorten the intro`. Mentions on ordinary issues are ignored without a reply or reaction. You do not need the exact App name: `@usenotra`, `@notra`, `@notra-ai`, and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done or 👎 when a safeguard declines the request. The reply and any commits come from the App's bot account.
 
 When your comment is about how something reads ("the intro feels heavy", "show me a punchier opening"), Notra does not commit. It answers with a GitHub suggestion on the lines in question, and you apply it with **Commit suggestion**, or reply "shorter please" to get another take. Nothing on the branch changes until you accept one. Notra commits directly when you tell it to ("apply it", "go ahead"), for plain corrections such as a typo or a wrong number, and for changes a suggestion cannot express, like edits across several files.
 

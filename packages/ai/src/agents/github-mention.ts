@@ -15,7 +15,10 @@ import type {
   GitHubMentionOctokit,
   GitHubMentionToolState,
 } from "@notra/ai/types/github-mention";
-import { buildGitHubMentionThread } from "@notra/ai/utils/github-mention";
+import {
+  buildGitHubMentionThread,
+  parseGitHubMentionAgentReply,
+} from "@notra/ai/utils/github-mention";
 import {
   readPublishedFile,
   resolveEditableMarkdown,
@@ -134,10 +137,11 @@ export async function runGitHubMentionAgent(params: {
   // A run that dies after its commit still reports the commit. Throwing here
   // would mark the mention as failed and let a redelivery commit it again.
   let reply = "";
+  let declined = false;
   let usage: AgentTokenUsage | null = null;
   try {
     const result = await agent.generate({ prompt });
-    reply = result.text.trim();
+    ({ declined, reply } = parseGitHubMentionAgentReply(result.text.trim()));
     // Billing prices each model call on its own, so the per-step summary rides
     // along with the totals instead of the sum standing in for one request.
     const routeUsage = await summarizeRouteUsage(
@@ -160,6 +164,7 @@ export async function runGitHubMentionAgent(params: {
 
   return {
     reply,
+    declined,
     committed: state.committed,
     commitSha: state.commitSha,
     pullRequestUrl: state.pullRequestUrl,

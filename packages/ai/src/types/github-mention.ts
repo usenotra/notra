@@ -161,6 +161,8 @@ export interface GitHubMentionProposal {
 
 export interface GitHubMentionAgentResult {
   reply: string;
+  /** The agent declined the request because a mention safeguard blocked it. */
+  declined: boolean;
   committed: boolean;
   commitSha: string | null;
   pullRequestUrl: string | null;

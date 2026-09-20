@@ -83,8 +83,9 @@ export async function processGitHubMention(
   const octokit = createOctokit(token);
 
   const commentKind = context.comment.review ? "review" : "issue";
-  // Eyes on the comment while working, swapped for a thumbs up (or a confused
-  // face) once the mention is handled. Reactions are cosmetic, so never fail on them.
+  // Eyes on the comment while working, swapped for a thumbs up, thumbs down on
+  // a declined request, or a confused face on failure. Reactions are cosmetic,
+  // so never fail on them.
   const [workingReaction, access] = await Promise.all([
     addGitHubCommentReaction({
       octokit,
@@ -99,7 +100,7 @@ export async function processGitHubMention(
       ? getGitHubAppInstallationPublishAccess(context.installationId)
       : null,
   ]);
-  const finishReaction = async (content: "+1" | "confused") => {
+  const finishReaction = async (content: "+1" | "-1" | "confused") => {
     await addGitHubCommentReaction({
       octokit,
       owner: context.owner,
@@ -348,7 +349,7 @@ export async function processGitHubMention(
       commitSha: openedFollowUp ? null : agentResult.commitSha,
       changedFiles,
     });
-    await finishReaction("+1");
+    await finishReaction(agentResult.declined ? "-1" : "+1");
     const result = {
       status: agentResult.committed
         ? ("committed" as const)

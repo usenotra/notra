@@ -1,4 +1,5 @@
 import {
+  GITHUB_MENTION_DECLINED_REPLY_MARKER,
   GITHUB_MENTION_DEFAULT_APP_SLUG,
   GITHUB_MENTION_SEPARATE_PR_PATTERNS,
   GITHUB_MENTION_THREAD_CONTEXT,
@@ -18,6 +19,16 @@ const MENTION_PATTERN =
 // People rarely type the exact App slug. @usenotra and any handle from the
 // Notra family count: @notra, @notra-ai, @notrabot, @notra-dev-acme, ...
 const NOTRA_FAMILY_HANDLE_PATTERN = /^notra(?:-[a-z0-9-]*|ai|bot|app)?$/;
+
+export function parseGitHubMentionAgentReply(reply: string) {
+  const declined = reply.startsWith(GITHUB_MENTION_DECLINED_REPLY_MARKER);
+  return {
+    declined,
+    reply: declined
+      ? reply.slice(GITHUB_MENTION_DECLINED_REPLY_MARKER.length).trimStart()
+      : reply,
+  };
+}
 
 function normalizeHandle(value: string) {
   return value

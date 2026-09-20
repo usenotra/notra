@@ -5,8 +5,24 @@ import type { GitHubMentionThreadComment } from "@notra/ai/types/github-mention"
 import {
   buildGitHubMentionThread,
   commentMentionsNotra,
+  parseGitHubMentionAgentReply,
   wantsSeparatePullRequest,
 } from "./github-mention";
+
+test("strips the agent's declined marker from GitHub replies", () => {
+  expect(
+    parseGitHubMentionAgentReply(
+      "<!-- notra:declined -->\nI can only help with content here."
+    )
+  ).toEqual({
+    declined: true,
+    reply: "I can only help with content here.",
+  });
+  expect(parseGitHubMentionAgentReply("Here is the answer.")).toEqual({
+    declined: false,
+    reply: "Here is the answer.",
+  });
+});
 
 describe("commentMentionsNotra", () => {
   test("only a real mention of the Notra handle family counts", () => {

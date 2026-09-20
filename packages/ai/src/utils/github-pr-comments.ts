@@ -87,7 +87,7 @@ export async function addGitHubCommentReaction(params: {
   repo: string;
   commentId: number;
   kind: GitHubCommentKind;
-  content: "eyes" | "+1" | "confused";
+  content: "eyes" | "+1" | "-1" | "confused";
 }) {
   const { data } = await params.octokit.request(
     `POST ${commentReactionsRoute(params.kind)}`,
