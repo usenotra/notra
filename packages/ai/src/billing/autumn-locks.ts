@@ -73,7 +73,12 @@ export async function checkAutumnFeature(input: {
     ) {
       return { response: null, duplicateLock: true };
     }
-    throw new Error(`Autumn ${input.featureId} check failed: ${String(error)}`);
+    throw new Error(
+      `Autumn ${input.featureId} check failed: ${String(error)}`,
+      {
+        cause: error,
+      }
+    );
   }
 }
 

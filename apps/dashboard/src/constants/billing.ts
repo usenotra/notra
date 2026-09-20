@@ -108,7 +108,11 @@ export const BILLING_INVOICE_SKELETON_KEYS = [
   "invoice-3",
 ] as const;
 
-export const USAGE_METRIC_SKELETON_KEYS = ["used", "remaining"] as const;
+export const USAGE_METRIC_SKELETON_KEYS = [
+  "answers",
+  "credits",
+  "pull-request-credits",
+] as const;
 
 export const USAGE_FEATURE_SKELETON_KEYS = [
   "feature-1",

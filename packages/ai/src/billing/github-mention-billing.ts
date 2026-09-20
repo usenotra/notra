@@ -78,12 +78,25 @@ export async function reserveGitHubMentionBilling(input: {
   });
 
   if (credits.duplicateLock || credits.response?.allowed) {
+    // A duplicate lock answers without a balance, so the markup the first
+    // attempt decided on has to be read again. Defaulting it away would bill a
+    // run paid from a top-up at the plan rate.
+    const balance = credits.duplicateLock
+      ? (
+          await checkAutumnFeature({
+            organizationId: input.organizationId,
+            featureId: FEATURES.AI_CREDITS,
+            lockId: null,
+            lockTtlMs,
+          })
+        ).response?.balance
+      : credits.response?.balance;
     return {
       allowed: true,
       mode: "ai_credits",
       featureId: FEATURES.AI_CREDITS,
       lockId: creditLockId,
-      useMarkup: shouldApplyMarkup(credits.response?.balance ?? null),
+      useMarkup: shouldApplyMarkup(balance ?? null),
     };
   }
 

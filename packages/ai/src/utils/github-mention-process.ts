@@ -39,6 +39,7 @@ import {
 } from "@notra/ai/utils/github-pr-comments";
 import { getGitHubChangedFiles } from "@notra/ai/utils/github-pr-commit";
 import { createOctokit } from "@notra/ai/utils/octokit";
+import { retryWrite } from "@notra/ai/utils/retry-write";
 
 export async function processGitHubMention(
   context: GitHubMentionContext
@@ -226,18 +227,23 @@ export async function processGitHubMention(
     }
     billingSettled = true;
     try {
+      // The agent already ran, so a transient Autumn failure must not be what
+      // decides whether it was paid for. A hold that survives every attempt
+      // expires on Autumn's side rather than staying charged.
       if (action === "release") {
-        await releaseGitHubMentionBilling(reservation);
+        await retryWrite(() => releaseGitHubMentionBilling(reservation));
         return;
       }
-      await confirmGitHubMentionBilling({
-        reservation,
-        usage: usage ?? null,
-        properties: {
-          repository: `${context.owner}/${context.repo}`,
-          issue_number: context.issueNumber,
-        },
-      });
+      await retryWrite(() =>
+        confirmGitHubMentionBilling({
+          reservation,
+          usage: usage ?? null,
+          properties: {
+            repository: `${context.owner}/${context.repo}`,
+            issue_number: context.issueNumber,
+          },
+        })
+      );
     } catch (error) {
       // Autumn being unreachable must not undo a reply GitHub already has.
       logGitHubMentionEvent(
