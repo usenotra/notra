@@ -1,4 +1,5 @@
 import { GITHUB_MENTION_REPLY_DIFF } from "@notra/ai/constants/github-mention";
+import { GITHUB_MENTION_RATE_LIMIT } from "@notra/ai/constants/rate-limits";
 import type {
   GitHubMentionChangedFile,
   GitHubMentionProposal,
@@ -274,4 +275,14 @@ export function buildGitHubMentionProposalFallbackReply(params: {
   ]
     .filter(Boolean)
     .join("\n\n");
+}
+
+/**
+ * Says the limit is temporary and when it lifts, so nobody reads it as the bot
+ * being broken or out of credits.
+ */
+export function buildGitHubMentionRateLimitReply(resetAt: number) {
+  const minutes = Math.max(1, Math.ceil((resetAt - Date.now()) / 60_000));
+  const wait = minutes === 1 ? "a minute" : `about ${minutes} minutes`;
+  return `I have handled a lot of mentions for this organization in the last ${GITHUB_MENTION_RATE_LIMIT.windowLabel}, so I paused here rather than let that run away. Mention me again in ${wait} and I will pick this up.`;
 }

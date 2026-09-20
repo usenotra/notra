@@ -11,6 +11,21 @@ export const GITHUB_MENTION_SANDBOX_TIMEOUT_MS = 180_000;
 
 export const GITHUB_MENTION_FILE_CONTENT_MAX_BYTES = 512_000;
 
+/**
+ * Where the sandbox box may talk to: GitHub for the shallow clone, and the AI
+ * gateway for the agent running inside it. The box only edits content, so it
+ * never needs a package registry or the open web. Private ranges are blocked
+ * by Box itself, so this list is not about reaching internal services; it is
+ * about where a prompt injection could send the gateway key that the harness
+ * carries.
+ */
+export const GITHUB_MENTION_SANDBOX_ALLOWED_DOMAINS = [
+  "github.com",
+  "*.github.com",
+  "*.githubusercontent.com",
+  "ai-gateway.vercel.sh",
+] as const;
+
 export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
   mutation CreateCommitOnBranch($input: CreateCommitOnBranchInput!) {
     createCommitOnBranch(input: $input) {
@@ -33,6 +48,7 @@ export const GITHUB_MENTION_LOG_EVENTS = {
   sandboxStarted: "github.mention.sandbox.started",
   sandboxCompleted: "github.mention.sandbox.completed",
   changeBlocked: "github.mention.change.blocked",
+  billingFailed: "github.mention.billing_failed",
 } as const;
 
 export const GITHUB_MENTION_SEPARATE_PR_PATTERNS = [

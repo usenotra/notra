@@ -4,6 +4,7 @@ import {
   buildGitHubMentionDiffSection,
   buildGitHubMentionProposalFallbackReply,
   buildGitHubMentionProposalReply,
+  buildGitHubMentionRateLimitReply,
   findGitHubMentionReplyAnchor,
   buildGitHubMentionReply,
 } from "./github-mention-reply";
@@ -207,5 +208,19 @@ describe("proposal replies", () => {
       "```diff\n-Old intro one.\n-Old intro two.\n+New intro.\n```"
     );
     expect(reply).toContain("tell me to apply it and I will commit it");
+  });
+});
+
+describe("buildGitHubMentionRateLimitReply", () => {
+  test("says when to come back, in whole minutes", () => {
+    expect(
+      buildGitHubMentionRateLimitReply(Date.now() + 4 * 60_000 + 30_000)
+    ).toContain("about 5 minutes");
+  });
+
+  test("a window that is nearly over reads as a single minute", () => {
+    const reply = buildGitHubMentionRateLimitReply(Date.now() + 2_000);
+    expect(reply).toContain("in a minute");
+    expect(reply).not.toContain("credits");
   });
 });

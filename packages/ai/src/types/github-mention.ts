@@ -1,4 +1,5 @@
 import type { ContentType } from "@notra/ai/schemas/content";
+import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { createOctokit } from "@notra/ai/utils/octokit";
 import type { ContentPublicationStatus } from "@notra/db/types/content";
 
@@ -158,6 +159,17 @@ export interface GitHubMentionAgentResult {
   proposals: GitHubMentionProposal[];
   /** GitHub refused a tool call because the App lacks a permission. */
   permissionDenied: boolean;
+  /** What the run cost, absent when the agent threw after it had committed. */
+  usage: AgentTokenUsage | null;
+}
+
+/** One organization's remaining mention runs in the current window. */
+export interface GitHubMentionRateLimit {
+  allowed: boolean;
+  limit: number;
+  remaining: number;
+  /** Epoch milliseconds at which the window rolls over. */
+  resetAt: number;
 }
 
 export interface GitHubMentionProcessResult {

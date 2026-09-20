@@ -47,6 +47,7 @@ export interface UsageSectionBodyProps {
   limitedFeatures: FeatureData[];
   onOpenTopup: () => void;
   onRangeChange: (range: UsageRangeOption) => void;
+  pullRequestCreditsFeature: FeatureData | undefined;
   range: UsageRangeOption;
   retentionDays: number;
   unlimitedFeatures: FeatureData[];

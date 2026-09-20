@@ -1,5 +1,11 @@
 import { runGitHubMentionAgent } from "@notra/ai/agents/github-mention";
 import {
+  confirmGitHubMentionBilling,
+  describeGitHubMentionBillingDenial,
+  releaseGitHubMentionBilling,
+  reserveGitHubMentionBilling,
+} from "@notra/ai/billing/github-mention-billing";
+import {
   GITHUB_MENTION_COMMENT_MAX_LENGTH,
   GITHUB_MENTION_LOG_EVENTS,
 } from "@notra/ai/constants/github-mention";
@@ -9,6 +15,7 @@ import {
 } from "@notra/ai/integrations/github";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import type { GitHubAppWebhookPayload } from "@notra/ai/schemas/github-mention";
+import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   GitHubMentionChangedFile,
   GitHubMentionContext,
@@ -35,9 +42,11 @@ import {
   findMissingGitHubMentionPermissions,
   isGitHubPermissionError,
 } from "@notra/ai/utils/github-mention-permissions";
+import { consumeGitHubMentionRateLimit } from "@notra/ai/utils/github-mention-rate-limit";
 import {
   buildGitHubMentionProposalFallbackReply,
   buildGitHubMentionProposalReply,
+  buildGitHubMentionRateLimitReply,
   buildGitHubMentionReply,
   findGitHubMentionReplyAnchor,
 } from "@notra/ai/utils/github-mention-reply";
@@ -505,28 +514,28 @@ export async function processGitHubMention(
     }
   };
 
-  // A missing permission fails the same way every time, so the run stops with
-  // an explanation instead of a retry. If even the reply is refused, the
-  // webhook log in the dashboard still carries the reason.
-  const refuseForPermission = async (
-    missing: readonly string[]
-  ): Promise<GitHubMentionProcessResult> => {
-    const reply = buildGitHubMentionPermissionReply({
-      missing,
-      settingsUrl: access?.settingsUrl ?? null,
-    });
+  // Some mentions stop before the agent starts: a missing permission, a burst
+  // of mentions, an empty credit balance. Each fails the same way on a retry,
+  // so the run explains itself on the pull request and ends. If even the reply
+  // is refused, the webhook log in the dashboard still carries the reason.
+  const refuse = async (params: {
+    reply: string;
+    logReason: string;
+    resultReason?: string;
+    fields?: Record<string, unknown>;
+  }): Promise<GitHubMentionProcessResult> => {
     let replyPosted = false;
     try {
       await postGitHubMentionReply({
         octokit,
         context,
-        body: reply,
+        body: params.reply,
         commitSha: null,
         changedFiles: [],
       });
       replyPosted = true;
     } catch {
-      // A failed reply remains retryable after permissions are corrected.
+      // A failed reply remains retryable once the cause is corrected.
     }
     await finishReaction("confused");
     logGitHubMentionEvent(
@@ -538,21 +547,32 @@ export async function processGitHubMention(
         repository: `${context.owner}/${context.repo}`,
         issueNumber: context.issueNumber,
         mentionStatus: "failed",
-        reason: "missing_github_permission",
-        missing,
+        reason: params.logReason,
+        ...params.fields,
         durationMs: Date.now() - startedAt,
       },
       "warn"
     );
     return {
       status: "failed",
-      reason:
+      reason: params.resultReason ?? params.logReason,
+      ...(replyPosted && { reply: params.reply }),
+    };
+  };
+
+  const refuseForPermission = (missing: readonly string[]) =>
+    refuse({
+      reply: buildGitHubMentionPermissionReply({
+        missing,
+        settingsUrl: access?.settingsUrl ?? null,
+      }),
+      logReason: "missing_github_permission",
+      resultReason:
         missing.length > 0
           ? `The configured GitHub credential is missing a permission: ${missing.join(", ")}`
           : "GitHub refused the request, the configured credential lacks a permission",
-      ...(replyPosted && { reply }),
-    };
-  };
+      fields: { missing },
+    });
 
   const missingPermissions = findMissingGitHubMentionPermissions({
     access,
@@ -563,6 +583,71 @@ export async function processGitHubMention(
     return await refuseForPermission(missingPermissions);
   }
 
+  // Every run spends credits, so a loop on the repository side must not be
+  // able to burn a month of them in a minute.
+  const rateLimit = await consumeGitHubMentionRateLimit(context.organizationId);
+  if (!rateLimit.allowed) {
+    return await refuse({
+      reply: buildGitHubMentionRateLimitReply(rateLimit.resetAt),
+      logReason: "rate_limited",
+      fields: { limit: rateLimit.limit, resetAt: rateLimit.resetAt },
+    });
+  }
+
+  // Balance is held now and settled with what the run cost, so concurrent
+  // mentions cannot both spend the last credit.
+  const reservation = await reserveGitHubMentionBilling({
+    organizationId: context.organizationId,
+    mentionKey: context.deliveryId ?? String(context.comment.id),
+  });
+  if (!reservation.allowed) {
+    return await refuse({
+      reply: describeGitHubMentionBillingDenial(reservation),
+      logReason: reservation.reason ?? "insufficient_credits",
+      fields: {
+        billingMode: reservation.mode,
+        balanceRemaining: reservation.balanceRemaining ?? null,
+      },
+    });
+  }
+
+  let billingSettled = false;
+  const settleBilling = async (
+    action: "confirm" | "release",
+    usage?: AgentTokenUsage | null
+  ) => {
+    if (billingSettled) {
+      return;
+    }
+    billingSettled = true;
+    try {
+      if (action === "release") {
+        await releaseGitHubMentionBilling(reservation);
+        return;
+      }
+      await confirmGitHubMentionBilling({
+        reservation,
+        usage: usage ?? null,
+        properties: {
+          repository: `${context.owner}/${context.repo}`,
+          issue_number: context.issueNumber,
+        },
+      });
+    } catch (error) {
+      // Autumn being unreachable must not undo a reply GitHub already has.
+      logGitHubMentionEvent(
+        GITHUB_MENTION_LOG_EVENTS.billingFailed,
+        {
+          organizationId: context.organizationId,
+          deliveryId: context.deliveryId,
+          action,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "error"
+      );
+    }
+  };
+
   // Set once the agent returns. A failure after a commit (the reply could not
   // be posted) must not read as a failed run: the delivery claim would be
   // released and a redelivery would commit the same change again.
@@ -572,6 +657,8 @@ export async function processGitHubMention(
   } | null = null;
   try {
     const agentResult = await runGitHubMentionAgent({ octokit, context });
+    // The model calls happened, whatever the rest of the run does with them.
+    await settleBilling("confirm", agentResult.usage);
     if (agentResult.committed) {
       written = {
         commitSha: agentResult.commitSha,
@@ -672,6 +759,8 @@ export async function processGitHubMention(
     });
     return result;
   } catch (error) {
+    // A run that never reached the model owes nothing.
+    await settleBilling("release");
     const reason = error instanceof Error ? error.message : String(error);
     if (written) {
       await postGitHubIssueComment({

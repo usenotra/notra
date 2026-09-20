@@ -112,6 +112,21 @@ Notra only acts on comments from members of your Notra organization whose login 
 
 Comments written by bots never start Notra, so a review from Greptile or CodeRabbit is left alone. To have Notra act on such a finding, reply inside the bot's review thread and mention Notra ("@notra fix this"). Notra reads the finding you replied to and follows your instruction.
 
+### What a mention costs
+
+Every mention runs an agent, so it is billed. Each plan includes a budget of pull request credits that only the bot spends:
+
+| Plan | Included |
+| ----- | -------- |
+| Free | $1, once |
+| Starter | $10 per month |
+| Growth | $15 per month |
+| Scale | $25 per month |
+
+A mention is charged what its model calls cost, the same way AI credits are charged elsewhere in Notra. The remaining budget is shown under **Settings → Billing → Usage**. Once it is used up, mentions keep working and fall back to your AI credits, so a busy week does not stop the bot. When both are empty, Notra replies once that there is nothing left to spend and does nothing else; top up credits or move to a bigger plan, then mention it again.
+
+One organization can start 20 mention runs in 10 minutes. Above that Notra replies that it paused and when to try again. Nothing is billed for a mention it refuses.
+
 If the GitHub App is missing a permission, Notra does not retry. It replies once with the permission that is missing and a link to the installation settings, and the mention shows up as failed in the webhook log. Mention Notra again after an owner has approved the permissions.
 
 Notra never commits to the repository's default branch. Ask for a separate pull request instead. Fork pull requests support answers only, including when a separate pull request is requested.

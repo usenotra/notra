@@ -36,6 +36,7 @@ export const PLAN_TIER_FEATURES: Record<string, ProductFeature[]> = {
     { text: "8 image generations / mo" },
     { text: "10 long-form posts / mo" },
     { text: "Unlimited social posts" },
+    { text: "$10 of pull request credits / mo" },
     { text: "1 project" },
     { text: "100 references", overageText: "then $0.05 per ref / mo" },
     { text: "Standard support + Slack" },
@@ -46,6 +47,7 @@ export const PLAN_TIER_FEATURES: Record<string, ProductFeature[]> = {
     { text: "20 image generations / mo" },
     { text: "25 long-form posts / mo" },
     { text: "Unlimited social posts" },
+    { text: "$15 of pull request credits / mo" },
     { text: "3 projects" },
     { text: "500 references", overageText: "then $0.04 per ref / mo" },
     { text: "Standard support + Slack" },
@@ -56,6 +58,7 @@ export const PLAN_TIER_FEATURES: Record<string, ProductFeature[]> = {
     { text: "45 image generations / mo" },
     { text: "50 long-form posts / mo" },
     { text: "Unlimited social posts" },
+    { text: "$25 of pull request credits / mo" },
     { text: "10 projects" },
     { text: "1,000 references", overageText: "then $0.03 per ref / mo" },
     { text: "Priority support" },
@@ -180,6 +183,7 @@ export const USAGE_FEATURE_ORDER: readonly string[] = [
 export const USAGE_FEATURE_LABELS: Record<string, string> = {
   [FEATURES.AI_ANSWERS]: "AI answers",
   [FEATURES.AI_CREDITS]: "Credits",
+  [FEATURES.PULL_REQUEST_CREDITS]: "Pull request credits",
   [FEATURES.IMAGE_GENERATIONS]: "Image generations",
   [FEATURES.LONG_FORM_POSTS]: "Long-form posts",
   [FEATURES.SOCIAL_POSTS]: "Social posts",
@@ -192,6 +196,7 @@ export const USAGE_FEATURE_LABELS: Record<string, string> = {
 };
 
 export const USAGE_ANSWERS_ACCENT = "#10b981";
+export const USAGE_PULL_REQUEST_CREDITS_ACCENT = "#f59e0b";
 export const USAGE_CHART_ACCENT = "#8b5cf6";
 
 export const USAGE_ANSWERS_CHART_CONFIG = {

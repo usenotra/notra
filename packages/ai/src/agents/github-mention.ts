@@ -11,6 +11,7 @@ import {
   buildGitHubMentionTools,
   type GitHubMentionToolState,
 } from "@notra/ai/tools/github-mention";
+import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   GitHubMentionAgentResult,
   GitHubMentionContext,
@@ -26,6 +27,8 @@ import {
   listGitHubIssueComments,
   listGitHubReviewComments,
 } from "@notra/ai/utils/github-pr-commit";
+import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { stepCountIs, ToolLoopAgent } from "ai";
 
 export async function runGitHubMentionAgent(params: {
@@ -133,9 +136,24 @@ export async function runGitHubMentionAgent(params: {
   // A run that dies after its commit still reports the commit. Throwing here
   // would mark the mention as failed and let a redelivery commit it again.
   let reply = "";
+  let usage: AgentTokenUsage | null = null;
   try {
     const result = await agent.generate({ prompt });
     reply = result.text.trim();
+    // Billing prices each model call on its own, so the per-step summary rides
+    // along with the totals instead of the sum standing in for one request.
+    const routeUsage = await summarizeRouteUsage(
+      result.steps,
+      AGENT_DEFAULT_MODEL
+    );
+    usage = {
+      ...toAgentTokenUsage(result.usage),
+      modelId: AGENT_DEFAULT_MODEL,
+      maxPromptTokens: routeUsage.maxPromptTokens,
+      tokenCostUsd: routeUsage.tokenCostUsd,
+      route: routeUsage.route,
+      raw: result.usage,
+    };
   } catch (error) {
     if (!state.committed) {
       throw error;
@@ -150,5 +168,6 @@ export async function runGitHubMentionAgent(params: {
     // A commit moved the head, so suggestions made before it point nowhere.
     proposals: state.committed ? [] : state.proposals,
     permissionDenied: state.permissionDenied,
+    usage,
   };
 }
