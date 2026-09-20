@@ -96,6 +96,35 @@ export async function postGitHubMentionReply(params: {
   });
 }
 
+const DIFF_HUNK_HEADER_PATTERN = /^@@ -\d+(?:,\d+)? \+(\d+)/;
+
+/**
+ * The content the review thread points at, read out of the hunk GitHub sent
+ * with the comment. Taking the hunk's last line instead only works while the
+ * hunk happens to end on the commented line: a trailing deletion, a "no
+ * newline" marker, or a comment above the end of the hunk would all yield the
+ * wrong text and push the reply out of its thread.
+ */
+function hunkLineAt(diffHunk: string | null, line: number) {
+  const rows = diffHunk?.split("\n") ?? [];
+  const start = Number(rows[0]?.match(DIFF_HUNK_HEADER_PATTERN)?.[1]);
+  if (!Number.isFinite(start)) {
+    return null;
+  }
+  let current = start;
+  for (const row of rows.slice(1)) {
+    // Deletions and the "no newline" marker are not lines of the new file.
+    if (row.startsWith("-") || row.startsWith("\\")) {
+      continue;
+    }
+    if (current === line) {
+      return row.slice(1);
+    }
+    current += 1;
+  }
+  return null;
+}
+
 function fitProposalToReviewThread(
   context: GitHubMentionContext,
   proposals: readonly GitHubMentionProposal[]
@@ -110,8 +139,13 @@ function fitProposalToReviewThread(
   ) {
     return null;
   }
-  const commentedLine = review.diffHunk?.split("\n").at(-1)?.slice(1);
-  if (commentedLine !== proposal.previous.split("\n")[review.line - 1]) {
+  // If the file reads differently there, the thread's numbers are stale and a
+  // suggestion would replace other text.
+  const commentedLine = hunkLineAt(review.diffHunk ?? null, review.line);
+  if (
+    commentedLine === null ||
+    commentedLine !== proposal.previous.split("\n")[review.line - 1]
+  ) {
     return null;
   }
   return fitGitHubMentionSuggestionsToRange({
