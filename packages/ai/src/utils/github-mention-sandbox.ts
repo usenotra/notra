@@ -126,11 +126,10 @@ export async function runGitHubMentionSandbox(params: {
     };
   }
 
-  const token = await getGitHubCloneTokenForOrganization(
-    params.context.integrationId,
-    params.context.organizationId
-  );
-  const box = await Box.create({
+  // Starting the box takes seconds and does not need the token, so both run at
+  // once. A box created while the token lookup fails would otherwise sit there
+  // until its own timeout, so it is torn down explicitly.
+  const starting = Box.create({
     apiKey: boxApiKey,
     runtime: "node" satisfies Runtime,
     agent: {
@@ -144,6 +143,23 @@ export async function runGitHubMentionSandbox(params: {
     },
     timeout: GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
   } satisfies BoxConfig);
+  // Nothing awaits the box until the token is in, so a failure in between
+  // would otherwise surface as an unhandled rejection. It is still thrown
+  // below, where it belongs.
+  void starting.catch(() => undefined);
+
+  let token: string | null;
+  try {
+    token = await getGitHubCloneTokenForOrganization(
+      params.context.integrationId,
+      params.context.organizationId
+    );
+  } catch (error) {
+    const started = await starting.catch(() => null);
+    await started?.delete().catch(() => undefined);
+    throw error;
+  }
+  const box = await starting;
 
   const startedAt = Date.now();
   logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.sandboxStarted, {
