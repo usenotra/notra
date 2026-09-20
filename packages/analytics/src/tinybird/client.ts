@@ -16,6 +16,8 @@ import type {
   FollowerGrowthParams,
   FollowerGrowthRow,
   GeoJourneyDetailRow,
+  GeoJourneyPagesRow,
+  GeoJourneySourcesRow,
   GeoTrafficJourneysRow,
   GeoTrafficLogParams,
   GeoTrafficLogRow,
@@ -48,6 +50,8 @@ import {
 } from "./datasources";
 import {
   geoJourneyDetail,
+  geoJourneyPages,
+  geoJourneySources,
   geoTrafficJourneys,
   geoTrafficLog,
   geoTrafficOverview,
@@ -106,6 +110,8 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       geoTrafficPages,
       geoTrafficLog,
       geoTrafficJourneys,
+      geoJourneySources,
+      geoJourneyPages,
       geoJourneyDetail,
     },
   });
@@ -403,6 +409,30 @@ export function queryGeoTrafficJourneys(
     params,
     params.organization_id,
     (client) => client.geoTrafficJourneys.query(params)
+  );
+}
+
+export function queryGeoJourneySources(
+  params: InferParams<typeof geoJourneySources>
+): Promise<QueryResult<GeoJourneySourcesRow> | null> {
+  return cachedPipeQuery(
+    "geo",
+    "geo_journey_sources",
+    params,
+    params.organization_id,
+    (client) => client.geoJourneySources.query(params)
+  );
+}
+
+export function queryGeoJourneyPages(
+  params: InferParams<typeof geoJourneyPages>
+): Promise<QueryResult<GeoJourneyPagesRow> | null> {
+  return cachedPipeQuery(
+    "geo",
+    "geo_journey_pages",
+    params,
+    params.organization_id,
+    (client) => client.geoJourneyPages.query(params)
   );
 }
 

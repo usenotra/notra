@@ -7,6 +7,9 @@ import {
   buildJourneyOverview,
   buildJourneyPathTree,
   countJourneyBranches,
+  formatJourneyDepth,
+  journeySeries,
+  journeyTrendDays,
 } from "@/utils/geo-journey";
 
 function event(path: string, referer = ""): GeoJourneyEvent {
@@ -84,5 +87,30 @@ describe("buildJourneyOverview", () => {
       },
     ]);
     expect(overview.paths.find((row) => row.path === "/")?.journeys).toBe(1);
+  });
+});
+
+describe("journey trends", () => {
+  test("fills every day between the first and last journey", () => {
+    const days = journeyTrendDays([
+      { daily: [{ day: "2026-09-01", journeys: 2 }] },
+      { daily: [{ day: "2026-09-04", journeys: 1 }] },
+    ]);
+    expect(days).toEqual([
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+    ]);
+    expect(
+      journeySeries([{ day: "2026-09-04", journeys: 1 }], days).map(
+        (point) => point.value
+      )
+    ).toEqual([0, 0, 0, 1]);
+  });
+
+  test("formats average depth", () => {
+    expect(formatJourneyDepth(7, 2)).toBe("3.5 pages");
+    expect(formatJourneyDepth(0, 0)).toBe("0 pages");
   });
 });

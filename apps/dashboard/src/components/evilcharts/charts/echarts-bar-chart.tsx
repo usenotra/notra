@@ -73,6 +73,7 @@ import type {
 } from "@/types/charts";
 import { stackSegmentGapValues } from "@/utils/chart-stack-gap";
 import { echartsDatumValue } from "@/utils/echarts-datum";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1696,17 +1697,11 @@ function bindBarChartInstance({
     }
   };
 
-  const resizeObserver = new ResizeObserver(() => {
-    if (
-      mount.clientWidth === chart.getWidth() &&
-      mount.clientHeight === chart.getHeight()
-    ) {
-      return;
-    }
-    chart.resize();
-    live.repush();
-  });
-  resizeObserver.observe(mount);
+  // 2D gradient textures are baked at renderer size — rebuild them once the
+  // size settles.
+  const stopResizeObserver = observeChartResize(mount, chart, () =>
+    live.repush()
+  );
 
   const themeObserver = new MutationObserver(() => {
     live.repush();
@@ -1890,7 +1885,7 @@ function bindBarChartInstance({
     chart.off("click");
     chart.off("datazoom");
     chart.off("finished");
-    resizeObserver.disconnect();
+    stopResizeObserver();
     themeObserver.disconnect();
     chart.dispose();
     echartsRef.current = null;

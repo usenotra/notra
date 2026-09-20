@@ -260,12 +260,15 @@ export function PromptReceiptHistory({
         {
           key: "scan",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.date,
-          width: "144px",
+          // Fits "Sep 17, 11:41 AM" plus the button and cell padding on one
+          // line. No `minWidth`: that raises the table floor, and the five
+          // columns together already only just fit the sheet.
+          width: "160px",
           cell: ({ check }) => {
             const timestamp = formatAiTrafficTimestamp(check.capturedAt);
             const date = (
               <time
-                className="tabular-nums"
+                className="whitespace-nowrap tabular-nums"
                 dateTime={check.capturedAt}
                 title={check.scanId}
               >
@@ -320,6 +323,8 @@ export function PromptReceiptHistory({
           key: "position",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.position,
           width: "80px",
+          // The position also shows up inside the "What changed" chips.
+          collapsePriority: 1,
           cell: ({ check }) => (
             <span className={HISTORY_LINE_CLASS}>
               <PositionChip position={check.position} />
@@ -329,14 +334,17 @@ export function PromptReceiptHistory({
         {
           key: "changes",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.changes,
-          width: "192px",
+          // Flexible so the narrowest sheet can squeeze it instead of scrolling.
+          width: "1fr",
+          minWidth: "192px",
           cell: (entry) => <ChangesCell entry={entry} />,
         },
         {
           key: "newCompetitors",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.newCompetitors,
           width: "1fr",
-          minWidth: "176px",
+          minWidth: "128px",
+          collapsePriority: 2,
           cell: (entry) => (
             <NewCompetitorsCell
               competitors={competitors}

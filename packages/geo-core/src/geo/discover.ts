@@ -20,6 +20,7 @@ import {
   GEO_DISCOVERY_MODEL,
   GEO_DISCOVERY_SYSTEM_PROMPT,
   GEO_GAP_TITLE_MAX_LENGTH,
+  GEO_GENERATED_CONVERSATIONS_MAX,
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
   GEO_TRACKED_PROMPT_VOICE,
@@ -30,10 +31,12 @@ import type {
   GeoCompetitorSeed,
   GeoDiscoverWebsiteResult,
   GeoGenerateFromWebsiteResult,
+  GeoGeneratedConversation,
   GeoPromptInsert,
   GeoScopeInput,
   GeoWebsiteDiscovery,
 } from "../types/geo";
+import { geoConversationRules } from "../utils/conversation-generation-prompt";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
@@ -49,6 +52,10 @@ import {
 import { ensureGeoProject } from "./projects";
 import { startClaimedGeoScanRun } from "./scan-handoff";
 import { claimGeoScanRun } from "./scan-status";
+import {
+  insertGeneratedConversationsIfEmpty,
+  normalizeGeneratedConversations,
+} from "./sequence-generation";
 import { buildBrandTerms, promptMentionsBrand } from "./suggestion-keywords";
 
 const MIN_PROMPT_LENGTH = GEO_PROMPT_MIN_LENGTH;
@@ -70,6 +77,7 @@ Derive the brand tracking configuration for this company:
 3. competitors: between ${GEO_DISCOVERY_MIN_COMPETITORS} and ${GEO_DISCOVERY_MAX_COMPETITORS} real, named companies or products that compete in the same category. For each one give its name and its bare website domain (for example "stripe.com"), or null for domain when you are not sure.
 4. audienceType: who pays this company, judged by its own buyers and never by the industry it serves. "technical" when the buyers are developers, engineers or AI-native teams who deliberately choose which AI model they use (developer tools, APIs, infrastructure, AI products). "commerce" when consumers find it by searching Google for something to buy, book or visit (online shops, consumer products, restaurants, travel, local businesses and trades). "general" for everyone else (professional services, non-technical B2B, media, education), whose buyers just use whatever model their assistant ships with. Software or services sold to shops, restaurants or other businesses are "general" or "technical", not "commerce": a store builder or an email tool for merchants is "general".
 5. prompts: between ${GEO_DISCOVERY_MIN_PROMPTS} and ${GEO_DISCOVERY_MAX_PROMPTS} entries, each with a "prompt" and a "title".
+6. conversations: exactly 2 multi-turn conversations, each with a "name" and "steps" (the messages in order). Follow the conversation rules below.
 
 Before writing prompts, picture three or four different people who would end up buying from this company (their job, company size, stage, budget, what they are struggling with today). Write the prompts those specific people would type, spread across the set.
 
@@ -87,7 +95,9 @@ Prompt rules:
 
 Title rules:
 - The title is the headline of the article that would win this prompt: specific, publishable and in Title Case, following proven formats such as "Best {Category} Tools in ${year}: {Facets} Compared", "Best {Competitor} Alternatives for {Use Case} in ${year}", "{A} vs {B}: Features, Pricing & Which to Choose in ${year}", "{Product} Pricing: Plans & Cost Breakdown for ${year}", "How to {Task} (Step-by-Step ${year})", or "What Is {Term}? Definition, Examples & How to Measure It".
-- Write titles in the same language as the prompt and keep each under ${GEO_GAP_TITLE_MAX_LENGTH} characters.`;
+- Write titles in the same language as the prompt and keep each under ${GEO_GAP_TITLE_MAX_LENGTH} characters.
+
+${geoConversationRules("the company")}`;
 }
 
 function normalizeKey(value: string): string {
@@ -167,7 +177,13 @@ const prepareGeoWebsiteGeneration = Effect.fn(
     );
   }
 
-  return { aliases, companyName, entries };
+  const conversations = normalizeGeneratedConversations(
+    discovery.conversations,
+    brandTerms,
+    GEO_GENERATED_CONVERSATIONS_MAX
+  );
+
+  return { aliases, companyName, entries, conversations };
 });
 
 const scrapeWebsite = Effect.fn("geo.discover.scrape")(function* (url: string) {
@@ -256,6 +272,7 @@ const persistGeoWebsiteGeneration = Effect.fn(
   companyName: string,
   aliases: string[],
   entries: readonly GeoPromptInsert[],
+  conversations: readonly GeoGeneratedConversation[],
   discoveredCompetitors: readonly GeoCompetitorSeed[],
   seedEngines: string[] | null
 ) {
@@ -315,6 +332,21 @@ const persistGeoWebsiteGeneration = Effect.fn(
     entries
   );
 
+  const conversationsAdded = yield* Effect.tryPromise({
+    try: () =>
+      insertGeneratedConversationsIfEmpty(
+        tx,
+        organizationId,
+        projectId,
+        conversations
+      ),
+    catch: (cause) =>
+      new GeoDiscoveryError({
+        message: "Failed to save generated conversations",
+        cause,
+      }),
+  });
+
   const summary: GeoGenerateFromWebsiteResult = {
     companyName,
     aliases,
@@ -322,6 +354,7 @@ const persistGeoWebsiteGeneration = Effect.fn(
       (competitor) => competitor.name
     ),
     promptsAdded: inserted.length,
+    conversationsAdded,
   };
   return summary;
 });
@@ -406,7 +439,7 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
         }),
     });
 
-    const { aliases, companyName, entries } =
+    const { aliases, companyName, entries, conversations } =
       yield* prepareGeoWebsiteGeneration(
         discovery,
         existing?.companyName,
@@ -426,6 +459,7 @@ export const generateGeoFromWebsite = Effect.fn("geo.generateFromWebsite")(
               companyName,
               aliases,
               entries,
+              conversations,
               discovery.competitors,
               seedEngines
             )
@@ -459,7 +493,7 @@ export const createGeoProjectFromWebsite = Effect.fn(
   url: string
 ) {
   const { discovery } = yield* discoverGeoWebsite(organizationId, url);
-  const { aliases, companyName, entries } =
+  const { aliases, companyName, entries, conversations } =
     yield* prepareGeoWebsiteGeneration(discovery);
   const seedEngines = yield* resolveSeedEngines(organizationId, discovery);
 
@@ -488,6 +522,7 @@ export const createGeoProjectFromWebsite = Effect.fn(
             companyName,
             aliases,
             entries,
+            conversations,
             discovery.competitors,
             seedEngines
           )

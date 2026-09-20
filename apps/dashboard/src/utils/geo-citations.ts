@@ -4,7 +4,10 @@ import {
   AI_TRAFFIC_PURPOSE_LABELS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogEntry } from "@notra/geo-core/types/geo";
-import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
+import {
+  formatGeoAgent,
+  formatGeoSource,
+} from "@notra/geo-core/utils/ai-traffic";
 
 export interface CitationProviderTooltip {
   title: string;
@@ -29,7 +32,7 @@ export function formatCitationTimestamp(value: string): string {
 export function formatCitationProvider(agent: string, source: string): string {
   const trimmed = agent.trim();
   if (trimmed.length > 0) {
-    return trimmed;
+    return formatGeoAgent(trimmed);
   }
   return formatGeoSource(source);
 }

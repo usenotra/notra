@@ -81,6 +81,7 @@ import {
   loadGeoPromptHistory,
   loadGeoSettings,
   loadGeoTimeseries,
+  loadGeoJourneyStats,
   loadGeoTrafficJourneys,
   loadGeoTrafficLog,
   loadGeoTrafficPages,
@@ -121,6 +122,7 @@ import {
   loadGeoSentimentEvidence,
 } from "@notra/geo-core/geo/sentiment";
 import { loadGeoSentimentAnalysis } from "@notra/geo-core/geo/sentiment-analysis";
+import { generateGeoSequences } from "@notra/geo-core/geo/sequence-generation";
 import {
   createGeoSequence,
   deleteGeoSequence,
@@ -183,6 +185,7 @@ import {
   geoSettingsUpsertInputSchema,
   geoSuggestionIdInputSchema,
   geoTimeseriesInputSchema,
+  geoJourneyStatsInputSchema,
   geoTrafficJourneysInputSchema,
   geoTrafficLogInputSchema,
   geoTrafficPagesInputSchema,
@@ -1129,6 +1132,11 @@ export const geoRouter = {
         loadGeoTrafficJourneys(input, geoWindow(input), input.limit)
       )
     ),
+  journeyStats: authorizedProcedure
+    .input(geoJourneyStatsInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoJourneyStats(input, geoWindow(input)))
+    ),
   journeyDetail: authorizedProcedure
     .input(geoJourneyDetailInputSchema)
     .handler(
@@ -1290,6 +1298,29 @@ export const geoRouter = {
         }
       )
     ),
+  sequencesGenerate: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(async (options) => {
+      const rate = await ratelimit.geoSequencesGenerate.limit(
+        options.input.organizationId
+      );
+      if (!rate.success) {
+        throw badRequest(
+          "Too many conversation generations. Please wait a few minutes."
+        );
+      }
+      return geoHandler(
+        (input) => generateGeoSequences(input),
+        ({ context, input, output }) => {
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_CONVERSATIONS_GENERATED,
+            properties: { conversation_count: output.sequences.length },
+          });
+        }
+      )(options);
+    }),
   sequencesUpdate: authorizedProcedure
     .input(geoSequenceUpdateInputSchema)
     .handler(
@@ -1615,6 +1646,7 @@ export const geoRouter = {
             event: POSTHOG_EVENTS.GEO_PROMPTS_GENERATED_FROM_WEBSITE,
             properties: {
               prompt_count: output.promptsAdded,
+              conversation_count: output.conversationsAdded,
               competitor_count: output.competitors.length,
               alias_count: output.aliases.length,
             },

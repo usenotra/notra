@@ -182,6 +182,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
         <div className="flex flex-col gap-6">
           <InstrumentReveal active={revealActive} order={0}>
             <AiTrafficCard
+              pages={inventoryPages.data?.pages ?? []}
               settingsHref={withGeoProject(
                 geoSettingsPath(organizationSlug),
                 projectId

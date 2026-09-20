@@ -28,7 +28,6 @@ import {
   GEO_ANSWER_MENTION_LABEL,
   GEO_ANSWER_MENTION_TRIGGER_CLASS,
 } from "@/constants/geo-answer-mentions";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import { cn } from "@/lib/utils";
 import type { GeoAnswerMentionMarkProps } from "@/types/geo-answer-mentions";
@@ -135,7 +134,6 @@ function CompetitorMentionMark({
       open={open}
     >
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
             aria-label={`${brand}, ${GEO_ANSWER_MENTION_LABEL.competitor} details`}

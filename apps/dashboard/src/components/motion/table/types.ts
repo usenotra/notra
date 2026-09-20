@@ -20,6 +20,12 @@ export interface TableColumn<T> {
   width?: string;
   /** Floor for this column. Defaults to the header label plus sort/padding chrome so titles never ellipsize. */
   minWidth?: string;
+  /**
+   * Lets the column drop out when the table is narrower than its column
+   * floors, instead of scrolling sideways. Higher numbers are hidden first;
+   * columns without a priority always stay.
+   */
+  collapsePriority?: number;
   /** Custom cell renderer. Falls back to `row[key]`. */
   cell?: (row: T) => ReactNode;
   /** Render an inline text input for this column's cells (ignored when `cell` is set). */

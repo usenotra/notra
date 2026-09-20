@@ -16,6 +16,7 @@ import {
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { Button } from "@notra/ui/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
@@ -100,9 +101,10 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
         </div>
       ) : (
         <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
-          <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
-            {metric.value.toLocaleString()}
-          </span>
+          <AnimatedNumber
+            className={TRAFFIC_HERO_METRIC_VALUE_CLASS}
+            value={metric.value}
+          />
           <GeoStatDelta
             className="rounded-md px-2 py-1.5 text-xs leading-4 [&>span]:hidden"
             delta={metric.delta}

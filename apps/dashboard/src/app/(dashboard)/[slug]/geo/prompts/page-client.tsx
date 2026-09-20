@@ -125,7 +125,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               </Button>
             </div>
           </header>
-          <ScanActivity organizationId={organizationId} />
           <PromptsTable
             isScanning={isScanning}
             organizationId={organizationId}
@@ -140,6 +139,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             )}
             organizationId={organizationId}
           />
+          <ScanActivity organizationId={organizationId} />
         </div>
         <PromptAddDialog
           onOpenChange={setAddOpen}

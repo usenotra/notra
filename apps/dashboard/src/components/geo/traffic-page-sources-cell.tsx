@@ -15,7 +15,6 @@ import {
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import type { TrafficPageSourcesCellProps } from "@/types/geo";
 import { trafficVisitShare } from "@/utils/ai-traffic-groups";
 import { trafficPageSourcesLabel } from "@/utils/ai-traffic-pages";
@@ -33,7 +32,6 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
             aria-label={`${group.path}: ${sourcesLabel}, show breakdown`}

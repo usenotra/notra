@@ -21,6 +21,7 @@ import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";
+import { journeyTotals } from "@/utils/geo-journey";
 import { toGeoTab } from "@/utils/geo-tabs";
 
 function TriggerCount({ count }: { count: number }) {
@@ -71,6 +72,7 @@ export function GeoTabs({
   promptResults,
   isScanning,
   journeys,
+  journeyStats,
   journeysLoading,
   organizationId,
 }: GeoTabsProps) {
@@ -94,7 +96,13 @@ export function GeoTabs({
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
             Journeys
-            <TriggerCount count={journeys.length} />
+            <TriggerCount
+              count={
+                journeyStats
+                  ? journeyTotals(journeyStats.sources).journeys
+                  : journeys.length
+              }
+            />
           </span>
         </PermissionOption>
       </PermissionRow>
@@ -188,6 +196,7 @@ export function GeoTabs({
 
       {activeTab === "journeys" ? (
         <JourneysTab
+          journeyStats={journeyStats}
           journeys={journeys}
           loading={journeysLoading}
           organizationId={organizationId}

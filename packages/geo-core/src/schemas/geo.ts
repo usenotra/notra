@@ -24,6 +24,8 @@ import {
   GEO_DISCOVERY_MIN_PROMPTS,
   GEO_EXISTING_PAGE_URL_MAX_LENGTH,
   GEO_GAP_TITLE_MAX_LENGTH,
+  GEO_GENERATED_CONVERSATION_MAX_TURNS,
+  GEO_GENERATED_CONVERSATIONS_MAX,
   GEO_CONVERSION_PATH_MAX_LENGTH,
   GEO_MAX_ALIASES,
   GEO_MAX_COMPETITORS,
@@ -415,6 +417,21 @@ export const geoBrandSearchInputSchema = geoOrganizationInputSchema.extend({
     .max(GEO_BRAND_SEARCH_MAX_QUERY_LENGTH),
 });
 
+/**
+ * Lenient on purpose: generated conversations are filtered after the call, so
+ * one badly sized turn never fails the whole website analysis.
+ */
+export const geoGeneratedConversationSchema = object({
+  name: string().min(1),
+  steps: array(string().min(1)).max(GEO_GENERATED_CONVERSATION_MAX_TURNS),
+});
+
+export const geoConversationGenerationSchema = object({
+  conversations: array(geoGeneratedConversationSchema).max(
+    GEO_GENERATED_CONVERSATIONS_MAX
+  ),
+});
+
 export const geoWebsiteDiscoverySchema = object({
   companyName: string().min(1),
   aliases: array(string().min(1)).max(GEO_DISCOVERY_MAX_ALIASES),
@@ -435,6 +452,9 @@ export const geoWebsiteDiscoverySchema = object({
   )
     .min(GEO_DISCOVERY_MIN_PROMPTS)
     .max(GEO_DISCOVERY_MAX_PROMPTS),
+  conversations: array(geoGeneratedConversationSchema).max(
+    GEO_GENERATED_CONVERSATIONS_MAX
+  ),
 });
 
 export const geoJudgeResultSchema = object({
@@ -491,6 +511,10 @@ export const geoRequestPayloadSchema = object({
 export const geoTrafficJourneysInputSchema = geoOrganizationInputSchema.extend({
   ...geoWindowFields,
   limit: number().int().min(1).max(MAX_AI_TRAFFIC_JOURNEYS_LIMIT).optional(),
+});
+
+export const geoJourneyStatsInputSchema = geoOrganizationInputSchema.extend({
+  ...geoWindowFields,
 });
 
 export const geoJourneyDetailInputSchema = geoOrganizationInputSchema.extend({

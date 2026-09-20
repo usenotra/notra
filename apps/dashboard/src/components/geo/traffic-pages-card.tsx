@@ -227,13 +227,7 @@ export function TrafficPagesCard({
   }
 
   return (
-    <InstrumentSection
-      eyebrow={
-        groups.length > 0
-          ? `Top pages by AI source (${groups.length.toLocaleString()})`
-          : "Top pages by AI source"
-      }
-    >
+    <InstrumentSection eyebrow="Top pages by AI source">
       {body}
     </InstrumentSection>
   );

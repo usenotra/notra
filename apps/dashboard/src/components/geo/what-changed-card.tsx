@@ -275,6 +275,7 @@ function changeColumnsFor(
     },
     {
       key: "engine",
+      collapsePriority: 1,
       header: GEO_CHANGES_COLUMN_LABELS.engine,
       width: "8.5rem",
       sortable: true,
@@ -294,6 +295,7 @@ function changeColumnsFor(
     },
     {
       key: "position",
+      collapsePriority: 2,
       header: GEO_CHANGES_COLUMN_LABELS.position,
       width: "14rem",
       sortable: true,
@@ -302,6 +304,7 @@ function changeColumnsFor(
     },
     {
       key: "detail",
+      collapsePriority: 3,
       header: GEO_CHANGES_COLUMN_LABELS.detail,
       width: "1fr",
       cell: (row) => <DetailCell competitors={competitors} event={row} />,

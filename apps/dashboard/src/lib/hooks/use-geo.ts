@@ -4,9 +4,11 @@ import { AGENT_READINESS_POLL_INTERVAL_MS } from "@notra/geo-core/constants/agen
 import {
   GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
   GEO_BRAND_SEARCH_STALE_MS,
+  GEO_JOURNEY_RECENT_LIMIT,
   GEO_MODEL_CATALOG_STALE_MS,
   GEO_SCAN_POLL_INTERVAL_MS,
   GEO_START_SCAN_MUTATION_KEY,
+  GEO_TRAFFIC_LIVE_INTERVAL_MS,
 } from "@notra/geo-core/constants/geo";
 import type { AgentReadinessResponse } from "@notra/geo-core/types/agent-readiness";
 import type {
@@ -30,6 +32,7 @@ import type {
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
   GeoTimeseriesResponse,
+  GeoJourneyStatsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogFilters,
   GeoTrafficLogResponse,
@@ -768,6 +771,8 @@ export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
     }),
     enabled: !!organizationId,
     placeholderData: useProjectScopedPreviousData<AiTrafficResponse>(projectId),
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI traffic" },
   });
 }
@@ -788,7 +793,7 @@ export function useGeoTrafficLog(
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
-    refetchInterval: options?.refetchInterval,
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
     refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI tracking log" },
   });
@@ -811,6 +816,8 @@ export function useGeoTrafficPages(
     enabled: !!organizationId,
     placeholderData:
       useProjectScopedPreviousData<GeoTrafficPagesResponse>(projectId),
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load top AI pages" },
   });
 }
@@ -823,11 +830,32 @@ export function useGeoTrafficJourneys(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficJourneysResponse>({
     ...dashboardOrpc.geo.trafficJourneys.queryOptions({
-      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+      input: {
+        organizationId,
+        projectId,
+        ...toGeoWindowInput(range),
+        limit: GEO_JOURNEY_RECENT_LIMIT,
+      },
     }),
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI journeys" },
+  });
+}
+
+export function useGeoJourneyStats(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  enabled = true
+) {
+  const { projectId } = useGeoProjectScope();
+  return useQuery<GeoJourneyStatsResponse>({
+    ...dashboardOrpc.geo.journeyStats.queryOptions({
+      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+    }),
+    enabled: enabled && !!organizationId,
+    placeholderData: keepPreviousData,
+    meta: { errorMessage: "Failed to load journey trends" },
   });
 }
 
@@ -1106,6 +1134,25 @@ function useInvalidateSuggestionQueries(organizationId: string) {
       }),
     ]);
   };
+}
+
+export function useGeoSequencesGenerate(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      dashboardOrpc.geo.sequencesGenerate.call({ organizationId, projectId }),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({
+        queryKey: geoDbOrgQueryKey("sequences", organizationId),
+      });
+      const count = response.sequences.length;
+      toast.success(
+        `Added ${count} ${count === 1 ? "conversation" : "conversations"}`
+      );
+    },
+    meta: { errorMessage: "Failed to generate conversations" },
+  });
 }
 
 export function useGeoSuggestionAccept(organizationId: string) {

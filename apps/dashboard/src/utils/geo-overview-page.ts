@@ -4,6 +4,7 @@ import type {
   GeoCompetitorSharePoint,
   GeoCompetitorShareTimeseriesPoint,
   GeoJourney,
+  GeoJourneyStatsResponse,
   GeoLanguageSharePoint,
   GeoOverviewEngine,
   GeoPromptResultSummary,
@@ -47,6 +48,7 @@ export function toGeoOverviewReadyPage(input: {
   promptResults: GeoPromptResultSummary[] | undefined;
   promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
+  journeyStats: GeoJourneyStatsResponse | undefined;
   journeysLoading: boolean;
   isScanning: boolean;
   revealActive: boolean;
@@ -90,6 +92,7 @@ export function toGeoOverviewReadyPage(input: {
       promptResults,
       isScanning: input.isScanning,
       journeys,
+      journeyStats: input.journeyStats ?? null,
       journeysLoading: input.journeysLoading,
       organizationId: input.organizationId,
     },

@@ -52,7 +52,8 @@ import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type {
   CompetitorDetailViewProps,
-  CompetitorPromptSummaryStripProps,
+  CompetitorPromptAppearancesProps,
+  CompetitorSummaryStatsProps,
   GeoCompetitorDetailPoint,
   GeoCompetitorMentionStats,
 } from "@/types/geo";
@@ -151,35 +152,51 @@ function CompetitorMentionStats({
   );
 }
 
-function CompetitorPromptSummaryStrip({
+function CompetitorSummaryStats({
+  competitor,
   summary,
-}: CompetitorPromptSummaryStripProps) {
+}: CompetitorSummaryStatsProps) {
+  const withYouShare =
+    summary && summary.answers > 0
+      ? Math.round((summary.ownMentioned / summary.answers) * 100)
+      : null;
+  const stats = [
+    {
+      label: "Answers",
+      value: summary?.answers.toLocaleString(),
+      detail: `latest answers naming ${competitor}`,
+    },
+    {
+      label: "Prompts",
+      value: summary?.prompts.toLocaleString(),
+      detail: "tracked prompts",
+    },
+    {
+      label: "Engines",
+      value: summary?.engines.toLocaleString(),
+      detail: "AI engines",
+    },
+    {
+      label: "With your brand",
+      value: summary ? `${withYouShare ?? 0}%` : undefined,
+      detail: summary
+        ? `${summary.ownMentioned.toLocaleString()} of ${summary.answers.toLocaleString()} answers`
+        : "",
+    },
+  ];
   return (
-    <dl className="text-muted-foreground flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs tabular-nums">
-      <div className="flex items-baseline gap-1">
-        <dt className="sr-only">Mentions</dt>
-        <dd>
-          Mentioned on{" "}
-          <span className="text-foreground font-medium">
-            {summary.mentioned.toLocaleString()}
-          </span>{" "}
-          of {summary.total.toLocaleString()} prompt answers
-        </dd>
-      </div>
-      {summary.bestPosition === null ? null : (
-        <div className="flex items-baseline gap-1">
-          <dt>Best position</dt>
-          <dd className="text-foreground font-medium">
-            #{summary.bestPosition.toLocaleString()}
+    <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-4">
+      {stats.map((stat) => (
+        <div className="bg-background space-y-1 px-4 py-3" key={stat.label}>
+          <dt className="text-muted-foreground text-xs">{stat.label}</dt>
+          <dd className="text-xl font-medium tracking-tight tabular-nums">
+            {stat.value ?? <Skeleton className="my-1 h-5 w-12" />}
+          </dd>
+          <dd className="text-muted-foreground truncate text-xs tabular-nums">
+            {stat.detail || "\u00a0"}
           </dd>
         </div>
-      )}
-      <div className="flex items-baseline gap-1">
-        <dt>Engines:</dt>
-        <dd className="text-foreground font-medium">
-          {summary.engines.toLocaleString()}
-        </dd>
-      </div>
+      ))}
     </dl>
   );
 }
@@ -191,37 +208,28 @@ function CompetitorPromptAppearances({
   tableHeight,
   showLoading,
   onRowClick,
-}: {
-  competitor: string;
-  prompts: GeoCompetitorPromptRow[];
-  columns: TableColumn<GeoCompetitorPromptRow>[];
-  tableHeight: number;
-  showLoading: boolean;
-  onRowClick: (row: GeoCompetitorPromptRow) => void;
-}) {
-  if (showLoading) {
-    return <Skeleton className="h-36 w-full rounded-2xl" />;
-  }
-
-  if (prompts.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        {competitor} has not shown up in your tracked prompts yet.
-      </p>
-    );
-  }
-
+}: CompetitorPromptAppearancesProps) {
   return (
     <Table
       className="rounded-2xl"
       columns={columns}
       data={prompts}
       defaultSort={{ key: "capturedAt", direction: "desc" }}
+      emptyState={`${competitor} has not shown up in your tracked prompts yet.`}
       getRowId={(row) => `${row.promptId}-${row.engine}`}
-      height={tableHeight}
+      height={showLoading ? tableHeightFor(3) : tableHeight}
       key={competitor}
+      loading={showLoading}
       onRowClick={onRowClick}
       rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
+      toolbar={
+        <div className="space-y-0.5 px-4 py-3">
+          <h2 className="text-sm font-medium">Where {competitor} shows up</h2>
+          <p className="text-muted-foreground text-xs">
+            Latest answer per prompt and engine that named {competitor}
+          </p>
+        </div>
+      }
     />
   );
 }
@@ -289,10 +297,9 @@ export function CompetitorDetailView({
   );
   const incompleteTail = competitorChartHasIncompleteTail(points);
   const prompts = data?.prompts ?? [];
-  const promptSummary: GeoCompetitorPromptSummary | null =
-    showLoading || prompts.length === 0
-      ? null
-      : competitorPromptSummary(prompts);
+  const promptSummary: GeoCompetitorPromptSummary | null = showLoading
+    ? null
+    : competitorPromptSummary(prompts);
 
   const columns: TableColumn<GeoCompetitorPromptRow>[] = [
     {
@@ -323,7 +330,7 @@ export function CompetitorDetailView({
     {
       key: "engine",
       header: "Engine",
-      width: "8.5rem",
+      width: "11rem",
       sortable: true,
       cell: (row) => (
         <span className="inline-flex min-w-0 items-center gap-2">
@@ -334,14 +341,19 @@ export function CompetitorDetailView({
     },
     {
       key: "position",
-      header: "Position",
-      width: "8rem",
+      header: "Your brand",
+      width: "8.5rem",
       sortable: true,
-      cell: (row) => (
-        <span className="tabular-nums">
-          {row.mentioned ? (row.position ?? "Mentioned") : "Absent"}
-        </span>
-      ),
+      cell: (row) => {
+        if (!row.mentioned) {
+          return <span className="text-muted-foreground">Absent</span>;
+        }
+        return (
+          <span className="tabular-nums">
+            {row.position === null ? "Mentioned" : `#${row.position}`}
+          </span>
+        );
+      },
       sortValue: (row) => {
         if (!row.mentioned) {
           return Number.MAX_SAFE_INTEGER;
@@ -438,6 +450,8 @@ export function CompetitorDetailView({
         </div>
       </div>
 
+      <CompetitorSummaryStats competitor={competitor} summary={promptSummary} />
+
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-base font-semibold text-pretty">
@@ -453,22 +467,16 @@ export function CompetitorDetailView({
         />
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold">Where {competitor} shows up</h2>
-        {promptSummary ? (
-          <CompetitorPromptSummaryStrip summary={promptSummary} />
-        ) : null}
-        <CompetitorPromptAppearances
-          columns={columns}
-          competitor={competitor}
-          onRowClick={(row) =>
-            setSelectedAnswer({ promptId: row.promptId, engine: row.engine })
-          }
-          prompts={prompts}
-          showLoading={showLoading}
-          tableHeight={tableHeight}
-        />
-      </div>
+      <CompetitorPromptAppearances
+        columns={columns}
+        competitor={competitor}
+        onRowClick={(row) =>
+          setSelectedAnswer({ promptId: row.promptId, engine: row.engine })
+        }
+        prompts={prompts}
+        showLoading={showLoading}
+        tableHeight={tableHeight}
+      />
       <PromptDetailDialog
         initialEngine={selectedAnswer?.engine ?? null}
         onOpenChange={(nextOpen) => {

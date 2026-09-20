@@ -142,6 +142,7 @@ export function EngineRateTable({
       },
       {
         key: "citations",
+        collapsePriority: 3,
         header: "Citations",
         width: "8rem",
         sortable: true,
@@ -170,6 +171,7 @@ export function EngineRateTable({
       },
       {
         key: "avgPosition",
+        collapsePriority: 2,
         header: "Avg position",
         width: "8.5rem",
         sortable: true,
@@ -181,6 +183,7 @@ export function EngineRateTable({
       },
       {
         key: "lastChecked",
+        collapsePriority: 4,
         header: "Last checked",
         width: "9.375rem",
         cell: (row) => (
@@ -191,6 +194,7 @@ export function EngineRateTable({
       },
       {
         key: "trend",
+        collapsePriority: 1,
         header: "Trend",
         width: "5.5rem",
         cell: (row) => {

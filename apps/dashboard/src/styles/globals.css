@@ -20,6 +20,9 @@
   html,
   body {
     scrollbar-gutter: stable;
+    /* The dashboard is a fixed-height app shell; overlays and portals must
+       never make the document itself scroll sideways under the fixed sidebar. */
+    overflow-x: clip;
   }
 }
 
