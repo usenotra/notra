@@ -134,6 +134,23 @@ describe("findNewActiveContent", () => {
     ).toEqual(["adds a script tag"]);
   });
 
+  test("nested and unterminated HTML comments stay comments", () => {
+    expect(
+      reasons(
+        "docs/guide.md",
+        "# Guide",
+        "# Guide\n<!-<!--\n<script>alert(1)</script>\n-->- -->"
+      )
+    ).toEqual([]);
+    expect(
+      reasons(
+        "docs/guide.md",
+        "# Guide",
+        "# Guide\n<!--\n<script>alert(1)</script>"
+      )
+    ).toEqual([]);
+  });
+
   test("encoded javascript URLs and unquoted handlers are blocked", () => {
     expect(
       reasons(

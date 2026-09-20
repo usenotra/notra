@@ -4,13 +4,12 @@ import {
   GITHUB_MENTION_THREAD_CONTEXT,
 } from "@notra/ai/constants/github-mention";
 import type { GitHubMentionThreadComment } from "@notra/ai/types/github-mention";
+import { removeHtmlComments } from "@notra/ai/utils/remove-html-comments";
 
 const MENTION_HANDLE_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
 const FENCED_CODE_PATTERN = /(?:```|~~~)[\s\S]*?(?:```|~~~|$)/g;
 const INLINE_CODE_PATTERN = /`[^`\n]*`/g;
 const QUOTED_LINE_PATTERN = /^[ \t]*>.*$/gm;
-// GitHub hides everything after an unterminated `<!--`, so that counts too.
-const HTML_COMMENT_PATTERN = /<!--[\s\S]*?(?:-->|$)/g;
 // A mention must not be glued to a preceding word, so `jan@notra.dev` or
 // `path/@notra` do not count.
 // `@org/team` is a team mention, so a handle followed by a slash is skipped too.
@@ -39,20 +38,6 @@ export function getGitHubMentionAppHandles() {
     GITHUB_MENTION_DEFAULT_APP_SLUG;
   const handle = normalizeHandle(slug);
   return MENTION_HANDLE_PATTERN.test(handle) ? [handle] : [];
-}
-
-/**
- * One pass is not enough: removing the inner comment of `<!-<!-- x -->- @notra -->`
- * leaves a new comment behind. Repeat until nothing changes.
- */
-function removeHtmlComments(body: string) {
-  let current = body;
-  let previous = "";
-  while (current !== previous) {
-    previous = current;
-    current = current.replace(HTML_COMMENT_PATTERN, "");
-  }
-  return current;
 }
 
 function stripNonMentionText(body: string) {

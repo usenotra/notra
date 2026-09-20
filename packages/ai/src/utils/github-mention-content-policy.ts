@@ -2,11 +2,11 @@ import {
   GITHUB_MENTION_ACTIVE_CONTENT_RULES,
   GITHUB_MENTION_MARKUP_EXTENSIONS,
 } from "@notra/ai/constants/github-mention";
+import { removeHtmlComments } from "@notra/ai/utils/remove-html-comments";
 
 const MARKUP_EXTENSIONS = new Set<string>(GITHUB_MENTION_MARKUP_EXTENSIONS);
 const FENCE_PATTERN = /^ {0,3}(`{3,}|~{3,})/;
 const INLINE_CODE_PATTERN = /`[^`\n]*`/g;
-const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
 const FINDING_SNIPPET_LENGTH = 120;
 const INLINE_CODE_PLACEHOLDER = "`";
 const MDX_EXPRESSION_REASON = "adds an MDX expression";
@@ -39,7 +39,7 @@ function extensionOf(path: string) {
 function renderedLines(markdown: string, preserveCode = false) {
   const lines: string[] = [];
   let openFence: string | null = null;
-  for (const raw of markdown.replace(HTML_COMMENT_PATTERN, "").split("\n")) {
+  for (const raw of removeHtmlComments(markdown).split("\n")) {
     const fence = raw.match(FENCE_PATTERN)?.[1]?.[0];
     if (fence && !openFence) {
       openFence = fence;
