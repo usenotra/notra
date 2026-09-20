@@ -1,6 +1,7 @@
 import {
   GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE,
   GITHUB_MENTION_LOG_EVENTS,
+  GITHUB_MENTION_SANDBOX_ALLOWED_DOMAINS,
   GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
 } from "@notra/ai/constants/github-mention";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
@@ -136,6 +137,10 @@ export async function runGitHubMentionSandbox(params: {
       harness: Agent.OpenCode,
       model: SANDBOX_MODEL_ID as VercelModel,
       apiKey: agentApiKey,
+    },
+    networkPolicy: {
+      mode: "custom",
+      allowedDomains: [...GITHUB_MENTION_SANDBOX_ALLOWED_DOMAINS],
     },
     timeout: GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
   } satisfies BoxConfig);
