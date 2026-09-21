@@ -7,6 +7,13 @@
   &nbsp;Notra
 </h1>
 
+<p>
+  <picture>
+    <source media="(max-width: 599px)" srcset=".github/assets/vercel-oss-badge.svg" />
+    <img src=".github/assets/transparent.svg" alt="Vercel Open Source Program 2026" />
+  </picture>
+</p>
+
 **See where your brand shows up in AI answers, who gets recommended instead, and what to write next.**
 
 Notra is a generative engine optimization (GEO) platform. It runs the questions your buyers ask across AI engines, tracks mentions and citations, and helps you turn missing visibility into content worth publishing.
