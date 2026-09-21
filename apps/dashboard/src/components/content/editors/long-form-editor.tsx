@@ -1,10 +1,11 @@
 "use client";
 
+import { supportsPostSlug } from "@notra/ai/schemas/post";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
-import { blogEditorTheme } from "@/components/content/editor/blog-editor-theme";
 import { LexicalEditor } from "@/components/content/editor/lexical-editor";
+import { longFormEditorTheme } from "@/components/content/editor/long-form-editor-theme";
 import {
   CONTENT_EDITOR_VIEWS,
   type ContentEditorView,
@@ -29,7 +30,7 @@ function fitTextareaHeight(element: HTMLTextAreaElement | null) {
   element.style.height = `${element.scrollHeight}px`;
 }
 
-export function BlogEditor({
+export function LongFormEditor({
   content,
   state,
   actions,
@@ -54,6 +55,7 @@ export function BlogEditor({
     : currentMarkdown;
   const title = state.editingTitle ?? state.serverTitle;
   const slug = state.editingSlug ?? state.serverSlug ?? "";
+  const showSlug = supportsPostSlug(content.contentType);
 
   useEffect(() => {
     if (writeFocusNonce === 0) {
@@ -138,50 +140,52 @@ export function BlogEditor({
         rows={1}
         value={title}
       />
-      <div className="mt-3 flex items-start justify-between gap-6">
-        <div className="text-muted-foreground flex min-w-0 flex-1 items-start gap-1 font-mono text-xs">
-          <span className="shrink-0 leading-5">/</span>
-          <textarea
-            aria-label="Post slug"
-            className="placeholder:text-muted-foreground/50 focus:text-foreground min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 leading-5 break-all outline-none focus:ring-0"
-            onBlur={() => {
-              if (state.editingSlug !== null) {
-                actions.setEditingSlug(
-                  state.editingSlug.replace(/^-+|-+$/g, "")
-                );
-              }
-            }}
-            onChange={(e) => {
-              const nextSlug = e.target.value
-                .toLowerCase()
-                .replace(/[^a-z0-9\s-]/g, "")
-                .replace(/\s+/g, "-")
-                .replace(/-+/g, "-");
-              actions.setEditingSlug(nextSlug);
-            }}
-            onFocus={() => {
-              if (state.editingSlug === null) {
-                actions.setEditingSlug(slug);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                slugInputRef.current?.blur();
-              }
-              if (e.key === "Escape") {
-                actions.setEditingSlug(null);
-                slugInputRef.current?.blur();
-              }
-            }}
-            placeholder="add-a-slug"
-            readOnly={readOnly}
-            ref={slugInputRef}
-            rows={1}
-            value={slug}
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-3 leading-5">
+      <div className="mt-3 flex items-start gap-6">
+        {showSlug ? (
+          <div className="text-muted-foreground flex min-w-0 flex-1 items-start gap-1 font-mono text-xs">
+            <span className="shrink-0 leading-5">/</span>
+            <textarea
+              aria-label="Post slug"
+              className="placeholder:text-muted-foreground/50 focus:text-foreground min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 leading-5 break-all outline-none focus:ring-0"
+              onBlur={() => {
+                if (state.editingSlug !== null) {
+                  actions.setEditingSlug(
+                    state.editingSlug.replace(/^-+|-+$/g, "")
+                  );
+                }
+              }}
+              onChange={(e) => {
+                const nextSlug = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .replace(/\s+/g, "-")
+                  .replace(/-+/g, "-");
+                actions.setEditingSlug(nextSlug);
+              }}
+              onFocus={() => {
+                if (state.editingSlug === null) {
+                  actions.setEditingSlug(slug);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  slugInputRef.current?.blur();
+                }
+                if (e.key === "Escape") {
+                  actions.setEditingSlug(null);
+                  slugInputRef.current?.blur();
+                }
+              }}
+              placeholder="add-a-slug"
+              readOnly={readOnly}
+              ref={slugInputRef}
+              rows={1}
+              value={slug}
+            />
+          </div>
+        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-3 leading-5">
           {CONTENT_EDITOR_VIEWS.map((option) => (
             <button
               className={cn(
@@ -219,7 +223,7 @@ export function BlogEditor({
             key={editorKey}
             onChange={actions.onEditorChange}
             onSelectionChange={actions.onSelectionChange}
-            theme={blogEditorTheme}
+            theme={longFormEditorTheme}
           />
         </div>
       ) : null}

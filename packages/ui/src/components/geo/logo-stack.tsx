@@ -28,6 +28,7 @@ export function LogoStack({
   items,
   limit = GEO_GAPS_LOGO_STACK_LIMIT,
   emptyLabel,
+  showLabel = false,
 }: LogoStackProps) {
   if (items.length === 0) {
     return (
@@ -41,15 +42,38 @@ export function LogoStack({
   const hidden = items.slice(limit);
 
   return (
-    <span className="inline-flex items-center gap-1">
+    /*
+     * Labelled stacks must be block-level: an inline-flex shrink-wraps its
+     * content, so a long brand name would push out of the cell instead of
+     * truncating. Bare logo stacks stay inline so they can sit in a sentence.
+     */
+    <span
+      className={
+        showLabel
+          ? "flex min-w-0 items-center gap-1"
+          : "inline-flex items-center gap-1"
+      }
+    >
       {visible.map((item) => (
         <Tooltip key={item.key}>
           <TooltipTrigger
-            aria-label={item.label}
-            render={<span className="inline-flex shrink-0 cursor-default" />}
-            role="img"
+            // With a visible label the text is already the accessible name.
+            aria-label={showLabel ? undefined : item.label}
+            render={
+              <span
+                className={
+                  showLabel
+                    ? "inline-flex min-w-0 cursor-default items-center gap-1.5"
+                    : "inline-flex shrink-0 cursor-default"
+                }
+              />
+            }
+            role={showLabel ? undefined : "img"}
           >
-            {item.renderIcon("size-4")}
+            {item.renderIcon("size-4 shrink-0")}
+            {showLabel ? (
+              <span className="min-w-0 truncate">{item.label}</span>
+            ) : null}
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
             <LogoStackItemDetail item={item} />
@@ -61,7 +85,7 @@ export function LogoStack({
           <TooltipTrigger
             aria-label={`Additional: ${hidden.map((item) => item.label).join(", ")}`}
             render={
-              <span className="cursor-default text-muted-foreground text-xs" />
+              <span className="shrink-0 cursor-default text-muted-foreground text-xs" />
             }
           >
             +{hidden.length}

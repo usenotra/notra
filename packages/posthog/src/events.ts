@@ -63,6 +63,7 @@ export const POSTHOG_EVENTS = {
   GEO_COMPETITOR_DELETED: "geo_competitor_deleted",
   GEO_COMPETITOR_DETAIL_VIEWED: "geo_competitor_detail_viewed",
   GEO_CONVERSATION_CREATED: "geo_conversation_created",
+  GEO_CONVERSATIONS_GENERATED: "geo_conversations_generated",
   GEO_CONVERSATION_UPDATED: "geo_conversation_updated",
   GEO_CONVERSATION_DELETED: "geo_conversation_deleted",
   GEO_CONVERSATION_RUN_NOW: "geo_conversation_run_now",

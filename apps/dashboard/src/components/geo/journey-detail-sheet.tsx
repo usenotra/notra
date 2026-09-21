@@ -22,6 +22,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathTree } from "@/components/geo/journey-path-tree";
+import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -152,9 +153,9 @@ function JourneyDetailContent({
 
   return (
     <>
-      <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
-        <SheetTitle className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-          <EngineIcon className="size-5" engine={journey.source} />
+      <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
+        <SheetTitle className="flex min-w-0 items-center gap-2 text-base leading-snug">
+          <EngineIcon className="size-4" engine={journey.source} />
           <span className="min-w-0 truncate">
             {formatGeoSource(journey.source)}
           </span>
@@ -181,17 +182,8 @@ function JourneyDetailContent({
         </SheetDescription>
       </SheetHeader>
 
-      <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain p-5 sm:p-6">
-        <dl className="grid grid-cols-3 gap-4">
-          {stats.map((stat) => (
-            <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
-              <dt className="text-muted-foreground text-xs">{stat.label}</dt>
-              <dd className="m-0 truncate text-2xl font-semibold tracking-tight tabular-nums">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
+        <SheetStatGrid stats={stats} />
 
         <section className="space-y-3">
           <SectionHeader meta={pathMeta} title="Path" />

@@ -35,7 +35,7 @@ const FEEDBACK_COLUMNS: TableColumn<AgentFeedbackItem>[] = [
     key: "feedback",
     header: "Feedback",
     width: "1fr",
-    minWidth: "18rem",
+    minWidth: "16rem",
     sortable: true,
     sortValue: (item) => item.title ?? item.message,
     cell: (item) => (
@@ -53,6 +53,7 @@ const FEEDBACK_COLUMNS: TableColumn<AgentFeedbackItem>[] = [
   },
   {
     key: "kind",
+    collapsePriority: 1,
     header: "Kind",
     width: "8rem",
     sortable: true,
@@ -60,6 +61,7 @@ const FEEDBACK_COLUMNS: TableColumn<AgentFeedbackItem>[] = [
   },
   {
     key: "sentiment",
+    collapsePriority: 3,
     header: "Sentiment",
     width: "9rem",
     sortable: true,
@@ -68,6 +70,7 @@ const FEEDBACK_COLUMNS: TableColumn<AgentFeedbackItem>[] = [
   },
   {
     key: "agentClient",
+    collapsePriority: 4,
     header: "Agent",
     width: "10rem",
     sortable: true,
@@ -88,6 +91,7 @@ const FEEDBACK_COLUMNS: TableColumn<AgentFeedbackItem>[] = [
   },
   {
     key: "createdAt",
+    collapsePriority: 2,
     header: "Received",
     width: "8rem",
     align: "right",

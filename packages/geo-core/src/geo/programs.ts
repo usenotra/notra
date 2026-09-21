@@ -1,6 +1,8 @@
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,
+  queryGeoJourneyPages,
+  queryGeoJourneySources,
   queryGeoTrafficJourneys,
   queryGeoTrafficLog,
   queryGeoTrafficOverview,
@@ -37,6 +39,7 @@ import { Effect } from "effect";
 import {
   AI_TRAFFIC_DEFAULT_DAYS,
   AI_TRAFFIC_DEFAULT_JOURNEYS_LIMIT,
+  GEO_JOURNEY_PAGES_LIMIT,
   AI_TRAFFIC_DEFAULT_LOG_LIMIT,
   AI_TRAFFIC_DEFAULT_PAGES_LIMIT,
   AI_TRAFFIC_PAGES_FETCH_LIMIT,
@@ -84,6 +87,8 @@ import type {
   GeoTimeseriesResponse,
   GeoTrackedPrompt,
   GeoTrackedPromptsResponse,
+  GeoJourneyDailyPoint,
+  GeoJourneyStatsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogResponse,
   GeoTrafficPagesResponse,
@@ -1254,12 +1259,85 @@ export const loadGeoTrafficJourneys = Effect.fn("geo.trafficJourneys")(
         distinctPaths: Number(row.distinct_paths),
         firstSeenAt: row.first_seen_at,
         lastSeenAt: row.last_seen_at,
+        // `sample_paths` is a set with no ordering guarantee, so it is only a
+        // fallback for pipe versions deployed before `entry_path` existed.
+        entryPath: row.entry_path ?? row.sample_paths[0] ?? "",
         samplePaths: row.sample_paths,
       })),
     };
     return response;
   }
 );
+
+function toJourneyDailyPoints(
+  days: readonly string[],
+  counts: readonly (number | string)[]
+): GeoJourneyDailyPoint[] {
+  return days.map((day, index) => ({
+    day,
+    journeys: Number(counts[index] ?? 0),
+  }));
+}
+
+/** `maxIf` over no rows yields the epoch; treat it as "not seen". */
+function journeyLastSeen(value: string): string | null {
+  return value.startsWith(JOURNEY_EPOCH_PREFIX) ? null : value;
+}
+
+const JOURNEY_EPOCH_PREFIX = "1970-01-01";
+
+export const loadGeoJourneyStats = Effect.fn("geo.journeyStats")(function* (
+  input: GeoScopeInput,
+  window: GeoWindowInput
+) {
+  const scope = yield* resolveGeoScope(input);
+  const params = {
+    ...geoScopeParams(scope),
+    ...geoHiddenSourceParams(),
+    ...geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS),
+  };
+  const [sources, pages] = yield* Effect.all(
+    [
+      geoQuery("journey sources query failed", () =>
+        queryGeoJourneySources(params)
+      ),
+      geoQuery("journey pages query failed", () =>
+        queryGeoJourneyPages({ ...params, limit: GEO_JOURNEY_PAGES_LIMIT })
+      ),
+    ],
+    { concurrency: "unbounded" }
+  );
+  const pageRows = pages?.data ?? [];
+
+  const response: GeoJourneyStatsResponse = {
+    configured: isTinybirdConfigured(),
+    sources: (sources?.data ?? []).map((row) => ({
+      source: row.source,
+      visitorType: toGeoVisitorType(row.visitor_type),
+      journeys: Number(row.journeys),
+      previousJourneys: Number(row.previous_journeys),
+      pages: Number(row.pages),
+      singleFetch: Number(row.single_fetch),
+      deepCrawls: Number(row.deep_crawls),
+      lastSeenAt: journeyLastSeen(row.last_seen_at),
+      daily: toJourneyDailyPoints(row.days, row.daily_journeys),
+    })),
+    // Rows with no journeys in the window only ride along to carry the totals.
+    pages: pageRows
+      .filter((row) => Number(row.journeys) > 0)
+      .map((row) => ({
+        path: row.path,
+        journeys: Number(row.journeys),
+        previousJourneys: Number(row.previous_journeys),
+        entries: Number(row.entries),
+        lastSeenAt: journeyLastSeen(row.last_seen_at),
+        daily: toJourneyDailyPoints(row.days, row.daily_journeys),
+      })),
+    totalPages: Number(pageRows[0]?.total_paths ?? 0),
+    previousTotalPages: Number(pageRows[0]?.previous_total_paths ?? 0),
+  };
+  return response;
+});
 
 export const loadGeoJourneyDetail = Effect.fn("geo.journeyDetail")(function* (
   input: GeoScopeInput,

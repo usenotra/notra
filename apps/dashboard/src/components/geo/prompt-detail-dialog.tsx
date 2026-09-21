@@ -176,14 +176,14 @@ function PromptAnswerHeader({
           />
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <div>
-          <dt className="text-muted-foreground text-xs">Intent</dt>
-          <dd>{geoPromptIntentLabel(row.intent)}</dd>
+      <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+        <div className="flex items-center gap-1.5">
+          <dt className="text-muted-foreground">Intent</dt>
+          <dd className="font-medium">{geoPromptIntentLabel(row.intent)}</dd>
         </div>
-        <div>
-          <dt className="text-muted-foreground text-xs">Best position</dt>
-          <dd className="tabular-nums">
+        <div className="flex items-center gap-1.5">
+          <dt className="text-muted-foreground">Best position</dt>
+          <dd className="font-medium tabular-nums">
             {row.bestPosition === null ? "Not ranked" : `#${row.bestPosition}`}
           </dd>
         </div>

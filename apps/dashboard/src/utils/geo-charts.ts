@@ -697,6 +697,34 @@ export function withTrackedMentionEngines(
   return extras.length === 0 ? [...scanned] : [...scanned, ...extras];
 }
 
+/**
+ * Engine families the workspace currently scans. An empty tracked list means
+ * the workspace never narrowed its engines, so everything counts as tracked —
+ * filtering on it would blank the surface instead of trimming it.
+ */
+export function trackedEngineFamilies(
+  trackedEngines: readonly string[] = []
+): ReadonlySet<string> {
+  return new Set(trackedEngines.map((engine) => engineFamilyOf(engine)));
+}
+
+export function isTrackedFamily(
+  family: string,
+  tracked: ReadonlySet<string>
+): boolean {
+  return tracked.size === 0 || tracked.has(family);
+}
+
+/** Drops families the workspace stopped scanning, keeping their history out
+ * of a performance table where a frozen 0% reads as a bad result. */
+export function keepTrackedFamilies(
+  families: readonly GeoEngineFamily[],
+  trackedEngines: readonly string[] = []
+): GeoEngineFamily[] {
+  const tracked = trackedEngineFamilies(trackedEngines);
+  return families.filter((family) => isTrackedFamily(family.family, tracked));
+}
+
 function compareMentionProviderRows(
   left: MentionProviderRow,
   right: MentionProviderRow
@@ -720,16 +748,14 @@ export function buildMentionProviderRows(
     withTrackedMentionEngines(scanned, options?.trackedEngines)
   );
   const points = options?.timeseriesPoints ?? [];
-  const trackedFamilies = new Set(
-    (options?.trackedEngines ?? []).map((engine) => engineFamilyOf(engine))
-  );
+  const tracked = trackedEngineFamilies(options?.trackedEngines);
   return families
     .map((family) => ({
       family,
       totals: engineFamilyTotals(family) ?? EMPTY_FAMILY_TOTALS,
       visibilityDelta: engineFamilyStatTrends(points, family.family)
         .visibilityDelta,
-      tracked: trackedFamilies.size === 0 || trackedFamilies.has(family.family),
+      tracked: isTrackedFamily(family.family, tracked),
     }))
     .sort(compareMentionProviderRows);
 }

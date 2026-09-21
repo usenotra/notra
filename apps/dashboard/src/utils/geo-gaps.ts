@@ -84,7 +84,7 @@ export function gapVisibleOnLabel(
 ): string {
   const visible = gapMissingEngineFamilies(mentionedEngines).length;
   const total = visible + gapMissingEngineFamilies(missingEngines).length;
-  return `${visible} of ${total}`;
+  return `${visible}/${total}`;
 }
 
 export function gapMeterTone(level: number): GeoGapsMeterTone {

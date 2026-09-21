@@ -21,6 +21,15 @@ export interface SuggestionRowActionsProps {
   suggestion: GeoPromptSuggestion;
 }
 
+export interface SuggestionColumnsOptions {
+  acceptingSuggestionIds: ReadonlySet<string>;
+  dismissingSuggestionIds: ReadonlySet<string>;
+  /** Blocks every row while a scan or "Track all" is running. */
+  disabled: boolean;
+  onAccept: (suggestionId: string) => void;
+  onDismiss: (suggestion: GeoPromptSuggestion) => void;
+}
+
 export interface SearchConsoleToolbarProps {
   action?: ReactNode;
   organizationId: string;

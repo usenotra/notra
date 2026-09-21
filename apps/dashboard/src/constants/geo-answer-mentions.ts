@@ -16,4 +16,4 @@ export const GEO_ANSWER_MENTION_DOMAIN_LABEL = "Domain";
 export const GEO_ANSWER_MENTION_KIND_LABEL = "Type";
 export const GEO_ANSWER_MENTION_ALSO_KNOWN_AS = "Also known as";
 export const GEO_ANSWER_MENTION_MENTIONS_LABEL = "Mentions";
-export const GEO_ANSWER_MENTION_BEST_POSITION_LABEL = "Best position";
+export const GEO_ANSWER_MENTION_WITH_YOU_LABEL = "With your brand";

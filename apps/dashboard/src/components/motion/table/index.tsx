@@ -19,6 +19,7 @@ import {
 import type { HeaderCellRefs, TableProps } from "./types";
 import { useActiveColumn } from "./use-active-column";
 import { useActiveRow } from "./use-active-row";
+import { useCollapsibleColumns } from "./use-collapsible-columns";
 import { useColumnReorder } from "./use-column-reorder";
 import { useColumnResize } from "./use-column-resize";
 import { useColumnSort } from "./use-column-sort";
@@ -26,6 +27,7 @@ import { useRowSelection } from "./use-row-selection";
 import {
   CHECKBOX_WIDTH,
   DEFAULT_MIN_COLUMN_WIDTH,
+  mergeHiddenColumnKeys,
   pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
@@ -89,6 +91,22 @@ export function Table<T>({
     row,
     id: getRowId ? getRowId(row, index) : String(index),
   }));
+  const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
+    minColumnWidth,
+    extraFixedWidths: selectable ? [CHECKBOX_WIDTH] : [],
+    extraChromePx: reorderable ? REORDER_HANDLE_PX : 0,
+  });
+  // Reordering only sees the visible columns, so what a consumer persists has
+  // to be widened back to every column before it leaves the table.
+  const emitColumnOrder = onColumnOrderChange
+    ? (keys: string[]) =>
+        onColumnOrderChange(
+          mergeHiddenColumnKeys(
+            columns.map((column) => column.key),
+            keys
+          )
+        )
+    : undefined;
   const {
     orderedColumns,
     dragKey,
@@ -96,7 +114,11 @@ export function Table<T>({
     startReorder,
     moveReorder,
     endReorder,
-  } = useColumnReorder({ columns, thRefs, onColumnOrderChange });
+  } = useColumnReorder({
+    columns: visibleColumns,
+    thRefs,
+    onColumnOrderChange: emitColumnOrder,
+  });
   const { sort, sortedRows, toggleSort } = useColumnSort({
     rows,
     columns,
@@ -187,6 +209,7 @@ export function Table<T>({
     <div
       aria-busy={loading}
       className={cn("w-full min-w-0 text-sm", className)}
+      ref={containerRef}
     >
       {/* Overlap hides the header's side border in the body radius. */}
       <TableHeaderSurface

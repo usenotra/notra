@@ -797,7 +797,7 @@ function ChatComposerModelPicker({
   setIsModelPickerOpen: (open: boolean) => void;
 }) {
   return (
-    <Popover modal onOpenChange={setIsModelPickerOpen} open={isModelPickerOpen}>
+    <Popover onOpenChange={setIsModelPickerOpen} open={isModelPickerOpen}>
       <PopoverTrigger
         render={<Composer.ToolbarButton disabled={isLoading || isQueued} />}
       >
@@ -805,12 +805,7 @@ function ChatComposerModelPicker({
         {currentModel.label}
         <HugeiconsIcon className="size-3" icon={ArrowDown01Icon} />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-72 p-0"
-        showBackdrop
-        sideOffset={6}
-      >
+      <PopoverContent align="start" className="w-72 p-0" sideOffset={6}>
         <Command>
           <CommandInput placeholder="Search models..." />
           <CommandList>
@@ -963,7 +958,6 @@ function ChatComposerContextPicker({
         }
       >
         <Popover
-          modal
           onOpenChange={setIsContextPickerOpen}
           open={isContextPickerOpen}
         >
@@ -986,7 +980,6 @@ function ChatComposerContextPicker({
             align="start"
             className="w-80 p-0"
             id={contextPickerId}
-            showBackdrop
             sideOffset={6}
           >
             <Command>

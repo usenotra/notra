@@ -22,6 +22,8 @@ export interface GeoGapsWriteCellProps {
   rescanDisabled?: boolean;
   onIgnore?: () => void;
   isIgnoring?: boolean;
+  /** Render Ignore as an icon button so the table's action column stays narrow. */
+  compact?: boolean;
 }
 
 export type GeoGapsTab = "prompt" | "search";

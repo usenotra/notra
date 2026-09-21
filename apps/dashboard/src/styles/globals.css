@@ -20,6 +20,9 @@
   html,
   body {
     scrollbar-gutter: stable;
+    /* The dashboard is a fixed-height app shell; overlays and portals must
+       never make the document itself scroll sideways under the fixed sidebar. */
+    overflow-x: clip;
   }
 }
 
@@ -58,13 +61,14 @@
     margin-left: auto;
     margin-right: auto;
   }
+
   .page-container {
     max-width: 96rem;
   }
 
   /* Relaxed variant - balanced for readability */
   .page-container-relaxed {
-    max-width: min(calc(40rem + 100cqw * 5 / 12), 80rem);
+    max-width: min(calc(40rem + 41.667cqw), 80rem);
   }
 
   /* Compact variant - focused for forms/settings */

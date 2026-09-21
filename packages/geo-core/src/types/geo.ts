@@ -859,6 +859,27 @@ export interface GeoWebsiteDiscovery {
   audienceType: GeoAudienceType;
   competitors: GeoCompetitorSeed[];
   prompts: GeoDiscoveredPrompt[];
+  conversations: GeoGeneratedConversation[];
+}
+
+export interface GeoGeneratedConversation {
+  name: string;
+  steps: string[];
+}
+
+export interface GeoConversationGenerationContext {
+  companyName: string;
+  companyDescription: string | null;
+  audience: string | null;
+  language: string | null;
+  competitors: string[];
+  prompts: string[];
+  existingNames: string[];
+  count: number;
+}
+
+export interface GeoSequencesGenerateResponse {
+  sequences: GeoPromptSequence[];
 }
 
 export interface GeoGenerateFromWebsiteResult {
@@ -866,6 +887,7 @@ export interface GeoGenerateFromWebsiteResult {
   aliases: string[];
   competitors: string[];
   promptsAdded: number;
+  conversationsAdded: number;
 }
 
 export interface GeoDiscoverWebsiteResult {
@@ -1038,12 +1060,52 @@ export interface GeoJourney {
   distinctPaths: number;
   firstSeenAt: string;
   lastSeenAt: string;
+  /** First page fetched in the journey; `samplePaths` has no ordering. */
+  entryPath: string;
   samplePaths: string[];
 }
 
 export interface GeoTrafficJourneysResponse {
   configured: boolean;
   journeys: GeoJourney[];
+}
+
+export interface GeoJourneyDailyPoint {
+  day: string;
+  journeys: number;
+}
+
+/** Exact journey counts for one source; journeys count toward the window they started in. */
+export interface GeoJourneySourceStats {
+  source: string;
+  visitorType: GeoVisitorType;
+  journeys: number;
+  previousJourneys: number;
+  pages: number;
+  singleFetch: number;
+  deepCrawls: number;
+  lastSeenAt: string | null;
+  /** Days with at least one journey in the current window, oldest first. */
+  daily: GeoJourneyDailyPoint[];
+}
+
+export interface GeoJourneyPageStats {
+  path: string;
+  journeys: number;
+  previousJourneys: number;
+  /** Journeys whose first fetch was this page. */
+  entries: number;
+  lastSeenAt: string | null;
+  daily: GeoJourneyDailyPoint[];
+}
+
+export interface GeoJourneyStatsResponse {
+  configured: boolean;
+  sources: GeoJourneySourceStats[];
+  pages: GeoJourneyPageStats[];
+  /** Distinct pages in the window; can exceed `pages.length`. */
+  totalPages: number;
+  previousTotalPages: number;
 }
 
 export interface GeoJourneyEvent {
@@ -1505,11 +1567,13 @@ export interface GeoCompetitorPromptRow {
   position: number | null;
 }
 
+/** Rows are the latest answer per prompt and engine that named the competitor. */
 export interface GeoCompetitorPromptSummary {
-  mentioned: number;
-  total: number;
-  bestPosition: number | null;
+  answers: number;
+  prompts: number;
   engines: number;
+  /** Answers that also mentioned your own brand. */
+  ownMentioned: number;
 }
 
 export interface GeoCompetitorDetailResponse {

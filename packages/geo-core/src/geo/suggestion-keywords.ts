@@ -9,6 +9,15 @@ import type { GeoSuggestionKeyword } from "../types/geo";
 const MIN_BRAND_TERM_LENGTH = 3;
 const REGEXP_ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
 const BRAND_TOKEN_SEPARATOR = "[-_\\s]+";
+/*
+ * `\b` counts only [A-Za-z0-9_] as word characters, so a brand that starts or
+ * ends on a non-ASCII letter never gets a boundary there and survives the
+ * strip — "Nestlé" and "ブランド" did, while "Müller" happened to work because
+ * its umlaut sits between two ASCII letters. Same class the answer mention
+ * matcher uses; marks are included so a stray combining mark cannot split a
+ * letter from its accent.
+ */
+const BRAND_WORD_CHAR = "[\\p{L}\\p{N}\\p{M}_]";
 
 function escapeRegExp(value: string): string {
   return value.replace(REGEXP_ESCAPE_REGEX, "\\$&");
@@ -19,7 +28,10 @@ export function normalizeSuggestionKey(value: string): string {
 }
 
 function normalizeForBrandMatch(value: string): string {
-  return normalizeSuggestionKey(value)
+  // NFC so an accent written as a combining mark folds back into its letter;
+  // the punctuation pass below would otherwise strip the bare mark and make
+  // decomposed "Nestlé" stop matching the composed alias.
+  return normalizeSuggestionKey(value.normalize("NFC"))
     .replace(/[-_]+/g, " ")
     .replace(/[^\p{L}\p{N}\s]+/gu, " ")
     .replace(/\s+/g, " ")
@@ -38,7 +50,7 @@ export function promptMentionsBrand(
 }
 
 export function stripBrandTerms(text: string, brandTerms: string[]): string {
-  let result = text;
+  let result = text.normalize("NFC");
   const sorted = [...brandTerms].sort(
     (left, right) => right.length - left.length
   );
@@ -52,7 +64,10 @@ export function stripBrandTerms(text: string, brandTerms: string[]): string {
       continue;
     }
     result = result.replace(
-      new RegExp(`\\b${parts.join(BRAND_TOKEN_SEPARATOR)}\\b`, "gi"),
+      new RegExp(
+        `(?<!${BRAND_WORD_CHAR})${parts.join(BRAND_TOKEN_SEPARATOR)}(?!${BRAND_WORD_CHAR})`,
+        "giu"
+      ),
       " "
     );
   }

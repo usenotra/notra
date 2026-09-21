@@ -171,10 +171,10 @@ function JourneysTable() {
       width: "1.2fr",
       cell: (row) => (
         <span className="block w-full min-w-0 truncate font-mono text-xs">
-          {row.samplePaths[0] ?? ""}
+          {row.entryPath}
         </span>
       ),
-      sortValue: (row) => row.samplePaths[0] ?? "",
+      sortValue: (row) => row.entryPath,
     },
   ];
 

@@ -118,7 +118,7 @@ export function AgentFeedbackDetailDialog({
                     >
                       <AgentFeedbackStatusBadge status={item.status} />
                     </SelectTrigger>
-                    <SelectContent align="end">
+                    <SelectContent align="end" alignItemWithTrigger={false}>
                       {AGENT_FEEDBACK_STATUSES.map((status) => (
                         <SelectItem key={status} value={status}>
                           <AgentFeedbackStatusBadge status={status} />

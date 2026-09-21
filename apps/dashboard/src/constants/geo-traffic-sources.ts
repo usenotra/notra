@@ -1,5 +1,4 @@
 import {
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
   GEO_TRAFFIC_TREND_CITED_LABEL,
   GEO_TRAFFIC_TREND_CRAWLER_LABEL,
   GEO_TRAFFIC_TREND_REFERRAL_LABEL,
@@ -20,6 +19,12 @@ export const TRAFFIC_SOURCE_BAND_LABELS: Record<GeoTrafficSourceBand, string> =
     ai_referral: GEO_TRAFFIC_TREND_REFERRAL_LABEL,
   };
 
+export const TRAFFIC_SOURCE_BAND_BADGE: Record<GeoTrafficSourceBand, string> = {
+  crawler: "Crawler",
+  cited: "Cited in answers",
+  ai_referral: "AI referral",
+};
+
 export const TRAFFIC_SOURCE_BAND_NOUN: Record<GeoTrafficSourceBand, string> = {
   crawler: "bot",
   cited: "source",
@@ -38,11 +43,6 @@ export const TRAFFIC_SOURCE_STACK_Z_INDEX: Record<
 export const TRAFFIC_SOURCE_STACK_OVERLAP_PX = 20;
 export const TRAFFIC_SOURCE_COLLAPSED_BORDER_PX = 2;
 
-export const TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS = new Set([
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
-  "lastSeenAt",
-]);
-
 /** Floors so band titles ("Crawlers") and source names cannot crush to "Cri". */
 export const TRAFFIC_SOURCE_COLUMN_MIN_WIDTH = {
   source: "16rem",
@@ -50,8 +50,6 @@ export const TRAFFIC_SOURCE_COLUMN_MIN_WIDTH = {
   categoryMobile: "8rem",
   visits: "10.5rem",
   visitsMobile: "7.5rem",
-  markdown: "8.5rem",
-  paths: "5.625rem",
-  pathsMobile: "4.5rem",
-  lastSeenAt: "9.375rem",
+  paths: "6rem",
+  lastSeenAt: "9rem",
 } as const;

@@ -6,6 +6,10 @@ import {
 } from "@notra/ui/components/ui/hover-card";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import {
+  HOVER_CARD_CLOSE_DELAY_MS,
+  HOVER_CARD_DELAY_MS,
+} from "@notra/ui/constants/hover-card";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
 import {
   forwardRef,
@@ -18,10 +22,6 @@ import {
 } from "react";
 
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
-import {
-  GEO_TRAFFIC_HOVER_CLOSE_DELAY_MS,
-  GEO_TRAFFIC_HOVER_DELAY_MS,
-} from "@/constants/geo-traffic-hover";
 import { cn } from "@/lib/utils";
 import type { PromptKeywordTextareaProps } from "@/types/geo";
 import { findPromptKeywordSegments } from "@/utils/geo-prompt-keywords";
@@ -91,7 +91,7 @@ export const PromptKeywordTextarea = forwardRef<
     closeTimerRef.current = window.setTimeout(() => {
       closeTimerRef.current = null;
       setHoveredIndex(null);
-    }, GEO_TRAFFIC_HOVER_CLOSE_DELAY_MS);
+    }, HOVER_CARD_CLOSE_DELAY_MS);
   }
 
   function schedulePointerHover(index: number | null) {
@@ -113,7 +113,7 @@ export const PromptKeywordTextarea = forwardRef<
         hoverTimerRef.current = null;
         setHoveredIndex(index);
       }
-    }, GEO_TRAFFIC_HOVER_DELAY_MS);
+    }, HOVER_CARD_DELAY_MS);
   }
 
   function syncOverlayScroll(textarea: HTMLTextAreaElement) {
@@ -237,7 +237,6 @@ export const PromptKeywordTextarea = forwardRef<
                 >
                   <HoverCardTrigger
                     closeDelay={0}
-                    delay={GEO_TRAFFIC_HOVER_DELAY_MS}
                     id={triggerId}
                     onBlur={() => {
                       setFocusedIndex((current) =>

@@ -45,7 +45,6 @@ import {
   InstrumentEmpty,
   InstrumentModule,
 } from "@/components/instrument/instrument-module";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoModelCatalog,
@@ -129,10 +128,7 @@ function ProviderRow({
 
   return (
     <HoverCard>
-      <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
-        render={<button {...buttonProps} />}
-      >
+      <HoverCardTrigger render={<button {...buttonProps} />}>
         {content}
       </HoverCardTrigger>
       <TrafficBreakdownCard

@@ -101,7 +101,7 @@ export const GEO_GAPS_COMPETITOR_DETAIL = {
 } as const;
 export const GEO_GAPS_EMPTY_CELL = {
   competitors: "None mentioned",
-  visibleOn: "Not visible on any engine",
+  visibleOn: "Not mentioned on any engine yet",
   impressions: "No query data",
 } as const;
 export const GEO_GAPS_METER_TONE_CLASS = {
@@ -111,6 +111,7 @@ export const GEO_GAPS_METER_TONE_CLASS = {
   high: "bg-geo-up",
 } as const;
 export const GEO_GAPS_LOGO_STACK_LIMIT = 4;
+export const GEO_GAPS_TABLE_LOGO_LIMIT = 3;
 export const GEO_GAPS_WRITE_LABELS = {
   write: "Write",
   review: "Review",
@@ -398,7 +399,7 @@ export const GEO_COMPETITOR_SHARE_LIMIT = 50;
 export const GEO_PROMPT_HISTORY_LIMIT = 120;
 export const GEO_PROMPT_HISTORY_SKELETON_ROWS = 4;
 export const GEO_PROMPT_HISTORY_PREVIEW_ROWS = 8;
-/** Named brands shown in the scan-history "Newly recommended" cell before +N. */
+/** Named brands shown in the scan-history "New brands" cell before +N. */
 export const GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE = 3;
 export const GEO_PROMPT_HISTORY_EMPTY_POSITION = "\u2013";
 export const GEO_PROMPT_HISTORY_EMPTY_COMPETITORS = "\u2013";
@@ -407,7 +408,8 @@ export const GEO_PROMPT_HISTORY_COLUMN_LABELS = {
   outcome: "Outcome",
   position: "Position",
   changes: "What changed",
-  newCompetitors: "Newly recommended",
+  /** Short on purpose: "Newly recommended" alone pushed the table past the sheet. */
+  newCompetitors: "New brands",
 } as const;
 export const GEO_PROMPT_HISTORY_SHOW_ALL_LABEL = "Show all";
 export const GEO_PROMPT_HISTORY_SHOW_LESS_LABEL = "Show latest";
@@ -418,6 +420,13 @@ export const GEO_PROMPT_RECEIPT_VIEW_LABELS = {
 export const GEO_PROMPT_RECEIPT_VIEW_GROUP_LABEL = "Receipt view";
 export const GEO_PROMPT_ANSWER_COPY_LABEL = "Copy answer";
 export const GEO_PROMPT_ANSWER_COPIED_MESSAGE = "Answer copied";
+/** Copy-to-clipboard states for the prompt shown in the answer sheet header. */
+export const GEO_PROMPT_COPY_LABELS = {
+  action: "Copy prompt",
+  copied: "Copied",
+  failed: "Failed to copy to clipboard",
+  unsupported: "Clipboard not supported",
+} as const;
 export const GEO_PROMPT_RECEIPT_LABELS = {
   mentioned: "Mentioned",
   cited: "Owned source cited",
@@ -457,6 +466,15 @@ export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
 export const GEO_SEQUENCE_MAX_TURNS = 5;
+/** Conversations generated at setup or on demand; small on purpose, every turn is a check per engine in each scan. */
+export const GEO_GENERATED_CONVERSATIONS_MAX = 3;
+/** Website setup asks for fewer than the on-demand maximum: the brand is still unverified at that point. */
+export const GEO_DISCOVERY_CONVERSATIONS = 2;
+export const GEO_GENERATED_CONVERSATION_MIN_TURNS = 3;
+export const GEO_GENERATED_CONVERSATION_MAX_TURNS = 4;
+export const GEO_GENERATED_CONVERSATION_NAME_MAX_LENGTH = 48;
+export const GEO_CONVERSATION_GENERATION_MAX_TOKENS = 2000;
+export const GEO_CONVERSATION_CONTEXT_PROMPT_LIMIT = 12;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
@@ -566,7 +584,7 @@ export const GEO_PROMPT_INTENT_LABELS: Record<GeoPromptIntent, string> = {
 };
 export const GEO_GAP_TITLE_MAX_LENGTH = 160;
 export const GEO_DISCOVERY_MODEL = "anthropic/claude-sonnet-4.6";
-export const GEO_DISCOVERY_MAX_TOKENS = 4000;
+export const GEO_DISCOVERY_MAX_TOKENS = 5000;
 export const GEO_DISCOVERY_MAX_ALIASES = 6;
 export const GEO_DISCOVERY_MIN_COMPETITORS = 5;
 export const GEO_DISCOVERY_MAX_COMPETITORS = 10;
@@ -603,7 +621,6 @@ export const AI_TRAFFIC_DEFAULT_PAGES_LIMIT = 20;
 export const AI_TRAFFIC_PAGES_FETCH_LIMIT = 500;
 export const AI_TRAFFIC_LOG_FETCH_LIMIT = 200;
 export const GEO_TRAFFIC_SOURCES_PAGE_PARAM = "sourcesPage";
-export const GEO_TRAFFIC_MARKDOWN_COLUMN_KEY = "markdownVisits";
 export const GEO_TRAFFIC_PAGES_PAGE_PARAM = "topPagesPage";
 export const GEO_TRAFFIC_PAGES_PATH_PARAM = "pagePath";
 export const GEO_TRAFFIC_LOG_PAGE_PARAM = "logPage";
@@ -611,7 +628,7 @@ export const GEO_TRAFFIC_HOST_PARAM = "host";
 export const GEO_TRAFFIC_HOST_ALL = "all";
 export const GEO_CITATIONS_ROW_HEIGHT = 40;
 export const GEO_PURPOSE_COLUMN_WIDTH = "12.5rem";
-export const GEO_CITATIONS_LIVE_INTERVAL_MS = 5000;
+export const GEO_TRAFFIC_LIVE_INTERVAL_MS = 30_000;
 export const GEO_INGEST_PATH = "/api/geo/ingest";
 export const GEO_INGEST_SNIPPET_FALLBACK =
   "// Set GEO_INGEST_SECRET to generate your install snippet";
@@ -705,6 +722,10 @@ export const GEO_JOURNEY_IPV4_OCTETS = 3;
 export const GEO_JOURNEY_IPV6_GROUPS = 4;
 export const GEO_JOURNEY_CHIP_LENGTH = 6;
 export const GEO_JOURNEY_DETAIL_LIMIT = 200;
+/** Pages returned by the journey stats query, busiest first. */
+export const GEO_JOURNEY_PAGES_LIMIT = 500;
+/** Newest journeys loaded for drill-down lists; totals come from journey stats. */
+export const GEO_JOURNEY_RECENT_LIMIT = 100;
 
 export const GEO_AI_REFERRER_HOSTS: Record<string, string> = {
   "chatgpt.com": "chatgpt",
@@ -782,6 +803,20 @@ export const GEO_SOURCE_LABELS: Record<string, string> = {
   cline: "Cline",
   manus: "Manus",
   zai: "Z.ai",
+};
+
+/** Display names for bots whose user-agent token is lowercase. */
+export const GEO_AGENT_LABELS: Record<string, string> = {
+  "meta-externalagent": "Meta-ExternalAgent",
+  "meta-externalfetcher": "Meta-ExternalFetcher",
+  "meta-webindexer": "Meta-WebIndexer",
+  "meta-externalads": "Meta-ExternalAds",
+  "anthropic-ai": "Anthropic-AI",
+  "claude-web": "Claude-Web",
+  "cohere-ai": "Cohere-AI",
+  "cohere-training-data-crawler": "Cohere Training Crawler",
+  "kagi-fetcher": "Kagi-Fetcher",
+  omgili: "Omgili",
 };
 
 export const GEO_NON_AI_BOT_PATTERNS: readonly string[] = [
@@ -926,8 +961,6 @@ export const GEO_TRAFFIC_FUNNEL_STAGES: readonly GeoTrafficFunnelStage[] = [
 ];
 export const GEO_TRAFFIC_CONVERSIONS_NOT_CONFIGURED_LABEL = "Not configured";
 export const GEO_TRAFFIC_CONVERSIONS_SETUP_LABEL = "Set conversion paths";
-export const GEO_TRAFFIC_CITATIONS_ONLY_LABEL = "Citations only";
-
 export const GEO_TRAFFIC_LOG_VISITOR_OPTIONS: readonly GeoTrafficLogVisitorOption[] =
   [
     { value: "crawler", label: "AI crawler" },
@@ -1009,7 +1042,6 @@ export const GEO_JOURNEY_SEARCH_PREFIXES = [
 ] as const;
 
 export const GEO_JOURNEY_OVERVIEW_ROWS = 5;
-export const GEO_JOURNEY_TRAIL_TABLE_LIMIT = 4;
 export const GEO_JOURNEY_PATH_LABEL_MAX = 28;
 
 export const AI_TRAFFIC_CONFIDENCE_LABELS: Record<string, string> = {
@@ -1058,6 +1090,20 @@ export const GEO_LANGUAGE_PERFORMANCE_HINT =
   "The same prompts run in each tracked language. Visibility includes brand mentions and citations from owned sources.";
 export const GEO_ENGINE_PERFORMANCE_HINT =
   "How often each engine mentioned your brand or cited an owned source in this range. Manage engines in GEO settings.";
+/*
+ * Visible counts `mentioned OR ownedSourceCited`, Citations counts
+ * `ownedSourceCited` alone, so Citations is a subset of Visible and the two
+ * never add up. Spell that out: side by side the numbers read as rival totals.
+ */
+export const GEO_ENGINE_COLUMN_HINTS = {
+  visible:
+    "Answers where you showed up at all — your brand was named, one of your pages was cited as a source, or both. Citations are counted inside this number, not next to it.",
+  citations:
+    "Answers that cited one of your own pages as a source, whether or not the brand itself was named. Always a subset of Visible.",
+  rate: "Visible answers divided by every answer checked on this engine.",
+  avgPosition:
+    "Average rank of your brand across the answers that named it. Answers that only cited you carry no rank and are left out.",
+} as const;
 export const GEO_PROMPT_AUTO_MANAGED_LABEL = "Managed automatically";
 export const GEO_PROMPT_AUTO_MANAGED_HINT =
   "Generated from your site. Pause it to skip it in scans, or remove it if you do not want it tracked.";
@@ -1237,8 +1283,14 @@ export const GEO_CHANGES_COLUMN_LABELS = {
   engine: "Engine",
   prompt: "Prompt",
   position: "Position",
-  detail: "Details",
+  /*
+   * Only "Displaced by competitor" and "Competitor cited" rows fill this, and
+   * they always fill it with brands. "Details" said nothing about that.
+   */
+  detail: "Competitors",
 } as const;
+/** One named brand fits the column; the rest collapse into a "+N" tooltip. */
+export const GEO_CHANGES_COMPETITOR_STACK_LIMIT = 1;
 export const GEO_CHANGES_STATE_NEW = "New";
 export const GEO_CHANGES_STATE_NOT_MENTIONED = "Not mentioned";
 export const GEO_CHANGES_STATE_MENTIONED = "Mentioned";

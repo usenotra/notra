@@ -12,7 +12,6 @@ import { PurposeBadge } from "@/components/geo/purpose-badge";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import type { TrafficPurposeCellProps } from "@/types/geo";
 import {
   hasTrafficGroupBreakdown,
@@ -39,7 +38,6 @@ export function TrafficPurposeCell({ group }: TrafficPurposeCellProps) {
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
             aria-label={`${group.label} purposes: ${purposeLabels}, show breakdown`}

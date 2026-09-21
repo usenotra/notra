@@ -1,6 +1,10 @@
 "use client";
 
-import { RefreshIcon, SearchIcon } from "@hugeicons/core-free-icons";
+import {
+  RefreshIcon,
+  SearchIcon,
+  ViewOffSlashIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_COMPETITOR_KIND_DETAIL,
@@ -11,6 +15,7 @@ import {
   GEO_GAPS_METER_STEPS,
   GEO_GAPS_METER_TONE_CLASS,
   GEO_GAPS_TABLE_HEIGHT,
+  GEO_GAPS_TABLE_LOGO_LIMIT,
   GEO_GAPS_WON_DETAIL,
   GEO_GAPS_WON_LABEL,
   GEO_PROMPT_GAP_IGNORE_LABEL,
@@ -177,10 +182,37 @@ function WriteCell({
   rescanDisabled = false,
   onIgnore,
   isIgnoring = false,
+  compact = false,
 }: GeoGapsWriteCellProps) {
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      {onIgnore ? (
+      {onIgnore && compact ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={GEO_PROMPT_GAP_IGNORE_LABEL}
+                className="text-muted-foreground"
+                disabled={isIgnoring}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onIgnore();
+                }}
+                size="icon-sm"
+                variant="ghost"
+              />
+            }
+          >
+            {isIgnoring ? (
+              <StatusSpinner />
+            ) : (
+              <HugeiconsIcon icon={ViewOffSlashIcon} size={15} />
+            )}
+          </TooltipTrigger>
+          <TooltipContent>{GEO_PROMPT_GAP_IGNORE_LABEL}</TooltipContent>
+        </Tooltip>
+      ) : null}
+      {onIgnore && !compact ? (
         <Button
           disabled={isIgnoring}
           onClick={(event) => {
@@ -422,15 +454,12 @@ function OpportunityCell({ row, maxOpportunity }: GeoGapOpportunityCellProps) {
 function ContentCell({ title, subtitle }: GeoGapContentCellProps) {
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
-      <span
-        className="line-clamp-2 text-sm leading-snug font-medium"
-        title={title}
-      >
+      <span className="truncate text-sm leading-snug font-medium" title={title}>
         {title}
       </span>
       {subtitle ? (
         <span
-          className="text-muted-foreground line-clamp-2 text-xs"
+          className="text-muted-foreground truncate text-xs"
           title={subtitle}
         >
           {subtitle}
@@ -451,13 +480,24 @@ function VisibleOnCell({
       <Tooltip>
         <TooltipTrigger
           render={
-            <span className="text-muted-foreground cursor-default text-xs" />
+            <span className="text-muted-foreground inline-flex cursor-default items-center gap-2" />
           }
         >
-          {GEO_GAPS_EMPTY_CELL.visibleOn}
+          <span className="text-xs tabular-nums">
+            {gapVisibleOnLabel(mentionedEngines, missingEngines)}
+          </span>
+          <span aria-hidden="true" className="inline-flex items-center gap-1">
+            {Array.from({ length: GEO_GAPS_TABLE_LOGO_LIMIT }, (_, index) => (
+              <span
+                className="border-muted-foreground/40 size-4 rounded-full border border-dashed"
+                key={index}
+              />
+            ))}
+          </span>
+          <span className="sr-only">{GEO_GAPS_EMPTY_CELL.visibleOn}</span>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
-          Missing on{" "}
+          {GEO_GAPS_EMPTY_CELL.visibleOn}. Missing on{" "}
           {missing.map((family) => engineFamilyLabel(family)).join(", ")}
         </TooltipContent>
       </Tooltip>
@@ -469,6 +509,7 @@ function VisibleOnCell({
         {gapVisibleOnLabel(mentionedEngines, missingEngines)}
       </span>
       <LogoStack
+        limit={GEO_GAPS_TABLE_LOGO_LIMIT}
         items={visible.map((family) => ({
           key: family,
           label: engineFamilyLabel(family),
@@ -699,6 +740,7 @@ function BrandMentionsCell({
   return (
     <LogoStack
       emptyLabel={GEO_GAPS_EMPTY_CELL.competitors}
+      limit={GEO_GAPS_TABLE_LOGO_LIMIT}
       items={[...trackedItems, ...discoveredItems]}
     />
   );
@@ -771,6 +813,7 @@ export function GeoGapsTable({
     return (
       <WriteCell
         action={action}
+        compact={!inSheet}
         isIgnoring={ignoringPromptId === row.id}
         onIgnore={
           action === "write"
@@ -806,6 +849,7 @@ export function GeoGapsTable({
       key: "prompt",
       header: "Prompt",
       width: "1fr",
+      minWidth: "12rem",
       cell: (row) => {
         const headline = row.brief?.workingTitle ?? row.title;
         return <ContentCell subtitle={null} title={headline ?? row.prompt} />;
@@ -816,7 +860,7 @@ export function GeoGapsTable({
     {
       key: "opportunity",
       header: "Opportunity",
-      width: "8.5rem",
+      width: "9rem",
       cell: (row) => (
         <OpportunityCell maxOpportunity={maxOpportunity} row={row} />
       ),
@@ -825,8 +869,9 @@ export function GeoGapsTable({
     },
     {
       key: "engines",
+      collapsePriority: 1,
       header: "Visible on",
-      width: "11rem",
+      width: "9.5rem",
       cell: (row) => (
         <VisibleOnCell
           mentionedEngines={row.mentionedEngines}
@@ -838,8 +883,9 @@ export function GeoGapsTable({
     },
     {
       key: "competitors",
-      header: "Brands mentioned instead",
-      width: "11rem",
+      collapsePriority: 2,
+      header: "Competitors",
+      width: "9.5rem",
       cell: (row) => (
         <BrandMentionsCell
           competitors={competitors}
@@ -855,8 +901,8 @@ export function GeoGapsTable({
       key: "write",
       header: "",
       align: "right",
-      width: "12.5rem",
-      minWidth: "12.5rem",
+      width: "9.5rem",
+      minWidth: "9.5rem",
       cell: (row) => (
         <span className="inline-flex items-center gap-1">
           {renderPromptActions(row)}
