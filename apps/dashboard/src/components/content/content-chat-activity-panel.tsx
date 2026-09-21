@@ -48,6 +48,8 @@ import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import type {
   ContentChatActivityMessageProps,
   ContentChatActivityPanelProps,
+  ContentChatActivityHeaderProps,
+  ContentChatHistoryItemsProps,
 } from "@/types/components/content-chat-activity-panel";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
@@ -178,28 +180,210 @@ function ContentChatActivityMessage({
   );
 }
 
-export function ContentChatActivityPanel({
-  children,
-  messages,
+function ContentChatHistoryItems({
   sessions,
   activeChatId,
   isHistoryLoading,
   status,
-  organizationSlug,
+  onSelectChat,
+}: ContentChatHistoryItemsProps) {
+  if (isHistoryLoading) {
+    return (
+      <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+        Loading chats...
+      </p>
+    );
+  }
+  if (sessions.length === 0) {
+    return (
+      <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+        No previous chats
+      </p>
+    );
+  }
+  const isAgentBusy = status === "streaming" || status === "submitted";
+  return getContentChatHistoryGroups(sessions).map((group, groupIndex) => (
+    <Fragment key={group.label}>
+      {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+        {group.sessions.map((session) => (
+          <DropdownMenuItem
+            className="data-[active=true]:bg-accent/70"
+            data-active={activeChatId === session.chatId}
+            disabled={isAgentBusy}
+            key={session.chatId}
+            onClick={() => onSelectChat(session.chatId)}
+            title={session.title}
+          >
+            <span className="min-w-0 flex-1 truncate">{session.title}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuGroup>
+    </Fragment>
+  ));
+}
+
+function ContentChatActivityHeader({
+  sessions,
+  activeChatId,
+  isHistoryLoading,
+  status,
   onNewChat,
   onSelectChat,
   onClose,
   onOpenChat,
   showHistory = true,
-  onApproveTool,
-  onDenyTool,
   title = "Content Agent",
-}: ContentChatActivityPanelProps) {
+}: ContentChatActivityHeaderProps) {
   const { expanded, toggleExpanded } = useRightPanel();
   const opensInChat = Boolean(onOpenChat);
-  const historyGroups = showHistory
-    ? getContentChatHistoryGroups(sessions)
-    : [];
+  const isAgentBusy = status === "streaming" || status === "submitted";
+  return (
+    <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
+      <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
+        {title}
+      </h2>
+      <div className="-mr-1.5 flex h-full items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                disabled={isAgentBusy}
+                onClick={onNewChat}
+                size="icon-sm"
+                variant="ghost"
+              />
+            }
+          >
+            <span className="sr-only">Start a new chat</span>
+            <HugeiconsIcon
+              className="size-4"
+              icon={PlusSignIcon}
+              strokeWidth={1.8}
+            />
+          </TooltipTrigger>
+          <TooltipContent>New chat</TooltipContent>
+        </Tooltip>
+        {showHistory ? (
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <DropdownMenuTrigger
+                    className="inline-flex"
+                    disabled={isAgentBusy}
+                    render={<Button size="icon-sm" variant="ghost" />}
+                  />
+                }
+              >
+                <span className="sr-only">Open chat history</span>
+                <HugeiconsIcon
+                  className="size-4"
+                  icon={Clock01Icon}
+                  strokeWidth={1.8}
+                />
+              </TooltipTrigger>
+              <TooltipContent>Chat history</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent
+              align="end"
+              className="max-h-72 w-52"
+              sideOffset={6}
+            >
+              <ContentChatHistoryItems
+                sessions={sessions}
+                activeChatId={activeChatId}
+                isHistoryLoading={isHistoryLoading}
+                status={status}
+                onSelectChat={onSelectChat}
+              />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="gap-2"
+                disabled={isAgentBusy}
+                onClick={onNewChat}
+              >
+                <HugeiconsIcon
+                  className="size-4 shrink-0"
+                  icon={PlusSignIcon}
+                  strokeWidth={1.8}
+                />
+                <span>New chat</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-pressed={opensInChat ? undefined : expanded}
+                className="cursor-pointer"
+                onClick={onOpenChat ?? toggleExpanded}
+                size="icon-sm"
+                variant="ghost"
+              />
+            }
+          >
+            <span className="sr-only">
+              {opensInChat
+                ? "Open in Chat"
+                : expanded
+                  ? `Exit fullscreen ${title}`
+                  : `Open ${title} fullscreen`}
+            </span>
+            <HugeiconsIcon
+              className="size-4"
+              icon={
+                opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+              }
+              strokeWidth={1.8}
+            />
+          </TooltipTrigger>
+          <TooltipContent>
+            {opensInChat
+              ? "Open in Chat"
+              : expanded
+                ? "Exit fullscreen"
+                : "Expand agent"}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                className="cursor-pointer"
+                onClick={onClose}
+                size="icon-sm"
+                variant="ghost"
+              />
+            }
+          >
+            <span className="sr-only">Close {title}</span>
+            <HugeiconsIcon
+              className="size-4"
+              icon={Cancel01Icon}
+              strokeWidth={1.8}
+            />
+          </TooltipTrigger>
+          <TooltipContent>Close {title}</TooltipContent>
+        </Tooltip>
+      </div>
+    </header>
+  );
+}
+
+export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
+  const {
+    children,
+    messages,
+    status,
+    activeChatId,
+    organizationSlug,
+    onApproveTool,
+    onDenyTool,
+  } = props;
   const isAgentBusy = status === "streaming" || status === "submitted";
   const lastMessage = messages.at(-1);
   const lastAssistantHasNoVisibleContent =
@@ -223,164 +407,7 @@ export function ContentChatActivityPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
-        <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
-          {title}
-        </h2>
-        <div className="-mr-1.5 flex h-full items-center gap-0.5">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  disabled={isAgentBusy}
-                  onClick={onNewChat}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-              }
-            >
-              <span className="sr-only">Start a new chat</span>
-              <HugeiconsIcon
-                className="size-4"
-                icon={PlusSignIcon}
-                strokeWidth={1.8}
-              />
-            </TooltipTrigger>
-            <TooltipContent>New chat</TooltipContent>
-          </Tooltip>
-          {showHistory ? (
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <DropdownMenuTrigger
-                      className="inline-flex"
-                      disabled={isAgentBusy}
-                      render={<Button size="icon-sm" variant="ghost" />}
-                    />
-                  }
-                >
-                  <span className="sr-only">Open chat history</span>
-                  <HugeiconsIcon
-                    className="size-4"
-                    icon={Clock01Icon}
-                    strokeWidth={1.8}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>Chat history</TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent
-                align="end"
-                className="max-h-72 w-52"
-                sideOffset={6}
-              >
-                {isHistoryLoading ? (
-                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                    Loading chats...
-                  </p>
-                ) : null}
-                {!isHistoryLoading && sessions.length === 0 ? (
-                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                    No previous chats
-                  </p>
-                ) : null}
-                {!isHistoryLoading && sessions.length > 0
-                  ? historyGroups.map((group, groupIndex) => (
-                      <Fragment key={group.label}>
-                        {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                          {group.sessions.map((session) => (
-                            <DropdownMenuItem
-                              className="data-[active=true]:bg-accent/70"
-                              data-active={activeChatId === session.chatId}
-                              disabled={isAgentBusy}
-                              key={session.chatId}
-                              onClick={() => onSelectChat(session.chatId)}
-                              title={session.title}
-                            >
-                              <span className="min-w-0 flex-1 truncate">
-                                {session.title}
-                              </span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuGroup>
-                      </Fragment>
-                    ))
-                  : null}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="gap-2"
-                  disabled={isAgentBusy}
-                  onClick={onNewChat}
-                >
-                  <HugeiconsIcon
-                    className="size-4 shrink-0"
-                    icon={PlusSignIcon}
-                    strokeWidth={1.8}
-                  />
-                  <span>New chat</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-pressed={opensInChat ? undefined : expanded}
-                  className="cursor-pointer"
-                  onClick={onOpenChat ?? toggleExpanded}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-              }
-            >
-              <span className="sr-only">
-                {opensInChat
-                  ? "Open in Chat"
-                  : expanded
-                    ? `Exit fullscreen ${title}`
-                    : `Open ${title} fullscreen`}
-              </span>
-              <HugeiconsIcon
-                className="size-4"
-                icon={
-                  opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
-                }
-                strokeWidth={1.8}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              {opensInChat
-                ? "Open in Chat"
-                : expanded
-                  ? "Exit fullscreen"
-                  : "Expand agent"}
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  className="cursor-pointer"
-                  onClick={onClose}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-              }
-            >
-              <span className="sr-only">Close {title}</span>
-              <HugeiconsIcon
-                className="size-4"
-                icon={Cancel01Icon}
-                strokeWidth={1.8}
-              />
-            </TooltipTrigger>
-            <TooltipContent>Close {title}</TooltipContent>
-          </Tooltip>
-        </div>
-      </header>
+      <ContentChatActivityHeader {...props} />
       <div className="bg-muted flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-[calc(0.75rem-1px)]">
         <div className="bg-background flex min-h-0 flex-1 flex-col rounded-t-xl">
           <ContentChatActivityFeed

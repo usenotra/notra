@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import { motion, useReducedMotion } from "motion/react";
+import { LazyMotion, m, useReducedMotion } from "motion/react";
 
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { RightPanelPortal } from "@/components/dashboard/right-panel-portal";
@@ -16,6 +16,7 @@ import {
 } from "@/constants/right-panel";
 import { useRightPanelSkipMotion } from "@/lib/hooks/use-right-panel-slide";
 import type { RightPanelProps } from "@/types/components/right-panel";
+import { loadMotionFeatures } from "@/utils/load-motion-features";
 
 function panelWidthClass(open: boolean, expanded: boolean) {
   if (!open) {
@@ -39,46 +40,48 @@ export function RightPanel({ id, children }: RightPanelProps) {
 
   return (
     <RightPanelPortal>
-      <aside
-        aria-hidden={!open}
-        data-closed={open ? undefined : ""}
-        className={cn(
-          RIGHT_PANEL_CLASSNAME,
-          RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
-          skipMotion && "transition-none",
-          open && "overflow-visible",
-          panelWidthClass(open, expanded)
-        )}
-        inert={open ? undefined : true}
-      >
-        {hasOpened[id] ? (
-          <motion.div
-            layout
-            layoutDependency={expanded}
-            initial={false}
-            transition={{
-              layout: {
-                duration: reduceMotion ? 0 : 0.25,
-                ease: [0.23, 1, 0.32, 1],
-              },
-            }}
-            className={cn(
-              RIGHT_PANEL_FRAME_CLASSNAME,
-              expanded
-                ? RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME
-                : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME
-            )}
-          >
-            <motion.div
-              className="flex h-full min-h-0 flex-col"
-              layout="position"
+      <LazyMotion features={loadMotionFeatures}>
+        <aside
+          aria-hidden={!open}
+          data-closed={open ? undefined : ""}
+          className={cn(
+            RIGHT_PANEL_CLASSNAME,
+            RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
+            skipMotion && "transition-none",
+            open && "overflow-visible",
+            panelWidthClass(open, expanded)
+          )}
+          inert={open ? undefined : true}
+        >
+          {hasOpened[id] ? (
+            <m.div
+              layout
               layoutDependency={expanded}
+              initial={false}
+              transition={{
+                layout: {
+                  duration: reduceMotion ? 0 : 0.25,
+                  ease: [0.23, 1, 0.32, 1],
+                },
+              }}
+              className={cn(
+                RIGHT_PANEL_FRAME_CLASSNAME,
+                expanded
+                  ? RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME
+                  : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME
+              )}
             >
-              {children}
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </aside>
+              <m.div
+                className="flex h-full min-h-0 flex-col"
+                layout="position"
+                layoutDependency={expanded}
+              >
+                {children}
+              </m.div>
+            </m.div>
+          ) : null}
+        </aside>
+      </LazyMotion>
     </RightPanelPortal>
   );
 }

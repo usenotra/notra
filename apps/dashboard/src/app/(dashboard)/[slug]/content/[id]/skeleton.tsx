@@ -24,7 +24,7 @@ export function ContentDetailSkeleton() {
         </div>
       </div>
       <div aria-hidden="true" className="flex flex-1 flex-col py-4 md:py-6">
-        <div className="mx-auto w-full max-w-3xl px-4 lg:px-6">
+        <div className="mx-auto w-full max-w-5xl px-4 lg:px-6">
           <div className="space-y-2">
             <Skeleton className="h-8 w-full md:h-9" />
             <Skeleton className="h-8 w-2/3 md:h-9" />

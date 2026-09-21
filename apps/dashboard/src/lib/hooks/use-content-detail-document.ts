@@ -84,9 +84,17 @@ export function useContentDetailDocument({
   const [loadedArticleBriefId, setLoadedArticleBriefId] = useState<
     string | null
   >(null);
+  const pendingArticleBriefIdRef = useRef<string | null>(null);
+  const geoWriterBriefId = geoWriterDraft?.briefId;
+  useEffect(() => {
+    if (geoWriterBriefId && briefStatus && briefStatus !== "completed") {
+      pendingArticleBriefIdRef.current = geoWriterBriefId;
+    }
+  }, [geoWriterBriefId, briefStatus]);
   const isGeoArticleLoading = Boolean(
     geoWriterDraft &&
     briefStatus === "completed" &&
+    pendingArticleBriefIdRef.current === geoWriterDraft.briefId &&
     loadedArticleBriefId !== geoWriterDraft.briefId
   );
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
@@ -208,28 +216,43 @@ export function useContentDetailDocument({
   );
 
   const handleGeoArticleReady = useCallback(async () => {
-    const [article] = await Promise.all([
-      queryClient.fetchQuery({
-        ...dashboardOrpc.content.get.queryOptions({
-          input: { organizationId, contentId },
+    if (pendingArticleBriefIdRef.current !== geoWriterDraft?.briefId) {
+      return;
+    }
+    try {
+      const [article] = await Promise.all([
+        queryClient.fetchQuery({
+          ...dashboardOrpc.content.get.queryOptions({
+            input: { organizationId, contentId },
+          }),
+          staleTime: 0,
         }),
-        staleTime: 0,
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.list.key(),
-      }),
-    ]);
-    setEditedMarkdown(null);
-    setOriginalMarkdown("");
-    editedMarkdownRef.current = article.content.markdown ?? "";
-    originalMarkdownRef.current = article.content.markdown ?? "";
-    setPersistedSlug(null);
-    setEditingTitle(null);
-    setEditingSlug(null);
-    setReviewPreviousMarkdown(null);
-    needsNormalizationRef.current = true;
-    setEditorKey((key) => key + 1);
-    setLoadedArticleBriefId(geoWriterDraft?.briefId ?? null);
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.list.key(),
+        }),
+      ]);
+      setEditedMarkdown(null);
+      setOriginalMarkdown("");
+      editedMarkdownRef.current = article.content.markdown ?? "";
+      originalMarkdownRef.current = article.content.markdown ?? "";
+      setPersistedSlug(null);
+      setEditingTitle(null);
+      setEditingSlug(null);
+      setReviewPreviousMarkdown(null);
+      needsNormalizationRef.current = true;
+      setEditorKey((key) => key + 1);
+    } catch {
+      toast.error("Couldn't refresh the article. Showing the cached content.", {
+        action: {
+          label: "Retry",
+          onClick: () => {
+            handleGeoArticleReady();
+          },
+        },
+      });
+    } finally {
+      setLoadedArticleBriefId(geoWriterDraft?.briefId ?? null);
+    }
   }, [
     contentId,
     geoWriterDraft?.briefId,
@@ -326,6 +349,7 @@ export function useContentDetailDocument({
   );
 
   const handleDiscard = useCallback(() => {
+    needsNormalizationRef.current = false;
     setEditedMarkdown(null);
     setOriginalMarkdown("");
     editedMarkdownRef.current = resolvedOriginalMarkdown;

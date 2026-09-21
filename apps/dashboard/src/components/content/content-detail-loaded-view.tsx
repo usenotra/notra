@@ -18,7 +18,6 @@ import { RecommendationsSection } from "@/components/content/recommendations-sec
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentApiResponse } from "@/types/hooks/content";
-import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
 
 interface ContentDetailLoadedViewProps {
   contentId: string;
@@ -44,14 +43,7 @@ export function ContentDetailLoadedView({
   chatInputSection,
 }: ContentDetailLoadedViewProps) {
   const content = data.content;
-  const imageExportHtml =
-    content.contentType === "image" ? getImageExportHtml(content) : null;
-  const imageExportHtmlUrl =
-    content.contentType === "image" ? content.htmlUrl : null;
-  const imageDownloadUrl =
-    content.contentType === "image" && isHttpImageContent(content.content)
-      ? content.content
-      : null;
+  const isLongForm = ["blog_post", "changelog"].includes(content.contentType);
   const collection = data.collection;
   const backHref = collection
     ? `/${organizationSlug}/collection/${collection.id}`
@@ -99,9 +91,6 @@ export function ContentDetailLoadedView({
               content={content}
               contentId={contentId}
               document={document}
-              imageDownloadUrl={imageDownloadUrl}
-              imageExportHtml={imageExportHtml}
-              imageExportHtmlUrl={imageExportHtmlUrl}
               organizationId={organizationId}
               organizationSlug={organizationSlug}
             />
@@ -109,11 +98,10 @@ export function ContentDetailLoadedView({
         </div>
         <div className="flex flex-1 flex-col py-4 md:py-6">
           <div
-            className={`mx-auto w-full space-y-6 px-4 lg:px-6 ${content.contentType === "blog_post" || content.contentType === "changelog" ? "max-w-3xl" : "max-w-5xl"}`}
+            className={`mx-auto w-full space-y-6 px-4 lg:px-6 ${isLongForm ? "max-w-3xl" : "max-w-5xl"}`}
           >
             {document.geoWriterDraft ? <WriterExecute.Banner /> : null}
-            {content.contentType !== "blog_post" &&
-            content.contentType !== "changelog" ? (
+            {!isLongForm ? (
               <ContentDetailSourceMetadata
                 organizationId={organizationId}
                 sourceMetadata={content.sourceMetadata}
