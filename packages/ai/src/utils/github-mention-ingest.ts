@@ -3,6 +3,7 @@ import {
   GITHUB_MENTION_LOG_EVENTS,
 } from "@notra/ai/constants/github-mention";
 import { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
+import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubAppWebhookPayload,
   GitHubMentionContext,
@@ -112,6 +113,7 @@ export async function ingestGitHubAppMentionWebhook(params: {
   signature: string | null;
   deliveryId: string | null;
   rawBody: string;
+  scheduleRepair?: PublicationRepairScheduler;
 }): Promise<{
   httpStatus: number;
   body: Record<string, unknown>;
@@ -182,6 +184,7 @@ export async function ingestGitHubAppMentionWebhook(params: {
       signature: params.signature,
       deliveryId: params.deliveryId,
       rawBody: params.rawBody,
+      scheduleRepair: params.scheduleRepair,
     });
     if (result.httpStatus >= 500) {
       await releaseGitHubMentionDelivery(params.deliveryId);
@@ -198,6 +201,7 @@ async function finishIngest(params: {
   signature: string | null;
   deliveryId: string | null;
   rawBody: string;
+  scheduleRepair?: PublicationRepairScheduler;
 }): Promise<{
   httpStatus: number;
   body: Record<string, unknown>;
@@ -312,6 +316,6 @@ async function finishIngest(params: {
     },
     context: resolved.context,
     log: acceptedLog,
-    run: () => processGitHubMention(resolved.context),
+    run: () => processGitHubMention(resolved.context, params.scheduleRepair),
   };
 }

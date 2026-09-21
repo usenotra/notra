@@ -9,6 +9,20 @@ const CONTENT_EXTENSIONS = new Set<string>(
 const DATA_EXTENSIONS = new Set<string>(
   GITHUB_MENTION_WRITABLE_EXTENSIONS.data
 );
+const CONTENT_DATA_ROOTS = new Set([
+  "blog",
+  "content",
+  "data",
+  "docs",
+  "documentation",
+  "pages",
+  "posts",
+]);
+const EXECUTABLE_TEXT_FILE_PATTERN =
+  /^(?:cmakelists|constraints|pipfile|requirements)(?:[._-].*)?\.txt$/i;
+const CONFIG_PATH_SEGMENT_PATTERN = /^(?:config|configuration|settings)$/i;
+const CONFIG_DATA_FILE_PATTERN =
+  /(?:^|\.)(?:config|configuration|settings)\.(?:jsonc?|ya?ml|toml)$/i;
 
 /**
  * Why a mention may not write or delete this path, or null when it may.
@@ -33,6 +47,9 @@ export function getGitHubMentionPathBlockReason(path: string) {
     ? (fileName.split(".").at(-1) ?? "").toLowerCase()
     : "";
   if (CONTENT_EXTENSIONS.has(extension)) {
+    if (extension === "txt" && EXECUTABLE_TEXT_FILE_PATTERN.test(fileName)) {
+      return "executable and dependency text files are not editable";
+    }
     return null;
   }
   if (!DATA_EXTENSIONS.has(extension)) {
@@ -40,6 +57,17 @@ export function getGitHubMentionPathBlockReason(path: string) {
   }
   if (GITHUB_MENTION_PROTECTED_DATA_FILE_PATTERN.test(fileName)) {
     return "build and tool configuration is not editable";
+  }
+  if (
+    CONFIG_DATA_FILE_PATTERN.test(fileName) ||
+    segments
+      .slice(1, -1)
+      .some((segment) => CONFIG_PATH_SEGMENT_PATTERN.test(segment))
+  ) {
+    return "configuration paths are not editable";
+  }
+  if (!CONTENT_DATA_ROOTS.has(segments[0]?.toLowerCase() ?? "")) {
+    return "structured data is editable only in an explicit content data directory";
   }
   return null;
 }

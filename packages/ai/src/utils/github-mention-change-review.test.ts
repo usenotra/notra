@@ -52,7 +52,7 @@ describe("reviewGitHubMentionChange", () => {
       {
         path: "docs/release.mdx",
         reason: "adds an MDX import or export",
-        line: `${previous}\nexport const x = process.env;`,
+        line: "export const x = process.env;",
       },
     ]);
   });

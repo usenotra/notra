@@ -1,6 +1,7 @@
 import { GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE } from "@notra/ai/constants/github-mention";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import { findOpenContentPublicationForPost } from "@notra/ai/utils/content-publication";
+import { scheduleContentPublicationSyncRepair } from "@notra/ai/utils/content-publication-repair-scheduler";
 import { findNewActiveContent } from "@notra/ai/utils/github-mention-content-policy";
 import { getGitHubMentionPathBlockReason } from "@notra/ai/utils/github-mention-path-policy";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
@@ -61,12 +62,32 @@ export function createUpdatePublishedContentTool() {
           pullNumber: publication.pullRequestNumber,
         })
       );
-      // Publications recorded before heads were tracked have no baseline.
-      if (publication.headSha && publication.headSha !== head.headSha) {
+      if (
+        head.state !== "open" ||
+        head.merged ||
+        head.headRepoFullName?.toLowerCase() !==
+          `${publication.owner}/${publication.repo}`.toLowerCase() ||
+        head.headRef === head.defaultBranch
+      ) {
         return {
           updated: false,
           error:
-            "The pull request changed since Notra last published this post. Refresh the post before updating it.",
+            "The publication pull request is closed or its head branch is not safely writable.",
+        };
+      }
+      if (publication.headSha !== head.headSha) {
+        return {
+          updated: false,
+          error:
+            "The published file has changed on GitHub. Update it through a PR mention so the current file, including manual edits, is used as the starting point.",
+        };
+      }
+      if (
+        !(process.env.WORKFLOW_BASE_URL && process.env.INTERNAL_WORKFLOW_SECRET)
+      ) {
+        return {
+          updated: false,
+          error: "Publication repair workflow is not configured.",
         };
       }
       const publishedFile = await withGitHubRateLimitHandling(() =>
@@ -95,25 +116,27 @@ export function createUpdatePublishedContentTool() {
           blocked,
         };
       }
-      const result = await withGitHubRateLimitHandling(() =>
-        updatePublishedContentAndCommit({
-          octokit,
-          organizationId,
-          postId: input.postId,
-          markdown: input.markdown,
-          fileContents,
-          title: input.title,
-          owner: publication.owner,
-          repo: publication.repo,
-          branch: head.headRef,
-          expectedHeadOid: head.headSha,
-          path: publication.path,
-          publicationId: publication.id,
-          commitMessage:
-            input.commitMessage ??
-            `docs: update ${publication.title ?? publication.path}`,
-        })
-      );
+      // Do not retry this whole operation: GitHub may have accepted the commit
+      // before publication synchronization failed.
+      const result = await updatePublishedContentAndCommit({
+        octokit,
+        organizationId,
+        postId: input.postId,
+        markdown: input.markdown,
+        fileContents,
+        title: input.title ?? publication.title ?? undefined,
+        owner: publication.owner,
+        repo: publication.repo,
+        branch: head.headRef,
+        expectedHeadOid: head.headSha,
+        publicationHeadSha: publication.headSha,
+        path: publication.path,
+        publicationId: publication.id,
+        scheduleRepair: scheduleContentPublicationSyncRepair,
+        commitMessage:
+          input.commitMessage ??
+          `docs: update ${publication.title ?? publication.path}`,
+      });
 
       return {
         updated: true,
@@ -122,6 +145,7 @@ export function createUpdatePublishedContentTool() {
         commitSha: result.commitSha,
         pullRequestUrl: publication.pullRequestUrl,
         pullRequestNumber: publication.pullRequestNumber,
+        publicationSync: result.publicationSync,
       };
     },
   });

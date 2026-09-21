@@ -1,3 +1,4 @@
+import { createGitHubMentionUsageCollector } from "@notra/ai/billing/github-mention-billing";
 import { GITHUB_MENTION_AGENT_MAX_STEPS } from "@notra/ai/constants/github-mention";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
 import { assertRouteHasCredits } from "@notra/ai/gateway";
@@ -9,6 +10,7 @@ import {
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import { buildGitHubMentionTools } from "@notra/ai/tools/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubMentionAgentResult,
   GitHubMentionContext,
@@ -35,12 +37,19 @@ import { stepCountIs, ToolLoopAgent } from "ai";
 export async function runGitHubMentionAgent(params: {
   octokit: GitHubMentionOctokit;
   context: GitHubMentionContext;
+  onUsage?: (usage: AgentTokenUsage) => void;
+  scheduleRepair?: PublicationRepairScheduler;
 }): Promise<GitHubMentionAgentResult> {
   await assertRouteHasCredits({
     organizationId: params.context.organizationId,
     modelId: AGENT_DEFAULT_MODEL,
   });
 
+  const usage = createGitHubMentionUsageCollector();
+  const reportUsage = (value: AgentTokenUsage) => {
+    usage.add(value);
+    params.onUsage?.(value);
+  };
   const state: GitHubMentionToolState = {
     committed: false,
     commitSha: null,
@@ -51,12 +60,15 @@ export async function runGitHubMentionAgent(params: {
     publishedFile: await readPublishedFile(params),
     proposals: [],
     permissionDenied: false,
+    onUsage: reportUsage,
   };
   const editable = resolveEditableMarkdown({
     postMarkdown: params.context.publication?.markdown ?? null,
     publishedFile: state.publishedFile,
     recordedHeadSha: params.context.publication?.headSha ?? null,
-    pullRequestHeadSha: params.context.pullRequest?.headSha ?? null,
+    pullRequestHeadSha: params.context.publication
+      ? (params.context.pullRequest?.headSha ?? null)
+      : null,
   });
 
   const agent = new ToolLoopAgent({
@@ -75,6 +87,7 @@ export async function runGitHubMentionAgent(params: {
       octokit: params.octokit,
       context: params.context,
       state,
+      scheduleRepair: params.scheduleRepair,
     }),
     instructions: getGitHubMentionInstructions(),
     stopWhen: [
@@ -138,24 +151,25 @@ export async function runGitHubMentionAgent(params: {
   // would mark the mention as failed and let a redelivery commit it again.
   let reply = "";
   let declined = false;
-  let usage: AgentTokenUsage | null = null;
   try {
-    const result = await agent.generate({ prompt });
+    const result = await agent.generate({
+      prompt,
+      onStepEnd: async (step) => {
+        const routeUsage = await summarizeRouteUsage(
+          [step],
+          AGENT_DEFAULT_MODEL
+        );
+        reportUsage({
+          ...toAgentTokenUsage(step.usage),
+          modelId: AGENT_DEFAULT_MODEL,
+          maxPromptTokens: routeUsage.maxPromptTokens,
+          tokenCostUsd: routeUsage.tokenCostUsd,
+          route: routeUsage.route,
+          raw: step.usage,
+        });
+      },
+    });
     ({ declined, reply } = parseGitHubMentionAgentReply(result.text.trim()));
-    // Billing prices each model call on its own, so the per-step summary rides
-    // along with the totals instead of the sum standing in for one request.
-    const routeUsage = await summarizeRouteUsage(
-      result.steps,
-      AGENT_DEFAULT_MODEL
-    );
-    usage = {
-      ...toAgentTokenUsage(result.usage),
-      modelId: AGENT_DEFAULT_MODEL,
-      maxPromptTokens: routeUsage.maxPromptTokens,
-      tokenCostUsd: routeUsage.tokenCostUsd,
-      route: routeUsage.route,
-      raw: result.usage,
-    };
   } catch (error) {
     if (!state.committed) {
       throw error;
@@ -171,6 +185,6 @@ export async function runGitHubMentionAgent(params: {
     // A commit moved the head, so suggestions made before it point nowhere.
     proposals: state.committed ? [] : state.proposals,
     permissionDenied: state.permissionDenied,
-    usage,
+    usage: usage.get(),
   };
 }

@@ -3,6 +3,7 @@ import {
   GITHUB_MENTION_FILE_CONTENT_MAX_BYTES,
   GITHUB_MENTION_SUGGESTION,
 } from "@notra/ai/constants/github-mention";
+import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubMentionContext,
   GitHubMentionFileChange,
@@ -120,6 +121,7 @@ export function buildGitHubMentionTools(params: {
   octokit: GitHubMentionOctokit;
   context: GitHubMentionContext;
   state: GitHubMentionToolState;
+  scheduleRepair?: PublicationRepairScheduler;
 }): Record<string, Tool> {
   const { octokit, context, state } = params;
   const replyOnly = context.destination.mode === "reply_only";
@@ -415,8 +417,10 @@ export function buildGitHubMentionTools(params: {
             repo: context.repo,
             branch: target.branch,
             expectedHeadOid: target.expectedHeadOid,
+            publicationHeadSha: publication.headSha,
             path: publication.path,
             publicationId: publication.id,
+            scheduleRepair: params.scheduleRepair,
             onCommitted: (sha) => {
               state.committed = true;
               state.commitSha = sha;
@@ -428,6 +432,13 @@ export function buildGitHubMentionTools(params: {
               commitMessage ??
               `docs: update ${publication.title ?? publication.path}`,
           });
+          if (result.publicationSync.status === "synchronized") {
+            publication.headSha = result.commitSha;
+            publication.markdown = result.publicationSync.markdown;
+            if (title !== undefined) {
+              publication.title = title;
+            }
+          }
           await recordWrite(
             { octokit, context, state },
             result.commitSha,
@@ -438,6 +449,7 @@ export function buildGitHubMentionTools(params: {
             path: publication.path,
             commitSha: result.commitSha,
             pullRequestUrl: state.pullRequestUrl,
+            publicationSync: result.publicationSync,
           };
         }),
     }),
@@ -496,21 +508,31 @@ export function buildGitHubMentionTools(params: {
           state.committed = true;
           state.commitSha = commitSha;
           state.pullRequestUrl = target.pullRequestUrl;
-          const postUpdated = await syncPublishedPostAfterCommit({
+          const publicationSync = await syncPublishedPostAfterCommit({
             octokit,
             organizationId: context.organizationId,
             publication: context.publication,
             files,
             commitSha,
+            expectedHeadOid: target.expectedHeadOid,
             branch: target.branch,
             recordPublicationHead:
               context.destination.mode === "same_pull_request",
+            scheduleRepair: params.scheduleRepair,
           });
+          if (
+            publicationSync &&
+            publicationSync.status === "synchronized" &&
+            context.publication
+          ) {
+            context.publication.headSha = commitSha;
+            context.publication.markdown = publicationSync.markdown;
+          }
           await recordWrite({ octokit, context, state }, commitSha, target);
           return {
             commitSha,
             pullRequestUrl: state.pullRequestUrl,
-            postUpdated,
+            publicationSync,
           };
         }),
     }),
@@ -535,6 +557,8 @@ export function buildGitHubMentionTools(params: {
             instruction,
             branch: target.branch,
             expectedHeadOid: target.expectedHeadOid,
+            onUsage: state.onUsage,
+            scheduleRepair: params.scheduleRepair,
             onCommitted: (sha) => {
               state.committed = true;
               state.commitSha = sha;

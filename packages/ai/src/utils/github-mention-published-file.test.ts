@@ -33,6 +33,19 @@ describe("carryOverImageTargets", () => {
 });
 
 describe("resolveEditableMarkdown", () => {
+  test("never substitutes stale post content for an unreadable moved head", () => {
+    for (const recordedHeadSha of ["aaa", null]) {
+      expect(() =>
+        resolveEditableMarkdown({
+          postMarkdown: POST,
+          publishedFile: null,
+          recordedHeadSha,
+          pullRequestHeadSha: "bbb",
+        })
+      ).toThrow("could not be read");
+    }
+  });
+
   test("uses the post while the pull request head is the recorded one", () => {
     expect(
       resolveEditableMarkdown({

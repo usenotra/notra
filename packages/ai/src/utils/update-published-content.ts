@@ -1,12 +1,89 @@
+import type {
+  PublicationAncestryValidator,
+  PublicationCommitSyncStatus,
+  PublicationRepairScheduler,
+  PublicationSyncRepair,
+} from "@notra/ai/types/content-publication";
 import type { GitHubMentionOctokit } from "@notra/ai/types/github-mention";
-import { updateContentPublicationHead } from "@notra/ai/utils/content-publication";
+import { syncContentPublication } from "@notra/ai/utils/content-publication";
 import { carryOverImageTargets } from "@notra/ai/utils/github-mention-published-file";
 import {
   commitFilesToPullRequest,
   getRepositoryFileContents,
 } from "@notra/ai/utils/github-pr-commit";
-import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { retryWrite } from "@notra/ai/utils/retry-write";
+
+async function syncOrScheduleRepair(
+  repair: PublicationSyncRepair,
+  isAncestor: PublicationAncestryValidator,
+  scheduleRepair?: PublicationRepairScheduler,
+  octokit?: GitHubMentionOctokit
+): Promise<PublicationCommitSyncStatus> {
+  try {
+    const prepared = octokit
+      ? await preparePublicationSyncRepair(repair, octokit)
+      : repair;
+    const result = await retryWrite(() =>
+      syncContentPublication(prepared, isAncestor)
+    );
+    if (result.status !== "retry") {
+      return result;
+    }
+  } catch (error) {
+    if (!scheduleRepair) {
+      return { status: "failed", error: String(error) };
+    }
+  }
+  if (!scheduleRepair) {
+    return { status: "failed", error: "repair unavailable" };
+  }
+  try {
+    await scheduleRepair(repair);
+    return { status: "pending" };
+  } catch (error) {
+    return { status: "failed", error: String(error) };
+  }
+}
+
+export async function preparePublicationSyncRepair(
+  repair: PublicationSyncRepair,
+  octokit: GitHubMentionOctokit
+): Promise<PublicationSyncRepair> {
+  const mapping = repair.imageMapping;
+  if (!mapping) {
+    return repair;
+  }
+  const recordedFile = await getRepositoryFileContents({
+    octokit,
+    owner: mapping.owner,
+    repo: mapping.repo,
+    path: mapping.path,
+    ref: mapping.headSha,
+  });
+  return {
+    ...repair,
+    imageMapping: undefined,
+    markdown: carryOverImageTargets(
+      repair.markdown,
+      recordedFile,
+      mapping.markdown
+    ),
+  };
+}
+
+function githubAncestryValidator(params: {
+  octokit: GitHubMentionOctokit;
+  owner: string;
+  repo: string;
+}): PublicationAncestryValidator {
+  return async (base, head) => {
+    const { data } = await params.octokit.request(
+      "GET /repos/{owner}/{repo}/compare/{basehead}",
+      { owner: params.owner, repo: params.repo, basehead: `${base}...${head}` }
+    );
+    return data.status === "ahead" || data.status === "identical";
+  };
+}
 
 export async function updatePublishedContentAndCommit(params: {
   octokit: GitHubMentionOctokit;
@@ -20,6 +97,8 @@ export async function updatePublishedContentAndCommit(params: {
   repo: string;
   branch: string;
   expectedHeadOid: string;
+  /** Publication head observed before this operation; independent of GitHub's current head. */
+  publicationHeadSha?: string | null;
   path: string;
   publicationId: string;
   commitMessage: string;
@@ -30,6 +109,7 @@ export async function updatePublishedContentAndCommit(params: {
    */
   recordPublicationHead?: boolean;
   onCommitted?: (sha: string) => void;
+  scheduleRepair?: PublicationRepairScheduler;
 }) {
   // Commit first: a rejected commit (stale head, protected branch) must not
   // leave the Notra post ahead of the pull request.
@@ -45,32 +125,38 @@ export async function updatePublishedContentAndCommit(params: {
     ],
   });
   params.onCommitted?.(commitSha);
+  let publicationSync: PublicationCommitSyncStatus = { status: "superseded" };
   if (params.recordPublicationHead ?? true) {
-    await retryWrite(() =>
-      updatePostRecord({
+    publicationSync = await syncOrScheduleRepair(
+      {
         organizationId: params.organizationId,
+        publicationId: params.publicationId,
         postId: params.postId,
+        baselineHeadSha:
+          params.publicationHeadSha === undefined
+            ? params.expectedHeadOid
+            : params.publicationHeadSha,
+        expectedHeadSha: params.expectedHeadOid,
+        commitSha,
+        branch: params.branch,
         markdown: params.markdown,
         title: params.title,
-      })
-    );
-    await retryWrite(() =>
-      updateContentPublicationHead({
-        publicationId: params.publicationId,
-        organizationId: params.organizationId,
-        headSha: commitSha,
-        branch: params.branch,
-      })
+      },
+      githubAncestryValidator(params),
+      params.scheduleRepair
     );
   }
-  return { commitSha, postId: params.postId, path: params.path };
+  return {
+    commitSha,
+    postId: params.postId,
+    path: params.path,
+    publicationSync,
+  };
 }
 
 /**
- * Keeps the Notra post in step when the published file was committed through
- * another path (plain file commit or the sandbox). The file's new contents
- * become the post, restoring known image URLs from the recorded revision. Returns whether the post
- * changed.
+ * Synchronizes plain-file and sandbox commits, restoring recorded image URLs.
+ * Returns false for unrelated files or follow-up branches; otherwise the sync status.
  */
 export async function syncPublishedPostAfterCommit(params: {
   octokit: GitHubMentionOctokit;
@@ -86,52 +172,50 @@ export async function syncPublishedPostAfterCommit(params: {
   } | null;
   files: ReadonlyArray<{ path: string; contents: string }>;
   commitSha: string;
+  expectedHeadOid?: string;
   branch: string;
   recordPublicationHead: boolean;
+  scheduleRepair?: PublicationRepairScheduler;
 }) {
   const publication = params.publication;
   // A follow-up branch is not the published pull request, so the post stays.
-  if (!(publication && params.recordPublicationHead)) {
+  if (!publication || !params.recordPublicationHead) {
     return false;
   }
-  // Post first, head second: the recorded head is what tells the next mention
-  // that Notra is in step with the pull request. If the post write fails, the
-  // head stays behind and that mention starts from the file instead.
   const file = params.files.find((entry) => entry.path === publication.path);
   if (!file) {
     return false;
   }
-  const recordedFile = publication.headSha
-    ? await getRepositoryFileContents({
-        octokit: params.octokit,
-        owner: publication.owner,
-        repo: publication.repo,
-        path: publication.path,
-        ref: publication.headSha,
-      })
-    : null;
-  const markdown =
-    recordedFile === null
-      ? file.contents
-      : carryOverImageTargets(
-          file.contents,
-          recordedFile,
-          publication.markdown ?? ""
-        );
-  await retryWrite(() =>
-    updatePostRecord({
+  const result = await syncOrScheduleRepair(
+    {
       organizationId: params.organizationId,
-      postId: publication.postId,
-      markdown,
-    })
-  );
-  await retryWrite(() =>
-    updateContentPublicationHead({
       publicationId: publication.id,
-      organizationId: params.organizationId,
-      headSha: params.commitSha,
+      postId: publication.postId,
+      baselineHeadSha: publication.headSha,
+      expectedHeadSha:
+        params.expectedHeadOid ?? publication.headSha ?? params.commitSha,
+      commitSha: params.commitSha,
       branch: params.branch,
-    })
+      markdown: file.contents,
+      ...(publication.headSha
+        ? {
+            imageMapping: {
+              owner: publication.owner,
+              repo: publication.repo,
+              path: publication.path,
+              headSha: publication.headSha,
+              markdown: publication.markdown ?? "",
+            },
+          }
+        : {}),
+    },
+    githubAncestryValidator({
+      octokit: params.octokit,
+      owner: publication.owner,
+      repo: publication.repo,
+    }),
+    params.scheduleRepair,
+    params.octokit
   );
-  return true;
+  return result;
 }

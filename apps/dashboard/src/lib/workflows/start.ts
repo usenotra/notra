@@ -1,5 +1,6 @@
 import { acquireClaim, releaseClaim } from "@notra/ai/autonomy/claims";
 import { chatWorkflowPayloadSchema } from "@notra/ai/schemas/chat";
+import { publicationSyncRepairSchema } from "@notra/ai/schemas/content-publication";
 import type { BrandGuidelinesWorkflowPayload } from "@notra/ai/types/brand-guidelines";
 import type { ChatWorkflowPayload } from "@notra/ai/types/chat";
 import type { OnboardingAgentWorkflowPayload } from "@notra/ai/types/onboarding-agent";
@@ -44,6 +45,7 @@ import {
 import { brandGuidelinesWorkflow } from "@/workflows/brand-guidelines";
 import { standaloneChatWorkflow } from "@/workflows/chat";
 import { contentPublicationReconciliationWorkflow } from "@/workflows/content-publication-reconciliation";
+import { contentPublicationSyncRepairWorkflow } from "@/workflows/content-publication-sync-repair";
 import { eventContentWorkflow } from "@/workflows/event-content";
 import { geoScanWorkflow } from "@/workflows/geo-scan";
 import { geoWriterWorkflow } from "@/workflows/geo-writer";
@@ -103,6 +105,14 @@ export async function startContentPublicationReconciliation(
   await start(contentPublicationReconciliationWorkflow, [
     publication,
     publishedAt,
+  ]);
+}
+
+export async function startContentPublicationSyncRepair(
+  repair: Parameters<typeof contentPublicationSyncRepairWorkflow>[0]
+): Promise<void> {
+  await start(contentPublicationSyncRepairWorkflow, [
+    publicationSyncRepairSchema.parse(repair),
   ]);
 }
 

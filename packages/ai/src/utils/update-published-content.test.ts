@@ -2,6 +2,7 @@ import { beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import type { PublicationSyncResult } from "@notra/ai/types/content-publication";
 import type { GitHubMentionOctokit } from "@notra/ai/types/github-mention";
 
 // Bun module mocks otherwise replace exports used by neighboring webhook tests.
@@ -15,16 +16,18 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     expect(result.status, result.stderr?.toString()).toBe(0);
   });
 } else {
-  const postWrite = mock(async () => {});
-  const headWrite = mock(async () => {});
-  mock.module("@notra/ai/utils/post-service", () => ({
-    updatePostRecord: postWrite,
+  const syncWrite = mock(async (): Promise<PublicationSyncResult> => ({
+    status: "synchronized" as const,
+    markdown: "# Updated",
   }));
   mock.module("@notra/ai/utils/content-publication", () => ({
-    updateContentPublicationHead: headWrite,
+    syncContentPublication: syncWrite,
   }));
-  const { updatePublishedContentAndCommit, syncPublishedPostAfterCommit } =
-    await import("./update-published-content");
+  const {
+    preparePublicationSyncRepair,
+    updatePublishedContentAndCommit,
+    syncPublishedPostAfterCommit,
+  } = await import("./update-published-content");
   const { commitFilesToPullRequest } = await import("./github-pr-commit");
 
   const committingOctokit = (oid: string) =>
@@ -55,34 +58,122 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     owner: "acme",
     repo: "docs",
     expectedHeadOid: "read-revision",
+    publicationHeadSha: "recorded-revision",
     path: "docs/page.md",
     publicationId: "publication",
     commitMessage: "docs: update",
   };
 
   beforeEach(() => {
-    postWrite.mockReset();
-    headWrite.mockReset();
+    syncWrite.mockReset();
+    syncWrite.mockResolvedValue({
+      status: "synchronized",
+      markdown: "# Updated",
+    });
   });
 
   test("records an irreversible commit before failed database synchronization", async () => {
     const outcomes: string[] = [];
-    postWrite.mockImplementation(async () => {
+    syncWrite.mockImplementation(async () => {
       expect(outcomes).toEqual(["landed"]);
       throw new Error("database unavailable");
     });
-    await expect(
-      updatePublishedContentAndCommit({
-        ...commitParams,
-        octokit: committingOctokit("landed"),
+    const result = await updatePublishedContentAndCommit({
+      ...commitParams,
+      octokit: committingOctokit("landed"),
+      branch: "content",
+      onCommitted: (sha) => {
+        outcomes.push(sha);
+      },
+    });
+    expect(result.publicationSync.status).toBe("failed");
+    expect(outcomes).toEqual(["landed"]);
+    expect(syncWrite).toHaveBeenCalledTimes(3);
+  });
+
+  test("exhausted synchronization schedules a revision-guarded durable repair", async () => {
+    const failure = new Error("database unavailable");
+    const scheduled: unknown[] = [];
+    syncWrite.mockRejectedValue(failure);
+    const result = await updatePublishedContentAndCommit({
+      ...commitParams,
+      octokit: committingOctokit("landed"),
+      branch: "content",
+      scheduleRepair: async (repair) => {
+        scheduled.push(repair);
+      },
+    });
+    expect(result.publicationSync.status).toBe("pending");
+    expect(scheduled).toEqual([
+      {
+        organizationId: "org",
+        publicationId: "publication",
+        postId: "post",
+        baselineHeadSha: "recorded-revision",
+        expectedHeadSha: "read-revision",
+        commitSha: "landed",
         branch: "content",
-        onCommitted: (sha) => {
-          outcomes.push(sha);
+        markdown: "# Updated",
+        title: undefined,
+      },
+    ]);
+  });
+
+  test("a failed scheduler reports the landed commit as failed without recommitting", async () => {
+    let commits = 0;
+    const octokit = {
+      request: async () => ({
+        data: {
+          login: "publisher",
+          author: null,
+          commit: { verification: { verified: false } },
+        },
+      }),
+      graphql: async () => {
+        commits++;
+        return { createCommitOnBranch: { commit: { oid: "landed" } } };
+      },
+    } as unknown as GitHubMentionOctokit;
+    syncWrite.mockRejectedValue(new Error("database unavailable"));
+    const result = await updatePublishedContentAndCommit({
+      ...commitParams,
+      octokit,
+      branch: "content",
+      scheduleRepair: async () => {
+        throw new Error("scheduler unavailable");
+      },
+    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        commitSha: "landed",
+        publicationSync: {
+          status: "failed",
+          error: "Error: scheduler unavailable",
         },
       })
-    ).rejects.toThrow("database unavailable");
-    expect(outcomes).toEqual(["landed"]);
-    expect(headWrite).not.toHaveBeenCalled();
+    );
+    expect(commits).toBe(1);
+  });
+
+  test("a successor waiting for its GitHub parent schedules repair without recommitting", async () => {
+    const scheduled: unknown[] = [];
+    syncWrite.mockResolvedValue({ status: "retry" });
+    const result = await updatePublishedContentAndCommit({
+      ...commitParams,
+      octokit: committingOctokit("h2"),
+      branch: "content",
+      scheduleRepair: async (repair) => {
+        scheduled.push(repair);
+      },
+    });
+    expect(result.publicationSync.status).toBe("pending");
+    expect(scheduled).toEqual([
+      expect.objectContaining({
+        baselineHeadSha: "recorded-revision",
+        expectedHeadSha: "read-revision",
+        commitSha: "h2",
+      }),
+    ]);
   });
 
   test("an unrelated file commit never advances publication synchronization", async () => {
@@ -97,8 +188,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
         recordPublicationHead: true,
       })
     ).toBe(false);
-    expect(postWrite).not.toHaveBeenCalled();
-    expect(headWrite).not.toHaveBeenCalled();
+    expect(syncWrite).not.toHaveBeenCalled();
   });
 
   test("a commit on a follow-up branch leaves the post as published", async () => {
@@ -122,8 +212,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
         recordPublicationHead: false,
       })
     ).toBe(false);
-    expect(postWrite).not.toHaveBeenCalled();
-    expect(headWrite).not.toHaveBeenCalled();
+    expect(syncWrite).not.toHaveBeenCalled();
   });
 
   test("image synchronization uses the recorded file rather than the changed image order", async () => {
@@ -159,17 +248,95 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       branch: "content",
       recordPublicationHead: true,
     });
-    expect(postWrite).toHaveBeenCalledWith({
+    expect(syncWrite).toHaveBeenCalledWith(
+      {
+        organizationId: "org",
+        publicationId: "pub",
+        postId: "post",
+        baselineHeadSha: "recorded",
+        expectedHeadSha: "recorded",
+        commitSha: "next",
+        branch: "content",
+        markdown: "![B](https://cdn/b.png)\n![New](https://cdn/new.png)",
+      },
+      expect.any(Function)
+    );
+  });
+
+  test("failed image translation schedules the immutable mapping payload", async () => {
+    const scheduled: unknown[] = [];
+    const octokit = {
+      request: async () => {
+        throw new Error("recorded file unavailable");
+      },
+    } as unknown as GitHubMentionOctokit;
+    const result = await syncPublishedPostAfterCommit({
+      octokit,
       organizationId: "org",
-      postId: "post",
-      markdown: "![B](https://cdn/b.png)\n![New](https://cdn/new.png)",
-    });
-    expect(headWrite).toHaveBeenCalledWith({
-      organizationId: "org",
-      publicationId: "pub",
-      headSha: "next",
+      publication: {
+        ...publication,
+        path: "page.md",
+        headSha: "recorded",
+        markdown: "![A](https://cdn/a.png)",
+      },
+      files: [{ path: "page.md", contents: "![A](./a.png)" }],
+      commitSha: "next",
       branch: "content",
+      recordPublicationHead: true,
+      scheduleRepair: async (repair) => {
+        scheduled.push(structuredClone(repair));
+      },
     });
+    expect(result).toEqual({ status: "pending" });
+    expect(syncWrite).not.toHaveBeenCalled();
+    expect(scheduled).toEqual([
+      expect.objectContaining({
+        commitSha: "next",
+        markdown: "![A](./a.png)",
+        imageMapping: {
+          owner: "acme",
+          repo: "docs",
+          path: "page.md",
+          headSha: "recorded",
+          markdown: "![A](https://cdn/a.png)",
+        },
+      }),
+    ]);
+  });
+
+  test("repair preparation restores original CDN targets before database sync", async () => {
+    const prepared = await preparePublicationSyncRepair(
+      {
+        organizationId: "org",
+        publicationId: "pub",
+        postId: "post",
+        baselineHeadSha: "recorded",
+        expectedHeadSha: "recorded",
+        commitSha: "next",
+        branch: "content",
+        markdown: "![A](./a.png)",
+        imageMapping: {
+          owner: "acme",
+          repo: "docs",
+          path: "page.md",
+          headSha: "recorded",
+          markdown: "![A](https://cdn/a.png)",
+        },
+      },
+      {
+        request: async (_route: string, args: { ref: string }) => {
+          expect(args.ref).toBe("recorded");
+          return {
+            data: {
+              type: "file",
+              content: Buffer.from("![A](./a.png)").toString("base64"),
+            },
+          };
+        },
+      } as unknown as GitHubMentionOctokit
+    );
+    expect(prepared.markdown).toBe("![A](https://cdn/a.png)");
+    expect(prepared.imageMapping).toBeUndefined();
   });
 
   test("mention commits preserve only verified publisher metadata", async () => {

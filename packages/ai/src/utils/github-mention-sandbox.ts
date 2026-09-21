@@ -6,6 +6,8 @@ import {
 } from "@notra/ai/constants/github-mention";
 import { AGENT_DEFAULT_MODEL } from "@notra/ai/constants/models";
 import { getGitHubCloneTokenForOrganization } from "@notra/ai/integrations/github";
+import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubMentionContext,
   GitHubMentionOctokit,
@@ -13,6 +15,7 @@ import type {
 import { reviewGitHubMentionChange } from "@notra/ai/utils/github-mention-change-review";
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import { getGitHubMentionPathBlockReason } from "@notra/ai/utils/github-mention-path-policy";
+import { consumeGitHubMentionSandboxStream } from "@notra/ai/utils/github-mention-sandbox-usage";
 import { commitFilesToPullRequest } from "@notra/ai/utils/github-pr-commit";
 import { syncPublishedPostAfterCommit } from "@notra/ai/utils/update-published-content";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
@@ -108,6 +111,8 @@ export async function runGitHubMentionSandbox(params: {
   branch: string;
   expectedHeadOid: string;
   onCommitted: (sha: string) => void;
+  onUsage: (usage: AgentTokenUsage) => void;
+  scheduleRepair?: PublicationRepairScheduler;
 }) {
   const boxApiKey = process.env.UPSTASH_BOX_API_KEY;
   const agentApiKey = process.env.AI_GATEWAY_API_KEY;
@@ -203,9 +208,26 @@ export async function runGitHubMentionSandbox(params: {
         .join("\n"),
       timeout: GITHUB_MENTION_SANDBOX_TIMEOUT_MS,
     });
-    for await (const chunk of stream) {
-      void chunk;
-    }
+    await consumeGitHubMentionSandboxStream({
+      box,
+      stream,
+      callbacks: {
+        onUsage: params.onUsage,
+        onUsageUnknown: ({ boxId, runId, reason }) =>
+          logGitHubMentionEvent(
+            GITHUB_MENTION_LOG_EVENTS.sandboxCompleted,
+            {
+              organizationId: params.context.organizationId,
+              deliveryId: params.context.deliveryId,
+              usage: "unknown",
+              boxId,
+              runId,
+              reason,
+            },
+            "error"
+          ),
+      },
+    });
     const changes = await listChangedSandboxFiles(box, baseSha);
     if (publicationPath && changes.deleted.includes(publicationPath)) {
       changes.skipped.push({
@@ -280,10 +302,20 @@ export async function runGitHubMentionSandbox(params: {
       publication: params.context.publication,
       files,
       commitSha,
+      expectedHeadOid: baseSha,
+      scheduleRepair: params.scheduleRepair,
       branch: params.branch,
       recordPublicationHead:
         params.context.destination.mode === "same_pull_request",
     });
+    if (
+      postUpdated &&
+      postUpdated.status === "synchronized" &&
+      params.context.publication
+    ) {
+      params.context.publication.headSha = commitSha;
+      params.context.publication.markdown = postUpdated.markdown;
+    }
     logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.sandboxCompleted, {
       organizationId: params.context.organizationId,
       deliveryId: params.context.deliveryId,

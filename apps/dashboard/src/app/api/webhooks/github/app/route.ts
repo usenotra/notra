@@ -17,6 +17,7 @@ import { after, type NextRequest } from "next/server";
 
 import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
+import { startContentPublicationSyncRepair } from "@/lib/workflows/start";
 
 // The mention agent runs in after() and can use the repo sandbox (up to 180 s).
 export const maxDuration = 800;
@@ -88,6 +89,7 @@ export const POST = withEvlog(async (request: NextRequest) => {
     signature: request.headers.get("x-hub-signature-256"),
     deliveryId,
     rawBody,
+    scheduleRepair: startContentPublicationSyncRepair,
   });
 
   if (result.log) {

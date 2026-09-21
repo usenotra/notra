@@ -1,6 +1,7 @@
 import { runGitHubMentionAgent } from "@notra/ai/agents/github-mention";
 import {
   confirmGitHubMentionBilling,
+  createGitHubMentionUsageCollector,
   describeGitHubMentionBillingDenial,
   releaseGitHubMentionBilling,
   reserveGitHubMentionBilling,
@@ -12,6 +13,7 @@ import {
 } from "@notra/ai/integrations/github";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubMentionContext,
   GitHubMentionProcessResult,
@@ -42,7 +44,8 @@ import { createOctokit } from "@notra/ai/utils/octokit";
 import { retryWrite } from "@notra/ai/utils/retry-write";
 
 export async function processGitHubMention(
-  context: GitHubMentionContext
+  context: GitHubMentionContext,
+  scheduleRepair?: PublicationRepairScheduler
 ): Promise<GitHubMentionProcessResult> {
   const startedAt = Date.now();
   logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.processing, {
@@ -219,6 +222,7 @@ export async function processGitHubMention(
   }
 
   let billingSettled = false;
+  const usage = createGitHubMentionUsageCollector();
   const settleBilling = async (
     action: "confirm" | "release",
     usage?: AgentTokenUsage | null
@@ -268,9 +272,14 @@ export async function processGitHubMention(
     pullRequestUrl: string | null;
   } | null = null;
   try {
-    const agentResult = await runGitHubMentionAgent({ octokit, context });
+    const agentResult = await runGitHubMentionAgent({
+      octokit,
+      context,
+      onUsage: usage.add,
+      scheduleRepair,
+    });
     // The model calls happened, whatever the rest of the run does with them.
-    await settleBilling("confirm", agentResult.usage);
+    await settleBilling("confirm", usage.get() ?? agentResult.usage);
     if (agentResult.committed) {
       written = {
         commitSha: agentResult.commitSha,
@@ -371,8 +380,9 @@ export async function processGitHubMention(
     });
     return result;
   } catch (error) {
-    // A run that never reached the model owes nothing.
-    await settleBilling("release");
+    // Completed model calls are payable even when a later call or tool fails.
+    const paidUsage = usage.get();
+    await settleBilling(paidUsage ? "confirm" : "release", paidUsage);
     const reason = error instanceof Error ? error.message : String(error);
     if (written) {
       await postGitHubIssueComment({

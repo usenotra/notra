@@ -1118,6 +1118,7 @@ export const contentRouter = {
           .catch(() => undefined));
 
       try {
+        const publishedAt = new Date().toISOString();
         const result = await publishContentDraftPullRequest(octokit, {
           contentId: input.contentId,
           contentType: input.contentType,
@@ -1179,14 +1180,27 @@ export const contentRouter = {
           pullRequestUrl: result.pullRequestUrl,
           headSha: result.headSha,
         };
-        const publishedAt = new Date().toISOString();
         const logContext = {
           organizationId: input.organizationId,
           contentId: input.contentId,
           pullRequestUrl: result.pullRequestUrl,
         };
+        // Queue the durable insert/close reconciliation before making the
+        // mapping visible. A close event cannot be lost in the gap.
+        let reconciliationScheduled = false;
         try {
-          await retryWrite(() => recordContentPublication(publication));
+          await startContentPublicationReconciliation(publication, publishedAt);
+          reconciliationScheduled = true;
+        } catch (error) {
+          console.error("Failed to start content publication reconciliation", {
+            ...logContext,
+            error,
+          });
+        }
+        try {
+          await retryWrite(() =>
+            recordContentPublication(publication, publishedAt)
+          );
         } catch (error) {
           console.error("Failed to record content publication", {
             ...logContext,
@@ -1195,16 +1209,18 @@ export const contentRouter = {
           // The PR already exists, so hand the idempotent mapping write to a
           // durable workflow instead of relying on this request process. The
           // publish itself succeeded, whatever happens to the handover.
-          try {
-            await startContentPublicationReconciliation(
-              publication,
-              publishedAt
-            );
-          } catch (startError) {
-            console.error(
-              "Failed to start content publication reconciliation",
-              { ...logContext, error: startError }
-            );
+          if (!reconciliationScheduled) {
+            try {
+              await startContentPublicationReconciliation(
+                publication,
+                publishedAt
+              );
+            } catch (startError) {
+              console.error(
+                "Failed to start content publication reconciliation",
+                { ...logContext, error: startError }
+              );
+            }
           }
         }
         return result;

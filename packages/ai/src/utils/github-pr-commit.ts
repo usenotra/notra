@@ -121,7 +121,10 @@ export async function getPullRequestHead(params: {
     headSha: data.head.sha,
     headRepoFullName: data.head.repo?.full_name ?? null,
     baseRef: data.base.ref,
+    defaultBranch: data.base.repo.default_branch,
     draft: Boolean(data.draft),
+    state: data.state,
+    merged: Boolean(data.merged),
   };
 }
 

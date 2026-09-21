@@ -1,8 +1,10 @@
-import type { ContentType } from "@notra/ai/schemas/content";
 import type { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type {
+  ContentPublication,
+  RecordContentPublicationParams as PublicationRecordParams,
+} from "@notra/ai/types/content-publication";
 import type { createOctokit } from "@notra/ai/utils/octokit";
-import type { ContentPublicationStatus } from "@notra/db/types/content";
 import type { z } from "zod";
 
 export type GitHubMentionOctokit = ReturnType<typeof createOctokit>;
@@ -59,22 +61,7 @@ export interface GitHubMentionPullRequest {
   draft: boolean;
 }
 
-export interface GitHubMentionPublication {
-  id: string;
-  postId: string;
-  repositoryId: string;
-  owner: string;
-  repo: string;
-  path: string;
-  branch: string;
-  pullRequestNumber: number;
-  pullRequestUrl: string;
-  headSha: string | null;
-  status: ContentPublicationStatus;
-  contentType: ContentType | null;
-  title: string | null;
-  markdown: string | null;
-}
+export interface GitHubMentionPublication extends ContentPublication {}
 
 export interface GitHubMentionAuth {
   userId: string;
@@ -253,6 +240,8 @@ export interface GitHubMentionToolState extends GitHubMentionWriteState {
   proposals: GitHubMentionProposal[];
   /** GitHub refused a call for lack of permission. Retrying cannot fix that. */
   permissionDenied: boolean;
+  /** Reports paid model work performed inside tools, such as the sandbox. */
+  onUsage: (usage: AgentTokenUsage) => void;
 }
 
 export interface GitHubMentionFileChange {
@@ -279,19 +268,7 @@ export interface GitHubCreateCommitOnBranchResult {
   } | null;
 }
 
-export interface RecordContentPublicationParams {
-  organizationId: string;
-  postId: string;
-  repositoryId: string;
-  owner: string;
-  repo: string;
-  path: string;
-  branch: string;
-  pullRequestNumber: number;
-  pullRequestUrl: string;
-  headSha?: string | null;
-  status?: ContentPublicationStatus;
-}
+export interface RecordContentPublicationParams extends PublicationRecordParams {}
 
 export interface CommitFilesToPullRequestParams {
   octokit: GitHubMentionOctokit;

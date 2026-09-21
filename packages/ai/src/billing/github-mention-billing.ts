@@ -22,6 +22,48 @@ const UNMETERED_RESERVATION: GitHubMentionBillingReservation = {
   useMarkup: false,
 };
 
+/** Accumulates usage reported once per completed model call. */
+export function createGitHubMentionUsageCollector() {
+  let usage: AgentTokenUsage | null = null;
+
+  return {
+    add(next: AgentTokenUsage) {
+      const previousCost = usage?.tokenCostUsd ?? usage?.totalUsd;
+      const nextCost = next.tokenCostUsd ?? next.totalUsd;
+      const totalCost =
+        previousCost === undefined || nextCost === undefined
+          ? undefined
+          : previousCost + nextCost;
+      usage = usage
+        ? {
+            inputTokens: usage.inputTokens + next.inputTokens,
+            outputTokens: usage.outputTokens + next.outputTokens,
+            totalTokens: usage.totalTokens + next.totalTokens,
+            cacheReadTokens: usage.cacheReadTokens + next.cacheReadTokens,
+            cacheWriteTokens: usage.cacheWriteTokens + next.cacheWriteTokens,
+            reasoningTokens:
+              (usage.reasoningTokens ?? 0) + (next.reasoningTokens ?? 0),
+            computeMs:
+              usage.computeMs === undefined && next.computeMs === undefined
+                ? undefined
+                : (usage.computeMs ?? 0) + (next.computeMs ?? 0),
+            modelId: next.modelId ?? usage.modelId,
+            maxPromptTokens: Math.max(
+              usage.maxPromptTokens ?? 0,
+              next.maxPromptTokens ?? 0
+            ),
+            tokenCostUsd: totalCost,
+            totalUsd: totalCost,
+            route: next.route ?? usage.route,
+          }
+        : { ...next };
+    },
+    get(): AgentTokenUsage | null {
+      return usage;
+    },
+  };
+}
+
 function buildLockId(mentionKey: string, featureId: string) {
   return `${GITHUB_MENTION_BILLING_LOCK_PREFIX}:${mentionKey}:${featureId}`;
 }

@@ -99,11 +99,15 @@ export function resolveEditableMarkdown(params: {
   pullRequestHeadSha: string | null;
 }) {
   const headMoved =
-    params.recordedHeadSha !== null &&
     params.pullRequestHeadSha !== null &&
     params.recordedHeadSha !== params.pullRequestHeadSha;
-  if (!(headMoved && params.publishedFile !== null)) {
+  if (!headMoved) {
     return { markdown: params.postMarkdown, fromPullRequest: false };
+  }
+  if (params.publishedFile === null) {
+    throw new Error(
+      "The pull request changed, but its published file could not be read. Retry once the current file is available; the stale Notra post cannot safely replace it."
+    );
   }
   // The changed file is not an original source-to-repository mapping. Keep its
   // repository targets rather than guessing by image position and corrupting

@@ -32,6 +32,39 @@ describe("getGitHubMentionPathBlockReason", () => {
     }
   });
 
+  test("blocks executable and dependency files disguised as text", () => {
+    for (const path of [
+      "CMakeLists.txt",
+      "native/CMakeLists.txt",
+      "requirements.txt",
+      "requirements-dev.txt",
+      "constraints.txt",
+    ]) {
+      expect(getGitHubMentionPathBlockReason(path)).toContain("text files");
+    }
+  });
+
+  test("allows structured content data only in explicit content directories", () => {
+    for (const path of ["src/routes.yaml", "infra/production.toml"]) {
+      expect(getGitHubMentionPathBlockReason(path)).toContain(
+        "content data directory"
+      );
+    }
+    expect(getGitHubMentionPathBlockReason("config/settings.json")).toContain(
+      "configuration"
+    );
+    expect(getGitHubMentionPathBlockReason("settings.json")).toContain(
+      "configuration"
+    );
+    for (const path of [
+      "content/authors.json",
+      "docs/navigation.yaml",
+      "data/releases.toml",
+    ]) {
+      expect(getGitHubMentionPathBlockReason(path)).toBeNull();
+    }
+  });
+
   test("blocks dot files and dot directories", () => {
     for (const path of [
       ".github/workflows/ci.yml",
@@ -62,6 +95,9 @@ describe("getGitHubMentionPathBlockReason", () => {
       "pyproject.toml",
       "npm-shrinkwrap.json",
       "docs/mkdocs.yml",
+      "docs/config/settings.json",
+      "content/site.config.yaml",
+      "data/settings.toml",
     ]) {
       expect(getGitHubMentionPathBlockReason(path)).toContain("configuration");
     }

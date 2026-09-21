@@ -21,8 +21,10 @@ function fakeOctokit(head: { ref: string; repoFullName: string | null }) {
           sha: "abc123",
           repo: head.repoFullName ? { full_name: head.repoFullName } : null,
         },
-        base: { ref: "release" },
+        base: { ref: "release", repo: { default_branch: "main" } },
         draft: false,
+        state: "open",
+        merged: false,
       },
     }),
   } as unknown as GitHubMentionOctokit;

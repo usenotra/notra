@@ -14,6 +14,7 @@ mock.module("./autumn-locks", () => ({
 
 const {
   confirmGitHubMentionBilling,
+  createGitHubMentionUsageCollector,
   releaseGitHubMentionBilling,
   reserveGitHubMentionBilling,
 } = await import("./github-mention-billing");
@@ -112,4 +113,85 @@ describe("reserveGitHubMentionBilling", () => {
     await releaseGitHubMentionBilling(reservation);
     expect(finalizeAutumnLock.mock.calls[0]?.[1]).toBe("release");
   });
+});
+
+test("collects outer steps and nested sandbox spend once", () => {
+  const usage = createGitHubMentionUsageCollector();
+  usage.add({
+    inputTokens: 10,
+    outputTokens: 2,
+    totalTokens: 12,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    modelId: "model",
+    maxPromptTokens: 10,
+    tokenCostUsd: 0.01,
+    computeMs: 10,
+  });
+  usage.add({
+    inputTokens: 20,
+    outputTokens: 3,
+    totalTokens: 23,
+    cacheReadTokens: 1,
+    cacheWriteTokens: 0,
+    modelId: "model",
+    maxPromptTokens: 21,
+    tokenCostUsd: 0.02,
+    computeMs: 20,
+  });
+  // The sandbox reports its Box stream cost through the same callback.
+  usage.add({
+    inputTokens: 30,
+    outputTokens: 4,
+    totalTokens: 34,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    modelId: "model",
+    totalUsd: 0.04,
+    computeMs: 30,
+  });
+
+  expect(usage.get()).toMatchObject({
+    inputTokens: 60,
+    outputTokens: 9,
+    totalTokens: 69,
+    cacheReadTokens: 1,
+    maxPromptTokens: 21,
+    tokenCostUsd: 0.07,
+    totalUsd: 0.07,
+    computeMs: 60,
+  });
+});
+
+test("an unknown step cost is not silently counted as zero", () => {
+  const usage = createGitHubMentionUsageCollector();
+  usage.add({
+    inputTokens: 10,
+    outputTokens: 2,
+    totalTokens: 12,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    tokenCostUsd: 0.01,
+  });
+  usage.add({
+    inputTokens: 20,
+    outputTokens: 3,
+    totalTokens: 23,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+  });
+  expect(usage.get()?.tokenCostUsd).toBeUndefined();
+});
+
+test("a collector distinguishes no model work from partial paid work", () => {
+  const usage = createGitHubMentionUsageCollector();
+  expect(usage.get()).toBeNull();
+  usage.add({
+    inputTokens: 1,
+    outputTokens: 1,
+    totalTokens: 2,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+  });
+  expect(usage.get()?.totalTokens).toBe(2);
 });
