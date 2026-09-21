@@ -159,17 +159,17 @@ export function OrganizationsSection() {
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div
-              className="flex items-center justify-between rounded-lg border p-4"
+              className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
               key={i}
             >
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-10 rounded-lg" />
-                <div className="space-y-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <Skeleton className="size-10 shrink-0 rounded-lg" />
+                <div className="min-w-0 space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-3 w-16" />
                 </div>
               </div>
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20 shrink-0" />
             </div>
           ))}
         </div>
