@@ -29,6 +29,7 @@ import type {
 } from "../types/dom-to-scene";
 import type { Guid, Transform } from "../types/scene";
 import type { PathSubpath } from "../types/svg-path";
+import { normalizeCssColorWithContext } from "../utils/css-color";
 import { svgPrimitiveToSubpaths } from "../utils/svg-primitive";
 import { inlineSvgUses } from "../utils/svg-use";
 import { TextLayoutCache } from "../utils/text-layout";
@@ -69,14 +70,7 @@ function normalizeCssColor(value: string): string | null {
   if (!colorParseContext) {
     return null;
   }
-  const previous = colorParseContext.fillStyle;
-  colorParseContext.fillStyle = "#000";
-  colorParseContext.fillStyle = value;
-  const normalized = colorParseContext.fillStyle;
-  colorParseContext.fillStyle = previous;
-  return normalized === "#000" && value.trim().toLowerCase() !== "#000"
-    ? null
-    : normalized;
+  return normalizeCssColorWithContext(value, colorParseContext);
 }
 
 function parseKnownColor(s: string): [number, number, number, number] | null {
