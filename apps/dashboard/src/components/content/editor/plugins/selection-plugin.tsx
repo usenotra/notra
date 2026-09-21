@@ -3,10 +3,11 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { TextSelection } from "@notra/schemas/dashboard/content";
 import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface SelectionPluginProps {
   onSelectionChange: (selection: TextSelection | null) => void;
+  selectedExcerpt: TextSelection | null;
 }
 
 function getLineAndCharFromOffset(
@@ -20,8 +21,16 @@ function getLineAndCharFromOffset(
   };
 }
 
-export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
+export function SelectionPlugin({
+  onSelectionChange,
+  selectedExcerpt,
+}: SelectionPluginProps) {
   const [editor] = useLexicalComposerContext();
+  const selectedExcerptRef = useRef(selectedExcerpt);
+
+  useEffect(() => {
+    selectedExcerptRef.current = selectedExcerpt;
+  }, [selectedExcerpt]);
 
   useEffect(() => {
     const unregister = editor.registerUpdateListener(
@@ -30,16 +39,22 @@ export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
         editorState.read(() => {
           const selection = $getSelection();
           // Keep the excerpt when focus moves to the chat composer.
-          if (selection === null || selection.is(previousSelection)) {
+          if (
+            selection === null ||
+            (selectedExcerptRef.current !== null &&
+              selection.is(previousSelection))
+          ) {
             return;
           }
           if (!($isRangeSelection(selection) && !selection.isCollapsed())) {
+            selectedExcerptRef.current = null;
             onSelectionChange(null);
             return;
           }
 
           const text = selection.getTextContent().trim();
           if (!text) {
+            selectedExcerptRef.current = null;
             onSelectionChange(null);
             return;
           }
@@ -85,13 +100,15 @@ export function SelectionPlugin({ onSelectionChange }: SelectionPluginProps) {
           const start = getLineAndCharFromOffset(fullText, startOffset);
           const end = getLineAndCharFromOffset(fullText, endOffset);
 
-          onSelectionChange({
+          const nextSelection = {
             text,
             startLine: start.line,
             startChar: start.char,
             endLine: end.line,
             endChar: end.char,
-          });
+          };
+          selectedExcerptRef.current = nextSelection;
+          onSelectionChange(nextSelection);
         });
       }
     );

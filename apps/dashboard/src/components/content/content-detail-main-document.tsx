@@ -16,6 +16,7 @@ interface ContentDetailMainDocumentProps {
   document: ContentDetailDocument;
   organizationId: string;
   onSelectionChange: (selection: TextSelection | null) => void;
+  selectedExcerpt: TextSelection | null;
 }
 
 export function ContentDetailMainDocument({
@@ -24,6 +25,7 @@ export function ContentDetailMainDocument({
   document: contentDocument,
   organizationId,
   onSelectionChange,
+  selectedExcerpt,
 }: ContentDetailMainDocumentProps) {
   const {
     briefStatus,
@@ -161,6 +163,7 @@ export function ContentDetailMainDocument({
       state={{
         editedMarkdown,
         originalMarkdown,
+        selectedExcerpt,
         editingTitle,
         serverTitle,
         editingSlug,

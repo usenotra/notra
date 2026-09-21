@@ -41,51 +41,59 @@ export function usePostActions(organizationId: string) {
   );
 
   const deletePost = useCallback(
-    async (contentId: string) => {
+    (contentId: string) => {
       setIsDeleting(true);
-      try {
-        await dashboardOrpc.content.delete.call({ organizationId, contentId });
-        toast.success("Post deleted");
-        await invalidateLists();
-        return true;
-      } catch {
-        toast.error("Failed to delete post");
-        return false;
-      } finally {
-        setIsDeleting(false);
-      }
+      return dashboardOrpc.content.delete
+        .call({ organizationId, contentId })
+        .then(async () => {
+          toast.success("Post deleted");
+          await invalidateLists();
+          return true;
+        })
+        .catch(() => {
+          toast.error("Failed to delete post");
+          return false;
+        })
+        .finally(() => {
+          setIsDeleting(false);
+        });
     },
     [invalidateLists, organizationId]
   );
 
   const togglePostStatus = useCallback(
-    async (contentId: string, status: PostStatus) => {
+    (contentId: string, status: PostStatus) => {
       setIsTogglingStatus(true);
       const nextStatus = status === "published" ? "draft" : "published";
-      try {
-        await dashboardOrpc.content.update.call({
+      return dashboardOrpc.content.update
+        .call({
           organizationId,
           contentId,
           status: nextStatus,
-        });
-        toast.success(
-          nextStatus === "published" ? "Post published" : "Post moved to drafts"
-        );
-        await Promise.all([
-          invalidateLists(),
-          queryClient.invalidateQueries({
-            queryKey: dashboardOrpc.content.get.queryKey({
-              input: { organizationId, contentId },
+        })
+        .then(async () => {
+          toast.success(
+            nextStatus === "published"
+              ? "Post published"
+              : "Post moved to drafts"
+          );
+          await Promise.all([
+            invalidateLists(),
+            queryClient.invalidateQueries({
+              queryKey: dashboardOrpc.content.get.queryKey({
+                input: { organizationId, contentId },
+              }),
             }),
-          }),
-        ]);
-        return true;
-      } catch {
-        toast.error("Failed to update post status");
-        return false;
-      } finally {
-        setIsTogglingStatus(false);
-      }
+          ]);
+          return true;
+        })
+        .catch(() => {
+          toast.error("Failed to update post status");
+          return false;
+        })
+        .finally(() => {
+          setIsTogglingStatus(false);
+        });
     },
     [invalidateLists, organizationId, queryClient]
   );

@@ -32,6 +32,7 @@ interface ContentDetailLoadedViewProps {
   data: ContentApiResponse;
   document: ContentDetailDocument;
   onSelectionChange: (selection: TextSelection | null) => void;
+  selectedExcerpt: TextSelection | null;
   rightPanelSection: ReactNode;
   saveBarSection: ReactNode;
   chatInputSection: ReactNode;
@@ -46,6 +47,7 @@ export function ContentDetailLoadedView({
   data,
   document,
   onSelectionChange,
+  selectedExcerpt,
   rightPanelSection,
   saveBarSection,
   chatInputSection,
@@ -137,6 +139,7 @@ export function ContentDetailLoadedView({
             document={document}
             onSelectionChange={onSelectionChange}
             organizationId={organizationId}
+            selectedExcerpt={selectedExcerpt}
           />
 
           {document.isGeoWriterPlanMode ? null : (

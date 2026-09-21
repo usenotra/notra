@@ -6,6 +6,7 @@ import type {
   GeoGapsWriteEntry,
   WriteDialogInitialState,
 } from "@/types/components/geo-writer";
+import { isNotFoundError } from "@/utils/orpc-errors";
 
 /**
  * GEO write entry helpers.
@@ -68,4 +69,23 @@ export function parseGeoWriterDraft(sourceMetadata: unknown): {
 
 export function isGeoWriterPlanReviewable(status: string | undefined): boolean {
   return status === "draft" || status === "failed";
+}
+
+export function getGeoWriterDocumentState(
+  hasDraft: boolean,
+  briefError: unknown,
+  briefStatus: string | undefined
+) {
+  const isBriefMissing = briefError !== null && isNotFoundError(briefError);
+  const isPlanReviewable = isGeoWriterPlanReviewable(briefStatus);
+  return {
+    isBriefMissing,
+    isChatLocked:
+      hasDraft &&
+      !isBriefMissing &&
+      !isPlanReviewable &&
+      briefStatus !== "completed",
+    isPlanMode: hasDraft && !isBriefMissing && briefStatus !== "completed",
+    isPlanReviewable,
+  };
 }

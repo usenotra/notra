@@ -133,7 +133,10 @@ const COLLECTION_COLUMNS: TableColumn<PostCollectionSummary>[] = [
     width: "8.5rem",
     collapsePriority: 3,
     cell: (collection) => (
-      <span className="text-muted-foreground whitespace-nowrap tabular-nums">
+      <span
+        className="text-muted-foreground whitespace-nowrap tabular-nums"
+        suppressHydrationWarning
+      >
         {formatRelativeDate(collection.createdAt)}
       </span>
     ),
@@ -194,6 +197,7 @@ export function CollectionsView({
               <time
                 className="text-muted-foreground text-xs"
                 dateTime={collection.createdAt}
+                suppressHydrationWarning
               >
                 {formatRelativeDate(collection.createdAt)}
               </time>

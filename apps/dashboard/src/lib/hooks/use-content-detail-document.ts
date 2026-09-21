@@ -32,11 +32,10 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ImageExportTarget } from "@/types/content/image-export";
 import type { ContentApiResponse } from "@/types/hooks/content";
 import {
-  isGeoWriterPlanReviewable,
+  getGeoWriterDocumentState,
   parseGeoWriterDraft,
 } from "@/utils/geo-write-entry";
 import { isImageExportTarget } from "@/utils/image-export";
-import { isNotFoundError } from "@/utils/orpc-errors";
 import { shakeElements } from "@/utils/shake-element";
 
 interface UseContentDetailDocumentParams {
@@ -66,18 +65,16 @@ export function useContentDetailDocument({
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
-  const isGeoWriterBriefMissing =
-    geoWriterBriefQuery.error !== null &&
-    isNotFoundError(geoWriterBriefQuery.error);
-  const isGeoWriterPlanMode = Boolean(
-    geoWriterDraft && !isGeoWriterBriefMissing && briefStatus !== "completed"
+  const {
+    isBriefMissing: isGeoWriterBriefMissing,
+    isChatLocked: isGeoWriterChatLocked,
+    isPlanMode: isGeoWriterPlanMode,
+    isPlanReviewable: isGeoWriterPlanReviewableNow,
+  } = getGeoWriterDocumentState(
+    Boolean(geoWriterDraft),
+    geoWriterBriefQuery.error,
+    briefStatus
   );
-  const isGeoWriterPlanReviewableNow = isGeoWriterPlanReviewable(briefStatus);
-  const isGeoWriterChatLocked =
-    Boolean(geoWriterDraft) &&
-    !isGeoWriterBriefMissing &&
-    !isGeoWriterPlanReviewableNow &&
-    briefStatus !== "completed";
 
   const serverMarkdown = data?.content?.markdown ?? "";
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);

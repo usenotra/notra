@@ -602,5 +602,6 @@ export function useContentDetailChat({
     chatPanelProps,
     floatingChatProps,
     handleSelectionChange,
+    selection,
   };
 }

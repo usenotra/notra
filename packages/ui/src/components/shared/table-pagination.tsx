@@ -49,8 +49,8 @@ export function TablePagination({
       )}
     >
       <span className="truncate tabular-nums">
-        {start.toLocaleString()}-{end.toLocaleString()} of{" "}
-        {totalItems.toLocaleString()}
+        {start.toLocaleString("en-US")}-{end.toLocaleString("en-US")} of{" "}
+        {totalItems.toLocaleString("en-US")}
         {label}
       </span>
       {pageCount > 1 ? (

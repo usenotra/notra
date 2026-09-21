@@ -33,7 +33,7 @@ export function ContentSkeletonCard({
         className
       )}
     >
-      <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col gap-2 overflow-hidden rounded-lg px-3 pt-2.5 pb-3">
+      <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col gap-2 overflow-hidden rounded-lg border px-3 pt-2.5 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <Loader2Icon className="text-muted-foreground size-4 shrink-0 animate-spin" />

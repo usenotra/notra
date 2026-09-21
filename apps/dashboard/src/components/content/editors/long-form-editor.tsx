@@ -229,6 +229,7 @@ export function LongFormEditor({
             key={editorKey}
             onChange={actions.onEditorChange}
             onSelectionChange={actions.onSelectionChange}
+            selectedExcerpt={state.selectedExcerpt}
             theme={longFormEditorTheme}
           />
         </div>
