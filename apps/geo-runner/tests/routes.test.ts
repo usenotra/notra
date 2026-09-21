@@ -97,6 +97,7 @@ function makeHandler(accept: boolean) {
             Effect.as(true)
           )
         : Effect.succeed(false),
+    drain: () => Effect.void,
   });
   const app = createApp(queue, SECRET, testGeoLayer);
   return { handler: app.fetch, dispose: async () => undefined };
@@ -224,6 +225,35 @@ describe("geo runner HTTP routes", () => {
         supportsWebSearch: expect.any(Boolean),
       })
     );
+    expect(
+      body.models.some((model) => model.id === "meta/muse-spark-1.2")
+    ).toBe(false);
+
+    const previousSerp = process.env.SERPAPI_API_KEY;
+    process.env.SERPAPI_API_KEY = "test-serp-key";
+    try {
+      const grounded = await app.handler(
+        new Request(
+          `http://localhost/models?organizationId=${scope.organizationId}&projectId=${scope.projectId}`,
+          { headers: { authorization: `Bearer ${SECRET}` } }
+        )
+      );
+      const groundedBody = (await grounded.json()) as {
+        models: Array<{ id: string; supportsWebSearch: boolean }>;
+      };
+      expect(groundedBody.models).toContainEqual(
+        expect.objectContaining({
+          id: "google/ai-overview",
+          supportsWebSearch: true,
+        })
+      );
+    } finally {
+      if (previousSerp === undefined) {
+        delete process.env.SERPAPI_API_KEY;
+      } else {
+        process.env.SERPAPI_API_KEY = previousSerp;
+      }
+    }
     await app.dispose();
   });
 
@@ -265,6 +295,11 @@ describe("geo runner HTTP routes", () => {
       app.handler
     );
     expect(invalid.status).toBe(422);
+    const hidden = await postScan(
+      { ...scope, prompt: "best tools", engines: ["meta/muse-spark-1.2"] },
+      app.handler
+    );
+    expect(hidden.status).toBe(422);
     const missingKey = await postScan(
       { ...scope, prompt: "best tools", engines: [ENGINE] },
       app.handler,
@@ -305,20 +340,101 @@ describe("geo runner HTTP routes", () => {
     await app.dispose();
   });
 
-  test("reports readiness only with production credentials", async () => {
+  test("accepts a lowercase bearer scheme", async () => {
+    const scope = await seedProject("runner-bearer-case");
     const app = makeHandler(true);
-    expect(
-      await (await app.handler(new Request("http://localhost/ready"))).json()
-    ).toEqual({ ok: true });
-    await app.dispose();
-
-    const weakApp = createApp(
-      RunQueue.of({ offer: () => Effect.succeed(true) }),
-      "too-short",
-      testGeoLayer
+    const response = await app.handler(
+      new Request(
+        `http://localhost/models?organizationId=${scope.organizationId}&projectId=${scope.projectId}`,
+        { headers: { authorization: `bearer ${SECRET}` } }
+      )
     );
-    expect(
-      (await weakApp.fetch(new Request("http://localhost/ready"))).status
-    ).toBe(503);
+    expect(response.status).toBe(200);
+    await app.dispose();
+  });
+
+  test("rejects a run for a missing or finished scan", async () => {
+    const scope = await seedProject("runner-run");
+    const app = makeHandler(true);
+    const missing = await app.handler(
+      new Request("http://localhost/scans/missing-scan/run", {
+        method: "POST",
+        headers: { authorization: `Bearer ${SECRET}` },
+      })
+    );
+    expect(missing.status).toBe(404);
+
+    const created = await postScan(
+      { ...scope, prompt: "best tools", engines: [ENGINE] },
+      app.handler
+    );
+    const { id } = (await created.json()) as { id: string };
+    const finished = await app.handler(
+      new Request(`http://localhost/scans/${id}/run`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${SECRET}` },
+      })
+    );
+    expect(finished.status).toBe(409);
+    await app.dispose();
+  });
+
+  test("reports readiness only with a secret and a runnable provider", async () => {
+    const keys = [
+      "AI_GATEWAY_API_KEY",
+      "OPENROUTER_API_KEY",
+      "VERCEL_OIDC_TOKEN",
+      "VERCEL",
+    ] as const;
+    const previous = new Map(keys.map((key) => [key, process.env[key]]));
+    const restore = () => {
+      for (const key of keys) {
+        const value = previous.get(key);
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+    };
+
+    try {
+      for (const key of keys) {
+        delete process.env[key];
+      }
+      process.env.AI_GATEWAY_API_KEY = "test-gateway-key";
+      const app = makeHandler(true);
+      expect(
+        await (await app.handler(new Request("http://localhost/ready"))).json()
+      ).toEqual({ ok: true });
+      await app.dispose();
+
+      const weakApp = createApp(
+        RunQueue.of({
+          offer: () => Effect.succeed(true),
+          drain: () => Effect.void,
+        }),
+        "too-short",
+        testGeoLayer
+      );
+      expect(
+        (await weakApp.fetch(new Request("http://localhost/ready"))).status
+      ).toBe(503);
+
+      delete process.env.AI_GATEWAY_API_KEY;
+      const unconfigured = createApp(
+        RunQueue.of({
+          offer: () => Effect.succeed(true),
+          drain: () => Effect.void,
+        }),
+        SECRET,
+        testGeoLayer
+      );
+      expect(
+        (await unconfigured.fetch(new Request("http://localhost/ready"))).status
+      ).toBe(503);
+    } finally {
+      restore();
+    }
   });
 });

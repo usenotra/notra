@@ -18,12 +18,19 @@ import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { Effect, Layer } from "effect";
 
 const billingLayer = Layer.succeed(GeoContentBillingService, {
-  gateContentBilling: Effect.fn("GeoRunnerBilling.gate")((input) =>
-    Effect.tryPromise({
+  gateContentBilling: Effect.fn("GeoRunnerBilling.gate")((input) => {
+    // reserveContentBilling treats a missing Autumn client as unmetered.
+    // That bypass is only for local development; a deployed runner must fail closed.
+    if (!(autumn || allowUnmeteredAiInDevelopment)) {
+      return Effect.fail(
+        new Error("Billing is not configured. Set AUTUMN_SECRET_KEY.")
+      );
+    }
+    return Effect.tryPromise({
       try: () => reserveContentBilling(input),
       catch: (cause) => cause,
-    })
-  ),
+    });
+  }),
   finalizeContentBilling: Effect.fn("GeoRunnerBilling.finalize")((input) =>
     Effect.tryPromise({
       try: () =>

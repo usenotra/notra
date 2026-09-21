@@ -1,6 +1,7 @@
 import {
   executeGeoAdhocScan,
   failStaleGeoAdhocScans,
+  interruptQueuedGeoAdhocScans,
 } from "@notra/geo-core/geo/adhoc-scan";
 import {
   describeGeoCause,
@@ -21,6 +22,8 @@ export class RunQueue extends Context.Service<
   {
     /** False when the backlog is full; the scan stays `queued` for a retry. */
     readonly offer: (scanId: string) => Effect.Effect<boolean>;
+    /** Stop offers, then fail scans still sitting in this process's backlog. */
+    readonly drain: () => Effect.Effect<void>;
   }
 >()("geo-runner/RunQueue") {}
 
@@ -32,6 +35,8 @@ export const runQueueLive = Layer.effect(
   RunQueue,
   Effect.gen(function* () {
     const queue = yield* Queue.dropping<string>(RUNNER_QUEUE_CAPACITY);
+    const pending = new Set<string>();
+    let closed = false;
 
     const worker = Queue.take(queue).pipe(
       Effect.flatMap((scanId) =>
@@ -43,7 +48,8 @@ export const runQueueLive = Layer.effect(
               scanId,
               ...describeGeoCause(cause),
             }).pipe(Effect.andThen(flushGeoLogEffect))
-          )
+          ),
+          Effect.ensuring(Effect.sync(() => pending.delete(scanId)))
         )
       ),
       Effect.forever
@@ -68,7 +74,40 @@ export const runQueueLive = Layer.effect(
     );
 
     return RunQueue.of({
-      offer: (scanId) => Queue.offer(queue, scanId),
+      offer: (scanId) =>
+        Effect.suspend(() => {
+          if (closed) {
+            return Effect.succeed(false);
+          }
+          if (pending.has(scanId)) {
+            return Effect.succeed(true);
+          }
+          pending.add(scanId);
+          return Queue.offer(queue, scanId).pipe(
+            Effect.map((accepted) => {
+              if (!accepted) {
+                pending.delete(scanId);
+              }
+              return accepted;
+            })
+          );
+        }),
+      drain: () =>
+        Effect.gen(function* () {
+          closed = true;
+          const remaining = yield* Queue.clear(queue);
+          for (const scanId of remaining) {
+            pending.delete(scanId);
+          }
+          yield* interruptQueuedGeoAdhocScans(remaining).pipe(
+            Effect.catchCause((cause) =>
+              geoLogError({
+                event: "geo.runner.drain_failed",
+                ...describeGeoCause(cause),
+              }).pipe(Effect.andThen(flushGeoLogEffect))
+            )
+          );
+        }),
     });
   })
 );

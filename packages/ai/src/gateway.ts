@@ -47,6 +47,16 @@ const routerLogger: RouterLogger = {
     log.error({ event, ...fields }),
 };
 
+/** True when the router can register at least one gateway adapter. */
+export function isAiGatewayConfigured(): boolean {
+  const vercelApiKey = process.env.AI_GATEWAY_API_KEY?.trim();
+  const hasVercelOidc =
+    Boolean(process.env.VERCEL_OIDC_TOKEN) || process.env.VERCEL === "1";
+  return Boolean(
+    vercelApiKey || hasVercelOidc || process.env.OPENROUTER_API_KEY?.trim()
+  );
+}
+
 function buildAdapters(): Partial<Record<GatewayId, GatewayAdapter>> {
   const adapters: Partial<Record<GatewayId, GatewayAdapter>> = {};
 

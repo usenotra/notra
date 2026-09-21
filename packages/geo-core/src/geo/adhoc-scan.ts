@@ -10,7 +10,7 @@ import type {
   GeoAdhocScanResults,
 } from "@notra/db/types/geo-adhoc-scan";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
-import { and, eq, lt, or } from "drizzle-orm";
+import { and, eq, inArray, lt, or } from "drizzle-orm";
 import { Effect, Schedule } from "effect";
 
 import {
@@ -132,7 +132,9 @@ export const createGeoAdhocScan = Effect.fn("geo.createAdhocScan")(function* (
     );
   }
   const catalog = yield* loadGeoModelCatalog(scope.organizationId);
-  const known = new Set(catalog.models.map((model) => model.id));
+  const known = new Set(
+    catalog.models.flatMap((model) => (model.hidden ? [] : [model.id]))
+  );
   const unknown = engines.filter((engine) => !known.has(engine));
   if (unknown.length > 0) {
     return yield* Effect.fail(
@@ -216,7 +218,9 @@ export const listGeoAdhocScanModels = Effect.fn("geo.listAdhocScanModels")(
         label: model.label,
         provider: model.provider,
         default: model.default,
-        supportsWebSearch: model.supportsGroundedChecks ?? false,
+        supportsWebSearch:
+          Boolean(model.supportsGroundedChecks) ||
+          isGeoNativeSearchEngine(catalog, model.id),
       }));
   }
 );
@@ -239,6 +243,56 @@ export const getGeoAdhocScan = Effect.fn("geo.getAdhocScan")(function* (
   }
   const { idempotencyKey: _, ...scan } = row;
   return scan;
+});
+
+/** Fails queued scans this process accepted but will not run, such as on shutdown. */
+export const interruptQueuedGeoAdhocScans = Effect.fn(
+  "geo.interruptQueuedAdhocScans"
+)(function* (scanIds: readonly string[]) {
+  if (scanIds.length === 0) {
+    return 0;
+  }
+  const rows = yield* geoDb("adhoc scan interrupt failed", () =>
+    db
+      .update(geoAdhocScans)
+      .set({
+        status: "failed",
+        errorCode: "interrupted",
+        errorMessage: "The scan was interrupted. Try again.",
+        retryable: true,
+        finishedAt: new Date(),
+      })
+      .where(
+        and(
+          inArray(geoAdhocScans.id, [...scanIds]),
+          eq(geoAdhocScans.status, "queued")
+        )
+      )
+      .returning({ id: geoAdhocScans.id })
+  );
+  return rows.length;
+});
+
+export const requireQueuedGeoAdhocScan = Effect.fn(
+  "geo.requireQueuedAdhocScan"
+)(function* (scanId: string) {
+  const row = yield* geoDb("adhoc scan run lookup failed", () =>
+    db.query.geoAdhocScans.findFirst({
+      columns: { id: true, status: true },
+      where: eq(geoAdhocScans.id, scanId),
+    })
+  );
+  if (!row) {
+    return yield* Effect.fail(new GeoAdhocScanNotFoundError({ scanId }));
+  }
+  if (row.status !== "queued") {
+    return yield* Effect.fail(
+      new GeoAdhocScanConflictError({
+        message: "Only a queued scan can be run",
+      })
+    );
+  }
+  return row.id;
 });
 
 export const discardQueuedGeoAdhocScan = Effect.fn(

@@ -1,10 +1,12 @@
 import { geoLog, useLogger } from "@notra/ai/evlog";
+import { isAiGatewayConfigured } from "@notra/ai/gateway";
 import { db } from "@notra/db/drizzle";
 import {
   createGeoAdhocScan,
   discardQueuedGeoAdhocScan,
   getGeoAdhocScan,
   listGeoAdhocScanModels,
+  requireQueuedGeoAdhocScan,
 } from "@notra/geo-core/geo/adhoc-scan";
 import { describeGeoError } from "@notra/geo-core/utils/geo-log";
 import { sql } from "drizzle-orm";
@@ -108,6 +110,9 @@ export function createApp(
 
   app.get("/ready", async (c) => {
     if (!isRunnerSecretConfigured(runnerSecret)) {
+      return notReady();
+    }
+    if (!isAiGatewayConfigured()) {
       return notReady();
     }
     try {
@@ -224,26 +229,29 @@ export function createApp(
     );
   });
 
-  app.post("/scans/:scanId/run", (c) =>
-    Effect.runPromise(
-      queue
-        .offer(c.req.param("scanId"))
-        .pipe(
-          Effect.map((accepted) =>
-            accepted
-              ? Response.json(
-                  { id: c.req.param("scanId"), status: "queued" },
-                  { status: 202 }
-                )
-              : failure(
-                  503,
-                  "runner_busy",
-                  "The runner backlog is full. Retry shortly."
-                )
-          )
-        )
-    )
-  );
+  app.post("/scans/:scanId/run", (c) => {
+    const scanId = c.req.param("scanId");
+    return Effect.runPromise(
+      Effect.gen(function* () {
+        yield* requireQueuedGeoAdhocScan(scanId);
+        const accepted = yield* queue.offer(scanId);
+        return accepted
+          ? Response.json({ id: scanId, status: "queued" }, { status: 202 })
+          : failure(
+              503,
+              "runner_busy",
+              "The runner backlog is full. Retry shortly."
+            );
+      }).pipe(
+        Effect.catchTags({
+          GeoAdhocScanNotFoundError: () =>
+            Effect.succeed(failure(404, "scan_not_found", "Scan not found")),
+          GeoAdhocScanConflictError: (error) =>
+            Effect.succeed(failure(409, "scan_not_queued", error.message)),
+        })
+      )
+    );
+  });
 
   app.get("/scans/:scanId", async (c) => {
     let scope: Schema.Schema.Type<typeof ScanScope>;

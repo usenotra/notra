@@ -5,6 +5,7 @@ import {
   organizations,
   projects,
 } from "@notra/db/schema";
+import { eq, or } from "drizzle-orm";
 
 import { RUNNER_LOCAL_SECRET } from "../src/constants/runner";
 
@@ -43,27 +44,67 @@ if (!(baseUrl && secret)) {
 const scanInput = { organizationId, projectId, prompt };
 const authorization = { authorization: `Bearer ${secret}` };
 
+const LEGACY_FIXTURE_SLUG = "geo-smoke-test";
+const FIXTURE_BRAND_ID = "geo-smoke-brand";
+
 async function seedLocalFixture() {
+  const fixtureId = scanInput.organizationId;
   await db.transaction(async (transaction) => {
     await transaction
       .insert(organizations)
       .values({
-        id: scanInput.organizationId,
+        id: fixtureId,
         name: "GEO Smoke Test",
-        slug: "geo-smoke-test",
+        slug: fixtureId,
         createdAt: new Date(),
       })
       .onConflictDoNothing();
+    const matches = await transaction
+      .select({ id: organizations.id, slug: organizations.slug })
+      .from(organizations)
+      .where(
+        or(
+          eq(organizations.id, fixtureId),
+          eq(organizations.slug, fixtureId),
+          eq(organizations.slug, LEGACY_FIXTURE_SLUG)
+        )
+      );
+    const organization =
+      matches.find((row) => row.id === fixtureId) ??
+      matches.find((row) => row.slug === fixtureId) ??
+      matches.find((row) => row.slug === LEGACY_FIXTURE_SLUG);
+    if (!organization) {
+      throw new Error(
+        "GEO smoke fixture organization could not be created or found"
+      );
+    }
+    scanInput.organizationId = organization.id;
+
     await transaction
       .insert(brandSettings)
       .values({
-        id: "geo-smoke-brand",
+        id: FIXTURE_BRAND_ID,
         organizationId: scanInput.organizationId,
         name: "Default",
         websiteUrl: "https://www.usenotra.com",
         companyName: "Notra",
       })
       .onConflictDoNothing();
+    const [brand] = await transaction
+      .select({ id: brandSettings.id })
+      .from(brandSettings)
+      .where(eq(brandSettings.id, FIXTURE_BRAND_ID))
+      .limit(1);
+    if (!brand) {
+      await transaction.insert(brandSettings).values({
+        id: FIXTURE_BRAND_ID,
+        organizationId: scanInput.organizationId,
+        name: "GEO Smoke Test",
+        isDefault: false,
+        websiteUrl: "https://www.usenotra.com",
+        companyName: "Notra",
+      });
+    }
     await transaction
       .insert(projects)
       .values({
@@ -107,15 +148,30 @@ const query = new URLSearchParams({
   projectId: scanInput.projectId,
 });
 const { models } = await request<{
-  models: Array<{ id: string; default?: boolean }>;
+  models: Array<{
+    id: string;
+    default?: boolean;
+    supportsWebSearch?: boolean;
+  }>;
 }>(`/models?${query}`, { headers: authorization });
-const model =
-  requestedModel ?? models.find((item) => item.default)?.id ?? models[0]?.id;
-if (!model) {
+const automatic =
+  models.find((item) => item.default && item.supportsWebSearch) ??
+  models.find((item) => item.supportsWebSearch) ??
+  models.find((item) => item.default) ??
+  models[0];
+const chosen = requestedModel
+  ? {
+      id: requestedModel,
+      supportsWebSearch:
+        models.find((item) => item.id === requestedModel)?.supportsWebSearch ===
+        true,
+    }
+  : automatic;
+if (!chosen) {
   throw new Error("No model is available for this project");
 }
 
-console.log(`Starting scan with ${model}`);
+console.log(`Starting scan with ${chosen.id}`);
 const { id } = await request<{ id: string }>("/scans", {
   method: "POST",
   headers: {
@@ -125,7 +181,8 @@ const { id } = await request<{ id: string }>("/scans", {
   },
   body: JSON.stringify({
     ...scanInput,
-    engines: [model],
+    engines: [chosen.id],
+    webSearch: chosen.supportsWebSearch === true,
   }),
 });
 
