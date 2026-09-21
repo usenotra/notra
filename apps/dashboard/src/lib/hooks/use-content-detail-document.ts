@@ -41,6 +41,18 @@ interface UseContentDetailDocumentParams {
   data: ContentApiResponse | undefined;
 }
 
+function linkedPublishForContent(
+  content: ContentApiResponse["content"] | undefined
+) {
+  if (
+    content?.contentType !== "changelog" &&
+    content?.contentType !== "blog_post"
+  ) {
+    return null;
+  }
+  return content.githubPublish;
+}
+
 export function useContentDetailDocument({
   organizationId,
   contentId,
@@ -292,11 +304,7 @@ export function useContentDetailDocument({
     };
   }, [hasChanges]);
 
-  const linkedGitHubPublish =
-    data?.content?.contentType === "changelog" ||
-    data?.content?.contentType === "blog_post"
-      ? data.content.githubPublish
-      : null;
+  const linkedGitHubPublish = linkedPublishForContent(data?.content);
 
   const handleSave = useCallback(async () => {
     if (!hasChanges) {

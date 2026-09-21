@@ -189,17 +189,17 @@ function ContentDetailPublishActions({
               href={content.githubPublish.pullRequestUrl}
               rel="noopener noreferrer"
               target="_blank"
-            />
+            >
+              <Github className="size-4" />
+              <span className="max-w-52 truncate">
+                {content.githubPublish.owner}/{content.githubPublish.repo} #
+                {content.githubPublish.pullRequestNumber}
+              </span>
+            </a>
           }
           size="sm"
           variant="outline"
-        >
-          <Github className="size-4" />
-          <span className="max-w-52 truncate">
-            {content.githubPublish.owner}/{content.githubPublish.repo} #
-            {content.githubPublish.pullRequestNumber}
-          </span>
-        </Button>
+        />
       ) : null}
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
@@ -210,6 +210,7 @@ function ContentDetailPublishActions({
           contentId={contentId}
           contentType={content.contentType}
           githubPublish={null}
+          key={organizationId}
           onSave={document.handleSave}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
