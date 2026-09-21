@@ -346,6 +346,35 @@ function CardMenu({
   );
 }
 
+function TwitterReferenceStats({
+  reference,
+}: Pick<ReferenceCardProps, "reference">) {
+  const metadata = reference.metadata as TweetMetadata | null;
+  const stats = [
+    { label: "replies", icon: Comment01Icon, count: metadata?.replies ?? 0 },
+    { label: "retweets", icon: RepeatIcon, count: metadata?.retweets ?? 0 },
+    { label: "likes", icon: FavouriteIcon, count: metadata?.likes ?? 0 },
+  ].filter((stat) => stat.count > 0);
+
+  if (stats.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-3 pt-0.5">
+      {stats.map((stat) => (
+        <span
+          className="text-muted-foreground flex items-center gap-1 text-xs"
+          key={stat.label}
+        >
+          <HugeiconsIcon className="size-3.5" icon={stat.icon} />
+          {formatCompactNumber(stat.count)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function TwitterReferenceCard({
   reference,
   onDelete,
@@ -354,10 +383,6 @@ function TwitterReferenceCard({
   isDeleting,
 }: ReferenceCardProps) {
   const metadata = reference.metadata as TweetMetadata | null;
-  const hasStats =
-    (metadata?.likes ?? 0) > 0 ||
-    (metadata?.retweets ?? 0) > 0 ||
-    (metadata?.replies ?? 0) > 0;
   const handle =
     metadata?.authorHandle ??
     getTwitterHandleFromUrl(reference.sourceUrl ?? metadata?.url);
@@ -431,28 +456,7 @@ function TwitterReferenceCard({
 
         <SourceLink sourceUrl={reference.sourceUrl ?? metadata?.url} />
 
-        {hasStats && (
-          <div className="flex items-center gap-3 pt-0.5">
-            {(metadata?.replies ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={Comment01Icon} />
-                {formatCompactNumber(metadata?.replies ?? 0)}
-              </span>
-            )}
-            {(metadata?.retweets ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={RepeatIcon} />
-                {formatCompactNumber(metadata?.retweets ?? 0)}
-              </span>
-            )}
-            {(metadata?.likes ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={FavouriteIcon} />
-                {formatCompactNumber(metadata?.likes ?? 0)}
-              </span>
-            )}
-          </div>
-        )}
+        <TwitterReferenceStats reference={reference} />
       </div>
 
       <div className="flex items-center gap-2 px-1 pb-0.5">

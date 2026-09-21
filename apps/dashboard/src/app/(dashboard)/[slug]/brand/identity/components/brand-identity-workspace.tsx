@@ -1,7 +1,5 @@
 "use client";
 
-import type { ToneProfile } from "@notra/ai/schemas/tone";
-import { getValidLanguage } from "@notra/schemas/dashboard/brand";
 import {
   Alert,
   AlertDescription,
@@ -9,11 +7,8 @@ import {
 } from "@notra/ui/components/ui/alert";
 
 import { PageContainer } from "@/components/layout/container";
-import type {
-  BrandFormInitialData,
-  BrandIdentityWorkspaceProps,
-} from "@/types/brand-identity";
-import { sanitizeBrandUrlInput } from "@/utils/brand-identity";
+import type { BrandIdentityWorkspaceProps } from "@/types/brand-identity";
+import { getBrandFormInitialData } from "@/utils/brand-identity";
 
 import { AddIdentityDialog } from "./add-identity-dialog";
 import { AnalysisStepper } from "./analysis-stepper";
@@ -48,20 +43,7 @@ export function BrandIdentityWorkspace({
   uiState,
   voices,
 }: BrandIdentityWorkspaceProps) {
-  const initialData: BrandFormInitialData = {
-    name: selectedVoice.name,
-    websiteUrl: selectedVoice.websiteUrl
-      ? sanitizeBrandUrlInput(selectedVoice.websiteUrl)
-      : "",
-    companyName: selectedVoice.companyName ?? "",
-    companyDescription: selectedVoice.companyDescription ?? "",
-    toneProfile: (selectedVoice.toneProfile as ToneProfile) ?? "Professional",
-    customTone: selectedVoice.customTone ?? "",
-    customInstructions: selectedVoice.customInstructions ?? "",
-    useCustomTone: Boolean(selectedVoice.customTone),
-    audience: selectedVoice.audience ?? "",
-    language: getValidLanguage(selectedVoice.language),
-  };
+  const initialData = getBrandFormInitialData(selectedVoice);
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">

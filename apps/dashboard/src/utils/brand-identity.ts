@@ -4,11 +4,29 @@ import {
   LANGUAGE_FLAGS,
 } from "@/constants/brand-identity";
 import type {
+  BrandFormInitialData,
   BrandIdentityUiAction,
   BrandIdentityUiState,
   StepIconState,
 } from "@/types/brand-identity";
-import type { ProgressData } from "@/types/hooks/brand-analysis";
+import type { BrandSettings, ProgressData } from "@/types/hooks/brand-analysis";
+
+export function getBrandFormInitialData(
+  voice: BrandSettings
+): BrandFormInitialData {
+  return {
+    name: voice.name,
+    websiteUrl: voice.websiteUrl ? sanitizeBrandUrlInput(voice.websiteUrl) : "",
+    companyName: voice.companyName ?? "",
+    companyDescription: voice.companyDescription ?? "",
+    toneProfile: (voice.toneProfile as ToneProfile) ?? "Professional",
+    customTone: voice.customTone ?? "",
+    customInstructions: voice.customInstructions ?? "",
+    useCustomTone: Boolean(voice.customTone),
+    audience: voice.audience ?? "",
+    language: getValidLanguage(voice.language),
+  };
+}
 
 const BRITISH_ENGLISH_LOCALE_REGEX = /^en[-_]GB\b/i;
 
@@ -174,3 +192,5 @@ export function brandIdentityUiReducer(
       return state;
   }
 }
+import type { ToneProfile } from "@notra/ai/schemas/tone";
+import { getValidLanguage } from "@notra/schemas/dashboard/brand";

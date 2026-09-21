@@ -1,15 +1,16 @@
 "use client";
 
-import { normalizePublicWebsiteUrl } from "@notra/geo-core/schemas/url";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryState } from "nuqs";
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
-// biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import * as z from "zod";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import type { PageClientProps } from "@/types/brand-identity";
+import { useBrandIdentityAnalysis } from "@/lib/hooks/use-brand-identity-analysis";
+import type {
+  BrandIdentityWorkspaceProps,
+  PageClientProps,
+} from "@/types/brand-identity";
 import {
   brandIdentityUiReducer,
   getEffectiveBrandAnalysisProgress,
@@ -27,8 +28,6 @@ import {
 } from "@/utils/brand-identity-selection";
 
 import {
-  useAnalyzeBrand,
-  useBrandAnalysisProgress,
   useBrandSettings,
   useBrandVoiceAffectedTriggers,
   useDeleteBrandVoice,
@@ -61,27 +60,29 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       : orgFromList;
   const organizationId = organization?.id ?? "";
 
+  if (!organizationId) {
+    return <BrandIdentityPageSkeleton />;
+  }
+
+  return (
+    <BrandIdentityPage organizationId={organizationId} key={organizationId} />
+  );
+}
+
+function BrandIdentityPage({
+  organizationId,
+}: Pick<BrandIdentityWorkspaceProps, "organizationId">) {
   const { data, isPending: isPendingSettings } =
     useBrandSettings(organizationId);
-  const lastToastError = useRef<string | null>(null);
-  const { progress, startPolling } = useBrandAnalysisProgress(
-    organizationId,
-    (message) => {
-      if (lastToastError.current === message) {
-        return;
-      }
-      lastToastError.current = message;
-      toast.error(message);
-    },
-    () => {
-      toast.success("Brand identity saved");
-    }
-  );
-  const analyzeMutation = useAnalyzeBrand(organizationId, startPolling);
+  const {
+    progress,
+    progressError,
+    startPolling,
+    analyzeMutation,
+    triggerAnalysis,
+  } = useBrandIdentityAnalysis(organizationId);
   const deleteVoiceMutation = useDeleteBrandVoice(organizationId);
   const setDefaultMutation = useSetDefaultBrandVoice(organizationId);
-  const progressError =
-    progress.status === "failed" ? progress.error : undefined;
 
   const voices = data?.voices ?? [];
   const [uiState, dispatchUi] = useReducer(
@@ -149,17 +150,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     setActiveVoiceId(voiceId);
   };
 
-  const deleteTargetVoice = uiState.deleteTargetVoiceId
-    ? voices.find((v) => v.id === uiState.deleteTargetVoiceId)
-    : null;
+  const deleteTargetVoice = voices.find(
+    (voice) => voice.id === uiState.deleteTargetVoiceId
+  );
 
   const { data: affectedData, isLoading: isLoadingAffected } =
     useBrandVoiceAffectedTriggers(
       organizationId,
       uiState.deleteTargetVoiceId ?? "",
-      !!uiState.deleteTargetVoiceId &&
-        !!deleteTargetVoice &&
-        !deleteTargetVoice.isDefault
+      Boolean(deleteTargetVoice && !deleteTargetVoice.isDefault)
     );
 
   const guidelinesRefresh = useRefreshBrandGuidelinesAction(
@@ -168,35 +167,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   );
 
   const effectiveUrl = uiState.url.trim();
-
-  const triggerAnalysis = async (rawUrl: string, voiceId?: string) => {
-    let urlToAnalyze = rawUrl.trim();
-    if (!urlToAnalyze) {
-      toast.error("Please enter a website URL");
-      return;
-    }
-
-    urlToAnalyze = normalizePublicWebsiteUrl(urlToAnalyze);
-
-    const parseRes = z.url().safeParse(urlToAnalyze);
-    if (!parseRes.success) {
-      toast.error("Please enter a valid website URL");
-      return;
-    }
-
-    try {
-      lastToastError.current = null;
-      await analyzeMutation.mutateAsync({ url: urlToAnalyze, voiceId });
-      toast.success("Analysis started");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to start analysis";
-      if (lastToastError.current !== message) {
-        lastToastError.current = message;
-        toast.error(message);
-      }
-    }
-  };
 
   const handleInitialAnalyze = () => triggerAnalysis(effectiveUrl);
 
@@ -258,7 +228,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const hasVoices = voices.length > 0;
 
-  if (!organizationId || (isPendingSettings && !data)) {
+  if (isPendingSettings && !data) {
     return <BrandIdentityPageSkeleton />;
   }
 
