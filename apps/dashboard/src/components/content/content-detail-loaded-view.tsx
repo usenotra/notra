@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ContentDetailMainDocument } from "@/components/content/content-detail-main-document";
@@ -45,10 +46,13 @@ export function ContentDetailLoadedView({
   const content = data.content;
   const isLongForm = ["blog_post", "changelog"].includes(content.contentType);
   const collection = data.collection;
-  const backHref = collection
+  const searchParams = useSearchParams();
+  const fromCollection =
+    collection && searchParams.get("fromCollection") === collection.id;
+  const backHref = fromCollection
     ? `/${organizationSlug}/collection/${collection.id}`
     : `/${organizationSlug}/content`;
-  const backLabel = collection ? "Back to collection" : "Back to Content";
+  const backLabel = fromCollection ? "Back to collection" : "Back to Content";
 
   return (
     <>
