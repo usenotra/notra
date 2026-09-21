@@ -3,8 +3,7 @@
     <source media="(max-width: 599px)" srcset=".github/assets/transparent.svg" />
     <img src=".github/assets/vercel-oss-badge.svg" alt="Vercel Open Source Program 2026" align="right" />
   </picture>
-  <img src="apps/web/src/app/icon0.svg" alt="Notra logo" width="40" height="40" align="middle" />
-  &nbsp;Notra
+  <img src=".github/assets/notra-wordmark.svg" alt="Notra" width="150" height="40" />
   <picture>
     <source media="(max-width: 599px)" srcset=".github/assets/vercel-oss-badge.svg" />
     <img src=".github/assets/transparent.svg" alt="Vercel Open Source Program 2026" />
