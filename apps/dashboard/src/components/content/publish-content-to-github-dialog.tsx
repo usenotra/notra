@@ -14,7 +14,7 @@ import {
 import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -48,6 +48,7 @@ function GitHubPublishDialogBody({
   isLoadingIntegrations,
   isPublishing,
   onRepositoryChange,
+  linkedPublish,
   onRetryIntegrations,
   organizationSlug,
   publishRecovery,
@@ -58,16 +59,36 @@ function GitHubPublishDialogBody({
   title,
 }: GitHubPublishDialogBodyProps) {
   if (pullRequest) {
+    let repositoryLabel = "Repository";
+    if (selectedRepository) {
+      repositoryLabel = formatGitHubRepositoryLabel(selectedRepository);
+    } else if (linkedPublish) {
+      repositoryLabel = `${linkedPublish.owner}/${linkedPublish.repo}`;
+    }
+
     return (
       <GitHubPublishResultCard
         pullRequest={pullRequest}
-        repositoryLabel={
-          selectedRepository
-            ? formatGitHubRepositoryLabel(selectedRepository)
-            : "Repository"
-        }
+        repositoryLabel={repositoryLabel}
         title={title}
       />
+    );
+  }
+
+  if (linkedPublish) {
+    const linkedLabel = `${linkedPublish.owner}/${linkedPublish.repo}#${linkedPublish.pullRequestNumber}`;
+
+    return (
+      <>
+        <p className="text-sm">
+          {isPublishing
+            ? `Pushing the latest Markdown to ${linkedLabel}…`
+            : `This pushes the latest Markdown to ${linkedLabel}.`}
+        </p>
+        {publishRecovery ? (
+          <GitHubPublishRecoveryAlert publishRecovery={publishRecovery} />
+        ) : null}
+      </>
     );
   }
 
@@ -103,6 +124,7 @@ export function PublishContentToGitHubDialog({
   title,
 }: PublishContentToGitHubDialogProps) {
   const queryClient = useQueryClient();
+  const linkedUpdateStarted = useRef(false);
   const [open, setOpen] = useState(false);
   const [repositoryId, setRepositoryId] = useState(
     () =>
@@ -168,8 +190,17 @@ export function PublishContentToGitHubDialog({
       const repository = repositories.find(
         (item) => item.id === targetRepositoryId
       );
+      const linkedRepository =
+        repository ??
+        (githubPublish?.repositoryId === targetRepositoryId
+          ? {
+              id: githubPublish.repositoryId,
+              owner: githubPublish.owner,
+              repo: githubPublish.repo,
+            }
+          : undefined);
       invalidateIntegrations();
-      if (repository) {
+      if (linkedRepository) {
         queryClient.setQueryData<ContentApiResponse>(
           dashboardOrpc.content.get.queryKey({
             input: { organizationId, contentId },
@@ -185,12 +216,12 @@ export function PublishContentToGitHubDialog({
                 ...current.content,
                 githubPublish: {
                   branchName: result.branchName,
-                  owner: repository.owner,
+                  owner: linkedRepository.owner,
                   path: result.path,
                   pullRequestNumber: result.pullRequestNumber,
                   pullRequestUrl: result.pullRequestUrl,
-                  repo: repository.repo,
-                  repositoryId: repository.id,
+                  repo: linkedRepository.repo,
+                  repositoryId: linkedRepository.id,
                 },
               },
             };
@@ -229,12 +260,25 @@ export function PublishContentToGitHubDialog({
   );
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!publishMutation.isPending) {
-      setOpen(nextOpen);
-      if (nextOpen) {
-        publishMutation.reset();
+    if (!nextOpen) {
+      if (publishMutation.isPending) {
+        return;
       }
+      linkedUpdateStarted.current = false;
+      setOpen(false);
+      return;
     }
+    setOpen(true);
+    if (!githubPublish) {
+      publishMutation.reset();
+      return;
+    }
+    if (linkedUpdateStarted.current) {
+      return;
+    }
+    linkedUpdateStarted.current = true;
+    publishMutation.reset();
+    publishMutation.mutate(githubPublish.repositoryId);
   };
 
   const rememberRepository = (nextRepositoryId: string) => {
@@ -252,6 +296,13 @@ export function PublishContentToGitHubDialog({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (publishMutation.isPending) {
+      return;
+    }
+    if (githubPublish) {
+      publishMutation.mutate(githubPublish.repositoryId);
+      return;
+    }
     if (selectedRepository) {
       rememberRepository(selectedRepository.id);
       publishMutation.mutate(selectedRepository.id);
@@ -320,6 +371,7 @@ export function PublishContentToGitHubDialog({
               isLoadingIntegrations={integrationsQuery.isLoading}
               isPublishing={publishMutation.isPending}
               onRepositoryChange={handleRepositoryChange}
+              linkedPublish={githubPublish}
               onRetryIntegrations={() => integrationsQuery.refetch()}
               organizationSlug={organizationSlug}
               publishRecovery={publishRecovery}

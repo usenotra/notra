@@ -32,6 +32,7 @@ export interface GitHubPublishDialogBodyProps {
   onRepositoryChange: (repositoryId: string) => void;
   onRetryIntegrations: () => void;
   organizationSlug: string;
+  linkedPublish: PostGitHubPublish | null;
   publishRecovery: GitHubPublishRecovery | null;
   pullRequest: GitHubPublishPullRequestResult | undefined;
   repositories: GitHubRepository[];

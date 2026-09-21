@@ -718,31 +718,66 @@ export async function publishContentDraftPullRequest(
     .slice(0, 16);
   let branchName = `notra/${prefix}-${contentHash}`;
   let existingPullRequest: GitHubPullRequestSummary | undefined;
+  const linkedPullRequest = requestedParams.linkedPullRequest;
 
-  try {
-    existingPullRequest = await findExistingPullRequest({
-      branchName,
-      defaultBranch: requestedParams.defaultBranch,
-      octokit,
-      owner: requestedParams.owner,
-      repo: requestedParams.repo,
-    });
-    if (!existingPullRequest) {
-      const legacyPullRequest = await findLegacyContentPullRequest(
+  if (linkedPullRequest) {
+    try {
+      const linked = await getPullRequestAfterCommit({
         octokit,
-        requestedParams,
-        baseSha
-      );
-      if (legacyPullRequest) {
-        existingPullRequest = legacyPullRequest;
-        branchName = legacyPullRequest.head.ref;
+        owner: requestedParams.owner,
+        pullRequestNumber: linkedPullRequest.number,
+        repo: requestedParams.repo,
+      });
+      const headRepository = linked.head.repo?.full_name.toLowerCase();
+      const expectedRepository =
+        `${requestedParams.owner}/${requestedParams.repo}`.toLowerCase();
+      if (
+        linked.state === "open" &&
+        linked.head.ref === linkedPullRequest.branchName &&
+        headRepository === expectedRepository
+      ) {
+        existingPullRequest = {
+          html_url: linked.html_url,
+          number: linked.number,
+        };
+        branchName = linked.head.ref;
+      }
+    } catch (error) {
+      if (!hasGitHubStatus(error, 404)) {
+        throw new GitHubContentPublishError(
+          "Failed to read the linked pull request",
+          error
+        );
       }
     }
-  } catch (error) {
-    throw new GitHubContentPublishError(
-      "Failed to check for an existing content pull request",
-      error
-    );
+  }
+
+  if (!existingPullRequest) {
+    try {
+      existingPullRequest = await findExistingPullRequest({
+        branchName,
+        defaultBranch: requestedParams.defaultBranch,
+        octokit,
+        owner: requestedParams.owner,
+        repo: requestedParams.repo,
+      });
+      if (!existingPullRequest) {
+        const legacyPullRequest = await findLegacyContentPullRequest(
+          octokit,
+          requestedParams,
+          baseSha
+        );
+        if (legacyPullRequest) {
+          existingPullRequest = legacyPullRequest;
+          branchName = legacyPullRequest.head.ref;
+        }
+      }
+    } catch (error) {
+      throw new GitHubContentPublishError(
+        "Failed to check for an existing content pull request",
+        error
+      );
+    }
   }
 
   let createdBranch = false;

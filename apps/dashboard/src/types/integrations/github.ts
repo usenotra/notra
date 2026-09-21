@@ -420,6 +420,14 @@ export interface PublishContentDraftPullRequestParams {
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
   badgeUrls?: OpenInNotraBadgeUrls;
+  /**
+   * Open pull request already stored for this content. A new commit is pushed
+   * to its branch instead of opening another draft.
+   */
+  linkedPullRequest?: {
+    branchName: string;
+    number: number;
+  };
 }
 
 export interface GitHubPullRequestSummary {

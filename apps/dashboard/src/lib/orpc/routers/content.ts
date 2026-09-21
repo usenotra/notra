@@ -924,6 +924,7 @@ export const contentRouter = {
             slug: true,
             markdown: true,
             contentType: true,
+            githubPublish: true,
           },
         }),
         db
@@ -1111,6 +1112,21 @@ export const contentRouter = {
         toGitHubOperationOrpcError
       );
 
+      const storedPublish = postGitHubPublishSchema.safeParse(
+        post.githubPublish
+      );
+      const linkedPullRequest =
+        storedPublish.success &&
+        storedPublish.data.repositoryId === integration.id &&
+        storedPublish.data.owner.toLowerCase() ===
+          integration.owner.toLowerCase() &&
+        storedPublish.data.repo.toLowerCase() === integration.repo.toLowerCase()
+          ? {
+              branchName: storedPublish.data.branchName,
+              number: storedPublish.data.pullRequestNumber,
+            }
+          : undefined;
+
       const octokit = createOctokit(token);
       const publisherLogin =
         getGitHubAppBotLogin() ??
@@ -1130,6 +1146,7 @@ export const contentRouter = {
           title: post.title,
           markdown: savedMarkdown,
           pullRequestMarkdown: savedMarkdown,
+          ...(linkedPullRequest ? { linkedPullRequest } : {}),
           ...(publisherLogin ? { publisherLogin } : {}),
           ...(outputConfig.success && outputConfig.data.imagePath
             ? {

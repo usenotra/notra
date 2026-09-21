@@ -86,7 +86,9 @@ export function GitHubPublishDialogFooter({
       {pullRequest || publishingPaused ? null : (
         <Button
           disabled={
-            isPublishing || !hasSelectedRepository || !selectedPublishingEnabled
+            isPublishing ||
+            (!updatingLinkedPullRequest &&
+              (!hasSelectedRepository || !selectedPublishingEnabled))
           }
           type="submit"
         >
