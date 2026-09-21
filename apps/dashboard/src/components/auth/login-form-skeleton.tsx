@@ -21,6 +21,11 @@ export function LoginFormSkeleton() {
         <Skeleton className="h-11" />
       </div>
       <Skeleton className="h-11" />
+      <div className="flex flex-col items-center gap-4">
+        <Skeleton className="h-4 w-56" />
+        <Skeleton className="h-px w-5/6" />
+        <Skeleton className="h-4 w-44" />
+      </div>
     </div>
   );
 }

@@ -12,13 +12,17 @@ export function LoginContent() {
   const [email] = useQueryState("email", parseAsString);
   const [errorKey] = useQueryState("error", parseAsString);
   const knownErrorKey =
-    errorKey && errorKey in LOGIN_ERROR_MESSAGES ? errorKey : undefined;
+    errorKey && Object.hasOwn(LOGIN_ERROR_MESSAGES, errorKey)
+      ? errorKey
+      : undefined;
 
   return (
     <>
       {knownErrorKey ? <LoginErrorTracker errorCode={knownErrorKey} /> : null}
       <LoginForm
-        initialError={errorKey ? LOGIN_ERROR_MESSAGES[errorKey] : undefined}
+        initialError={
+          knownErrorKey ? LOGIN_ERROR_MESSAGES[knownErrorKey] : undefined
+        }
         initialPendingVerification={
           verify
             ? { pendingAuthenticationToken: verify, email: email ?? "" }
