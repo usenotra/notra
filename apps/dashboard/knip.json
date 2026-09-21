@@ -2,6 +2,8 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "scripts/*.ts",
+    "tests/fixtures/competitor-modal.fixture.tsx",
+    "tests/fixtures/content-selection.fixture.ts",
     "tests/fixtures/prompt-answer-selection.fixture.ts",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"

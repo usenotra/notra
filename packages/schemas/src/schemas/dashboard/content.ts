@@ -191,6 +191,7 @@ export const postCollectionSummarySchema = z.object({
   nameSource: postCollectionNameSourceSchema,
   contentTypes: z.array(contentTypeSchema),
   postCount: z.number().int().min(0),
+  singlePost: z.object({ id: z.string(), title: z.string() }).nullable(),
   expectedPostCount: z.number().int().nullable(),
   isGenerating: z.boolean(),
   statusSummary: postCollectionStatusSummarySchema,

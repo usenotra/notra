@@ -1,4 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
+import type { PostStatus } from "@notra/schemas/dashboard/content";
 import type { ReactNode } from "react";
 
 import type { BrandTab } from "@/types/brand-identity";
@@ -153,4 +154,15 @@ export interface SidebarSwapProps {
   /** Keep every panel mounted. Use when both sides stay cheap to hold. */
   keepMounted?: boolean;
   className?: string;
+}
+
+export interface NavRecentContentItemProps {
+  href: string;
+  isActive: boolean;
+  post: {
+    id: string;
+    organizationId: string;
+    status: PostStatus;
+    title: string;
+  };
 }

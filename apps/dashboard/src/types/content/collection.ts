@@ -1,5 +1,6 @@
 import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 
+import type { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
 import type { TablePaginationState } from "@/types/table";
 
 export interface CollectionPageProps {
@@ -38,9 +39,15 @@ export interface GroupContentTypesProps {
 
 export type CollectionStatus = "generating" | "published" | "draft" | "empty";
 
-export interface CollectionsTableProps {
+export type ContentCollectionView = (typeof CONTENT_COLLECTION_VIEWS)[number];
+
+export interface CollectionsViewProps {
   collections: PostCollectionSummary[];
   pagination: TablePaginationState;
-  onOpen: (collectionId: string) => void;
-  onHover?: (collectionId: string) => void;
+  organizationSlug: string;
+  view: ContentCollectionView;
 }
+
+export type CollectionsSkeletonProps = Partial<
+  Pick<CollectionsViewProps, "view">
+>;

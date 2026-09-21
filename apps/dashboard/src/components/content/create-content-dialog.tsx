@@ -30,6 +30,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -97,6 +98,8 @@ export function CreateContentDialog({
   organizationId,
 }: CreateContentDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const router = useRouter();
+  const { slug: organizationSlug } = useParams<{ slug?: string }>();
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
   const open = controlledOpen ?? uncontrolledOpen;
@@ -388,7 +391,7 @@ export function CreateContentDialog({
   }, [previewFailures, previewParamsKey]);
 
   const mutation = useMutation<
-    { succeeded: number; total: number },
+    { succeeded: number; total: number; collectionId: string },
     Error,
     {
       formats: OnDemandContentType[];
@@ -457,9 +460,9 @@ export function CreateContentDialog({
           expectedPostCount: succeeded,
         });
       }
-      return { succeeded, total: results.length };
+      return { succeeded, total: results.length, collectionId };
     },
-    onSuccess: ({ succeeded, total }) => {
+    onSuccess: ({ succeeded, total, collectionId }) => {
       setDialogOpen(false);
       if (succeeded === total) {
         toast.success(
@@ -480,6 +483,9 @@ export function CreateContentDialog({
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.collections.list.key(),
       });
+      if (organizationSlug) {
+        router.push(`/${organizationSlug}/collection/${collectionId}`);
+      }
     },
     onError: (err) => {
       toast.error(err.message);

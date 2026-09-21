@@ -28,33 +28,35 @@ export function ContentSkeletonCard({
   return (
     <div
       className={cn(
-        "border-border/80 bg-muted/80 flex flex-col rounded-lg border p-2",
+        "border-border/80 border-b-border/40 bg-muted/80 flex flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs",
         "h-full",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-4 py-1.5 pr-2 pl-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <Loader2Icon className="text-muted-foreground size-4 shrink-0 animate-spin" />
-          <p className="text-muted-foreground truncate text-lg font-medium">
-            Generating content...
-          </p>
+      <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col gap-2 overflow-hidden rounded-lg px-3 pt-2.5 pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Loader2Icon className="text-muted-foreground size-4 shrink-0 animate-spin" />
+            <p className="text-muted-foreground truncate text-base font-medium">
+              Generating content...
+            </p>
+          </div>
+          {source === "api" && (
+            <Tooltip>
+              <TooltipTrigger className="border-border/60 bg-muted/80 text-muted-foreground hover:bg-muted -mt-0.5 inline-flex shrink-0 items-center justify-center rounded-md border p-1 transition-colors">
+                <BracesIcon className="size-3.5" />
+              </TooltipTrigger>
+              <TooltipContent side="top">Queued via API</TooltipContent>
+            </Tooltip>
+          )}
         </div>
-        {source === "api" && (
-          <Tooltip>
-            <TooltipTrigger className="border-border/60 bg-background/80 text-muted-foreground hover:bg-background inline-flex shrink-0 items-center justify-center rounded-md border p-1 transition-colors">
-              <BracesIcon className="size-3.5" />
-            </TooltipTrigger>
-            <TooltipContent side="top">Queued via API</TooltipContent>
-          </Tooltip>
-        )}
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-2/5" />
+        </div>
       </div>
-      <div className="border-border/80 bg-background flex-1 space-y-2 rounded-[0.75rem] border px-4 py-3">
-        <Skeleton className="h-3.5 w-full" />
-        <Skeleton className="h-3.5 w-full" />
-        <Skeleton className="h-3.5 w-2/3" />
-      </div>
-      <div className="flex items-center gap-2 px-2 py-1.5">
+      <div className="flex items-center gap-1.5 px-1 pb-0.5">
         <Badge className="capitalize" variant="outline">
           draft
         </Badge>

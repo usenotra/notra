@@ -90,34 +90,40 @@ export function LongFormEditor({
 
     const startOffset = textarea.selectionStart;
     const endOffset = textarea.selectionEnd;
-    if (startOffset !== endOffset) {
-      const text = textarea.value.substring(startOffset, endOffset).trim();
-      if (text) {
-        const getLineAndChar = (offset: number) => {
-          const lines = textarea.value.substring(0, offset).split("\n");
-          return {
-            line: lines.length,
-            char: (lines.at(-1)?.length ?? 0) + 1,
-          };
-        };
-        const start = getLineAndChar(startOffset);
-        const end = getLineAndChar(endOffset);
-        actions.onSelectionChange({
-          text,
-          startLine: start.line,
-          startChar: start.char,
-          endLine: end.line,
-          endChar: end.char,
-        });
-      }
+    if (startOffset === endOffset) {
+      actions.onSelectionChange(null);
+      return;
     }
+
+    const text = textarea.value.substring(startOffset, endOffset).trim();
+    if (!text) {
+      actions.onSelectionChange(null);
+      return;
+    }
+
+    const getLineAndChar = (offset: number) => {
+      const lines = textarea.value.substring(0, offset).split("\n");
+      return {
+        line: lines.length,
+        char: (lines.at(-1)?.length ?? 0) + 1,
+      };
+    };
+    const start = getLineAndChar(startOffset);
+    const end = getLineAndChar(endOffset);
+    actions.onSelectionChange({
+      text,
+      startLine: start.line,
+      startChar: start.char,
+      endLine: end.line,
+      endChar: end.char,
+    });
   }, [actions]);
 
   return (
     <div className="w-full">
       <textarea
         aria-label="Post title"
-        className="placeholder:text-muted-foreground/40 block h-auto min-h-0 w-full resize-none overflow-hidden bg-transparent p-0 text-3xl leading-tight font-semibold tracking-tight outline-none focus:ring-0 md:text-4xl"
+        className="placeholder:text-muted-foreground/40 block h-auto min-h-0 w-full resize-none overflow-hidden bg-transparent p-0 text-2xl leading-tight font-semibold tracking-tight outline-none focus:ring-0 md:text-3xl"
         onChange={(e) => actions.setEditingTitle(e.target.value)}
         onFocus={(e) => {
           if (state.editingTitle === null) {

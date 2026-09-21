@@ -10,7 +10,10 @@ import { toast } from "sonner";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { SAVE_BAR_SELECTOR } from "@/constants/content-detail";
+import {
+  CONTENT_SAVE_TOAST_POSITION,
+  SAVE_BAR_SELECTOR,
+} from "@/constants/content-detail";
 import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
@@ -279,11 +282,15 @@ export function useContentDetailDocument({
       setEditingTitle(null);
       setPersistedSlug(persistedSlug);
       setEditingSlug(null);
-      toast.success("Content saved");
+      toast.success("Content saved", {
+        position: CONTENT_SAVE_TOAST_POSITION,
+      });
       setIsSaving(false);
       return true;
     } catch (error) {
-      toast.error(getSaveContentDetailErrorMessage(error));
+      toast.error(getSaveContentDetailErrorMessage(error), {
+        position: CONTENT_SAVE_TOAST_POSITION,
+      });
       setIsSaving(false);
       return false;
     }
@@ -374,6 +381,9 @@ export function useContentDetailDocument({
         }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.list.key(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.collections.list.key(),
         }),
       ]),
     [contentId, organizationId, queryClient]

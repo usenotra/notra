@@ -1260,6 +1260,12 @@ export const contentRouter = {
                   total: sql<number>`count(*)::int`,
                   draft: sql<number>`count(*) filter (where ${posts.status} <> 'published')::int`,
                   published: sql<number>`count(*) filter (where ${posts.status} = 'published')::int`,
+                  postId: sql<
+                    string | null
+                  >`case when count(*) = 1 then min(${posts.id}) end`,
+                  postTitle: sql<
+                    string | null
+                  >`case when count(*) = 1 then min(${posts.title}) end`,
                   types: sql<
                     string[] | null
                   >`array_agg(distinct ${posts.contentType})`,
@@ -1277,6 +1283,8 @@ export const contentRouter = {
               draft: Number(row.draft),
               published: Number(row.published),
               types: row.types ?? [],
+              postId: row.postId,
+              postTitle: row.postTitle,
             },
           ])
         );
@@ -1305,6 +1313,13 @@ export const contentRouter = {
             nameSource: collection.nameSource,
             contentTypes,
             postCount,
+            singlePost:
+              postCount === 1 && aggregate?.postId
+                ? {
+                    id: aggregate.postId,
+                    title: aggregate.postTitle ?? collection.name,
+                  }
+                : null,
             expectedPostCount: collection.expectedPostCount,
             isGenerating,
             statusSummary: {
