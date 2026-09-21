@@ -8,7 +8,7 @@
 @import "../../../../packages/ui/src/styles/status.css";
 
 @source "../../mdx-components.tsx";
-@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";

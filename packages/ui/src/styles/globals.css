@@ -8,7 +8,7 @@
 @import "./status.css";
 @import "./text-shimmer.css";
 
-@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";

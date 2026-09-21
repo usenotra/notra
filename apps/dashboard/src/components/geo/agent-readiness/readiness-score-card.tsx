@@ -17,6 +17,7 @@ import {
   getAgentReadinessScoreBand,
 } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import type { CSSProperties } from "react";
 
 import { Button } from "@/components/button";
 import { AgentReadinessScoreGauge } from "@/components/geo/agent-readiness/readiness-score-gauge";
@@ -87,8 +88,12 @@ function BreakdownTile({
           role="progressbar"
         >
           <div
-            className="bg-foreground/70 duration-slower h-full rounded-full transition-[width] ease-out"
-            style={{ width: `${passingPercent(passing, total)}%` }}
+            className="bg-foreground/70 duration-slower transition-width h-full w-(--passing) rounded-full ease-out"
+            style={
+              {
+                "--passing": `${passingPercent(passing, total)}%`,
+              } as CSSProperties
+            }
           />
         </div>
       ) : null}

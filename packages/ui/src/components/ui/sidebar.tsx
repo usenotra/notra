@@ -248,7 +248,7 @@ function Sidebar({
 			{/* This is what handles the sidebar gap on desktop */}
 			<div
 				className={cn(
-					`relative w-(--sidebar-width) bg-transparent transition-[width] ${SIDEBAR_WIDTH_TRANSITION}`,
+					`relative w-(--sidebar-width) bg-transparent transition-width ${SIDEBAR_WIDTH_TRANSITION}`,
 					"group-data-[collapsible=offExamples]:w-0",
 					"group-data-[side=right]:rotate-180",
 					variant === "floating" || variant === "inset"

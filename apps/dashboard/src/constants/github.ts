@@ -64,17 +64,6 @@ export const GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES = 10 * 1024 * 1024;
 /** GitHub rejects issue and pull request bodies longer than this. */
 export const GITHUB_PULL_REQUEST_BODY_MAX_LENGTH = 65_536;
 
-/** GitHub App installation tokens author this commit as `{slug}[bot]`. */
-export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
-  mutation CreateCommitOnBranch($input: CreateCommitOnBranchInput!) {
-    createCommitOnBranch(input: $input) {
-      commit {
-        oid
-      }
-    }
-  }
-`;
-
 export const GITHUB_INSTALLATION_ID_REGEX = /^\d+$/;
 
 export const GITHUB_RECOVERY_COPY = {
@@ -116,6 +105,7 @@ export const GITHUB_RECOVERY_COPY = {
 export const GITHUB_APP_PERMISSIONS = [
   "Read repository metadata, branches, and releases",
   "Create branches, commits, and draft pull requests",
+  "Comment on pull requests when mentioned",
   "Receive webhook events for the repositories you choose",
   "Access only the repositories you grant during installation",
 ] as const;

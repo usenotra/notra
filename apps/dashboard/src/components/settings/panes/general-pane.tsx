@@ -168,15 +168,28 @@ export function GeneralSettingsPane() {
 
       <ConnectedAccountsSection organizationId={organization.id} />
 
-      <TitleCard heading="Danger Zone">
+      <TitleCard
+        className="border-destructive/50 bg-destructive/5"
+        heading="Delete Organization"
+      >
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Delete Organization</p>
+          <p className="text-muted-foreground text-sm">
+            Permanently delete this organization and all its data
+          </p>
+          {!isLoadingOwnedOrganizations && !ownedOrganization && (
+            <p className="text-muted-foreground text-xs">
+              Only organization owners can delete this organization.
+            </p>
+          )}
+          {!isLoadingOwnedOrganizations &&
+            ownedOrganization &&
+            organizations.length <= 1 && (
               <p className="text-muted-foreground text-xs">
-                Permanently delete this organization and all its data
+                You need at least one organization. Create another before
+                deleting this one.
               </p>
-            </div>
+            )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             {canDeleteOrganization ? (
               <OrganizationMembershipActionDialog
                 action="delete"
@@ -185,8 +198,8 @@ export function GeneralSettingsPane() {
                 organizationName={organization.name}
                 trigger={
                   <Button
+                    className="w-full sm:w-auto"
                     disabled={isRemovingOrganization}
-                    size="sm"
                     variant="destructive"
                   >
                     {isRemovingOrganization ? (
@@ -201,24 +214,15 @@ export function GeneralSettingsPane() {
                 }
               />
             ) : (
-              <Button disabled size="sm" variant="destructive">
+              <Button
+                className="w-full sm:w-auto"
+                disabled
+                variant="destructive"
+              >
                 Delete Organization
               </Button>
             )}
           </div>
-          {!isLoadingOwnedOrganizations && !ownedOrganization && (
-            <p className="text-muted-foreground text-xs">
-              Only organization owners can delete this organization.
-            </p>
-          )}
-          {!isLoadingOwnedOrganizations &&
-            ownedOrganization &&
-            organizations.length <= 1 && (
-              <p className="text-muted-foreground text-xs">
-                You need at least one organization. Create another before
-                deleting this one.
-              </p>
-            )}
         </div>
       </TitleCard>
     </SettingsPane>
@@ -362,85 +366,89 @@ function ConnectedAccountsGroup({
 
         return (
           <div
-            className="flex items-center gap-3 rounded-lg border p-3"
+            className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center"
             key={account.id}
           >
-            <Avatar
-              className={
-                hasSquareAvatar ? "size-9 rounded-md" : "size-9 rounded-full"
-              }
-              size="sm"
-            >
-              {account.profileImageUrl && (
-                <AvatarImage
-                  alt={account.displayName}
-                  src={account.profileImageUrl}
-                />
-              )}
-              <AvatarFallback>
-                {account.username.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 truncate text-sm font-medium">
-                {account.displayName}
-                <XVerificationBadge
-                  className="size-4 shrink-0"
-                  verified={account.verified}
-                  verifiedType={account.verifiedType}
-                />
-              </p>
-              <p className="text-muted-foreground truncate text-xs">
-                @{account.username}
-              </p>
-            </div>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    aria-label={`Refresh @${account.username}`}
-                    disabled={refreshMutation.isPending}
-                    onClick={() => refreshMutation.mutate(account.id)}
-                    size="icon-sm"
-                    variant="outline"
-                  />
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar
+                className={
+                  hasSquareAvatar ? "size-9 rounded-md" : "size-9 rounded-full"
                 }
+                size="sm"
               >
-                {isRefreshing ? (
-                  <Loader2Icon className="size-3.5 animate-spin" />
-                ) : (
-                  <HugeiconsIcon
-                    className="size-3.5"
-                    icon={ArrowReloadHorizontalIcon}
+                {account.profileImageUrl && (
+                  <AvatarImage
+                    alt={account.displayName}
+                    src={account.profileImageUrl}
                   />
                 )}
-              </TooltipTrigger>
-              <TooltipContent>Refresh account details</TooltipContent>
-            </Tooltip>
-            <Button
-              aria-label={`Disconnect @${account.username}`}
-              disabled={disconnectMutation.isPending}
-              onClick={() => {
-                disconnectMutation.mutate(account.id, {
-                  onSuccess: () => toast.success("Account disconnected"),
-                  onError: () => toast.error("Failed to disconnect account"),
-                });
-              }}
-              size="sm"
-              variant="outline"
-            >
-              {isDisconnecting ? (
-                <>
-                  <Loader2Icon className="size-3.5 animate-spin" />
-                  Disconnecting...
-                </>
-              ) : (
-                <>
-                  <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
-                  Disconnect
-                </>
-              )}
-            </Button>
+                <AvatarFallback>
+                  {account.username.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1 truncate text-sm font-medium">
+                  {account.displayName}
+                  <XVerificationBadge
+                    className="size-4 shrink-0"
+                    verified={account.verified}
+                    verifiedType={account.verifiedType}
+                  />
+                </p>
+                <p className="text-muted-foreground truncate text-xs">
+                  @{account.username}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      aria-label={`Refresh @${account.username}`}
+                      disabled={refreshMutation.isPending}
+                      onClick={() => refreshMutation.mutate(account.id)}
+                      size="icon-sm"
+                      variant="outline"
+                    />
+                  }
+                >
+                  {isRefreshing ? (
+                    <Loader2Icon className="size-3.5 animate-spin" />
+                  ) : (
+                    <HugeiconsIcon
+                      className="size-3.5"
+                      icon={ArrowReloadHorizontalIcon}
+                    />
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>Refresh account details</TooltipContent>
+              </Tooltip>
+              <Button
+                aria-label={`Disconnect @${account.username}`}
+                disabled={disconnectMutation.isPending}
+                onClick={() => {
+                  disconnectMutation.mutate(account.id, {
+                    onSuccess: () => toast.success("Account disconnected"),
+                    onError: () => toast.error("Failed to disconnect account"),
+                  });
+                }}
+                size="sm"
+                variant="outline"
+              >
+                {isDisconnecting ? (
+                  <>
+                    <Loader2Icon className="size-3.5 animate-spin" />
+                    Disconnecting...
+                  </>
+                ) : (
+                  <>
+                    <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
+                    Disconnect
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
       })}

@@ -27,7 +27,58 @@ export default defineConfig({
   // Keep the full presets as the source of truth while baselining rules that
   // conflict with existing code. Newly added Ultracite rules stay enabled.
   rules: {
-    "shadcn/no-restyle": ["warn", { allow: ["layout"] }],
+    "shadcn/no-restyle": [
+      "warn",
+      {
+        allow: ["layout"],
+        contracts: [
+          {
+            pattern: "^Card$",
+            allow: ["layout", "gap-6", "p-6"],
+          },
+          { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          {
+            pattern: "^TitleCard$",
+            allow: ["layout", "border-t-0", "pt-0"],
+          },
+          {
+            // TooltipTrigger is wrapped around arbitrary content everywhere, so
+            // the restyles below are the baseline that already exists. Listing
+            // them keeps the rule flagging anything new.
+            pattern: "^TooltipTrigger$",
+            allow: [
+              "layout",
+              "typography",
+              "bg-background/80",
+              "bg-transparent",
+              "border",
+              "border-0",
+              "border-b",
+              "border-border/60",
+              "border-dashed",
+              "border-muted-foreground/30",
+              "data-[direction='-1']:text-geo-down",
+              "data-[direction='1']:text-geo-up",
+              "focus-visible:outline-2",
+              "focus-visible:outline-offset-2",
+              "focus-visible:outline-ring",
+              "focus-visible:ring-2",
+              "focus-visible:ring-ring/50",
+              "hover:bg-background",
+              "hover:text-foreground",
+              "outline-none",
+              "p-0",
+              "p-1",
+              "rounded-md",
+              "rounded-sm",
+              "text-foreground",
+              "text-muted-foreground",
+              "transition-colors",
+            ],
+          },
+        ],
+      },
+    ],
     "shadcn/no-raw-colors": "warn",
     "shadcn/no-arbitrary-values": ["warn", { allow: ["layout"] }],
     "shadcn/no-inline-styles": "warn",

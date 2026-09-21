@@ -81,10 +81,6 @@ export function GitHubWebhookSettings({
   const webhook = config.data;
   return (
     <div className="max-w-3xl space-y-4">
-      <p className="text-muted-foreground text-sm">
-        Use these values in your GitHub webhook settings. Set the content type
-        to <code>application/json</code>.
-      </p>
       <div className="space-y-1.5">
         <label className="text-sm font-medium" htmlFor={urlId}>
           Payload URL
@@ -150,9 +146,6 @@ export function GitHubWebhookSettings({
         >
           Regenerate secret
         </Button>
-        <span className="text-muted-foreground text-xs">
-          Replace the old secret in GitHub after regenerating.
-        </span>
         <a
           className="text-sm underline underline-offset-4"
           href={`https://github.com/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}/settings/hooks`}

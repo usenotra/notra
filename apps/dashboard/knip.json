@@ -9,7 +9,7 @@
   "paths": {
     "@/*": ["./src/*"]
   },
-  "ignoreDependencies": ["@ai-sdk/code-mode"],
+  "ignoreDependencies": ["@ai-sdk/code-mode", "tailwindcss"],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],

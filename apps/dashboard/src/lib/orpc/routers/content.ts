@@ -19,10 +19,15 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
+import {
+  findOpenContentPublicationForPost,
+  recordContentPublication,
+} from "@notra/ai/utils/content-publication";
 import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
+import { retryWrite } from "@notra/ai/utils/retry-write";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
 import {
@@ -122,7 +127,10 @@ import {
 import { baseProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import { toGitHubPublishOrpcError } from "@/lib/orpc/utils/github-publish-error";
-import { startOnDemandRun } from "@/lib/workflows/start";
+import {
+  startContentPublicationReconciliation,
+  startOnDemandRun,
+} from "@/lib/workflows/start";
 import type {
   CommitPreview,
   LinearIntegrationPreviewItem,
@@ -1136,6 +1144,11 @@ export const contentRouter = {
           .catch(() => undefined));
 
       try {
+        const publishedAt = new Date().toISOString();
+        const previousPublication = await findOpenContentPublicationForPost({
+          organizationId: input.organizationId,
+          postId: input.contentId,
+        });
         const result = await publishContentDraftPullRequest(octokit, {
           contentId: input.contentId,
           contentType: input.contentType,
@@ -1145,7 +1158,6 @@ export const contentRouter = {
           path,
           title: post.title,
           markdown: savedMarkdown,
-          pullRequestMarkdown: savedMarkdown,
           ...(linkedPullRequest ? { linkedPullRequest } : {}),
           ...(input.linkedOnly ? { requireLinkedPullRequest: true } : {}),
           ...(publisherLogin ? { publisherLogin } : {}),
@@ -1205,6 +1217,101 @@ export const contentRouter = {
               eq(posts.organizationId, input.organizationId)
             )
           );
+        // The pull request already exists; losing the mention mapping must not
+        // report the publish as failed. Retry the mapping so a later mention
+        // can still find the post.
+        const publication = {
+          organizationId: input.organizationId,
+          postId: input.contentId,
+          repositoryId: integration.id,
+          owner: integration.owner,
+          repo: integration.repo,
+          path: result.path,
+          branch: result.branchName,
+          pullRequestNumber: result.pullRequestNumber,
+          pullRequestUrl: result.pullRequestUrl,
+          headSha: result.headSha,
+          previousHeadSha: previousPublication?.headSha ?? null,
+        };
+        const logContext = {
+          organizationId: input.organizationId,
+          contentId: input.contentId,
+          pullRequestUrl: result.pullRequestUrl,
+        };
+        // Queue the durable insert/close reconciliation before making the
+        // mapping visible. A close event cannot be lost in the gap.
+        let reconciliationScheduled = false;
+        try {
+          await startContentPublicationReconciliation(publication, publishedAt);
+          reconciliationScheduled = true;
+        } catch (error) {
+          console.error("Failed to start content publication reconciliation", {
+            ...logContext,
+            error,
+          });
+        }
+        try {
+          const recordedPublication = await retryWrite(() =>
+            recordContentPublication(publication, publishedAt)
+          );
+          if (
+            recordedPublication &&
+            recordedPublication.headSha !== result.headSha
+          ) {
+            const currentPublication = await findOpenContentPublicationForPost({
+              organizationId: input.organizationId,
+              postId: input.contentId,
+            });
+            if (
+              currentPublication?.id === recordedPublication.id &&
+              currentPublication.headSha === recordedPublication.headSha
+            ) {
+              await retryWrite(() =>
+                recordContentPublication(
+                  {
+                    ...publication,
+                    previousHeadSha: currentPublication.headSha,
+                  },
+                  publishedAt
+                )
+              );
+            }
+          }
+          if (!reconciliationScheduled) {
+            try {
+              await startContentPublicationReconciliation(
+                publication,
+                publishedAt
+              );
+            } catch (startError) {
+              console.error(
+                "Failed to start content publication reconciliation",
+                { ...logContext, error: startError }
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Failed to record content publication", {
+            ...logContext,
+            error,
+          });
+          // The PR already exists, so hand the idempotent mapping write to a
+          // durable workflow instead of relying on this request process. The
+          // publish itself succeeded, whatever happens to the handover.
+          if (!reconciliationScheduled) {
+            try {
+              await startContentPublicationReconciliation(
+                publication,
+                publishedAt
+              );
+            } catch (startError) {
+              console.error(
+                "Failed to start content publication reconciliation",
+                { ...logContext, error: startError }
+              );
+            }
+          }
+        }
         return result;
       } catch (error) {
         throw await toGitHubPublishOrpcError(error, {

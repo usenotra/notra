@@ -2,14 +2,12 @@
 
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
-import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import {
   CONTENT_SAVE_TOAST_POSITION,
   SAVE_BAR_SELECTOR,
@@ -22,7 +20,6 @@ import {
   toggleContentDetailStatus,
 } from "@/lib/content/save-content-detail";
 import { updateGeoWriterPlan } from "@/lib/content/update-geo-writer-plan";
-import { useContentDetailSaveToast } from "@/lib/hooks/use-content-detail-save-toast";
 import { useContentDetailTitleSlug } from "@/lib/hooks/use-content-detail-title-slug";
 import {
   useGeoWriterBrief,
@@ -49,10 +46,7 @@ export function useContentDetailDocument({
   contentId,
   data,
 }: UseContentDetailDocumentParams) {
-  const { state: sidebarState } = useSidebar();
   const queryClient = useQueryClient();
-  const { active } = useRightPanel();
-  const isActivityPanelOpen = active === "content";
 
   const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
   const geoWriterBriefQuery = useGeoWriterBrief(
@@ -87,6 +81,27 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [loadedArticleBriefId, setLoadedArticleBriefId] = useState<
+    string | null
+  >(null);
+  const [pendingArticleBriefId, setPendingArticleBriefId] = useState<
+    string | null
+  >(null);
+  const geoWriterBriefId = geoWriterDraft?.briefId;
+  if (
+    geoWriterBriefId &&
+    briefStatus &&
+    briefStatus !== "completed" &&
+    pendingArticleBriefId !== geoWriterBriefId
+  ) {
+    setPendingArticleBriefId(geoWriterBriefId);
+  }
+  const isGeoArticleLoading = Boolean(
+    geoWriterDraft &&
+    briefStatus === "completed" &&
+    pendingArticleBriefId === geoWriterDraft.briefId &&
+    loadedArticleBriefId !== geoWriterDraft.briefId
+  );
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
 
   const editorRef = useRef<EditorRefHandle | null>(null);
@@ -205,31 +220,59 @@ export function useContentDetailDocument({
     ]
   );
 
-  const handleGeoArticleReady = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.get.queryKey({
-          input: { organizationId, contentId },
-        }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.list.key(),
-      }),
-    ]);
-    setEditedMarkdown(null);
-    setOriginalMarkdown("");
-    setPersistedSlug(null);
-    setEditingTitle(null);
-    setEditingSlug(null);
-    setReviewPreviousMarkdown(null);
-  }, [
-    contentId,
-    organizationId,
-    queryClient,
-    setEditingSlug,
-    setEditingTitle,
-    setPersistedSlug,
-  ]);
+  const handleGeoArticleReady = useCallback(
+    async function refreshGeoArticle() {
+      if (pendingArticleBriefId !== geoWriterDraft?.briefId) {
+        return;
+      }
+      try {
+        const [article] = await Promise.all([
+          queryClient.fetchQuery({
+            ...dashboardOrpc.content.get.queryOptions({
+              input: { organizationId, contentId },
+            }),
+            staleTime: 0,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: dashboardOrpc.content.list.key(),
+          }),
+        ]);
+        setEditedMarkdown(null);
+        setOriginalMarkdown("");
+        editedMarkdownRef.current = article.content.markdown ?? "";
+        originalMarkdownRef.current = article.content.markdown ?? "";
+        setPersistedSlug(null);
+        setEditingTitle(null);
+        setEditingSlug(null);
+        setReviewPreviousMarkdown(null);
+        needsNormalizationRef.current = true;
+        setEditorKey((key) => key + 1);
+      } catch {
+        toast.error(
+          "Couldn't refresh the article. Showing the cached content.",
+          {
+            action: {
+              label: "Retry",
+              onClick: () => {
+                refreshGeoArticle();
+              },
+            },
+          }
+        );
+      }
+      setLoadedArticleBriefId(geoWriterDraft?.briefId ?? null);
+    },
+    [
+      contentId,
+      geoWriterDraft?.briefId,
+      pendingArticleBriefId,
+      organizationId,
+      queryClient,
+      setEditingSlug,
+      setEditingTitle,
+      setPersistedSlug,
+    ]
+  );
 
   useEffect(() => {
     if (!hasChanges) {
@@ -379,6 +422,7 @@ export function useContentDetailDocument({
   );
 
   const handleDiscard = useCallback(() => {
+    needsNormalizationRef.current = false;
     setEditedMarkdown(null);
     setOriginalMarkdown("");
     editedMarkdownRef.current = resolvedOriginalMarkdown;
@@ -407,16 +451,6 @@ export function useContentDetailDocument({
     }
     setIsTogglingStatus(false);
   }, [data?.content?.status, organizationId, contentId, queryClient]);
-
-  useContentDetailSaveToast({
-    hasChanges,
-    isSaving,
-    isActivityPanelOpen,
-    onDiscard: handleDiscard,
-    onSave: handleSave,
-    saveLabel: linkedGitHubPublish ? "Save and update PR" : "Save",
-    savingLabel: linkedGitHubPublish ? "Updating PR..." : "Saving...",
-  });
 
   const handleEditorChange = useCallback((markdown: string) => {
     if (
@@ -457,19 +491,6 @@ export function useContentDetailDocument({
     setImageExportTarget(value);
     window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
   }, []);
-
-  const saveBarProps =
-    hasChanges && isActivityPanelOpen
-      ? {
-          sidebarOffsetClass:
-            sidebarState === "collapsed" ? "lg:left-14" : "lg:left-64",
-          isSaving,
-          onDiscard: handleDiscard,
-          onSave: handleSave,
-          saveLabel: linkedGitHubPublish ? "Save and update PR" : "Save",
-          savingLabel: linkedGitHubPublish ? "Updating PR..." : "Saving...",
-        }
-      : null;
 
   const resolvePlanConflictLoadLatest = useCallback(async () => {
     const result = await geoWriterBriefQuery.refetch();
@@ -522,13 +543,14 @@ export function useContentDetailDocument({
     isGeoWriterPlanReviewableNow,
     isPlanDirty,
     isTogglingStatus,
+    isSaving,
+    isGeoArticleLoading,
     originalMarkdown,
     originalMarkdownRef,
     planEditorVersion,
     resolvePlanConflictLoadLatest,
     resolvePlanConflictSaveMine,
     reviewPreviousMarkdown,
-    saveBarProps,
     setEditedMarkdown,
     setEditingSlug,
     setEditingTitle,

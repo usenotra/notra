@@ -17,10 +17,12 @@ export function DeleteAccountSection() {
           the Notra platform. This action is not reversible, so please continue
           with caution.
         </p>
-        <div className="flex justify-end">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
           <DeleteAccountDialog
             trigger={
-              <Button variant="destructive">Delete Personal Account</Button>
+              <Button className="w-full sm:w-auto" variant="destructive">
+                Delete Personal Account
+              </Button>
             }
           />
         </div>

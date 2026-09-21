@@ -14,7 +14,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useAggregateEvents } from "autumn-js/react";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -27,6 +27,7 @@ import {
   USAGE_ANSWERS_ACCENT,
   USAGE_FEATURE_SKELETON_KEYS,
   USAGE_METRIC_SKELETON_KEYS,
+  USAGE_PULL_REQUEST_CREDITS_ACCENT,
 } from "@/constants/billing";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
@@ -84,10 +85,10 @@ function RemainingBar({
     >
       <div
         className={cn(
-          "duration-slower h-full rounded-full transition-[width]",
+          "duration-slower transition-width h-full w-(--remaining) rounded-full",
           remainingBarColor(remaining)
         )}
-        style={{ width: `${remaining}%` }}
+        style={{ "--remaining": `${remaining}%` } as CSSProperties}
       />
     </div>
   );
@@ -131,7 +132,10 @@ function BalanceCard({
     >
       <div className="space-y-3">
         <div className="space-y-1">
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p
+            className="min-w-0 truncate text-3xl font-bold tracking-tight tabular-nums"
+            title={value}
+          >
             {value}
           </p>
           {hint ? (
@@ -154,7 +158,7 @@ function UsageSectionSkeleton() {
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {USAGE_METRIC_SKELETON_KEYS.map((key) => (
             <TitleCard heading={<Skeleton className="h-5 w-32" />} key={key}>
               <Skeleton className="h-8 w-28" />
@@ -292,6 +296,9 @@ export function UsageSection() {
   const aiCreditsFeature = features.find(
     (feature) => feature.id === FEATURES.AI_CREDITS
   );
+  const pullRequestCreditsFeature = features.find(
+    (feature) => feature.id === FEATURES.PULL_REQUEST_CREDITS
+  );
 
   return (
     <>
@@ -312,6 +319,7 @@ export function UsageSection() {
           setTopupOpen(true);
         }}
         onRangeChange={setRange}
+        pullRequestCreditsFeature={pullRequestCreditsFeature}
         range={range}
         retentionDays={usageRetentionDays(features)}
         unlimitedFeatures={unlimitedUsageFeatures(features)}
@@ -339,11 +347,21 @@ function UsageBalanceSection({
   aiAnswersRemaining,
   aiCreditsFeature,
   onOpenTopup,
+  pullRequestCreditsFeature,
 }: Pick<
   UsageSectionBodyProps,
-  "aiAnswersFeature" | "aiAnswersRemaining" | "aiCreditsFeature" | "onOpenTopup"
+  | "aiAnswersFeature"
+  | "aiAnswersRemaining"
+  | "aiCreditsFeature"
+  | "onOpenTopup"
+  | "pullRequestCreditsFeature"
 >) {
-  if (!aiAnswersFeature && !aiCreditsFeature) {
+  const cardCount = [
+    aiAnswersFeature,
+    aiCreditsFeature,
+    pullRequestCreditsFeature,
+  ].filter(Boolean).length;
+  if (cardCount === 0) {
     return null;
   }
 
@@ -355,7 +373,12 @@ function UsageBalanceSection({
           How much of each plan limit you have left this cycle.
         </p>
       </div>
-      <div className="grid items-stretch gap-4 sm:grid-cols-2">
+      <div
+        className={cn(
+          "grid items-stretch gap-4 sm:grid-cols-2",
+          cardCount > 2 && "lg:grid-cols-3"
+        )}
+      >
         {aiAnswersFeature ? (
           <BalanceCard
             accentColor={USAGE_ANSWERS_ACCENT}
@@ -382,6 +405,14 @@ function UsageBalanceSection({
             footer="Credits extend usage beyond your plan limits."
             title="Credits remaining"
             value={creditsValue(aiCreditsFeature)}
+          />
+        ) : null}
+        {pullRequestCreditsFeature ? (
+          <BalanceCard
+            accentColor={USAGE_PULL_REQUEST_CREDITS_ACCENT}
+            footer="What @notra may spend on pull requests. Credits take over once it runs out."
+            title="Pull request credits"
+            value={creditsValue(pullRequestCreditsFeature)}
           />
         ) : null}
       </div>
@@ -447,6 +478,7 @@ function UsageSectionBody({
   limitedFeatures,
   onOpenTopup,
   onRangeChange,
+  pullRequestCreditsFeature,
   range,
   retentionDays,
   unlimitedFeatures,
@@ -458,6 +490,7 @@ function UsageSectionBody({
         aiAnswersRemaining={aiAnswersRemaining}
         aiCreditsFeature={aiCreditsFeature}
         onOpenTopup={onOpenTopup}
+        pullRequestCreditsFeature={pullRequestCreditsFeature}
       />
       {hasAiAnswers ? (
         <UsageBreakdownChart

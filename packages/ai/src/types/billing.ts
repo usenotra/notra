@@ -1,3 +1,5 @@
+import type { CheckResponse } from "autumn-js";
+
 import type { AgentTokenUsage } from "./agents";
 
 export interface ModelPricing {
@@ -66,6 +68,37 @@ export interface ReserveContentBillingInput {
   executionId?: string;
   lockTtlMs?: number;
   countTowardQuota?: boolean;
+}
+
+export type GitHubMentionBillingFeatureId =
+  | "pull_request_credits"
+  | "ai_credits";
+
+export type GitHubMentionBillingMode =
+  | "unmetered"
+  | "pull_request_credits"
+  | "ai_credits";
+
+export type GitHubMentionBillingDenialReason =
+  | "pull_request_credits_exhausted"
+  | "insufficient_ai_credits"
+  | "no_entitlement";
+
+export interface GitHubMentionBillingReservation {
+  allowed: boolean;
+  mode: GitHubMentionBillingMode;
+  featureId: GitHubMentionBillingFeatureId | null;
+  /** Set while Autumn holds balance for this run; null when nothing is metered. */
+  lockId: string | null;
+  useMarkup: boolean;
+  reason?: GitHubMentionBillingDenialReason;
+  balanceRemaining?: number | null;
+}
+
+export interface AutumnFeatureCheck {
+  response: CheckResponse | null;
+  /** The lock already exists, so an earlier attempt reserved this same run. */
+  duplicateLock: boolean;
 }
 
 export type ChatBillingMode = "unmetered" | "ai_credits" | "plan_included";
