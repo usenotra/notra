@@ -1187,6 +1187,8 @@ export async function deleteGitHubAppInstallationForOrganization(
       Promise.all([
         redis?.del(repositoryCacheKey(installation)),
         redis?.del(repositoryCacheKey(installation, true)),
+        redis?.del(publishAccessCacheKey(installation.installationId)),
+        redis?.del(publishAccessCacheKey(installation.installationId, true)),
       ])
     )
   );

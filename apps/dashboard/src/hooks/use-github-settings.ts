@@ -102,7 +102,7 @@ export function useGitHubSettings(organizationSlug: string) {
             input: { organizationId },
           }),
         }),
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: dashboardOrpc.github.app.catalog.queryKey({
             input: { organizationId },
           }),
