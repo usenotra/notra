@@ -173,7 +173,7 @@ function contentBranchDiscriminator(contentId: string) {
  * The title slug is what you see in GitHub. The short suffix stays stable
  * when the title changes, so a later publish still finds this pull request.
  */
-export function createContentBranchName(
+function createContentBranchName(
   contentType: GitHubPublishContentType,
   title: string,
   contentId: string
