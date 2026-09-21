@@ -20,6 +20,8 @@ export function IntegrationsBackLink() {
     <PageContainer className="pt-4 md:pt-6">
       <div className="px-4 lg:px-6">
         <Button
+          nativeButton={false}
+          role="link"
           render={<Link href={`/${slug}/integrations`} />}
           size="sm"
           variant="ghost"

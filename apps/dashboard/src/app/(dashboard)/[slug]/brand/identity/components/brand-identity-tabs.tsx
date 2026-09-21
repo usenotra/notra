@@ -34,7 +34,7 @@ export function BrandIdentityTabs({
       value={activeTab}
     >
       <div className="flex min-w-0 items-center justify-between gap-4">
-        <div className="min-w-0 overflow-x-auto pb-1">
+        <div className="min-w-0 overflow-x-auto pb-2">
           <TabsList variant="line">
             <TabsTrigger value="identity">Company Info</TabsTrigger>
             <TabsTrigger value="guidelines">Guidelines</TabsTrigger>

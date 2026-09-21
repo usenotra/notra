@@ -187,21 +187,21 @@ function NoteInput({
     }
   };
 
-  const handleNoteKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleNoteKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Escape") {
       e.currentTarget.blur();
     }
   };
 
   return (
-    <input
+    <textarea
       aria-label="Reference note"
-      className="placeholder:text-muted-foreground/60 focus-visible:outline-ring h-7 w-full min-w-0 rounded-sm border-none bg-transparent px-1 text-xs shadow-none focus-visible:outline-2"
+      className="placeholder:text-muted-foreground/60 focus-visible:outline-ring field-sizing-content min-h-7 w-full min-w-0 resize-y rounded-sm border-none bg-transparent px-1 py-1 text-xs shadow-none focus-visible:outline-2"
       onBlur={handleNoteBlur}
       onChange={(e) => setNoteValue(e.target.value)}
       onKeyDown={handleNoteKeyDown}
       placeholder="Add a note…"
-      type="text"
+      rows={1}
       value={noteValue}
     />
   );

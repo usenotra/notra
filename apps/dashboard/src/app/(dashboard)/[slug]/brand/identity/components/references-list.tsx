@@ -133,8 +133,8 @@ export function ReferencesList({
       <output>
         <span className="sr-only">Loading references</span>
         <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">
-          <Skeleton className="h-52 w-full" />
-          <Skeleton className="h-52 w-full" />
+          <Skeleton className="h-52 w-full rounded-xl" />
+          <Skeleton className="h-52 w-full rounded-xl" />
         </div>
       </output>
     );
