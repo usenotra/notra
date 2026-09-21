@@ -7,7 +7,7 @@ export function getGitHubPublishDialogCopy(
 ) {
   if (!pullRequest && linkedLabel) {
     return {
-      description: `This ${contentLabel} is linked to ${linkedLabel}. Notra updates that draft pull request with the latest Markdown.`,
+      description: `This ${contentLabel} is linked to ${linkedLabel}. Notra updates that draft pull request when it is still open against the repository's default branch. Otherwise it opens a new draft.`,
       title: "Update the linked pull request",
     };
   }

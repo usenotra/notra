@@ -733,6 +733,7 @@ export async function publishContentDraftPullRequest(
         `${requestedParams.owner}/${requestedParams.repo}`.toLowerCase();
       if (
         linked.state === "open" &&
+        linked.base.ref === requestedParams.defaultBranch &&
         linked.head.ref === linkedPullRequest.branchName &&
         headRepository === expectedRepository
       ) {

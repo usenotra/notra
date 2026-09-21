@@ -76,15 +76,11 @@ function GitHubPublishDialogBody({
   }
 
   if (linkedPublish) {
-    const linkedLabel = `${linkedPublish.owner}/${linkedPublish.repo}#${linkedPublish.pullRequestNumber}`;
-
     return (
       <>
-        <p className="text-sm">
-          {isPublishing
-            ? `Pushing the latest Markdown to ${linkedLabel}…`
-            : `This pushes the latest Markdown to ${linkedLabel}.`}
-        </p>
+        {isPublishing ? (
+          <p className="text-sm">Publishing the latest Markdown…</p>
+        ) : null}
         {publishRecovery ? (
           <GitHubPublishRecoveryAlert publishRecovery={publishRecovery} />
         ) : null}
