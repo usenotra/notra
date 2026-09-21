@@ -39,7 +39,7 @@ export function GeoAnswerMentionCompetitorCard({
   showView,
   onView,
 }: GeoAnswerMentionCompetitorCardProps) {
-  const { data, isPending } = useGeoCompetitorPromptSummary(
+  const { data, isLoading } = useGeoCompetitorPromptSummary(
     organizationId,
     open ? brand : null
   );
@@ -77,7 +77,7 @@ export function GeoAnswerMentionCompetitorCard({
             value={synonyms.join(", ")}
           />
         ) : null}
-        {isPending ? (
+        {isLoading ? (
           <div
             aria-label="Loading mentions"
             className="flex items-center justify-between gap-3 px-3 py-1.5"
@@ -89,7 +89,7 @@ export function GeoAnswerMentionCompetitorCard({
             <Skeleton className="h-3 w-20" />
           </div>
         ) : null}
-        {!isPending && summary ? (
+        {!isLoading && summary ? (
           <MentionStatRow
             label={GEO_ANSWER_MENTION_MENTIONS_LABEL}
             value={`${summary.mentioned.toLocaleString()} of ${summary.total.toLocaleString()}`}
