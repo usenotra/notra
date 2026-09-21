@@ -1,9 +1,8 @@
 "use client";
 
-import { normalizePublicWebsiteUrl } from "@notra/geo-core/schemas/url";
+import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { useRef } from "react";
 import { toast } from "sonner";
-import { url } from "zod";
 
 import {
   useAnalyzeBrand,
@@ -33,15 +32,15 @@ export function useBrandIdentityAnalysis(organizationId: string) {
       return;
     }
 
-    const websiteUrl = normalizePublicWebsiteUrl(trimmedUrl);
-    if (!url().safeParse(websiteUrl).success) {
-      toast.error("Please enter a valid website URL");
+    const websiteUrl = publicWebsiteUrlSchema.safeParse(trimmedUrl);
+    if (!websiteUrl.success) {
+      toast.error("Please enter a valid public website URL");
       return;
     }
 
     try {
       lastToastError.current = null;
-      await analyzeMutation.mutateAsync({ url: websiteUrl, voiceId });
+      await analyzeMutation.mutateAsync({ url: websiteUrl.data, voiceId });
       toast.success("Analysis started");
     } catch (error) {
       reportError(
