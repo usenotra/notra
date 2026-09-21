@@ -108,23 +108,22 @@ export function isTrackedShareOfVoiceBrand(
 export function competitorPromptSummary(
   rows: readonly GeoCompetitorPromptRow[]
 ): GeoCompetitorPromptSummary {
+  const prompts = new Set<string>();
   const engines = new Set<string>();
-  let mentioned = 0;
-  let bestPosition: number | null = null;
+  let ownMentioned = 0;
   for (const row of rows) {
-    engines.add(row.engine);
-    if (!row.mentioned) {
-      continue;
-    }
-    mentioned += 1;
-    if (
-      row.position !== null &&
-      (bestPosition === null || row.position < bestPosition)
-    ) {
-      bestPosition = row.position;
+    prompts.add(row.promptId);
+    engines.add(engineFamilyOf(row.engine));
+    if (row.mentioned) {
+      ownMentioned += 1;
     }
   }
-  return { mentioned, total: rows.length, bestPosition, engines: engines.size };
+  return {
+    answers: rows.length,
+    prompts: prompts.size,
+    engines: engines.size,
+    ownMentioned,
+  };
 }
 
 /**

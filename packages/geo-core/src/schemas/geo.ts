@@ -24,6 +24,8 @@ import {
   GEO_DISCOVERY_MIN_PROMPTS,
   GEO_EXISTING_PAGE_URL_MAX_LENGTH,
   GEO_GAP_TITLE_MAX_LENGTH,
+  GEO_GENERATED_CONVERSATION_MAX_TURNS,
+  GEO_GENERATED_CONVERSATIONS_MAX,
   GEO_CONVERSION_PATH_MAX_LENGTH,
   GEO_MAX_ALIASES,
   GEO_MAX_COMPETITORS,
@@ -46,6 +48,7 @@ import {
 } from "../constants/geo";
 import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
 import { GEO_CSV_IMPORT_MAX_ROWS } from "../constants/geo-import";
+import { GEO_AUDIENCE_TYPES } from "../constants/geo-model-catalog";
 import { normalizeProjectDomain } from "../utils/geo-project-domains";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import {
@@ -218,6 +221,7 @@ export const geoCompetitorDeleteInputSchema = geoOrganizationInputSchema.extend(
 export const geoCompetitorDetailInputSchema = geoOrganizationInputSchema.extend(
   {
     brand: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    summaryOnly: boolean().optional(),
     ...geoWindowFields,
   }
 );
@@ -376,6 +380,7 @@ export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
     })
   ).max(GEO_ONBOARDING_MAX_PROMPTS),
   languages: geoTrackingLanguagesSchema.optional(),
+  audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
   engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
     .min(1)
     .max(GEO_MAX_ENGINES)
@@ -413,9 +418,25 @@ export const geoBrandSearchInputSchema = geoOrganizationInputSchema.extend({
     .max(GEO_BRAND_SEARCH_MAX_QUERY_LENGTH),
 });
 
+/**
+ * Lenient on purpose: generated conversations are filtered after the call, so
+ * one badly sized turn never fails the whole website analysis.
+ */
+export const geoGeneratedConversationSchema = object({
+  name: string().min(1),
+  steps: array(string().min(1)).max(GEO_GENERATED_CONVERSATION_MAX_TURNS),
+});
+
+export const geoConversationGenerationSchema = object({
+  conversations: array(geoGeneratedConversationSchema).max(
+    GEO_GENERATED_CONVERSATIONS_MAX
+  ),
+});
+
 export const geoWebsiteDiscoverySchema = object({
   companyName: string().min(1),
   aliases: array(string().min(1)).max(GEO_DISCOVERY_MAX_ALIASES),
+  audienceType: enumType(GEO_AUDIENCE_TYPES),
   competitors: array(
     object({
       name: string().min(1),
@@ -432,6 +453,9 @@ export const geoWebsiteDiscoverySchema = object({
   )
     .min(GEO_DISCOVERY_MIN_PROMPTS)
     .max(GEO_DISCOVERY_MAX_PROMPTS),
+  conversations: array(geoGeneratedConversationSchema).max(
+    GEO_GENERATED_CONVERSATIONS_MAX
+  ),
 });
 
 export const geoJudgeResultSchema = object({
@@ -488,6 +512,10 @@ export const geoRequestPayloadSchema = object({
 export const geoTrafficJourneysInputSchema = geoOrganizationInputSchema.extend({
   ...geoWindowFields,
   limit: number().int().min(1).max(MAX_AI_TRAFFIC_JOURNEYS_LIMIT).optional(),
+});
+
+export const geoJourneyStatsInputSchema = geoOrganizationInputSchema.extend({
+  ...geoWindowFields,
 });
 
 export const geoJourneyDetailInputSchema = geoOrganizationInputSchema.extend({

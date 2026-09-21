@@ -179,6 +179,13 @@ export interface GeoCheckCompetitorPromptRow {
   capturedAt: Date;
 }
 
+export interface GeoCheckCompetitorPromptSummaryRow {
+  answers: number;
+  prompts: number;
+  engineIds: string[];
+  ownMentioned: number;
+}
+
 export interface GeoCheckLanguageShareRow {
   language: string;
   checks: number;
@@ -242,6 +249,7 @@ export interface GeoCheckScanComparisonRow {
   promptId: string;
   prompt: string;
   mentioned: boolean;
+  ownedSourceCited: boolean;
   position: number | null;
   competitors: string[];
   grounding: GeoCheckGrounding;

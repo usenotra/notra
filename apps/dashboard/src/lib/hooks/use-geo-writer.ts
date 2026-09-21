@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { toErrorMessage } from "@/utils/error-message";
 import { withoutPromptGap, withRestoredPromptGap } from "@/utils/geo-gaps";
-import { getConflictRevision } from "@/utils/orpc-errors";
+import { getConflictRevision, isNotFoundError } from "@/utils/orpc-errors";
 
 import { dashboardOrpc } from "../orpc/query";
 
@@ -50,6 +50,7 @@ export function useGeoWriterBrief(
       input: { organizationId, projectId, briefId: briefId ?? "" },
     }),
     enabled: !!organizationId && !!briefId,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 1,
     // Poll while the writer is running. New runs skip "approved" (draft/failed
     // go straight to "writing"), but legacy rows can still sit in "approved".
     refetchInterval: (query) => {

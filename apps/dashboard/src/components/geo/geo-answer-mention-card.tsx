@@ -2,24 +2,22 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { BrandTrackingBadge } from "@/components/geo/share-of-voice-brand-tag";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import {
   GEO_ANSWER_MENTION_ALSO_KNOWN_AS,
-  GEO_ANSWER_MENTION_BEST_POSITION_LABEL,
   GEO_ANSWER_MENTION_DOMAIN_LABEL,
   GEO_ANSWER_MENTION_KIND_LABEL,
   GEO_ANSWER_MENTION_MENTIONS_LABEL,
   GEO_ANSWER_MENTION_VIEW_COMPETITOR,
+  GEO_ANSWER_MENTION_WITH_YOU_LABEL,
 } from "@/constants/geo-answer-mentions";
-import { useGeoCompetitorDetail } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorPromptSummary } from "@/lib/hooks/use-geo";
 import type { GeoAnswerMentionCompetitorCardProps } from "@/types/geo-answer-mentions";
-import {
-  competitorPromptSummary,
-  formatCompetitorKind,
-} from "@/utils/geo-competitors";
+import { formatCompetitorKind } from "@/utils/geo-competitors";
 
 function MentionStatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -41,11 +39,11 @@ export function GeoAnswerMentionCompetitorCard({
   showView,
   onView,
 }: GeoAnswerMentionCompetitorCardProps) {
-  const { data } = useGeoCompetitorDetail(organizationId, open ? brand : null);
-  const summary =
-    data?.prompts && data.prompts.length > 0
-      ? competitorPromptSummary(data.prompts)
-      : null;
+  const { data, isLoading } = useGeoCompetitorPromptSummary(
+    organizationId,
+    open ? brand : null
+  );
+  const summary = data?.summary ?? null;
 
   return (
     <TrafficBreakdownCard
@@ -79,18 +77,30 @@ export function GeoAnswerMentionCompetitorCard({
             value={synonyms.join(", ")}
           />
         ) : null}
-        {summary ? (
+        {isLoading ? (
+          <div
+            aria-label="Loading mentions"
+            className="flex items-center justify-between gap-3 px-3 py-1.5"
+            role="status"
+          >
+            <span className="text-muted-foreground shrink-0">
+              {GEO_ANSWER_MENTION_MENTIONS_LABEL}
+            </span>
+            <Skeleton className="h-3 w-20" />
+          </div>
+        ) : null}
+        {!isLoading && summary ? (
           <MentionStatRow
             label={GEO_ANSWER_MENTION_MENTIONS_LABEL}
-            value={`${summary.mentioned.toLocaleString()} of ${summary.total.toLocaleString()}`}
+            value={`${summary.answers.toLocaleString()} ${summary.answers === 1 ? "answer" : "answers"}`}
           />
         ) : null}
-        {summary?.bestPosition === null || summary === null ? null : (
+        {summary ? (
           <MentionStatRow
-            label={GEO_ANSWER_MENTION_BEST_POSITION_LABEL}
-            value={`#${summary.bestPosition.toLocaleString()}`}
+            label={GEO_ANSWER_MENTION_WITH_YOU_LABEL}
+            value={`${summary.ownMentioned.toLocaleString()} of ${summary.answers.toLocaleString()}`}
           />
-        )}
+        ) : null}
       </dl>
       {showView ? (
         <div className="border-border mt-1 border-t px-1 py-1">

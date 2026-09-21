@@ -23,12 +23,8 @@ const TwitterEditor = dynamic(
   () => import("./twitter-editor").then((mod) => mod.TwitterEditor),
   { loading: () => editorFallback, ssr: false }
 );
-const BlogEditor = dynamic(
-  () => import("./blog-editor").then((mod) => mod.BlogEditor),
-  { loading: () => editorFallback, ssr: false }
-);
-const ChangelogEditor = dynamic(
-  () => import("./changelog-editor").then((mod) => mod.ChangelogEditor),
+const LongFormEditor = dynamic(
+  () => import("./long-form-editor").then((mod) => mod.LongFormEditor),
   { loading: () => editorFallback, ssr: false }
 );
 
@@ -46,10 +42,7 @@ export function ContentEditorSwitch({
     case "twitter_post":
       return <TwitterEditor {...props} />;
 
-    case "blog_post":
-      return <BlogEditor {...props} />;
-
     default:
-      return <ChangelogEditor {...props} />;
+      return <LongFormEditor {...props} />;
   }
 }

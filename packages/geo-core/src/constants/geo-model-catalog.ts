@@ -472,6 +472,29 @@ export const GEO_DEFAULT_ENGINE_IDS: readonly string[] =
     (entry) => entry.id
   );
 
+export const GEO_AUDIENCE_TYPES = ["technical", "general", "commerce"] as const;
+
+/**
+ * Engines seeded for a brand whose buyers never pick a model themselves: the
+ * models the assistant apps ship as their default. ChatGPT gets its free
+ * (Luna) and paid (Sol) default, Claude its free default.
+ */
+export const GEO_GENERAL_AUDIENCE_ENGINE_IDS: readonly string[] = [
+  "anthropic/claude-sonnet-5",
+  "openai/gpt-5.6-sol",
+  "openai/gpt-5.6-luna",
+  "google/gemini-3.8-flash",
+];
+
+/**
+ * Shops and local businesses are found through Google first, so they track
+ * its AI Overview on top of the assistant defaults.
+ */
+export const GEO_COMMERCE_AUDIENCE_ENGINE_IDS: readonly string[] = [
+  ...GEO_GENERAL_AUDIENCE_ENGINE_IDS,
+  "google/ai-overview",
+];
+
 export const GEO_MODEL_FEED_URL = "https://ai-gateway.vercel.sh/v1/models";
 export const GEO_MODEL_FEED_REVALIDATE_SECONDS = 3600;
 /** Models shown per provider before "Show x other models". */

@@ -2,6 +2,7 @@ import { parseClickHouseDateTime } from "@notra/analytics/utils/datetime";
 
 import {
   GEO_SOURCE_LABELS,
+  GEO_AGENT_LABELS,
   GEO_JOURNEY_BROWSE_CATEGORY,
   GEO_JOURNEY_CHIP_LENGTH,
   GEO_JOURNEY_EXPLICIT_PREFIX,
@@ -40,9 +41,32 @@ export function isTrackedGeoVisitorType(value: GeoVisitorType): boolean {
   return !GEO_UNTRACKED_VISITOR_TYPES.includes(value);
 }
 
+/**
+ * Own string members only: sources and agents come from request headers, so a
+ * visitor sending "constructor" would otherwise be labelled with an inherited
+ * `Object` member instead of a string.
+ */
+function lookupLabel(
+  labels: Record<string, string>,
+  key: string,
+  fallback: string
+): string {
+  if (!Object.hasOwn(labels, key)) {
+    return fallback;
+  }
+  const label = labels[key];
+  return typeof label === "string" ? label : fallback;
+}
+
 export function formatGeoSource(source: string): string {
   const trimmed = source.trim();
-  return GEO_SOURCE_LABELS[trimmed.toLowerCase()] ?? trimmed;
+  return lookupLabel(GEO_SOURCE_LABELS, trimmed.toLowerCase(), trimmed);
+}
+
+/** Bot name as its vendor writes it, e.g. "meta-externalagent" → "Meta-ExternalAgent". */
+export function formatGeoAgent(agent: string): string {
+  const trimmed = agent.trim();
+  return lookupLabel(GEO_AGENT_LABELS, trimmed.toLowerCase(), trimmed);
 }
 
 export function isCitedTrafficSource(
@@ -126,22 +150,6 @@ export function toGeoJourneyKind(journeyId: string): "tagged" | "fingerprint" {
   return journeyId.startsWith(GEO_JOURNEY_EXPLICIT_PREFIX)
     ? "tagged"
     : "fingerprint";
-}
-
-export function formatGeoTrafficFilterLabel(
-  base: string,
-  noun: string,
-  selected: readonly string[],
-  options: readonly { value: string; label: string }[]
-): string {
-  const first = selected[0];
-  if (first === undefined) {
-    return base;
-  }
-  if (selected.length === 1) {
-    return options.find((option) => option.value === first)?.label ?? first;
-  }
-  return `${noun} (${selected.length})`;
 }
 
 export function toggleGeoTrafficFilterValue<T extends string>(
@@ -289,22 +297,6 @@ export function trafficVisitDelta(
 
 export function isGeoStatDeltaNew(delta: number): boolean {
   return delta === GEO_STAT_DELTA_NEW;
-}
-
-export function isGeoTrafficCitationsOnly(
-  categories: GeoTrafficLogFilters["categories"]
-): boolean {
-  return (
-    categories.length === 1 && categories[0] === GEO_JOURNEY_BROWSE_CATEGORY
-  );
-}
-
-export function toggleGeoTrafficCitationsOnly(
-  categories: GeoTrafficLogFilters["categories"]
-): GeoTrafficLogFilters["categories"] {
-  return isGeoTrafficCitationsOnly(categories)
-    ? []
-    : [GEO_JOURNEY_BROWSE_CATEGORY];
 }
 
 export function formatGeoTrafficRequestCount(total: number): string {

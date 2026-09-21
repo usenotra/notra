@@ -136,6 +136,12 @@ export const ratelimit = {
     prefix: "ratelimit:geo-sequence-run",
     limiter: Ratelimit.slidingWindow(10, "10m"),
   }),
+  geoSequencesGenerate: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:geo-sequences-generate",
+    limiter: Ratelimit.slidingWindow(5, "10m"),
+  }),
   geoPersonasGenerate: new Ratelimit({
     redis,
     analytics: true,

@@ -10,6 +10,7 @@ import {
   recommendationsGuidance,
   sharedToolGuidance,
 } from "../_shared";
+import { toneRule } from "../_shared/tone";
 
 interface LinkedInPromptOptions {
   taskContext: string;
@@ -34,6 +35,7 @@ export function buildLinkedInPrompt(options: LinkedInPromptOptions): string {
 
     <rules>
     - ${languageRule}
+    - ${toneRule}
     ${factualityRules}
     - Post length: around 800 characters.
     - ${options.sentenceLengthGuidance}

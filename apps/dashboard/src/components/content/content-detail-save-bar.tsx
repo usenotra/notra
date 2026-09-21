@@ -36,7 +36,12 @@ export function ContentDetailSaveBar({
             >
               Discard
             </Button>
-            <Button disabled={isSaving} onClick={onSave} size="sm">
+            <Button
+              aria-keyshortcuts="Meta+S Control+S"
+              disabled={isSaving}
+              onClick={onSave}
+              size="sm"
+            >
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -78,6 +83,7 @@ export function ContentDetailSaveToast({
           Discard
         </Button>
         <Button
+          aria-keyshortcuts="Meta+S Control+S"
           disabled={isSaving}
           onClick={() => {
             onDismiss();

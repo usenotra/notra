@@ -1,8 +1,5 @@
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
-import type {
-  GeoScanResultSummary,
-  GeoScanRunSummary,
-} from "@notra/geo-core/types/geo-scan-history";
+import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
 import type { ReactNode } from "react";
 
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
@@ -58,9 +55,21 @@ export interface GeoScanRunDetailProps {
   run: GeoScanRunSummary;
 }
 
-export interface GeoScanRunSummaryProps {
-  run: GeoScanRunSummary;
-  updatedAt: number;
+export type GeoScanRunView = "answers" | "pending";
+
+export type GeoScanPendingAnswer = NonNullable<
+  ReturnType<typeof useGeoScanRun>["data"]
+>["pending"][number];
+
+export interface GeoScanRunFiltersProps {
+  view: GeoScanRunView;
+  onViewChange: (view: GeoScanRunView) => void;
+  answerCount: number;
+  pendingCount: number;
+  running: boolean;
+  engine: string;
+  engines: readonly string[];
+  onEngineChange: (engine: string) => void;
 }
 
 export interface GeoScanAnswerProps {
@@ -71,16 +80,18 @@ export interface GeoScanAnswerProps {
   onClose: () => void;
 }
 
-export interface GeoScanResultsListProps {
-  footer?: ReactNode;
-  results: GeoScanResultSummary[];
-  onSelect: (checkId: string) => void;
+export interface GeoScanModelCellProps {
+  engine: string;
 }
 
-export interface GeoScanResultsProps {
-  onPendingPageChange: (offset: number) => void;
-  footer?: ReactNode;
-  query: ReturnType<typeof useGeoScanRun>;
-  running: boolean;
-  onSelect: (checkId: string) => void;
+export interface GeoScanPromptCellProps {
+  prompt: string;
+  turn: number | null;
+}
+
+export interface GeoScanTablePaginationProps {
+  offset: number;
+  total: number;
+  itemLabel: string;
+  onOffsetChange: (offset: number) => void;
 }

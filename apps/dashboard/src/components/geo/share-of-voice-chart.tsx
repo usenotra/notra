@@ -117,7 +117,7 @@ function ShareOfVoiceRankingRow({
       <td className="py-3 pr-3 text-right align-middle text-sm whitespace-nowrap tabular-nums">
         {formatUsageShare(row.share)}
       </td>
-      <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @sm:table-cell">
+      <td className="text-muted-foreground hidden py-3 pr-3 text-right align-middle text-xs whitespace-nowrap tabular-nums @md:table-cell">
         {formatChartInteger(row.mentions)}
         <span className="sr-only"> mentions</span>
       </td>
@@ -183,7 +183,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
   return (
     <>
       <div className="@container">
-        <div className="grid items-stretch gap-4 @4xl:grid-cols-2">
+        <div className="grid items-stretch gap-4 @3xl:grid-cols-2">
           <InstrumentModule
             className="@container"
             eyebrow={
@@ -308,7 +308,7 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
                   <th className="py-0 pr-3 pb-2 text-right font-normal">
                     Share
                   </th>
-                  <th className="hidden py-0 pr-3 pb-2 text-right font-normal @sm:table-cell">
+                  <th className="hidden py-0 pr-3 pb-2 text-right font-normal @md:table-cell">
                     Mentions
                   </th>
                   <th className="w-24 py-0 pr-3 pb-2 font-normal">

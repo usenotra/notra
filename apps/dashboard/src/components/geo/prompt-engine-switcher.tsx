@@ -74,7 +74,9 @@ export function PromptEngineSwitcher({
             render={
               <Button
                 aria-label={`Engine: ${engineLabel(active.engine, answerMode)}`}
-                className="max-w-full min-w-0"
+                // The menu anchors to this trigger; scaling it on press drags
+                // the popup with it.
+                className="max-w-full min-w-0 active:scale-100"
                 size="sm"
                 variant="outline"
               />

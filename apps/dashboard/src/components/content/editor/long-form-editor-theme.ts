@@ -2,7 +2,7 @@ import type { EditorThemeClasses } from "lexical";
 
 import { editorTheme } from "./editor-theme";
 
-export const blogEditorTheme: EditorThemeClasses = {
+export const longFormEditorTheme: EditorThemeClasses = {
   ...editorTheme,
   paragraph: "mb-6 text-[1.0625rem] leading-7",
   heading: {

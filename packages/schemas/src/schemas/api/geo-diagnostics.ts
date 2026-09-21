@@ -135,6 +135,7 @@ export const geoChangesResponseSchema = z
           "competitor_displaced",
           "citation_added",
           "citation_removed",
+          "competitor_cited",
           "new_engine",
         ]),
         promptId: z.string(),

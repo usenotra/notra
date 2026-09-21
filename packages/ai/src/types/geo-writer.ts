@@ -5,6 +5,7 @@ import type {
   geoContentBriefSchema,
   geoContentSubtypeSchema,
 } from "@notra/ai/schemas/geo-writer";
+import type { ToneProfile } from "@notra/ai/schemas/tone";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { TccMetadata } from "@notra/ai/types/tcc";
 import type { PostSourceMetadata } from "@notra/db/schema";
@@ -87,6 +88,8 @@ export interface GenerateGeoContentBriefResult {
 export interface GeoWriterPromptInput {
   brief: GeoWriterBrief;
   brandName: string;
+  toneProfile?: ToneProfile | null;
+  customTone?: string | null;
   topic: string;
   today: string;
   monthYear: string;
@@ -101,6 +104,8 @@ export interface RunGeoWriterOptions {
   brief: GeoWriterBrief;
   topic: string;
   brandName: string;
+  toneProfile?: ToneProfile | null;
+  customTone?: string | null;
   language?: string | null;
   sourceMetadata?: PostSourceMetadata;
   log?: AILogTarget;

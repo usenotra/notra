@@ -7,6 +7,7 @@ import {
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
+  geoTrafficJourneysQueryInput,
   geoTrafficLogQueryInput,
   geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
@@ -80,10 +81,8 @@ export function geoHydrationInputs(
     firstSearchParam(search.range) ?? GEO_DEFAULT_RANGE
   );
   const activeTab = toGeoTab(firstSearchParam(search.tab) ?? GEO_DEFAULT_TAB);
-  const windowed = geoOverviewQueryInput(scope, {
-    from: range.dateFrom,
-    to: range.dateTo,
-  });
+  const window = { from: range.dateFrom, to: range.dateTo };
+  const windowed = geoOverviewQueryInput(scope, window);
 
   return {
     activeTab,
@@ -94,7 +93,8 @@ export function geoHydrationInputs(
     promptResultSummaries: windowed,
     competitorShare: windowed,
     languageShare: windowed,
-    trafficJourneys: windowed,
+    journeyStats: windowed,
+    trafficJourneys: geoTrafficJourneysQueryInput(scope, window),
     prompts: geoSettingsQueryInput(scope),
     competitors: geoSettingsQueryInput(scope),
   };

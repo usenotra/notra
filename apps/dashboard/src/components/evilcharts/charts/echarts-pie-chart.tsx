@@ -50,6 +50,7 @@ import type {
   TooltipLayout,
   TooltipValueFormatter,
 } from "@/types/charts";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // A pie has no coordinate system, so there is no GridComponent and no axes; the
@@ -1158,21 +1159,7 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
     const chart = echarts.init(mount);
     echartsRef.current = chart;
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Observers always fire once right after observe(). Repushing on that no-op
-      // fire would land one frame into the intro and stomp the reveal — only
-      // react when the renderer size actually changed. The pie has no
-      // renderer-sized textures, so a plain resize() (which re-lays the
-      // percentage geometry) is all a size change needs.
-      if (
-        mount.clientWidth === chart.getWidth() &&
-        mount.clientHeight === chart.getHeight()
-      ) {
-        return;
-      }
-      chart.resize();
-    });
-    resizeObserver.observe(mount);
+    const stopResizeObserver = observeChartResize(mount, chart);
 
     // Light/dark flips change no React state — re-resolve and push directly.
     const themeObserver = new MutationObserver(() => {
@@ -1200,7 +1187,7 @@ export function EChartsPieChart<TData extends Record<string, unknown>>({
     });
 
     return () => {
-      resizeObserver.disconnect();
+      stopResizeObserver();
       themeObserver.disconnect();
       chart.dispose();
       echartsRef.current = null;

@@ -21,6 +21,7 @@ export const GEO_CHANGE_KIND_ICONS: Record<
   competitor_displaced: UserSwitchIcon,
   citation_added: Link01Icon,
   citation_removed: Unlink01Icon,
+  competitor_cited: Link01Icon,
   new_engine: SparklesIcon,
 };
 
@@ -30,8 +31,9 @@ export const GEO_CHANGE_KIND_TONE_CLASSES: Record<GeoChangeKind, string> = {
   position_improved: "text-emerald-500 dark:text-emerald-300",
   position_dropped: "text-red-500 dark:text-red-300",
   competitor_displaced: "text-red-500 dark:text-red-300",
-  citation_added: "text-muted-foreground",
-  citation_removed: "text-muted-foreground",
+  citation_added: "text-emerald-500 dark:text-emerald-300",
+  citation_removed: "text-red-500 dark:text-red-300",
+  competitor_cited: "text-muted-foreground",
   new_engine: "text-muted-foreground",
 };
 

@@ -18,6 +18,7 @@ import {
   useGeoSettings,
   useGeoStartScan,
   useGeoTimeseries,
+  useGeoJourneyStats,
   useGeoTrafficJourneys,
   useIsGeoScanning,
 } from "@/lib/hooks/use-geo";
@@ -149,6 +150,15 @@ export function useGeoOverviewPage(
       geoRange.query,
       queriesEnabled && activeTab === "journeys"
     );
+  const {
+    data: journeyStats,
+    isPending: isJourneyStatsPending,
+    isError: isJourneyStatsError,
+  } = useGeoJourneyStats(
+    organizationId,
+    geoRange.query,
+    queriesEnabled && activeTab === "journeys"
+  );
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [preflightOpen, setPreflightOpen] = useState(false);
@@ -193,7 +203,10 @@ export function useGeoOverviewPage(
     promptResults: promptResults?.results,
     promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
-    journeysLoading: activeTab === "journeys" && isJourneysPending,
+    journeyStats,
+    journeyStatsFailed: isJourneyStatsError && journeyStats === undefined,
+    journeysLoading:
+      activeTab === "journeys" && (isJourneysPending || isJourneyStatsPending),
     isScanning,
     revealActive,
     scanPreflight: {
