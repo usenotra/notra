@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
+import { AuthThemeHotkey } from "@/components/auth/auth-theme-hotkey";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
 import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 import { withGeoProject } from "@/utils/geo-paths";
@@ -36,6 +37,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex h-screen w-full justify-center lg:grid lg:grid-cols-2">
+      <AuthThemeHotkey />
       <section className="flex h-full min-h-0 w-full flex-col items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
         <AuthWordmark href="https://usenotra.com" />
         <div className="w-full max-w-md">
