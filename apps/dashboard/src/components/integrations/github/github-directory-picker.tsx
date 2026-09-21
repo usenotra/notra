@@ -12,7 +12,6 @@ import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -25,7 +24,6 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@notra/ui/components/ui/field";
@@ -272,14 +270,7 @@ function GitHubDirectoryNewFolderField({
             Add
           </Button>
         </div>
-        {error ? (
-          <FieldError>{error}</FieldError>
-        ) : (
-          <FieldDescription className="text-xs">
-            Added relative to the selected folder. It does not need to exist in
-            GitHub yet.
-          </FieldDescription>
-        )}
+        {error ? <FieldError>{error}</FieldError> : null}
       </Field>
     </form>
   );
@@ -482,9 +473,6 @@ export function GitHubDirectoryPicker({
           <ResponsiveDialogTitle>
             Choose {contentLabel.toLowerCase()} folder
           </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {repositoryName}. Missing folders are created when you publish.
-          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <RadioGroup

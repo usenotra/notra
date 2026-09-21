@@ -1,25 +1,25 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GitHubIntegration } from "@/types/integrations";
 
 export function useGitHubRepositoryMigration(
   organizationId: string,
-  refetch: ReturnType<typeof useGitHubRepositorySelection>["query"]["refetch"],
   startInstall: () => Promise<void>
 ) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (integration: GitHubIntegration) => {
-      const app = await refetch();
-      if (app.error || !app.data) {
+      const app = await dashboardOrpc.github.app.catalog
+        .call({ organizationId })
+        .catch(() => null);
+      if (!app) {
         throw new Error("Unable to load GitHub repositories. Try again.");
       }
       const repositoryIds = integration.repositories.map(
         (legacyRepository) =>
-          app.data.repositories.find(
+          app.repositories.find(
             (repository) =>
               repository.owner.toLowerCase() ===
                 legacyRepository.owner.toLowerCase() &&

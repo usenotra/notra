@@ -2,11 +2,7 @@
 
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@notra/ui/components/ui/field";
+import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { useId, useState } from "react";
 
@@ -26,6 +22,7 @@ export function GitHubCreateBranchForm({
 
   return (
     <form
+      aria-label={`Create branch from ${baseBranch}`}
       className="flex h-full flex-col gap-4 p-3"
       onSubmit={(event) => {
         event.preventDefault();
@@ -51,7 +48,7 @@ export function GitHubCreateBranchForm({
       <Field data-invalid={errorMessage ? true : undefined}>
         <FieldLabel htmlFor={branchNameId}>Branch name</FieldLabel>
         <Input
-          aria-describedby={`${branchNameId}-description${errorMessage ? ` ${branchNameId}-error` : ""}`}
+          aria-describedby={errorMessage ? `${branchNameId}-error` : undefined}
           aria-invalid={Boolean(errorMessage)}
           autoFocus
           disabled={isPending}
@@ -65,9 +62,6 @@ export function GitHubCreateBranchForm({
           placeholder="feature/new-content"
           value={branchName}
         />
-        <FieldDescription id={`${branchNameId}-description`}>
-          Created from {baseBranch} and selected for publishing.
-        </FieldDescription>
         {errorMessage ? (
           <p
             className="text-destructive text-xs"

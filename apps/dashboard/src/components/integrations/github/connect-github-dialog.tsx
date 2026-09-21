@@ -6,7 +6,6 @@ import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -49,17 +48,8 @@ export function ConnectGitHubDialog({
               Connect GitHub
             </ResponsiveDialogTitle>
           </div>
-          <ResponsiveDialogDescription>
-            Install the Notra GitHub App to turn your commits and releases into
-            changelogs, blog posts, and more.
-          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
-        <div className="space-y-4 py-2">
-          <p className="text-muted-foreground text-sm">
-            You will be redirected to GitHub to choose an account or
-            organization and select which repositories Notra can access. You can
-            change this anytime from GitHub.
-          </p>
+        <div className="py-2">
           <ul className="space-y-2">
             {GITHUB_APP_PERMISSIONS.map((permission) => (
               <li

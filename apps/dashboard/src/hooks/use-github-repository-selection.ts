@@ -7,9 +7,12 @@ import { toast } from "sonner";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { UseGitHubRepositorySelectionOptions } from "@/types/integrations/github";
 
+const GITHUB_CATALOG_STALE_TIME_MS = 15 * 60 * 1000;
+
 export function useGitHubRepositorySelection({
   organizationId,
   enabled = true,
+  loadCatalog = enabled,
   refetchOnMount = true,
   initialAccountId = null,
   onSaved,
@@ -24,23 +27,43 @@ export function useGitHubRepositorySelection({
       refetchOnMount,
     })
   );
-  const accounts = query.data?.accounts ?? [];
+  const catalogQuery = useQuery(
+    dashboardOrpc.github.app.catalog.queryOptions({
+      input: { organizationId },
+      enabled: !!organizationId && enabled && loadCatalog,
+      retry: false,
+      staleTime: GITHUB_CATALOG_STALE_TIME_MS,
+      refetchOnMount,
+    })
+  );
+  const accounts = catalogQuery.data?.accounts ?? query.data?.accounts ?? [];
   const accountId = selectedAccountId ?? accounts[0]?.id;
   const account = accounts.find((candidate) => candidate.id === accountId);
-  const repositories = query.data?.repositories ?? [];
+  const repositories =
+    catalogQuery.data?.repositories ?? query.data?.repositories ?? [];
+  const catalogRepositories = catalogQuery.data?.repositories ?? [];
   const dialogRepositories = account
-    ? repositories.filter(
+    ? catalogRepositories.filter(
         (repository) =>
           repository.owner.toLowerCase() === account.login.toLowerCase()
       )
-    : repositories;
+    : catalogRepositories;
   const saveMutation = useMutation({
     mutationFn: (repositoryIds: string[]) =>
       dashboardOrpc.github.app.saveRepositories.call({
         organizationId,
         repositoryIds,
       }),
-    onSuccess: async () => {
+    onSuccess: async (_saved, repositoryIds) => {
+      queryClient.setQueryData(
+        dashboardOrpc.github.app.catalog.queryKey({
+          input: { organizationId },
+        }),
+        (current) =>
+          current
+            ? { ...current, selectedRepositoryIds: repositoryIds }
+            : current
+      );
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.github.app.get.queryKey({
@@ -64,7 +87,11 @@ export function useGitHubRepositorySelection({
     setSelectedAccountId,
     dialogRepositories,
     repositories,
-    selectedRepositoryIds: query.data?.selectedRepositoryIds ?? [],
+    selectedRepositoryIds:
+      catalogQuery.data?.selectedRepositoryIds ??
+      query.data?.selectedRepositoryIds ??
+      [],
+    catalogQuery,
     saveMutation,
   };
 }
