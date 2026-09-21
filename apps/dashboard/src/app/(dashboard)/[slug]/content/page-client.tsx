@@ -18,6 +18,7 @@ import {
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
 import { useCollections } from "@/lib/hooks/use-collections";
+import { cn } from "@/lib/utils";
 import type { ContentListPageClientProps } from "@/types/content/collection";
 import type { TablePaginationState } from "@/types/table";
 
@@ -84,74 +85,85 @@ export default function PageClient({
           />
         </header>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-medium">All content</h2>
-          <div
-            aria-label="Content view"
-            className="bg-muted inline-flex items-center gap-0.5 rounded-lg p-0.5"
-            role="group"
-          >
-            {CONTENT_COLLECTION_VIEWS.map((option) => (
-              <Button
-                aria-pressed={view === option}
-                key={option}
-                onClick={() => {
-                  void setView(option);
-                }}
-                size="sm"
-                variant={view === option ? "outline" : "ghost"}
-              >
-                <HugeiconsIcon
-                  aria-hidden="true"
-                  className="size-3.5"
-                  icon={option === "list" ? ListViewIcon : GridViewIcon}
-                />
-                {option === "list" ? "List" : "Grid"}
-              </Button>
-            ))}
+        <div className="space-y-3">
+          <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-medium">All content</h2>
+            <div
+              aria-label="Content view"
+              className="bg-muted inline-flex items-center rounded-lg p-0.5"
+              role="group"
+            >
+              {CONTENT_COLLECTION_VIEWS.map((option) => {
+                const selected = view === option;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={cn(
+                      "focus-visible:ring-ring/50 duration-fast inline-flex h-7 items-center gap-1 rounded-md px-2 text-[0.8rem] font-medium transition-colors ease-out focus-visible:ring-2 focus-visible:outline-none",
+                      selected
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    key={option}
+                    onClick={() => {
+                      void setView(option);
+                    }}
+                    type="button"
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      className="size-3.5"
+                      icon={option === "list" ? ListViewIcon : GridViewIcon}
+                    />
+                    {option === "list" ? "List" : "Grid"}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {isPending ? <CollectionsPageSkeleton view={view} /> : null}
+
+          {isError ? (
+            <EmptyState
+              action={
+                <Button
+                  onClick={() => {
+                    void refetch();
+                  }}
+                  variant="outline"
+                >
+                  Try again
+                </Button>
+              }
+              description="Please try loading your content again."
+              title="Couldn't load content"
+            />
+          ) : null}
+
+          {isEmpty ? (
+            <EmptyState
+              description="Start with New post to write from scratch, or Generate content to use your sources."
+              preview={
+                <EmptyStateTablePreview
+                  columns={EMPTY_STATE_TABLE_COLUMNS.content}
+                  rows={EMPTY_STATE_TABLE_ROWS}
+                />
+              }
+              title="No content yet"
+            />
+          ) : null}
+
+          {!(isPending || isEmpty || isError) ? (
+            <CollectionsView
+              collections={collections}
+              organizationSlug={organizationSlug}
+              pagination={pagination}
+              view={view}
+            />
+          ) : null}
         </div>
-
-        {isPending ? <CollectionsPageSkeleton view={view} /> : null}
-
-        {isError ? (
-          <EmptyState
-            action={
-              <Button
-                onClick={() => {
-                  void refetch();
-                }}
-                variant="outline"
-              >
-                Try again
-              </Button>
-            }
-            description="Please try loading your content again."
-            title="Couldn't load content"
-          />
-        ) : null}
-
-        {isEmpty ? (
-          <EmptyState
-            description="Start with New post to write from scratch, or Generate content to use your sources."
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.content}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title="No content yet"
-          />
-        ) : null}
-
-        {!(isPending || isEmpty || isError) ? (
-          <CollectionsView
-            collections={collections}
-            organizationSlug={organizationSlug}
-            pagination={pagination}
-            view={view}
-          />
-        ) : null}
       </div>
     </PageContainer>
   );

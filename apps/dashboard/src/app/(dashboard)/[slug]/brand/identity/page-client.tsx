@@ -35,8 +35,6 @@ import {
   useSetDefaultBrandVoice,
 } from "../../../../../lib/hooks/use-brand-analysis";
 import { useRefreshBrandGuidelinesAction } from "../../../../../lib/hooks/use-brand-guidelines";
-import { useReferences } from "../../../../../lib/hooks/use-brand-references";
-import { useSitemaps } from "../../../../../lib/hooks/use-brand-sitemaps";
 import { BrandIdentityWorkspace } from "./components/brand-identity-workspace";
 import { EmptyBrandIdentityState } from "./components/empty-brand-identity-state";
 import { BrandIdentityPageSkeleton } from "./skeleton";
@@ -164,36 +162,12 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         !deleteTargetVoice.isDefault
     );
 
-  const { data: referencesData } = useReferences(
-    organizationId,
-    selectedVoice?.id ?? ""
-  );
-  const referenceCount = referencesData?.references.length ?? 0;
-
-  const { data: sitemapsData } = useSitemaps(
-    organizationId,
-    selectedVoice?.id ?? ""
-  );
-  const sitemapCount = sitemapsData?.sitemaps.length ?? 0;
-
   const guidelinesRefresh = useRefreshBrandGuidelinesAction(
     organizationId,
     selectedVoice?.id ?? ""
   );
 
   const effectiveUrl = uiState.url.trim();
-
-  useEffect(() => {
-    if (!selectedVoice?.updatedAt) {
-      dispatchUi({ type: "set-last-saved-at-ms", savedAtMs: null });
-      return;
-    }
-
-    dispatchUi({
-      type: "set-last-saved-at-ms",
-      savedAtMs: new Date(selectedVoice.updatedAt).getTime(),
-    });
-  }, [selectedVoice]);
 
   const triggerAnalysis = async (rawUrl: string, voiceId?: string) => {
     let urlToAnalyze = rawUrl.trim();
@@ -327,11 +301,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       onRefreshGuidelines={guidelinesRefresh.refreshGuidelines}
       organizationId={organizationId}
       progressError={progressError}
-      referenceCount={referenceCount}
       selectedVoice={selectedVoice}
       setActiveTab={setActiveTab}
       setDefaultPending={setDefaultMutation.isPending}
-      sitemapCount={sitemapCount}
       startPolling={startPolling}
       uiState={uiState}
       voices={voices}

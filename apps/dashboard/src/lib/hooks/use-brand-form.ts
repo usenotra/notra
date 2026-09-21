@@ -16,13 +16,9 @@ export function useBrandForm({
   voiceId,
   initialData,
   onSavingChange,
-  onSavedAtChange,
 }: BrandFormProps) {
   const updateMutation = useUpdateBrandSettings(organizationId);
-  const lastSavedData = useRef<string | null>(null);
-  if (lastSavedData.current === null) {
-    lastSavedData.current = JSON.stringify(initialData);
-  }
+  const lastSavedData = useRef(JSON.stringify(initialData));
 
   const debouncer = useAsyncDebouncer(
     async (values: typeof initialData) => {
@@ -37,7 +33,6 @@ export function useBrandForm({
         ...(websiteUrl !== undefined && { websiteUrl }),
       });
       lastSavedData.current = JSON.stringify(values);
-      onSavedAtChange?.(new Date());
       onSavingChange?.(false);
     },
     {

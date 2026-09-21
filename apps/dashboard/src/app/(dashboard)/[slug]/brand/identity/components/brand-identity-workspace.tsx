@@ -7,7 +7,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
-import { useEffect } from "react";
 
 import { PageContainer } from "@/components/layout/container";
 import type {
@@ -15,7 +14,6 @@ import type {
   BrandIdentityWorkspaceProps,
 } from "@/types/brand-identity";
 import { sanitizeBrandUrlInput } from "@/utils/brand-identity";
-import { formatRelativeTime } from "@/utils/format";
 
 import { AddIdentityDialog } from "./add-identity-dialog";
 import { AnalysisStepper } from "./analysis-stepper";
@@ -43,33 +41,13 @@ export function BrandIdentityWorkspace({
   organizationId,
   onRefreshGuidelines,
   progressError,
-  referenceCount,
   selectedVoice,
   setDefaultPending,
   setActiveTab,
-  sitemapCount,
   startPolling,
   uiState,
   voices,
 }: BrandIdentityWorkspaceProps) {
-  useEffect(() => {
-    if (
-      activeTab !== "identity" ||
-      uiState.isSaving ||
-      !uiState.lastSavedAtMs
-    ) {
-      return;
-    }
-
-    const interval = window.setInterval(() => {
-      dispatchUi({ type: "set-relative-time-now", now: Date.now() });
-    }, 10_000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [activeTab, dispatchUi, uiState.isSaving, uiState.lastSavedAtMs]);
-
   const initialData: BrandFormInitialData = {
     name: selectedVoice.name,
     websiteUrl: selectedVoice.websiteUrl
@@ -84,17 +62,6 @@ export function BrandIdentityWorkspace({
     audience: selectedVoice.audience ?? "",
     language: getValidLanguage(selectedVoice.language),
   };
-  let saveStatusText = "Saved just now";
-
-  if (uiState.isSaving) {
-    saveStatusText = "Saving...";
-  } else if (uiState.lastSavedAtMs) {
-    saveStatusText = formatRelativeTime(
-      new Date(uiState.lastSavedAtMs),
-      uiState.relativeTimeNow
-    );
-  }
-
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
@@ -156,15 +123,17 @@ export function BrandIdentityWorkspace({
                 ? "Brand analysis failed"
                 : "Brand analysis is running"}
             </AlertTitle>
-            <AlertDescription className="space-y-3">
-              <p>
-                {progressError
-                  ? progressError
-                  : "We are extracting the website details now. The form updates automatically as soon as the analysis finishes."}
-              </p>
-              {isAnalyzing ? (
-                <AnalysisStepper progress={effectiveProgress} />
-              ) : null}
+            <AlertDescription>
+              <div className="space-y-3">
+                <p>
+                  {progressError
+                    ? progressError
+                    : "We are extracting the website details now. The form updates automatically as soon as the analysis finishes."}
+                </p>
+                {isAnalyzing ? (
+                  <AnalysisStepper progress={effectiveProgress} />
+                ) : null}
+              </div>
             </AlertDescription>
           </Alert>
         ) : null}
@@ -174,6 +143,7 @@ export function BrandIdentityWorkspace({
           addReferenceOpen={uiState.addReferenceOpen}
           addSitemapOpen={uiState.addSitemapOpen}
           initialData={initialData}
+          isSaving={uiState.isSaving}
           onActiveTabChange={setActiveTab}
           onAddReferenceOpenChange={(open) =>
             dispatchUi({ type: "set-add-reference-open", open })
@@ -181,19 +151,10 @@ export function BrandIdentityWorkspace({
           onAddSitemapOpenChange={(open) =>
             dispatchUi({ type: "set-add-sitemap-open", open })
           }
-          onSavedAtChange={(savedAt) =>
-            dispatchUi({
-              type: "set-last-saved-at-ms",
-              savedAtMs: savedAt.getTime(),
-            })
-          }
           onSavingChange={(isSaving) =>
             dispatchUi({ type: "set-is-saving", isSaving })
           }
           organizationId={organizationId}
-          referenceCount={referenceCount}
-          saveStatusText={saveStatusText}
-          sitemapCount={sitemapCount}
           voiceId={selectedVoice.id}
           voiceWebsiteUrl={selectedVoice.websiteUrl}
         />

@@ -39,12 +39,12 @@ export function BrandIdentityHeader({
   const action = actionByTab[activeTab];
 
   return (
-    <div className="flex items-start justify-between">
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {BRAND_TAB_HEADERS[activeTab].title}
         </h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
           {BRAND_TAB_HEADERS[activeTab].description}
         </p>
       </div>
@@ -65,6 +65,6 @@ export function BrandIdentityHeader({
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
         </Button>
       ) : null}
-    </div>
+    </header>
   );
 }

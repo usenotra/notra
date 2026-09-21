@@ -144,8 +144,6 @@ export function getInitialBrandIdentityUiState(): BrandIdentityUiState {
     addSitemapOpen: false,
     deleteTargetVoiceId: null,
     isSaving: false,
-    lastSavedAtMs: null,
-    relativeTimeNow: Date.now(),
     storedVoiceId: null,
     url: "",
   };
@@ -168,10 +166,6 @@ export function brandIdentityUiReducer(
       return state.isSaving === action.isSaving
         ? state
         : { ...state, isSaving: action.isSaving };
-    case "set-last-saved-at-ms":
-      return { ...state, lastSavedAtMs: action.savedAtMs };
-    case "set-relative-time-now":
-      return { ...state, relativeTimeNow: action.now };
     case "set-stored-voice-id":
       return { ...state, storedVoiceId: action.voiceId };
     case "set-url":
