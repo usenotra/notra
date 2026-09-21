@@ -130,7 +130,7 @@ function readGitHubAppConfig() {
   return {
     appId: process.env.GITHUB_APP_ID,
     privateKey: process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    slug: process.env.GITHUB_APP_SLUG ?? process.env.GITHUB_APP_NAME,
+    slug: process.env.GITHUB_APP_SLUG,
   };
 }
 

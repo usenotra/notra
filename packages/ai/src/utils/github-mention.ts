@@ -44,9 +44,7 @@ function normalizeHandle(value: string) {
  */
 export function getGitHubMentionAppHandles() {
   const slug =
-    process.env.GITHUB_APP_SLUG?.trim() ||
-    process.env.GITHUB_APP_NAME?.trim() ||
-    GITHUB_MENTION_DEFAULT_APP_SLUG;
+    process.env.GITHUB_APP_SLUG?.trim() || GITHUB_MENTION_DEFAULT_APP_SLUG;
   const handle = normalizeHandle(slug);
   return MENTION_HANDLE_PATTERN.test(handle) ? [handle] : [];
 }
