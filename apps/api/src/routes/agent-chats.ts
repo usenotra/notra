@@ -136,7 +136,6 @@ agentChatsRoutes.post("/eve/v1/session", async (c) => {
       {
         ok: true,
         sessionId: created.eveSessionId,
-        continuationToken: created.continuationToken,
       },
       200,
       { "x-eve-session-id": created.eveSessionId }
@@ -221,7 +220,6 @@ agentChatsRoutes.post("/eve/v1/session/:sessionId", async (c) => {
     return await forwardAgentFollowUp({
       fetchUpstream: (path, init) => client.fetch(path, init),
       eveSessionId: sessionId,
-      continuationToken: mapping.continuationToken,
       message: parsed.data.message,
       inputResponses: parsed.data.inputResponses,
     });

@@ -23,13 +23,11 @@ export interface CreateAgentSessionParams {
 export interface CreateAgentSessionResult {
   agentSessionId: string;
   eveSessionId: string;
-  continuationToken: string;
 }
 
 export interface ForwardAgentFollowUpParams {
   fetchUpstream: AgentUpstreamFetch;
   eveSessionId: string;
-  continuationToken: string;
   message?: string;
   inputResponses?: Array<{ requestId: string; optionId: string }>;
 }

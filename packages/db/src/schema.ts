@@ -162,7 +162,7 @@ export const agentSessions = pgTable(
     contentId: text("content_id"),
     collectionId: text("collection_id"),
     eveSessionId: text("eve_session_id").notNull(),
-    continuationToken: text("continuation_token").notNull(),
+    continuationToken: text("continuation_token"),
     streamIndex: integer("stream_index").notNull().default(0),
     status: text("status").notNull().default("active"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

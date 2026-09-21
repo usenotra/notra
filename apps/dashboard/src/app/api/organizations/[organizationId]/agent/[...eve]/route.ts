@@ -164,7 +164,6 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
         {
           ok: true,
           sessionId: started.eveSessionId,
-          continuationToken: started.continuationToken,
         },
         { headers: { "x-eve-session-id": started.eveSessionId } }
       );
@@ -206,7 +205,6 @@ export async function POST(request: NextRequest, context: AgentRouteContext) {
     return await forwardAgentFollowUp({
       fetchUpstream: (upstreamPath, init) => client.fetch(upstreamPath, init),
       eveSessionId,
-      continuationToken: mapping.continuationToken,
       message: parsed.data.message,
       inputResponses: parsed.data.inputResponses,
     });
