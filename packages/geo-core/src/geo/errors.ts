@@ -255,6 +255,31 @@ export class GeoWriterStartError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
+export class GeoAdhocScanInvalidError extends Data.TaggedError(
+  "GeoAdhocScanInvalidError"
+)<{
+  readonly message: string;
+}> {}
+
+export class GeoAdhocScanConflictError extends Data.TaggedError(
+  "GeoAdhocScanConflictError"
+)<{
+  readonly message: string;
+}> {}
+
+export class GeoAdhocScanNotFoundError extends Data.TaggedError(
+  "GeoAdhocScanNotFoundError"
+)<{
+  readonly scanId: string;
+}> {}
+
+/** Every requested engine was ruled out before a model was called. */
+export class GeoAdhocScanUnavailableError extends Data.TaggedError(
+  "GeoAdhocScanUnavailableError"
+)<{
+  readonly message: string;
+}> {}
+
 export type GeoRouterError =
   | GeoSuggestionNotFoundError
   | GeoBrandIdentityMissingError

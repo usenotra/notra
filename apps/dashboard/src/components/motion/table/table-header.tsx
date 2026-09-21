@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import {
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
@@ -301,7 +301,7 @@ export function TableHeader<T>({
                   ...(isActive ? { boxShadow: COLUMN_ACTIVE_SHADOW } : {}),
                 }}
               >
-                <motion.div
+                <m.div
                   animate={
                     reduce
                       ? { opacity: isDragging ? 0.5 : 1 }
@@ -343,7 +343,7 @@ export function TableHeader<T>({
                         {column.align === "right" ? null : (
                           <HeaderLabel column={column} />
                         )}
-                        <motion.span
+                        <m.span
                           animate={{
                             rotate:
                               active && sort?.direction === "desc" ? 180 : 0,
@@ -358,7 +358,7 @@ export function TableHeader<T>({
                           }
                         >
                           <HugeiconsIcon icon={ArrowUp01Icon} size={14} />
-                        </motion.span>
+                        </m.span>
                         {column.align === "right" ? (
                           <HeaderLabel column={column} />
                         ) : null}
@@ -393,7 +393,7 @@ export function TableHeader<T>({
                       </span>
                     </WithHeaderHint>
                   ) : null}
-                </motion.div>
+                </m.div>
                 {resizable ? (
                   <button
                     aria-label={`Resize ${column.key} column`}

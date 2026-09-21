@@ -8,7 +8,7 @@ import type {
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { tween } from "@notra/ui/lib/motion";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, LazyMotion, m, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
@@ -26,6 +26,9 @@ import type { GeoGapAnswerPanelProps } from "@/types/components/geo-gaps";
 import { geoChatSkin } from "@/utils/geo-chat-skin";
 import { geoPromptDetailState } from "@/utils/geo-prompt-detail";
 import { latestPromptResults } from "@/utils/geo-prompt-history";
+
+const loadMotionFeatures = () =>
+  import("@/lib/motion-features").then((mod) => mod.default);
 
 /** Engines that already mention you lead, so the strip reads as a scoreboard. */
 function byVisibility(
@@ -108,38 +111,40 @@ export function GapAnswerPanel({
         <PromptReceiptViewSwitch onChange={setView} view={view} />
       </div>
 
-      <div
-        className={cn(
-          "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
-          view === "raw"
-            ? GEO_CHAT_SKIN_SURFACE[geoChatSkin(active.engine)]
-            : undefined
-        )}
-      >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="flex min-h-full min-w-0 flex-col"
-            exit={{ opacity: 0, y: reduceMotion ? 0 : -4 }}
-            initial={{ opacity: 0, y: reduceMotion ? 0 : 4 }}
-            key={`${active.engine}:${view}`}
-            transition={reduceMotion ? { duration: 0 } : tween("fast")}
-          >
-            <PromptAnswerContent
-              competitors={competitors}
-              history={[]}
-              isHistoryLoading={false}
-              onRetry={detail.refetch}
-              organizationId={organizationId}
-              prompt={prompt}
-              scrollable={false}
-              showHistory={false}
-              state={detailState}
-              view={view}
-            />
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      <LazyMotion features={loadMotionFeatures} strict>
+        <div
+          className={cn(
+            "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            view === "raw"
+              ? GEO_CHAT_SKIN_SURFACE[geoChatSkin(active.engine)]
+              : undefined
+          )}
+        >
+          <AnimatePresence initial={false} mode="wait">
+            <m.div
+              animate={{ opacity: 1, y: 0 }}
+              className="flex min-h-full min-w-0 flex-col"
+              exit={{ opacity: 0, y: reduceMotion ? 0 : -4 }}
+              initial={{ opacity: 0, y: reduceMotion ? 0 : 4 }}
+              key={`${active.engine}:${view}`}
+              transition={reduceMotion ? { duration: 0 } : tween("fast")}
+            >
+              <PromptAnswerContent
+                competitors={competitors}
+                history={[]}
+                isHistoryLoading={false}
+                onRetry={detail.refetch}
+                organizationId={organizationId}
+                prompt={prompt}
+                scrollable={false}
+                showHistory={false}
+                state={detailState}
+                view={view}
+              />
+            </m.div>
+          </AnimatePresence>
+        </div>
+      </LazyMotion>
     </>
   );
 }

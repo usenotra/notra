@@ -1,0 +1,24 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/geo-runner/Dockerfile",
+    "watchPatterns": [
+      "apps/geo-runner/**",
+      "packages/ai/**",
+      "packages/analytics/**",
+      "packages/db/**",
+      "packages/geo-core/**",
+      "packages/posthog/**",
+      "packages/utils/**",
+      "bun.lock"
+    ]
+  },
+  "deploy": {
+    "healthcheckPath": "/ready",
+    "healthcheckTimeout": 60,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 5,
+    "drainingSeconds": 30
+  }
+}

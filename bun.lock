@@ -225,6 +225,22 @@
         "mint": "4.2.676",
       },
     },
+    "apps/geo-runner": {
+      "name": "geo-runner",
+      "dependencies": {
+        "@notra/ai": "workspace:*",
+        "@notra/db": "workspace:*",
+        "@notra/geo-core": "workspace:*",
+        "drizzle-orm": "^0.45.2",
+        "effect": "4.0.0-rc.112",
+        "hono": "^4.12.30",
+      },
+      "devDependencies": {
+        "@electric-sql/pglite": "0.5.8",
+        "@notra/typescript-config": "workspace:*",
+        "typescript": "^5",
+      },
+    },
     "apps/onboarding-agent": {
       "name": "@notra/onboarding-agent",
       "version": "0.0.1",
@@ -3659,6 +3675,8 @@
     "generator-function": ["generator-function@2.0.1", "", {}, "sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g=="],
 
     "gensync": ["gensync@1.0.0-beta.2", "", {}, "sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg=="],
+
+    "geo-runner": ["geo-runner@workspace:apps/geo-runner"],
 
     "get-caller-file": ["get-caller-file@2.0.5", "", {}, "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg=="],
 

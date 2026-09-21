@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { Fragment } from "react";
 
 import { cn } from "@/lib/utils";
@@ -104,45 +104,43 @@ export function TableBody<T>({
               }}
               selectable={selectable}
             />
-            {renderRowDetail ? (
-              <AnimatePresence initial={false}>
-                {detail === null ? null : (
-                  <motion.tr
-                    animate="open"
-                    exit="closed"
-                    id={detailId}
-                    initial="closed"
-                    key={`${entry.id}-detail`}
+            <AnimatePresence initial={false}>
+              {detail === null ? null : (
+                <m.tr
+                  animate="open"
+                  exit="closed"
+                  id={detailId}
+                  initial="closed"
+                  key={`${entry.id}-detail`}
+                >
+                  <td
+                    className={cn(
+                      "bg-muted/20 p-0",
+                      index === rowCount - 1 ? undefined : "border-b"
+                    )}
+                    colSpan={colSpan}
                   >
-                    <td
-                      className={cn(
-                        "bg-muted/20 p-0",
-                        index === rowCount - 1 ? undefined : "border-b"
-                      )}
-                      colSpan={colSpan}
+                    <m.div
+                      animate="open"
+                      className="overflow-hidden"
+                      exit="closed"
+                      initial="closed"
+                      transition={
+                        reduce
+                          ? { duration: 0 }
+                          : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+                      }
+                      variants={{
+                        closed: { height: 0, opacity: 0 },
+                        open: { height: "auto", opacity: 1 },
+                      }}
                     >
-                      <motion.div
-                        animate="open"
-                        className="overflow-hidden"
-                        exit="closed"
-                        initial="closed"
-                        transition={
-                          reduce
-                            ? { duration: 0 }
-                            : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
-                        }
-                        variants={{
-                          closed: { height: 0, opacity: 0 },
-                          open: { height: "auto", opacity: 1 },
-                        }}
-                      >
-                        {detail}
-                      </motion.div>
-                    </td>
-                  </motion.tr>
-                )}
-              </AnimatePresence>
-            ) : null}
+                      {detail}
+                    </m.div>
+                  </td>
+                </m.tr>
+              )}
+            </AnimatePresence>
           </Fragment>
         );
       })}

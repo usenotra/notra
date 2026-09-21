@@ -1,7 +1,7 @@
 "use client";
 // beui.dev/components/motion/table
 
-import { useReducedMotion } from "motion/react";
+import { LazyMotion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 
 import { useTableViewport } from "@/lib/hooks/use-table-viewport";
@@ -35,6 +35,24 @@ import {
 } from "./utils";
 
 export type { SortState, TableColumn, TableProps } from "./types";
+
+const loadMotionFeatures = () =>
+  import("@/lib/motion-features").then((mod) => mod.default);
+
+function tableRows<T>(data: T[], getRowId: TableProps<T>["getRowId"]) {
+  return data.map((row, index) => ({
+    row,
+    id: getRowId ? getRowId(row, index) : String(index),
+  }));
+}
+
+function selectionWidths(selectable: boolean) {
+  return selectable ? [CHECKBOX_WIDTH] : [];
+}
+
+function reorderChromeWidth(reorderable: boolean) {
+  return reorderable ? REORDER_HANDLE_PX : 0;
+}
 
 export function Table<T>({
   data,
@@ -88,14 +106,11 @@ export function Table<T>({
   const thRefs: HeaderCellRefs = useRef<
     Record<string, HTMLTableCellElement | null>
   >({});
-  const rows = data.map((row, index) => ({
-    row,
-    id: getRowId ? getRowId(row, index) : String(index),
-  }));
+  const rows = tableRows(data, getRowId);
   const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
     minColumnWidth,
-    extraFixedWidths: selectable ? [CHECKBOX_WIDTH] : [],
-    extraChromePx: reorderable ? REORDER_HANDLE_PX : 0,
+    extraFixedWidths: selectionWidths(selectable),
+    extraChromePx: reorderChromeWidth(reorderable),
   });
   // Reordering only sees the visible columns, so what a consumer persists has
   // to be widened back to every column before it leaves the table.
@@ -190,8 +205,8 @@ export function Table<T>({
   const minTableWidth = tableMinWidthCss(
     orderedColumns,
     minColumnWidth,
-    selectable ? [CHECKBOX_WIDTH] : [],
-    reorderable ? REORDER_HANDLE_PX : 0
+    selectionWidths(selectable),
+    reorderChromeWidth(reorderable)
   );
   const tableStyle = { tableLayout: "fixed" as const, minWidth: minTableWidth };
 
@@ -207,109 +222,111 @@ export function Table<T>({
     : { activeColumn: null };
 
   return (
-    <div
-      aria-busy={loading}
-      className={cn("w-full min-w-0 text-sm", className)}
-      ref={containerRef}
-    >
-      {/* Overlap hides the header's side border in the body radius. */}
-      <TableHeaderSurface
-        toolbar={toolbar}
-        flushTop={flushTop}
-        overlapTop={overlapTop}
+    <LazyMotion features={loadMotionFeatures} strict>
+      <div
+        aria-busy={loading}
+        className={cn("w-full min-w-0 text-sm", className)}
+        ref={containerRef}
       >
+        {/* Overlap hides the header's side border in the body radius. */}
+        <TableHeaderSurface
+          toolbar={toolbar}
+          flushTop={flushTop}
+          overlapTop={overlapTop}
+        >
+          <div
+            className="overflow-hidden"
+            ref={headerScrollRef}
+            style={headerStyle}
+          >
+            <table className={tableClassName} style={tableStyle}>
+              {columnGroup}
+              <TableHeader
+                {...columnMenuProps}
+                allSelected={allSelected}
+                columns={orderedColumns}
+                dragKey={dragKey}
+                dropIndex={dropIndex}
+                minColumnWidth={minColumnWidth}
+                onColumnRename={onColumnRename}
+                onDeleteColumn={onDeleteColumn}
+                onInsertColumn={onInsertColumn}
+                onReorderEnd={endReorder}
+                onReorderMove={moveReorder}
+                onReorderStart={startReorder}
+                onResizeEnd={endResize}
+                onResizeMove={moveResize}
+                onResizeStart={startResize}
+                onToggleAll={toggleAll}
+                onToggleSort={toggleSort}
+                reduce={!!reduce}
+                reorderable={reorderable}
+                resizable={resizable}
+                rowHeight={rowHeight}
+                selectable={selectable}
+                someSelected={someSelected}
+                sort={sort}
+                thRefs={thRefs}
+              />
+            </table>
+          </div>
+        </TableHeaderSurface>
         <div
-          className="overflow-hidden"
-          ref={headerScrollRef}
-          style={headerStyle}
+          className={cn(
+            "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
+            isEmpty ? "overflow-hidden" : overflowClass,
+            flushBottom && !footer && "rounded-b-none border-b-0"
+          )}
+          onScroll={handleScroll}
+          ref={scrollRef}
+          style={bodyStyle}
         >
           <table className={tableClassName} style={tableStyle}>
             {columnGroup}
-            <TableHeader
-              {...columnMenuProps}
-              allSelected={allSelected}
+            <TableBody
               columns={orderedColumns}
-              dragKey={dragKey}
-              dropIndex={dropIndex}
-              minColumnWidth={minColumnWidth}
-              onColumnRename={onColumnRename}
-              onDeleteColumn={onDeleteColumn}
-              onInsertColumn={onInsertColumn}
-              onReorderEnd={endReorder}
-              onReorderMove={moveReorder}
-              onReorderStart={startReorder}
-              onResizeEnd={endResize}
-              onResizeMove={moveResize}
-              onResizeStart={startResize}
-              onToggleAll={toggleAll}
-              onToggleSort={toggleSort}
-              reduce={!!reduce}
-              reorderable={reorderable}
-              resizable={resizable}
+              renderedRows={renderedRows}
+              rowCount={pagedRows.length}
               rowHeight={rowHeight}
+              rowSizing={rowSizing}
+              bodyHeight={bodyHeight}
+              loading={loading}
+              skeletonRows={skeletonRows}
+              emptyState={emptyState}
               selectable={selectable}
-              someSelected={someSelected}
-              sort={sort}
-              thRefs={thRefs}
+              selected={selected}
+              scrolls={scrolls}
+              paddingTop={paddingTop}
+              paddingBottom={paddingBottom}
+              hasRowMenu={hasRowMenu}
+              onActivate={activateRow}
+              onDeactivate={deactivateRow}
+              onToggleRow={toggleRow}
+              onCellEdit={onCellEdit}
+              onRowClick={onRowClick}
+              isRowClickable={isRowClickable}
+              onRowPointerEnter={onRowPointerEnter}
+              renderRowContextMenu={renderRowContextMenu}
+              renderRowDetail={renderRowDetail}
+              reduce={!!reduce}
+              rowRefs={rowRefs}
             />
           </table>
+          <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
         </div>
-      </TableHeaderSurface>
-      <div
-        className={cn(
-          "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
-          isEmpty ? "overflow-hidden" : overflowClass,
-          flushBottom && !footer && "rounded-b-none border-b-0"
-        )}
-        onScroll={handleScroll}
-        ref={scrollRef}
-        style={bodyStyle}
-      >
-        <table className={tableClassName} style={tableStyle}>
-          {columnGroup}
-          <TableBody
-            columns={orderedColumns}
-            renderedRows={renderedRows}
-            rowCount={pagedRows.length}
-            rowHeight={rowHeight}
-            rowSizing={rowSizing}
-            bodyHeight={bodyHeight}
-            loading={loading}
-            skeletonRows={skeletonRows}
-            emptyState={emptyState}
-            selectable={selectable}
-            selected={selected}
-            scrolls={scrolls}
-            paddingTop={paddingTop}
-            paddingBottom={paddingBottom}
-            hasRowMenu={hasRowMenu}
-            onActivate={activateRow}
-            onDeactivate={deactivateRow}
-            onToggleRow={toggleRow}
-            onCellEdit={onCellEdit}
-            onRowClick={onRowClick}
-            isRowClickable={isRowClickable}
-            onRowPointerEnter={onRowPointerEnter}
-            renderRowContextMenu={renderRowContextMenu}
-            renderRowDetail={renderRowDetail}
-            reduce={!!reduce}
-            rowRefs={rowRefs}
+        <TableFooterSurface footer={footer} flushBottom={flushBottom} />
+        {hasRowMenu && activeRow ? (
+          <RowHandle
+            id={activeRow.id}
+            index={activeRow.index}
+            onDeleteRow={onDeleteRow}
+            onEnter={() => activateRow(activeRow.id, activeRow.index)}
+            onInsertRow={onInsertRow}
+            onLeave={deactivateRow}
+            rowEl={activeRowEl}
           />
-        </table>
-        <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
+        ) : null}
       </div>
-      <TableFooterSurface footer={footer} flushBottom={flushBottom} />
-      {hasRowMenu && activeRow ? (
-        <RowHandle
-          id={activeRow.id}
-          index={activeRow.index}
-          onDeleteRow={onDeleteRow}
-          onEnter={() => activateRow(activeRow.id, activeRow.index)}
-          onInsertRow={onInsertRow}
-          onLeave={deactivateRow}
-          rowEl={activeRowEl}
-        />
-      ) : null}
-    </div>
+    </LazyMotion>
   );
 }

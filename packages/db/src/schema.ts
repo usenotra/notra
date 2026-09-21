@@ -32,6 +32,10 @@ import type {
   AgentReadinessIssue,
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
+import type {
+  GeoAdhocScanInput,
+  GeoAdhocScanResults,
+} from "./types/geo-adhoc-scan";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type {
   GeoPersonaProfile,
@@ -1757,6 +1761,54 @@ export const geoScans = pgTable(
     index("geoScans_projectId_startedAt_idx").on(
       table.projectId,
       table.startedAt
+    ),
+  ]
+);
+
+/**
+ * One-off scans: a single prompt against a few models, outside the scheduled
+ * scan. Results live here rather than in `geo_mention_checks` so trying a
+ * prompt never moves the project's visibility numbers.
+ */
+export const geoAdhocScans = pgTable(
+  "geo_adhoc_scans",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    status: text("status", {
+      enum: ["queued", "running", "completed", "failed"],
+    })
+      .notNull()
+      .default("queued"),
+    input: jsonb("input").$type<GeoAdhocScanInput>().notNull(),
+    results: jsonb("results").$type<GeoAdhocScanResults>(),
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+    retryable: boolean("retryable"),
+    startedAt: timestamp("started_at"),
+    heartbeatAt: timestamp("heartbeat_at"),
+    finishedAt: timestamp("finished_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("geoAdhocScans_organizationId_idx").on(table.organizationId),
+    uniqueIndex("geoAdhocScans_organizationId_idempotencyKey_uidx").on(
+      table.organizationId,
+      table.idempotencyKey
+    ),
+    index("geoAdhocScans_projectId_createdAt_idx").on(
+      table.projectId,
+      table.createdAt
+    ),
+    index("geoAdhocScans_status_heartbeatAt_idx").on(
+      table.status,
+      table.heartbeatAt
     ),
   ]
 );

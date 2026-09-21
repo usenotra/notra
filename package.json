@@ -19,6 +19,7 @@
     "db:drop": "dotenv -- bunx drizzle-kit drop --config packages/db/drizzle.config.ts",
     "db:pull": "dotenv -- bunx drizzle-kit pull --config packages/db/drizzle.config.ts",
     "email:dev": "dotenv -- bun run --filter=@notra/email dev",
+    "geo:smoke": "dotenv -- bun apps/geo-runner/scripts/smoke.ts",
     "devtools:api": "cd apps/api && bunx @ai-sdk/devtools",
     "devtools:dashboard": "cd apps/dashboard && bunx @ai-sdk/devtools",
     "check": "ultracite check --threads=4",

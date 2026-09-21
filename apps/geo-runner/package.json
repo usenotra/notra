@@ -1,0 +1,24 @@
+{
+  "name": "geo-runner",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch src/index.ts",
+    "build": "bun build src/index.ts --target=bun --outfile=dist/index.mjs",
+    "start": "bun run dist/index.mjs",
+    "check-types": "bunx tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "@notra/ai": "workspace:*",
+    "@notra/db": "workspace:*",
+    "@notra/geo-core": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "effect": "4.0.0-rc.112",
+    "hono": "^4.12.30"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@notra/typescript-config": "workspace:*",
+    "typescript": "^5"
+  }
+}

@@ -1380,3 +1380,11 @@ export const GEO_MENTION_EVALUATION_TIMEOUT_MS = 10_000;
 /** Highest list rank the evaluation model can pick; longer lists fall back to the judge. */
 export const GEO_MENTION_EVALUATION_MAX_POSITION = 10;
 export const GEO_MENTION_EVALUATION_NO_POSITION = "none";
+
+export const GEO_ADHOC_SCAN_MAX_ENGINES = 5;
+export const GEO_ADHOC_SCAN_IDEMPOTENCY_KEY_MAX_LENGTH = 128;
+export const GEO_ADHOC_SCAN_HEARTBEAT_MS = 60 * 1000;
+/** Active runners renew `heartbeatAt`; silence this long means the runner is gone. */
+export const GEO_ADHOC_SCAN_RUNNING_STALE_MS = 15 * 60 * 1000;
+/** The bounded runner backlog can legitimately take hours to drain at capacity. */
+export const GEO_ADHOC_SCAN_QUEUED_STALE_MS = 12 * 60 * 60 * 1000;

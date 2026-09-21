@@ -319,6 +319,139 @@ function connectedMeta(status: GeoSearchConsoleStatus): string {
   return parts.join(" · ");
 }
 
+function searchConsoleMode(
+  isPending: boolean,
+  status: GeoSearchConsoleStatus | undefined
+) {
+  if (isPending || !status) {
+    return "loading" as const;
+  }
+  if (status.connected && status.status === "active" && status.siteUrl) {
+    return "connected" as const;
+  }
+  if (!status.connected || status.status === "reauth_required") {
+    return "connect" as const;
+  }
+  return "select" as const;
+}
+
+function ToolbarFrame({
+  action,
+  body,
+  headingId,
+  isPending,
+  onDismiss,
+}: {
+  action?: ReactNode;
+  body: ReactNode;
+  headingId: string;
+  isPending: boolean;
+  onDismiss?: () => void;
+}) {
+  return (
+    <div aria-busy={isPending} aria-labelledby={headingId} role="region">
+      <HeaderRow action={action} onDismiss={onDismiss} titleId={headingId} />
+      {body}
+    </div>
+  );
+}
+
+function ConnectToolbar({
+  action,
+  callbackPath,
+  headingId,
+  onDismiss,
+  organizationId,
+  status,
+}: SearchConsoleToolbarProps & {
+  headingId: string;
+  status: GeoSearchConsoleStatus;
+}) {
+  const connectAction = (
+    <ConnectAction
+      callbackPath={callbackPath}
+      configured={status.configured}
+      organizationId={organizationId}
+      reauth={status.status === "reauth_required"}
+    />
+  );
+  const headerAction = action ? (
+    <div className="flex items-center gap-2">
+      {connectAction}
+      {action}
+    </div>
+  ) : (
+    connectAction
+  );
+  const body =
+    status.status === "reauth_required" ? (
+      <p className="text-muted-foreground pt-3 text-sm">
+        Google access expired. Reconnect to keep syncing keyword suggestions.
+      </p>
+    ) : null;
+
+  return (
+    <ToolbarFrame
+      action={headerAction}
+      body={body}
+      headingId={headingId}
+      isPending={false}
+      onDismiss={onDismiss}
+    />
+  );
+}
+
+function SelectPropertyToolbar({
+  action,
+  callbackPath,
+  headingId,
+  onDismiss,
+  onPropertyPickerOpenChange,
+  organizationId,
+  propertyPickerOpen,
+  status,
+  websiteUrl,
+}: SearchConsoleToolbarProps & {
+  headingId: string;
+  status: GeoSearchConsoleStatus;
+  websiteUrl: string | null;
+}) {
+  const headerAction = (
+    <div className="flex flex-wrap items-center gap-2">
+      <SelectSiteState
+        callbackPath={callbackPath}
+        onOpenChange={onPropertyPickerOpenChange}
+        open={propertyPickerOpen}
+        organizationId={organizationId}
+        status={status}
+        websiteUrl={websiteUrl}
+      />
+      {action}
+    </div>
+  );
+  const body = (
+    <p
+      className={cn(
+        "pt-3 text-sm",
+        status.lastError ? "text-destructive" : "text-muted-foreground"
+      )}
+    >
+      {status.lastError ??
+        "Choose which Search Console property Notra should analyze."}
+    </p>
+  );
+
+  return (
+    <ToolbarFrame
+      action={headerAction}
+      body={body}
+      headingId={headingId}
+      isPending={false}
+      onDismiss={onDismiss}
+    />
+  );
+}
+
 function ConnectedState({
   action,
   organizationId,
@@ -489,13 +622,26 @@ export function SearchConsoleToolbar({
     brandData?.voices.find(
       (voice) => voice.id === activeProject?.brandSettingsId
     )?.websiteUrl ?? null;
+  const mode = searchConsoleMode(isPending, status);
 
-  if (
-    !isPending &&
-    status?.connected &&
-    status.status === "active" &&
-    status.siteUrl
-  ) {
+  if (mode === "loading" || !status) {
+    return (
+      <ToolbarFrame
+        action={action}
+        body={
+          <div className="text-muted-foreground flex items-center gap-2 pt-3 text-sm">
+            <StatusSpinner />
+            Loading…
+          </div>
+        }
+        headingId={headingId}
+        isPending
+        onDismiss={onDismiss}
+      />
+    );
+  }
+
+  if (mode === "connected") {
     return (
       <ConnectedState
         action={action}
@@ -509,75 +655,34 @@ export function SearchConsoleToolbar({
     );
   }
 
-  let body: ReactNode = null;
-  let headerAction = action;
-
-  if (isPending || !status) {
-    body = (
-      <div className="text-muted-foreground flex items-center gap-2 pt-3 text-sm">
-        <StatusSpinner />
-        Loading…
-      </div>
-    );
-  } else if (!status.connected || status.status === "reauth_required") {
-    const connectAction = (
-      <ConnectAction
+  if (mode === "connect") {
+    return (
+      <ConnectToolbar
+        action={action}
         callbackPath={callbackPath}
-        configured={status.configured}
+        headingId={headingId}
+        isPending={false}
+        onDismiss={onDismiss}
+        onPropertyPickerOpenChange={onPropertyPickerOpenChange}
         organizationId={organizationId}
-        reauth={status.status === "reauth_required"}
+        propertyPickerOpen={propertyPickerOpen}
+        status={status}
       />
-    );
-    headerAction = action ? (
-      <div className="flex items-center gap-2">
-        {connectAction}
-        {action}
-      </div>
-    ) : (
-      connectAction
-    );
-    if (status.status === "reauth_required") {
-      body = (
-        <p className="text-muted-foreground pt-3 text-sm">
-          Google access expired. Reconnect to keep syncing keyword suggestions.
-        </p>
-      );
-    }
-  } else {
-    headerAction = (
-      <div className="flex flex-wrap items-center gap-2">
-        <SelectSiteState
-          callbackPath={callbackPath}
-          onOpenChange={onPropertyPickerOpenChange}
-          open={propertyPickerOpen}
-          organizationId={organizationId}
-          status={status}
-          websiteUrl={websiteUrl}
-        />
-        {action}
-      </div>
-    );
-    body = (
-      <p
-        className={cn(
-          "pt-3 text-sm",
-          status.lastError ? "text-destructive" : "text-muted-foreground"
-        )}
-      >
-        {status.lastError ??
-          "Choose which Search Console property Notra should analyze."}
-      </p>
     );
   }
 
   return (
-    <div aria-busy={isPending} aria-labelledby={headingId} role="region">
-      <HeaderRow
-        action={headerAction}
-        onDismiss={onDismiss}
-        titleId={headingId}
-      />
-      {body}
-    </div>
+    <SelectPropertyToolbar
+      action={action}
+      callbackPath={callbackPath}
+      headingId={headingId}
+      isPending={false}
+      onDismiss={onDismiss}
+      onPropertyPickerOpenChange={onPropertyPickerOpenChange}
+      organizationId={organizationId}
+      propertyPickerOpen={propertyPickerOpen}
+      status={status}
+      websiteUrl={websiteUrl}
+    />
   );
 }

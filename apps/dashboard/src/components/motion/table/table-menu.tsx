@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -94,7 +94,7 @@ export function TableMenu({
                 className="fixed inset-0 z-40"
                 onPointerDown={() => setCoords(null)}
               />
-              <motion.div
+              <m.div
                 animate={
                   reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }
                 }
@@ -130,7 +130,7 @@ export function TableMenu({
                     {item.label}
                   </button>
                 ))}
-              </motion.div>
+              </m.div>
             </>,
             document.body
           )
