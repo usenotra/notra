@@ -1,16 +1,18 @@
 import {
   deleteGitHubAppInstallationForOrganization,
-  getGitHubAppInstallationPublishAccess,
+  getCachedGitHubAppCanPublish,
   GitHubAppNotConfiguredError,
   getGitHubAppInstallUrl,
   getSelectedGitHubAppRepositoryIds,
+  githubAppRepositoryCacheIsWarm,
   isGitHubAccountConnectionRequired,
   listGitHubAppInstallationsByOrganization,
   listGitHubAppRepositoriesEffect,
+  listStoredGitHubAppRepositories,
+  readCachedGitHubAppCanPublish,
   setSelectedGitHubAppRepositoriesEffect,
 } from "@notra/ai/integrations/github";
 import { GitHubPersistenceError } from "@notra/ai/schemas/github-operations";
-import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import {
   createOctokit,
   GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
@@ -99,6 +101,25 @@ function toGitHubAccountType(accountType: string): GitHubAccountType {
   return accountType === "Organization" ? "Organization" : "User";
 }
 
+async function loadGitHubAppAccounts(
+  installations: Awaited<
+    ReturnType<typeof listGitHubAppInstallationsByOrganization>
+  >,
+  canPublishFor: (installationId: string) => Promise<boolean | null>
+) {
+  return Promise.all(
+    installations.map(async (installation) => ({
+      id: installation.accountId,
+      installationId: installation.installationId,
+      login: installation.accountLogin,
+      name: installation.accountName,
+      avatarUrl: installation.accountAvatarUrl,
+      type: toGitHubAccountType(installation.accountType),
+      canPublish: await canPublishFor(installation.installationId),
+    }))
+  );
+}
+
 const prepareGitHubAppInstall = Effect.fn("prepareGitHubAppInstall")(function* (
   input: PrepareInstallUrlInput & {
     userId: string;
@@ -182,16 +203,63 @@ export const githubRouter = {
           };
         }
 
-        const { success: withinLimit } =
-          await ratelimit.githubAppRepositories.limit(
-            `${context.user.id}:${input.organizationId}`
-          );
-        if (!withinLimit) {
-          throw tooManyRequests(
-            "Too many GitHub repository requests. Please try again shortly."
-          );
+        const installationIds = installations.map(
+          (installation) => installation.id
+        );
+        const [accounts, repositories, selectedRepositoryIds] =
+          await Promise.all([
+            loadGitHubAppAccounts(installations, readCachedGitHubAppCanPublish),
+            listStoredGitHubAppRepositories(
+              input.organizationId,
+              installationIds
+            ),
+            getSelectedGitHubAppRepositoryIds(
+              input.organizationId,
+              installationIds
+            ),
+          ]);
+        return {
+          accounts,
+          repositories,
+          selectedRepositoryIds,
+        };
+      }),
+    catalog: authorizedProcedure
+      .input(organizationIdInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+        });
+
+        const installations = await listGitHubAppInstallationsByOrganization(
+          input.organizationId
+        );
+
+        if (installations.length === 0) {
+          return {
+            accounts: [],
+            repositories: [],
+            selectedRepositoryIds: [],
+          };
         }
 
+        if (!(await githubAppRepositoryCacheIsWarm(installations))) {
+          const { success: withinLimit } =
+            await ratelimit.githubAppRepositories.limit(
+              `${context.user.id}:${input.organizationId}`
+            );
+          if (!withinLimit) {
+            throw tooManyRequests(
+              "Too many GitHub repository requests. Please try again shortly."
+            );
+          }
+        }
+
+        const accountsPromise = loadGitHubAppAccounts(
+          installations,
+          getCachedGitHubAppCanPublish
+        );
         const { repositories, selectedRepositoryIds } = await runOrpcEffect(
           Effect.all(
             {
@@ -216,22 +284,7 @@ export const githubRouter = {
           ),
           toGitHubOperationOrpcError
         );
-        const accounts = await Promise.all(
-          installations.map(async (installation) => {
-            const publishAccess = await getGitHubAppInstallationPublishAccess(
-              installation.installationId
-            );
-            return {
-              id: installation.accountId,
-              installationId: installation.installationId,
-              login: installation.accountLogin,
-              name: installation.accountName,
-              avatarUrl: installation.accountAvatarUrl,
-              type: toGitHubAccountType(installation.accountType),
-              canPublish: githubAppInstallationCanPublishContent(publishAccess),
-            };
-          })
-        );
+        const accounts = await accountsPromise;
         return {
           accounts,
           repositories,

@@ -17,6 +17,7 @@ export function GitHubIntegrationDialog({
 }: GitHubIntegrationDialogProps) {
   const {
     query: githubAppQuery,
+    catalogQuery,
     accounts,
     accountId: dialogAccountId,
     setSelectedAccountId,
@@ -48,13 +49,16 @@ export function GitHubIntegrationDialog({
       <SelectRepositoriesDialog
         accounts={accounts}
         initialSelected={selectedRepositoryIds}
-        isLoading={githubAppQuery.isPending || githubAppQuery.isFetching}
+        isLoading={
+          !catalogQuery.data &&
+          (catalogQuery.isPending || catalogQuery.isFetching)
+        }
         error={
-          githubAppQuery.isError
+          catalogQuery.isError && !catalogQuery.data
             ? "Unable to load repositories from GitHub."
             : undefined
         }
-        onRetry={() => githubAppQuery.refetch()}
+        onRetry={() => catalogQuery.refetch()}
         isSaving={saveRepositoriesMutation.isPending}
         onAddAccount={openInstall}
         onOpenChange={onOpenChange}

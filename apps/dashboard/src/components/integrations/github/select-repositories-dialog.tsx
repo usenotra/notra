@@ -6,7 +6,6 @@ import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -70,11 +69,6 @@ export function SelectRepositoriesDialog({
       <ResponsiveDialogContent className="flex max-h-[85svh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[520px] [&>*]:min-w-0">
         <ResponsiveDialogHeader className="shrink-0 p-4 pb-0">
           <ResponsiveDialogTitle>Select repositories</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            Save your selection to finish connecting repositories to Notra. Only
-            repositories granted to the GitHub App appear here. Existing
-            publishing settings will be kept.
-          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4">
           <div className="space-y-3 py-4">

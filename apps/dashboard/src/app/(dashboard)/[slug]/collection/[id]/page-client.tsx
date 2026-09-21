@@ -135,7 +135,7 @@ export default function PageClient({
               <ContentCard
                 contentSubtype={post.contentSubtype}
                 contentType={post.contentType}
-                href={`/${organizationSlug}/content/${post.id}`}
+                href={`/${organizationSlug}/content/${post.id}?fromCollection=${encodeURIComponent(collection.id)}`}
                 id={post.id}
                 imagePreviewSrc={
                   post.contentType === "image"

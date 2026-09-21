@@ -35,6 +35,7 @@ export function useGitHubSettings(organizationSlug: string) {
   useGitHubCallbackErrorToast();
   const {
     query: githubAppQuery,
+    catalogQuery,
     accounts,
     accountId: dialogAccountId,
     setSelectedAccountId: setSelectedDialogAccountId,
@@ -44,6 +45,7 @@ export function useGitHubSettings(organizationSlug: string) {
     saveMutation: saveRepositoriesMutation,
   } = useGitHubRepositorySelection({
     organizationId,
+    loadCatalog: reposOpen,
     refetchOnMount: false,
     initialAccountId: githubAccountId,
     onSaved: () => setReposOpen(false),
@@ -68,6 +70,11 @@ export function useGitHubSettings(organizationSlug: string) {
       }),
     });
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.github.app.catalog.queryKey({
+        input: { organizationId: organization.id },
+      }),
+    });
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.integrations.key(),
     });
   }, [githubConnected, setCallbackParams, organization?.id, queryClient]);
@@ -83,7 +90,6 @@ export function useGitHubSettings(organizationSlug: string) {
   };
   const migrationMutation = useGitHubRepositoryMigration(
     organizationId,
-    githubAppQuery.refetch,
     startInstall
   );
   const disconnectMutation = useMutation({
@@ -93,6 +99,11 @@ export function useGitHubSettings(organizationSlug: string) {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.github.app.get.queryKey({
+            input: { organizationId },
+          }),
+        }),
+        queryClient.removeQueries({
+          queryKey: dashboardOrpc.github.app.catalog.queryKey({
             input: { organizationId },
           }),
         }),
@@ -123,6 +134,7 @@ export function useGitHubSettings(organizationSlug: string) {
     legacyOpen,
     setLegacyOpen,
     githubAppQuery,
+    catalogQuery,
     accounts,
     dialogAccountId,
     setSelectedDialogAccountId,

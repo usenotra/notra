@@ -71,9 +71,6 @@ function GitHubAccounts({
   return (
     <div className="bg-muted/40 space-y-3 rounded-2xl p-5">
       <h3 className="text-sm font-medium">Connect the GitHub App</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed">
-        Add repositories without managing a personal access token.
-      </p>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" onClick={handleOpenConnect}>
           Connect GitHub
@@ -97,10 +94,6 @@ export function GitHubAppSection(props: GitHubAppSectionProps) {
         <h2 id="github-app-heading" className="text-base font-semibold">
           GitHub App
         </h2>
-        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          Manage connected accounts, repository access, and GitHub write
-          permissions for draft pull requests.
-        </p>
       </div>
       <div className="min-w-0 space-y-4">
         <GitHubAccounts {...props} />

@@ -1135,7 +1135,6 @@ export const contentRouter = {
           path,
           title: post.title,
           markdown: savedMarkdown,
-          pullRequestMarkdown: savedMarkdown,
           ...(publisherLogin ? { publisherLogin } : {}),
           ...(outputConfig.success && outputConfig.data.imagePath
             ? {

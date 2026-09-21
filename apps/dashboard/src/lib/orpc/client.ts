@@ -25,10 +25,19 @@ function getBaseUrl() {
  */
 const NON_BATCHABLE_ROOT_PATHS = new Set(["attachments", "upload"]);
 
+function isUnbatchedProcedure(path: readonly string[]) {
+  if (NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? "")) {
+    return true;
+  }
+  // The GitHub catalog talks to GitHub. Keeping it out of the page batch
+  // means a slow GitHub response cannot hold back the saved repositories.
+  return path[0] === "github" && path[1] === "app" && path[2] === "catalog";
+}
+
 const link = new RPCLink({
   plugins: [
     new BatchLinkPlugin({
-      exclude: ({ path }) => NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? ""),
+      exclude: ({ path }) => isUnbatchedProcedure(path),
       groups: [{ condition: () => true, context: {} }],
     }),
   ],

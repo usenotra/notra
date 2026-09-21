@@ -151,7 +151,7 @@ export function ProfileSection({
               </span>
             </Avatar>
           </button>
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium">Profile picture</p>
             <p className="text-muted-foreground text-xs">
               {isUploadingAvatar
@@ -171,7 +171,7 @@ export function ProfileSection({
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Full Name</Label>
-                <div className="flex gap-2">
+                <div className="flex min-w-0 gap-2">
                   <Input
                     autoComplete="name"
                     id={field.name}
@@ -180,7 +180,12 @@ export function ProfileSection({
                     placeholder="Your name"
                     value={field.state.value}
                   />
-                  <Button disabled={isUpdating} size="default" type="submit">
+                  <Button
+                    className="shrink-0"
+                    disabled={isUpdating}
+                    size="default"
+                    type="submit"
+                  >
                     {isUpdating ? (
                       <Loader2Icon className="size-4 animate-spin" />
                     ) : (
