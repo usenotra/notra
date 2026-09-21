@@ -1,6 +1,6 @@
 "use client";
 
-import { Refresh01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
@@ -11,10 +11,9 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -76,8 +75,23 @@ function GitHubPublishDialogBody({
   }
 
   if (linkedPublish) {
+    const linkedLabel = `${linkedPublish.owner}/${linkedPublish.repo} #${linkedPublish.pullRequestNumber}`;
+
     return (
       <>
+        <a
+          className="hover:bg-muted flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
+          href={linkedPublish.pullRequestUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <Github className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{linkedLabel}</span>
+          <HugeiconsIcon
+            className="size-4 shrink-0"
+            icon={ArrowUpRight01Icon}
+          />
+        </a>
         {isPublishing ? (
           <p className="text-sm">Publishing the latest Markdown…</p>
         ) : null}
@@ -120,7 +134,6 @@ export function PublishContentToGitHubDialog({
   title,
 }: PublishContentToGitHubDialogProps) {
   const queryClient = useQueryClient();
-  const linkedUpdateStarted = useRef(false);
   const [open, setOpen] = useState(false);
   const [repositoryId, setRepositoryId] = useState(
     () =>
@@ -260,21 +273,13 @@ export function PublishContentToGitHubDialog({
       if (publishMutation.isPending) {
         return;
       }
-      linkedUpdateStarted.current = false;
       setOpen(false);
       return;
     }
     setOpen(true);
-    if (!githubPublish) {
+    if (!publishMutation.isPending) {
       publishMutation.reset();
-      return;
     }
-    if (linkedUpdateStarted.current) {
-      return;
-    }
-    linkedUpdateStarted.current = true;
-    publishMutation.reset();
-    publishMutation.mutate(githubPublish.repositoryId);
   };
 
   const rememberRepository = (nextRepositoryId: string) => {
@@ -308,40 +313,15 @@ export function PublishContentToGitHubDialog({
   return (
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
       {githubPublish ? (
-        <ButtonGroup>
-          <Button
-            nativeButton={false}
-            render={
-              <a
-                href={githubPublish.pullRequestUrl}
-                rel="noopener noreferrer"
-                target="_blank"
-              />
-            }
-            size="sm"
-            variant="outline"
-          >
-            <Github className="size-4" />
-            <span className="max-w-44 truncate">
-              {githubPublish.owner}/{githubPublish.repo}
-            </span>
-            <span className="text-muted-foreground">
-              #{githubPublish.pullRequestNumber}
-            </span>
-          </Button>
-          <ResponsiveDialogTrigger
-            render={
-              <Button
-                aria-label="Update pull request"
-                size="icon-sm"
-                title="Update pull request"
-                variant="outline"
-              />
-            }
-          >
-            <HugeiconsIcon className="size-4" icon={Refresh01Icon} />
-          </ResponsiveDialogTrigger>
-        </ButtonGroup>
+        <ResponsiveDialogTrigger
+          render={<Button size="sm" variant="outline" />}
+        >
+          <Github className="size-4" />
+          <span className="max-w-52 truncate">
+            {githubPublish.owner}/{githubPublish.repo} #
+            {githubPublish.pullRequestNumber}
+          </span>
+        </ResponsiveDialogTrigger>
       ) : (
         <ResponsiveDialogTrigger
           render={<Button size="sm" variant="outline" />}
