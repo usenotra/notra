@@ -9,6 +9,7 @@ describe("getGitHubMentionPathBlockReason", () => {
       "content/blog/release-2-4.mdx",
       "docs/with space/intro.MD",
       "docs/docs.json",
+      "apps/docs/docs.json",
       "content/authors.yaml",
       "data/releases.csv",
     ]) {

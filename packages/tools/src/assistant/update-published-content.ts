@@ -118,25 +118,27 @@ export function createUpdatePublishedContentTool() {
       }
       // Do not retry this whole operation: GitHub may have accepted the commit
       // before publication synchronization failed.
-      const result = await updatePublishedContentAndCommit({
-        octokit,
-        organizationId,
-        postId: input.postId,
-        markdown: input.markdown,
-        fileContents,
-        title: input.title ?? publication.title ?? undefined,
-        owner: publication.owner,
-        repo: publication.repo,
-        branch: head.headRef,
-        expectedHeadOid: head.headSha,
-        publicationHeadSha: publication.headSha,
-        path: publication.path,
-        publicationId: publication.id,
-        scheduleRepair: scheduleContentPublicationSyncRepair,
-        commitMessage:
-          input.commitMessage ??
-          `docs: update ${publication.title ?? publication.path}`,
-      });
+      const result = await withGitHubRateLimitHandling(() =>
+        updatePublishedContentAndCommit({
+          octokit,
+          organizationId,
+          postId: input.postId,
+          markdown: input.markdown,
+          fileContents,
+          title: input.title ?? publication.title ?? undefined,
+          owner: publication.owner,
+          repo: publication.repo,
+          branch: head.headRef,
+          expectedHeadOid: head.headSha,
+          publicationHeadSha: publication.headSha,
+          path: publication.path,
+          publicationId: publication.id,
+          scheduleRepair: scheduleContentPublicationSyncRepair,
+          commitMessage:
+            input.commitMessage ??
+            `docs: update ${publication.title ?? publication.path}`,
+        })
+      );
 
       return {
         updated: true,

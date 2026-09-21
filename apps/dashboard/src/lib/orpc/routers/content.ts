@@ -1201,6 +1201,19 @@ export const contentRouter = {
           await retryWrite(() =>
             recordContentPublication(publication, publishedAt)
           );
+          if (!reconciliationScheduled) {
+            try {
+              await startContentPublicationReconciliation(
+                publication,
+                publishedAt
+              );
+            } catch (startError) {
+              console.error(
+                "Failed to start content publication reconciliation",
+                { ...logContext, error: startError }
+              );
+            }
+          }
         } catch (error) {
           console.error("Failed to record content publication", {
             ...logContext,

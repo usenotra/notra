@@ -2,6 +2,7 @@ import { publicationSyncRepairSchema } from "@notra/ai/schemas/content-publicati
 
 import { verifyInternalWorkflowRequest } from "@/lib/workflows/internal-auth";
 import { startContentPublicationSyncRepair } from "@/lib/workflows/start";
+import { ratelimit } from "@/utils/ratelimit";
 
 export async function POST(request: Request) {
   if (!(await verifyInternalWorkflowRequest(request))) {
@@ -12,6 +13,12 @@ export async function POST(request: Request) {
   );
   if (!parsed.success) {
     return Response.json({ error: "Invalid payload" }, { status: 400 });
+  }
+  const { success } = await ratelimit.internalWorkflowStart.limit(
+    parsed.data.organizationId
+  );
+  if (!success) {
+    return new Response("Too many requests", { status: 429 });
   }
   await startContentPublicationSyncRepair(parsed.data);
   return new Response(null, { status: 202 });

@@ -18,6 +18,7 @@ export const scheduleContentPublicationSyncRepair: PublicationRepairScheduler =
           "content-type": "application/json",
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10_000),
       }
     );
     if (!response.ok) {

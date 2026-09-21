@@ -104,38 +104,6 @@ export const GITHUB_MENTION_PROTECTED_DATA_FILE_PATTERN =
 /** Markup that a site build renders, so new active content in it can execute. */
 export const GITHUB_MENTION_MARKUP_EXTENSIONS = ["md", "mdx", "markdown"];
 
-/**
- * Content a mention may keep but never add: it runs at build time (MDX module
- * code) or in the reader's browser. `mdxOnly` rules would flag prose elsewhere.
- */
-export const GITHUB_MENTION_ACTIVE_CONTENT_RULES = [
-  {
-    reason: "adds an MDX import or export",
-    pattern: /^\s*(?:import|export)\s/,
-    mdxOnly: true,
-  },
-  {
-    reason: "adds a script tag",
-    pattern: /<script(?:[\s>/]|$)/i,
-    mdxOnly: false,
-  },
-  {
-    reason: "adds an embedded frame or object",
-    pattern: /<(?:iframe|object|embed)(?:[\s>/]|$)/i,
-    mdxOnly: false,
-  },
-  {
-    reason: "adds a javascript: URL",
-    pattern: /javascript\s*:/i,
-    mdxOnly: false,
-  },
-  {
-    reason: "adds an inline event handler",
-    pattern: /(?:^|\s)on[a-z]+\s*=/i,
-    mdxOnly: false,
-  },
-] as const;
-
 /** Tool result when a change adds active content; the agent relays it. */
 export const GITHUB_MENTION_ACTIVE_CONTENT_BLOCKED_MESSAGE =
   "Nothing was committed. Mentions cannot add imports, exports, expressions, scripts, embeds, or event handlers to content; tell the commenter this needs a regular commit.";

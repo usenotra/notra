@@ -95,8 +95,11 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
       on content_publications (post_id) where status = 'open';
   `);
 
-  const { reconcileContentPublication, recordContentPublication } =
-    await import("./content-publication");
+  const {
+    closeContentPublicationForPullRequest,
+    reconcileContentPublication,
+    recordContentPublication,
+  } = await import("./content-publication");
   const at = (day: number) =>
     `2026-01-${String(day).padStart(2, "0")}T00:00:00.000Z`;
   const publication = (target: "A" | "B", headSha = `${target}-head`) => ({
@@ -278,6 +281,38 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
         publishedAt: at(2),
       });
       expect((await rows())[0]?.head_sha).toBe("synced-head");
+    });
+
+    test("reconciliation closes only the matching repository integration", async () => {
+      await client.exec(`
+        insert into posts values ('other-post', 'other-org');
+        insert into content_publications
+          (id, organization_id, post_id, repository_id, owner, repo, path, branch,
+           pull_request_number, pull_request_url, status, created_at)
+        values
+          ('same-org', 'org', 'post', 'repository-A', 'notra', 'shared', 'post.md', 'a', 7, 'https://example.test/a', 'open', '${at(1)}'),
+          ('other-org', 'other-org', 'other-post', 'repository-B', 'notra', 'shared', 'post.md', 'b', 7, 'https://example.test/b', 'open', '${at(1)}');
+      `);
+
+      expect(
+        await closeContentPublicationForPullRequest({
+          owner: "notra",
+          repo: "shared",
+          pullRequestNumber: 7,
+          merged: true,
+          repositoryId: "repository-A",
+        })
+      ).toBe(1);
+      expect(
+        (
+          await client.query<{ repository_id: string; status: string }>(
+            "select repository_id, status from content_publications order by repository_id"
+          )
+        ).rows.map(({ repository_id, status }) => [repository_id, status])
+      ).toEqual([
+        ["repository-A", "merged"],
+        ["repository-B", "open"],
+      ]);
     });
   });
 }

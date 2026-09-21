@@ -66,7 +66,11 @@ export function getGitHubMentionPathBlockReason(path: string) {
   ) {
     return "configuration paths are not editable";
   }
-  if (!CONTENT_DATA_ROOTS.has(segments[0]?.toLowerCase() ?? "")) {
+  if (
+    !segments
+      .slice(0, -1)
+      .some((segment) => CONTENT_DATA_ROOTS.has(segment.toLowerCase()))
+  ) {
     return "structured data is editable only in an explicit content data directory";
   }
   return null;

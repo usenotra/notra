@@ -304,6 +304,7 @@ export async function closeContentPublicationForPullRequest(params: {
   repo: string;
   pullRequestNumber: number;
   merged: boolean;
+  repositoryId?: string;
 }) {
   return await db.transaction(async (tx) => {
     await lockPullRequest(
@@ -322,6 +323,9 @@ export async function closeContentPublicationForPullRequest(params: {
           sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
           sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
           eq(contentPublications.pullRequestNumber, params.pullRequestNumber),
+          params.repositoryId
+            ? eq(contentPublications.repositoryId, params.repositoryId)
+            : undefined,
           eq(contentPublications.status, "open")
         )
       )

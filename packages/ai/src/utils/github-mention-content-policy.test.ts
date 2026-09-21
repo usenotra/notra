@@ -235,6 +235,16 @@ describe("findNewActiveContent", () => {
     ).toEqual([]);
   });
 
+  test("data and vbscript URLs are blocked", () => {
+    expect(
+      reasons(
+        "docs/guide.md",
+        "# Guide",
+        '# Guide\n\n[html](data:text/html,<script>alert(1)</script>)\n\n<a href="vbscript:msgbox(1)">open</a>'
+      )
+    ).toEqual(["adds a javascript: URL", "adds a javascript: URL"]);
+  });
+
   test("comment markers inside an attribute do not hide active content", () => {
     expect(
       reasons(
@@ -359,6 +369,17 @@ describe("findNewActiveContent", () => {
         "docs/guide.mdx",
         `Old prose.\n\n${executable}`,
         `New prose with more detail.\n\n${executable}`
+      )
+    ).toEqual([]);
+  });
+
+  test("prose can change around exact existing inline HTML", () => {
+    const script = "<script>console.log(1)</script>";
+    expect(
+      reasons(
+        "docs/guide.md",
+        `Old introduction ${script} old conclusion.`,
+        `New introduction ${script} new conclusion.`
       )
     ).toEqual([]);
   });

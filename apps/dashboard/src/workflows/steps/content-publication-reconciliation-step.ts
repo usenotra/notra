@@ -11,11 +11,11 @@ export async function reconcileContentPublicationStep(
   publishedAt: string
 ) {
   "use step";
+  await reconcileContentPublication({ publication, publishedAt });
   const token = await getTokenForIntegrationId(publication.repositoryId, {
     organizationId: publication.organizationId,
   });
   const octokit = createOctokit(token ?? undefined);
-  await reconcileContentPublication({ publication, publishedAt });
   const { data: pullRequest } = await octokit.request(
     "GET /repos/{owner}/{repo}/pulls/{pull_number}",
     {
@@ -30,6 +30,7 @@ export async function reconcileContentPublicationStep(
       repo: publication.repo,
       pullRequestNumber: publication.pullRequestNumber,
       merged: Boolean(pullRequest.merged_at),
+      repositoryId: publication.repositoryId,
     });
   }
 }

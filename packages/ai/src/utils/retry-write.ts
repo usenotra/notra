@@ -1,4 +1,4 @@
-import { Effect, Schedule } from "effect";
+import { Effect, Result, Schedule } from "effect";
 
 const DEFAULT_ATTEMPTS = 3;
 
@@ -16,10 +16,16 @@ export async function retryWrite<T>(
   ) {
     throw new RangeError("attempts must be a positive finite integer");
   }
-  return await Effect.runPromise(
-    Effect.tryPromise({
-      try: run,
-      catch: (error) => error,
-    }).pipe(Effect.retry(Schedule.recurs(attempts - 1)))
+  const result = await Effect.runPromise(
+    Effect.result(
+      Effect.tryPromise({
+        try: run,
+        catch: (error) => error,
+      }).pipe(Effect.retry(Schedule.recurs(attempts - 1)))
+    )
   );
+  if (Result.isFailure(result)) {
+    throw result.failure;
+  }
+  return result.success;
 }

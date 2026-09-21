@@ -40,7 +40,7 @@ function normalizeAttributeName(name: string) {
   return name.toLowerCase().replaceAll(":", "");
 }
 
-function isJavascriptUrl(value: unknown) {
+function isExecutableUrl(value: unknown) {
   if (typeof value !== "string") {
     return false;
   }
@@ -55,8 +55,7 @@ function isJavascriptUrl(value: unknown) {
       // oxlint-disable-next-line no-control-regex -- Browsers ignore controls in URL schemes.
       .replace(/[\u0000-\u0020]+/g, "")
       .toLowerCase()
-      // oxlint-disable-next-line no-script-url -- Detect and reject executable URLs; never navigate to them.
-      .startsWith("javascript:")
+      .match(/^(?:javascript|data|vbscript):/) !== null
   );
 }
 
@@ -78,7 +77,7 @@ function inspectAttributes(
         : undefined;
     if (
       GITHUB_MENTION_URL_ATTRIBUTES.has(name) &&
-      (isJavascriptUrl(attribute.value) || isJavascriptUrl(expressionValue))
+      (isExecutableUrl(attribute.value) || isExecutableUrl(expressionValue))
     ) {
       constructs.push({ reason: REASONS.javascriptUrl, source: ownerSource });
     }
@@ -109,24 +108,31 @@ function inspectHtml(
   const root = fromHtml(value, { fragment: true }) as GitHubMentionAstNode;
   const visit = (node: GitHubMentionAstNode) => {
     if (node.type === "element") {
+      const elementSource = sourceOf(node, value) || value;
       const name = node.tagName?.toLowerCase() ?? "";
       if (name === "script") {
-        constructs.push({ reason: REASONS.script, source: value });
+        constructs.push({ reason: REASONS.script, source: elementSource });
       } else if (GITHUB_MENTION_UNSAFE_HTML_ELEMENTS.has(name)) {
-        constructs.push({ reason: REASONS.embed, source: value });
+        constructs.push({ reason: REASONS.embed, source: elementSource });
       }
       for (const [property, propertyValue] of Object.entries(
         node.properties ?? {}
       )) {
         const normalized = normalizeAttributeName(property);
         if (normalized.startsWith("on")) {
-          constructs.push({ reason: REASONS.eventHandler, source: value });
+          constructs.push({
+            reason: REASONS.eventHandler,
+            source: elementSource,
+          });
         }
         if (
           GITHUB_MENTION_URL_ATTRIBUTES.has(normalized) &&
-          isJavascriptUrl(propertyValue)
+          isExecutableUrl(propertyValue)
         ) {
-          constructs.push({ reason: REASONS.javascriptUrl, source: value });
+          constructs.push({
+            reason: REASONS.javascriptUrl,
+            source: elementSource,
+          });
         }
       }
     }
@@ -189,7 +195,7 @@ export function parseGitHubMentionContent(
         (node.type === "link" ||
           node.type === "image" ||
           node.type === "definition") &&
-        isJavascriptUrl(node.url)
+        isExecutableUrl(node.url)
       ) {
         constructs.push({ reason: REASONS.javascriptUrl, source: nodeSource });
       }

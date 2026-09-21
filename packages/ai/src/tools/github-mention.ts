@@ -432,9 +432,9 @@ export function buildGitHubMentionTools(params: {
               commitMessage ??
               `docs: update ${publication.title ?? publication.path}`,
           });
-          if (result.publicationSync.status === "synchronized") {
+          if (context.destination.mode === "same_pull_request") {
             publication.headSha = result.commitSha;
-            publication.markdown = result.publicationSync.markdown;
+            publication.markdown = postMarkdown;
             if (title !== undefined) {
               publication.title = title;
             }
