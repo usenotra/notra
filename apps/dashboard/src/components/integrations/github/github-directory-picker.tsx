@@ -22,11 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "@notra/ui/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   RadioGroup,

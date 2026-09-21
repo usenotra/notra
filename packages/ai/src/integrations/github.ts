@@ -331,11 +331,9 @@ export async function getCachedGitHubAppCanPublish(installationId: string) {
       await cache.set(publishAccessCacheKey(installationId), canPublish, {
         ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
       });
-      await cache.set(
-        publishAccessCacheKey(installationId, true),
-        canPublish,
-        { ex: GITHUB_APP_REPOSITORIES_STALE_CACHE_TTL_SECONDS }
-      );
+      await cache.set(publishAccessCacheKey(installationId, true), canPublish, {
+        ex: GITHUB_APP_REPOSITORIES_STALE_CACHE_TTL_SECONDS,
+      });
     } catch {
       // The page can render without this flag.
     }
