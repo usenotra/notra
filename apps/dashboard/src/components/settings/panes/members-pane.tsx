@@ -80,7 +80,7 @@ export function MembersSettingsPane() {
   return (
     <SettingsPane>
       <Tabs onValueChange={setActiveTab} value={activeTab}>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <TabsList aria-label="Member lists">
             <TabsTrigger value="members">
               Members
