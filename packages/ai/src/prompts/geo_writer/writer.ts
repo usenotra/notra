@@ -149,6 +149,7 @@ export function buildGeoWriterInstructions(
     ${prohibitedLanguage}
 
     ## Output rules (hard)
+    - The brief and topic notes are internal instructions, not article content. Never copy the briefing fields (Target prompt, Intent, Type, Content type, Audience, Job to be done), outline goals, acceptance checklist, or planning notes into the title or markdown body. Use them to guide the article, and return only reader-facing prose.
     - NEVER use em dashes or en dashes anywhere in the title, slug, or body. Use commas, periods, semicolons, parentheses, or a hyphen (-).
     - No preamble, no "In this article". Start with the answer.
     - Write in ${input.language}.

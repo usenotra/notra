@@ -8,10 +8,13 @@ import {
   socialConnections,
 } from "@notra/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Result } from "effect";
 import { customAlphabet } from "nanoid";
 
-import { GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS } from "../constants/github-app";
+import {
+  GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
+  GITHUB_APP_REPOSITORIES_STALE_CACHE_TTL_SECONDS,
+} from "../constants/github-app";
 import { decryptToken, encryptToken } from "../crypto/token-encryption";
 import {
   decodeCachedGitHubAppRepositories,
@@ -45,8 +48,14 @@ import type {
   WebhookConfig,
 } from "../types/integrations";
 import type { GitHubToolRepositoryContext } from "../types/tools";
-import type { GitHubAppPublishAccess } from "../utils/github-app-publish-access";
-import { createOctokit } from "../utils/octokit";
+import {
+  type GitHubAppPublishAccess,
+  githubAppInstallationCanPublishContent,
+} from "../utils/github-app-publish-access";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "../utils/octokit";
 import { hasOrganizationAccess } from "../utils/organization-access";
 import { redis } from "../utils/redis";
 import { runGitHubEffect } from "../utils/run-github-effect";
@@ -239,7 +248,9 @@ export async function getGitHubAppInstallationPublishAccess(
   installationId: string
 ): Promise<GitHubAppPublishAccess | null> {
   try {
-    const octokit = createOctokit(createGitHubAppJwt());
+    const octokit = createOctokit(createGitHubAppJwt(), {
+      requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+    });
     const { data } = await octokit.request(
       "GET /app/installations/{installation_id}",
       {
@@ -257,6 +268,77 @@ export async function getGitHubAppInstallationPublishAccess(
   } catch {
     return null;
   }
+}
+
+function publishAccessCacheKey(installationId: string, stale = false) {
+  const key = `github_app_publish_access:${installationId}`;
+  return stale ? `${key}:stale` : key;
+}
+
+function decodePublishFlag(value: unknown): boolean | undefined {
+  if (value === true || value === false) {
+    return value;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  return undefined;
+}
+
+async function readPublishFlag(key: string) {
+  const cache = redis;
+  if (!cache) {
+    return undefined;
+  }
+  try {
+    return decodePublishFlag(await cache.get(key));
+  } catch {
+    return undefined;
+  }
+}
+
+export async function readCachedGitHubAppCanPublish(installationId: string) {
+  const fresh = await readPublishFlag(publishAccessCacheKey(installationId));
+  if (fresh !== undefined) {
+    return fresh;
+  }
+  return (
+    (await readPublishFlag(publishAccessCacheKey(installationId, true))) ?? null
+  );
+}
+
+export async function getCachedGitHubAppCanPublish(installationId: string) {
+  const fresh = await readPublishFlag(publishAccessCacheKey(installationId));
+  if (fresh !== undefined) {
+    return fresh;
+  }
+
+  const access = await getGitHubAppInstallationPublishAccess(installationId);
+  if (!access) {
+    return (
+      (await readPublishFlag(publishAccessCacheKey(installationId, true))) ??
+      null
+    );
+  }
+
+  const canPublish = githubAppInstallationCanPublishContent(access) ?? false;
+  const cache = redis;
+  if (cache) {
+    try {
+      await cache.set(publishAccessCacheKey(installationId), canPublish, {
+        ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
+      });
+      await cache.set(publishAccessCacheKey(installationId, true), canPublish, {
+        ex: GITHUB_APP_REPOSITORIES_STALE_CACHE_TTL_SECONDS,
+      });
+    } catch {
+      // The page can render without this flag.
+    }
+  }
+  return canPublish;
 }
 
 async function getInstallationOrgMembership(params: {
@@ -759,95 +841,176 @@ export async function listGitHubAppInstallationsByOrganization(
   });
 }
 
-const listRepositoriesForInstallation = Effect.fn(
-  "GitHub.listInstallationRepositories"
-)(function* (installation: GitHubInstallationReference) {
-  const cacheKey = `github_app_repositories:${installation.organizationId}:${installation.installationId}`;
-  if (redis) {
+function repositoryCacheKey(
+  installation: GitHubInstallationReference,
+  stale = false
+) {
+  const key = `github_app_repositories:${installation.organizationId}:${installation.installationId}`;
+  return stale ? `${key}:stale` : key;
+}
+
+const readCachedRepositories = (key: string) =>
+  Effect.gen(function* () {
     const cache = redis;
-    const cached = yield* Effect.tryPromise({
-      try: () => cache.get(cacheKey),
-      catch: (cause) =>
-        new GitHubRepositoryCacheError({
-          operation: "readRepositories",
-          cause,
-        }),
+    if (!cache) {
+      return null;
+    }
+    const cached = yield* Effect.promise(async () => {
+      try {
+        return await cache.get(key);
+      } catch {
+        return null;
+      }
     });
-    const decodedCached = yield* decodeCachedGitHubAppRepositories(cached).pipe(
+    if (!cached) {
+      return null;
+    }
+    return yield* decodeCachedGitHubAppRepositories(cached).pipe(
       Effect.match({
         onFailure: () => null,
         onSuccess: (repositories) => repositories,
       })
     );
-
-    if (decodedCached) {
-      return decodedCached;
-    }
-  }
-
-  const token = yield* createGitHubAppInstallationTokenEffect(
-    installation.installationId
-  );
-  const octokit = createOctokit(token);
-  const repositories: GitHubAppRepositoryResponse[] = [];
-  let page = 1;
-
-  while (true) {
-    const currentPage = page;
-    const { data } = yield* Effect.tryPromise({
-      try: () =>
-        octokit.request("GET /installation/repositories", {
-          per_page: 100,
-          page: currentPage,
-          headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-          },
-        }),
-      catch: (cause) =>
-        new GitHubRequestError({
-          operation: "listRepositories",
-          status: getErrorStatus(cause) ?? undefined,
-          cause,
-        }),
-    });
-    const response = yield* decodeGitHubAppRepositoriesResponse(data).pipe(
-      Effect.mapError(
-        (cause) =>
-          new GitHubResponseError({ operation: "listRepositories", cause })
-      )
-    );
-    repositories.push(...response.repositories);
-
-    if (response.repositories.length < 100) {
-      break;
-    }
-    page += 1;
-  }
-
-  const mappedRepositories: GitHubAppRepository[] = repositories.map(
-    (repo) => ({
-      id: String(repo.id),
-      owner: repo.owner.login,
-      name: repo.name,
-      fullName: repo.full_name,
-      private: repo.private,
-      description: repo.description,
-      defaultBranch: repo.default_branch,
-    })
-  );
-
-  yield* Effect.tryPromise({
-    try: async () => {
-      await redis?.set(cacheKey, mappedRepositories, {
-        ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
-      });
-    },
-    catch: (cause) =>
-      new GitHubRepositoryCacheError({ operation: "writeRepositories", cause }),
   });
 
-  return mappedRepositories;
+function fetchInstallationRepositories(
+  installation: GitHubInstallationReference
+) {
+  return Effect.gen(function* () {
+    const token = yield* createGitHubAppInstallationTokenEffect(
+      installation.installationId,
+      GITHUB_INTERACTIVE_READ_TIMEOUT_MS
+    );
+    const octokit = createOctokit(token, {
+      requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+    });
+    const repositories: GitHubAppRepositoryResponse[] = [];
+    let page = 1;
+
+    while (true) {
+      const currentPage = page;
+      const { data } = yield* Effect.tryPromise({
+        try: () =>
+          octokit.request("GET /installation/repositories", {
+            per_page: 100,
+            page: currentPage,
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+          }),
+        catch: (cause) =>
+          new GitHubRequestError({
+            operation: "listRepositories",
+            status: getErrorStatus(cause) ?? undefined,
+            cause,
+          }),
+      });
+      const response = yield* decodeGitHubAppRepositoriesResponse(data).pipe(
+        Effect.mapError(
+          (cause) =>
+            new GitHubResponseError({ operation: "listRepositories", cause })
+        )
+      );
+      repositories.push(...response.repositories);
+
+      if (response.repositories.length < 100) {
+        break;
+      }
+      page += 1;
+    }
+
+    const mappedRepositories: GitHubAppRepository[] = repositories.map(
+      (repo) => ({
+        id: String(repo.id),
+        owner: repo.owner.login,
+        name: repo.name,
+        fullName: repo.full_name,
+        private: repo.private,
+        description: repo.description,
+        defaultBranch: repo.default_branch,
+      })
+    );
+    return mappedRepositories;
+  });
+}
+
+const listRepositoriesForInstallation = Effect.fn(
+  "GitHub.listInstallationRepositories"
+)(function* (installation: GitHubInstallationReference) {
+  const fresh = yield* readCachedRepositories(repositoryCacheKey(installation));
+  if (fresh) {
+    return fresh;
+  }
+
+  const loaded = yield* Effect.result(
+    fetchInstallationRepositories(installation)
+  );
+  if (Result.isSuccess(loaded)) {
+    const cache = redis;
+    const repositories = loaded.success;
+    if (cache) {
+      yield* Effect.promise(async () => {
+        try {
+          await cache.set(repositoryCacheKey(installation), repositories, {
+            ex: GITHUB_APP_REPOSITORIES_CACHE_TTL_SECONDS,
+          });
+          await cache.set(
+            repositoryCacheKey(installation, true),
+            repositories,
+            { ex: GITHUB_APP_REPOSITORIES_STALE_CACHE_TTL_SECONDS }
+          );
+        } catch {
+          // Serving the list matters more than storing it.
+        }
+      });
+    }
+    return repositories;
+  }
+
+  const stale = yield* readCachedRepositories(
+    repositoryCacheKey(installation, true)
+  );
+  if (stale && repositoryOutageCanUseStaleCache(loaded.failure)) {
+    return stale;
+  }
+  return yield* Effect.fail(loaded.failure);
 });
+
+function repositoryOutageCanUseStaleCache(error: {
+  readonly _tag: string;
+  readonly status?: number;
+}) {
+  if (error._tag !== "GitHubRequestError") {
+    return false;
+  }
+  if (
+    error.status === undefined ||
+    error.status === 408 ||
+    error.status === 429
+  ) {
+    return true;
+  }
+  return error.status >= 500;
+}
+
+export async function githubAppRepositoryCacheIsWarm(
+  installations: GitHubInstallationReference[]
+) {
+  const cache = redis;
+  if (!cache || installations.length === 0) {
+    return false;
+  }
+  try {
+    const values = await Promise.all(
+      installations.map((installation) =>
+        cache.get(repositoryCacheKey(installation))
+      )
+    );
+    return values.every((value) => value != null);
+  } catch {
+    return false;
+  }
+}
 
 export const listGitHubAppRepositoriesEffect = Effect.fn(
   "GitHub.listRepositories"
@@ -910,6 +1073,52 @@ export async function getSelectedGitHubAppRepositoryIds(
     .filter((id): id is string => Boolean(id));
 }
 
+export async function listStoredGitHubAppRepositories(
+  organizationId: string,
+  githubAppInstallationIds: string[]
+): Promise<GitHubAppRepository[]> {
+  if (githubAppInstallationIds.length === 0) {
+    return [];
+  }
+
+  const selected = await db.query.githubIntegrations.findMany({
+    where: and(
+      eq(githubIntegrations.organizationId, organizationId),
+      inArray(
+        githubIntegrations.githubAppInstallationId,
+        githubAppInstallationIds
+      ),
+      eq(githubIntegrations.enabled, true)
+    ),
+    columns: {
+      githubRepositoryId: true,
+      owner: true,
+      repo: true,
+      defaultBranch: true,
+      githubRepositoryPrivate: true,
+    },
+  });
+
+  return selected.flatMap((repository) => {
+    if (
+      !(repository.githubRepositoryId && repository.owner && repository.repo)
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: repository.githubRepositoryId,
+        owner: repository.owner,
+        name: repository.repo,
+        fullName: `${repository.owner}/${repository.repo}`,
+        private: repository.githubRepositoryPrivate ?? false,
+        description: null,
+        defaultBranch: repository.defaultBranch ?? "main",
+      },
+    ];
+  });
+}
+
 export function setSelectedGitHubAppRepositoriesEffect(
   params: SelectGitHubRepositoriesParams
 ) {
@@ -925,9 +1134,8 @@ export function setSelectedGitHubAppRepositoriesEffect(
     invalidateRepositories: (installation) =>
       Effect.tryPromise({
         try: async () => {
-          await redis?.del(
-            `github_app_repositories:${installation.organizationId}:${installation.installationId}`
-          );
+          await redis?.del(repositoryCacheKey(installation));
+          await redis?.del(repositoryCacheKey(installation, true));
         },
         catch: (cause) =>
           new GitHubRepositoryCacheError({
@@ -976,11 +1184,12 @@ export async function deleteGitHubAppInstallationForOrganization(
 
   await Promise.all(
     targets.map((installation) =>
-      Promise.resolve(
-        redis?.del(
-          `github_app_repositories:${organizationId}:${installation.installationId}`
-        )
-      )
+      Promise.all([
+        redis?.del(repositoryCacheKey(installation)),
+        redis?.del(repositoryCacheKey(installation, true)),
+        redis?.del(publishAccessCacheKey(installation.installationId)),
+        redis?.del(publishAccessCacheKey(installation.installationId, true)),
+      ])
     )
   );
 }

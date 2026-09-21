@@ -151,6 +151,16 @@ export function ContentDetailMainDocument({
   const { activeOrganization } = useOrganizationsContext();
   const content = data.content;
 
+  if (contentDocument.isGeoArticleLoading) {
+    return (
+      <div className="space-y-6" role="status">
+        <span className="sr-only">Loading article</span>
+        <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   if (isGeoWriterPlanMode) {
     return (
       <GeoWriterPlanDocument contentId={contentId} document={contentDocument} />

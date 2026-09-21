@@ -476,6 +476,8 @@ export type GitHubPublishRecovery = (
 export interface UseGitHubRepositorySelectionOptions {
   organizationId: string;
   enabled?: boolean;
+  /** Live GitHub catalog. The settings page enables this only while the picker is open. */
+  loadCatalog?: boolean;
   refetchOnMount?: boolean;
   initialAccountId?: string | null;
   onSaved: () => void;

@@ -4,11 +4,7 @@ import {
   repositoryContentPathTemplateSchema,
   repositoryImagePathTemplateSchema,
 } from "@notra/schemas/dashboard/integrations";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@notra/ui/components/ui/field";
+import { Field, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
 import { type FormEvent, useId } from "react";
 import { toast } from "sonner";
@@ -68,10 +64,6 @@ export function GitHubPublishingPathFields({
           name="contentPath"
           placeholder={`${directory ? `${directory}/` : ""}:slug.md`}
         />
-        <FieldDescription>
-          Optional repository-relative path. Use <code>:slug</code> as a
-          placeholder; both .md and .mdx are supported.
-        </FieldDescription>
       </Field>
 
       <Field>
@@ -83,11 +75,6 @@ export function GitHubPublishingPathFields({
           name="imagePath"
           placeholder="public/blog/:slug/image"
         />
-        <FieldDescription>
-          Optional, without file extension. Notra CDN images are copied into the
-          pull request and their Markdown URLs are rewritten. Additional images
-          receive a numbered suffix; <code>:index</code> is also supported.
-        </FieldDescription>
       </Field>
 
       <Button

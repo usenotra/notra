@@ -18,7 +18,6 @@ export const agentProxyFollowUpSchema = z
         })
       )
       .optional(),
-    continuationToken: z.string().optional(),
   })
   .refine(
     (body) => Boolean(body.message || body.inputResponses?.length),

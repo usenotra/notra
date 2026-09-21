@@ -39,15 +39,9 @@ function RepositoryList({
     return (
       <div className="flex flex-col items-center px-4 py-10 text-center sm:py-14">
         <GitHubRepositoryPreview />
-        <div className="mt-2 max-w-sm space-y-2">
-          <h3 className="text-lg font-semibold tracking-tight">
-            Connect your first repository
-          </h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Add a repository to turn your updates into changelogs and blog
-            posts, delivered as draft pull requests.
-          </p>
-        </div>
+        <h3 className="mt-2 text-lg font-semibold tracking-tight">
+          Connect your first repository
+        </h3>
         <Button
           className="mt-5 gap-1.5"
           onClick={
@@ -108,10 +102,6 @@ export function GitHubRepositoriesSection(
             {githubIntegrations.length}
           </span>
         </h2>
-        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          Choose what each repository publishes and where draft pull requests
-          are saved.
-        </p>
       </div>
       <div className="min-w-0 space-y-4">
         {repositoriesDb.isError && repositoriesDb.hasData ? (

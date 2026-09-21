@@ -168,15 +168,28 @@ export function GeneralSettingsPane() {
 
       <ConnectedAccountsSection organizationId={organization.id} />
 
-      <TitleCard heading="Danger Zone">
+      <TitleCard
+        className="border-destructive/50 bg-destructive/5"
+        heading="Delete Organization"
+      >
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-medium">Delete Organization</p>
+          <p className="text-muted-foreground text-sm">
+            Permanently delete this organization and all its data
+          </p>
+          {!isLoadingOwnedOrganizations && !ownedOrganization && (
+            <p className="text-muted-foreground text-xs">
+              Only organization owners can delete this organization.
+            </p>
+          )}
+          {!isLoadingOwnedOrganizations &&
+            ownedOrganization &&
+            organizations.length <= 1 && (
               <p className="text-muted-foreground text-xs">
-                Permanently delete this organization and all its data
+                You need at least one organization. Create another before
+                deleting this one.
               </p>
-            </div>
+            )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             {canDeleteOrganization ? (
               <OrganizationMembershipActionDialog
                 action="delete"
@@ -187,7 +200,6 @@ export function GeneralSettingsPane() {
                   <Button
                     className="w-full sm:w-auto"
                     disabled={isRemovingOrganization}
-                    size="sm"
                     variant="destructive"
                   >
                     {isRemovingOrganization ? (
@@ -205,26 +217,12 @@ export function GeneralSettingsPane() {
               <Button
                 className="w-full sm:w-auto"
                 disabled
-                size="sm"
                 variant="destructive"
               >
                 Delete Organization
               </Button>
             )}
           </div>
-          {!isLoadingOwnedOrganizations && !ownedOrganization && (
-            <p className="text-muted-foreground text-xs">
-              Only organization owners can delete this organization.
-            </p>
-          )}
-          {!isLoadingOwnedOrganizations &&
-            ownedOrganization &&
-            organizations.length <= 1 && (
-              <p className="text-muted-foreground text-xs">
-                You need at least one organization. Create another before
-                deleting this one.
-              </p>
-            )}
         </div>
       </TitleCard>
     </SettingsPane>

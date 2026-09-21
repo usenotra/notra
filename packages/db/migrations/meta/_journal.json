@@ -680,6 +680,13 @@
       "when": 1789934339781,
       "tag": "0096_condemned_maelstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1790011750687,
+      "tag": "0097_agent_session_id_protocol",
+      "breakpoints": true
     }
   ]
 }

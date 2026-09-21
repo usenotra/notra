@@ -64,10 +64,52 @@ const AppearanceSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const AttachmentsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/attachments-pane").then((mod) => ({
+      default: mod.AttachmentsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const BillingSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/billing-pane").then((mod) => ({
+      default: mod.BillingSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const CreditsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/credits-pane").then((mod) => ({
+      default: mod.CreditsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const DevSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/dev-pane").then((mod) => ({
+      default: mod.DevSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const GeneralSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/general-pane").then((mod) => ({
       default: mod.GeneralSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const GeoSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/geo-pane").then((mod) => ({
+      default: mod.GeoSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const LogsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/logs-pane").then((mod) => ({
+      default: mod.LogsSettingsPane,
     })),
   { loading: SettingsPaneFallback }
 );
@@ -85,27 +127,6 @@ const NotificationsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
-const AttachmentsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/attachments-pane").then((mod) => ({
-      default: mod.AttachmentsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const BillingSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/billing-pane").then((mod) => ({
-      default: mod.BillingSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const UsageSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/usage-pane").then((mod) => ({
-      default: mod.UsageSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
 const UsageAlertsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/usage-alerts-pane").then((mod) => ({
@@ -113,38 +134,10 @@ const UsageAlertsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
-const CreditsSettingsPane = dynamic(
+const UsageSettingsPane = dynamic(
   () =>
-    import("@/components/settings/panes/credits-pane").then((mod) => ({
-      default: mod.CreditsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const IntegrationsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/integrations-pane").then((mod) => ({
-      default: mod.IntegrationsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const LogsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/logs-pane").then((mod) => ({
-      default: mod.LogsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const GeoSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/geo-pane").then((mod) => ({
-      default: mod.GeoSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const DevSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/dev-pane").then((mod) => ({
-      default: mod.DevSettingsPane,
+    import("@/components/settings/panes/usage-pane").then((mod) => ({
+      default: mod.UsageSettingsPane,
     })),
   { loading: SettingsPaneFallback }
 );
@@ -157,7 +150,6 @@ const STANDARD_SETTINGS_PANES = {
   credits: CreditsSettingsPane,
   dev: DevSettingsPane,
   general: GeneralSettingsPane,
-  integrations: IntegrationsSettingsPane,
   logs: LogsSettingsPane,
   members: MembersSettingsPane,
   notifications: NotificationsSettingsPane,

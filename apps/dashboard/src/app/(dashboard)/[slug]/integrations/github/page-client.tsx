@@ -37,13 +37,7 @@ export default function PageClient({
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-10 px-4 lg:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">GitHub</h1>
-            <p className="text-muted-foreground">
-              Manage repository access and where Notra publishes draft pull
-              requests.
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight">GitHub</h1>
           {githubIntegrations.length > 0 ? (
             <Button
               className="gap-1.5"
@@ -69,13 +63,16 @@ export default function PageClient({
       <SelectRepositoriesDialog
         accounts={settings.accounts}
         initialSelected={settings.selectedRepositoryIds}
-        isLoading={githubAppQuery.isPending || githubAppQuery.isFetching}
+        isLoading={
+          !settings.catalogQuery.data &&
+          (settings.catalogQuery.isPending || settings.catalogQuery.isFetching)
+        }
         error={
-          githubAppQuery.isError
+          settings.catalogQuery.isError && !settings.catalogQuery.data
             ? "Unable to load repositories from GitHub."
             : undefined
         }
-        onRetry={() => githubAppQuery.refetch()}
+        onRetry={() => settings.catalogQuery.refetch()}
         isSaving={settings.saveRepositoriesMutation.isPending}
         onAddAccount={settings.startInstall}
         onOpenChange={settings.setReposOpen}
