@@ -49,6 +49,19 @@ describe("buildGitHubMentionReply", () => {
     });
     expect(reply).toContain("<sub>Draft PR #11 · ");
   });
+
+  test("keeps backticks in filenames inside one code span", () => {
+    const reply = buildGitHubMentionReply({
+      text: "Updated the copy.",
+      owner: "acme",
+      repo: "app",
+      commitSha: "345543c0aa11bb22",
+      files: [{ ...file, path: "docs/a`b.md" }],
+      followUpPullRequestUrl: null,
+    });
+
+    expect(reply).toContain("``docs/a`b.md``");
+  });
 });
 
 describe("buildGitHubMentionDiffSection", () => {

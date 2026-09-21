@@ -76,6 +76,7 @@ export const updatePublishedContentInputSchema = z.object({
   postId: z.string().describe("The ID of the published Notra post to update"),
   markdown: z
     .string()
+    .min(1)
     .describe("Updated markdown for the published GitHub file"),
   title: z
     .string()

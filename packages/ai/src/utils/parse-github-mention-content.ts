@@ -59,6 +59,16 @@ function isExecutableUrl(value: unknown) {
   );
 }
 
+function isExecutableUrlAttribute(name: string, value: unknown) {
+  if (
+    typeof value === "string" &&
+    (name === "srcset" || name === "imagesrcset")
+  ) {
+    return value.split(",").some(isExecutableUrl);
+  }
+  return isExecutableUrl(value);
+}
+
 function inspectAttributes(
   attributes: readonly GitHubMentionAstNode[],
   ownerSource: string,
@@ -77,7 +87,8 @@ function inspectAttributes(
         : undefined;
     if (
       GITHUB_MENTION_URL_ATTRIBUTES.has(name) &&
-      (isExecutableUrl(attribute.value) || isExecutableUrl(expressionValue))
+      (isExecutableUrlAttribute(name, attribute.value) ||
+        isExecutableUrlAttribute(name, expressionValue))
     ) {
       constructs.push({ reason: REASONS.javascriptUrl, source: ownerSource });
     }
@@ -127,7 +138,7 @@ function inspectHtml(
         }
         if (
           GITHUB_MENTION_URL_ATTRIBUTES.has(normalized) &&
-          isExecutableUrl(propertyValue)
+          isExecutableUrlAttribute(normalized, propertyValue)
         ) {
           constructs.push({
             reason: REASONS.javascriptUrl,

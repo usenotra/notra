@@ -44,6 +44,9 @@ describe("commentMentionsNotra", () => {
       "@nota fix this",
       "@notra/content fix",
       "mail jan@notra.dev",
+      "mail café@notra.dev",
+      "mail cafe\u0301@notra.dev",
+      "mail 用户@notra.dev",
       "see `@notra` in docs",
       "```\n@notra\n```",
       "> @notra shorten this\n\nagreed",
@@ -68,12 +71,18 @@ describe("wantsSeparatePullRequest", () => {
       "@notra shorten the intro",
       "don't commit on this PR",
       "do not open a new PR",
+      "do not ever open a new PR",
+      "don't, please, create a separate pull request",
+      "never actually use a separate branch",
       "> please use a separate pull request",
       "`open a new PR` is an example",
       "```text\nopen a new PR\n```",
     ]) {
       expect(wantsSeparatePullRequest(body)).toBe(false);
     }
+    expect(
+      wantsSeparatePullRequest("Don't commit here; open a new PR instead.")
+    ).toBe(true);
   });
 });
 

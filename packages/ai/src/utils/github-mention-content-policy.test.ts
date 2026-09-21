@@ -167,6 +167,19 @@ describe("findNewActiveContent", () => {
     ]);
   });
 
+  test("responsive image URL attributes cannot add executable schemes", () => {
+    expect(
+      reasons(
+        "docs/guide.md",
+        "# Guide",
+        '# Guide\n<img srcset="https://example.com/a.png 1x, javascript:alert(1) 2x">\n<link imagesrcset="data:text/html,x 2x">'
+      )
+    ).toEqual([
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+    ]);
+  });
+
   test("reference definitions cannot hide javascript URLs", () => {
     expect(
       reasons(

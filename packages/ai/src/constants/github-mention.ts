@@ -28,16 +28,6 @@ export const GITHUB_MENTION_SANDBOX_ALLOWED_DOMAINS = [
   "ai-gateway.vercel.sh",
 ] as const;
 
-export const GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION = `
-  mutation CreateCommitOnBranch($input: CreateCommitOnBranchInput!) {
-    createCommitOnBranch(input: $input) {
-      commit {
-        oid
-      }
-    }
-  }
-`;
-
 export const GITHUB_MENTION_LOG_COMMENT_MAX_LENGTH = 280;
 
 export const GITHUB_MENTION_LOG_EVENTS = {

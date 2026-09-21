@@ -8,6 +8,7 @@ import { findNewActiveContent } from "@notra/ai/utils/github-mention-content-pol
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import { getGitHubMentionPathBlockReason } from "@notra/ai/utils/github-mention-path-policy";
 import { getRepositoryFileContents } from "@notra/ai/utils/github-pr-commit";
+import { removeHtmlComments } from "@notra/ai/utils/remove-html-comments";
 
 function isNotFound(error: unknown) {
   return (
@@ -59,7 +60,7 @@ export async function reviewGitHubMentionChange(params: {
       });
       return findNewActiveContent({
         path: file.path,
-        previous,
+        previous: previous === null ? null : removeHtmlComments(previous),
         next: file.contents,
       });
     })

@@ -92,10 +92,6 @@ export const POST = withEvlog(async (request: NextRequest) => {
     scheduleRepair: startContentPublicationSyncRepair,
   });
 
-  if (result.log) {
-    await writeMentionWebhookLog(result.log, deliveryId);
-  }
-
   if (result.run && result.context) {
     const { run, context } = result;
     after(async () => {
@@ -119,6 +115,11 @@ export const POST = withEvlog(async (request: NextRequest) => {
         await flushLogs().catch(() => undefined);
       }
     });
+  }
+
+  if (result.log) {
+    const log = result.log;
+    after(() => writeMentionWebhookLog(log, deliveryId));
   }
 
   return Response.json(result.body, { status: result.httpStatus });

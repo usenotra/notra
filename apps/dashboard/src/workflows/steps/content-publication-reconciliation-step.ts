@@ -11,7 +11,13 @@ export async function reconcileContentPublicationStep(
   publishedAt: string
 ) {
   "use step";
-  await reconcileContentPublication({ publication, publishedAt });
+  const reconciled = await reconcileContentPublication({
+    publication,
+    publishedAt,
+  });
+  if (!reconciled) {
+    return;
+  }
   const token = await getTokenForIntegrationId(publication.repositoryId, {
     organizationId: publication.organizationId,
   });

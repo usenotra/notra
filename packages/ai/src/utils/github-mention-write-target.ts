@@ -38,6 +38,9 @@ export async function resolveGitHubMentionWriteTarget(params: {
     repo: context.repo,
     pullNumber: context.destination.pullRequestNumber,
   });
+  if (head.state !== "open" || head.merged) {
+    throw new Error("Files cannot be committed to a closed pull request.");
+  }
   const headIsFork =
     head.headRepoFullName?.toLowerCase() !==
     `${context.owner}/${context.repo}`.toLowerCase();
@@ -66,6 +69,11 @@ export async function resolveGitHubMentionWriteTarget(params: {
 
   const branch = state.writeBranch ?? followUpBranchName(context);
   if (state.writeBranch == null) {
+    if (head.headSha !== expectedHeadOid) {
+      throw new Error(
+        "The pull request changed; read it again before opening a follow-up pull request."
+      );
+    }
     await createGitHubBranch({
       octokit,
       owner: context.owner,

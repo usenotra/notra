@@ -76,7 +76,7 @@ export function getGitHubMentionPrompt(params: {
   }
 
   const publication =
-    params.publicationPath && params.markdown
+    params.publicationPath && params.markdown !== null
       ? [
           untrustedBlock("PUBLICATION METADATA", {
             path: params.publicationPath,
@@ -125,7 +125,11 @@ export function getGitHubMentionPrompt(params: {
   }
   const reviewLocation = params.review
     ? [
-        `The new comment was written in a review thread on ${params.review.path}${reviewLines}. Unless it says otherwise, it is about these lines (the hunk ends on them):`,
+        "The new comment was written in a review thread at the untrusted location below. Unless it says otherwise, it is about these lines (the hunk ends on them):",
+        untrustedBlock("REVIEW LOCATION", {
+          path: params.review.path,
+          lines: reviewLines || null,
+        }),
         sanitizeUntrustedText(params.review.diffHunk ?? "(no diff hunk)"),
       ].join("\n")
     : "";

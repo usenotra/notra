@@ -181,7 +181,7 @@ export async function postGitHubMentionProposal(params: {
       });
       return body;
     }
-    if (pullNumber && commitSha) {
+    if (pullNumber && commitSha && !context.comment.review) {
       await postGitHubSuggestionReview({
         octokit,
         owner: context.owner,

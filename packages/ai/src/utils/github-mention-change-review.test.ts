@@ -57,6 +57,27 @@ describe("reviewGitHubMentionChange", () => {
     ]);
   });
 
+  test("does not treat markup hidden by a nested HTML comment as pre-existing", async () => {
+    const review = await reviewGitHubMentionChange({
+      octokit: fakeOctokit({
+        "docs/guide.md":
+          "# Guide\n<!-<!--\n<script>alert(1)</script>\n-->- -->",
+      }),
+      context,
+      branch: "notra/changelog",
+      files: [
+        {
+          path: "docs/guide.md",
+          contents: "# Guide\n<script>alert(1)</script>",
+        },
+      ],
+    });
+
+    expect(review.blocked.map((finding) => finding.reason)).toEqual([
+      "adds a script tag",
+    ]);
+  });
+
   test("blocks non-content paths before reading the repository", async () => {
     const review = await reviewGitHubMentionChange({
       octokit: fakeOctokit({}, 500),

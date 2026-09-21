@@ -15,7 +15,7 @@ const QUOTED_LINE_PATTERN = /^[ \t]*>.*$/gm;
 // `path/@notra` do not count.
 // `@org/team` is a team mention, so a handle followed by a slash is skipped too.
 const MENTION_PATTERN =
-  /(?<![\w.@/-])@([a-z0-9][a-z0-9-]*)(?:\[bot\])?(?![\w/-])/gi;
+  /(?<![\p{L}\p{N}\p{M}_.@/-])@([a-z0-9][a-z0-9-]*)(?:\[bot\])?(?![\p{L}\p{N}\p{M}_/-])/giu;
 // People rarely type the exact App slug. @usenotra and any handle from the
 // Notra family count: @notra, @notra-ai, @notrabot, @notra-dev-acme, ...
 const NOTRA_FAMILY_HANDLE_PATTERN = /^notra(?:-[a-z0-9-]*|ai|bot|app)?$/;
@@ -88,11 +88,9 @@ export function wantsSeparatePullRequest(body: string) {
   const text = stripNonMentionText(body);
   return GITHUB_MENTION_SEPARATE_PR_PATTERNS.some((pattern) =>
     [...text.matchAll(pattern)].some((match) => {
-      const prefix = text.slice(
-        Math.max(0, (match.index ?? 0) - 20),
-        match.index
-      );
-      return !/\b(?:do not|don't|never)\s*$/i.test(prefix);
+      const prefix = text.slice(0, match.index);
+      const clause = prefix.slice(Math.max(0, prefix.search(/[^.!?;\n]*$/)));
+      return !/\b(?:do\s+not|don't|never)\b/i.test(clause);
     })
   );
 }

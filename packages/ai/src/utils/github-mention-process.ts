@@ -320,6 +320,44 @@ export async function processGitHubMention(
         pullRequestUrl: agentResult.pullRequestUrl,
       };
     }
+    if (
+      context.destination.mode === "new_pull_request" &&
+      agentResult.committed &&
+      agentResult.pullRequestUrl === null
+    ) {
+      const reply =
+        "I committed the change to a follow-up branch, but GitHub did not open the requested draft pull request. Please open the draft pull request from that branch manually.";
+      await postGitHubMentionReply({
+        octokit,
+        context,
+        body: reply,
+        commitSha: null,
+        changedFiles: [],
+      });
+      await finishReaction("confused");
+      logGitHubMentionEvent(
+        GITHUB_MENTION_LOG_EVENTS.completed,
+        {
+          organizationId: context.organizationId,
+          integrationId: context.integrationId,
+          deliveryId: context.deliveryId,
+          repository: `${context.owner}/${context.repo}`,
+          issueNumber: context.issueNumber,
+          mentionStatus: "failed",
+          reason: "follow_up_pull_request_failed",
+          commitSha: agentResult.commitSha,
+          durationMs: Date.now() - startedAt,
+        },
+        "error"
+      );
+      return {
+        status: "failed",
+        reason: "follow_up_pull_request_failed",
+        reply,
+        commitSha: agentResult.commitSha,
+        pullRequestUrl: null,
+      };
+    }
     const baseSha = context.pullRequest?.headSha ?? null;
     // The diff is decoration: a failed compare must not lose the reply.
     const changedFiles =
@@ -334,6 +372,7 @@ export async function processGitHubMention(
         : [];
     const openedFollowUp =
       context.destination.mode === "new_pull_request" &&
+      agentResult.pullRequestUrl !== null &&
       agentResult.pullRequestUrl !== context.pullRequest?.htmlUrl;
     const reply = clipGitHubComment(
       buildGitHubMentionReply({

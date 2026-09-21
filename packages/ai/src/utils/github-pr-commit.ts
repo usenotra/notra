@@ -1,8 +1,6 @@
 import { GITHUB_API_VERSION_HEADER } from "@notra/ai/constants/autonomy-poll";
-import {
-  GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
-  GITHUB_MENTION_FILE_CONTENT_MAX_BYTES,
-} from "@notra/ai/constants/github-mention";
+import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import { getGitHubAppBotLogin } from "@notra/ai/integrations/github";
 import type {
   CommitFilesToPullRequestParams,

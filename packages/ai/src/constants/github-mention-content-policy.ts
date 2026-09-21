@@ -26,9 +26,11 @@ export const GITHUB_MENTION_URL_ATTRIBUTES = new Set([
   "data",
   "formaction",
   "href",
+  "imagesrcset",
   "longdesc",
   "poster",
   "src",
+  "srcset",
   "xlinkhref",
 ]);
 

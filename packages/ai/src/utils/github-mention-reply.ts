@@ -43,6 +43,16 @@ function fenceFor(lines: readonly string[]) {
   return lines.some((line) => line.includes("```")) ? "````" : "```";
 }
 
+function inlineCode(value: string) {
+  const longestRun = Math.max(
+    0,
+    ...[...value.matchAll(/`+/g)].map((match) => match[0].length)
+  );
+  const fence = "`".repeat(longestRun + 1);
+  const padding = /^[` ]|[` ]$/.test(value) ? " " : "";
+  return `${fence}${padding}${value}${padding}${fence}`;
+}
+
 export function buildGitHubMentionDiffSection(
   files: readonly GitHubMentionChangedFile[]
 ) {
@@ -53,9 +63,11 @@ export function buildGitHubMentionDiffSection(
   let omitted = false;
 
   for (const file of shown) {
-    const label = files.length > 1 ? `\`${file.path}\`\n` : "";
+    const label = files.length > 1 ? `${inlineCode(file.path)}\n` : "";
     if (!file.patch) {
-      blocks.push(`${label || `\`${file.path}\`\n`}_No text diff available._`);
+      blocks.push(
+        `${label || `${inlineCode(file.path)}\n`}_No text diff available._`
+      );
       continue;
     }
     const all = changedLinesFromPatch(file.patch);
@@ -108,7 +120,7 @@ export function buildGitHubMentionReplyFooter(params: {
   }
   parts.push(`[\`${shortSha}\`](${commitUrl})`);
   if (params.files.length === 1 && params.files[0]) {
-    parts.push(`\`${params.files[0].path}\``);
+    parts.push(inlineCode(params.files[0].path));
   } else if (params.files.length > 1) {
     parts.push(`${params.files.length} files`);
   }
@@ -224,7 +236,7 @@ function proposalFooter(
   const [first] = proposals;
   const where =
     proposals.length === 1 && first
-      ? `\`${first.path}\``
+      ? inlineCode(first.path)
       : `${proposals.length} files`;
   return `<sub>Suggestion · ${where} · ${howToApply} · mention me again to keep iterating</sub>`;
 }
@@ -261,7 +273,7 @@ export function buildGitHubMentionProposalFallbackReply(params: {
   const blocks = params.proposals.flatMap((proposal) =>
     proposal.suggestions.map(
       (suggestion) =>
-        `${params.proposals.length > 1 ? `\`${proposal.path}\`\n` : ""}${formatGitHubMentionSuggestionDiff(suggestion)}`
+        `${params.proposals.length > 1 ? `${inlineCode(proposal.path)}\n` : ""}${formatGitHubMentionSuggestionDiff(suggestion)}`
     )
   );
   return [

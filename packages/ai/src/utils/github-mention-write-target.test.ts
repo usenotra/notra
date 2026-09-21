@@ -8,7 +8,13 @@ import type {
 
 import { resolveGitHubMentionWriteTarget } from "./github-mention-write-target";
 
-function fakeOctokit(head: { ref: string; repoFullName: string | null }) {
+function fakeOctokit(head: {
+  ref: string;
+  repoFullName: string | null;
+  sha?: string;
+  state?: "open" | "closed";
+  merged?: boolean;
+}) {
   return {
     request: async () => ({
       data: {
@@ -18,13 +24,13 @@ function fakeOctokit(head: { ref: string; repoFullName: string | null }) {
         html_url: "https://github.com/acme/app/pull/7",
         head: {
           ref: head.ref,
-          sha: "abc123",
+          sha: head.sha ?? "abc123",
           repo: head.repoFullName ? { full_name: head.repoFullName } : null,
         },
         base: { ref: "release", repo: { default_branch: "main" } },
         draft: false,
-        state: "open",
-        merged: false,
+        state: head.state ?? "open",
+        merged: head.merged ?? false,
       },
     }),
   } as unknown as GitHubMentionOctokit;
@@ -73,6 +79,41 @@ describe("resolveGitHubMentionWriteTarget", () => {
         state: emptyState(),
       })
     ).rejects.toThrow("Fork");
+  });
+
+  test("refuses to write from a closed or merged pull request", async () => {
+    for (const lifecycle of [
+      { state: "closed" as const, merged: false },
+      { state: "closed" as const, merged: true },
+    ]) {
+      await expect(
+        resolveGitHubMentionWriteTarget({
+          octokit: fakeOctokit({
+            ref: "docs",
+            repoFullName: "acme/app",
+            ...lifecycle,
+          }),
+          context: context("same_pull_request"),
+          state: emptyState(),
+        })
+      ).rejects.toThrow("closed pull request");
+    }
+  });
+
+  test("refuses to create a follow-up branch from a moved source head", async () => {
+    const initial = context("new_pull_request");
+    initial.destination.headSha = "read-before-manual-push";
+    await expect(
+      resolveGitHubMentionWriteTarget({
+        octokit: fakeOctokit({
+          ref: "docs",
+          repoFullName: "acme/app",
+          sha: "manual-push",
+        }),
+        context: initial,
+        state: emptyState(),
+      })
+    ).rejects.toThrow("changed");
   });
 
   test("keeps the revision read by the agent even when the remote head moves", async () => {
