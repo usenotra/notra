@@ -154,8 +154,7 @@ function buildGitHubContentFileChanges(
 
 const CONTENT_BRANCH_TITLE_WORD_LIMIT = 6;
 const CONTENT_BRANCH_SLUG_MAX_LENGTH = 60;
-const CONTENT_BRANCH_DISCRIMINATOR_LENGTH = 6;
-const LEGACY_CONTENT_BRANCH_HASH_LENGTH = 16;
+const CONTENT_BRANCH_HASH_LENGTH = 16;
 
 function contentBranchPrefix(contentType: GitHubPublishContentType) {
   return contentType === "changelog" ? "changelog" : "blog-post";
@@ -165,13 +164,13 @@ function contentBranchDiscriminator(contentId: string) {
   return createHash("sha256")
     .update(contentId)
     .digest("hex")
-    .slice(0, CONTENT_BRANCH_DISCRIMINATOR_LENGTH);
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
 }
 
 /**
- * `notra/changelog-dashboard-clarity-and-content-a1b2c3`.
- * The title slug is what you see in GitHub. The short suffix stays stable
- * when the title changes, so a later publish still finds this pull request.
+ * `notra/changelog-dashboard-clarity-and-a1b2c3d4e5f67890`.
+ * The title slug is what you see in GitHub. The hash stays stable when the
+ * title changes, so a later publish still finds this pull request.
  */
 function createContentBranchName(
   contentType: GitHubPublishContentType,
@@ -197,7 +196,7 @@ function createHashOnlyContentBranchName(
   const contentHash = createHash("sha256")
     .update(contentId)
     .digest("hex")
-    .slice(0, LEGACY_CONTENT_BRANCH_HASH_LENGTH);
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
   return `notra/${contentBranchPrefix(contentType)}-${contentHash}`;
 }
 
@@ -210,7 +209,7 @@ function createLegacyContentBranchName(
   const targetHash = createHash("sha256")
     .update(`${contentId}\0${path}`)
     .digest("hex")
-    .slice(0, LEGACY_CONTENT_BRANCH_HASH_LENGTH);
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
   return `notra/${contentBranchPrefix(contentType)}-${slug || "update"}-${targetHash}`;
 }
 

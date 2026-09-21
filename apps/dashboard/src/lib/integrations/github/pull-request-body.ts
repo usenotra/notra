@@ -148,7 +148,15 @@ function wrapManagedSection(managedContent: string) {
 
 function buildManagedContent(params: BuildContentPullRequestBodyParams) {
   const path = params.path.trim();
-  return path ? `\`${path}\`` : draftSummary(params.contentType);
+  if (!path) {
+    return draftSummary(params.contentType);
+  }
+
+  const escaped = path
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+  return `<code>${escaped}</code>`;
 }
 
 function clampManagedSection(wrapped: string, maxLength: number) {
