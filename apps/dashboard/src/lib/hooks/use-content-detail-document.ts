@@ -88,7 +88,6 @@ export function useContentDetailDocument({
   >(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
-  const [githubSyncError, setGithubSyncError] = useState<string | null>(null);
 
   const editorRef = useRef<EditorRefHandle | null>(null);
   const imageExportRef = useRef<HTMLDivElement | null>(null);
@@ -262,7 +261,6 @@ export function useContentDetailDocument({
     }
 
     setIsSaving(true);
-    setGithubSyncError(null);
     try {
       const { persistedTitle, persistedSlug } = await saveContentDetail({
         organizationId,
@@ -335,7 +333,6 @@ export function useContentDetailDocument({
             error instanceof Error && error.message
               ? error.message
               : "Couldn't update the linked pull request";
-          setGithubSyncError(message);
           toast.error(message, {
             position: CONTENT_SAVE_TOAST_POSITION,
           });
@@ -504,7 +501,6 @@ export function useContentDetailDocument({
     geoWriterDraft,
     geoWriterUpdate,
     handleDiscard,
-    githubSyncError,
     handleEditorChange,
     handleGeoArticleReady,
     handleImageExportTargetSelect,

@@ -100,34 +100,24 @@ export function ContentDetailToolbar({
         content.contentType === "blog_post") &&
         document.currentMarkdown.trim() !== "" &&
         (content.githubPublish ? (
-          <>
-            <Button
-              nativeButton={false}
-              render={
-                <a
-                  href={content.githubPublish.pullRequestUrl}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                />
-              }
-              size="sm"
-              variant="outline"
-            >
-              <Github className="size-4" />
-              <span className="max-w-52 truncate">
-                {content.githubPublish.owner}/{content.githubPublish.repo} #
-                {content.githubPublish.pullRequestNumber}
-              </span>
-            </Button>
-            {document.githubSyncError ? (
-              <span
-                className="text-destructive max-w-48 truncate text-xs"
-                title={document.githubSyncError}
-              >
-                {document.githubSyncError}
-              </span>
-            ) : null}
-          </>
+          <Button
+            nativeButton={false}
+            render={
+              <a
+                href={content.githubPublish.pullRequestUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              />
+            }
+            size="sm"
+            variant="outline"
+          >
+            <Github className="size-4" />
+            <span className="max-w-52 truncate">
+              {content.githubPublish.owner}/{content.githubPublish.repo} #
+              {content.githubPublish.pullRequestNumber}
+            </span>
+          </Button>
         ) : (
           <PublishContentToGitHubDialog
             contentId={contentId}
