@@ -180,10 +180,10 @@ export interface GeoCheckCompetitorPromptRow {
 }
 
 export interface GeoCheckCompetitorPromptSummaryRow {
-  mentioned: number;
-  total: number;
-  bestPosition: number | null;
-  engines: number;
+  answers: number;
+  prompts: number;
+  engineIds: string[];
+  ownMentioned: number;
 }
 
 export interface GeoCheckLanguageShareRow {

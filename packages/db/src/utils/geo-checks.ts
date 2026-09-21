@@ -861,9 +861,9 @@ export async function queryGeoCheckCompetitorPromptSummary(
 ): Promise<GeoCheckCompetitorPromptSummaryRow> {
   const latest = db
     .selectDistinctOn([geoMentionChecks.promptId, geoMentionChecks.engine], {
+      promptId: geoMentionChecks.promptId,
       engine: geoMentionChecks.engine,
       mentioned: geoMentionChecks.mentioned,
-      position: geoMentionChecks.position,
     })
     .from(geoMentionChecks)
     .where(
@@ -883,21 +883,21 @@ export async function queryGeoCheckCompetitorPromptSummary(
 
   const [row] = await db
     .select({
-      mentioned: sql<number>`count(*) filter (where ${latest.mentioned})::int`,
-      total: sql<number>`count(*)::int`,
-      bestPosition: sql<
-        number | null
-      >`min(${latest.position}) filter (where ${latest.mentioned})::int`,
-      engines: sql<number>`count(distinct ${latest.engine})::int`,
+      answers: sql<number>`count(*)::int`,
+      prompts: sql<number>`count(distinct ${latest.promptId})::int`,
+      engineIds: sql<
+        string[]
+      >`coalesce(array_agg(distinct ${latest.engine}), '{}')`,
+      ownMentioned: sql<number>`count(*) filter (where ${latest.mentioned})::int`,
     })
     .from(latest)
     .$withCache(GEO_CHECK_AGGREGATE_CACHE);
 
   return {
-    mentioned: toNumber(row?.mentioned),
-    total: toNumber(row?.total),
-    bestPosition: row?.bestPosition ?? null,
-    engines: toNumber(row?.engines),
+    answers: toNumber(row?.answers),
+    prompts: toNumber(row?.prompts),
+    engineIds: row?.engineIds ?? [],
+    ownMentioned: toNumber(row?.ownMentioned),
   };
 }
 

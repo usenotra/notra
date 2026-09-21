@@ -111,6 +111,7 @@ import {
   normalizeConversionPaths,
   sumConversionVisits,
 } from "../utils/geo-conversion-paths";
+import { engineFamilyOf } from "../utils/geo-engine-family";
 import { scopeGeoScanEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
 import {
@@ -1074,7 +1075,12 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
         configured: true,
         points: [],
         prompts: [],
-        summary,
+        summary: {
+          answers: summary.answers,
+          prompts: summary.prompts,
+          engines: new Set(summary.engineIds.map(engineFamilyOf)).size,
+          ownMentioned: summary.ownMentioned,
+        },
       };
       return response;
     }
