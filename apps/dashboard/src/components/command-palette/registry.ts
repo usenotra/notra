@@ -268,22 +268,6 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     path: (slug) => `/${slug}/integrations/github`,
   },
   {
-    id: "settings-integrations",
-    label: "Integrations",
-    keywords: [
-      "github",
-      "linear",
-      "slack",
-      "granola",
-      "connect",
-      "repositories",
-    ],
-    icon: PlugIcon,
-    section: "Settings",
-    path: (slug) => `/${slug}?settings=integrations`,
-    settingsSection: "integrations",
-  },
-  {
     id: "logs",
     label: "Logs",
     keywords: ["audit", "activity", "events", "history"],

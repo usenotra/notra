@@ -207,10 +207,10 @@ export const GEO_COLLISION_STOPWORDS = new Set([
 ]);
 export const GEO_SEARCH_GAP_ACTION_LABELS: Record<GeoSearchGapAction, string> =
   {
-    create: "Create",
-    update: "Update",
-    merge: "Merge",
-    ignore: "Ignore",
+    create: "New page",
+    update: "Update page",
+    merge: "Consolidate",
+    ignore: "Low priority",
   };
 export const GEO_SEARCH_GAP_ACTION_ORDER: Record<GeoSearchGapAction, number> = {
   create: 0,
@@ -225,10 +225,10 @@ export const GEO_SEARCH_GAP_ACTION_CLASS: Record<GeoSearchGapAction, string> = {
   ignore: "border-border bg-muted/70 text-muted-foreground",
 };
 export const GEO_SEARCH_GAP_WRITE_LABELS = {
-  create: "Write",
+  create: "Draft page",
   update: "Update page",
   merge: "Merge into page",
-  ignore: "Write",
+  ignore: "Draft anyway",
   dismiss: "Dismiss",
 } as const;
 export const GEO_SEARCH_GAP_DISMISSED_TOAST = "Search gap dismissed";

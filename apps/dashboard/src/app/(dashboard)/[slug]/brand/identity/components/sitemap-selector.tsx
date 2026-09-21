@@ -1,64 +1,50 @@
 "use client";
 
-import { GlobalIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
 
-import { cn } from "@/lib/utils";
 import type { SitemapSelectorProps } from "@/types/hooks/brand-sitemaps";
-
-import { SITEMAP_STATUS_META } from "../constants/sitemap-ui";
 
 export function SitemapSelector({
   sitemaps,
   selectedSitemapId,
   onSelect,
 }: SitemapSelectorProps) {
-  if (sitemaps.length <= 1) {
-    return null;
-  }
+  const value =
+    selectedSitemapId &&
+    sitemaps.some((sitemap) => sitemap.id === selectedSitemapId)
+      ? selectedSitemapId
+      : sitemaps.at(0)?.id;
+  const items = sitemaps.map((sitemap) => ({
+    label: sitemap.label,
+    value: sitemap.id,
+  }));
 
   return (
-    <fieldset className="flex flex-wrap gap-2">
-      <legend className="sr-only">Sitemap</legend>
-      {sitemaps.map((sitemap) => {
-        const isSelected = sitemap.id === selectedSitemapId;
-        const statusMeta = SITEMAP_STATUS_META[sitemap.status];
-
-        return (
-          <label
-            className={cn(
-              "flex min-w-[12rem] items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition-colors",
-              isSelected
-                ? "border-primary bg-muted/40"
-                : "border-border hover:bg-muted/40"
-            )}
-            key={sitemap.id}
-          >
-            <input
-              checked={isSelected}
-              className="sr-only"
-              name="brand-sitemap"
-              onChange={() => onSelect(sitemap.id)}
-              type="radio"
-            />
-            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md">
-              <HugeiconsIcon className="size-4" icon={GlobalIcon} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{sitemap.label}</p>
-              <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                <span
-                  className={cn(
-                    "size-1.5 shrink-0 rounded-full",
-                    statusMeta.dotClassName
-                  )}
-                />
-                {sitemap.indexedPages} indexed
-              </p>
-            </div>
-          </label>
-        );
-      })}
-    </fieldset>
+    <Select
+      items={items}
+      onValueChange={(nextValue) => {
+        if (nextValue) {
+          onSelect(nextValue);
+        }
+      }}
+      value={value}
+    >
+      <SelectTrigger aria-label="Select sitemap" className="w-full sm:w-72">
+        <SelectValue placeholder="Select sitemap" />
+      </SelectTrigger>
+      <SelectContent>
+        {sitemaps.map((sitemap) => (
+          <SelectItem key={sitemap.id} value={sitemap.id}>
+            {sitemap.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

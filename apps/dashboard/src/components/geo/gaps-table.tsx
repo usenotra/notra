@@ -62,6 +62,7 @@ import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GapDetailSheet } from "@/components/geo/gap-detail-sheet";
+import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -73,7 +74,6 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type {
   GeoGapBrandMentionsCellProps,
-  GeoGapDetailSelection,
   GeoGapContentCellProps,
   GeoGapMeterProps,
   GeoGapNumberCellProps,
@@ -524,33 +524,15 @@ function VisibleOnCell({
 }
 
 function QueriesCell({ prompt, queries }: GeoGapQueriesCellProps) {
-  if (queries.length === 0) {
-    return <ContentCell subtitle={null} title={prompt} />;
-  }
+  const count =
+    queries.length === 1
+      ? "1 search query"
+      : `${queries.length} search queries`;
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={<span className="flex min-w-0 cursor-default flex-col" />}
-      >
-        <ContentCell
-          subtitle={`${queries.length} ${queries.length === 1 ? "search query" : "search queries"}`}
-          title={prompt}
-        />
-      </TooltipTrigger>
-      <TooltipContent className="max-w-sm">
-        <span className="flex flex-col gap-1">
-          {queries.map((keyword) => (
-            <span className="flex justify-between gap-3" key={keyword.query}>
-              <span className="truncate">{keyword.query}</span>
-              <span className="text-muted-foreground shrink-0 tabular-nums">
-                {keyword.impressions.toLocaleString()} impr · #
-                {keyword.position.toFixed(1)}
-              </span>
-            </span>
-          ))}
-        </span>
-      </TooltipContent>
-    </Tooltip>
+    <ContentCell
+      subtitle={queries.length === 0 ? null : count}
+      title={prompt}
+    />
   );
 }
 
@@ -649,6 +631,7 @@ function GapsTabs({
 }
 
 function GapsFilters({
+  tab,
   query,
   onQueryChange,
   engine,
@@ -656,7 +639,8 @@ function GapsFilters({
   engineFamilies,
 }: GeoGapsFiltersProps) {
   const showEngineFilter =
-    engineFamilies.length > 0 || engine !== GEO_GAPS_ENGINE_FILTER_ALL;
+    tab === "prompt" &&
+    (engineFamilies.length > 0 || engine !== GEO_GAPS_ENGINE_FILTER_ALL);
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -752,6 +736,7 @@ export function GeoGapsTable({
   competitors,
   hasScanData,
   isScanning,
+  organizationId,
   organizationSlug,
   onRunScan,
   onWritePrompt,
@@ -764,15 +749,12 @@ export function GeoGapsTable({
   onOpenPost,
 }: GeoGapsTableProps) {
   const [tab, setTab] = useState<GeoGapsTab>("prompt");
-  const [detail, setDetail] = useState<GeoGapDetailSelection | null>(null);
-  const selectedSearch =
-    detail?.kind === "search"
-      ? (searchGaps.find((row) => row.id === detail.id) ?? null)
-      : null;
+  const [detailPromptId, setDetailPromptId] = useState<string | null>(null);
+  const [detailSearchId, setDetailSearchId] = useState<string | null>(null);
   const selectedPrompt =
-    detail?.kind === "prompt"
-      ? (promptGaps.find((row) => row.id === detail.id) ?? null)
-      : null;
+    promptGaps.find((row) => row.id === detailPromptId) ?? null;
+  const selectedSearch =
+    searchGaps.find((row) => row.id === detailSearchId) ?? null;
   const [query, setQuery] = useQueryState(
     "q",
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
@@ -807,7 +789,7 @@ export function GeoGapsTable({
     const action = gapWriteAction(row.brief);
     const closeSheet = () => {
       if (inSheet) {
-        setDetail(null);
+        setDetailPromptId(null);
       }
     };
     return (
@@ -923,6 +905,7 @@ export function GeoGapsTable({
     {
       key: "impressions",
       header: "Impressions",
+      hint: "Total Google Search impressions across the queries in this gap.",
       width: "7rem",
       cell: (row) => (
         <NumberCell
@@ -936,6 +919,7 @@ export function GeoGapsTable({
     {
       key: "recommendation",
       header: "Recommendation",
+      hint: "Suggested next step based on search demand and overlap with your existing content.",
       width: "9rem",
       cell: (row) => <RecommendationCell recommendation={row.recommendation} />,
       sortValue: (row) => searchGapActionOrder(row.recommendation.action),
@@ -943,7 +927,7 @@ export function GeoGapsTable({
     },
     {
       key: "write",
-      header: "",
+      header: "Action",
       align: "right",
       width: "12rem",
       minWidth: "12rem",
@@ -997,7 +981,7 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={promptColumns}
         data={filteredPromptGaps}
-        onRowClick={(row) => setDetail({ kind: "prompt", id: row.id })}
+        onRowClick={(row) => setDetailPromptId(row.id)}
         defaultSort={{ key: "opportunity", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
@@ -1007,33 +991,16 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={searchColumns}
         data={filteredSearchGaps}
-        onRowClick={(row) => setDetail({ kind: "search", id: row.id })}
+        onRowClick={(row) => setDetailSearchId(row.id)}
         defaultSort={{ key: "impressions", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
       />
     );
 
-  let sheetActions = null;
-  if (selectedPrompt) {
-    sheetActions = renderPromptActions(selectedPrompt, true);
-  } else if (selectedSearch) {
-    sheetActions = (
-      <SearchWriteCell
-        isDismissing={dismissingSearchId === selectedSearch.id}
-        onDismiss={() => onDismissSearch(selectedSearch)}
-        onOpenPost={(postId) => {
-          setDetail(null);
-          onOpenPost(postId);
-        }}
-        onWrite={(existingPageUrl) => {
-          setDetail(null);
-          onWriteSearch(selectedSearch, existingPageUrl);
-        }}
-        row={selectedSearch}
-      />
-    );
-  }
+  const sheetActions = selectedPrompt
+    ? renderPromptActions(selectedPrompt, true)
+    : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -1050,6 +1017,7 @@ export function GeoGapsTable({
           onEngineChange={setEngine}
           onQueryChange={setQuery}
           query={query}
+          tab={tab}
         />
       </div>
 
@@ -1066,16 +1034,40 @@ export function GeoGapsTable({
         )}
       </div>
       <GapDetailSheet
-        competitors={competitors}
-        maxOpportunity={maxOpportunity}
+        actions={sheetActions}
+        isScanning={isScanning}
         onOpenChange={(open) => {
           if (!open) {
-            setDetail(null);
+            setDetailPromptId(null);
           }
         }}
+        organizationId={organizationId}
         prompt={selectedPrompt}
-        search={selectedSearch}
-        actions={sheetActions}
+      />
+      <SearchGapDetailSheet
+        actions={
+          selectedSearch ? (
+            <SearchWriteCell
+              isDismissing={dismissingSearchId === selectedSearch.id}
+              onDismiss={() => onDismissSearch(selectedSearch)}
+              onOpenPost={(postId) => {
+                setDetailSearchId(null);
+                onOpenPost(postId);
+              }}
+              onWrite={(existingPageUrl) => {
+                setDetailSearchId(null);
+                onWriteSearch(selectedSearch, existingPageUrl);
+              }}
+              row={selectedSearch}
+            />
+          ) : null
+        }
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailSearchId(null);
+          }
+        }}
+        row={selectedSearch}
       />
     </div>
   );

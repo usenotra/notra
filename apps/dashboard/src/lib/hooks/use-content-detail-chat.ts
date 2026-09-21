@@ -330,9 +330,9 @@ export function useContentDetailChat({
   }, []);
 
   const handleSelectionChange = useCallback((sel: TextSelection | null) => {
-    if (sel && sel.text.length > 0) {
-      setSelection(sel);
-    }
+    // Attaching follows the editor selection in both directions: selecting adds
+    // the excerpt as context, deselecting takes it away again.
+    setSelection(sel && sel.text.length > 0 ? sel : null);
   }, []);
 
   const handleSelectChat = useCallback(
@@ -602,5 +602,6 @@ export function useContentDetailChat({
     chatPanelProps,
     floatingChatProps,
     handleSelectionChange,
+    selection,
   };
 }

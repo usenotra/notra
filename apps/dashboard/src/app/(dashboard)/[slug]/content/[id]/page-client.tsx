@@ -74,6 +74,7 @@ export default function PageClient({
       organizationSlug={organizationSlug}
       rightPanelSection={<ContentDetailChatPanel {...chat.chatPanelProps} />}
       saveBarSection={saveBar}
+      selectedExcerpt={chat.selection}
     />
   );
 }

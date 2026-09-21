@@ -5,7 +5,6 @@ import { CheckIcon, ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
 
 const STEPS = [
@@ -70,11 +69,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               </p>
             </div>
           </div>
-          <Link href={`/${organizationSlug}/integrations`}>
-            <Button size="sm" variant="outline">
-              Back to Integrations
-            </Button>
-          </Link>
         </div>
 
         <div className="max-w-xl space-y-1">

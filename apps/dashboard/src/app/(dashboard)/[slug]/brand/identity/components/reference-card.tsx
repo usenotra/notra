@@ -31,6 +31,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
+import { Badge } from "@notra/ui/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +40,6 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Label } from "@notra/ui/components/ui/label";
-import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
@@ -194,12 +194,13 @@ function NoteInput({
   };
 
   return (
-    <Textarea
-      className="placeholder:text-muted-foreground/50 max-h-20 min-h-0 resize-none overflow-y-auto border-none bg-transparent px-0 py-1.5 text-xs shadow-none focus-visible:ring-0"
+    <textarea
+      aria-label="Reference note"
+      className="placeholder:text-muted-foreground/60 focus-visible:outline-ring field-sizing-content min-h-7 w-full min-w-0 resize-y rounded-sm border-none bg-transparent px-1 py-1 text-xs shadow-none focus-visible:outline-2"
       onBlur={handleNoteBlur}
       onChange={(e) => setNoteValue(e.target.value)}
       onKeyDown={handleNoteKeyDown}
-      placeholder="Add a note..."
+      placeholder="Add a note…"
       rows={1}
       value={noteValue}
     />
@@ -210,12 +211,9 @@ function PlatformBadges({ applicableTo }: { applicableTo: string[] }) {
   return (
     <div className="flex flex-wrap gap-1">
       {applicableTo.map((platform) => (
-        <span
-          className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[0.6875rem]"
-          key={platform}
-        >
+        <Badge key={platform} size="sm" variant="secondary">
           {PLATFORM_LABELS[platform] ?? platform}
-        </span>
+        </Badge>
       ))}
     </div>
   );
@@ -265,18 +263,18 @@ function EditPlatformsDialog({
           <Label>Use for</Label>
           <div className="flex flex-wrap gap-2">
             {PLATFORM_OPTIONS.map((option) => (
-              <button
-                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                  selected.includes(option.value)
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:bg-muted"
-                }`}
+              <Button
+                aria-pressed={selected.includes(option.value)}
                 key={option.value}
                 onClick={() => togglePlatform(option.value)}
+                size="sm"
                 type="button"
+                variant={
+                  selected.includes(option.value) ? "secondary" : "outline"
+                }
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -311,9 +309,13 @@ function CardMenu({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="text-muted-foreground hover:bg-accent flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md"
-          nativeButton={false}
-          render={<span />}
+          render={
+            <Button
+              aria-label="Open reference actions"
+              size="icon-sm"
+              variant="ghost"
+            />
+          }
         >
           <HugeiconsIcon className="size-4" icon={MoreHorizontalIcon} />
         </DropdownMenuTrigger>
@@ -344,6 +346,35 @@ function CardMenu({
   );
 }
 
+function TwitterReferenceStats({
+  reference,
+}: Pick<ReferenceCardProps, "reference">) {
+  const metadata = reference.metadata as TweetMetadata | null;
+  const stats = [
+    { label: "replies", icon: Comment01Icon, count: metadata?.replies ?? 0 },
+    { label: "retweets", icon: RepeatIcon, count: metadata?.retweets ?? 0 },
+    { label: "likes", icon: FavouriteIcon, count: metadata?.likes ?? 0 },
+  ].filter((stat) => stat.count > 0);
+
+  if (stats.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-3 pt-0.5">
+      {stats.map((stat) => (
+        <span
+          className="text-muted-foreground flex items-center gap-1 text-xs"
+          key={stat.label}
+        >
+          <HugeiconsIcon className="size-3.5" icon={stat.icon} />
+          {formatCompactNumber(stat.count)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function TwitterReferenceCard({
   reference,
   onDelete,
@@ -352,10 +383,6 @@ function TwitterReferenceCard({
   isDeleting,
 }: ReferenceCardProps) {
   const metadata = reference.metadata as TweetMetadata | null;
-  const hasStats =
-    (metadata?.likes ?? 0) > 0 ||
-    (metadata?.retweets ?? 0) > 0 ||
-    (metadata?.replies ?? 0) > 0;
   const handle =
     metadata?.authorHandle ??
     getTwitterHandleFromUrl(reference.sourceUrl ?? metadata?.url);
@@ -369,12 +396,12 @@ function TwitterReferenceCard({
     : null;
 
   return (
-    <div className="group hover:border-border/80 flex break-inside-avoid flex-col overflow-hidden rounded-xl border transition-colors">
-      <div className="flex flex-col gap-2.5 p-4">
+    <div className="group border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
+      <div className="border-border/60 bg-background flex flex-1 flex-col gap-3 rounded-lg border p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <Avatar
-              className="size-9 rounded-full after:rounded-full"
+              className="size-8 rounded-full after:rounded-full"
               size="sm"
             >
               {avatarSrc && <AvatarImage src={avatarSrc} />}
@@ -384,7 +411,7 @@ function TwitterReferenceCard({
             </Avatar>
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="truncate text-sm leading-tight font-semibold">
+                <span className="truncate text-sm leading-snug font-medium">
                   {displayName}
                 </span>
               </div>
@@ -413,7 +440,6 @@ function TwitterReferenceCard({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <PlatformBadges applicableTo={reference.applicableTo} />
             <CardMenu
               applicableTo={reference.applicableTo}
               isDeleting={isDeleting}
@@ -424,42 +450,24 @@ function TwitterReferenceCard({
           </div>
         </div>
 
-        <p className="text-[0.8125rem] leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
           {formatTweetContent(reference.content)}
         </p>
 
         <SourceLink sourceUrl={reference.sourceUrl ?? metadata?.url} />
 
-        {hasStats && (
-          <div className="flex items-center gap-3 pt-0.5">
-            {(metadata?.replies ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={Comment01Icon} />
-                {formatCompactNumber(metadata?.replies ?? 0)}
-              </span>
-            )}
-            {(metadata?.retweets ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={RepeatIcon} />
-                {formatCompactNumber(metadata?.retweets ?? 0)}
-              </span>
-            )}
-            {(metadata?.likes ?? 0) > 0 && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <HugeiconsIcon className="size-3.5" icon={FavouriteIcon} />
-                {formatCompactNumber(metadata?.likes ?? 0)}
-              </span>
-            )}
-          </div>
-        )}
+        <TwitterReferenceStats reference={reference} />
       </div>
 
-      <div className="bg-muted/50 rounded-b-xl border-t px-4 py-1.5">
-        <NoteInput
-          initialNote={reference.note}
-          onUpdateNote={onUpdateNote}
-          referenceId={reference.id}
-        />
+      <div className="flex items-center gap-2 px-1 pb-0.5">
+        <PlatformBadges applicableTo={reference.applicableTo} />
+        <div className="min-w-0 flex-1">
+          <NoteInput
+            initialNote={reference.note}
+            onUpdateNote={onUpdateNote}
+            referenceId={reference.id}
+          />
+        </div>
       </div>
     </div>
   );
@@ -482,12 +490,12 @@ function BlogReferenceCard({
   const showDomainLine = Boolean(domain && title);
 
   return (
-    <div className="group hover:border-border/80 flex break-inside-avoid flex-col overflow-hidden rounded-xl border transition-colors">
-      <div className="flex flex-col gap-2.5 p-4">
+    <div className="group border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
+      <div className="border-border/60 bg-background flex flex-1 flex-col gap-3 rounded-lg border p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2.5">
             <Avatar
-              className="bg-muted size-9 rounded-full after:rounded-full"
+              className="bg-muted size-8 rounded-full after:rounded-full"
               size="sm"
             >
               {domain && (
@@ -498,7 +506,7 @@ function BlogReferenceCard({
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <span className="block truncate text-sm leading-tight font-semibold">
+              <span className="block truncate text-sm leading-snug font-medium">
                 {title ?? domain ?? "Blog post"}
               </span>
               <div className="flex items-center gap-1">
@@ -538,7 +546,6 @@ function BlogReferenceCard({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <PlatformBadges applicableTo={reference.applicableTo} />
             <CardMenu
               applicableTo={reference.applicableTo}
               isDeleting={isDeleting}
@@ -549,19 +556,22 @@ function BlogReferenceCard({
           </div>
         </div>
 
-        <p className="text-[0.8125rem] leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
           {reference.content}
         </p>
 
         <SourceLink sourceUrl={sourceUrl} />
       </div>
 
-      <div className="bg-muted/50 rounded-b-xl border-t px-4 py-1.5">
-        <NoteInput
-          initialNote={reference.note}
-          onUpdateNote={onUpdateNote}
-          referenceId={reference.id}
-        />
+      <div className="flex items-center gap-2 px-1 pb-0.5">
+        <PlatformBadges applicableTo={reference.applicableTo} />
+        <div className="min-w-0 flex-1">
+          <NoteInput
+            initialNote={reference.note}
+            onUpdateNote={onUpdateNote}
+            referenceId={reference.id}
+          />
+        </div>
       </div>
     </div>
   );
@@ -575,18 +585,18 @@ function CustomReferenceCard({
   isDeleting,
 }: ReferenceCardProps) {
   return (
-    <div className="group hover:border-border/80 flex break-inside-avoid flex-col overflow-hidden rounded-xl border transition-colors">
-      <div className="flex flex-col gap-2.5 p-4">
+    <div className="group border-border/80 border-b-border/40 bg-muted/80 hover:border-border flex h-full flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs transition-colors">
+      <div className="border-border/60 bg-background flex flex-1 flex-col gap-3 rounded-lg border p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-full">
+            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-full">
               <HugeiconsIcon
                 className="text-muted-foreground size-4"
                 icon={TextIcon}
               />
             </div>
             <div>
-              <span className="text-sm leading-tight font-semibold">
+              <span className="text-sm leading-snug font-medium">
                 Custom reference
               </span>
               <p
@@ -598,7 +608,6 @@ function CustomReferenceCard({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <PlatformBadges applicableTo={reference.applicableTo} />
             <CardMenu
               applicableTo={reference.applicableTo}
               isDeleting={isDeleting}
@@ -609,19 +618,22 @@ function CustomReferenceCard({
           </div>
         </div>
 
-        <p className="text-[0.8125rem] leading-relaxed whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-5 text-sm leading-relaxed whitespace-pre-wrap">
           {formatTweetContent(reference.content)}
         </p>
 
         <SourceLink sourceUrl={reference.sourceUrl} />
       </div>
 
-      <div className="bg-muted/50 rounded-b-xl border-t px-4 py-1.5">
-        <NoteInput
-          initialNote={reference.note}
-          onUpdateNote={onUpdateNote}
-          referenceId={reference.id}
-        />
+      <div className="flex items-center gap-2 px-1 pb-0.5">
+        <PlatformBadges applicableTo={reference.applicableTo} />
+        <div className="min-w-0 flex-1">
+          <NoteInput
+            initialNote={reference.note}
+            onUpdateNote={onUpdateNote}
+            referenceId={reference.id}
+          />
+        </div>
       </div>
     </div>
   );

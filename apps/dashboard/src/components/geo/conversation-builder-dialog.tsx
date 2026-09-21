@@ -3,6 +3,7 @@
 import { Cancel01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  GEO_MAX_SEQUENCES,
   GEO_PROMPT_MIN_LENGTH,
   GEO_SEQUENCE_MAX_TURNS,
 } from "@notra/geo-core/constants/geo";
@@ -45,9 +46,10 @@ export function ConversationBuilderDialog({
   sequence,
 }: ConversationBuilderDialogProps) {
   const nameId = useId();
-  const { addSequence, updateSequence } = useGeoSequencesDb(organizationId, {
-    enabled: open,
-  });
+  const { addSequence, sequences, updateSequence } = useGeoSequencesDb(
+    organizationId,
+    { enabled: open }
+  );
   const [name, setName] = useState(sequence?.name ?? "");
   const [steps, setSteps] = useState<ConversationTurnDraft[]>(() =>
     turnsFromSequence(sequence)
@@ -57,7 +59,10 @@ export function ConversationBuilderDialog({
     const text = step.text.trim();
     return text.length >= GEO_PROMPT_MIN_LENGTH ? [text] : [];
   });
-  const canSave = name.trim().length > 0 && validSteps.length > 0;
+  const canSave =
+    name.trim().length > 0 &&
+    validSteps.length > 0 &&
+    (sequence !== null || sequences.length < GEO_MAX_SEQUENCES);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {

@@ -233,7 +233,7 @@ function headerBreadcrumbItems(
 function brandIdentityHeaderBreadcrumbs(id: string, slug: string | undefined) {
   return [
     <BreadcrumbItem
-      className="hover:underline"
+      className="shrink-0 whitespace-nowrap hover:underline"
       key={`${id}-brand-identity-link`}
     >
       <BreadcrumbLink

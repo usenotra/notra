@@ -634,19 +634,19 @@ function EngineFamilySheetSession({
             />
           </div>
         </SheetContent>
+        <PromptDetailDialog
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setSelectedPromptId(null);
+            }
+          }}
+          initialEngine={selectedEngine}
+          open={selectedRow !== null}
+          organizationId={organizationId || undefined}
+          row={selectedRow}
+          surface={GEO_PROMPT_DETAIL_SURFACES.ENGINE_SHEET}
+        />
       </Sheet>
-      <PromptDetailDialog
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            setSelectedPromptId(null);
-          }
-        }}
-        initialEngine={selectedEngine}
-        open={selectedRow !== null}
-        organizationId={organizationId || undefined}
-        row={selectedRow}
-        surface={GEO_PROMPT_DETAIL_SURFACES.ENGINE_SHEET}
-      />
       {organizationSlug && organizationId ? (
         <WriteDialog
           entry={GEO_WRITE_DIALOG_ENTRIES.ENGINE_SHEET}

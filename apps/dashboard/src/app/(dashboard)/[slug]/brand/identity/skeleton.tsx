@@ -14,16 +14,16 @@ export function BrandIdentityPageSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight">
               Brand Identity
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Configure your brand identity and tone
             </p>
           </div>
-          <Button className="gap-1.5">
+          <Button>
             <HugeiconsIcon className="size-4" icon={Add01Icon} />
             Create Identity
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>

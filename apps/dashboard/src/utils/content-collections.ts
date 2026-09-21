@@ -10,6 +10,26 @@ function pluralizePosts(count: number): string {
   return `${count} ${count === 1 ? "post" : "posts"}`;
 }
 
+export function collectionTitle(collection: PostCollectionSummary): string {
+  return !collection.isGenerating && collection.postCount === 1
+    ? (collection.singlePost?.title ?? collection.name)
+    : collection.name;
+}
+
+export function collectionHref(
+  organizationSlug: string,
+  collection: PostCollectionSummary
+): string {
+  if (
+    !collection.isGenerating &&
+    collection.postCount === 1 &&
+    collection.singlePost
+  ) {
+    return `/${organizationSlug}/content/${collection.singlePost.id}`;
+  }
+  return `/${organizationSlug}/collection/${collection.id}`;
+}
+
 export function collectionStatus(
   collection: PostCollectionSummary
 ): CollectionStatus {
@@ -45,6 +65,12 @@ export function collectionMeta(collection: PostCollectionSummary): string {
   const { published } = collection.statusSummary;
   if (published > 0 && published < collection.postCount) {
     return `${source} · ${pluralizePosts(collection.postCount)} · ${published} published`;
+  }
+  if (collection.postCount === 1) {
+    return `${source} · Single post`;
+  }
+  if (collection.postCount === 0) {
+    return `${source} · Empty collection`;
   }
   return `${source} · ${pluralizePosts(collection.postCount)}`;
 }

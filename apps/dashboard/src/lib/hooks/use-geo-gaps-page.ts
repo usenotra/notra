@@ -92,6 +92,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
       isGapsPending: gapsQuery.isPending,
       table: {
         competitors,
+        organizationId,
         hasScanData: gapsQuery.data?.hasScanData ?? false,
         isScanning,
         onOpenPost: (postId) => {

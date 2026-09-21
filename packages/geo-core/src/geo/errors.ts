@@ -162,6 +162,12 @@ export class GeoSequenceCreateFailedError extends Data.TaggedError(
   "GeoSequenceCreateFailedError"
 )<Record<string, never>> {}
 
+export class GeoSequenceLimitError extends Data.TaggedError(
+  "GeoSequenceLimitError"
+)<{
+  readonly limit: number;
+}> {}
+
 export class GeoSequenceRunUnavailableError extends Data.TaggedError(
   "GeoSequenceRunUnavailableError"
 )<Record<string, never>> {}
@@ -274,6 +280,7 @@ export type GeoRouterError =
   | GeoScanEnginesEmptyError
   | GeoScanStartError
   | GeoSequenceCreateFailedError
+  | GeoSequenceLimitError
   | GeoSequenceNotFoundError
   | GeoSequenceRunError
   | GeoSequenceRunUnavailableError

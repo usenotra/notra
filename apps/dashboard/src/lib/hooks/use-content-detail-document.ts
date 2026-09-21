@@ -10,7 +10,10 @@ import { toast } from "sonner";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { SAVE_BAR_SELECTOR } from "@/constants/content-detail";
+import {
+  CONTENT_SAVE_TOAST_POSITION,
+  SAVE_BAR_SELECTOR,
+} from "@/constants/content-detail";
 import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
@@ -29,11 +32,10 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ImageExportTarget } from "@/types/content/image-export";
 import type { ContentApiResponse } from "@/types/hooks/content";
 import {
-  isGeoWriterPlanReviewable,
+  getGeoWriterDocumentState,
   parseGeoWriterDraft,
 } from "@/utils/geo-write-entry";
 import { isImageExportTarget } from "@/utils/image-export";
-import { isNotFoundError } from "@/utils/orpc-errors";
 import { shakeElements } from "@/utils/shake-element";
 
 interface UseContentDetailDocumentParams {
@@ -63,18 +65,16 @@ export function useContentDetailDocument({
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
-  const isGeoWriterBriefMissing =
-    geoWriterBriefQuery.error !== null &&
-    isNotFoundError(geoWriterBriefQuery.error);
-  const isGeoWriterPlanMode = Boolean(
-    geoWriterDraft && !isGeoWriterBriefMissing && briefStatus !== "completed"
+  const {
+    isBriefError: isGeoWriterBriefError,
+    isChatLocked: isGeoWriterChatLocked,
+    isPlanMode: isGeoWriterPlanMode,
+    isPlanReviewable: isGeoWriterPlanReviewableNow,
+  } = getGeoWriterDocumentState(
+    Boolean(geoWriterDraft),
+    geoWriterBriefQuery.error,
+    briefStatus
   );
-  const isGeoWriterPlanReviewableNow = isGeoWriterPlanReviewable(briefStatus);
-  const isGeoWriterChatLocked =
-    Boolean(geoWriterDraft) &&
-    !isGeoWriterBriefMissing &&
-    !isGeoWriterPlanReviewableNow &&
-    briefStatus !== "completed";
 
   const serverMarkdown = data?.content?.markdown ?? "";
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
@@ -279,11 +279,15 @@ export function useContentDetailDocument({
       setEditingTitle(null);
       setPersistedSlug(persistedSlug);
       setEditingSlug(null);
-      toast.success("Content saved");
+      toast.success("Content saved", {
+        position: CONTENT_SAVE_TOAST_POSITION,
+      });
       setIsSaving(false);
       return true;
     } catch (error) {
-      toast.error(getSaveContentDetailErrorMessage(error));
+      toast.error(getSaveContentDetailErrorMessage(error), {
+        position: CONTENT_SAVE_TOAST_POSITION,
+      });
       setIsSaving(false);
       return false;
     }
@@ -375,6 +379,9 @@ export function useContentDetailDocument({
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.list.key(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.collections.list.key(),
+        }),
       ]),
     [contentId, organizationId, queryClient]
   );
@@ -443,6 +450,7 @@ export function useContentDetailDocument({
     imageExportRef,
     imageExportTarget,
     invalidateContentQueries,
+    isGeoWriterBriefError,
     isGeoWriterChatLocked,
     isGeoWriterPlanMode,
     isGeoWriterPlanReviewableNow,

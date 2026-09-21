@@ -4,11 +4,9 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
-import { cn } from "@notra/ui/lib/utils";
 import { usePathname } from "next/navigation";
 
 import {
@@ -16,15 +14,12 @@ import {
   NAV_RECENT_LABEL,
   NAV_RECENT_LIMIT,
   NAV_RECENT_SKELETON_IDS,
-  NAV_RECENT_TITLE_CLASS,
-  POST_STATUS_DOT_CLASS,
-  POST_STATUS_LABELS,
 } from "@/constants/nav";
 import { usePosts } from "@/lib/hooks/use-posts";
 import type { NavRecentContentProps } from "@/types/components/nav";
 
+import { NavRecentContentItem } from "./nav-recent-content-item";
 import { SidebarLabel } from "./sidebar-label";
-import { SidebarNavLink } from "./sidebar-nav-link";
 
 export function NavRecentContent({
   slug,
@@ -60,29 +55,17 @@ export function NavRecentContent({
           : posts.map((post) => {
               const href = `/${slug}${CONTENT_NAV_LINK}/${post.id}`;
               return (
-                <SidebarMenuItem key={post.id}>
-                  <SidebarMenuButton
-                    isActive={pathname === href}
-                    render={
-                      <SidebarNavLink href={href}>
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            "size-1.5 shrink-0 rounded-full",
-                            POST_STATUS_DOT_CLASS[post.status]
-                          )}
-                        />
-                        <span className={NAV_RECENT_TITLE_CLASS}>
-                          {post.title}
-                        </span>
-                        <span className="text-muted-foreground ml-auto shrink-0 text-[0.625rem]">
-                          {POST_STATUS_LABELS[post.status]}
-                        </span>
-                      </SidebarNavLink>
-                    }
-                    size="sm"
-                  />
-                </SidebarMenuItem>
+                <NavRecentContentItem
+                  href={href}
+                  isActive={pathname === href}
+                  key={post.id}
+                  post={{
+                    id: post.id,
+                    organizationId,
+                    status: post.status,
+                    title: post.title,
+                  }}
+                />
               );
             })}
       </SidebarMenu>

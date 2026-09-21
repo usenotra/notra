@@ -42,6 +42,7 @@ interface LexicalEditorProps {
   initialMarkdown: string;
   onChange: (markdown: string) => void;
   onSelectionChange: (selection: TextSelection | null) => void;
+  selectedExcerpt?: TextSelection | null;
   editable?: boolean;
   editorRef?: RefObject<EditorRefHandle | null>;
   theme?: EditorThemeClasses;
@@ -53,6 +54,7 @@ export function LexicalEditor({
   initialMarkdown,
   onChange,
   onSelectionChange,
+  selectedExcerpt = null,
   editable = true,
   editorRef,
   theme = editorTheme,
@@ -139,7 +141,10 @@ export function LexicalEditor({
           onChange={handleChange}
           transformers={EDITOR_TRANSFORMERS}
         />
-        <SelectionPlugin onSelectionChange={onSelectionChange} />
+        <SelectionPlugin
+          onSelectionChange={onSelectionChange}
+          selectedExcerpt={selectedExcerpt}
+        />
         {editorRef && (
           <EditorRefPlugin
             editorRef={editorRef}

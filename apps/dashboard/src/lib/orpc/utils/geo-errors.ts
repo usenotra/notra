@@ -39,6 +39,10 @@ export function toGeoOrpcError(failure: GeoRouterError): Error {
       return badRequest(failure.message);
     case "GeoSequenceCreateFailedError":
       return badRequest("Failed to create conversation");
+    case "GeoSequenceLimitError":
+      return badRequest(
+        `You can have up to ${failure.limit} conversations. Remove one before adding another.`
+      );
     case "GeoPersonaNotFoundError":
       return notFound("Persona not found");
     case "GeoPersonaLimitError":

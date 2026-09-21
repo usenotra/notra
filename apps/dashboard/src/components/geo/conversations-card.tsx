@@ -149,8 +149,13 @@ function ConversationRowActions({
 }
 
 export function ConversationsCard({ organizationId }: ConversationsCardProps) {
-  const { sequences, pendingSequenceIds, updateSequence, removeSequence } =
-    useGeoSequencesDb(organizationId);
+  const {
+    sequences,
+    isLoading,
+    pendingSequenceIds,
+    updateSequence,
+    removeSequence,
+  } = useGeoSequencesDb(organizationId);
   const runSequence = useGeoRunSequence(organizationId);
   const generateSequences = useGeoSequencesGenerate(organizationId);
   const [builderOpen, setBuilderOpen] = useState(false);
@@ -246,23 +251,23 @@ export function ConversationsCard({ organizationId }: ConversationsCardProps) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {!isLoading && sequences.length < GEO_MAX_SEQUENCES ? (
+            <Button
+              disabled={generateSequences.isPending}
+              onClick={() => generateSequences.mutate()}
+              size="sm"
+              variant="ghost"
+            >
+              {generateSequences.isPending ? (
+                <StatusSpinner />
+              ) : (
+                <HugeiconsIcon icon={AiMagicIcon} size={14} />
+              )}
+              {generateSequences.isPending ? "Generating…" : "Generate"}
+            </Button>
+          ) : null}
           <Button
-            disabled={
-              generateSequences.isPending ||
-              sequences.length >= GEO_MAX_SEQUENCES
-            }
-            onClick={() => generateSequences.mutate()}
-            size="sm"
-            variant="ghost"
-          >
-            {generateSequences.isPending ? (
-              <StatusSpinner />
-            ) : (
-              <HugeiconsIcon icon={AiMagicIcon} size={14} />
-            )}
-            {generateSequences.isPending ? "Generating…" : "Generate"}
-          </Button>
-          <Button
+            disabled={isLoading || sequences.length >= GEO_MAX_SEQUENCES}
             onClick={() => {
               setEditing(null);
               setBuilderOpen(true);

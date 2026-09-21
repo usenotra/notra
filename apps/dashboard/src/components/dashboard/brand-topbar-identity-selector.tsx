@@ -68,11 +68,12 @@ function BrandIdentityAvatar({
   websiteUrl: string | null;
 }) {
   return (
-    <Avatar className="size-4 after:rounded-full" size="sm">
-      <AvatarImage src={getBrandFaviconUrl(websiteUrl)} />
-      <AvatarFallback className="text-[9px]">
-        {name.slice(0, 2).toUpperCase()}
-      </AvatarFallback>
+    <Avatar className="size-5 rounded-none after:hidden has-data-[slot=avatar-fallback]:hidden">
+      <AvatarImage
+        className="rounded-none object-contain"
+        src={getBrandFaviconUrl(websiteUrl)}
+      />
+      <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
     </Avatar>
   );
 }
@@ -123,14 +124,15 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
       <DropdownMenuTrigger
         render={
           <button
-            className="text-foreground hover:bg-accent data-popup-open:bg-accent -mx-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 font-normal transition-colors outline-none"
+            className="text-foreground hover:bg-accent data-popup-open:bg-accent -mx-1.5 flex max-w-40 min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 font-normal transition-colors outline-none sm:max-w-56"
+            title={activeVoice.name}
             type="button"
           >
             <BrandIdentityAvatar
               name={activeVoice.name}
               websiteUrl={activeVoice.websiteUrl}
             />
-            <span className="truncate">{activeVoice.name}</span>
+            <span className="min-w-0 truncate">{activeVoice.name}</span>
             <HugeiconsIcon
               className="text-muted-foreground size-3.5 shrink-0"
               icon={ArrowDown01Icon}

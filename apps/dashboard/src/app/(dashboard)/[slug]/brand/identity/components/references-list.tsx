@@ -114,7 +114,7 @@ export function ReferencesList({
   };
 
   let content = (
-    <div className="columns-1 gap-4 space-y-4 sm:columns-2">
+    <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
       {references.map((ref) => (
         <ReferenceCard
           isDeleting={deletingId === ref.id}
@@ -132,9 +132,9 @@ export function ReferencesList({
     content = (
       <output>
         <span className="sr-only">Loading references</span>
-        <div aria-hidden="true" className="grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-48 w-full rounded-xl" />
-          <Skeleton className="h-48 w-full rounded-xl" />
+        <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">
+          <Skeleton className="h-52 w-full rounded-xl" />
+          <Skeleton className="h-52 w-full rounded-xl" />
         </div>
       </output>
     );

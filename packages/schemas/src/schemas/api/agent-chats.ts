@@ -18,7 +18,6 @@ export const createAgentSessionResponseSchema = z
   .object({
     ok: z.literal(true),
     sessionId: z.string(),
-    continuationToken: z.string(),
   })
   .openapi("CreateAgentSessionResponse");
 
@@ -44,10 +43,6 @@ export const sendAgentMessageRequestSchema = z
     inputResponses: z.array(agentInputResponseSchema).optional().openapi({
       description:
         "Answers to pending input.requested events (tool approvals, questions) from the event stream.",
-    }),
-    continuationToken: z.string().min(1).openapi({
-      description:
-        "The continuation token returned by the previous request for this session.",
     }),
   })
   .openapi("SendAgentMessageRequest");

@@ -4,6 +4,7 @@ import { createElement, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { ContentDetailSaveToast } from "@/components/content/content-detail-save-bar";
+import { CONTENT_SAVE_TOAST_POSITION } from "@/constants/content-detail";
 
 interface UseContentDetailSaveToastParams {
   hasChanges: boolean;
@@ -56,7 +57,10 @@ export function useContentDetailSaveToast({
                 onSaveRef.current();
               },
             }),
-          { duration: Number.POSITIVE_INFINITY, position: "bottom-right" }
+          {
+            duration: Number.POSITIVE_INFINITY,
+            position: CONTENT_SAVE_TOAST_POSITION,
+          }
         );
       }
     };

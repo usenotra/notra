@@ -39,6 +39,7 @@ export function RightPanel({ id, children }: RightPanelProps) {
     <RightPanelPortal>
       <aside
         aria-hidden={!open}
+        data-closed={open ? undefined : ""}
         className={cn(
           RIGHT_PANEL_CLASSNAME,
           RIGHT_PANEL_SLOT_MOTION_CLASSNAME,

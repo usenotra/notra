@@ -1,6 +1,6 @@
 "use client";
 
-import { LinkSquare02Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -17,6 +17,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@notra/ui/components/ui/pagination";
+import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { getPageNumbers } from "@notra/ui/lib/get-page-numbers";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -39,15 +40,14 @@ import type {
   SitemapPageCategory,
   SitemapPagesTableProps,
 } from "@/types/hooks/brand-sitemaps";
-import { paginatedTableHeightFor } from "@/utils/table";
 
 import {
   PAGE_FILTER_TABS,
-  SITEMAP_PAGE_SKELETON_KEYS,
   SITEMAP_PAGES_PER_PAGE,
 } from "../constants/sitemap-ui";
 
 export function SitemapPagesTable({
+  children,
   sitemapId,
   organizationId,
   voiceId,
@@ -116,43 +116,46 @@ export function SitemapPagesTable({
     currentPage * SITEMAP_PAGES_PER_PAGE
   );
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <InputGroup className="h-9 sm:max-w-80">
-          <InputGroupAddon>
-            <HugeiconsIcon
-              className="text-muted-foreground size-4"
-              icon={Search01Icon}
-            />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label="Search sitemap URLs"
-            onChange={(event) => handleSearchChange(event.target.value)}
-            placeholder="Search URLs..."
-            value={search}
-          />
-        </InputGroup>
+  const filter = (
+    <Tabs
+      value={activeFilter}
+      onValueChange={(value) => {
+        const tab = PAGE_FILTER_TABS.find((item) => item.value === value);
+        if (tab) {
+          handleFilterChange(tab.value);
+        }
+      }}
+    >
+      <TabsList aria-label="Sitemap page status">
+        {PAGE_FILTER_TABS.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label} ({countsByCategory[tab.value]})
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
 
-        <div className="flex flex-wrap gap-1.5">
-          {PAGE_FILTER_TABS.map((tab) => {
-            const isActive = tab.value === activeFilter;
-            return (
-              <button
-                className={cn(
-                  "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-                  isActive
-                    ? "border-primary bg-muted/60 text-foreground"
-                    : "text-muted-foreground hover:bg-muted/40 border-transparent"
-                )}
-                key={tab.value}
-                onClick={() => handleFilterChange(tab.value)}
-                type="button"
-              >
-                {tab.label} ({countsByCategory[tab.value]})
-              </button>
-            );
-          })}
+  return (
+    <section aria-label="Sitemap pages" className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {children}
+        <div className="flex flex-wrap items-center gap-3">
+          <InputGroup className="w-full sm:w-56">
+            <InputGroupAddon>
+              <HugeiconsIcon
+                className="text-muted-foreground size-4"
+                icon={Search01Icon}
+              />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label="Search sitemap URLs"
+              onChange={(event) => handleSearchChange(event.target.value)}
+              placeholder="Search URLs…"
+              value={search}
+            />
+          </InputGroup>
+          {filter}
         </div>
       </div>
 
@@ -165,9 +168,7 @@ export function SitemapPagesTable({
             : "No URLs in this view yet."
         }
         getRowId={(page) => page.id}
-        height={paginatedTableHeightFor(
-          isPending ? SITEMAP_PAGE_SKELETON_KEYS.length : paginatedPages.length
-        )}
+        height={440}
         loading={isPending}
         rowHeight={TABLE_ROW_HEIGHT}
       />
@@ -220,7 +221,7 @@ export function SitemapPagesTable({
           </PaginationContent>
         </Pagination>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -228,15 +229,11 @@ function PageUrlCell({ page }: { page: SitemapPage }) {
   const safeUrl = getSafeHttpUrl(page.url);
 
   return (
-    <div className="flex items-start gap-2">
-      <HugeiconsIcon
-        className="text-muted-foreground mt-0.5 size-3.5 shrink-0"
-        icon={LinkSquare02Icon}
-      />
+    <div>
       <div className="min-w-0">
         {safeUrl ? (
           <a
-            className="text-primary block truncate text-sm font-medium hover:underline"
+            className="text-foreground block truncate text-sm font-medium hover:underline"
             href={safeUrl}
             rel="noopener noreferrer"
             target="_blank"

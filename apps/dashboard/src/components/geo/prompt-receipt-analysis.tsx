@@ -11,8 +11,6 @@ import type { ReactNode } from "react";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptReceiptHistory } from "@/components/geo/prompt-receipt-history";
-import { Table, type TableColumn } from "@/components/motion/table";
-import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { PromptReceiptAnalysisProps } from "@/types/geo";
 import { uniquePromptBrandNames } from "@/utils/geo-prompt-brands";
 import {
@@ -22,7 +20,6 @@ import {
   promptSentimentLabel,
 } from "@/utils/geo-prompt-history";
 import { getSafeReferenceSourceUrl } from "@/utils/reference-source-url";
-import { tableHeightFor } from "@/utils/table";
 
 function sentimentToneClass(sentiment: string | null): string {
   if (sentiment === "positive") {
@@ -34,38 +31,6 @@ function sentimentToneClass(sentiment: string | null): string {
   return "text-foreground";
 }
 
-function OutcomeCell({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="flex min-h-6 items-center text-base font-medium">
-        {children}
-      </span>
-    </div>
-  );
-}
-
-function OutcomeValue({
-  mentioned,
-  ownedSourceCited,
-}: {
-  mentioned: boolean;
-  ownedSourceCited?: boolean;
-}) {
-  const visible = mentioned || Boolean(ownedSourceCited);
-  return (
-    <span className={visible ? "text-foreground" : "text-muted-foreground"}>
-      {promptOutcomeLabel(mentioned, ownedSourceCited)}
-    </span>
-  );
-}
-
 function CompetitorsCell({
   names,
   competitors,
@@ -73,47 +38,38 @@ function CompetitorsCell({
   names: readonly string[];
   competitors: readonly GeoCompetitor[] | undefined;
 }) {
-  const brandLogo = (name: string) => {
-    if (name === "ChatGPT" || name === "Gemini") {
-      return (
-        <span className="bg-muted inline-flex size-6 shrink-0 items-center justify-center rounded-md border">
-          <EngineIcon
-            className="size-3.5"
-            engine={name === "ChatGPT" ? "openai" : "gemini"}
-          />
-        </span>
-      );
-    }
+  if (names.length === 0) {
     return (
-      <CompetitorLogo
-        className="size-6 rounded-md border"
-        competitors={competitors}
-        name={name}
-      />
+      <p className="text-muted-foreground border-t px-4 py-5 text-center text-sm">
+        {GEO_PROMPT_RECEIPT_LABELS.noCompetitors}
+      </p>
     );
-  };
+  }
 
   return (
-    <Table
-      columns={[
-        {
-          key: "name",
-          header: "Brand",
-          cell: ({ name }) => (
-            <span className="flex min-w-0 items-center gap-3 text-sm">
-              {brandLogo(name)}
-              <span className="min-w-0 truncate" title={name}>
-                {name}
-              </span>
+    <ul className="divide-border/60 border-border/60 divide-y border-t">
+      {names.map((name) => (
+        <li className="flex min-w-0 items-center gap-3 px-4 py-2.5" key={name}>
+          {name === "ChatGPT" || name === "Gemini" ? (
+            <span className="bg-muted inline-flex size-6 shrink-0 items-center justify-center rounded-md border">
+              <EngineIcon
+                className="size-3.5"
+                engine={name === "ChatGPT" ? "openai" : "gemini"}
+              />
             </span>
-          ),
-        },
-      ]}
-      data={names.map((name) => ({ name }))}
-      emptyState={GEO_PROMPT_RECEIPT_LABELS.noCompetitors}
-      getRowId={({ name }) => name}
-      height={tableHeightFor(names.length)}
-    />
+          ) : (
+            <CompetitorLogo
+              className="size-6 rounded-md border"
+              competitors={competitors}
+              name={name}
+            />
+          )}
+          <span className="min-w-0 truncate text-sm" title={name}>
+            {name}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -121,98 +77,80 @@ function OutcomeStrip({ result }: { result: GeoPromptResult }) {
   return (
     <section
       aria-label="Outcome"
-      className="bg-background grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border p-4 sm:grid-cols-3"
+      className="bg-background flex min-h-24 flex-wrap items-center justify-between gap-5 rounded-xl border p-5 shadow-xs"
     >
-      <OutcomeCell label="Outcome">
-        <OutcomeValue
-          mentioned={result.mentioned}
-          ownedSourceCited={result.ownedSourceCited}
-        />
-      </OutcomeCell>
-      <OutcomeCell label={GEO_PROMPT_RECEIPT_LABELS.position}>
-        <span className="tabular-nums">
-          {promptPositionLabel(result.position)}
+      <div className="flex min-w-0 flex-col gap-1">
+        <span className="text-muted-foreground text-xs">Visibility</span>
+        <span className="text-xl font-semibold tracking-tight">
+          {promptOutcomeLabel(result.mentioned, result.ownedSourceCited)}
         </span>
-      </OutcomeCell>
-      <OutcomeCell label={GEO_PROMPT_RECEIPT_LABELS.sentiment}>
-        <span className={sentimentToneClass(result.sentiment)}>
-          {promptSentimentLabel(result.sentiment)}
-        </span>
-      </OutcomeCell>
+      </div>
+      <dl className="flex items-center gap-6 text-sm">
+        <div className="flex flex-col gap-1">
+          <dt className="text-muted-foreground text-xs">
+            {GEO_PROMPT_RECEIPT_LABELS.position}
+          </dt>
+          <dd className="font-medium tabular-nums">
+            {promptPositionLabel(result.position)}
+          </dd>
+        </div>
+        <div className="flex flex-col gap-1">
+          <dt className="text-muted-foreground text-xs">
+            {GEO_PROMPT_RECEIPT_LABELS.sentiment}
+          </dt>
+          <dd className={`font-medium ${sentimentToneClass(result.sentiment)}`}>
+            {promptSentimentLabel(result.sentiment)}
+          </dd>
+        </div>
+      </dl>
     </section>
   );
 }
 
 function SearchQueries({ queries }: { queries: readonly string[] }) {
   return (
-    <Table
-      columns={[
-        {
-          key: "query",
-          header: "Search query",
-          cell: ({ query }) => (
-            <span className="block truncate" title={query}>
-              {query}
-            </span>
-          ),
-        },
-      ]}
-      data={queries.map((query) => ({ query }))}
-      getRowId={({ query }) => query}
-      height={tableHeightFor(queries.length)}
-    />
+    <ul className="divide-border/60 border-border/60 divide-y border-t">
+      {queries.map((query) => (
+        <li className="truncate px-4 py-2.5 text-sm" key={query} title={query}>
+          {query}
+        </li>
+      ))}
+    </ul>
   );
 }
 
-const sourceColumns: TableColumn<GeoAnswerSource>[] = [
-  {
-    key: "title",
-    header: "Source",
-    width: "1fr",
-    minWidth: "12rem",
-    cell: (source) => (
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate text-sm">{source.title}</span>
-        <span className="text-muted-foreground truncate text-xs">
-          {source.domain}
-        </span>
-      </span>
-    ),
-  },
-  {
-    key: "url",
-    header: "URL",
-    width: "1fr",
-    minWidth: "12rem",
-    cell: (source) => {
-      const href = getSafeReferenceSourceUrl(source.url);
-      return href ? (
-        <a
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 block truncate rounded-sm text-xs underline-offset-2 outline-none hover:underline focus-visible:ring-2"
-          href={href}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {source.url}
-        </a>
-      ) : (
-        <span className="text-muted-foreground block truncate text-xs">
-          {source.url}
-        </span>
-      );
-    },
-  },
-];
-
-function SourcesTable({ sources }: { sources: readonly GeoAnswerSource[] }) {
+function SourcesList({ sources }: { sources: readonly GeoAnswerSource[] }) {
   return (
-    <Table
-      columns={sourceColumns}
-      data={Array.from(sources)}
-      getRowId={(source) => source.url}
-      height={tableHeightFor(sources.length)}
-      rowHeight={TABLE_ROW_HEIGHT}
-    />
+    <ul className="divide-border/60 border-border/60 divide-y border-t">
+      {sources.map((source) => {
+        const href = getSafeReferenceSourceUrl(source.url);
+        const content = (
+          <>
+            <span className="truncate text-sm">{source.title}</span>
+            <span className="text-muted-foreground truncate text-xs">
+              {source.domain}
+            </span>
+          </>
+        );
+
+        return (
+          <li className="min-w-0 px-4 py-2.5" key={source.url}>
+            {href ? (
+              <a
+                className="hover:text-foreground focus-visible:ring-ring/50 flex min-w-0 flex-col rounded-sm outline-none focus-visible:ring-2"
+                href={href}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {content}
+              </a>
+            ) : (
+              <span className="flex min-w-0 flex-col">{content}</span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -226,15 +164,15 @@ function ReceiptSection({
   children: ReactNode;
 }) {
   return (
-    <section className="flex min-w-0 flex-col gap-3">
-      <h3 className="flex items-baseline gap-2 text-sm font-medium">
-        {title}
+    <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
+      <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
+        <h3 className="text-sm font-medium">{title}</h3>
         {typeof count === "number" ? (
-          <span className="text-muted-foreground text-xs font-normal tabular-nums">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {count.toLocaleString()}
           </span>
         ) : null}
-      </h3>
+      </div>
       {children}
     </section>
   );
@@ -263,17 +201,26 @@ export function PromptReceiptAnalysis({
     >
       <div className="flex w-full flex-col gap-4 p-4">
         <OutcomeStrip result={result} />
-        <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.competitors}>
+        <ReceiptSection
+          count={competitorNames.length}
+          title={GEO_PROMPT_RECEIPT_LABELS.competitors}
+        >
           <CompetitorsCell competitors={competitors} names={competitorNames} />
         </ReceiptSection>
         {result.searchQueries.length > 0 ? (
-          <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.searches}>
+          <ReceiptSection
+            count={result.searchQueries.length}
+            title={GEO_PROMPT_RECEIPT_LABELS.searches}
+          >
             <SearchQueries queries={result.searchQueries} />
           </ReceiptSection>
         ) : null}
         {result.sources.length > 0 ? (
-          <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.sources}>
-            <SourcesTable sources={result.sources} />
+          <ReceiptSection
+            count={result.sources.length}
+            title={GEO_PROMPT_RECEIPT_LABELS.sources}
+          >
+            <SourcesList sources={result.sources} />
           </ReceiptSection>
         ) : null}
         {showHistory ? (

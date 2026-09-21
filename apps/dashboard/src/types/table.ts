@@ -96,6 +96,7 @@ export interface TableBodyProps<T> extends Pick<
   | "onRowPointerEnter"
   | "onCellEdit"
   | "renderRowContextMenu"
+  | "renderRowDetail"
   | "emptyState"
   | "rowSizing"
 > {
@@ -111,6 +112,7 @@ export interface TableBodyProps<T> extends Pick<
   scrolls: boolean;
   paddingTop: number;
   paddingBottom: number;
+  reduce: boolean;
   hasRowMenu: boolean;
   onActivate: (id: string, index: number) => void;
   onDeactivate: () => void;

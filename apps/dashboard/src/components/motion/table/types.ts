@@ -42,7 +42,7 @@ export interface TableColumn<T> {
 
 export type InsertPosition = "before" | "after";
 
-export interface TableProps<T> {
+interface TableBaseProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   /** Stable id per row, required for correct selection across sorts. Defaults to row index. */
@@ -79,8 +79,6 @@ export interface TableProps<T> {
   onDeleteColumn?: (columnKey: string, index: number) => void;
   /** Fixed row height in px — required for virtualization. */
   rowHeight?: number;
-  /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
-  rowSizing?: "fixed" | "content";
   /** Scroll viewport height in px. */
   height?: number;
   /** Floor for the table body when there are fewer rows than `height` allows. */
@@ -122,6 +120,21 @@ export interface TableProps<T> {
   scrollFade?: boolean;
   className?: string;
 }
+
+export type TableProps<T> = TableBaseProps<T> &
+  (
+    | {
+        /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
+        rowSizing?: "fixed" | "content";
+        renderRowDetail?: never;
+      }
+    | {
+        /** Detail rows require content sizing because fixed sizing relies on one row per estimate. */
+        rowSizing: "content";
+        /** Detail panel rendered in a full-width row beneath a row. Return null for collapsed rows. */
+        renderRowDetail: (row: T) => ReactNode;
+      }
+  );
 
 /** A data row paired with its stable id. */
 export interface TableRow<T> {

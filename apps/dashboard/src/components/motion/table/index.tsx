@@ -71,6 +71,7 @@ export function Table<T>({
   onRowClick,
   isRowClickable,
   renderRowContextMenu,
+  renderRowDetail,
   onRowPointerEnter,
   isRowPinned,
   toolbar,
@@ -290,6 +291,8 @@ export function Table<T>({
             isRowClickable={isRowClickable}
             onRowPointerEnter={onRowPointerEnter}
             renderRowContextMenu={renderRowContextMenu}
+            renderRowDetail={renderRowDetail}
+            reduce={!!reduce}
             rowRefs={rowRefs}
           />
         </table>
