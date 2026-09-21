@@ -24,8 +24,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { tween } from "@notra/ui/lib/motion";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -71,9 +69,6 @@ import {
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
 
-const INSTANT = { duration: 0 } as const;
-const SLIDE_PX = 18;
-
 function usePromptDetailOpened({
   open,
   surface,
@@ -98,20 +93,6 @@ function usePromptDetailOpened({
       prompt_id: promptId,
     });
   }, [engine, engineCount, open, promptId, surface]);
-}
-
-function threadVariants(reduceMotion: boolean) {
-  return {
-    enter: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * SLIDE_PX,
-    }),
-    center: { opacity: 1, x: 0 },
-    exit: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * -SLIDE_PX,
-    }),
-  };
 }
 
 function latestPromptCheckAt(
@@ -424,12 +405,9 @@ function PromptAnswerPage({
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
-  const [direction, setDirection] = useState(1);
-  const reduceMotion = useReducedMotion();
   const { competitors } = useGeoCompetitorsDb(organizationId, {
     enabled: open,
   });
-  const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
   const showLanguageBar = Boolean(scanId) && languages.length > 1;
 
   usePromptDetailOpened({
@@ -440,11 +418,10 @@ function PromptAnswerPage({
     promptId: row.id,
   });
 
-  function selectEngine(next: string, nextDirection: number) {
+  function selectEngine(next: string) {
     if (next === engine) {
       return;
     }
-    setDirection(nextDirection);
     setEngine(next);
     setSelectedCheck(null);
   }
@@ -469,8 +446,7 @@ function PromptAnswerPage({
 
     event.preventDefault();
     selectEngine(
-      adjacentPromptEngine(engines, active?.engine ?? engine, delta),
-      delta
+      adjacentPromptEngine(engines, active?.engine ?? engine, delta)
     );
   }
 
@@ -510,42 +486,34 @@ function PromptAnswerPage({
               : undefined
           )}
         >
-          <AnimatePresence custom={direction} initial={false} mode="popLayout">
-            {active ? (
-              <motion.div
-                animate="center"
-                className="flex min-h-full min-w-0 flex-col"
-                custom={direction}
-                exit="exit"
-                initial="enter"
-                key={active.engine}
-                transition={threadTransition}
-                variants={threadVariants(Boolean(reduceMotion))}
-              >
-                <PromptAnswerBody
-                  organizationId={organizationId}
-                  competitors={competitors}
-                  detailState={detailState}
-                  history={engineHistory}
-                  isHistoryLoading={history.isPending}
-                  onBackToLatest={() => setSelectedCheck(null)}
-                  onRetry={onRetry}
-                  onSelectCheck={openHistoryAnswer}
-                  prompt={promptText}
-                  scanPromptId={scanPromptId}
-                  selectedCheck={selectedCheck}
-                  view={view}
-                />
-              </motion.div>
-            ) : (
-              <PromptAnswerEmpty
+          {active ? (
+            <div
+              className="flex min-h-full min-w-0 flex-col"
+              key={active.engine}
+            >
+              <PromptAnswerBody
+                organizationId={organizationId}
+                competitors={competitors}
                 detailState={detailState}
-                isScanning={isScanning}
+                history={engineHistory}
+                isHistoryLoading={history.isPending}
+                onBackToLatest={() => setSelectedCheck(null)}
                 onRetry={onRetry}
+                onSelectCheck={openHistoryAnswer}
+                prompt={promptText}
+                scanPromptId={scanPromptId}
+                selectedCheck={selectedCheck}
                 view={view}
               />
-            )}
-          </AnimatePresence>
+            </div>
+          ) : (
+            <PromptAnswerEmpty
+              detailState={detailState}
+              isScanning={isScanning}
+              onRetry={onRetry}
+              view={view}
+            />
+          )}
         </div>
         {view === "analysis" ? (
           <PromptAnswerTagsFooter

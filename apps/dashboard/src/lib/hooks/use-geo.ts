@@ -171,6 +171,9 @@ async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
       queryKey: dashboardOrpc.geo.competitorShare.key(),
     }),
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.competitorDetail.key(),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.languageShare.key(),
     }),
   ]);
@@ -341,11 +344,17 @@ export function useGeoPromptResultDetail(
   organizationId: string,
   checkId: string | null
 ) {
+  const input = { organizationId, checkId: checkId ?? "" };
   return useQuery({
     ...dashboardOrpc.geo.promptResultDetail.queryOptions({
-      input:
-        organizationId && checkId ? { organizationId, checkId } : skipToken,
+      input: organizationId && checkId ? input : skipToken,
     }),
+    enabled: Boolean(organizationId && checkId),
+    staleTime: Number.POSITIVE_INFINITY,
+    // Keep a selected answer loading when users switch models. Consuming the
+    // generated AbortSignal would otherwise surface normal switches as failed
+    // requests and throw away work that is useful when they switch back.
+    queryFn: () => dashboardOrpc.geo.promptResultDetail.call(input),
   });
 }
 
@@ -419,7 +428,28 @@ export function useGeoCompetitorDetail(
       },
     }),
     enabled: !!organizationId && !!brand,
+    staleTime: Number.POSITIVE_INFINITY,
     meta: { errorMessage: "Failed to load competitor detail" },
+  });
+}
+
+export function useGeoCompetitorPromptSummary(
+  organizationId: string,
+  brand: string | null
+) {
+  const { projectId } = useGeoProjectScope();
+  return useQuery<GeoCompetitorDetailResponse>({
+    ...dashboardOrpc.geo.competitorDetail.queryOptions({
+      input: {
+        organizationId,
+        projectId,
+        brand: brand ?? "",
+        summaryOnly: true,
+      },
+    }),
+    enabled: !!organizationId && !!brand,
+    staleTime: Number.POSITIVE_INFINITY,
+    meta: { errorMessage: "Failed to load competitor summary" },
   });
 }
 

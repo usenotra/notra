@@ -1863,6 +1863,7 @@ export const geoMentionChecks = pgTable(
       table.engine,
       table.capturedAt.desc()
     ),
+    index("geoMentionChecks_competitors_idx").using("gin", table.competitors),
     // sequenceResults orders by exactly this tuple; `sequence_id` appears in no
     // other index.
     index("geoMentionChecks_sequence_turn_engine_captured_idx")

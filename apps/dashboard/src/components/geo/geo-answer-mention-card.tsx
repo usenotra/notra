@@ -2,6 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { BrandTrackingBadge } from "@/components/geo/share-of-voice-brand-tag";
@@ -14,12 +15,9 @@ import {
   GEO_ANSWER_MENTION_MENTIONS_LABEL,
   GEO_ANSWER_MENTION_VIEW_COMPETITOR,
 } from "@/constants/geo-answer-mentions";
-import { useGeoCompetitorDetail } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorPromptSummary } from "@/lib/hooks/use-geo";
 import type { GeoAnswerMentionCompetitorCardProps } from "@/types/geo-answer-mentions";
-import {
-  competitorPromptSummary,
-  formatCompetitorKind,
-} from "@/utils/geo-competitors";
+import { formatCompetitorKind } from "@/utils/geo-competitors";
 
 function MentionStatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -41,11 +39,11 @@ export function GeoAnswerMentionCompetitorCard({
   showView,
   onView,
 }: GeoAnswerMentionCompetitorCardProps) {
-  const { data } = useGeoCompetitorDetail(organizationId, open ? brand : null);
-  const summary =
-    data?.prompts && data.prompts.length > 0
-      ? competitorPromptSummary(data.prompts)
-      : null;
+  const { data, isPending } = useGeoCompetitorPromptSummary(
+    organizationId,
+    open ? brand : null
+  );
+  const summary = data?.summary ?? null;
 
   return (
     <TrafficBreakdownCard
@@ -79,7 +77,19 @@ export function GeoAnswerMentionCompetitorCard({
             value={synonyms.join(", ")}
           />
         ) : null}
-        {summary ? (
+        {isPending ? (
+          <div
+            aria-label="Loading mentions"
+            className="flex items-center justify-between gap-3 px-3 py-1.5"
+            role="status"
+          >
+            <span className="text-muted-foreground shrink-0">
+              {GEO_ANSWER_MENTION_MENTIONS_LABEL}
+            </span>
+            <Skeleton className="h-3 w-20" />
+          </div>
+        ) : null}
+        {!isPending && summary ? (
           <MentionStatRow
             label={GEO_ANSWER_MENTION_MENTIONS_LABEL}
             value={`${summary.mentioned.toLocaleString()} of ${summary.total.toLocaleString()}`}

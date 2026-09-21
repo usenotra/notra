@@ -219,6 +219,7 @@ export const geoCompetitorDeleteInputSchema = geoOrganizationInputSchema.extend(
 export const geoCompetitorDetailInputSchema = geoOrganizationInputSchema.extend(
   {
     brand: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    summaryOnly: boolean().optional(),
     ...geoWindowFields,
   }
 );
