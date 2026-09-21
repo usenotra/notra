@@ -334,10 +334,8 @@ async function getPullRequestAfterCommit(params: {
 }
 
 /**
- * Older pull requests were created before the article and "Open in Notra"
- * button were part of the description. When republishing to an open pull
- * request, refresh its body so it picks up the latest draft. Failures are
- * non-fatal: the content commit already landed.
+ * Republish refreshes the description to the file path and the Open in Notra
+ * link. Failures are non-fatal: the content commit already landed.
  */
 async function ensurePullRequestBody(params: {
   currentBody: string | null | undefined;
@@ -351,9 +349,7 @@ async function ensurePullRequestBody(params: {
     badgeUrls: params.publishParams.badgeUrls,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
-    markdown:
-      params.publishParams.pullRequestMarkdown ?? params.publishParams.markdown,
-    title: params.publishParams.title,
+    path: params.publishParams.path,
   });
   if ((params.currentBody ?? "") === body) {
     return;
@@ -1067,8 +1063,7 @@ export async function publishContentDraftPullRequest(
           badgeUrls: params.badgeUrls,
           contentType: params.contentType,
           contentUrl: params.contentUrl,
-          markdown: params.pullRequestMarkdown ?? params.markdown,
-          title: params.title,
+          path: params.path,
         }),
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,

@@ -407,8 +407,6 @@ export interface PublishContentDraftPullRequestParams {
   markdown: string;
   assets?: GitHubContentAsset[];
   assetPathsToDelete?: string[];
-  /** Markdown shown in the pull request body when repository-local asset URLs differ from the committed file. */
-  pullRequestMarkdown?: string;
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */
   prepareContent?: (contentPath: string) => Promise<PreparedGitHubContent>;
   /**

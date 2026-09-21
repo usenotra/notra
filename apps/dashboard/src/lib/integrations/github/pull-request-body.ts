@@ -17,20 +17,16 @@ const OPEN_IN_NOTRA_BADGE_PATHS = {
 const PULL_REQUEST_BODY_TRUNCATION_NOTICE =
   "_Truncated to fit GitHub's pull request description limit. The full draft is in the committed file._";
 
-const LEADING_HEADING_REGEX = /^#\s+\S/;
-
 export type { OpenInNotraBadgeUrls };
 
 export interface BuildContentPullRequestBodyParams {
   contentType: GitHubPublishContentType;
+  /** Repository path of the committed draft. */
+  path: string;
   /** Deep link to the content in the Notra dashboard. */
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
   badgeUrls?: OpenInNotraBadgeUrls;
-  /** Draft markdown committed to the pull request. */
-  markdown?: string;
-  /** Content title, used as an H1 when the markdown body has none. */
-  title?: string;
 }
 
 function trimTrailingSlash(url: string) {
@@ -103,7 +99,7 @@ function escapeRegExp(value: string) {
 
 /**
  * Drops a previously rendered deep link so republishing can place one fresh
- * link after the draft, including after notes another app appended.
+ * link after the file path, including after notes another app appended.
  */
 function stripOpenInNotraLink(
   body: string,
@@ -142,35 +138,6 @@ function buildManagedIntro(params: BuildContentPullRequestBodyParams) {
   ]);
 }
 
-function neutralizeManagedSectionMarkers(markdown: string) {
-  return markdown
-    .replaceAll(
-      GITHUB_PULL_REQUEST_BODY_SECTION_START,
-      "<!-- notra-content:start -->"
-    )
-    .replaceAll(
-      GITHUB_PULL_REQUEST_BODY_SECTION_END,
-      "<!-- notra-content:end -->"
-    );
-}
-
-function formatContentForPullRequest(
-  params: BuildContentPullRequestBodyParams
-) {
-  const body = neutralizeManagedSectionMarkers(params.markdown?.trim() ?? "");
-  if (!body) {
-    return "";
-  }
-
-  const title = params.title?.replace(/\s+/g, " ").trim() ?? "";
-  const firstLine = body.split(/\r?\n/, 1)[0] ?? "";
-  if (!title || LEADING_HEADING_REGEX.test(firstLine)) {
-    return body;
-  }
-
-  return `# ${title}\n\n${body}`;
-}
-
 function wrapManagedSection(managedContent: string) {
   return [
     GITHUB_PULL_REQUEST_BODY_SECTION_START,
@@ -180,9 +147,8 @@ function wrapManagedSection(managedContent: string) {
 }
 
 function buildManagedContent(params: BuildContentPullRequestBodyParams) {
-  return (
-    formatContentForPullRequest(params) || draftSummary(params.contentType)
-  );
+  const path = params.path.trim();
+  return path ? `\`${path}\`` : draftSummary(params.contentType);
 }
 
 function clampManagedSection(wrapped: string, maxLength: number) {
