@@ -304,10 +304,19 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   },
   // xAI
   {
+    id: "spacexai/grok-4.7",
+    provider: "spacexai",
+    label: "Grok 4.7",
+    zdr: "all",
+    released: "2026-09-21",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "spacexai/grok-4.6",
     provider: "spacexai",
     label: "Grok 4.6",
-    zdr: "none",
+    zdr: "all",
     released: "2026-08-12",
     default: false,
     gateways: ["vercel", "openrouter"],
@@ -525,6 +534,7 @@ export const GEO_MODEL_EXCLUDED_IDS: ReadonlySet<string> = new Set([
 /** Stored engine ids that should keep scanning as their replacement. */
 export const GEO_MODEL_REPLACED_IDS: Readonly<Record<string, string>> = {
   "meta/muse-spark-1.1": "meta/muse-spark-1.3",
+  "spacexai/grok-4.6": "spacexai/grok-4.7",
 };
 /**
  * Coding, vision and edge-sized specialities. They are never used to answer

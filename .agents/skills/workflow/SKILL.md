@@ -92,7 +92,7 @@ async function processWithAI(data: any) {
   "use step";
   // AI SDK works in steps without workarounds
   return await generateText({
-    model: "spacexai/grok-4.6",
+    model: "spacexai/grok-4.7",
     prompt: `Process: ${JSON.stringify(data)}`,
   });
 }
@@ -152,7 +152,7 @@ export async function myAgentWorkflow(userMessage: string) {
   "use workflow";
 
   const agent = new WorkflowAgent({
-    model: "spacexai/grok-4.6",
+    model: "spacexai/grok-4.7",
     instructions: "You are a helpful assistant.",
     tools: {
       lookupData: tool({
@@ -174,7 +174,7 @@ export async function myAgentWorkflow(userMessage: string) {
 ```
 
 **Key points:**
-- A plain `"provider/model"` string routes through Vercel AI Gateway; `spacexai/grok-4.6` is the default model in Workflow examples
+- A plain `"provider/model"` string routes through Vercel AI Gateway; `spacexai/grok-4.7` is the default model in Workflow examples
 - `getWritable<ModelCallStreamPart>()` streams durable model-call output; convert it with `createModelCallToUIChunkTransform()` in an HTTP route
 - Tool `execute` functions that need Node.js/npm access should use `"use step"`
 - Tool `execute` functions that use workflow primitives (`sleep()`, `createHook()`) should **NOT** use `"use step"` because they run at the workflow level
