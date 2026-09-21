@@ -23,6 +23,10 @@ export interface BuildContentPullRequestBodyParams {
   contentType: GitHubPublishContentType;
   /** Repository path of the committed draft. */
   path: string;
+  owner: string;
+  repo: string;
+  /** Branch that contains the committed draft. */
+  branch: string;
   /** Deep link to the content in the Notra dashboard. */
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
@@ -146,17 +150,37 @@ function wrapManagedSection(managedContent: string) {
   ].join("\n");
 }
 
+function escapeHtmlText(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function encodeGitHubPath(value: string) {
+  return value
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
 function buildManagedContent(params: BuildContentPullRequestBodyParams) {
   const path = params.path.trim();
   if (!path) {
     return draftSummary(params.contentType);
   }
 
-  const escaped = path
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-  return `<code>${escaped}</code>`;
+  const label = `<code>${escapeHtmlText(path)}</code>`;
+  const owner = params.owner.trim();
+  const repo = params.repo.trim();
+  const branch = params.branch.trim();
+  if (!(owner && repo && branch)) {
+    return label;
+  }
+
+  const href = `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/blob/refs/heads/${encodeGitHubPath(branch)}/${encodeGitHubPath(path)}`;
+  return `<a href="${href}">${label}</a>`;
 }
 
 function clampManagedSection(wrapped: string, maxLength: number) {

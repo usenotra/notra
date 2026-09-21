@@ -337,6 +337,7 @@ async function getPullRequestAfterCommit(params: {
  * link. Failures are non-fatal: the content commit already landed.
  */
 async function ensurePullRequestBody(params: {
+  branchName: string;
   currentBody: string | null | undefined;
   octokit: GitHubClient;
   owner: string;
@@ -346,9 +347,12 @@ async function ensurePullRequestBody(params: {
 }) {
   const body = mergeContentPullRequestBody(params.currentBody, {
     badgeUrls: params.publishParams.badgeUrls,
+    branch: params.branchName,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
+    owner: params.owner,
     path: params.publishParams.path,
+    repo: params.repo,
   });
   if ((params.currentBody ?? "") === body) {
     return;
@@ -1024,6 +1028,7 @@ export async function publishContentDraftPullRequest(
         repo: params.repo,
       });
       await ensurePullRequestBody({
+        branchName,
         currentBody: pullRequestAfterCommit.body,
         octokit,
         owner: params.owner,
@@ -1060,9 +1065,12 @@ export async function publishContentDraftPullRequest(
         title: `docs: add ${params.title}`,
         body: buildContentPullRequestBody({
           badgeUrls: params.badgeUrls,
+          branch: branchName,
           contentType: params.contentType,
           contentUrl: params.contentUrl,
+          owner: params.owner,
           path: params.path,
+          repo: params.repo,
         }),
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,
@@ -1121,6 +1129,7 @@ export async function publishContentDraftPullRequest(
           repo: params.repo,
         });
         await ensurePullRequestBody({
+          branchName,
           currentBody: pullRequestAfterCommit.body,
           octokit,
           owner: params.owner,
