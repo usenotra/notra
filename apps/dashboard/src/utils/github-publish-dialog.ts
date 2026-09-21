@@ -2,8 +2,16 @@ import type { GitHubPublishPullRequestResult } from "@/types/integrations/github
 
 export function getGitHubPublishDialogCopy(
   contentLabel: string,
-  pullRequest: GitHubPublishPullRequestResult | undefined
+  pullRequest: GitHubPublishPullRequestResult | undefined,
+  linkedLabel?: string
 ) {
+  if (!pullRequest && linkedLabel) {
+    return {
+      description: `This ${contentLabel} is linked to ${linkedLabel}. Notra updates that draft pull request with the latest Markdown.`,
+      title: "Update the linked pull request",
+    };
+  }
+
   if (!pullRequest) {
     return {
       description: `Notra creates a branch, adds the ${contentLabel} as Markdown, and opens a draft pull request against the repository's default branch.`,

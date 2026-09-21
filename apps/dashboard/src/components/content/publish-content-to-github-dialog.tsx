@@ -1,5 +1,7 @@
 "use client";
 
+import { Refresh01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -9,6 +11,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useState } from "react";
@@ -24,6 +27,7 @@ import type {
   GitHubPublishDialogBodyProps,
   PublishContentToGitHubDialogProps,
 } from "@/types/content/detail";
+import type { ContentApiResponse } from "@/types/hooks/content";
 import { getGitHubPublishDialogCopy } from "@/utils/github-publish-dialog";
 import { getGitHubPublishRecovery } from "@/utils/github-publish-recovery";
 import {
@@ -92,6 +96,7 @@ function GitHubPublishDialogBody({
 export function PublishContentToGitHubDialog({
   contentId,
   contentType,
+  githubPublish,
   onSave,
   organizationId,
   organizationSlug,
@@ -100,13 +105,20 @@ export function PublishContentToGitHubDialog({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [repositoryId, setRepositoryId] = useState(
-    () => readStoredGitHubPublishRepositoryId(organizationId) ?? ""
+    () =>
+      githubPublish?.repositoryId ??
+      readStoredGitHubPublishRepositoryId(organizationId) ??
+      ""
   );
   const contentLabel = contentType === "changelog" ? "changelog" : "blog post";
 
   useEffect(() => {
-    setRepositoryId(readStoredGitHubPublishRepositoryId(organizationId) ?? "");
-  }, [organizationId]);
+    setRepositoryId(
+      githubPublish?.repositoryId ??
+        readStoredGitHubPublishRepositoryId(organizationId) ??
+        ""
+    );
+  }, [githubPublish?.repositoryId, organizationId]);
 
   const integrationsQuery = useQuery(
     dashboardOrpc.integrations.list.queryOptions({
@@ -152,8 +164,44 @@ export function PublishContentToGitHubDialog({
         repositoryId: targetRepositoryId,
       });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, targetRepositoryId) => {
+      const repository = repositories.find(
+        (item) => item.id === targetRepositoryId
+      );
       invalidateIntegrations();
+      if (repository) {
+        queryClient.setQueryData<ContentApiResponse>(
+          dashboardOrpc.content.get.queryKey({
+            input: { organizationId, contentId },
+          }),
+          (current) => {
+            if (!current) {
+              return current;
+            }
+
+            return {
+              ...current,
+              content: {
+                ...current.content,
+                githubPublish: {
+                  branchName: result.branchName,
+                  owner: repository.owner,
+                  path: result.path,
+                  pullRequestNumber: result.pullRequestNumber,
+                  pullRequestUrl: result.pullRequestUrl,
+                  repo: repository.repo,
+                  repositoryId: repository.id,
+                },
+              },
+            };
+          }
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.content.get.queryKey({
+          input: { organizationId, contentId },
+        }),
+      });
       toast.success(
         result.operation === "created"
           ? "Draft pull request created"
@@ -170,7 +218,15 @@ export function PublishContentToGitHubDialog({
   });
   const pullRequest = publishMutation.data;
   const publishRecovery = getGitHubPublishRecovery(publishMutation.error);
-  const copy = getGitHubPublishDialogCopy(contentLabel, pullRequest);
+  const linkedLabel = githubPublish
+    ? `${githubPublish.owner}/${githubPublish.repo}#${githubPublish.pullRequestNumber}`
+    : undefined;
+  const updatingLinkedPullRequest = Boolean(linkedLabel) && !pullRequest;
+  const copy = getGitHubPublishDialogCopy(
+    contentLabel,
+    pullRequest,
+    updatingLinkedPullRequest ? linkedLabel : undefined
+  );
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!publishMutation.isPending) {
@@ -204,10 +260,49 @@ export function PublishContentToGitHubDialog({
 
   return (
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-      <ResponsiveDialogTrigger render={<Button size="sm" variant="outline" />}>
-        <Github className="size-4" />
-        Create GitHub PR
-      </ResponsiveDialogTrigger>
+      {githubPublish ? (
+        <ButtonGroup>
+          <Button
+            nativeButton={false}
+            render={
+              <a
+                href={githubPublish.pullRequestUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              />
+            }
+            size="sm"
+            variant="outline"
+          >
+            <Github className="size-4" />
+            <span className="max-w-44 truncate">
+              {githubPublish.owner}/{githubPublish.repo}
+            </span>
+            <span className="text-muted-foreground">
+              #{githubPublish.pullRequestNumber}
+            </span>
+          </Button>
+          <ResponsiveDialogTrigger
+            render={
+              <Button
+                aria-label="Update pull request"
+                size="icon-sm"
+                title="Update pull request"
+                variant="outline"
+              />
+            }
+          >
+            <HugeiconsIcon className="size-4" icon={Refresh01Icon} />
+          </ResponsiveDialogTrigger>
+        </ButtonGroup>
+      ) : (
+        <ResponsiveDialogTrigger
+          render={<Button size="sm" variant="outline" />}
+        >
+          <Github className="size-4" />
+          Create GitHub PR
+        </ResponsiveDialogTrigger>
+      )}
       <ResponsiveDialogContent className="min-w-0 sm:max-w-[600px]">
         <form className="contents" onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
@@ -244,6 +339,7 @@ export function PublishContentToGitHubDialog({
               publishRecovery={publishRecovery}
               pullRequest={pullRequest}
               selectedPublishingEnabled={selectedPublishingEnabled}
+              updatingLinkedPullRequest={updatingLinkedPullRequest}
             />
           </ResponsiveDialogFooter>
         </form>

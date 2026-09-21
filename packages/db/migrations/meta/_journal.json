@@ -687,6 +687,13 @@
       "when": 1790011750687,
       "tag": "0097_agent_session_id_protocol",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1790013729442,
+      "tag": "0098_post_github_publish",
+      "breakpoints": true
     }
   ]
 }

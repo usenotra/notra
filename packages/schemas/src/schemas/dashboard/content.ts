@@ -12,10 +12,14 @@ import {
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import { createContentGenerationRequestSchema } from "@notra/content-generation/schemas";
 import { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
+import type { PostGitHubPublish } from "@notra/db/types/post-github-publish";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
-import { GITHUB_PUBLISH_CONTENT_TYPES } from "../../constants/dashboard/github";
+import {
+  GITHUB_CONTENT_PATH_MAX_LENGTH,
+  GITHUB_PUBLISH_CONTENT_TYPES,
+} from "../../constants/dashboard/github";
 import { createPostFieldsSchema, postSlugSchema } from "../shared/post";
 import {
   LOOKBACK_WINDOWS,
@@ -71,6 +75,22 @@ export const sourceMetadataSchema = z
 
 export type SourceMetadata = z.infer<typeof sourceMetadataSchema>;
 
+const githubHostSchema = z
+  .url({ protocol: /^https$/ })
+  .refine((value) => new URL(value).hostname === "github.com", {
+    error: "Pull request URL must be on github.com",
+  });
+
+export const postGitHubPublishSchema = z.object({
+  branchName: z.string().trim().min(1).max(255),
+  owner: z.string().trim().min(1).max(39),
+  path: z.string().trim().min(1).max(GITHUB_CONTENT_PATH_MAX_LENGTH),
+  pullRequestNumber: z.number().int().positive(),
+  pullRequestUrl: githubHostSchema,
+  repo: z.string().trim().min(1).max(100),
+  repositoryId: z.string().trim().min(1).max(64),
+}) satisfies z.ZodType<PostGitHubPublish>;
+
 export const contentSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -84,6 +104,7 @@ export const contentSchema = z.object({
   status: postStatusSchema,
   date: z.string(),
   sourceMetadata: sourceMetadataSchema,
+  githubPublish: postGitHubPublishSchema.nullable(),
 });
 
 export type ContentResponse = z.infer<typeof contentSchema>;

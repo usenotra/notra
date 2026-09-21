@@ -47,6 +47,7 @@ import {
 } from "./types/geo-scan";
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
+import type { PostGitHubPublish } from "./types/post-github-publish";
 
 export const lookbackWindowEnum = pgEnum("lookback_window", [
   "current_day",
@@ -2217,6 +2218,7 @@ export const posts = pgTable(
     contentSubtype: text("content_subtype", { enum: BLOG_POST_SUBTYPES }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     sourceMetadata: jsonb("source_metadata"),
+    githubPublish: jsonb("github_publish").$type<PostGitHubPublish | null>(),
     status: postStatusEnum("status").default("draft").notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

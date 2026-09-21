@@ -101,6 +101,7 @@ export function ContentDetailToolbar({
           <PublishContentToGitHubDialog
             contentId={contentId}
             contentType={content.contentType}
+            githubPublish={content.githubPublish}
             onSave={document.handleSave}
             organizationId={organizationId}
             organizationSlug={organizationSlug}
