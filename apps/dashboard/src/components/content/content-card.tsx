@@ -119,7 +119,7 @@ function renderCardPreview({
   }
 
   return (
-    <p className="text-muted-foreground line-clamp-3 px-3 pb-3 text-sm">
+    <p className="text-muted-foreground line-clamp-3 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] px-3 pb-3 text-sm">
       {previewText}
     </p>
   );
