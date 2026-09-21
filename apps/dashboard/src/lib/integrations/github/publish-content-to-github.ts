@@ -152,6 +152,55 @@ function buildGitHubContentFileChanges(
   };
 }
 
+const CONTENT_BRANCH_TITLE_WORD_LIMIT = 6;
+const CONTENT_BRANCH_SLUG_MAX_LENGTH = 60;
+const CONTENT_BRANCH_DISCRIMINATOR_LENGTH = 6;
+const LEGACY_CONTENT_BRANCH_HASH_LENGTH = 16;
+
+function contentBranchPrefix(contentType: GitHubPublishContentType) {
+  return contentType === "changelog" ? "changelog" : "blog-post";
+}
+
+function contentBranchDiscriminator(contentId: string) {
+  return createHash("sha256")
+    .update(contentId)
+    .digest("hex")
+    .slice(0, CONTENT_BRANCH_DISCRIMINATOR_LENGTH);
+}
+
+/**
+ * `notra/changelog-dashboard-clarity-and-content-a1b2c3`.
+ * The title slug is what you see in GitHub. The short suffix stays stable
+ * when the title changes, so a later publish still finds this pull request.
+ */
+export function createContentBranchName(
+  contentType: GitHubPublishContentType,
+  title: string,
+  contentId: string
+) {
+  const words = slugify(title)
+    .split("-")
+    .filter(Boolean)
+    .slice(0, CONTENT_BRANCH_TITLE_WORD_LIMIT);
+  const slug =
+    words
+      .join("-")
+      .slice(0, CONTENT_BRANCH_SLUG_MAX_LENGTH)
+      .replace(/-$/, "") || "update";
+  return `notra/${contentBranchPrefix(contentType)}-${slug}-${contentBranchDiscriminator(contentId)}`;
+}
+
+function createHashOnlyContentBranchName(
+  contentType: GitHubPublishContentType,
+  contentId: string
+) {
+  const contentHash = createHash("sha256")
+    .update(contentId)
+    .digest("hex")
+    .slice(0, LEGACY_CONTENT_BRANCH_HASH_LENGTH);
+  return `notra/${contentBranchPrefix(contentType)}-${contentHash}`;
+}
+
 function createLegacyContentBranchName(
   path: string,
   contentType: GitHubPublishContentType,
@@ -161,9 +210,8 @@ function createLegacyContentBranchName(
   const targetHash = createHash("sha256")
     .update(`${contentId}\0${path}`)
     .digest("hex")
-    .slice(0, 16);
-  const prefix = contentType === "changelog" ? "changelog" : "blog-post";
-  return `notra/${prefix}-${slug || "update"}-${targetHash}`;
+    .slice(0, LEGACY_CONTENT_BRANCH_HASH_LENGTH);
+  return `notra/${contentBranchPrefix(contentType)}-${slug || "update"}-${targetHash}`;
 }
 
 function toPullRequestResult(
@@ -204,7 +252,9 @@ async function findLegacyContentPullRequest(
   params: PublishContentDraftPullRequestParams,
   baseSha: string
 ) {
-  const prefix = params.contentType === "changelog" ? "changelog" : "blog-post";
+  const prefix = contentBranchPrefix(params.contentType);
+  const branchPrefix = `notra/${prefix}-`;
+  const discriminatorSuffix = `-${contentBranchDiscriminator(params.contentId)}`;
   for (let page = 1; ; page += 1) {
     const { data: pullRequests } = await octokit.request(
       "GET /repos/{owner}/{repo}/pulls",
@@ -219,12 +269,22 @@ async function findLegacyContentPullRequest(
       }
     );
     for (const pullRequest of pullRequests) {
+      const ref = pullRequest.head.ref;
       if (
         pullRequest.head.repo?.full_name.toLowerCase() !==
           `${params.owner}/${params.repo}`.toLowerCase() ||
-        !pullRequest.head.ref.startsWith(`notra/${prefix}-`) ||
-        !pullRequest.head.ref.slice(`notra/${prefix}-`.length).includes("-")
+        !ref.startsWith(branchPrefix)
       ) {
+        continue;
+      }
+
+      const remainder = ref.slice(branchPrefix.length);
+      if (remainder.endsWith(discriminatorSuffix)) {
+        return pullRequest;
+      }
+
+      const legacyHash = remainder.slice(remainder.lastIndexOf("-") + 1);
+      if (!(remainder.includes("-") && /^[0-9a-f]{16}$/.test(legacyHash))) {
         continue;
       }
       const { data: comparison } = await octokit.request(
@@ -710,13 +770,15 @@ export async function publishContentDraftPullRequest(
     );
   }
 
-  const prefix =
-    requestedParams.contentType === "changelog" ? "changelog" : "blog-post";
-  const contentHash = createHash("sha256")
-    .update(requestedParams.contentId)
-    .digest("hex")
-    .slice(0, 16);
-  let branchName = `notra/${prefix}-${contentHash}`;
+  let branchName = createContentBranchName(
+    requestedParams.contentType,
+    requestedParams.title,
+    requestedParams.contentId
+  );
+  const hashOnlyBranchName = createHashOnlyContentBranchName(
+    requestedParams.contentType,
+    requestedParams.contentId
+  );
   let existingPullRequest: GitHubPullRequestSummary | undefined;
 
   try {
@@ -727,6 +789,18 @@ export async function publishContentDraftPullRequest(
       owner: requestedParams.owner,
       repo: requestedParams.repo,
     });
+    if (!existingPullRequest && hashOnlyBranchName !== branchName) {
+      existingPullRequest = await findExistingPullRequest({
+        branchName: hashOnlyBranchName,
+        defaultBranch: requestedParams.defaultBranch,
+        octokit,
+        owner: requestedParams.owner,
+        repo: requestedParams.repo,
+      });
+      if (existingPullRequest) {
+        branchName = hashOnlyBranchName;
+      }
+    }
     if (!existingPullRequest) {
       const legacyPullRequest = await findLegacyContentPullRequest(
         octokit,
@@ -764,6 +838,26 @@ export async function publishContentDraftPullRequest(
         );
       }
       branchExists = false;
+    }
+    if (!branchExists && hashOnlyBranchName !== branchName) {
+      try {
+        await octokit.request("GET /repos/{owner}/{repo}/git/ref/{ref}", {
+          owner: requestedParams.owner,
+          repo: requestedParams.repo,
+          ref: `heads/${hashOnlyBranchName}`,
+          headers: GITHUB_API_VERSION_HEADERS,
+        });
+        branchName = hashOnlyBranchName;
+        branchExists = true;
+      } catch (error) {
+        if (!hasGitHubStatus(error, 404)) {
+          throw new GitHubContentPublishError(
+            "Failed to check for an existing content branch",
+            error,
+            hashOnlyBranchName
+          );
+        }
+      }
     }
     // A branch left by an earlier attempt may use a different path. Its
     // recorded destination is checked after branch validation below.

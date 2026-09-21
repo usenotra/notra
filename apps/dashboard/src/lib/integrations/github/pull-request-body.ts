@@ -97,6 +97,39 @@ function joinParagraphs(parts: string[]) {
   return parts.filter((part) => part.length > 0).join("\n\n");
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Drops a previously rendered deep link so republishing can place one fresh
+ * link after the draft, including after notes another app appended.
+ */
+function stripOpenInNotraLink(
+  body: string,
+  params: BuildContentPullRequestBodyParams
+) {
+  if (!params.contentUrl) {
+    return body;
+  }
+
+  const url = escapeRegExp(params.contentUrl);
+  const button = new RegExp(
+    `<a href="${url}"><picture><source media="\\(prefers-color-scheme: dark\\)" srcset="[^"]*"><source media="\\(prefers-color-scheme: light\\)" srcset="[^"]*"><img src="[^"]*" alt="Open in Notra" height="44"></picture></a>`,
+    "g"
+  );
+  const markdownLink = new RegExp(`\\[Open in Notra\\]\\(${url}\\)`, "g");
+  return body
+    .replace(button, "")
+    .replace(markdownLink, "")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+function openInNotraTail(params: BuildContentPullRequestBodyParams) {
+  const link = renderOpenInNotraLink(params);
+  return link ? `\n\n${link}` : "";
+}
+
 /**
  * Older pull requests only had this summary (and later the Open in Notra
  * button). Keep generating it so republishing can still find and replace
@@ -147,12 +180,9 @@ function wrapManagedSection(managedContent: string) {
 }
 
 function buildManagedContent(params: BuildContentPullRequestBodyParams) {
-  const article = formatContentForPullRequest(params);
-  if (!article) {
-    return buildManagedIntro(params);
-  }
-
-  return joinParagraphs([renderOpenInNotraLink(params), article]);
+  return (
+    formatContentForPullRequest(params) || draftSummary(params.contentType)
+  );
 }
 
 function clampManagedSection(wrapped: string, maxLength: number) {
@@ -174,9 +204,13 @@ function clampManagedSection(wrapped: string, maxLength: number) {
 function assemblePullRequestBody(
   prefix: string,
   managed: string,
-  suffix: string
+  suffix: string,
+  reservedTail = ""
 ) {
-  const maxLength = GITHUB_PULL_REQUEST_BODY_MAX_LENGTH;
+  const maxLength = Math.max(
+    0,
+    GITHUB_PULL_REQUEST_BODY_MAX_LENGTH - reservedTail.length
+  );
   let keptPrefix = prefix;
   let keptSuffix = suffix;
   const overflow =
@@ -201,7 +235,7 @@ function assemblePullRequestBody(
   return `${keptPrefix}${clampManagedSection(
     managed,
     maxLength - keptPrefix.length - keptSuffix.length
-  )}${keptSuffix}`;
+  )}${keptSuffix}${reservedTail}`;
 }
 
 function markedSectionRange(body: string) {
@@ -276,7 +310,8 @@ export function buildContentPullRequestBody(
   return assemblePullRequestBody(
     "",
     wrapManagedSection(buildManagedContent(params)),
-    ""
+    "",
+    openInNotraTail(params)
   );
 }
 
@@ -284,12 +319,13 @@ export function mergeContentPullRequestBody(
   currentBody: string | null | undefined,
   params: BuildContentPullRequestBodyParams
 ) {
-  const existingBody = currentBody ?? "";
+  const existingBody = stripOpenInNotraLink(currentBody ?? "", params);
   const managed = wrapManagedSection(buildManagedContent(params));
+  const tail = openInNotraTail(params);
   const trimmed = existingBody.trim();
 
   if (!trimmed || legacyManagedBodies(params).includes(trimmed)) {
-    return assemblePullRequestBody("", managed, "");
+    return assemblePullRequestBody("", managed, "", tail);
   }
 
   const range = findReplacementRange(existingBody, params);
@@ -297,9 +333,15 @@ export function mergeContentPullRequestBody(
     return assemblePullRequestBody(
       existingBody.slice(0, range.start),
       managed,
-      existingBody.slice(range.end)
+      existingBody.slice(range.end),
+      tail
     );
   }
 
-  return assemblePullRequestBody(`${existingBody.trimEnd()}\n\n`, managed, "");
+  return assemblePullRequestBody(
+    `${existingBody.trimEnd()}\n\n`,
+    managed,
+    "",
+    tail
+  );
 }
