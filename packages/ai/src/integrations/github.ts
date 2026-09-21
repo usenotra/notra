@@ -970,11 +970,28 @@ const listRepositoriesForInstallation = Effect.fn(
   const stale = yield* readCachedRepositories(
     repositoryCacheKey(installation, true)
   );
-  if (stale) {
+  if (stale && repositoryOutageCanUseStaleCache(loaded.failure)) {
     return stale;
   }
   return yield* Effect.fail(loaded.failure);
 });
+
+function repositoryOutageCanUseStaleCache(error: {
+  readonly _tag: string;
+  readonly status?: number;
+}) {
+  if (error._tag !== "GitHubRequestError") {
+    return false;
+  }
+  if (
+    error.status === undefined ||
+    error.status === 408 ||
+    error.status === 429
+  ) {
+    return true;
+  }
+  return error.status >= 500;
+}
 
 export async function githubAppRepositoryCacheIsWarm(
   installations: GitHubInstallationReference[]
@@ -1167,11 +1184,10 @@ export async function deleteGitHubAppInstallationForOrganization(
 
   await Promise.all(
     targets.map((installation) =>
-      Promise.resolve(
-        redis?.del(
-          `github_app_repositories:${organizationId}:${installation.installationId}`
-        )
-      )
+      Promise.all([
+        redis?.del(repositoryCacheKey(installation)),
+        redis?.del(repositoryCacheKey(installation, true)),
+      ])
     )
   );
 }

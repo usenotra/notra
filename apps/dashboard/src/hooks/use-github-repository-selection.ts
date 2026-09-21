@@ -36,18 +36,21 @@ export function useGitHubRepositorySelection({
       refetchOnMount,
     })
   );
-  const accounts = catalogQuery.data?.accounts ?? query.data?.accounts ?? [];
+  const accounts = (query.data?.accounts ?? []).map((account) => {
+    const live = catalogQuery.data?.accounts.find(
+      (candidate) => candidate.id === account.id
+    );
+    return live ? { ...account, canPublish: live.canPublish } : account;
+  });
   const accountId = selectedAccountId ?? accounts[0]?.id;
   const account = accounts.find((candidate) => candidate.id === accountId);
-  const repositories =
-    catalogQuery.data?.repositories ?? query.data?.repositories ?? [];
-  const catalogRepositories = catalogQuery.data?.repositories ?? [];
+  const repositories = query.data?.repositories ?? [];
   const dialogRepositories = account
-    ? catalogRepositories.filter(
+    ? (catalogQuery.data?.repositories ?? []).filter(
         (repository) =>
           repository.owner.toLowerCase() === account.login.toLowerCase()
       )
-    : catalogRepositories;
+    : [];
   const saveMutation = useMutation({
     mutationFn: (repositoryIds: string[]) =>
       dashboardOrpc.github.app.saveRepositories.call({
@@ -56,7 +59,7 @@ export function useGitHubRepositorySelection({
       }),
     onSuccess: async (_saved, repositoryIds) => {
       queryClient.setQueryData(
-        dashboardOrpc.github.app.catalog.queryKey({
+        dashboardOrpc.github.app.get.queryKey({
           input: { organizationId },
         }),
         (current) =>
@@ -87,10 +90,7 @@ export function useGitHubRepositorySelection({
     setSelectedAccountId,
     dialogRepositories,
     repositories,
-    selectedRepositoryIds:
-      catalogQuery.data?.selectedRepositoryIds ??
-      query.data?.selectedRepositoryIds ??
-      [],
+    selectedRepositoryIds: query.data?.selectedRepositoryIds ?? [],
     catalogQuery,
     saveMutation,
   };

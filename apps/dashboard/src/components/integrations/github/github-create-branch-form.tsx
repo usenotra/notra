@@ -19,6 +19,7 @@ export function GitHubCreateBranchForm({
 }: GitHubCreateBranchFormProps) {
   const [branchName, setBranchName] = useState("");
   const branchNameId = useId();
+  const descriptionId = `${branchNameId}-description`;
 
   return (
     <form
@@ -48,7 +49,11 @@ export function GitHubCreateBranchForm({
       <Field data-invalid={errorMessage ? true : undefined}>
         <FieldLabel htmlFor={branchNameId}>Branch name</FieldLabel>
         <Input
-          aria-describedby={errorMessage ? `${branchNameId}-error` : undefined}
+          aria-describedby={
+            errorMessage
+              ? `${descriptionId} ${branchNameId}-error`
+              : descriptionId
+          }
           aria-invalid={Boolean(errorMessage)}
           autoFocus
           disabled={isPending}
@@ -62,6 +67,9 @@ export function GitHubCreateBranchForm({
           placeholder="feature/new-content"
           value={branchName}
         />
+        <p className="sr-only" id={descriptionId}>
+          Created from {baseBranch} and selected for publishing.
+        </p>
         {errorMessage ? (
           <p
             className="text-destructive text-xs"
