@@ -1206,9 +1206,32 @@ export const contentRouter = {
           });
         }
         try {
-          await retryWrite(() =>
+          const recordedPublication = await retryWrite(() =>
             recordContentPublication(publication, publishedAt)
           );
+          if (
+            recordedPublication &&
+            recordedPublication.headSha !== result.headSha
+          ) {
+            const currentPublication = await findOpenContentPublicationForPost({
+              organizationId: input.organizationId,
+              postId: input.contentId,
+            });
+            if (
+              currentPublication?.id === recordedPublication.id &&
+              currentPublication.headSha === recordedPublication.headSha
+            ) {
+              await retryWrite(() =>
+                recordContentPublication(
+                  {
+                    ...publication,
+                    previousHeadSha: currentPublication.headSha,
+                  },
+                  publishedAt
+                )
+              );
+            }
+          }
           if (!reconciliationScheduled) {
             try {
               await startContentPublicationReconciliation(
