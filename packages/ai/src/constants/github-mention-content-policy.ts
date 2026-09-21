@@ -4,7 +4,7 @@ export const GITHUB_MENTION_CONTENT_POLICY_REASONS = {
   expression: "adds an MDX expression",
   script: "adds a script tag",
   embed: "adds an embedded frame or object",
-  javascriptUrl: "adds a javascript: URL",
+  javascriptUrl: "adds an executable URL (javascript:, data:, or vbscript:)",
   eventHandler: "adds an inline event handler",
 } as const;
 

@@ -157,12 +157,12 @@ describe("findNewActiveContent", () => {
         ].join("\n")
       )
     ).toEqual([
-      "adds a javascript: URL",
-      "adds a javascript: URL",
-      "adds a javascript: URL",
-      "adds a javascript: URL",
-      "adds a javascript: URL",
-      "adds a javascript: URL",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
       "adds an inline event handler",
     ]);
   });
@@ -174,7 +174,7 @@ describe("findNewActiveContent", () => {
         "# Guide",
         "# Guide\n\n[open][target]\n\n[target]: javascript:alert(1)"
       )
-    ).toEqual(["adds a javascript: URL"]);
+    ).toEqual(["adds an executable URL (javascript:, data:, or vbscript:)"]);
   });
 
   test("raw SVG and adjacent inline HTML nodes are inspected", () => {
@@ -184,7 +184,10 @@ describe("findNewActiveContent", () => {
         "# Guide",
         '# Guide\n\n<svg><a href="javascript:alert(1)">x</a><script>alert(1)</script></svg>'
       )
-    ).toEqual(["adds a javascript: URL", "adds a script tag"]);
+    ).toEqual([
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds a script tag",
+    ]);
   });
 
   test("edits to an existing inline script body are blocked", () => {
@@ -218,14 +221,14 @@ describe("findNewActiveContent", () => {
         "# Guide",
         '# Guide\n\n<svg><a xlink:href="javascript:alert(1)">click</a></svg>'
       )
-    ).toEqual(["adds a javascript: URL"]);
+    ).toEqual(["adds an executable URL (javascript:, data:, or vbscript:)"]);
     expect(
       reasons(
         "docs/guide.mdx",
         "# Guide",
         '# Guide\n\n<a href={"javascript:alert(1)"}>click</a>'
       )
-    ).toEqual(["adds a javascript: URL"]);
+    ).toEqual(["adds an executable URL (javascript:, data:, or vbscript:)"]);
     expect(
       reasons(
         "docs/guide.mdx",
@@ -242,7 +245,10 @@ describe("findNewActiveContent", () => {
         "# Guide",
         '# Guide\n\n[html](data:text/html,<script>alert(1)</script>)\n\n<a href="vbscript:msgbox(1)">open</a>'
       )
-    ).toEqual(["adds a javascript: URL", "adds a javascript: URL"]);
+    ).toEqual([
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+    ]);
   });
 
   test("comment markers inside an attribute do not hide active content", () => {
@@ -256,7 +262,10 @@ describe("findNewActiveContent", () => {
           '<a title="<!--" href="javascript:alert(1)" rel="-->">x</a>',
         ].join("\n")
       )
-    ).toEqual(["adds an inline event handler", "adds a javascript: URL"]);
+    ).toEqual([
+      "adds an inline event handler",
+      "adds an executable URL (javascript:, data:, or vbscript:)",
+    ]);
   });
 
   test("a handler only counts inside a tag", () => {
