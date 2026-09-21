@@ -19,53 +19,26 @@ interface ContentDetailMainDocumentProps {
   selectedExcerpt: TextSelection | null;
 }
 
-export function ContentDetailMainDocument({
+function GeoWriterPlanDocument({
   contentId,
-  data,
-  document: contentDocument,
-  organizationId,
-  onSelectionChange,
-  selectedExcerpt,
-}: ContentDetailMainDocumentProps) {
+  document,
+}: Pick<ContentDetailMainDocumentProps, "contentId" | "document">) {
   const {
     briefStatus,
-    editedMarkdown,
-    editedMarkdownRef,
-    editorKey,
-    editorRef,
     geoWriterBriefQuery,
     geoWriterDraft,
-    handleEditorChange,
     handlePlanBriefChange,
-    hasChanges,
-    hasMarkdownChanges,
     hasPlanConflict,
-    hasSlugChanges,
-    hasTitleChanges,
-    imageExportRef,
-    isGeoWriterPlanMode,
+    isGeoWriterBriefError,
     isGeoWriterPlanReviewableNow,
-    originalMarkdown,
     planEditorVersion,
     resolvePlanConflictLoadLatest,
     resolvePlanConflictSaveMine,
-    reviewPreviousMarkdown,
-    setEditedMarkdown,
-    setEditingSlug,
-    setEditingTitle,
     setIsPlanDirty,
-    setOriginalMarkdown,
-    editingSlug,
-    editingTitle,
-    serverSlug,
-    serverTitle,
-    writeFocusNonce,
-  } = contentDocument;
-  const { activeOrganization } = useOrganizationsContext();
-  const content = data.content;
+  } = document;
   const planBrief = geoWriterBriefQuery.data?.brief;
 
-  if (isGeoWriterPlanMode && planBrief) {
+  if (planBrief) {
     return (
       <>
         {hasPlanConflict ? (
@@ -110,14 +83,77 @@ export function ContentDetailMainDocument({
     );
   }
 
+  if (isGeoWriterBriefError) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <p className="font-medium">Could not load this content plan</p>
+          <p className="text-muted-foreground text-sm">
+            Try again to continue reviewing or generating this content.
+          </p>
+        </div>
+        <Button
+          disabled={geoWriterBriefQuery.isFetching}
+          onClick={() => {
+            void geoWriterBriefQuery.refetch();
+          }}
+          size="sm"
+          variant="outline"
+        >
+          {geoWriterBriefQuery.isFetching ? "Trying again…" : "Try again"}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-3xl space-y-6">
+      <Skeleton className="bg-muted/60 h-4 w-24 rounded-sm" />
+      <Skeleton className="bg-muted/60 h-10 w-3/4 rounded-sm" />
+      <Skeleton className="bg-muted/60 h-16 w-full rounded-sm" />
+      <Skeleton className="bg-muted/60 h-40 w-full rounded-sm" />
+    </div>
+  );
+}
+
+export function ContentDetailMainDocument({
+  contentId,
+  data,
+  document: contentDocument,
+  organizationId,
+  onSelectionChange,
+  selectedExcerpt,
+}: ContentDetailMainDocumentProps) {
+  const {
+    editedMarkdown,
+    editedMarkdownRef,
+    editorKey,
+    editorRef,
+    handleEditorChange,
+    hasChanges,
+    hasMarkdownChanges,
+    hasSlugChanges,
+    hasTitleChanges,
+    imageExportRef,
+    isGeoWriterPlanMode,
+    originalMarkdown,
+    reviewPreviousMarkdown,
+    setEditedMarkdown,
+    setEditingSlug,
+    setEditingTitle,
+    setOriginalMarkdown,
+    editingSlug,
+    editingTitle,
+    serverSlug,
+    serverTitle,
+    writeFocusNonce,
+  } = contentDocument;
+  const { activeOrganization } = useOrganizationsContext();
+  const content = data.content;
+
   if (isGeoWriterPlanMode) {
     return (
-      <div className="mx-auto w-full max-w-3xl space-y-6">
-        <Skeleton className="bg-muted/60 h-4 w-24 rounded-sm" />
-        <Skeleton className="bg-muted/60 h-10 w-3/4 rounded-sm" />
-        <Skeleton className="bg-muted/60 h-16 w-full rounded-sm" />
-        <Skeleton className="bg-muted/60 h-40 w-full rounded-sm" />
-      </div>
+      <GeoWriterPlanDocument contentId={contentId} document={contentDocument} />
     );
   }
 

@@ -66,7 +66,7 @@ export function useContentDetailDocument({
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
   const {
-    isBriefMissing: isGeoWriterBriefMissing,
+    isBriefError: isGeoWriterBriefError,
     isChatLocked: isGeoWriterChatLocked,
     isPlanMode: isGeoWriterPlanMode,
     isPlanReviewable: isGeoWriterPlanReviewableNow,
@@ -450,6 +450,7 @@ export function useContentDetailDocument({
     imageExportRef,
     imageExportTarget,
     invalidateContentQueries,
+    isGeoWriterBriefError,
     isGeoWriterChatLocked,
     isGeoWriterPlanMode,
     isGeoWriterPlanReviewableNow,

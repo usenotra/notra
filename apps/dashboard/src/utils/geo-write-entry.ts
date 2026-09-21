@@ -76,10 +76,12 @@ export function getGeoWriterDocumentState(
   briefError: unknown,
   briefStatus: string | undefined
 ) {
-  const isBriefMissing = briefError !== null && isNotFoundError(briefError);
+  const hasBriefError = briefError !== null && briefError !== undefined;
+  const isBriefMissing = hasBriefError && isNotFoundError(briefError);
+  const isBriefError = hasBriefError && !isBriefMissing;
   const isPlanReviewable = isGeoWriterPlanReviewable(briefStatus);
   return {
-    isBriefMissing,
+    isBriefError,
     isChatLocked:
       hasDraft &&
       !isBriefMissing &&
