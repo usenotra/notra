@@ -3,11 +3,9 @@ import {
   GITHUB_MENTION_LOG_EVENTS,
 } from "@notra/ai/constants/github-mention";
 import { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
-import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubAppWebhookPayload,
   GitHubMentionContext,
-  GitHubMentionProcessResult,
   GitHubMentionWebhookLog,
 } from "@notra/ai/types/github-mention";
 import { closeContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
@@ -17,15 +15,8 @@ import {
   buildUnauthorizedMentionWebhookLog,
   logGitHubMentionEvent,
 } from "@notra/ai/utils/github-mention-log";
-import { processGitHubMention } from "@notra/ai/utils/github-mention-process";
 import { verifyGitHubWebhookSignature } from "@notra/ai/utils/github-webhook-signature";
-import { redis } from "@notra/ai/utils/redis";
 
-const DELIVERY_TTL_SECONDS = 60 * 60 * 24;
-
-function deliveryLockKey(deliveryId: string) {
-  return `github-mention:delivery:${deliveryId}`;
-}
 const HANDLED_EVENTS = new Set([
   "issue_comment",
   // Mentions in review threads under "Files changed".
@@ -41,30 +32,6 @@ const NOISY_IGNORE_REASONS = new Set([
 
 export function getGitHubAppWebhookSecret() {
   return process.env[GITHUB_MENTION_APP_WEBHOOK_SECRET_ENV]?.trim() ?? "";
-}
-
-/** Atomically claims a delivery so concurrent redeliveries run only once. */
-async function claimDelivery(deliveryId: string) {
-  if (!(redis && deliveryId) || process.env.NODE_ENV === "development") {
-    return true;
-  }
-  const claimed = await redis.set(deliveryLockKey(deliveryId), "1", {
-    nx: true,
-    ex: DELIVERY_TTL_SECONDS,
-  });
-  return claimed === "OK";
-}
-
-/**
- * Drops a claim whose mention was not handled (ingest error, failed run), so
- * redelivering the webhook from the GitHub App settings runs it again instead
- * of answering "duplicate".
- */
-export async function releaseGitHubMentionDelivery(deliveryId: string | null) {
-  if (!(redis && deliveryId) || process.env.NODE_ENV === "development") {
-    return;
-  }
-  await redis.del(deliveryLockKey(deliveryId));
 }
 
 async function syncClosedPullRequestPublication(
@@ -113,11 +80,9 @@ export async function ingestGitHubAppMentionWebhook(params: {
   signature: string | null;
   deliveryId: string | null;
   rawBody: string;
-  scheduleRepair?: PublicationRepairScheduler;
 }): Promise<{
   httpStatus: number;
   body: Record<string, unknown>;
-  run?: () => Promise<GitHubMentionProcessResult>;
   context?: GitHubMentionContext;
   log?: GitHubMentionWebhookLog;
 }> {
@@ -163,37 +128,7 @@ export async function ingestGitHubAppMentionWebhook(params: {
     );
   }
 
-  if (params.deliveryId && !(await claimDelivery(params.deliveryId))) {
-    logGitHubMentionEvent(GITHUB_MENTION_LOG_EVENTS.ignored, {
-      deliveryId: params.deliveryId,
-      reason: "duplicate",
-    });
-    return {
-      httpStatus: 200,
-      body: {
-        message: "duplicate",
-        delivery: params.deliveryId,
-        duplicate: true,
-      },
-    };
-  }
-
-  try {
-    const result = await finishIngest({
-      event: params.event,
-      signature: params.signature,
-      deliveryId: params.deliveryId,
-      rawBody: params.rawBody,
-      scheduleRepair: params.scheduleRepair,
-    });
-    if (result.httpStatus >= 500) {
-      await releaseGitHubMentionDelivery(params.deliveryId);
-    }
-    return result;
-  } catch (error) {
-    await releaseGitHubMentionDelivery(params.deliveryId);
-    throw error;
-  }
+  return await finishIngest({ ...params, event: params.event });
 }
 
 async function finishIngest(params: {
@@ -201,11 +136,9 @@ async function finishIngest(params: {
   signature: string | null;
   deliveryId: string | null;
   rawBody: string;
-  scheduleRepair?: PublicationRepairScheduler;
 }): Promise<{
   httpStatus: number;
   body: Record<string, unknown>;
-  run?: () => Promise<GitHubMentionProcessResult>;
   context?: GitHubMentionContext;
   log?: GitHubMentionWebhookLog;
 }> {
@@ -242,6 +175,15 @@ async function finishIngest(params: {
       httpStatus: 200,
       body: { message: "ignored", reason: "not_pull_request" },
     };
+  }
+
+  if (!params.deliveryId) {
+    return rejectIngest(
+      400,
+      { error: "Missing X-GitHub-Delivery header" },
+      "missing_delivery",
+      null
+    );
   }
 
   const resolved = await resolveGitHubMentionContext({
@@ -316,6 +258,5 @@ async function finishIngest(params: {
     },
     context: resolved.context,
     log: acceptedLog,
-    run: () => processGitHubMention(resolved.context, params.scheduleRepair),
   };
 }

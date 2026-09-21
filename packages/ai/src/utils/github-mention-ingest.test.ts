@@ -134,8 +134,19 @@ describe("ingestGitHubAppMentionWebhook", () => {
       message: "unauthorized",
       reason: "not_org_member",
     });
-    expect(result.run).toBeUndefined();
+    expect(result.context).toBeUndefined();
     expect(result.log).toBeUndefined();
+  });
+
+  test("rejects a mention without a delivery ID before resolving context", async () => {
+    const result = await ingestGitHubAppMentionWebhook({
+      event: "issue_comment",
+      rawBody: mentionPayload,
+      signature: sign(mentionPayload),
+      deliveryId: null,
+    });
+    expect(result.httpStatus).toBe(400);
+    expect(resolveGitHubMentionContext).not.toHaveBeenCalled();
   });
 
   test("accepts authorized mentions for background processing", async () => {
@@ -164,7 +175,13 @@ describe("ingestGitHubAppMentionWebhook", () => {
       organizationId: "org_1",
       issue: 42,
     });
-    expect(result.run).toBeTypeOf("function");
+    expect(result.context).toBeDefined();
+    expect(processGitHubMention).not.toHaveBeenCalled();
+    // Admission never claims a delivery: if enqueue fails or the request dies,
+    // another request can still hand it to the durable worker.
+    expect(
+      (await ingest("issue_comment", mentionPayload, "ok-1")).httpStatus
+    ).toBe(202);
     expect(result.log).toMatchObject({
       status: "pending",
       title: "@notra mention on acme/app#42",

@@ -19,7 +19,10 @@ import {
 } from "@notra/ai/integrations/linear";
 import { type ContentType, contentTypeSchema } from "@notra/ai/schemas/content";
 import { supportsPostSlug } from "@notra/ai/schemas/post";
-import { recordContentPublication } from "@notra/ai/utils/content-publication";
+import {
+  findOpenContentPublicationForPost,
+  recordContentPublication,
+} from "@notra/ai/utils/content-publication";
 import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-app-publish-access";
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createLinearClient } from "@notra/ai/utils/linear";
@@ -1119,6 +1122,10 @@ export const contentRouter = {
 
       try {
         const publishedAt = new Date().toISOString();
+        const previousPublication = await findOpenContentPublicationForPost({
+          organizationId: input.organizationId,
+          postId: input.contentId,
+        });
         const result = await publishContentDraftPullRequest(octokit, {
           contentId: input.contentId,
           contentType: input.contentType,
@@ -1179,6 +1186,7 @@ export const contentRouter = {
           pullRequestNumber: result.pullRequestNumber,
           pullRequestUrl: result.pullRequestUrl,
           headSha: result.headSha,
+          previousHeadSha: previousPublication?.headSha ?? null,
         };
         const logContext = {
           organizationId: input.organizationId,

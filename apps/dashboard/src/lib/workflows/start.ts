@@ -3,6 +3,7 @@ import { chatWorkflowPayloadSchema } from "@notra/ai/schemas/chat";
 import { publicationSyncRepairSchema } from "@notra/ai/schemas/content-publication";
 import type { BrandGuidelinesWorkflowPayload } from "@notra/ai/types/brand-guidelines";
 import type { ChatWorkflowPayload } from "@notra/ai/types/chat";
+import type { GitHubMentionContext } from "@notra/ai/types/github-mention";
 import type { OnboardingAgentWorkflowPayload } from "@notra/ai/types/onboarding-agent";
 import { contentGenerationWorkflowPayloadSchema } from "@notra/content-generation/schemas";
 import { agentReadinessWorkflowPayloadSchema } from "@notra/geo-core/schemas/agent-readiness";
@@ -49,12 +50,18 @@ import { contentPublicationSyncRepairWorkflow } from "@/workflows/content-public
 import { eventContentWorkflow } from "@/workflows/event-content";
 import { geoScanWorkflow } from "@/workflows/geo-scan";
 import { geoWriterWorkflow } from "@/workflows/geo-writer";
+import { githubMentionWorkflow } from "@/workflows/github-mention";
 import { gscSyncWorkflow } from "@/workflows/gsc-sync";
 import { irisControllerRun } from "@/workflows/iris-controller";
 import { onDemandContentWorkflow } from "@/workflows/on-demand-content";
 import { onboardingAgentWorkflow } from "@/workflows/onboarding-agent";
 import { scheduleContentWorkflow } from "@/workflows/schedule-content";
 import { socialAnalyticsSyncWorkflow } from "@/workflows/social-analytics-sync";
+
+export async function startGitHubMentionRun(context: GitHubMentionContext) {
+  const run = await start(githubMentionWorkflow, [context]);
+  return { runId: run.runId };
+}
 
 export async function startBrandAnalysisRun(
   payload: BrandAnalysisPayload

@@ -29,6 +29,8 @@ export interface RecordContentPublicationParams {
   pullRequestNumber: number;
   pullRequestUrl: string;
   headSha?: string | null;
+  /** Recorded publication head read before publishing, not the GitHub head. */
+  previousHeadSha?: string | null;
   status?: ContentPublicationStatus;
 }
 

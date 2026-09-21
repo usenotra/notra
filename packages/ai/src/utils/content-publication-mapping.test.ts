@@ -9,10 +9,11 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
       ["test", fileURLToPath(import.meta.url)],
       {
         env: { ...process.env, NOTRA_PUBLICATION_MAPPING_SQL_WORKER: "1" },
+        timeout: 25_000,
       }
     );
     expect(result.status, result.stderr.toString()).toBe(0);
-  });
+  }, 30_000);
 } else {
   const { PGlite } = await import("@electric-sql/pglite");
   const { drizzle } = await import("drizzle-orm/pglite");
@@ -269,6 +270,31 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
         ["repository-B", "closed"],
         ["repository-A", "open"],
       ]);
+    });
+
+    test("republishing advances the head without replaying over a later sync", async () => {
+      await recordContentPublication(publication("B", "H1"), at(1));
+      const republish = {
+        ...publication("B", "H2"),
+        previousHeadSha: "H1",
+      };
+      await recordContentPublication(republish, at(2));
+      expect((await rows())[0]?.head_sha).toBe("H2");
+      await client.exec("update content_publications set head_sha = 'H3'");
+      await reconcileContentPublication({
+        publication: republish,
+        publishedAt: at(2),
+      });
+      expect((await rows())[0]?.head_sha).toBe("H3");
+    });
+
+    test("a delayed publish cannot advance from a newer publish's baseline", async () => {
+      await recordContentPublication(publication("B", "H1"), at(3));
+      await recordContentPublication(
+        { ...publication("B", "stale"), previousHeadSha: "H1" },
+        at(2)
+      );
+      expect((await rows())[0]?.head_sha).toBe("H1");
     });
 
     test("identical replay preserves the synchronized head", async () => {

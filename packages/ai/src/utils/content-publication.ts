@@ -175,9 +175,14 @@ export async function recordContentPublication(
           path: params.path,
           branch: params.branch,
           pullRequestUrl: params.pullRequestUrl,
-          // Publication creation can race a successful content sync. Never
-          // move an existing mapping's recorded revision backwards.
-          headSha: sql`coalesce(${contentPublications.headSha}, ${params.headSha ?? null})`,
+          // Advance a republish only from its recorded baseline. Replays must
+          // not overwrite a newer publish or a concurrent content sync.
+          headSha: sql`case
+            when ${contentPublications.headSha} is not distinct from ${params.previousHeadSha ?? null}
+              and ${contentPublications.createdAt} <= ${publishedAt}::timestamp
+            then coalesce(${params.headSha ?? null}, ${contentPublications.headSha})
+            else ${contentPublications.headSha}
+          end`,
           status,
           createdAt: sql`greatest(${contentPublications.createdAt}, ${publishedAt}::timestamp)`,
           updatedAt: new Date(),

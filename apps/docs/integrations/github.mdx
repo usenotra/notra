@@ -129,6 +129,8 @@ One organization can start 20 mention runs in 10 minutes. Above that Notra repli
 
 If the GitHub App is missing a permission, Notra does not retry. It replies once with the permission that is missing and a link to the installation settings, and the mention shows up as failed in the webhook log. Mention Notra again after an owner has approved the permissions.
 
+Notra acknowledges a mention only after a durable workflow has been queued. Redis is required to prevent competing deliveries from running the same mention. If processing is interrupted after it starts, Notra records a failure instead of automatically repeating potentially completed GitHub writes. Check the pull request for a commit or reply before posting a new mention. Redelivering the interrupted delivery does not start another agent run.
+
 Notra never commits to the repository's default branch. Ask for a separate pull request instead. Fork pull requests support answers only, including when a separate pull request is requested.
 
 Mentions edit content, not code. Notra commits Markdown, MDX, and text files, plus the JSON, YAML, TOML, or CSV data that sits next to them, such as a docs navigation file. Code, scripts, dot files and folders like `.github`, and build or tool configuration such as `package.json` or `vercel.json` are never committed, whatever the comment asks for. If you ask for one of those, Notra tells you it needs a regular commit.
