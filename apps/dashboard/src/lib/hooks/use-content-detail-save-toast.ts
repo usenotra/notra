@@ -28,6 +28,7 @@ export function useContentDetailSaveToast({
   const saveToastIdRef = useRef<string | number | null>(null);
   const onDiscardRef = useRef(onDiscard);
   const onSaveRef = useRef(onSave);
+  const labelsRef = useRef({ saveLabel, savingLabel });
 
   useEffect(() => {
     onDiscardRef.current = onDiscard;
@@ -39,8 +40,15 @@ export function useContentDetailSaveToast({
 
     const syncSaveToast = () => {
       const isWide = isActivityPanelOpen && mediaQuery.matches;
+      const labelsChanged =
+        labelsRef.current.saveLabel !== saveLabel ||
+        labelsRef.current.savingLabel !== savingLabel;
+      labelsRef.current = { saveLabel, savingLabel };
 
-      if ((!hasChanges || isWide || isSaving) && saveToastIdRef.current) {
+      if (
+        (!hasChanges || isWide || isSaving || labelsChanged) &&
+        saveToastIdRef.current
+      ) {
         toast.dismiss(saveToastIdRef.current);
         saveToastIdRef.current = null;
       }

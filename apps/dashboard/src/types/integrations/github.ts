@@ -428,7 +428,11 @@ export interface PublishContentDraftPullRequestParams {
     branchName: string;
     number: number;
   };
-  /** Fail when the stored pull request is not an open draft on the default branch. */
+  /**
+   * Fail instead of opening a new draft when the stored pull request is not
+   * open on the default branch. A pull request marked ready for review still
+   * receives the update.
+   */
   requireLinkedPullRequest?: boolean;
 }
 

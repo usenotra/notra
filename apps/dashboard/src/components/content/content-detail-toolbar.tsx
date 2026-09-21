@@ -98,37 +98,40 @@ export function ContentDetailToolbar({
     <div className="ml-auto flex shrink-0 items-center gap-2">
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
-        document.currentMarkdown.trim() !== "" &&
-        (content.githubPublish ? (
-          <Button
-            nativeButton={false}
-            render={
-              <a
-                href={content.githubPublish.pullRequestUrl}
-                rel="noopener noreferrer"
-                target="_blank"
-              />
-            }
-            size="sm"
-            variant="outline"
-          >
-            <Github className="size-4" />
-            <span className="max-w-52 truncate">
-              {content.githubPublish.owner}/{content.githubPublish.repo} #
-              {content.githubPublish.pullRequestNumber}
-            </span>
-          </Button>
-        ) : (
-          <PublishContentToGitHubDialog
-            contentId={contentId}
-            contentType={content.contentType}
-            githubPublish={null}
-            onSave={document.handleSave}
-            organizationId={organizationId}
-            organizationSlug={organizationSlug}
-            title={document.title}
-          />
-        ))}
+      content.githubPublish ? (
+        <Button
+          nativeButton={false}
+          render={
+            <a
+              href={content.githubPublish.pullRequestUrl}
+              rel="noopener noreferrer"
+              target="_blank"
+            />
+          }
+          size="sm"
+          variant="outline"
+        >
+          <Github className="size-4" />
+          <span className="max-w-52 truncate">
+            {content.githubPublish.owner}/{content.githubPublish.repo} #
+            {content.githubPublish.pullRequestNumber}
+          </span>
+        </Button>
+      ) : null}
+      {(content.contentType === "changelog" ||
+        content.contentType === "blog_post") &&
+      !content.githubPublish &&
+      document.currentMarkdown.trim() !== "" ? (
+        <PublishContentToGitHubDialog
+          contentId={contentId}
+          contentType={content.contentType}
+          githubPublish={null}
+          onSave={document.handleSave}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          title={document.title}
+        />
+      ) : null}
       {document.isGeoWriterPlanMode ? <WriterExecute.Button /> : null}
       {content.contentType !== "image" && !document.isGeoWriterPlanMode ? (
         <Button
