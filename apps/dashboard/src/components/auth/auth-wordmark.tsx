@@ -8,9 +8,9 @@ export function AuthWordmark({ href }: AuthWordmarkProps) {
     <>
       <span
         aria-hidden="true"
-        className="bg-background flex size-7 shrink-0 items-center justify-center rounded-lg dark:bg-[#F6F3F1]"
+        className="flex size-10 shrink-0 items-center justify-center rounded-lg dark:bg-[#F6F3F1]"
       >
-        <Notra className="size-7 dark:size-5" />
+        <Notra className="size-7" />
       </span>
       <span className="text-foreground text-lg font-semibold tracking-tight">
         Notra
