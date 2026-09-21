@@ -1147,6 +1147,7 @@ export const contentRouter = {
           markdown: savedMarkdown,
           pullRequestMarkdown: savedMarkdown,
           ...(linkedPullRequest ? { linkedPullRequest } : {}),
+          ...(input.linkedOnly ? { requireLinkedPullRequest: true } : {}),
           ...(publisherLogin ? { publisherLogin } : {}),
           ...(outputConfig.success && outputConfig.data.imagePath
             ? {

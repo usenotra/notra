@@ -12,6 +12,8 @@ interface UseContentDetailSaveToastParams {
   isActivityPanelOpen: boolean;
   onDiscard: () => void;
   onSave: () => void;
+  saveLabel?: string;
+  savingLabel?: string;
 }
 
 export function useContentDetailSaveToast({
@@ -20,6 +22,8 @@ export function useContentDetailSaveToast({
   isActivityPanelOpen,
   onDiscard,
   onSave,
+  saveLabel = "Save",
+  savingLabel = "Saving...",
 }: UseContentDetailSaveToastParams) {
   const saveToastIdRef = useRef<string | number | null>(null);
   const onDiscardRef = useRef(onDiscard);
@@ -46,6 +50,8 @@ export function useContentDetailSaveToast({
           (toastId) =>
             createElement(ContentDetailSaveToast, {
               isSaving,
+              saveLabel,
+              savingLabel,
               onDismiss: () => {
                 toast.dismiss(toastId);
                 saveToastIdRef.current = null;
@@ -71,7 +77,7 @@ export function useContentDetailSaveToast({
     return () => {
       mediaQuery.removeEventListener("change", syncSaveToast);
     };
-  }, [hasChanges, isSaving, isActivityPanelOpen]);
+  }, [hasChanges, isSaving, isActivityPanelOpen, saveLabel, savingLabel]);
 
   useEffect(() => {
     return () => {

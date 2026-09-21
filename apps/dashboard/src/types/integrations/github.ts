@@ -428,6 +428,8 @@ export interface PublishContentDraftPullRequestParams {
     branchName: string;
     number: number;
   };
+  /** Fail when the stored pull request is not an open draft on the default branch. */
+  requireLinkedPullRequest?: boolean;
 }
 
 export interface GitHubPullRequestSummary {

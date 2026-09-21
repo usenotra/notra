@@ -15,7 +15,6 @@ export function GitHubPublishDialogFooter({
   publishRecovery,
   pullRequest,
   selectedPublishingEnabled,
-  updatingLinkedPullRequest,
 }: GitHubPublishDialogFooterProps) {
   const permissionsUrl =
     publishRecovery?.code === "github_app_permissions_required"
@@ -28,13 +27,9 @@ export function GitHubPublishDialogFooter({
       !publishRecovery.permissionsUrl)
   );
   const publishingPaused = Boolean(publishRecovery?.publishingPaused);
-  let submitLabel = updatingLinkedPullRequest
-    ? "Update draft PR"
-    : "Create draft PR";
+  let submitLabel = "Create draft PR";
   if (isPublishing) {
-    submitLabel = updatingLinkedPullRequest
-      ? "Updating pull request…"
-      : "Creating draft PR…";
+    submitLabel = "Creating draft PR…";
   } else if (publishRecovery) {
     submitLabel = "Try again";
   }
@@ -86,9 +81,7 @@ export function GitHubPublishDialogFooter({
       {pullRequest || publishingPaused ? null : (
         <Button
           disabled={
-            isPublishing ||
-            (!updatingLinkedPullRequest &&
-              (!hasSelectedRepository || !selectedPublishingEnabled))
+            isPublishing || !hasSelectedRepository || !selectedPublishingEnabled
           }
           type="submit"
         >

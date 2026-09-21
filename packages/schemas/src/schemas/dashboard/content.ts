@@ -378,6 +378,8 @@ export const publishContentToGitHubSchema = z.object({
   contentType: z.enum(GITHUB_PUBLISH_CONTENT_TYPES).default("changelog"),
   repositoryId: z.string().min(1, "Repository is required"),
   path: githubMarkdownPathSchema.optional(),
+  /** Update the stored open pull request. Do not open a new draft. */
+  linkedOnly: z.boolean().optional(),
 });
 
 export const onDemandContentTypeSchema = z.enum([

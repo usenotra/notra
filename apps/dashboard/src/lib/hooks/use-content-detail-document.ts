@@ -88,6 +88,7 @@ export function useContentDetailDocument({
   >(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [githubSyncError, setGithubSyncError] = useState<string | null>(null);
 
   const editorRef = useRef<EditorRefHandle | null>(null);
   const imageExportRef = useRef<HTMLDivElement | null>(null);
@@ -249,12 +250,19 @@ export function useContentDetailDocument({
     };
   }, [hasChanges]);
 
+  const linkedGitHubPublish =
+    data?.content?.contentType === "changelog" ||
+    data?.content?.contentType === "blog_post"
+      ? data.content.githubPublish
+      : null;
+
   const handleSave = useCallback(async () => {
     if (!hasChanges) {
       return true;
     }
 
     setIsSaving(true);
+    setGithubSyncError(null);
     try {
       const { persistedTitle, persistedSlug } = await saveContentDetail({
         organizationId,
@@ -279,9 +287,64 @@ export function useContentDetailDocument({
       setEditingTitle(null);
       setPersistedSlug(persistedSlug);
       setEditingSlug(null);
-      toast.success("Content saved", {
-        position: CONTENT_SAVE_TOAST_POSITION,
-      });
+      if (
+        linkedGitHubPublish &&
+        (data?.content?.contentType === "changelog" ||
+          data?.content?.contentType === "blog_post")
+      ) {
+        try {
+          const result =
+            await dashboardOrpc.content.publishChangelogToGitHub.call({
+              organizationId,
+              contentId,
+              contentType: data.content.contentType,
+              repositoryId: linkedGitHubPublish.repositoryId,
+              linkedOnly: true,
+            });
+          queryClient.setQueryData<ContentApiResponse>(
+            dashboardOrpc.content.get.queryKey({
+              input: { organizationId, contentId },
+            }),
+            (current) => {
+              if (!current) {
+                return current;
+              }
+
+              return {
+                ...current,
+                content: {
+                  ...current.content,
+                  githubPublish: {
+                    branchName: result.branchName,
+                    owner: linkedGitHubPublish.owner,
+                    path: result.path,
+                    pullRequestNumber: result.pullRequestNumber,
+                    pullRequestUrl: result.pullRequestUrl,
+                    repo: linkedGitHubPublish.repo,
+                    repositoryId: linkedGitHubPublish.repositoryId,
+                  },
+                },
+              };
+            }
+          );
+          toast.success("Pull request updated", {
+            position: CONTENT_SAVE_TOAST_POSITION,
+          });
+        } catch (error) {
+          const message =
+            error instanceof Error && error.message
+              ? error.message
+              : "Couldn't update the linked pull request";
+          setGithubSyncError(message);
+          toast.error(message, {
+            position: CONTENT_SAVE_TOAST_POSITION,
+          });
+        }
+      } else {
+        toast.success("Content saved", {
+          position: CONTENT_SAVE_TOAST_POSITION,
+        });
+      }
       setIsSaving(false);
       return true;
     } catch (error) {
@@ -306,6 +369,8 @@ export function useContentDetailDocument({
     setEditingTitle,
     setPersistedSlug,
     setPersistedTitle,
+    linkedGitHubPublish,
+    data?.content?.contentType,
   ]);
 
   useHotkey(
@@ -352,6 +417,8 @@ export function useContentDetailDocument({
     isActivityPanelOpen,
     onDiscard: handleDiscard,
     onSave: handleSave,
+    saveLabel: linkedGitHubPublish ? "Save and update PR" : "Save",
+    savingLabel: linkedGitHubPublish ? "Updating PR..." : "Saving...",
   });
 
   const handleEditorChange = useCallback((markdown: string) => {
@@ -402,6 +469,8 @@ export function useContentDetailDocument({
           isSaving,
           onDiscard: handleDiscard,
           onSave: handleSave,
+          saveLabel: linkedGitHubPublish ? "Save and update PR" : "Save",
+          savingLabel: linkedGitHubPublish ? "Updating PR..." : "Saving...",
         }
       : null;
 
@@ -435,6 +504,7 @@ export function useContentDetailDocument({
     geoWriterDraft,
     geoWriterUpdate,
     handleDiscard,
+    githubSyncError,
     handleEditorChange,
     handleGeoArticleReady,
     handleImageExportTargetSelect,

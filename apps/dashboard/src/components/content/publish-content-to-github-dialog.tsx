@@ -1,7 +1,5 @@
 "use client";
 
-import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -47,7 +45,6 @@ function GitHubPublishDialogBody({
   isLoadingIntegrations,
   isPublishing,
   onRepositoryChange,
-  linkedPublish,
   onRetryIntegrations,
   organizationSlug,
   publishRecovery,
@@ -58,12 +55,9 @@ function GitHubPublishDialogBody({
   title,
 }: GitHubPublishDialogBodyProps) {
   if (pullRequest) {
-    let repositoryLabel = "Repository";
-    if (selectedRepository) {
-      repositoryLabel = formatGitHubRepositoryLabel(selectedRepository);
-    } else if (linkedPublish) {
-      repositoryLabel = `${linkedPublish.owner}/${linkedPublish.repo}`;
-    }
+    const repositoryLabel = selectedRepository
+      ? formatGitHubRepositoryLabel(selectedRepository)
+      : "Repository";
 
     return (
       <GitHubPublishResultCard
@@ -71,34 +65,6 @@ function GitHubPublishDialogBody({
         repositoryLabel={repositoryLabel}
         title={title}
       />
-    );
-  }
-
-  if (linkedPublish) {
-    const linkedLabel = `${linkedPublish.owner}/${linkedPublish.repo} #${linkedPublish.pullRequestNumber}`;
-
-    return (
-      <>
-        <a
-          className="hover:bg-muted flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
-          href={linkedPublish.pullRequestUrl}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Github className="size-4 shrink-0" />
-          <span className="min-w-0 flex-1 truncate">{linkedLabel}</span>
-          <HugeiconsIcon
-            className="size-4 shrink-0"
-            icon={ArrowUpRight01Icon}
-          />
-        </a>
-        {isPublishing ? (
-          <p className="text-sm">Publishing the latest Markdown…</p>
-        ) : null}
-        {publishRecovery ? (
-          <GitHubPublishRecoveryAlert publishRecovery={publishRecovery} />
-        ) : null}
-      </>
     );
   }
 
@@ -199,15 +165,7 @@ export function PublishContentToGitHubDialog({
       const repository = repositories.find(
         (item) => item.id === targetRepositoryId
       );
-      const linkedRepository =
-        repository ??
-        (githubPublish?.repositoryId === targetRepositoryId
-          ? {
-              id: githubPublish.repositoryId,
-              owner: githubPublish.owner,
-              repo: githubPublish.repo,
-            }
-          : undefined);
+      const linkedRepository = repository;
       invalidateIntegrations();
       if (linkedRepository) {
         queryClient.setQueryData<ContentApiResponse>(
@@ -258,15 +216,7 @@ export function PublishContentToGitHubDialog({
   });
   const pullRequest = publishMutation.data;
   const publishRecovery = getGitHubPublishRecovery(publishMutation.error);
-  const linkedLabel = githubPublish
-    ? `${githubPublish.owner}/${githubPublish.repo}#${githubPublish.pullRequestNumber}`
-    : undefined;
-  const updatingLinkedPullRequest = Boolean(linkedLabel) && !pullRequest;
-  const copy = getGitHubPublishDialogCopy(
-    contentLabel,
-    pullRequest,
-    updatingLinkedPullRequest ? linkedLabel : undefined
-  );
+  const copy = getGitHubPublishDialogCopy(contentLabel, pullRequest);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -300,10 +250,6 @@ export function PublishContentToGitHubDialog({
     if (publishMutation.isPending) {
       return;
     }
-    if (githubPublish) {
-      publishMutation.mutate(githubPublish.repositoryId);
-      return;
-    }
     if (selectedRepository) {
       rememberRepository(selectedRepository.id);
       publishMutation.mutate(selectedRepository.id);
@@ -312,24 +258,10 @@ export function PublishContentToGitHubDialog({
 
   return (
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-      {githubPublish ? (
-        <ResponsiveDialogTrigger
-          render={<Button size="sm" variant="outline" />}
-        >
-          <Github className="size-4" />
-          <span className="max-w-52 truncate">
-            {githubPublish.owner}/{githubPublish.repo} #
-            {githubPublish.pullRequestNumber}
-          </span>
-        </ResponsiveDialogTrigger>
-      ) : (
-        <ResponsiveDialogTrigger
-          render={<Button size="sm" variant="outline" />}
-        >
-          <Github className="size-4" />
-          Create GitHub PR
-        </ResponsiveDialogTrigger>
-      )}
+      <ResponsiveDialogTrigger render={<Button size="sm" variant="outline" />}>
+        <Github className="size-4" />
+        Create GitHub PR
+      </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="min-w-0 sm:max-w-[600px]">
         <form className="contents" onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
@@ -347,7 +279,6 @@ export function PublishContentToGitHubDialog({
               isLoadingIntegrations={integrationsQuery.isLoading}
               isPublishing={publishMutation.isPending}
               onRepositoryChange={handleRepositoryChange}
-              linkedPublish={githubPublish}
               onRetryIntegrations={() => integrationsQuery.refetch()}
               organizationSlug={organizationSlug}
               publishRecovery={publishRecovery}
@@ -367,7 +298,6 @@ export function PublishContentToGitHubDialog({
               publishRecovery={publishRecovery}
               pullRequest={pullRequest}
               selectedPublishingEnabled={selectedPublishingEnabled}
-              updatingLinkedPullRequest={updatingLinkedPullRequest}
             />
           </ResponsiveDialogFooter>
         </form>

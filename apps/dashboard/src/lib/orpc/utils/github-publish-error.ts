@@ -3,6 +3,7 @@ import {
   GitHubContentBranchConflictError,
   GitHubContentPublishError,
   GitHubContentTargetExistsError,
+  GitHubLinkedPullRequestUnavailableError,
   GitHubRepositoryEmptyError,
 } from "@/lib/integrations/github/publish-content-to-github";
 import type { GitHubPublishFailureContext } from "@/types/integrations/github-publish-policy";
@@ -27,6 +28,9 @@ export async function toGitHubPublishOrpcError(
   }
   if (error instanceof GitHubContentBranchConflictError) {
     return conflict(error.message, { branchName: error.branchName });
+  }
+  if (error instanceof GitHubLinkedPullRequestUnavailableError) {
+    return badRequest(error.message);
   }
   if (error instanceof GitHubRepositoryEmptyError) {
     return badRequest(

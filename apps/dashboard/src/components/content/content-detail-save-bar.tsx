@@ -7,6 +7,8 @@ interface ContentDetailSaveBarProps {
   isSaving: boolean;
   onDiscard: () => void;
   onSave: () => void;
+  saveLabel?: string;
+  savingLabel?: string;
 }
 
 export function ContentDetailSaveBar({
@@ -14,6 +16,8 @@ export function ContentDetailSaveBar({
   isSaving,
   onDiscard,
   onSave,
+  saveLabel = "Save",
+  savingLabel = "Saving...",
 }: ContentDetailSaveBarProps) {
   return (
     <div
@@ -42,7 +46,7 @@ export function ContentDetailSaveBar({
               onClick={onSave}
               size="sm"
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? savingLabel : saveLabel}
             </Button>
           </div>
         </div>
@@ -56,6 +60,8 @@ interface ContentDetailSaveToastProps {
   onDiscard: () => void;
   onSave: () => void;
   onDismiss: () => void;
+  saveLabel?: string;
+  savingLabel?: string;
 }
 
 export function ContentDetailSaveToast({
@@ -63,6 +69,8 @@ export function ContentDetailSaveToast({
   onDiscard,
   onSave,
   onDismiss,
+  saveLabel = "Save",
+  savingLabel = "Saving...",
 }: ContentDetailSaveToastProps) {
   return (
     <div
@@ -91,7 +99,7 @@ export function ContentDetailSaveToast({
           }}
           size="sm"
         >
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? savingLabel : saveLabel}
         </Button>
       </div>
     </div>

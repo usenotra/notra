@@ -18,6 +18,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { Github } from "@notra/ui/components/ui/svgs/github";
 
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
 import { PostSocialButton } from "@/components/content/post-social-button";
@@ -97,17 +98,47 @@ export function ContentDetailToolbar({
     <div className="ml-auto flex shrink-0 items-center gap-2">
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
-        document.currentMarkdown.trim() !== "" && (
+        document.currentMarkdown.trim() !== "" &&
+        (content.githubPublish ? (
+          <>
+            <Button
+              nativeButton={false}
+              render={
+                <a
+                  href={content.githubPublish.pullRequestUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                />
+              }
+              size="sm"
+              variant="outline"
+            >
+              <Github className="size-4" />
+              <span className="max-w-52 truncate">
+                {content.githubPublish.owner}/{content.githubPublish.repo} #
+                {content.githubPublish.pullRequestNumber}
+              </span>
+            </Button>
+            {document.githubSyncError ? (
+              <span
+                className="text-destructive max-w-48 truncate text-xs"
+                title={document.githubSyncError}
+              >
+                {document.githubSyncError}
+              </span>
+            ) : null}
+          </>
+        ) : (
           <PublishContentToGitHubDialog
             contentId={contentId}
             contentType={content.contentType}
-            githubPublish={content.githubPublish}
+            githubPublish={null}
             onSave={document.handleSave}
             organizationId={organizationId}
             organizationSlug={organizationSlug}
             title={document.title}
           />
-        )}
+        ))}
       {document.isGeoWriterPlanMode ? <WriterExecute.Button /> : null}
       {content.contentType !== "image" && !document.isGeoWriterPlanMode ? (
         <Button

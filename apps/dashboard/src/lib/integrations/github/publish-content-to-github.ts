@@ -46,6 +46,15 @@ export class GitHubContentBranchConflictError extends Error {
   }
 }
 
+export class GitHubLinkedPullRequestUnavailableError extends Error {
+  constructor() {
+    super(
+      "The linked pull request is no longer open against the repository's default branch"
+    );
+    this.name = "GitHubLinkedPullRequestUnavailableError";
+  }
+}
+
 export class GitHubContentPublishError extends Error {
   readonly branchName: string | null;
   readonly cause: unknown;
@@ -751,6 +760,10 @@ export async function publishContentDraftPullRequest(
         );
       }
     }
+  }
+
+  if (requestedParams.requireLinkedPullRequest && !existingPullRequest) {
+    throw new GitHubLinkedPullRequestUnavailableError();
   }
 
   if (!existingPullRequest) {
