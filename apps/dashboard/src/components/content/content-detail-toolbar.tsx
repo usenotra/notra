@@ -9,7 +9,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { ContentResponse } from "@notra/schemas/dashboard/content";
-import { Button } from "@notra/ui/components/ui/button";
 import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import {
   DropdownMenu,
@@ -19,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 
+import { Button } from "@/components/button";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
@@ -94,9 +94,33 @@ export function ContentDetailToolbar({
   };
 
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-2">
+    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+      {document.hasChanges ? (
+        <>
+          <Button
+            disabled={document.isSaving}
+            onClick={document.handleDiscard}
+            size="sm"
+            variant="ghost"
+          >
+            Discard changes
+          </Button>
+          <Button
+            aria-keyshortcuts="Meta+S Control+S"
+            data-save-bar
+            disabled={document.isSaving}
+            onClick={document.handleSave}
+            size="sm"
+            variant="outline"
+          >
+            {document.isSaving ? "Saving…" : "Save changes"}
+          </Button>
+        </>
+      ) : null}
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
+        !document.isGeoWriterPlanMode &&
+        !document.isGeoArticleLoading &&
         document.currentMarkdown.trim() !== "" && (
           <PublishContentToGitHubDialog
             contentId={contentId}
@@ -110,7 +134,12 @@ export function ContentDetailToolbar({
       {document.isGeoWriterPlanMode ? <WriterExecute.Button /> : null}
       {content.contentType !== "image" && !document.isGeoWriterPlanMode ? (
         <Button
-          disabled={document.isTogglingStatus}
+          disabled={
+            document.isTogglingStatus ||
+            document.isGeoArticleLoading ||
+            document.hasChanges ||
+            document.isSaving
+          }
           onClick={document.handleToggleStatus}
           size="sm"
           variant={content.status === "draft" ? "default" : "outline"}

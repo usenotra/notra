@@ -32,6 +32,11 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@notra/ui/components/ui/message-scroller";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { getToolName, isToolUIPart } from "ai";
 import { Fragment, type ReactNode } from "react";
 
@@ -223,33 +228,47 @@ export function ContentChatActivityPanel({
           {title}
         </h2>
         <div className="-mr-1.5 flex h-full items-center gap-0.5">
-          <Button
-            disabled={isAgentBusy}
-            onClick={onNewChat}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">Start a new chat</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={PlusSignIcon}
-              strokeWidth={1.8}
-            />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  disabled={isAgentBusy}
+                  onClick={onNewChat}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            >
+              <span className="sr-only">Start a new chat</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={PlusSignIcon}
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>New chat</TooltipContent>
+          </Tooltip>
           {showHistory ? (
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="inline-flex"
-                disabled={isAgentBusy}
-                render={<Button size="icon-sm" variant="ghost" />}
-              >
-                <span className="sr-only">Open chat history</span>
-                <HugeiconsIcon
-                  className="size-4"
-                  icon={Clock01Icon}
-                  strokeWidth={1.8}
-                />
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DropdownMenuTrigger
+                      className="inline-flex"
+                      disabled={isAgentBusy}
+                      render={<Button size="icon-sm" variant="ghost" />}
+                    />
+                  }
+                >
+                  <span className="sr-only">Open chat history</span>
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={Clock01Icon}
+                    strokeWidth={1.8}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Chat history</TooltipContent>
+              </Tooltip>
               <DropdownMenuContent
                 align="end"
                 className="max-h-72 w-52"
@@ -305,41 +324,61 @@ export function ContentChatActivityPanel({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
-          <Button
-            aria-pressed={opensInChat ? undefined : expanded}
-            className="cursor-pointer"
-            onClick={onOpenChat ?? toggleExpanded}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-pressed={opensInChat ? undefined : expanded}
+                  className="cursor-pointer"
+                  onClick={onOpenChat ?? toggleExpanded}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            >
+              <span className="sr-only">
+                {opensInChat
+                  ? "Open in Chat"
+                  : expanded
+                    ? `Exit fullscreen ${title}`
+                    : `Open ${title} fullscreen`}
+              </span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={
+                  opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+                }
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
               {opensInChat
                 ? "Open in Chat"
                 : expanded
-                  ? `Exit fullscreen ${title}`
-                  : `Open ${title} fullscreen`}
-            </span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={
-                opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+                  ? "Exit fullscreen"
+                  : "Expand agent"}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="cursor-pointer"
+                  onClick={onClose}
+                  size="icon-sm"
+                  variant="ghost"
+                />
               }
-              strokeWidth={1.8}
-            />
-          </Button>
-          <Button
-            className="cursor-pointer"
-            onClick={onClose}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">Close {title}</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={Cancel01Icon}
-              strokeWidth={1.8}
-            />
-          </Button>
+            >
+              <span className="sr-only">Close {title}</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={Cancel01Icon}
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>Close {title}</TooltipContent>
+          </Tooltip>
         </div>
       </header>
       <div className="bg-muted flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-[calc(0.75rem-1px)]">

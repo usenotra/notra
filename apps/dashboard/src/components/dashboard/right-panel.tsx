@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
+import { motion, useReducedMotion } from "motion/react";
 
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { RightPanelPortal } from "@/components/dashboard/right-panel-portal";
@@ -28,6 +29,7 @@ function panelWidthClass(open: boolean, expanded: boolean) {
 
 export function RightPanel({ id, children }: RightPanelProps) {
   const { active, expanded, hasOpened } = useRightPanel();
+  const reduceMotion = useReducedMotion();
   const open = active === id;
   const skipMotion = useRightPanelSkipMotion(
     open,
@@ -44,12 +46,22 @@ export function RightPanel({ id, children }: RightPanelProps) {
           RIGHT_PANEL_CLASSNAME,
           RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
           skipMotion && "transition-none",
+          open && "overflow-visible",
           panelWidthClass(open, expanded)
         )}
         inert={open ? undefined : true}
       >
         {hasOpened[id] ? (
-          <div
+          <motion.div
+            layout
+            layoutDependency={expanded}
+            initial={false}
+            transition={{
+              layout: {
+                duration: reduceMotion ? 0 : 0.25,
+                ease: [0.23, 1, 0.32, 1],
+              },
+            }}
             className={cn(
               RIGHT_PANEL_FRAME_CLASSNAME,
               expanded
@@ -57,8 +69,14 @@ export function RightPanel({ id, children }: RightPanelProps) {
                 : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME
             )}
           >
-            {children}
-          </div>
+            <motion.div
+              className="flex h-full min-h-0 flex-col"
+              layout="position"
+              layoutDependency={expanded}
+            >
+              {children}
+            </motion.div>
+          </motion.div>
         ) : null}
       </aside>
     </RightPanelPortal>
