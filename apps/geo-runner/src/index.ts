@@ -73,9 +73,10 @@ export default {
     }
     const response = Promise.resolve(app.fetch(request));
     requests.add(response);
-    response.finally(() => {
+    // Return the `finally` promise. The original rejection is handled by
+    // `finally`, so discarding its promise would be an unhandled rejection.
+    return response.finally(() => {
       requests.delete(response);
     });
-    return response;
   }),
 };
