@@ -8,7 +8,6 @@ export type SettingsSectionId =
   | "members"
   | "notifications"
   | "attachments"
-  | "integrations"
   | "billing"
   | "usage"
   | "usage-alerts"
