@@ -57,6 +57,8 @@ import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatComposerAttachments } from "@/lib/hooks/use-chat-composer-attachments";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
+  ChatInputComposerNudgeProps,
+  ChatInputContextPickerProps,
   ChatInputProps,
   EnabledLinear,
   EnabledRepo,
@@ -66,6 +68,8 @@ import {
   buildContentChatContextOptions,
   CHAT_INPUT_LIMIT_MESSAGE,
   contextItemsEqual,
+  getComposerSendChrome,
+  nextValueAfterFilePaste,
 } from "@/utils/chat-input";
 
 const ChatInput = ({
@@ -341,19 +345,7 @@ const ChatInput = ({
     hasAttachmentChips ||
     shouldShowLowCredits ||
     Boolean(usageLimitError);
-  let sendTooltip = "Enter to send. Shift+Enter for a new line.";
-  if (showStop) {
-    sendTooltip = "Stop generating";
-  } else if (canQueue) {
-    sendTooltip =
-      "Enter to queue this message. It will send once the AI finishes.";
-  }
-  let sendLabel = "Send message";
-  if (showStop) {
-    sendLabel = "Stop generating";
-  } else if (canQueue) {
-    sendLabel = "Queue message";
-  }
+  const { sendLabel, sendTooltip } = getComposerSendChrome(showStop, canQueue);
 
   return (
     <>
@@ -367,79 +359,25 @@ const ChatInput = ({
           connectedTop={connectedTop}
           nudge={
             showComposerNudge ? (
-              <Composer.Nudge
-                action={
-                  usageLimitError && organizationSlug ? (
-                    <Button
-                      nativeButton={false}
-                      render={
-                        <Link href={`/${organizationSlug}/settings/billing`} />
-                      }
-                      size="xs"
-                      variant="outline"
-                    >
-                      Upgrade
-                    </Button>
-                  ) : null
-                }
-                title={
-                  shouldShowLowCredits &&
-                  !hasContextChips &&
-                  !hasAttachmentChips &&
-                  !usageLimitError
-                    ? `${remainingChatCredits} chat messages left`
-                    : undefined
-                }
-              >
-                {hasContextChips || hasAttachmentChips ? (
-                  <>
-                    {queuedMessages.map((message) => (
-                      <Composer.Chip
-                        className="hover:border-border hover:bg-background w-full border-solid border-transparent bg-transparent transition-colors"
-                        editLabel="Edit queued message"
-                        key={message.id}
-                        label={message.text}
-                        labelClassName="min-w-0 flex-1 max-w-none"
-                        onEdit={
-                          onEditQueued ? () => onEditQueued(message) : undefined
-                        }
-                        onRemove={
-                          onRemoveQueued
-                            ? () => onRemoveQueued(message.id)
-                            : undefined
-                        }
-                        removeLabel="Remove from queue"
-                      />
-                    ))}
-                    <ChatInputContextRow
-                      context={context}
-                      onClearSelection={onClearSelection}
-                      onRemoveContext={onRemoveContext}
-                      selection={selection}
-                    />
-                    <ChatComposerAttachmentChips
-                      attachments={attachments}
-                      pendingUploads={pendingUploads}
-                      removeAttachment={removeAttachment}
-                      setPreviewAttachment={setPreviewAttachment}
-                    />
-                    {shouldShowLowCredits ? (
-                      <span className="text-muted-foreground text-xs">
-                        {remainingChatCredits} chat messages left
-                      </span>
-                    ) : null}
-                  </>
-                ) : null}
-                {usageLimitError ? (
-                  <span className="flex min-w-0 items-center gap-1.5 text-sm">
-                    <HugeiconsIcon
-                      className="text-warning size-4 shrink-0"
-                      icon={Alert02Icon}
-                    />
-                    <span className="truncate">{usageLimitError}</span>
-                  </span>
-                ) : null}
-              </Composer.Nudge>
+              <ChatInputComposerNudge
+                attachments={attachments}
+                context={context}
+                hasAttachmentChips={hasAttachmentChips}
+                hasContextChips={hasContextChips}
+                onClearSelection={onClearSelection}
+                onEditQueued={onEditQueued}
+                onRemoveContext={onRemoveContext}
+                onRemoveQueued={onRemoveQueued}
+                organizationSlug={organizationSlug}
+                pendingUploads={pendingUploads}
+                queuedMessages={queuedMessages}
+                remainingChatCredits={remainingChatCredits}
+                removeAttachment={removeAttachment}
+                selection={selection}
+                setPreviewAttachment={setPreviewAttachment}
+                shouldShowLowCredits={shouldShowLowCredits}
+                usageLimitError={usageLimitError}
+              />
             ) : null
           }
         >
@@ -459,114 +397,16 @@ const ChatInput = ({
               pendingUploadCount={pendingUploads.length}
               tooltip={attachmentTooltipText}
             />
-            <Tooltip disabled={isContextPickerOpen}>
-              <TooltipTrigger
-                render={
-                  contextPickerDisabledReason ? (
-                    // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
-                    <span
-                      aria-disabled="true"
-                      aria-label="Add tools or context"
-                      className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
-                      role="button"
-                      tabIndex={0}
-                    />
-                  ) : (
-                    <span className="inline-flex size-7 shrink-0 items-center justify-center" />
-                  )
-                }
-              >
-                <Popover
-                  modal
-                  onOpenChange={setIsContextPickerOpen}
-                  open={isContextPickerOpen}
-                >
-                  <PopoverTrigger
-                    render={
-                      <Composer.ToolbarButton
-                        aria-controls={contextPickerId}
-                        aria-expanded={isContextPickerOpen}
-                        aria-haspopup="listbox"
-                        aria-label="Add tools or context"
-                        className="size-7 justify-center px-0"
-                        disabled={isInputLocked}
-                        role="combobox"
-                      />
-                    }
-                  >
-                    <HugeiconsIcon className="size-4" icon={AtIcon} />
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    className="w-80 p-0"
-                    id={contextPickerId}
-                    showBackdrop
-                    sideOffset={6}
-                  >
-                    <Command>
-                      <CommandInput placeholder="Search tools and context..." />
-                      <CommandList>
-                        <CommandEmpty>
-                          {contextOptions.length === 0
-                            ? "No matching integrations."
-                            : "No matching tools or context found."}
-                        </CommandEmpty>
-                        {contextOptions.length === 0 && organizationSlug ? (
-                          <ChatContextConnectSuggestions
-                            onSelect={() => setIsContextPickerOpen(false)}
-                            organizationSlug={organizationSlug}
-                          />
-                        ) : null}
-                        {contextOptions.length > 0 ? (
-                          <CommandGroup heading="Context">
-                            {contextOptions.map((option) => {
-                              const inContext = isInContext(option.contextItem);
-                              return (
-                                <CommandItem
-                                  data-checked={inContext}
-                                  key={option.id}
-                                  keywords={[option.searchText]}
-                                  onSelect={() => {
-                                    toggleContextItem(
-                                      option.contextItem,
-                                      inContext
-                                    );
-                                    setIsContextPickerOpen(false);
-                                  }}
-                                  value={option.id}
-                                >
-                                  <ChatContextOptionContent option={option} />
-                                  {inContext ? (
-                                    <HugeiconsIcon
-                                      className="text-primary ml-auto size-3.5"
-                                      icon={Tick02Icon}
-                                    />
-                                  ) : null}
-                                </CommandItem>
-                              );
-                            })}
-                          </CommandGroup>
-                        ) : null}
-                      </CommandList>
-                      {organizationSlug ? (
-                        <div className="border-border border-t p-1">
-                          <Link
-                            className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
-                            href={`/${organizationSlug}/integrations`}
-                            onClick={() => setIsContextPickerOpen(false)}
-                          >
-                            Manage integrations
-                          </Link>
-                        </div>
-                      ) : null}
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </TooltipTrigger>
-              <TooltipContent>
-                {contextPickerDisabledReason ?? "Tools and context"}
-              </TooltipContent>
-            </Tooltip>
+            <ChatInputContextPicker
+              contextOptions={contextOptions}
+              contextPickerId={contextPickerId}
+              disabledReason={contextPickerDisabledReason}
+              isInContext={isInContext}
+              isOpen={isContextPickerOpen}
+              onOpenChange={setIsContextPickerOpen}
+              organizationSlug={organizationSlug}
+              toggleContextItem={toggleContextItem}
+            />
             <Textarea
               aria-label="Send a message"
               className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-7 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-none border-0 bg-transparent px-1 py-1 text-sm leading-5 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
@@ -578,10 +418,16 @@ const ChatInput = ({
               onFocus={() => setIsFocused(true)}
               onInput={resizeTextarea}
               onPaste={(event) => {
-                const files = Array.from(event.clipboardData.files);
-                if (handlePasteFiles(files)) {
-                  event.preventDefault();
+                if (!handlePasteFiles(Array.from(event.clipboardData.files))) {
+                  return;
                 }
+                event.preventDefault();
+                setValue(
+                  nextValueAfterFilePaste(
+                    value,
+                    event.clipboardData.getData("text/plain")
+                  )
+                );
               }}
               placeholder={
                 isLoading
@@ -623,5 +469,208 @@ const ChatInput = ({
     </>
   );
 };
+
+function ChatInputComposerNudge({
+  attachments,
+  context,
+  hasAttachmentChips,
+  hasContextChips,
+  onClearSelection,
+  onEditQueued,
+  onRemoveContext,
+  onRemoveQueued,
+  organizationSlug,
+  pendingUploads,
+  queuedMessages,
+  remainingChatCredits,
+  removeAttachment,
+  selection,
+  setPreviewAttachment,
+  shouldShowLowCredits,
+  usageLimitError,
+}: ChatInputComposerNudgeProps) {
+  return (
+    <Composer.Nudge
+      action={
+        usageLimitError && organizationSlug ? (
+          <Button
+            nativeButton={false}
+            render={<Link href={`/${organizationSlug}/settings/billing`} />}
+            size="xs"
+            variant="outline"
+          >
+            Upgrade
+          </Button>
+        ) : null
+      }
+      title={
+        shouldShowLowCredits &&
+        !hasContextChips &&
+        !hasAttachmentChips &&
+        !usageLimitError
+          ? `${remainingChatCredits} chat messages left`
+          : undefined
+      }
+    >
+      {hasContextChips || hasAttachmentChips ? (
+        <>
+          {queuedMessages.map((message) => (
+            <Composer.Chip
+              className="hover:border-border hover:bg-background w-full border-solid border-transparent bg-transparent transition-colors"
+              editLabel="Edit queued message"
+              key={message.id}
+              label={message.text}
+              labelClassName="min-w-0 flex-1 max-w-none"
+              onEdit={onEditQueued ? () => onEditQueued(message) : undefined}
+              onRemove={
+                onRemoveQueued ? () => onRemoveQueued(message.id) : undefined
+              }
+              removeLabel="Remove from queue"
+            />
+          ))}
+          <ChatInputContextRow
+            context={context}
+            onClearSelection={onClearSelection}
+            onRemoveContext={onRemoveContext}
+            selection={selection}
+          />
+          <ChatComposerAttachmentChips
+            attachments={attachments}
+            pendingUploads={pendingUploads}
+            removeAttachment={removeAttachment}
+            setPreviewAttachment={setPreviewAttachment}
+          />
+          {shouldShowLowCredits ? (
+            <span className="text-muted-foreground text-xs">
+              {remainingChatCredits} chat messages left
+            </span>
+          ) : null}
+        </>
+      ) : null}
+      {usageLimitError ? (
+        <span className="flex min-w-0 items-center gap-1.5 text-sm">
+          <HugeiconsIcon
+            className="text-warning size-4 shrink-0"
+            icon={Alert02Icon}
+          />
+          <span className="truncate">{usageLimitError}</span>
+        </span>
+      ) : null}
+    </Composer.Nudge>
+  );
+}
+
+function ChatInputContextPicker({
+  contextOptions,
+  contextPickerId,
+  disabledReason,
+  isInContext,
+  isOpen,
+  onOpenChange,
+  organizationSlug,
+  toggleContextItem,
+}: ChatInputContextPickerProps) {
+  return (
+    <Tooltip disabled={isOpen}>
+      <TooltipTrigger
+        render={
+          disabledReason ? (
+            // biome-ignore lint/a11y/useSemanticElements: a real button would illegally nest the disabled popover trigger button.
+            <span
+              aria-disabled="true"
+              aria-label="Add tools or context"
+              className="inline-flex size-7 shrink-0 cursor-not-allowed items-center justify-center"
+              role="button"
+              tabIndex={0}
+            />
+          ) : (
+            <span className="inline-flex size-7 shrink-0 items-center justify-center" />
+          )
+        }
+      >
+        <Popover modal onOpenChange={onOpenChange} open={isOpen}>
+          <PopoverTrigger
+            render={
+              <Composer.ToolbarButton
+                aria-controls={contextPickerId}
+                aria-expanded={isOpen}
+                aria-haspopup="listbox"
+                aria-label="Add tools or context"
+                className="size-7 justify-center px-0"
+                disabled={Boolean(disabledReason)}
+                role="combobox"
+              />
+            }
+          >
+            <HugeiconsIcon className="size-4" icon={AtIcon} />
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-80 p-0"
+            id={contextPickerId}
+            showBackdrop
+            sideOffset={6}
+          >
+            <Command>
+              <CommandInput placeholder="Search tools and context..." />
+              <CommandList>
+                <CommandEmpty>
+                  {contextOptions.length === 0
+                    ? "No matching integrations."
+                    : "No matching tools or context found."}
+                </CommandEmpty>
+                {contextOptions.length === 0 && organizationSlug ? (
+                  <ChatContextConnectSuggestions
+                    onSelect={() => onOpenChange(false)}
+                    organizationSlug={organizationSlug}
+                  />
+                ) : null}
+                {contextOptions.length > 0 ? (
+                  <CommandGroup heading="Context">
+                    {contextOptions.map((option) => {
+                      const inContext = isInContext(option.contextItem);
+                      return (
+                        <CommandItem
+                          data-checked={inContext}
+                          key={option.id}
+                          keywords={[option.searchText]}
+                          onSelect={() => {
+                            toggleContextItem(option.contextItem, inContext);
+                            onOpenChange(false);
+                          }}
+                          value={option.id}
+                        >
+                          <ChatContextOptionContent option={option} />
+                          {inContext ? (
+                            <HugeiconsIcon
+                              className="text-primary ml-auto size-3.5"
+                              icon={Tick02Icon}
+                            />
+                          ) : null}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                ) : null}
+              </CommandList>
+              {organizationSlug ? (
+                <div className="border-border border-t p-1">
+                  <Link
+                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
+                    href={`/${organizationSlug}/integrations`}
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Manage integrations
+                  </Link>
+                </div>
+              ) : null}
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </TooltipTrigger>
+      <TooltipContent>{disabledReason ?? "Tools and context"}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default ChatInput;

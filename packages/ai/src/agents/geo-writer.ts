@@ -378,6 +378,97 @@ async function humanizeMarkdown(
   return { markdown: humanized, usage };
 }
 
+function isSuccessfulWebSearch(result: unknown): boolean {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "success" in result &&
+    result.success === true
+  );
+}
+
+function headingLines(markdown: string): string[] {
+  return [...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map((match) =>
+    (match[1] ?? "").trim().toLowerCase()
+  );
+}
+
+function missingBriefSectionHeadings(
+  brief: GeoContentBrief,
+  markdown: string
+): string[] {
+  const headings = headingLines(markdown);
+  return brief.sections
+    .filter((section) => {
+      const target = section.heading.trim().toLowerCase();
+      return !headings.some(
+        (heading) => heading.includes(target) || target.includes(heading)
+      );
+    })
+    .map((section) => section.heading);
+}
+
+function getCreatePostMarkdown(input: unknown): string {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "markdown" in input &&
+    typeof input.markdown === "string"
+  ) {
+    return input.markdown;
+  }
+  return "";
+}
+
+function gateGeoWriterSave(
+  tools: Record<string, Tool>,
+  brief: GeoContentBrief
+): { didResearch: () => boolean } {
+  const state = { researched: false };
+  const webSearch = tools.webSearch;
+  const originalSearch = webSearch?.execute;
+  if (webSearch && originalSearch) {
+    tools.webSearch = {
+      ...webSearch,
+      execute: async (input, options) => {
+        const result = await originalSearch(input, options);
+        if (isSuccessfulWebSearch(result)) {
+          state.researched = true;
+        }
+        return result;
+      },
+    };
+  }
+
+  const createBlogPost = tools.createBlogPost;
+  const originalCreate = createBlogPost?.execute;
+  if (createBlogPost && originalCreate) {
+    tools.createBlogPost = {
+      ...createBlogPost,
+      execute: async (input, options) => {
+        if (!state.researched) {
+          return {
+            error:
+              "Call webSearch successfully before createBlogPost. Do not save an unresearched draft.",
+          };
+        }
+        const missing = missingBriefSectionHeadings(
+          brief,
+          getCreatePostMarkdown(input)
+        );
+        if (missing.length > 0) {
+          return {
+            error: `Every brief section needs an H2 with specific facts before saving. Missing: ${missing.join(", ")}`,
+          };
+        }
+        return originalCreate(input, options);
+      },
+    };
+  }
+
+  return { didResearch: () => state.researched };
+}
+
 function formatMonthYear(date: Date): string {
   try {
     return new Intl.DateTimeFormat("en", {
@@ -464,6 +555,7 @@ export async function runGeoWriter(
     fail: createFailTool(postToolsResult),
   };
   registerWebSearchTools(tools);
+  const { didResearch } = gateGeoWriterSave(tools, brief);
 
   const agent = new ToolLoopAgent({
     model,
@@ -483,6 +575,8 @@ export async function runGeoWriter(
   const result = await agent.generate({
     prompt: `Research with webSearch first, then write the article "${brief.workingTitle}". Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
   });
+  const routeUsage = await summarizeRouteUsage(result.steps);
+  let usage = toTokenUsage(result.usage, routeUsage.route);
 
   if (postToolsResult.failReason) {
     throw new GeoWriterError(postToolsResult.failReason);
@@ -491,12 +585,11 @@ export async function runGeoWriter(
   const primaryPost = postToolsResult.posts?.at(0);
   if (!primaryPost) {
     throw new GeoWriterError(
-      "The writer finished without saving a post. No createBlogPost call was made."
+      didResearch()
+        ? "The writer finished without saving a post. No createBlogPost call was made."
+        : "The writer could not complete live research before saving. Check CONTEXT_DEV_API_KEY and try again."
     );
   }
-
-  const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.usage, routeUsage.route);
 
   const draft = await db.query.posts.findFirst({
     columns: { markdown: true },

@@ -38,7 +38,7 @@ export function ChatImageAttachment({
           hasLoaded ? "opacity-100" : "opacity-0"
         )}
         height={480}
-        loading="eager"
+        loading="lazy"
         onError={() => setHasError(true)}
         onLoad={() => setHasLoaded(true)}
         src={url}

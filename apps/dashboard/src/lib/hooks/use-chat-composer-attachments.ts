@@ -309,7 +309,8 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
 
   const handlePasteFiles = useCallback(
     (files: File[]) => {
-      if (files.length === 0) {
+      const accepted = files.filter((file) => isAllowedChatMimeType(file.type));
+      if (accepted.length === 0) {
         return false;
       }
       handleFilesSelected(renamePastedFiles(files)).catch(() => undefined);

@@ -8,6 +8,40 @@ import type {
 
 export const CHAT_INPUT_LIMIT_MESSAGE = "No chat credits left.";
 
+export function getComposerSendChrome(showStop: boolean, canQueue: boolean) {
+  if (showStop) {
+    return {
+      sendLabel: "Stop generating",
+      sendTooltip: "Stop generating",
+    };
+  }
+  if (canQueue) {
+    return {
+      sendLabel: "Queue message",
+      sendTooltip:
+        "Enter to queue this message. It will send once the AI finishes.",
+    };
+  }
+  return {
+    sendLabel: "Send message",
+    sendTooltip: "Enter to send. Shift+Enter for a new line.",
+  };
+}
+
+export function nextValueAfterFilePaste(
+  current: string,
+  clipboardText: string
+): string {
+  const pastedText = clipboardText.trim();
+  if (!pastedText) {
+    return current;
+  }
+  if (current.length === 0) {
+    return pastedText;
+  }
+  return `${current}${current.endsWith("\n") ? "" : "\n"}${pastedText}`;
+}
+
 export function getSelectionPreview(selection: TextSelection) {
   return selection.text.length > 150
     ? `${selection.text.slice(0, 150)}...`

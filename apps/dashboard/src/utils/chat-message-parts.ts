@@ -1,5 +1,14 @@
 import type { ChatAttachment, ChatMessagePart } from "@notra/ai/types/chat";
 
+export function isTrustedChatFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function buildUserMessageParts(
   text: string,
   attachments: ChatAttachment[] = []
@@ -20,8 +29,9 @@ export function buildUserMessageParts(
 }
 
 export function getChatFilePartFields(part: object) {
+  const url = "url" in part && typeof part.url === "string" ? part.url : "";
   return {
-    url: "url" in part && typeof part.url === "string" ? part.url : "",
+    url: isTrustedChatFileUrl(url) ? url : "",
     mediaType:
       "mediaType" in part && typeof part.mediaType === "string"
         ? part.mediaType
