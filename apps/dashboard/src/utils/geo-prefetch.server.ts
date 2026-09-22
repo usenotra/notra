@@ -12,14 +12,9 @@ import {
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
 import { geoSettingsQueryInput } from "@/utils/geo-query-input";
 
-/**
- * Settings is the gate on every GEO page. Prefetching it from the layout means
- * the client does not spend a round trip on a skeleton before the page query.
- */
-export async function dehydrateGeoSettingsQuery(
-  organizationId: string,
-  projectId: string | undefined,
+async function openGeoReadClient(
   requestHeaders: Headers,
+  organizationId: string,
   membership?: OrganizationMembership & { userId: string }
 ) {
   if (membership) {
@@ -36,7 +31,24 @@ export async function dehydrateGeoSettingsQuery(
     { geo: geoRouter },
     { context: () => createORPCContext({ headers: requestHeaders }) }
   );
-  const queryClient = getGeoServerQueryClient();
+  return { client, queryClient: getGeoServerQueryClient() };
+}
+
+/**
+ * Settings is the gate on every GEO page. Prefetching it from the layout means
+ * the client does not spend a round trip on a skeleton before the page query.
+ */
+export async function dehydrateGeoSettingsQuery(
+  organizationId: string,
+  projectId: string | undefined,
+  requestHeaders: Headers,
+  membership?: OrganizationMembership & { userId: string }
+) {
+  const { client, queryClient } = await openGeoReadClient(
+    requestHeaders,
+    organizationId,
+    membership
+  );
   const input = geoSettingsQueryInput({ organizationId, projectId });
 
   void queryClient.prefetchQuery({
@@ -173,34 +185,42 @@ export async function dehydrateGeoTrafficQueries(
   return dehydrate(queryClient);
 }
 
-async function openGeoReadClient(
-  requestHeaders: Headers,
-  organizationId: string,
-  membership?: OrganizationMembership & { userId: string }
-) {
-  if (membership) {
-    const { requestMemo } = await createORPCContext({
-      headers: requestHeaders,
+const scopeListPrefetch = {
+  agentReadiness: (client, queryClient, input) => {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.agentReadiness.queryOptions({ input }),
+      queryFn: () => client.geo.agentReadiness(input),
     });
-    requestMemo.membershipByUserOrganization.set(
-      `${membership.userId}:${organizationId}`,
-      Promise.resolve({ id: membership.id, role: membership.role })
-    );
-  }
-
-  const client = createRouterClient(
-    { geo: geoRouter },
-    { context: () => createORPCContext({ headers: requestHeaders }) }
-  );
-  return { client, queryClient: getGeoServerQueryClient() };
-}
+  },
+  personasList: (client, queryClient, input) => {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.personasList.queryOptions({ input }),
+      queryFn: () => client.geo.personasList(input),
+    });
+  },
+  writerBriefsList: (client, queryClient, input) => {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.writerBriefsList.queryOptions({ input }),
+      queryFn: () => client.geo.writerBriefsList(input),
+    });
+  },
+  writerGaps: (client, queryClient, input) => {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.writerGaps.queryOptions({ input }),
+      queryFn: () => client.geo.writerGaps(input),
+    });
+  },
+} satisfies Record<
+  string,
+  (
+    client: Awaited<ReturnType<typeof openGeoReadClient>>["client"],
+    queryClient: Awaited<ReturnType<typeof openGeoReadClient>>["queryClient"],
+    input: ReturnType<typeof geoSettingsQueryInput>
+  ) => void
+>;
 
 export async function dehydrateGeoScopeList(
-  procedure:
-    | "agentReadiness"
-    | "personasList"
-    | "writerBriefsList"
-    | "writerGaps",
+  procedure: keyof typeof scopeListPrefetch,
   organizationId: string,
   projectId: string | undefined,
   requestHeaders: Headers,
@@ -212,28 +232,7 @@ export async function dehydrateGeoScopeList(
     membership
   );
   const input = geoSettingsQueryInput({ organizationId, projectId });
-
-  if (procedure === "agentReadiness") {
-    void queryClient.prefetchQuery({
-      ...dashboardOrpc.geo.agentReadiness.queryOptions({ input }),
-      queryFn: () => client.geo.agentReadiness(input),
-    });
-  } else if (procedure === "personasList") {
-    void queryClient.prefetchQuery({
-      ...dashboardOrpc.geo.personasList.queryOptions({ input }),
-      queryFn: () => client.geo.personasList(input),
-    });
-  } else if (procedure === "writerBriefsList") {
-    void queryClient.prefetchQuery({
-      ...dashboardOrpc.geo.writerBriefsList.queryOptions({ input }),
-      queryFn: () => client.geo.writerBriefsList(input),
-    });
-  } else {
-    void queryClient.prefetchQuery({
-      ...dashboardOrpc.geo.writerGaps.queryOptions({ input }),
-      queryFn: () => client.geo.writerGaps(input),
-    });
-  }
+  scopeListPrefetch[procedure](client, queryClient, input);
 
   return dehydrate(queryClient);
 }

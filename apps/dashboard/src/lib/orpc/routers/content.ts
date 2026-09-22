@@ -198,17 +198,21 @@ const postListColumns = {
   updatedAt: true,
 } as const;
 
-const postListExtras = {
-  content:
-    sql<string>`case when ${posts.contentType} = 'image' then ${posts.content} else '' end`.as(
-      "content"
+function markdownPreviewExtras(previewChars: number) {
+  return {
+    content:
+      sql<string>`case when ${posts.contentType} = 'image' then ${posts.content} else '' end`.as(
+        "content"
+      ),
+    markdown: sql<
+      string | null
+    >`case when ${posts.contentType} = 'image' then ${posts.markdown} else left(${posts.markdown}, ${previewChars}) end`.as(
+      "markdown"
     ),
-  markdown: sql<
-    string | null
-  >`case when ${posts.contentType} = 'image' then ${posts.markdown} else left(${posts.markdown}, ${POST_LIST_MARKDOWN_PREVIEW_CHARS}) end`.as(
-    "markdown"
-  ),
-};
+  };
+}
+
+const postListExtras = markdownPreviewExtras(POST_LIST_MARKDOWN_PREVIEW_CHARS);
 
 function serializePost(post: {
   content: string;
@@ -1531,14 +1535,7 @@ export const contentRouter = {
               createdAt: true,
               updatedAt: true,
             },
-            extras: {
-              content: postListExtras.content,
-              markdown: sql<
-                string | null
-              >`case when ${posts.contentType} = 'image' then ${posts.markdown} else left(${posts.markdown}, ${COLLECTION_MARKDOWN_PREVIEW_CHARS}) end`.as(
-                "markdown"
-              ),
-            },
+            extras: markdownPreviewExtras(COLLECTION_MARKDOWN_PREVIEW_CHARS),
             orderBy: [asc(posts.createdAt), asc(posts.id)],
           }),
         ]);

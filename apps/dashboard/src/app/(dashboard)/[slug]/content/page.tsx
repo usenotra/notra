@@ -1,12 +1,10 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Suspense } from "react";
 
-import { validateOrganizationAccess } from "@/lib/auth/actions";
-import { resolveInitialGeoProjectId } from "@/lib/geo/initial-project.server";
+import { loadGeoPageScope } from "@/lib/geo/page-scope.server";
+import type { GeoServerPageProps } from "@/types/geo-hydration";
 import { dehydrateContentListQueries } from "@/utils/content-prefetch.server";
-import { geoRequestedProjectId } from "@/utils/geo-hydration";
 
 import Loading from "./loading";
 import PageClient from "./page-client";
@@ -23,52 +21,26 @@ function pageFromSearch(value: string | string[] | undefined): number {
   return Number.isInteger(page) && page > 0 ? page : 1;
 }
 
-async function PageContent({
-  params,
-  searchParams,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+async function PageContent({ params, searchParams }: GeoServerPageProps) {
   const { slug } = await params;
-  const [{ organization, user, member }, requestHeaders, search] =
-    await Promise.all([
-      validateOrganizationAccess(slug),
-      headers(),
-      searchParams,
-    ]);
-  const projectId = await resolveInitialGeoProjectId(
-    organization.id,
-    slug,
-    geoRequestedProjectId(search)
-  );
+  const scope = await loadGeoPageScope(slug, searchParams, "/content");
 
   return (
     <HydrationBoundary
       state={await dehydrateContentListQueries(
-        organization.id,
-        projectId,
-        pageFromSearch(search.page),
-        requestHeaders,
-        member && { userId: user.id, id: member.id, role: member.role }
+        scope.organizationId,
+        scope.projectId,
+        pageFromSearch(scope.search.page),
+        scope.requestHeaders,
+        scope.membership
       )}
     >
-      <PageClient initialProjectId={projectId} organizationSlug={slug} />
+      <PageClient initialProjectId={scope.projectId} organizationSlug={slug} />
     </HydrationBoundary>
   );
 }
 
-function Page({
-  params,
-  searchParams,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+function Page({ params, searchParams }: GeoServerPageProps) {
   return (
     <Suspense fallback={<Loading />}>
       <PageContent params={params} searchParams={searchParams} />

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import type { GeoServerPageProps } from "@/types/geo-hydration";
+
 import { GeoScopeListPrefetch } from "../geo-project-scope";
 import PageClient from "./page-client";
 import { GeoWriterSkeleton } from "./skeleton";
@@ -11,31 +13,24 @@ export const metadata: Metadata = {
 
 export const instant = true;
 
-async function PageContent({
-  params,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-}) {
+async function PageContent({ params, searchParams }: GeoServerPageProps) {
   const { slug } = await params;
   return (
-    <GeoScopeListPrefetch procedure="writerBriefsList" slug={slug}>
+    <GeoScopeListPrefetch
+      basePath="/geo/write"
+      procedure="writerBriefsList"
+      searchParams={searchParams}
+      slug={slug}
+    >
       <PageClient organizationSlug={slug} />
     </GeoScopeListPrefetch>
   );
 }
 
-function Page({
-  params,
-}: {
-  params: Promise<{
-    slug: string;
-  }>;
-}) {
+function Page({ params, searchParams }: GeoServerPageProps) {
   return (
     <Suspense fallback={<GeoWriterSkeleton />}>
-      <PageContent params={params} />
+      <PageContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
