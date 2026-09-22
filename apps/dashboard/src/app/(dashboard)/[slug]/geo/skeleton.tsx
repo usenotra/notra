@@ -17,9 +17,9 @@ export function GeoPageSkeleton() {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <header className="space-y-1">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Skeleton className="h-7 w-16 rounded-full" />
               <Button className="w-fit gap-2" size="sm">
                 Run Scan

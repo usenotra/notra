@@ -119,7 +119,15 @@ export function SiteHeader() {
             <Kbd>K</Kbd>
           </KbdGroup>
         </button>
-        <div className="flex h-full min-w-0 items-center justify-end gap-2">
+        <div className="flex h-full min-w-0 items-center justify-end gap-1 sm:gap-2">
+          <button
+            aria-label="Search"
+            className="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-lg md:hidden"
+            onClick={() => setCommandPaletteOpen(true)}
+            type="button"
+          >
+            <HugeiconsIcon icon={SearchIcon} size={16} />
+          </button>
           <button
             aria-hidden
             className="hidden"

@@ -147,8 +147,8 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
           showEmptyState ? "space-y-6" : "flex min-h-0 flex-1 flex-col gap-6"
         )}
       >
-        <div className="flex shrink-0 items-start justify-between gap-3">
-          <div className="space-y-1">
+        <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
+          <div className="min-w-0 space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Feedback</h1>
             <p className="text-muted-foreground">
               What AI agents are saying about your product.

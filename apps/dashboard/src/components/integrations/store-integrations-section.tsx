@@ -186,13 +186,13 @@ export function StoreIntegrationsSection({
       </div>
 
       {isPending ? (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {[0, 1, 2].map((item) => (
             <Skeleton className="h-28 w-full rounded-lg" key={item} />
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {integrations.map((integration) => (
             <StoreIntegrationCard
               connectPending={isConnectPending(integration)}

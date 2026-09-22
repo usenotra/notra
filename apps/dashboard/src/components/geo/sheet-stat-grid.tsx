@@ -12,7 +12,7 @@ import type { SheetStatGridProps } from "@/types/geo";
  */
 export function SheetStatGrid({ stats }: SheetStatGridProps) {
   return (
-    <dl className="bg-muted/30 grid grid-cols-3 gap-4 rounded-xl border p-4">
+    <dl className="bg-muted/30 @container/stats grid grid-cols-1 gap-4 rounded-xl border p-4 @min-[20rem]/stats:grid-cols-3">
       {stats.map((stat) => (
         <div className="flex min-w-0 flex-col gap-1.5" key={stat.label}>
           <dt className="text-muted-foreground truncate text-xs">

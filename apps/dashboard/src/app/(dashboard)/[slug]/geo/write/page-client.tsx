@@ -128,7 +128,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
       data-geo-write-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <header className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="flex shrink-0 flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Write</h1>
             <p className="text-muted-foreground max-w-2xl text-sm text-pretty">

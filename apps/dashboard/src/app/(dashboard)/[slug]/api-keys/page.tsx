@@ -270,8 +270,8 @@ function getDefaultEditExpiration(
 
 function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="space-y-1">
+    <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
+      <div className="min-w-0 space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
         <p className="text-muted-foreground">
           Manage API keys for programmatic access to your organization

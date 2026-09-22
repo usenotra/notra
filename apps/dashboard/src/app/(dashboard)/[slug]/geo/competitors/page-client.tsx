@@ -122,7 +122,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               Who AI engines recommend instead of you
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <GeoRangePicker control={geoRange} />
             <Button
               className="gap-1.5"

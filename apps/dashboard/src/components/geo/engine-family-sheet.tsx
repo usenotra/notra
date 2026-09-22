@@ -89,7 +89,7 @@ const FAMILY_TREND_STROKE_WIDTH = 1.5;
 const FAMILY_TOTAL_STROKE_WIDTH = 2;
 const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full";
 const FAMILY_SHEET_CONTENT_CLASS =
-  "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:border data-[side=right]:sm:max-w-2xl";
+  "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl";
 const BRAND_ROW_CLASS =
   "grid h-9 grid-cols-[1.25rem_minmax(0,1fr)_minmax(4rem,7.5rem)_3rem] items-center gap-3 border-b text-sm last:border-b-0";
 const RIVAL_BAR_FILL_CLASS = "bg-foreground/25";
@@ -129,7 +129,7 @@ function Stat({
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <p className="text-muted-foreground text-xs">{label}</p>
-      <div className="flex items-end gap-2">
+      <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
         <p
           className={cn(
             "leading-none font-semibold tracking-tight tabular-nums",
@@ -162,7 +162,7 @@ function FamilyStats({
   const trends = engineFamilyStatTrends(points, family.family);
 
   return (
-    <div className="grid grid-cols-[1.4fr_1fr_1fr] items-start gap-4">
+    <div className="@container/stats grid grid-cols-1 items-start gap-4 @min-[22rem]/stats:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <Stat
         delta={trends.ratePts}
         hero
@@ -482,7 +482,7 @@ function PromptHits({
           ? `Prompts (${hits.length.toLocaleString()})`
           : "Prompts",
       width: "1fr",
-      minWidth: "12rem",
+      minWidth: "8rem",
       sortable: true,
       cell: (row) => (
         <TruncateWithTooltip className="text-sm">
@@ -494,7 +494,7 @@ function PromptHits({
     {
       key: "result",
       header: "Result",
-      width: "11rem",
+      width: "6.5rem",
       sortable: true,
       cell: (row) => {
         const visible = row.mentioned || Boolean(row.ownedSourceCited);
@@ -529,7 +529,7 @@ function PromptHits({
       cell: (row) =>
         row.mentioned || row.ownedSourceCited ? null : (
           <Button
-            className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+            className="opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
             onClick={() => onWrite(row)}
             size="sm"
             variant="ghost"

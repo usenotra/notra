@@ -428,7 +428,7 @@ export const ContributionGraphFooter = ({
 }: ContributionGraphFooterProps) => (
   <div
     className={cn(
-      "flex w-full flex-wrap items-center justify-between gap-1 whitespace-nowrap sm:gap-x-4",
+      "flex w-full flex-wrap items-center justify-between gap-2 sm:gap-x-4",
       className
     )}
     {...props}

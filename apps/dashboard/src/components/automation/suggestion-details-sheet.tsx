@@ -25,7 +25,7 @@ export function SuggestionDetailsSheet({
 
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent className="overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:border sm:max-w-md">
+      <SheetContent className="overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border sm:max-w-md">
         <SheetHeader className="bg-muted/50 border-b pr-14">
           <SheetTitle>{suggestion.title}</SheetTitle>
           <SheetDescription>

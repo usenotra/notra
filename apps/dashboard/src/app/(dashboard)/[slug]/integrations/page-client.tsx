@@ -131,7 +131,7 @@ const IntegrationCard = memo(function IntegrationCard({
       {integration.available ? (
         <Link
           {...dither.interactionProps}
-          className="focus-visible:ring-ring h-full rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+          className="focus-visible:ring-ring h-full min-w-0 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
           href={`/${organizationSlug}/integrations/${integration.href}`}
         >
           {cardContent}
@@ -235,7 +235,7 @@ export default function PageClient({
 
             return (
               <TabsContent key={tab.value} value={tab.value}>
-                <div className="grid gap-3 pt-4 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 pt-4 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {items.map((integration) => (
                     <IntegrationCard
                       activeCount={
