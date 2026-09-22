@@ -1,12 +1,14 @@
 "use client";
 
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
+import { Switch } from "@notra/ui/components/ui/switch";
 import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { DESIGN_SYSTEM_SEARCH_GAPS } from "@/constants/design-system-gaps";
+import { tableHeightFor } from "@/utils/table";
 
 import { PrototypeAnswerSheet } from "./prototype-answer-sheet";
 
@@ -55,11 +57,18 @@ const SEARCH_COLUMNS: TableColumn<
   },
 ];
 
+const SEARCH_GAP_ROWS = DESIGN_SYSTEM_SEARCH_GAPS.flatMap((source) =>
+  Array.from({ length: 6 }, (_, index) => ({
+    ...source,
+    id: `${source.id}-${index}`,
+  }))
+);
+
 export default function GeoGapsSheetDemoPage() {
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected =
-    DESIGN_SYSTEM_SEARCH_GAPS.find((row) => row.id === selectedId) ?? null;
+  const [loading, setLoading] = useState(false);
+  const selected = SEARCH_GAP_ROWS.find((row) => row.id === selectedId) ?? null;
 
   return (
     <main className="bg-muted/30 min-h-screen space-y-8 p-8 lg:p-12">
@@ -90,13 +99,27 @@ export default function GeoGapsSheetDemoPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Search gaps · side drawer</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium">Search gaps · side drawer</h2>
+          <label
+            className="text-muted-foreground flex items-center gap-2 text-sm"
+            htmlFor="table-loading-overlay"
+          >
+            Loading overlay
+            <Switch
+              checked={loading}
+              id="table-loading-overlay"
+              onCheckedChange={setLoading}
+            />
+          </label>
+        </div>
         <Table
           className="rounded-2xl"
           columns={SEARCH_COLUMNS}
-          data={DESIGN_SYSTEM_SEARCH_GAPS}
+          data={SEARCH_GAP_ROWS}
           getRowId={(row) => row.id}
-          height={520}
+          height={tableHeightFor(SEARCH_GAP_ROWS.length)}
+          loading={loading}
           onRowClick={(row) => setSelectedId(row.id)}
         />
       </section>
