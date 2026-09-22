@@ -2,7 +2,12 @@
 
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { TextSelection } from "@notra/schemas/dashboard/content";
-import { $getRoot, $getSelection, $isRangeSelection } from "lexical";
+import {
+  $getRoot,
+  $getSelection,
+  $isRangeSelection,
+  $setSelection,
+} from "lexical";
 import { useEffect, useRef } from "react";
 
 interface SelectionPluginProps {
@@ -29,8 +34,19 @@ export function SelectionPlugin({
   const selectedExcerptRef = useRef(selectedExcerpt);
 
   useEffect(() => {
+    const shouldCollapseEditorSelection =
+      selectedExcerpt === null && selectedExcerptRef.current !== null;
     selectedExcerptRef.current = selectedExcerpt;
-  }, [selectedExcerpt]);
+    if (!shouldCollapseEditorSelection) {
+      return;
+    }
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection) && !selection.isCollapsed()) {
+        $setSelection(null);
+      }
+    });
+  }, [editor, selectedExcerpt]);
 
   useEffect(() => {
     const unregister = editor.registerUpdateListener(

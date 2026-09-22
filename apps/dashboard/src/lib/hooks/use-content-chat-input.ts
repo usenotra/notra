@@ -242,6 +242,7 @@ export function useContentChatInput({
 
     const nextAttachments = attachmentsState.consumeAttachments();
     onSend?.(trimmed, nextAttachments);
+    onClearSelection?.();
     setValue("");
     requestAnimationFrame(resizeTextarea);
   }, [
@@ -253,6 +254,7 @@ export function useContentChatInput({
     disabled,
     isLoading,
     isUsageBlocked,
+    onClearSelection,
     onSend,
     resizeTextarea,
     setValue,
