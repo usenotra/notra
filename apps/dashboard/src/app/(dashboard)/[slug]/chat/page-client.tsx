@@ -61,6 +61,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
@@ -2456,6 +2457,9 @@ function StandaloneChatPageClient({
                     const lastUserMessageId = [...visibleMessages]
                       .reverse()
                       .find((m) => m.role === "user")?.id;
+                    const lastAssistantMessageId = [...visibleMessages]
+                      .reverse()
+                      .find((m) => m.role === "assistant")?.id;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
                       const isEditing =
@@ -2563,9 +2567,28 @@ function StandaloneChatPageClient({
                               </m.div>
                             ) : (
                               <MessageContent>
-                                {message.parts.map((part, index) =>
-                                  renderPart(part, message.id, index)
-                                )}
+                                <ChatAssistantParts
+                                  durationMs={
+                                    message.metadata?.generationDurationMs
+                                  }
+                                  isLoading={
+                                    isLoading &&
+                                    message.id === lastAssistantMessageId
+                                  }
+                                  isStandaloneTool={(part) =>
+                                    isToolUIPart(part) &&
+                                    part.type !== "dynamic-tool" &&
+                                    isCreateTool(part.type)
+                                  }
+                                  messageId={message.id}
+                                  parts={message.parts}
+                                  renderStandalone={(part, index) =>
+                                    renderPart(part, message.id, index)
+                                  }
+                                  renderTool={(part, index) =>
+                                    renderPart(part, message.id, index)
+                                  }
+                                />
                               </MessageContent>
                             )}
                             {isUser && !isSlackMirrored && (

@@ -1,107 +1,59 @@
 "use client";
 
-import { AiBrain01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { AiBrain01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@notra/ui/components/ui/collapsible";
-import { useEffect, useRef, useState } from "react";
 
-import {
-  REASONING_AUTO_CLOSE_DELAY_MS,
-  REASONING_CONTENT_CLASSNAME,
-  THINKING_LABEL,
-} from "@/constants/chat-reasoning";
-import type {
-  ChatReasoningBlockProps,
-  ChatReasoningBlockState,
-} from "@/types/components/chat-reasoning-block";
-import { formatReasoningDurationLabel } from "@/utils/format-reasoning-duration";
+import { REASONING_TITLE_MAX_LENGTH } from "@/constants/chat-activity";
+import type { ChatReasoningBlockProps } from "@/types/components/chat-reasoning-block";
+
+function splitReasoningText(text: string): { title: string; body: string } {
+  const trimmed = text.trim();
+  const newline = trimmed.indexOf("\n");
+  const firstLine = (
+    newline === -1 ? trimmed : trimmed.slice(0, newline)
+  ).trim();
+  const rest = newline === -1 ? "" : trimmed.slice(newline + 1).trim();
+
+  if (firstLine.length <= REASONING_TITLE_MAX_LENGTH) {
+    return { title: firstLine, body: rest };
+  }
+
+  return {
+    title: `${firstLine.slice(0, REASONING_TITLE_MAX_LENGTH - 1)}…`,
+    body: trimmed,
+  };
+}
 
 export function ChatReasoningBlock({
   children,
   isStreaming,
 }: ChatReasoningBlockProps) {
-  const [reasoningState, setReasoningState] = useState<ChatReasoningBlockState>(
-    {
-      durationSeconds: null,
-      isOpen: false,
-      wasStreaming: null,
-    }
-  );
-  const startTimeRef = useRef<number | null>(null);
-
-  if (reasoningState.wasStreaming !== isStreaming) {
-    setReasoningState({
-      durationSeconds: isStreaming ? null : reasoningState.durationSeconds,
-      isOpen: isStreaming ? true : reasoningState.isOpen,
-      wasStreaming: isStreaming,
-    });
-  }
-
-  useEffect(() => {
-    if (isStreaming) {
-      startTimeRef.current = Date.now();
-      return;
-    }
-
-    const durationTimer = window.setTimeout(() => {
-      const startedAt = startTimeRef.current;
-
-      setReasoningState((current) => ({
-        ...current,
-        durationSeconds: startedAt
-          ? Math.max(1, Math.ceil((Date.now() - startedAt) / 1000))
-          : null,
-      }));
-    }, 0);
-
-    const closeTimer = window.setTimeout(() => {
-      setReasoningState((current) => ({ ...current, isOpen: false }));
-    }, REASONING_AUTO_CLOSE_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(durationTimer);
-      window.clearTimeout(closeTimer);
-    };
-  }, [isStreaming]);
-
-  const statusLabel = isStreaming
-    ? THINKING_LABEL
-    : formatReasoningDurationLabel(reasoningState.durationSeconds);
-
-  function handleOpenChange(isOpen: boolean) {
-    setReasoningState((current) => ({ ...current, isOpen }));
-  }
+  const { title, body } = splitReasoningText(children);
+  const showBody = Boolean(body);
 
   return (
-    <Collapsible onOpenChange={handleOpenChange} open={reasoningState.isOpen}>
-      <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 text-sm transition-colors">
+    <div className="flex min-w-0 flex-col gap-1">
+      <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm leading-5">
         {isStreaming ? (
-          <BrailleLoader className="text-sm" label={statusLabel} />
+          <BrailleLoader className="text-sm" label={title} />
         ) : (
           <>
-            <HugeiconsIcon className="size-4" icon={AiBrain01Icon} />
-            <span>{statusLabel}</span>
+            <HugeiconsIcon
+              className="size-3.5 shrink-0"
+              icon={AiBrain01Icon}
+              strokeWidth={1.8}
+            />
+            <span className="min-w-0 truncate">{title}</span>
           </>
         )}
-        <HugeiconsIcon
-          className={`size-4 transition-transform ${reasoningState.isOpen ? "rotate-180" : "rotate-0"}`}
-          icon={ArrowDown01Icon}
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className={REASONING_CONTENT_CLASSNAME}>
-        <div className="pt-4">
-          <MessageResponse className="text-muted-foreground text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-            {children}
-          </MessageResponse>
-          <div className="h-3" />
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+      </div>
+      {showBody ? (
+        <MessageResponse className="text-muted-foreground pl-6 text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          {body}
+        </MessageResponse>
+      ) : null}
+    </div>
   );
 }

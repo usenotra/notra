@@ -169,6 +169,7 @@ export interface OrchestrateDeps {
     modelId: string,
     routeUsage?: RouteUsageSummary
   ) => void | Promise<void>;
+  onFirstChunk?: () => void;
   log?: AILogTarget;
 }
 
