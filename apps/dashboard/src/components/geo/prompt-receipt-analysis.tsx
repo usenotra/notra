@@ -51,12 +51,10 @@ function CompetitorsCell({
       {names.map((name) => (
         <li className="flex min-w-0 items-center gap-3 px-4 py-2.5" key={name}>
           {name === "ChatGPT" || name === "Gemini" ? (
-            <span className="bg-muted inline-flex size-6 shrink-0 items-center justify-center rounded-md border">
-              <EngineIcon
-                className="size-3.5"
-                engine={name === "ChatGPT" ? "openai" : "gemini"}
-              />
-            </span>
+            <EngineIcon
+              className="size-4 shrink-0"
+              engine={name === "ChatGPT" ? "openai" : "gemini"}
+            />
           ) : (
             <CompetitorLogo
               className="size-6 rounded-md border"

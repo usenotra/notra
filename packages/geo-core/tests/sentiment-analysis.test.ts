@@ -22,6 +22,7 @@ import type {
 } from "../src/types/sentiment-analysis";
 import {
   sentimentAnalysisKey,
+  sentimentAnalysisLookupKeys,
   validateSentimentThemes,
 } from "../src/utils/sentiment-analysis";
 import {
@@ -500,7 +501,7 @@ test("deferred runs claim the lease and return pending before extraction", async
 test("empty history does not call the model; cache results cannot cross scopes", async () => {
   const { store } = memoryStore();
   const run = {
-    key: sentimentAnalysisKey("org", "project", "2026-09-01", "2026-09-02"),
+    key: sentimentAnalysisKey("org", "project"),
     store,
     snapshot: async () => ({ fingerprint: "empty", eligible: 0 }),
     sample: async () => [],
@@ -517,12 +518,7 @@ test("empty history does not call the model; cache results cannot cross scopes",
     (
       await readSentimentAnalysis({
         ...run,
-        key: sentimentAnalysisKey(
-          "foreign",
-          "project",
-          "2026-09-01",
-          "2026-09-02"
-        ),
+        key: sentimentAnalysisKey("foreign", "project"),
       })
     ).result
   ).toBeNull();
@@ -655,12 +651,51 @@ test("freshness changes and lease theft cannot publish old results; failed runs 
   ).toBe("stale");
   expect(values.has("scope:c")).toBe(false);
   expect(locks.get("scope:lock")).toBe("new-owner");
-  expect(
-    new Set([
-      sentimentAnalysisKey("a", "p", "2026-01-01", "2026-01-02"),
-      sentimentAnalysisKey("b", "p", "2026-01-01", "2026-01-02"),
-      sentimentAnalysisKey("a", "q", "2026-01-01", "2026-01-02"),
-      sentimentAnalysisKey("a", "p", "2026-01-02", "2026-01-03"),
-    ]).size
-  ).toBe(4);
+  expect(sentimentAnalysisKey("a", "p")).not.toBe(
+    sentimentAnalysisKey("b", "p")
+  );
+  expect(sentimentAnalysisKey("a", "p")).not.toBe(
+    sentimentAnalysisKey("a", "q")
+  );
+});
+
+test("lookup keys stay on the project when the calendar window moves", () => {
+  const today = sentimentAnalysisLookupKeys(
+    "org",
+    "project",
+    "2026-08-24",
+    "2026-09-22"
+  );
+  const yesterday = sentimentAnalysisLookupKeys(
+    "org",
+    "project",
+    "2026-08-23",
+    "2026-09-21"
+  );
+  expect(today[0]).toBe(sentimentAnalysisKey("org", "project"));
+  expect(today[0]).toBe(yesterday[0]);
+  expect(today[2]).toBe(yesterday[1]);
+  expect(today[1]).not.toBe(today[0]);
+});
+
+test("a new answer fingerprint keeps the previous themes instead of an empty table", async () => {
+  const { store } = memoryStore();
+  const key = sentimentAnalysisKey("org", "project");
+  const ready = await runSentimentAnalysis({
+    key,
+    store,
+    snapshot: async () => ({ fingerprint: "day-1", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => output,
+  });
+  expect(ready.status).toBe("ready");
+  const nextDay = await readSentimentAnalysis({
+    key,
+    store,
+    snapshot: async () => ({ fingerprint: "day-2", eligible: 2 }),
+    sample: async () => sample,
+    extract: async () => output,
+  });
+  expect(nextDay.status).toBe("stale");
+  expect(nextDay.result?.themes).toEqual(ready.result?.themes);
 });
