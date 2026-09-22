@@ -1,15 +1,6 @@
 "use client";
 
-import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TextSelection } from "@notra/ai/types/chat";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ContentDetailMainDocument } from "@/components/content/content-detail-main-document";
@@ -45,14 +36,6 @@ export function ContentDetailLoadedView({
 }: ContentDetailLoadedViewProps) {
   const content = data.content;
   const isLongForm = ["blog_post", "changelog"].includes(content.contentType);
-  const collection = data.collection;
-  const searchParams = useSearchParams();
-  const fromCollection =
-    collection && searchParams.get("fromCollection") === collection.id;
-  const backHref = fromCollection
-    ? `/${organizationSlug}/collection/${collection.id}`
-    : `/${organizationSlug}/content`;
-  const backLabel = fromCollection ? "Back to collection" : "Back to Content";
 
   return (
     <>
@@ -66,40 +49,13 @@ export function ContentDetailLoadedView({
         onArticleReady={document.handleGeoArticleReady}
         organizationId={organizationId}
       >
-        <div className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6">
-          <div
-            aria-hidden="true"
-            className="bg-secondary pointer-events-none absolute inset-x-0 top-full h-4"
-          >
-            <div className="bg-background h-full rounded-t-2xl" />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Link
-                    aria-label={backLabel}
-                    className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex min-h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                    href={backHref}
-                  />
-                }
-              >
-                <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
-                {backLabel}
-              </TooltipTrigger>
-              <TooltipContent>{backLabel}</TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <ContentDetailToolbar
-              content={content}
-              contentId={contentId}
-              document={document}
-              organizationId={organizationId}
-              organizationSlug={organizationSlug}
-            />
-          </div>
-        </div>
+        <ContentDetailToolbar
+          content={content}
+          contentId={contentId}
+          document={document}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+        />
         <div className="flex flex-1 flex-col py-4 md:py-6">
           <div
             className={`mx-auto w-full space-y-6 px-4 lg:px-6 ${isLongForm ? "max-w-3xl" : "max-w-5xl"}`}

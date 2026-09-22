@@ -2,27 +2,25 @@
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useId } from "react";
+import { createPortal } from "react-dom";
+
+import { useContentEditorHeaderSlot } from "@/utils/content-editor-header-slot";
 
 export function ContentDetailSkeleton() {
   const id = useId();
+  const headerSlot = useContentEditorHeaderSlot();
   return (
     <div className="flex flex-1 flex-col" role="status">
       <span className="sr-only">Loading content</span>
-      <div
-        aria-hidden="true"
-        className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6"
-      >
-        <div className="bg-secondary pointer-events-none absolute inset-x-0 top-full h-4">
-          <div className="bg-background h-full rounded-t-2xl" />
-        </div>
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-36" />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Skeleton className="h-7 w-36" />
-          <Skeleton className="h-7 w-20" />
-        </div>
-      </div>
+      {headerSlot
+        ? createPortal(
+            <>
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-7 w-20" />
+            </>,
+            headerSlot
+          )
+        : null}
       <div aria-hidden="true" className="flex flex-1 flex-col py-4 md:py-6">
         <div className="mx-auto w-full max-w-5xl px-4 lg:px-6">
           <div className="space-y-2">

@@ -1,22 +1,27 @@
 "use client";
 
 import {
-  ArrowDown01Icon,
+  ArrowTurnBackwardIcon,
   Download01Icon,
   SentIcon,
   TextIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/button";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
@@ -39,6 +44,7 @@ import type {
 } from "@/types/components/content-detail-toolbar";
 import type { ImageExportTarget } from "@/types/content/image-export";
 import { getPublishButtonLabel } from "@/utils/content-detail";
+import { useContentEditorHeaderSlot } from "@/utils/content-editor-header-slot";
 import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
 import {
   getImageExportTargetLabel,
@@ -84,86 +90,76 @@ function ContentDetailImageActions({
     }
     document.handleImageExportTargetSelect(value);
     preloadImageExportCopy(value);
+    copyImageExportFor(value);
   };
 
   return (
-    <>
-      <Button
-        onClick={() => {
-          trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
-            content_id: contentId,
-            target: IMAGE_EXPORT_DOWNLOAD_TARGET,
-          });
-          downloadImage(imageDownloadUrl, document.title);
-        }}
-        size="sm"
-        variant="outline"
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            onFocusCapture={() =>
+              preloadImageExportCopy(document.imageExportTarget)
+            }
+            onMouseEnter={() =>
+              preloadImageExportCopy(document.imageExportTarget)
+            }
+            size="sm"
+            variant="outline"
+          />
+        }
       >
         <HugeiconsIcon className="size-4" icon={Download01Icon} />
-        Download image
-      </Button>
-      <ButtonGroup
-        onFocusCapture={() =>
-          preloadImageExportCopy(document.imageExportTarget)
-        }
-        onMouseEnter={() => preloadImageExportCopy(document.imageExportTarget)}
-      >
-        <Button
-          onClick={() => copyImageExportFor(document.imageExportTarget)}
-          size="sm"
-          variant="outline"
+        Export
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem
+          onClick={() => {
+            trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
+              content_id: contentId,
+              target: IMAGE_EXPORT_DOWNLOAD_TARGET,
+            });
+            downloadImage(imageDownloadUrl, document.title);
+          }}
         >
-          <ImageExportTargetIcon
-            className="size-4"
-            target={document.imageExportTarget}
-          />
-          Copy for {getImageExportTargetLabel(document.imageExportTarget)}
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button size="icon-sm" variant="outline" />}
-          >
-            <span className="sr-only">Select export target</span>
-            <HugeiconsIcon className="size-4" icon={ArrowDown01Icon} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuRadioGroup
-              onValueChange={handleImageExportTargetSelect}
-              value={document.imageExportTarget}
-            >
-              {IMAGE_EXPORT_TARGETS.map((target) => {
-                const isWonder = target === "wonder";
+          <HugeiconsIcon className="size-4" icon={Download01Icon} />
+          Download image
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {IMAGE_EXPORT_TARGETS.map((target) => {
+          const isWonder = target === "wonder";
 
-                return (
-                  <DropdownMenuRadioItem
-                    className={cn("gap-2", isWonder && "items-start")}
-                    closeOnClick
-                    disabled={isWonder}
-                    key={target}
-                    onFocus={() => preloadImageExportCopy(target)}
-                    onMouseEnter={() => preloadImageExportCopy(target)}
-                    value={target}
-                  >
-                    <ImageExportTargetIcon
-                      className="mt-0.5 size-4"
-                      target={target}
-                    />
-                    <span className="flex flex-col">
-                      <span>Copy for {getImageExportTargetLabel(target)}</span>
-                      {isWonder ? (
-                        <span className="text-muted-foreground text-xs">
-                          Coming soon
-                        </span>
-                      ) : null}
-                    </span>
-                  </DropdownMenuRadioItem>
-                );
-              })}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </ButtonGroup>
-    </>
+          return (
+            <DropdownMenuItem
+              className={cn(isWonder && "items-start")}
+              disabled={isWonder}
+              key={target}
+              onClick={() => {
+                if (isWonder) {
+                  return;
+                }
+                handleImageExportTargetSelect(target);
+              }}
+              onFocus={() => preloadImageExportCopy(target)}
+              onMouseEnter={() => preloadImageExportCopy(target)}
+            >
+              <ImageExportTargetIcon
+                className="mt-0.5 size-4"
+                target={target}
+              />
+              <span className="flex flex-col">
+                <span>Copy for {getImageExportTargetLabel(target)}</span>
+                {isWonder ? (
+                  <span className="text-muted-foreground text-xs">
+                    Coming soon
+                  </span>
+                ) : null}
+              </span>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -177,33 +173,43 @@ function ContentDetailPublishActions({
   if (document.isGeoWriterPlanMode) {
     return <WriterExecute.Button />;
   }
+  const githubPublish = content.githubPublish;
   return (
     <>
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
-      content.githubPublish ? (
-        <Button
-          nativeButton={false}
-          render={
-            <a
-              href={content.githubPublish.pullRequestUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <Github className="size-4" />
-              <span className="max-w-52 truncate">
-                {content.githubPublish.owner}/{content.githubPublish.repo} #
-                {content.githubPublish.pullRequestNumber}
-              </span>
-            </a>
-          }
-          size="sm"
-          variant="outline"
-        />
+      githubPublish ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                nativeButton={false}
+                render={
+                  <a
+                    href={githubPublish.pullRequestUrl}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  />
+                }
+                size="sm"
+                variant="outline"
+              />
+            }
+          >
+            <Github className="size-4" />
+            <span className="tabular-nums">
+              #{githubPublish.pullRequestNumber}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {githubPublish.owner}/{githubPublish.repo} #
+            {githubPublish.pullRequestNumber}
+          </TooltipContent>
+        </Tooltip>
       ) : null}
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
-      !content.githubPublish &&
+      !githubPublish &&
       !document.isGeoArticleLoading &&
       document.currentMarkdown.trim() !== "" ? (
         <PublishContentToGitHubDialog
@@ -238,44 +244,74 @@ function ContentDetailPublishActions({
   );
 }
 
-export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
-  const { content, document, organizationId } = props;
-  const updatesLinkedPullRequest = Boolean(content.githubPublish);
-  let saveLabel = "Save changes";
-  if (updatesLinkedPullRequest) {
-    saveLabel = document.isSaving ? "Updating PR…" : "Save and update PR";
-  } else if (document.isSaving) {
-    saveLabel = "Saving…";
-  }
-  return (
-    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-      {document.hasChanges &&
+function ContentDetailSaveActions({
+  document,
+  updatesLinkedPullRequest,
+}: Pick<ContentDetailToolbarProps, "document"> & {
+  updatesLinkedPullRequest: boolean;
+}) {
+  if (
+    !(
+      document.hasChanges &&
       (updatesLinkedPullRequest ||
         document.saveFailed ||
-        document.reviewPreviousMarkdown) ? (
-        <>
-          <Button
-            disabled={document.isSaving}
-            onClick={document.handleDiscard}
-            size="sm"
-            variant="ghost"
-          >
-            Discard changes
-          </Button>
-          <Button
-            aria-keyshortcuts="Meta+S Control+S"
-            data-save-bar
-            disabled={document.isSaving}
-            onClick={() => {
-              void document.handleSave();
-            }}
-            size="sm"
-            variant="outline"
-          >
-            {saveLabel}
-          </Button>
-        </>
-      ) : null}
+        document.reviewPreviousMarkdown)
+    )
+  ) {
+    return null;
+  }
+
+  let saveLabel = "Save";
+  if (updatesLinkedPullRequest) {
+    saveLabel = document.isSaving ? "Updating PR" : "Update PR";
+  } else if (document.isSaving) {
+    saveLabel = "Saving";
+  }
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              aria-label="Discard"
+              disabled={document.isSaving}
+              onClick={document.handleDiscard}
+              size="icon-sm"
+              variant="ghost"
+            />
+          }
+        >
+          <HugeiconsIcon className="size-4" icon={ArrowTurnBackwardIcon} />
+        </TooltipTrigger>
+        <TooltipContent>Discard</TooltipContent>
+      </Tooltip>
+      <Button
+        aria-keyshortcuts="Meta+S Control+S"
+        data-save-bar
+        disabled={document.isSaving}
+        onClick={() => {
+          void document.handleSave();
+        }}
+        size="sm"
+        variant="outline"
+      >
+        {saveLabel}
+      </Button>
+    </>
+  );
+}
+
+export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
+  const { content, document, organizationId } = props;
+  const headerSlot = useContentEditorHeaderSlot();
+  const updatesLinkedPullRequest = Boolean(content.githubPublish);
+  const actions = (
+    <>
+      <ContentDetailSaveActions
+        document={document}
+        updatesLinkedPullRequest={updatesLinkedPullRequest}
+      />
       {content.contentType === "image" ? (
         <ContentDetailImageActions {...props} />
       ) : (
@@ -293,6 +329,12 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
           }
         />
       ) : null}
-    </div>
+    </>
   );
+
+  if (!headerSlot) {
+    return null;
+  }
+
+  return createPortal(actions, headerSlot);
 }

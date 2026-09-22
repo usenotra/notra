@@ -250,9 +250,13 @@ export function PublishContentToGitHubDialog({
 
   return (
     <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-      <ResponsiveDialogTrigger render={<Button size="sm" variant="outline" />}>
+      <ResponsiveDialogTrigger
+        render={
+          <Button aria-label="Create GitHub PR" size="sm" variant="outline" />
+        }
+      >
         <Github className="size-4" />
-        Create GitHub PR
+        <span className="hidden sm:inline">Create PR</span>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="min-w-0 sm:max-w-[600px]">
         <form className="contents" onSubmit={handleSubmit}>

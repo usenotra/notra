@@ -35,6 +35,7 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { FeedbackForm } from "@/components/dashboard/feedback-popover";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
+import { CONTENT_EDITOR_HEADER_SLOT_ID } from "@/constants/content-detail";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { withGeoProject } from "@/utils/geo-paths";
@@ -120,6 +121,10 @@ export function SiteHeader() {
           </KbdGroup>
         </button>
         <div className="flex h-full min-w-0 items-center justify-end gap-1 sm:gap-2">
+          <div
+            className="flex min-w-0 items-center justify-end gap-1 overflow-hidden"
+            id={CONTENT_EDITOR_HEADER_SLOT_ID}
+          />
           <button
             aria-label="Search"
             className="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-lg md:hidden"
