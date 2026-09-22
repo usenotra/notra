@@ -2,13 +2,17 @@ import {
   GITHUB_MENTION_APP_WEBHOOK_SECRET_ENV,
   GITHUB_MENTION_LOG_EVENTS,
 } from "@notra/ai/constants/github-mention";
+import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import { githubAppWebhookPayloadSchema } from "@notra/ai/schemas/github-mention";
 import type {
   GitHubAppWebhookPayload,
   GitHubMentionContext,
   GitHubMentionWebhookLog,
 } from "@notra/ai/types/github-mention";
-import { closeContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
+import {
+  closeContentPublicationForPullRequest,
+  findOpenContentPublicationByPullRequest,
+} from "@notra/ai/utils/content-publication";
 import { resolveGitHubMentionContext } from "@notra/ai/utils/github-mention-context";
 import {
   buildAcceptedMentionWebhookLog,
@@ -16,6 +20,8 @@ import {
   logGitHubMentionEvent,
 } from "@notra/ai/utils/github-mention-log";
 import { verifyGitHubWebhookSignature } from "@notra/ai/utils/github-webhook-signature";
+import { createOctokit } from "@notra/ai/utils/octokit";
+import { syncPublishedPostFromPullRequestHead } from "@notra/ai/utils/update-published-content";
 
 const HANDLED_EVENTS = new Set([
   "issue_comment",
@@ -34,26 +40,78 @@ export function getGitHubAppWebhookSecret() {
   return process.env[GITHUB_MENTION_APP_WEBHOOK_SECRET_ENV]?.trim() ?? "";
 }
 
-async function syncClosedPullRequestPublication(
-  payload: GitHubAppWebhookPayload
-) {
+async function syncPullRequestPublication(payload: GitHubAppWebhookPayload) {
   const pullRequest = payload.pull_request;
   const repository = payload.repository;
-  if (payload.action !== "closed" || !(pullRequest && repository)) {
+  if (!(pullRequest && repository)) {
     return {
       httpStatus: 200,
       body: { message: "ignored", event: "pull_request", ignored: true },
     };
   }
-  const updated = await closeContentPublicationForPullRequest({
+  if (payload.action === "closed") {
+    const updated = await closeContentPublicationForPullRequest({
+      owner: repository.owner.login,
+      repo: repository.name,
+      pullRequestNumber: pullRequest.number,
+      merged: Boolean(pullRequest.merged),
+    });
+    return {
+      httpStatus: 200,
+      body: { message: "publication_synced", updated },
+    };
+  }
+  if (payload.action !== "synchronize") {
+    return {
+      httpStatus: 200,
+      body: { message: "ignored", event: "pull_request", ignored: true },
+    };
+  }
+  const publication = await findOpenContentPublicationByPullRequest({
     owner: repository.owner.login,
     repo: repository.name,
     pullRequestNumber: pullRequest.number,
-    merged: Boolean(pullRequest.merged),
   });
+  if (!publication) {
+    return {
+      httpStatus: 200,
+      body: { message: "ignored", reason: "no_publication" },
+    };
+  }
+  if (publication.headSha === pullRequest.head.sha) {
+    return {
+      httpStatus: 200,
+      body: { message: "publication_synced", status: "synchronized" },
+    };
+  }
+  const token = await getGitHubPublishToken(publication.repositoryId, {
+    organizationId: publication.organizationId,
+  });
+  if (!token) {
+    return {
+      httpStatus: 200,
+      body: { message: "ignored", reason: "github_token_unavailable" },
+    };
+  }
+  const result = await syncPublishedPostFromPullRequestHead({
+    octokit: createOctokit(token),
+    organizationId: publication.organizationId,
+    publication,
+    commitSha: pullRequest.head.sha,
+    branch: pullRequest.head.ref,
+  });
+  if (!result) {
+    return {
+      httpStatus: 200,
+      body: { message: "ignored", reason: "file_unavailable" },
+    };
+  }
+  if (result.status === "failed") {
+    throw new Error(result.error);
+  }
   return {
     httpStatus: 200,
-    body: { message: "publication_synced", updated },
+    body: { message: "publication_synced", status: result.status },
   };
 }
 
@@ -165,7 +223,7 @@ async function finishIngest(params: {
   }
 
   if (params.event === "pull_request") {
-    return await syncClosedPullRequestPublication(payload.data);
+    return await syncPullRequestPublication(payload.data);
   }
 
   // GitHub sends PR conversation comments as issue_comment too. Only those

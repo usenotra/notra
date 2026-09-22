@@ -339,6 +339,39 @@ export async function closeContentPublicationForPullRequest(params: {
   });
 }
 
+export async function findOpenContentPublicationByPullRequest(params: {
+  owner: string;
+  repo: string;
+  pullRequestNumber: number;
+}): Promise<(ContentPublication & { organizationId: string }) | null> {
+  const publication = await db.query.contentPublications.findFirst({
+    where: and(
+      sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
+      sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
+      eq(contentPublications.pullRequestNumber, params.pullRequestNumber),
+      eq(contentPublications.status, "open")
+    ),
+  });
+  if (!publication) {
+    return null;
+  }
+  const post = await db.query.posts.findFirst({
+    where: and(
+      eq(posts.id, publication.postId),
+      eq(posts.organizationId, publication.organizationId)
+    ),
+    columns: {
+      contentType: true,
+      title: true,
+      markdown: true,
+    },
+  });
+  return {
+    ...toPublication(publication, post),
+    organizationId: publication.organizationId,
+  };
+}
+
 export async function findContentPublicationForPullRequest(params: {
   organizationId: string;
   owner: string;
@@ -348,8 +381,8 @@ export async function findContentPublicationForPullRequest(params: {
   const publication = await db.query.contentPublications.findFirst({
     where: and(
       eq(contentPublications.organizationId, params.organizationId),
-      eq(contentPublications.owner, params.owner),
-      eq(contentPublications.repo, params.repo),
+      sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
+      sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
       eq(contentPublications.pullRequestNumber, params.pullRequestNumber),
       eq(contentPublications.status, "open")
     ),

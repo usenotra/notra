@@ -8,6 +8,7 @@ import {
   getGitHubMentionPrompt,
 } from "@notra/ai/prompts/github-mention";
 import { withRouterDefaults } from "@notra/ai/provider-options";
+import { listSkillSummaries } from "@notra/ai/skills/functions/service";
 import { buildGitHubMentionTools } from "@notra/ai/tools/github-mention";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
@@ -71,6 +72,35 @@ export async function runGitHubMentionAgent(params: {
       : null,
   });
 
+  // Thread, voice, and skills are best effort: the mention still works
+  // without them. Notra's own replies often sit in review threads, so both
+  // comment kinds are merged.
+  const location = {
+    octokit: params.octokit,
+    owner: params.context.owner,
+    repo: params.context.repo,
+  };
+  const [issueComments, reviewComments, voice, skillSummaries] =
+    await Promise.all([
+      listGitHubIssueComments({
+        ...location,
+        issueNumber: params.context.issueNumber,
+      }).catch(() => []),
+      params.context.pullRequest
+        ? listGitHubReviewComments({
+            ...location,
+            pullNumber: params.context.pullRequest.number,
+          }).catch(() => [])
+        : [],
+      loadGitHubMentionVoice({
+        organizationId: params.context.organizationId,
+        postId: params.context.publication?.postId ?? null,
+      }).catch(() => null),
+      listSkillSummaries({
+        organizationId: params.context.organizationId,
+      }).catch(() => []),
+    ]);
+
   const agent = new ToolLoopAgent({
     model: createModel(params.context.organizationId, AGENT_DEFAULT_MODEL, {
       disableMemory: true,
@@ -89,37 +119,15 @@ export async function runGitHubMentionAgent(params: {
       state,
       scheduleRepair: params.scheduleRepair,
     }),
-    instructions: getGitHubMentionInstructions(),
+    instructions: getGitHubMentionInstructions({
+      skillSummaries,
+      contentType: params.context.publication?.contentType ?? null,
+    }),
     stopWhen: [
       stepCountIs(GITHUB_MENTION_AGENT_MAX_STEPS),
       () => state.permissionDenied,
     ],
   });
-
-  // Thread and voice context are best effort: the mention still works without
-  // them. Notra's own replies often sit in review threads, so both comment
-  // kinds are merged.
-  const location = {
-    octokit: params.octokit,
-    owner: params.context.owner,
-    repo: params.context.repo,
-  };
-  const [issueComments, reviewComments, voice] = await Promise.all([
-    listGitHubIssueComments({
-      ...location,
-      issueNumber: params.context.issueNumber,
-    }).catch(() => []),
-    params.context.pullRequest
-      ? listGitHubReviewComments({
-          ...location,
-          pullNumber: params.context.pullRequest.number,
-        }).catch(() => [])
-      : [],
-    loadGitHubMentionVoice({
-      organizationId: params.context.organizationId,
-      postId: params.context.publication?.postId ?? null,
-    }).catch(() => null),
-  ]);
 
   const prompt = getGitHubMentionPrompt({
     commentBody: params.context.comment.body,
