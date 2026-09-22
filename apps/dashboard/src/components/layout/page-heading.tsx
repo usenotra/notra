@@ -15,8 +15,10 @@ export function PageHeading({
       )}
     >
       <div className="min-w-0 space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground">{description}</p>
+        <h1 className="text-2xl font-bold tracking-tight @min-[40rem]/main:text-3xl">
+          {title}
+        </h1>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {children}
     </div>

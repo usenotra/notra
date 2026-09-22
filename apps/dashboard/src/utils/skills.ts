@@ -76,7 +76,7 @@ export function skillQuickstartError(url: string): string | null {
   }
   try {
     const parsed = new URL(trimmed);
-    if (parsed.host !== "skills.sh") {
+    if (parsed.hostname !== "skills.sh") {
       return "Only skills.sh links are supported.";
     }
     return null;
