@@ -96,7 +96,6 @@ export function TwoFactorSection({
 
   async function verifyEnrollment({
     code,
-    name,
   }: TotpEnrollmentSubmission): Promise<TotpVerifyResult> {
     if (!enrollment) {
       return { ok: false, message: "Start the setup again." };
@@ -106,7 +105,6 @@ export function TwoFactorSection({
       factorId: enrollment.factorId,
       authenticationChallengeId: enrollment.authenticationChallengeId,
       code,
-      name: name ?? undefined,
     });
 
     if (result.error) {
@@ -129,6 +127,10 @@ export function TwoFactorSection({
 
   function cancelEnrollment() {
     const current = enrollment;
+    if (current?.kind === "verified") {
+      void finishEnrollment();
+      return;
+    }
     setEnrollment(null);
     if (current?.kind === "scanning") {
       authClient.security

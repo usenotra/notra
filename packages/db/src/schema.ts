@@ -101,21 +101,6 @@ export const userBackupCodes = pgTable(
   ]
 );
 
-/** Optional user-given names for WorkOS TOTP factors, which have none of their own. */
-export const userAuthFactorLabels = pgTable(
-  "user_auth_factor_labels",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    factorId: text("factor_id").notNull().unique(),
-    name: text("name").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [index("user_auth_factor_labels_userId_idx").on(table.userId)]
-);
-
 export const chatSessions = pgTable(
   "chat_sessions",
   {

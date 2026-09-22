@@ -73,7 +73,6 @@ export function useAuthFlowPlayground() {
     password: DEFAULT_PASSWORD,
     totpSecret: null,
     totpEnrolledAt: null,
-    totpName: null,
   });
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [orgRequiresMfa, setOrgRequiresMfa] = useState(false);
@@ -112,7 +111,6 @@ export function useAuthFlowPlayground() {
       password: DEFAULT_PASSWORD,
       totpSecret: null,
       totpEnrolledAt: null,
-      totpName: null,
     });
     setBackupCodes([]);
     setOrgRequiresMfa(false);
@@ -245,7 +243,6 @@ export function useAuthFlowPlayground() {
       ...current,
       totpSecret: secret,
       totpEnrolledAt: new Date().toISOString(),
-      totpName: input.factorLabel?.name ?? null,
     }));
     const issuedCodes = randomBackupCodes();
     setBackupCodes(issuedCodes);
@@ -283,7 +280,6 @@ export function useAuthFlowPlayground() {
       ...current,
       totpSecret: null,
       totpEnrolledAt: null,
-      totpName: null,
     }));
     setPending(null);
     appendLog("redeemBackupCode → accepted, authenticator removed");
@@ -313,7 +309,6 @@ export function useAuthFlowPlayground() {
 
   async function verifySettingsEnrollment({
     code,
-    name,
   }: TotpEnrollmentSubmission): Promise<TotpVerifyResult> {
     await wait(SIMULATED_LATENCY_MS);
     if (!settingsEnrollment) {
@@ -328,7 +323,6 @@ export function useAuthFlowPlayground() {
       ...current,
       totpSecret: settingsEnrollment.secret,
       totpEnrolledAt: new Date().toISOString(),
-      totpName: name,
     }));
     const codes = randomBackupCodes();
     setBackupCodes(codes);
@@ -394,7 +388,6 @@ export function useAuthFlowPlayground() {
       ...current,
       totpSecret: null,
       totpEnrolledAt: null,
-      totpName: null,
     }));
     setBackupCodes([]);
     setRemovingFactorId(null);
@@ -407,7 +400,6 @@ export function useAuthFlowPlayground() {
     ? [
         {
           id: "auth_factor_playground",
-          name: account.totpName,
           issuer: TOTP_ISSUER,
           createdAt: account.totpEnrolledAt ?? "",
         },

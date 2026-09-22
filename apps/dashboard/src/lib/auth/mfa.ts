@@ -8,7 +8,6 @@ import { Effect } from "effect";
 import { MFA_ERROR_CODES, TOTP_FACTOR_TYPE } from "@/constants/security";
 import { clearBackupCodes } from "@/lib/auth/backup-codes";
 import { WorkOSAuthError } from "@/lib/auth/errors";
-import { clearFactorLabels } from "@/lib/auth/factor-labels";
 import { storeMfaAttempt } from "@/lib/auth/mfa-cookies";
 import { createTotpFactor } from "@/lib/auth/workos-mfa";
 import type { WorkOSErrorInfo } from "@/types/auth/workos-error";
@@ -53,10 +52,7 @@ async function forgetFactorState(workosUserId: string) {
   if (!localUser) {
     return;
   }
-  await Promise.all([
-    clearBackupCodes(localUser.id),
-    clearFactorLabels(localUser.id),
-  ]);
+  await clearBackupCodes(localUser.id);
 }
 
 /**

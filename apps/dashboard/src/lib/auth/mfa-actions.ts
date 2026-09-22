@@ -35,11 +35,6 @@ import {
   hasBackupCodes,
   replaceBackupCodes,
 } from "@/lib/auth/backup-codes";
-import {
-  clearFactorLabels,
-  deleteFactorLabel,
-  setFactorLabel,
-} from "@/lib/auth/factor-labels";
 import { beginTotpEnrollment } from "@/lib/auth/mfa";
 import {
   clearMfaAttemptCookie,
@@ -130,19 +125,6 @@ export async function verifyMfaCodeAction(
 
       // The session is live from here on: nothing below may turn the result
       // into an error, or the client would show a failure for a signed-in user.
-      const factorId = parsed.data.factorLabel?.factorId;
-      const factorName = parsed.data.factorLabel?.name;
-      if (factorId && factorName) {
-        yield* attemptAfterSignIn(async () => {
-          const factors = await getWorkOS().multiFactorAuth.listUserAuthFactors(
-            { userId: response.user.id }
-          );
-          if (factors.data.some((factor) => factor.id === factorId)) {
-            await setFactorLabel(session.localUserId, factorId, factorName);
-          }
-        }, "saving the factor name");
-      }
-
       const alreadyHasCodes = yield* attemptAfterSignIn(
         () => hasBackupCodes(session.localUserId),
         "checking backup codes"
@@ -239,15 +221,12 @@ export async function redeemBackupCodeAction(
         (factor) =>
           tryWorkOSAuth(() =>
             getWorkOS().multiFactorAuth.deleteFactor(factor.id)
-          ).pipe(
-            Effect.andThen(Effect.promise(() => deleteFactorLabel(factor.id)))
           ),
         { discard: true }
       );
 
       if (lockedOutFactors.length === totpFactors.length) {
         yield* Effect.promise(() => clearBackupCodes(localUser.id));
-        yield* Effect.promise(() => clearFactorLabels(localUser.id));
       }
       yield* Effect.promise(clearMfaAttemptCookie);
       yield* Effect.promise(() =>

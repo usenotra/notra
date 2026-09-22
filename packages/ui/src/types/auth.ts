@@ -52,7 +52,6 @@ export type ApplyAuthResult = (result: AuthFlowResult) => boolean;
 
 export interface TotpEnrollmentSubmission {
   code: string;
-  name: string | null;
 }
 
 export type TotpVerifyResult =

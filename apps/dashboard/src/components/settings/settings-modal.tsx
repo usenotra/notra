@@ -57,13 +57,6 @@ const AccountSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
-const SecuritySettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/security-pane").then((mod) => ({
-      default: mod.SecuritySettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
 const AppearanceSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/appearance-pane").then((mod) => ({
@@ -158,7 +151,6 @@ const DevSettingsPane = dynamic(
 
 const STANDARD_SETTINGS_PANES = {
   account: AccountSettingsPane,
-  security: SecuritySettingsPane,
   appearance: AppearanceSettingsPane,
   attachments: AttachmentsSettingsPane,
   billing: BillingSettingsPane,
@@ -333,7 +325,7 @@ function SettingsModalBody({
           <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
         </Button>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 text-sm [&_.text-3xl]:text-2xl [&_.text-lg]:text-sm">
+      <div className="scrollbar-floating min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 text-sm [&_.text-3xl]:text-2xl [&_.text-lg]:text-sm">
         {isOpen && section ? (
           <SettingsSectionContent key={activeSection} section={activeSection} />
         ) : null}

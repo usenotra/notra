@@ -14,7 +14,6 @@ import { db } from "@notra/db/drizzle";
 import {
   members,
   organizations,
-  userAuthFactorLabels,
   userBackupCodes,
   users,
 } from "@notra/db/schema";
@@ -166,10 +165,7 @@ if (RESET_MFA) {
   await db
     .delete(userBackupCodes)
     .where(eq(userBackupCodes.userId, localUser.id));
-  await db
-    .delete(userAuthFactorLabels)
-    .where(eq(userAuthFactorLabels.userId, localUser.id));
-  console.log("Cleared backup codes and factor names");
+  console.log("Cleared backup codes");
 }
 if (workosUser.externalId !== localUser.id) {
   await workos.userManagement.updateUser({

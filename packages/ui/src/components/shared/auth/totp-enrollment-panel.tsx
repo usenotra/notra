@@ -2,10 +2,7 @@
 
 import { CheckmarkCircle02Icon, Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  FACTOR_NAME_MAX_LENGTH,
-  TOTP_CODE_LENGTH,
-} from "@notra/schemas/constants/dashboard/auth";
+import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -17,8 +14,6 @@ import type {
   TotpVerifyResult,
 } from "../../../types/auth";
 import { Button } from "../../ui/button";
-import { Input } from "../../ui/input";
-import { Label } from "../../ui/label";
 import { BackupCodesPanel } from "../security/backup-codes-panel";
 import { StepTransition } from "../security/step-transition";
 import { TotpCodeInput } from "./totp-code-input";
@@ -112,7 +107,6 @@ export function TotpEnrollmentPanel({
 }: TotpEnrollmentPanelProps) {
   const [step, setStep] = useState<EnrollmentStep>("scan");
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
@@ -127,10 +121,7 @@ export function TotpEnrollmentPanel({
 
     let result: TotpVerifyResult;
     try {
-      result = await onSubmit({
-        code: submittedCode,
-        name: name.trim() || null,
-      });
+      result = await onSubmit({ code: submittedCode });
     } catch {
       result = { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
     } finally {
@@ -269,17 +260,6 @@ export function TotpEnrollmentPanel({
             src={qrCode}
             style={{ width: QR_CODE_SIZE, height: QR_CODE_SIZE }}
             width={QR_CODE_SIZE}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="totp-factor-name">Name (optional)</Label>
-          <Input
-            autoComplete="off"
-            id="totp-factor-name"
-            maxLength={FACTOR_NAME_MAX_LENGTH}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. iPhone or 1Password"
-            value={name}
           />
         </div>
         <StepActions

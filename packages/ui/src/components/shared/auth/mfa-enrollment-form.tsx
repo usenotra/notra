@@ -24,14 +24,12 @@ export function MfaEnrollmentForm({
 
   async function handleSubmit({
     code,
-    name,
   }: TotpEnrollmentSubmission): Promise<TotpVerifyResult> {
     const result = await verifyMfaCode({
       pendingAuthenticationToken: step.pendingAuthenticationToken,
       authenticationChallengeId: step.authenticationChallengeId,
       code,
       returnTo,
-      factorLabel: name ? { factorId: step.factorId, name } : undefined,
     }).catch(() => null);
 
     if (!result) {

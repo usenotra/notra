@@ -1,0 +1,1 @@
+ALTER TABLE "geo_settings" ADD COLUMN "track_without_search" boolean DEFAULT false NOT NULL;

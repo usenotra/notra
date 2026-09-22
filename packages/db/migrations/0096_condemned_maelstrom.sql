@@ -1,0 +1,1 @@
+CREATE INDEX "geoMentionChecks_competitors_idx" ON "geo_mention_checks" USING gin ("competitors");

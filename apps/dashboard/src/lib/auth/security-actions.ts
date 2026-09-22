@@ -37,11 +37,6 @@ import {
   replaceBackupCodes,
 } from "@/lib/auth/backup-codes";
 import {
-  deleteFactorLabel,
-  listFactorLabels,
-  setFactorLabel,
-} from "@/lib/auth/factor-labels";
-import {
   clearTotpEnrollmentInProgress,
   readTotpEnrollmentInProgress,
   storeTotpEnrollmentInProgress,
@@ -121,25 +116,17 @@ const trackSecurityEvent = (event: PostHogEventName, userId: string) =>
   });
 
 const listTotpFactors = Effect.fn("auth.security.listTotpFactors")(function* (
-  workosUserId: string,
-  localUserId: string
+  workosUserId: string
 ) {
-  const [factors, labels] = yield* Effect.all(
-    [
-      tryWorkOS(() =>
-        getWorkOS().multiFactorAuth.listUserAuthFactors({
-          userId: workosUserId,
-        })
-      ),
-      tryDb(() => listFactorLabels(localUserId), "Failed to load factor names"),
-    ],
-    { concurrency: "unbounded" }
+  const factors = yield* tryWorkOS(() =>
+    getWorkOS().multiFactorAuth.listUserAuthFactors({
+      userId: workosUserId,
+    })
   );
   return factors.data
     .filter((factor) => factor.type === TOTP_FACTOR_TYPE)
     .map<TotpFactorSummary>((factor) => ({
       id: factor.id,
-      name: labels.get(factor.id) ?? null,
       issuer: factor.totp?.issuer ?? null,
       createdAt: factor.createdAt,
     }));
@@ -217,10 +204,7 @@ export async function getSecurityOverviewAction(): Promise<
     Effect.gen(function* () {
       const context = yield* requireSecurityContext();
 
-      const totpFactors = yield* listTotpFactors(
-        context.workosUserId,
-        context.localUserId
-      );
+      const totpFactors = yield* listTotpFactors(context.workosUserId);
       const backupCodesRemaining =
         totpFactors.length > 0
           ? yield* Effect.promise(() =>
@@ -343,16 +327,8 @@ export async function verifyTotpEnrollmentAction(
       // The factor is live from here on, so nothing below may fail the
       // action: the client would keep the setup in its unverified state and
       // delete the working factor on cleanup. Problems become a warning and
-      // the user can rename or regenerate from settings.
+      // the user can regenerate from settings.
       const warnings: string[] = [];
-      if (input.name) {
-        const saved = yield* attemptDb(() =>
-          setFactorLabel(context.localUserId, input.factorId, input.name ?? "")
-        );
-        if (saved === null) {
-          warnings.push("the name couldn't be saved");
-        }
-      }
       const backupCodes = yield* attemptDb(() =>
         replaceBackupCodes(context.localUserId)
       );
@@ -387,10 +363,7 @@ export async function regenerateBackupCodesAction(
         regenerateBackupCodesInputSchema,
         rawInput
       );
-      const factors = yield* listTotpFactors(
-        context.workosUserId,
-        context.localUserId
-      );
+      const factors = yield* listTotpFactors(context.workosUserId);
       if (factors.length === 0) {
         return yield* Effect.fail(
           new ActionFailure({
@@ -424,10 +397,7 @@ export async function removeAuthFactorAction(
         rawInput
       );
 
-      const factors = yield* listTotpFactors(
-        context.workosUserId,
-        context.localUserId
-      );
+      const factors = yield* listTotpFactors(context.workosUserId);
       if (!factors.some((factor) => factor.id === input.factorId)) {
         return yield* Effect.fail(
           new ActionFailure({
@@ -440,7 +410,6 @@ export async function removeAuthFactorAction(
       yield* tryWorkOS(() =>
         getWorkOS().multiFactorAuth.deleteFactor(input.factorId)
       );
-      yield* Effect.promise(() => deleteFactorLabel(input.factorId));
       if (factors.length === 1) {
         yield* Effect.promise(() => clearBackupCodes(context.localUserId));
       }

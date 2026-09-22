@@ -21,6 +21,13 @@ import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import { TotpEnrollmentPanel } from "../auth/totp-enrollment-panel";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "../responsive-dialog";
 import { BackupCodesPanel } from "./backup-codes-panel";
 import { SecondFactorConfirm } from "./second-factor-confirm";
 import { StepTransition } from "./step-transition";
@@ -127,7 +134,7 @@ function FactorList({
         const addedOn = formatSecurityDate(factor.createdAt);
         const isRemoving = removingFactorId === factor.id;
         const isConfirming = confirmingFactorId === factor.id;
-        const factorName = factor.name ?? factor.issuer ?? "Authenticator app";
+        const factorName = factor.issuer ?? "Authenticator app";
         return (
           <li className="grid gap-3 px-3 py-2.5 text-sm" key={factor.id}>
             <div className="flex items-center justify-between gap-3">
@@ -209,31 +216,16 @@ export function TwoFactorSettings({
 
   const isEnabled = factors.length > 0;
 
-  let body: ReactNode = null;
-  if (enrollment) {
-    body = (
-      <TotpEnrollmentPanel
-        accountLabel={accountLabel}
-        onCancel={onCancelEnrollment}
-        onDone={onEnrollmentDone}
-        onSubmit={onVerifyEnrollment}
-        otpauthUri={enrollment.otpauthUri}
-        qrCode={enrollment.qrCode}
-        secret={enrollment.secret}
-      />
-    );
-  } else if (isEnabled) {
-    body = (
-      <FactorList
-        factors={factors}
-        onRemoveFactor={onRemoveFactor}
-        removingFactorId={removingFactorId}
-      />
-    );
-  }
+  const body: ReactNode = isEnabled ? (
+    <FactorList
+      factors={factors}
+      onRemoveFactor={onRemoveFactor}
+      removingFactorId={removingFactorId}
+    />
+  ) : null;
 
   const action =
-    isEnabled || enrollment ? null : (
+    isEnabled ? null : (
       <Button
         className="rounded-xl"
         disabled={isStartingEnrollment}
@@ -250,15 +242,38 @@ export function TwoFactorSettings({
       </Button>
     );
 
-  let bodyKey = "empty";
-  if (enrollment) {
-    bodyKey = "enrollment";
-  } else if (isEnabled) {
-    bodyKey = "factors";
-  }
+  const bodyKey = isEnabled ? "factors" : "empty";
 
   return (
     <div className="divide-y">
+      <ResponsiveDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            onCancelEnrollment();
+          }
+        }}
+        open={enrollment !== null}
+      >
+        <ResponsiveDialogContent className="sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Set up two-factor authentication</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Adds a code check whenever you sign in with your password.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          {enrollment && (
+            <TotpEnrollmentPanel
+              accountLabel={accountLabel}
+              onCancel={onCancelEnrollment}
+              onDone={onEnrollmentDone}
+              onSubmit={onVerifyEnrollment}
+              otpauthUri={enrollment.otpauthUri}
+              qrCode={enrollment.qrCode}
+              secret={enrollment.secret}
+            />
+          )}
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
       <SecurityMethodRow
         action={action}
         description={
@@ -276,7 +291,7 @@ export function TwoFactorSettings({
       >
         {body && <StepTransition stepKey={bodyKey}>{body}</StepTransition>}
       </SecurityMethodRow>
-      {isEnabled && !enrollment && (
+      {isEnabled && (
         <BackupCodesRow
           accountLabel={accountLabel}
           onRegenerate={onRegenerateBackupCodes}

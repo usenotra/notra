@@ -1,7 +1,6 @@
 import "zod/compile";
 import {
   BACKUP_CODE_LENGTH,
-  FACTOR_NAME_MAX_LENGTH,
   TOTP_CODE_LENGTH,
 } from "@notra/schemas/constants/dashboard/auth";
 import { returnToSchema } from "@notra/schemas/dashboard/auth/return-to";
@@ -23,17 +22,6 @@ export const totpCodeSchema = z
 const workosIdSchema = (label: string) =>
   z.string().min(1, `${label} is missing`).max(WORKOS_ID_MAX_LENGTH);
 
-/** Optional user-given label for an authenticator; blank means "no name". */
-export const factorNameSchema = z
-  .string()
-  .trim()
-  .max(
-    FACTOR_NAME_MAX_LENGTH,
-    `Name must be at most ${FACTOR_NAME_MAX_LENGTH} characters`
-  )
-  .transform((value) => (value.length > 0 ? value : undefined))
-  .optional();
-
 export const verifyMfaCodeInputSchema = z.object({
   pendingAuthenticationToken: z
     .string()
@@ -42,9 +30,6 @@ export const verifyMfaCodeInputSchema = z.object({
   authenticationChallengeId: workosIdSchema("Challenge"),
   code: totpCodeSchema,
   returnTo: returnToSchema,
-  factorLabel: z
-    .object({ factorId: workosIdSchema("Factor"), name: factorNameSchema })
-    .optional(),
 });
 
 const BACKUP_CODE_REGEX = new RegExp(`^[a-z0-9]{${BACKUP_CODE_LENGTH}}$`);
@@ -79,7 +64,6 @@ export const verifyTotpEnrollmentInputSchema = z.object({
   factorId: workosIdSchema("Factor"),
   authenticationChallengeId: workosIdSchema("Challenge"),
   code: totpCodeSchema,
-  name: factorNameSchema,
 });
 
 export const discardTotpEnrollmentInputSchema = z.object({

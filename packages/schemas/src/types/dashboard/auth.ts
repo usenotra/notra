@@ -59,7 +59,6 @@ export interface TotpEnrollment extends TotpEnrollmentSecrets {
 
 export interface TotpFactorSummary {
   id: string;
-  name: string | null;
   issuer: string | null;
   createdAt: string;
 }
