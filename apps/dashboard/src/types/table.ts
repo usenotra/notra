@@ -1,4 +1,9 @@
-import type { CSSProperties, ReactNode, RefObject } from "react";
+import type {
+  CSSProperties,
+  ReactNode,
+  RefObject,
+  UIEventHandler,
+} from "react";
 
 import type {
   TableColumn,
@@ -39,6 +44,27 @@ export interface TableScrollFadeProps extends Pick<
   "scrollFade"
 > {
   atEnd: boolean;
+}
+
+export type TableLoadingState = "dimmed" | "more" | "skeleton";
+
+export interface TableLoadingOverlay {
+  loadingMore: boolean;
+  dimRows: boolean;
+  loadingState: TableLoadingState | undefined;
+}
+
+export interface TableBodySurfaceProps {
+  isEmpty: boolean;
+  overflowClass: string;
+  flushBottom: boolean;
+  hasFooter: boolean;
+  dimRows: boolean;
+  loadingState: TableLoadingState | undefined;
+  onScroll: UIEventHandler<HTMLDivElement>;
+  scrollRef: RefObject<HTMLDivElement | null>;
+  style: CSSProperties;
+  children: ReactNode;
 }
 
 export interface TableColumnGroupProps<T> {

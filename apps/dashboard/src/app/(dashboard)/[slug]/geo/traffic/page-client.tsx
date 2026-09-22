@@ -36,12 +36,113 @@ import {
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import type { GeoPageClientProps } from "@/types/geo";
+import type { GeoPageClientProps, TrafficPageViewProps } from "@/types/geo";
 import { trafficHostsFromPages } from "@/utils/ai-traffic-pages";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoSettingsPath } from "@/utils/settings-path";
 
 import { GeoTrafficSkeleton } from "./skeleton";
+
+function TrafficPageView({
+  organizationId,
+  organizationSlug,
+  projectId,
+  settings,
+  isEmptyTraffic,
+  revealActive,
+  geoRange,
+  traffic,
+  isTrafficPending,
+  inventoryPages,
+  knownHosts,
+  isPagesPending,
+  trafficPages,
+  ingestSetup,
+}: TrafficPageViewProps) {
+  if (!settings) {
+    return (
+      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
+          <header className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
+            <p className="text-muted-foreground text-sm">
+              AI crawlers and referrals visiting your site
+            </p>
+          </header>
+          <EmptyState
+            action={<GeoSetupButton organizationId={organizationId} />}
+            description="Set up GEO tracking first, then watch AI crawlers and referrals as they arrive."
+            preview={
+              <EmptyStateTablePreview
+                columns={EMPTY_STATE_TABLE_COLUMNS.traffic}
+                rows={EMPTY_STATE_TABLE_ROWS}
+              />
+            }
+            title="Not set up yet"
+          />
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const header = (
+    <header className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0 space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          AI Traffic
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          AI crawlers and referrals visiting your site
+        </p>
+      </div>
+      <GeoRangePicker control={geoRange} />
+    </header>
+  );
+
+  if (isEmptyTraffic) {
+    return (
+      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="flex w-full min-w-0 flex-col gap-6 px-4 lg:px-6">
+          {header}
+          <InstrumentReveal active={revealActive} order={0}>
+            <TrafficEmpty setup={ingestSetup} />
+          </InstrumentReveal>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  return (
+    <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="w-full space-y-6 px-4 lg:px-6">
+        {header}
+        <div className="flex flex-col gap-6">
+          <InstrumentReveal active={revealActive} order={0}>
+            <AiTrafficCard
+              isPending={isTrafficPending}
+              pages={inventoryPages}
+              settingsHref={withGeoProject(
+                geoSettingsPath(organizationSlug),
+                projectId
+              )}
+              traffic={traffic}
+            />
+          </InstrumentReveal>
+          <InstrumentReveal active={revealActive} order={1}>
+            <TrafficPagesCard
+              hosts={knownHosts}
+              isPending={isPagesPending}
+              pages={trafficPages}
+            />
+          </InstrumentReveal>
+          <InstrumentReveal active={revealActive} order={2}>
+            <AiTrafficLogCard organizationId={organizationId} />
+          </InstrumentReveal>
+        </div>
+      </div>
+    </PageContainer>
+  );
+}
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const { projectId } = useGeoProjectScope();
@@ -123,87 +224,22 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     return <GeoTrafficSkeleton />;
   }
 
-  if (!settings) {
-    return (
-      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">AI Traffic</h1>
-            <p className="text-muted-foreground text-sm">
-              AI crawlers and referrals visiting your site
-            </p>
-          </header>
-          <EmptyState
-            action={<GeoSetupButton organizationId={organizationId} />}
-            description="Set up GEO tracking first, then watch AI crawlers and referrals as they arrive."
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.traffic}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title="Not set up yet"
-          />
-        </div>
-      </PageContainer>
-    );
-  }
-
-  const header = (
-    <header className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          AI Traffic
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          AI crawlers and referrals visiting your site
-        </p>
-      </div>
-      <GeoRangePicker control={geoRange} />
-    </header>
-  );
-
-  if (isEmptyTraffic) {
-    return (
-      <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="flex w-full min-w-0 flex-col gap-6 px-4 lg:px-6">
-          {header}
-          <InstrumentReveal active={revealActive} order={0}>
-            <TrafficEmpty setup={ingestSetup} />
-          </InstrumentReveal>
-        </div>
-      </PageContainer>
-    );
-  }
-
   return (
-    <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="w-full space-y-6 px-4 lg:px-6">
-        {header}
-        <div className="flex flex-col gap-6">
-          <InstrumentReveal active={revealActive} order={0}>
-            <AiTrafficCard
-              isPending={isTrafficPending || isTrafficPlaceholder}
-              pages={inventoryPages.data?.pages ?? []}
-              settingsHref={withGeoProject(
-                geoSettingsPath(organizationSlug),
-                projectId
-              )}
-              traffic={traffic}
-            />
-          </InstrumentReveal>
-          <InstrumentReveal active={revealActive} order={1}>
-            <TrafficPagesCard
-              hosts={knownHosts}
-              isPending={isPagesPending || isPagesPlaceholder}
-              pages={trafficPages?.pages ?? []}
-            />
-          </InstrumentReveal>
-          <InstrumentReveal active={revealActive} order={2}>
-            <AiTrafficLogCard organizationId={organizationId} />
-          </InstrumentReveal>
-        </div>
-      </div>
-    </PageContainer>
+    <TrafficPageView
+      geoRange={geoRange}
+      ingestSetup={ingestSetup}
+      inventoryPages={inventoryPages.data?.pages ?? []}
+      isEmptyTraffic={isEmptyTraffic}
+      isPagesPending={isPagesPending || isPagesPlaceholder}
+      isTrafficPending={isTrafficPending || isTrafficPlaceholder}
+      knownHosts={knownHosts}
+      organizationId={organizationId}
+      organizationSlug={organizationSlug}
+      projectId={projectId}
+      revealActive={revealActive}
+      settings={settings}
+      traffic={traffic}
+      trafficPages={trafficPages?.pages ?? []}
+    />
   );
 }

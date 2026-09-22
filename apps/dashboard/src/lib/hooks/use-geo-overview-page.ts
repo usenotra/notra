@@ -29,6 +29,9 @@ import type { GeoOverviewPageModel } from "@/types/geo";
 import { resolveOrganizationId } from "@/utils/geo-overview-organization";
 import {
   countEnabledGeoPrompts,
+  geoJourneysTabLoading,
+  geoOverviewQueriesEnabled,
+  geoOverviewTabEnabled,
   toGeoOverviewReadyPage,
 } from "@/utils/geo-overview-page";
 
@@ -109,8 +112,21 @@ export function useGeoOverviewPage(
   const { data: settingsData, isPending: isSettingsPending } =
     useGeoSettings(organizationId);
   const hasSettings = Boolean(settingsData?.settings);
-  const queriesEnabled =
-    Boolean(organizationId) && !isSettingsPending && hasSettings;
+  const queriesEnabled = geoOverviewQueriesEnabled(
+    organizationId,
+    isSettingsPending,
+    hasSettings
+  );
+  const visibilityEnabled = geoOverviewTabEnabled(
+    queriesEnabled,
+    activeTab,
+    "visibility"
+  );
+  const journeysEnabled = geoOverviewTabEnabled(
+    queriesEnabled,
+    activeTab,
+    "journeys"
+  );
   const { data: overview } = useGeoOverview(
     organizationId,
     geoRange.query,
@@ -128,13 +144,13 @@ export function useGeoOverviewPage(
   const { data: promptResults } = useGeoPromptResults(
     organizationId,
     geoRange.query,
-    queriesEnabled && activeTab === "visibility"
+    visibilityEnabled
   );
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
     geoRange.query,
     false,
-    queriesEnabled && activeTab === "visibility"
+    visibilityEnabled
   );
   const { competitors } = useGeoCompetitorsDb(organizationId, {
     enabled: queriesEnabled,
@@ -142,27 +158,19 @@ export function useGeoOverviewPage(
   const { data: languageShare } = useGeoLanguageShare(
     organizationId,
     geoRange.query,
-    queriesEnabled && activeTab === "visibility"
+    visibilityEnabled
   );
   const {
     data: trafficJourneys,
     isPending: isJourneysPending,
     isPlaceholderData: isJourneysPlaceholder,
-  } = useGeoTrafficJourneys(
-    organizationId,
-    geoRange.query,
-    queriesEnabled && activeTab === "journeys"
-  );
+  } = useGeoTrafficJourneys(organizationId, geoRange.query, journeysEnabled);
   const {
     data: journeyStats,
     isPending: isJourneyStatsPending,
     isPlaceholderData: isJourneyStatsPlaceholder,
     isError: isJourneyStatsError,
-  } = useGeoJourneyStats(
-    organizationId,
-    geoRange.query,
-    queriesEnabled && activeTab === "journeys"
-  );
+  } = useGeoJourneyStats(organizationId, geoRange.query, journeysEnabled);
   const startScan = useGeoStartScan(organizationId);
   const isScanning = useIsGeoScanning(organizationId);
   const [preflightOpen, setPreflightOpen] = useState(false);
@@ -209,12 +217,13 @@ export function useGeoOverviewPage(
     journeys: trafficJourneys?.journeys,
     journeyStats,
     journeyStatsFailed: isJourneyStatsError && journeyStats === undefined,
-    journeysLoading:
-      activeTab === "journeys" &&
-      (isJourneysPending ||
-        isJourneyStatsPending ||
-        isJourneysPlaceholder ||
-        isJourneyStatsPlaceholder),
+    journeysLoading: geoJourneysTabLoading({
+      activeTab,
+      isJourneysPending,
+      isJourneyStatsPending,
+      isJourneysPlaceholder,
+      isJourneyStatsPlaceholder,
+    }),
     isScanning,
     revealActive,
     scanPreflight: {

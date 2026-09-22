@@ -35,13 +35,16 @@ import type {
   GeoScanModelCellProps,
   GeoScanPendingAnswer,
   GeoScanPromptCellProps,
+  GeoScanRunAnswersTableProps,
   GeoScanRunDetailProps,
+  GeoScanRunEmptyStateInput,
   GeoScanRunFiltersProps,
+  GeoScanRunPendingTableProps,
   GeoScanRunView,
   GeoScanTablePaginationProps,
 } from "@/types/geo-scan-activity";
 import { formatEngineWithMode } from "@/utils/geo-charts";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { scanRunDetailView } from "@/utils/geo-scan-activity";
 
 const ALL_MODELS = "";
 
@@ -234,6 +237,105 @@ function ScanTablePagination({
   );
 }
 
+function scanRunEmptyState({
+  running,
+  isError,
+  hasData,
+  loading,
+  onRetry,
+}: GeoScanRunEmptyStateInput): ReactNode {
+  if (isError && !hasData) {
+    return (
+      <span className="flex flex-col items-center gap-2">
+        Could not load scan answers.
+        <Button onClick={onRetry} size="sm" variant="outline">
+          Try again
+        </Button>
+      </span>
+    );
+  }
+  if (!(loading || hasData)) {
+    return "This scan is no longer available.";
+  }
+  return running
+    ? "Waiting for the first answers. They appear here as each batch finishes."
+    : "No saved answers for this selection.";
+}
+
+function ScanRunPendingTable({
+  pending,
+  showLanguage,
+  emptyState,
+  running,
+  offset,
+  onOffsetChange,
+  total,
+  height,
+  loading,
+  toolbar,
+}: GeoScanRunPendingTableProps) {
+  return (
+    <Table
+      className="rounded-2xl"
+      columns={pendingColumns(showLanguage)}
+      data={pending}
+      emptyState={emptyState}
+      footer={
+        <ScanTablePagination
+          itemLabel={running ? "in progress" : "missing"}
+          offset={offset}
+          onOffsetChange={onOffsetChange}
+          total={total}
+        />
+      }
+      getRowId={(row) => row.key}
+      height={height}
+      loading={loading}
+      rowHeight={TABLE_ROW_HEIGHT}
+      toolbar={toolbar}
+    />
+  );
+}
+
+function ScanRunAnswersTable({
+  results,
+  showLanguage,
+  emptyState,
+  offset,
+  onOffsetChange,
+  total,
+  height,
+  loading,
+  toolbar,
+  onRowClick,
+}: GeoScanRunAnswersTableProps) {
+  return (
+    <Table
+      className="rounded-2xl"
+      columns={answerColumns(showLanguage)}
+      data={results}
+      emptyState={emptyState}
+      footer={
+        total > 0 ? (
+          <ScanTablePagination
+            itemLabel="answers"
+            offset={offset}
+            onOffsetChange={onOffsetChange}
+            total={total}
+          />
+        ) : null
+      }
+      getRowId={(row) => row.id}
+      height={height}
+      loading={loading}
+      onRowClick={onRowClick}
+      rowHeight={TABLE_ROW_HEIGHT}
+      skeletonRows={GEO_SCAN_RESULTS_PAGE_SIZE / 2}
+      toolbar={toolbar}
+    />
+  );
+}
+
 function ScanRunFilters({
   view,
   onViewChange,
@@ -321,112 +423,75 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
     engine || undefined,
     pendingOffset
   );
-  const { data } = query;
-  const running = run.status === "running";
-  const pendingTotal = data?.pendingTotal ?? 0;
-  // Fall back to answers once every pending task has been saved.
-  const activeView = pendingTotal > 0 ? view : "answers";
-  const showLanguage = (run.plan?.languages.length ?? 0) > 1;
-  const loading = query.isPending || query.isPlaceholderData;
-
-  const hasFilters = pendingTotal > 0 || (run.plan?.engines.length ?? 0) > 1;
-  const toolbar = hasFilters ? (
+  const model = scanRunDetailView({
+    run,
+    view,
+    data: query.data,
+    isPending: query.isPending,
+    isPlaceholderData: query.isPlaceholderData,
+    pendingOffset,
+  });
+  const emptyState = scanRunEmptyState({
+    running: model.running,
+    isError: query.isError,
+    hasData: Boolean(query.data),
+    loading: model.loading,
+    onRetry: () => {
+      void query.refetch();
+    },
+  });
+  const toolbar = model.hasFilters ? (
     <ScanRunFilters
-      answerCount={data?.total ?? run.checks}
+      answerCount={model.answerCount}
       engine={engine}
-      engines={run.plan?.engines ?? []}
+      engines={model.engines}
       onEngineChange={(next) => {
         setEngine(next);
         setOffset(0);
         setPendingOffset(0);
       }}
       onViewChange={setView}
-      pendingCount={pendingTotal}
-      running={running}
-      view={activeView}
+      pendingCount={model.pendingTotal}
+      running={model.running}
+      view={model.activeView}
     />
   ) : undefined;
-
-  let emptyState: ReactNode = running
-    ? "Waiting for the first answers. They appear here as each batch finishes."
-    : "No saved answers for this selection.";
-  if (query.isError && !data) {
-    emptyState = (
-      <span className="flex flex-col items-center gap-2">
-        Could not load scan answers.
-        <Button
-          onClick={() => {
-            void query.refetch();
-          }}
-          size="sm"
-          variant="outline"
-        >
-          Try again
-        </Button>
-      </span>
+  const table =
+    model.activeView === "pending" ? (
+      <ScanRunPendingTable
+        emptyState={emptyState}
+        height={model.height}
+        loading={model.loading}
+        offset={model.pendingOffset}
+        onOffsetChange={setPendingOffset}
+        pending={model.pending}
+        running={model.running}
+        showLanguage={model.showLanguage}
+        toolbar={toolbar}
+        total={model.pendingTotal}
+      />
+    ) : (
+      <ScanRunAnswersTable
+        emptyState={emptyState}
+        height={model.height}
+        loading={model.loading}
+        offset={offset}
+        onOffsetChange={setOffset}
+        onRowClick={(row) => setCheckId(row.id)}
+        results={model.results}
+        showLanguage={model.showLanguage}
+        toolbar={toolbar}
+        total={model.total}
+      />
     );
-  } else if (!(loading || data)) {
-    emptyState = "This scan is no longer available.";
-  }
-
-  const pending = data?.pending ?? [];
-  const results = data?.results ?? [];
-  const rowCount = activeView === "pending" ? pending.length : results.length;
-  const height = paginatedTableHeightFor(
-    query.isPending ? GEO_SCAN_RESULTS_PAGE_SIZE / 2 : rowCount
-  );
 
   return (
-    <div aria-busy={query.isPlaceholderData || loading} className="min-w-0">
-      {activeView === "pending" ? (
-        <Table
-          className="rounded-2xl"
-          columns={pendingColumns(showLanguage)}
-          data={pending}
-          emptyState={emptyState}
-          footer={
-            <ScanTablePagination
-              itemLabel={running ? "in progress" : "missing"}
-              offset={data?.pendingOffset ?? pendingOffset}
-              onOffsetChange={setPendingOffset}
-              total={pendingTotal}
-            />
-          }
-          getRowId={(row) => row.key}
-          height={height}
-          loading={loading}
-          rowHeight={TABLE_ROW_HEIGHT}
-          toolbar={toolbar}
-        />
-      ) : (
-        <Table
-          className="rounded-2xl"
-          columns={answerColumns(showLanguage)}
-          data={results}
-          emptyState={emptyState}
-          footer={
-            data && data.total > 0 ? (
-              <ScanTablePagination
-                itemLabel="answers"
-                offset={offset}
-                onOffsetChange={setOffset}
-                total={data.total}
-              />
-            ) : null
-          }
-          getRowId={(row) => row.id}
-          height={height}
-          loading={loading}
-          onRowClick={(row) => setCheckId(row.id)}
-          rowHeight={TABLE_ROW_HEIGHT}
-          skeletonRows={GEO_SCAN_RESULTS_PAGE_SIZE / 2}
-          toolbar={toolbar}
-        />
-      )}
+    <div aria-busy={model.loading} className="min-w-0">
+      {table}
       <ScanAnswerSheet
         checkId={checkId}
         initialLanguage={
-          results.find((result) => result.id === checkId)?.language
+          model.results.find((result) => result.id === checkId)?.language
         }
         key={checkId}
         onClose={() => setCheckId(null)}

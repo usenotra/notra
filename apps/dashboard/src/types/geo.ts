@@ -128,6 +128,23 @@ export interface GeoPageClientProps {
   organizationSlug: string;
 }
 
+export interface TrafficPageViewProps {
+  organizationId: string;
+  organizationSlug: string;
+  projectId: string | undefined;
+  settings: GeoSettings | null;
+  isEmptyTraffic: boolean;
+  revealActive: boolean;
+  geoRange: GeoRangeControl;
+  traffic: AiTrafficResponse | undefined;
+  isTrafficPending: boolean;
+  inventoryPages: readonly GeoTrafficPage[];
+  knownHosts: readonly string[];
+  isPagesPending: boolean;
+  trafficPages: readonly GeoTrafficPage[];
+  ingestSetup: GeoIngestSetupResponse | undefined;
+}
+
 export interface GeoLayoutProps {
   children: ReactNode;
   modal: ReactNode;
@@ -522,6 +539,17 @@ export interface JourneyGroupContentProps {
   onPrefetchJourney: (journey: GeoJourney) => void;
 }
 
+export interface JourneyGroupHeadingProps {
+  selection: JourneyGroupContentProps["selection"];
+  lastSeen: string | undefined;
+}
+
+export interface JourneyGroupBreakdownProps {
+  isSource: boolean;
+  sampleMeta: string | undefined;
+  overview: GeoJourneyOverview;
+}
+
 export interface JourneyGroupSectionTitleProps {
   title: string;
   meta?: string;
@@ -662,9 +690,24 @@ export interface TrafficPageSourcesCellProps {
 }
 
 export interface TrafficPagesCardProps {
-  pages: GeoTrafficPage[];
+  pages: readonly GeoTrafficPage[];
   isPending?: boolean;
   hosts?: readonly string[];
+}
+
+export interface TrafficPagesResultsProps {
+  columns: TableColumn<GeoTrafficPageGroup>[];
+  filteredGroups: GeoTrafficPageGroup[];
+  isPending: boolean;
+}
+
+export interface TrafficPagesFiltersProps {
+  showHostFilter: boolean;
+  hostSelectValue: string;
+  hostOptions: readonly string[];
+  onHostChange: (value: string) => void;
+  pathQuery: string;
+  onPathQueryChange: (value: string) => void;
 }
 
 export interface PresenceBadgeProps {
