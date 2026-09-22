@@ -100,7 +100,7 @@ export function useAuthFlowPlayground() {
     const value =
       typeof next === "function" ? next(backupCodesRef.current) : next;
     backupCodesRef.current = value;
-    updateBackupCodes(value);
+    setBackupCodes(value);
   }
 
   // Rejects once the playground was reset, so in-flight simulations cannot
