@@ -13,8 +13,22 @@ import {
 } from "../constants/google-search-console";
 import type { GscSuggestionGenerationParams } from "../types/google-search-console";
 
+function demandBand(position: number): string {
+  if (position <= 3) {
+    return "already winning";
+  }
+  if (position <= 20) {
+    return "visible, not winning";
+  }
+  return "rarely shown";
+}
+
 function formatKeywordLine(row: GscQueryRow): string {
-  return `- "${row.query}" (impressions ${row.impressions}, clicks ${row.clicks}, avg position ${row.position.toFixed(1)})`;
+  const ctr =
+    row.impressions > 0
+      ? `${Math.round((row.clicks / row.impressions) * 100)}%`
+      : "0%";
+  return `- "${row.query}" (${demandBand(row.position)}, impressions ${row.impressions}, ctr ${ctr}, avg position ${row.position.toFixed(1)})`;
 }
 
 function formatList(values: string[]): string {
@@ -45,7 +59,7 @@ Search Console property: ${params.siteUrl}
 Tracked competitors of ${brand}:
 ${formatList(params.competitors)}
 
-Google Search queries the website ranked for in the last ${GSC_SYNC_LOOKBACK_DAYS} days. They are evidence of what people search around ${brand}, not text to rewrite:
+Google Search queries from the last ${GSC_SYNC_LOOKBACK_DAYS} days, strongest content opportunity first. ${brand} already appears for these, and most are queries it does not win. They are evidence of demand, not text to copy:
 ${keywordLines}
 
 Prompts already tracked (do not repeat or paraphrase these):
@@ -58,14 +72,16 @@ Selection rules (apply before writing anything):
 - Skip queries about a third-party product unless that product is a tracked competitor listed above. Never turn "<product> changelog", "<product> release notes", or "<product> updates" into a prompt.
 - Skip queries outside the category ${brand} sells in.
 - Keep queries that express a need ${brand} could fulfil: which tools to use for a task, how to do something in the category, what to compare, or which alternatives exist.
+- Skip queries marked "already winning" unless they hide an intent that is not tracked yet. When you must cut, keep entries higher in the list.
 
 Grouping rules:
 - One entry is one distinct buyer intent. Merge queries that share an intent into a single entry.
 - Each source query belongs to at most one entry. If two entries would rest on the same queries, they are duplicates: keep one.
-- When you must cut, keep the intents backed by the most impressions.
 
 Prompt rules:
 - A prompt is the exact text a real buyer would type into ChatGPT while researching this category, before they know ${brand} exists. ${GEO_TRACKED_PROMPT_VOICE}
+- Do not echo the query. Rewrite the demand as that person's situation. "email marketing software" can become "our promo emails land in spam and the tool we have feels like too much, what are small teams using".
+- Spread the set. Most entries are recommendation or problem-first prompts, and a few compare tracked competitors. When the queries support it, include one that asks whether a dedicated tool is even needed. Do not make every entry "best X tools".
 - Never mention "${brand}", its domain, or any brand name owned by ${brand}. Never describe what ${brand} is or does.
 - Name a competitor only in an alternative or comparison prompt, and only if it is a tracked competitor or its name appears verbatim in a source query attributed to that entry. Never infer or invent a competitor.
 - Write in the same language as the underlying queries and never mix languages. Each prompt must be between ${GEO_PROMPT_MIN_LENGTH} and ${GEO_PROMPT_MAX_LENGTH} characters.

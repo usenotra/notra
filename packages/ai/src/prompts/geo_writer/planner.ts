@@ -27,13 +27,16 @@ export const GEO_WRITING_RULES = dedent`
   - Answer the target prompt directly within the first 100 words.
   - Write short, quotable sentences. One idea per sentence. Most sentences under 20 words.
   - Prefer concrete claims with names, numbers, and examples over vague marketing copy.
-  - State the brand, its product category, and who it is for in one clear sentence near the top.
+  - State the brand, its product category, and who it is for in one clear sentence near the top. The rest of the page is an answer a third party would cite, earned with specifics.
   - Use H2 headings that match questions people ask AI assistants.
   - Include an FAQ section with direct two to four sentence answers.
   - Include a visible freshness signal (an "Updated <Month Year>" line).
   - Link to the brand's own pages only when the URL is listed in the provided sitemap. Copy those URLs exactly. Never invent, guess, rewrite, or shorten URLs.
   - If the sitemap is empty or missing, do not add internal links.
   - Mention competitors by name only where a fair comparison helps the reader.
+  - Use the target prompt's own wording once, in the opening answer or an H2, so the page matches how the question is asked.
+  - For a list, comparison, or alternatives piece, include one markdown table a reader can quote, with columns for the option, who it is best for, and who should skip it.
+  - Include one decision sentence: "Choose X when … . Choose Y when … ."
 `;
 
 export function buildGeoPlannerSystem(): string {
