@@ -50,6 +50,18 @@ function TrafficSourcesGroup({
   const showTable = !(collapsed || isEmpty);
 
   const { icons, overflow } = uniqueTrafficSourceIcons(groups);
+  let bandMark = null;
+  if (icons.length > 0) {
+    bandMark = <TrafficSourceIconStack engines={icons} overflow={overflow} />;
+  } else if (!isEmpty) {
+    bandMark = (
+      <HugeiconsIcon
+        aria-hidden="true"
+        className="text-muted-foreground size-4 shrink-0"
+        icon={Robot01Icon}
+      />
+    );
+  }
   const header = (
     <button
       aria-expanded={showTable}
@@ -59,15 +71,7 @@ function TrafficSourcesGroup({
       onClick={onToggle}
       type="button"
     >
-      {icons.length > 0 ? (
-        <TrafficSourceIconStack engines={icons} overflow={overflow} />
-      ) : isEmpty ? null : (
-        <HugeiconsIcon
-          aria-hidden="true"
-          className="text-muted-foreground size-4 shrink-0"
-          icon={Robot01Icon}
-        />
-      )}
+      {bandMark}
       <span className="shrink-0 text-sm font-semibold">{label}</span>
       <span className="text-muted-foreground shrink-0 text-xs font-normal tabular-nums">
         {countLabel}
