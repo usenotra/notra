@@ -34,7 +34,7 @@ export const GEO_WRITING_RULES = dedent`
   - Link to the brand's own pages only when the URL is listed in the provided sitemap. Copy those URLs exactly. Never invent, guess, rewrite, or shorten URLs.
   - If the sitemap is empty or missing, do not add internal links.
   - Mention competitors by name only where a fair comparison helps the reader.
-  - Use the target prompt's own wording once, in the opening answer or an H2, so the page matches how the question is asked.
+  - Use the target prompt's own wording once, verbatim, in the opening answer or an H2, so the page matches how the question is asked. Do not paste the "Target prompt" field label or any other briefing field.
   - For a list, comparison, or alternatives piece, include one markdown table a reader can quote, with columns for the option, who it is best for, and who should skip it.
   - Include one decision sentence: "Choose X when … . Choose Y when … ."
 `;

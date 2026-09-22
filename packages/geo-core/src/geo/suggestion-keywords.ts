@@ -21,11 +21,12 @@ const BRAND_TOKEN_SEPARATOR = "[-_\\s]+";
  */
 const BRAND_WORD_CHAR = "[\\p{L}\\p{N}\\p{M}_]";
 /*
- * ponytail: token list, not an intent model. A real buyer query that merely
- * contains one of these words is dropped. Loosen it if sync reviews show that.
+ * Own-site account and careers pages only. Changelog / status page /
+ * privacy policy are product categories ("changelog generator"), so those
+ * stay in and the suggestion prompt skips "<product> changelog".
  */
 const NAVIGATIONAL_QUERY =
-  /\b(?:log(?:in|\s+in|-in)|sign(?:\s+|-)?(?:in|up)|anmelden|einloggen|changelog|release notes|änderungsprotokoll|status page|statusseite|careers|karriere|stellenangebote|privacy policy|datenschutz|terms of service|impressum)\b/iu;
+  /^(?:[\p{L}\p{N}._-]+\s+){0,2}(?:log(?:in|\s+in|-in)|sign(?:\s+|-)?(?:in|up)|anmelden|einloggen|careers|karriere|stellenangebote|impressum)$/iu;
 const WINNING_POSITION = 3;
 const STRIKING_POSITION = 20;
 const WEAK_POSITION = 40;
