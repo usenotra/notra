@@ -496,19 +496,22 @@ function PromptHits({
     {
       key: "result",
       header: "Result",
-      width: "6.5rem",
+      // Fits "Mentioned and cited" plus the outcome icon and cell padding.
+      width: "13rem",
       sortable: true,
       cell: (row) => {
         const visible = row.mentioned || Boolean(row.ownedSourceCited);
+        const label = promptResultLabel(row);
         return (
           <span
             className={cn(
-              "flex items-center gap-1.5 text-sm tabular-nums",
+              "flex min-w-0 items-center gap-1.5 text-sm tabular-nums",
               !visible && "text-muted-foreground"
             )}
+            title={label}
           >
             <PromptOutcomeIcon mentioned={visible} />
-            {promptResultLabel(row)}
+            <span className="min-w-0 truncate">{label}</span>
           </span>
         );
       },
