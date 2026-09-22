@@ -38,6 +38,7 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
         organizationId,
         executionId: runId,
         outputType: null,
+        allowPlanIncluded: true,
       })
       .pipe(
         Effect.mapError(

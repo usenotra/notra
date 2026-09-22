@@ -132,7 +132,7 @@ test("billing blocks denied and expired requests, confirms attempted calls inclu
     expect(gates[0]).toMatchObject({
       organizationId: "org-a",
       outputType: null,
-      units: 1,
+      allowPlanIncluded: true,
     });
     expect(gates[0]?.quotaFeatureId).toBeUndefined();
     expect(generated).toBe(mode === "denied" || mode === "expired" ? 0 : 1);

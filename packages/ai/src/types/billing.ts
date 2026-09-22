@@ -72,6 +72,11 @@ export interface ReserveContentBillingInput {
   executionId?: string;
   lockTtlMs?: number;
   countTowardQuota?: boolean;
+  /**
+   * When this run has no content quota and credits are missing or empty, an
+   * active paid plan still includes it. Posts and scans leave this unset.
+   */
+  allowPlanIncluded?: boolean;
 }
 
 export type GitHubMentionBillingFeatureId =

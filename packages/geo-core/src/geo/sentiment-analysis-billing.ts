@@ -17,7 +17,7 @@ export async function billSentimentAnalysis({
       organizationId,
       executionId: `sentiment-${crypto.randomUUID()}`,
       outputType: null,
-      units: 1,
+      allowPlanIncluded: true,
     })
   );
   if (!reservation.allowed) {

@@ -33,6 +33,7 @@ interface OrganizationsContextValue {
   organizations: Organization[];
   activeOrganization: Organization | null;
   isLoading: boolean;
+  isOrganizationListLoading: boolean;
   getOrganization: (slug: string) => Organization | undefined;
   requestOrganizations: () => void;
 }
@@ -45,6 +46,7 @@ const FALLBACK_ORGANIZATIONS_CONTEXT: OrganizationsContextValue = {
   organizations: [],
   activeOrganization: null,
   isLoading: true,
+  isOrganizationListLoading: false,
   getOrganization: () => undefined,
   requestOrganizations: () => undefined,
 };
@@ -103,13 +105,9 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  // The seeded organization is real data for the current route. The full list
-  // stays a placeholder until something asks for it, and that must not keep
-  // pages in a loading state.
-  const isOrganizationListPending = orgListRequested
+  const isOrganizationListLoading = orgListRequested
     ? isPendingOrgs || Boolean(isOrgListPlaceholder)
     : false;
-  const isLoading = isOrganizationListPending || isLoadingActive;
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
@@ -135,6 +133,7 @@ export function OrganizationsProvider({
       activeOrganizationForPath ??
       seededActiveOrganization)
     : (activeOrganization ?? optimisticActiveOrg ?? seededActiveOrganization);
+  const isLoading = resolvedActiveOrganization == null && isLoadingActive;
 
   // Clear optimistic state when real data arrives
   const [prevActiveOrganization, setPrevActiveOrganization] =
@@ -179,7 +178,7 @@ export function OrganizationsProvider({
   // Auto-select first organization if no active organization is set
   useEffect(() => {
     if (
-      !(isOrganizationListPending || isLoadingActive) &&
+      !(isOrganizationListLoading || isLoadingActive) &&
       organizationsData &&
       organizationsData.length > 0 &&
       !activeOrganization &&
@@ -221,7 +220,7 @@ export function OrganizationsProvider({
       hasAutoSelectedRef.current = false;
     }
   }, [
-    isOrganizationListPending,
+    isOrganizationListLoading,
     isLoadingActive,
     organizationsData,
     activeOrganization,
@@ -243,6 +242,7 @@ export function OrganizationsProvider({
       organizations,
       activeOrganization: resolvedActiveOrganization,
       isLoading,
+      isOrganizationListLoading,
       getOrganization,
       requestOrganizations,
     }),
@@ -250,6 +250,7 @@ export function OrganizationsProvider({
       organizations,
       resolvedActiveOrganization,
       isLoading,
+      isOrganizationListLoading,
       getOrganization,
       requestOrganizations,
     ]

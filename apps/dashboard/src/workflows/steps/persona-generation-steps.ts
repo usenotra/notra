@@ -1,3 +1,4 @@
+import { GeoWriterCreditsExhaustedError } from "@notra/geo-core/geo/errors";
 import { generateGeoPersonas } from "@notra/geo-core/geo/personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Effect } from "effect";
@@ -21,37 +22,51 @@ export async function generatePersonasStep(
   if (!owned) {
     throw new FatalError("Persona generation is no longer active.");
   }
-  const result = await Effect.runPromise(
-    generateGeoPersonas(
-      {
-        organizationId: job.organizationId,
-        projectId: job.projectId,
-      },
-      job.personaId,
-      job.brief,
-      job.promptsOnly
-    ).pipe(Effect.provide(geoCoreDashboardLayer))
-  );
-  await trackServerEventAndFlush({
-    organizationId: job.organizationId,
-    projectId: job.projectId,
-    event: POSTHOG_EVENTS.GEO_PERSONAS_GENERATED,
-    properties: { persona_count: result.personas.length },
-  });
+  try {
+    const result = await Effect.runPromise(
+      generateGeoPersonas(
+        {
+          organizationId: job.organizationId,
+          projectId: job.projectId,
+        },
+        job.personaId,
+        job.brief,
+        job.promptsOnly
+      ).pipe(Effect.provide(geoCoreDashboardLayer))
+    );
+    await trackServerEventAndFlush({
+      organizationId: job.organizationId,
+      projectId: job.projectId,
+      event: POSTHOG_EVENTS.GEO_PERSONAS_GENERATED,
+      properties: { persona_count: result.personas.length },
+    });
+  } catch (error) {
+    const message = creditsExhaustedMessage(error);
+    if (message) {
+      await updatePersonaGenerationJob(job, {
+        status: "failed",
+        error: message,
+      });
+    }
+    throw error;
+  }
 }
 
 // Generation replaces profiles and settles credits; retrying the entire operation
 // after an ambiguous failure could generate and charge twice.
 generatePersonasStep.maxRetries = 0;
 
+function creditsExhaustedMessage(error: unknown): string | null {
+  return GeoWriterCreditsExhaustedError.is(error) ? error.message : null;
+}
+
 export async function finishPersonaGenerationStep(
   job: PersonaGenerationJob,
-  failed: boolean,
-  errorMessage?: string
+  failed: boolean
 ) {
   "use step";
   await updatePersonaGenerationJob(job, {
     status: failed ? "failed" : "completed",
-    error: failed ? (errorMessage ?? PERSONA_GENERATION_FAILED_MESSAGE) : null,
+    error: failed ? PERSONA_GENERATION_FAILED_MESSAGE : null,
   });
 }

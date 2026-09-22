@@ -11,7 +11,9 @@ const UNMETERED_CHAT: ChatBillingCheck = {
   balanceRemaining: null,
 };
 
-async function hasIncludedChatPlan(organizationId: string): Promise<boolean> {
+export async function hasActivePaidPlan(
+  organizationId: string
+): Promise<boolean> {
   if (!autumn) {
     return false;
   }
@@ -53,7 +55,7 @@ export async function checkChatBilling(
     };
   }
 
-  if (await hasIncludedChatPlan(organizationId)) {
+  if (await hasActivePaidPlan(organizationId)) {
     return {
       allowed: true,
       mode: "plan_included",
