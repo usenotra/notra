@@ -132,6 +132,8 @@ export function useAuthFlowPlayground() {
   function reset() {
     generationRef.current += 1;
     pendingSessionRef.current = null;
+    setIsStartingEnrollment(false);
+    setRemovingFactorId(null);
     setAccount({
       email: DEFAULT_EMAIL,
       password: DEFAULT_PASSWORD,

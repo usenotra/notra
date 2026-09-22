@@ -76,7 +76,13 @@ async function resetFactors(workosUserId: string) {
     })
   );
   if (totpFactors.length === 0) {
-    console.log("No MFA factors to remove");
+    console.log("No TOTP factors to remove");
+  }
+  const skipped = factors.data.length - totpFactors.length;
+  if (skipped > 0) {
+    console.warn(
+      `Left ${skipped} non-TOTP factor(s) in place; they still block password sign-in`
+    );
   }
 }
 
