@@ -2,10 +2,12 @@
 
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { projectLogoSources } from "@notra/geo-core/geo/logo";
+import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { GeoProjectLogoProps } from "@/types/geo";
 
@@ -48,7 +50,7 @@ function ProjectLogoInner({
   );
 }
 
-export function ProjectLogo({
+function RemoteProjectLogo({
   name,
   domain,
   className,
@@ -64,6 +66,35 @@ export function ProjectLogo({
       fallbackClassName={fallbackClassName}
       key={`${domain ?? ""}:${name}:${logo ?? ""}`}
       logo={logo}
+      name={name}
+    />
+  );
+}
+
+export function ProjectLogo({
+  name,
+  domain,
+  className,
+  fallbackClassName,
+}: GeoProjectLogoProps) {
+  const engine = brandEngineIconKey(name, domain);
+  if (engine) {
+    return (
+      <span
+        className={cn(
+          "inline-flex size-4 shrink-0 items-center justify-center",
+          className
+        )}
+      >
+        <EngineIcon className="size-full" engine={engine} />
+      </span>
+    );
+  }
+  return (
+    <RemoteProjectLogo
+      className={className}
+      domain={domain}
+      fallbackClassName={fallbackClassName}
       name={name}
     />
   );

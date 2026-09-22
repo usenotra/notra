@@ -3,12 +3,39 @@
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
+import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { CompetitorLogoProps } from "@/types/geo";
+
+function KnownEngineLogo({
+  engine,
+  className,
+  onSettled,
+}: {
+  engine: string;
+  className?: string;
+  onSettled?: () => void;
+}) {
+  useEffect(() => {
+    onSettled?.();
+  }, [onSettled]);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex size-5 shrink-0 items-center justify-center",
+        className
+      )}
+    >
+      <EngineIcon className="size-full" engine={engine} />
+    </span>
+  );
+}
 
 function CompetitorLogoFallback({
   name,
@@ -70,7 +97,7 @@ function CompetitorLogoInner({
   );
 }
 
-export function CompetitorLogo({
+function RemoteCompetitorLogo({
   name,
   domain = null,
   competitors,
@@ -88,6 +115,37 @@ export function CompetitorLogo({
       domain={resolvedDomain}
       key={`${resolvedDomain ?? ""}:${name}:${logo ?? ""}`}
       logo={logo}
+      name={name}
+      onSettled={onSettled}
+    />
+  );
+}
+
+export function CompetitorLogo({
+  name,
+  domain = null,
+  competitors,
+  className,
+  onSettled,
+}: CompetitorLogoProps) {
+  const engine = brandEngineIconKey(
+    name,
+    domain ?? findCompetitorDomain(competitors, name)
+  );
+  if (engine) {
+    return (
+      <KnownEngineLogo
+        className={className}
+        engine={engine}
+        onSettled={onSettled}
+      />
+    );
+  }
+  return (
+    <RemoteCompetitorLogo
+      className={className}
+      competitors={competitors}
+      domain={domain}
       name={name}
       onSettled={onSettled}
     />

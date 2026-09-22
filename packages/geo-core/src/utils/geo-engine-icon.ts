@@ -1,3 +1,4 @@
+import { normalizeCompetitorDomain } from "../geo/domain";
 import type { EngineIconKey, EngineIconRule } from "../types/geo";
 
 const ENGINE_ICON_RULES: readonly EngineIconRule[] = [
@@ -228,4 +229,84 @@ export function resolveEngineIconKey(engine: string): EngineIconKey | null {
     }
   }
   return null;
+}
+
+const BRAND_NAME_PATTERN = /[^a-z0-9]+/g;
+
+/**
+ * Product names and hosts whose remote logo is a black mark. Visibility
+ * already draws these with the themed engine SVGs; brand rows should too.
+ * Exact names only — substring matching would turn "Google" into Gemini.
+ */
+const BRAND_ICON_BY_NAME: Record<string, EngineIconKey> = {
+  chatgpt: "openai",
+  openai: "openai",
+  claude: "claude",
+  anthropic: "claude",
+  claudeai: "claude",
+  claudecode: "claude-code",
+  gemini: "gemini",
+  perplexity: "perplexity",
+  grok: "grok",
+  xai: "grok",
+  kimi: "kimi",
+  moonshot: "kimi",
+  deepseek: "deepseek",
+  mistral: "mistral",
+  copilot: "copilot",
+  microsoftcopilot: "copilot",
+  qwen: "qwen",
+  cursor: "cursor",
+  opencode: "opencode",
+  codex: "codex",
+  glm: "zai",
+  zai: "zai",
+  hunyuan: "tencent",
+};
+
+const BRAND_ICON_BY_HOST: Record<string, EngineIconKey> = {
+  "chatgpt.com": "openai",
+  "chat.openai.com": "openai",
+  "openai.com": "openai",
+  "claude.ai": "claude",
+  "anthropic.com": "claude",
+  "gemini.google.com": "gemini",
+  "bard.google.com": "gemini",
+  "perplexity.ai": "perplexity",
+  "grok.com": "grok",
+  "x.ai": "grok",
+  "deepseek.com": "deepseek",
+  "chat.deepseek.com": "deepseek",
+  "mistral.ai": "mistral",
+  "chat.mistral.ai": "mistral",
+  "kimi.ai": "kimi",
+  "kimi.com": "kimi",
+  "moonshot.cn": "kimi",
+  "cursor.com": "cursor",
+  "cursor.sh": "cursor",
+  "copilot.microsoft.com": "copilot",
+  "qwen.ai": "qwen",
+  "chat.qwen.ai": "qwen",
+  "chat.z.ai": "zai",
+  "z.ai": "zai",
+};
+
+function brandNameKey(name: string): string {
+  return name.trim().toLowerCase().replace(BRAND_NAME_PATTERN, "");
+}
+
+export function brandEngineIconKey(
+  name: string,
+  domain?: string | null
+): EngineIconKey | null {
+  if (domain) {
+    const host = normalizeCompetitorDomain(domain);
+    if (host) {
+      const fromHost = BRAND_ICON_BY_HOST[host];
+      if (fromHost) {
+        return fromHost;
+      }
+    }
+  }
+  return BRAND_ICON_BY_NAME[brandNameKey(name)] ?? null;
 }
