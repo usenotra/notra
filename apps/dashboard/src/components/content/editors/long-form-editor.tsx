@@ -62,7 +62,7 @@ export function LongFormEditor({
 
   return (
     <div className="w-full">
-      <div className="flex items-start gap-2 text-2xl leading-tight md:text-3xl">
+      <div className="flex items-start gap-2 text-xl leading-tight">
         <textarea
           aria-label="Post title"
           className="placeholder:text-muted-foreground/40 block h-auto min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 font-semibold tracking-tight outline-none"

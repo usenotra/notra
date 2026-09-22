@@ -3,13 +3,13 @@ import type { EditorThemeClasses } from "lexical";
 export const editorTheme: EditorThemeClasses = {
   hr: "my-4 border-none h-0.5 bg-border cursor-pointer",
   hrSelected: "outline outline-2 outline-primary",
-  paragraph: "mb-2",
+  paragraph: "mb-2 text-sm leading-relaxed",
   heading: {
-    h1: "text-3xl font-bold mb-4 mt-6 first:mt-0",
-    h2: "text-2xl font-semibold mb-3 mt-5 first:mt-0",
-    h3: "text-xl font-medium mb-2 mt-4 first:mt-0",
-    h4: "text-lg font-medium mb-2 mt-3 first:mt-0",
-    h5: "text-base font-medium mb-1 mt-2 first:mt-0",
+    h1: "mt-6 mb-3 font-semibold text-lg tracking-tight first:mt-0",
+    h2: "mt-5 mb-2 font-semibold text-base tracking-tight first:mt-0",
+    h3: "mt-4 mb-2 font-semibold text-sm tracking-tight first:mt-0",
+    h4: "mt-3 mb-2 font-medium text-sm tracking-tight first:mt-0",
+    h5: "mt-2 mb-1 font-medium text-sm tracking-tight first:mt-0",
   },
   text: {
     bold: "font-bold",
@@ -28,7 +28,8 @@ export const editorTheme: EditorThemeClasses = {
       listitem: "list-none",
     },
   },
-  quote: "border-l-4 border-border pl-4 italic my-4 text-muted-foreground",
+  quote:
+    "border-l-4 border-border pl-4 italic my-4 text-muted-foreground text-sm",
   link: "text-primary underline hover:no-underline cursor-pointer",
   table: "w-full my-4 border-collapse",
   tableCell:

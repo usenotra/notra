@@ -123,7 +123,7 @@ export function LexicalEditor({
           contentEditable={
             <ContentEditable
               className={cn(
-                "outline-none",
+                "text-sm leading-relaxed outline-none",
                 className ?? "min-h-[500px] px-8",
                 editable ? "" : "cursor-default"
               )}

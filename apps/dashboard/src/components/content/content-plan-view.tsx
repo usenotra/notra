@@ -520,7 +520,7 @@ export function ContentPlanView({
       >
         <PlanText
           aria-label="Title"
-          className="text-3xl leading-tight font-semibold tracking-tight text-pretty md:text-4xl"
+          className="text-xl leading-tight font-semibold tracking-tight text-pretty"
           maxLength={GEO_BRIEF_MAX_TITLE_LENGTH}
           onChange={(workingTitle) => update({ ...draft, workingTitle })}
           onCommit={() => commit()}
