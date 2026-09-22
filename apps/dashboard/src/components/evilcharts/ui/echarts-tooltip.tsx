@@ -391,11 +391,13 @@ export function tooltipBaseOption(params: {
       color: axisPointerColor,
       width: strokeWidth,
       type: "solid" as const,
+      shadowBlur: 0,
     },
     crossStyle: {
       color: axisPointerColor,
       width: strokeWidth,
       type: "solid" as const,
+      shadowBlur: 0,
     },
   };
 
