@@ -27,6 +27,7 @@ import { AgentFeedbackSetupDialog } from "@/components/agent-feedback/feedback-s
 import { AgentFeedbackTable } from "@/components/agent-feedback/feedback-table";
 import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { AGENT_FEEDBACK_STATUS_FILTERS } from "@/constants/agent-feedback";
 import {
@@ -124,22 +125,7 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
       )}
     >
       {resolvedCelebration > 0 && !reduceMotion ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed top-0 left-1/2 z-[100] -translate-x-1/2"
-        >
-          <Confetti
-            colors={FEEDBACK_CONFETTI_COLORS}
-            duration={3000}
-            force={0.5}
-            key={resolvedCelebration}
-            particleCount={120}
-            particleShape="mix"
-            particleSize={8}
-            stageHeight={600}
-            stageWidth={800}
-          />
-        </div>
+        <FeedbackConfetti celebration={resolvedCelebration} />
       ) : null}
       <div
         className={cn(
@@ -147,83 +133,34 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
           showEmptyState ? "space-y-6" : "flex min-h-0 flex-1 flex-col gap-6"
         )}
       >
-        <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Feedback</h1>
-            <p className="text-muted-foreground">
-              What AI agents are saying about your product.
-            </p>
-          </div>
+        <PageHeading
+          description="What AI agents are saying about your product."
+          title="Feedback"
+        >
           {organizationId && !showEmptyState ? (
             <AgentFeedbackSetupDialog organizationId={organizationId} />
           ) : null}
-        </div>
+        </PageHeading>
 
-        {showEmptyState ? (
-          <AgentFeedbackEmpty organizationId={organizationId} />
-        ) : (
-          <>
-            <PermissionRow
-              className="w-fit shrink-0"
-              label="Filter by status"
-              layout="compact"
-              onValueChange={(value) => {
-                if (isAgentFeedbackStatusFilter(value)) {
-                  setStatusFilter(value);
-                }
-              }}
-              value={statusFilter}
-            >
-              {AGENT_FEEDBACK_STATUS_FILTERS.map((filter) => {
-                const count = countFor(filter.value);
-                return (
-                  <PermissionOption key={filter.value} value={filter.value}>
-                    {filter.label}
-                    {count !== null ? (
-                      <span className="text-xs tabular-nums opacity-70">
-                        {count}
-                      </span>
-                    ) : null}
-                  </PermissionOption>
-                );
-              })}
-            </PermissionRow>
-
-            <div
-              className={cn(
-                "duration-normal min-h-0 flex-1 transition-opacity",
-                list.isPlaceholderData && "opacity-60"
-              )}
-            >
-              <AgentFeedbackTable
-                isDeleting={deleteFeedback.isPending}
-                isPending={isLoading}
-                isUpdatingStatus={updateStatus.isPending}
-                items={items}
-                onDelete={setDeleteCandidate}
-                onSelect={(item) => setSelectedId(item.id)}
-                onStatusChange={handleStatusChange}
-                selectedId={selectedId}
-              />
-            </div>
-
-            {list.hasNextPage ? (
-              <div className="flex shrink-0 justify-center">
-                <Button
-                  disabled={list.isFetchingNextPage}
-                  onClick={() => list.fetchNextPage()}
-                  size="sm"
-                  variant="outline"
-                >
-                  {list.isFetchingNextPage ? (
-                    <Loader2Icon className="size-4 animate-spin" />
-                  ) : null}
-                  Load more
-                </Button>
-              </div>
-            ) : null}
-          </>
-        )}
+        <FeedbackList
+          countFor={countFor}
+          isDeleting={deleteFeedback.isPending}
+          isFetchingNextPage={list.isFetchingNextPage}
+          isLoading={isLoading}
+          isPlaceholderData={list.isPlaceholderData}
+          isUpdatingStatus={updateStatus.isPending}
+          items={items}
+          hasNextPage={list.hasNextPage}
+          onDelete={setDeleteCandidate}
+          onLoadMore={() => list.fetchNextPage()}
+          onSelect={(item) => setSelectedId(item.id)}
+          onStatusChange={handleStatusChange}
+          onStatusFilterChange={setStatusFilter}
+          organizationId={organizationId}
+          selectedId={selectedId}
+          showEmptyState={showEmptyState}
+          statusFilter={statusFilter}
+        />
       </div>
 
       <AgentFeedbackDetailDialog
@@ -242,42 +179,191 @@ export default function PageClient(_props: AgentFeedbackPageClientProps) {
         open={selectedItem !== null}
       />
 
-      <ResponsiveAlertDialog
+      <FeedbackDeleteDialog
+        deleteCandidate={deleteCandidate}
+        isPending={deleteFeedback.isPending}
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
           if (!open && !deleteFeedback.isPending) {
             setDeleteCandidate(null);
           }
         }}
-        open={deleteCandidate !== null}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete feedback?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;
-              {deleteCandidate?.title ?? deleteCandidate?.message}&quot;. This
-              action cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={deleteFeedback.isPending}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={deleteFeedback.isPending}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {deleteFeedback.isPending ? "Deleting..." : "Delete"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+      />
     </PageContainer>
+  );
+}
+
+function FeedbackList({
+  countFor,
+  hasNextPage,
+  isDeleting,
+  isFetchingNextPage,
+  isLoading,
+  isPlaceholderData,
+  isUpdatingStatus,
+  items,
+  onDelete,
+  onLoadMore,
+  onSelect,
+  onStatusChange,
+  onStatusFilterChange,
+  organizationId,
+  selectedId,
+  showEmptyState,
+  statusFilter,
+}: {
+  countFor: (filter: AgentFeedbackStatusFilter) => number | null;
+  hasNextPage: boolean;
+  isDeleting: boolean;
+  isFetchingNextPage: boolean;
+  isLoading: boolean;
+  isPlaceholderData: boolean;
+  isUpdatingStatus: boolean;
+  items: AgentFeedbackItem[];
+  onDelete: (item: AgentFeedbackItem) => void;
+  onLoadMore: () => void;
+  onSelect: (item: AgentFeedbackItem) => void;
+  onStatusChange: (
+    item: AgentFeedbackItem,
+    status: AgentFeedbackStatus
+  ) => void;
+  onStatusFilterChange: (value: AgentFeedbackStatusFilter) => void;
+  organizationId: string;
+  selectedId: string | null;
+  showEmptyState: boolean;
+  statusFilter: AgentFeedbackStatusFilter;
+}) {
+  if (showEmptyState) {
+    return <AgentFeedbackEmpty organizationId={organizationId} />;
+  }
+
+  return (
+    <>
+      <PermissionRow
+        className="w-fit shrink-0"
+        label="Filter by status"
+        layout="compact"
+        onValueChange={(value) => {
+          if (isAgentFeedbackStatusFilter(value)) {
+            onStatusFilterChange(value);
+          }
+        }}
+        value={statusFilter}
+      >
+        {AGENT_FEEDBACK_STATUS_FILTERS.map((filter) => {
+          const count = countFor(filter.value);
+          return (
+            <PermissionOption key={filter.value} value={filter.value}>
+              {filter.label}
+              {count !== null ? (
+                <span className="text-xs tabular-nums opacity-70">{count}</span>
+              ) : null}
+            </PermissionOption>
+          );
+        })}
+      </PermissionRow>
+
+      <div
+        className={cn(
+          "duration-normal min-h-0 flex-1 transition-opacity",
+          isPlaceholderData && "opacity-60"
+        )}
+      >
+        <AgentFeedbackTable
+          isDeleting={isDeleting}
+          isPending={isLoading}
+          isUpdatingStatus={isUpdatingStatus}
+          items={items}
+          onDelete={onDelete}
+          onSelect={onSelect}
+          onStatusChange={onStatusChange}
+          selectedId={selectedId}
+        />
+      </div>
+
+      {hasNextPage ? (
+        <div className="flex shrink-0 justify-center">
+          <Button
+            disabled={isFetchingNextPage}
+            onClick={onLoadMore}
+            size="sm"
+            variant="outline"
+          >
+            {isFetchingNextPage ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : null}
+            Load more
+          </Button>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function FeedbackConfetti({ celebration }: { celebration: number }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed top-0 left-1/2 z-[100] -translate-x-1/2"
+    >
+      <Confetti
+        colors={FEEDBACK_CONFETTI_COLORS}
+        duration={3000}
+        force={0.5}
+        key={celebration}
+        particleCount={120}
+        particleShape="mix"
+        particleSize={8}
+        stageHeight={600}
+        stageWidth={800}
+      />
+    </div>
+  );
+}
+
+function FeedbackDeleteDialog({
+  deleteCandidate,
+  isPending,
+  onConfirm,
+  onOpenChange,
+}: {
+  deleteCandidate: AgentFeedbackItem | null;
+  isPending: boolean;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <ResponsiveAlertDialog
+      onOpenChange={onOpenChange}
+      open={deleteCandidate !== null}
+    >
+      <ResponsiveAlertDialogContent>
+        <ResponsiveAlertDialogHeader>
+          <ResponsiveAlertDialogTitle>
+            Delete feedback?
+          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription>
+            This will permanently delete &quot;
+            {deleteCandidate?.title ?? deleteCandidate?.message}&quot;. This
+            action cannot be undone.
+          </ResponsiveAlertDialogDescription>
+        </ResponsiveAlertDialogHeader>
+        <ResponsiveAlertDialogFooter>
+          <ResponsiveAlertDialogCancel disabled={isPending}>
+            Cancel
+          </ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogAction
+            disabled={isPending}
+            onClick={(event) => {
+              event.preventDefault();
+              onConfirm();
+            }}
+            variant="destructive"
+          >
+            {isPending ? "Deleting..." : "Delete"}
+          </ResponsiveAlertDialogAction>
+        </ResponsiveAlertDialogFooter>
+      </ResponsiveAlertDialogContent>
+    </ResponsiveAlertDialog>
   );
 }

@@ -31,6 +31,7 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { AddLinearIntegrationDialog } from "@/components/integrations/add-linear-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useLinearConnectionToast } from "@/lib/hooks/use-linear-connection-toast";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -259,21 +260,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Linear Integrations
-            </h1>
-            <p className="text-muted-foreground">
-              Manage your Linear integrations for automated content
-            </p>
-          </div>
+        <PageHeading
+          description="Manage your Linear integrations for automated content"
+          title="Linear Integrations"
+        >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
             Connect Linear
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
-        </div>
+        </PageHeading>
 
         <div>
           {showLoading ? <LinearIntegrationsPageSkeleton /> : null}

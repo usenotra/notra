@@ -57,26 +57,51 @@ export default function PageClient({ integrationId }: PageClientProps) {
     return null;
   }
 
-  if (organizationId && isLoadingIntegration && !integration) {
+  if (isLoadingIntegration && !integration) {
     return <LinearIntegrationDetailSkeleton />;
   }
 
   if (!integration) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full space-y-6 px-4 lg:px-6">
-          <div className="rounded-xl border border-dashed p-12 text-center">
-            <h3 className="text-lg font-medium">Integration not found</h3>
-            <p className="text-muted-foreground text-sm">
-              This integration may have been deleted or you don't have access to
-              it.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LinearIntegrationMissing />;
   }
 
+  return (
+    <LinearIntegrationLoaded
+      editDialogOpen={editDialogOpen}
+      integration={integration}
+      onEditOpenChange={setEditDialogOpen}
+      organizationId={organizationId}
+    />
+  );
+}
+
+function LinearIntegrationMissing() {
+  return (
+    <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="w-full space-y-6 px-4 lg:px-6">
+        <div className="rounded-xl border border-dashed p-12 text-center">
+          <h3 className="text-lg font-medium">Integration not found</h3>
+          <p className="text-muted-foreground text-sm">
+            This integration may have been deleted or you don't have access to
+            it.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LinearIntegrationLoaded({
+  editDialogOpen,
+  integration,
+  onEditOpenChange,
+  organizationId,
+}: {
+  editDialogOpen: boolean;
+  integration: LinearIntegration;
+  onEditOpenChange: (open: boolean) => void;
+  organizationId: string;
+}) {
   const formattedDate = format(new Date(integration.createdAt), "MMM d, yyyy");
   const createdLabel = integration.createdByUser
     ? `Added by ${integration.createdByUser.name} on ${formattedDate}`
@@ -125,7 +150,7 @@ export default function PageClient({ integrationId }: PageClientProps) {
             </p>
           </div>
           <Button
-            onClick={() => setEditDialogOpen(true)}
+            onClick={() => onEditOpenChange(true)}
             size="sm"
             variant="outline"
           >
@@ -149,7 +174,7 @@ export default function PageClient({ integrationId }: PageClientProps) {
 
         <EditLinearIntegrationDialog
           integration={integration}
-          onOpenChange={setEditDialogOpen}
+          onOpenChange={onEditOpenChange}
           open={editDialogOpen}
           organizationId={organizationId}
         />
