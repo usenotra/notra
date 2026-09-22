@@ -22,7 +22,7 @@ const WRITING_MEMORIES_PROGRESS: PersonaGenerationProgress = {
 
 export default function GeoPersonasDesignSystemPage() {
   return (
-    <div className="dark bg-background min-h-screen">
+    <div className="dark bg-background text-foreground min-h-screen">
       <main className="flex min-h-screen items-center justify-center p-8">
         <div className="w-full max-w-3xl">
           <EmptyState
