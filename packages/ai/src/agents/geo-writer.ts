@@ -34,6 +34,7 @@ import {
   createGetSitemapPagesTool,
 } from "@notra/ai/tools/sitemap";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
+import { registerWebSearchTools } from "@notra/ai/tools/web-search";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type {
   GenerateGeoContentBriefOptions,
@@ -59,6 +60,7 @@ import {
   type LanguageModelUsage,
   NoObjectGeneratedError,
   Output,
+  type Tool,
   ToolLoopAgent,
 } from "ai";
 import { and, eq } from "drizzle-orm";
@@ -441,32 +443,35 @@ export async function runGeoWriter(
     targetPostId: postId ?? undefined,
   };
 
+  const tools: Record<string, Tool> = {
+    getBrandReferences: createGetBrandReferencesTool({
+      organizationId,
+      voiceId: brandSettingsId,
+      agentType: "blog",
+    }),
+    searchBrandReferences: createSearchBrandReferencesTool({
+      organizationId,
+      voiceId: brandSettingsId,
+      agentType: "blog",
+    }),
+    getSitemapPages: createGetSitemapPagesTool({ brandSettingsId }),
+    fetchSitemapPage: createFetchSitemapPageTool({ brandSettingsId }),
+    getGeoContext: createGetGeoContextTool({ organizationId, projectId }),
+    listAvailableSkills: listAvailableSkills({ organizationId }),
+    getSkillByName: getSkillByName({ organizationId }),
+    createBlogPost: createCreatePostTool(postToolsConfig, postToolsResult),
+    viewPost: createViewPostTool(postToolsConfig),
+    fail: createFailTool(postToolsResult),
+  };
+  registerWebSearchTools(tools);
+
   const agent = new ToolLoopAgent({
     model,
     providerOptions: withRouterDefaults(
       { anthropic: { thinking: { type: "adaptive" } } },
       { modelId: GEO_WRITER_MODEL }
     ),
-    tools: {
-      getBrandReferences: createGetBrandReferencesTool({
-        organizationId,
-        voiceId: brandSettingsId,
-        agentType: "blog",
-      }),
-      searchBrandReferences: createSearchBrandReferencesTool({
-        organizationId,
-        voiceId: brandSettingsId,
-        agentType: "blog",
-      }),
-      getSitemapPages: createGetSitemapPagesTool({ brandSettingsId }),
-      fetchSitemapPage: createFetchSitemapPageTool({ brandSettingsId }),
-      getGeoContext: createGetGeoContextTool({ organizationId, projectId }),
-      listAvailableSkills: listAvailableSkills({ organizationId }),
-      getSkillByName: getSkillByName({ organizationId }),
-      createBlogPost: createCreatePostTool(postToolsConfig, postToolsResult),
-      viewPost: createViewPostTool(postToolsConfig),
-      fail: createFailTool(postToolsResult),
-    },
+    tools,
     instructions,
     stopWhen: isStepCount(GEO_WRITER_MAX_STEPS),
     ...buildTelemetryOptions({
@@ -476,7 +481,7 @@ export async function runGeoWriter(
   });
 
   const result = await agent.generate({
-    prompt: `Write the article "${brief.workingTitle}" now. Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
+    prompt: `Research with webSearch first, then write the article "${brief.workingTitle}". Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
   });
 
   if (postToolsResult.failReason) {

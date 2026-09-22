@@ -7,7 +7,6 @@ import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ContentType } from "@notra/ai/schemas/content";
 import type {
   ChatAttachment,
-  ChatImageAttachmentProps,
   ChatInputHandle,
   ChatMessagePart,
   ChatUIMessage,
@@ -46,7 +45,6 @@ import {
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import {
@@ -68,6 +66,7 @@ import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
+import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import {
   ChatInputAdvanced,
   type ThinkingLevel,
@@ -295,49 +294,6 @@ function normalizeToolApprovalsForSend(
 
 function getSendableMessages(messages: ChatUIMessage[]): ChatUIMessage[] {
   return normalizeToolApprovalsForSend(messages).filter(hasSendableParts);
-}
-
-function ChatImageAttachment({
-  url,
-  filename,
-  mediaType,
-  onClick,
-}: ChatImageAttachmentProps) {
-  const [hasError, setHasError] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
-
-  if (hasError) {
-    return (
-      <div className="border-border bg-muted/40 text-muted-foreground my-1 inline-flex max-w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs">
-        <span className="truncate">
-          {filename ?? mediaType ?? "Attachment"} is unavailable
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      className="border-border bg-muted/40 focus-visible:ring-ring my-1 block w-fit overflow-hidden rounded-lg border transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
-      onClick={onClick}
-      type="button"
-    >
-      <Image
-        alt={filename ?? "attachment"}
-        className={cn(
-          "duration-slow block h-auto max-h-72 w-auto max-w-full transition-opacity motion-reduce:transition-none",
-          hasLoaded ? "opacity-100" : "opacity-0"
-        )}
-        height={480}
-        loading="eager"
-        onError={() => setHasError(true)}
-        onLoad={() => setHasLoaded(true)}
-        src={url}
-        unoptimized
-        width={640}
-      />
-    </button>
-  );
 }
 
 function UserImageGrid({ children }: UserImageGridProps) {

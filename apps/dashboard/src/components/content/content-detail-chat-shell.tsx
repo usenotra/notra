@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  ChatAttachment,
   ChatSessionSummary,
   ContextItem,
   TextSelection,
@@ -23,7 +24,10 @@ export interface ContentDetailChatComposerProps {
   onEditQueued: (message: QueuedMessage) => void;
   onRemoveContext: (item: ContextItem) => void;
   onRemoveQueued: (id: string) => void;
-  onSend: (instruction: string) => Promise<void>;
+  onSend: (
+    instruction: string,
+    attachments?: ChatAttachment[]
+  ) => Promise<void>;
   onStop: () => void;
   onValueChange: (value: string) => void;
   organizationId: string;

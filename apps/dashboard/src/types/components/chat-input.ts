@@ -1,4 +1,5 @@
 import type {
+  ChatAttachment,
   ChatModel,
   ContextItem,
   TextSelection,
@@ -19,7 +20,7 @@ export interface ChatModelOption {
 }
 
 export interface ChatInputProps {
-  onSend?: (value: string) => void;
+  onSend?: (value: string, attachments: ChatAttachment[]) => void;
   onStop?: () => void;
   isLoading?: boolean;
   disabled?: boolean;

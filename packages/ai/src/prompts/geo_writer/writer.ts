@@ -122,17 +122,18 @@ export function buildGeoWriterInstructions(
     1. Call getBrandReferences to learn the brand voice and any reference material. Call searchBrandReferences if you need a specific fact.
     2. Call getGeoContext to see which prompts competitors win, what the brand is called, and who the competitors are. Use it for positioning and fair comparisons.
     3. Call getSitemapPages to confirm which brand pages exist. Call fetchSitemapPage on at most ${MAX_FETCHED_SITEMAP_PAGES} pages you plan to link so your description of them is accurate.
-    4. Optionally call listAvailableSkills and getSkillByName if an organization skill (for example "blog-post") describes house style you should follow. Skip the "humanizer" skill; a separate pass handles that.
-    5. Write the article as markdown and call createBlogPost exactly once with the title, a URL slug, and the markdown body. Do not pass recommendations. Do not return the article as plain text.
-    6. If something makes the task impossible, call fail with a concise reason.
+    4. Research live facts before writing. You MUST call webSearch for the target prompt. If the brief lists sourcesToReference, fetchWebpage on 1 or 2 of those URLs, or search those domains. If competitorsToCounter is listed, search enough to describe them fairly with current, specific facts. Prefer webSearch limit: 5. Use fetchWebpage when you need the full page. Do not skip this step.
+    5. Optionally call listAvailableSkills and getSkillByName if an organization skill (for example "blog-post") describes house style you should follow. Skip the "humanizer" skill; a separate pass handles that.
+    6. Write the article as markdown and call createBlogPost exactly once with the title, a URL slug, and the markdown body. Do not pass recommendations. Do not return the article as plain text.
+    7. If something makes the task impossible, call fail with a concise reason.
 
     Article structure (markdown, do not repeat the title as an H1):
     - First paragraph: answer "${input.brief.targetPrompt}" directly within the first 100 words. Include one sentence that names ${input.brandName}, its product category, and who it is for.
     - An "Updated ${input.monthYear}" line right after the first paragraph, in italics.
-    - One ## section per brief section, in the brief's order, using the brief's headings (you may tighten wording). Support every listed claim. Use ### subheadings, bullet lists, tables, or numbered steps where they make the content easier to extract.
+    - One ## section per brief section, in the brief's order, using the brief's headings (you may tighten wording). Support every listed claim with at least one specific fact from research or brand sources (a number, named product, dated event, or concrete example). Do not rewrite a section goal as filler prose.
     - A ## FAQ section at the end. Each question becomes a ### heading followed by a direct answer of two to four sentences.
     - ${MIN_INTERNAL_LINKS} to ${MAX_INTERNAL_LINKS} internal links to ${input.brandName} pages. Copy URLs exactly from the brief or from getSitemapPages. Never invent, rewrite, or guess URLs. If getSitemapPages returns no pages and the brief has no internal links, use no internal links.
-    - Length: ${MIN_WORDS} to ${MAX_WORDS} words. Density over padding.
+    - Length: ${MIN_WORDS} to ${MAX_WORDS} words. Density over padding. Every section must teach the reader something they could not get from the brief headings alone.
 
     GEO writing rules:
     ${GEO_WRITING_RULES}
@@ -142,8 +143,9 @@ export function buildGeoWriterInstructions(
     - ${toneRule}
 
     Factual rules:
-    - Only state facts that come from the brief, the topic notes, brand references, GEO context, or fetched pages. Never invent statistics, quotes, customer names, pricing, or competitor features.
-    - If a claim from the brief cannot be supported by available material, soften it to what is supported or drop it. Do not fabricate support.
+    - Facts may come from the brief, topic notes, brand references, GEO context, fetched brand pages, webSearch results, or fetchWebpage markdown. Never invent statistics, quotes, customer names, pricing, or competitor features.
+    - Use research to support the brief's claims with real information. If a claim still cannot be supported after searching, soften it or drop it. Do not fabricate support.
+    - Do not paste search-result dumps, raw URL lists, or "according to my search" into the article. Weave verified facts into reader-facing prose.
     - Competitor mentions must be fair and specific. No bashing.
 
     ${prohibitedLanguage}

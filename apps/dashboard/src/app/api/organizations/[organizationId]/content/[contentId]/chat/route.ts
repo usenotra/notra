@@ -33,6 +33,7 @@ import { NextResponse } from "next/server";
 
 import { AI_CREDITS_SOURCE_CONTENT_CHAT } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { countMessageFileParts } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
@@ -191,6 +192,7 @@ export const POST = withEvlog(async function POST(
         content_type: contentType ?? null,
         has_selection: Boolean(selection),
         context_count: context?.length ?? 0,
+        attachment_count: countMessageFileParts(messages.at(-1)),
       },
     });
 

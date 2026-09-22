@@ -5,7 +5,7 @@ import {
   chatSessionsListResponseSchema,
   uiMessageSchema,
 } from "@notra/ai/schemas/chat";
-import type { ChatSessionSummary } from "@notra/ai/types/chat";
+import type { ChatAttachment, ChatSessionSummary } from "@notra/ai/types/chat";
 import {
   dashboardAgentChatHistoryPath,
   dashboardAgentChatHistoryQueryKey,
@@ -54,6 +54,7 @@ import type { DashboardAgentChatProps } from "@/types/components/dashboard-agent
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { CHAT_USAGE_LIMIT_MESSAGE } from "@/utils/chat-error-constants";
+import { buildUserMessageParts } from "@/utils/chat-message-parts";
 import { dashboardAgentOpenChatPath } from "@/utils/dashboard-agent-chat-path";
 
 function DashboardAgentChat({
@@ -280,7 +281,10 @@ function DashboardAgentChat({
     });
   };
 
-  const handleSend = async (instruction: string) => {
+  const handleSend = async (
+    instruction: string,
+    attachments: ChatAttachment[] = []
+  ) => {
     if (!activeChatId || isAgentBusyRef.current) {
       return;
     }
@@ -304,6 +308,13 @@ function DashboardAgentChat({
       }
     }
     isAgentBusyRef.current = true;
+    if (attachments.length > 0) {
+      await sendMessage({
+        role: "user",
+        parts: buildUserMessageParts(instruction, attachments),
+      });
+      return;
+    }
     await sendMessage({ text: instruction });
   };
 
