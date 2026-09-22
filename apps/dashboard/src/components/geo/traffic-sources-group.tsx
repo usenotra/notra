@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Robot01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
+import { TrafficSourceIconStack } from "@/components/geo/traffic-source-group-icon";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useCollapsibleColumns } from "@/components/motion/table/use-collapsible-columns";
 import {
@@ -24,7 +25,10 @@ import type {
   TrafficSourcesGroupProps,
   TrafficSourcesStackProps,
 } from "@/types/geo";
-import { trafficGroupKey } from "@/utils/ai-traffic-groups";
+import {
+  trafficGroupKey,
+  uniqueTrafficSourceIcons,
+} from "@/utils/ai-traffic-groups";
 import { paginatedTableHeightFor } from "@/utils/table";
 
 function TrafficSourcesGroup({
@@ -45,32 +49,30 @@ function TrafficSourcesGroup({
   const isEmpty = count === 0;
   const showTable = !(collapsed || isEmpty);
 
+  const { icons, overflow } = uniqueTrafficSourceIcons(groups);
   const header = (
-    <span className="flex min-w-max items-center gap-2">
-      <button
-        aria-expanded={showTable}
-        aria-label={`${showTable ? "Collapse" : "Expand"} ${label}`}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -ml-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-hidden transition-colors focus-visible:ring-[3px] disabled:cursor-default disabled:opacity-40"
-        disabled={isEmpty}
-        onClick={onToggle}
-        type="button"
-      >
+    <button
+      aria-expanded={showTable}
+      aria-label={`${showTable ? "Collapse" : "Expand"} ${label}`}
+      className="text-foreground hover:text-foreground/80 focus-visible:ring-ring/50 -ml-1 flex min-w-max cursor-pointer items-center gap-2 rounded-md outline-hidden focus-visible:ring-[3px] disabled:cursor-default disabled:opacity-40"
+      disabled={isEmpty}
+      onClick={onToggle}
+      type="button"
+    >
+      {icons.length > 0 ? (
+        <TrafficSourceIconStack engines={icons} overflow={overflow} />
+      ) : isEmpty ? null : (
         <HugeiconsIcon
-          className={cn(
-            "transition-transform duration-200 ease-out",
-            showTable && "rotate-90"
-          )}
-          icon={ArrowRight01Icon}
-          size={14}
+          aria-hidden="true"
+          className="text-muted-foreground size-4 shrink-0"
+          icon={Robot01Icon}
         />
-      </button>
-      <span className="text-foreground shrink-0 text-sm font-semibold">
-        {label}
-      </span>
+      )}
+      <span className="shrink-0 text-sm font-semibold">{label}</span>
       <span className="text-muted-foreground shrink-0 text-xs font-normal tabular-nums">
         {countLabel}
       </span>
-    </span>
+    </button>
   );
 
   const [first, ...rest] = columns;

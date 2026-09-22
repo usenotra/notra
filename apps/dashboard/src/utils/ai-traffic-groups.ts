@@ -1,8 +1,5 @@
 import { parseClickHouseDateTime } from "@notra/analytics/utils/datetime";
-import {
-  GEO_TRAFFIC_GROUPS_BY_ENGINE,
-  GEO_TRAFFIC_OTHER_GROUP,
-} from "@notra/geo-core/constants/geo";
+import { GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT } from "@notra/geo-core/constants/geo";
 import type {
   GeoTrafficPage,
   GeoTrafficPoint,
@@ -10,6 +7,7 @@ import type {
   GeoTrafficSourceGroupDefinition,
 } from "@notra/geo-core/types/geo";
 import {
+  formatGeoAgent,
   formatGeoSource,
   isCitedTrafficSource,
   trafficDayKey,
@@ -47,18 +45,18 @@ export function resolveTrafficSourceGroup(
   band: GeoTrafficSourceBand
 ): GeoTrafficSourceGroupDefinition {
   const engine = resolveEngineIconKey(source);
-  const group = engine ? GEO_TRAFFIC_GROUPS_BY_ENGINE[engine] : undefined;
-  if (group === undefined) {
-    return GEO_TRAFFIC_OTHER_GROUP;
-  }
-  if (band !== "crawler" && band !== "cited") {
+  if (band === "crawler" || band === "cited") {
     return {
       key: source,
-      label: formatGeoSource(source),
-      icon: source,
+      label: formatGeoAgent(source),
+      icon: engine ? source : null,
     };
   }
-  return group;
+  return {
+    key: source,
+    label: formatGeoSource(source),
+    icon: source,
+  };
 }
 
 export function laterTrafficTimestamp(left: string, right: string): string {
@@ -148,9 +146,32 @@ export function buildTrafficGroupSeries(
 export function hasTrafficGroupBreakdown(
   group: GeoTrafficSourceGroup
 ): boolean {
-  return (
-    group.visitorType === "crawler" || group.key === GEO_TRAFFIC_OTHER_GROUP.key
-  );
+  return group.members.length > 1;
+}
+
+/** Distinct company marks for a band header, busiest first. */
+export function uniqueTrafficSourceIcons(
+  groups: readonly Pick<GeoTrafficSourceGroup, "icon" | "visits">[],
+  limit = GEO_TRAFFIC_PAGE_SOURCE_ICON_LIMIT
+): { icons: string[]; overflow: number } {
+  const seen = new Set<string>();
+  const icons: string[] = [];
+  const ordered = groups.toSorted((left, right) => right.visits - left.visits);
+  for (const group of ordered) {
+    if (group.icon === null) {
+      continue;
+    }
+    const key = resolveEngineIconKey(group.icon) ?? group.icon;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    icons.push(group.icon);
+  }
+  return {
+    icons: icons.slice(0, limit),
+    overflow: Math.max(0, icons.length - limit),
+  };
 }
 
 export function trafficVisitShare(visits: number, total: number): string {

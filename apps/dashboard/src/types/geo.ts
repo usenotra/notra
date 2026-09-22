@@ -994,6 +994,12 @@ export interface TrafficSourceGroupIconProps {
   className?: string;
 }
 
+export interface TrafficSourceIconStackProps {
+  engines: readonly string[];
+  overflow?: number;
+  className?: string;
+}
+
 export interface GeoSkinMessageProps {
   skin: GeoChatSkin;
   from: "user" | "assistant";

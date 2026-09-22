@@ -7,6 +7,7 @@ import { resolveEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
 import {
   groupTrafficSources,
   resolveTrafficSourceBand,
+  uniqueTrafficSourceIcons,
 } from "../src/utils/ai-traffic-groups";
 
 function source(
@@ -45,7 +46,7 @@ describe("resolveTrafficSourceBand", () => {
 });
 
 describe("groupTrafficSources", () => {
-  test("shows cited Meta separately from Meta training crawlers", () => {
+  test("lists each crawler by bot name instead of vendor", () => {
     const groups = groupTrafficSources([
       source({
         source: "meta-externalagent",
@@ -63,9 +64,9 @@ describe("groupTrafficSources", () => {
 
     const crawler = groups.find((group) => group.band === "crawler");
     const cited = groups.find((group) => group.band === "cited");
-    expect(crawler?.label).toBe("Meta");
+    expect(crawler?.label).toBe("Meta-ExternalAgent");
     expect(crawler?.visits).toBe(10);
-    expect(cited?.label).toBe("Meta");
+    expect(cited?.label).toBe("Meta-ExternalFetcher");
     expect(cited?.visits).toBe(4);
   });
 
@@ -95,10 +96,29 @@ describe("groupTrafficSources", () => {
     const referrals = groups.filter((group) => group.band === "ai_referral");
     expect(cited.map((group) => group.label).toSorted()).toEqual([
       "Instagram",
-      "Meta",
+      "Meta-ExternalFetcher",
     ]);
     expect(referrals).toHaveLength(1);
     expect(referrals[0]?.label).toBe("Instagram");
+  });
+});
+
+describe("uniqueTrafficSourceIcons", () => {
+  test("dedupes company marks and keeps the busiest first", () => {
+    const { icons, overflow } = uniqueTrafficSourceIcons(
+      [
+        { icon: "GPTBot", visits: 8 },
+        { icon: "OAI-SearchBot", visits: 3 },
+        { icon: "ClaudeBot", visits: 20 },
+        { icon: "Amazonbot", visits: 5 },
+        { icon: "Applebot", visits: 4 },
+        { icon: "PerplexityBot", visits: 2 },
+      ],
+      4
+    );
+
+    expect(icons).toEqual(["ClaudeBot", "GPTBot", "Amazonbot", "Applebot"]);
+    expect(overflow).toBe(1);
   });
 });
 

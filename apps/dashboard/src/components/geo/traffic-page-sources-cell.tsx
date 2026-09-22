@@ -15,6 +15,7 @@ import {
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
+import { TrafficSourceIconStack } from "@/components/geo/traffic-source-group-icon";
 import type { TrafficPageSourcesCellProps } from "@/types/geo";
 import { trafficVisitShare } from "@/utils/ai-traffic-groups";
 import { trafficPageSourcesLabel } from "@/utils/ai-traffic-pages";
@@ -40,22 +41,10 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
           />
         }
       >
-        <span className="flex shrink-0 items-center">
-          {visible.map((source, index) => (
-            <span
-              className="bg-background border-border -ml-1.5 flex size-6 items-center justify-center rounded-full border first:ml-0"
-              key={`${source.visitorType}-${source.source}`}
-              style={{ zIndex: visible.length - index }}
-            >
-              <EngineIcon className="size-3.5" engine={source.source} />
-            </span>
-          ))}
-          {overflow > 0 ? (
-            <span className="bg-muted border-border text-muted-foreground -ml-1.5 flex size-6 items-center justify-center rounded-full border text-[0.625rem] font-medium tabular-nums">
-              +{overflow}
-            </span>
-          ) : null}
-        </span>
+        <TrafficSourceIconStack
+          engines={visible.map((source) => source.source)}
+          overflow={overflow}
+        />
       </HoverCardTrigger>
       <TrafficBreakdownCard
         aside={`${group.visits.toLocaleString()} visits`}
