@@ -1,4 +1,3 @@
-import { FEATURES } from "@notra/ai/billing/features";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { NoObjectGeneratedError } from "ai";
@@ -18,7 +17,6 @@ export async function billSentimentAnalysis({
       organizationId,
       executionId: `sentiment-${crypto.randomUUID()}`,
       outputType: null,
-      quotaFeatureId: FEATURES.AI_ANSWERS,
       units: 1,
     })
   );
@@ -48,7 +46,7 @@ export async function billSentimentAnalysis({
     }
     throw error;
   } finally {
-    // An attempted call consumes one quota unit even if output validation fails.
+    // An attempted call confirms usage even if output validation fails.
     await Effect.runPromise(
       billing.finalizeContentBilling({
         reservation,

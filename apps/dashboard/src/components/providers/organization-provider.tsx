@@ -103,8 +103,12 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  const isOrganizationListPending =
-    isPendingOrgs || Boolean(isOrgListPlaceholder);
+  // The seeded organization is real data for the current route. The full list
+  // stays a placeholder until something asks for it, and that must not keep
+  // pages in a loading state.
+  const isOrganizationListPending = orgListRequested
+    ? isPendingOrgs || Boolean(isOrgListPlaceholder)
+    : false;
   const isLoading = isOrganizationListPending || isLoadingActive;
   const organizationFromPath = useMemo(
     () =>

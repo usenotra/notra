@@ -46,11 +46,12 @@ generatePersonasStep.maxRetries = 0;
 
 export async function finishPersonaGenerationStep(
   job: PersonaGenerationJob,
-  failed: boolean
+  failed: boolean,
+  errorMessage?: string
 ) {
   "use step";
   await updatePersonaGenerationJob(job, {
     status: failed ? "failed" : "completed",
-    error: failed ? PERSONA_GENERATION_FAILED_MESSAGE : null,
+    error: failed ? (errorMessage ?? PERSONA_GENERATION_FAILED_MESSAGE) : null,
   });
 }

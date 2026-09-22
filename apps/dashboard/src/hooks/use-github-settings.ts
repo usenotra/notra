@@ -53,11 +53,14 @@ export function useGitHubSettings(organizationSlug: string) {
   const repositoriesDb = useGitHubRepositoriesDb(organizationId);
   const githubIntegrations = repositoriesDb.repositories;
   const isConnected = accounts.length > 0;
+  // A known organization is enough. Refreshing the full org list must not
+  // put the repositories back behind a skeleton.
+  const organizationPending = !organizationId && isLoadingOrganizations;
   const isLoading =
-    isLoadingOrganizations ||
+    organizationPending ||
     (!!organizationId && githubAppQuery.isLoading && !githubAppQuery.data);
   const isLoadingLegacyIntegrations =
-    isLoadingOrganizations ||
+    organizationPending ||
     (!!organizationId && repositoriesDb.isLoading && !repositoriesDb.hasData);
   useEffect(() => {
     if (!githubConnected || !organization?.id) {

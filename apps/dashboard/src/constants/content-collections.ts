@@ -1,5 +1,6 @@
 import type { PostCollectionSource } from "@notra/schemas/dashboard/content";
 
+export const COLLECTIONS_PAGE_SIZE = 20;
 export const COLLECTION_TABLE_ROW_HEIGHT = 56;
 export const COLLECTION_TABLE_SKELETON_ROWS = 6;
 export const COLLECTION_GRID_SKELETON_KEYS = Array.from(

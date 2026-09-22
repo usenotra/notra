@@ -33,7 +33,11 @@ export interface AiCreditCostResult {
   tokenCostCents: number;
 }
 
-export type ContentBillingMode = "unmetered" | "plan_quota" | "ai_credits";
+export type ContentBillingMode =
+  | "unmetered"
+  | "plan_quota"
+  | "ai_credits"
+  | "plan_included";
 
 export type ContentQuotaFeatureId =
   | "long_form_posts"

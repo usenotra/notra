@@ -1,5 +1,6 @@
 import {
   AI_CREDIT_LIMIT_MESSAGE,
+  AI_GENERATION_PLAN_REQUIRED_MESSAGE,
   CONTENT_BILLING_LOCK_PREFIX,
   CONTENT_BILLING_LOCK_TTL_MS,
   CONTENT_PLAN_REQUIRED_MESSAGE,
@@ -19,7 +20,11 @@ import type {
 import { calculateAiCreditCostCents } from "./ai-credit-cost";
 import { allowUnmeteredAiInDevelopment, autumn } from "./autumn";
 import { checkAutumnFeature, finalizeAutumnLock } from "./autumn-locks";
-import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "./features";
+import {
+  ACTIVE_PAID_PLAN_IDS,
+  FEATURES,
+  PAID_OR_LEGACY_PLAN_IDS,
+} from "./features";
 import { shouldApplyMarkup } from "./token-pricing";
 
 const DEFAULT_FALLBACK_MODEL_ID = "anthropic/claude-sonnet-4.6";
@@ -27,6 +32,19 @@ const DEFAULT_FALLBACK_MODEL_ID = "anthropic/claude-sonnet-4.6";
 const UNMETERED_RESERVATION: ContentBillingReservation = {
   allowed: true,
   mode: "unmetered",
+  featureId: null,
+  reserved: false,
+  lockId: null,
+  useMarkup: false,
+};
+
+/**
+ * Active paid plans include product AI (personas, replay, sentiment) the
+ * same way chat does. Nothing is reserved, so finalize is a no-op.
+ */
+const PLAN_INCLUDED_RESERVATION: ContentBillingReservation = {
+  allowed: true,
+  mode: "plan_included",
   featureId: null,
   reserved: false,
   lockId: null,
@@ -60,7 +78,10 @@ function normalizeReservation(
   };
 }
 
-async function hasPaidSubscription(organizationId: string): Promise<boolean> {
+async function hasSubscription(
+  organizationId: string,
+  planIds: ReadonlySet<string>
+): Promise<boolean> {
   if (!autumn) {
     return false;
   }
@@ -71,8 +92,12 @@ async function hasPaidSubscription(organizationId: string): Promise<boolean> {
     (subscription) =>
       !subscription.addOn &&
       subscription.status === "active" &&
-      PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
+      planIds.has(subscription.planId)
   );
+}
+
+function hasPaidSubscription(organizationId: string): Promise<boolean> {
+  return hasSubscription(organizationId, PAID_OR_LEGACY_PLAN_IDS);
 }
 
 async function buildDenial(input: {
@@ -178,6 +203,15 @@ export async function reserveContentBilling(
     });
   }
 
+  // No content quota (personas, replay, sentiment). Match chat: an active
+  // paid plan still runs when credits are missing or at zero, and is not charged.
+  if (
+    !quotaFeature &&
+    (await hasSubscription(input.organizationId, ACTIVE_PAID_PLAN_IDS))
+  ) {
+    return PLAN_INCLUDED_RESERVATION;
+  }
+
   if (credits.response?.balance != null) {
     return buildDenial({
       organizationId: input.organizationId,
@@ -279,6 +313,9 @@ export function describeContentBillingDenial(
     const featureId = reservation.featureId;
     if (featureId && featureId !== FEATURES.AI_CREDITS) {
       return `Your plan doesn't include ${CONTENT_QUOTA_LABELS[featureId].plural}. Upgrade your plan or add AI credits to continue.`;
+    }
+    if (!featureId) {
+      return AI_GENERATION_PLAN_REQUIRED_MESSAGE;
     }
     return CONTENT_PLAN_REQUIRED_MESSAGE;
   }

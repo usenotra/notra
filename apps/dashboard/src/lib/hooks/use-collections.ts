@@ -6,24 +6,34 @@ import type {
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
 
+import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
+
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
 
-const DEFAULT_PAGE_SIZE = 20;
 const GENERATING_POLL_INTERVAL = 4000;
 
-export function useCollections(organizationId: string, page: number) {
+export function useCollections(
+  organizationId: string,
+  page: number,
+  initialProjectId: string | null
+) {
   const { projectId, isResolved } = useActiveProject();
+  // The server already resolved the same project the switcher will settle on.
+  // Waiting for the projects collection first made the list a second round trip.
+  const scopedProjectId = isResolved
+    ? (projectId ?? undefined)
+    : (initialProjectId ?? undefined);
   return useQuery<PostCollectionListResponse>({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: {
         organizationId,
-        projectId: projectId ?? undefined,
+        projectId: scopedProjectId,
         page,
-        pageSize: DEFAULT_PAGE_SIZE,
+        pageSize: COLLECTIONS_PAGE_SIZE,
       },
     }),
-    enabled: !!organizationId && isResolved,
+    enabled: !!organizationId && (isResolved || initialProjectId !== undefined),
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating

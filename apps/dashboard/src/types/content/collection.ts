@@ -26,6 +26,8 @@ export interface CollectionDetailPageClientProps {
 
 export interface ContentListPageClientProps {
   organizationSlug: string;
+  /** Project the server prefetch used. Null when the organization has none. */
+  initialProjectId: string | null;
 }
 
 export interface GroupTypeIconProps {
