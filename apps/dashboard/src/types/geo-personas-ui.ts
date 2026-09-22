@@ -110,6 +110,8 @@ export interface PersonaGenerationProgress {
   step: number;
   total: number;
   label: string;
+  /** 0–1 width of the in-button fill; eases within the current step. */
+  fill: number;
 }
 
 export interface GeneratePersonasButtonProps {

@@ -8,6 +8,10 @@ import {
 } from "@/constants/geo-personas";
 import type { PersonaGenerationProgress } from "@/types/geo-personas-ui";
 
+/** Last step holds under full until the request actually lands. */
+const FILL_HOLD = 0.94;
+const LAST_STEP_SPAN_MS = 30_000;
+
 function stepForElapsed(elapsedMs: number): number {
   let step = 0;
   for (const [index, entry] of GEO_PERSONA_GENERATION_STEPS.entries()) {
@@ -16,6 +20,23 @@ function stepForElapsed(elapsedMs: number): number {
     }
   }
   return step;
+}
+
+/** Fill ratio for the generate button: current step, then ease toward the next. */
+export function personaGenerationFill(elapsedMs: number): number {
+  const count = GEO_PERSONA_GENERATION_STEPS.length;
+  if (count === 0) {
+    return 0;
+  }
+  const index = stepForElapsed(elapsedMs);
+  const start = GEO_PERSONA_GENERATION_STEPS[index]?.afterMs ?? 0;
+  const next = GEO_PERSONA_GENERATION_STEPS[index + 1];
+  const span = next ? next.afterMs - start : LAST_STEP_SPAN_MS;
+  const t =
+    span <= 0 ? 1 : Math.min(1, Math.max(0, (elapsedMs - start) / span));
+  const from = Math.min(FILL_HOLD, (index + 1) / count);
+  const to = next ? Math.min(FILL_HOLD, (index + 2) / count) : FILL_HOLD;
+  return from + (to - from) * t;
 }
 
 /**
@@ -41,11 +62,13 @@ export function usePersonaGenerationProgress(
   if (!active) {
     return null;
   }
-  const step = stepForElapsed(now - Date.parse(generationStartedAt));
+  const elapsedMs = now - Date.parse(generationStartedAt);
+  const step = stepForElapsed(elapsedMs);
   const entry = GEO_PERSONA_GENERATION_STEPS[step];
   return {
     step: step + 1,
     total: GEO_PERSONA_GENERATION_STEPS.length,
     label: entry?.label ?? "",
+    fill: personaGenerationFill(elapsedMs),
   };
 }

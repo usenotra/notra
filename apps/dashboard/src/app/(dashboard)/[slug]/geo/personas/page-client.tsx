@@ -1,14 +1,11 @@
 "use client";
 
-import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import Counter from "@notra/ui/components/shared/counter";
-import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import { GeneratePersonasButton } from "@/components/geo/generate-personas-button";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
@@ -31,11 +28,7 @@ import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoPersonas } from "@/lib/hooks/use-geo-personas";
 import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
-import type {
-  GeneratePersonasButtonProps,
-  GeoPersonasPageHeaderProps,
-  PersonaGenerationCounterProps,
-} from "@/types/geo-personas-ui";
+import type { GeoPersonasPageHeaderProps } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
@@ -51,72 +44,6 @@ function PageHeader({ action }: GeoPersonasPageHeaderProps) {
       </div>
       {action}
     </header>
-  );
-}
-
-function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
-  const reducedMotion = useReducedMotion();
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-flex items-center leading-none tabular-nums"
-    >
-      {reducedMotion ? (
-        <span>{progress.step}</span>
-      ) : (
-        <Counter
-          borderRadius={0}
-          fontSize={14}
-          gap={0}
-          gradientHeight={0}
-          horizontalPadding={0}
-          value={progress.step}
-        />
-      )}
-      <span className="leading-none">/{progress.total}</span>
-    </span>
-  );
-}
-
-function GeneratePersonasButton({
-  hasPersonas,
-  progress,
-  onClick,
-}: GeneratePersonasButtonProps) {
-  const label = hasPersonas ? "Add personas" : "Generate personas";
-  const isGenerating = progress !== null;
-  return (
-    <div className="flex flex-col items-start gap-2 sm:items-end">
-      <span aria-live="polite" aria-atomic="true" className="sr-only">
-        {progress
-          ? `${progress.label}, step ${progress.step} of ${progress.total}`
-          : ""}
-      </span>
-      <Button
-        aria-label={
-          progress
-            ? `${progress.label}, step ${progress.step} of ${progress.total}`
-            : label
-        }
-        className="h-9 gap-2 px-3"
-        disabled={isGenerating}
-        onClick={onClick}
-      >
-        <HugeiconsIcon
-          className={isGenerating ? "motion-safe:animate-spin" : undefined}
-          icon={isGenerating ? Loading03Icon : UserGroupIcon}
-          size={16}
-        />
-        {progress ? (
-          <span className="inline-flex items-center gap-1.5 leading-none">
-            <span>{progress.label}</span>
-            <GenerationCounter progress={progress} />
-          </span>
-        ) : (
-          label
-        )}
-      </Button>
-    </div>
   );
 }
 
