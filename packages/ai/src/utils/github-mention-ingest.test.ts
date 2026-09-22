@@ -262,7 +262,10 @@ describe("ingestGitHubAppMentionWebhook", () => {
       pullRequestNumber: 42,
     });
     expect(syncPublishedPostFromPullRequestHead).toHaveBeenCalledWith(
-      expect.objectContaining({ commitSha: "applied", branch: "notra/changelog" })
+      expect.objectContaining({
+        commitSha: "applied",
+        branch: "notra/changelog",
+      })
     );
   });
 

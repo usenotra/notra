@@ -184,11 +184,13 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
       repo: "APP",
       pullRequestNumber: 42,
     });
-    expect(publication).not.toBeNull();
+    if (!publication) {
+      throw new Error("missing publication");
+    }
     const result = await syncPublishedPostFromPullRequestHead({
       octokit,
       organizationId: ids.org,
-      publication: publication!,
+      publication,
       commitSha: "applied",
       branch: "notra/changelog",
     });
