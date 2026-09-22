@@ -1578,7 +1578,7 @@ export function ChatInputAdvanced({
     const result: Array<GitHubRepository & { integrationId: string }> = [];
     for (const integration of integrationsData?.integrations ?? []) {
       for (const repo of integration.repositories) {
-        if (repo.enabled) {
+        if (integration.enabled && repo.enabled) {
           result.push({ ...repo, integrationId: integration.id });
         }
       }

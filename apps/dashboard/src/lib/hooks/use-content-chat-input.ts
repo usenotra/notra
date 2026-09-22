@@ -146,7 +146,7 @@ export function useContentChatInput({
     const result: EnabledRepo[] = [];
     for (const integration of integrationsData?.integrations ?? []) {
       for (const repo of integration.repositories) {
-        if (repo.enabled) {
+        if (integration.enabled && repo.enabled) {
           result.push({ ...repo, integrationId: integration.id });
         }
       }
@@ -217,10 +217,8 @@ export function useContentChatInput({
   );
 
   useEffect(() => {
-    if (isControlled) {
-      requestAnimationFrame(resizeTextarea);
-    }
-  }, [isControlled, resizeTextarea]);
+    requestAnimationFrame(resizeTextarea);
+  }, [resizeTextarea, value]);
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();

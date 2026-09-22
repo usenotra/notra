@@ -95,8 +95,7 @@ export function getContentChatInputChrome({
   const hasAttachmentChips = hasReadyAttachments || pendingUploadCount > 0;
   const isInputLocked = disabled || isUsageBlocked;
   const canQueue = isLoading && !isEmpty && !hasAttachmentChips;
-  const showStop =
-    isLoading && isEmpty && !hasAttachmentChips && Boolean(onStop);
+  const showStop = isLoading && !canQueue && Boolean(onStop);
   const hasContextChips = contextCount > 0 || hasSelection || queuedCount > 0;
   const showComposerNudge =
     hasContextChips ||
