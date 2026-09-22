@@ -1,6 +1,5 @@
 import type {
   AiTrafficResponse,
-  GeoTrafficPage,
   GeoTrafficSource,
   GeoVisitorType,
 } from "@notra/geo-core/types/geo";
@@ -50,39 +49,3 @@ export const DESIGN_SYSTEM_TRAFFIC_RESPONSE: AiTrafficResponse = {
   sources: DESIGN_SYSTEM_TRAFFIC_SOURCES,
   totals: toGeoTrafficTotals(DESIGN_SYSTEM_TRAFFIC_SOURCES),
 };
-
-const TRAFFIC_PAGE_PATHS = [
-  "/",
-  "/blog",
-  "/docs",
-  "/pricing",
-  "/changelog",
-  "/blog/neon-nextjs",
-  "/docs/serverless",
-  "/about",
-  "/careers",
-  "/guides/auth",
-  "/docs/branching",
-  "/compare/planetscale",
-  "/blog/edge",
-  "/docs/pooling",
-  "/security",
-  "/blog/release-notes",
-] as const;
-
-export const DESIGN_SYSTEM_TRAFFIC_PAGES: GeoTrafficPage[] =
-  TRAFFIC_PAGE_PATHS.map((path, index) => {
-    const source =
-      DESIGN_SYSTEM_TRAFFIC_SOURCES[
-        index % DESIGN_SYSTEM_TRAFFIC_SOURCES.length
-      ] ?? DESIGN_SYSTEM_TRAFFIC_SOURCES[0]!;
-    return {
-      host: "example.com",
-      path,
-      source: source.source,
-      visitorType: source.visitorType,
-      visits: 4 + ((index * 3) % 17),
-      previousVisits: 2 + ((index * 2) % 11),
-      lastSeenAt: source.lastSeenAt,
-    };
-  });
