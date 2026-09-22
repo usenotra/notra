@@ -66,7 +66,23 @@ export function useContentChatInput({
   const [internalValue, setInternalValue] = useState("");
   const [internalError, setInternalError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const attachmentsState = useChatComposerAttachments();
+  const {
+    acceptedFileTypesLabel,
+    allowedChatMimeTypes,
+    attachments,
+    attachmentTooltipText,
+    consumeAttachments,
+    dragHandlers,
+    fileInputRef,
+    handlePasteFiles,
+    isDraggingFile,
+    isUploading,
+    onFileInputChange,
+    pendingUploads,
+    previewAttachment,
+    removeAttachment,
+    setPreviewAttachment,
+  } = useChatComposerAttachments();
   const {
     check,
     data: customer,
@@ -208,13 +224,11 @@ export function useContentChatInput({
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
-    const hasAttachments =
-      attachmentsState.attachments.length > 0 ||
-      attachmentsState.pendingUploads.length > 0;
-    if (disabled || attachmentsState.isUploading) {
+    const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
+    if (disabled || isUploading) {
       return;
     }
-    if (!trimmed && attachmentsState.attachments.length === 0) {
+    if (!trimmed && attachments.length === 0) {
       return;
     }
     if (isLoading && hasAttachments) {
@@ -240,22 +254,25 @@ export function useContentChatInput({
       }
     }
 
-    const nextAttachments = attachmentsState.consumeAttachments();
+    const nextAttachments = consumeAttachments();
     onSend?.(trimmed, nextAttachments);
     onClearSelection?.();
     setValue("");
     requestAnimationFrame(resizeTextarea);
   }, [
-    attachmentsState,
+    attachments.length,
     chatIncludedInPlan,
     check,
     clearError,
+    consumeAttachments,
     customer,
     disabled,
     isLoading,
+    isUploading,
     isUsageBlocked,
     onClearSelection,
     onSend,
+    pendingUploads.length,
     resizeTextarea,
     setValue,
     value,
@@ -279,11 +296,7 @@ export function useContentChatInput({
 
   const handlePaste = useCallback(
     (event: ClipboardEvent<HTMLTextAreaElement>) => {
-      if (
-        !attachmentsState.handlePasteFiles(
-          Array.from(event.clipboardData.files)
-        )
-      ) {
+      if (!handlePasteFiles(Array.from(event.clipboardData.files))) {
         return;
       }
       event.preventDefault();
@@ -296,19 +309,23 @@ export function useContentChatInput({
         )
       );
     },
-    [attachmentsState, setValue, value]
+    [handlePasteFiles, setValue, value]
   );
+
+  const onAttach = useCallback(() => {
+    fileInputRef.current?.click();
+  }, [fileInputRef]);
 
   const chrome = getContentChatInputChrome({
     contextCount: context.length,
     disabled,
-    hasReadyAttachments: attachmentsState.attachments.length > 0,
+    hasReadyAttachments: attachments.length > 0,
     hasSelection: Boolean(selection),
     isLoading,
-    isUploading: attachmentsState.isUploading,
+    isUploading,
     isUsageBlocked,
     onStop,
-    pendingUploadCount: attachmentsState.pendingUploads.length,
+    pendingUploadCount: pendingUploads.length,
     queuedCount: queuedMessages.length,
     shouldShowLowCredits,
     usageLimitError,
@@ -317,40 +334,41 @@ export function useContentChatInput({
 
   return {
     ...chrome,
-    acceptedFileTypesLabel: attachmentsState.acceptedFileTypesLabel,
-    allowedChatMimeTypes: attachmentsState.allowedChatMimeTypes,
-    attachments: attachmentsState.attachments,
-    attachmentTooltipText: attachmentsState.attachmentTooltipText,
+    acceptedFileTypesLabel,
+    allowedChatMimeTypes,
+    attachments,
+    attachmentTooltipText,
     connectedTop,
     context,
     contextOptions,
     contextPickerId,
-    dragHandlers: attachmentsState.dragHandlers,
-    fileInputRef: attachmentsState.fileInputRef,
+    dragHandlers,
+    fileInputRef,
     handlePaste,
     handleSend,
     isContextPickerOpen,
-    isDraggingFile: attachmentsState.isDraggingFile,
+    isDraggingFile,
     isLoading,
-    isUploading: attachmentsState.isUploading,
+    isUploading,
+    onAttach,
     onClearSelection,
     onEditQueued,
-    onFileInputChange: attachmentsState.onFileInputChange,
+    onFileInputChange,
     onRemoveContext,
     onRemoveQueued,
     onStop,
     organizationSlug,
     placeholder,
-    pendingUploads: attachmentsState.pendingUploads,
-    previewAttachment: attachmentsState.previewAttachment,
+    pendingUploads,
+    previewAttachment,
     queuedMessages,
     remainingChatCredits,
-    removeAttachment: attachmentsState.removeAttachment,
+    removeAttachment,
     resizeTextarea,
     selection,
     setIsContextPickerOpen,
     setIsFocused,
-    setPreviewAttachment: attachmentsState.setPreviewAttachment,
+    setPreviewAttachment,
     setValue,
     shouldShowLowCredits,
     textareaRef,

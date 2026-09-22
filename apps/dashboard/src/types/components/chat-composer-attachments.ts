@@ -1,12 +1,11 @@
 import type { ChatAttachment } from "@notra/ai/types/chat";
-import type { RefObject } from "react";
 
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
 
 export interface ChatComposerAttachButtonProps {
   attachmentCount: number;
   disabled: boolean;
-  fileInputRef: RefObject<HTMLInputElement | null>;
+  onAttach: () => void;
   pendingUploadCount: number;
   tooltip: string;
 }

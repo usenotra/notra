@@ -45,6 +45,7 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   isInContext: (item: ContextItem) => boolean;
   isLoading: boolean;
   isUploading: boolean;
+  onAttach: () => void;
   onClearSelection?: () => void;
   onEditQueued?: (message: QueuedMessage) => void;
   onFileInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -69,8 +70,4 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   toggleContextItem: (item: ContextItem, inContext: boolean) => void;
   usageLimitError: string | null;
   value: string;
-}
-
-export interface ContentChatInputComposerProps {
-  input: UseContentChatInputResult;
 }

@@ -46,103 +46,154 @@ import type {
   ChatInputContextPickerProps,
   ChatInputProps,
 } from "@/types/components/chat-input";
-import type { ContentChatInputComposerProps } from "@/types/hooks/content-chat-input";
 
-const ChatInput = (props: ChatInputProps) => {
-  const input = useContentChatInput(props);
-  return <ContentChatInputComposer input={input} />;
-};
+const ChatInput = (props: ChatInputProps) => (
+  <ContentChatInputComposer {...props} />
+);
 
-function ContentChatInputComposer({ input }: ContentChatInputComposerProps) {
+function ContentChatInputComposer(props: ChatInputProps) {
+  const {
+    acceptedFileTypesLabel,
+    allowedChatMimeTypes,
+    attachments,
+    attachmentTooltipText,
+    connectedTop,
+    context,
+    contextOptions,
+    contextPickerDisabledReason,
+    contextPickerId,
+    dragHandlers,
+    fileInputRef,
+    handlePaste,
+    handleSend,
+    hasAttachmentChips,
+    hasContextChips,
+    isContextPickerOpen,
+    isDraggingFile,
+    isInContext,
+    isInputLocked,
+    isLoading,
+    onAttach,
+    onClearSelection,
+    onEditQueued,
+    onFileInputChange,
+    onRemoveContext,
+    onRemoveQueued,
+    onStop,
+    organizationSlug,
+    placeholder,
+    pendingUploads,
+    previewAttachment,
+    queuedMessages,
+    remainingChatCredits,
+    removeAttachment,
+    resizeTextarea,
+    selection,
+    sendDisabled,
+    sendLabel,
+    sendTooltip,
+    setIsContextPickerOpen,
+    setIsFocused,
+    setPreviewAttachment,
+    setValue,
+    shouldShowLowCredits,
+    showComposerNudge,
+    showStop,
+    textareaRef,
+    toggleContextItem,
+    usageLimitError,
+    value,
+  } = useContentChatInput(props);
+
   return (
     <>
-      {input.isDraggingFile ? (
+      {isDraggingFile ? (
         <ChatComposerDropOverlay
-          acceptedFileTypesLabel={input.acceptedFileTypesLabel}
+          acceptedFileTypesLabel={acceptedFileTypesLabel}
         />
       ) : null}
-      <div {...input.dragHandlers}>
+      <div {...dragHandlers}>
         <Composer.Frame
-          connectedTop={input.connectedTop}
+          connectedTop={connectedTop}
           nudge={
-            input.showComposerNudge ? (
+            showComposerNudge ? (
               <ChatInputComposerNudge
-                attachments={input.attachments}
-                context={input.context}
-                hasAttachmentChips={input.hasAttachmentChips}
-                hasContextChips={input.hasContextChips}
-                onClearSelection={input.onClearSelection}
-                onEditQueued={input.onEditQueued}
-                onRemoveContext={input.onRemoveContext}
-                onRemoveQueued={input.onRemoveQueued}
-                organizationSlug={input.organizationSlug}
-                pendingUploads={input.pendingUploads}
-                queuedMessages={input.queuedMessages}
-                remainingChatCredits={input.remainingChatCredits}
-                removeAttachment={input.removeAttachment}
-                selection={input.selection}
-                setPreviewAttachment={input.setPreviewAttachment}
-                shouldShowLowCredits={input.shouldShowLowCredits}
-                usageLimitError={input.usageLimitError}
+                attachments={attachments}
+                context={context}
+                hasAttachmentChips={hasAttachmentChips}
+                hasContextChips={hasContextChips}
+                onClearSelection={onClearSelection}
+                onEditQueued={onEditQueued}
+                onRemoveContext={onRemoveContext}
+                onRemoveQueued={onRemoveQueued}
+                organizationSlug={organizationSlug}
+                pendingUploads={pendingUploads}
+                queuedMessages={queuedMessages}
+                remainingChatCredits={remainingChatCredits}
+                removeAttachment={removeAttachment}
+                selection={selection}
+                setPreviewAttachment={setPreviewAttachment}
+                shouldShowLowCredits={shouldShowLowCredits}
+                usageLimitError={usageLimitError}
               />
             ) : null
           }
         >
           <div className="flex min-w-0 items-end gap-1 p-1.5">
             <input
-              accept={input.allowedChatMimeTypes.join(",")}
+              accept={allowedChatMimeTypes.join(",")}
               className="hidden"
               multiple
-              onChange={input.onFileInputChange}
-              ref={input.fileInputRef}
+              onChange={onFileInputChange}
+              ref={fileInputRef}
               type="file"
             />
             <ChatComposerAttachButton
-              attachmentCount={input.attachments.length}
-              disabled={input.isInputLocked || input.isLoading}
-              fileInputRef={input.fileInputRef}
-              pendingUploadCount={input.pendingUploads.length}
-              tooltip={input.attachmentTooltipText}
+              attachmentCount={attachments.length}
+              disabled={isInputLocked || isLoading}
+              onAttach={onAttach}
+              pendingUploadCount={pendingUploads.length}
+              tooltip={attachmentTooltipText}
             />
             <ChatInputContextPicker
-              contextOptions={input.contextOptions}
-              contextPickerId={input.contextPickerId}
-              disabledReason={input.contextPickerDisabledReason}
-              isInContext={input.isInContext}
-              isOpen={input.isContextPickerOpen}
-              onOpenChange={input.setIsContextPickerOpen}
-              organizationSlug={input.organizationSlug}
-              toggleContextItem={input.toggleContextItem}
+              contextOptions={contextOptions}
+              contextPickerId={contextPickerId}
+              disabledReason={contextPickerDisabledReason}
+              isInContext={isInContext}
+              isOpen={isContextPickerOpen}
+              onOpenChange={setIsContextPickerOpen}
+              organizationSlug={organizationSlug}
+              toggleContextItem={toggleContextItem}
             />
             <Textarea
               aria-label="Send a message"
               className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-7 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-none border-0 bg-transparent px-1 py-1 text-sm leading-5 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
-              disabled={input.isInputLocked}
-              onBlur={() => input.setIsFocused(false)}
+              disabled={isInputLocked}
+              onBlur={() => setIsFocused(false)}
               onChange={(event) => {
-                input.setValue(event.target.value);
+                setValue(event.target.value);
               }}
-              onFocus={() => input.setIsFocused(true)}
-              onInput={input.resizeTextarea}
-              onPaste={input.handlePaste}
+              onFocus={() => setIsFocused(true)}
+              onInput={resizeTextarea}
+              onPaste={handlePaste}
               placeholder={
-                input.isLoading
+                isLoading
                   ? "Queue a message..."
-                  : (input.placeholder ?? "Send a message...")
+                  : (placeholder ?? "Send a message...")
               }
-              ref={input.textareaRef}
+              ref={textareaRef}
               rows={1}
-              value={input.value}
+              value={value}
             />
             <Composer.Send
-              disabled={input.sendDisabled}
-              label={input.sendLabel}
-              onClick={input.showStop ? input.onStop : input.handleSend}
-              tooltip={input.sendTooltip}
+              disabled={sendDisabled}
+              label={sendLabel}
+              onClick={showStop ? onStop : handleSend}
+              tooltip={sendTooltip}
             >
               <HugeiconsIcon
                 className="size-4"
-                icon={input.showStop ? StopIcon : ArrowUp02Icon}
+                icon={showStop ? StopIcon : ArrowUp02Icon}
                 strokeWidth={2}
               />
             </Composer.Send>
@@ -150,13 +201,13 @@ function ContentChatInputComposer({ input }: ContentChatInputComposerProps) {
         </Composer.Frame>
       </div>
       <AttachmentPreviewDialog
-        attachment={input.previewAttachment}
+        attachment={previewAttachment}
         onOpenChange={(open) => {
           if (!open) {
-            input.setPreviewAttachment(null);
+            setPreviewAttachment(null);
           }
         }}
-        open={input.previewAttachment !== null}
+        open={previewAttachment !== null}
       />
     </>
   );

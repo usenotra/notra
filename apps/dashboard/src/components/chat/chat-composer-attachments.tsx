@@ -27,7 +27,7 @@ import type {
 export function ChatComposerAttachButton({
   attachmentCount,
   disabled,
-  fileInputRef,
+  onAttach,
   pendingUploadCount,
   tooltip,
 }: ChatComposerAttachButtonProps) {
@@ -42,7 +42,7 @@ export function ChatComposerAttachButton({
               disabled ||
               attachmentCount + pendingUploadCount >= MAX_CHAT_ATTACHMENTS
             }
-            onClick={() => fileInputRef.current?.click()}
+            onClick={onAttach}
           />
         }
       >

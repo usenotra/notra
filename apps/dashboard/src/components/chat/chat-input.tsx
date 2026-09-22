@@ -2433,7 +2433,7 @@ export function ChatInputAdvanced({
               <ChatComposerAttachButton
                 attachmentCount={attachments.length}
                 disabled={isLoading || isQueued}
-                fileInputRef={fileInputRef}
+                onAttach={() => fileInputRef.current?.click()}
                 pendingUploadCount={pendingUploads.length}
                 tooltip={attachmentTooltipText}
               />
