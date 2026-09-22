@@ -22,26 +22,28 @@ const WRITING_MEMORIES_PROGRESS: PersonaGenerationProgress = {
 
 export default function GeoPersonasDesignSystemPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <div className="w-full max-w-3xl">
-        <EmptyState
-          action={
-            <GeneratePersonasButton
-              hasPersonas={false}
-              onClick={() => undefined}
-              progress={WRITING_MEMORIES_PROGRESS}
-            />
-          }
-          description={GEO_PERSONAS_EMPTY_DESCRIPTION}
-          preview={
-            <EmptyStateTablePreview
-              columns={EMPTY_STATE_TABLE_COLUMNS.personas}
-              rows={EMPTY_STATE_TABLE_ROWS}
-            />
-          }
-          title={GEO_PERSONAS_EMPTY_TITLE}
-        />
-      </div>
-    </main>
+    <div className="dark bg-background min-h-screen">
+      <main className="flex min-h-screen items-center justify-center p-8">
+        <div className="w-full max-w-3xl">
+          <EmptyState
+            action={
+              <GeneratePersonasButton
+                hasPersonas={false}
+                onClick={() => undefined}
+                progress={WRITING_MEMORIES_PROGRESS}
+              />
+            }
+            description={GEO_PERSONAS_EMPTY_DESCRIPTION}
+            preview={
+              <EmptyStateTablePreview
+                columns={EMPTY_STATE_TABLE_COLUMNS.personas}
+                rows={EMPTY_STATE_TABLE_ROWS}
+              />
+            }
+            title={GEO_PERSONAS_EMPTY_TITLE}
+          />
+        </div>
+      </main>
+    </div>
   );
 }
