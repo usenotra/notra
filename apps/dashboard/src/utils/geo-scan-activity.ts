@@ -1,3 +1,4 @@
+import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
 import { GEO_SCAN_RESULTS_PAGE_SIZE } from "@notra/geo-core/constants/geo-scan-history";
 import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
 
@@ -7,6 +8,10 @@ import type {
 } from "@/types/geo-scan-activity";
 import { formatRelative } from "@/utils/format-relative";
 import { paginatedTableHeightFor } from "@/utils/table";
+
+export function geoScanRefetchInterval(live: boolean, status?: string | null) {
+  return live || status === "running" ? GEO_SCAN_POLL_INTERVAL_MS : false;
+}
 
 export function geoRunProgress(run: GeoScanRunSummary) {
   const total = run.plan?.totalChecks;
@@ -43,7 +48,7 @@ export function scanRunDetailView(
     ),
     pendingOffset: input.data?.pendingOffset ?? input.pendingOffset,
     total: input.data?.total ?? 0,
-    answerCount: input.data?.total ?? input.run.checks,
+    answerCount: Math.max(input.data?.total ?? 0, input.run.checks),
   };
 }
 

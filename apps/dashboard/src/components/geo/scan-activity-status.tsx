@@ -68,7 +68,11 @@ export function ScanActivityStatus({
             </Select>
           ) : null}
         </div>
-        <p className="text-muted-foreground text-sm tabular-nums">
+        <p
+          aria-atomic="true"
+          aria-live="polite"
+          className="text-muted-foreground text-sm tabular-nums"
+        >
           {scanSentence(run)}
         </p>
       </div>

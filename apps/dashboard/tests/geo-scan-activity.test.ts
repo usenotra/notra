@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
+import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
 import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
 
 import {
   formatScanRunOption,
+  geoScanRefetchInterval,
   scanRunDetailView,
 } from "@/utils/geo-scan-activity";
 
@@ -56,5 +58,33 @@ describe("scan activity helpers", () => {
     });
     expect(view.loading).toBe(false);
     expect(view.answerCount).toBe(12);
+  });
+
+  test("polls while a scan is live even before the first rows arrive", () => {
+    expect(geoScanRefetchInterval(true)).toBe(GEO_SCAN_POLL_INTERVAL_MS);
+    expect(geoScanRefetchInterval(false, "running")).toBe(
+      GEO_SCAN_POLL_INTERVAL_MS
+    );
+    expect(geoScanRefetchInterval(false, "completed")).toBe(false);
+    expect(geoScanRefetchInterval(false)).toBe(false);
+  });
+
+  test("uses the latest saved count while a scan is still running", () => {
+    const view = scanRunDetailView({
+      run: run({ status: "running", checks: 5 }),
+      view: "answers",
+      data: {
+        status: "running",
+        pendingOffset: 0,
+        pending: [],
+        pendingTotal: 2,
+        results: [],
+        total: 3,
+      },
+      isPending: false,
+      pendingOffset: 0,
+    });
+    expect(view.answerCount).toBe(5);
+    expect(view.running).toBe(true);
   });
 });

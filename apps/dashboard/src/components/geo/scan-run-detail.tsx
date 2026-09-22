@@ -419,7 +419,8 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
     run.id,
     offset,
     engine || undefined,
-    pendingOffset
+    pendingOffset,
+    run.status === "running"
   );
   const model = scanRunDetailView({
     run,

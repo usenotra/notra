@@ -1,11 +1,11 @@
 "use client";
 
-import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { geoScanRefetchInterval } from "@/utils/geo-scan-activity";
 
 export function useGeoScanRuns(
   organizationId: string,
@@ -19,11 +19,15 @@ export function useGeoScanRuns(
       input: { organizationId, projectId, offset },
     }),
     enabled: !!organizationId && enabled,
+    staleTime: 0,
     refetchInterval: (query) =>
-      isScanning ||
-      query.state.data?.runs.some((run) => run.status === "running")
-        ? GEO_SCAN_POLL_INTERVAL_MS
-        : false,
+      geoScanRefetchInterval(
+        isScanning,
+        query.state.data?.runs.some((run) => run.status === "running")
+          ? "running"
+          : undefined
+      ),
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load recent scans" },
   });
 }
@@ -33,7 +37,8 @@ export function useGeoScanRun(
   scanId: string,
   offset: number,
   engine?: string,
-  pendingOffset = 0
+  pendingOffset = 0,
+  running = false
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery({
@@ -49,11 +54,10 @@ export function useGeoScanRun(
     }),
     enabled: !!organizationId && !!scanId,
     placeholderData: keepPreviousData,
-    staleTime: GEO_SCAN_POLL_INTERVAL_MS,
+    staleTime: 0,
     refetchInterval: (query) =>
-      query.state.data?.status === "running"
-        ? GEO_SCAN_POLL_INTERVAL_MS
-        : false,
+      geoScanRefetchInterval(running, query.state.data?.status),
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load scan results" },
   });
 }
