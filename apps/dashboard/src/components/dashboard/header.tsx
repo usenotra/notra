@@ -38,6 +38,7 @@ import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
 import { CONTENT_EDITOR_HEADER_SLOT_ID } from "@/constants/content-detail";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { isContentDetailPathname } from "@/utils/dashboard-paths";
 import { withGeoProject } from "@/utils/geo-paths";
 import { toGeoTab } from "@/utils/geo-tabs";
 import { scheduleDemo } from "@/utils/schedule-demo";
@@ -57,6 +58,7 @@ const SEGMENT_CONFIG: Record<string, { label?: string; href?: null }> = {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const isContentEditor = isContentDetailPathname(pathname);
   const segments = pathname.split("/").filter(Boolean);
   const slug = segments[0];
   const {
@@ -95,7 +97,7 @@ export function SiteHeader() {
   });
 
   return (
-    <header className="relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header className="relative flex h-12 shrink-0 items-center gap-2 overflow-x-clip border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-2 lg:px-6">
         <div className="flex min-w-0 items-center gap-1 overflow-hidden lg:gap-2">
           <SidebarToggle className="-ml-1" />
@@ -107,7 +109,10 @@ export function SiteHeader() {
         </div>
         <button
           aria-label="Search"
-          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors md:flex lg:w-64 xl:w-80 @[8rem]/search:justify-start @[8rem]/search:px-3"
+          className={cn(
+            "text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors md:flex @[8rem]/search:justify-start @[8rem]/search:px-3",
+            isContentEditor ? "w-9 lg:w-40 xl:w-56" : "w-48 lg:w-64 xl:w-80"
+          )}
           onClick={() => setCommandPaletteOpen(true)}
           type="button"
         >
@@ -122,7 +127,7 @@ export function SiteHeader() {
         </button>
         <div className="flex h-full min-w-0 items-center justify-end gap-1 sm:gap-2">
           <div
-            className="flex min-w-0 items-center justify-end gap-1 overflow-hidden"
+            className="flex min-w-0 items-center justify-end gap-1 overflow-x-clip"
             id={CONTENT_EDITOR_HEADER_SLOT_ID}
           />
           <button

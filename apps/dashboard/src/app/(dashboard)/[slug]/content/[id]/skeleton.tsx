@@ -15,8 +15,10 @@ export function ContentDetailSkeleton() {
       {headerSlot
         ? createPortal(
             <>
-              <Skeleton className="h-7 w-16" />
-              <Skeleton className="h-7 w-20" />
+              <div className="flex shrink-0 items-center gap-1">
+                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-7 w-20" />
+              </div>
             </>,
             headerSlot
           )

@@ -186,6 +186,7 @@ function ContentDetailPublishActions({
                 nativeButton={false}
                 render={
                   <a
+                    aria-label={`${githubPublish.owner}/${githubPublish.repo} #${githubPublish.pullRequestNumber}`}
                     href={githubPublish.pullRequestUrl}
                     rel="noopener noreferrer"
                     target="_blank"
@@ -269,7 +270,7 @@ function ContentDetailSaveActions({
   }
 
   return (
-    <>
+    <div className="flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger
           render={
@@ -298,7 +299,7 @@ function ContentDetailSaveActions({
       >
         {saveLabel}
       </Button>
-    </>
+    </div>
   );
 }
 
@@ -307,29 +308,31 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
   const headerSlot = useContentEditorHeaderSlot();
   const updatesLinkedPullRequest = Boolean(content.githubPublish);
   const actions = (
-    <>
+    <div className="flex min-w-0 items-center justify-end gap-2">
       <ContentDetailSaveActions
         document={document}
         updatesLinkedPullRequest={updatesLinkedPullRequest}
       />
-      {content.contentType === "image" ? (
-        <ContentDetailImageActions {...props} />
-      ) : (
-        <ContentDetailPublishActions {...props} />
-      )}
-      {content.contentType === "linkedin_post" ||
-      content.contentType === "twitter_post" ? (
-        <PostSocialButton
-          content={document.currentMarkdown}
-          from="editor"
-          onContentChange={document.setEditedMarkdown}
-          organizationId={organizationId}
-          platform={
-            content.contentType === "linkedin_post" ? "linkedin" : "twitter"
-          }
-        />
-      ) : null}
-    </>
+      <div className="flex shrink-0 items-center gap-1">
+        {content.contentType === "image" ? (
+          <ContentDetailImageActions {...props} />
+        ) : (
+          <ContentDetailPublishActions {...props} />
+        )}
+        {content.contentType === "linkedin_post" ||
+        content.contentType === "twitter_post" ? (
+          <PostSocialButton
+            content={document.currentMarkdown}
+            from="editor"
+            onContentChange={document.setEditedMarkdown}
+            organizationId={organizationId}
+            platform={
+              content.contentType === "linkedin_post" ? "linkedin" : "twitter"
+            }
+          />
+        ) : null}
+      </div>
+    </div>
   );
 
   if (!headerSlot) {
