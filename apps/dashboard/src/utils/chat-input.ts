@@ -5,8 +5,123 @@ import type {
   EnabledLinear,
   EnabledRepo,
 } from "@/types/components/chat-input";
+import type { ContentChatInputChrome } from "@/types/hooks/content-chat-input";
 
 export const CHAT_INPUT_LIMIT_MESSAGE = "No chat credits left.";
+
+export function getRemainingChatCredits(remaining: unknown): number | null {
+  if (typeof remaining === "number") {
+    return remaining;
+  }
+  return null;
+}
+
+export function isChatUsageBlocked(
+  allowed: boolean | undefined,
+  chatIncludedInPlan: boolean
+): boolean {
+  return allowed === false && !chatIncludedInPlan;
+}
+
+export function shouldShowLowChatCredits(
+  chatIncludedInPlan: boolean,
+  remainingChatCredits: number | null
+): boolean {
+  return (
+    !chatIncludedInPlan &&
+    remainingChatCredits !== null &&
+    remainingChatCredits > 0 &&
+    remainingChatCredits <= 10
+  );
+}
+
+export function resolveUsageLimitError(
+  externalError: string | null | undefined,
+  internalError: string | null,
+  isUsageBlocked: boolean
+): string | null {
+  if (externalError) {
+    return externalError;
+  }
+  if (internalError) {
+    return internalError;
+  }
+  if (isUsageBlocked) {
+    return CHAT_INPUT_LIMIT_MESSAGE;
+  }
+  return null;
+}
+
+export function getComposerValue(
+  controlledValue: string | undefined,
+  internalValue: string
+): string {
+  if (controlledValue !== undefined) {
+    return controlledValue;
+  }
+  return internalValue;
+}
+
+export function getContentChatInputChrome({
+  contextCount,
+  disabled,
+  hasReadyAttachments,
+  hasSelection,
+  isLoading,
+  isUploading,
+  isUsageBlocked,
+  onStop,
+  pendingUploadCount,
+  queuedCount,
+  shouldShowLowCredits,
+  usageLimitError,
+  value,
+}: {
+  contextCount: number;
+  disabled: boolean;
+  hasReadyAttachments: boolean;
+  hasSelection: boolean;
+  isLoading: boolean;
+  isUploading: boolean;
+  isUsageBlocked: boolean;
+  onStop?: () => void;
+  pendingUploadCount: number;
+  queuedCount: number;
+  shouldShowLowCredits: boolean;
+  usageLimitError: string | null;
+  value: string;
+}): ContentChatInputChrome {
+  const isEmpty = value.trim().length === 0;
+  const hasAttachmentChips = hasReadyAttachments || pendingUploadCount > 0;
+  const isInputLocked = disabled || isUsageBlocked;
+  const canQueue = isLoading && !isEmpty && !hasAttachmentChips;
+  const showStop =
+    isLoading && isEmpty && !hasAttachmentChips && Boolean(onStop);
+  const hasContextChips = contextCount > 0 || hasSelection || queuedCount > 0;
+  const showComposerNudge =
+    hasContextChips ||
+    hasAttachmentChips ||
+    shouldShowLowCredits ||
+    Boolean(usageLimitError);
+  const sendChrome = getComposerSendChrome(showStop, canQueue);
+  return {
+    contextPickerDisabledReason: isInputLocked
+      ? "Context is unavailable right now."
+      : null,
+    hasAttachmentChips,
+    hasContextChips,
+    isEmpty,
+    isInputLocked,
+    sendDisabled:
+      isInputLocked ||
+      isUploading ||
+      (!showStop && isEmpty && !hasAttachmentChips),
+    sendLabel: sendChrome.sendLabel,
+    sendTooltip: sendChrome.sendTooltip,
+    showComposerNudge,
+    showStop,
+  };
+}
 
 export function getComposerSendChrome(showStop: boolean, canQueue: boolean) {
   if (showStop) {

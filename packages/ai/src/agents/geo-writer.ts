@@ -577,58 +577,55 @@ export async function runGeoWriter(
   });
   const routeUsage = await summarizeRouteUsage(result.steps);
   let usage = toTokenUsage(result.usage, routeUsage.route);
-
-  if (postToolsResult.failReason) {
-    throw new GeoWriterError(postToolsResult.failReason);
-  }
-
   const primaryPost = postToolsResult.posts?.at(0);
-  if (!primaryPost) {
-    throw new GeoWriterError(
-      didResearch()
-        ? "The writer finished without saving a post. No createBlogPost call was made."
-        : "The writer could not complete live research before saving. Check CONTEXT_DEV_API_KEY and try again."
-    );
-  }
 
-  const draft = await db.query.posts.findFirst({
-    columns: { markdown: true },
-    where: and(
-      eq(posts.id, primaryPost.postId),
-      eq(posts.organizationId, organizationId)
-    ),
-  });
+  if (!postToolsResult.failReason && primaryPost) {
+    const draft = await db.query.posts.findFirst({
+      columns: { markdown: true },
+      where: and(
+        eq(posts.id, primaryPost.postId),
+        eq(posts.organizationId, organizationId)
+      ),
+    });
 
-  let humanized = false;
-  if (draft?.markdown) {
-    try {
-      const pass = await humanizeMarkdown(options, draft.markdown);
-      usage = mergeTokenUsage(usage, pass.usage);
-      if (pass.markdown) {
-        const update = await updatePostRecord({
-          organizationId,
+    let humanized = false;
+    if (draft?.markdown) {
+      try {
+        const pass = await humanizeMarkdown(options, draft.markdown);
+        usage = mergeTokenUsage(usage, pass.usage);
+        if (pass.markdown) {
+          const update = await updatePostRecord({
+            organizationId,
+            postId: primaryPost.postId,
+            markdown: pass.markdown,
+          });
+          humanized = update.status === "updated";
+        } else {
+          console.warn(
+            "[GEO writer] humanizer output failed invariants, keeping raw draft",
+            { postId: primaryPost.postId }
+          );
+        }
+      } catch (error) {
+        console.warn("[GEO writer] humanizer pass failed, keeping raw draft", {
           postId: primaryPost.postId,
-          markdown: pass.markdown,
+          error: describeError(error),
         });
-        humanized = update.status === "updated";
-      } else {
-        console.warn(
-          "[GEO writer] humanizer output failed invariants, keeping raw draft",
-          { postId: primaryPost.postId }
-        );
       }
-    } catch (error) {
-      console.warn("[GEO writer] humanizer pass failed, keeping raw draft", {
-        postId: primaryPost.postId,
-        error: describeError(error),
-      });
     }
+
+    return {
+      postId: primaryPost.postId,
+      title: primaryPost.title,
+      humanized,
+      usage,
+    };
   }
 
-  return {
-    postId: primaryPost.postId,
-    title: primaryPost.title,
-    humanized,
-    usage,
-  };
+  throw new GeoWriterError(
+    postToolsResult.failReason ??
+      (didResearch()
+        ? "The writer finished without saving a post. No createBlogPost call was made."
+        : "The writer could not complete live research before saving. Check CONTEXT_DEV_API_KEY and try again.")
+  );
 }

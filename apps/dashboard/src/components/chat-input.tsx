@@ -8,8 +8,6 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FEATURES } from "@notra/ai/billing/features";
-import type { ContextItem } from "@notra/ai/types/chat";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Command,
@@ -30,17 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import {
@@ -52,407 +40,109 @@ import { ChatContextConnectSuggestions } from "@/components/chat/chat-context-co
 import { ChatContextOptionContent } from "@/components/chat/chat-context-option-content";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
 import { Composer } from "@/components/composer/composer-shell";
-import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
-import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
-import { useChatComposerAttachments } from "@/lib/hooks/use-chat-composer-attachments";
-import { dashboardOrpc } from "@/lib/orpc/query";
+import { useContentChatInput } from "@/lib/hooks/use-content-chat-input";
 import type {
   ChatInputComposerNudgeProps,
   ChatInputContextPickerProps,
   ChatInputProps,
-  EnabledLinear,
-  EnabledRepo,
 } from "@/types/components/chat-input";
-import { hasIncludedChatPlan } from "@/utils/chat-billing";
-import {
-  buildContentChatContextOptions,
-  CHAT_INPUT_LIMIT_MESSAGE,
-  contextItemsEqual,
-  getComposerSendChrome,
-  nextValueAfterFilePaste,
-} from "@/utils/chat-input";
+import type { ContentChatInputComposerProps } from "@/types/hooks/content-chat-input";
 
-const ChatInput = ({
-  onSend,
-  onStop,
-  isLoading = false,
-  disabled = false,
-  selection,
-  onClearSelection,
-  organizationSlug,
-  organizationId,
-  context = [],
-  onAddContext,
-  onRemoveContext,
-  value: controlledValue,
-  onValueChange,
-  error: externalError,
-  onClearError,
-  connectedTop = false,
-  placeholder,
-  queuedMessages = [],
-  onEditQueued,
-  onRemoveQueued,
-}: ChatInputProps) => {
-  const contextPickerId = useId();
-  const [isFocused, setIsFocused] = useState(false);
-  const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
-  const [internalValue, setInternalValue] = useState("");
-  const [internalError, setInternalError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const {
-    acceptedFileTypesLabel,
-    allowedChatMimeTypes,
-    attachments,
-    attachmentTooltipText,
-    consumeAttachments,
-    dragHandlers,
-    fileInputRef,
-    handlePasteFiles,
-    isDraggingFile,
-    isUploading,
-    onFileInputChange,
-    pendingUploads,
-    previewAttachment,
-    removeAttachment,
-    setPreviewAttachment,
-  } = useChatComposerAttachments();
-  const {
-    check,
-    data: customer,
-    refetch: refetchCustomer,
-  } = useBillingCustomer();
+const ChatInput = (props: ChatInputProps) => {
+  const input = useContentChatInput(props);
+  return <ContentChatInputComposer input={input} />;
+};
 
-  useAutumnRefreshListener(refetchCustomer);
-
-  const checkResult = useMemo(() => {
-    if (!customer) {
-      return null;
-    }
-    return check({
-      featureId: FEATURES.AI_CREDITS,
-      requiredBalance: 1,
-    });
-  }, [check, customer]);
-  const chatIncludedInPlan = hasIncludedChatPlan(customer);
-  const remainingChatCredits =
-    typeof checkResult?.balance?.remaining === "number"
-      ? checkResult.balance.remaining
-      : null;
-  const shouldShowLowCredits =
-    !chatIncludedInPlan &&
-    remainingChatCredits !== null &&
-    remainingChatCredits > 0 &&
-    remainingChatCredits <= 10;
-  const isUsageBlocked = checkResult?.allowed === false && !chatIncludedInPlan;
-  const usageLimitError =
-    externalError ??
-    internalError ??
-    (isUsageBlocked ? CHAT_INPUT_LIMIT_MESSAGE : null);
-  const clearError = useCallback(() => {
-    setInternalError(null);
-    onClearError?.();
-  }, [onClearError]);
-
-  const isControlled = controlledValue !== undefined;
-  const value = isControlled ? controlledValue : internalValue;
-  const setValue = useCallback(
-    (nextValue: string) => {
-      if (isControlled) {
-        onValueChange?.(nextValue);
-        return;
-      }
-
-      setInternalValue(nextValue);
-    },
-    [isControlled, onValueChange]
-  );
-
-  const { data: integrationsData } = useQuery(
-    dashboardOrpc.integrations.list.queryOptions({
-      input: { organizationId: organizationId ?? "" },
-      enabled: !!organizationId,
-    })
-  );
-
-  const enabledRepos = useMemo(() => {
-    const result: EnabledRepo[] = [];
-    for (const integration of integrationsData?.integrations ?? []) {
-      for (const repo of integration.repositories) {
-        if (repo.enabled) {
-          result.push({ ...repo, integrationId: integration.id });
-        }
-      }
-    }
-    return result;
-  }, [integrationsData?.integrations]);
-
-  const enabledLinear = useMemo(() => {
-    const result: EnabledLinear[] = [];
-    for (const integration of integrationsData?.integrations ?? []) {
-      if (integration.type === "linear" && integration.enabled) {
-        result.push({
-          id: integration.id,
-          displayName: integration.displayName,
-          integrationId: integration.id,
-          teamName:
-            "linearTeamName" in integration
-              ? (integration.linearTeamName as string | null)
-              : null,
-        });
-      }
-    }
-    return result;
-  }, [integrationsData?.integrations]);
-
-  const contextOptions = useMemo(
-    () =>
-      buildContentChatContextOptions({
-        enabledLinear,
-        enabledRepos,
-      }),
-    [enabledLinear, enabledRepos]
-  );
-
-  const isInContext = useCallback(
-    (item: ContextItem) =>
-      context.some((contextItem) => contextItemsEqual(contextItem, item)),
-    [context]
-  );
-
-  const resizeTextarea = useCallback(() => {
-    const element = textareaRef.current;
-    if (!element) {
-      return;
-    }
-    element.style.height = "auto";
-    const maxHeightRem = 12.5;
-    const rootFontSize = Number.parseFloat(
-      getComputedStyle(document.documentElement).fontSize
-    );
-    const maxHeightPx = maxHeightRem * rootFontSize;
-    const nextHeightPx = Math.min(element.scrollHeight, maxHeightPx);
-    element.style.height = `${nextHeightPx / rootFontSize}rem`;
-    element.style.overflowY =
-      element.scrollHeight > maxHeightPx ? "auto" : "hidden";
-  }, []);
-
-  const toggleContextItem = useCallback(
-    (item: ContextItem, inContext: boolean) => {
-      if (inContext) {
-        onRemoveContext?.(item);
-        return;
-      }
-
-      onAddContext?.(item);
-    },
-    [onAddContext, onRemoveContext]
-  );
-
-  useEffect(() => {
-    if (isControlled) {
-      requestAnimationFrame(resizeTextarea);
-    }
-  }, [isControlled, resizeTextarea]);
-
-  const handleSend = useCallback(async () => {
-    const trimmed = value.trim();
-    const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
-    if (disabled || isUploading) {
-      return;
-    }
-    if (!trimmed && attachments.length === 0) {
-      return;
-    }
-    // File messages stay in the composer until the current turn finishes.
-    if (isLoading && hasAttachments) {
-      return;
-    }
-
-    clearError();
-
-    if (isUsageBlocked) {
-      setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
-      return;
-    }
-
-    if (customer && !chatIncludedInPlan) {
-      const sendCheckResult = check({
-        featureId: FEATURES.AI_CREDITS,
-        requiredBalance: 1,
-      });
-
-      if (sendCheckResult?.allowed === false) {
-        setInternalError(CHAT_INPUT_LIMIT_MESSAGE);
-        return;
-      }
-    }
-
-    const nextAttachments = consumeAttachments();
-    onSend?.(trimmed, nextAttachments);
-    setValue("");
-    requestAnimationFrame(resizeTextarea);
-  }, [
-    attachments.length,
-    chatIncludedInPlan,
-    check,
-    clearError,
-    consumeAttachments,
-    customer,
-    disabled,
-    isLoading,
-    isUploading,
-    isUsageBlocked,
-    onSend,
-    pendingUploads.length,
-    resizeTextarea,
-    setValue,
-    value,
-  ]);
-
-  useHotkeys(
-    "enter",
-    (event) => {
-      if (event.shiftKey) {
-        return;
-      }
-      event.preventDefault();
-      handleSend();
-    },
-    {
-      enableOnFormTags: ["TEXTAREA"],
-      enabled: isFocused,
-    },
-    [handleSend, isFocused]
-  );
-
-  const isInputLocked = disabled || isUsageBlocked;
-  const isEmpty = value.trim().length === 0;
-  const hasAttachmentChips =
-    attachments.length > 0 || pendingUploads.length > 0;
-  const canQueue = isLoading && !isEmpty && !hasAttachmentChips;
-  const showStop =
-    isLoading && isEmpty && !hasAttachmentChips && Boolean(onStop);
-  let contextPickerDisabledReason: string | null = null;
-  if (isInputLocked) {
-    contextPickerDisabledReason = "Context is unavailable right now.";
-  }
-  const hasQueuedChips = queuedMessages.length > 0;
-  const hasContextChips =
-    context.length > 0 || Boolean(selection) || hasQueuedChips;
-  const showComposerNudge =
-    hasContextChips ||
-    hasAttachmentChips ||
-    shouldShowLowCredits ||
-    Boolean(usageLimitError);
-  const { sendLabel, sendTooltip } = getComposerSendChrome(showStop, canQueue);
-
+function ContentChatInputComposer({ input }: ContentChatInputComposerProps) {
   return (
     <>
-      {isDraggingFile ? (
+      {input.isDraggingFile ? (
         <ChatComposerDropOverlay
-          acceptedFileTypesLabel={acceptedFileTypesLabel}
+          acceptedFileTypesLabel={input.acceptedFileTypesLabel}
         />
       ) : null}
-      <div {...dragHandlers}>
+      <div {...input.dragHandlers}>
         <Composer.Frame
-          connectedTop={connectedTop}
+          connectedTop={input.connectedTop}
           nudge={
-            showComposerNudge ? (
+            input.showComposerNudge ? (
               <ChatInputComposerNudge
-                attachments={attachments}
-                context={context}
-                hasAttachmentChips={hasAttachmentChips}
-                hasContextChips={hasContextChips}
-                onClearSelection={onClearSelection}
-                onEditQueued={onEditQueued}
-                onRemoveContext={onRemoveContext}
-                onRemoveQueued={onRemoveQueued}
-                organizationSlug={organizationSlug}
-                pendingUploads={pendingUploads}
-                queuedMessages={queuedMessages}
-                remainingChatCredits={remainingChatCredits}
-                removeAttachment={removeAttachment}
-                selection={selection}
-                setPreviewAttachment={setPreviewAttachment}
-                shouldShowLowCredits={shouldShowLowCredits}
-                usageLimitError={usageLimitError}
+                attachments={input.attachments}
+                context={input.context}
+                hasAttachmentChips={input.hasAttachmentChips}
+                hasContextChips={input.hasContextChips}
+                onClearSelection={input.onClearSelection}
+                onEditQueued={input.onEditQueued}
+                onRemoveContext={input.onRemoveContext}
+                onRemoveQueued={input.onRemoveQueued}
+                organizationSlug={input.organizationSlug}
+                pendingUploads={input.pendingUploads}
+                queuedMessages={input.queuedMessages}
+                remainingChatCredits={input.remainingChatCredits}
+                removeAttachment={input.removeAttachment}
+                selection={input.selection}
+                setPreviewAttachment={input.setPreviewAttachment}
+                shouldShowLowCredits={input.shouldShowLowCredits}
+                usageLimitError={input.usageLimitError}
               />
             ) : null
           }
         >
           <div className="flex min-w-0 items-end gap-1 p-1.5">
             <input
-              accept={allowedChatMimeTypes.join(",")}
+              accept={input.allowedChatMimeTypes.join(",")}
               className="hidden"
               multiple
-              onChange={onFileInputChange}
-              ref={fileInputRef}
+              onChange={input.onFileInputChange}
+              ref={input.fileInputRef}
               type="file"
             />
             <ChatComposerAttachButton
-              attachmentCount={attachments.length}
-              disabled={isInputLocked || isLoading}
-              fileInputRef={fileInputRef}
-              pendingUploadCount={pendingUploads.length}
-              tooltip={attachmentTooltipText}
+              attachmentCount={input.attachments.length}
+              disabled={input.isInputLocked || input.isLoading}
+              fileInputRef={input.fileInputRef}
+              pendingUploadCount={input.pendingUploads.length}
+              tooltip={input.attachmentTooltipText}
             />
             <ChatInputContextPicker
-              contextOptions={contextOptions}
-              contextPickerId={contextPickerId}
-              disabledReason={contextPickerDisabledReason}
-              isInContext={isInContext}
-              isOpen={isContextPickerOpen}
-              onOpenChange={setIsContextPickerOpen}
-              organizationSlug={organizationSlug}
-              toggleContextItem={toggleContextItem}
+              contextOptions={input.contextOptions}
+              contextPickerId={input.contextPickerId}
+              disabledReason={input.contextPickerDisabledReason}
+              isInContext={input.isInContext}
+              isOpen={input.isContextPickerOpen}
+              onOpenChange={input.setIsContextPickerOpen}
+              organizationSlug={input.organizationSlug}
+              toggleContextItem={input.toggleContextItem}
             />
             <Textarea
               aria-label="Send a message"
               className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-7 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-none border-0 bg-transparent px-1 py-1 text-sm leading-5 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
-              disabled={isInputLocked}
-              onBlur={() => setIsFocused(false)}
+              disabled={input.isInputLocked}
+              onBlur={() => input.setIsFocused(false)}
               onChange={(event) => {
-                setValue(event.target.value);
+                input.setValue(event.target.value);
               }}
-              onFocus={() => setIsFocused(true)}
-              onInput={resizeTextarea}
-              onPaste={(event) => {
-                if (!handlePasteFiles(Array.from(event.clipboardData.files))) {
-                  return;
-                }
-                event.preventDefault();
-                setValue(
-                  nextValueAfterFilePaste(
-                    value,
-                    event.clipboardData.getData("text/plain"),
-                    event.currentTarget.selectionStart,
-                    event.currentTarget.selectionEnd
-                  )
-                );
-              }}
+              onFocus={() => input.setIsFocused(true)}
+              onInput={input.resizeTextarea}
+              onPaste={input.handlePaste}
               placeholder={
-                isLoading
+                input.isLoading
                   ? "Queue a message..."
-                  : (placeholder ?? "Send a message...")
+                  : (input.placeholder ?? "Send a message...")
               }
-              ref={textareaRef}
+              ref={input.textareaRef}
               rows={1}
-              value={value}
+              value={input.value}
             />
             <Composer.Send
-              disabled={
-                isInputLocked ||
-                isUploading ||
-                (!showStop && isEmpty && !hasAttachmentChips)
-              }
-              label={sendLabel}
-              onClick={showStop ? onStop : handleSend}
-              tooltip={sendTooltip}
+              disabled={input.sendDisabled}
+              label={input.sendLabel}
+              onClick={input.showStop ? input.onStop : input.handleSend}
+              tooltip={input.sendTooltip}
             >
               <HugeiconsIcon
                 className="size-4"
-                icon={showStop ? StopIcon : ArrowUp02Icon}
+                icon={input.showStop ? StopIcon : ArrowUp02Icon}
                 strokeWidth={2}
               />
             </Composer.Send>
@@ -460,17 +150,17 @@ const ChatInput = ({
         </Composer.Frame>
       </div>
       <AttachmentPreviewDialog
-        attachment={previewAttachment}
+        attachment={input.previewAttachment}
         onOpenChange={(open) => {
           if (!open) {
-            setPreviewAttachment(null);
+            input.setPreviewAttachment(null);
           }
         }}
-        open={previewAttachment !== null}
+        open={input.previewAttachment !== null}
       />
     </>
   );
-};
+}
 
 function ChatInputComposerNudge({
   attachments,
