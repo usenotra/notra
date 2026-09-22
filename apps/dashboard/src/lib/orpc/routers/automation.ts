@@ -547,6 +547,7 @@ export const automationRouter = {
           outputType: input.outputType,
           lookbackWindow: input.lookbackWindow,
           instructions: input.outputConfig?.instructions,
+          brandVoiceId: input.outputConfig?.brandVoiceId,
         });
 
         const existing = await db.query.contentTriggers.findFirst({
@@ -695,6 +696,7 @@ export const automationRouter = {
           outputType: input.outputType,
           lookbackWindow: input.lookbackWindow,
           instructions: input.outputConfig?.instructions,
+          brandVoiceId: input.outputConfig?.brandVoiceId,
         });
 
         const duplicate = await db.query.contentTriggers.findFirst({

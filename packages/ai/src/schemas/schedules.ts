@@ -92,7 +92,7 @@ const scheduleFields = {
     .boolean()
     .default(false)
     .describe(
-      "Publish the draft automatically. Leave false unless the user explicitly asks for that."
+      "Publish changelog or blog drafts automatically. Ignored for LinkedIn, Twitter, and image. Leave false unless the user explicitly asks."
     ),
   enabled: z
     .boolean()

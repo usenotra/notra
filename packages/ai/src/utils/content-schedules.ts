@@ -55,6 +55,7 @@ function contentScheduleDedupeHash(input: {
   outputType: string;
   lookbackWindow: string;
   instructions?: string;
+  brandVoiceId?: string;
 }): string {
   return hashTrigger({
     sourceType: "cron",
@@ -63,7 +64,15 @@ function contentScheduleDedupeHash(input: {
     outputType: input.outputType,
     lookbackWindow: input.lookbackWindow,
     instructions: input.instructions,
+    brandVoiceId: input.brandVoiceId,
   });
+}
+
+function scheduleAutoPublish(input: CreateScheduleInput): boolean {
+  return (
+    input.autoPublish &&
+    (input.outputType === "changelog" || input.outputType === "blog_post")
+  );
 }
 
 export async function listContentSchedules(
@@ -128,12 +137,14 @@ export async function createContentSchedule(
   }
 
   const repositoryIds = repositories.map((repository) => repository.id);
+  const autoPublish = scheduleAutoPublish(input);
   const dedupeHash = contentScheduleDedupeHash({
     cron,
     repositoryIds,
     outputType: input.outputType,
     lookbackWindow: input.lookbackWindow,
     instructions: input.instructions,
+    brandVoiceId: input.brandVoiceId,
   });
 
   const existing = await findScheduleByHash(organizationId, dedupeHash);
@@ -148,10 +159,12 @@ export async function createContentSchedule(
   let qstashScheduleId: string | null = null;
 
   try {
-    qstashScheduleId = await createQstashSchedule({
-      triggerId,
-      cron: cronExpression,
-    });
+    if (input.enabled) {
+      qstashScheduleId = await createQstashSchedule({
+        triggerId,
+        cron: cronExpression,
+      });
+    }
 
     const outputConfig = scheduleOutputConfig(input);
     await db.transaction(async (tx) => {
@@ -168,7 +181,7 @@ export async function createContentSchedule(
           outputConfig,
           dedupeHash,
           enabled: input.enabled,
-          autoPublish: input.autoPublish,
+          autoPublish,
           qstashScheduleId,
         })
         .returning({ id: contentTriggers.id });
@@ -212,7 +225,7 @@ export async function createContentSchedule(
       id: triggerId,
       name: input.name.trim() || DEFAULT_SCHEDULE_NAME,
       enabled: input.enabled,
-      autoPublish: input.autoPublish,
+      autoPublish,
       outputType: input.outputType,
       sourceConfig: { cron },
       targets: { repositoryIds },

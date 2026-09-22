@@ -41,9 +41,11 @@ export function hashTrigger({
   outputType,
   lookbackWindow,
   instructions,
+  brandVoiceId,
 }: TriggerHashInput) {
   const normalized = normalizeTriggerConfig({ sourceConfig, targets });
   const trimmedInstructions = instructions?.trim();
+  const trimmedBrandVoiceId = brandVoiceId?.trim();
   const payload = JSON.stringify({
     sourceType,
     sourceConfig: normalized.sourceConfig,
@@ -51,6 +53,7 @@ export function hashTrigger({
     outputType,
     lookbackWindow,
     ...(trimmedInstructions ? { instructions: trimmedInstructions } : {}),
+    ...(trimmedBrandVoiceId ? { brandVoiceId: trimmedBrandVoiceId } : {}),
   });
 
   return crypto.createHash("sha256").update(payload).digest("hex");

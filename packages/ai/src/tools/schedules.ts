@@ -42,9 +42,9 @@ export function createCreateScheduleTool(ctx: ScheduleToolContext): Tool {
       whenToUse:
         "The user asks to schedule, automate, or regularly generate content.",
       whenNotToUse:
-        "They want a single draft now, or an existing schedule already matches the same repositories, output, cadence, lookback, and instructions.",
+        "They want a single draft now, or an existing schedule already matches the same repositories, output, cadence, lookback, instructions, and brand voice.",
       usageNotes:
-        "Call listSchedules first. Times are UTC. repositoryIds are GitHub integration IDs. Ask which repository to use when more than one is connected and the user did not name one. Leave autoPublish false unless they explicitly want drafts published automatically. A matching schedule is returned as duplicate instead of creating a second one.",
+        "Call listSchedules first. Times are UTC. repositoryIds are GitHub integration IDs. Ask which repository to use when more than one is connected and the user did not name one. autoPublish applies only to changelog and blog_post; leave it false unless they explicitly want those drafts published. LinkedIn, Twitter, and image schedules stay drafts. A matching schedule, including the same brand voice, is returned as duplicate instead of creating a second one.",
     }),
     inputSchema: createScheduleInputSchema,
     execute: async (input: CreateScheduleInput) =>
