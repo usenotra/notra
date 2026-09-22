@@ -1,15 +1,34 @@
 import { expect, mock, test } from "bun:test";
 
-const generateText = mock(async () => ({
-  output: { headline: '"Shorten the intro"' },
-}));
+import { MockLanguageModelV4 } from "ai/test";
 
-mock.module("ai", () => ({
-  generateText,
-  Output: { object: (value: unknown) => value },
-}));
+const usage = {
+  inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+  outputTokens: { total: 1, text: 1, reasoning: 0 },
+};
+
+let failGenerate = false;
+const model = new MockLanguageModelV4({
+  doGenerate: async () => {
+    if (failGenerate) {
+      throw new Error("gateway down");
+    }
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ headline: '"Shorten the intro"' }),
+        },
+      ],
+      finishReason: { unified: "stop", raw: "stop" },
+      usage,
+      warnings: [],
+    };
+  },
+});
+
 mock.module("@notra/ai/gateway", () => ({
-  gateway: () => ({}),
+  gateway: () => model,
 }));
 
 const {
@@ -65,11 +84,9 @@ test("generates a follow-up headline and falls back when the model fails", async
       fallback: "docs: update Release",
     })
   ).toBe("docs: update Release");
-  expect(generateText).toHaveBeenCalledTimes(1);
+  expect(model.doGenerateCalls).toHaveLength(1);
 
-  generateText.mockImplementationOnce(async () => {
-    throw new Error("gateway down");
-  });
+  failGenerate = true;
   expect(
     await generateContentCommitHeadline({
       organizationId: "org",
