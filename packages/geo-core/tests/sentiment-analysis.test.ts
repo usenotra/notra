@@ -716,8 +716,6 @@ test("a new answer fingerprint keeps the previous themes instead of an empty tab
     key,
     store,
     snapshot: async () => ({ fingerprint: "day-2", eligible: 2 }),
-    sample: async () => sample,
-    extract: async () => output,
   });
   expect(nextDay.status).toBe("stale");
   expect(nextDay.result?.themes).toEqual(ready.result?.themes);

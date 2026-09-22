@@ -37,7 +37,7 @@ import {
 
 async function readProjectSentimentAnalysis(
   organizationId: string,
-  projectId: string,
+  projectId: string | null,
   period: { from: string; to: string },
   window: GeoWindowInput,
   store: SentimentAnalysisStore,
