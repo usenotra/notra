@@ -13,20 +13,14 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@notra/ui/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Google } from "@notra/ui/components/ui/svgs/google";
+import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -158,86 +152,71 @@ function GoogleSearchConsoleIntegrationCard({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>
-            {status.email ?? "Google account connected"}
-            {status.lastSyncedAt
-              ? ` · Last synced ${formatRelative(status.lastSyncedAt)}`
-              : null}
-          </CardDescription>
-          <CardAction>
-            <div className="flex items-center gap-2">
-              <Badge variant={needsReconnect ? "secondary" : "default"}>
-                {connectionLabel(status)}
-              </Badge>
-              {hasProperty ? (
-                <Button
-                  disabled={busy}
-                  onClick={() => sync.mutate()}
-                  size="sm"
-                  variant="outline"
-                >
-                  {sync.isPending ? <StatusSpinner /> : null}
-                  {sync.isPending ? "Syncing…" : "Sync now"}
-                </Button>
-              ) : null}
-              {needsReconnect ? (
-                <Button onClick={onReconnect} size="sm">
-                  Reconnect
-                </Button>
-              ) : null}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button disabled={busy} size="icon-sm" variant="ghost">
-                      <svg
-                        aria-label="More options"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <title>More options</title>
-                        <circle cx="12" cy="12" r="1" />
-                        <circle cx="12" cy="5" r="1" />
-                        <circle cx="12" cy="19" r="1" />
-                      </svg>
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end">
-                  {hasProperty ? (
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => setPropertyDialogOpen(true)}
+      <TitleCard
+        action={
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Badge variant={needsReconnect ? "secondary" : "default"}>
+              {connectionLabel(status)}
+            </Badge>
+            {needsReconnect ? (
+              <Button onClick={onReconnect} size="sm">
+                Reconnect
+              </Button>
+            ) : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button disabled={busy} size="icon-sm" variant="ghost">
+                    <svg
+                      aria-label="More options"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      Change property
-                    </DropdownMenuItem>
-                  ) : null}
+                      <title>More options</title>
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                {hasProperty ? (
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => disconnect.mutate()}
-                    variant="destructive"
+                    onClick={() => setPropertyDialogOpen(true)}
                   >
-                    Disconnect
+                    Change property
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground space-y-4 text-sm">
-            {status.weeklySyncScheduled ? (
-              <Badge className="font-normal" variant="secondary">
-                Weekly sync
-              </Badge>
-            ) : null}
+                ) : null}
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => disconnect.mutate()}
+                  variant="destructive"
+                >
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        }
+        heading={title}
+        icon={<Google />}
+      >
+        <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-start sm:justify-between">
+          <div className="text-muted-foreground min-w-0 space-y-1">
+            <p>
+              {status.email ?? "Google account connected"}
+              {status.lastSyncedAt
+                ? ` · Last synced ${formatRelative(status.lastSyncedAt)}`
+                : null}
+            </p>
+            {status.weeklySyncScheduled ? <p>Weekly sync is on</p> : null}
             {needsReconnect ? (
               <p>
                 Google access expired. Reconnect to keep syncing keyword
@@ -276,8 +255,20 @@ function GoogleSearchConsoleIntegrationCard({
               </p>
             ) : null}
           </div>
-        </CardContent>
-      </Card>
+          {hasProperty ? (
+            <Button
+              className="shrink-0"
+              disabled={busy}
+              onClick={() => sync.mutate()}
+              size="sm"
+              variant="outline"
+            >
+              {sync.isPending ? <StatusSpinner /> : null}
+              {sync.isPending ? "Syncing…" : "Sync now"}
+            </Button>
+          ) : null}
+        </div>
+      </TitleCard>
       {hasProperty ? (
         <ChangePropertyDialog
           callbackPath={callbackPath}
