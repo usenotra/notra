@@ -635,7 +635,13 @@ async function readGitHubContentFile(
       return null;
     }
     return Buffer.from(data.content, "base64").toString("utf8");
-  } catch {
+  } catch (error) {
+    if (!hasGitHubStatus(error, 404)) {
+      throw new GitHubContentPublishError(
+        "Failed to read the existing content file",
+        error
+      );
+    }
     return null;
   }
 }
