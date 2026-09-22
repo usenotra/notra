@@ -469,6 +469,15 @@ const TOOL_COPY: Record<string, ToolCopy> = {
     noun: "investor update",
     suffix: (input) => quotedSuffix(input, ["title"]),
   },
+  createSchedule: {
+    verbs: ["Creating", "Created"],
+    noun: "schedule",
+    suffix: (input) => quotedSuffix(input, ["name"]),
+  },
+  listSchedules: {
+    verbs: ["Listing", "Listed"],
+    noun: "schedules",
+  },
   reviseImage: {
     verbs: ["Revising", "Revised"],
     noun: "image",

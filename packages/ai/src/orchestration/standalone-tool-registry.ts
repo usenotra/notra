@@ -42,6 +42,10 @@ import {
   getCreatePostToolName,
 } from "@notra/ai/tools/post";
 import {
+  createCreateScheduleTool,
+  createListSchedulesTool,
+} from "@notra/ai/tools/schedules";
+import {
   createCreateSkillTool,
   getSkillByName,
   listAvailableSkills,
@@ -69,7 +73,7 @@ import type { Tool } from "ai";
 
 /** Tools that write user-visible records and must pause for user approval. */
 export function getStandaloneApprovalToolNames(): Set<string> {
-  const toolNames = new Set<string>(["createSkill"]);
+  const toolNames = new Set<string>(["createSchedule", "createSkill"]);
   for (const contentType of contentTypeSchema.options) {
     if (contentType !== "image") {
       toolNames.add(getCreatePostToolName(contentType));
@@ -164,9 +168,14 @@ export function buildStandaloneToolSet(
     "**GEO Analytics**: List GEO projects and inspect AI visibility summaries, trends, prompt-level results, competitor share, and detailed project context using listGeoProjects, getGeoOverview, getGeoTimeseries, getGeoPromptResults, getGeoCompetitorShare, and getGeoProjectContext"
   );
 
+  tools.listSchedules = createListSchedulesTool({ organizationId });
+  tools.createSchedule = createCreateScheduleTool({ organizationId });
   tools.listAvailableSkills = listAvailableSkills({ organizationId });
   tools.getSkillByName = getSkillByName({ organizationId });
   tools.createSkill = createCreateSkillTool({ organizationId });
+  descriptions.push(
+    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence."
+  );
   descriptions.push(
     "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. Create a new reusable writing skill with createSkill when the user explicitly asks for one or a clearly new, recurring writing need appears."
   );
