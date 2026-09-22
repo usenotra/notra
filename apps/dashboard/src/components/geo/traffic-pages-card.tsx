@@ -201,7 +201,9 @@ export function TrafficPagesCard({
             emptyState="No pages match this filter"
             getRowId={(row) => `${row.host}\n${row.path}`}
             height={tableHeightFor(
-              isPending ? PAGE_SKELETON_ROWS : filteredGroups.length
+              filteredGroups.length === 0
+                ? PAGE_SKELETON_ROWS
+                : filteredGroups.length
             )}
             loading={isPending}
             resizable

@@ -99,9 +99,9 @@ export function JourneysCard({
           height={tableHeightFor(journeys.length)}
           loading={loading}
           onEndReached={
-            loading || !hasMore
-              ? undefined
-              : () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
+            hasMore
+              ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
+              : undefined
           }
           onRowClick={onOpenJourney}
           onRowPointerEnter={onPrefetchJourney}

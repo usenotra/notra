@@ -43,9 +43,13 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     categories: [],
   });
   const [hostQuery] = useGeoTrafficHostQuery();
-  const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
-    host: hostQuery,
-  });
+  const { data, isPending, isFetching } = useGeoTrafficLog(
+    organizationId,
+    filters,
+    {
+      host: hostQuery,
+    }
+  );
   const log = data?.log ?? [];
 
   let body: ReactNode;
@@ -61,10 +65,10 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
       <CitationsTable
         entries={log}
         height={tableHeightFor(
-          isPending ? LOG_SKELETON_ROWS : log.length,
+          log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
-        loading={isPending}
+        loading={isPending || isFetching}
       />
     );
   }

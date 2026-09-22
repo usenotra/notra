@@ -331,7 +331,7 @@ export function WhatChangedCard({
 }: WhatChangedCardProps) {
   const { projectId } = useGeoProjectScope();
   const router = useRouter();
-  const { data, isPending } = useGeoChanges(organizationId);
+  const { data, isPending, isFetching } = useGeoChanges(organizationId);
   const [detail, setDetail] = useState<{
     promptId: string;
     engine: string;
@@ -364,9 +364,9 @@ export function WhatChangedCard({
       defaultSort={CHANGES_DEFAULT_SORT}
       getRowId={changeRowId}
       height={tableHeightFor(
-        isPending ? GEO_CHANGES_SKELETON_ROWS : events.length
+        events.length === 0 ? GEO_CHANGES_SKELETON_ROWS : events.length
       )}
-      loading={isPending}
+      loading={isPending || isFetching}
       onRowClick={openEvent}
       resizable
       rowHeight={TABLE_ROW_HEIGHT}

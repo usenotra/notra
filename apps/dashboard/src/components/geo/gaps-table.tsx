@@ -981,22 +981,20 @@ export function GeoGapsTable({
         className="rounded-2xl"
         columns={promptColumns}
         data={filteredPromptGaps}
-        onRowClick={(row) => setDetailPromptId(row.id)}
         defaultSort={{ key: "opportunity", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
-        loading={isScanning}
+        onRowClick={(row) => setDetailPromptId(row.id)}
       />
     ) : (
       <Table
         className="rounded-2xl"
         columns={searchColumns}
         data={filteredSearchGaps}
-        onRowClick={(row) => setDetailSearchId(row.id)}
         defaultSort={{ key: "impressions", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
-        loading={isScanning}
+        onRowClick={(row) => setDetailSearchId(row.id)}
       />
     );
 

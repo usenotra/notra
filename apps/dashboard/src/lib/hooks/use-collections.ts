@@ -4,12 +4,13 @@ import type {
   PostCollectionDetail,
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
+import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GENERATING_POLL_INTERVAL = 4000;
 
@@ -24,6 +25,9 @@ export function useCollections(
   const scopedProjectId = isResolved
     ? (projectId ?? undefined)
     : (initialProjectId ?? undefined);
+  const placeholderData = useScopedPreviousData<PostCollectionListResponse>(
+    `${organizationId}:${scopedProjectId ?? ""}`
+  );
   return useQuery<PostCollectionListResponse>({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: {
@@ -34,7 +38,7 @@ export function useCollections(
       },
     }),
     enabled: !!organizationId && (isResolved || initialProjectId !== undefined),
-    placeholderData: keepPreviousData,
+    placeholderData,
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating

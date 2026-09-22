@@ -9,7 +9,7 @@ import {
   PaginationPrevious,
 } from "@notra/ui/components/ui/pagination";
 import { cn } from "@notra/ui/lib/utils";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAutumnClient } from "autumn-js/react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
@@ -18,6 +18,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { CREDIT_EVENTS_PAGE_SIZE } from "@/constants/billing-credits";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { authClient } from "@/lib/auth/client";
+import { useScopedPreviousData } from "@/lib/hooks/use-scoped-previous-data";
 import type { ListEventsRow } from "@/types/billing/credits";
 import { getCreditEventLabel } from "@/utils/credit-events";
 import { formatDollars, formatFullDate } from "@/utils/format";
@@ -64,6 +65,9 @@ export function CreditActivity() {
   const autumnClient = useAutumnClient({ caller: "CreditsPageClient" });
   const { activeOrganization } = useOrganizationsContext();
   const { data: session } = authClient.useSession();
+  const placeholderData = useScopedPreviousData<
+    Awaited<ReturnType<typeof autumnClient.listEvents>>
+  >(activeOrganization?.id);
   const sessionMatchesOrganization =
     Boolean(activeOrganization?.id) &&
     session?.session.activeOrganizationId === activeOrganization?.id;
@@ -90,7 +94,7 @@ export function CreditActivity() {
       return autumnClient.listEvents(params);
     },
     enabled: sessionMatchesOrganization,
-    placeholderData: keepPreviousData,
+    placeholderData,
   });
   const hasMore = hasMorePaginatedResults(eventsData, CREDIT_EVENTS_PAGE_SIZE);
   const hasPrevious = page > 1;

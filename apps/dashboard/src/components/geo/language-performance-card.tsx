@@ -219,7 +219,6 @@ export function LanguagePerformanceCard({
   points,
   organizationId,
   settings,
-  isScanning = false,
 }: LanguagePerformanceCardProps) {
   const [languageToAdd, setLanguageToAdd] = useState<string>();
   const addLanguage = useGeoSettingsLanguageAdd(organizationId);
@@ -276,7 +275,6 @@ export function LanguagePerformanceCard({
           emptyState="No language results yet"
           getRowId={(row) => `${row.kind}:${row.language}`}
           height={GEO_VISIBILITY_TABLE_HEIGHT}
-          loading={isScanning}
           minHeight={GEO_VISIBILITY_TABLE_HEIGHT}
           resizable
           rowHeight={TABLE_ROW_HEIGHT}

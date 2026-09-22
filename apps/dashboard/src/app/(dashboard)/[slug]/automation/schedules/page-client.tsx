@@ -132,7 +132,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   useHotkey("C", () => setCreateOpen(true), { enabled: !createOpen });
 
-  const { data, isPending, isFetching } = useQuery(
+  const { data, isPending } = useQuery(
     dashboardOrpc.automation.schedules.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
       enabled: !!organizationId,
@@ -510,7 +510,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 isDeleting={deleteMutation.isPending}
                 isRunning={runNowMutation.isPending}
                 isUpdating={updateMutation.isPending}
-                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onRunNow={handleRunNow}
@@ -539,7 +538,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 isDeleting={deleteMutation.isPending}
                 isRunning={runNowMutation.isPending}
                 isUpdating={updateMutation.isPending}
-                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onRunNow={handleRunNow}

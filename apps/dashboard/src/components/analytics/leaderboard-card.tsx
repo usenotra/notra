@@ -244,7 +244,7 @@ export function LeaderboardCard({
       action={<AnalyticsRangePicker control={range} />}
       eyebrow="Leaderboard"
     >
-      {entries.length === 0 ? (
+      {entries.length === 0 && !isPending ? (
         <InstrumentEmpty
           className="h-32"
           message="No accounts yet"

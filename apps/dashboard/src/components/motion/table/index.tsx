@@ -66,6 +66,7 @@ export function Table<T>({
   overscan = 10,
   onEndReached,
   loading = false,
+  loadingMore: loadingMoreProp,
   skeletonRows = 3,
   emptyState = "No data",
   onRowClick,
@@ -178,8 +179,9 @@ export function Table<T>({
   );
   const isEmpty = pagedRows.length === 0 && !loading;
   const hasRows = pagedRows.length > 0;
-  const dimRows = loading && hasRows && !onEndReached;
-  const loadingMore = loading && hasRows && Boolean(onEndReached);
+  const loadingMore =
+    loading && hasRows && (loadingMoreProp ?? Boolean(onEndReached));
+  const dimRows = loading && hasRows && !loadingMore;
   let loadingState: "dimmed" | "more" | "skeleton" | undefined;
   if (dimRows) {
     loadingState = "dimmed";

@@ -93,6 +93,11 @@ interface TableBaseProps<T> {
    * (`onEndReached`) still appends `skeletonRows` at the bottom.
    */
   loading?: boolean;
+  /**
+   * Next-page fetch on an infinite list. Defaults to whether `onEndReached`
+   * is set; pass this when that callback is cleared during the fetch.
+   */
+  loadingMore?: boolean;
   /** How many skeleton rows to show while loading more (default 3). */
   skeletonRows?: number;
   /** Called when a row is clicked or activated with Enter/Space. */

@@ -373,7 +373,7 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
   const results = data?.results ?? [];
   const rowCount = activeView === "pending" ? pending.length : results.length;
   const height = paginatedTableHeightFor(
-    loading ? GEO_SCAN_RESULTS_PAGE_SIZE / 2 : rowCount
+    query.isPending ? GEO_SCAN_RESULTS_PAGE_SIZE / 2 : rowCount
   );
 
   return (

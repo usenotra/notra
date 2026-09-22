@@ -81,7 +81,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   useHotkey("C", () => setCreateOpen(true), { enabled: !createOpen });
 
-  const { data, isPending, isFetching } = useQuery(
+  const { data, isPending } = useQuery(
     dashboardOrpc.automation.events.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
       enabled: !!organizationId,
@@ -297,7 +297,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 brandVoiceMap={brandVoiceMap}
                 createdSortOrder={createdSortOrder}
                 defaultBrandVoice={defaultBrandVoice}
-                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onSortCreatedChange={setCreatedSortOrder}
@@ -311,7 +310,6 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 brandVoiceMap={brandVoiceMap}
                 createdSortOrder={createdSortOrder}
                 defaultBrandVoice={defaultBrandVoice}
-                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onSortCreatedChange={setCreatedSortOrder}
