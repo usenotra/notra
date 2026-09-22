@@ -17,12 +17,23 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
 } else {
   const { PGlite } = await import("@electric-sql/pglite");
   const { drizzle } = await import("drizzle-orm/pglite");
-  const { integer, pgTable, text, timestamp } =
+  const { boolean, integer, pgTable, text, timestamp } =
     await import("drizzle-orm/pg-core");
 
   const posts = pgTable("posts", {
     id: text("id").primaryKey(),
     organizationId: text("organization_id").notNull(),
+  });
+  const githubAppInstallations = pgTable("github_app_installations", {
+    id: text("id").primaryKey(),
+    installationId: text("installation_id").notNull(),
+    enabled: boolean("enabled").notNull(),
+  });
+  const githubIntegrations = pgTable("github_integrations", {
+    id: text("id").primaryKey(),
+    githubAppInstallationId: text("github_app_installation_id"),
+    githubRepositoryId: text("github_repository_id"),
+    enabled: boolean("enabled").notNull(),
   });
   const contentPublications = pgTable("content_publications", {
     id: text("id").primaryKey(),
@@ -76,7 +87,12 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
   });
 
   mock.module("@notra/db/drizzle", () => ({ db }));
-  mock.module("@notra/db/schema", () => ({ contentPublications, posts }));
+  mock.module("@notra/db/schema", () => ({
+    contentPublications,
+    githubAppInstallations,
+    githubIntegrations,
+    posts,
+  }));
   mock.module("@notra/ai/utils/post-service", () => ({
     updatePostRecord: async () => null,
   }));
