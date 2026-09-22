@@ -12,6 +12,7 @@ import { ButtonGroup } from "@notra/ui/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
@@ -38,7 +39,10 @@ import type {
   ContentDetailImageActionsProps,
 } from "@/types/components/content-detail-toolbar";
 import type { ImageExportTarget } from "@/types/content/image-export";
-import { getPublishButtonLabel } from "@/utils/content-detail";
+import {
+  getContentSaveLabel,
+  getPublishButtonLabel,
+} from "@/utils/content-detail";
 import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
 import {
   getImageExportTargetLabel,
@@ -182,24 +186,38 @@ function ContentDetailPublishActions({
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
       content.githubPublish ? (
-        <Button
-          nativeButton={false}
-          render={
-            <a
-              href={content.githubPublish.pullRequestUrl}
-              rel="noopener noreferrer"
-              target="_blank"
+        <>
+          <Button
+            nativeButton={false}
+            render={
+              <a
+                href={content.githubPublish.pullRequestUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <Github className="size-4" />
+                <span className="max-w-52 truncate">
+                  {content.githubPublish.owner}/{content.githubPublish.repo} #
+                  {content.githubPublish.pullRequestNumber}
+                </span>
+              </a>
+            }
+            size="sm"
+            variant="outline"
+          />
+          {document.prNeedsUpdate && !document.hasChanges ? (
+            <Button
+              disabled={document.isSaving}
+              onClick={() => {
+                void document.handleSave({ updatePullRequest: true });
+              }}
+              size="sm"
+              variant="outline"
             >
-              <Github className="size-4" />
-              <span className="max-w-52 truncate">
-                {content.githubPublish.owner}/{content.githubPublish.repo} #
-                {content.githubPublish.pullRequestNumber}
-              </span>
-            </a>
-          }
-          size="sm"
-          variant="outline"
-        />
+              {document.savingPullRequest ? "Updating PR…" : "Update PR"}
+            </Button>
+          ) : null}
+        </>
       ) : null}
       {(content.contentType === "changelog" ||
         content.contentType === "blog_post") &&
@@ -241,12 +259,10 @@ function ContentDetailPublishActions({
 export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
   const { content, document, organizationId } = props;
   const updatesLinkedPullRequest = Boolean(content.githubPublish);
-  let saveLabel = "Save changes";
-  if (updatesLinkedPullRequest) {
-    saveLabel = document.isSaving ? "Updating PR…" : "Save and update PR";
-  } else if (document.isSaving) {
-    saveLabel = "Saving…";
-  }
+  const saveLabel = getContentSaveLabel({
+    isSaving: document.isSaving,
+    updatePullRequest: document.savingPullRequest,
+  });
   return (
     <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
       {document.hasChanges &&
@@ -262,18 +278,54 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
           >
             Discard changes
           </Button>
-          <Button
-            aria-keyshortcuts="Meta+S Control+S"
-            data-save-bar
-            disabled={document.isSaving}
-            onClick={() => {
-              void document.handleSave();
-            }}
-            size="sm"
-            variant="outline"
-          >
-            {saveLabel}
-          </Button>
+          {updatesLinkedPullRequest ? (
+            <ButtonGroup>
+              <Button
+                aria-keyshortcuts="Meta+S Control+S"
+                data-save-bar
+                disabled={document.isSaving}
+                onClick={() => {
+                  void document.handleSave();
+                }}
+                size="sm"
+                variant="outline"
+              >
+                {saveLabel}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  disabled={document.isSaving}
+                  render={<Button size="icon-sm" variant="outline" />}
+                >
+                  <span className="sr-only">More save options</span>
+                  <HugeiconsIcon className="size-4" icon={ArrowDown01Icon} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-48">
+                  <DropdownMenuItem
+                    disabled={document.isSaving}
+                    onClick={() => {
+                      void document.handleSave({ updatePullRequest: true });
+                    }}
+                  >
+                    Save and update PR
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ButtonGroup>
+          ) : (
+            <Button
+              aria-keyshortcuts="Meta+S Control+S"
+              data-save-bar
+              disabled={document.isSaving}
+              onClick={() => {
+                void document.handleSave();
+              }}
+              size="sm"
+              variant="outline"
+            >
+              {saveLabel}
+            </Button>
+          )}
         </>
       ) : null}
       {content.contentType === "image" ? (

@@ -45,6 +45,22 @@ export function formatRepos(repos: { owner: string; repo: string }[]): string {
   return `${repos.length} repositories`;
 }
 
+export function getContentSaveLabel({
+  isSaving,
+  updatePullRequest,
+}: {
+  isSaving: boolean;
+  updatePullRequest: boolean;
+}): string {
+  if (isSaving && updatePullRequest) {
+    return "Updating PR…";
+  }
+  if (isSaving) {
+    return "Saving…";
+  }
+  return "Save changes";
+}
+
 export function getPublishButtonLabel(
   isTogglingStatus: boolean,
   status: string

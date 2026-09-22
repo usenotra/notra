@@ -27,6 +27,7 @@ import {
   useGeoWriterUpdate,
 } from "@/lib/hooks/use-geo-writer";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { SaveContentDetailOptions } from "@/types/content/detail";
 import type { ImageExportTarget } from "@/types/content/image-export";
 import type { ContentApiResponse } from "@/types/hooks/content";
 import {
@@ -94,6 +95,8 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingPullRequest, setSavingPullRequest] = useState(false);
+  const [prNeedsUpdate, setPrNeedsUpdate] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [loadedArticleBriefId, setLoadedArticleBriefId] = useState<
     string | null
@@ -328,28 +331,40 @@ export function useContentDetailDocument({
   const linkedGitHubPublish = linkedPublishForContent(data?.content);
 
   const handleSave = useCallback(
-    async (options?: { silent?: boolean }) => {
-      if (!hasChanges) {
+    async (options?: SaveContentDetailOptions) => {
+      const silent = options?.silent === true;
+      const updatePullRequest = options?.updatePullRequest === true;
+      if (!hasChanges && !updatePullRequest) {
         return true;
       }
 
-      const silent = options?.silent === true;
       const markdownToSave = resolvedEditedMarkdown;
       const titleToSave = title;
       const slugToSave = editingSlug;
+      const canPublishLinkedPullRequest =
+        Boolean(linkedGitHubPublish) &&
+        (data?.content?.contentType === "changelog" ||
+          data?.content?.contentType === "blog_post");
 
       setIsSaving(true);
+      setSavingPullRequest(updatePullRequest && canPublishLinkedPullRequest);
       try {
-        const { persistedTitle, persistedSlug } = await saveContentDetail({
-          organizationId,
-          contentId,
-          queryClient,
-          hasTitleChanges,
-          hasSlugChanges,
-          title,
-          editingSlug,
-          editedMarkdown: resolvedEditedMarkdown,
-        });
+        let persistedTitle = titleToSave;
+        let persistedSlug: string | null = editingSlug;
+        if (hasChanges) {
+          const saved = await saveContentDetail({
+            organizationId,
+            contentId,
+            queryClient,
+            hasTitleChanges,
+            hasSlugChanges,
+            title,
+            editingSlug,
+            editedMarkdown: resolvedEditedMarkdown,
+          });
+          persistedTitle = saved.persistedTitle;
+          persistedSlug = saved.persistedSlug;
+        }
 
         const markClean = () => {
           setOriginalMarkdown(markdownToSave);
@@ -372,18 +387,20 @@ export function useContentDetailDocument({
           setSaveFailed(false);
         };
 
+        const linkedPublish = linkedGitHubPublish;
+        const contentType = data?.content?.contentType;
         if (
-          linkedGitHubPublish &&
-          (data?.content?.contentType === "changelog" ||
-            data?.content?.contentType === "blog_post")
+          updatePullRequest &&
+          linkedPublish &&
+          (contentType === "changelog" || contentType === "blog_post")
         ) {
           try {
             const result =
               await dashboardOrpc.content.publishChangelogToGitHub.call({
                 organizationId,
                 contentId,
-                contentType: data.content.contentType,
-                repositoryId: linkedGitHubPublish.repositoryId,
+                contentType,
+                repositoryId: linkedPublish.repositoryId,
                 linkedOnly: true,
               });
             queryClient.setQueryData<ContentApiResponse>(
@@ -401,18 +418,19 @@ export function useContentDetailDocument({
                     ...current.content,
                     githubPublish: {
                       branchName: result.branchName,
-                      owner: linkedGitHubPublish.owner,
+                      owner: linkedPublish.owner,
                       path: result.path,
                       pullRequestNumber: result.pullRequestNumber,
                       pullRequestUrl: result.pullRequestUrl,
-                      repo: linkedGitHubPublish.repo,
-                      repositoryId: linkedGitHubPublish.repositoryId,
+                      repo: linkedPublish.repo,
+                      repositoryId: linkedPublish.repositoryId,
                     },
                   },
                 };
               }
             );
             markClean();
+            setPrNeedsUpdate(false);
             toast.success("Pull request updated", {
               position: CONTENT_SAVE_TOAST_POSITION,
             });
@@ -424,12 +442,17 @@ export function useContentDetailDocument({
             toast.error(message, {
               position: CONTENT_SAVE_TOAST_POSITION,
             });
+            setPrNeedsUpdate(true);
             setSaveFailed(true);
             setIsSaving(false);
+            setSavingPullRequest(false);
             return false;
           }
-        } else {
+        } else if (hasChanges) {
           markClean();
+          if (canPublishLinkedPullRequest) {
+            setPrNeedsUpdate(true);
+          }
           if (!silent) {
             toast.success("Content saved", {
               position: CONTENT_SAVE_TOAST_POSITION,
@@ -437,6 +460,7 @@ export function useContentDetailDocument({
           }
         }
         setIsSaving(false);
+        setSavingPullRequest(false);
         return true;
       } catch (error) {
         toast.error(getSaveContentDetailErrorMessage(error), {
@@ -444,6 +468,7 @@ export function useContentDetailDocument({
         });
         setSaveFailed(true);
         setIsSaving(false);
+        setSavingPullRequest(false);
         return false;
       }
     },
@@ -630,6 +655,8 @@ export function useContentDetailDocument({
     isPlanDirty,
     isTogglingStatus,
     isSaving,
+    savingPullRequest,
+    prNeedsUpdate,
     saveFailed,
     isGeoArticleLoading,
     originalMarkdown,

@@ -13,6 +13,11 @@ export interface ContentDetailPageClientProps {
   organizationId: string;
 }
 
+export interface SaveContentDetailOptions {
+  silent?: boolean;
+  updatePullRequest?: boolean;
+}
+
 export interface PublishContentToGitHubDialogProps {
   contentId: string;
   contentType: GitHubPublishContentType;
