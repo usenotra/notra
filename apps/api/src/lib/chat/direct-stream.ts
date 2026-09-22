@@ -18,9 +18,11 @@ import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { nanoid } from "nanoid";
 
 import type { DirectStandaloneChatArgs } from "../../types/chats";
+import { getChatWritePermissions } from "../../utils/chat-write-permissions";
 
 export async function createDirectStandaloneChatResponse({
   organizationId,
+  auth,
   chatId,
   messages,
   context,
@@ -81,6 +83,7 @@ export async function createDirectStandaloneChatResponse({
     const { stream, routingDecision } = await orchestrateStandaloneChat(
       {
         organizationId,
+        nativeWritePermissions: getChatWritePermissions(auth),
         messages: messages as never,
         context,
         maxSteps: 50,

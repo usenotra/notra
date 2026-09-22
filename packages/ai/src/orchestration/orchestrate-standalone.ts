@@ -72,6 +72,7 @@ export async function orchestrateStandaloneChat(
     useMarkup,
     projectId,
     surface = "chat",
+    nativeWritePermissions,
   } = input;
 
   const log = deps?.log ?? inputLog;
@@ -150,11 +151,29 @@ export async function orchestrateStandaloneChat(
       resolveGranolaContext: deps?.resolveGranolaContext,
     }
   );
+  const approvalToolNames = getStandaloneApprovalToolNames();
+  if (nativeWritePermissions) {
+    // Only expose native writes authorized by the API credential. Approval
+    // cannot grant a missing resource permission.
+    for (const toolName of [
+      ...approvalToolNames,
+      "updatePost",
+      "createImage",
+    ]) {
+      const allowed =
+        toolName === "createSkill"
+          ? nativeWritePermissions.skills
+          : nativeWritePermissions.posts;
+      if (!allowed) {
+        delete baseToolSet.tools[toolName];
+      }
+      approvalToolNames.delete(toolName);
+    }
+  }
   const { tools, toolCallers } = withStandaloneCodeMode(
     withToolErrorPayloads(baseToolSet.tools)
   );
   const notraToolNames = Object.keys(tools);
-  const approvalToolNames = getStandaloneApprovalToolNames();
 
   const lazyMcpRuntime =
     !chatId || !hasMcp

@@ -32,6 +32,8 @@ export interface StandaloneChatInput {
   telemetryMetadata?: TccMetadata;
   useMarkup?: boolean;
   surface?: ChatSurface;
+  /** Trusted API permissions; omitted for interactive chats. */
+  nativeWritePermissions?: NativeChatWritePermissions;
 }
 
 export interface StandaloneChatDeps {
@@ -51,3 +53,8 @@ export interface StandaloneChatDeps {
 
 export type { StandaloneChatContextItem } from "@notra/ai/schemas/standalone-chat";
 export type { OrchestrateResult } from "./orchestration";
+
+export interface NativeChatWritePermissions {
+  skills: boolean;
+  posts: boolean;
+}

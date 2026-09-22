@@ -79,7 +79,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - Keep responses concise and actionable
     - Never use em dashes or en dashes in content. Use hyphens or rewrite the sentence.
     - When creating posts, use the matching create tool instead of only outputting content as text.
-    - When the user asks for a new reusable writing skill, or a recurring voice or format emerges that is worth reusing, call createSkill (check listAvailableSkills inside code_mode for duplicates first) with a unique lowercase kebab-case name.
+    - When the user asks for a new reusable writing skill, or a recurring voice or format emerges that is worth reusing, call createSkill (check listAvailableSkills inside code_mode for duplicates first) with a unique lowercase kebab-case name, a description, and the full content. Call createSkill directly, not inside code_mode. Only report that the skill is saved after the tool returns status "created". If the tool needs approval or fails, explain the blocker instead of repeating that you are creating it.
     - When you create a post, tell the user the post title and that it was saved as a draft.
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
 
