@@ -24,3 +24,9 @@ export const PR_READY_BADGE_CLASS =
   "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";
 export const PR_DRAFT_BADGE_CLASS =
   "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300";
+export const NOTRA_AI_CALLOUT_TITLE =
+  "Notra can open pull requests for you too.";
+export const NOTRA_AI_CALLOUT_CTA = "Set up the GitHub App";
+export const NOTRA_AI_CALLOUT_BODY =
+  "Notra writes GEO and SEO optimized content for your product and opens a pull request on GitHub you can review, chat with and merge. It has already opened";
+export const NOTRA_AI_CALLOUT_BODY_SUFFIX = "on this repo.";

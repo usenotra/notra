@@ -1,6 +1,7 @@
 import { ActivityCard } from "@/components/contributors/activity-card";
 import { ContributorsGrid } from "@/components/contributors/contributors-grid";
 import { IssueList } from "@/components/contributors/issue-list";
+import { NotraAiCallout } from "@/components/contributors/notra-ai-callout";
 import { PullRequestList } from "@/components/contributors/pull-request-list";
 import { ContributorsSectionHeader } from "@/components/contributors/section-header";
 import { Sponsors } from "@/components/contributors/sponsors";
@@ -31,6 +32,7 @@ export async function ContributorsContent() {
           title={CONTRIBUTORS_HEADING}
         />
         <ContributorsGrid contributors={data.contributors} />
+        <NotraAiCallout prCount={data.notraAiPrCount} />
       </section>
 
       <Sponsors sponsors={SPONSORS} />

@@ -43,3 +43,7 @@ export interface ViewAllLinkProps {
   href: string;
   children: string;
 }
+
+export interface NotraAiCalloutProps {
+  prCount: number;
+}

@@ -57,6 +57,10 @@ export interface GitHubSearchCount {
   total_count: number;
 }
 
+export interface GitHubSearchPRs extends GitHubSearchCount {
+  items: { user: GitHubUserRef }[];
+}
+
 interface ContributorsStats {
   totalStars: number;
   totalForks: number;
@@ -70,6 +74,7 @@ export interface ContributorsData {
   contributors: GitHubUser[];
   issues: GitHubIssue[];
   prs: GitHubPR[];
+  notraAiPrCount: number;
   stats: ContributorsStats;
 }
 
