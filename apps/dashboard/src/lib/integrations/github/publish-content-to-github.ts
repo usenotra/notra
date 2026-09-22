@@ -607,13 +607,45 @@ async function resolveGitHubPublishParams(
   };
 }
 
+async function readGitHubContentFile(
+  octokit: GitHubClient,
+  params: {
+    owner: string;
+    repo: string;
+    path: string;
+    ref: string;
+  }
+): Promise<string | null> {
+  try {
+    const { data } = await octokit.request(
+      "GET /repos/{owner}/{repo}/contents/{path}",
+      {
+        owner: params.owner,
+        repo: params.repo,
+        path: params.path,
+        ref: params.ref,
+        headers: GITHUB_API_VERSION_HEADERS,
+      }
+    );
+    if (
+      Array.isArray(data) ||
+      data.type !== "file" ||
+      typeof data.content !== "string"
+    ) {
+      return null;
+    }
+    return Buffer.from(data.content, "base64").toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
 async function commitContentToBranch(
   octokit: GitHubClient,
   params: PublishContentDraftPullRequestParams,
   branchName: string,
   branchHeadSha: string,
-  followUp: boolean,
-  editorMarkdown: string
+  followUp: boolean
 ) {
   const fallback = fallbackContentCommitHeadline(params.title, followUp);
   const headline =
@@ -621,8 +653,13 @@ async function commitContentToBranch(
       ? await generateContentCommitHeadline({
           organizationId: params.organizationId,
           title: params.title,
-          previousMarkdown: params.previousMarkdown,
-          nextMarkdown: editorMarkdown,
+          previousMarkdown: await readGitHubContentFile(octokit, {
+            owner: params.owner,
+            repo: params.repo,
+            path: params.path,
+            ref: branchHeadSha,
+          }),
+          nextMarkdown: params.markdown,
           fallback,
         })
       : fallback;
@@ -774,7 +811,6 @@ export async function publishContentDraftPullRequest(
   octokit: GitHubClient,
   requestedParams: PublishContentDraftPullRequestParams
 ) {
-  const editorMarkdown = requestedParams.markdown;
   let baseSha: string;
 
   try {
@@ -1067,8 +1103,7 @@ export async function publishContentDraftPullRequest(
     params,
     branchName,
     branchHeadSha,
-    contentBranch.aheadBy > 0,
-    editorMarkdown
+    contentBranch.aheadBy > 0
   );
 
   if (existingPullRequest) {

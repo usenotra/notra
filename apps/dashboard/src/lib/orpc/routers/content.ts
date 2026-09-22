@@ -1159,7 +1159,6 @@ export const contentRouter = {
           title: post.title,
           markdown: savedMarkdown,
           organizationId: input.organizationId,
-          previousMarkdown: previousPublication?.markdown,
           ...(linkedPullRequest ? { linkedPullRequest } : {}),
           ...(input.linkedOnly ? { requireLinkedPullRequest: true } : {}),
           ...(publisherLogin ? { publisherLogin } : {}),

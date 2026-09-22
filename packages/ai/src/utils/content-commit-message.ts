@@ -28,7 +28,8 @@ export function fallbackContentCommitHeadline(
   followUp: boolean
 ) {
   const prefix = followUp ? "docs: update" : "docs: add";
-  return `${prefix} ${title}`
+  const collapsed = title.replaceAll(/\s+/g, " ").trim();
+  return `${prefix} ${collapsed}`
     .slice(0, CONTENT_COMMIT_HEADLINE_MAX_LENGTH)
     .trim();
 }

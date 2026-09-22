@@ -34,6 +34,7 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
     githubAppInstallationId: text("github_app_installation_id"),
     githubRepositoryId: text("github_repository_id"),
     enabled: boolean("enabled").notNull(),
+    repositoryEnabled: boolean("repository_enabled").notNull(),
   });
   const contentPublications = pgTable("content_publications", {
     id: text("id").primaryKey(),

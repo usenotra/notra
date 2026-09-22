@@ -25,6 +25,9 @@ test("first commits add the title, follow-ups update it", () => {
   expect(fallbackContentCommitHeadline("Release notes", true)).toBe(
     "docs: update Release notes"
   );
+  expect(fallbackContentCommitHeadline("Release\n notes", true)).toBe(
+    "docs: update Release notes"
+  );
 });
 
 test("sanitizes model output into a conventional headline", () => {

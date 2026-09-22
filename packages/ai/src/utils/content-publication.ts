@@ -367,6 +367,7 @@ export async function findOpenContentPublicationByPullRequest(params: {
         eq(githubAppInstallations.installationId, params.installationId),
         eq(githubAppInstallations.enabled, true),
         eq(githubIntegrations.enabled, true),
+        eq(githubIntegrations.repositoryEnabled, true),
         eq(githubIntegrations.githubRepositoryId, params.githubRepositoryId),
         sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
         sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
