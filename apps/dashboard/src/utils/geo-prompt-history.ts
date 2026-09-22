@@ -130,7 +130,11 @@ function changeSentence(change: PromptHistoryChange): string {
 export function promptHistoryChangeText(
   entry: Pick<PromptHistoryEntry, "changes" | "newCompetitors">
 ): string {
-  const sentences = entry.changes.map(changeSentence);
+  const sentences = entry.changes
+    .filter(
+      (change) => change.kind !== "none" || entry.newCompetitors.length === 0
+    )
+    .map(changeSentence);
   if (entry.newCompetitors.length > 0) {
     sentences.push(
       `${nameListFormatter.format(entry.newCompetitors)} ${GEO_PROMPT_HISTORY_CHANGE_LABELS.newlyRecommended}.`
