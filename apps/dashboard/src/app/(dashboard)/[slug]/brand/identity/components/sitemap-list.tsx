@@ -3,7 +3,7 @@
 import {
   Delete02Icon,
   GlobalIcon,
-  LinkSquare02Icon,
+  MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -16,6 +16,12 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,14 +34,11 @@ import {
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
 import { useDeleteSitemap, useSitemaps } from "@/lib/hooks/use-brand-sitemaps";
-import { getSafeHttpUrl } from "@/lib/sitemap/sitemap-url";
 import type { SitemapListProps } from "@/types/hooks/brand-sitemaps";
 
-import { SITEMAP_STAT_SKELETON_KEYS } from "../constants/sitemap-ui";
 import { AddSitemapDialog } from "./add-sitemap-dialog";
 import { SitemapPagesTable } from "./sitemap-pages-table";
 import { SitemapSelector } from "./sitemap-selector";
-import { SitemapStats } from "./sitemap-stats";
 
 export function SitemapList({
   organizationId,
@@ -81,10 +84,9 @@ export function SitemapList({
   if (isPending) {
     return (
       <div className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SITEMAP_STAT_SKELETON_KEYS.map((key) => (
-            <Skeleton className="h-28 w-full" key={key} />
-          ))}
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-8 w-64" />
         </div>
         <Skeleton className="h-64 w-full" />
       </div>
@@ -104,7 +106,7 @@ export function SitemapList({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {sitemaps.length === 0 ? (
         <EmptyState
           actionIcon={<HugeiconsIcon className="size-4" icon={GlobalIcon} />}
@@ -121,64 +123,50 @@ export function SitemapList({
         />
       ) : (
         <>
-          <SitemapSelector
-            onSelect={setSelectedSitemapId}
-            selectedSitemapId={selectedSitemapId}
-            sitemaps={sitemaps}
-          />
-
           {selectedSitemap ? (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between gap-3">
-                {(() => {
-                  const safeUrl = getSafeHttpUrl(selectedSitemap.url);
-                  return safeUrl ? (
-                    <a
-                      className="group text-muted-foreground hover:text-foreground flex min-w-0 items-center gap-2 text-sm transition-colors"
-                      href={safeUrl}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      <HugeiconsIcon
-                        className="size-4 shrink-0"
-                        icon={GlobalIcon}
-                      />
-                      <span className="truncate group-hover:underline">
-                        {selectedSitemap.url}
-                      </span>
-                      <HugeiconsIcon
-                        className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                        icon={LinkSquare02Icon}
-                      />
-                    </a>
-                  ) : (
-                    <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
-                      <HugeiconsIcon
-                        className="size-4 shrink-0"
-                        icon={GlobalIcon}
-                      />
-                      <span className="truncate">{selectedSitemap.url}</span>
-                    </div>
-                  );
-                })()}
-                <Button
-                  className="text-muted-foreground hover:text-destructive shrink-0"
-                  onClick={() => setDeleteTargetId(selectedSitemap.id)}
-                  size="sm"
-                  variant="ghost"
-                >
-                  <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                  Remove
-                </Button>
-              </div>
-
-              <SitemapStats sitemap={selectedSitemap} />
-
+            <div className="space-y-3">
               <SitemapPagesTable
                 organizationId={organizationId}
                 sitemapId={selectedSitemap.id}
                 voiceId={voiceId}
-              />
+              >
+                <div className="flex items-center gap-1">
+                  <SitemapSelector
+                    onSelect={setSelectedSitemapId}
+                    selectedSitemapId={selectedSitemap.id}
+                    sitemaps={sitemaps}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          aria-label="Sitemap actions"
+                          size="icon-sm"
+                          variant="ghost"
+                        />
+                      }
+                    >
+                      <HugeiconsIcon
+                        className="size-4"
+                        icon={MoreVerticalIcon}
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setDeleteTargetId(selectedSitemap.id)}
+                        variant="destructive"
+                      >
+                        <HugeiconsIcon className="size-4" icon={Delete02Icon} />
+                        Remove sitemap
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </SitemapPagesTable>
+              <p className="text-muted-foreground text-xs tabular-nums">
+                {selectedSitemap.indexedPages} of {selectedSitemap.totalPages}{" "}
+                pages indexed
+              </p>
             </div>
           ) : null}
         </>
@@ -216,9 +204,9 @@ export function SitemapList({
               Cancel
             </ResponsiveAlertDialogCancel>
             <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteSitemap.isPending}
               onClick={handleDelete}
+              variant="destructive"
             >
               {deleteSitemap.isPending ? "Removing…" : "Remove Sitemap"}
             </ResponsiveAlertDialogAction>

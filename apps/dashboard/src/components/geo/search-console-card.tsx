@@ -1,6 +1,6 @@
 "use client";
 
-import { Cancel01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GSC_OAUTH_AUTHORIZE_PATH } from "@notra/geo-core/constants/google-search-console";
 import type { GeoSearchConsoleStatus } from "@notra/geo-core/types/google-search-console";
@@ -77,40 +77,55 @@ function onConnectClick(
   );
 }
 
+/** Google logo centered against the title and description lines. */
+function GoogleMark() {
+  return <Google className="size-6 shrink-0" />;
+}
+
 function HeaderRow({
   action,
   titleId,
   onDismiss,
 }: SearchConsoleHeaderRowProps) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div className="shrink-0">
-        <span className="inline-flex size-5 items-center justify-center">
-          <Google className="size-4" />
-        </span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm leading-snug font-medium" id={titleId}>
-          Google Search Console
-        </p>
-        <p className="text-muted-foreground text-sm leading-snug">
-          We read the queries your site ranks for and suggest the AI prompts
-          people ask. Suggestions refresh weekly.
-        </p>
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <GoogleMark />
+        <div className="min-w-0 space-y-1">
+          <h2
+            className="flex items-center gap-2 text-sm font-semibold"
+            id={titleId}
+          >
+            Suggested prompts
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Prompt ideas from the queries you rank for in Google Search Console
+          </p>
+        </div>
       </div>
       {action || onDismiss ? (
         <div className="flex shrink-0 items-center gap-1">
           {action}
           {onDismiss ? (
-            <Button
-              aria-label="Dismiss Search Console card"
-              className="text-muted-foreground"
-              onClick={onDismiss}
-              size="icon-sm"
-              variant="ghost"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={14} />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label="Search Console card options"
+                    className="text-muted-foreground"
+                    size="icon-sm"
+                    variant="ghost"
+                  >
+                    <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={onDismiss}>
+                  Hide card
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
         </div>
       ) : null}
@@ -124,12 +139,9 @@ function ConnectAction({
   configured,
   reauth,
 }: SearchConsoleConnectActionProps) {
+  // Without OAuth credentials there is nothing to connect; keep the header quiet.
   if (!configured) {
-    return (
-      <p className="text-muted-foreground max-w-40 text-xs">
-        Not available on this workspace yet.
-      </p>
-    );
+    return null;
   }
 
   return (
@@ -150,7 +162,7 @@ function ConnectAction({
   );
 }
 
-function PropertyPicker({
+export function SearchConsolePropertyPicker({
   organizationId,
   sites,
   websiteUrl,
@@ -243,18 +255,12 @@ function SelectSiteState({
 }: SearchConsoleSelectSiteStateProps) {
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <div className="flex flex-col items-start gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground text-sm">
-          {status.lastError ??
-            "Choose which Search Console property Notra should analyze."}
-        </p>
-        <ResponsiveDialogTrigger
-          className="shrink-0"
-          render={<Button size="sm" variant="outline" />}
-        >
-          Choose property
-        </ResponsiveDialogTrigger>
-      </div>
+      <ResponsiveDialogTrigger
+        className="shrink-0"
+        render={<Button size="sm" variant="outline" />}
+      >
+        Choose property
+      </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
@@ -267,7 +273,7 @@ function SelectSiteState({
         </ResponsiveDialogHeader>
         {status.sites.length > 0 ? (
           <div className="px-4 md:px-0">
-            <PropertyPicker
+            <SearchConsolePropertyPicker
               onSelected={() => onOpenChange(false)}
               organizationId={organizationId}
               sites={status.sites}
@@ -310,9 +316,6 @@ function connectedMeta(status: GeoSearchConsoleStatus): string {
       ? `Last synced ${formatRelative(status.lastSyncedAt)}`
       : "Not synced yet"
   );
-  if (status.lastError) {
-    parts.push(status.lastError);
-  }
   return parts.join(" · ");
 }
 
@@ -341,7 +344,7 @@ function ConnectedState({
   } else if (sites.data?.sites.length) {
     changeDialogBody = (
       <div className="px-4 md:px-0">
-        <PropertyPicker
+        <SearchConsolePropertyPicker
           onSelected={() => onPropertyPickerOpenChange(false)}
           organizationId={organizationId}
           sites={sites.data.sites}
@@ -378,32 +381,29 @@ function ConnectedState({
     <>
       <div
         aria-label="Google Search Console"
-        className="flex flex-wrap items-center gap-3 px-4 py-3"
+        className="flex flex-wrap items-start justify-between gap-3"
         role="region"
       >
-        <span className="inline-flex size-5 shrink-0 items-center justify-center">
-          <Google className="size-4" />
-        </span>
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm leading-snug font-medium">
-              Google Search Console
+        <div className="flex min-w-0 items-center gap-3">
+          <GoogleMark />
+          <div className="min-w-0 space-y-1">
+            <h2 className="flex items-center gap-2 text-sm font-semibold">
+              Suggested prompts
+              {status.weeklySyncScheduled ? (
+                <Badge className="font-normal" variant="secondary">
+                  Weekly sync
+                </Badge>
+              ) : null}
+            </h2>
+            <p className="text-muted-foreground truncate text-sm">
+              {formatGscSiteUrl(status.siteUrl ?? "")} · {connectedMeta(status)}
             </p>
-            <span className="text-muted-foreground text-xs" aria-hidden>
-              ·
-            </span>
-            <p className="text-muted-foreground truncate text-sm leading-snug">
-              {formatGscSiteUrl(status.siteUrl ?? "")}
-            </p>
-            {status.weeklySyncScheduled ? (
-              <Badge className="font-normal" variant="secondary">
-                Weekly sync
-              </Badge>
+            {status.lastError ? (
+              <p className="text-destructive text-sm text-pretty">
+                {status.lastError}
+              </p>
             ) : null}
           </div>
-          <p className="text-muted-foreground text-xs leading-snug">
-            {connectedMeta(status)}
-          </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <DropdownMenu>
@@ -514,7 +514,7 @@ export function SearchConsoleToolbar({
 
   if (isPending || !status) {
     body = (
-      <div className="text-muted-foreground flex items-center gap-2 px-4 py-3 text-sm">
+      <div className="text-muted-foreground flex items-center gap-2 pt-3 text-sm">
         <StatusSpinner />
         Loading…
       </div>
@@ -538,21 +538,35 @@ export function SearchConsoleToolbar({
     );
     if (status.status === "reauth_required") {
       body = (
-        <p className="text-muted-foreground px-4 py-3 text-sm">
+        <p className="text-muted-foreground pt-3 text-sm">
           Google access expired. Reconnect to keep syncing keyword suggestions.
         </p>
       );
     }
   } else {
+    headerAction = (
+      <div className="flex flex-wrap items-center gap-2">
+        <SelectSiteState
+          callbackPath={callbackPath}
+          onOpenChange={onPropertyPickerOpenChange}
+          open={propertyPickerOpen}
+          organizationId={organizationId}
+          status={status}
+          websiteUrl={websiteUrl}
+        />
+        {action}
+      </div>
+    );
     body = (
-      <SelectSiteState
-        callbackPath={callbackPath}
-        onOpenChange={onPropertyPickerOpenChange}
-        open={propertyPickerOpen}
-        organizationId={organizationId}
-        status={status}
-        websiteUrl={websiteUrl}
-      />
+      <p
+        className={cn(
+          "pt-3 text-sm",
+          status.lastError ? "text-destructive" : "text-muted-foreground"
+        )}
+      >
+        {status.lastError ??
+          "Choose which Search Console property Notra should analyze."}
+      </p>
     );
   }
 
@@ -563,12 +577,7 @@ export function SearchConsoleToolbar({
         onDismiss={onDismiss}
         titleId={headingId}
       />
-      {body ? (
-        <>
-          <div className="border-border/80 mx-4 border-t" />
-          {body}
-        </>
-      ) : null}
+      {body}
     </div>
   );
 }

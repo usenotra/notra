@@ -22,12 +22,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryStates } from "nuqs";
 import { useSyncExternalStore } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { getBrandFaviconUrl } from "@/utils/brand";
+import {
+  brandIdentityViewParser,
+  brandIdentityVoiceParser,
+} from "@/utils/brand-identity-search-params";
 import {
   findSelectedBrandIdentity,
   readStoredBrandIdentityId,
@@ -63,11 +68,12 @@ function BrandIdentityAvatar({
   websiteUrl: string | null;
 }) {
   return (
-    <Avatar className="size-4 after:rounded-full" size="sm">
-      <AvatarImage src={getBrandFaviconUrl(websiteUrl)} />
-      <AvatarFallback className="text-[9px]">
-        {name.slice(0, 2).toUpperCase()}
-      </AvatarFallback>
+    <Avatar className="size-5 rounded-none after:hidden has-data-[slot=avatar-fallback]:hidden">
+      <AvatarImage
+        className="rounded-none object-contain"
+        src={getBrandFaviconUrl(websiteUrl)}
+      />
+      <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
     </Avatar>
   );
 }
@@ -76,12 +82,14 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [{ voice: voiceParam, view }] = useQueryStates({
+    voice: brandIdentityVoiceParser,
+    view: brandIdentityViewParser,
+  });
 
   const { data } = useBrandSettings(organizationId);
   const voices = data?.voices ?? [];
-  const voiceParam = searchParams.get("voice");
-  const isReferencesView = searchParams.get("view") === "references";
+  const isReferencesView = view === "references";
   const storedVoiceId = useSyncExternalStore(
     subscribeToStoredBrandIdentity,
     () => (organizationId ? readStoredBrandIdentityId(organizationId) : null),
@@ -116,14 +124,15 @@ export function BrandTopbarIdentitySelector({ slug }: { slug: string }) {
       <DropdownMenuTrigger
         render={
           <button
-            className="text-foreground hover:bg-accent data-popup-open:bg-accent -mx-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 font-normal transition-colors outline-none"
+            className="text-foreground hover:bg-accent data-popup-open:bg-accent -mx-1.5 flex max-w-40 min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 font-normal transition-colors outline-none sm:max-w-56"
+            title={activeVoice.name}
             type="button"
           >
             <BrandIdentityAvatar
               name={activeVoice.name}
               websiteUrl={activeVoice.websiteUrl}
             />
-            <span className="truncate">{activeVoice.name}</span>
+            <span className="min-w-0 truncate">{activeVoice.name}</span>
             <HugeiconsIcon
               className="text-muted-foreground size-3.5 shrink-0"
               icon={ArrowDown01Icon}

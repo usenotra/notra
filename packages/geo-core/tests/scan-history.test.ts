@@ -185,9 +185,17 @@ describe("scan history", () => {
       })),
       taskStates: {},
     };
-    await testDb
-      .insert(geoScans)
-      .values({ id: context.scanId, ...scope, plan });
+    await testDb.insert(geoScans).values({
+      id: context.scanId,
+      ...scope,
+      plan,
+      planSummary: {
+        plannedChecks: 2,
+        hasTasks: true,
+        engines: ["engine-a"],
+        taskCounts: [{ engine: "engine-a", plannedChecks: 2, failedChecks: 0 }],
+      },
+    });
     const queued = await Effect.runPromise(
       loadGeoScanRun({ ...context, offset: 0 })
     );
@@ -207,6 +215,26 @@ describe("scan history", () => {
       "running",
       "running",
     ]);
+    const firstTask = tasks[0];
+    if (!firstTask) {
+      throw new Error("Expected a GEO scan task fixture");
+    }
+    await Effect.runPromise(
+      updateGeoScanTaskStatus(context, firstTask, "failed")
+    );
+    let [scan] = await testDb
+      .select({ planSummary: geoScans.planSummary })
+      .from(geoScans)
+      .where(eq(geoScans.id, context.scanId));
+    expect(scan?.planSummary?.taskCounts[0]?.failedChecks).toBe(1);
+    await Effect.runPromise(
+      updateGeoScanTaskStatus(context, firstTask, "running")
+    );
+    [scan] = await testDb
+      .select({ planSummary: geoScans.planSummary })
+      .from(geoScans)
+      .where(eq(geoScans.id, context.scanId));
+    expect(scan?.planSummary?.taskCounts[0]?.failedChecks).toBe(0);
     await testDb.insert(geoMentionChecks).values({
       ...scope,
       id: "saved-german",
@@ -309,8 +337,9 @@ describe("scan history", () => {
 
   test("counts saved answers, deduplicates sources and pages lightweight results", async () => {
     const scope = await seedProject("selected");
+    const savedCount = GEO_SCAN_RESULTS_PAGE_SIZE + 2;
     const plan = {
-      totalChecks: 12,
+      totalChecks: savedCount + 5,
       promptCount: 6,
       sequenceCount: 0,
       engines: ["engine-a", "engine-b"],
@@ -318,13 +347,13 @@ describe("scan history", () => {
     };
     await testDb.insert(geoScans).values({ id: "scan", ...scope, plan });
     await testDb.insert(geoMentionChecks).values(
-      Array.from({ length: 7 }, (_, index) => ({
+      Array.from({ length: savedCount }, (_, index) => ({
         id: `check-${index}`,
         ...scope,
         scanId: "scan",
         promptId: `prompt-${index}`,
         prompt: `Question ${index}`,
-        engine: index === 6 ? "engine-b" : "engine-a",
+        engine: index === savedCount - 1 ? "engine-b" : "engine-a",
         answer: "Saved answer",
         mentioned: index < 3,
         capturedAt: new Date(),
@@ -339,15 +368,15 @@ describe("scan history", () => {
     );
     expect(history.runs[0]).toMatchObject({
       plan,
-      checks: 7,
+      checks: savedCount,
       mentions: 3,
       status: "running",
     });
     const detail = await Effect.runPromise(
       loadGeoScanRun({ ...scope, scanId: "scan", offset: 0 })
     );
-    expect(detail?.uniqueSources).toBe(8);
-    expect(detail?.total).toBe(7);
+    expect(detail?.uniqueSources).toBe(savedCount + 1);
+    expect(detail?.total).toBe(savedCount);
     expect(detail?.results).toHaveLength(GEO_SCAN_RESULTS_PAGE_SIZE);
     expect(detail?.results[0]).not.toHaveProperty("answer");
     const second = await Effect.runPromise(
@@ -373,7 +402,7 @@ describe("scan history", () => {
     );
     expect(filtered?.total).toBe(1);
     expect(filtered?.results[0]?.engine).toBe("engine-b");
-    expect(filtered?.uniqueSources).toBe(8);
+    expect(filtered?.uniqueSources).toBe(savedCount + 1);
   });
 
   test("paginates tied timestamps deterministically and supports legacy runs", async () => {

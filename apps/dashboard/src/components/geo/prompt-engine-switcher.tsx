@@ -4,7 +4,6 @@ import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  GlobalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -26,7 +25,6 @@ import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import type { PromptEngineSwitcherProps } from "@/types/geo";
 import {
-  engineAnswerMode,
   formatEngineFamily,
   formatEngineWithMode,
   sharedEngineAnswerMode,
@@ -44,17 +42,6 @@ function engineLabel(engine: string, answerMode: string | null): string {
   return answerMode ? formatEngineFamily(engine) : formatEngineWithMode(engine);
 }
 
-function SearchModeIcon() {
-  return (
-    <HugeiconsIcon
-      aria-hidden="true"
-      className="text-muted-foreground size-3 shrink-0"
-      icon={GlobalIcon}
-      strokeWidth={2}
-    />
-  );
-}
-
 export function PromptEngineSwitcher({
   results,
   active,
@@ -65,8 +52,6 @@ export function PromptEngineSwitcher({
   const activeIndex = engines.indexOf(active.engine);
   const reduceMotion = useReducedMotion();
   const counterTransition = reduceMotion ? INSTANT : COUNTER_TRANSITION;
-  const showsSearchIcon = (engine: string) =>
-    answerMode === null && engineAnswerMode(engine) !== null;
 
   if (results.length === 1) {
     return (
@@ -76,7 +61,6 @@ export function PromptEngineSwitcher({
           <span className="truncate">
             {formatEngineWithMode(active.engine)}
           </span>
-          {engineAnswerMode(active.engine) !== null ? <SearchModeIcon /> : null}
         </span>
       </div>
     );
@@ -90,7 +74,9 @@ export function PromptEngineSwitcher({
             render={
               <Button
                 aria-label={`Engine: ${engineLabel(active.engine, answerMode)}`}
-                className="max-w-full min-w-0"
+                // The menu anchors to this trigger; scaling it on press drags
+                // the popup with it.
+                className="max-w-full min-w-0 active:scale-100"
                 size="sm"
                 variant="outline"
               />
@@ -100,7 +86,6 @@ export function PromptEngineSwitcher({
             <span className="truncate">
               {engineLabel(active.engine, answerMode)}
             </span>
-            {showsSearchIcon(active.engine) ? <SearchModeIcon /> : null}
             <span
               className={`text-muted-foreground/70 items-center text-xs tabular-nums ${results.length > 1 ? "inline-flex" : "hidden"}`}
             >
@@ -146,7 +131,6 @@ export function PromptEngineSwitcher({
                   <span className="truncate">
                     {engineLabel(result.engine, answerMode)}
                   </span>
-                  {showsSearchIcon(result.engine) ? <SearchModeIcon /> : null}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>

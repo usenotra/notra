@@ -2,9 +2,9 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_TRAFFIC_MARKDOWN_COLUMN_KEY } from "@notra/geo-core/constants/geo";
 
 import { Table, type TableColumn } from "@/components/motion/table";
+import { useCollapsibleColumns } from "@/components/motion/table/use-collapsible-columns";
 import {
   DEFAULT_MIN_COLUMN_WIDTH,
   tableMinWidthCss,
@@ -25,7 +25,7 @@ import type {
   TrafficSourcesStackProps,
 } from "@/types/geo";
 import { trafficGroupKey } from "@/utils/ai-traffic-groups";
-import { tableHeightFor } from "@/utils/table";
+import { paginatedTableHeightFor } from "@/utils/table";
 
 function TrafficSourcesGroup({
   band,
@@ -34,11 +34,12 @@ function TrafficSourcesGroup({
   collapsed,
   followedByStack = false,
   onToggle,
+  onOpen,
   stacked,
+  loading = false,
 }: TrafficSourcesGroupProps) {
   const label = TRAFFIC_SOURCE_BAND_LABELS[band];
   const noun = TRAFFIC_SOURCE_BAND_NOUN[band];
-  const showMarkdown = band !== "ai_referral";
   const count = groups.length;
   const countLabel = `${count.toLocaleString()} ${count === 1 ? noun : `${noun}s`}`;
   const isEmpty = count === 0;
@@ -73,17 +74,10 @@ function TrafficSourcesGroup({
   );
 
   const [first, ...rest] = columns;
-  const visibleRest = showMarkdown
-    ? rest
-    : rest.map((column) =>
-        column.key === GEO_TRAFFIC_MARKDOWN_COLUMN_KEY
-          ? { ...column, header: "", sortable: false, cell: () => null }
-          : column
-      );
   const groupColumns: TableColumn<GeoTrafficSourceGroup>[] =
     first === undefined
       ? columns
-      : [{ ...first, header, sortable: false }, ...visibleRest];
+      : [{ ...first, header, sortable: false }, ...rest];
 
   const collapsedBar = (
     <div
@@ -118,7 +112,11 @@ function TrafficSourcesGroup({
         emptyState="No AI traffic captured yet"
         flushTop={stacked}
         getRowId={(row) => trafficGroupKey(row.band, row.key)}
-        height={tableHeightFor(count)}
+        // Uncapped so no band scrolls on its own: a scrollbar would shift its
+        // columns out of line with the bands stacked above and below.
+        height={paginatedTableHeightFor(count)}
+        loading={loading}
+        onRowClick={onOpen}
         overlapTop={stacked} // pairs with -mt-5 so the stacked header is not clipped
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
@@ -134,21 +132,29 @@ export function TrafficSourcesStack({
   columns,
   collapsed,
   onToggle,
+  onOpen,
+  loading = false,
 }: TrafficSourcesStackProps) {
   const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
-  const minWidth = tableMinWidthCss(columns, DEFAULT_MIN_COLUMN_WIDTH);
+  // Collapse once for the whole stack so every band keeps the same columns.
+  const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
+    minColumnWidth: DEFAULT_MIN_COLUMN_WIDTH,
+  });
+  const minWidth = tableMinWidthCss(visibleColumns, DEFAULT_MIN_COLUMN_WIDTH);
 
   return (
-    <div className="isolate min-w-0 overflow-x-auto">
+    <div className="isolate min-w-0 overflow-x-auto" ref={containerRef}>
       <div className="w-full" style={{ minWidth }}>
         {TRAFFIC_SOURCE_BANDS.map((band, index) => (
           <TrafficSourcesGroup
             band={band}
             collapsed={collapsed.has(band)}
-            columns={columns}
+            columns={visibleColumns}
             followedByStack={index < lastIndex}
             groups={groups.filter((group) => group.band === band)}
             key={band}
+            loading={loading}
+            onOpen={onOpen}
             onToggle={() => onToggle(band)}
             stacked={index > 0}
           />

@@ -26,14 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useState } from "react";
-import { toast } from "sonner";
 
 import { BLOG_POST_SUBTYPE_LABELS } from "@/constants/content-formats";
-import { dashboardOrpc } from "@/lib/orpc/query";
+import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { cn } from "@/lib/utils";
 import type { ContentCardProps, ContentCardType } from "@/types/content/card";
 import { isBlogPostSubtype } from "@/utils/content-subtype";
@@ -68,6 +66,65 @@ function getContentTypeLabel(contentType: string): string {
   return formatSnakeCaseLabel(contentType);
 }
 
+function ContentCardEmptyPreview() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-3 pt-2 pb-4 text-center">
+      <span
+        aria-hidden="true"
+        className="relative isolate flex size-8 items-center justify-center"
+      >
+        <span className="border-border/60 bg-card absolute inset-0 -z-10 origin-bottom-left -translate-x-1 scale-85 -rotate-10 rounded-md border" />
+        <span className="border-border/60 bg-card absolute inset-0 -z-10 origin-bottom-right translate-x-1 scale-85 rotate-10 rounded-md border" />
+        <span className="border-border/80 bg-card text-foreground relative flex size-8 items-center justify-center rounded-md border shadow-xs">
+          <HugeiconsIcon className="size-4" icon={TextIcon} />
+        </span>
+      </span>
+      <p className="text-muted-foreground text-xs font-medium">
+        Nothing written yet
+      </p>
+    </div>
+  );
+}
+
+function renderCardPreview({
+  hasImagePreview,
+  imagePreviewSrc,
+  isEmptyDocument,
+  previewText,
+  title,
+}: {
+  hasImagePreview: boolean;
+  imagePreviewSrc?: string | null;
+  isEmptyDocument: boolean;
+  previewText: string;
+  title: string;
+}) {
+  if (hasImagePreview && imagePreviewSrc) {
+    return (
+      <div className="flex flex-1 items-center justify-center overflow-hidden px-3 pb-3">
+        <Image
+          alt={title}
+          className="h-full max-h-full w-full rounded-md object-contain"
+          height={630}
+          src={imagePreviewSrc}
+          unoptimized
+          width={1200}
+        />
+      </div>
+    );
+  }
+
+  if (isEmptyDocument) {
+    return <ContentCardEmptyPreview />;
+  }
+
+  return (
+    <p className="text-muted-foreground line-clamp-3 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] px-3 pb-3 text-sm">
+      {previewText}
+    </p>
+  );
+}
+
 const ContentCard = memo(function ContentCard({
   id,
   title,
@@ -81,154 +138,88 @@ const ContentCard = memo(function ContentCard({
   imagePreviewSrc,
 }: ContentCardProps) {
   const subtypeLabel = getContentSubtypeLabel(contentSubtype);
-  const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const { deletePost, isDeleting, isTogglingStatus, togglePostStatus } =
+    usePostActions(organizationId);
 
   async function handleDelete() {
-    setIsDeleting(true);
-    try {
-      await dashboardOrpc.content.delete.call({
-        organizationId,
-        contentId: id,
-      });
-
-      toast.success("Post deleted");
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.list.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.collections.list.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.collections.get.key(),
-        }),
-      ]);
+    const deleted = await deletePost(id);
+    if (deleted) {
       setShowDeleteDialog(false);
-    } catch {
-      toast.error("Failed to delete post");
     }
-    setIsDeleting(false);
   }
 
-  async function handleToggleStatus() {
-    setIsTogglingStatus(true);
-    const newStatus = status === "published" ? "draft" : "published";
-    const successMessage =
-      newStatus === "published" ? "Post published" : "Post moved to drafts";
-    try {
-      await dashboardOrpc.content.update.call({
-        organizationId,
-        contentId: id,
-        status: newStatus,
-      });
-
-      toast.success(successMessage);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.list.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.collections.list.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.collections.get.key(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.content.metrics.get.queryKey({
-            input: { organizationId },
-          }),
-        }),
-      ]);
-    } catch {
-      toast.error("Failed to update post status");
-    }
-    setIsTogglingStatus(false);
-  }
+  const hasImagePreview = contentType === "image" && Boolean(imagePreviewSrc);
+  const previewText = preview.trim();
+  const isEmptyDocument = !(hasImagePreview || previewText);
 
   const cardContent = (
     <div
       className={cn(
-        "group border-border/80 bg-muted/80 relative flex flex-col rounded-lg border p-2",
+        "group border-border/80 border-b-border/40 bg-muted/80 relative flex flex-col gap-1.5 rounded-xl border p-1.5 shadow-2xs",
         "h-full transition-colors",
-        href && "hover:bg-muted/80 cursor-pointer",
+        href && "hover:border-border cursor-pointer",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-4 py-1.5 pr-2 pl-2">
-        <p className="line-clamp-2 min-w-0 text-lg leading-snug font-medium">
-          {title}
-        </p>
-        <div className="flex shrink-0 items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  className="size-7 p-0"
-                  onClick={(e) => e.preventDefault()}
-                  variant="ghost"
-                >
-                  <span className="sr-only">Open menu</span>
-                  <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                disabled={isTogglingStatus}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleToggleStatus();
-                }}
-              >
-                <HugeiconsIcon
-                  className="mr-2 size-4"
-                  icon={status === "published" ? TextIcon : SentIcon}
-                />
-                {status === "published" ? "Move to draft" : "Publish"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={isDeleting}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowDeleteDialog(true);
-                }}
-                variant="destructive"
-              >
-                <HugeiconsIcon className="mr-2 size-4" icon={Delete02Icon} />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      <div
-        className={cn(
-          "bg-background/60 flex-1 overflow-hidden rounded-md",
-          contentType === "image" && imagePreviewSrc
-            ? "flex items-center justify-center"
-            : "px-3 py-2.5"
-        )}
-      >
-        {contentType === "image" && imagePreviewSrc ? (
-          <Image
-            alt={title}
-            className="h-full max-h-full w-full object-contain"
-            height={630}
-            src={imagePreviewSrc}
-            unoptimized
-            width={1200}
-          />
-        ) : (
-          <p className="text-muted-foreground line-clamp-3 text-sm">
-            {preview}
+      <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col overflow-hidden rounded-lg border">
+        <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-1.5">
+          <p className="line-clamp-2 min-w-0 text-sm leading-snug font-medium">
+            {title}
           </p>
-        )}
+          <div className="flex shrink-0 items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    className="text-muted-foreground hover:text-foreground -mt-0.5 -mr-1 size-7 p-0"
+                    onClick={(e) => e.preventDefault()}
+                    variant="ghost"
+                  >
+                    <span className="sr-only">Open menu</span>
+                    <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  disabled={isTogglingStatus}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    togglePostStatus(id, status);
+                  }}
+                >
+                  <HugeiconsIcon
+                    className="mr-2 size-4"
+                    icon={status === "published" ? TextIcon : SentIcon}
+                  />
+                  {status === "published" ? "Move to draft" : "Publish"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isDeleting}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowDeleteDialog(true);
+                  }}
+                  variant="destructive"
+                >
+                  <HugeiconsIcon className="mr-2 size-4" icon={Delete02Icon} />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        {renderCardPreview({
+          hasImagePreview,
+          imagePreviewSrc,
+          isEmptyDocument,
+          previewText,
+          title,
+        })}
       </div>
-      <div className="flex items-center gap-2 px-2 py-2">
+      <div className="flex items-center gap-1.5 px-1 pb-0.5">
         <Badge
           className="capitalize"
           variant={status === "published" ? "default" : "outline"}

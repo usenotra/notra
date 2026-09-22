@@ -2,14 +2,17 @@
 
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useSidebar } from "@notra/ui/components/ui/sidebar";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
-import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { SAVE_BAR_SELECTOR } from "@/constants/content-detail";
+import {
+  CONTENT_AUTOSAVE_MS,
+  CONTENT_SAVE_TOAST_POSITION,
+  SAVE_BAR_SELECTOR,
+} from "@/constants/content-detail";
 import { localStorageKeys } from "@/constants/storage";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
@@ -18,7 +21,6 @@ import {
   toggleContentDetailStatus,
 } from "@/lib/content/save-content-detail";
 import { updateGeoWriterPlan } from "@/lib/content/update-geo-writer-plan";
-import { useContentDetailSaveToast } from "@/lib/hooks/use-content-detail-save-toast";
 import { useContentDetailTitleSlug } from "@/lib/hooks/use-content-detail-title-slug";
 import {
   useGeoWriterBrief,
@@ -28,7 +30,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ImageExportTarget } from "@/types/content/image-export";
 import type { ContentApiResponse } from "@/types/hooks/content";
 import {
-  isGeoWriterPlanReviewable,
+  getGeoWriterDocumentState,
   parseGeoWriterDraft,
 } from "@/utils/geo-write-entry";
 import { isImageExportTarget } from "@/utils/image-export";
@@ -40,15 +42,24 @@ interface UseContentDetailDocumentParams {
   data: ContentApiResponse | undefined;
 }
 
+function linkedPublishForContent(
+  content: ContentApiResponse["content"] | undefined
+) {
+  if (
+    content?.contentType !== "changelog" &&
+    content?.contentType !== "blog_post"
+  ) {
+    return null;
+  }
+  return content.githubPublish;
+}
+
 export function useContentDetailDocument({
   organizationId,
   contentId,
   data,
 }: UseContentDetailDocumentParams) {
-  const { state: sidebarState } = useSidebar();
   const queryClient = useQueryClient();
-  const { active } = useRightPanel();
-  const isActivityPanelOpen = active === "content";
 
   const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
   const geoWriterBriefQuery = useGeoWriterBrief(
@@ -61,14 +72,16 @@ export function useContentDetailDocument({
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
-  const isGeoWriterPlanMode = Boolean(
-    geoWriterDraft && briefStatus !== "completed"
+  const {
+    isBriefError: isGeoWriterBriefError,
+    isChatLocked: isGeoWriterChatLocked,
+    isPlanMode: isGeoWriterPlanMode,
+    isPlanReviewable: isGeoWriterPlanReviewableNow,
+  } = getGeoWriterDocumentState(
+    Boolean(geoWriterDraft),
+    geoWriterBriefQuery.error,
+    briefStatus
   );
-  const isGeoWriterPlanReviewableNow = isGeoWriterPlanReviewable(briefStatus);
-  const isGeoWriterChatLocked =
-    Boolean(geoWriterDraft) &&
-    !isGeoWriterPlanReviewableNow &&
-    briefStatus !== "completed";
 
   const serverMarkdown = data?.content?.markdown ?? "";
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
@@ -81,6 +94,28 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [loadedArticleBriefId, setLoadedArticleBriefId] = useState<
+    string | null
+  >(null);
+  const [pendingArticleBriefId, setPendingArticleBriefId] = useState<
+    string | null
+  >(null);
+  const geoWriterBriefId = geoWriterDraft?.briefId;
+  if (
+    geoWriterBriefId &&
+    briefStatus &&
+    briefStatus !== "completed" &&
+    pendingArticleBriefId !== geoWriterBriefId
+  ) {
+    setPendingArticleBriefId(geoWriterBriefId);
+  }
+  const isGeoArticleLoading = Boolean(
+    geoWriterDraft &&
+    briefStatus === "completed" &&
+    pendingArticleBriefId === geoWriterDraft.briefId &&
+    loadedArticleBriefId !== geoWriterDraft.briefId
+  );
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
 
   const editorRef = useRef<EditorRefHandle | null>(null);
@@ -148,8 +183,8 @@ export function useContentDetailDocument({
     hasTitleChanges,
     serverSlug,
     serverTitle,
-    setEditingSlug,
-    setEditingTitle,
+    setEditingSlug: setEditingSlugState,
+    setEditingTitle: setEditingTitleState,
     setPersistedSlug,
     setPersistedTitle,
     title,
@@ -158,6 +193,25 @@ export function useContentDetailDocument({
     contentSlug: data?.content?.slug,
     currentMarkdown,
   });
+
+  const setEditingTitle = useCallback(
+    (nextTitle: string | null) => {
+      setSaveFailed(false);
+      setEditingTitleState(nextTitle);
+    },
+    [setEditingTitleState]
+  );
+  const setEditingSlug = useCallback(
+    (nextSlug: string | null) => {
+      setSaveFailed(false);
+      setEditingSlugState(nextSlug);
+    },
+    [setEditingSlugState]
+  );
+  const setEditedMarkdownAndRetry = useCallback((markdown: string | null) => {
+    setSaveFailed(false);
+    setEditedMarkdown(markdown);
+  }, []);
 
   const hasMarkdownChanges =
     resolvedEditedMarkdown !== resolvedOriginalMarkdown;
@@ -199,31 +253,59 @@ export function useContentDetailDocument({
     ]
   );
 
-  const handleGeoArticleReady = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.get.queryKey({
-          input: { organizationId, contentId },
-        }),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.content.list.key(),
-      }),
-    ]);
-    setEditedMarkdown(null);
-    setOriginalMarkdown("");
-    setPersistedSlug(null);
-    setEditingTitle(null);
-    setEditingSlug(null);
-    setReviewPreviousMarkdown(null);
-  }, [
-    contentId,
-    organizationId,
-    queryClient,
-    setEditingSlug,
-    setEditingTitle,
-    setPersistedSlug,
-  ]);
+  const handleGeoArticleReady = useCallback(
+    async function refreshGeoArticle() {
+      if (pendingArticleBriefId !== geoWriterDraft?.briefId) {
+        return;
+      }
+      try {
+        const [article] = await Promise.all([
+          queryClient.fetchQuery({
+            ...dashboardOrpc.content.get.queryOptions({
+              input: { organizationId, contentId },
+            }),
+            staleTime: 0,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: dashboardOrpc.content.list.key(),
+          }),
+        ]);
+        setEditedMarkdown(null);
+        setOriginalMarkdown("");
+        editedMarkdownRef.current = article.content.markdown ?? "";
+        originalMarkdownRef.current = article.content.markdown ?? "";
+        setPersistedSlug(null);
+        setEditingTitleState(null);
+        setEditingSlugState(null);
+        setReviewPreviousMarkdown(null);
+        needsNormalizationRef.current = true;
+        setEditorKey((key) => key + 1);
+      } catch {
+        toast.error(
+          "Couldn't refresh the article. Showing the cached content.",
+          {
+            action: {
+              label: "Retry",
+              onClick: () => {
+                refreshGeoArticle();
+              },
+            },
+          }
+        );
+      }
+      setLoadedArticleBriefId(geoWriterDraft?.briefId ?? null);
+    },
+    [
+      contentId,
+      geoWriterDraft?.briefId,
+      pendingArticleBriefId,
+      organizationId,
+      queryClient,
+      setEditingSlugState,
+      setEditingTitleState,
+      setPersistedSlug,
+    ]
+  );
 
   useEffect(() => {
     if (!hasChanges) {
@@ -243,71 +325,198 @@ export function useContentDetailDocument({
     };
   }, [hasChanges]);
 
-  const handleSave = useCallback(async () => {
-    if (!hasChanges) {
-      return true;
-    }
+  const linkedGitHubPublish = linkedPublishForContent(data?.content);
 
-    setIsSaving(true);
-    try {
-      const { persistedTitle, persistedSlug } = await saveContentDetail({
-        organizationId,
-        contentId,
-        queryClient,
-        hasTitleChanges,
-        hasSlugChanges,
-        title,
-        editingSlug,
-        editedMarkdown: resolvedEditedMarkdown,
-      });
-
-      setEditedMarkdown(null);
-      setOriginalMarkdown("");
-      originalMarkdownRef.current = resolvedEditedMarkdown;
-      editedMarkdownRef.current = null;
-      if (reviewPreviousMarkdown) {
-        setEditorKey((key) => key + 1);
+  const handleSave = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!hasChanges) {
+        return true;
       }
-      setReviewPreviousMarkdown(null);
-      setPersistedTitle(persistedTitle);
-      setEditingTitle(null);
-      setPersistedSlug(persistedSlug);
-      setEditingSlug(null);
-      toast.success("Content saved");
-      setIsSaving(false);
-      return true;
-    } catch (error) {
-      toast.error(getSaveContentDetailErrorMessage(error));
-      setIsSaving(false);
-      return false;
+
+      const silent = options?.silent === true;
+      const markdownToSave = resolvedEditedMarkdown;
+      const titleToSave = title;
+      const slugToSave = editingSlug;
+
+      setIsSaving(true);
+      try {
+        const { persistedTitle, persistedSlug } = await saveContentDetail({
+          organizationId,
+          contentId,
+          queryClient,
+          hasTitleChanges,
+          hasSlugChanges,
+          title,
+          editingSlug,
+          editedMarkdown: resolvedEditedMarkdown,
+        });
+
+        const markClean = () => {
+          setOriginalMarkdown(markdownToSave);
+          originalMarkdownRef.current = markdownToSave;
+          if (editedMarkdownRef.current === markdownToSave) {
+            setEditedMarkdown(markdownToSave);
+          }
+          if (reviewPreviousMarkdown && !silent) {
+            setEditorKey((key) => key + 1);
+            setReviewPreviousMarkdown(null);
+          }
+          setPersistedTitle(persistedTitle);
+          setEditingTitleState((current) =>
+            current === null || current === titleToSave ? null : current
+          );
+          setPersistedSlug(persistedSlug);
+          setEditingSlugState((current) =>
+            current === null || current === slugToSave ? null : current
+          );
+          setSaveFailed(false);
+        };
+
+        if (
+          linkedGitHubPublish &&
+          (data?.content?.contentType === "changelog" ||
+            data?.content?.contentType === "blog_post")
+        ) {
+          try {
+            const result =
+              await dashboardOrpc.content.publishChangelogToGitHub.call({
+                organizationId,
+                contentId,
+                contentType: data.content.contentType,
+                repositoryId: linkedGitHubPublish.repositoryId,
+                linkedOnly: true,
+              });
+            queryClient.setQueryData<ContentApiResponse>(
+              dashboardOrpc.content.get.queryKey({
+                input: { organizationId, contentId },
+              }),
+              (current) => {
+                if (!current) {
+                  return current;
+                }
+
+                return {
+                  ...current,
+                  content: {
+                    ...current.content,
+                    githubPublish: {
+                      branchName: result.branchName,
+                      owner: linkedGitHubPublish.owner,
+                      path: result.path,
+                      pullRequestNumber: result.pullRequestNumber,
+                      pullRequestUrl: result.pullRequestUrl,
+                      repo: linkedGitHubPublish.repo,
+                      repositoryId: linkedGitHubPublish.repositoryId,
+                    },
+                  },
+                };
+              }
+            );
+            markClean();
+            toast.success("Pull request updated", {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error && error.message
+                ? error.message
+                : "Couldn't update the linked pull request";
+            toast.error(message, {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+            setSaveFailed(true);
+            setIsSaving(false);
+            return false;
+          }
+        } else {
+          markClean();
+          if (!silent) {
+            toast.success("Content saved", {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+          }
+        }
+        setIsSaving(false);
+        return true;
+      } catch (error) {
+        toast.error(getSaveContentDetailErrorMessage(error), {
+          position: CONTENT_SAVE_TOAST_POSITION,
+        });
+        setSaveFailed(true);
+        setIsSaving(false);
+        return false;
+      }
+    },
+    [
+      hasChanges,
+      hasTitleChanges,
+      hasSlugChanges,
+      editingSlug,
+      title,
+      resolvedEditedMarkdown,
+      reviewPreviousMarkdown,
+      organizationId,
+      contentId,
+      queryClient,
+      setEditingSlugState,
+      setEditingTitleState,
+      setPersistedSlug,
+      setPersistedTitle,
+      linkedGitHubPublish,
+      data?.content?.contentType,
+    ]
+  );
+
+  useEffect(() => {
+    if (
+      !hasChanges ||
+      isSaving ||
+      saveFailed ||
+      linkedGitHubPublish ||
+      reviewPreviousMarkdown
+    ) {
+      return;
     }
+
+    const timeoutId = window.setTimeout(() => {
+      void handleSave({ silent: true });
+    }, CONTENT_AUTOSAVE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [
-    hasChanges,
-    hasTitleChanges,
-    hasSlugChanges,
     editingSlug,
-    title,
+    handleSave,
+    hasChanges,
+    isSaving,
+    linkedGitHubPublish,
+    saveFailed,
     resolvedEditedMarkdown,
     reviewPreviousMarkdown,
-    organizationId,
-    contentId,
-    queryClient,
-    setEditingSlug,
-    setEditingTitle,
-    setPersistedSlug,
-    setPersistedTitle,
+    title,
   ]);
 
+  useHotkey(
+    "Mod+S",
+    () => {
+      void handleSave();
+    },
+    { enabled: hasChanges && !isSaving }
+  );
+
   const handleDiscard = useCallback(() => {
+    needsNormalizationRef.current = false;
     setEditedMarkdown(null);
     setOriginalMarkdown("");
     editedMarkdownRef.current = resolvedOriginalMarkdown;
     editorRef.current?.setMarkdown(resolvedOriginalMarkdown);
-    setEditingTitle(null);
-    setEditingSlug(null);
+    setEditingTitleState(null);
+    setEditingSlugState(null);
     setReviewPreviousMarkdown(null);
+    setSaveFailed(false);
     setEditorKey((key) => key + 1);
-  }, [resolvedOriginalMarkdown, setEditingSlug, setEditingTitle]);
+  }, [resolvedOriginalMarkdown, setEditingSlugState, setEditingTitleState]);
 
   const handleToggleStatus = useCallback(async () => {
     const currentStatus = data?.content?.status;
@@ -328,14 +537,6 @@ export function useContentDetailDocument({
     setIsTogglingStatus(false);
   }, [data?.content?.status, organizationId, contentId, queryClient]);
 
-  useContentDetailSaveToast({
-    hasChanges,
-    isSaving,
-    isActivityPanelOpen,
-    onDiscard: handleDiscard,
-    onSave: handleSave,
-  });
-
   const handleEditorChange = useCallback((markdown: string) => {
     if (
       needsNormalizationRef.current &&
@@ -348,6 +549,7 @@ export function useContentDetailDocument({
     needsNormalizationRef.current = false;
     setEditedMarkdown(markdown);
     editedMarkdownRef.current = markdown;
+    setSaveFailed(false);
   }, []);
 
   const invalidateContentQueries = useCallback(
@@ -361,6 +563,9 @@ export function useContentDetailDocument({
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.list.key(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.collections.list.key(),
+        }),
       ]),
     [contentId, organizationId, queryClient]
   );
@@ -372,17 +577,6 @@ export function useContentDetailDocument({
     setImageExportTarget(value);
     window.localStorage.setItem(localStorageKeys.imageExportTarget, value);
   }, []);
-
-  const saveBarProps =
-    hasChanges && isActivityPanelOpen
-      ? {
-          sidebarOffsetClass:
-            sidebarState === "collapsed" ? "lg:left-14" : "lg:left-64",
-          isSaving,
-          onDiscard: handleDiscard,
-          onSave: handleSave,
-        }
-      : null;
 
   const resolvePlanConflictLoadLatest = useCallback(async () => {
     const result = await geoWriterBriefQuery.refetch();
@@ -429,19 +623,22 @@ export function useContentDetailDocument({
     imageExportRef,
     imageExportTarget,
     invalidateContentQueries,
+    isGeoWriterBriefError,
     isGeoWriterChatLocked,
     isGeoWriterPlanMode,
     isGeoWriterPlanReviewableNow,
     isPlanDirty,
     isTogglingStatus,
+    isSaving,
+    saveFailed,
+    isGeoArticleLoading,
     originalMarkdown,
     originalMarkdownRef,
     planEditorVersion,
     resolvePlanConflictLoadLatest,
     resolvePlanConflictSaveMine,
     reviewPreviousMarkdown,
-    saveBarProps,
-    setEditedMarkdown,
+    setEditedMarkdown: setEditedMarkdownAndRetry,
     setEditingSlug,
     setEditingTitle,
     setIsPlanDirty,

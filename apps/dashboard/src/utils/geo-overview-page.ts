@@ -4,6 +4,7 @@ import type {
   GeoCompetitorSharePoint,
   GeoCompetitorShareTimeseriesPoint,
   GeoJourney,
+  GeoJourneyStatsResponse,
   GeoLanguageSharePoint,
   GeoOverviewEngine,
   GeoPromptResultSummary,
@@ -29,6 +30,40 @@ export function countEnabledGeoPrompts(
   return prompts.filter((prompt) => prompt.enabled).length;
 }
 
+export function geoOverviewQueriesEnabled(
+  organizationId: string,
+  isSettingsPending: boolean,
+  hasSettings: boolean
+): boolean {
+  return Boolean(organizationId) && !isSettingsPending && hasSettings;
+}
+
+export function geoOverviewTabEnabled(
+  queriesEnabled: boolean,
+  activeTab: GeoTab,
+  tab: GeoTab
+): boolean {
+  return queriesEnabled && activeTab === tab;
+}
+
+export function geoJourneysTabLoading(input: {
+  activeTab: GeoTab;
+  isJourneysPending: boolean;
+  isJourneyStatsPending: boolean;
+  isJourneysPlaceholder: boolean;
+  isJourneyStatsPlaceholder: boolean;
+}): boolean {
+  if (input.activeTab !== "journeys") {
+    return false;
+  }
+  return (
+    input.isJourneysPending ||
+    input.isJourneyStatsPending ||
+    input.isJourneysPlaceholder ||
+    input.isJourneyStatsPlaceholder
+  );
+}
+
 export function toGeoOverviewReadyPage(input: {
   organizationId: string;
   organizationSlug: string;
@@ -47,6 +82,9 @@ export function toGeoOverviewReadyPage(input: {
   promptResults: GeoPromptResultSummary[] | undefined;
   promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
+  journeyStats: GeoJourneyStatsResponse | undefined;
+  journeyStatsFailed: boolean;
+  journeysLoading: boolean;
   isScanning: boolean;
   revealActive: boolean;
   scanPreflight: Omit<
@@ -89,6 +127,9 @@ export function toGeoOverviewReadyPage(input: {
       promptResults,
       isScanning: input.isScanning,
       journeys,
+      journeyStats: input.journeyStats ?? null,
+      journeyStatsFailed: input.journeyStatsFailed,
+      journeysLoading: input.journeysLoading,
       organizationId: input.organizationId,
     },
     scanPreflight: {

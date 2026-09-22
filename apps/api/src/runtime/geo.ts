@@ -87,7 +87,7 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
     case "GeoScanEnginesEmptyError":
       return {
         status: 400,
-        error: "Select at least one tracked engine to scan",
+        error: "Select at least one available model to scan",
       };
     case "GeoCompetitorLimitError":
       return {
@@ -101,6 +101,11 @@ function toGeoFailure(failure: GeoFailureWire): GeoFailure {
       return {
         status: 400,
         error: "No engine is available for this project's retention policy",
+      };
+    case "GeoSequenceLimitError":
+      return {
+        status: 400,
+        error: `You can have up to ${failure.limit} conversations. Remove one before adding another.`,
       };
     case "GeoWriterCreditsExhaustedError":
       return {

@@ -1,5 +1,7 @@
 "use client";
 
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+
 import { cn } from "@/lib/utils";
 
 import type { TableColumn } from "./types";
@@ -31,9 +33,9 @@ export function SkeletonRows<T>({
               className={cn("px-4", alignText(column.align))}
               key={column.key}
             >
-              <div
+              <Skeleton
                 className={cn(
-                  "bg-muted h-3 animate-pulse rounded-full",
+                  "h-3 rounded-full",
                   column.align === "right" ? "ml-auto w-10" : "w-2/3"
                 )}
               />

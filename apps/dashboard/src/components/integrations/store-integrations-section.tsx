@@ -18,6 +18,10 @@ import type {
   McpStoreIntegration,
   StoreIntegrationsSectionProps,
 } from "@/types/integrations/mcp";
+import {
+  isStoreConnectPending,
+  resolveStoreIntegrationSelection,
+} from "@/utils/store-integrations";
 
 export function StoreIntegrationsSection({
   organizationId,
@@ -134,44 +138,25 @@ export function StoreIntegrationsSection({
   };
 
   const integrations = data?.integrations ?? [];
-
-  const deeplinkIntegration =
-    connectSlug && dismissedConnectSlug !== connectSlug
-      ? (integrations.find(
-          (integration) =>
-            integration.slug === connectSlug || integration.id === connectSlug
-        ) ?? null)
-      : null;
-
-  const activeManagingIntegration =
-    integrations.find(
-      (integration) => integration.id === managingIntegrationId
-    ) ?? (deeplinkIntegration?.connected ? deeplinkIntegration : null);
-
-  const activeConnectingIntegration =
-    connectingIntegration ??
-    (!deeplinkIntegration?.connected &&
-    deeplinkIntegration?.authType === "headers"
-      ? deeplinkIntegration
-      : null);
-
-  const activeConfirmingIntegration =
-    confirmingIntegration ??
-    (deeplinkIntegration &&
-    !deeplinkIntegration.connected &&
-    deeplinkIntegration.authType !== "headers"
-      ? deeplinkIntegration
-      : null);
-
-  const isConnectPending = (integration: McpStoreIntegration) =>
-    (connectPublicMutation.isPending &&
-      connectPublicMutation.variables?.id === integration.id) ||
-    (beginOAuthMutation.isPending &&
-      beginOAuthMutation.variables?.id === integration.id);
+  const selection = resolveStoreIntegrationSelection({
+    integrations,
+    connectSlug,
+    dismissedConnectSlug,
+    connectingIntegration,
+    confirmingIntegration,
+    managingIntegrationId,
+  });
 
   if (!isPending && integrations.length === 0) {
     return null;
   }
+
+  const connectPending = (integration: McpStoreIntegration) =>
+    isStoreConnectPending(
+      integration,
+      connectPublicMutation,
+      beginOAuthMutation
+    );
 
   return (
     <section className="space-y-3">
@@ -185,38 +170,24 @@ export function StoreIntegrationsSection({
         </p>
       </div>
 
-      {isPending ? (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {[0, 1, 2].map((item) => (
-            <Skeleton className="h-28 w-full rounded-lg" key={item} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {integrations.map((integration) => (
-            <StoreIntegrationCard
-              connectPending={isConnectPending(integration)}
-              integration={integration}
-              key={integration.id}
-              onConnect={connectIntegration}
-              onManage={(target) => setManagingIntegrationId(target.id)}
-            />
-          ))}
-        </div>
-      )}
+      <StoreIntegrationsGrid
+        connectPending={connectPending}
+        integrations={integrations}
+        isPending={isPending}
+        onConnect={connectIntegration}
+        onManage={(target) => setManagingIntegrationId(target.id)}
+      />
 
       <StoreIntegrationDialogs
-        confirmingIntegration={activeConfirmingIntegration}
+        confirmingIntegration={selection.confirming}
         confirmingPending={
-          activeConfirmingIntegration
-            ? isConnectPending(activeConfirmingIntegration)
-            : false
+          selection.confirming ? connectPending(selection.confirming) : false
         }
-        connectingIntegration={activeConnectingIntegration}
-        managingIntegration={activeManagingIntegration}
+        connectingIntegration={selection.connecting}
+        managingIntegration={selection.managing}
         onConfirmConnect={() => {
-          if (activeConfirmingIntegration) {
-            connectIntegration(activeConfirmingIntegration);
+          if (selection.confirming) {
+            connectIntegration(selection.confirming);
           }
         }}
         onConfirmingClose={() => {
@@ -242,5 +213,43 @@ export function StoreIntegrationsSection({
         organizationId={organizationId}
       />
     </section>
+  );
+}
+
+function StoreIntegrationsGrid({
+  connectPending,
+  integrations,
+  isPending,
+  onConnect,
+  onManage,
+}: {
+  connectPending: (integration: McpStoreIntegration) => boolean;
+  integrations: McpStoreIntegration[];
+  isPending: boolean;
+  onConnect: (integration: McpStoreIntegration) => void;
+  onManage: (integration: McpStoreIntegration) => void;
+}) {
+  if (isPending) {
+    return (
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {[0, 1, 2].map((item) => (
+          <Skeleton className="h-28 w-full rounded-lg" key={item} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      {integrations.map((integration) => (
+        <StoreIntegrationCard
+          connectPending={connectPending(integration)}
+          integration={integration}
+          key={integration.id}
+          onConnect={onConnect}
+          onManage={onManage}
+        />
+      ))}
+    </div>
   );
 }

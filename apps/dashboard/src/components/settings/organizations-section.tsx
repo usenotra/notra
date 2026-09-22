@@ -13,7 +13,7 @@ import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -37,8 +37,16 @@ import { settingsPath } from "@/utils/settings-path";
 export function OrganizationsSection() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { organizations, activeOrganization, isLoading } =
-    useOrganizationsContext();
+  const {
+    organizations,
+    activeOrganization,
+    isOrganizationListLoading,
+    requestOrganizations,
+  } = useOrganizationsContext();
+
+  useEffect(() => {
+    requestOrganizations();
+  }, [requestOrganizations]);
 
   const [isSwitching, setIsSwitching] = useState<string | null>(null);
   const [isProcessingOrgAction, setIsProcessingOrgAction] = useState<
@@ -149,23 +157,23 @@ export function OrganizationsSection() {
     setIsProcessingOrgAction(null);
   }
 
-  if (isLoading) {
+  if (isOrganizationListLoading) {
     return (
       <TitleCard className="lg:col-span-2" heading="Organizations">
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div
-              className="flex items-center justify-between rounded-lg border p-4"
+              className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
               key={i}
             >
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-10 rounded-lg" />
-                <div className="space-y-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <Skeleton className="size-10 shrink-0 rounded-lg" />
+                <div className="min-w-0 space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-3 w-16" />
                 </div>
               </div>
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20 shrink-0" />
             </div>
           ))}
         </div>
@@ -195,11 +203,11 @@ export function OrganizationsSection() {
 
             return (
               <div
-                className="flex items-center justify-between rounded-lg border p-4"
+                className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                 key={org.id}
               >
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-10 rounded-lg after:rounded-lg">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="size-10 shrink-0 rounded-lg after:rounded-lg">
                     <AvatarImage
                       alt={org.name}
                       className="rounded-lg"
@@ -209,9 +217,9 @@ export function OrganizationsSection() {
                       {org.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{org.name}</p>
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-medium">{org.name}</p>
                       {isActive && (
                         <Badge
                           className="bg-success/10 text-success hover:bg-success/20 px-1.5 py-0 text-[10px] font-semibold"
@@ -234,7 +242,7 @@ export function OrganizationsSection() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
                   {!isActive && (
                     <Button
                       disabled={isSwitching === org.id}

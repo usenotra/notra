@@ -2,10 +2,39 @@ import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type {
   GeoScanPlannedAnswer,
   GeoScanPlanSnapshot,
+  GeoScanPlanSummary,
 } from "@notra/db/types/geo-scan";
 
 import { GEO_SEQUENCE_MAX_TURNS } from "../constants/geo";
-import type { GeoScanPlannedSequence, GeoScanProjectPlan } from "../types/geo";
+import { GEO_PERSONA_MAX_TURNS } from "../constants/geo-personas";
+import type {
+  GeoScanPlannedPersona,
+  GeoScanPlannedSequence,
+  GeoScanProjectPlan,
+} from "../types/geo";
+import { personaPromptId } from "./geo-personas";
+
+export function geoScanPersonaTasks(
+  persona: Pick<GeoScanPlannedPersona, "personaId" | "prompts" | "engine">
+): GeoScanPlannedAnswer[] {
+  const promptId = personaPromptId(persona.personaId);
+  return persona.prompts
+    .slice(0, GEO_PERSONA_MAX_TURNS)
+    .map((prompt, index) => ({
+      key: geoScanAnswerKey(
+        promptId,
+        persona.engine,
+        DEFAULT_LANGUAGE,
+        index + 1
+      ),
+      promptId,
+      personaId: persona.personaId,
+      prompt,
+      engine: persona.engine,
+      language: DEFAULT_LANGUAGE,
+      turn: index + 1,
+    }));
+}
 
 export function geoScanAnswerKey(
   promptId: string,
@@ -52,6 +81,7 @@ export function geoScanPlanSnapshot(
       language: task.language,
     })),
     ...plan.sequences.flatMap(geoScanSequenceTasks),
+    ...plan.personas.flatMap(geoScanPersonaTasks),
   ];
   return {
     tasks,
@@ -63,5 +93,30 @@ export function geoScanPlanSnapshot(
     ).size,
     engines: [...plan.engines],
     languages: [...plan.languages],
+  };
+}
+
+export function geoScanPlanSummary(
+  snapshot: GeoScanPlanSnapshot
+): GeoScanPlanSummary {
+  const plannedChecksByEngine = new Map<string, number>();
+  for (const task of snapshot.tasks ?? []) {
+    plannedChecksByEngine.set(
+      task.engine,
+      (plannedChecksByEngine.get(task.engine) ?? 0) + 1
+    );
+  }
+
+  return {
+    plannedChecks: snapshot.totalChecks,
+    hasTasks: snapshot.tasks !== undefined,
+    engines: snapshot.engines,
+    taskCounts: [...plannedChecksByEngine]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([engine, plannedChecks]) => ({
+        engine,
+        plannedChecks,
+        failedChecks: 0,
+      })),
   };
 }

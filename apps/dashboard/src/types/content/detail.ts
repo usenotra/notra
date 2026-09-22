@@ -1,3 +1,5 @@
+import type { PostGitHubPublish } from "@notra/db/types/post-github-publish";
+
 import type { GitHubRepository } from "@/types/integrations";
 import type {
   GitHubPublishContentType,
@@ -14,6 +16,7 @@ export interface ContentDetailPageClientProps {
 export interface PublishContentToGitHubDialogProps {
   contentId: string;
   contentType: GitHubPublishContentType;
+  githubPublish: PostGitHubPublish | null;
   onSave: () => Promise<boolean>;
   organizationId: string;
   organizationSlug: string;
@@ -74,10 +77,10 @@ export interface GitHubPublishRecoveryAlertProps {
 }
 
 export interface GitHubPublishDialogFooterProps {
+  hasSelectedRepository: boolean;
   isPublishing: boolean;
   organizationSlug: string;
   publishRecovery: GitHubPublishRecovery | null;
   pullRequest: GitHubPublishPullRequestResult | undefined;
   selectedPublishingEnabled: boolean;
-  hasSelectedRepository: boolean;
 }

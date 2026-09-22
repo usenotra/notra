@@ -83,6 +83,7 @@ import type {
   TooltipRowGroup,
   TooltipValueFormatter,
 } from "@/types/charts";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1008,7 +1009,7 @@ function buildMainAxes(ctx: OptionBuildContext): {
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
-    min: isExpanded ? undefined : yAxisSlot.min,
+    min: isExpanded ? 0 : yAxisSlot.min,
     max: isExpanded ? 1 : yAxisSlot.max,
     interval: isExpanded ? undefined : yAxisSlot.interval,
     scale: !isExpanded && yAxisSlot.scale,
@@ -2262,21 +2263,14 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     const chart = echarts.init(mount);
     echartsRef.current = chart;
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Observers always fire once right after observe(). Repushing on that
-      // no-op fire would land one frame into the intro and stomp the line's
-      // reveal clip — only react when the renderer size actually changed.
-      if (
-        mount.clientWidth === chart.getWidth() &&
-        mount.clientHeight === chart.getHeight()
-      ) {
-        return;
-      }
-      chart.resize();
-      // 2D gradient textures are baked at renderer size — rebuild them to fit.
-      live.repush();
+    // 2D gradient textures are baked at renderer size — rebuild them once the
+    // size settles.
+    // The brush overlay is raw zrender, outside the option — nothing resizes it,
+    // so it is repositioned with every resize while the repush stays deferred.
+    const stopResizeObserver = observeChartResize(mount, chart, {
+      onResized: () => syncBrushOverlayNow(),
+      onSettled: () => live.repush(),
     });
-    resizeObserver.observe(mount);
 
     // Light/dark flips change no React state — re-resolve and push directly.
     const themeObserver = new MutationObserver(() => {
@@ -2530,7 +2524,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       zrHover.off("globalout", onZrHoverOut);
       zr.off("mousemove", onZrMove);
       zr.off("globalout", onZrOut);
-      resizeObserver.disconnect();
+      stopResizeObserver();
       themeObserver.disconnect();
       chart.dispose();
       echartsRef.current = null;
@@ -2554,7 +2548,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // them here, right before the push, rather than round-tripping through state.
     live.resolved = resolveColors(container, config, seriesKeys);
 
-    const push = (withEntrance: boolean) => {
+    const push = (withEntrance: boolean, withUpdate = true) => {
       const option = buildOption();
       const merged = chartOptions ? { ...option, ...chartOptions } : option;
       applyChartMarkers(
@@ -2564,11 +2558,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         live.resolved?.tokens.background ?? "rgba(255, 255, 255, 1)"
       );
       Object.assign(merged, {
-        // Keep animation on for series updates (the axis pointer itself snaps).
-        // Duration 0 still skips the intro draw-in when withEntrance is false.
-        animation: true,
+        // Animate data/selection updates, but never a resize repush: morphing
+        // the same series after the container stops moving causes a late jump.
+        animation: withEntrance || withUpdate,
         animationDuration: withEntrance ? REVEAL_DURATION : 0,
-        animationDurationUpdate: withEntrance ? 0 : CHART_UPDATE_MS,
+        animationDurationUpdate:
+          withEntrance || !withUpdate ? 0 : CHART_UPDATE_MS,
         animationEasingUpdate: "cubicInOut",
         // The active dot is the emphasis state of an invisible symbol, so its
         // hop between categories is the state transition — keep it brisk.
@@ -2603,7 +2598,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // and push an update-style option.
     live.repush = () => {
       live.resolved = resolveColors(container, config, seriesKeys);
-      push(false);
+      push(false, false);
     };
   }, [
     live,

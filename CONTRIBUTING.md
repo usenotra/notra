@@ -239,6 +239,53 @@ We keep both in sync so the website and markdown endpoint (`/markdown`) say the 
 
 ## Code Style
 
+### Ponytail and agent skills
+
+[Ponytail](https://github.com/DietrichGebert/ponytail) runs in full mode by default.
+Run `bash scripts/setup-ponytail.sh` from a checkout with Codex and Claude Code
+installed. This installs the native plugins, including session-start,
+subagent-start, and prompt-submission hooks. Node must be on the non-interactive
+shell's PATH.
+
+- **Codex:** the setup script installs the plugin into the user's Codex plugin
+  cache, pinned to commit `e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156` (4.10.0).
+  Open `/hooks`, review and trust Ponytail's hooks, then start a new task.
+  Restart the desktop app to pick up the plugin. Hook trust is per machine and
+  cannot be shared through Git.
+- **Claude Code:** `.claude/settings.json` declares and enables the upstream
+  marketplace plugin for this project. The plugin provides all six namespaced
+  commands and lifecycle hooks. The project status line uses the upstream
+  `.claude/ponytail-statusline.sh` to display the active mode. Its MIT license
+  is in `.agents/skills/ponytail/LICENSE`.
+- **OpenCode:** `opencode.jsonc` installs `@dietrichgebert/ponytail@4.10.0` on
+  startup, providing per-turn instructions, persistent mode switches, and all
+  six slash commands. Restart OpenCode after changing this config.
+- **Amp:** `AGENTS.md` enables Ponytail for coding tasks and `.agents/skills/`
+  supplies all six skills. Upstream has no Amp lifecycle-hook adapter; mode
+  changes are instructions in the current conversation.
+
+Use `ponytail lite`, `ponytail full`, `ponytail ultra`, or `ponytail off` to
+choose a mode. The companion skills are `ponytail-review`, `ponytail-audit`,
+`ponytail-debt`, `ponytail-gain`, and `ponytail-help`. Claude plugin commands
+are namespaced (for example `/ponytail:ponytail ultra`); OpenCode uses
+`/ponytail ultra`. In Codex, select the plugin skill or mention it with `$`.
+The native plugins support `PONYTAIL_DEFAULT_MODE` and
+`~/.config/ponytail/config.json` for the default level.
+
+Shared skills are committed under `.agents/skills/`, with upstream sources and
+hashes recorded by the [skills.sh CLI](https://skills.sh/) in `skills-lock.json`.
+Refresh them with `bunx skills update --project --yes`. This does not update
+native plugins: rerun the setup script after changing the Codex pin, update
+Claude's marketplace plugin through `/plugin`, and change OpenCode's version
+in `opencode.jsonc` when upgrading it. The current refresh migrates the retired
+Autumn skills to `autumn-catalog`, `autumn-concepts`, `autumn-integrate`, and
+`autumn-setup`; Next's `next-cache-components` to its `-adoption` and `-optimizer`
+successors; and our `using-effect` alias to the upstream `effect` name.
+Upstream email skill test scenarios are omitted. `.vercelignore` excludes
+agent files and setup tooling from deployment uploads.
+
+### Conventions
+
 - Follow existing patterns in the touched area.
 - Use Ultracite's Oxlint and Oxfmt provider via the repository scripts.
 - Prefer readable, self-documenting code.

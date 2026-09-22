@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { reportGeoError } from "../send";
 import { FeedbackSubmitError, submitFeedback } from "./client";
 import {
   DEFAULT_TOOL_NAME,
@@ -45,6 +46,13 @@ export const feedbackToolInputSchema = {
 };
 
 const feedbackToolArgsSchema = z.object(feedbackToolInputSchema);
+
+export const feedbackToolOutputSchema = {
+  id: z.string().describe("Identifier of the recorded feedback entry"),
+  deduplicated: z
+    .boolean()
+    .describe("True when identical feedback was already recorded and reused"),
+};
 
 export function buildFeedbackToolDescription(productName?: string): string {
   const subject = productName ? `the ${productName} team` : "the product team";
@@ -92,9 +100,10 @@ export function createFeedbackToolHandler(options: FeedbackToolOptions) {
               : "Thanks, the feedback was sent to the team.",
           },
         ],
+        structuredContent: result,
       };
     } catch (error) {
-      options.onError?.(error);
+      reportGeoError(options.onError, error);
       return {
         content: [{ type: "text", text: toErrorText(error) }],
         isError: true,
@@ -121,6 +130,7 @@ export function registerFeedbackTool(
         openWorldHint: true,
       },
       inputSchema: feedbackToolInputSchema,
+      outputSchema: feedbackToolOutputSchema,
     },
     createFeedbackToolHandler(options)
   );

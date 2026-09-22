@@ -1,39 +1,29 @@
 "use client";
 
-import {
-  ArrowDown01Icon,
-  PauseIcon,
-  PlayIcon,
-  QuotesIcon,
-} from "@hugeicons/core-free-icons";
+import { FilterHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_CITATIONS_LIVE_INTERVAL_MS,
   GEO_CITATIONS_ROW_HEIGHT,
-  GEO_TRAFFIC_CITATIONS_ONLY_LABEL,
-  GEO_TRAFFIC_LOG_PAGE_PARAM,
   GEO_TRAFFIC_LOG_PURPOSE_OPTIONS,
   GEO_TRAFFIC_LOG_VISITOR_OPTIONS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogFilters } from "@notra/geo-core/types/geo";
-import {
-  formatGeoTrafficFilterLabel,
-  isGeoTrafficCitationsOnly,
-  toggleGeoTrafficCitationsOnly,
-  toggleGeoTrafficFilterValue,
-} from "@notra/geo-core/utils/ai-traffic";
+import { toggleGeoTrafficFilterValue } from "@notra/geo-core/utils/ai-traffic";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { CitationsTable } from "@/components/geo/citations-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -42,9 +32,8 @@ import { TRAFFIC_LOG_FILTER_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoTrafficLog } from "@/lib/hooks/use-geo";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { AiTrafficLogCardProps } from "@/types/geo";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const LOG_SKELETON_ROWS = 6;
 
@@ -53,36 +42,18 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     visitorTypes: [],
     categories: [],
   });
-  const [live, setLive] = useState(true);
   const [hostQuery] = useGeoTrafficHostQuery();
-  const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
-    refetchInterval: live ? GEO_CITATIONS_LIVE_INTERVAL_MS : false,
-    host: hostQuery,
-  });
-  const log = data?.log ?? [];
-  const total = data?.total ?? log.length;
-  const pagination = useTablePagination({
-    key: GEO_TRAFFIC_LOG_PAGE_PARAM,
-    totalItems: log.length,
-    isReady: !isPending,
-  });
-  const previousHostRef = useRef(hostQuery);
-  const setLogPage = pagination.setPage;
-
-  useEffect(() => {
-    if (previousHostRef.current === hostQuery) {
-      return;
+  const { data, isPending, isFetching } = useGeoTrafficLog(
+    organizationId,
+    filters,
+    {
+      host: hostQuery,
     }
-    previousHostRef.current = hostQuery;
-    setLogPage(1);
-  }, [hostQuery, setLogPage]);
-
-  const citationsOnly = isGeoTrafficCitationsOnly(filters.categories);
+  );
+  const log = data?.log ?? [];
 
   let body: ReactNode;
-  if (isPending) {
-    body = <GeoTableSkeleton rows={LOG_SKELETON_ROWS} />;
-  } else if (log.length === 0) {
+  if (!isPending && log.length === 0) {
     body = (
       <InstrumentEmpty
         message="No visits match these filters"
@@ -93,142 +64,97 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     body = (
       <CitationsTable
         entries={log}
-        height={paginatedTableHeightFor(
-          pagination.pageRowCount,
+        height={tableHeightFor(
+          log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
-        pagination={pagination}
+        loading={isPending || isFetching}
       />
     );
   }
 
+  const activeFilters = filters.visitorTypes.length + filters.categories.length;
+  const toggleVisitor = (
+    value: GeoTrafficLogFilters["visitorTypes"][number]
+  ) => {
+    trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
+      filter: TRAFFIC_LOG_FILTER_KINDS.VISITOR_TYPE,
+      value,
+      active: !filters.visitorTypes.includes(value),
+    });
+    setFilters((previous) => ({
+      ...previous,
+      visitorTypes: toggleGeoTrafficFilterValue(previous.visitorTypes, value),
+    }));
+  };
+  const togglePurpose = (value: GeoTrafficLogFilters["categories"][number]) => {
+    trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
+      filter: TRAFFIC_LOG_FILTER_KINDS.PURPOSE,
+      value,
+      active: !filters.categories.includes(value),
+    });
+    setFilters((previous) => ({
+      ...previous,
+      categories: toggleGeoTrafficFilterValue(previous.categories, value),
+    }));
+  };
+
   const filterRow = (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
-          {formatGeoTrafficFilterLabel(
-            "All visitors",
-            "visitors",
-            filters.visitorTypes,
-            GEO_TRAFFIC_LOG_VISITOR_OPTIONS
-          )}
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="text-muted-foreground"
-            data-icon="inline-end"
-            icon={ArrowDown01Icon}
-            strokeWidth={2}
-          />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
+        <HugeiconsIcon
+          aria-hidden="true"
+          data-icon="inline-start"
+          icon={FilterHorizontalIcon}
+          strokeWidth={2}
+        />
+        Filter
+        {activeFilters > 0 ? (
+          <span className="bg-primary/15 text-primary rounded-full px-1.5 text-xs tabular-nums">
+            {activeFilters}
+          </span>
+        ) : null}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Visitors</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_VISITOR_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.visitorTypes.includes(option.value)}
               key={option.value}
-              onCheckedChange={() => {
-                pagination.setPage(1);
-                trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
-                  filter: TRAFFIC_LOG_FILTER_KINDS.VISITOR_TYPE,
-                  value: option.value,
-                  active: !filters.visitorTypes.includes(option.value),
-                });
-                setFilters((previous) => ({
-                  ...previous,
-                  visitorTypes: toggleGeoTrafficFilterValue(
-                    previous.visitorTypes,
-                    option.value
-                  ),
-                }));
-              }}
+              onCheckedChange={() => toggleVisitor(option.value)}
             >
               {option.label}
             </DropdownMenuCheckboxItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
-          {formatGeoTrafficFilterLabel(
-            "All purposes",
-            "purposes",
-            filters.categories,
-            GEO_TRAFFIC_LOG_PURPOSE_OPTIONS
-          )}
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="text-muted-foreground"
-            data-icon="inline-end"
-            icon={ArrowDown01Icon}
-            strokeWidth={2}
-          />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Purpose</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_PURPOSE_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.categories.includes(option.value)}
               key={option.value}
-              onCheckedChange={() => {
-                pagination.setPage(1);
-                trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
-                  filter: TRAFFIC_LOG_FILTER_KINDS.PURPOSE,
-                  value: option.value,
-                  active: !filters.categories.includes(option.value),
-                });
-                setFilters((previous) => ({
-                  ...previous,
-                  categories: toggleGeoTrafficFilterValue(
-                    previous.categories,
-                    option.value
-                  ),
-                }));
-              }}
+              onCheckedChange={() => togglePurpose(option.value)}
             >
               {option.label}
             </DropdownMenuCheckboxItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button
-        aria-pressed={citationsOnly}
-        onClick={() => {
-          pagination.setPage(1);
-          setFilters((previous) => ({
-            ...previous,
-            categories: toggleGeoTrafficCitationsOnly(previous.categories),
-          }));
-        }}
-        size="sm"
-        variant={citationsOnly ? "secondary" : "ghost"}
-      >
-        <HugeiconsIcon
-          aria-hidden="true"
-          data-icon="inline-start"
-          icon={QuotesIcon}
-          strokeWidth={2}
-        />
-        {GEO_TRAFFIC_CITATIONS_ONLY_LABEL}
-      </Button>
-      {total > 0 && (
-        <Button
-          aria-label={live ? "Live updates: Pause" : "Paused updates: Resume"}
-          className="ml-1"
-          onClick={() => {
-            trackEvent(POSTHOG_EVENTS.TRAFFIC_LIVE_TOGGLED, { live: !live });
-            setLive((current) => !current);
-          }}
-          size="sm"
-          variant="ghost"
-        >
-          <HugeiconsIcon
-            aria-hidden="true"
-            data-icon="inline-start"
-            icon={live ? PauseIcon : PlayIcon}
-            strokeWidth={2}
-          />
-          {live ? "Live" : "Paused"}
-        </Button>
-      )}
-    </div>
+        </DropdownMenuGroup>
+        {activeFilters > 0 ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                setFilters({ visitorTypes: [], categories: [] });
+              }}
+            >
+              Clear filters
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (

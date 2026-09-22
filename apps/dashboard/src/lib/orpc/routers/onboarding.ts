@@ -18,6 +18,7 @@ import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/comp
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 
+import { COMPANY_LOGO_LOOKUP_TIMEOUT_MS } from "@/constants/company-logo";
 import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import {
@@ -64,32 +65,34 @@ export const onboardingRouter = {
         });
       }
 
+      const signal = AbortSignal.timeout(COMPANY_LOGO_LOOKUP_TIMEOUT_MS);
+      let result: CompanyLogoResult;
       try {
-        let result: CompanyLogoResult;
         if (input.searchByName) {
-          const response = await searchBrands(input.query);
+          const response = await searchBrands(input.query, { signal });
           const brand = pickBrandSearchResult(response.results, input.query);
           result = {
             domain: brand?.domain ?? null,
             url: brand?.logo || null,
           };
         } else {
-          const response = await retrieveBrand(input.query);
+          const response = await retrieveBrand(input.query, { signal });
           result = {
             domain: response.brand?.domain ?? input.query,
             url: pickCompanyLogoUrl(response.brand?.logos),
           };
         }
-
-        await writeCachedCompanyLogo(cacheKeyInput, result);
-        return result;
       } catch {
-        // A failed lookup is not cached; only its empty answer is returned.
-        return {
+        // Failures and timeouts are cached as unresolved (short TTL) so every
+        // page view does not wait on the same slow lookup again.
+        result = {
           domain: input.searchByName ? null : input.query,
           url: null,
         };
       }
+
+      await writeCachedCompanyLogo(cacheKeyInput, result);
+      return result;
     }),
   createDevReplayProject: authorizedProcedure
     .input(organizationIdInputSchema)

@@ -1,4 +1,10 @@
 import { Input } from "@notra/ui/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@notra/ui/components/ui/input-group";
 import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
@@ -28,16 +34,11 @@ export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
           {(field) => (
             <div className="space-y-2">
               <Label htmlFor={field.name}>Website</Label>
-              <div className="border-border focus-within:border-ring focus-within:ring-ring/50 flex w-full flex-row items-center rounded-md border transition-colors">
-                <label
-                  className="border-border text-muted-foreground border-r px-2.5 py-1.5 text-sm transition-colors"
-                  htmlFor={field.name}
-                >
-                  https://
-                </label>
-                <input
-                  aria-label="Website"
-                  className="flex-1 bg-transparent px-2.5 py-1.5 text-sm outline-none"
+              <InputGroup>
+                <InputGroupAddon>
+                  <InputGroupText>https://</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
                   id={field.name}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -45,7 +46,7 @@ export function CompanyProfileFields({ form }: CompanyProfileFieldsProps) {
                   type="text"
                   value={field.state.value}
                 />
-              </div>
+              </InputGroup>
             </div>
           )}
         </form.Field>

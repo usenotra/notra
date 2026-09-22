@@ -2,13 +2,14 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "scripts/*.ts",
-    "tests/fixtures/prompt-answer-selection.fixture.ts",
+    "tests/fixtures/*.fixture.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"
   ],
   "paths": {
     "@/*": ["./src/*"]
   },
+  "ignoreDependencies": ["@ai-sdk/code-mode", "tailwindcss"],
   "ignoreIssues": {
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],

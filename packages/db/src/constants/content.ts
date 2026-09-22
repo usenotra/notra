@@ -6,3 +6,9 @@ export const BLOG_POST_SUBTYPES = [
   "faq",
   "alternatives",
 ] as const;
+
+export const CONTENT_PUBLICATION_STATUSES = [
+  "open",
+  "merged",
+  "closed",
+] as const;

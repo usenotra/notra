@@ -4,6 +4,7 @@ import {
   CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS,
   SCHEDULE_ANCHOR_DATE_PATTERN,
 } from "@notra/ai/constants/schedule-interval";
+import { ignoreCommitPatternsSchema } from "@notra/ai/schemas/ignore-commit-patterns";
 import { z } from "zod";
 
 export const webhookEventTypeSchema = z.enum(["release", "push"]);
@@ -25,4 +26,5 @@ export const cronAnchorDateSchema = z
 export const eventTriggerSourceConfigSchema = z.object({
   eventTypes: z.array(webhookEventTypeSchema).min(1),
   includePreReleases: z.boolean().default(true),
+  ignoreCommitPatterns: ignoreCommitPatternsSchema,
 });

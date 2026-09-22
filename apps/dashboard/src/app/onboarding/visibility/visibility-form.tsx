@@ -1,5 +1,6 @@
 "use client";
 
+import { promptKey } from "@notra/geo-core/geo/prompt-key";
 import { buildBrandTerms } from "@notra/geo-core/geo/suggestion-keywords";
 import { normalizeWebsiteUrl } from "@notra/geo-core/utils/geo-website";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -15,6 +16,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { BrandReviewSkeleton } from "@/components/onboarding/brand-review-skeleton";
 import { OnboardingProgress } from "@/components/onboarding/progress";
+import { PromptChoiceRow } from "@/components/onboarding/prompt-choice-row";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
 import { GeoProjectProvider } from "@/components/providers/geo-project-provider";
 import { ONBOARDING_STEPS } from "@/constants/analytics-events";
@@ -33,6 +35,7 @@ import type {
 } from "@/types/onboarding";
 import { stripWebsitePrefix } from "@/utils/onboarding";
 import {
+  selectedVisibilityPrompts,
   toVisibilityBrandInput,
   uniqueVisibilityPrompts,
 } from "@/utils/onboarding-brand";
@@ -50,17 +53,32 @@ function VisibilityReview({
   const [companyName, setCompanyName] = useState(
     () => discovery?.companyName ?? fallbackCompanyName
   );
+  const [droppedKeys, setDroppedKeys] = useState(() => new Set<string>());
   const save = useGeoOnboardingBrand(organizationId);
   const [isLeaving, setIsLeaving] = useState(false);
   const busy = save.isPending || isLeaving;
-  const canSubmit = companyName.trim().length > 0 && !busy;
-  const promptCount = uniqueVisibilityPrompts(
+  const prompts = uniqueVisibilityPrompts(
     discovery?.prompts ?? [],
     buildBrandTerms({
       companyName,
       aliases: [...(discovery?.aliases ?? [])],
     })
-  ).length;
+  );
+  const selectedPrompts = selectedVisibilityPrompts(prompts, droppedKeys);
+  const canSubmit = companyName.trim().length > 0 && !busy;
+  const websiteHost = stripWebsitePrefix(websiteUrl);
+
+  const togglePrompt = (key: string) => {
+    setDroppedKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const handleSubmit = () => {
     if (!canSubmit) {
@@ -69,12 +87,14 @@ function VisibilityReview({
     const brandInput = toVisibilityBrandInput({
       companyName,
       aliases: discovery?.aliases ?? [],
-      prompts: discovery?.prompts ?? [],
+      audienceType: discovery?.audienceType,
+      prompts: selectedPrompts,
     });
     save.mutate(brandInput, {
       onSuccess: () => {
         trackEvent(POSTHOG_EVENTS.ONBOARDING_BRAND_SAVED, {
           alias_count: brandInput.aliases.length,
+          audience_type: brandInput.audienceType ?? null,
           prompt_count: brandInput.prompts.length,
         });
         setIsLeaving(true);
@@ -103,17 +123,32 @@ function VisibilityReview({
           placeholder="Acme"
           value={companyName}
         />
-        <p className="text-muted-foreground text-xs">
-          What we look for in answers. Usually the name on{" "}
-          {stripWebsitePrefix(websiteUrl)}.
-        </p>
-        {promptCount > 0 ? (
-          <p className="text-muted-foreground text-xs">
-            We pulled {promptCount} questions from your site to start with. Edit
-            them later under Prompts.
-          </p>
-        ) : null}
       </div>
+
+      {prompts.length > 0 ? (
+        <div className="grid gap-2">
+          <p className="text-sm font-medium">
+            {websiteHost ? `Questions from ${websiteHost}` : "Questions"}{" "}
+            <span className="text-muted-foreground text-xs font-normal">
+              ({selectedPrompts.length} of {prompts.length})
+            </span>
+          </p>
+          <ul className="w-full max-w-full min-w-0 space-y-1.5 overflow-hidden">
+            {prompts.map((entry) => {
+              const key = promptKey(entry.prompt);
+              return (
+                <PromptChoiceRow
+                  disabled={busy}
+                  key={key}
+                  onToggle={() => togglePrompt(key)}
+                  prompt={entry.prompt}
+                  selected={!droppedKeys.has(key)}
+                />
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
 
       <CtaButton className="w-full" disabled={!canSubmit} type="submit">
         {busy ? (
@@ -155,6 +190,7 @@ export function VisibilityForm({
   nextHref,
   skipHref,
   inOnboardingFlow,
+  progressHrefs,
 }: VisibilityFormProps) {
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
@@ -217,11 +253,12 @@ export function VisibilityForm({
           inOnboardingFlow={inOnboardingFlow}
           step={ONBOARDING_STEPS.VISIBILITY}
         />
-        {inOnboardingFlow ? (
-          <div className="flex justify-center">
-            <OnboardingProgress current={ONBOARDING_STEP_VISIBILITY} />
-          </div>
-        ) : null}
+        <div className="flex justify-center">
+          <OnboardingProgress
+            current={ONBOARDING_STEP_VISIBILITY}
+            hrefs={progressHrefs}
+          />
+        </div>
 
         <AuthFormHeader
           description="We ask ChatGPT, Claude, Gemini and Perplexity what your buyers ask them, then check if you come up."

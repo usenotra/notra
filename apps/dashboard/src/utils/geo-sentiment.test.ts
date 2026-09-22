@@ -7,8 +7,52 @@ import {
   isolatedSentimentPointIndices,
   sentimentFamilyRows,
   sentimentEmptyMessage,
+  sentimentHasDisplayableData,
+  sentimentSummaryShowsEmpty,
   sentimentThemesState,
 } from "./geo-sentiment";
+
+test("a stale analysis keeps its themes on screen", () => {
+  const summary = summarizeSentiment([
+    {
+      positive: 1,
+      neutral: 0,
+      negative: 0,
+      mentions: 1,
+      totalChecks: 1,
+      lastCheckedAt: null,
+    },
+  ]);
+  const view = sentimentThemesState({
+    summary,
+    isAnalyzing: false,
+    isPending: false,
+    isError: false,
+    aggregatePending: false,
+    state: {
+      status: "stale",
+      message: "Saved answers changed. Refresh the analysis.",
+      result: {
+        fingerprint: "day-1",
+        generatedAt: "2026-09-21T00:00:00.000Z",
+        sampled: 1,
+        eligible: 1,
+        themes: [
+          {
+            title: "Easy setup",
+            polarity: "positive",
+            evidence: [],
+            claims: [],
+          },
+        ],
+      },
+    },
+  });
+  expect(view.showTable).toBe(true);
+  expect(view.showResults).toBe(true);
+  expect(view.showEmpty).toBe(false);
+  expect(view.canAnalyze).toBe(true);
+});
 
 test("lookup failures never render pending ghosts and configuration explanations survive empty aggregates", () => {
   const base = {
@@ -57,6 +101,22 @@ test("empty copy distinguishes absent answers from saved but unrated mentions", 
       ])
     )
   ).toBe("No rated mentions in this period.");
+});
+
+test("available ratings remain visible when the selected range starts before rating history", () => {
+  const summary = summarizeSentiment([
+    {
+      positive: 1,
+      neutral: 0,
+      negative: 0,
+      mentions: 1,
+      totalChecks: 10,
+      lastCheckedAt: null,
+    },
+  ]);
+
+  expect(sentimentHasDisplayableData(summary)).toBe(true);
+  expect(sentimentSummaryShowsEmpty(summary)).toBe(false);
 });
 
 test("markers preserve isolated observations while contiguous series stay clean", () => {

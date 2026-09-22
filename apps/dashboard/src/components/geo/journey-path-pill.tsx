@@ -11,7 +11,6 @@ import type { GeoJourneyPathKind } from "@notra/geo-core/types/geo";
 
 import { cn } from "@/lib/utils";
 import type { JourneyPathPillProps } from "@/types/geo";
-import { isGeoJourneyTrailGap } from "@/utils/geo-journey";
 
 const KIND_ICON: Record<GeoJourneyPathKind, typeof Home01Icon> = {
   home: Home01Icon,
@@ -21,26 +20,7 @@ const KIND_ICON: Record<GeoJourneyPathKind, typeof Home01Icon> = {
   page: Globe02Icon,
 };
 
-function JourneyPathGap() {
-  return (
-    <span
-      aria-hidden
-      className="border-border text-muted-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full border text-[0.625rem] leading-none"
-    >
-      …
-    </span>
-  );
-}
-
-export function JourneyPathJoin() {
-  return <span aria-hidden className="bg-border h-px w-3 shrink-0" />;
-}
-
 export function JourneyPathPill({ node, className }: JourneyPathPillProps) {
-  if (isGeoJourneyTrailGap(node.path)) {
-    return <JourneyPathGap />;
-  }
-
   return (
     <span
       className={cn(

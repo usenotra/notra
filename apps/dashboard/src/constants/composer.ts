@@ -2,12 +2,12 @@ export const COMPOSER_TOOLBAR_BUTTON =
   "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50";
 
 export const COMPOSER_SEND_BUTTON =
-  "ml-auto flex size-7 shrink-0 items-center justify-center rounded-lg bg-foreground text-background transition-[background-color,transform] hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.96]";
+  "ml-auto flex size-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[background-color,transform] hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.96]";
 
 export const COMPOSER_FRAME_TRANSITION =
-  "transition-[background-color,padding-top,padding-left,padding-right] duration-normal ease-emphasized motion-reduce:transition-none";
+  "transition-[background-color,padding-top,padding-left,padding-right,padding-bottom] duration-normal ease-emphasized motion-reduce:transition-none";
 
-export const COMPOSER_FRAME_NUDGE_PADDING = "bg-muted px-1 pt-1 pb-0";
+export const COMPOSER_FRAME_NUDGE_PADDING = "bg-muted p-1";
 
 export const COMPOSER_NUDGE_GRID_TRANSITION =
   "grid transition-[grid-template-rows] duration-normal ease-emphasized motion-reduce:transition-none";

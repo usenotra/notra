@@ -29,7 +29,9 @@ import type {
 } from "../types/dom-to-scene";
 import type { Guid, Transform } from "../types/scene";
 import type { PathSubpath } from "../types/svg-path";
+import { normalizeCssColorWithContext } from "../utils/css-color";
 import { svgPrimitiveToSubpaths } from "../utils/svg-primitive";
+import { inlineSvgUses } from "../utils/svg-use";
 import { TextLayoutCache } from "../utils/text-layout";
 
 export type { BuildSceneFromElementOptions } from "../types/dom-to-scene";
@@ -68,14 +70,7 @@ function normalizeCssColor(value: string): string | null {
   if (!colorParseContext) {
     return null;
   }
-  const previous = colorParseContext.fillStyle;
-  colorParseContext.fillStyle = "#000";
-  colorParseContext.fillStyle = value;
-  const normalized = colorParseContext.fillStyle;
-  colorParseContext.fillStyle = previous;
-  return normalized === "#000" && value.trim().toLowerCase() !== "#000"
-    ? null
-    : normalized;
+  return normalizeCssColorWithContext(value, colorParseContext);
 }
 
 function parseKnownColor(s: string): [number, number, number, number] | null {
@@ -657,9 +652,13 @@ function extractLayout(node: Node): LayoutNode | null {
     const fallbackColor = style.color;
 
     const shapes: SvgShape[] = [];
+    const restoreUses = inlineSvgUses(svg);
     const geomEls = svg.querySelectorAll(SVG_GEOMETRY_SELECTOR);
     for (const geomEl of geomEls) {
       if (!(geomEl instanceof SVGGraphicsElement)) {
+        continue;
+      }
+      if (geomEl.closest("defs, symbol")) {
         continue;
       }
       const ctm = geomEl.getScreenCTM();
@@ -742,6 +741,7 @@ function extractLayout(node: Node): LayoutNode | null {
           ) * strokeScale,
       });
     }
+    restoreUses();
 
     return {
       kind: "svg",

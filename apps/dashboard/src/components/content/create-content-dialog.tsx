@@ -30,6 +30,7 @@ import { cn } from "@notra/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -89,6 +90,148 @@ function getDefaultContentFormValues(): CreateContentFormValues {
   };
 }
 
+function CreateContentDialogTrigger({
+  hidden,
+  isProjectResolved,
+  organizationId,
+}: {
+  hidden: boolean;
+  isProjectResolved: boolean;
+  organizationId: string;
+}) {
+  if (hidden) {
+    return null;
+  }
+  return (
+    <ResponsiveDialogTrigger
+      render={
+        <CreateContentButton disabled={!organizationId || !isProjectResolved} />
+      }
+    />
+  );
+}
+
+function CreateContentDialogFooter({
+  footer,
+  identityButtonLabel,
+  isPending,
+  isProjectResolved,
+  onBack,
+  onCreate,
+  onNext,
+  step,
+}: {
+  footer: { text: string; tone: "warning" | "muted" };
+  identityButtonLabel: string;
+  isPending: boolean;
+  isProjectResolved: boolean;
+  onBack: () => void;
+  onCreate: () => void;
+  onNext: () => void;
+  step: WizardStep;
+}) {
+  return (
+    <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {step !== "formats" && (
+            <Button
+              disabled={isPending}
+              onClick={onBack}
+              type="button"
+              variant="outline"
+            >
+              <HugeiconsIcon className="size-3.5" icon={ArrowLeft01Icon} />
+              Back
+            </Button>
+          )}
+          <span
+            className={cn(
+              "flex items-center gap-1.5 text-xs",
+              footer.tone === "warning"
+                ? "text-destructive font-medium"
+                : "text-muted-foreground"
+            )}
+          >
+            {footer.tone === "warning" && (
+              <HugeiconsIcon className="size-3.5" icon={AlertCircleIcon} />
+            )}
+            {footer.text}
+          </span>
+        </div>
+        {step === "identities" ? (
+          <Button
+            disabled={isPending || !isProjectResolved}
+            onClick={onCreate}
+            type="button"
+          >
+            {isPending ? (
+              <>
+                <HugeiconsIcon
+                  className="size-4 animate-spin"
+                  icon={Loading03Icon}
+                />
+                Generating...
+              </>
+            ) : (
+              <>
+                {identityButtonLabel}
+                <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button disabled={isPending} onClick={onNext} type="button">
+            Continue
+            <HugeiconsIcon className="size-3.5" icon={ArrowRight01Icon} />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddRepositoryFlowDialogs({
+  githubIntegrationId,
+  mode,
+  onFlowComplete,
+  onOpenChange,
+  onSuccess,
+  open,
+  organizationId,
+}: {
+  githubIntegrationId: string | undefined;
+  mode: "integration" | "repository" | null;
+  onFlowComplete: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+  open: boolean;
+  organizationId: string;
+}) {
+  if (mode === "repository" && githubIntegrationId) {
+    return (
+      <AddRepositoryDialog
+        integrationId={githubIntegrationId}
+        onOpenChange={onOpenChange}
+        open={open}
+        organizationId={organizationId}
+      />
+    );
+  }
+  if (mode === "integration") {
+    return (
+      <AddIntegrationDialog
+        onFlowComplete={onFlowComplete}
+        onOpenChange={onOpenChange}
+        onSuccess={onSuccess}
+        open={open}
+        organizationId={organizationId}
+      />
+    );
+  }
+  return null;
+}
+
 export function CreateContentDialog({
   entry,
   hideTrigger = false,
@@ -97,6 +240,8 @@ export function CreateContentDialog({
   organizationId,
 }: CreateContentDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const router = useRouter();
+  const { slug: organizationSlug } = useParams<{ slug?: string }>();
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
   const open = controlledOpen ?? uncontrolledOpen;
@@ -388,7 +533,13 @@ export function CreateContentDialog({
   }, [previewFailures, previewParamsKey]);
 
   const mutation = useMutation<
-    { succeeded: number; total: number },
+    {
+      succeeded: number;
+      total: number;
+      collectionId: string;
+      requestOrganizationId: string;
+      requestOrganizationSlug: string | undefined;
+    },
     Error,
     {
       formats: OnDemandContentType[];
@@ -400,6 +551,8 @@ export function CreateContentDialog({
       if (!isProjectResolved) {
         throw new Error("Project is still loading");
       }
+      const requestOrganizationId = organizationId;
+      const requestOrganizationSlug = organizationSlug;
       const hasLinear = selectedLinearIds.length > 0;
       const calls = formats.flatMap((format) =>
         voiceIds.map((voiceId) => ({ format, voiceId }))
@@ -410,7 +563,7 @@ export function CreateContentDialog({
       // outputs are coordinated instead of independently drafted.
       const { collectionId } =
         await dashboardOrpc.content.createCollection.call({
-          organizationId,
+          organizationId: requestOrganizationId,
           projectId: activeProjectId ?? undefined,
           contentTypes: formats,
           expectedPostCount: calls.length,
@@ -419,7 +572,7 @@ export function CreateContentDialog({
       const results = await Promise.allSettled(
         calls.map(({ format, voiceId }) =>
           dashboardOrpc.content.generate.call({
-            organizationId,
+            organizationId: requestOrganizationId,
             collectionId,
             contentType: format,
             lookbackWindow,
@@ -437,7 +590,7 @@ export function CreateContentDialog({
       if (succeeded === 0) {
         await dashboardOrpc.content.collections.delete
           .call({
-            organizationId,
+            organizationId: requestOrganizationId,
             collectionId,
           })
           .catch(() => null);
@@ -452,14 +605,26 @@ export function CreateContentDialog({
       }
       if (succeeded < results.length) {
         await dashboardOrpc.content.collections.updateExpectedPostCount.call({
-          organizationId,
+          organizationId: requestOrganizationId,
           collectionId,
           expectedPostCount: succeeded,
         });
       }
-      return { succeeded, total: results.length };
+      return {
+        succeeded,
+        total: results.length,
+        collectionId,
+        requestOrganizationId,
+        requestOrganizationSlug,
+      };
     },
-    onSuccess: ({ succeeded, total }) => {
+    onSuccess: ({
+      succeeded,
+      total,
+      collectionId,
+      requestOrganizationId,
+      requestOrganizationSlug,
+    }) => {
       setDialogOpen(false);
       if (succeeded === total) {
         toast.success(
@@ -474,12 +639,19 @@ export function CreateContentDialog({
       }
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.activeGenerations.list.queryKey({
-          input: { organizationId },
+          input: { organizationId: requestOrganizationId },
         }),
       });
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.collections.list.key(),
       });
+      if (
+        requestOrganizationSlug &&
+        requestOrganizationId === organizationId &&
+        requestOrganizationSlug === organizationSlug
+      ) {
+        router.push(`/${requestOrganizationSlug}/collection/${collectionId}`);
+      }
     },
     onError: (err) => {
       toast.error(err.message);
@@ -906,15 +1078,11 @@ export function CreateContentDialog({
   return (
     <>
       <ResponsiveDialog onOpenChange={handleOpenChange} open={open}>
-        {!hideTrigger && (
-          <ResponsiveDialogTrigger
-            render={
-              <CreateContentButton
-                disabled={!organizationId || !isProjectResolved}
-              />
-            }
-          />
-        )}
+        <CreateContentDialogTrigger
+          hidden={hideTrigger}
+          isProjectResolved={isProjectResolved}
+          organizationId={organizationId}
+        />
         <ResponsiveDialogContent className="flex h-[85vh] max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
           <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
             <div className="flex items-center justify-between gap-4">
@@ -1020,99 +1188,28 @@ export function CreateContentDialog({
               )}
             </div>
 
-            <div className="bg-muted/30 shrink-0 border-t px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  {step !== "formats" && (
-                    <Button
-                      disabled={mutation.isPending}
-                      onClick={goBack}
-                      type="button"
-                      variant="outline"
-                    >
-                      <HugeiconsIcon
-                        className="size-3.5"
-                        icon={ArrowLeft01Icon}
-                      />
-                      Back
-                    </Button>
-                  )}
-                  <span
-                    className={cn(
-                      "flex items-center gap-1.5 text-xs",
-                      footerLeft.tone === "warning"
-                        ? "text-destructive font-medium"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {footerLeft.tone === "warning" && (
-                      <HugeiconsIcon
-                        className="size-3.5"
-                        icon={AlertCircleIcon}
-                      />
-                    )}
-                    {footerLeft.text}
-                  </span>
-                </div>
-                {step === "identities" ? (
-                  <Button
-                    disabled={mutation.isPending || !isProjectResolved}
-                    onClick={handleCreate}
-                    type="button"
-                  >
-                    {mutation.isPending ? (
-                      <>
-                        <HugeiconsIcon
-                          className="size-4 animate-spin"
-                          icon={Loading03Icon}
-                        />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        {identityButtonLabel}
-                        <HugeiconsIcon
-                          className="size-3.5"
-                          icon={ArrowRight01Icon}
-                        />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    disabled={mutation.isPending}
-                    onClick={goNext}
-                    type="button"
-                  >
-                    Continue
-                    <HugeiconsIcon
-                      className="size-3.5"
-                      icon={ArrowRight01Icon}
-                    />
-                  </Button>
-                )}
-              </div>
-            </div>
+            <CreateContentDialogFooter
+              footer={footerLeft}
+              identityButtonLabel={identityButtonLabel}
+              isPending={mutation.isPending}
+              isProjectResolved={isProjectResolved}
+              onBack={goBack}
+              onCreate={handleCreate}
+              onNext={goNext}
+              step={step}
+            />
           </div>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-      {addRepoMode === "repository" && githubIntegrationId && (
-        <AddRepositoryDialog
-          integrationId={githubIntegrationId}
-          onOpenChange={handleAddRepoOpenChange}
-          open={addRepoOpen}
-          organizationId={organizationId}
-        />
-      )}
-      {addRepoMode === "integration" && (
-        <AddIntegrationDialog
-          onFlowComplete={handleIntegrationFlowComplete}
-          onOpenChange={handleAddRepoOpenChange}
-          onSuccess={handleIntegrationSuccess}
-          open={addRepoOpen}
-          organizationId={organizationId}
-        />
-      )}
+      <AddRepositoryFlowDialogs
+        githubIntegrationId={githubIntegrationId}
+        mode={addRepoMode}
+        onFlowComplete={handleIntegrationFlowComplete}
+        onOpenChange={handleAddRepoOpenChange}
+        onSuccess={handleIntegrationSuccess}
+        open={addRepoOpen}
+        organizationId={organizationId}
+      />
     </>
   );
 }

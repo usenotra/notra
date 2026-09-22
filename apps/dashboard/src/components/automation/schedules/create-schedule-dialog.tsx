@@ -98,6 +98,7 @@ export function CreateScheduleDialog({
   editTrigger,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  presetId,
 }: CreateScheduleDialogProps) {
   const isEditMode = !!editTrigger;
   const [internalOpen, setInternalOpen] = useState(false);
@@ -193,10 +194,10 @@ export function CreateScheduleDialog({
 
   useEffect(() => {
     if (open) {
-      form.reset(getDefaultScheduleValues(editTrigger));
+      form.reset(getDefaultScheduleValues(editTrigger, presetId));
       previousAutoNameRef.current = "";
     }
-  }, [open, editTrigger, form]);
+  }, [open, editTrigger, presetId, form]);
 
   const outputType = useStore(form.store, (s) => s.values.outputType);
   const schedule = useStore(form.store, (s) => s.values.schedule);
@@ -419,7 +420,7 @@ export function CreateScheduleDialog({
                       <div className="space-y-2">
                         <Textarea
                           aria-label="Instructions"
-                          className="min-h-24"
+                          className="max-h-80 min-h-24 resize-none overflow-y-auto"
                           id={field.name}
                           maxLength={MAX_SCHEDULE_INSTRUCTIONS_LENGTH}
                           onBlur={field.handleBlur}

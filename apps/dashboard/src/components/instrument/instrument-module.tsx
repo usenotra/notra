@@ -145,11 +145,18 @@ export function InstrumentSection({
   bodyClassName,
 }: InstrumentModuleProps) {
   return (
-    <section className={cn("flex min-w-0 flex-col gap-3", className)}>
+    <section
+      className={cn(
+        "@container/instrument flex min-w-0 flex-col gap-3",
+        className
+      )}
+    >
       <div
         className={cn(
-          "flex min-w-0 justify-between gap-2",
-          description ? "items-start" : "items-center"
+          "flex min-w-0 flex-col gap-2 @min-[32rem]/instrument:flex-row @min-[32rem]/instrument:justify-between",
+          description
+            ? "@min-[32rem]/instrument:items-start"
+            : "@min-[32rem]/instrument:items-center"
         )}
       >
         <div
@@ -174,7 +181,7 @@ export function InstrumentSection({
           ) : null}
         </div>
         {(readout || action) && (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 @min-[32rem]/instrument:w-auto @min-[32rem]/instrument:justify-end">
             {readout && (
               <span className="text-muted-foreground truncate text-xs capitalize tabular-nums">
                 {readout}

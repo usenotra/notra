@@ -31,8 +31,53 @@ export function SentimentThemesEmpty({
   canAnalyze,
   retrying,
   analyze,
+  inline = false,
 }: SentimentThemesEmptyProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const confirm = (
+    <ResponsiveAlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <ResponsiveAlertDialogContent>
+        <ResponsiveAlertDialogHeader>
+          <ResponsiveAlertDialogTitle>
+            Find sentiment themes?
+          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription>
+            Analyze saved answers for the selected project and date range. A new
+            analysis uses AI credits based on token usage, or one AI answer on
+            quota-based plans. Reusing a cached analysis has no additional cost.
+          </ResponsiveAlertDialogDescription>
+        </ResponsiveAlertDialogHeader>
+        <p className="text-muted-foreground text-sm">
+          An AI attempt may still use credits if it fails or finds no themes.
+        </p>
+        <ResponsiveAlertDialogFooter>
+          <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogAction
+            onClick={() => {
+              setConfirmOpen(false);
+              analyze();
+            }}
+          >
+            Confirm and analyze
+          </ResponsiveAlertDialogAction>
+        </ResponsiveAlertDialogFooter>
+      </ResponsiveAlertDialogContent>
+    </ResponsiveAlertDialog>
+  );
+  if (inline) {
+    return (
+      <>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setConfirmOpen(true)}
+        >
+          {retrying ? "Retry analysis" : "Refresh analysis"}
+        </Button>
+        {confirm}
+      </>
+    );
+  }
   return (
     <div className="relative w-full overflow-hidden rounded-2xl">
       <div
@@ -71,35 +116,7 @@ export function SentimentThemesEmpty({
           </div>
         ) : null}
       </div>
-      <ResponsiveAlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Find sentiment themes?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              Analyze saved answers for the selected project and date range. A
-              new analysis uses AI credits based on token usage, or one AI
-              answer on quota-based plans. Reusing a cached analysis has no
-              additional cost.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <p className="text-muted-foreground text-sm">
-            An AI attempt may still use credits if it fails or finds no themes.
-          </p>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              onClick={() => {
-                setConfirmOpen(false);
-                analyze();
-              }}
-            >
-              Confirm and analyze
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+      {confirm}
     </div>
   );
 }

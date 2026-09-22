@@ -53,7 +53,7 @@ export function LoginDetailsSection({
               {email}
             </div>
             <HugeiconsIcon
-              className="text-success"
+              className="text-success shrink-0"
               icon={CheckmarkCircle02Icon}
               size={20}
             />

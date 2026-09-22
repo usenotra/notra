@@ -137,7 +137,7 @@ export function SidebarProjectSwitcher() {
             <DropdownMenuTrigger
               render={
                 <SidebarMenuButton
-                  className="cursor-pointer"
+                  className="cursor-pointer [--sidebar-lg-icon:1.75rem]"
                   size="lg"
                   tooltip={activeProject.name}
                 >

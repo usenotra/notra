@@ -24,10 +24,10 @@ import { cn } from "@/lib/utils";
 import type { ConnectAccountsButtonsProps } from "@/types/analytics";
 
 const SPLIT_SHELL_CLASS =
-  "m-0 inline-flex min-w-0 items-stretch overflow-hidden border-0 bg-[#0f1419] p-0 shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset] corner-squircle rounded-[1rem] supports-[corner-shape:round]:rounded-[1.25rem] dark:bg-white";
+  "m-0 inline-flex min-w-0 items-stretch overflow-hidden border-0 bg-[#0f1419] p-0 shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset] corner-squircle rounded-md supports-[corner-shape:squircle]:rounded-[1.25rem] dark:bg-white";
 
 const SPLIT_SEGMENT_CLASS =
-  "rounded-none shadow-none supports-[corner-shape:round]:rounded-none active:scale-100 focus-visible:z-10 focus-visible:ring-inset";
+  "rounded-none shadow-none active:scale-100 focus-visible:z-10 focus-visible:ring-inset";
 
 export function ConnectAccountsButtons({
   organizationId,

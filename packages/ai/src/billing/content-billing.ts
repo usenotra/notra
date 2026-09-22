@@ -1,7 +1,6 @@
-import type { CheckResponse } from "autumn-js";
-
 import {
   AI_CREDIT_LIMIT_MESSAGE,
+  AI_GENERATION_PLAN_REQUIRED_MESSAGE,
   CONTENT_BILLING_LOCK_PREFIX,
   CONTENT_BILLING_LOCK_TTL_MS,
   CONTENT_PLAN_REQUIRED_MESSAGE,
@@ -20,12 +19,21 @@ import type {
 } from "../types/billing";
 import { calculateAiCreditCostCents } from "./ai-credit-cost";
 import { allowUnmeteredAiInDevelopment, autumn } from "./autumn";
+import { checkAutumnFeature, finalizeAutumnLock } from "./autumn-locks";
+import { hasActivePaidPlan } from "./chat-billing";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "./features";
 import { shouldApplyMarkup } from "./token-pricing";
 
-const DUPLICATE_STATUS_CODES = new Set([409]);
-const GONE_STATUS_CODES = new Set([404, 409, 410]);
 const DEFAULT_FALLBACK_MODEL_ID = "anthropic/claude-sonnet-4.6";
+
+const PLAN_INCLUDED_RESERVATION: ContentBillingReservation = {
+  allowed: true,
+  mode: "plan_included",
+  featureId: null,
+  reserved: false,
+  lockId: null,
+  useMarkup: false,
+};
 
 const UNMETERED_RESERVATION: ContentBillingReservation = {
   allowed: true,
@@ -35,26 +43,6 @@ const UNMETERED_RESERVATION: ContentBillingReservation = {
   lockId: null,
   useMarkup: false,
 };
-
-function getErrorStatus(error: unknown): number | undefined {
-  if (
-    error &&
-    typeof error === "object" &&
-    "status" in error &&
-    typeof error.status === "number"
-  ) {
-    return error.status;
-  }
-  if (
-    error &&
-    typeof error === "object" &&
-    "statusCode" in error &&
-    typeof error.statusCode === "number"
-  ) {
-    return error.statusCode;
-  }
-  return undefined;
-}
 
 export function resolveContentQuotaFeature(
   outputType: string | null | undefined
@@ -81,58 +69,6 @@ function normalizeReservation(
     mode: reservation.mode ?? "ai_credits",
     featureId: reservation.featureId ?? FEATURES.AI_CREDITS,
   };
-}
-
-interface FeatureCheckResult {
-  response: CheckResponse | null;
-  duplicateLock: boolean;
-}
-
-async function checkFeature(input: {
-  organizationId: string;
-  featureId: ContentBillingFeatureId;
-  requiredBalance?: number;
-  lockId: string | null;
-  lockTtlMs: number;
-}): Promise<FeatureCheckResult> {
-  if (!autumn) {
-    return { response: null, duplicateLock: false };
-  }
-  try {
-    const response = await autumn.check(
-      {
-        customerId: input.organizationId,
-        featureId: input.featureId,
-        ...(input.requiredBalance === undefined
-          ? {}
-          : { requiredBalance: input.requiredBalance }),
-        ...(input.lockId
-          ? {
-              lock: {
-                lockId: input.lockId,
-                enabled: true,
-                expiresAt: Date.now() + input.lockTtlMs,
-              },
-            }
-          : {}),
-      },
-      input.lockId
-        ? {
-            retries: { strategy: "none" },
-            headers: { "Idempotency-Key": input.lockId },
-          }
-        : undefined
-    );
-    return { response, duplicateLock: false };
-  } catch (error) {
-    if (
-      input.lockId &&
-      DUPLICATE_STATUS_CODES.has(getErrorStatus(error) ?? 0)
-    ) {
-      return { response: null, duplicateLock: true };
-    }
-    throw new Error(`Autumn ${input.featureId} check failed: ${String(error)}`);
-  }
 }
 
 async function hasPaidSubscription(organizationId: string): Promise<boolean> {
@@ -195,7 +131,7 @@ export async function reserveContentBilling(
       metered && countTowardQuota && input.executionId
         ? buildLockId(input.executionId, quotaFeature)
         : null;
-    const quota = await checkFeature({
+    const quota = await checkAutumnFeature({
       organizationId: input.organizationId,
       featureId: quotaFeature,
       requiredBalance: metered ? units : undefined,
@@ -225,7 +161,7 @@ export async function reserveContentBilling(
   const creditLockId = input.executionId
     ? buildLockId(input.executionId, FEATURES.AI_CREDITS)
     : null;
-  const credits = await checkFeature({
+  const credits = await checkAutumnFeature({
     organizationId: input.organizationId,
     featureId: FEATURES.AI_CREDITS,
     requiredBalance: 1,
@@ -251,6 +187,14 @@ export async function reserveContentBilling(
       featureId: quotaFeature,
       balanceRemaining: quotaRemaining,
     });
+  }
+
+  if (
+    input.allowPlanIncluded &&
+    !quotaFeature &&
+    (await hasActivePaidPlan(input.organizationId))
+  ) {
+    return PLAN_INCLUDED_RESERVATION;
   }
 
   if (credits.response?.balance != null) {
@@ -281,33 +225,6 @@ export async function checkContentBilling(input: {
   });
 }
 
-async function finalizeLock(
-  lockId: string,
-  action: "confirm" | "release",
-  overrideValue?: number,
-  properties?: Record<string, string | number | boolean>
-): Promise<void> {
-  if (!autumn) {
-    return;
-  }
-  try {
-    await autumn.balances.finalize(
-      {
-        lockId,
-        action,
-        ...(overrideValue === undefined ? {} : { overrideValue }),
-        ...(properties ? { properties } : {}),
-      },
-      { headers: { "Idempotency-Key": `${lockId}:${action}` } }
-    );
-  } catch (error) {
-    if (GONE_STATUS_CODES.has(getErrorStatus(error) ?? 0)) {
-      return;
-    }
-    throw error;
-  }
-}
-
 export async function confirmContentBilling(
   input: ConfirmContentBillingInput
 ): Promise<void> {
@@ -318,7 +235,12 @@ export async function confirmContentBilling(
 
   if (reservation.mode === "plan_quota") {
     const units = Math.max(1, Math.round(input.units ?? 1));
-    await finalizeLock(reservation.lockId, "confirm", units, input.properties);
+    await finalizeAutumnLock(
+      reservation.lockId,
+      "confirm",
+      units,
+      input.properties
+    );
     return;
   }
 
@@ -335,7 +257,7 @@ export async function confirmContentBilling(
         reservation.useMarkup
       ).costCents
     : 1;
-  await finalizeLock(
+  await finalizeAutumnLock(
     reservation.lockId,
     "confirm",
     costCents,
@@ -349,7 +271,7 @@ export async function releaseContentBilling(
   if (!(autumn && reservation.lockId)) {
     return;
   }
-  await finalizeLock(reservation.lockId, "release");
+  await finalizeAutumnLock(reservation.lockId, "release");
 }
 
 export function getContentBillingLimitLabel(
@@ -376,6 +298,9 @@ export function describeContentBillingDenial(
     const featureId = reservation.featureId;
     if (featureId && featureId !== FEATURES.AI_CREDITS) {
       return `Your plan doesn't include ${CONTENT_QUOTA_LABELS[featureId].plural}. Upgrade your plan or add AI credits to continue.`;
+    }
+    if (!featureId) {
+      return AI_GENERATION_PLAN_REQUIRED_MESSAGE;
     }
     return CONTENT_PLAN_REQUIRED_MESSAGE;
   }

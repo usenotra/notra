@@ -1,7 +1,6 @@
 "use client";
 
 import { updateSkillSchema } from "@notra/schemas/dashboard/skills";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
@@ -17,6 +16,8 @@ import { SkillEditorForm } from "@/components/skills/skill-editor-form";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SkillDetailPageClientProps } from "@/types/skills/page";
+
+import { SkillEditorSkeleton } from "../skeleton";
 
 export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const { activeOrganization } = useOrganizationsContext();
@@ -207,15 +208,7 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
           slug={slug}
         />
 
-        {organizationId && isPending ? (
-          <div className="space-y-8">
-            <div className="max-w-2xl space-y-5">
-              <Skeleton className="h-10 w-full max-w-md" />
-              <Skeleton className="h-20 w-full" />
-            </div>
-            <Skeleton className="h-[28rem] w-full rounded-xl" />
-          </div>
-        ) : null}
+        {organizationId && isPending ? <SkillEditorSkeleton /> : null}
 
         {!(organizationId && isPending) && skill ? (
           <SkillEditorForm

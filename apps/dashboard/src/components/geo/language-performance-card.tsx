@@ -185,6 +185,7 @@ function languagePerformanceColumns({
     },
     {
       key: "trend",
+      collapsePriority: 1,
       header: "Trend",
       width: "7.5rem",
       cell: (row) => {

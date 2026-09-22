@@ -3,6 +3,8 @@ import { requestGeoRescanForPost } from "@notra/geo-core/geo/rescan";
 import {
   createPostGenerationRequestSchema,
   createPostGenerationResponseSchema,
+  createPostRequestSchema,
+  createPostResponseSchema,
   deletePostResponseSchema,
   generationQueueErrorResponseSchema,
   getPostGenerationParamsSchema,
@@ -17,6 +19,7 @@ import {
 } from "@notra/schemas/api/content";
 
 import {
+  createPost,
   createPostGeneration,
   commitPatchPost,
   deletePost,
@@ -164,6 +167,47 @@ const patchPostRoute = createRoute({
     403: errorResponse("Forbidden"),
     404: errorResponse("Post not found"),
     409: errorResponse("Post slug already exists or concurrent modification"),
+    429: rateLimitResponse(
+      RATE_LIMITS.postUpdate.requests,
+      RATE_LIMITS.postUpdate.window,
+      "API key"
+    ),
+    503: errorResponse("Authentication service unavailable"),
+  },
+});
+
+const createPostRoute = createRoute({
+  method: "post",
+  path: "/posts",
+  tags: ["Content"],
+  operationId: "createPost",
+  summary: "Create a post",
+  description:
+    "Creates a post directly without generation. Omit markdown to create an empty draft you fill in later through the dashboard or PATCH /v1/posts/{postId}. Slugs are only accepted for blog posts and changelogs.",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: createPostRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    201: {
+      description: "Post created successfully",
+      content: {
+        "application/json": {
+          schema: createPostResponseSchema,
+        },
+      },
+    },
+    400: errorResponse("Invalid request body"),
+    401: errorResponse("Missing or invalid API key"),
+    403: errorResponse("Forbidden"),
+    404: errorResponse("Organization not found"),
+    409: errorResponse("Post slug already exists"),
     429: rateLimitResponse(
       RATE_LIMITS.postUpdate.requests,
       RATE_LIMITS.postUpdate.window,
@@ -429,6 +473,55 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
   }
 
   return c.json({ post: serializePost(post), organization }, 200);
+});
+
+postsRoutes.openapi(createPostRoute, async (c) => {
+  const orgId = getOrganizationId(c);
+  if (!orgId) {
+    return c.json(
+      { error: "Forbidden: API key must be scoped to an organization" },
+      403
+    );
+  }
+
+  const organization = await requireOrganization(c, orgId);
+  if (!organization) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const body = c.req.valid("json");
+
+  const rateLimited = await enforceRatelimit(c, ratelimit.postUpdate);
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const result = await runPostProgram(
+    createPost({
+      db: c.get("db"),
+      organizationId: orgId,
+      body,
+    })
+  );
+
+  if (result._tag === "Failure") {
+    const response = respondToPostFailure(c, result.failure);
+    if (response) {
+      return response;
+    }
+    throw result.failure;
+  }
+
+  const { post } = result.success;
+
+  if (post.status === "published") {
+    void runGeoEffect(
+      "rescanForPost",
+      requestGeoRescanForPost({ organizationId: orgId, postId: post.id })
+    );
+  }
+
+  return c.json({ post: serializePost(post), organization }, 201);
 });
 
 postsRoutes.openapi(createPostGenerationRoute, async (c) => {

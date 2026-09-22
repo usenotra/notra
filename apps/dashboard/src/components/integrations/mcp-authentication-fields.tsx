@@ -48,19 +48,33 @@ export function McpAuthenticationFields({
             }}
             value={authTypeField.state.value}
           >
-            <TabsList className="grid h-9 w-full grid-cols-3">
-              {MCP_AUTH_OPTIONS.map((option) => (
-                <TabsTrigger
-                  disabled={
-                    lockAuthType && option.value !== authTypeField.state.value
-                  }
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {lockAuthType ? (
+              <p className="text-sm">
+                {
+                  MCP_AUTH_OPTIONS.find(
+                    (option) => option.value === authTypeField.state.value
+                  )?.label
+                }
+                <span className="text-muted-foreground">
+                  {" "}
+                  · Set by this integration
+                </span>
+              </p>
+            ) : (
+              <TabsList className="grid h-9 w-full grid-cols-3">
+                {MCP_AUTH_OPTIONS.map((option) => (
+                  <TabsTrigger
+                    disabled={
+                      lockAuthType && option.value !== authTypeField.state.value
+                    }
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            )}
             <TabsContent value="none">
               <p className="text-muted-foreground text-sm">
                 Connect to a public MCP server without credentials.

@@ -12,6 +12,12 @@ export interface TableColumn<T> {
   key: string;
   /** Header content. */
   header: ReactNode;
+  /**
+   * Explains what the column counts, on an info icon beside the header. For
+   * columns whose name alone leaves the reader guessing how they relate to
+   * their neighbours.
+   */
+  hint?: ReactNode;
   /** Allow clicking the header to sort by this column. */
   sortable?: boolean;
   /** Cell text alignment. */
@@ -20,6 +26,12 @@ export interface TableColumn<T> {
   width?: string;
   /** Floor for this column. Defaults to the header label plus sort/padding chrome so titles never ellipsize. */
   minWidth?: string;
+  /**
+   * Lets the column drop out when the table is narrower than its column
+   * floors, instead of scrolling sideways. Higher numbers are hidden first;
+   * columns without a priority always stay.
+   */
+  collapsePriority?: number;
   /** Custom cell renderer. Falls back to `row[key]`. */
   cell?: (row: T) => ReactNode;
   /** Render an inline text input for this column's cells (ignored when `cell` is set). */
@@ -30,7 +42,7 @@ export interface TableColumn<T> {
 
 export type InsertPosition = "before" | "after";
 
-export interface TableProps<T> {
+interface TableBaseProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   /** Stable id per row, required for correct selection across sorts. Defaults to row index. */
@@ -67,8 +79,6 @@ export interface TableProps<T> {
   onDeleteColumn?: (columnKey: string, index: number) => void;
   /** Fixed row height in px — required for virtualization. */
   rowHeight?: number;
-  /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
-  rowSizing?: "fixed" | "content";
   /** Scroll viewport height in px. */
   height?: number;
   /** Floor for the table body when there are fewer rows than `height` allows. */
@@ -77,8 +87,17 @@ export interface TableProps<T> {
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */
   onEndReached?: () => void;
-  /** Currently fetching — shows skeleton rows and pauses `onEndReached`. */
+  /**
+   * Currently fetching — pauses `onEndReached`. Empty tables fill with
+   * skeleton rows; tables that already have rows dim in place. Load-more
+   * (`onEndReached`) still appends `skeletonRows` at the bottom.
+   */
   loading?: boolean;
+  /**
+   * Next-page fetch on an infinite list. Defaults to whether `onEndReached`
+   * is set; pass this when that callback is cleared during the fetch.
+   */
+  loadingMore?: boolean;
   /** How many skeleton rows to show while loading more (default 3). */
   skeletonRows?: number;
   /** Called when a row is clicked or activated with Enter/Space. */
@@ -106,8 +125,25 @@ export interface TableProps<T> {
   flushBottom?: boolean;
   /** Pad the header band so the table can tuck 20px under the rounded bottom of a surface above it. */
   overlapTop?: boolean;
+  /** Fade the bottom edge while more rows can be scrolled into view. Default on. */
+  scrollFade?: boolean;
   className?: string;
 }
+
+export type TableProps<T> = TableBaseProps<T> &
+  (
+    | {
+        /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
+        rowSizing?: "fixed" | "content";
+        renderRowDetail?: never;
+      }
+    | {
+        /** Detail rows require content sizing because fixed sizing relies on one row per estimate. */
+        rowSizing: "content";
+        /** Detail panel rendered in a full-width row beneath a row. Return null for collapsed rows. */
+        renderRowDetail: (row: T) => ReactNode;
+      }
+  );
 
 /** A data row paired with its stable id. */
 export interface TableRow<T> {

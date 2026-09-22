@@ -1,5 +1,6 @@
 const AUTHKIT_METADATA_PATH = "/.well-known/oauth-authorization-server";
-const METADATA_CACHE_CONTROL = "public, max-age=300";
+const METADATA_CACHE_CONTROL =
+  "public, max-age=300, s-maxage=300, stale-while-revalidate=600";
 const METADATA_ERROR_CACHE_CONTROL = "no-store";
 
 export async function fetchAuthKitAuthorizationServerMetadata() {

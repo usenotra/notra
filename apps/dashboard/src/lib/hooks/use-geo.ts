@@ -2,13 +2,12 @@
 
 import { AGENT_READINESS_POLL_INTERVAL_MS } from "@notra/geo-core/constants/agent-readiness";
 import {
-  AI_TRAFFIC_LOG_FETCH_LIMIT,
-  AI_TRAFFIC_PAGES_FETCH_LIMIT,
   GEO_BRAND_SEARCH_MIN_QUERY_LENGTH,
   GEO_BRAND_SEARCH_STALE_MS,
   GEO_MODEL_CATALOG_STALE_MS,
   GEO_SCAN_POLL_INTERVAL_MS,
   GEO_START_SCAN_MUTATION_KEY,
+  GEO_TRAFFIC_LIVE_INTERVAL_MS,
 } from "@notra/geo-core/constants/geo";
 import type { AgentReadinessResponse } from "@notra/geo-core/types/agent-readiness";
 import type {
@@ -32,6 +31,7 @@ import type {
   GeoSettingsResponse,
   GeoSettingsUpsertInput,
   GeoTimeseriesResponse,
+  GeoJourneyStatsResponse,
   GeoTrafficJourneysResponse,
   GeoTrafficLogFilters,
   GeoTrafficLogResponse,
@@ -48,11 +48,6 @@ import type {
   GscSitesResponse,
   GscSyncResult,
 } from "@notra/geo-core/types/google-search-console";
-import {
-  toGeoTrafficLogPurposeFilter,
-  toGeoTrafficLogVisitorFilter,
-} from "@notra/geo-core/utils/ai-traffic";
-import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -87,10 +82,14 @@ import { withGeoProject } from "@/utils/geo-paths";
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
+  geoTrafficJourneysQueryInput,
+  geoTrafficLogQueryInput,
+  geoTrafficPagesQueryInput,
 } from "@/utils/geo-query-input";
 import { toGeoWindowInput } from "@/utils/geo-range";
 
 import { dashboardOrpc } from "../orpc/query";
+import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
 
@@ -174,6 +173,9 @@ async function invalidateGeoScanResultQueries(queryClient: QueryClient) {
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.competitorShare.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.geo.competitorDetail.key(),
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.geo.languageShare.key(),
@@ -294,13 +296,17 @@ export function useGeoSettingsLanguageAdd(organizationId: string) {
   });
 }
 
-export function useGeoOverview(organizationId: string, range?: GeoRangeQuery) {
+export function useGeoOverview(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  enabled = true
+) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoOverviewResponse>({
     ...dashboardOrpc.geo.overview.queryOptions({
       input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI visibility overview" },
   });
@@ -308,14 +314,15 @@ export function useGeoOverview(organizationId: string, range?: GeoRangeQuery) {
 
 export function useGeoTimeseries(
   organizationId: string,
-  range?: GeoRangeQuery
+  range?: GeoRangeQuery,
+  enabled = true
 ) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTimeseriesResponse>({
     ...dashboardOrpc.geo.timeseries.queryOptions({
       input: { organizationId, projectId, ...toGeoWindowInput(range) },
     }),
-    enabled: !!organizationId,
+    enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI visibility trend" },
   });
@@ -341,11 +348,17 @@ export function useGeoPromptResultDetail(
   organizationId: string,
   checkId: string | null
 ) {
+  const input = { organizationId, checkId: checkId ?? "" };
   return useQuery({
     ...dashboardOrpc.geo.promptResultDetail.queryOptions({
-      input:
-        organizationId && checkId ? { organizationId, checkId } : skipToken,
+      input: organizationId && checkId ? input : skipToken,
     }),
+    enabled: Boolean(organizationId && checkId),
+    staleTime: Number.POSITIVE_INFINITY,
+    // Keep a selected answer loading when users switch models. Consuming the
+    // generated AbortSignal would otherwise surface normal switches as failed
+    // requests and throw away work that is useful when they switch back.
+    queryFn: () => dashboardOrpc.geo.promptResultDetail.call(input),
   });
 }
 
@@ -376,7 +389,7 @@ export function useGeoChanges(organizationId: string) {
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
-    placeholderData: keepPreviousData,
+    placeholderData: useScopedPreviousData<GeoChangesResponse>(projectId),
     meta: { errorMessage: "Failed to load scan changes" },
   });
 }
@@ -419,7 +432,28 @@ export function useGeoCompetitorDetail(
       },
     }),
     enabled: !!organizationId && !!brand,
+    staleTime: Number.POSITIVE_INFINITY,
     meta: { errorMessage: "Failed to load competitor detail" },
+  });
+}
+
+export function useGeoCompetitorPromptSummary(
+  organizationId: string,
+  brand: string | null
+) {
+  const { projectId } = useGeoProjectScope();
+  return useQuery<GeoCompetitorDetailResponse>({
+    ...dashboardOrpc.geo.competitorDetail.queryOptions({
+      input: {
+        organizationId,
+        projectId,
+        brand: brand ?? "",
+        summaryOnly: true,
+      },
+    }),
+    enabled: !!organizationId && !!brand,
+    staleTime: Number.POSITIVE_INFINITY,
+    meta: { errorMessage: "Failed to load competitor summary" },
   });
 }
 
@@ -751,9 +785,12 @@ export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
   const { projectId } = useGeoProjectScope();
   return useQuery<AiTrafficResponse>({
     ...dashboardOrpc.geo.aiTraffic.queryOptions({
-      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+      input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
     enabled: !!organizationId,
+    placeholderData: useScopedPreviousData<AiTrafficResponse>(projectId),
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI traffic" },
   });
 }
@@ -766,18 +803,15 @@ export function useGeoTrafficLog(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficLogResponse>({
     ...dashboardOrpc.geo.trafficLog.queryOptions({
-      input: {
-        organizationId,
-        projectId,
-        limit: AI_TRAFFIC_LOG_FETCH_LIMIT,
-        visitorTypes: toGeoTrafficLogVisitorFilter(filters.visitorTypes),
-        categories: toGeoTrafficLogPurposeFilter(filters.categories),
-        host: trafficLogHostFilter(options?.host),
-      },
+      input: geoTrafficLogQueryInput(
+        { organizationId, projectId },
+        filters,
+        options?.host
+      ),
     }),
     enabled: !!organizationId,
-    placeholderData: keepPreviousData,
-    refetchInterval: options?.refetchInterval,
+    placeholderData: useScopedPreviousData<GeoTrafficLogResponse>(projectId),
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
     refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI tracking log" },
   });
@@ -791,15 +825,16 @@ export function useGeoTrafficPages(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficPagesResponse>({
     ...dashboardOrpc.geo.trafficPages.queryOptions({
-      input: {
-        organizationId,
-        projectId,
-        limit: AI_TRAFFIC_PAGES_FETCH_LIMIT,
-        ...toGeoWindowInput(range),
-        host: trafficLogHostFilter(host),
-      },
+      input: geoTrafficPagesQueryInput(
+        { organizationId, projectId },
+        range,
+        host
+      ),
     }),
     enabled: !!organizationId,
+    placeholderData: useScopedPreviousData<GeoTrafficPagesResponse>(projectId),
+    refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
+    refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load top AI pages" },
   });
 }
@@ -812,11 +847,30 @@ export function useGeoTrafficJourneys(
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoTrafficJourneysResponse>({
     ...dashboardOrpc.geo.trafficJourneys.queryOptions({
-      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+      input: geoTrafficJourneysQueryInput({ organizationId, projectId }, range),
     }),
     enabled: enabled && !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load AI journeys" },
+  });
+}
+
+export function useGeoJourneyStats(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  enabled = true
+) {
+  const { projectId } = useGeoProjectScope();
+  return useQuery<GeoJourneyStatsResponse>({
+    ...dashboardOrpc.geo.journeyStats.queryOptions({
+      input: geoOverviewQueryInput({ organizationId, projectId }, range),
+    }),
+    enabled: enabled && !!organizationId,
+    placeholderData: keepPreviousData,
+    meta: {
+      errorMessage: "Failed to load journey trends",
+      showRetryAction: true,
+    },
   });
 }
 
@@ -840,11 +894,32 @@ export function useGeoJourneyDetail(
   });
 }
 
+export function usePrefetchGeoJourneyDetail(organizationId: string) {
+  const queryClient = useQueryClient();
+  const { projectId } = useGeoProjectScope();
+
+  return (journeyId: string) => {
+    if (!organizationId || journeyId.length === 0) {
+      return;
+    }
+    return queryClient.prefetchQuery(
+      dashboardOrpc.geo.journeyDetail.queryOptions({
+        input: {
+          organizationId,
+          projectId,
+          journeyId,
+          ...toGeoWindowInput(undefined),
+        },
+      })
+    );
+  };
+}
+
 export function useGeoIngestSetup(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoIngestSetupResponse>({
     ...dashboardOrpc.geo.ingestSetup.queryOptions({
-      input: { organizationId, projectId },
+      input: geoSettingsQueryInput({ organizationId, projectId }),
     }),
     enabled: !!organizationId,
     meta: { errorMessage: "Failed to load tracking setup" },
@@ -1074,6 +1149,27 @@ function useInvalidateSuggestionQueries(organizationId: string) {
       }),
     ]);
   };
+}
+
+export function useGeoSequencesGenerate(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      dashboardOrpc.geo.sequencesGenerate.call({ organizationId, projectId }),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({
+        queryKey: geoDbOrgQueryKey("sequences", organizationId),
+      });
+      const count = response.sequences.length;
+      toast.success(
+        `Added ${count} ${count === 1 ? "conversation" : "conversations"}`
+      );
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, "Failed to generate conversations"));
+    },
+  });
 }
 
 export function useGeoSuggestionAccept(organizationId: string) {

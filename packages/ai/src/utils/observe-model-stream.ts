@@ -1,14 +1,14 @@
-import type { LanguageModelV3StreamPart } from "@ai-sdk/provider";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import type { ModelCallTelemetry } from "@notra/ai/types/model-call-telemetry";
 
 /** Observes consumption without buffering ahead or changing provider chunks. */
 export function observeModelStream(
-  stream: ReadableStream<LanguageModelV3StreamPart>,
+  stream: ReadableStream<LanguageModelV4StreamPart>,
   telemetry: ModelCallTelemetry
-): ReadableStream<LanguageModelV3StreamPart> {
+): ReadableStream<LanguageModelV4StreamPart> {
   const reader = stream.getReader();
   let responseId: string | undefined;
-  return new ReadableStream<LanguageModelV3StreamPart>(
+  return new ReadableStream<LanguageModelV4StreamPart>(
     {
       async pull(controller) {
         try {

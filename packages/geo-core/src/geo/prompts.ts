@@ -171,6 +171,46 @@ const TO_VERB_REGEX =
   /\bto\s+(generate|create|send|build|track|manage|automate|write|deliver|host)\s+(.+)$/i;
 const WRAPPER_NOUN_REGEX =
   /\b(platform|tool|software|solution|service|app|product|toolkit|suite|system)\b/gi;
+/**
+ * "a developer-tools startup building deployment workflows" describes the
+ * company, not the category. Prefer what such a company builds or offers.
+ */
+const COMPANY_CLAUSE_REGEX =
+  /\b(?:startup|company|business|agency|studio|vendor|provider)\s+(?:that\s+(?:builds|makes|offers|provides)|building|making|offering|providing|developing|creating)\s+(.+)$/i;
+/**
+ * "a provider that helps b2b sales teams close more deals": the audience can
+ * be any length, so anchor on the action verb instead of counting words.
+ */
+const HELPS_ACTION_VERBS =
+  "generate|create|send|build|track|manage|automate|write|deliver|host|close|run|ship|grow|find|hire|sell|monitor|analyze|schedule|publish";
+const COMPANY_NOUNS = "startup|company|business|agency|studio|vendor|provider";
+const AUDIENCE_NOUNS =
+  "teams?|companies|businesses|developers|marketers|startups|enterprises|agencies|people|users|customers|organizations|founders|engineers|designers";
+/**
+ * Prefer the verb right after the audience noun ("helps track teams find …"
+ * reads "find …", not "track …"); fall back to the last verb in the clause.
+ */
+const COMPANY_HELPS_AUDIENCE_REGEX = new RegExp(
+  `\\b(?:${COMPANY_NOUNS})\\s+that\\s+helps\\s+(?:.+?\\s+)?(?:${AUDIENCE_NOUNS})\\s+(?:to\\s+)?(${HELPS_ACTION_VERBS})\\s+(.+)$`,
+  "i"
+);
+const COMPANY_HELPS_REGEX = new RegExp(
+  `\\b(?:${COMPANY_NOUNS})\\s+that\\s+helps\\s+.+\\s+(?:to\\s+)?(${HELPS_ACTION_VERBS})\\s+(.+)$`,
+  "i"
+);
+/**
+ * "for freelancers" / "for students" are audiences even though the noun is
+ * not in AUDIENCE_LIKE_REGEX: an explicit list of buyer roles. No suffix
+ * heuristics, because "plants" or "variants" share endings with people
+ * nouns. Anything else ("for kubernetes clusters", "for the maritime
+ * logistics industry") stays part of the category.
+ */
+const PEOPLE_TAIL_REGEX =
+  /\b(freelancers?|students?|creators?|sellers?|merchants?|recruiters?|professionals?|consultants?|coaches|solopreneurs?|entrepreneurs?|owners?|managers?|leaders?|executives?|admins?|teachers?|educators?|schools?|universities|nonprofits?|restaurants?|hotels?|retailers?|brands?|shops?|stores?|clinics?|doctors?|dentists?|lawyers?|firms?|accountants?|realtors?|landlords?|parents?|kids|gamers?|artists?|musicians?|photographers?|writers?|bloggers?|podcasters?|influencers?|streamers?|smbs?|smes?|saas|b2b|b2c|specialists?|therapists?|dentists?|scientists?|analysts?|journalists?|accountants?|assistants?|consultants?|technicians?|physicians?|clinicians?|electricians?|musicians?|employees?|trainees?|attendees?|entrepreneurs?)\b/i;
+const COMPANY_NOUN_REGEX =
+  /\b(startup|company|business|agency|studio|vendor|provider)\b/gi;
+const SLASH_REGEX = /\s*\/\s*/g;
+const TRAILING_FOR_CLAUSE_REGEX = /\s+for\s+(.+)$/i;
 const TYPE_BEFORE_WRAPPER_REGEX =
   /^(.+?)\s+(?:platform|tool|software|solution|service|app|product|toolkit|suite|system)\b/i;
 const TRAILING_FLUFF_REGEX = /\s+(built|designed|made|created|used|offered)$/i;
@@ -201,6 +241,7 @@ function condense(value: string, maxWords: number): string {
 
 function cleanPhrase(value: string): string {
   return value
+    .replace(SLASH_REGEX, " and ")
     .replace(TRAILING_HYPE_REGEX, "")
     .replace(TRAILING_FLUFF_REGEX, "")
     .replace(TRAILING_PUNCTUATION_REGEX, "")
@@ -208,13 +249,43 @@ function cleanPhrase(value: string): string {
     .trim();
 }
 
+/**
+ * Drop a trailing "for <audience>" but keep "for <domain>": "software for
+ * marketing teams" loses the tail, "compliance software for the maritime
+ * logistics industry" keeps it because that clause defines the category.
+ */
+function isAudienceTail(clause: string): boolean {
+  return AUDIENCE_LIKE_REGEX.test(clause) || PEOPLE_TAIL_REGEX.test(clause);
+}
+
+function stripAudienceTail(value: string): string {
+  const match = value.match(TRAILING_FOR_CLAUSE_REGEX);
+  if (!match?.[1] || match.index === undefined || !isAudienceTail(match[1])) {
+    return value;
+  }
+  const head = value.slice(0, match.index).trim();
+  return head.length > 0 ? head : value;
+}
+
 function nounPhraseFromType(typePhrase: string): string {
   const trimmed = cleanPhrase(typePhrase);
+  const helps =
+    trimmed.match(COMPANY_HELPS_AUDIENCE_REGEX) ??
+    trimmed.match(COMPANY_HELPS_REGEX);
+  if (helps?.[1] && helps[2]) {
+    return cleanPhrase(stripAudienceTail(`${helps[1]} ${helps[2]}`));
+  }
+  const companyClause = trimmed.match(COMPANY_CLAUSE_REGEX)?.[1];
+  if (companyClause) {
+    return cleanPhrase(stripAudienceTail(companyClause));
+  }
   const beforeWrapper = trimmed.match(TYPE_BEFORE_WRAPPER_REGEX)?.[1];
   if (beforeWrapper && !WEAK_CATEGORY_REGEX.test(beforeWrapper.trim())) {
     return cleanPhrase(beforeWrapper);
   }
-  return cleanPhrase(trimmed.replace(WRAPPER_NOUN_REGEX, ""));
+  return cleanPhrase(
+    trimmed.replace(WRAPPER_NOUN_REGEX, "").replace(COMPANY_NOUN_REGEX, "")
+  );
 }
 
 function finalizeCategory(value: string, brandTerms: string[]): string | null {
@@ -293,9 +364,9 @@ function deriveCategory(
     }
   }
 
-  const leftover = stripped
-    .replace(LEADING_FILLER_REGEX, "")
-    .replace(WRAPPER_NOUN_REGEX, "");
+  const leftover = stripAudienceTail(
+    stripped.replace(LEADING_FILLER_REGEX, "")
+  ).replace(WRAPPER_NOUN_REGEX, "");
   return finalizeCategory(leftover, brandTerms) ?? CATEGORY_FALLBACK;
 }
 
@@ -332,38 +403,44 @@ export function buildGeoPrompts(
   );
   const audience = deriveAudience(brand?.audience ?? null, brandTerms);
 
+  // Same slug ids as before (pause/remove state is keyed by them), but each
+  // template opens differently so the list does not read as one sentence
+  // repeated eight times.
   const prompts: GeoPromptDefinition[] = [
-    { id: "best-tools", text: `what tools should I use for ${category}` },
+    {
+      id: "best-tools",
+      text: `what's the best option for ${category} right now`,
+    },
     {
       id: "alternatives",
-      text: `what's a good alternative for ${category}`,
+      text: `looking for an alternative for ${category}, what are people switching to`,
     },
     {
       id: "recommendation",
-      text: `what tool can I use for ${category}`,
+      text: `can you recommend something for ${category}`,
     },
     {
       id: "comparison",
-      text: `what tools should I compare for ${category}`,
+      text: `which tools for ${category} are worth comparing before i pick one`,
     },
     {
       id: "what-is",
-      text: `how do I get started with ${category}`,
+      text: `how do i get started with ${category}`,
     },
     {
       id: "how-to-choose",
-      text: `how do I pick a tool for ${category}`,
+      text: `what should i look for when choosing something for ${category}`,
     },
     {
       id: "top-list",
-      text: `what tools should I look at for ${category}`,
+      text: `top options for ${category} that people actually use`,
     },
   ];
 
   if (audience) {
     prompts.push({
       id: "audience-specific",
-      text: `what tools should I use for ${category} for ${audience}`,
+      text: `best ${category} option for ${audience}`,
     });
   }
 

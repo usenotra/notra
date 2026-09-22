@@ -1,9 +1,10 @@
 {
-  "$schema": "https://v2-10-12.turborepo.dev/schema.json",
+  "$schema": "https://v2-10-13.turborepo.dev/schema.json",
   "ui": "tui",
   "globalDependencies": [".npmrc", "bunfig.toml", "scripts/prepare-effect.sh"],
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
+    "NOTRA_JEV_CLASSIFIERS",
     "APP_URL",
     "AUTUMN_PROD_SECRET_KEY",
     "AUTUMN_SECRET_KEY",
@@ -25,6 +26,7 @@
     "GITHUB_APP_ID",
     "GITHUB_APP_PRIVATE_KEY",
     "GITHUB_APP_SLUG",
+    "GITHUB_APP_WEBHOOK_SECRET",
     "GITHUB_TOKEN",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
@@ -110,7 +112,8 @@
     "FEEDBACK_INGEST_SECRET",
     "FEEDBACK_API_URL",
     "NOTRA_GEO_TOKEN",
-    "NOTRA_GEO_ENDPOINT"
+    "NOTRA_GEO_ENDPOINT",
+    "WEBHOOK_ENCRYPTION_KEY"
   ],
   "envMode": "strict",
   "tasks": {

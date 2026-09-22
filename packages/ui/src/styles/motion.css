@@ -44,12 +44,64 @@
   --ease-emphasized-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+@utility transition-width {
+  transition-property: width;
+}
+
 :root {
   /*
    * Kept as an alias so `ease-(--sidebar-ease)` call sites resolve to the
    * shared curve instead of their own copy of it.
    */
   --sidebar-ease: var(--ease-emphasized);
+}
+
+/* Shared timing for docked panels, sheets and their backdrops. */
+@utility panel-motion {
+  --tw-duration: var(--transition-duration-slow);
+  --tw-ease: var(--ease-emphasized);
+  transition-duration: var(--tw-duration);
+  transition-timing-function: var(--tw-ease);
+
+  &[data-closed],
+  &[data-ending-style] {
+    --tw-duration: var(--transition-duration-normal);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility sheet-motion {
+  transition-property: transform;
+  --sheet-exit-x: 0px;
+  --sheet-exit-y: 0px;
+
+  &[data-side="right"] {
+    --sheet-exit-x: calc(100% + 1rem);
+  }
+  &[data-side="left"] {
+    --sheet-exit-x: calc(-100% - 1rem);
+  }
+  &[data-side="top"] {
+    --sheet-exit-y: calc(-100% - 1rem);
+  }
+  &[data-side="bottom"] {
+    --sheet-exit-y: calc(100% + 1rem);
+  }
+  &[data-side="right"][data-nested-dialog-open]:not([data-ending-style]) {
+    transform: translateX(-0.5rem) scale(0.98);
+  }
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translate(var(--sheet-exit-x), var(--sheet-exit-y));
+  }
+
+  /* Selected-detail sheets can mount with open=true, without a closed frame. */
+  @starting-style {
+    transform: translate(var(--sheet-exit-x), var(--sheet-exit-y));
+  }
 }
 
 /*

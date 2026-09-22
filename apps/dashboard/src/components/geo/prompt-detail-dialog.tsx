@@ -24,9 +24,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { tween } from "@notra/ui/lib/motion";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
@@ -49,6 +54,7 @@ import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoPromptResultDetail } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type {
   PromptAnswerPageProps,
@@ -69,9 +75,6 @@ import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
-
-const INSTANT = { duration: 0 } as const;
-const SLIDE_PX = 18;
 
 function usePromptDetailOpened({
   open,
@@ -97,20 +100,6 @@ function usePromptDetailOpened({
       prompt_id: promptId,
     });
   }, [engine, engineCount, open, promptId, surface]);
-}
-
-function threadVariants(reduceMotion: boolean) {
-  return {
-    enter: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * SLIDE_PX,
-    }),
-    center: { opacity: 1, x: 0 },
-    exit: (direction: number) => ({
-      opacity: 0,
-      x: reduceMotion ? 0 : direction * -SLIDE_PX,
-    }),
-  };
 }
 
 function latestPromptCheckAt(
@@ -194,14 +183,14 @@ function PromptAnswerHeader({
           />
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <div>
-          <dt className="text-muted-foreground text-xs">Intent</dt>
-          <dd>{geoPromptIntentLabel(row.intent)}</dd>
+      <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+        <div className="flex items-center gap-1.5">
+          <dt className="text-muted-foreground">Intent</dt>
+          <dd className="font-medium">{geoPromptIntentLabel(row.intent)}</dd>
         </div>
-        <div>
-          <dt className="text-muted-foreground text-xs">Best position</dt>
-          <dd className="tabular-nums">
+        <div className="flex items-center gap-1.5">
+          <dt className="text-muted-foreground">Best position</dt>
+          <dd className="font-medium tabular-nums">
             {row.bestPosition === null ? "Not ranked" : `#${row.bestPosition}`}
           </dd>
         </div>
@@ -380,7 +369,27 @@ function PromptAnswerTagsFooter({
   );
 }
 
-function PromptAnswerPage({
+function useSheetArrowKeys(
+  onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sheet = ref.current?.closest<HTMLElement>(
+      "[data-slot=sheet-content]"
+    );
+    if (!sheet) {
+      return;
+    }
+    const listener = (event: KeyboardEvent) => {
+      onKeyDown(event as unknown as ReactKeyboardEvent<HTMLElement>);
+    };
+    sheet.addEventListener("keydown", listener);
+    return () => sheet.removeEventListener("keydown", listener);
+  }, [onKeyDown]);
+  return ref;
+}
+
+export function PromptAnswerPage({
   onPrepareScan,
   row,
   open,
@@ -423,12 +432,9 @@ function PromptAnswerPage({
   const [view, setView] = useState<GeoPromptReceiptView>("analysis");
   const [selectedCheck, setSelectedCheck] =
     useState<GeoPromptHistoryCheck | null>(null);
-  const [direction, setDirection] = useState(1);
-  const reduceMotion = useReducedMotion();
   const { competitors } = useGeoCompetitorsDb(organizationId, {
     enabled: open,
   });
-  const threadTransition = reduceMotion ? INSTANT : tween("slow", "emphasized");
   const showLanguageBar = Boolean(scanId) && languages.length > 1;
 
   usePromptDetailOpened({
@@ -439,11 +445,10 @@ function PromptAnswerPage({
     promptId: row.id,
   });
 
-  function selectEngine(next: string, nextDirection: number) {
+  function selectEngine(next: string) {
     if (next === engine) {
       return;
     }
-    setDirection(nextDirection);
     setEngine(next);
     setSelectedCheck(null);
   }
@@ -460,7 +465,7 @@ function PromptAnswerPage({
     setView("raw");
   }
 
-  function handleArrowNavigation(event: KeyboardEvent<HTMLElement>) {
+  function handleArrowNavigation(event: ReactKeyboardEvent<HTMLElement>) {
     const delta = promptEngineArrowDelta(event, results.length);
     if (delta === null) {
       return;
@@ -468,17 +473,14 @@ function PromptAnswerPage({
 
     event.preventDefault();
     selectEngine(
-      adjacentPromptEngine(engines, active?.engine ?? engine, delta),
-      delta
+      adjacentPromptEngine(engines, active?.engine ?? engine, delta)
     );
   }
 
+  const frameRef = useSheetArrowKeys(handleArrowNavigation);
+
   return (
-    <SheetContent
-      className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
-      onKeyDown={handleArrowNavigation}
-      side="right"
-    >
+    <div className="contents" ref={frameRef}>
       <PromptAnswerHeader
         promptText={promptText}
         onPrepareScan={onPrepareScan}
@@ -509,42 +511,34 @@ function PromptAnswerPage({
               : undefined
           )}
         >
-          <AnimatePresence custom={direction} initial={false} mode="popLayout">
-            {active ? (
-              <motion.div
-                animate="center"
-                className="flex min-h-full min-w-0 flex-col"
-                custom={direction}
-                exit="exit"
-                initial="enter"
-                key={active.engine}
-                transition={threadTransition}
-                variants={threadVariants(Boolean(reduceMotion))}
-              >
-                <PromptAnswerBody
-                  organizationId={organizationId}
-                  competitors={competitors}
-                  detailState={detailState}
-                  history={engineHistory}
-                  isHistoryLoading={history.isPending}
-                  onBackToLatest={() => setSelectedCheck(null)}
-                  onRetry={onRetry}
-                  onSelectCheck={openHistoryAnswer}
-                  prompt={promptText}
-                  scanPromptId={scanPromptId}
-                  selectedCheck={selectedCheck}
-                  view={view}
-                />
-              </motion.div>
-            ) : (
-              <PromptAnswerEmpty
+          {active ? (
+            <div
+              className="flex min-h-full min-w-0 flex-col"
+              key={active.engine}
+            >
+              <PromptAnswerBody
+                organizationId={organizationId}
+                competitors={competitors}
                 detailState={detailState}
-                isScanning={isScanning}
+                history={engineHistory}
+                isHistoryLoading={history.isPending}
+                onBackToLatest={() => setSelectedCheck(null)}
                 onRetry={onRetry}
+                onSelectCheck={openHistoryAnswer}
+                prompt={promptText}
+                scanPromptId={scanPromptId}
+                selectedCheck={selectedCheck}
                 view={view}
               />
-            )}
-          </AnimatePresence>
+            </div>
+          ) : (
+            <PromptAnswerEmpty
+              detailState={detailState}
+              isScanning={isScanning}
+              onRetry={onRetry}
+              view={view}
+            />
+          )}
         </div>
         {view === "analysis" ? (
           <PromptAnswerTagsFooter
@@ -558,6 +552,25 @@ function PromptAnswerPage({
           />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+const PROMPT_ANSWER_SHEET_CLASS =
+  "gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
+
+/**
+ * The slide lives on the popup. Keep this node mounted for the whole open
+ * session and swap only its children, or loading → ready replays the enter.
+ */
+export function PromptAnswerSheetContent({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <SheetContent className={PROMPT_ANSWER_SHEET_CLASS} side="right">
+      {children}
     </SheetContent>
   );
 }
@@ -565,7 +578,8 @@ function PromptAnswerPage({
 export function PromptDetailDialog({
   open,
   onOpenChange,
-  row,
+  onOpenChangeComplete,
+  row: rowProp,
   isScanning = false,
   surface,
   organizationId,
@@ -576,21 +590,31 @@ export function PromptDetailDialog({
   const { activeOrganization } = useOrganizationsContext();
   const scanControls = useGeoScanControls();
   const resolvedOrganizationId = organizationId ?? activeOrganization?.id ?? "";
+  const [row, releaseRow] = useRetainedValue(rowProp);
 
   const content = row ? (
-    <Sheet onOpenChange={onOpenChange} open={open}>
-      <PromptAnswerPage
-        onPrepareScan={() => onOpenChange(false)}
-        initialEngine={initialEngine}
-        initialLanguage={initialLanguage}
-        scanId={scanId}
-        isScanning={isScanning}
-        key={`${row.id}-${scanId ?? "latest"}`}
-        open={open}
-        organizationId={resolvedOrganizationId}
-        row={row}
-        surface={surface}
-      />
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={(nextOpen) => {
+        releaseRow(nextOpen);
+        onOpenChangeComplete?.(nextOpen);
+      }}
+      open={open}
+    >
+      <PromptAnswerSheetContent>
+        <PromptAnswerPage
+          onPrepareScan={() => onOpenChange(false)}
+          initialEngine={initialEngine}
+          initialLanguage={initialLanguage}
+          scanId={scanId}
+          isScanning={isScanning}
+          key={`${row.id}-${scanId ?? "latest"}`}
+          open={open}
+          organizationId={resolvedOrganizationId}
+          row={row}
+          surface={surface}
+        />
+      </PromptAnswerSheetContent>
     </Sheet>
   ) : null;
   return scanControls ? (

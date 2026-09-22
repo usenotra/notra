@@ -40,6 +40,13 @@ export function uniqueVisibilityPrompts(
   return unique.slice(0, ONBOARDING_VISIBILITY_MAX_PROMPTS);
 }
 
+export function selectedVisibilityPrompts(
+  prompts: readonly GeoDiscoveredPrompt[],
+  droppedKeys: ReadonlySet<string>
+): GeoDiscoveredPrompt[] {
+  return prompts.filter((entry) => !droppedKeys.has(promptKey(entry.prompt)));
+}
+
 export function toVisibilityBrandInput(
   input: VisibilityBrandDraft
 ): Omit<GeoOnboardingBrandInput, "organizationId" | "projectId"> {
@@ -49,6 +56,7 @@ export function toVisibilityBrandInput(
       const trimmed = alias.trim();
       return trimmed ? [trimmed] : [];
     }),
+    audienceType: input.audienceType,
     prompts: uniqueVisibilityPrompts(
       input.prompts,
       buildBrandTerms({

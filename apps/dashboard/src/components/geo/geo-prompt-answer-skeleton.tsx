@@ -46,7 +46,7 @@ export function GeoPromptAnswerSkeleton({
     <div
       aria-busy="true"
       aria-label={GEO_PROMPT_ANSWER_LOADING_LABEL}
-      className="min-h-full flex-1"
+      className="min-h-0 flex-1 overflow-y-auto"
       role="status"
     >
       {view === "raw" ? <RawAnswerSkeleton /> : <AnalysisAnswerSkeleton />}

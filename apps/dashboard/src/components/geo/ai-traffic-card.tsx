@@ -4,7 +4,6 @@ import {
   GEO_EMPTY_TRAFFIC_RESPONSE,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_SPARKLINE_TREND_CLASS,
-  GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
 } from "@notra/geo-core/constants/geo";
 import {
   buildTrafficTrendRows,
@@ -19,19 +18,16 @@ import { useMemo, useState } from "react";
 
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { TrafficHero } from "@/components/geo/traffic-hero";
-import { TrafficMarkdownCell } from "@/components/geo/traffic-markdown-cell";
 import { TrafficPurposeCell } from "@/components/geo/traffic-purpose-cell";
 import { TrafficSourceGroupCell } from "@/components/geo/traffic-source-group-cell";
+import { TrafficSourceSheet } from "@/components/geo/traffic-source-sheet";
 import { TrafficSourcesStack } from "@/components/geo/traffic-sources-group";
 import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import type { TableColumn } from "@/components/motion/table";
-import {
-  TRAFFIC_SOURCE_COLUMN_MIN_WIDTH,
-  TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS,
-} from "@/constants/geo-traffic-sources";
+import { TRAFFIC_SOURCE_COLUMN_MIN_WIDTH } from "@/constants/geo-traffic-sources";
 import type {
   AiTrafficCardProps,
   GeoTrafficSourceBand,
@@ -43,7 +39,12 @@ import {
   trafficGroupKey,
 } from "@/utils/ai-traffic-groups";
 
-export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
+export function AiTrafficCard({
+  traffic,
+  pages,
+  settingsHref,
+  isPending = false,
+}: AiTrafficCardProps) {
   const { sources, totals, points, previousConversions } =
     traffic ?? GEO_EMPTY_TRAFFIC_RESPONSE;
   const previousTotals = toGeoTrafficPreviousTotals(
@@ -65,6 +66,7 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
       }
       return next;
     });
+  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const sparklineDays = useMemo(() => trafficSparklineDays(points), [points]);
   const canSparkline = hasTrafficSourceSeries(points);
@@ -88,6 +90,13 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
     return map;
   }, [canSparkline, groups, points, sparklineDays]);
 
+  const openGroup =
+    openGroupKey === null
+      ? null
+      : (groups.find(
+          (group) => trafficGroupKey(group.band, group.key) === openGroupKey
+        ) ?? null);
+
   const columns = useMemo<TableColumn<GeoTrafficSourceGroup>[]>(() => {
     const categorySize = isMobile
       ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.categoryMobile
@@ -95,9 +104,6 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
     const visitsSize = isMobile
       ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visitsMobile
       : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visits;
-    const pathsSize = isMobile
-      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.pathsMobile
-      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths;
     const next: TableColumn<GeoTrafficSourceGroup>[] = [
       {
         key: "source",
@@ -144,56 +150,41 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
           );
         },
       },
-      {
-        key: GEO_TRAFFIC_MARKDOWN_COLUMN_KEY,
-        header: "Markdown",
-        width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.markdown,
-        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.markdown,
-        sortable: true,
-        cell: (row) => {
-          if (row.markdownVisits <= 0) {
-            return <span className="tabular-nums">-</span>;
-          }
-
-          return (
-            <TrafficMarkdownCell
-              markdownVisits={row.markdownVisits}
-              visits={row.visits}
-            />
-          );
-        },
-        sortValue: (row) =>
-          row.visits === 0 ? 0 : row.markdownVisits / row.visits,
-      },
-      {
-        key: "paths",
-        header: "Pages",
-        width: pathsSize,
-        minWidth: pathsSize,
-        sortable: true,
-        cell: (row) => (
-          <span className="text-sm tabular-nums">{row.paths}</span>
-        ),
-      },
-      {
-        key: "lastSeenAt",
-        header: "Last seen",
-        width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
-        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
-        sortable: true,
-        cell: (row) => (
-          <span className="text-muted-foreground text-[0.6875rem] whitespace-nowrap tabular-nums">
-            {formatAiTrafficTimestamp(row.lastSeenAt)}
-          </span>
-        ),
-      },
     ];
 
-    return isMobile
-      ? next.filter(
-          (column) => !TRAFFIC_SOURCE_MOBILE_HIDDEN_COLUMNS.has(column.key)
-        )
-      : next;
+    if (!isMobile) {
+      next.push(
+        {
+          key: "paths",
+          header: "Pages",
+          collapsePriority: 1,
+          width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
+          minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
+          sortable: true,
+          align: "right",
+          cell: (row) => (
+            <span className="text-sm tabular-nums">
+              {row.paths.toLocaleString()}
+            </span>
+          ),
+        },
+        {
+          key: "lastSeenAt",
+          header: "Last seen",
+          collapsePriority: 2,
+          width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
+          minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
+          sortable: true,
+          cell: (row) => (
+            <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
+              {formatAiTrafficTimestamp(row.lastSeenAt)}
+            </span>
+          ),
+        }
+      );
+    }
+
+    return next;
   }, [isMobile, seriesByGroup]);
 
   if (sources.length === 0) {
@@ -222,9 +213,23 @@ export function AiTrafficCard({ traffic, settingsHref }: AiTrafficCardProps) {
           collapsed={collapsed}
           columns={columns}
           groups={groups}
+          loading={isPending}
+          onOpen={(group) =>
+            setOpenGroupKey(trafficGroupKey(group.band, group.key))
+          }
           onToggle={toggleCollapsed}
         />
       </InstrumentSection>
+      <TrafficSourceSheet
+        group={openGroup}
+        onOpenChange={(open) => {
+          if (!open) {
+            setOpenGroupKey(null);
+          }
+        }}
+        pages={pages}
+        series={openGroupKey ? (seriesByGroup.get(openGroupKey) ?? []) : []}
+      />
     </div>
   );
 }

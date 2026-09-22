@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AiMagicIcon,
   Delete02Icon,
   Loading03Icon,
   PencilEdit02Icon,
@@ -8,6 +9,7 @@ import {
   PlusSignIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_MAX_SEQUENCES } from "@notra/geo-core/constants/geo";
 import type { GeoPromptSequence } from "@notra/geo-core/types/geo";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
@@ -20,9 +22,13 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/button";
 import { ConversationBuilderDialog } from "@/components/geo/conversation-builder-dialog";
 import { ConversationResultsDialog } from "@/components/geo/conversation-results-dialog";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useGeoRunSequence } from "@/lib/hooks/use-geo";
+import {
+  useGeoRunSequence,
+  useGeoSequencesGenerate,
+} from "@/lib/hooks/use-geo";
 import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
 import type { ConversationsCardProps } from "@/types/geo";
 import { tableHeightFor } from "@/utils/table";
@@ -143,9 +149,15 @@ function ConversationRowActions({
 }
 
 export function ConversationsCard({ organizationId }: ConversationsCardProps) {
-  const { sequences, pendingSequenceIds, updateSequence, removeSequence } =
-    useGeoSequencesDb(organizationId);
+  const {
+    sequences,
+    isLoading,
+    pendingSequenceIds,
+    updateSequence,
+    removeSequence,
+  } = useGeoSequencesDb(organizationId);
   const runSequence = useGeoRunSequence(organizationId);
+  const generateSequences = useGeoSequencesGenerate(organizationId);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editing, setEditing] = useState<GeoPromptSequence | null>(null);
   const [viewing, setViewing] = useState<GeoPromptSequence | null>(null);
@@ -238,17 +250,35 @@ export function ConversationsCard({ organizationId }: ConversationsCardProps) {
             Multi-turn questions where buying decisions happen
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setBuilderOpen(true);
-          }}
-          size="sm"
-          variant="outline"
-        >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
-          New Conversation
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {!isLoading && sequences.length < GEO_MAX_SEQUENCES ? (
+            <Button
+              disabled={generateSequences.isPending}
+              onClick={() => generateSequences.mutate()}
+              size="sm"
+              variant="ghost"
+            >
+              {generateSequences.isPending ? (
+                <StatusSpinner />
+              ) : (
+                <HugeiconsIcon icon={AiMagicIcon} size={14} />
+              )}
+              {generateSequences.isPending ? "Generating…" : "Generate"}
+            </Button>
+          ) : null}
+          <Button
+            disabled={isLoading || sequences.length >= GEO_MAX_SEQUENCES}
+            onClick={() => {
+              setEditing(null);
+              setBuilderOpen(true);
+            }}
+            size="sm"
+            variant="outline"
+          >
+            <HugeiconsIcon icon={PlusSignIcon} size={14} />
+            New Conversation
+          </Button>
+        </div>
       </div>
 
       <Table
@@ -256,9 +286,14 @@ export function ConversationsCard({ organizationId }: ConversationsCardProps) {
         columns={columns}
         data={sequences}
         defaultSort={{ key: "name", direction: "asc" }}
-        emptyState="Track an opening question plus the follow-ups that close the deal"
+        emptyState={
+          generateSequences.isPending
+            ? "Writing conversations for your buyers…"
+            : "Track an opening question plus the follow-ups that close the deal, or generate a few to start"
+        }
         getRowId={(row) => row.id}
         height={tableHeightFor(Math.max(sequences.length, 2))}
+        loading={isLoading}
         onRowClick={setViewing}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}

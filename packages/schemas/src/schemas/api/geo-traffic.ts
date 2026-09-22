@@ -175,6 +175,7 @@ const journeySchema = z.object({
   distinctPaths: z.number().int(),
   firstSeenAt: z.string(),
   lastSeenAt: z.string(),
+  entryPath: z.string(),
   samplePaths: z.array(z.string()),
 });
 
@@ -249,6 +250,9 @@ const ingestSetupFieldsSchema = z.object({
     next: z.string(),
     nuxt: z.string(),
     netlify: z.string(),
+    tanstack: z.string(),
+    astro: z.string(),
+    sveltekit: z.string(),
   }),
   organization: organizationResponseSchema,
 });

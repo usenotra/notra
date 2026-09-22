@@ -10,7 +10,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogEntry } from "@notra/geo-core/types/geo";
 import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -24,7 +23,6 @@ import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { AI_TRAFFIC_PURPOSE_ICONS } from "@/constants/geo-purpose-icons";
-import { GEO_TRAFFIC_HOVER_DELAY_MS } from "@/constants/geo-traffic-hover";
 import type { CitationsTableProps } from "@/types/geo";
 import { countryName } from "@/utils/country";
 import {
@@ -40,7 +38,6 @@ function ProviderCell({ entry }: { entry: GeoTrafficLogEntry }) {
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
             aria-label={`${detail.title}, show details`}
@@ -102,7 +99,6 @@ function PurposeCell({ entry }: { entry: GeoTrafficLogEntry }) {
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={GEO_TRAFFIC_HOVER_DELAY_MS}
         render={
           <button
             aria-label={
@@ -202,6 +198,7 @@ const CITATIONS_COLUMNS: TableColumn<GeoTrafficLogEntry>[] = [
     key: "category",
     header: "Purpose",
     width: GEO_PURPOSE_COLUMN_WIDTH,
+    collapsePriority: 1,
     sortable: true,
     sortValue: (entry) =>
       AI_TRAFFIC_PURPOSE_LABELS[entry.category] ?? entry.category,
@@ -211,6 +208,7 @@ const CITATIONS_COLUMNS: TableColumn<GeoTrafficLogEntry>[] = [
     key: "country",
     header: "Country",
     width: "10.5rem",
+    collapsePriority: 2,
     sortable: true,
     sortValue: (row) => countryName(row.country),
     cell: (row) =>
@@ -234,7 +232,6 @@ export function CitationsTable({
   entries,
   height,
   loading = false,
-  pagination,
 }: CitationsTableProps) {
   return (
     <Table
@@ -242,17 +239,9 @@ export function CitationsTable({
       columns={CITATIONS_COLUMNS}
       data={entries}
       defaultSort={CITATIONS_DEFAULT_SORT}
-      footer={
-        pagination ? (
-          <TablePagination {...pagination} itemLabel="requests" />
-        ) : undefined
-      }
       getRowId={citationRowId}
       height={height}
       loading={loading}
-      onSortChange={pagination ? () => pagination.setPage(1) : undefined}
-      page={pagination?.page}
-      pageSize={pagination?.pageSize}
       resizable
       rowHeight={GEO_CITATIONS_ROW_HEIGHT}
     />

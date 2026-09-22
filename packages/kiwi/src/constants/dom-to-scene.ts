@@ -37,3 +37,15 @@ export const IGNORED_TAGS = new Set([
 export const MAX_LAYER_NAME_LENGTH = 80;
 export const SVG_GEOMETRY_SELECTOR =
   "path, circle, ellipse, rect, line, polyline, polygon";
+export const SVG_NS = "http://www.w3.org/2000/svg";
+export const SVG_USE_MAX_DEPTH = 8;
+export const SVG_SYMBOL_VIEWPORT_ATTRS = ["viewBox", "preserveAspectRatio"];
+export const SVG_USE_PLACEMENT_ATTRS = [
+  "x",
+  "y",
+  "width",
+  "height",
+  "transform",
+  "style",
+  "class",
+];

@@ -93,6 +93,7 @@ import { ApiKeyPermissionSelector } from "@/components/api-keys/permission-selec
 import { TrackingTokenCard } from "@/components/api-keys/tracking-token-card";
 import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -270,13 +271,11 @@ function getDefaultEditExpiration(
 
 function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
-        <p className="text-muted-foreground">
-          Manage API keys for programmatic access to your organization
-        </p>
-      </div>
+    <PageHeading
+      className="@min-[40rem]/main:items-center"
+      description="Manage API keys for programmatic access to your organization"
+      title="API Keys"
+    >
       <div className="flex items-center gap-2">
         <Button className="gap-1.5" onClick={onCreate}>
           <HugeiconsIcon className="size-4" icon={Add01Icon} />
@@ -306,7 +305,7 @@ function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
           </Tooltip>
         </TooltipProvider>
       </div>
-    </div>
+    </PageHeading>
   );
 }
 

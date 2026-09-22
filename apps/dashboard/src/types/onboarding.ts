@@ -1,7 +1,9 @@
 import type {
+  GeoAudienceType,
   GeoBrandSearchResult,
   GeoCompetitor,
   GeoDiscoveredPrompt,
+  GeoOnboardingStage,
   GeoWebsiteDiscovery,
 } from "@notra/geo-core/types/geo";
 import type { onboardingWorkspaceSchema } from "@notra/schemas/dashboard/onboarding/workspace";
@@ -17,8 +19,11 @@ export interface CompanyLogoResult {
   url: string | null;
 }
 
+export type OnboardingProgressHrefs = readonly (string | null)[];
+
 export interface PricingClientProps {
   slug: string;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface OnboardingExistingOrg {
@@ -34,6 +39,7 @@ export interface OnboardingExistingOrg {
 
 export interface WorkspaceFormProps {
   existingOrg?: OnboardingExistingOrg;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface OnboardingSplitLayoutProps {
@@ -42,6 +48,16 @@ export interface OnboardingSplitLayoutProps {
 
 export interface OnboardingProgressProps {
   current: number;
+  hrefs?: OnboardingProgressHrefs;
+}
+
+export interface OnboardingProgressHrefInput {
+  current: number;
+  hasOrganization: boolean;
+  hasBrand: boolean;
+  stage: GeoOnboardingStage | null;
+  projectId?: string;
+  replay?: boolean;
 }
 
 export interface VisibilityFormProps {
@@ -52,6 +68,7 @@ export interface VisibilityFormProps {
   nextHref: string;
   skipHref: string;
   inOnboardingFlow: boolean;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface VisibilityReviewProps {
@@ -70,6 +87,7 @@ export interface CompetitorsFormProps {
   companyName: string;
   nextHref: string;
   inOnboardingFlow: boolean;
+  progressHrefs?: OnboardingProgressHrefs;
 }
 
 export interface CompetitorBrandLogoProps {
@@ -83,6 +101,13 @@ export interface CompetitorChoiceRowProps {
   name: string;
   domain: string | null;
   description?: string | null;
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}
+
+export interface PromptChoiceRowProps {
+  prompt: string;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
@@ -144,6 +169,7 @@ export interface CompetitorSearchResultRowProps {
 export interface VisibilityBrandDraft {
   companyName: string;
   aliases: readonly string[];
+  audienceType?: GeoAudienceType;
   prompts: readonly GeoDiscoveredPrompt[];
 }
 

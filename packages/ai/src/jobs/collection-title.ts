@@ -14,11 +14,11 @@ import type {
   GenerateCollectionTitleParams,
   MaybeGenerateCollectionTitleParams,
 } from "@notra/ai/types/collection-title";
-import { buildExperimentalTelemetry } from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { organizations, postCollections, posts } from "@notra/db/schema";
 import { isLegacyPostCollectionName } from "@notra/db/utils/post-collections";
-import { generateObject, type ImagePart, type TextPart } from "ai";
+import { type FilePart, generateText, Output, type TextPart } from "ai";
 import { and, asc, eq, ne } from "drizzle-orm";
 
 const HTML_TAG_REGEX = /<[^>]+>/g;
@@ -96,9 +96,10 @@ export async function generateCollectionTitle(
         post.content.startsWith("http")
     )
     .slice(0, COLLECTION_TITLE_MAX_IMAGES)
-    .map((post): ImagePart => ({
-      type: "image",
-      image: new URL(post.content),
+    .map((post): FilePart => ({
+      type: "file",
+      mediaType: "image",
+      data: new URL(post.content),
     }));
 
   const promptText = [
@@ -107,29 +108,29 @@ export async function generateCollectionTitle(
   ]
     .filter(Boolean)
     .join("\n\n");
-  const userContent: Array<TextPart | ImagePart> = [
+  const userContent: Array<TextPart | FilePart> = [
     { type: "text", text: promptText },
     ...imageParts,
   ];
 
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: gateway(COLLECTION_TITLE_MODEL_ID, {
       organizationId: params.organizationId,
     }),
-    schema: collectionTitleResultSchema,
-    system: SYSTEM_PROMPT,
+    output: Output.object({ schema: collectionTitleResultSchema }),
+    instructions: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
     providerOptions: withRouterDefaults(undefined, {
       modelId: COLLECTION_TITLE_MODEL_ID,
     }),
-    experimental_telemetry: buildExperimentalTelemetry({
+    ...buildTelemetryOptions({
       feature: "collection_title",
       organizationId: params.organizationId,
       collectionId: params.collectionId,
     }),
   });
 
-  const title = object.title.trim();
+  const title = output.title.trim();
   if (!title) {
     return null;
   }

@@ -76,6 +76,7 @@ import type {
   TooltipLayout,
   TooltipValueFormatter,
 } from "@/types/charts";
+import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -1783,20 +1784,14 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     const chart = echarts.init(mount);
     echartsRef.current = chart;
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Observers always fire once right after observe(). Repushing on that
-      // no-op fire would land one frame into the intro and stomp the line's
-      // reveal clip — only react when the renderer size actually changed.
-      if (
-        mount.clientWidth === chart.getWidth() &&
-        mount.clientHeight === chart.getHeight()
-      ) {
-        return;
-      }
-      chart.resize();
-      live.repush();
+    // 2D gradient textures are baked at renderer size — rebuild them once the
+    // size settles.
+    // The brush overlay is raw zrender, outside the option — nothing resizes it,
+    // so it is repositioned with every resize while the repush stays deferred.
+    const stopResizeObserver = observeChartResize(mount, chart, {
+      onResized: () => syncBrushOverlayNow(),
+      onSettled: () => live.repush(),
     });
-    resizeObserver.observe(mount);
 
     // Light/dark flips change no React state — re-resolve and push directly.
     const themeObserver = new MutationObserver(() => {
@@ -2008,7 +2003,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
       zrReveal.off("globalout", onZrRevealOut);
       zr.off("mousemove", onZrMove);
       zr.off("globalout", onZrOut);
-      resizeObserver.disconnect();
+      stopResizeObserver();
       themeObserver.disconnect();
       chart.dispose();
       echartsRef.current = null;

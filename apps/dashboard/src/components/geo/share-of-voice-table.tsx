@@ -124,6 +124,7 @@ export function ShareOfVoiceTable({
     {
       key: "mentions",
       header: "Mentions",
+      collapsePriority: 1,
       width: "10.5rem",
       sortable: true,
       cell: (row) => {
@@ -146,6 +147,7 @@ export function ShareOfVoiceTable({
     {
       key: "trend",
       header: "Trend",
+      collapsePriority: 2,
       width: "5.5rem",
       cell: (row) => {
         if (row.trend.length < GEO_SPARKLINE_MIN_POINTS) {

@@ -6,19 +6,24 @@ import type {
   Sitemap,
   SitemapListResponse,
   SitemapPagesResponse,
+  SitemapsQueryOptions,
 } from "@/types/hooks/brand-sitemaps";
 
 import { fetchAllSitemapPages, fetchSitemapJson } from "../sitemap/api-client";
 import { sitemapPagesKey, sitemapsKey } from "../sitemap/query-keys";
 
-export function useSitemaps(organizationId: string, voiceId: string) {
+export function useSitemaps(
+  organizationId: string,
+  voiceId: string,
+  options?: SitemapsQueryOptions
+) {
   return useQuery<SitemapListResponse>({
     queryKey: sitemapsKey(organizationId, voiceId),
     queryFn: () =>
       fetchSitemapJson<SitemapListResponse>(
         `/api/organizations/${organizationId}/brand-identities/${voiceId}/sitemaps`
       ),
-    enabled: !!organizationId && !!voiceId,
+    enabled: !!organizationId && !!voiceId && (options?.enabled ?? true),
   });
 }
 

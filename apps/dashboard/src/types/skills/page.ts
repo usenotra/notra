@@ -30,6 +30,7 @@ export interface SkillsTableProps {
   sort: SkillSortState;
   onSortChange: (sort: SkillSortState) => void;
   searchActive: boolean;
+  loading?: boolean;
 }
 
 export interface SkillDetailHeaderProps {

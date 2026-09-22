@@ -18,6 +18,7 @@ import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { GeoSectionSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -31,8 +32,9 @@ import {
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
+import type { GeoRangeControl } from "@/types/geo";
 
-import { GeoPageSkeleton } from "../skeleton";
+import { GeoCompetitorsSkeleton } from "./skeleton";
 
 const CompetitorShareCard = dynamic(
   () =>
@@ -64,10 +66,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   const geoRange = useGeoRange();
   const { data: settingsData, isPending } = useGeoSettings(organizationId);
+  // Full response: the share-of-voice change indicators need the daily
+  // mention timeseries, which the summary-only variant leaves out.
   const { data: competitorShare } = useGeoCompetitorShare(
     organizationId,
-    geoRange.query,
-    true
+    geoRange.query
   );
   const { competitors } = useGeoCompetitorsDb(organizationId);
   const { domain: ownDomain } = useGeoActiveProject(organizationId);
@@ -80,7 +83,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   });
 
   if (isPending) {
-    return <GeoPageSkeleton />;
+    return <GeoCompetitorsSkeleton />;
   }
 
   const settings = settingsData?.settings ?? null;
@@ -89,12 +92,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Competitors</h1>
-            <p className="text-muted-foreground">
-              Who AI engines recommend instead of you
-            </p>
-          </header>
+          <PageHeading
+            description="Who AI engines recommend instead of you"
+            title="Competitors"
+          />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
             description="Set up GEO tracking first, then track which competitors AI engines surface."
@@ -114,34 +115,21 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Competitors</h1>
-            <p className="text-muted-foreground">
-              Who AI engines recommend instead of you
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <GeoRangePicker control={geoRange} />
-            <Button
-              className="gap-1.5"
-              onClick={() => setImportOpen(true)}
-              variant="outline"
-            >
-              <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-              Import CSV
-            </Button>
-            <Button className="gap-1.5" onClick={() => setManagerOpen(true)}>
-              <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              Add Competitor
-              <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
-            </Button>
-          </div>
-        </header>
+        <PageHeading
+          description="Who AI engines recommend instead of you"
+          title="Competitors"
+        >
+          <CompetitorsHeadingActions
+            geoRange={geoRange}
+            onAdd={() => setManagerOpen(true)}
+            onImport={() => setImportOpen(true)}
+          />
+        </PageHeading>
         <CompetitorsTable
           aliases={settings.aliases}
           companyName={settings.companyName}
           competitors={competitors}
+          isScanning={isScanning}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
           ownDomain={ownDomain}
@@ -154,6 +142,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           organizationId={organizationId}
           organizationSlug={organizationSlug}
           points={competitorShare?.points ?? []}
+          timeseries={competitorShare?.timeseries ?? []}
         />
       </div>
       <CompetitorEditDialog
@@ -168,5 +157,30 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         organizationId={organizationId}
       />
     </PageContainer>
+  );
+}
+
+function CompetitorsHeadingActions({
+  geoRange,
+  onAdd,
+  onImport,
+}: {
+  geoRange: GeoRangeControl;
+  onAdd: () => void;
+  onImport: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <GeoRangePicker control={geoRange} />
+      <Button className="gap-1.5" onClick={onImport} variant="outline">
+        <HugeiconsIcon className="size-4" icon={Upload01Icon} />
+        Import CSV
+      </Button>
+      <Button className="gap-1.5" onClick={onAdd}>
+        <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
+        Add Competitor
+        <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
+      </Button>
+    </div>
   );
 }

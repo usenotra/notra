@@ -1,52 +1,48 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { GitHubUser } from "~types/github";
+import type { ContributorsGridProps } from "~types/contributors";
 
 import { formatContributionCount } from "@/utils/github";
 
-export function ContributorsGrid({
-  contributors,
-}: {
-  contributors: GitHubUser[];
-}) {
+export function ContributorsGrid({ contributors }: ContributorsGridProps) {
   if (contributors.length === 0) {
     return (
-      <div className="text-muted-foreground py-8 text-center text-sm">
+      <div className="py-8 text-center font-sans text-sm text-[#6A6B70] dark:text-white/60">
         Unable to load contributors right now. Try again later.
       </div>
     );
   }
   return (
-    <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+    <div className="flex w-full max-w-320 flex-wrap justify-center gap-x-5 gap-y-6">
       {contributors.map((contributor) => {
-        const contributionsLabel = `${contributor.contributions} contribution${
+        const count = formatContributionCount(contributor.contributions);
+        const contributionsLabel = `${count} contribution${
           contributor.contributions === 1 ? "" : "s"
         }`;
         return (
           <Link
-            aria-label={`${contributor.login} — ${contributionsLabel}`}
-            className="group hover:bg-muted flex flex-col items-center gap-2 rounded-lg p-2 transition-colors"
+            aria-label={`${contributor.login}, ${contributionsLabel}`}
+            className="group flex w-[8.875rem] flex-col items-center gap-2.5 rounded-[0.8125rem] px-1 py-4 transition-colors hover:bg-[#F3EEFB] dark:hover:bg-white/5"
             href={contributor.html_url}
             key={contributor.id}
             rel="noopener noreferrer"
             target="_blank"
-            title={`${contributor.login} — ${contributionsLabel}`}
+            title={`${contributor.login}, ${contributionsLabel}`}
           >
             <Image
               alt={`Avatar of ${contributor.login}`}
-              className="ring-border duration-normal size-12 rounded-full ring-1 transition-transform group-hover:scale-110"
-              height={96}
+              className="duration-normal size-16 rounded-full ring-1 ring-[#ECECEC] transition-transform group-hover:scale-105 dark:ring-white/10"
+              height={128}
               src={contributor.avatar_url}
-              width={96}
+              width={128}
             />
-            <span className="text-muted-foreground group-hover:text-foreground w-full truncate text-center font-sans text-xs transition-colors">
-              {contributor.login}
-            </span>
-            <span className="text-muted-foreground group-hover:text-foreground w-full text-center font-sans text-[0.625rem] leading-none transition-colors">
-              <span className="tabular-nums">
-                {formatContributionCount(contributor.contributions)}
-              </span>{" "}
-              contribution{contributor.contributions === 1 ? "" : "s"}
+            <span className="flex flex-col items-center gap-0.5">
+              <span className="max-w-full truncate font-sans text-sm/5 font-medium tracking-[-0.01em] text-[#1E1E1E] dark:text-white">
+                {contributor.login}
+              </span>
+              <span className="font-sans text-[0.8125rem]/4.5 text-[#6A6B70] dark:text-white/60">
+                {contributionsLabel}
+              </span>
             </span>
           </Link>
         );

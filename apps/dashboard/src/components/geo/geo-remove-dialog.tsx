@@ -45,6 +45,10 @@ export function GeoRemoveDialog({
   isPending,
   nouns,
   description,
+  actionLabel,
+  destructive = true,
+  pendingLabel,
+  title,
 }: GeoRemoveDialogProps) {
   const isBulk = items.length > 1;
   const descriptionText =
@@ -55,7 +59,7 @@ export function GeoRemoveDialog({
       <ResponsiveAlertDialogContent>
         <ResponsiveAlertDialogHeader>
           <ResponsiveAlertDialogTitle>
-            {titleLabel(items.length, nouns)}
+            {title ?? titleLabel(items.length, nouns)}
           </ResponsiveAlertDialogTitle>
           <ResponsiveAlertDialogDescription>
             {descriptionText}
@@ -68,9 +72,11 @@ export function GeoRemoveDialog({
           <ResponsiveAlertDialogAction
             disabled={isPending}
             onClick={onConfirm}
-            variant="destructive"
+            variant={destructive ? "destructive" : "default"}
           >
-            {confirmLabel(isPending, isBulk, nouns)}
+            {isPending
+              ? (pendingLabel ?? confirmLabel(true, isBulk, nouns))
+              : (actionLabel ?? confirmLabel(false, isBulk, nouns))}
           </ResponsiveAlertDialogAction>
         </ResponsiveAlertDialogFooter>
       </ResponsiveAlertDialogContent>

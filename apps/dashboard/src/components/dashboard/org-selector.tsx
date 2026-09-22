@@ -288,7 +288,7 @@ export function OrgSelector() {
   const { openSettings } = useSettingsModal();
   const isApplePlatform = useIsApplePlatform();
 
-  const { activeOrganization, organizations, isLoading } =
+  const { activeOrganization, organizations, isLoading, requestOrganizations } =
     useOrganizationsContext();
   const { data: customer } = useBillingCustomer({
     expand: ["subscriptions.plan"],
@@ -400,7 +400,7 @@ export function OrgSelector() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={(open) => open && requestOrganizations()}>
           {shouldShowTrigger ? (
             <OrgSelectorTrigger
               activeOrganization={activeOrganization}

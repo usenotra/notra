@@ -1,9 +1,10 @@
 import { db } from "@notra/db/drizzle";
 import { geoPromptSequences } from "@notra/db/schema";
 import { queryGeoCheckSequenceResults } from "@notra/db/utils/geo-checks";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { GEO_MAX_SEQUENCES } from "../constants/geo";
 import type {
   GeoScopeInput,
   GeoSequenceCreateInput,
@@ -15,8 +16,10 @@ import { geoAnswerSourcesFor } from "../utils/geo-answer-sources";
 import { geoDb } from "./effect";
 import {
   GeoSequenceCreateFailedError,
+  GeoSequenceLimitError,
   GeoSequenceNotFoundError,
 } from "./errors";
+import { lockGeoProject } from "./lock";
 import { toGeoSequence } from "./mappers";
 import { geoCheckScope, requireGeoProject, resolveGeoScope } from "./projects";
 
@@ -48,25 +51,40 @@ export const createGeoSequence = Effect.fn("geo.sequenceCreate")(function* (
   sequence: GeoSequenceCreateInput
 ) {
   const scope = yield* requireGeoProject(input);
-  const rows = yield* geoDb("sequence create failed", () =>
-    db
-      .insert(geoPromptSequences)
-      .values({
-        id: sequence.id ?? crypto.randomUUID(),
-        organizationId: scope.organizationId,
-        projectId: scope.projectId,
-        name: sequence.name,
-        steps: sequence.steps,
-      })
-      .returning()
+  const result = yield* geoDb("sequence create failed", () =>
+    db.transaction(async (tx) => {
+      await Effect.runPromise(lockGeoProject(tx, scope.projectId));
+      const current = await tx
+        .select({ count: count() })
+        .from(geoPromptSequences)
+        .where(eq(geoPromptSequences.projectId, scope.projectId));
+      if ((current.at(0)?.count ?? 0) >= GEO_MAX_SEQUENCES) {
+        return { status: "limit" as const };
+      }
+      const rows = await tx
+        .insert(geoPromptSequences)
+        .values({
+          id: sequence.id ?? crypto.randomUUID(),
+          organizationId: scope.organizationId,
+          projectId: scope.projectId,
+          name: sequence.name,
+          steps: sequence.steps,
+        })
+        .returning();
+      return { status: "created" as const, row: rows.at(0) };
+    })
   );
 
-  const row = rows.at(0);
-  if (!row) {
+  if (result.status === "limit") {
+    return yield* Effect.fail(
+      new GeoSequenceLimitError({ limit: GEO_MAX_SEQUENCES })
+    );
+  }
+  if (!result.row) {
     return yield* Effect.fail(new GeoSequenceCreateFailedError({}));
   }
 
-  return toGeoSequence(row);
+  return toGeoSequence(result.row);
 });
 
 export const updateGeoSequence = Effect.fn("geo.sequenceUpdate")(function* (

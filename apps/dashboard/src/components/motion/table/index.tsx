@@ -2,7 +2,7 @@
 // beui.dev/components/motion/table
 
 import { useReducedMotion } from "motion/react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import { useTableViewport } from "@/lib/hooks/use-table-viewport";
 import { cn } from "@/lib/utils";
@@ -11,8 +11,16 @@ import { RowHandle } from "./row-handle";
 import { TableBody } from "./table-body";
 import { TableColumnGroup } from "./table-column-group";
 import { TableHeader } from "./table-header";
-import { TableFooterSurface, TableHeaderSurface } from "./table-surfaces";
+import {
+  TableBodySurface,
+  TableFooterSurface,
+  TableHeaderSurface,
+  TableScrollFade,
+} from "./table-surfaces";
 import type { HeaderCellRefs, TableProps } from "./types";
+import { useActiveColumn } from "./use-active-column";
+import { useActiveRow } from "./use-active-row";
+import { useCollapsibleColumns } from "./use-collapsible-columns";
 import { useColumnReorder } from "./use-column-reorder";
 import { useColumnResize } from "./use-column-resize";
 import { useColumnSort } from "./use-column-sort";
@@ -20,8 +28,11 @@ import { useRowSelection } from "./use-row-selection";
 import {
   CHECKBOX_WIDTH,
   DEFAULT_MIN_COLUMN_WIDTH,
+  mergeHiddenColumnKeys,
+  pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
+  tableLoadingOverlay,
   tableMinWidthCss,
 } from "./utils";
 
@@ -57,11 +68,13 @@ export function Table<T>({
   overscan = 10,
   onEndReached,
   loading = false,
+  loadingMore: loadingMoreProp,
   skeletonRows = 3,
   emptyState = "No data",
   onRowClick,
   isRowClickable,
   renderRowContextMenu,
+  renderRowDetail,
   onRowPointerEnter,
   isRowPinned,
   toolbar,
@@ -71,6 +84,7 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
+  scrollFade = true,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -81,6 +95,22 @@ export function Table<T>({
     row,
     id: getRowId ? getRowId(row, index) : String(index),
   }));
+  const { containerRef, visibleColumns } = useCollapsibleColumns(columns, {
+    minColumnWidth,
+    extraFixedWidths: selectable ? [CHECKBOX_WIDTH] : [],
+    extraChromePx: reorderable ? REORDER_HANDLE_PX : 0,
+  });
+  // Reordering only sees the visible columns, so what a consumer persists has
+  // to be widened back to every column before it leaves the table.
+  const emitColumnOrder = onColumnOrderChange
+    ? (keys: string[]) =>
+        onColumnOrderChange(
+          mergeHiddenColumnKeys(
+            columns.map((column) => column.key),
+            keys
+          )
+        )
+    : undefined;
   const {
     orderedColumns,
     dragKey,
@@ -88,7 +118,11 @@ export function Table<T>({
     startReorder,
     moveReorder,
     endReorder,
-  } = useColumnReorder({ columns, thRefs, onColumnOrderChange });
+  } = useColumnReorder({
+    columns: visibleColumns,
+    thRefs,
+    onColumnOrderChange: emitColumnOrder,
+  });
   const { sort, sortedRows, toggleSort } = useColumnSort({
     rows,
     columns,
@@ -111,11 +145,7 @@ export function Table<T>({
       onSelectionChange,
     });
   const displayRows = pinRowsFirst(sortedRows, isRowPinned);
-  const pageStart = Math.max(0, page - 1) * (pageSize ?? 0);
-  const pagedRows =
-    pageSize == null
-      ? displayRows
-      : displayRows.slice(pageStart, pageStart + pageSize);
+  const pagedRows = pageRows(displayRows, page, pageSize);
 
   const {
     headerScrollRef,
@@ -129,6 +159,7 @@ export function Table<T>({
     scrolls,
     paddingTop,
     paddingBottom,
+    atEnd,
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
@@ -149,6 +180,12 @@ export function Table<T>({
     />
   );
   const isEmpty = pagedRows.length === 0 && !loading;
+  const { loadingMore, dimRows, loadingState } = tableLoadingOverlay(
+    loading,
+    pagedRows.length,
+    loadingMoreProp,
+    Boolean(onEndReached)
+  );
   const hasRowMenu = !!(onInsertRow || onDeleteRow);
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
   // Shrink-wrap only after every column has an explicit resized width.
@@ -156,7 +193,7 @@ export function Table<T>({
     orderedColumns.length > 0 &&
     orderedColumns.every((column) => widths[column.key] != null);
   const tableClassName = cn(
-    "border-collapse",
+    "border-collapse tabular-nums",
     sized ? "w-max min-w-full" : "w-full"
   );
   const minTableWidth = tableMinWidthCss(
@@ -167,45 +204,9 @@ export function Table<T>({
   );
   const tableStyle = { tableLayout: "fixed" as const, minWidth: minTableWidth };
 
-  const [activeColumn, setActiveColumn] = useState<string | null>(null);
-  // Let the pointer cross the gap to the portal handle before deactivating.
-  const deactivateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activateColumn = (key: string) => {
-    if (deactivateTimer.current) {
-      clearTimeout(deactivateTimer.current);
-    }
-    deactivateTimer.current = null;
-    setActiveColumn(key);
-  };
-  const deactivateColumn = () => {
-    if (deactivateTimer.current) {
-      clearTimeout(deactivateTimer.current);
-    }
-    deactivateTimer.current = setTimeout(() => setActiveColumn(null), 100);
-  };
-  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
-  const [activeRowEl, setActiveRowEl] = useState<HTMLTableRowElement | null>(
-    null
-  );
-  const [activeRow, setActiveRow] = useState<{
-    id: string;
-    index: number;
-  } | null>(null);
-  const rowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activateRow = (id: string, index: number) => {
-    if (rowTimer.current) {
-      clearTimeout(rowTimer.current);
-    }
-    rowTimer.current = null;
-    setActiveRowEl(rowRefs.current[id] ?? null);
-    setActiveRow({ id, index });
-  };
-  const deactivateRow = () => {
-    if (rowTimer.current) {
-      clearTimeout(rowTimer.current);
-    }
-    rowTimer.current = setTimeout(() => setActiveRow(null), 100);
-  };
+  const { activeColumn, activateColumn, deactivateColumn } = useActiveColumn();
+  const { activeRow, activeRowEl, rowRefs, activateRow, deactivateRow } =
+    useActiveRow();
   const columnMenuProps = hasColumnMenu
     ? {
         activeColumn,
@@ -218,6 +219,7 @@ export function Table<T>({
     <div
       aria-busy={loading}
       className={cn("w-full min-w-0 text-sm", className)}
+      ref={containerRef}
     >
       {/* Overlap hides the header's side border in the body radius. */}
       <TableHeaderSurface
@@ -262,14 +264,15 @@ export function Table<T>({
           </table>
         </div>
       </TableHeaderSurface>
-      <div
-        className={cn(
-          "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
-          isEmpty ? "overflow-hidden" : overflowClass,
-          flushBottom && !footer && "rounded-b-none border-b-0"
-        )}
+      <TableBodySurface
+        dimRows={dimRows}
+        flushBottom={flushBottom}
+        hasFooter={Boolean(footer)}
+        isEmpty={isEmpty}
+        loadingState={loadingState}
         onScroll={handleScroll}
-        ref={scrollRef}
+        overflowClass={overflowClass}
+        scrollRef={scrollRef}
         style={bodyStyle}
       >
         <table className={tableClassName} style={tableStyle}>
@@ -282,6 +285,7 @@ export function Table<T>({
             rowSizing={rowSizing}
             bodyHeight={bodyHeight}
             loading={loading}
+            loadingMore={loadingMore}
             skeletonRows={skeletonRows}
             emptyState={emptyState}
             selectable={selectable}
@@ -298,10 +302,13 @@ export function Table<T>({
             isRowClickable={isRowClickable}
             onRowPointerEnter={onRowPointerEnter}
             renderRowContextMenu={renderRowContextMenu}
+            renderRowDetail={renderRowDetail}
+            reduce={!!reduce}
             rowRefs={rowRefs}
           />
         </table>
-      </div>
+        <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
+      </TableBodySurface>
       <TableFooterSurface footer={footer} flushBottom={flushBottom} />
       {hasRowMenu && activeRow ? (
         <RowHandle

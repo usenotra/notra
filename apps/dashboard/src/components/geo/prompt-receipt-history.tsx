@@ -7,18 +7,15 @@ import {
   GEO_PROMPT_HISTORY_EMPTY_COMPETITORS,
   GEO_PROMPT_HISTORY_EMPTY_POSITION,
   GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE,
-  GEO_PROMPT_HISTORY_PREVIEW_ROWS,
   GEO_PROMPT_HISTORY_SKELETON_ROWS,
   GEO_PROMPT_RECEIPT_LABELS,
 } from "@notra/geo-core/constants/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { type ReactNode, useState } from "react";
 
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
@@ -36,7 +33,7 @@ import {
   promptHistoryChangeLabel,
   promptOutcomeLabel,
 } from "@/utils/geo-prompt-history";
-import { pageRowCount, tableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 /** Shared first-line box so icons, chips, and text sit on one baseline. */
 const HISTORY_LINE_CLASS = "flex min-h-6 items-center";
@@ -215,44 +212,18 @@ function NewCompetitorsCell({
   );
 }
 
-const HISTORY_PAGE_SIZE = GEO_PROMPT_HISTORY_PREVIEW_ROWS;
-
 export function PromptReceiptHistory({
   entries,
   isLoading,
   competitors,
   onSelect,
 }: PromptReceiptHistoryProps) {
-  const [requestedPage, setPage] = useState(1);
-
-  const totalItems = entries.length;
-  const pageCount = Math.max(1, Math.ceil(totalItems / HISTORY_PAGE_SIZE));
-  const page = Math.min(requestedPage, pageCount);
-
-  const visible = isLoading
-    ? []
-    : entries.slice((page - 1) * HISTORY_PAGE_SIZE, page * HISTORY_PAGE_SIZE);
-  const paginated = totalItems > HISTORY_PAGE_SIZE;
-  let footer: ReactNode;
-  if (!isLoading && paginated) {
-    footer = (
-      <TablePagination
-        page={page}
-        pageCount={pageCount}
-        pageRowCount={pageRowCount(page, HISTORY_PAGE_SIZE, totalItems)}
-        pageSize={HISTORY_PAGE_SIZE}
-        setPage={setPage}
-        showPageNumbers={false}
-        totalItems={totalItems}
-      />
-    );
-  } else if (!isLoading && entries.length === 1) {
-    footer = (
+  const footer =
+    !isLoading && entries.length === 1 ? (
       <p className="text-muted-foreground px-4 py-3 text-xs">
         {GEO_PROMPT_RECEIPT_LABELS.singleScan}
       </p>
-    );
-  }
+    ) : undefined;
 
   return (
     <Table
@@ -260,12 +231,15 @@ export function PromptReceiptHistory({
         {
           key: "scan",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.date,
-          width: "144px",
+          // Fits "Sep 17, 11:41 AM" plus the button and cell padding on one
+          // line. No `minWidth`: that raises the table floor, and the five
+          // columns together already only just fit the sheet.
+          width: "160px",
           cell: ({ check }) => {
             const timestamp = formatAiTrafficTimestamp(check.capturedAt);
             const date = (
               <time
-                className="tabular-nums"
+                className="whitespace-nowrap tabular-nums"
                 dateTime={check.capturedAt}
                 title={check.scanId}
               >
@@ -320,6 +294,8 @@ export function PromptReceiptHistory({
           key: "position",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.position,
           width: "80px",
+          // The position also shows up inside the "What changed" chips.
+          collapsePriority: 1,
           cell: ({ check }) => (
             <span className={HISTORY_LINE_CLASS}>
               <PositionChip position={check.position} />
@@ -329,14 +305,17 @@ export function PromptReceiptHistory({
         {
           key: "changes",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.changes,
-          width: "192px",
+          // Flexible so the narrowest sheet can squeeze it instead of scrolling.
+          width: "1fr",
+          minWidth: "192px",
           cell: (entry) => <ChangesCell entry={entry} />,
         },
         {
           key: "newCompetitors",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.newCompetitors,
           width: "1fr",
-          minWidth: "176px",
+          minWidth: "128px",
+          collapsePriority: 2,
           cell: (entry) => (
             <NewCompetitorsCell
               competitors={competitors}
@@ -345,7 +324,7 @@ export function PromptReceiptHistory({
           ),
         },
       ]}
-      data={visible}
+      data={entries}
       emptyState={GEO_PROMPT_RECEIPT_LABELS.noHistory}
       footer={footer}
       getRowId={(entry) => entry.check.id}

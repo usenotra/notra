@@ -72,8 +72,8 @@ export const PERPLEXITY_MODEL_MENU: readonly PerplexityModelMenuItem[] = [
   { id: "kimi-k3", label: "Kimi K3", provider: "kimi", locked: true },
   { id: "glm-5.2", label: "GLM 5.2", provider: "zhipu", locked: true },
   {
-    id: "grok-4.6",
-    label: "Grok 4.6",
+    id: "grok-4.7",
+    label: "Grok 4.7",
     provider: "xai",
     badge: "new",
     locked: true,

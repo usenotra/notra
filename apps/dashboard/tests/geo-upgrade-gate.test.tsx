@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { GeoPageSkeleton } from "../src/app/(dashboard)/[slug]/geo/skeleton";
-
 const geoFeature = mock(() => ({ isLocked: false, isLoading: true }));
 const GeoPage = mock(() => <h1>Protected page content</h1>);
 
@@ -34,24 +32,23 @@ beforeEach(() => {
 });
 
 describe("GEO billing gate", () => {
-  test("shows the GEO skeleton without rendering page children while billing loads", () => {
+  test("keeps nested GEO page children while billing loads", () => {
     const html = renderToStaticMarkup(
-      <GeoUpgradeGate fallback={<GeoPageSkeleton />} slug="fixture">
+      <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );
 
-    expect(html).toContain('data-slot="skeleton"');
-    expect(html).not.toContain("Checking GEO access");
-    expect(html).not.toContain("Protected page content");
+    expect(html).toContain("Protected page content");
+    expect(html).not.toContain("How AI engines talk about your brand");
     expect(html).not.toContain("Upgrade required");
-    expect(GeoPage).not.toHaveBeenCalled();
+    expect(GeoPage).toHaveBeenCalled();
   });
 
   test("renders the page for a confirmed entitled customer", () => {
     geoFeature.mockReturnValue({ isLocked: false, isLoading: false });
     const html = renderToStaticMarkup(
-      <GeoUpgradeGate fallback={<GeoPageSkeleton />} slug="fixture">
+      <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );
@@ -64,7 +61,7 @@ describe("GEO billing gate", () => {
   test("keeps the paywall and excludes page children for a confirmed locked customer", () => {
     geoFeature.mockReturnValue({ isLocked: true, isLoading: false });
     const html = renderToStaticMarkup(
-      <GeoUpgradeGate fallback={<GeoPageSkeleton />} slug="fixture">
+      <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );

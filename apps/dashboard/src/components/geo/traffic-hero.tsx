@@ -16,6 +16,7 @@ import {
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { Button } from "@notra/ui/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
@@ -25,10 +26,13 @@ import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
 import { CHART_PRIMARY_COLOR, CHART_SECONDARY_COLOR } from "@/constants/charts";
 import {
+  TRAFFIC_HERO_CHART_SURFACE_CLASS,
   TRAFFIC_HERO_FRAME_CLASS,
   TRAFFIC_HERO_METRIC_CELL_CLASS,
   TRAFFIC_HERO_METRIC_VALUE_CLASS,
   TRAFFIC_HERO_METRICS_GRID_CLASS,
+  TRAFFIC_HERO_METRICS_STANDALONE_CLASS,
+  TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
 import { cn } from "@/lib/utils";
 import type { ChartConfig, TooltipRowGroup } from "@/types/charts";
@@ -97,9 +101,10 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
         </div>
       ) : (
         <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
-          <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
-            {metric.value.toLocaleString()}
-          </span>
+          <AnimatedNumber
+            className={TRAFFIC_HERO_METRIC_VALUE_CLASS}
+            value={metric.value}
+          />
           <GeoStatDelta
             className="rounded-md px-2 py-1.5 text-xs leading-4 [&>span]:hidden"
             delta={metric.delta}
@@ -200,7 +205,9 @@ export function TrafficHero({
       <div
         className={cn(
           TRAFFIC_HERO_METRICS_GRID_CLASS,
-          showTrend && "bg-muted/40"
+          showTrend
+            ? TRAFFIC_HERO_METRICS_SURFACE_CLASS
+            : TRAFFIC_HERO_METRICS_STANDALONE_CLASS
         )}
       >
         {metrics.map((metric) => (
@@ -213,7 +220,7 @@ export function TrafficHero({
       </div>
       {showTrend ? (
         <div
-          className="border-border border-t p-4"
+          className={TRAFFIC_HERO_CHART_SURFACE_CLASS}
           data-chart-title="AI traffic"
         >
           <EChartsAreaChart

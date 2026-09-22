@@ -10,9 +10,7 @@ import type { ReactNode } from "react";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
-import { JourneyOverviewCard } from "@/components/geo/journey-overview-card";
-import { JourneyPathsCard } from "@/components/geo/journey-paths-card";
-import { JourneysCard } from "@/components/geo/journeys-card";
+import { JourneysTab } from "@/components/geo/journeys-tab";
 import { LanguagePerformanceCard } from "@/components/geo/language-performance-card";
 import { MentionRateCard } from "@/components/geo/mention-rate-card";
 import { MentionTrendCard } from "@/components/geo/mention-trend-card";
@@ -23,6 +21,7 @@ import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";
+import { journeyTotals } from "@/utils/geo-journey";
 import { toGeoTab } from "@/utils/geo-tabs";
 
 function TriggerCount({ count }: { count: number }) {
@@ -73,6 +72,9 @@ export function GeoTabs({
   promptResults,
   isScanning,
   journeys,
+  journeyStats,
+  journeyStatsFailed,
+  journeysLoading,
   organizationId,
 }: GeoTabsProps) {
   return (
@@ -95,17 +97,23 @@ export function GeoTabs({
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
             Journeys
-            <TriggerCount count={journeys.length} />
+            <TriggerCount
+              count={
+                journeyStats
+                  ? journeyTotals(journeyStats.sources).journeys
+                  : journeys.length
+              }
+            />
           </span>
         </PermissionOption>
       </PermissionRow>
 
       {activeTab === "visibility" ? (
         <div className="mt-6 flex flex-col gap-6 overflow-visible">
-          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible lg:grid-cols-12">
+          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
             <TabSection
               active={revealActive}
-              className="relative z-20 overflow-visible lg:col-span-5"
+              className="relative z-20 overflow-visible @min-[44rem]/main:col-span-5"
               order={0}
             >
               <MentionRateCard
@@ -121,7 +129,7 @@ export function GeoTabs({
             </TabSection>
             <TabSection
               active={revealActive}
-              className="lg:col-span-7"
+              className="@min-[44rem]/main:col-span-7"
               order={1}
             >
               <MentionTrendCard
@@ -149,9 +157,10 @@ export function GeoTabs({
               organizationSlug={organizationSlug}
               promptResults={promptResults}
               timeseriesPoints={timeseriesPoints}
+              trackedEngines={settings.engines}
             />
           </TabSection>
-          <InstrumentGrid className="grid-cols-1 gap-4 lg:grid-cols-2">
+          <InstrumentGrid className="grid-cols-1 gap-4 @min-[44rem]/main:grid-cols-2">
             <TabSection active={revealActive} order={4}>
               <ShareOfVoiceCard
                 aliases={settings.aliases}
@@ -188,27 +197,14 @@ export function GeoTabs({
       ) : null}
 
       {activeTab === "journeys" ? (
-        <div className="mt-6 flex flex-col gap-6">
-          <InstrumentGrid className="grid-cols-1 items-stretch gap-4 lg:grid-cols-12">
-            <TabSection
-              active={revealActive}
-              className="lg:col-span-5"
-              order={0}
-            >
-              <JourneyOverviewCard journeys={journeys} />
-            </TabSection>
-            <TabSection
-              active={revealActive}
-              className="lg:col-span-7"
-              order={1}
-            >
-              <JourneyPathsCard journeys={journeys} />
-            </TabSection>
-          </InstrumentGrid>
-          <TabSection active={revealActive} order={2}>
-            <JourneysCard journeys={journeys} organizationId={organizationId} />
-          </TabSection>
-        </div>
+        <JourneysTab
+          journeyStats={journeyStats}
+          journeyStatsFailed={journeyStatsFailed}
+          journeys={journeys}
+          loading={journeysLoading}
+          organizationId={organizationId}
+          revealActive={revealActive}
+        />
       ) : null}
     </div>
   );

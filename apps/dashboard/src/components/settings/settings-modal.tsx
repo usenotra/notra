@@ -64,10 +64,52 @@ const AppearanceSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
+const AttachmentsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/attachments-pane").then((mod) => ({
+      default: mod.AttachmentsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const BillingSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/billing-pane").then((mod) => ({
+      default: mod.BillingSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const CreditsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/credits-pane").then((mod) => ({
+      default: mod.CreditsSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const DevSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/dev-pane").then((mod) => ({
+      default: mod.DevSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
 const GeneralSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/general-pane").then((mod) => ({
       default: mod.GeneralSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const GeoSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/geo-pane").then((mod) => ({
+      default: mod.GeoSettingsPane,
+    })),
+  { loading: SettingsPaneFallback }
+);
+const LogsSettingsPane = dynamic(
+  () =>
+    import("@/components/settings/panes/logs-pane").then((mod) => ({
+      default: mod.LogsSettingsPane,
     })),
   { loading: SettingsPaneFallback }
 );
@@ -85,27 +127,6 @@ const NotificationsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
-const AttachmentsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/attachments-pane").then((mod) => ({
-      default: mod.AttachmentsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const BillingSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/billing-pane").then((mod) => ({
-      default: mod.BillingSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const UsageSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/usage-pane").then((mod) => ({
-      default: mod.UsageSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
 const UsageAlertsSettingsPane = dynamic(
   () =>
     import("@/components/settings/panes/usage-alerts-pane").then((mod) => ({
@@ -113,38 +134,10 @@ const UsageAlertsSettingsPane = dynamic(
     })),
   { loading: SettingsPaneFallback }
 );
-const CreditsSettingsPane = dynamic(
+const UsageSettingsPane = dynamic(
   () =>
-    import("@/components/settings/panes/credits-pane").then((mod) => ({
-      default: mod.CreditsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const IntegrationsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/integrations-pane").then((mod) => ({
-      default: mod.IntegrationsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const LogsSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/logs-pane").then((mod) => ({
-      default: mod.LogsSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const GeoSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/geo-pane").then((mod) => ({
-      default: mod.GeoSettingsPane,
-    })),
-  { loading: SettingsPaneFallback }
-);
-const DevSettingsPane = dynamic(
-  () =>
-    import("@/components/settings/panes/dev-pane").then((mod) => ({
-      default: mod.DevSettingsPane,
+    import("@/components/settings/panes/usage-pane").then((mod) => ({
+      default: mod.UsageSettingsPane,
     })),
   { loading: SettingsPaneFallback }
 );
@@ -157,7 +150,6 @@ const STANDARD_SETTINGS_PANES = {
   credits: CreditsSettingsPane,
   dev: DevSettingsPane,
   general: GeneralSettingsPane,
-  integrations: IntegrationsSettingsPane,
   logs: LogsSettingsPane,
   members: MembersSettingsPane,
   notifications: NotificationsSettingsPane,
@@ -203,8 +195,9 @@ export function SettingsModal() {
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         className={cn(
-          "flex! h-[min(44rem,calc(100svh-2rem))] w-[min(64rem,calc(100%-1.5rem))] max-w-none flex-col overflow-hidden p-0 sm:max-w-none",
-          "gap-0 rounded-2xl"
+          "flex! max-w-none min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-none",
+          "top-0 right-0 bottom-0 left-0 h-auto w-auto translate-none rounded-none",
+          "md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:h-[min(44rem,calc(100svh-2rem))] md:w-[min(64rem,calc(100%-1.5rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
         )}
         showCloseButton={false}
       >
@@ -297,7 +290,7 @@ function SettingsModalBody({
 
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <header className="flex shrink-0 items-start justify-between gap-3 border-b px-5 py-3.5">
+      <header className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3.5 md:px-5">
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-1.5">
             <DialogTitle
@@ -325,7 +318,7 @@ function SettingsModalBody({
           <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
         </Button>
       </header>
-      <div className="scrollbar-floating min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 text-sm [&_.text-3xl]:text-2xl [&_.text-lg]:text-sm">
+      <div className="scrollbar-floating min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-sm md:px-5 md:pb-4 [&_.text-3xl]:text-2xl [&_.text-lg]:text-sm">
         {isOpen && section ? (
           <SettingsSectionContent key={activeSection} section={activeSection} />
         ) : null}

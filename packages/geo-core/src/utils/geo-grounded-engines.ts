@@ -6,6 +6,22 @@ import {
 import type { GeoGroundedEngine, GeoModelCatalog } from "../types/geo";
 import { engineModelOf } from "./geo-engine-family";
 
+const GATEWAY_GROUNDED_PROVIDER_IDS: ReadonlySet<string> = new Set(
+  GEO_GROUNDED_PROVIDERS.filter((entry) =>
+    entry.provider.startsWith("gateway-")
+  ).map((entry) => entry.provider.slice("gateway-".length))
+);
+
+/** Whether the scan planner also runs this model as a web-search engine. */
+export function hasGroundedVariant(engine: string): boolean {
+  const modelId = engineModelOf(engine);
+  const separator = modelId.indexOf("/");
+  return (
+    separator > 0 &&
+    GATEWAY_GROUNDED_PROVIDER_IDS.has(modelId.slice(0, separator))
+  );
+}
+
 /** Reconstruct the exact model and route recorded by the scan planner. */
 export function resolveGroundedEngineByKey(
   key: string

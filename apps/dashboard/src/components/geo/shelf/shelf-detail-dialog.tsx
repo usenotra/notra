@@ -2,7 +2,6 @@
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import {
   Sheet,
@@ -13,13 +12,19 @@ import {
 } from "@notra/ui/components/ui/sheet";
 
 import { Button } from "@/components/button";
+import { Discussion } from "@/components/comments/discussion";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-table";
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import { formatRelative } from "@/utils/format-relative";
-import { formatShelfDate } from "@/utils/geo-shelf";
+import {
+  formatShelfDate,
+  groupShelfCitationEngines,
+  isGeoShelfFixtureSourceId,
+} from "@/utils/geo-shelf";
 
 function SectionHeader({
   title,
@@ -39,9 +44,10 @@ function SectionHeader({
 }
 
 export function ShelfDetailDialog({
+  organizationId,
   open,
   onOpenChange,
-  row,
+  row: rowProp,
   members,
   currentMemberId,
   ownBrandName,
@@ -49,6 +55,7 @@ export function ShelfDetailDialog({
   onSetPlacementStatus,
   isPending,
 }: GeoShelfDetailDialogProps) {
+  const [row, releaseRow] = useRetainedValue(rowProp);
   if (!row) {
     return null;
   }
@@ -71,7 +78,11 @@ export function ShelfDetailDialog({
     : null;
 
   return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseRow}
+      open={open}
+    >
       <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
         <SheetHeader className="shrink-0 gap-2 border-b p-5 pr-14 sm:p-6 sm:pr-14">
           <SheetTitle className="text-xl font-semibold tracking-tight text-pretty wrap-break-word">
@@ -131,15 +142,21 @@ export function ShelfDetailDialog({
                 <div className="space-y-2">
                   <p className="text-muted-foreground text-xs">Cited by</p>
                   <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    {citations.engines.map((engine) => (
-                      <li
-                        className="flex items-center gap-1.5 text-xs"
-                        key={engine}
-                      >
-                        <EngineIcon className="size-4" engine={engine} />
-                        {engineFamilyLabel(engine)}
-                      </li>
-                    ))}
+                    {groupShelfCitationEngines(citations.engines).map(
+                      ({ family, label, models }) => (
+                        <li
+                          className="flex items-center gap-1.5 text-xs"
+                          key={family}
+                          title={models.join(", ")}
+                        >
+                          <EngineIcon
+                            className="size-4"
+                            engine={models[0] ?? family}
+                          />
+                          {label}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               ) : (
@@ -194,6 +211,14 @@ export function ShelfDetailDialog({
               </div>
             )}
           </section>
+          {isGeoShelfFixtureSourceId(row.id) ? null : (
+            <Discussion
+              key={row.id}
+              organizationId={organizationId}
+              targetId={row.id}
+              targetType="shelf"
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>

@@ -1,0 +1,89 @@
+## Plan Variants
+
+Plan variants let you model multiple versions of the same offer without duplicating the full plan. The base plan holds the shared definition, and each variant stores only the differences: usually a price change, an added item, or a different usage allowance.
+
+> **Example** <br />
+> A Pro plan has the same core features for every customer, but is sold monthly, annually, and as a higher-volume package. Model these as variants of `pro` instead of three unrelated plans.
+
+Variants are most useful for:
+
+- Monthly vs annual billing intervals
+- A/B testing plan packages
+- Volume ladders that share most features but differ in included usage or overage price
+
+## Setting up
+
+Each variant is its own `variant({...})` fixture, listed in the base plan's `variants`:
+
+```ts autumn.config.ts
+import { atmn, feature, plan, variant } from "atmn";
+
+export const emails = feature({
+  featureId: "emails",
+  name: "Emails",
+  type: "metered",
+  consumable: true,
+});
+
+export const proAnnual = variant({
+  variantPlanId: "pro_annual",
+  versionSlug: "v1",
+  name: "Pro Annual",
+  customize: {
+    price: { amount: 200, interval: "year" },
+  },
+});
+
+export const pro100k = variant({
+  variantPlanId: "pro_100k",
+  versionSlug: "v1",
+  name: "Pro 100k",
+  customize: {
+    price: { amount: 35, interval: "month" },
+    removeItems: [{ featureId: emails.featureId, billingMethod: "usage_based" }],
+    addItems: [
+      {
+        featureId: emails.featureId,
+        included: 100000,
+        price: {
+          amount: 0.9,
+          billingUnits: 1000,
+          billingMethod: "usage_based",
+          interval: "month",
+        },
+      },
+    ],
+  },
+});
+
+export const pro = plan({
+  planId: "pro",
+  versionSlug: "v1",
+  active: true,
+  name: "Pro",
+  price: { amount: 20, interval: "month" },
+  items: [
+    {
+      featureId: emails.featureId,
+      included: 10000,
+      price: {
+        amount: 1,
+        billingUnits: 1000,
+        billingMethod: "usage_based",
+        interval: "month",
+      },
+    },
+  ],
+  variants: [proAnnual, pro100k],
+});
+
+export default atmn({ features: [emails], plans: [pro] });
+```
+
+Preview with `atmn push`, then apply with `atmn push --yes`.
+
+## How variants work
+
+Each variant is still a plan you can attach by ID, such as `pro_annual` or `pro_100k`. The difference is that Autumn keeps it connected to the base plan.
+
+Use variants when plans share most of their features. If a variant changes many unrelated parts of the plan, create a separate plan instead.

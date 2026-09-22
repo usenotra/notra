@@ -21,6 +21,7 @@ import {
   Robot01Icon,
   SearchList01Icon,
   Settings01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import {
   GEO_AGENT_READINESS_NAV_LINK,
@@ -28,6 +29,7 @@ import {
   GEO_PROMPTS_NAV_LINK,
   GEO_WRITER_NAV_LINK,
 } from "@notra/geo-core/constants/geo";
+import { GEO_PERSONAS_NAV_LINK } from "@notra/geo-core/constants/geo-personas";
 import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { DURATION } from "@notra/ui/lib/motion";
 
@@ -146,6 +148,12 @@ export const NAV_MAIN_ITEMS: NavMainItem[] = [
     icon: ChartAnalysisIcon,
     label: "Competitors",
   },
+  {
+    link: GEO_PERSONAS_NAV_LINK,
+    icon: UserGroupIcon,
+    label: "Personas",
+    badge: "Beta",
+  },
   { link: GEO_WRITER_NAV_LINK, icon: PencilEdit01Icon, label: "Write" },
   { link: GEO_SETTINGS_NAV_LINK, icon: Settings01Icon, label: "GEO Settings" },
   { link: SKILLS_NAV_LINK, icon: MagicWand01Icon, label: "Skills" },
@@ -157,6 +165,7 @@ export const NAV_GEO_VISIBILITY_LINKS: readonly string[] = [
   GEO_TRAFFIC_NAV_LINK,
   GEO_PROMPTS_NAV_LINK,
   GEO_COMPETITORS_NAV_LINK,
+  GEO_PERSONAS_NAV_LINK,
   AGENT_FEEDBACK_NAV_LINK,
 ];
 

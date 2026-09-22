@@ -19,17 +19,16 @@ describe("findBrandMention", () => {
     ).toBe("@opencoredev/email-sdk");
   });
 
-  test("treats spaces, hyphens, underscores and scopes as the same separator", () => {
-    expect(
-      findBrandMention("The email_sdk package is typed.", "Email SDK", [])
-    ).toBe("Email SDK");
-    expect(
-      findBrandMention(
-        "Use `email-sdk` for transactional mail.",
-        "Email SDK",
-        []
-      )
-    ).toBe("Email SDK");
+  test("treats package-style separators as equivalent", () => {
+    for (const separator of [" ", "-", "_", "/", "@", "."]) {
+      expect(
+        findBrandMention(
+          `Use email${separator}sdk for transactional mail.`,
+          "Email SDK",
+          []
+        )
+      ).toBe("Email SDK");
+    }
   });
 
   test("rejects answers that only share words with the company name", () => {

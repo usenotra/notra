@@ -4,7 +4,10 @@ import { dehydrate } from "@tanstack/react-query";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { geoRouter } from "@/lib/orpc/routers/geo";
-import { geoHydrationInputs } from "@/utils/geo-hydration";
+import {
+  geoHydrationInputs,
+  geoTrafficHydrationInputs,
+} from "@/utils/geo-hydration";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
 
 /**
@@ -55,6 +58,12 @@ export async function dehydrateGeoOverviewQueries(
       }),
       queryFn: () => client.geo.trafficJourneys(input.trafficJourneys),
     });
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.journeyStats.queryOptions({
+        input: input.journeyStats,
+      }),
+      queryFn: () => client.geo.journeyStats(input.journeyStats),
+    });
   }
   if (input.activeTab === "visibility") {
     void queryClient.prefetchQuery({
@@ -79,6 +88,50 @@ export async function dehydrateGeoOverviewQueries(
       queryFn: () => client.geo.languageShare(input.languageShare),
     });
   }
+
+  return dehydrate(queryClient);
+}
+
+/**
+ * Same non-blocking prefetch for the GEO traffic page: settings, the AI
+ * traffic overview, top pages, the live log and the ingest setup all start on
+ * the server so the page hydrates instead of cascading skeletons.
+ */
+export async function dehydrateGeoTrafficQueries(
+  organizationId: string,
+  projectId: string | undefined,
+  search: Record<string, string | string[] | undefined>,
+  requestHeaders: Headers
+) {
+  const input = geoTrafficHydrationInputs(organizationId, projectId, search);
+  const client = createRouterClient(
+    { geo: geoRouter },
+    { context: () => createORPCContext({ headers: requestHeaders }) }
+  );
+  const queryClient = getGeoServerQueryClient();
+
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.settings.queryOptions({ input: input.settings }),
+    queryFn: () => client.geo.settings(input.settings),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.aiTraffic.queryOptions({ input: input.aiTraffic }),
+    queryFn: () => client.geo.aiTraffic(input.aiTraffic),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.trafficPages.queryOptions({
+      input: input.trafficPages,
+    }),
+    queryFn: () => client.geo.trafficPages(input.trafficPages),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.trafficLog.queryOptions({ input: input.trafficLog }),
+    queryFn: () => client.geo.trafficLog(input.trafficLog),
+  });
+  void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.ingestSetup.queryOptions({ input: input.ingestSetup }),
+    queryFn: () => client.geo.ingestSetup(input.ingestSetup),
+  });
 
   return dehydrate(queryClient);
 }

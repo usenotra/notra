@@ -114,6 +114,7 @@
 @source "../../../../packages/ui/src/components/ui/svgs/microsoftCopilot.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/mistral.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/neon.tsx";
+@source "../../../../packages/ui/src/components/ui/svgs/notra.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/openai.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/openaiDark.tsx";
 @source "../../../../packages/ui/src/components/ui/svgs/opencode.tsx";
@@ -165,6 +166,7 @@
 @source "../../../../packages/ui/src/lib/geo-prompt-engines.ts";
 @source "../../../../packages/ui/src/lib/message-table.ts";
 @source "../../../../packages/ui/src/lib/motion.ts";
+@source "../../../../packages/ui/src/lib/notra-mark.ts";
 @source "../../../../packages/ui/src/lib/perplexity-model.ts";
 @source "../../../../packages/ui/src/lib/utils.ts";
 @source "../../../../packages/ui/src/types/brainless-opencode.ts";

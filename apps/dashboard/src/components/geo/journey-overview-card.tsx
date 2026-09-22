@@ -1,30 +1,37 @@
 "use client";
 
 import { GEO_JOURNEY_DEEP_CRAWL_PAGES } from "@notra/geo-core/constants/geo";
-import { formatGeoSource } from "@notra/geo-core/utils/ai-traffic";
-import { useMemo } from "react";
+import type { GeoJourneySourceStats } from "@notra/geo-core/types/geo";
+import {
+  formatGeoSource,
+  trafficVisitDelta,
+} from "@notra/geo-core/utils/ai-traffic";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
+import { JourneyCountCell } from "@/components/geo/journey-count-cell";
+import { JourneyStatCard } from "@/components/geo/journey-stat-card";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import type {
-  GeoJourneySourceRow,
-  JourneyOverviewCardProps,
-} from "@/types/geo";
-import { buildJourneyOverview } from "@/utils/geo-journey";
+import type { JourneyOverviewCardProps } from "@/types/geo";
+import {
+  formatJourneyDepth,
+  formatJourneyShare,
+  journeyTotals,
+} from "@/utils/geo-journey";
 import { tableHeightFor } from "@/utils/table";
 
-function shareLabel(value: number): string {
-  return `${Math.round(value * 100)}%`;
-}
+const sourceRowId = (row: GeoJourneySourceStats) =>
+  `${row.source}-${row.visitorType}`;
 
-export function JourneyOverviewCard({ journeys }: JourneyOverviewCardProps) {
-  const overview = useMemo(() => buildJourneyOverview(journeys), [journeys]);
-  const columns: TableColumn<GeoJourneySourceRow>[] = [
+export function JourneyOverviewCard({
+  sources,
+  failed,
+  previewRows,
+  onOpenSource,
+  loading = false,
+}: JourneyOverviewCardProps) {
+  const totals = journeyTotals(sources);
+  const columns: TableColumn<GeoJourneySourceStats>[] = [
     {
       key: "source",
       header: "Source",
@@ -35,80 +42,66 @@ export function JourneyOverviewCard({ journeys }: JourneyOverviewCardProps) {
         <span className="flex min-w-0 items-center gap-2 text-sm">
           <EngineIcon engine={row.source} />
           <span className="truncate">{formatGeoSource(row.source)}</span>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            {row.visitorType === "crawler" ? "Crawler" : "AI referral"}
+          </span>
         </span>
       ),
     },
     {
       key: "journeys",
       header: "Journeys",
-      width: "7rem",
+      width: "9.5rem",
       align: "right",
       sortable: true,
       cell: (row) => (
-        <span className="text-sm tabular-nums">
-          {row.journeys.toLocaleString()}
-        </span>
+        <JourneyCountCell
+          journeys={row.journeys}
+          label={formatGeoSource(row.source)}
+          previousJourneys={row.previousJourneys}
+        />
       ),
     },
   ];
 
   return (
-    <InstrumentModule className="h-full" eyebrow="Journeys">
-      {overview.total === 0 ? (
-        <InstrumentEmpty
-          className="h-40"
-          message="No agent journeys captured yet"
-          seed="geo-journey-overview"
-        />
-      ) : (
-        <div className="flex flex-col gap-4">
-          <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums">
-            {overview.total.toLocaleString()}
-          </p>
-          <dl className="text-muted-foreground grid grid-cols-3 gap-3 text-xs">
-            <div>
-              <dt>Median depth</dt>
-              <dd className="text-foreground mt-0.5 text-sm tabular-nums">
-                {overview.medianPages}{" "}
-                {overview.medianPages === 1 ? "page" : "pages"}
-              </dd>
-            </div>
-            <div>
-              <dt>Single-fetch</dt>
-              <dd className="text-foreground mt-0.5 text-sm tabular-nums">
-                {shareLabel(overview.singleFetchShare)}
-              </dd>
-            </div>
-            <div>
-              <dt>Crawl {GEO_JOURNEY_DEEP_CRAWL_PAGES}+</dt>
-              <dd className="text-foreground mt-0.5 text-sm tabular-nums">
-                {shareLabel(overview.deepShare)}
-              </dd>
-            </div>
-          </dl>
-          <div>
-            <Table
-              className="rounded-2xl"
-              columns={columns}
-              data={overview.sources}
-              defaultSort={{ key: "journeys", direction: "desc" }}
-              getRowId={(row) => `${row.source}-${row.visitorType}`}
-              height={tableHeightFor(overview.sources.length)}
-              resizable
-              rowHeight={TABLE_ROW_HEIGHT}
-            />
-            {overview.uniqueSources > overview.sources.length ? (
-              <p className="text-muted-foreground px-1 pt-2 text-xs tabular-nums">
-                +
-                {(
-                  overview.uniqueSources - overview.sources.length
-                ).toLocaleString()}{" "}
-                more sources
-              </p>
-            ) : null}
-          </div>
-        </div>
-      )}
-    </InstrumentModule>
+    <JourneyStatCard
+      caption={totals.journeys === 1 ? "journey" : "journeys"}
+      delta={trafficVisitDelta(totals.journeys, totals.previousJourneys)}
+      emptyMessage={
+        failed
+          ? "Could not load agent journeys"
+          : "No agent journeys captured yet"
+      }
+      emptySeed="geo-journey-overview"
+      eyebrow="Journeys"
+      stats={[
+        {
+          label: "Avg. depth",
+          value: formatJourneyDepth(totals.pages, totals.journeys),
+        },
+        {
+          label: "Single fetch",
+          value: formatJourneyShare(totals.singleFetch, totals.journeys),
+        },
+        {
+          label: `Crawled ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ pages`,
+          value: formatJourneyShare(totals.deepCrawls, totals.journeys),
+        },
+      ]}
+      total={totals.journeys}
+    >
+      <Table
+        className="rounded-2xl"
+        columns={columns}
+        data={sources.filter((row) => row.journeys > 0)}
+        defaultSort={{ key: "journeys", direction: "desc" }}
+        getRowId={sourceRowId}
+        height={tableHeightFor(previewRows)}
+        loading={loading}
+        onRowClick={onOpenSource}
+        rowHeight={TABLE_ROW_HEIGHT}
+      />
+    </JourneyStatCard>
   );
 }

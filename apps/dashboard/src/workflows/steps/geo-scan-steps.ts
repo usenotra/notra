@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
 import {
   finalizeGeoScanProject,
   listGeoScanProjects,
@@ -9,6 +10,8 @@ import {
 import { renewGeoScanClaimIfDue } from "@notra/geo-core/geo/scan-status";
 import type {
   GeoScanBatchOutcome,
+  GeoScanFailureMetadata,
+  GeoScanPlannedPersona,
   GeoScanPlannedSequence,
   GeoScanPlannedTask,
   GeoScanProjectContext,
@@ -75,6 +78,7 @@ export async function prepareGeoScanProjectStep(
         scanId: options.scanId,
         promptIds: options.promptIds,
         engines: options.engines,
+        retried: options.retried,
       }).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     if (result.status === "skipped") {
@@ -146,19 +150,43 @@ export async function runGeoScanSequenceBatchStep(
   }
 }
 
+export async function runGeoScanPersonaBatchStep(
+  context: GeoScanProjectContext,
+  personas: GeoScanPlannedPersona[]
+): Promise<GeoScanBatchOutcome> {
+  "use step";
+  try {
+    return await Effect.runPromise(
+      runGeoScanPersonaBatch(context, personas).pipe(
+        Effect.provide(geoCoreDashboardLayer)
+      )
+    );
+  } finally {
+    await flushObservability();
+  }
+}
+
 export async function finalizeGeoScanProjectStep(
   context: GeoScanProjectContext,
   totals: GeoScanProjectTotals,
   status: "completed" | "failed",
   claimedAt: string,
-  options: { retried: boolean; failureReason?: string }
+  options: {
+    retried: boolean;
+    failureReason?: string;
+    failure?: GeoScanFailureMetadata;
+  }
 ): Promise<void> {
   "use step";
   try {
     await Effect.runPromise(
-      finalizeGeoScanProject(context, totals, status, claimedAt).pipe(
-        Effect.provide(geoCoreDashboardLayer)
-      )
+      finalizeGeoScanProject(
+        context,
+        totals,
+        status,
+        claimedAt,
+        options.failure
+      ).pipe(Effect.provide(geoCoreDashboardLayer))
     );
     const durationMs = Date.now() - context.startedAtMs;
     if (status === "completed") {

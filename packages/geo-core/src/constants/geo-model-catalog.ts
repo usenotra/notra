@@ -91,30 +91,21 @@ export const GEO_MODEL_PROVIDERS: readonly GeoModelProvider[] = [
 export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   // Anthropic
   {
+    id: "anthropic/claude-fable-5.1",
+    provider: "anthropic",
+    label: "Claude Fable 5.1",
+    zdr: "none",
+    released: "2026-08-31",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "anthropic/claude-opus-5",
     provider: "anthropic",
     label: "Claude Opus 5",
     zdr: "all",
     released: "2026-07-24",
-    default: false,
-    gateways: ["vercel", "openrouter"],
-  },
-  {
-    id: "anthropic/claude-sonnet-5",
-    provider: "anthropic",
-    label: "Claude Sonnet 5",
-    zdr: "all",
-    released: "2026-08-21",
     default: true,
-    gateways: ["vercel", "openrouter"],
-  },
-  {
-    id: "anthropic/claude-haiku-4.5",
-    provider: "anthropic",
-    label: "Claude Haiku 4.5",
-    zdr: "all",
-    released: "2025-10-15",
-    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -126,13 +117,40 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     default: false,
     gateways: ["vercel", "openrouter"],
   },
+  {
+    id: "anthropic/claude-sonnet-5",
+    provider: "anthropic",
+    label: "Claude Sonnet 5",
+    zdr: "all",
+    released: "2026-06-29",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
+    id: "anthropic/claude-haiku-4.5",
+    provider: "anthropic",
+    label: "Claude Haiku 4.5",
+    zdr: "all",
+    released: "2025-10-15",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
   // OpenAI
+  {
+    id: "openai/gpt-6-astra",
+    provider: "openai",
+    label: "GPT-6 Astra",
+    zdr: "some",
+    released: "2026-09-04",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
   {
     id: "openai/gpt-5.6-sol",
     provider: "openai",
     label: "GPT-5.6 Sol",
     zdr: "some",
-    released: "2026-08-21",
+    released: "2026-07-09",
     default: true,
     gateways: ["vercel", "openrouter"],
   },
@@ -141,8 +159,8 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     provider: "openai",
     label: "GPT-5.6 Terra",
     zdr: "some",
-    released: "2026-08-21",
-    default: false,
+    released: "2026-07-09",
+    default: true,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -150,16 +168,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     provider: "openai",
     label: "GPT-5.6 Luna",
     zdr: "some",
-    released: "2026-08-21",
-    default: false,
-    gateways: ["vercel", "openrouter"],
-  },
-  {
-    id: "openai/gpt-5.4",
-    provider: "openai",
-    label: "GPT-5.4",
-    zdr: "some",
-    released: "2026-03-05",
+    released: "2026-07-09",
     default: false,
     gateways: ["vercel", "openrouter"],
   },
@@ -169,6 +178,15 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "GPT-5.5",
     zdr: "some",
     released: "2026-04-24",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
+    id: "openai/gpt-5.4",
+    provider: "openai",
+    label: "GPT-5.4",
+    zdr: "some",
+    released: "2026-03-05",
     default: false,
     gateways: ["vercel", "openrouter"],
   },
@@ -183,11 +201,20 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   },
   // Google
   {
-    id: "google/gemini-3-flash",
+    id: "google/gemini-3.8-flash",
     provider: "google",
-    label: "Gemini 3 Flash",
+    label: "Gemini 3.8 Flash",
     zdr: "some",
-    released: "2025-12-17",
+    released: "2026-09-02",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
+    id: "google/gemini-3.5-flash",
+    provider: "google",
+    label: "Gemini 3.5 Flash",
+    zdr: "some",
+    released: "2026-05-19",
     default: false,
     gateways: ["vercel", "openrouter"],
   },
@@ -201,12 +228,12 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     gateways: ["vercel", "openrouter"],
   },
   {
-    id: "google/gemini-3.5-flash",
+    id: "google/gemini-3-flash",
     provider: "google",
-    label: "Gemini 3.5 Flash",
+    label: "Gemini 3 Flash",
     zdr: "some",
-    released: "2026-05-19",
-    default: true,
+    released: "2025-12-17",
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   // Moonshot
@@ -216,7 +243,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "Kimi K3",
     zdr: "some",
     released: "2026-07-16",
-    default: true,
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -253,8 +280,8 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     provider: "zai",
     label: "GLM 5.3",
     zdr: "some",
-    released: "2026-08-21",
-    default: true,
+    released: "2026-08-18",
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -277,10 +304,19 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   },
   // xAI
   {
+    id: "spacexai/grok-4.7",
+    provider: "spacexai",
+    label: "Grok 4.7",
+    zdr: "all",
+    released: "2026-09-21",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "spacexai/grok-4.6",
     provider: "spacexai",
     label: "Grok 4.6",
-    zdr: "none",
+    zdr: "all",
     released: "2026-08-12",
     default: false,
     gateways: ["vercel", "openrouter"],
@@ -445,6 +481,29 @@ export const GEO_DEFAULT_ENGINE_IDS: readonly string[] =
     (entry) => entry.id
   );
 
+export const GEO_AUDIENCE_TYPES = ["technical", "general", "commerce"] as const;
+
+/**
+ * Engines seeded for a brand whose buyers never pick a model themselves: the
+ * models the assistant apps ship as their default. ChatGPT gets its free
+ * (Luna) and paid (Sol) default, Claude its free default.
+ */
+export const GEO_GENERAL_AUDIENCE_ENGINE_IDS: readonly string[] = [
+  "anthropic/claude-sonnet-5",
+  "openai/gpt-5.6-sol",
+  "openai/gpt-5.6-luna",
+  "google/gemini-3.8-flash",
+];
+
+/**
+ * Shops and local businesses are found through Google first, so they track
+ * its AI Overview on top of the assistant defaults.
+ */
+export const GEO_COMMERCE_AUDIENCE_ENGINE_IDS: readonly string[] = [
+  ...GEO_GENERAL_AUDIENCE_ENGINE_IDS,
+  "google/ai-overview",
+];
+
 export const GEO_MODEL_FEED_URL = "https://ai-gateway.vercel.sh/v1/models";
 export const GEO_MODEL_FEED_REVALIDATE_SECONDS = 3600;
 /** Models shown per provider before "Show x other models". */
@@ -453,6 +512,15 @@ export const GEO_PICKER_VISIBLE_MODELS = 3;
 export const GEO_PICKER_VISIBLE_PROVIDERS = 7;
 /** Newest models kept per provider; defaults are always included. */
 export const GEO_MODELS_PER_PROVIDER = 10;
+/**
+ * Variants kept in the catalog but hidden from the picker: tiers that answer
+ * like their base model, dated snapshots, and open-weight families that no
+ * consumer assistant runs.
+ */
+export const GEO_MODEL_HIDDEN_ID_PATTERN =
+  /(-nano|-lite|-thinking|-reasoning|-multi-agent|-\d{4}(?:\d{4})?)$|^openai\/.+-pro$|codex|-code\b|gemma|llama|grok-build/;
+/** Version numbers stripped to group a model with its older releases. */
+export const GEO_MODEL_VERSION_PATTERN = /\d+(?:\.\d+)*/g;
 export const GEO_MODEL_EXCLUDED_TAGS: ReadonlySet<string> = new Set([
   "image-generation",
   "video-generation",
@@ -466,6 +534,7 @@ export const GEO_MODEL_EXCLUDED_IDS: ReadonlySet<string> = new Set([
 /** Stored engine ids that should keep scanning as their replacement. */
 export const GEO_MODEL_REPLACED_IDS: Readonly<Record<string, string>> = {
   "meta/muse-spark-1.1": "meta/muse-spark-1.3",
+  "spacexai/grok-4.6": "spacexai/grok-4.7",
 };
 /**
  * Coding, vision and edge-sized specialities. They are never used to answer

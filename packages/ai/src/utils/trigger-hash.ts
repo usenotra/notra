@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { normalizeCronConfig } from "../qstash/triggers";
+import { normalizeIgnoreCommitPatterns } from "../schemas/ignore-commit-patterns";
 import type {
   TriggerConfigInput,
   TriggerHashInput,
@@ -15,12 +16,17 @@ export function normalizeTriggerConfig({
     : sourceConfig.eventTypes;
   const repositoryIds = [...targets.repositoryIds].sort();
   const cron = normalizeCronConfig(sourceConfig.cron);
+  const ignoreCommitPatterns = normalizeIgnoreCommitPatterns(
+    sourceConfig.ignoreCommitPatterns
+  ).sort();
 
   return {
     sourceConfig: {
       ...sourceConfig,
       eventTypes,
       cron,
+      ignoreCommitPatterns:
+        ignoreCommitPatterns.length > 0 ? ignoreCommitPatterns : undefined,
     },
     targets: {
       repositoryIds,
@@ -35,17 +41,19 @@ export function hashTrigger({
   outputType,
   lookbackWindow,
   instructions,
+  brandVoiceId,
 }: TriggerHashInput) {
   const normalized = normalizeTriggerConfig({ sourceConfig, targets });
   const trimmedInstructions = instructions?.trim();
+  const trimmedBrandVoiceId = brandVoiceId?.trim();
   const payload = JSON.stringify({
     sourceType,
     sourceConfig: normalized.sourceConfig,
     targets: normalized.targets,
     outputType,
     lookbackWindow,
-    // Omitted when empty so hashes of existing triggers stay unchanged.
     ...(trimmedInstructions ? { instructions: trimmedInstructions } : {}),
+    ...(trimmedBrandVoiceId ? { brandVoiceId: trimmedBrandVoiceId } : {}),
   });
 
   return crypto.createHash("sha256").update(payload).digest("hex");

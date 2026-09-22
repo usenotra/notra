@@ -1,13 +1,17 @@
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import {
+  fallbackContentCommitHeadline,
+  generateContentCommitHeadline,
+} from "@notra/ai/utils/content-commit-message";
 import { slugify } from "@notra/utils/slugify";
 
 import {
   GITHUB_API_VERSION_HEADERS,
   GITHUB_CONTENT_COMMIT_METADATA_PREFIX,
   GITHUB_CONTENT_MAX_ASSET_COUNT,
-  GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION,
 } from "@/constants/github";
 
 import type {
@@ -43,6 +47,15 @@ export class GitHubContentBranchConflictError extends Error {
     );
     this.name = "GitHubContentBranchConflictError";
     this.branchName = branchName;
+  }
+}
+
+export class GitHubLinkedPullRequestUnavailableError extends Error {
+  constructor() {
+    super(
+      "The linked pull request is no longer open against the repository's default branch"
+    );
+    this.name = "GitHubLinkedPullRequestUnavailableError";
   }
 }
 
@@ -152,6 +165,54 @@ function buildGitHubContentFileChanges(
   };
 }
 
+const CONTENT_BRANCH_TITLE_WORD_LIMIT = 6;
+const CONTENT_BRANCH_SLUG_MAX_LENGTH = 60;
+const CONTENT_BRANCH_HASH_LENGTH = 16;
+
+function contentBranchPrefix(contentType: GitHubPublishContentType) {
+  return contentType === "changelog" ? "changelog" : "blog-post";
+}
+
+function contentBranchDiscriminator(contentId: string) {
+  return createHash("sha256")
+    .update(contentId)
+    .digest("hex")
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
+}
+
+/**
+ * `notra/changelog-dashboard-clarity-and-a1b2c3d4e5f67890`.
+ * The title slug is what you see in GitHub. The hash stays stable when the
+ * title changes, so a later publish still finds this pull request.
+ */
+function createContentBranchName(
+  contentType: GitHubPublishContentType,
+  title: string,
+  contentId: string
+) {
+  const words = slugify(title)
+    .split("-")
+    .filter(Boolean)
+    .slice(0, CONTENT_BRANCH_TITLE_WORD_LIMIT);
+  const slug =
+    words
+      .join("-")
+      .slice(0, CONTENT_BRANCH_SLUG_MAX_LENGTH)
+      .replace(/-$/, "") || "update";
+  return `notra/${contentBranchPrefix(contentType)}-${slug}-${contentBranchDiscriminator(contentId)}`;
+}
+
+function createHashOnlyContentBranchName(
+  contentType: GitHubPublishContentType,
+  contentId: string
+) {
+  const contentHash = createHash("sha256")
+    .update(contentId)
+    .digest("hex")
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
+  return `notra/${contentBranchPrefix(contentType)}-${contentHash}`;
+}
+
 function createLegacyContentBranchName(
   path: string,
   contentType: GitHubPublishContentType,
@@ -161,19 +222,22 @@ function createLegacyContentBranchName(
   const targetHash = createHash("sha256")
     .update(`${contentId}\0${path}`)
     .digest("hex")
-    .slice(0, 16);
-  const prefix = contentType === "changelog" ? "changelog" : "blog-post";
-  return `notra/${prefix}-${slug || "update"}-${targetHash}`;
+    .slice(0, CONTENT_BRANCH_HASH_LENGTH);
+  return `notra/${contentBranchPrefix(contentType)}-${slug || "update"}-${targetHash}`;
 }
 
 function toPullRequestResult(
   pullRequest: GitHubPullRequestSummary,
   branchName: string,
   path: string,
-  operation: GitHubPullRequestOperation
+  operation: GitHubPullRequestOperation,
+  headSha: string
 ) {
   return {
     branchName,
+    // The commit this publish put on the branch. Mentions compare it with the
+    // pull request head to notice pushes made outside Notra.
+    headSha,
     operation,
     path,
     pullRequestNumber: pullRequest.number,
@@ -204,7 +268,9 @@ async function findLegacyContentPullRequest(
   params: PublishContentDraftPullRequestParams,
   baseSha: string
 ) {
-  const prefix = params.contentType === "changelog" ? "changelog" : "blog-post";
+  const prefix = contentBranchPrefix(params.contentType);
+  const branchPrefix = `notra/${prefix}-`;
+  const discriminatorSuffix = `-${contentBranchDiscriminator(params.contentId)}`;
   for (let page = 1; ; page += 1) {
     const { data: pullRequests } = await octokit.request(
       "GET /repos/{owner}/{repo}/pulls",
@@ -219,12 +285,22 @@ async function findLegacyContentPullRequest(
       }
     );
     for (const pullRequest of pullRequests) {
+      const ref = pullRequest.head.ref;
       if (
         pullRequest.head.repo?.full_name.toLowerCase() !==
           `${params.owner}/${params.repo}`.toLowerCase() ||
-        !pullRequest.head.ref.startsWith(`notra/${prefix}-`) ||
-        !pullRequest.head.ref.slice(`notra/${prefix}-`.length).includes("-")
+        !ref.startsWith(branchPrefix)
       ) {
+        continue;
+      }
+
+      const remainder = ref.slice(branchPrefix.length);
+      if (remainder.endsWith(discriminatorSuffix)) {
+        return pullRequest;
+      }
+
+      const legacyHash = remainder.slice(remainder.lastIndexOf("-") + 1);
+      if (!(remainder.includes("-") && /^[0-9a-f]{16}$/.test(legacyHash))) {
         continue;
       }
       const { data: comparison } = await octokit.request(
@@ -274,12 +350,11 @@ async function getPullRequestAfterCommit(params: {
 }
 
 /**
- * Older pull requests were created before the article and "Open in Notra"
- * button were part of the description. When republishing to an open pull
- * request, refresh its body so it picks up the latest draft. Failures are
- * non-fatal: the content commit already landed.
+ * Republish refreshes the description to the file path and the Open in Notra
+ * link. Failures are non-fatal: the content commit already landed.
  */
 async function ensurePullRequestBody(params: {
+  branchName: string;
   currentBody: string | null | undefined;
   octokit: GitHubClient;
   owner: string;
@@ -289,11 +364,12 @@ async function ensurePullRequestBody(params: {
 }) {
   const body = mergeContentPullRequestBody(params.currentBody, {
     badgeUrls: params.publishParams.badgeUrls,
+    branch: params.branchName,
     contentType: params.publishParams.contentType,
     contentUrl: params.publishParams.contentUrl,
-    markdown:
-      params.publishParams.pullRequestMarkdown ?? params.publishParams.markdown,
-    title: params.publishParams.title,
+    owner: params.owner,
+    path: params.publishParams.path,
+    repo: params.repo,
   });
   if ((params.currentBody ?? "") === body) {
     return;
@@ -531,12 +607,68 @@ async function resolveGitHubPublishParams(
   };
 }
 
+async function readGitHubContentFile(
+  octokit: GitHubClient,
+  params: {
+    owner: string;
+    repo: string;
+    path: string;
+    ref: string;
+  }
+): Promise<string | null> {
+  try {
+    const { data } = await octokit.request(
+      "GET /repos/{owner}/{repo}/contents/{path}",
+      {
+        owner: params.owner,
+        repo: params.repo,
+        path: params.path,
+        ref: params.ref,
+        headers: GITHUB_API_VERSION_HEADERS,
+      }
+    );
+    if (
+      Array.isArray(data) ||
+      data.type !== "file" ||
+      typeof data.content !== "string"
+    ) {
+      return null;
+    }
+    return Buffer.from(data.content, "base64").toString("utf8");
+  } catch (error) {
+    if (!hasGitHubStatus(error, 404)) {
+      throw new GitHubContentPublishError(
+        "Failed to read the existing content file",
+        error
+      );
+    }
+    return null;
+  }
+}
+
 async function commitContentToBranch(
   octokit: GitHubClient,
   params: PublishContentDraftPullRequestParams,
   branchName: string,
-  branchHeadSha: string
+  branchHeadSha: string,
+  followUp: boolean
 ) {
+  const fallback = fallbackContentCommitHeadline(params.title, followUp);
+  const headline =
+    followUp && params.organizationId
+      ? await generateContentCommitHeadline({
+          organizationId: params.organizationId,
+          title: params.title,
+          previousMarkdown: await readGitHubContentFile(octokit, {
+            owner: params.owner,
+            repo: params.repo,
+            path: params.path,
+            ref: branchHeadSha,
+          }),
+          nextMarkdown: params.markdown,
+          fallback,
+        })
+      : fallback;
   // Authored by the GitHub App bot when the caller uses an installation token.
   try {
     const result = await octokit.graphql<GitHubCreateCommitOnBranchResult>(
@@ -548,7 +680,7 @@ async function commitContentToBranch(
             branchName,
           },
           message: {
-            headline: `docs: add ${params.title}`,
+            headline,
             body: renderContentCommitMetadata(params),
           },
           expectedHeadOid: branchHeadSha,
@@ -710,39 +842,93 @@ export async function publishContentDraftPullRequest(
     );
   }
 
-  const prefix =
-    requestedParams.contentType === "changelog" ? "changelog" : "blog-post";
-  const contentHash = createHash("sha256")
-    .update(requestedParams.contentId)
-    .digest("hex")
-    .slice(0, 16);
-  let branchName = `notra/${prefix}-${contentHash}`;
+  let branchName = createContentBranchName(
+    requestedParams.contentType,
+    requestedParams.title,
+    requestedParams.contentId
+  );
+  const hashOnlyBranchName = createHashOnlyContentBranchName(
+    requestedParams.contentType,
+    requestedParams.contentId
+  );
   let existingPullRequest: GitHubPullRequestSummary | undefined;
+  const linkedPullRequest = requestedParams.linkedPullRequest;
 
-  try {
-    existingPullRequest = await findExistingPullRequest({
-      branchName,
-      defaultBranch: requestedParams.defaultBranch,
-      octokit,
-      owner: requestedParams.owner,
-      repo: requestedParams.repo,
-    });
-    if (!existingPullRequest) {
-      const legacyPullRequest = await findLegacyContentPullRequest(
+  if (linkedPullRequest) {
+    try {
+      const linked = await getPullRequestAfterCommit({
         octokit,
-        requestedParams,
-        baseSha
-      );
-      if (legacyPullRequest) {
-        existingPullRequest = legacyPullRequest;
-        branchName = legacyPullRequest.head.ref;
+        owner: requestedParams.owner,
+        pullRequestNumber: linkedPullRequest.number,
+        repo: requestedParams.repo,
+      });
+      const headRepository = linked.head.repo?.full_name.toLowerCase();
+      const expectedRepository =
+        `${requestedParams.owner}/${requestedParams.repo}`.toLowerCase();
+      if (
+        linked.state === "open" &&
+        linked.base.ref === requestedParams.defaultBranch &&
+        linked.head.ref === linkedPullRequest.branchName &&
+        headRepository === expectedRepository
+      ) {
+        existingPullRequest = {
+          html_url: linked.html_url,
+          number: linked.number,
+        };
+        branchName = linked.head.ref;
+      }
+    } catch (error) {
+      if (!hasGitHubStatus(error, 404)) {
+        throw new GitHubContentPublishError(
+          "Failed to read the linked pull request",
+          error
+        );
       }
     }
-  } catch (error) {
-    throw new GitHubContentPublishError(
-      "Failed to check for an existing content pull request",
-      error
-    );
+  }
+
+  if (requestedParams.requireLinkedPullRequest && !existingPullRequest) {
+    throw new GitHubLinkedPullRequestUnavailableError();
+  }
+
+  if (!existingPullRequest) {
+    try {
+      existingPullRequest = await findExistingPullRequest({
+        branchName,
+        defaultBranch: requestedParams.defaultBranch,
+        octokit,
+        owner: requestedParams.owner,
+        repo: requestedParams.repo,
+      });
+      if (!existingPullRequest && hashOnlyBranchName !== branchName) {
+        existingPullRequest = await findExistingPullRequest({
+          branchName: hashOnlyBranchName,
+          defaultBranch: requestedParams.defaultBranch,
+          octokit,
+          owner: requestedParams.owner,
+          repo: requestedParams.repo,
+        });
+        if (existingPullRequest) {
+          branchName = hashOnlyBranchName;
+        }
+      }
+      if (!existingPullRequest) {
+        const legacyPullRequest = await findLegacyContentPullRequest(
+          octokit,
+          requestedParams,
+          baseSha
+        );
+        if (legacyPullRequest) {
+          existingPullRequest = legacyPullRequest;
+          branchName = legacyPullRequest.head.ref;
+        }
+      }
+    } catch (error) {
+      throw new GitHubContentPublishError(
+        "Failed to check for an existing content pull request",
+        error
+      );
+    }
   }
 
   let createdBranch = false;
@@ -764,6 +950,26 @@ export async function publishContentDraftPullRequest(
         );
       }
       branchExists = false;
+    }
+    if (!branchExists && hashOnlyBranchName !== branchName) {
+      try {
+        await octokit.request("GET /repos/{owner}/{repo}/git/ref/{ref}", {
+          owner: requestedParams.owner,
+          repo: requestedParams.repo,
+          ref: `heads/${hashOnlyBranchName}`,
+          headers: GITHUB_API_VERSION_HEADERS,
+        });
+        branchName = hashOnlyBranchName;
+        branchExists = true;
+      } catch (error) {
+        if (!hasGitHubStatus(error, 404)) {
+          throw new GitHubContentPublishError(
+            "Failed to check for an existing content branch",
+            error,
+            hashOnlyBranchName
+          );
+        }
+      }
     }
     // A branch left by an earlier attempt may use a different path. Its
     // recorded destination is checked after branch validation below.
@@ -902,7 +1108,8 @@ export async function publishContentDraftPullRequest(
     octokit,
     params,
     branchName,
-    branchHeadSha
+    branchHeadSha,
+    contentBranch.aheadBy > 0
   );
 
   if (existingPullRequest) {
@@ -935,6 +1142,7 @@ export async function publishContentDraftPullRequest(
         repo: params.repo,
       });
       await ensurePullRequestBody({
+        branchName,
         currentBody: pullRequestAfterCommit.body,
         octokit,
         owner: params.owner,
@@ -946,7 +1154,8 @@ export async function publishContentDraftPullRequest(
         existingPullRequest,
         branchName,
         params.path,
-        "updated"
+        "updated",
+        commitSha
       );
     }
     if (await isContentOnDefaultBranch(octokit, params)) {
@@ -954,7 +1163,8 @@ export async function publishContentDraftPullRequest(
         existingPullRequest,
         branchName,
         params.path,
-        "updated"
+        "updated",
+        commitSha
       );
     }
     existingPullRequest = undefined;
@@ -971,10 +1181,12 @@ export async function publishContentDraftPullRequest(
         title: `docs: add ${params.title}`,
         body: buildContentPullRequestBody({
           badgeUrls: params.badgeUrls,
+          branch: branchName,
           contentType: params.contentType,
           contentUrl: params.contentUrl,
-          markdown: params.pullRequestMarkdown ?? params.markdown,
-          title: params.title,
+          owner: params.owner,
+          path: params.path,
+          repo: params.repo,
         }),
         draft: true,
         headers: GITHUB_API_VERSION_HEADERS,
@@ -998,7 +1210,13 @@ export async function publishContentDraftPullRequest(
       repo: params.repo,
     });
 
-    return toPullRequestResult(pullRequest, branchName, params.path, "created");
+    return toPullRequestResult(
+      pullRequest,
+      branchName,
+      params.path,
+      "created",
+      commitSha
+    );
   } catch (error) {
     if (
       error instanceof GitHubContentBranchConflictError ||
@@ -1033,6 +1251,7 @@ export async function publishContentDraftPullRequest(
           repo: params.repo,
         });
         await ensurePullRequestBody({
+          branchName,
           currentBody: pullRequestAfterCommit.body,
           octokit,
           owner: params.owner,
@@ -1044,7 +1263,8 @@ export async function publishContentDraftPullRequest(
           existingPullRequest,
           branchName,
           params.path,
-          "created"
+          "created",
+          commitSha
         );
       }
     } catch (reconciliationError) {

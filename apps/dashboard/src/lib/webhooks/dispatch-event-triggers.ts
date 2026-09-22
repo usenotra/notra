@@ -8,6 +8,7 @@ import type {
   GithubProcessedEvent,
   MatchingEventTrigger,
 } from "@/types/webhooks/webhooks";
+import { isPushEventIgnoredByPatterns } from "@/utils/ignore-commit-patterns";
 
 class EventTriggerDispatchError extends Data.TaggedError(
   "EventTriggerDispatchError"
@@ -29,14 +30,22 @@ function shouldDispatchTrigger(
     ? (parsed.data.includePreReleases ?? true)
     : true;
 
+  if (!eventTypes.some((eventType) => eventType === processedEvent.type)) {
+    return false;
+  }
+
   if (isPreReleaseEvent(processedEvent) && !includePreReleases) {
     return false;
   }
 
-  return (
-    eventTypes.length === 0 ||
-    eventTypes.some((eventType) => eventType === processedEvent.type)
-  );
+  const ignoreCommitPatterns = parsed.success
+    ? parsed.data.ignoreCommitPatterns
+    : undefined;
+  if (isPushEventIgnoredByPatterns(processedEvent, ignoreCommitPatterns)) {
+    return false;
+  }
+
+  return true;
 }
 
 const dispatchEventTrigger = Effect.fn("dispatchEventTrigger")(function* ({

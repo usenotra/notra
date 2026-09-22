@@ -31,9 +31,10 @@ import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import type { StandaloneChatContextItem } from "@notra/ai/types/standalone-chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { flushPostHogServer } from "@notra/posthog/server";
-import type { UIMessageChunk } from "ai";
+import { toUIMessageStream, type UIMessageChunk } from "ai";
 import { nanoid } from "nanoid";
 
 import { AI_CREDITS_SOURCE_STANDALONE_CHAT } from "@/constants/studio-analytics";
@@ -282,11 +283,11 @@ export async function streamChatResponseStep(
 
           const cost = calculateAiCreditCostCents(
             {
-              inputTokens: usage.inputTokens ?? 0,
-              outputTokens: usage.outputTokens ?? 0,
-              totalTokens: usage.totalTokens ?? 0,
-              cacheReadTokens: usage.inputTokenDetails?.cacheReadTokens ?? 0,
-              cacheWriteTokens: usage.inputTokenDetails?.cacheWriteTokens ?? 0,
+              ...toAgentTokenUsage(usage),
+              // This usage sums every step, and prices can depend on how big
+              // each single request was, so bill the per-step cost.
+              maxPromptTokens: routeUsage?.maxPromptTokens,
+              tokenCostUsd: routeUsage?.tokenCostUsd,
             },
             modelId,
             useMarkup
@@ -343,7 +344,8 @@ export async function streamChatResponseStep(
       decision: routingDecision,
     });
 
-    const uiStream = stream.toUIMessageStream({
+    const uiStream = toUIMessageStream({
+      stream: stream.stream,
       originalMessages: messages,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
@@ -380,7 +382,7 @@ export async function streamChatResponseStep(
 
         return;
       },
-      onFinish: async ({ messages: responseMessages }) => {
+      onEnd: async ({ messages: responseMessages }) => {
         try {
           const saved = await replaceChatHistory(
             organizationId,
@@ -405,12 +407,19 @@ export async function streamChatResponseStep(
       },
     });
 
-    for await (const chunk of uiStream) {
-      if (abortController.signal.aborted) {
-        break;
+    const reader = uiStream.getReader();
+    try {
+      while (!abortController.signal.aborted) {
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- stream chunks must be forwarded in order
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        buffer.push(value as UIMessageChunk);
+        scheduleFlush();
       }
-      buffer.push(chunk as UIMessageChunk);
-      scheduleFlush();
+    } finally {
+      reader.releaseLock();
     }
 
     if (abortController.signal.aborted) {

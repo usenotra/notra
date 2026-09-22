@@ -91,12 +91,12 @@ export function ConnectedAccountsSection({
         </p>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-muted flex size-10 items-center justify-center rounded-lg">
+          <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
                 <Google className="size-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium">Google</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGoogleLinked
@@ -107,6 +107,7 @@ export function ConnectedAccountsSection({
             </div>
             {hasGoogleLinked ? (
               <Button
+                className="shrink-0 self-start sm:self-auto"
                 disabled={!canUnlink || loadingProvider === "google"}
                 onClick={() => handleUnlinkAccount("google")}
                 size="sm"
@@ -123,6 +124,7 @@ export function ConnectedAccountsSection({
               </Button>
             ) : (
               <Button
+                className="shrink-0 self-start sm:self-auto"
                 disabled={loadingProvider === "google"}
                 onClick={() => handleLinkAccount("google")}
                 size="sm"
@@ -137,12 +139,12 @@ export function ConnectedAccountsSection({
             )}
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-muted flex size-10 items-center justify-center rounded-lg">
+          <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
                 <Github className="size-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium">GitHub</p>
                 <p className="text-muted-foreground text-xs">
                   {hasGithubLinked
@@ -153,6 +155,7 @@ export function ConnectedAccountsSection({
             </div>
             {hasGithubLinked ? (
               <Button
+                className="shrink-0 self-start sm:self-auto"
                 disabled={!canUnlink || loadingProvider === "github"}
                 onClick={() => handleUnlinkAccount("github")}
                 size="sm"
@@ -169,6 +172,7 @@ export function ConnectedAccountsSection({
               </Button>
             ) : (
               <Button
+                className="shrink-0 self-start sm:self-auto"
                 disabled={loadingProvider === "github"}
                 onClick={() => handleLinkAccount("github")}
                 size="sm"

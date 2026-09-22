@@ -347,6 +347,7 @@ export interface GeoShelfMemberSelectProps {
 }
 
 export interface GeoShelfDetailDialogProps {
+  organizationId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   row: GeoShelfRow | null;

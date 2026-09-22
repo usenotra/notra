@@ -4,10 +4,11 @@
 @import "./cta-button.css";
 @import "./motion.css";
 @import "./opencode.css";
+@import "./skeleton-shimmer.css";
 @import "./status.css";
 @import "./text-shimmer.css";
 
-@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";

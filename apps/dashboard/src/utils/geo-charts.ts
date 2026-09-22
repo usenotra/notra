@@ -2,7 +2,7 @@ import {
   GEO_ENGINE_LABELS,
   GEO_MENTION_TREND_BACKFILL_DAYS,
   GEO_MENTION_TREND_TOTAL_KEY,
-  GEO_SEARCH_LABEL,
+  GEO_WITHOUT_SEARCH_LABEL,
   GEO_SHARE_OF_VOICE_TOP_BRANDS,
   GEO_SPARKLINE_MIN_POINTS,
   GEO_STAT_DELTA_NEW_LABEL,
@@ -41,6 +41,7 @@ import {
   engineFamilyOf,
   engineModelOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { hasGroundedVariant } from "@notra/geo-core/utils/geo-grounded-engines";
 import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
 
@@ -432,7 +433,10 @@ export function formatEngineFamily(engine: string): string {
 }
 
 export function engineAnswerMode(engine: string): string | null {
-  return isGroundedEngine(engine) ? GEO_SEARCH_LABEL : null;
+  if (isGroundedEngine(engine)) {
+    return null;
+  }
+  return hasGroundedVariant(engine) ? GEO_WITHOUT_SEARCH_LABEL : null;
 }
 
 export function sharedEngineAnswerMode(
@@ -451,7 +455,7 @@ export function sharedEngineAnswerMode(
 export function formatEngineWithMode(engine: string): string {
   const family = formatEngineFamily(engine);
   const mode = engineAnswerMode(engine);
-  return mode ? `${family} ${mode}` : family;
+  return mode ? `${family} (${mode})` : family;
 }
 
 export function engineFamilySources(
@@ -693,6 +697,34 @@ export function withTrackedMentionEngines(
   return extras.length === 0 ? [...scanned] : [...scanned, ...extras];
 }
 
+/**
+ * Engine families the workspace currently scans. An empty tracked list means
+ * the workspace never narrowed its engines, so everything counts as tracked —
+ * filtering on it would blank the surface instead of trimming it.
+ */
+export function trackedEngineFamilies(
+  trackedEngines: readonly string[] = []
+): ReadonlySet<string> {
+  return new Set(trackedEngines.map((engine) => engineFamilyOf(engine)));
+}
+
+export function isTrackedFamily(
+  family: string,
+  tracked: ReadonlySet<string>
+): boolean {
+  return tracked.size === 0 || tracked.has(family);
+}
+
+/** Drops families the workspace stopped scanning, keeping their history out
+ * of a performance table where a frozen 0% reads as a bad result. */
+export function keepTrackedFamilies(
+  families: readonly GeoEngineFamily[],
+  trackedEngines: readonly string[] = []
+): GeoEngineFamily[] {
+  const tracked = trackedEngineFamilies(trackedEngines);
+  return families.filter((family) => isTrackedFamily(family.family, tracked));
+}
+
 function compareMentionProviderRows(
   left: MentionProviderRow,
   right: MentionProviderRow
@@ -716,16 +748,14 @@ export function buildMentionProviderRows(
     withTrackedMentionEngines(scanned, options?.trackedEngines)
   );
   const points = options?.timeseriesPoints ?? [];
-  const trackedFamilies = new Set(
-    (options?.trackedEngines ?? []).map((engine) => engineFamilyOf(engine))
-  );
+  const tracked = trackedEngineFamilies(options?.trackedEngines);
   return families
     .map((family) => ({
       family,
       totals: engineFamilyTotals(family) ?? EMPTY_FAMILY_TOTALS,
       visibilityDelta: engineFamilyStatTrends(points, family.family)
         .visibilityDelta,
-      tracked: trackedFamilies.size === 0 || trackedFamilies.has(family.family),
+      tracked: isTrackedFamily(family.family, tracked),
     }))
     .sort(compareMentionProviderRows);
 }

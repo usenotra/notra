@@ -362,10 +362,12 @@ export interface GitHubSourceImageAsset {
 }
 
 export interface PrepareGitHubContentAssetsParams {
+  appOrigin: string | null;
   contentPath: string;
   imagePathTemplate: string;
   markdown: string;
-  publicUrl: string;
+  organizationId: string;
+  publicUrl: string | null;
   slug: string;
   loadImage: (key: string, maxBytes: number) => Promise<GitHubSourceImageAsset>;
 }
@@ -405,10 +407,10 @@ export interface PublishContentDraftPullRequestParams {
   path: string;
   title: string;
   markdown: string;
+  /** Organization billed for follow-up commit-message generation. */
+  organizationId?: string;
   assets?: GitHubContentAsset[];
   assetPathsToDelete?: string[];
-  /** Markdown shown in the pull request body when repository-local asset URLs differ from the committed file. */
-  pullRequestMarkdown?: string;
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */
   prepareContent?: (contentPath: string) => Promise<PreparedGitHubContent>;
   /**
@@ -420,6 +422,20 @@ export interface PublishContentDraftPullRequestParams {
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
   badgeUrls?: OpenInNotraBadgeUrls;
+  /**
+   * Open pull request already stored for this content. A new commit is pushed
+   * to its branch instead of opening another draft.
+   */
+  linkedPullRequest?: {
+    branchName: string;
+    number: number;
+  };
+  /**
+   * Fail instead of opening a new draft when the stored pull request is not
+   * open on the default branch. A pull request marked ready for review still
+   * receives the update.
+   */
+  requireLinkedPullRequest?: boolean;
 }
 
 export interface GitHubPullRequestSummary {
@@ -476,6 +492,8 @@ export type GitHubPublishRecovery = (
 export interface UseGitHubRepositorySelectionOptions {
   organizationId: string;
   enabled?: boolean;
+  /** Live GitHub catalog. The settings page enables this only while the picker is open. */
+  loadCatalog?: boolean;
   refetchOnMount?: boolean;
   initialAccountId?: string | null;
   onSaved: () => void;

@@ -1,9 +1,11 @@
 import type { getServerSession } from "@/lib/auth/session";
 import type { OrganizationMembership } from "@/types/auth/organization";
+import type { GeoShelfMember } from "@/types/geo-shelf";
 
 type SessionData = Awaited<ReturnType<typeof getServerSession>>;
 
 export interface ORPCRequestMemo {
+  readonly shelfMembersByOrganization: Map<string, Promise<GeoShelfMember[]>>;
   readonly analyticsEnabledByOrganization: Map<string, Promise<boolean>>;
   readonly geoEntitlementByOrganization: Map<
     string,
@@ -26,6 +28,7 @@ const requestMemosByHeaders = new WeakMap<Headers, ORPCRequestMemo>();
 
 function createRequestMemo(): ORPCRequestMemo {
   return {
+    shelfMembersByOrganization: new Map(),
     analyticsEnabledByOrganization: new Map(),
     geoEntitlementByOrganization: new Map(),
     membershipByUserOrganization: new Map(),

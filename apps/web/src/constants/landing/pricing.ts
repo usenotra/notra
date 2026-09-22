@@ -6,7 +6,7 @@ import type {
 } from "@/types/landing/pricing";
 
 export const TRACKED_ENGINES_CAPTION =
-  "Scan ChatGPT, Claude, Gemini, Perplexity and Grok, with and without web search";
+  "Scan ChatGPT, Claude, Gemini and Perplexity with web search";
 
 const ENGINE_LOGO_BASE = "/logos/ai-engines";
 

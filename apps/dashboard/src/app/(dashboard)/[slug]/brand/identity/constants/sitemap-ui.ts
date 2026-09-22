@@ -1,17 +1,4 @@
-import type {
-  SitemapPageCategory,
-  SitemapStatus,
-} from "@/types/hooks/brand-sitemaps";
-
-export const SITEMAP_STATUS_META: Record<
-  SitemapStatus,
-  { label: string; dotClassName: string }
-> = {
-  queued: { label: "Queued", dotClassName: "bg-muted-foreground" },
-  crawling: { label: "Crawling", dotClassName: "bg-info" },
-  ready: { label: "Ready", dotClassName: "bg-success" },
-  failed: { label: "Failed", dotClassName: "bg-destructive" },
-};
+import type { SitemapPageCategory } from "@/types/hooks/brand-sitemaps";
 
 export const PAGE_FILTER_TABS: {
   value: SitemapPageCategory;
@@ -19,19 +6,6 @@ export const PAGE_FILTER_TABS: {
 }[] = [
   { value: "crawled", label: "Crawled Pages" },
   { value: "failed", label: "Failed" },
-];
-
-export const SITEMAP_STAT_SKELETON_KEYS = [
-  "total-pages",
-  "indexed-pages",
-  "failed-pages",
-];
-
-export const SITEMAP_PAGE_SKELETON_KEYS = [
-  "page-row-1",
-  "page-row-2",
-  "page-row-3",
-  "page-row-4",
 ];
 
 export const SITEMAP_PAGES_PER_PAGE = 25;

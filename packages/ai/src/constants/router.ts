@@ -29,6 +29,7 @@ export const OPENROUTER_MODEL_ALIASES: Readonly<Record<string, string>> = {
   "meta/llama-3.1-8b": "meta-llama/llama-3.1-8b-instruct",
   "mistral/mistral-medium-3.5": "mistralai/mistral-medium-3-5",
   "mistral/mistral-large-3": "mistralai/mistral-large-2512",
+  "spacexai/grok-4.7": "x-ai/grok-4.7",
   "spacexai/grok-4.6": "x-ai/grok-4.6",
   "spacexai/grok-4.5": "x-ai/grok-4.5",
   "spacexai/grok-build-0.1": "x-ai/grok-build-0.1",
@@ -78,6 +79,7 @@ export const OPENROUTER_EFFORTS: ReadonlySet<string> = new Set([
 ]);
 
 export const HTTP_BAD_REQUEST = 400;
+export const HTTP_UNAUTHORIZED = 401;
 export const HTTP_PAYMENT_REQUIRED = 402;
 export const HTTP_FORBIDDEN = 403;
 export const HTTP_NOT_FOUND = 404;

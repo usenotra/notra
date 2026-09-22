@@ -45,7 +45,7 @@ export function geoIngestAgentPrompt(
   const file = option?.file ?? "proxy.ts";
   const label = option?.label ?? "Next.js";
 
-  return [
+  const lines = [
     `Set up Notra GEO tracking (AI crawler and referral analytics) in this ${label} project.`,
     "",
     `1. Install the package: \`${geoIngestInstallCommand(packageManager)}\` (use this project's package manager if it differs).`,
@@ -56,7 +56,13 @@ export function geoIngestAgentPrompt(
     "```",
     "",
     `3. Add ${GEO_INGEST_TOKEN_ENV} to the site's environment variables (local env file and hosting provider). Repeat for every domain this project tracks. Ask me for the value - never hardcode or commit it.`,
-  ].join("\n");
+  ];
+  if (framework === "astro") {
+    lines.push(
+      '4. Serve pages from an Astro server adapter (`output: "server"` or hybrid). A static build has no request to capture after deploy.'
+    );
+  }
+  return lines.join("\n");
 }
 
 export function isGeoIngestPackageManager(

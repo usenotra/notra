@@ -13,6 +13,13 @@ export interface FeatureData {
   nextResetAt: number | null;
 }
 
+export interface BalanceRecord {
+  remaining?: number | null;
+  granted?: number | null;
+  unlimited?: boolean;
+  nextResetAt?: number | null;
+}
+
 export type UsageRangeOption = "7d" | "30d" | "90d";
 
 export interface UsageLimitedFeatureRowProps {
@@ -47,6 +54,7 @@ export interface UsageSectionBodyProps {
   limitedFeatures: FeatureData[];
   onOpenTopup: () => void;
   onRangeChange: (range: UsageRangeOption) => void;
+  pullRequestCreditsFeature: FeatureData | undefined;
   range: UsageRangeOption;
   retentionDays: number;
   unlimitedFeatures: FeatureData[];

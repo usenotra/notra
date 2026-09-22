@@ -26,6 +26,8 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Film,
+  ImagePlus,
   List,
   ListOrdered,
   Minus,
@@ -37,6 +39,10 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { $createKiboCodeBlockNode } from "../nodes/kibo-code-block-node";
+import {
+  OPEN_CONTENT_IMAGE_UPLOAD_COMMAND,
+  OPEN_CONTENT_VIDEO_UPLOAD_COMMAND,
+} from "./content-media-commands";
 
 class ComponentPickerOption extends MenuOption {
   title: string;
@@ -202,6 +208,30 @@ export function ComponentPickerPlugin() {
             rows: "3",
             includeHeaders: { rows: true, columns: false },
           }),
+      }),
+      new ComponentPickerOption("Image", {
+        icon: <ImagePlus className="size-4" />,
+        keywords: ["image", "photo", "picture", "upload", "img"],
+        onSelect: () => {
+          queueMicrotask(() => {
+            editor.dispatchCommand(
+              OPEN_CONTENT_IMAGE_UPLOAD_COMMAND,
+              undefined
+            );
+          });
+        },
+      }),
+      new ComponentPickerOption("Video", {
+        icon: <Film className="size-4" />,
+        keywords: ["video", "movie", "mp4", "webm", "clip"],
+        onSelect: () => {
+          queueMicrotask(() => {
+            editor.dispatchCommand(
+              OPEN_CONTENT_VIDEO_UPLOAD_COMMAND,
+              undefined
+            );
+          });
+        },
       }),
       new ComponentPickerOption("Divider", {
         icon: <Minus className="size-4" />,

@@ -4,12 +4,12 @@ import { Loading03Icon, PlayIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@notra/ui/components/shared/responsive-dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -19,6 +19,7 @@ import { ConversationReplayThread } from "@/components/geo/conversation-replay-t
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { useAnswerReplay } from "@/lib/hooks/use-answer-replay";
 import { useGeoSequenceResults } from "@/lib/hooks/use-geo";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   ConversationResultsDialogProps,
   GeoSequenceEngineThread,
@@ -64,13 +65,14 @@ export function ConversationResultsDialog({
   open,
   onOpenChange,
   organizationId,
-  sequence,
+  sequence: selectedSequence,
   onRun,
   isRunning,
 }: ConversationResultsDialogProps) {
+  const [sequence, releaseSequence] = useRetainedValue(selectedSequence);
   const { data, isLoading } = useGeoSequenceResults(
     organizationId,
-    open ? sequence?.id : undefined
+    sequence?.id
   );
   const [engine, setEngine] = useState<string | null>(null);
   const [playToken, setPlayToken] = useState(1);
@@ -97,22 +99,29 @@ export function ConversationResultsDialog({
   }
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent
-        className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] w-full max-w-[min(calc(100vw-2rem),72rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),72rem)]"
-        drawerClassName="h-[94svh] max-h-[94svh]"
+    <Sheet
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={releaseSequence}
+      open={open}
+    >
+      <SheetContent
+        className="gap-0 overflow-hidden p-0 transition-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full motion-reduce:animate-none sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
+        side="right"
       >
-        <ResponsiveDialogHeader className="shrink-0 gap-3 overflow-visible px-6 pt-5 pr-12 pb-3">
-          <ResponsiveDialogTitle className="text-xl leading-snug font-semibold text-balance">
+        <SheetHeader className="shrink-0 gap-3 border-b p-4 pr-12">
+          <SheetTitle className="min-w-0 text-sm leading-5 font-medium break-words">
             {sequence.name}
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription className="sr-only">
+          </SheetTitle>
+          <SheetDescription className="sr-only">
             Where your brand shows up as the conversation unfolds.
-          </ResponsiveDialogDescription>
+          </SheetDescription>
           {latestCheck ? (
-            <p className="text-muted-foreground text-sm">
+            <time
+              className="text-muted-foreground text-xs tabular-nums"
+              dateTime={latestCheck}
+            >
               {formatAiTrafficTimestamp(latestCheck)}
-            </p>
+            </time>
           ) : null}
           {active ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -150,7 +159,7 @@ export function ConversationResultsDialog({
               </div>
             </div>
           ) : null}
-        </ResponsiveDialogHeader>
+        </SheetHeader>
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {isLoading && (
             <div className="px-6 py-8">
@@ -180,7 +189,7 @@ export function ConversationResultsDialog({
             </div>
           )}
         </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </SheetContent>
+    </Sheet>
   );
 }

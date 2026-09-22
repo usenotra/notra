@@ -12,10 +12,15 @@ import {
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import { createContentGenerationRequestSchema } from "@notra/content-generation/schemas";
 import { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
+import type { PostGitHubPublish } from "@notra/db/types/post-github-publish";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
 
-import { GITHUB_PUBLISH_CONTENT_TYPES } from "../../constants/dashboard/github";
+import {
+  GITHUB_CONTENT_PATH_MAX_LENGTH,
+  GITHUB_PUBLISH_CONTENT_TYPES,
+} from "../../constants/dashboard/github";
+import { createPostFieldsSchema, postSlugSchema } from "../shared/post";
 import {
   LOOKBACK_WINDOWS,
   repositoryContentFilePathSchema,
@@ -70,6 +75,22 @@ export const sourceMetadataSchema = z
 
 export type SourceMetadata = z.infer<typeof sourceMetadataSchema>;
 
+const githubHostSchema = z
+  .url({ protocol: /^https$/ })
+  .refine((value) => new URL(value).hostname === "github.com", {
+    error: "Pull request URL must be on github.com",
+  });
+
+export const postGitHubPublishSchema = z.object({
+  branchName: z.string().trim().min(1).max(255),
+  owner: z.string().trim().min(1).max(39),
+  path: z.string().trim().min(1).max(GITHUB_CONTENT_PATH_MAX_LENGTH),
+  pullRequestNumber: z.number().int().positive(),
+  pullRequestUrl: githubHostSchema,
+  repo: z.string().trim().min(1).max(100),
+  repositoryId: z.string().trim().min(1).max(64),
+}) satisfies z.ZodType<PostGitHubPublish>;
+
 export const contentSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -83,6 +104,7 @@ export const contentSchema = z.object({
   status: postStatusSchema,
   date: z.string(),
   sourceMetadata: sourceMetadataSchema,
+  githubPublish: postGitHubPublishSchema.nullable(),
 });
 
 export type ContentResponse = z.infer<typeof contentSchema>;
@@ -190,6 +212,7 @@ export const postCollectionSummarySchema = z.object({
   nameSource: postCollectionNameSourceSchema,
   contentTypes: z.array(contentTypeSchema),
   postCount: z.number().int().min(0),
+  singlePost: z.object({ id: z.string(), title: z.string() }).nullable(),
   expectedPostCount: z.number().int().nullable(),
   isGenerating: z.boolean(),
   statusSummary: postCollectionStatusSummarySchema,
@@ -323,12 +346,10 @@ export const chatRequestSchema = z.object({
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
 
-const slugFieldSchema = z.string().slugify().min(1).max(POST_SLUG_MAX_LENGTH);
-
 export const updateContentSchema = z
   .object({
     title: z.string().trim().min(1).max(POST_TITLE_MAX_LENGTH).optional(),
-    slug: slugFieldSchema.nullable().optional(),
+    slug: postSlugSchema.nullable().optional(),
     markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional(),
     status: postStatusSchema.optional(),
   })
@@ -345,6 +366,10 @@ export const updateContentSchema = z
 
 export type UpdateContentInput = z.infer<typeof updateContentSchema>;
 
+export const createPostInputSchema = contentOrganizationIdInputSchema
+  .extend(contentProjectIdInputSchema.shape)
+  .extend(createPostFieldsSchema.shape);
+
 const githubMarkdownPathSchema = repositoryRelativePathSchema
   .transform((path) => (/\.(?:md|mdx)$/i.test(path) ? path : `${path}.md`))
   .pipe(repositoryContentFilePathSchema);
@@ -353,6 +378,8 @@ export const publishContentToGitHubSchema = z.object({
   contentType: z.enum(GITHUB_PUBLISH_CONTENT_TYPES).default("changelog"),
   repositoryId: z.string().min(1, "Repository is required"),
   path: githubMarkdownPathSchema.optional(),
+  /** Update the stored open pull request. Do not open a new draft. */
+  linkedOnly: z.boolean().optional(),
 });
 
 export const onDemandContentTypeSchema = z.enum([

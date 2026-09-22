@@ -1,12 +1,13 @@
 {
   "name": "@usenotra/geo",
-  "version": "0.3.0",
+  "version": "0.6.0",
   "private": false,
   "description": "Request capture SDK for AI traffic attribution and agent feedback collection",
   "keywords": [
     "agents",
     "ai",
     "analytics",
+    "astro",
     "attribution",
     "crawler",
     "edge",
@@ -16,7 +17,9 @@
     "mcp",
     "netlify",
     "nextjs",
-    "nuxt"
+    "nuxt",
+    "sveltekit",
+    "tanstack"
   ],
   "homepage": "https://github.com/usenotra/notra/tree/main/packages/geo",
   "license": "MIT",
@@ -47,6 +50,18 @@
       "types": "./dist/netlify.d.ts",
       "default": "./dist/netlify.js"
     },
+    "./tanstack": {
+      "types": "./dist/tanstack.d.ts",
+      "default": "./dist/tanstack.js"
+    },
+    "./astro": {
+      "types": "./dist/astro.d.ts",
+      "default": "./dist/astro.js"
+    },
+    "./sveltekit": {
+      "types": "./dist/sveltekit.d.ts",
+      "default": "./dist/sveltekit.js"
+    },
     "./signatures": {
       "types": "./dist/signatures.d.ts",
       "default": "./dist/signatures.js"
@@ -74,11 +89,13 @@
   },
   "scripts": {
     "build": "tsup",
+    "test": "bun test tests",
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo",
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
+    "@tanstack/react-start": "1.168.51",
     "tsup": "^8.5.1",
     "typescript": "5.9.2",
     "zod": "^4.4.3"

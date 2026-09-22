@@ -1,6 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,25 +22,20 @@ export function useGitHubSettings(organizationSlug: string) {
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id ?? "";
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [{ githubConnected, githubAccountId }, setCallbackParams] =
+    useQueryStates(
+      { githubConnected: parseAsBoolean, githubAccountId: parseAsString },
+      { history: "replace" }
+    );
   const queryClient = useQueryClient();
   const [connectOpen, setConnectOpen] = useState(false);
-  const [reposOpen, setReposOpen] = useState(
-    () => searchParams.get("githubConnected") === "true"
-  );
+  const [reposOpen, setReposOpen] = useState(() => githubConnected === true);
   const [legacyOpen, setLegacyOpen] = useState(false);
-  useResumeGitHubInstall({
-    callbackPath: pathname,
-    organizationId,
-    reauthorizationInstallationId: searchParams.get(
-      "githubReauthorizeInstallationId"
-    ),
-    reauthorizationState: searchParams.get("githubReauthorizeState"),
-    shouldResume: searchParams.get("githubAccountConnected") === "true",
-  });
-  useGitHubCallbackErrorToast(searchParams.get("githubError"));
+  useResumeGitHubInstall({ callbackPath: pathname, organizationId });
+  useGitHubCallbackErrorToast();
   const {
     query: githubAppQuery,
+    catalogQuery,
     accounts,
     accountId: dialogAccountId,
     setSelectedAccountId: setSelectedDialogAccountId,
@@ -49,8 +45,9 @@ export function useGitHubSettings(organizationSlug: string) {
     saveMutation: saveRepositoriesMutation,
   } = useGitHubRepositorySelection({
     organizationId,
+    loadCatalog: reposOpen,
     refetchOnMount: false,
-    initialAccountId: searchParams.get("githubAccountId"),
+    initialAccountId: githubAccountId,
     onSaved: () => setReposOpen(false),
   });
   const repositoriesDb = useGitHubRepositoriesDb(organizationId);
@@ -63,22 +60,24 @@ export function useGitHubSettings(organizationSlug: string) {
     isLoadingOrganizations ||
     (!!organizationId && repositoriesDb.isLoading && !repositoriesDb.hasData);
   useEffect(() => {
-    if (searchParams.get("githubConnected") !== "true" || !organization?.id) {
+    if (!githubConnected || !organization?.id) {
       return;
     }
-    const nextUrl = new URL(window.location.href);
-    nextUrl.searchParams.delete("githubConnected");
-    nextUrl.searchParams.delete("githubAccountId");
-    window.history.replaceState(null, "", nextUrl);
+    void setCallbackParams({ githubConnected: null, githubAccountId: null });
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.github.app.get.queryKey({
         input: { organizationId: organization.id },
       }),
     });
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.github.app.catalog.queryKey({
+        input: { organizationId: organization.id },
+      }),
+    });
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.integrations.key(),
     });
-  }, [searchParams, organization?.id, queryClient]);
+  }, [githubConnected, setCallbackParams, organization?.id, queryClient]);
   const startInstall = async () => {
     if (!organizationId) {
       return;
@@ -91,7 +90,6 @@ export function useGitHubSettings(organizationSlug: string) {
   };
   const migrationMutation = useGitHubRepositoryMigration(
     organizationId,
-    githubAppQuery.refetch,
     startInstall
   );
   const disconnectMutation = useMutation({
@@ -101,6 +99,11 @@ export function useGitHubSettings(organizationSlug: string) {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.github.app.get.queryKey({
+            input: { organizationId },
+          }),
+        }),
+        queryClient.removeQueries({
+          queryKey: dashboardOrpc.github.app.catalog.queryKey({
             input: { organizationId },
           }),
         }),
@@ -131,6 +134,7 @@ export function useGitHubSettings(organizationSlug: string) {
     legacyOpen,
     setLegacyOpen,
     githubAppQuery,
+    catalogQuery,
     accounts,
     dialogAccountId,
     setSelectedDialogAccountId,

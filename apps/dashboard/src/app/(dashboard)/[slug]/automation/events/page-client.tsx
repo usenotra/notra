@@ -26,6 +26,7 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -37,12 +38,14 @@ import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
+import { indexBrandVoices } from "@/utils/brand-voices";
 import {
   getDefaultEventTriggerValues,
   isAutomationOutputType,
 } from "@/utils/event-trigger-form";
 import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
+import { countEnabled } from "@/utils/trigger-status";
 
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "short",
@@ -95,14 +98,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     })
   );
 
-  const brandVoiceMap: Record<string, BrandSettings> = {};
-  let defaultBrandVoice: BrandSettings | undefined;
-  for (const voice of brandResponse?.voices ?? []) {
-    brandVoiceMap[voice.id] = voice;
-    if (voice.isDefault) {
-      defaultBrandVoice = voice;
-    }
-  }
+  const { brandVoiceMap, defaultBrandVoice } = indexBrandVoices(
+    brandResponse?.voices
+  );
 
   const updateMutation = useMutation({
     mutationFn: async (trigger: Trigger) => {
@@ -121,6 +119,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
         sourceConfig: {
           eventTypes: trigger.sourceConfig.eventTypes ?? [values.eventType],
           includePreReleases: trigger.sourceConfig.includePreReleases ?? true,
+          ignoreCommitPatterns: trigger.sourceConfig.ignoreCommitPatterns ?? [],
         },
         targets: trigger.targets,
         outputType,
@@ -173,15 +172,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     activeTab === "active" ? trigger.enabled : !trigger.enabled
   );
 
-  let active = 0;
-  let paused = 0;
-  for (const trigger of eventTriggers) {
-    if (trigger.enabled) {
-      active++;
-    } else {
-      paused++;
-    }
-  }
+  const { active, paused } = countEnabled(eventTriggers);
 
   const handleToggle = (trigger: Trigger) => {
     updateMutation.mutate(trigger);
@@ -198,14 +189,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-            <p className="text-muted-foreground">
-              React to GitHub activity and trigger content generation
-              automatically
-            </p>
-          </div>
+        <PageHeading
+          description="React to GitHub activity and trigger content generation automatically"
+          title="Events"
+        >
           <CreateEventTriggerDialog
             onOpenChange={(open) => {
               setCreateOpen(open);
@@ -233,7 +220,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               </Button>
             }
           />
-        </div>
+        </PageHeading>
 
         {organizationId && (
           <OnboardingSuggestions
@@ -246,78 +233,29 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           />
         )}
 
-        {isPending && <EventsPageSkeleton />}
-
-        {!isPending && eventTriggers.length === 0 && (
-          <EmptyState
-            action={
-              <CreateEventTriggerDialog
-                onSuccess={() =>
-                  queryClient.invalidateQueries({
-                    queryKey: dashboardOrpc.automation.events.list.queryKey({
-                      input: { organizationId: organizationId ?? "" },
-                    }),
-                  })
-                }
-                organizationId={organizationId ?? ""}
-                trigger={
-                  <Button className="gap-1.5" variant="outline">
-                    <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                    Create Trigger
-                  </Button>
-                }
-              />
-            }
-            description="Create your first event trigger to react to GitHub activity."
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.events}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title="No event triggers yet"
-          />
-        )}
-
-        {!isPending && eventTriggers.length > 0 && (
-          <Tabs
-            defaultValue="active"
-            onValueChange={(value) =>
-              setActiveTab(value as "active" | "paused")
-            }
-          >
-            <TabsList variant="line">
-              <TabsTrigger value="active">Active ({active})</TabsTrigger>
-              <TabsTrigger value="paused">Paused ({paused})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent className="mt-4" value="active">
-              <EventTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                triggers={filteredTriggers}
-              />
-            </TabsContent>
-
-            <TabsContent className="mt-4" value="paused">
-              <EventTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                triggers={filteredTriggers}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+        <EventsPageBody
+          active={active}
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          eventTriggers={eventTriggers}
+          filteredTriggers={filteredTriggers}
+          isPending={isPending}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          onEmptyCreateSuccess={() =>
+            queryClient.invalidateQueries({
+              queryKey: dashboardOrpc.automation.events.list.queryKey({
+                input: { organizationId: organizationId ?? "" },
+              }),
+            })
+          }
+          onSortCreatedChange={setCreatedSortOrder}
+          onTabChange={setActiveTab}
+          onToggle={handleToggle}
+          organizationId={organizationId}
+          paused={paused}
+        />
       </div>
       {editTrigger && (
         <CreateEventTriggerDialog
@@ -339,11 +277,115 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   );
 }
 
+function EventsPageBody({
+  active,
+  brandVoiceMap,
+  createdSortOrder,
+  defaultBrandVoice,
+  eventTriggers,
+  filteredTriggers,
+  isPending,
+  onDelete,
+  onEdit,
+  onEmptyCreateSuccess,
+  onSortCreatedChange,
+  onTabChange,
+  onToggle,
+  organizationId,
+  paused,
+}: {
+  active: number;
+  brandVoiceMap: Record<string, BrandSettings>;
+  createdSortOrder: false | "asc" | "desc";
+  defaultBrandVoice?: BrandSettings;
+  eventTriggers: Trigger[];
+  filteredTriggers: Trigger[];
+  isPending: boolean;
+  onDelete: (triggerId: string) => void;
+  onEdit: (trigger: Trigger) => void;
+  onEmptyCreateSuccess: () => void;
+  onSortCreatedChange: (next: false | "asc" | "desc") => void;
+  onTabChange: (tab: "active" | "paused") => void;
+  onToggle: (trigger: Trigger) => void;
+  organizationId?: string;
+  paused: number;
+}) {
+  if (isPending) {
+    return <EventsPageSkeleton />;
+  }
+
+  if (eventTriggers.length === 0) {
+    return (
+      <EmptyState
+        action={
+          <CreateEventTriggerDialog
+            onSuccess={onEmptyCreateSuccess}
+            organizationId={organizationId ?? ""}
+            trigger={
+              <Button className="gap-1.5" variant="outline">
+                <HugeiconsIcon className="size-4" icon={Add01Icon} />
+                Create Trigger
+              </Button>
+            }
+          />
+        }
+        description="Create your first event trigger to react to GitHub activity."
+        preview={
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.events}
+            rows={EMPTY_STATE_TABLE_ROWS}
+          />
+        }
+        title="No event triggers yet"
+      />
+    );
+  }
+
+  return (
+    <Tabs
+      defaultValue="active"
+      onValueChange={(value) => onTabChange(value as "active" | "paused")}
+    >
+      <TabsList variant="line">
+        <TabsTrigger value="active">Active ({active})</TabsTrigger>
+        <TabsTrigger value="paused">Paused ({paused})</TabsTrigger>
+      </TabsList>
+
+      <TabsContent className="mt-4" value="active">
+        <EventTable
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onSortCreatedChange={onSortCreatedChange}
+          onToggle={onToggle}
+          triggers={filteredTriggers}
+        />
+      </TabsContent>
+
+      <TabsContent className="mt-4" value="paused">
+        <EventTable
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onSortCreatedChange={onSortCreatedChange}
+          onToggle={onToggle}
+          triggers={filteredTriggers}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 function EventTable({
   triggers,
   brandVoiceMap,
   createdSortOrder,
   defaultBrandVoice,
+  loading = false,
   onSortCreatedChange,
   onToggle,
   onDelete,
@@ -353,6 +395,7 @@ function EventTable({
   brandVoiceMap: Record<string, BrandSettings>;
   createdSortOrder: false | "asc" | "desc";
   defaultBrandVoice?: BrandSettings;
+  loading?: boolean;
   onSortCreatedChange: (next: false | "asc" | "desc") => void;
   onToggle: (trigger: Trigger) => void;
   onDelete: (triggerId: string) => void;
@@ -468,6 +511,7 @@ function EventTable({
       emptyState="No event triggers in this category."
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length)}
+      loading={loading}
       onSortChange={(sort) => onSortCreatedChange(sort?.direction ?? false)}
       rowHeight={TABLE_ROW_HEIGHT}
       sort={

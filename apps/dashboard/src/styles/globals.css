@@ -20,6 +20,9 @@
   html,
   body {
     scrollbar-gutter: stable;
+    /* The dashboard is a fixed-height app shell; overlays and portals must
+       never make the document itself scroll sideways under the fixed sidebar. */
+    overflow-x: clip;
   }
 }
 
@@ -45,95 +48,32 @@
     );
   }
 
-  /* Container variants using container queries */
-  .page-container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container {
-      max-width: 48rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container {
-      max-width: 80rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container {
-      max-width: 96rem;
-    }
-  }
-
-  /* Relaxed variant - balanced for readability */
-  .page-container-relaxed {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @container (min-width: 40rem) {
-    .page-container-relaxed {
-      max-width: 44rem;
-    }
-  }
-  @container (min-width: 48rem) {
-    .page-container-relaxed {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 64rem) {
-    .page-container-relaxed {
-      max-width: 68rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-relaxed {
-      max-width: 76rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-relaxed {
-      max-width: 80rem;
-    }
-  }
-
-  /* Compact variant - focused for forms/settings */
+  /*
+   * Container variants. Widths are continuous functions of the container
+   * (cqw) instead of stepped breakpoints: a stepped max-width snaps when the
+   * sidebar or right panel animates the container across a breakpoint, and the
+   * centered content then drifts until the animation ends.
+   */
+  .page-container,
+  .page-container-relaxed,
   .page-container-compact {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
-  @container (min-width: 40rem) {
-    .page-container-compact {
-      max-width: 40rem;
-    }
+
+  .page-container {
+    max-width: 96rem;
   }
-  @container (min-width: 48rem) {
-    .page-container-compact {
-      max-width: 48rem;
-    }
+
+  /* Relaxed variant - balanced for readability */
+  .page-container-relaxed {
+    max-width: min(calc(40rem + 41.667cqw), 80rem);
   }
-  @container (min-width: 64rem) {
-    .page-container-compact {
-      max-width: 56rem;
-    }
-  }
-  @container (min-width: 80rem) {
-    .page-container-compact {
-      max-width: 64rem;
-    }
-  }
-  @container (min-width: 96rem) {
-    .page-container-compact {
-      max-width: 72rem;
-    }
+
+  /* Compact variant - focused for forms/settings */
+  .page-container-compact {
+    max-width: min(calc(24rem + 50cqw), 72rem);
   }
 }
 

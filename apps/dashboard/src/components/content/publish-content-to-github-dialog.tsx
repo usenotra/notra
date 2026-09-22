@@ -11,7 +11,7 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
@@ -24,6 +24,7 @@ import type {
   GitHubPublishDialogBodyProps,
   PublishContentToGitHubDialogProps,
 } from "@/types/content/detail";
+import type { ContentApiResponse } from "@/types/hooks/content";
 import { getGitHubPublishDialogCopy } from "@/utils/github-publish-dialog";
 import { getGitHubPublishRecovery } from "@/utils/github-publish-recovery";
 import {
@@ -54,14 +55,14 @@ function GitHubPublishDialogBody({
   title,
 }: GitHubPublishDialogBodyProps) {
   if (pullRequest) {
+    const repositoryLabel = selectedRepository
+      ? formatGitHubRepositoryLabel(selectedRepository)
+      : "Repository";
+
     return (
       <GitHubPublishResultCard
         pullRequest={pullRequest}
-        repositoryLabel={
-          selectedRepository
-            ? formatGitHubRepositoryLabel(selectedRepository)
-            : "Repository"
-        }
+        repositoryLabel={repositoryLabel}
         title={title}
       />
     );
@@ -92,6 +93,7 @@ function GitHubPublishDialogBody({
 export function PublishContentToGitHubDialog({
   contentId,
   contentType,
+  githubPublish,
   onSave,
   organizationId,
   organizationSlug,
@@ -100,13 +102,12 @@ export function PublishContentToGitHubDialog({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [repositoryId, setRepositoryId] = useState(
-    () => readStoredGitHubPublishRepositoryId(organizationId) ?? ""
+    () =>
+      githubPublish?.repositoryId ??
+      readStoredGitHubPublishRepositoryId(organizationId) ??
+      ""
   );
   const contentLabel = contentType === "changelog" ? "changelog" : "blog post";
-
-  useEffect(() => {
-    setRepositoryId(readStoredGitHubPublishRepositoryId(organizationId) ?? "");
-  }, [organizationId]);
 
   const integrationsQuery = useQuery(
     dashboardOrpc.integrations.list.queryOptions({
@@ -152,8 +153,45 @@ export function PublishContentToGitHubDialog({
         repositoryId: targetRepositoryId,
       });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, targetRepositoryId) => {
+      const repository = repositories.find(
+        (item) => item.id === targetRepositoryId
+      );
+      const linkedRepository = repository;
       invalidateIntegrations();
+      if (linkedRepository) {
+        queryClient.setQueryData<ContentApiResponse>(
+          dashboardOrpc.content.get.queryKey({
+            input: { organizationId, contentId },
+          }),
+          (current) => {
+            if (!current) {
+              return current;
+            }
+
+            return {
+              ...current,
+              content: {
+                ...current.content,
+                githubPublish: {
+                  branchName: result.branchName,
+                  owner: linkedRepository.owner,
+                  path: result.path,
+                  pullRequestNumber: result.pullRequestNumber,
+                  pullRequestUrl: result.pullRequestUrl,
+                  repo: linkedRepository.repo,
+                  repositoryId: linkedRepository.id,
+                },
+              },
+            };
+          }
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.content.get.queryKey({
+          input: { organizationId, contentId },
+        }),
+      });
       toast.success(
         result.operation === "created"
           ? "Draft pull request created"
@@ -173,11 +211,16 @@ export function PublishContentToGitHubDialog({
   const copy = getGitHubPublishDialogCopy(contentLabel, pullRequest);
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!publishMutation.isPending) {
-      setOpen(nextOpen);
-      if (nextOpen) {
-        publishMutation.reset();
+    if (!nextOpen) {
+      if (publishMutation.isPending) {
+        return;
       }
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+    if (!publishMutation.isPending) {
+      publishMutation.reset();
     }
   };
 
@@ -196,6 +239,9 @@ export function PublishContentToGitHubDialog({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (publishMutation.isPending) {
+      return;
+    }
     if (selectedRepository) {
       rememberRepository(selectedRepository.id);
       publishMutation.mutate(selectedRepository.id);

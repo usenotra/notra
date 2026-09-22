@@ -45,6 +45,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -62,6 +63,11 @@ import { getChatHistoryGroups } from "@/utils/chat-history-groups";
 
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
+
+function chatIdFromPath(path: string): string | undefined {
+  const pathSegments = path.split("/").filter(Boolean);
+  return pathSegments[1] === "chat" ? pathSegments[2] : undefined;
+}
 
 export function ChatHistoryNav() {
   const { activeOrganization } = useOrganizationsContext();
@@ -115,12 +121,16 @@ export function ChatHistoryNav() {
     });
   }
 
-  const { sessions, isLoading } = useChatSessions();
+  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
   const shouldReduceMotion = useReducedMotion();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentChatId = pathSegments[2];
+  const currentChatId =
+    chatIdFromPath(pathname) ??
+    (typeof window === "undefined"
+      ? undefined
+      : chatIdFromPath(window.location.pathname));
   const isOnChatRoute = pathSegments[1] === "chat";
   const pinnedSessions = sessions.filter((session) =>
     Boolean(session.pinnedAt)
@@ -187,6 +197,9 @@ export function ChatHistoryNav() {
   }
 
   function startEditing(session: ChatSessionSummary) {
+    if (generatingTitleChatIds.has(session.chatId)) {
+      return;
+    }
     setDraftTitle(session.title);
     setEditingChatId(session.chatId);
   }
@@ -215,6 +228,10 @@ export function ChatHistoryNav() {
               const isRenaming = renamingChatId === session.chatId;
               const isPinning = pinningChatId === session.chatId;
               const isBusy = isRenaming || isPinning;
+              const isGeneratingTitle = generatingTitleChatIds.has(
+                session.chatId
+              );
+              const sessionHref = `/${slug}/chat/${session.chatId}`;
 
               return (
                 <ContextMenu key={session.chatId}>
@@ -255,18 +272,34 @@ export function ChatHistoryNav() {
                           </div>
                         ) : (
                           <SidebarNavLink
-                            href={`/${slug}/chat/${session.chatId}`}
+                            aria-label={
+                              isGeneratingTitle ? "Generating title" : undefined
+                            }
+                            href={sessionHref}
+                            onClick={(event) => {
+                              if (window.location.pathname === sessionHref) {
+                                event.preventDefault();
+                              }
+                            }}
                             onFocus={() => prefetchChatHistory(session.chatId)}
                             onMouseEnter={() =>
                               prefetchChatHistory(session.chatId)
                             }
                             replace={isOnChatRoute}
                           >
-                            <span className="truncate">{session.title}</span>
+                            {isGeneratingTitle ? (
+                              <Skeleton
+                                aria-label="Generating title"
+                                className="h-4 w-28 max-w-full"
+                                role="status"
+                              />
+                            ) : (
+                              <span className="truncate">{session.title}</span>
+                            )}
                           </SidebarNavLink>
                         )
                       }
-                      tooltip={session.title}
+                      tooltip={isGeneratingTitle ? undefined : session.title}
                     />
 
                     {!isEditing && (
@@ -296,6 +329,7 @@ export function ChatHistoryNav() {
                             {session.pinnedAt ? "Unpin" : "Pin"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            disabled={isGeneratingTitle}
                             onClick={() => startEditing(session)}
                           >
                             <HugeiconsIcon icon={PencilEdit02Icon} />
@@ -322,7 +356,10 @@ export function ChatHistoryNav() {
                       />
                       {session.pinnedAt ? "Unpin" : "Pin"}
                     </ContextMenuItem>
-                    <ContextMenuItem onClick={() => startEditing(session)}>
+                    <ContextMenuItem
+                      disabled={isGeneratingTitle}
+                      onClick={() => startEditing(session)}
+                    >
                       <HugeiconsIcon icon={PencilEdit02Icon} />
                       Rename
                     </ContextMenuItem>
@@ -374,7 +411,7 @@ export function ChatHistoryNav() {
       {!isCollapsed && (
         <div className="flex-1 overflow-x-hidden overflow-y-auto">
           <AnimatePresence initial={false}>
-            {!isLoading && (
+            {!isLoading || sessions.length > 0 ? (
               <motion.div
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -387,7 +424,7 @@ export function ChatHistoryNav() {
                   renderSessions(group.label, group.sessions)
                 )}
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
       )}

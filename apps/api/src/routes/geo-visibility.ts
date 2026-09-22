@@ -7,15 +7,23 @@ import {
   loadGeoPromptResults,
   loadGeoTimeseries,
 } from "@notra/geo-core/geo/programs";
+import {
+  loadGeoPromptResultDetail,
+  loadGeoPromptResultSummaries,
+} from "@notra/geo-core/geo/prompt-results";
 import { geoWindow } from "@notra/geo-core/geo/window";
 import { projectParamsSchema } from "@notra/schemas/api/geo-params";
 import {
   competitorDetailParamsSchema,
   geoWindowQuerySchema,
+  promptResultDetailParamsSchema,
+  promptResultSummaryQuerySchema,
   visibilityCompetitorDetailResponseSchema,
   visibilityCompetitorShareResponseSchema,
   visibilityLanguageShareResponseSchema,
   visibilityOverviewResponseSchema,
+  visibilityPromptResultDetailResponseSchema,
+  visibilityPromptResultSummariesResponseSchema,
   visibilityPromptResultsResponseSchema,
   visibilityTimeseriesResponseSchema,
 } from "@notra/schemas/api/geo-visibility";
@@ -105,6 +113,53 @@ const promptResultsRoute = createRoute({
       description: "Prompt results fetched successfully",
       content: {
         "application/json": { schema: visibilityPromptResultsResponseSchema },
+      },
+    },
+    ...commonErrors,
+  },
+});
+
+const promptResultSummariesRoute = createRoute({
+  method: "get",
+  path: "/projects/{projectId}/geo/visibility/prompt-results/summaries",
+  tags: [GEO_TAG],
+  operationId: "listGeoPromptResultSummaries",
+  summary: "List compact prompt result summaries",
+  description:
+    "A filtered, paginated projection of the latest answer per prompt and engine. Full answer text and sources are omitted; use checkId with the detail endpoint.",
+  request: {
+    params: projectParamsSchema,
+    query: promptResultSummaryQuerySchema,
+  },
+  responses: {
+    200: {
+      description: "Prompt result summaries fetched successfully",
+      content: {
+        "application/json": {
+          schema: visibilityPromptResultSummariesResponseSchema,
+        },
+      },
+    },
+    ...commonErrors,
+  },
+});
+
+const promptResultDetailRoute = createRoute({
+  method: "get",
+  path: "/projects/{projectId}/geo/visibility/prompt-results/{checkId}",
+  tags: [GEO_TAG],
+  operationId: "getGeoPromptResultDetail",
+  summary: "Get one full prompt result",
+  description:
+    "Loads the answer, grounding sources and token metadata for one checkId returned by the summaries or prompt-history endpoints.",
+  request: { params: promptResultDetailParamsSchema },
+  responses: {
+    200: {
+      description: "Prompt result fetched successfully",
+      content: {
+        "application/json": {
+          schema: visibilityPromptResultDetailResponseSchema,
+        },
       },
     },
     ...commonErrors,
@@ -239,6 +294,70 @@ geoVisibilityRoutes.openapi(promptResultsRoute, async (c) => {
       base.organization,
       normalizePromptResultsResponse(outcome.value)
     ),
+    200
+  );
+});
+
+geoVisibilityRoutes.openapi(promptResultSummariesRoute, async (c) => {
+  const base = c.get("geo");
+  const { projectId } = c.req.valid("param");
+  const query = c.req.valid("query");
+  const outcome = await runGeoEffect(
+    "promptResultSummaries",
+    loadGeoPromptResultSummaries(
+      { organizationId: base.organizationId, projectId },
+      geoWindow(query),
+      {
+        offset: query.cursor ?? 0,
+        limit: query.limit,
+        engine: query.engine,
+        mentioned: query.mentioned,
+        query: query.query,
+      }
+    )
+  );
+  if (!outcome.ok) {
+    return geoErrorResponse(c, outcome.failure);
+  }
+
+  return c.json(
+    attachGeoOrganization(base.organization, {
+      configured: outcome.value.configured,
+      results: outcome.value.results.map((result) => ({
+        ...result,
+        ownedSourceCited: result.ownedSourceCited ?? false,
+      })),
+      nextCursor: outcome.value.nextCursor ?? null,
+    }),
+    200
+  );
+});
+
+geoVisibilityRoutes.openapi(promptResultDetailRoute, async (c) => {
+  const base = c.get("geo");
+  const { projectId, checkId } = c.req.valid("param");
+  const outcome = await runGeoEffect(
+    "promptResultDetail",
+    loadGeoPromptResultDetail({
+      organizationId: base.organizationId,
+      projectId,
+      checkId,
+    })
+  );
+  if (!outcome.ok) {
+    return geoErrorResponse(c, outcome.failure);
+  }
+  if (!outcome.value.result) {
+    return c.json({ error: "Prompt result not found" }, 404);
+  }
+
+  return c.json(
+    attachGeoOrganization(base.organization, {
+      result: {
+        ...outcome.value.result,
+        ownedSourceCited: outcome.value.result.ownedSourceCited ?? false,
+      },
+    }),
     200
   );
 });

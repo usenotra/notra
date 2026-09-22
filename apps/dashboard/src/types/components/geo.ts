@@ -21,6 +21,15 @@ export interface SuggestionRowActionsProps {
   suggestion: GeoPromptSuggestion;
 }
 
+export interface SuggestionColumnsOptions {
+  acceptingSuggestionIds: ReadonlySet<string>;
+  dismissingSuggestionIds: ReadonlySet<string>;
+  /** Blocks every row while a scan or "Track all" is running. */
+  disabled: boolean;
+  onAccept: (suggestionId: string) => void;
+  onDismiss: (suggestion: GeoPromptSuggestion) => void;
+}
+
 export interface SearchConsoleToolbarProps {
   action?: ReactNode;
   organizationId: string;
@@ -71,10 +80,31 @@ export interface SearchConsoleConnectedStateProps {
   websiteUrl: string | null;
 }
 
+export interface PromptSuggestionsToolbarProps {
+  checking: boolean;
+  showSearchConsole: boolean;
+  trackAllPending: boolean;
+  suggestionsCount: number;
+  callbackPath: string;
+  isSearchConsolePending: boolean;
+  connectPromo: boolean;
+  onDismissCard: () => void;
+  onPropertyPickerOpenChange: (open: boolean) => void;
+  organizationId: string;
+  propertyPickerOpen: boolean;
+  status: GeoSearchConsoleStatus | undefined;
+  onTrackAll: () => void;
+}
+
+export interface DismissSuggestionDialogProps {
+  suggestion: GeoPromptSuggestion | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (suggestionId: string) => void;
+}
+
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;
-  fallback: ReactNode;
 }
 
 export interface GeoUpgradeDialogProps {

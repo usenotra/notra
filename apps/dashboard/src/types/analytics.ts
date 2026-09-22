@@ -364,6 +364,7 @@ export interface LeaderboardResponse {
 export interface TopPostsCardProps {
   posts: TopPostItem[];
   action?: ReactNode;
+  isPending?: boolean;
 }
 
 export interface LeaderboardCardProps {

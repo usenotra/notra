@@ -39,6 +39,13 @@ async function lookupProject(identity: GeoIngestIdentity): Promise<boolean> {
 export async function isGeoIngestIdentityActive(
   identity: GeoIngestIdentity
 ): Promise<boolean> {
+  const key = identityCacheKey(identity);
+  const client = redis;
+  // Both reads are independent round trips; the generation still decides first.
+  const cachedLookup = client
+    ? client.get<string>(key).catch(() => null)
+    : Promise.resolve(null);
+
   try {
     const generation = await getGeoIngestTokenGeneration(
       identity.organizationId
@@ -50,16 +57,12 @@ export async function isGeoIngestIdentityActive(
     return true;
   }
 
-  const key = identityCacheKey(identity);
-  const client = redis;
-  if (client) {
-    const cached = await client.get<string>(key).catch(() => null);
-    if (cached === "1") {
-      return true;
-    }
-    if (cached === "0") {
-      return false;
-    }
+  const cached = await cachedLookup;
+  if (cached === "1") {
+    return true;
+  }
+  if (cached === "0") {
+    return false;
   }
 
   let active: boolean;

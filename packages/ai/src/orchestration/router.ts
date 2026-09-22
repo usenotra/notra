@@ -1,9 +1,17 @@
+import { getEvaluationClient } from "@notra/ai/evaluation/client";
 import { gateway } from "@notra/ai/gateway";
 import {
   type AILogTarget,
   wrapModelWithObservability,
 } from "@notra/ai/observability";
-import { ROUTING_PROMPT } from "@notra/ai/prompts/router";
+import {
+  buildRoutingEvaluationState,
+  routingDecisionFromEvaluation,
+} from "@notra/ai/orchestration/router-evaluation";
+import {
+  ROUTING_EVALUATION_QUESTIONS,
+  ROUTING_PROMPT,
+} from "@notra/ai/prompts/router";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import { routingDecisionSchema } from "@notra/ai/schemas/orchestration";
 import type {
@@ -11,10 +19,7 @@ import type {
   RoutingDecision,
   RoutingResult,
 } from "@notra/ai/types/orchestration";
-import {
-  buildExperimentalTelemetry,
-  type TccMetadata,
-} from "@notra/ai/utils/tcc";
+import { buildTelemetryOptions, type TccMetadata } from "@notra/ai/utils/tcc";
 import { generateObject, generateText } from "ai";
 
 const MODELS = {
@@ -22,6 +27,10 @@ const MODELS = {
   simple: "openai/gpt-5.4-mini",
   complex: "anthropic/claude-sonnet-4.6",
 } as const;
+
+const ROUTER_EVALUATION_FEATURE = "chat_router";
+// Slower than this and the LLM router would have answered anyway.
+const ROUTER_EVALUATION_TIMEOUT_MS = 2500;
 
 const AUTO_POOL = {
   trivial: "anthropic/claude-sonnet-4.6",
@@ -113,6 +122,22 @@ export async function routeMessage(
     };
   }
 
+  // Typed evaluation first (~300 ms); the LLM router below is the fallback
+  // when the gateway is unavailable, the flag is off, or the call fails.
+  const evaluation = await getEvaluationClient().tryEvaluate({
+    feature: ROUTER_EVALUATION_FEATURE,
+    organizationId:
+      typeof telemetryMetadata?.organizationId === "string"
+        ? telemetryMetadata.organizationId
+        : undefined,
+    state: buildRoutingEvaluationState(userMessage, hasIntegrationContext),
+    questions: ROUTING_EVALUATION_QUESTIONS,
+    timeoutMs: ROUTER_EVALUATION_TIMEOUT_MS,
+  });
+  if (evaluation) {
+    return routingDecisionFromEvaluation(evaluation);
+  }
+
   const contextHint = hasIntegrationContext
     ? "\n\nNote: The user has connected integration context (for example GitHub or Linear), so they may want help using external project data."
     : "";
@@ -131,18 +156,18 @@ export async function routeMessage(
     const { object } = await generateObject({
       model: routerModel,
       schema: routingDecisionSchema,
-      system: ROUTING_PROMPT,
+      instructions: ROUTING_PROMPT,
       prompt: `Classify this user message:
 
 "${userMessage}"${contextHint}`,
       providerOptions: withRouterDefaults(undefined, {
         modelId: MODELS.router,
       }),
-      experimental_repairText: async ({ text, error }) => {
+      repairText: async ({ text, error }) => {
         try {
           const { text: repairedText } = await generateText({
             model: routerModel,
-            system:
+            instructions:
               "Repair the router output so it is valid JSON matching the required schema. Return only JSON.",
             prompt: [
               "Schema:",
@@ -171,8 +196,7 @@ export async function routeMessage(
             providerOptions: withRouterDefaults(undefined, {
               modelId: MODELS.router,
             }),
-            experimental_telemetry:
-              buildExperimentalTelemetry(telemetryMetadata),
+            ...buildTelemetryOptions(telemetryMetadata),
           });
 
           return repairedText;
@@ -186,7 +210,8 @@ export async function routeMessage(
           return null;
         }
       },
-      experimental_telemetry: buildExperimentalTelemetry(telemetryMetadata),
+      // generateObject has no runtime context in AI SDK 7, so TCC metadata
+      // cannot be attached here; the repair call above still carries it.
     });
 
     return object;

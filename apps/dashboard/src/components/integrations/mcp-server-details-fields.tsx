@@ -12,7 +12,7 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 
-import { getMcpFormErrorMessage } from "@/lib/integrations/mcp";
+import { buildMcpUrl, getMcpFormErrorMessage } from "@/lib/integrations/mcp";
 import type { McpServerDetailsFieldsProps } from "@/types/integrations/mcp";
 
 export function McpServerDetailsFields({
@@ -20,6 +20,28 @@ export function McpServerDetailsFields({
   invalidateTestResult,
   readOnly = false,
 }: McpServerDetailsFieldsProps) {
+  if (readOnly) {
+    return (
+      <form.Subscribe selector={(state) => state.values}>
+        {(values) => (
+          <div className="space-y-2">
+            <Field>
+              <FieldLabel>Server URL</FieldLabel>
+              <p className="text-muted-foreground text-sm break-all">
+                {buildMcpUrl(values.url)}
+              </p>
+            </Field>
+            {values.description ? (
+              <p className="text-muted-foreground text-sm">
+                {values.description}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </form.Subscribe>
+    );
+  }
+
   return (
     <>
       <form.Field

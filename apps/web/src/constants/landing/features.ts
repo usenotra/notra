@@ -20,7 +20,7 @@ export const FEATURES_SUBCOPY_LINE_TWO =
 export const FEATURES_ENGINES_COPY: FeaturesCardCopy = {
   title: "Mention rate by engine",
   description:
-    "Each prompt goes to each model you turn on, with web search and without. You get who mentioned you, where in the list, and whether that moved since the last scan.",
+    "Each prompt goes to each model you turn on, with web search. You get who mentioned you, where in the list, and whether that moved since the last scan.",
 };
 
 export const FEATURES_SHARE_COPY: FeaturesCardCopy = {
@@ -122,7 +122,7 @@ export const FEATURES_SHARE_ROWS: (ShareRow & { type: string })[] = [
   {
     id: "notra",
     brand: "Notra",
-    logo: { src: "/notra-mark.svg" },
+    logo: { src: "/notra-mark.svg", tileOnDark: true },
     share: 31,
     mentions: 96,
     color: "#8B5CF6",

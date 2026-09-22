@@ -1,17 +1,15 @@
-import type { CSSProperties, ReactNode, RefObject } from "react";
+import type {
+  CSSProperties,
+  ReactNode,
+  RefObject,
+  UIEventHandler,
+} from "react";
 
 import type {
   TableColumn,
   TableProps,
   TableRow,
 } from "@/components/motion/table/types";
-
-export interface UseTablePaginationOptions {
-  key: string;
-  totalItems: number;
-  pageSize?: number;
-  isReady?: boolean;
-}
 
 export interface TablePaginationState {
   page: number;
@@ -20,12 +18,6 @@ export interface TablePaginationState {
   totalItems: number;
   pageRowCount: number;
   setPage: (page: number) => void;
-}
-
-export interface TablePaginationProps extends TablePaginationState {
-  itemLabel?: string;
-  className?: string;
-  showPageNumbers?: boolean;
 }
 
 export interface TableSkeletonProps {
@@ -46,6 +38,34 @@ export type TableFooterSurfaceProps = Pick<
   TableProps<unknown>,
   "footer" | "flushBottom"
 >;
+
+export interface TableScrollFadeProps extends Pick<
+  TableProps<unknown>,
+  "scrollFade"
+> {
+  atEnd: boolean;
+}
+
+export type TableLoadingState = "dimmed" | "more" | "skeleton";
+
+export interface TableLoadingOverlay {
+  loadingMore: boolean;
+  dimRows: boolean;
+  loadingState: TableLoadingState | undefined;
+}
+
+export interface TableBodySurfaceProps {
+  isEmpty: boolean;
+  overflowClass: string;
+  flushBottom: boolean;
+  hasFooter: boolean;
+  dimRows: boolean;
+  loadingState: TableLoadingState | undefined;
+  onScroll: UIEventHandler<HTMLDivElement>;
+  scrollRef: RefObject<HTMLDivElement | null>;
+  style: CSSProperties;
+  children: ReactNode;
+}
 
 export interface TableColumnGroupProps<T> {
   columns: TableColumn<T>[];
@@ -89,6 +109,7 @@ export interface TableBodyProps<T> extends Pick<
   | "onRowPointerEnter"
   | "onCellEdit"
   | "renderRowContextMenu"
+  | "renderRowDetail"
   | "emptyState"
   | "rowSizing"
 > {
@@ -98,12 +119,14 @@ export interface TableBodyProps<T> extends Pick<
   rowHeight: number;
   bodyHeight: number;
   loading: boolean;
+  loadingMore: boolean;
   skeletonRows: number;
   selectable: boolean;
   selected: Set<string>;
   scrolls: boolean;
   paddingTop: number;
   paddingBottom: number;
+  reduce: boolean;
   hasRowMenu: boolean;
   onActivate: (id: string, index: number) => void;
   onDeactivate: () => void;

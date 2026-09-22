@@ -9,11 +9,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { activeGenerationsPollInterval } from "@/utils/active-generations-poll";
 import { hasShownToast, markToastShown } from "@/utils/toast-dedupe";
 
 import { dashboardOrpc } from "../orpc/query";
-
-const ACTIVE_POLL_INTERVAL = 3000;
 
 interface ActiveGenerationsResponse {
   generations: ActiveGeneration[];
@@ -32,14 +31,8 @@ export function useActiveGenerations(organizationId: string) {
       input: { organizationId },
       enabled: !!organizationId,
       meta: { errorMessage: "Failed to load active generations" },
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        // Scheduled work and other sessions cannot invalidate this browser's cache.
-        if (!data || data.generations.length === 0) {
-          return 15_000;
-        }
-        return ACTIVE_POLL_INTERVAL;
-      },
+      refetchInterval: (query) =>
+        activeGenerationsPollInterval(query.state.data?.generations),
       refetchIntervalInBackground: false,
     })
   );

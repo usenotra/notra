@@ -6,14 +6,14 @@ import { describeContentBillingDenial } from "@notra/ai/billing/content-billing"
 import { FEATURES } from "@notra/ai/billing/features";
 import { GEO_OPENCODE_BOX_MODEL_ID } from "@notra/ai/constants/geo-opencode";
 import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
-import { geoLog } from "@notra/ai/evlog";
-import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import {
   EMPTY_GEO_CHECK_GROUNDING,
   GEO_CHECK_GROUNDING_MAX_SOURCES,
 } from "@notra/db/constants/geo-checks";
 import { db } from "@notra/db/drizzle";
 import {
+  geoPersonas,
+  geoPersonaMemories,
   geoPromptSequences,
   geoPrompts,
   geoScans,
@@ -21,8 +21,8 @@ import {
 } from "@notra/db/schema";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecks } from "@notra/db/utils/geo-checks";
-import type { ModelMessage } from "ai";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { createPersonaSnapshot } from "@notra/db/utils/persona-snapshot";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -32,9 +32,7 @@ import {
   GEO_CODING_AGENT_ENGINE_IDS,
   GEO_CURSOR_TIMEOUT_MS,
   GEO_EXCERPT_MAX_LENGTH,
-  GEO_GROUNDED_MAX_PROMPTS,
   GEO_JUDGE_MODEL,
-  GEO_LANGUAGE_GROUNDED_MAX_PROMPTS,
   GEO_LANGUAGE_MAX_PROMPTS,
   GEO_MAX_LANGUAGES,
   GEO_MAX_PROMPTS,
@@ -46,6 +44,11 @@ import {
   GEO_SEQUENCE_MAX_TURNS,
 } from "../constants/geo";
 import { GEO_AI_OVERVIEW_ABSENT_ANSWER } from "../constants/geo-ai-overview";
+import { MAX_JUDGE_COMPETITORS } from "../constants/geo-conversations";
+import {
+  GEO_PERSONA_MAX_COUNT,
+  GEO_PERSONA_MAX_TURNS,
+} from "../constants/geo-personas";
 import { GeoContentBillingService, GeoModelService } from "../deps";
 import type {
   GeoCheckContext,
@@ -56,6 +59,8 @@ import type {
   GeoModelGateway,
   GeoPromptDefinition,
   GeoScanBatchOutcome,
+  GeoScanFailureMetadata,
+  GeoScanPlannedPersona,
   GeoScanPlannedSequence,
   GeoScanPlannedTask,
   GeoScanProjectContext,
@@ -70,13 +75,15 @@ import type {
   GeoSkipFields,
   GeoZdrMode,
 } from "../types/geo";
-import { findBrandMention } from "../utils/geo-brand-mention";
+import { logGeoBillingFailure } from "../utils/geo-billing-log";
+import { normalizePosition } from "../utils/geo-check-evaluation";
 import {
   geoBoxAgentForEngine,
   isGeoBoxCodingAgent,
 } from "../utils/geo-coding-agents";
 import {
   geoScanEmptyEngineSkipReason,
+  isGeoNativeSearchEngine,
   resolveGeoEngineGateway,
   resolveGeoGroundedZdrMode,
   resolveGeoZdrMode,
@@ -87,7 +94,6 @@ import {
   resolveGroundedEngines,
 } from "../utils/geo-grounded-engines";
 import {
-  describeGeoError,
   flushGeoLogEffect,
   geoLogError,
   geoLogInfo,
@@ -101,18 +107,33 @@ import {
   summarizeGeoEngineAttempts,
 } from "../utils/geo-scan";
 import {
+  batchUsageOf,
+  withGeoScanEvent,
+  withGeoScanStep,
+} from "../utils/geo-scan-event";
+import {
+  geoScanAnswerKey,
   geoScanPlanSnapshot,
+  geoScanPlanSummary,
   geoScanSequenceTasks,
 } from "../utils/geo-scan-plan";
-import { withGeoTiming } from "../utils/geo-timing";
-import { addAgentTokenUsage as addTokenUsage } from "../utils/token-usage";
+import {
+  addAgentTokenUsage as addTokenUsage,
+  agentTokenUsageFrom,
+  EMPTY_AGENT_TOKEN_USAGE as EMPTY_TOKEN_USAGE,
+  geoCheckWriteUsage,
+  snapshotUsageByRole,
+} from "../utils/token-usage";
 import { fetchGoogleAiOverview } from "./ai-overview";
+import { judgeAnswer, requireAnswerText } from "./check-evaluation";
+import { runGeoConversation } from "./conversation";
+import { runGeoConversationReplay } from "./conversation-replay";
 import { askCursorEngine } from "./cursor";
 import { geoSkip } from "./effect";
 import {
   GeoEmptyAnswerError,
+  GeoJudgeError,
   GeoScanError,
-  GeoSequenceEmptyError,
   GeoSequenceNotFoundError,
   GeoSequenceRunError,
   GeoSequenceRunUnavailableError,
@@ -131,6 +152,7 @@ import {
   isAutoPromptScanned,
   scopeGeoPrompts,
 } from "./prompts";
+import { buildGeoScanCheckContext } from "./scan-context";
 import {
   claimGeoScanRun,
   createGeoScanRow,
@@ -139,12 +161,9 @@ import {
   markGeoScanFinished,
   releaseGeoScanRun,
   renewGeoScanRun,
-  withGeoScanRun,
 } from "./scan-status";
 import { updateGeoScanTaskStatus } from "./scan-task-status";
 import { resolveScanZdrPolicy } from "./zdr-policy";
-
-const MAX_JUDGE_COMPETITORS = 10;
 
 function sequencePromptId(sequenceId: string): string {
   return `sequence-${sequenceId}`;
@@ -193,53 +212,18 @@ function sequenceFailureFields(
 
 function droppedCheckOutcome(
   fields: GeoSkipFields,
-  error: GeoEmptyAnswerError
+  error: GeoEmptyAnswerError | GeoJudgeError
 ): GeoCheckOutcome {
   logGeoSkip("check failed", fields, error);
+  const engineUsage = error.usage
+    ? addTokenUsage(EMPTY_TOKEN_USAGE, error.usage)
+    : EMPTY_TOKEN_USAGE;
   return {
     row: null,
-    usage: error.usage
-      ? addTokenUsage(EMPTY_TOKEN_USAGE, error.usage)
-      : EMPTY_TOKEN_USAGE,
+    usage: engineUsage,
+    engineUsage,
+    judgeUsage: EMPTY_TOKEN_USAGE,
   };
-}
-
-function normalizePosition(position: number | null): number | null {
-  if (position === null || !Number.isFinite(position)) {
-    return null;
-  }
-  const rounded = Math.round(position);
-  return rounded >= 1 ? rounded : null;
-}
-
-function buildJudgePrompt(
-  context: GeoCheckContext,
-  promptText: string,
-  answer: string
-): string {
-  const aliasList =
-    context.aliases.length > 0 ? context.aliases.join(", ") : "none";
-  return `Company: ${context.companyName}
-Known aliases (any of these counts as a mention): ${aliasList}
-
-A user asked an AI assistant:
-"""
-${promptText}
-"""
-
-The assistant answered:
-"""
-${answer}
-"""
-
-Analyze the answer and report:
-- mentioned: true only if the company name or an alias appears in the answer as the name of that specific company or product. Generic phrases that share words with the name (for example "an email SDK" when the company is "Email SDK") are not mentions.
-- position: the 1-based rank of the company among the recommended brands if the answer contains an ordered or bulleted list of brands, otherwise null.
-- sentiment: the sentiment expressed toward the company ("positive", "neutral" or "negative"), or null if it is not mentioned.
-- competitors: up to ${MAX_JUDGE_COMPETITORS} other brand or product names mentioned in the answer, excluding the company and its aliases.
-- excerpt: at most ${GEO_EXCERPT_MAX_LENGTH} characters of the answer around the mention, or the first 200 characters of the answer if the company is not mentioned.
-
-The answer may be written in any language or script; count mentions of the company or its aliases regardless of language.`;
 }
 
 const askOpenCodeEngineEffect = Effect.fn("geo.askOpenCodeEngine")(function* (
@@ -412,87 +396,39 @@ const askEngine = Effect.fn("geo.askEngine")(function* (
   });
 });
 
-const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
-  context: GeoCheckContext,
-  promptText: string,
-  answer: string
-) {
-  const models = yield* GeoModelService;
-  const judged = yield* models.judge({
-    organizationId: context.organizationId,
-    prompt: buildJudgePrompt(context, promptText, answer),
-  });
-  const mentioned =
-    findBrandMention(answer, context.companyName, context.aliases) !== null;
-  if (judged.mentioned !== mentioned) {
-    yield* geoLogWarn({
-      event: "geo.check.judge_mention_mismatch",
-      organizationId: context.organizationId,
-      projectId: context.projectId,
-      scanId: context.scanId,
-      companyName: context.companyName,
-      judgeMentioned: judged.mentioned,
-      excerpt: judged.excerpt,
-    });
-  }
-  return {
-    ...judged,
-    mentioned,
-    position: mentioned ? judged.position : null,
-    sentiment: mentioned ? judged.sentiment : null,
-  };
-});
-
 const translatePrompts = Effect.fn("geo.translatePrompts")(function* (
   organizationId: string,
   language: string,
   prompts: GeoPromptDefinition[]
 ) {
   const models = yield* GeoModelService;
-  const translations = yield* models.translate({
+  const translated = yield* models.translate({
     organizationId,
     language,
     prompts: prompts.map((prompt) => prompt.text),
   });
-  if (translations.length !== prompts.length) {
+  if (translated.translations.length !== prompts.length) {
     return yield* Effect.fail(
       new GeoTranslationError({
-        message: `Translation to ${language} returned ${translations.length} prompts, expected ${prompts.length}`,
+        message: `Translation to ${language} returned ${translated.translations.length} prompts, expected ${prompts.length}`,
         language,
       })
     );
   }
-  return prompts.map((prompt, index) => ({
-    id: prompt.id,
-    text: translations[index] ?? prompt.text,
-  }));
-});
-
-const requireAnswerText = Effect.fn("geo.requireAnswerText")(function* (
-  engine: string,
-  promptId: string,
-  language: string,
-  answer: GeoEngineAnswer
-) {
-  if (answer.text.trim().length > 0) {
-    return answer.text;
-  }
-  return yield* Effect.fail(
-    new GeoEmptyAnswerError({
-      message: `Engine ${engine} returned an empty answer`,
-      engine,
-      promptId,
-      language,
-      finishReason: answer.finishReason,
-      usage: answer.usage,
-    })
-  );
+  return {
+    prompts: prompts.map((prompt, index) => ({
+      id: prompt.id,
+      text: translated.translations[index] ?? prompt.text,
+    })),
+    usage: agentTokenUsageFrom(translated.usage),
+  };
 });
 
 const runGeoCheck = Effect.fn("geo.runCheck")(function* (
   context: GeoCheckContext,
   task: GeoCheckTask
 ) {
+  const startedMs = performance.now();
   const models = yield* GeoModelService;
   const grounded = task.grounded
     ? yield* models.groundedAnswer({
@@ -513,6 +449,7 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
       task.language
     ));
   if (answer.absent) {
+    const durationMs = Math.round(performance.now() - startedMs);
     const row: GeoCheckWrite = {
       organizationId: context.organizationId,
       projectId: context.projectId,
@@ -532,14 +469,17 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
       excerpt: "",
       grounding: answer.grounding,
       finishReason: answer.finishReason,
-      promptTokens: null,
-      outputTokens: null,
-      reasoningTokens: null,
+      ...geoCheckWriteUsage(answer.usage, undefined, durationMs),
       zdrEnforced: answer.zdrEnforced,
       language: task.language,
       sources: answer.sources,
     };
-    const outcome: GeoCheckOutcome = { row, usage: EMPTY_TOKEN_USAGE };
+    const outcome: GeoCheckOutcome = {
+      row,
+      usage: EMPTY_TOKEN_USAGE,
+      engineUsage: EMPTY_TOKEN_USAGE,
+      judgeUsage: EMPTY_TOKEN_USAGE,
+    };
     return outcome;
   }
   const answerText = yield* requireAnswerText(
@@ -548,15 +488,26 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     task.language,
     answer
   );
-  const judged = yield* judgeAnswer(context, task.prompt.text, answerText);
+  const judged = yield* judgeAnswer(context, task.prompt.text, answerText).pipe(
+    Effect.mapError((error) =>
+      error._tag === "GeoJudgeError"
+        ? new GeoJudgeError({
+            message: error.message,
+            timedOut: error.timedOut,
+            cause: error.cause,
+            usage: answer.usage,
+          })
+        : error
+    )
+  );
+  const durationMs = Math.round(performance.now() - startedMs);
   const ownedSourceCited = hasOwnedSourceCitation(
     context.websiteUrl,
     [...answer.grounding.sources, ...answer.sources],
     context.domains
   );
-  const usage = answer.usage
-    ? addTokenUsage(EMPTY_TOKEN_USAGE, answer.usage)
-    : EMPTY_TOKEN_USAGE;
+  const engineUsage = agentTokenUsageFrom(answer.usage);
+  const judgeUsage = agentTokenUsageFrom(judged.usage);
   if (task.zdr !== "none" && answer.zdrEnforced === false) {
     yield* geoLogWarn({
       ...checkFailureFields(context, task),
@@ -584,19 +535,22 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
     excerpt: judged.excerpt.slice(0, GEO_EXCERPT_MAX_LENGTH),
     grounding: answer.grounding,
     finishReason: answer.finishReason,
-    promptTokens: answer.usage?.inputTokens ?? null,
-    outputTokens: answer.usage?.outputTokens ?? null,
-    reasoningTokens: answer.usage?.reasoningTokens ?? null,
+    ...geoCheckWriteUsage(answer.usage, judged.usage, durationMs),
     zdrEnforced: answer.zdrEnforced,
     language: task.language,
     sources: answer.sources,
   };
 
-  const outcome: GeoCheckOutcome = { row, usage };
+  const outcome: GeoCheckOutcome = {
+    row,
+    usage: addTokenUsage(engineUsage, judgeUsage),
+    engineUsage,
+    judgeUsage,
+  };
   return outcome;
 });
 
-function parseGeoClaimToken(
+export function parseGeoClaimToken(
   claimedAt: string
 ): Effect.Effect<Date, GeoScanError> {
   return Effect.suspend(() => {
@@ -676,7 +630,7 @@ export const listGeoScanProjects = Effect.fn("geo.listScanProjects")(function* (
 /**
  * First step of a project scan: takes (or revalidates) the scan-slot claim,
  * reserves billing, materializes the `geo_scans` row, and compiles the full
- * task list — engines × prompts × languages plus grounded sequences — into a
+ * task list — search engines × prompts × languages plus grounded sequences — into a
  * serializable plan the batch steps execute. Everything that must happen
  * exactly once per scan lives here; everything model-call-shaped lives in the
  * batches.
@@ -690,6 +644,7 @@ export const prepareGeoScanProject = Effect.fn("geo.prepareScanProject")(
       scanId?: string;
       promptIds?: string[];
       engines?: string[];
+      retried?: boolean;
     } = {}
   ) {
     const billing = yield* GeoContentBillingService;
@@ -830,14 +785,30 @@ export const prepareGeoScanProject = Effect.fn("geo.prepareScanProject")(
       Effect.tapError(() => releaseBilling.pipe(Effect.andThen(releaseClaim)))
     );
 
-    const planResult = yield* buildGeoScanProjectPlan(
-      settingsRow,
-      scanId,
-      runId,
-      gate,
-      claimedAt,
-      options.promptIds,
-      options.engines
+    const planResult = yield* withGeoScanStep(
+      {
+        organizationId,
+        projectId,
+        scanId,
+        runId,
+      },
+      options.retried ? "retry" : "prepare",
+      buildGeoScanProjectPlan(
+        settingsRow,
+        scanId,
+        runId,
+        gate,
+        claimedAt,
+        options.promptIds,
+        options.engines
+      ),
+      (result) =>
+        result.status === "planned"
+          ? snapshotUsageByRole(
+              EMPTY_TOKEN_USAGE,
+              result.plan.usage ?? EMPTY_TOKEN_USAGE
+            )
+          : null
     ).pipe(
       Effect.tapError(() =>
         releaseBilling.pipe(
@@ -940,7 +911,11 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       projectId: settingsRow.projectId,
       scanId,
     });
-    const scanEngines = scopeGeoScanEngines(settings.engines, requestedEngines);
+    const scanEngines = scopeGeoScanEngines(
+      catalog,
+      settings.engines,
+      requestedEngines
+    );
     const trackedEngines: { engine: string; zdr: GeoZdrMode }[] = [];
     for (const engine of new Set(scanEngines)) {
       const zdr = resolveGeoZdrMode(catalog, engine, zdrPolicy);
@@ -958,21 +933,6 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       trackedEngines.push({ engine, zdr });
     }
     const scanEnglish = settings.languages.includes(DEFAULT_LANGUAGE);
-    const tasks: GeoScanPlannedTask[] = [];
-    if (scanEnglish) {
-      for (const { engine, zdr } of trackedEngines) {
-        for (const prompt of prompts) {
-          tasks.push({
-            engine,
-            groundedKey: null,
-            prompt,
-            language: DEFAULT_LANGUAGE,
-            zdr,
-          });
-        }
-      }
-    }
-
     const groundedEngines: { grounded: GeoGroundedEngine; zdr: GeoZdrMode }[] =
       [];
     for (const grounded of resolveGroundedEngines(scanEngines, catalog)) {
@@ -990,10 +950,28 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       }
       groundedEngines.push({ grounded, zdr });
     }
+    const searchTrackedEngines = trackedEngines.filter(({ engine }) =>
+      isGeoNativeSearchEngine(catalog, engine)
+    );
+    const tasks: GeoScanPlannedTask[] = [];
+    if (scanEnglish) {
+      for (const { engine, zdr } of searchTrackedEngines) {
+        for (const prompt of prompts) {
+          tasks.push({
+            engine,
+            groundedKey: null,
+            prompt,
+            language: DEFAULT_LANGUAGE,
+            zdr,
+          });
+        }
+      }
+    }
     const skipReason = geoScanEmptyEngineSkipReason(
       scanEngines,
-      trackedEngines.length + groundedEngines.length,
-      requestedEngines
+      searchTrackedEngines.length + groundedEngines.length,
+      requestedEngines,
+      trackedEngines.length + groundedEngines.length
     );
     if (skipReason) {
       yield* geoLogWarn({
@@ -1011,9 +989,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       };
       return skipped;
     }
-    const groundedPrompts = scanEnglish
-      ? prompts.slice(0, GEO_GROUNDED_MAX_PROMPTS)
-      : [];
+    const groundedPrompts = scanEnglish ? prompts : [];
     for (const { grounded, zdr } of groundedEngines) {
       for (const prompt of groundedPrompts) {
         tasks.push({
@@ -1029,6 +1005,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
     const extraLanguages = settings.languages
       .filter((language) => language !== DEFAULT_LANGUAGE)
       .slice(0, GEO_MAX_LANGUAGES);
+    let translateUsage = EMPTY_TOKEN_USAGE;
     const localizedByLanguage = yield* Effect.forEach(
       extraLanguages,
       (language) =>
@@ -1050,7 +1027,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
           )
           .pipe(
             Effect.map((localized) =>
-              localized ? { language, localized } : null
+              localized ? { language, ...localized } : null
             )
           ),
       { concurrency: GEO_SCAN_CONCURRENCY }
@@ -1059,18 +1036,15 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       if (!entry) {
         continue;
       }
-      const { language, localized } = entry;
-      for (const { engine, zdr } of trackedEngines) {
+      const { language, prompts: localized } = entry;
+      translateUsage = addTokenUsage(translateUsage, entry.usage);
+      for (const { engine, zdr } of searchTrackedEngines) {
         for (const prompt of localized) {
           tasks.push({ engine, groundedKey: null, prompt, language, zdr });
         }
       }
-      const localizedGrounded = localized.slice(
-        0,
-        GEO_LANGUAGE_GROUNDED_MAX_PROMPTS
-      );
       for (const { grounded, zdr } of groundedEngines) {
-        for (const prompt of localizedGrounded) {
+        for (const prompt of localized) {
           tasks.push({
             engine: grounded.key,
             groundedKey: grounded.key,
@@ -1124,8 +1098,52 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
         ])
       : [];
 
+    const personaRows = promptIds
+      ? []
+      : yield* Effect.tryPromise({
+          try: () =>
+            db.query.geoPersonas.findMany({
+              with: {
+                memories: {
+                  orderBy: [
+                    asc(geoPersonaMemories.createdAt),
+                    asc(geoPersonaMemories.id),
+                  ],
+                },
+              },
+              where: and(
+                eq(geoPersonas.projectId, settingsRow.projectId),
+                eq(geoPersonas.enabled, true),
+                isNull(geoPersonas.archivedAt)
+              ),
+              orderBy: [asc(geoPersonas.createdAt)],
+              limit: GEO_PERSONA_MAX_COUNT,
+            }),
+          catch: (cause) =>
+            new GeoScanError({ message: "Failed to load GEO personas", cause }),
+        });
+    const personas: GeoScanPlannedPersona[] = scanEnglish
+      ? personaRows.flatMap((persona) => {
+          const snapshot = createPersonaSnapshot(
+            persona,
+            persona.memories,
+            persona.conversationPrompts.slice(0, GEO_PERSONA_MAX_TURNS)
+          );
+          return snapshot.conversationPrompts.length > 0
+            ? groundedEngines.map(({ grounded, zdr }) => ({
+                personaId: persona.id,
+                prompts: snapshot.conversationPrompts,
+                snapshot,
+                engine: grounded.key,
+                groundedKey: grounded.key,
+                zdr,
+              }))
+            : [];
+        })
+      : [];
+
     const engines = [
-      ...trackedEngines.map((entry) => entry.engine),
+      ...searchTrackedEngines.map((entry) => entry.engine),
       ...groundedEngines.map((entry) => entry.grounded.key),
     ];
     yield* geoLogInfo({
@@ -1137,12 +1155,13 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       engines,
       enforceZdr: zdrPolicy.enforceZdr,
       zdrModes: Object.fromEntries([
-        ...trackedEngines.map((entry) => [entry.engine, entry.zdr]),
+        ...searchTrackedEngines.map((entry) => [entry.engine, entry.zdr]),
         ...groundedEngines.map((entry) => [entry.grounded.key, entry.zdr]),
       ]),
       promptCount: prompts.length,
       languages: settings.languages,
       tasks: tasks.length,
+      personas: personas.length,
     });
 
     const plan: GeoScanProjectPlan = {
@@ -1162,16 +1181,22 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       claimedAt: claimedAt.toISOString(),
       tasks: interleaveGeoScanItemsByKey(tasks, (task) => task.engine),
       sequences,
+      personas,
       promptCount: prompts.length,
       languages: settings.languages,
       engines,
+      usage: translateUsage,
     };
     const planned: GeoScanProjectPlanResult = { status: "planned", plan };
+    const planSnapshot = geoScanPlanSnapshot(plan);
     yield* Effect.tryPromise({
       try: () =>
         db
           .update(geoScans)
-          .set({ plan: geoScanPlanSnapshot(plan) })
+          .set({
+            plan: planSnapshot,
+            planSummary: geoScanPlanSummary(planSnapshot),
+          })
           .where(
             and(
               eq(geoScans.id, scanId),
@@ -1187,25 +1212,6 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
   }
 );
 
-const buildGeoScanCheckContext = Effect.fn("geo.buildScanCheckContext")(
-  function* (context: GeoScanProjectContext) {
-    const catalog = yield* loadGeoModelCatalog(context.organizationId);
-    const checkContext: GeoCheckContext = {
-      organizationId: context.organizationId,
-      projectId: context.projectId,
-      scanId: context.scanId,
-      runId: context.runId,
-      catalog,
-      capturedAt: new Date(),
-      companyName: context.companyName,
-      aliases: context.aliases,
-      websiteUrl: context.websiteUrl,
-      domains: context.domains,
-    };
-    return checkContext;
-  }
-);
-
 /**
  * Runs one batch of planned checks, persisting its rows before returning so a
  * later failure can only ever lose the batch in flight. Sized via
@@ -1218,127 +1224,183 @@ export const runGeoScanTaskBatch = Effect.fn("geo.runScanTaskBatch")(function* (
   context: GeoScanProjectContext,
   plannedTasks: readonly GeoScanPlannedTask[]
 ) {
-  const checkContext = yield* buildGeoScanCheckContext(context);
+  return yield* withGeoScanStep(
+    context,
+    "task_batch",
+    runGeoScanTaskBatchBody(context, plannedTasks),
+    batchUsageOf
+  );
+});
 
-  const tasks: GeoCheckTask[] = [];
-  let unavailableGrounded = 0;
-  for (const planned of plannedTasks) {
-    if (!planned.groundedKey) {
-      tasks.push({ ...planned, grounded: null });
-      continue;
+const runGeoScanTaskBatchBody = Effect.fn("geo.runScanTaskBatch.body")(
+  function* (
+    context: GeoScanProjectContext,
+    plannedTasks: readonly GeoScanPlannedTask[]
+  ) {
+    const checkContext = yield* buildGeoScanCheckContext(context);
+
+    const tasks: GeoCheckTask[] = [];
+    let unavailableGrounded = 0;
+    for (const planned of plannedTasks) {
+      if (!planned.groundedKey) {
+        tasks.push({ ...planned, grounded: null });
+        continue;
+      }
+      const grounded = resolveGroundedEngineByKey(planned.groundedKey);
+      if (!grounded) {
+        unavailableGrounded += 1;
+        yield* updateGeoScanTaskStatus(context, planned, "failed");
+        yield* geoLogWarn({
+          event: "geo.check.failed",
+          organizationId: context.organizationId,
+          projectId: context.projectId,
+          scanId: context.scanId,
+          engine: planned.engine,
+          runId: context.runId,
+          promptId: planned.prompt.id,
+          language: planned.language,
+          grounded: true,
+          detail: "grounded engine unavailable",
+        });
+        continue;
+      }
+      tasks.push({ ...planned, grounded });
     }
-    const grounded = resolveGroundedEngineByKey(planned.groundedKey);
-    if (!grounded) {
-      unavailableGrounded += 1;
-      yield* updateGeoScanTaskStatus(context, planned, "failed");
-      yield* geoLogWarn({
-        event: "geo.check.failed",
+
+    const results = yield* Effect.forEach(
+      tasks,
+      (task) => {
+        const fields = checkFailureFields(checkContext, task);
+        return updateGeoScanTaskStatus(context, task, "running").pipe(
+          Effect.andThen(
+            withGeoScanEvent(
+              runGeoCheck(checkContext, task),
+              {
+                ...fields,
+                event: "geo.check.attempt.completed",
+              },
+              {
+                scanId: context.scanId,
+                runId: context.runId,
+                step: "check",
+                engine: task.engine,
+                taskKey: geoScanAnswerKey(
+                  task.prompt.id,
+                  task.engine,
+                  task.language
+                ),
+                persistSuccess: false,
+              }
+            ).pipe(
+              Effect.tapError((error) =>
+                (error._tag === "GeoScanError" ||
+                  error._tag === "GeoJudgeError") &&
+                error.timedOut === true
+                  ? geoLogWarn({
+                      ...fields,
+                      event: "geo.check.timeout",
+                      detail: error.message,
+                    })
+                  : Effect.void
+              ),
+              Effect.retry({
+                times: 1,
+                while: (error) =>
+                  (error._tag === "GeoScanError" ||
+                    error._tag === "GeoJudgeError") &&
+                  error.timedOut === true,
+              }),
+              Effect.catchTag("GeoEmptyAnswerError", (error) =>
+                Effect.sync(() => droppedCheckOutcome(fields, error))
+              ),
+              Effect.catchTag("GeoJudgeError", (error) =>
+                Effect.sync(() => droppedCheckOutcome(fields, error))
+              ),
+              geoSkip("check failed", fields),
+              Effect.tap((result) =>
+                result?.row
+                  ? Effect.void
+                  : updateGeoScanTaskStatus(context, task, "failed")
+              )
+            )
+          )
+        );
+      },
+      { concurrency: GEO_SCAN_CONCURRENCY }
+    );
+    const persistedRows = results.map((result) => result?.row ?? null);
+
+    for (const summary of summarizeGeoEngineAttempts(tasks, persistedRows)) {
+      if (summary.attempted === 0 || summary.failed < summary.attempted) {
+        continue;
+      }
+      yield* geoLogError({
+        event: "geo.scan.engine_dropped",
         organizationId: context.organizationId,
         projectId: context.projectId,
         scanId: context.scanId,
-        engine: planned.engine,
+        engine: summary.engine,
         runId: context.runId,
-        promptId: planned.prompt.id,
-        language: planned.language,
-        grounded: true,
-        detail: "grounded engine unavailable",
+        attempted: summary.attempted,
+        failed: summary.failed,
       });
-      continue;
     }
-    tasks.push({ ...planned, grounded });
-  }
 
-  const results = yield* Effect.forEach(
-    tasks,
-    (task) => {
-      const fields = checkFailureFields(checkContext, task);
-      return updateGeoScanTaskStatus(context, task, "running").pipe(
-        Effect.andThen(
-          withGeoTiming(runGeoCheck(checkContext, task), {
-            ...fields,
-            event: "geo.check.attempt.completed",
-          }).pipe(
-            Effect.tapError((error) =>
-              (error._tag === "GeoScanError" ||
-                error._tag === "GeoJudgeError") &&
-              error.timedOut === true
-                ? geoLogWarn({
-                    ...fields,
-                    event: "geo.check.timeout",
-                    detail: error.message,
-                  })
-                : Effect.void
-            ),
-            Effect.retry({
-              times: 1,
-              while: (error) =>
-                (error._tag === "GeoScanError" ||
-                  error._tag === "GeoJudgeError") &&
-                error.timedOut === true,
-            }),
-            Effect.catchTag("GeoEmptyAnswerError", (error) =>
-              Effect.sync(() => droppedCheckOutcome(fields, error))
-            ),
-            geoSkip("check failed", fields),
-            Effect.tap((result) =>
-              result?.row
-                ? Effect.void
-                : updateGeoScanTaskStatus(context, task, "failed")
-            )
-          )
-        )
+    const checkOutcomes = results.filter(
+      (result): result is GeoCheckOutcome => result !== null
+    );
+    const rows = persistedRows.filter(
+      (row): row is GeoCheckWrite => row !== null
+    );
+    let engineUsage = EMPTY_TOKEN_USAGE;
+    let judgeUsage = EMPTY_TOKEN_USAGE;
+    for (const outcome of checkOutcomes) {
+      engineUsage = addTokenUsage(
+        engineUsage,
+        outcome.engineUsage ?? EMPTY_TOKEN_USAGE
       );
-    },
-    { concurrency: GEO_SCAN_CONCURRENCY }
-  );
-  const persistedRows = results.map((result) => result?.row ?? null);
-
-  for (const summary of summarizeGeoEngineAttempts(tasks, persistedRows)) {
-    if (summary.attempted === 0 || summary.failed < summary.attempted) {
-      continue;
+      judgeUsage = addTokenUsage(
+        judgeUsage,
+        outcome.judgeUsage ?? EMPTY_TOKEN_USAGE
+      );
     }
-    yield* geoLogError({
-      event: "geo.scan.engine_dropped",
-      organizationId: context.organizationId,
-      projectId: context.projectId,
-      scanId: context.scanId,
-      engine: summary.engine,
-      runId: context.runId,
-      attempted: summary.attempted,
-      failed: summary.failed,
-    });
+
+    if (rows.length > 0) {
+      yield* Effect.tryPromise({
+        try: () => insertGeoMentionChecks(rows),
+        catch: (cause) =>
+          new GeoScanError({ message: "Failed to store GEO checks", cause }),
+      });
+    }
+
+    const outcome: GeoScanBatchOutcome = {
+      checks: rows.length,
+      mentions: rows.filter((row) => row.mentioned).length,
+      dropped: plannedTasks.length - rows.length,
+      usage: addTokenUsage(engineUsage, judgeUsage),
+      engineUsage,
+      judgeUsage,
+    };
+    return outcome;
   }
-
-  const checkOutcomes = results.filter(
-    (result): result is GeoCheckOutcome => result !== null
-  );
-  const rows = persistedRows.filter(
-    (row): row is GeoCheckWrite => row !== null
-  );
-  const usage = checkOutcomes.reduce(
-    (total, outcome) => addTokenUsage(total, outcome.usage),
-    EMPTY_TOKEN_USAGE
-  );
-
-  if (rows.length > 0) {
-    yield* Effect.tryPromise({
-      try: () => insertGeoMentionChecks(rows),
-      catch: (cause) =>
-        new GeoScanError({ message: "Failed to store GEO checks", cause }),
-    });
-  }
-
-  const outcome: GeoScanBatchOutcome = {
-    checks: rows.length,
-    mentions: rows.filter((row) => row.mentioned).length,
-    dropped: plannedTasks.length - rows.length,
-    usage,
-  };
-  return outcome;
-});
+);
 
 /** Runs one batch of conversation sequences; same contract as `runGeoScanTaskBatch`. */
 export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
+  function* (
+    context: GeoScanProjectContext,
+    plannedSequences: readonly GeoScanPlannedSequence[]
+  ) {
+    return yield* withGeoScanStep(
+      context,
+      "sequence_batch",
+      runGeoScanSequenceBatchBody(context, plannedSequences),
+      batchUsageOf
+    );
+  }
+);
+
+const runGeoScanSequenceBatchBody = Effect.fn("geo.runScanSequenceBatch.body")(
   function* (
     context: GeoScanProjectContext,
     plannedSequences: readonly GeoScanPlannedSequence[]
@@ -1370,11 +1432,30 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
             );
           }
           if (!planned.groundedKey) {
-            return yield* runGeoOpenCodeSequenceCheck(
-              checkContext,
-              sequence,
-              planned.engine,
-              planned.zdr
+            return yield* withGeoScanEvent(
+              runGeoOpenCodeSequenceCheck(
+                checkContext,
+                sequence,
+                planned.engine,
+                planned.zdr
+              ),
+              {
+                ...sequenceFailureFields(
+                  checkContext,
+                  sequence,
+                  planned.engine,
+                  false
+                ),
+                event: "geo.check.attempt.completed",
+              },
+              {
+                scanId: context.scanId,
+                runId: context.runId,
+                step: "check",
+                engine: planned.engine,
+                taskKey: planned.sequenceId,
+                persistSuccess: false,
+              }
             ).pipe(
               geoSkip(
                 "sequence failed",
@@ -1392,21 +1473,26 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
           if (!grounded) {
             return { sequence, result: null };
           }
-          return yield* runGeoSequenceCheck(
-            checkContext,
-            sequence,
-            grounded,
-            planned.zdr
+          return yield* withGeoScanEvent(
+            runGeoSequenceCheck(checkContext, sequence, grounded, planned.zdr),
+            {
+              ...sequenceFailureFields(
+                checkContext,
+                sequence,
+                grounded.key,
+                true
+              ),
+              event: "geo.check.attempt.completed",
+            },
+            {
+              scanId: context.scanId,
+              runId: context.runId,
+              step: "check",
+              engine: grounded.key,
+              taskKey: planned.sequenceId,
+              persistSuccess: false,
+            }
           ).pipe(
-            Effect.timeoutOrElse({
-              duration: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
-              orElse: () =>
-                Effect.fail(
-                  new GeoScanError({
-                    message: `Sequence ${sequence.id} on ${grounded.key} timed out after ${GEO_SEQUENCE_PAIR_TIMEOUT_MS}ms`,
-                  })
-                ),
-            }),
             geoSkip(
               "sequence failed",
               sequenceFailureFields(checkContext, sequence, grounded.key, true)
@@ -1437,6 +1523,8 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
     );
 
     const rows: GeoCheckWrite[] = [];
+    let engineUsage = EMPTY_TOKEN_USAGE;
+    let judgeUsage = EMPTY_TOKEN_USAGE;
     for (const { sequence, result } of outcomes) {
       if (!result) {
         dropped += sequenceTurnCount(sequence);
@@ -1444,8 +1532,16 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
       }
       dropped += result.droppedTurns;
       rows.push(...result.rows);
-      usage = addTokenUsage(usage, result.usage);
+      engineUsage = addTokenUsage(
+        engineUsage,
+        result.engineUsage ?? EMPTY_TOKEN_USAGE
+      );
+      judgeUsage = addTokenUsage(
+        judgeUsage,
+        result.judgeUsage ?? EMPTY_TOKEN_USAGE
+      );
     }
+    usage = addTokenUsage(engineUsage, judgeUsage);
     if (rows.length > 0) {
       yield* Effect.tryPromise({
         try: () => insertGeoMentionChecks(rows),
@@ -1461,6 +1557,8 @@ export const runGeoScanSequenceBatch = Effect.fn("geo.runScanSequenceBatch")(
       mentions,
       dropped,
       usage,
+      engineUsage,
+      judgeUsage,
     };
     return outcome;
   }
@@ -1476,7 +1574,29 @@ export const finalizeGeoScanProject = Effect.fn("geo.finalizeScanProject")(
     context: GeoScanProjectContext,
     totals: GeoScanProjectTotals,
     status: "completed" | "failed",
-    claimToken: string
+    claimToken: string,
+    failure?: GeoScanFailureMetadata
+  ) {
+    return yield* withGeoScanStep(
+      context,
+      "finalize",
+      finalizeGeoScanProjectBody(context, totals, status, claimToken, failure),
+      () =>
+        snapshotUsageByRole(
+          totals.engineUsage ?? totals.usage,
+          totals.judgeUsage ?? EMPTY_TOKEN_USAGE
+        )
+    );
+  }
+);
+
+const finalizeGeoScanProjectBody = Effect.fn("geo.finalizeScanProject.body")(
+  function* (
+    context: GeoScanProjectContext,
+    totals: GeoScanProjectTotals,
+    status: "completed" | "failed",
+    claimToken: string,
+    failure?: GeoScanFailureMetadata
   ) {
     const billing = yield* GeoContentBillingService;
     const claimedAt = yield* parseGeoClaimToken(claimToken).pipe(
@@ -1489,7 +1609,7 @@ export const finalizeGeoScanProject = Effect.fn("geo.finalizeScanProject")(
           reservation: context.gate,
           action: "confirm",
           units: totals.checks,
-          usage: totals.usage,
+          usage: totals.engineUsage ?? totals.usage,
           fallbackModelId: GEO_JUDGE_MODEL,
           properties: {
             source: "geo_scan",
@@ -1535,7 +1655,25 @@ export const finalizeGeoScanProject = Effect.fn("geo.finalizeScanProject")(
     yield* finishGeoScanRow(
       { organizationId: context.organizationId, projectId: context.projectId },
       context.scanId,
-      status
+      status,
+      failure,
+      {
+        runId: context.runId,
+        inputTokens: totals.usage.inputTokens,
+        outputTokens: totals.usage.outputTokens,
+        cacheReadTokens: totals.usage.cacheReadTokens,
+        cacheWriteTokens: totals.usage.cacheWriteTokens,
+        reasoningTokens: totals.usage.reasoningTokens ?? 0,
+        totalUsd: totals.usage.totalUsd ?? 0,
+        checksTotal: totals.checks + totals.dropped,
+        checksFailed: totals.dropped,
+        mentions: totals.mentions,
+        durationMs: Date.now() - context.startedAtMs,
+        usageByRole: snapshotUsageByRole(
+          totals.engineUsage ?? totals.usage,
+          totals.judgeUsage ?? EMPTY_TOKEN_USAGE
+        ),
+      }
     ).pipe(
       geoSkip("scan row finish failed", {
         event: "geo.scan.stamp_failed",
@@ -1583,124 +1721,24 @@ export const finalizeGeoScanProject = Effect.fn("geo.finalizeScanProject")(
   }
 );
 
-const EMPTY_TOKEN_USAGE: AgentTokenUsage = {
-  inputTokens: 0,
-  outputTokens: 0,
-  totalTokens: 0,
-  cacheReadTokens: 0,
-  cacheWriteTokens: 0,
-};
-
-function logGeoBillingFailure(
-  action: "release" | "confirm",
-  projectId: string,
-  runId: string,
-  error: unknown
-): void {
-  geoLog.error({
-    event: "geo.scan.billing_failed",
-    action,
-    projectId,
-    runId,
-    ...describeGeoError(error),
-  });
-}
-
 const runGeoSequenceCheck = Effect.fn("geo.runSequenceCheck")(function* (
   context: GeoCheckContext,
   sequence: GeoSequenceDefinition,
   grounded: GeoGroundedEngine,
   zdr: GeoZdrMode
 ) {
-  const rows: GeoCheckWrite[] = [];
-  const messages: ModelMessage[] = [];
   const steps = sequence.steps.slice(0, GEO_SEQUENCE_MAX_TURNS);
-  const failureFields = sequenceFailureFields(
+  return yield* runGeoConversation(
     context,
-    sequence,
-    grounded.key,
-    true
-  );
-  let usage = EMPTY_TOKEN_USAGE;
-  let droppedTurns = 0;
-
-  const models = yield* GeoModelService;
-  for (const [index, step] of steps.entries()) {
-    messages.push({ role: "user", content: step });
-    const answer = yield* models.groundedAnswer({
-      organizationId: context.organizationId,
-      engine: grounded,
-      messages,
-      zdr,
-    });
-    usage = addTokenUsage(usage, answer.usage);
-    if (zdr !== "none" && answer.zdrEnforced === false) {
-      yield* geoLogWarn({
-        ...failureFields,
-        event: "geo.check.zdr_relaxed",
-        turn: index,
-        zdr,
-      });
-    }
-    const answerText = yield* requireAnswerText(
-      grounded.key,
-      sequencePromptId(sequence.id),
-      DEFAULT_LANGUAGE,
-      answer
-    ).pipe(
-      Effect.catchTag("GeoEmptyAnswerError", (error) =>
-        Effect.sync(() => {
-          logGeoSkip(
-            "sequence turn failed",
-            { ...failureFields, turn: index + 1 },
-            error
-          );
-          return null;
-        })
-      )
-    );
-    if (answerText === null) {
-      droppedTurns = steps.length - index;
-      break;
-    }
-    messages.push({ role: "assistant", content: answerText });
-    const judged = yield* judgeAnswer(context, step, answerText);
-    const ownedSourceCited = hasOwnedSourceCitation(
-      context.websiteUrl,
-      [...answer.grounding.sources, ...answer.sources],
-      context.domains
-    );
-
-    rows.push({
-      organizationId: context.organizationId,
-      projectId: context.projectId,
-      scanId: context.scanId,
-      engine: grounded.key,
+    {
       promptId: sequencePromptId(sequence.id),
       sequenceId: sequence.id,
-      turn: index + 1,
-      prompt: step,
-      answer: answerText,
-      capturedAt: context.capturedAt,
-      mentioned: judged.mentioned,
-      ownedSourceCited,
-      position: normalizePosition(judged.position),
-      sentiment: judged.sentiment,
-      competitors: judged.competitors.slice(0, MAX_JUDGE_COMPETITORS),
-      excerpt: judged.excerpt.slice(0, GEO_EXCERPT_MAX_LENGTH),
-      grounding: answer.grounding,
-      finishReason: answer.finishReason,
-      promptTokens: answer.usage.inputTokens ?? null,
-      outputTokens: answer.usage.outputTokens ?? null,
-      reasoningTokens: answer.usage.reasoningTokens ?? null,
-      zdrEnforced: answer.zdrEnforced,
-      language: DEFAULT_LANGUAGE,
-      sources: answer.sources,
-    });
-  }
-
-  const outcome: GeoSequenceCheckOutcome = { rows, usage, droppedTurns };
-  return outcome;
+      prompts: steps,
+      timeoutMs: GEO_SEQUENCE_PAIR_TIMEOUT_MS,
+    },
+    grounded,
+    zdr
+  );
 });
 
 const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
@@ -1765,10 +1803,11 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
           ),
       })
     );
-    const usage = results.reduce(
+    const engineUsage = results.reduce(
       (total, result) => addTokenUsage(total, result.usage),
       EMPTY_TOKEN_USAGE
     );
+    let judgeUsage = EMPTY_TOKEN_USAGE;
     let droppedTurns = 0;
 
     for (const [index, step] of steps.entries()) {
@@ -1793,6 +1832,7 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
           zdr,
         });
       }
+      const turnStartedMs = performance.now();
       const answerText = yield* requireAnswerText(
         engine,
         sequencePromptId(sequence.id),
@@ -1831,8 +1871,23 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
                 message: `Sequence ${sequence.id} on ${engine} timed out after ${GEO_SEQUENCE_PAIR_TIMEOUT_MS}ms`,
               })
             ),
-        })
+        }),
+        Effect.catchTag("GeoJudgeError", (error) =>
+          Effect.sync(() => {
+            logGeoSkip(
+              "sequence turn failed",
+              { ...failureFields, turn: index + 1 },
+              error
+            );
+            return null;
+          })
+        )
       );
+      if (judged === null) {
+        droppedTurns = steps.length - index;
+        break;
+      }
+      judgeUsage = addTokenUsage(judgeUsage, agentTokenUsageFrom(judged.usage));
       const ownedSourceCited = hasOwnedSourceCitation(
         context.websiteUrl,
         [...answer.grounding.sources, ...answer.sources],
@@ -1858,16 +1913,27 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
         excerpt: judged.excerpt.slice(0, GEO_EXCERPT_MAX_LENGTH),
         grounding: answer.grounding,
         finishReason: answer.finishReason,
-        promptTokens: answer.usage?.inputTokens ?? null,
-        outputTokens: answer.usage?.outputTokens ?? null,
-        reasoningTokens: answer.usage?.reasoningTokens ?? null,
+        ...geoCheckWriteUsage(
+          answer.usage,
+          judged.usage,
+          // ponytail: Box computeMs stands in for engine wall-clock; the conversation already finished before this loop.
+          Math.round(
+            (answer.usage?.computeMs ?? 0) + (performance.now() - turnStartedMs)
+          )
+        ),
         zdrEnforced: answer.zdrEnforced,
         language: DEFAULT_LANGUAGE,
         sources: answer.sources,
       });
     }
 
-    const outcome: GeoSequenceCheckOutcome = { rows, usage, droppedTurns };
+    const outcome: GeoSequenceCheckOutcome = {
+      rows,
+      usage: addTokenUsage(engineUsage, judgeUsage),
+      engineUsage,
+      judgeUsage,
+      droppedTurns,
+    };
     return outcome;
   }
 );
@@ -1882,7 +1948,6 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
   input: GeoScopeInput,
   sequenceId: string
 ) {
-  const billing = yield* GeoContentBillingService;
   const scope = yield* requireGeoProject(input);
   const projectId = scope.projectId;
 
@@ -1988,184 +2053,72 @@ const runGeoSequenceNowProgram = Effect.fn("geo.runSequenceNow")(function* (
   }
 
   const runId = `geo-sequence-${sequenceId}-${crypto.randomUUID()}`;
-  const gate = yield* billing
-    .gateContentBilling({
-      organizationId: scope.organizationId,
-      executionId: runId,
-      outputType: null,
-      quotaFeatureId: FEATURES.AI_ANSWERS,
-    })
-    .pipe(
-      Effect.mapError(
-        (cause) =>
-          new GeoSequenceRunError({
-            message: "Failed to reserve AI credits",
-            cause,
-          })
-      )
-    );
-  if (!gate.allowed) {
-    return yield* Effect.fail(
-      new GeoWriterCreditsExhaustedError({
-        message: describeContentBillingDenial(gate),
-      })
-    );
-  }
-
-  // A replay occupies the project's scan slot exactly like a scan does, so it
-  // takes the same atomic claim instead of stamping "scanning" blindly. If a
-  // scan already holds the slot the replay still runs — it is independently
-  // billed and writes its own `geo_scans` row — but it must not touch the
-  // stamps, because finishing them would hand that scan's claim away.
-  const claim = yield* claimGeoScanRun(projectId).pipe(
-    geoSkip("scan claim failed")
-  );
-  const play = withGeoScanRun(
-    { organizationId: scope.organizationId, projectId },
-    (scanId) =>
-      Effect.gen(function* () {
-        const context: GeoCheckContext = {
-          organizationId: scope.organizationId,
-          projectId,
-          scanId,
-          runId,
-          catalog,
-          capturedAt: new Date(),
-          companyName: settings.companyName,
-          aliases: settings.aliases,
-          websiteUrl: brand?.websiteUrl ?? null,
-          domains: settings.domains,
-        };
-        const outcomes = yield* Effect.forEach(
-          replayEngines,
-          (replayEngine) =>
-            replayEngine.kind === "grounded"
-              ? runGeoSequenceCheck(
-                  context,
-                  sequenceRow,
-                  replayEngine.grounded,
-                  replayEngine.zdr
-                ).pipe(
-                  geoSkip(
-                    "sequence run failed",
-                    sequenceFailureFields(
-                      context,
-                      sequenceRow,
-                      replayEngine.grounded.key,
-                      true
-                    )
+  const result = yield* runGeoConversationReplay(
+    {
+      context: {
+        organizationId: scope.organizationId,
+        projectId,
+        runId,
+        catalog,
+        companyName: settings.companyName,
+        aliases: settings.aliases,
+        websiteUrl: brand?.websiteUrl ?? null,
+        domains: settings.domains,
+      },
+      fallbackModelId:
+        groundedEngines[0]?.grounded.model ??
+        geoBoxAgentForEngine(boxReplayEngines[0]?.engine ?? "")?.model ??
+        GEO_JUDGE_MODEL,
+      properties: { source: "geo_sequence_run", sequence_id: sequenceId },
+      logPrefix: "GeoSequenceRun",
+      emptyMessage: "Engines failed to answer this conversation. Try again.",
+    },
+    (context) =>
+      Effect.forEach(
+        replayEngines,
+        (replayEngine) =>
+          replayEngine.kind === "grounded"
+            ? runGeoSequenceCheck(
+                context,
+                sequenceRow,
+                replayEngine.grounded,
+                replayEngine.zdr
+              ).pipe(
+                geoSkip(
+                  "sequence run failed",
+                  sequenceFailureFields(
+                    context,
+                    sequenceRow,
+                    replayEngine.grounded.key,
+                    true
                   )
                 )
-              : runGeoOpenCodeSequenceCheck(
-                  context,
-                  sequenceRow,
-                  replayEngine.engine,
-                  replayEngine.zdr
-                ).pipe(
-                  geoSkip(
-                    "sequence run failed",
-                    sequenceFailureFields(
-                      context,
-                      sequenceRow,
-                      replayEngine.engine,
-                      false
-                    )
-                  )
-                ),
-          { concurrency: GEO_SCAN_CONCURRENCY }
-        );
-        const succeeded = outcomes.filter(
-          (outcome): outcome is GeoSequenceCheckOutcome => outcome !== null
-        );
-        const rows = succeeded.flatMap((outcome) => outcome.rows);
-        const usage = succeeded.reduce(
-          (total, outcome) => addTokenUsage(total, outcome.usage),
-          EMPTY_TOKEN_USAGE
-        );
-        if (rows.length === 0) {
-          return yield* Effect.fail(new GeoSequenceEmptyError({ usage }));
-        }
-        yield* Effect.tryPromise({
-          try: () => insertGeoMentionChecks(rows),
-          catch: (cause) =>
-            new GeoSequenceRunError({
-              message: "Failed to store the conversation results",
-              cause,
-            }),
-        });
-        return { rows, usage };
-      }),
-    claim
-      ? {
-          claimedAt: claim.claimedAt,
-          // A conversation replay does not cover the project's scheduled scan.
-          finishStatusStamp: releaseGeoScanRun(projectId, claim.claimedAt).pipe(
-            geoSkip("scan claim release failed")
-          ),
-        }
-      : { skipStatusStamps: true as const }
-  );
-
-  const confirmBilling = (units: number, usage: AgentTokenUsage) =>
-    billing
-      .finalizeContentBilling({
-        reservation: gate,
-        action: "confirm",
-        units,
-        usage,
-        fallbackModelId:
-          groundedEngines[0]?.grounded.model ??
-          geoBoxAgentForEngine(boxReplayEngines[0]?.engine ?? "")?.model ??
-          GEO_JUDGE_MODEL,
-        properties: {
-          source: "geo_sequence_run",
-          run_id: runId,
-          sequence_id: sequenceId,
-          markup_applied: gate.useMarkup,
-        },
-        logPrefix: "GeoSequenceRun",
-      })
-      .pipe(
-        Effect.catch((confirmError) =>
-          Effect.sync(() => {
-            logGeoBillingFailure("confirm", projectId, runId, confirmError);
-          })
-        )
-      );
-
-  const result = yield* play.pipe(
-    Effect.tapError((error) =>
-      error._tag === "GeoSequenceEmptyError"
-        ? confirmBilling(0, error.usage)
-        : billing
-            .finalizeContentBilling({
-              reservation: gate,
-              action: "release",
-              logPrefix: "GeoSequenceRun",
-            })
-            .pipe(
-              Effect.catch((releaseError) =>
-                Effect.sync(() => {
-                  logGeoBillingFailure(
-                    "release",
-                    projectId,
-                    runId,
-                    releaseError
-                  );
-                })
               )
-            )
-    ),
-    Effect.catchTag("GeoSequenceEmptyError", () =>
-      Effect.fail(
-        new GeoSequenceRunError({
-          message: "Engines failed to answer this conversation. Try again.",
-        })
+            : runGeoOpenCodeSequenceCheck(
+                context,
+                sequenceRow,
+                replayEngine.engine,
+                replayEngine.zdr
+              ).pipe(
+                geoSkip(
+                  "sequence run failed",
+                  sequenceFailureFields(
+                    context,
+                    sequenceRow,
+                    replayEngine.engine,
+                    false
+                  )
+                )
+              ),
+        { concurrency: GEO_SCAN_CONCURRENCY }
       )
+  ).pipe(
+    Effect.mapError((error) =>
+      error._tag === "GeoWriterCreditsExhaustedError"
+        ? error
+        : new GeoSequenceRunError({ message: error.message, cause: error })
     )
   );
-
-  yield* confirmBilling(result.rows.length, result.usage);
 
   const response: GeoSequenceRunResponse = {
     checks: result.rows.length,

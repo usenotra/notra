@@ -51,6 +51,16 @@ import {
   searchGeoBrands,
   suggestGeoCompetitors,
 } from "@notra/geo-core/geo/onboarding";
+import { runGeoPersonaNow } from "@notra/geo-core/geo/persona-scan";
+import {
+  deleteGeoPersona,
+  listGeoPersonas,
+  loadGeoPersonaResults,
+  loadGeoPersonaActivity,
+  requireGeoPersonaGenerationCapacity,
+  restoreGeoPersona,
+  updateGeoPersona,
+} from "@notra/geo-core/geo/personas";
 import {
   addGeoTrackedEngine,
   addGeoTrackedLanguage,
@@ -71,6 +81,7 @@ import {
   loadGeoPromptHistory,
   loadGeoSettings,
   loadGeoTimeseries,
+  loadGeoJourneyStats,
   loadGeoTrafficJourneys,
   loadGeoTrafficLog,
   loadGeoTrafficPages,
@@ -111,6 +122,7 @@ import {
   loadGeoSentimentEvidence,
 } from "@notra/geo-core/geo/sentiment";
 import { loadGeoSentimentAnalysis } from "@notra/geo-core/geo/sentiment-analysis";
+import { generateGeoSequences } from "@notra/geo-core/geo/sequence-generation";
 import {
   createGeoSequence,
   deleteGeoSequence,
@@ -173,6 +185,7 @@ import {
   geoSettingsUpsertInputSchema,
   geoSuggestionIdInputSchema,
   geoTimeseriesInputSchema,
+  geoJourneyStatsInputSchema,
   geoTrafficJourneysInputSchema,
   geoTrafficLogInputSchema,
   geoTrafficPagesInputSchema,
@@ -180,6 +193,14 @@ import {
   geoWriterPlanInputSchema,
   geoWriterUpdateInputSchema,
 } from "@notra/geo-core/schemas/geo";
+import {
+  geoPersonaDeleteInputSchema,
+  geoPersonaResultsInputSchema,
+  geoPersonaRestoreInputSchema,
+  geoPersonaRunInputSchema,
+  geoPersonaUpdateInputSchema,
+  geoPersonasGenerateInputSchema,
+} from "@notra/geo-core/schemas/geo-personas";
 import {
   geoScanRunInputSchema,
   geoScanRunsInputSchema,
@@ -219,6 +240,7 @@ import {
 import { QstashError } from "@upstash/qstash";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { after } from "next/server";
 
 import {
   GEO_COMPETITOR_SOURCES,
@@ -264,6 +286,10 @@ import {
 } from "@/lib/geo-shelf/service";
 import { assertGeoAccess } from "@/lib/geo/access";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import {
+  getPersonaGeneration,
+  startPersonaGeneration,
+} from "@/lib/geo/persona-generation";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { runOrpcEffect } from "@/lib/orpc/effect";
 import {
@@ -638,7 +664,7 @@ async function loadGeoShelfSeed(
       toGeoOrpcError
     ),
     options.withMembers
-      ? listGeoShelfMembers(input.organizationId)
+      ? listGeoShelfMembers(input.organizationId, context.headers)
       : Promise.resolve<GeoShelfMember[]>([]),
   ]);
   return { ...shelfContext, members };
@@ -648,7 +674,8 @@ async function loadGeoShelfSeed(
 async function resolveGeoShelfReadMembers(
   organizationId: string,
   loadedMembers: GeoShelfMember[],
-  sources: GeoShelfSource[]
+  sources: GeoShelfSource[],
+  headers: Headers
 ): Promise<GeoShelfMember[]> {
   if (loadedMembers.length > 0) {
     return loadedMembers;
@@ -656,7 +683,7 @@ async function resolveGeoShelfReadMembers(
   if (collectGeoShelfMemberIds(sources).size === 0) {
     return [];
   }
-  return await listGeoShelfMembers(organizationId);
+  return await listGeoShelfMembers(organizationId, headers);
 }
 
 export const geoRouter = {
@@ -704,7 +731,8 @@ export const geoRouter = {
       const shelfMembers = await resolveGeoShelfReadMembers(
         input.organizationId,
         seed.members,
-        page.sources
+        page.sources,
+        context.headers
       );
       return geoShelfListResponseSchema.parse({
         ...page,
@@ -720,7 +748,10 @@ export const geoRouter = {
         organizationId: input.organizationId,
         user: context.user,
       });
-      const members = await listGeoShelfMembers(input.organizationId);
+      const members = await listGeoShelfMembers(
+        input.organizationId,
+        context.headers
+      );
       return geoShelfMembersResponseSchema.parse({
         members,
         currentMemberId: findCurrentGeoShelfMemberId(members, context.user.id),
@@ -906,7 +937,15 @@ export const geoRouter = {
     .input(sentimentPeriodInputSchema)
     .handler(
       geoHandler((input) =>
-        loadGeoSentimentAnalysis(input, geoWindow(input), true)
+        loadGeoSentimentAnalysis(input, geoWindow(input), true, (task) =>
+          after(async () => {
+            try {
+              await task();
+            } catch (error) {
+              console.error("Could not analyze GEO sentiment", { error });
+            }
+          })
+        )
       )
     ),
   sentimentEvidence: authorizedProcedure
@@ -1006,7 +1045,12 @@ export const geoRouter = {
     .input(geoCompetitorDetailInputSchema)
     .handler(
       geoHandler((input) =>
-        loadGeoCompetitorDetail(input, input.brand, geoWindow(input))
+        loadGeoCompetitorDetail(
+          input,
+          input.brand,
+          geoWindow(input),
+          input.summaryOnly
+        )
       )
     ),
   agentReadiness: authorizedProcedure
@@ -1092,6 +1136,11 @@ export const geoRouter = {
       geoHandler((input) =>
         loadGeoTrafficJourneys(input, geoWindow(input), input.limit)
       )
+    ),
+  journeyStats: authorizedProcedure
+    .input(geoJourneyStatsInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoJourneyStats(input, geoWindow(input)))
     ),
   journeyDetail: authorizedProcedure
     .input(geoJourneyDetailInputSchema)
@@ -1254,6 +1303,36 @@ export const geoRouter = {
         }
       )
     ),
+  sequencesGenerate: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(async (options) => {
+      // Membership first: the limiter is keyed by organization, so without this
+      // any signed-in user could drain another organization's generation budget.
+      await assertOrganizationAccess({
+        headers: options.context.headers,
+        organizationId: options.input.organizationId,
+        user: options.context.user,
+      });
+      const rate = await ratelimit.geoSequencesGenerate.limit(
+        options.input.organizationId
+      );
+      if (!rate.success) {
+        throw badRequest(
+          "Too many conversation generations. Please wait a few minutes."
+        );
+      }
+      return geoHandler(
+        (input) => generateGeoSequences(input),
+        ({ context, input, output }) => {
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_CONVERSATIONS_GENERATED,
+            properties: { conversation_count: output.sequences.length },
+          });
+        }
+      )(options);
+    }),
   sequencesUpdate: authorizedProcedure
     .input(geoSequenceUpdateInputSchema)
     .handler(
@@ -1353,6 +1432,167 @@ export const geoRouter = {
       }
       return result;
     }),
+  personasList: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(geoHandler((input) => listGeoPersonas(input))),
+  personasActivity: authorizedProcedure
+    .input(geoTimeseriesInputSchema)
+    .handler(geoHandler((input) => loadGeoPersonaActivity(input))),
+  personasGenerate: authorizedProcedure
+    .input(geoPersonasGenerateInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      const { scope, rate } = await Promise.all([
+        assertActiveSubscription(input.organizationId),
+        runOrpcEffect(
+          requireGeoPersonaGenerationCapacity(
+            input,
+            input.personaId,
+            input.brief
+          ).pipe(Effect.provide(geoCoreDashboardLayer)),
+          toGeoOrpcError
+        ),
+      ]).then(([, scope]) =>
+        ratelimit.geoPersonasGenerate
+          .limit(input.organizationId)
+          .then((rate) => ({ scope, rate }))
+      );
+      if (!rate.success) {
+        throw badRequest(
+          "Too many persona generations. Please wait a few minutes."
+        );
+      }
+      return startPersonaGeneration(
+        scope.organizationId,
+        scope.projectId,
+        input.personaId,
+        input.brief,
+        input.promptsOnly
+      );
+    }),
+  personasGenerationStatus: authorizedProcedure
+    .input(geoOrganizationInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      const scope = await runOrpcEffect(
+        requireGeoProject(input).pipe(Effect.provide(geoCoreDashboardLayer)),
+        toGeoOrpcError
+      );
+      return getPersonaGeneration(scope.organizationId, scope.projectId);
+    }),
+  personaUpdate: authorizedProcedure.input(geoPersonaUpdateInputSchema).handler(
+    geoHandler(
+      (input) => updateGeoPersona(input, input),
+      ({ context, input }) => {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_UPDATED,
+          properties: {
+            persona_id: input.personaId,
+            enabled: input.enabled ?? null,
+          },
+        });
+      }
+    )
+  ),
+  personaDelete: authorizedProcedure.input(geoPersonaDeleteInputSchema).handler(
+    geoHandler(
+      (input) => deleteGeoPersona(input, input.personaId),
+      ({ context, input }) => {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_ARCHIVED,
+          properties: { persona_id: input.personaId },
+        });
+      }
+    )
+  ),
+  personaRestore: authorizedProcedure
+    .input(geoPersonaRestoreInputSchema)
+    .handler(
+      geoHandler(
+        (input) => restoreGeoPersona(input, input.personaId),
+        ({ context, input }) => {
+          trackGeoRouterEvent({
+            context,
+            input,
+            event: POSTHOG_EVENTS.GEO_PERSONA_RESTORED,
+            properties: { persona_id: input.personaId },
+          });
+        }
+      )
+    ),
+  personaResults: authorizedProcedure
+    .input(geoPersonaResultsInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadGeoPersonaResults(input, input.personaId, input.scanId)
+      )
+    ),
+  personaRun: authorizedProcedure
+    .input(geoPersonaRunInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertGeoAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      await assertActiveSubscription(input.organizationId);
+      const rate = await ratelimit.geoPersonaRun.limit(input.organizationId);
+      trackGeoRouterEvent({
+        context,
+        input,
+        event: POSTHOG_EVENTS.GEO_PERSONA_RUN_NOW,
+        properties: {
+          persona_id: input.personaId,
+          rate_limited: !rate.success,
+        },
+      });
+      if (!rate.success) {
+        trackGeoRouterEvent({
+          context,
+          input,
+          event: POSTHOG_EVENTS.GEO_PERSONA_RUN,
+          properties: {
+            persona_id: input.personaId,
+            outcome: GEO_SEQUENCE_RUN_OUTCOMES.RATE_LIMITED,
+            rate_limited: true,
+          },
+        });
+        throw badRequest("Too many runs. Please wait a few minutes.");
+      }
+
+      const result = await runOrpcEffect(
+        runGeoPersonaNow(input, input.personaId).pipe(
+          Effect.provide(geoCoreDashboardLayer)
+        ),
+        toGeoOrpcError
+      );
+      trackGeoRouterEvent({
+        context,
+        input,
+        event: POSTHOG_EVENTS.GEO_PERSONA_RUN,
+        properties: {
+          persona_id: input.personaId,
+          outcome: GEO_SEQUENCE_RUN_OUTCOMES.COMPLETED,
+          rate_limited: false,
+          checks: result.checks,
+          mentions: result.mentions,
+          engine_count: result.engines.length,
+        },
+      });
+      return result;
+    }),
   projectsList: authorizedProcedure
     .input(geoOrganizationInputSchema)
     .handler(geoOpenHandler((input) => listGeoProjects(input.organizationId))),
@@ -1418,6 +1658,7 @@ export const geoRouter = {
             event: POSTHOG_EVENTS.GEO_PROMPTS_GENERATED_FROM_WEBSITE,
             properties: {
               prompt_count: output.promptsAdded,
+              conversation_count: output.conversationsAdded,
               competitor_count: output.competitors.length,
               alias_count: output.aliases.length,
             },

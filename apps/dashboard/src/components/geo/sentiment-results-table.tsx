@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Sheet,
   SheetContent,
@@ -11,14 +12,40 @@ import { useMemo, useRef, useState } from "react";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { Table } from "@/components/motion/table";
 import type { TableColumn } from "@/components/motion/table/types";
-import { SENTIMENT_POLARITY_STYLES } from "@/constants/geo-sentiment";
+import {
+  AGENT_FEEDBACK_LABEL_PILL_CLASS,
+  AGENT_FEEDBACK_SENTIMENT_ICONS,
+  AGENT_FEEDBACK_SENTIMENT_LABELS,
+  AGENT_FEEDBACK_SENTIMENT_PILL_CLASS,
+} from "@/constants/agent-feedback";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   SentimentDetailRow,
   SentimentThemeTableProps,
 } from "@/types/geo-sentiment";
 import { formatModelLabel } from "@/utils/geo-model-display";
 import { sentimentTableRows } from "@/utils/sentiment-table";
+
+function SentimentPolarityPill({
+  polarity,
+}: {
+  polarity: SentimentDetailRow["polarity"];
+}) {
+  return (
+    <span
+      className={`${AGENT_FEEDBACK_LABEL_PILL_CLASS} ${AGENT_FEEDBACK_SENTIMENT_PILL_CLASS[polarity]}`}
+    >
+      <HugeiconsIcon
+        aria-hidden
+        className="size-3.5 shrink-0"
+        icon={AGENT_FEEDBACK_SENTIMENT_ICONS[polarity]}
+        strokeWidth={2}
+      />
+      {AGENT_FEEDBACK_SENTIMENT_LABELS[polarity]}
+    </span>
+  );
+}
 
 export function SentimentResultsTable({
   themes,
@@ -31,25 +58,16 @@ export function SentimentResultsTable({
     () => (pending ? [] : sentimentTableRows(themes)),
     [themes, pending]
   );
-  const selected = rows.find((row) => row.id === selectedId);
+  const current = rows.find((row) => row.id === selectedId) ?? null;
+  const [selected, releaseSelected] = useRetainedValue(current);
   const columns = useMemo<TableColumn<SentimentDetailRow>[]>(
     () => [
       {
         key: "polarity",
         header: "Sentiment",
-        width: "8rem",
+        width: "9rem",
         sortable: true,
-        cell: (row) => (
-          <span
-            className={`inline-flex items-center gap-2 text-xs capitalize ${SENTIMENT_POLARITY_STYLES[row.polarity].text}`}
-          >
-            <span
-              aria-hidden="true"
-              className="size-1.5 rounded-full bg-current"
-            />
-            {row.polarity}
-          </span>
-        ),
+        cell: (row) => <SentimentPolarityPill polarity={row.polarity} />,
       },
       {
         key: "title",
@@ -65,11 +83,7 @@ export function SentimentResultsTable({
                 {row.theme}
               </span>
               {isMobile ? (
-                <span
-                  className={`text-[0.6875rem] capitalize ${SENTIMENT_POLARITY_STYLES[row.polarity].text}`}
-                >
-                  {row.polarity}
-                </span>
+                <SentimentPolarityPill polarity={row.polarity} />
               ) : null}
             </span>
           </span>
@@ -84,11 +98,7 @@ export function SentimentResultsTable({
             {[...new Set(row.evidence.map((evidence) => evidence.engine))]
               .slice(0, 3)
               .map((engine) => (
-                <span
-                  key={engine}
-                  title={formatModelLabel(engine)}
-                  className="border-border bg-background flex size-6 items-center justify-center rounded-md border"
-                >
+                <span key={engine} title={formatModelLabel(engine)}>
                   <EngineIcon engine={engine} />
                   <span className="sr-only">{formatModelLabel(engine)}</span>
                 </span>
@@ -161,12 +171,13 @@ export function SentimentResultsTable({
         className="[&_tr:focus-visible]:outline-ring rounded-2xl [&_tr:focus-visible]:outline-2 [&_tr:focus-visible]:-outline-offset-2"
       />
       <Sheet
-        open={Boolean(selected)}
+        open={current !== null}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedId(null);
           }
         }}
+        onOpenChangeComplete={releaseSelected}
       >
         <SheetContent
           finalFocus={returnFocus}

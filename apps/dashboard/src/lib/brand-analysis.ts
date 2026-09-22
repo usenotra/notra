@@ -126,10 +126,6 @@ export async function queueBrandAnalysisForOnboarding({
   websiteUrl,
   name,
 }: QueueBrandAnalysisInput): Promise<QueueBrandAnalysisResult | null> {
-  if (!redis) {
-    return null;
-  }
-
   const jobId = createBrandAnalysisJobId();
   const brandName = name?.trim() || "Untitled Brand Voice";
 
@@ -138,6 +134,10 @@ export async function queueBrandAnalysisForOnboarding({
     brandName,
     websiteUrl,
   });
+
+  if (!redis) {
+    return { jobId, brandIdentityId: brandIdentity.id };
+  }
 
   after(() =>
     dispatchBrandAnalysisWorkflow({

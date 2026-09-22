@@ -162,6 +162,8 @@ export function GeoEnginePicker({
   const [showMore, setShowMore] = useState(false);
   const [pendingApproval, setPendingApproval] =
     useState<GeoModelCatalogEntry | null>(null);
+  const [pendingDisable, setPendingDisable] =
+    useState<GeoModelCatalogEntry | null>(null);
   const [showAllModels, setShowAllModels] = useState<Set<string>>(
     () => new Set()
   );
@@ -230,6 +232,10 @@ export function GeoEnginePicker({
 
   const toggleModel = (model: GeoModelCatalogEntry, checked: boolean) => {
     if (!checked) {
+      if (model.hidden) {
+        setPendingDisable(model);
+        return;
+      }
       deselect([model.id]);
       return;
     }
@@ -251,6 +257,14 @@ export function GeoEnginePicker({
     );
     select([pendingApproval.id]);
     setPendingApproval(null);
+  };
+
+  const confirmDisable = () => {
+    if (!pendingDisable) {
+      return;
+    }
+    deselect([pendingDisable.id]);
+    setPendingDisable(null);
   };
 
   const handleZdrChange = useCallback(
@@ -451,6 +465,33 @@ export function GeoEnginePicker({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDisable(null);
+          }
+        }}
+        open={pendingDisable !== null}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Turn off {pendingDisable?.label}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDisable?.label} is no longer listed for new tracking. If
+              you turn it off, you cannot turn it back on for this project.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDisable}>
+              Turn off
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -618,7 +659,7 @@ function GeoEngineProviderRow({
   showMore,
   zdrActive,
 }: GeoEngineProviderRowProps) {
-  const models = geoModelsForProvider(catalog, provider.id);
+  const models = geoModelsForProvider(catalog, provider.id, selectedIds);
   const row = geoProviderRowModel({
     hiddenCount,
     id,

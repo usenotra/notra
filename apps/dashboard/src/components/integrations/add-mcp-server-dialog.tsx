@@ -269,11 +269,14 @@ export function AddMcpServerDialog({
             </form.Subscribe>
             <div>
               <ResponsiveDialogTitle className="text-xl">
-                Add MCP Server
+                {storeIntegrationId
+                  ? `Connect ${initialValues?.name ?? "integration"}`
+                  : "Add MCP Server"}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Connect a custom Model Context Protocol server to extend Notra
-                with your own tools and context.
+                {storeIntegrationId
+                  ? "This catalog integration has a preset server URL and authentication method. For your own configuration, add a custom server under MCP Servers."
+                  : "Connect a custom Model Context Protocol server to extend Notra with your own tools and context."}
               </ResponsiveDialogDescription>
             </div>
           </div>
@@ -299,6 +302,10 @@ export function AddMcpServerDialog({
               message={testMessage}
               status={testStatus}
             />
+            <p className="text-muted-foreground text-xs">
+              Test Connection checks server reachability and lists available
+              tools. It does not run tools or verify access to your account.
+            </p>
           </div>
 
           <ResponsiveDialogFooter>

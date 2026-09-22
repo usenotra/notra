@@ -10,6 +10,7 @@ import {
   QuillWrite01Icon,
   SparklesIcon,
   UserGroupIcon,
+  WorkflowSquare01Icon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 
@@ -82,6 +83,11 @@ export const MARKETING_NAV: readonly MarketingNavEntry[] = [
         href: "/mcp",
         label: "MCP Server",
         icon: AiBrain01Icon,
+      },
+      {
+        href: "/mcp/use-cases",
+        label: "MCP Use Cases",
+        icon: WorkflowSquare01Icon,
       },
       {
         href: "https://docs.usenotra.com/devtools/cli",

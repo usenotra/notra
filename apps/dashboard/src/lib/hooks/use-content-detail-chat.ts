@@ -6,6 +6,7 @@ import {
   uiMessageSchema,
 } from "@notra/ai/schemas/chat";
 import type {
+  ChatAttachment,
   ChatSessionSummary,
   ContextItem,
   TextSelection,
@@ -42,6 +43,7 @@ import {
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { buildUserMessageParts } from "@/utils/chat-message-parts";
 import { snapshotContentChatAttachments } from "@/utils/content-chat-attachments";
 
 interface UseContentDetailChatParams {
@@ -330,9 +332,9 @@ export function useContentDetailChat({
   }, []);
 
   const handleSelectionChange = useCallback((sel: TextSelection | null) => {
-    if (sel && sel.text.length > 0) {
-      setSelection(sel);
-    }
+    // Attaching follows the editor selection in both directions: selecting adds
+    // the excerpt as context, deselecting takes it away again.
+    setSelection(sel && sel.text.length > 0 ? sel : null);
   }, []);
 
   const handleSelectChat = useCallback(
@@ -424,35 +426,48 @@ export function useContentDetailChat({
   const dispatchContentEdit = useCallback(
     async (
       instruction: string,
-      attachments: ContentChatMessageMetadata = {}
+      attachments: ContentChatMessageMetadata = {},
+      files: ChatAttachment[] = []
     ) => {
       if (!activeChatId) {
         return;
       }
       const nextSelection = attachments.selection;
       const nextContext = attachments.context ?? [];
+      const metadata = snapshotContentChatAttachments(
+        nextSelection ?? null,
+        nextContext
+      );
+      const requestBody = {
+        chatId: activeChatId,
+        currentMarkdown:
+          content?.contentType === "image"
+            ? ""
+            : (editedMarkdown ?? content?.markdown ?? ""),
+        contentType: content?.contentType,
+        documentMode: isGeoWriterPlanReviewableNow ? "plan" : undefined,
+        selection: nextSelection,
+        context: nextContext,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      };
+      if (files.length > 0) {
+        const parts = buildUserMessageParts(instruction, files);
+        await sendMessage(
+          {
+            role: "user",
+            parts,
+            metadata,
+          },
+          { body: requestBody }
+        );
+        return;
+      }
       await sendMessage(
         {
           text: instruction,
-          metadata: snapshotContentChatAttachments(
-            nextSelection ?? null,
-            nextContext
-          ),
+          metadata,
         },
-        {
-          body: {
-            chatId: activeChatId,
-            currentMarkdown:
-              content?.contentType === "image"
-                ? ""
-                : (editedMarkdown ?? content?.markdown ?? ""),
-            contentType: content?.contentType,
-            documentMode: isGeoWriterPlanReviewableNow ? "plan" : undefined,
-            selection: nextSelection,
-            context: nextContext,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        }
+        { body: requestBody }
       );
     },
     [
@@ -466,10 +481,13 @@ export function useContentDetailChat({
   );
 
   const handleAiEdit = useCallback(
-    async (instruction: string) => {
+    async (instruction: string, files: ChatAttachment[] = []) => {
       openPanel("content");
       const attachments = snapshotContentChatAttachments(selection, context);
       if (isAgentBusyRef.current) {
+        if (files.length > 0) {
+          return;
+        }
         const next = [
           ...queuedMessagesRef.current,
           {
@@ -485,7 +503,7 @@ export function useContentDetailChat({
       }
       wasStoppedByUserRef.current = false;
       isAgentBusyRef.current = true;
-      await dispatchContentEdit(instruction, attachments);
+      await dispatchContentEdit(instruction, attachments, files);
     },
     [context, dispatchContentEdit, openPanel, selection]
   );
@@ -602,5 +620,6 @@ export function useContentDetailChat({
     chatPanelProps,
     floatingChatProps,
     handleSelectionChange,
+    selection,
   };
 }

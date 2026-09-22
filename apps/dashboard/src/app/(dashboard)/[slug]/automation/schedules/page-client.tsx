@@ -50,12 +50,14 @@ import { toast } from "sonner";
 import { BrandVoiceCell } from "@/components/automation/brand-voice-cell";
 import { OnboardingSuggestions } from "@/components/automation/onboarding-suggestions";
 import { CreateScheduleDialog } from "@/components/automation/schedules/create-schedule-dialog";
+import { ScheduleQuickStart } from "@/components/automation/schedules/schedule-quick-start";
 import { SourcesCell } from "@/components/automation/sources-cell";
 import { TriggerStatusBadge } from "@/components/automation/triggers/trigger-status-badge";
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -64,11 +66,14 @@ import {
 } from "@/constants/empty-state";
 import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { SchedulePresetId } from "@/types/automation/schedule";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
+import { indexBrandVoices } from "@/utils/brand-voices";
 import { formatRelative } from "@/utils/format-relative";
 import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
+import { countEnabled } from "@/utils/trigger-status";
 
 import { SchedulePageSkeleton } from "./skeleton";
 
@@ -122,6 +127,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     false | "asc" | "desc"
   >(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createPresetId, setCreatePresetId] = useState<SchedulePresetId | null>(
+    null
+  );
   const { beginCreate, cancelCreate, handleCreateSuccess, pendingSuggestion } =
     useCreateFromSuggestion(organizationId);
 
@@ -143,17 +151,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     })
   );
 
-  const { brandVoiceMap, defaultBrandVoice } = (() => {
-    const map: Record<string, BrandSettings> = {};
-    let defaultVoice: BrandSettings | undefined;
-    for (const voice of brandResponse?.voices ?? []) {
-      map[voice.id] = voice;
-      if (voice.isDefault) {
-        defaultVoice = voice;
-      }
-    }
-    return { brandVoiceMap: map, defaultBrandVoice: defaultVoice };
-  })();
+  const { brandVoiceMap, defaultBrandVoice } = indexBrandVoices(
+    brandResponse?.voices
+  );
 
   const updateMutation = useMutation({
     mutationFn: async (trigger: Trigger) => {
@@ -335,18 +335,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     activeTab === "active" ? trigger.enabled : !trigger.enabled
   );
 
-  const activeCounts = (() => {
-    let active = 0;
-    let paused = 0;
-    for (const t of scheduleTriggers) {
-      if (t.enabled) {
-        active++;
-      } else {
-        paused++;
-      }
-    }
-    return { active, paused };
-  })();
+  const activeCounts = countEnabled(scheduleTriggers);
 
   const handleToggle = (trigger: Trigger) => updateMutation.mutate(trigger);
 
@@ -376,17 +365,15 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Schedules</h1>
-            <p className="text-muted-foreground">
-              Configure cron schedules that run daily, weekly, or monthly
-            </p>
-          </div>
+        <PageHeading
+          description="Configure cron schedules that run daily, weekly, or monthly"
+          title="Schedules"
+        >
           <CreateScheduleDialog
             onOpenChange={(open) => {
               setCreateOpen(open);
               if (!open) {
+                setCreatePresetId(null);
                 cancelCreate(pendingSuggestion);
               }
             }}
@@ -407,6 +394,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             }}
             open={createOpen}
             organizationId={organizationId ?? ""}
+            presetId={createPresetId}
             trigger={
               <Button className="w-fit gap-2">
                 <span className="inline-flex items-center gap-1.5">
@@ -417,7 +405,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               </Button>
             }
           />
-        </div>
+        </PageHeading>
 
         {organizationId && (
           <OnboardingSuggestions
@@ -430,176 +418,60 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           />
         )}
 
-        {isPending && <SchedulePageSkeleton />}
-
-        {!isPending && scheduleTriggers.length === 0 && (
-          <EmptyState
-            action={
-              <CreateScheduleDialog
-                onSuccess={() => {
-                  queryClient.invalidateQueries({
-                    queryKey: dashboardOrpc.automation.schedules.list.queryKey({
-                      input: { organizationId: organizationId ?? "" },
-                    }),
-                  });
-                  if (organizationId) {
-                    queryClient.invalidateQueries({
-                      queryKey: dashboardOrpc.onboarding.get.queryKey({
-                        input: { organizationId },
-                      }),
-                    });
-                  }
-                }}
-                organizationId={organizationId ?? ""}
-                trigger={
-                  <Button className="gap-1.5" variant="outline">
-                    <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                    Create Schedule
-                  </Button>
-                }
-              />
+        <SchedulesPageBody
+          activeCounts={activeCounts}
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          filteredTriggers={filteredTriggers}
+          isDeleting={deleteMutation.isPending}
+          isPending={isPending}
+          isRunning={runNowMutation.isPending}
+          isUpdating={updateMutation.isPending}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          onEmptyCreateSuccess={() => {
+            queryClient.invalidateQueries({
+              queryKey: dashboardOrpc.automation.schedules.list.queryKey({
+                input: { organizationId: organizationId ?? "" },
+              }),
+            });
+            if (organizationId) {
+              queryClient.invalidateQueries({
+                queryKey: dashboardOrpc.onboarding.get.queryKey({
+                  input: { organizationId },
+                }),
+              });
             }
-            description="Create your first schedule to automate recurring content."
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.schedule}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title="No schedules yet"
-          />
-        )}
-
-        {!isPending && scheduleTriggers.length > 0 && (
-          <Tabs
-            defaultValue="active"
-            onValueChange={(value) =>
-              setActiveTab(value as "active" | "paused")
-            }
-          >
-            <TabsList variant="line">
-              <TabsTrigger value="active">
-                Active ({activeCounts.active})
-              </TabsTrigger>
-              <TabsTrigger value="paused">
-                Paused ({activeCounts.paused})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent className="mt-4" value="active">
-              <ScheduleTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                isDeleting={deleteMutation.isPending}
-                isRunning={runNowMutation.isPending}
-                isUpdating={updateMutation.isPending}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onRunNow={handleRunNow}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                repositoryMap={repositoryMap}
-                runningTriggerId={
-                  runNowMutation.isPending
-                    ? runNowMutation.variables
-                    : undefined
-                }
-                triggers={filteredTriggers}
-                updatingTriggerId={
-                  updateMutation.isPending
-                    ? updateMutation.variables?.id
-                    : undefined
-                }
-              />
-            </TabsContent>
-
-            <TabsContent className="mt-4" value="paused">
-              <ScheduleTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                isDeleting={deleteMutation.isPending}
-                isRunning={runNowMutation.isPending}
-                isUpdating={updateMutation.isPending}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onRunNow={handleRunNow}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                repositoryMap={repositoryMap}
-                runningTriggerId={
-                  runNowMutation.isPending
-                    ? runNowMutation.variables
-                    : undefined
-                }
-                triggers={filteredTriggers}
-                updatingTriggerId={
-                  updateMutation.isPending
-                    ? updateMutation.variables?.id
-                    : undefined
-                }
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+          }}
+          onRunNow={handleRunNow}
+          onSelectPreset={(presetId) => {
+            setCreatePresetId(presetId);
+            setCreateOpen(true);
+          }}
+          onSortCreatedChange={setCreatedSortOrder}
+          onTabChange={setActiveTab}
+          onToggle={handleToggle}
+          organizationId={organizationId}
+          repositoryMap={repositoryMap}
+          runningTriggerId={
+            runNowMutation.isPending ? runNowMutation.variables : undefined
+          }
+          scheduleTriggers={scheduleTriggers}
+          updatingTriggerId={
+            updateMutation.isPending ? updateMutation.variables?.id : undefined
+          }
+        />
       </div>
 
-      <ResponsiveAlertDialog
+      <ScheduleDeleteDialog
+        deleteTriggerRepositoryNames={deleteTriggerRepositoryNames}
+        isPending={deleteMutation.isPending}
+        onConfirm={confirmDelete}
         onOpenChange={(open) => !open && setDeleteTriggerId(null)}
         open={!!deleteTriggerId}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete schedule?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete{" "}
-              {triggerToDelete ? (
-                <Tooltip>
-                  <TooltipTrigger className="text-foreground cursor-help font-medium underline decoration-dotted underline-offset-2">
-                    {triggerToDelete.name}
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs" side="top">
-                    <div className="space-y-1 text-xs">
-                      <p>
-                        Runs:{" "}
-                        {formatFrequency(triggerToDelete.sourceConfig.cron)}
-                      </p>
-                      <p>
-                        Repositories: {deleteTriggerRepositoryNames.join(", ")}
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                "this schedule"
-              )}
-              . This action cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={deleteMutation.isPending}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={deleteMutation.isPending}
-              onClick={confirmDelete}
-              variant="destructive"
-            >
-              {deleteMutation.isPending ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        triggerToDelete={triggerToDelete}
+      />
 
       {editTrigger && (
         <CreateScheduleDialog
@@ -628,6 +500,213 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   );
 }
 
+function SchedulesPageBody({
+  activeCounts,
+  brandVoiceMap,
+  createdSortOrder,
+  defaultBrandVoice,
+  filteredTriggers,
+  isDeleting,
+  isPending,
+  isRunning,
+  isUpdating,
+  onDelete,
+  onEdit,
+  onEmptyCreateSuccess,
+  onRunNow,
+  onSelectPreset,
+  onSortCreatedChange,
+  onTabChange,
+  onToggle,
+  organizationId,
+  repositoryMap,
+  runningTriggerId,
+  scheduleTriggers,
+  updatingTriggerId,
+}: {
+  activeCounts: { active: number; paused: number };
+  brandVoiceMap: Record<string, BrandSettings>;
+  createdSortOrder: false | "asc" | "desc";
+  defaultBrandVoice?: BrandSettings;
+  filteredTriggers: Trigger[];
+  isDeleting: boolean;
+  isPending: boolean;
+  isRunning: boolean;
+  isUpdating: boolean;
+  onDelete: (triggerId: string) => void;
+  onEdit: (trigger: Trigger) => void;
+  onEmptyCreateSuccess: () => void;
+  onRunNow: (triggerId: string) => void;
+  onSelectPreset: (presetId: SchedulePresetId) => void;
+  onSortCreatedChange: (next: false | "asc" | "desc") => void;
+  onTabChange: (tab: "active" | "paused") => void;
+  onToggle: (trigger: Trigger) => void;
+  organizationId?: string;
+  repositoryMap: Record<string, string>;
+  runningTriggerId?: string;
+  scheduleTriggers: Trigger[];
+  updatingTriggerId?: string;
+}) {
+  if (isPending) {
+    return <SchedulePageSkeleton />;
+  }
+
+  return (
+    <>
+      {scheduleTriggers.length === 0 ? (
+        <EmptyState
+          action={
+            <CreateScheduleDialog
+              onSuccess={onEmptyCreateSuccess}
+              organizationId={organizationId ?? ""}
+              trigger={
+                <Button className="gap-1.5" variant="outline">
+                  <HugeiconsIcon className="size-4" icon={Add01Icon} />
+                  Create Schedule
+                </Button>
+              }
+            />
+          }
+          description="Create your first schedule to automate recurring content."
+          preview={
+            <EmptyStateTablePreview
+              columns={EMPTY_STATE_TABLE_COLUMNS.schedule}
+              rows={EMPTY_STATE_TABLE_ROWS}
+            />
+          }
+          title="No schedules yet"
+        />
+      ) : null}
+      <ScheduleQuickStart onSelect={onSelectPreset} />
+      {scheduleTriggers.length > 0 ? (
+        <Tabs
+          defaultValue="active"
+          onValueChange={(value) => onTabChange(value as "active" | "paused")}
+        >
+          <TabsList variant="line">
+            <TabsTrigger value="active">
+              Active ({activeCounts.active})
+            </TabsTrigger>
+            <TabsTrigger value="paused">
+              Paused ({activeCounts.paused})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent className="mt-4" value="active">
+            <ScheduleTable
+              brandVoiceMap={brandVoiceMap}
+              createdSortOrder={createdSortOrder}
+              defaultBrandVoice={defaultBrandVoice}
+              isDeleting={isDeleting}
+              isRunning={isRunning}
+              isUpdating={isUpdating}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onRunNow={onRunNow}
+              onSortCreatedChange={onSortCreatedChange}
+              onToggle={onToggle}
+              repositoryMap={repositoryMap}
+              runningTriggerId={runningTriggerId}
+              triggers={filteredTriggers}
+              updatingTriggerId={updatingTriggerId}
+            />
+          </TabsContent>
+
+          <TabsContent className="mt-4" value="paused">
+            <ScheduleTable
+              brandVoiceMap={brandVoiceMap}
+              createdSortOrder={createdSortOrder}
+              defaultBrandVoice={defaultBrandVoice}
+              isDeleting={isDeleting}
+              isRunning={isRunning}
+              isUpdating={isUpdating}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onRunNow={onRunNow}
+              onSortCreatedChange={onSortCreatedChange}
+              onToggle={onToggle}
+              repositoryMap={repositoryMap}
+              runningTriggerId={runningTriggerId}
+              triggers={filteredTriggers}
+              updatingTriggerId={updatingTriggerId}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : null}
+    </>
+  );
+}
+
+function ScheduleDeleteDialog({
+  deleteTriggerRepositoryNames,
+  isPending,
+  onConfirm,
+  onOpenChange,
+  open,
+  triggerToDelete,
+}: {
+  deleteTriggerRepositoryNames: string[];
+  isPending: boolean;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  triggerToDelete: Trigger | null | undefined;
+}) {
+  return (
+    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
+      <ResponsiveAlertDialogContent>
+        <ResponsiveAlertDialogHeader>
+          <ResponsiveAlertDialogTitle>
+            Delete schedule?
+          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription>
+            This will permanently delete{" "}
+            {triggerToDelete ? (
+              <Tooltip>
+                <TooltipTrigger className="text-foreground cursor-help font-medium underline decoration-dotted underline-offset-2">
+                  {triggerToDelete.name}
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs" side="top">
+                  <div className="space-y-1 text-xs">
+                    <p>
+                      Runs: {formatFrequency(triggerToDelete.sourceConfig.cron)}
+                    </p>
+                    <p>
+                      Repositories: {deleteTriggerRepositoryNames.join(", ")}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              "this schedule"
+            )}
+            . This action cannot be undone.
+          </ResponsiveAlertDialogDescription>
+        </ResponsiveAlertDialogHeader>
+        <ResponsiveAlertDialogFooter>
+          <ResponsiveAlertDialogCancel disabled={isPending}>
+            Cancel
+          </ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogAction
+            disabled={isPending}
+            onClick={onConfirm}
+            variant="destructive"
+          >
+            {isPending ? (
+              <>
+                <Loader2Icon className="size-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </ResponsiveAlertDialogAction>
+        </ResponsiveAlertDialogFooter>
+      </ResponsiveAlertDialogContent>
+    </ResponsiveAlertDialog>
+  );
+}
+
 const SCHEDULE_TABLE_ROW_HEIGHT = 48;
 
 function ScheduleTable({
@@ -646,6 +725,7 @@ function ScheduleTable({
   isRunning,
   updatingTriggerId,
   runningTriggerId,
+  loading = false,
 }: {
   triggers: Trigger[];
   repositoryMap: Record<string, string>;
@@ -662,6 +742,7 @@ function ScheduleTable({
   isRunning: boolean;
   updatingTriggerId?: string;
   runningTriggerId?: string;
+  loading?: boolean;
 }) {
   const columns: TableColumn<Trigger>[] = [
     {
@@ -826,6 +907,7 @@ function ScheduleTable({
       emptyState="No schedules in this category."
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length, SCHEDULE_TABLE_ROW_HEIGHT)}
+      loading={loading}
       onSortChange={(next) => onSortCreatedChange(next?.direction ?? false)}
       rowHeight={SCHEDULE_TABLE_ROW_HEIGHT}
       sort={

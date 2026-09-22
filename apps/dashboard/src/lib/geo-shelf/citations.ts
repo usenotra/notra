@@ -1,5 +1,6 @@
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
+  isShelfRootUrl,
   shelfDomainFromUrl,
   tryCanonicalizeShelfUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
@@ -68,6 +69,7 @@ export function citationsEqual(
 /**
  * Collapse raw mention-check URL groups onto canonical shelf URLs so
  * `www` / `old.reddit.com` / tracking-param variants count as one page.
+ * Bare homepages are dropped: a brand's own root domain is not shelf space.
  */
 type FoldedCitationPage = GeoShelfCitedPage & {
   promptIds: Set<string>;
@@ -82,7 +84,7 @@ export function foldShelfCitationRows(
 
   for (const row of rows) {
     const url = tryCanonicalizeShelfUrl(row.url);
-    if (!url) {
+    if (!url || isShelfRootUrl(url)) {
       continue;
     }
     const firstCitedAt = toIso(row.firstCitedAt);

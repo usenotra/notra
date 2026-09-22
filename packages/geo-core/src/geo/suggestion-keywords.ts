@@ -1,6 +1,8 @@
 import type { GscQueryRow } from "@notra/ai/types/google-search-console";
 
 import {
+  GSC_QUERY_CLUSTER_CAP,
+  GSC_QUERY_CLUSTER_WORDS,
   GSC_SYNC_MAX_KEYWORDS_FOR_MODEL,
   GSC_SYNC_MIN_IMPRESSIONS,
 } from "../constants/google-search-console";
@@ -9,6 +11,32 @@ import type { GeoSuggestionKeyword } from "../types/geo";
 const MIN_BRAND_TERM_LENGTH = 3;
 const REGEXP_ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
 const BRAND_TOKEN_SEPARATOR = "[-_\\s]+";
+/*
+ * `\b` counts only [A-Za-z0-9_] as word characters, so a brand that starts or
+ * ends on a non-ASCII letter never gets a boundary there and survives the
+ * strip — "Nestlé" and "ブランド" did, while "Müller" happened to work because
+ * its umlaut sits between two ASCII letters. Same class the answer mention
+ * matcher uses; marks are included so a stray combining mark cannot split a
+ * letter from its accent.
+ */
+const BRAND_WORD_CHAR = "[\\p{L}\\p{N}\\p{M}_]";
+/*
+ * Own-site account and careers pages only. Changelog / status page /
+ * privacy policy are product categories ("changelog generator"), so those
+ * stay in and the suggestion prompt skips "<product> changelog".
+ */
+const NAVIGATIONAL_QUERY =
+  /^(?:[\p{L}\p{N}._-]+\s+){0,2}(?:log(?:in|\s+in|-in)|sign(?:\s+|-)?(?:in|up)|anmelden|einloggen|careers|karriere|stellenangebote|impressum)$/iu;
+const WINNING_POSITION = 3;
+const STRIKING_POSITION = 20;
+const WEAK_POSITION = 40;
+/** 0.02: a 12k-impression 40% CTR #1 still loses to a 200-impression gap at position 11. */
+const WINNING_WEIGHT = 0.02;
+const STRIKING_WEIGHT = 1;
+const WEAK_WEIGHT = 0.6;
+const DISTANT_WEIGHT = 0.25;
+/** CTR above this counts as satisfied demand and stops lowering the score. */
+const CTR_SATURATION = 0.5;
 
 function escapeRegExp(value: string): string {
   return value.replace(REGEXP_ESCAPE_REGEX, "\\$&");
@@ -19,7 +47,10 @@ export function normalizeSuggestionKey(value: string): string {
 }
 
 function normalizeForBrandMatch(value: string): string {
-  return normalizeSuggestionKey(value)
+  // NFC so an accent written as a combining mark folds back into its letter;
+  // the punctuation pass below would otherwise strip the bare mark and make
+  // decomposed "Nestlé" stop matching the composed alias.
+  return normalizeSuggestionKey(value.normalize("NFC"))
     .replace(/[-_]+/g, " ")
     .replace(/[^\p{L}\p{N}\s]+/gu, " ")
     .replace(/\s+/g, " ")
@@ -38,7 +69,7 @@ export function promptMentionsBrand(
 }
 
 export function stripBrandTerms(text: string, brandTerms: string[]): string {
-  let result = text;
+  let result = text.normalize("NFC");
   const sorted = [...brandTerms].sort(
     (left, right) => right.length - left.length
   );
@@ -52,7 +83,10 @@ export function stripBrandTerms(text: string, brandTerms: string[]): string {
       continue;
     }
     result = result.replace(
-      new RegExp(`\\b${parts.join(BRAND_TOKEN_SEPARATOR)}\\b`, "gi"),
+      new RegExp(
+        `(?<!${BRAND_WORD_CHAR})${parts.join(BRAND_TOKEN_SEPARATOR)}(?!${BRAND_WORD_CHAR})`,
+        "giu"
+      ),
       " "
     );
   }
@@ -71,18 +105,67 @@ export function buildBrandTerms(
   });
 }
 
+function opportunityScore(row: GscQueryRow): number {
+  const ctr =
+    row.impressions > 0
+      ? Math.min(row.clicks / row.impressions, CTR_SATURATION)
+      : 0;
+  let weight = DISTANT_WEIGHT;
+  if (row.position <= WINNING_POSITION) {
+    weight = WINNING_WEIGHT;
+  } else if (row.position <= STRIKING_POSITION) {
+    weight = STRIKING_WEIGHT;
+  } else if (row.position <= WEAK_POSITION) {
+    weight = WEAK_WEIGHT;
+  }
+  return row.impressions * weight * (1 - ctr);
+}
+
+function clusterKey(query: string): string {
+  return normalizeSuggestionKey(query)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, GSC_QUERY_CLUSTER_WORDS)
+    .join(" ");
+}
+
+/**
+ * Ranks queries the site shows up for but does not win. Google's own response
+ * is click-sorted, so a page already at position 1 would otherwise fill the
+ * prompt budget and the actual gaps never reach the model.
+ */
 export function selectKeywordsForModel(
   rows: GscQueryRow[],
   brandTerms: string[]
 ): GscQueryRow[] {
-  return rows
+  const ranked = rows
     .filter(
       (row) =>
         row.impressions >= GSC_SYNC_MIN_IMPRESSIONS &&
-        !promptMentionsBrand(row.query, brandTerms)
+        !promptMentionsBrand(row.query, brandTerms) &&
+        !NAVIGATIONAL_QUERY.test(row.query)
     )
-    .sort((a, b) => b.impressions - a.impressions || b.clicks - a.clicks)
-    .slice(0, GSC_SYNC_MAX_KEYWORDS_FOR_MODEL);
+    .sort(
+      (left, right) =>
+        opportunityScore(right) - opportunityScore(left) ||
+        right.impressions - left.impressions
+    );
+
+  const picked: GscQueryRow[] = [];
+  const perCluster = new Map<string, number>();
+  for (const row of ranked) {
+    if (picked.length >= GSC_SYNC_MAX_KEYWORDS_FOR_MODEL) {
+      break;
+    }
+    const key = clusterKey(row.query);
+    const count = perCluster.get(key) ?? 0;
+    if (count >= GSC_QUERY_CLUSTER_CAP) {
+      continue;
+    }
+    perCluster.set(key, count + 1);
+    picked.push(row);
+  }
+  return picked;
 }
 
 /**

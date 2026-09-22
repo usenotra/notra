@@ -23,7 +23,7 @@ import {
   chatSurfaceFromSession,
   isStandaloneInboxSurface,
 } from "../utils/chat-surface";
-import { buildExperimentalTelemetry } from "../utils/tcc";
+import { buildTelemetryOptions } from "../utils/tcc";
 import { getChatRedis } from "./config";
 
 const CLEAR_ACTIVE_STREAM_IF_MATCHES_SCRIPT =
@@ -1047,13 +1047,13 @@ export async function generateAndSetChatTitle(
       model: gateway("openai/gpt-5.4-nano", {
         organizationId,
       }),
-      system: `Generate a short, descriptive title (max 50 chars) for a chat conversation based on the user's first message. Return ONLY the title text, nothing else. No quotes, no prefix. Be specific and concise.`,
+      instructions: `Generate a short, descriptive title (max 50 chars) for a chat conversation based on the user's first message. Return ONLY the title text, nothing else. No quotes, no prefix. Be specific and concise.`,
       prompt: userMessage,
       maxOutputTokens: 30,
       providerOptions: withRouterDefaults(undefined, {
         modelId: "openai/gpt-5.4-nano",
       }),
-      experimental_telemetry: buildExperimentalTelemetry({
+      ...buildTelemetryOptions({
         chatId,
         feature: "chat_title",
         organizationId,

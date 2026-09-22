@@ -1,4 +1,4 @@
-import type { SharedV3ProviderMetadata } from "@ai-sdk/provider";
+import type { SharedV4ProviderMetadata } from "@ai-sdk/provider";
 import {
   DEFAULT_CREDIT_CHECK_TTL_MS,
   DEFAULT_PLAN_CACHE_TTL_MS,
@@ -135,7 +135,7 @@ export function createModelRouter(config: ModelRouterConfig): ModelRouter {
     },
     resolveRoute: resolve,
     assertRouteHasCredits,
-    getRouteMetadata(providerMetadata: SharedV3ProviderMetadata | undefined) {
+    getRouteMetadata(providerMetadata: SharedV4ProviderMetadata | undefined) {
       const value = providerMetadata?.[ROUTER_METADATA_KEY];
       return isRouteMetadata(value) ? value : undefined;
     },

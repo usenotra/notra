@@ -1,7 +1,9 @@
 import { acquireClaim, releaseClaim } from "@notra/ai/autonomy/claims";
 import { chatWorkflowPayloadSchema } from "@notra/ai/schemas/chat";
+import { publicationSyncRepairSchema } from "@notra/ai/schemas/content-publication";
 import type { BrandGuidelinesWorkflowPayload } from "@notra/ai/types/brand-guidelines";
 import type { ChatWorkflowPayload } from "@notra/ai/types/chat";
+import type { GitHubMentionContext } from "@notra/ai/types/github-mention";
 import type { OnboardingAgentWorkflowPayload } from "@notra/ai/types/onboarding-agent";
 import { contentGenerationWorkflowPayloadSchema } from "@notra/content-generation/schemas";
 import { agentReadinessWorkflowPayloadSchema } from "@notra/geo-core/schemas/agent-readiness";
@@ -43,15 +45,23 @@ import {
 } from "@/workflows/brand-analysis";
 import { brandGuidelinesWorkflow } from "@/workflows/brand-guidelines";
 import { standaloneChatWorkflow } from "@/workflows/chat";
+import { contentPublicationReconciliationWorkflow } from "@/workflows/content-publication-reconciliation";
+import { contentPublicationSyncRepairWorkflow } from "@/workflows/content-publication-sync-repair";
 import { eventContentWorkflow } from "@/workflows/event-content";
 import { geoScanWorkflow } from "@/workflows/geo-scan";
 import { geoWriterWorkflow } from "@/workflows/geo-writer";
+import { githubMentionWorkflow } from "@/workflows/github-mention";
 import { gscSyncWorkflow } from "@/workflows/gsc-sync";
 import { irisControllerRun } from "@/workflows/iris-controller";
 import { onDemandContentWorkflow } from "@/workflows/on-demand-content";
 import { onboardingAgentWorkflow } from "@/workflows/onboarding-agent";
 import { scheduleContentWorkflow } from "@/workflows/schedule-content";
 import { socialAnalyticsSyncWorkflow } from "@/workflows/social-analytics-sync";
+
+export async function startGitHubMentionRun(context: GitHubMentionContext) {
+  const run = await start(githubMentionWorkflow, [context]);
+  return { runId: run.runId };
+}
 
 export async function startBrandAnalysisRun(
   payload: BrandAnalysisPayload
@@ -93,6 +103,24 @@ export async function startStandaloneChatRun(
     properties: { chat_id: parsed.chatId, request_id: parsed.requestId },
   });
   return { runId: run.runId };
+}
+
+export async function startContentPublicationReconciliation(
+  publication: Parameters<typeof contentPublicationReconciliationWorkflow>[0],
+  publishedAt: string
+): Promise<void> {
+  await start(contentPublicationReconciliationWorkflow, [
+    publication,
+    publishedAt,
+  ]);
+}
+
+export async function startContentPublicationSyncRepair(
+  repair: Parameters<typeof contentPublicationSyncRepairWorkflow>[0]
+): Promise<void> {
+  await start(contentPublicationSyncRepairWorkflow, [
+    publicationSyncRepairSchema.parse(repair),
+  ]);
 }
 
 export async function startOnboardingAgentRun(

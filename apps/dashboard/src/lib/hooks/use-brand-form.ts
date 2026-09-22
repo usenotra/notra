@@ -16,7 +16,6 @@ export function useBrandForm({
   voiceId,
   initialData,
   onSavingChange,
-  onSavedAtChange,
 }: BrandFormProps) {
   const updateMutation = useUpdateBrandSettings(organizationId);
   const lastSavedData = useRef<string | null>(null);
@@ -37,7 +36,6 @@ export function useBrandForm({
         ...(websiteUrl !== undefined && { websiteUrl }),
       });
       lastSavedData.current = JSON.stringify(values);
-      onSavedAtChange?.(new Date());
       onSavingChange?.(false);
     },
     {
