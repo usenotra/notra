@@ -373,8 +373,6 @@ function useSheetArrowKeys(
   onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
 ) {
   const ref = useRef<HTMLDivElement>(null);
-  const handlerRef = useRef(onKeyDown);
-  handlerRef.current = onKeyDown;
   useEffect(() => {
     const sheet = ref.current?.closest<HTMLElement>(
       "[data-slot=sheet-content]"
@@ -383,11 +381,11 @@ function useSheetArrowKeys(
       return;
     }
     const listener = (event: KeyboardEvent) => {
-      handlerRef.current(event as unknown as ReactKeyboardEvent<HTMLElement>);
+      onKeyDown(event as unknown as ReactKeyboardEvent<HTMLElement>);
     };
     sheet.addEventListener("keydown", listener);
     return () => sheet.removeEventListener("keydown", listener);
-  }, []);
+  }, [onKeyDown]);
   return ref;
 }
 
