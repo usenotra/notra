@@ -254,7 +254,7 @@ export function TwoFactorSettings({
         }}
         open={enrollment !== null}
       >
-        <ResponsiveDialogContent className="sm:max-w-md">
+        <ResponsiveDialogContent className="dialog-stacked sm:max-w-md">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Set up two-factor authentication</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
