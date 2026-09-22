@@ -660,22 +660,45 @@ test("freshness changes and lease theft cannot publish old results; failed runs 
 });
 
 test("lookup keys stay on the project when the calendar window moves", () => {
+  const rolling = { from: true, to: true };
   const today = sentimentAnalysisLookupKeys(
     "org",
     "project",
     "2026-08-24",
-    "2026-09-22"
+    "2026-09-22",
+    rolling
   );
   const yesterday = sentimentAnalysisLookupKeys(
     "org",
     "project",
     "2026-08-23",
-    "2026-09-21"
+    "2026-09-21",
+    rolling
   );
   expect(today[0]).toBe(sentimentAnalysisKey("org", "project"));
   expect(today[0]).toBe(yesterday[0]);
   expect(today[2]).toBe(yesterday[1]);
   expect(today[1]).not.toBe(today[0]);
+});
+
+test("a pinned from stays on legacy keys when only to rolls", () => {
+  const rolling = { from: false, to: true };
+  const today = sentimentAnalysisLookupKeys(
+    "org",
+    "project",
+    "2026-01-01",
+    "2026-09-22",
+    rolling
+  );
+  expect(today[2]).toBe(
+    sentimentAnalysisKey("org", "project", "2026-01-01", "2026-09-21")
+  );
+  expect(
+    sentimentAnalysisLookupKeys("org", "project", "2026-01-01", "2026-09-22", {
+      from: true,
+      to: false,
+    })[2]
+  ).toBe(sentimentAnalysisKey("org", "project", "2026-01-01", "2026-09-22"));
 });
 
 test("a new answer fingerprint keeps the previous themes instead of an empty table", async () => {

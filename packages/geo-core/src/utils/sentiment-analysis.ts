@@ -35,17 +35,20 @@ export function sentimentAnalysisLookupKeys(
   organizationId: string,
   projectId: string | null,
   from: string,
-  to: string
+  to: string,
+  rolling: { from: boolean; to: boolean }
 ): [string, ...string[]] {
+  // A pinned `from` stays put when `to` rolls. A derived `from` only moves with `to`.
   // ponytail: 8 days matches the Redis TTL. Drop the date walk once those keys have expired.
+  const shiftFrom = rolling.from && rolling.to;
   return [
     sentimentAnalysisKey(organizationId, projectId),
     ...Array.from({ length: 8 }, (_, day) =>
       sentimentAnalysisKey(
         organizationId,
         projectId,
-        shiftIsoDate(from, -day),
-        shiftIsoDate(to, -day)
+        shiftIsoDate(from, shiftFrom ? -day : 0),
+        shiftIsoDate(to, rolling.to ? -day : 0)
       )
     ),
   ];

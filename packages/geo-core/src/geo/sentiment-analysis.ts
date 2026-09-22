@@ -39,6 +39,7 @@ async function readProjectSentimentAnalysis(
   organizationId: string,
   projectId: string,
   period: { from: string; to: string },
+  window: GeoWindowInput,
   store: SentimentAnalysisStore,
   snapshot: () => Promise<SentimentAnalysisSnapshot>
 ) {
@@ -53,7 +54,8 @@ async function readProjectSentimentAnalysis(
     organizationId,
     projectId,
     period.from,
-    period.to
+    period.to,
+    { from: window.from == null, to: window.to == null }
   );
   const current = await read(currentKey);
   if (current.result || current.status === "pending") {
@@ -126,14 +128,20 @@ export const loadGeoSentimentAnalysis = Effect.fn("geo.sentimentAnalysis")(
       };
     };
     return yield* geoDb("sentiment analysis failed", async () => {
-      if (!analyze) {
-        return readProjectSentimentAnalysis(
-          input.organizationId,
-          scope.projectId,
-          period,
-          store,
-          snapshot
-        );
+      const cached = await readProjectSentimentAnalysis(
+        input.organizationId,
+        scope.projectId,
+        period,
+        window,
+        store,
+        snapshot
+      );
+      if (
+        !analyze ||
+        cached.status === "ready" ||
+        cached.status === "pending"
+      ) {
+        return cached;
       }
       return runSentimentAnalysis({
         key,
@@ -200,6 +208,7 @@ export const loadStoredGeoSentimentAnalysis = Effect.fn(
       input.organizationId,
       scope.projectId,
       period,
+      window,
       store,
       async () => {
         const currentBrand = await queryGeoSentimentBrand(checkScope);

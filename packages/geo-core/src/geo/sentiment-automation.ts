@@ -72,13 +72,13 @@ export const runAutomaticSentiment = Effect.fn("geo.runAutomaticSentiment")(
       return;
     }
     const capturedAt = new Date(latest.latestCapturedAt);
-    const now = new Date();
-    // Claim against the newest answer, not a 24h clock. A retry of the same
-    // answers loses the compare-and-set; a later scan with newer answers wins.
+    // Store the answer watermark, not wall-clock now. Checks keep the scan
+    // start time, so a scan that is still running at claim time would otherwise
+    // look older than this attempt after it commits.
     const claimed = yield* geoDb("sentiment automation claim failed", () =>
       db
         .update(geoSettings)
-        .set({ sentimentAttemptedAt: now })
+        .set({ sentimentAttemptedAt: capturedAt })
         .where(
           and(
             eq(geoSettings.organizationId, input.organizationId),
