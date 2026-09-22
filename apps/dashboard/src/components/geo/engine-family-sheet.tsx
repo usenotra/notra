@@ -162,26 +162,28 @@ function FamilyStats({
   const trends = engineFamilyStatTrends(points, family.family);
 
   return (
-    <div className="@container/stats grid grid-cols-1 items-start gap-4 @min-[22rem]/stats:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
-      <Stat
-        delta={trends.ratePts}
-        hero
-        kind="rate"
-        label={GEO_MENTION_RATE_LABEL}
-        value={totals ? formatMentionRate(totals.rate) : "—"}
-      />
-      <Stat
-        delta={trends.visibilityDelta}
-        kind="mentions"
-        label={GEO_MENTIONS_LABEL}
-        value={totals ? `${totals.visible}/${totals.checks}` : "—"}
-      />
-      <Stat
-        delta={trends.positionDelta}
-        kind="position"
-        label={GEO_AVG_POSITION_LABEL}
-        value={position === null ? "—" : `#${position}`}
-      />
+    <div className="@container/stats">
+      <div className="grid grid-cols-1 items-start gap-4 @min-[22rem]/stats:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <Stat
+          delta={trends.ratePts}
+          hero
+          kind="rate"
+          label={GEO_MENTION_RATE_LABEL}
+          value={totals ? formatMentionRate(totals.rate) : "—"}
+        />
+        <Stat
+          delta={trends.visibilityDelta}
+          kind="mentions"
+          label={GEO_MENTIONS_LABEL}
+          value={totals ? `${totals.visible}/${totals.checks}` : "—"}
+        />
+        <Stat
+          delta={trends.positionDelta}
+          kind="position"
+          label={GEO_AVG_POSITION_LABEL}
+          value={position === null ? "—" : `#${position}`}
+        />
+      </div>
     </div>
   );
 }
