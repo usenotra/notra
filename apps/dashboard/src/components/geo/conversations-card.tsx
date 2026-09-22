@@ -293,6 +293,7 @@ export function ConversationsCard({ organizationId }: ConversationsCardProps) {
         }
         getRowId={(row) => row.id}
         height={tableHeightFor(Math.max(sequences.length, 2))}
+        loading={isLoading}
         onRowClick={setViewing}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}

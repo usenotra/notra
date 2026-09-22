@@ -143,6 +143,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           aliases={settings.aliases}
           companyName={settings.companyName}
           competitors={competitors}
+          isScanning={isScanning}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
           ownDomain={ownDomain}

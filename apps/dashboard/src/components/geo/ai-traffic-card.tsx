@@ -43,6 +43,7 @@ export function AiTrafficCard({
   traffic,
   pages,
   settingsHref,
+  isPending = false,
 }: AiTrafficCardProps) {
   const { sources, totals, points, previousConversions } =
     traffic ?? GEO_EMPTY_TRAFFIC_RESPONSE;
@@ -212,6 +213,7 @@ export function AiTrafficCard({
           collapsed={collapsed}
           columns={columns}
           groups={groups}
+          loading={isPending}
           onOpen={(group) =>
             setOpenGroupKey(trafficGroupKey(group.band, group.key))
           }

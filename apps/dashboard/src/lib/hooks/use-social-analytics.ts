@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import type {
@@ -69,6 +74,7 @@ export function useTopPosts(
       },
     }),
     enabled: !!organizationId,
+    placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load top posts" },
   });
 }
@@ -140,6 +146,7 @@ export function useLeaderboardRange(
       },
     }),
     enabled: !!organizationId,
+    placeholderData: keepPreviousData,
     meta: { errorMessage: "Failed to load leaderboard" },
   });
 }

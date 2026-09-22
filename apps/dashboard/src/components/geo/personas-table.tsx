@@ -248,7 +248,7 @@ export function PersonasTable({
         )}
         isRowClickable={(row) => !row.archivedAt}
         isRowPinned={(row) => !row.archivedAt}
-        loading={isAddingPersona}
+        loading={isAddingPersona || generationPending}
         onRowClick={(row) => {
           trackEvent(POSTHOG_EVENTS.GEO_PERSONA_DETAIL_OPENED, {
             personaId: row.id,

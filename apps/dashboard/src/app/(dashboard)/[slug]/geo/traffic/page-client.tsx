@@ -58,18 +58,19 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const [hostQuery] = useGeoTrafficHostQuery();
   const { data: settingsData, isPending: isSettingsPending } =
     useGeoSettings(organizationId);
-  const { data: traffic, isPending: isTrafficPending } = useAiTraffic(
-    organizationId,
-    geoRange.query
-  );
+  const {
+    data: traffic,
+    isPending: isTrafficPending,
+    isPlaceholderData: isTrafficPlaceholder,
+  } = useAiTraffic(organizationId, geoRange.query);
   const { data: ingestSetup, isPending: isIngestPending } =
     useGeoIngestSetup(organizationId);
   const inventoryPages = useGeoTrafficPages(organizationId, geoRange.query);
-  const { data: trafficPages, isPending: isPagesPending } = useGeoTrafficPages(
-    organizationId,
-    geoRange.query,
-    hostQuery
-  );
+  const {
+    data: trafficPages,
+    isPending: isPagesPending,
+    isPlaceholderData: isPagesPlaceholder,
+  } = useGeoTrafficPages(organizationId, geoRange.query, hostQuery);
   const knownHosts = unionTrafficHosts(
     ingestAllowedHosts(brandDomain, settingsData?.settings?.domains),
     trafficHostsFromPages(inventoryPages.data?.pages ?? [])
@@ -182,6 +183,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
         <div className="flex flex-col gap-6">
           <InstrumentReveal active={revealActive} order={0}>
             <AiTrafficCard
+              isPending={isTrafficPending || isTrafficPlaceholder}
               pages={inventoryPages.data?.pages ?? []}
               settingsHref={withGeoProject(
                 geoSettingsPath(organizationSlug),
@@ -193,7 +195,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
           <InstrumentReveal active={revealActive} order={1}>
             <TrafficPagesCard
               hosts={knownHosts}
-              isPending={isPagesPending}
+              isPending={isPagesPending || isPagesPlaceholder}
               pages={trafficPages?.pages ?? []}
             />
           </InstrumentReveal>

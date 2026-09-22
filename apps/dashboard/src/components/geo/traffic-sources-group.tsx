@@ -36,6 +36,7 @@ function TrafficSourcesGroup({
   onToggle,
   onOpen,
   stacked,
+  loading = false,
 }: TrafficSourcesGroupProps) {
   const label = TRAFFIC_SOURCE_BAND_LABELS[band];
   const noun = TRAFFIC_SOURCE_BAND_NOUN[band];
@@ -114,6 +115,7 @@ function TrafficSourcesGroup({
         // Uncapped so no band scrolls on its own: a scrollbar would shift its
         // columns out of line with the bands stacked above and below.
         height={paginatedTableHeightFor(count)}
+        loading={loading}
         onRowClick={onOpen}
         overlapTop={stacked} // pairs with -mt-5 so the stacked header is not clipped
         resizable
@@ -131,6 +133,7 @@ export function TrafficSourcesStack({
   collapsed,
   onToggle,
   onOpen,
+  loading = false,
 }: TrafficSourcesStackProps) {
   const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
   // Collapse once for the whole stack so every band keeps the same columns.
@@ -150,6 +153,7 @@ export function TrafficSourcesStack({
             followedByStack={index < lastIndex}
             groups={groups.filter((group) => group.band === band)}
             key={band}
+            loading={loading}
             onOpen={onOpen}
             onToggle={() => onToggle(band)}
             stacked={index > 0}

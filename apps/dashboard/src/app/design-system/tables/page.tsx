@@ -76,6 +76,7 @@ export default function DesignSystemTablesPage() {
           </header>
           <div className="flex flex-col gap-6">
             <AiTrafficCard
+              isPending={loading}
               pages={DESIGN_SYSTEM_TRAFFIC_PAGES}
               settingsHref="/design-system/tables"
               traffic={DESIGN_SYSTEM_TRAFFIC_RESPONSE}

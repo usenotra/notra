@@ -132,7 +132,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   useHotkey("C", () => setCreateOpen(true), { enabled: !createOpen });
 
-  const { data, isPending } = useQuery(
+  const { data, isPending, isFetching } = useQuery(
     dashboardOrpc.automation.schedules.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
       enabled: !!organizationId,
@@ -510,6 +510,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 isDeleting={deleteMutation.isPending}
                 isRunning={runNowMutation.isPending}
                 isUpdating={updateMutation.isPending}
+                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onRunNow={handleRunNow}
@@ -538,6 +539,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 isDeleting={deleteMutation.isPending}
                 isRunning={runNowMutation.isPending}
                 isUpdating={updateMutation.isPending}
+                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onRunNow={handleRunNow}
@@ -662,6 +664,7 @@ function ScheduleTable({
   isRunning,
   updatingTriggerId,
   runningTriggerId,
+  loading = false,
 }: {
   triggers: Trigger[];
   repositoryMap: Record<string, string>;
@@ -678,6 +681,7 @@ function ScheduleTable({
   isRunning: boolean;
   updatingTriggerId?: string;
   runningTriggerId?: string;
+  loading?: boolean;
 }) {
   const columns: TableColumn<Trigger>[] = [
     {
@@ -842,6 +846,7 @@ function ScheduleTable({
       emptyState="No schedules in this category."
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length, SCHEDULE_TABLE_ROW_HEIGHT)}
+      loading={loading}
       onSortChange={(next) => onSortCreatedChange(next?.direction ?? false)}
       rowHeight={SCHEDULE_TABLE_ROW_HEIGHT}
       sort={

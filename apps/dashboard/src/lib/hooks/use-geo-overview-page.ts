@@ -144,15 +144,19 @@ export function useGeoOverviewPage(
     geoRange.query,
     queriesEnabled && activeTab === "visibility"
   );
-  const { data: trafficJourneys, isPending: isJourneysPending } =
-    useGeoTrafficJourneys(
-      organizationId,
-      geoRange.query,
-      queriesEnabled && activeTab === "journeys"
-    );
+  const {
+    data: trafficJourneys,
+    isPending: isJourneysPending,
+    isPlaceholderData: isJourneysPlaceholder,
+  } = useGeoTrafficJourneys(
+    organizationId,
+    geoRange.query,
+    queriesEnabled && activeTab === "journeys"
+  );
   const {
     data: journeyStats,
     isPending: isJourneyStatsPending,
+    isPlaceholderData: isJourneyStatsPlaceholder,
     isError: isJourneyStatsError,
   } = useGeoJourneyStats(
     organizationId,
@@ -206,7 +210,11 @@ export function useGeoOverviewPage(
     journeyStats,
     journeyStatsFailed: isJourneyStatsError && journeyStats === undefined,
     journeysLoading:
-      activeTab === "journeys" && (isJourneysPending || isJourneyStatsPending),
+      activeTab === "journeys" &&
+      (isJourneysPending ||
+        isJourneyStatsPending ||
+        isJourneysPlaceholder ||
+        isJourneyStatsPlaceholder),
     isScanning,
     revealActive,
     scanPreflight: {

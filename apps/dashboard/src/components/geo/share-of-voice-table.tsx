@@ -205,6 +205,7 @@ export function ShareOfVoiceTable({
       emptyState="No competitor data yet"
       getRowId={(row) => row.id}
       height={GEO_VISIBILITY_TABLE_HEIGHT}
+      loading={isScanning}
       minHeight={GEO_VISIBILITY_TABLE_HEIGHT}
       onRowClick={onRowClick}
       onRowPointerEnter={onRowPointerEnter}

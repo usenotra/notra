@@ -985,6 +985,7 @@ export function GeoGapsTable({
         defaultSort={{ key: "opportunity", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
+        loading={isScanning}
       />
     ) : (
       <Table
@@ -995,6 +996,7 @@ export function GeoGapsTable({
         defaultSort={{ key: "impressions", direction: "desc" }}
         getRowId={(row) => row.id}
         height={tableHeight}
+        loading={isScanning}
       />
     );
 

@@ -81,7 +81,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   useHotkey("C", () => setCreateOpen(true), { enabled: !createOpen });
 
-  const { data, isPending } = useQuery(
+  const { data, isPending, isFetching } = useQuery(
     dashboardOrpc.automation.events.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
       enabled: !!organizationId,
@@ -297,6 +297,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 brandVoiceMap={brandVoiceMap}
                 createdSortOrder={createdSortOrder}
                 defaultBrandVoice={defaultBrandVoice}
+                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onSortCreatedChange={setCreatedSortOrder}
@@ -310,6 +311,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 brandVoiceMap={brandVoiceMap}
                 createdSortOrder={createdSortOrder}
                 defaultBrandVoice={defaultBrandVoice}
+                loading={isFetching}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onSortCreatedChange={setCreatedSortOrder}
@@ -345,6 +347,7 @@ function EventTable({
   brandVoiceMap,
   createdSortOrder,
   defaultBrandVoice,
+  loading = false,
   onSortCreatedChange,
   onToggle,
   onDelete,
@@ -354,6 +357,7 @@ function EventTable({
   brandVoiceMap: Record<string, BrandSettings>;
   createdSortOrder: false | "asc" | "desc";
   defaultBrandVoice?: BrandSettings;
+  loading?: boolean;
   onSortCreatedChange: (next: false | "asc" | "desc") => void;
   onToggle: (trigger: Trigger) => void;
   onDelete: (triggerId: string) => void;
@@ -469,6 +473,7 @@ function EventTable({
       emptyState="No event triggers in this category."
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length)}
+      loading={loading}
       onSortChange={(sort) => onSortCreatedChange(sort?.direction ?? false)}
       rowHeight={TABLE_ROW_HEIGHT}
       sort={

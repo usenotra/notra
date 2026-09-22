@@ -28,6 +28,7 @@ export function JourneyOverviewCard({
   failed,
   previewRows,
   onOpenSource,
+  loading = false,
 }: JourneyOverviewCardProps) {
   const totals = journeyTotals(sources);
   const columns: TableColumn<GeoJourneySourceStats>[] = [
@@ -97,6 +98,7 @@ export function JourneyOverviewCard({
         defaultSort={{ key: "journeys", direction: "desc" }}
         getRowId={sourceRowId}
         height={tableHeightFor(previewRows)}
+        loading={loading}
         onRowClick={onOpenSource}
         rowHeight={TABLE_ROW_HEIGHT}
       />

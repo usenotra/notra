@@ -40,7 +40,11 @@ function PostAvatar({ post }: { post: TopPostItem }) {
   );
 }
 
-export function TopPostsCard({ posts, action }: TopPostsCardProps) {
+export function TopPostsCard({
+  posts,
+  action,
+  isPending = false,
+}: TopPostsCardProps) {
   const columns = useMemo<TableColumn<TopPostItem>[]>(
     () => [
       {
@@ -153,6 +157,7 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
           emptyState="No posts for this time frame"
           getRowId={(row) => `${row.provider}:${row.platformPostId}`}
           height={tableHeightFor(posts.length)}
+          loading={isPending}
           onRowClick={(row) => {
             if (row.url) {
               window.open(row.url, "_blank", "noopener,noreferrer");

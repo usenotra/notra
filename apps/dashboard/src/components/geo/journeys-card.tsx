@@ -24,6 +24,7 @@ export function JourneysCard({
   journeys,
   onOpenJourney,
   onPrefetchJourney,
+  loading = false,
 }: JourneysCardProps) {
   const [limit, setLimit] = useState(JOURNEYS_PAGE_SIZE);
   const hasMore = limit < journeys.length;
@@ -96,10 +97,11 @@ export function JourneysCard({
           emptyState="No agent journeys captured yet"
           getRowId={(row) => row.journeyId}
           height={tableHeightFor(journeys.length)}
+          loading={loading}
           onEndReached={
-            hasMore
-              ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
-              : undefined
+            loading || !hasMore
+              ? undefined
+              : () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
           }
           onRowClick={onOpenJourney}
           onRowPointerEnter={onPrefetchJourney}

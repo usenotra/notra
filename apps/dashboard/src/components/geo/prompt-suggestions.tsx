@@ -367,7 +367,7 @@ export function PromptSuggestions({
         emptyState="No Google Search suggestions yet"
         getRowId={(row) => row.id}
         height={tableHeightFor(Math.max(suggestions.length, checking ? 3 : 1))}
-        loading={checking && !hasSuggestions}
+        loading={checking}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />

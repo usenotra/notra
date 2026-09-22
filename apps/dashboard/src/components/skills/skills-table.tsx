@@ -72,6 +72,7 @@ export function SkillsTable({
   sort,
   onSortChange,
   searchActive,
+  loading = false,
 }: SkillsTableProps) {
   const router = useRouter();
 
@@ -86,6 +87,7 @@ export function SkillsTable({
       }
       getRowId={(skill) => skill.id}
       height={tableHeightFor(skills.length)}
+      loading={loading}
       onRowClick={(skill) => router.push(`/${slug}/skills/${skill.name}`)}
       onRowPointerEnter={(skill) =>
         router.prefetch(`/${slug}/skills/${skill.name}`)

@@ -106,6 +106,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     history = (
       <BriefHistory
         briefs={briefs}
+        loading={briefsQuery.isFetching}
         onHover={(briefId) => {
           const summary = briefs.find((brief) => brief.id === briefId);
           if (summary?.postId) {

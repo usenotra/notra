@@ -540,6 +540,7 @@ export function PromptsTable({
         }
         getRowId={(row) => row.id}
         height={PROMPTS_TABLE_HEIGHT}
+        loading={isScanning}
         onRowClick={setDetail}
         onSelectionChange={setSelectedIds}
         renderRowContextMenu={(row) => (

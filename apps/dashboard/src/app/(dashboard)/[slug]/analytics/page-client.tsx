@@ -64,11 +64,11 @@ export default function PageClient() {
     organizationId,
     followersRange.range
   );
-  const { data: topPosts } = useTopPosts(
-    organizationId,
-    undefined,
-    topPostsRange.range
-  );
+  const {
+    data: topPosts,
+    isPending: isTopPostsPending,
+    isPlaceholderData: isTopPostsPlaceholder,
+  } = useTopPosts(organizationId, undefined, topPostsRange.range);
   const { data: performance } = usePostingPerformance(
     organizationId,
     bestTimeRange.range
@@ -224,6 +224,7 @@ export default function PageClient() {
       <InstrumentReveal active={revealed} className="lg:col-span-12" order={6}>
         <TopPostsCard
           action={<AnalyticsRangePicker control={topPostsRange} />}
+          isPending={isTopPostsPending || isTopPostsPlaceholder}
           posts={topPosts?.posts ?? []}
         />
       </InstrumentReveal>

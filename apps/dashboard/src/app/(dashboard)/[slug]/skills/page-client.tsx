@@ -85,7 +85,11 @@ export default function PageClient({ slug }: PageClientProps) {
     }
   })();
 
-  const { data: skills = [], isPending } = useQuery({
+  const {
+    data: skills = [],
+    isPending,
+    isFetching,
+  } = useQuery({
     ...dashboardOrpc.skills.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
     }),
@@ -234,6 +238,7 @@ export default function PageClient({ slug }: PageClientProps) {
               </InputGroup>
             </div>
             <SkillsTable
+              loading={isFetching}
               onSortChange={setSort}
               searchActive={searchActive}
               skills={visibleSkills}

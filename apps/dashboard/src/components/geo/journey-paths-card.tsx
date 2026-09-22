@@ -25,6 +25,7 @@ export function JourneyPathsCard({
   previousTotalPages,
   previewRows,
   onOpenPath,
+  loading = false,
 }: JourneyPathsCardProps) {
   const kindCounts = useMemo(() => journeyPageKindCounts(pages), [pages]);
   const sampled = totalPages > pages.length;
@@ -76,6 +77,7 @@ export function JourneyPathsCard({
         defaultSort={{ key: "journeys", direction: "desc" }}
         getRowId={pathRowId}
         height={tableHeightFor(previewRows)}
+        loading={loading}
         onRowClick={onOpenPath}
         rowHeight={TABLE_ROW_HEIGHT}
       />

@@ -484,6 +484,7 @@ export interface JourneysCardProps {
   journeys: GeoJourney[];
   onOpenJourney: (journey: GeoJourney) => void;
   onPrefetchJourney: (journey: GeoJourney) => void;
+  loading?: boolean;
 }
 
 export type GeoJourneyGroupSelection =
@@ -551,12 +552,14 @@ export interface JourneyOverviewCardProps {
   failed: boolean;
   previewRows: number;
   onOpenSource: (row: GeoJourneySourceStats) => void;
+  loading?: boolean;
 }
 
 export interface JourneyPathsCardProps {
   pages: GeoJourneyPageStats[];
   /** Renders the failure copy instead of the empty state. */
   failed: boolean;
+  loading?: boolean;
   totalPages: number;
   previousTotalPages: number;
   previewRows: number;
@@ -635,6 +638,7 @@ export interface AiTrafficCardProps {
   /** Top pages across every host, for the source drawer. */
   pages: readonly GeoTrafficPage[];
   settingsHref: string;
+  isPending?: boolean;
 }
 
 export interface GeoTrafficPageSource {
@@ -1346,6 +1350,7 @@ export interface CompetitorsTableProps {
   companyName: string;
   aliases: string[];
   ownDomain: string | null;
+  isScanning?: boolean;
 }
 
 export interface PromptsTableProps {
@@ -1683,6 +1688,7 @@ export interface TrafficSourcesGroupProps {
   onToggle: () => void;
   onOpen: (group: GeoTrafficSourceGroup) => void;
   stacked: boolean;
+  loading?: boolean;
 }
 
 export interface TrafficSourcesStackProps {
@@ -1691,6 +1697,7 @@ export interface TrafficSourcesStackProps {
   collapsed: ReadonlySet<GeoTrafficSourceBand>;
   onToggle: (band: GeoTrafficSourceBand) => void;
   onOpen: (group: GeoTrafficSourceGroup) => void;
+  loading?: boolean;
 }
 
 export interface WhatChangedCardProps {

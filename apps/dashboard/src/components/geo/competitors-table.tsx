@@ -66,6 +66,7 @@ export function CompetitorsTable({
   companyName,
   aliases,
   ownDomain: projectDomain,
+  isScanning = false,
 }: CompetitorsTableProps) {
   const { pendingCompetitorIds, removeCompetitor } =
     useGeoCompetitorsDb(organizationId);
@@ -286,6 +287,7 @@ export function CompetitorsTable({
           getRowId={(row) => row.id}
           height={COMPETITORS_TABLE_HEIGHT}
           isRowPinned={isOwnBrandRow}
+          loading={isScanning}
           onRowClick={(row) => {
             if (row.isOwnBrand) {
               return;
