@@ -37,12 +37,19 @@ import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
-import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
+import {
+  EmptyStateCardsPreview,
+  EmptyStateTablePreview,
+} from "@/components/empty-state-preview";
 import { SearchConsolePropertyPicker } from "@/components/geo/search-console-card";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import {
+  EMPTY_STATE_TABLE_COLUMNS,
+  EMPTY_STATE_TABLE_ROWS,
+} from "@/constants/empty-state";
 import {
   useGeoSuggestions,
   useGscDisconnect,
@@ -170,6 +177,7 @@ function ChangePropertyDialog({
 
 function LastSyncPanel({
   busy,
+  lastSyncedAt,
   onSync,
   organizationId,
   organizationSlug,
@@ -193,6 +201,31 @@ function LastSyncPanel({
     { label: "Suggestions", value: formatCount(added.length) },
   ];
 
+  if (!loading && queries.length === 0) {
+    return (
+      <EmptyState
+        action={
+          <Button disabled={busy} onClick={onSync} size="sm" variant="outline">
+            {busy ? <StatusSpinner /> : null}
+            {busy ? "Syncing…" : "Sync now"}
+          </Button>
+        }
+        description={
+          lastSyncedAt
+            ? "Search Console returned no queries for this property. Sync again after the site has search traffic."
+            : "Sync this property to pull the queries you rank for and the prompt suggestions they turn into."
+        }
+        preview={
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.searchConsole}
+            rows={EMPTY_STATE_TABLE_ROWS}
+          />
+        }
+        title={lastSyncedAt ? "No queries in this sync" : "No sync yet"}
+      />
+    );
+  }
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -212,12 +245,7 @@ function LastSyncPanel({
           </div>
         ))}
       </div>
-      {!loading && queries.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No search queries in the last sync.
-        </p>
-      ) : null}
-      {!loading && queries.length > 0 ? (
+      {queries.length > 0 ? (
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader>
@@ -434,6 +462,7 @@ function GoogleSearchConsoleIntegrationCard({
         {hasProperty ? (
           <LastSyncPanel
             busy={busy}
+            lastSyncedAt={status.lastSyncedAt}
             onSync={() => sync.mutate()}
             organizationId={organizationId}
             organizationSlug={organizationSlug}

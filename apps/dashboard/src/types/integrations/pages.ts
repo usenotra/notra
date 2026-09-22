@@ -18,6 +18,7 @@ export interface GoogleSearchConsoleIntegrationCardProps {
 
 export interface GoogleSearchConsoleLastSyncPanelProps {
   busy: boolean;
+  lastSyncedAt: string | null;
   onSync: () => void;
   organizationId: string;
   organizationSlug: string;
