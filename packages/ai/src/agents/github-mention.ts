@@ -33,7 +33,7 @@ import {
 } from "@notra/ai/utils/github-pr-comments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
-import { stepCountIs, ToolLoopAgent } from "ai";
+import { isStepCount, ToolLoopAgent } from "ai";
 
 export async function runGitHubMentionAgent(params: {
   octokit: GitHubMentionOctokit;
@@ -124,7 +124,7 @@ export async function runGitHubMentionAgent(params: {
       contentType: params.context.publication?.contentType ?? null,
     }),
     stopWhen: [
-      stepCountIs(GITHUB_MENTION_AGENT_MAX_STEPS),
+      isStepCount(GITHUB_MENTION_AGENT_MAX_STEPS),
       () => state.permissionDenied,
     ],
   });

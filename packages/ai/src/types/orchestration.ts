@@ -145,6 +145,7 @@ export interface OrchestrateInput {
   selection?: TextSelection;
   context?: ContextItem[];
   maxSteps?: number;
+  abortSignal?: AbortSignal;
   log?: AILogTarget;
   timezone?: string;
   telemetryMetadata?: TccMetadata;

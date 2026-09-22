@@ -27,7 +27,11 @@ import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { chatRequestSchema } from "@notra/schemas/dashboard/content";
-import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
+import {
+  consumeStream,
+  createUIMessageStreamResponse,
+  toUIMessageStream,
+} from "ai";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
@@ -230,6 +234,7 @@ export const POST = withEvlog(async function POST(
         selection,
         context,
         maxSteps: 50,
+        abortSignal: request.signal,
         log,
         timezone,
         useMarkup,
@@ -338,6 +343,8 @@ export const POST = withEvlog(async function POST(
       decision: routingDecision,
     });
 
+    void stream.consumeStream();
+
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
@@ -392,6 +399,7 @@ export const POST = withEvlog(async function POST(
     return createUIMessageStreamResponse({
       headers: { "X-Chat-Id": chatId },
       stream: uiStream,
+      consumeSseStream: consumeStream,
     });
   } catch (e) {
     console.error("[Content Chat] Error:", {

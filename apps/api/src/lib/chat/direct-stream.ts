@@ -14,7 +14,11 @@ import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
-import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
+import {
+  consumeStream,
+  createUIMessageStreamResponse,
+  toUIMessageStream,
+} from "ai";
 import { nanoid } from "nanoid";
 
 import type { DirectStandaloneChatArgs } from "../../types/chats";
@@ -156,6 +160,8 @@ export async function createDirectStandaloneChatResponse({
       }
     );
 
+    void stream.consumeStream();
+
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
@@ -233,6 +239,7 @@ export async function createDirectStandaloneChatResponse({
     return createUIMessageStreamResponse({
       headers: { "X-Chat-Id": chatId },
       stream: uiStream,
+      consumeSseStream: consumeStream,
     });
   } catch (error) {
     await cleanup();

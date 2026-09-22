@@ -43,6 +43,7 @@ import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
+  consumeStream,
   createUIMessageStreamResponse,
   InvalidToolInputError,
   NoSuchToolError,
@@ -560,6 +561,8 @@ async function createDirectStandaloneChatResponse({
       }
     );
 
+    void stream.consumeStream();
+
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
@@ -644,6 +647,7 @@ async function createDirectStandaloneChatResponse({
     return createUIMessageStreamResponse({
       headers: { "X-Chat-Id": chatId },
       stream: uiStream,
+      consumeSseStream: consumeStream,
     });
   };
 

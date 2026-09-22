@@ -1,19 +1,19 @@
-import { isToolUIPart, type UIMessage } from "ai";
-
-const TERMINAL_APPROVAL_STEP_STATES = new Set([
-  "output-available",
-  "output-error",
-  "output-denied",
-  "approval-responded",
-]);
+import {
+  isToolUIPart,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+  type UIMessage,
+} from "ai";
 
 export function shouldContinueAfterApprovalResponse({
   messages,
 }: {
   messages: UIMessage[];
 }): boolean {
-  const message = messages.at(-1);
+  if (!lastAssistantMessageIsCompleteWithApprovalResponses({ messages })) {
+    return false;
+  }
 
+  const message = messages.at(-1);
   if (!message || message.role !== "assistant") {
     return false;
   }
@@ -22,17 +22,9 @@ export function shouldContinueAfterApprovalResponse({
     return part.type === "step-start" ? index : lastIndex;
   }, -1);
 
-  const toolParts = message.parts
+  return message.parts
     .slice(lastStepStartIndex + 1)
-    .filter(isToolUIPart);
-
-  const approvalResponses = toolParts.filter(
-    (part) => part.state === "approval-responded"
-  );
-
-  return (
-    approvalResponses.length > 0 &&
-    approvalResponses.every((part) => part.approval.approved) &&
-    toolParts.every((part) => TERMINAL_APPROVAL_STEP_STATES.has(part.state))
-  );
+    .filter(isToolUIPart)
+    .filter((part) => part.state === "approval-responded")
+    .every((part) => part.approval.approved);
 }
