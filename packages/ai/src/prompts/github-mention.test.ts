@@ -80,6 +80,8 @@ describe("getGitHubMentionInstructions", () => {
     expect(instructions).toContain("<available_skills>");
     expect(instructions).toContain("changelog: House changelog format");
     expect(instructions).toContain("getSkillByName");
+    expect(instructions).toContain("listAvailableSkills");
+    expect(instructions).toContain("it may be partial");
     expect(instructions).toContain("content type is blog_post");
     expect(instructions).toContain("blog-post");
   });
@@ -89,6 +91,7 @@ describe("getGitHubMentionInstructions", () => {
 
     expect(instructions).not.toContain("<available_skills>");
     expect(instructions).toContain("listAvailableSkills");
+    expect(instructions).toContain("it may be partial");
     expect(instructions).toContain("getSkillByName");
   });
 });

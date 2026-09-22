@@ -67,10 +67,19 @@ async function syncPullRequestPublication(payload: GitHubAppWebhookPayload) {
       body: { message: "ignored", event: "pull_request", ignored: true },
     };
   }
+  const installation = payload.installation;
+  if (!installation) {
+    return {
+      httpStatus: 200,
+      body: { message: "ignored", reason: "missing_payload_fields" },
+    };
+  }
   const publication = await findOpenContentPublicationByPullRequest({
     owner: repository.owner.login,
     repo: repository.name,
     pullRequestNumber: pullRequest.number,
+    installationId: String(installation.id),
+    githubRepositoryId: String(repository.id),
   });
   if (!publication) {
     return {

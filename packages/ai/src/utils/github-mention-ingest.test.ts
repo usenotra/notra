@@ -149,6 +149,7 @@ describe("ingestGitHubAppMentionWebhook", () => {
         default_branch: "main",
         owner: { login: "acme" },
       },
+      installation: { id: 55 },
     });
     const result = await ingest("pull_request", body, "pr-sync-1");
     expect(result).toMatchObject({
@@ -260,6 +261,8 @@ describe("ingestGitHubAppMentionWebhook", () => {
       owner: "acme",
       repo: "app",
       pullRequestNumber: 42,
+      installationId: "55",
+      githubRepositoryId: "99",
     });
     expect(syncPublishedPostFromPullRequestHead).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -288,12 +291,41 @@ describe("ingestGitHubAppMentionWebhook", () => {
         default_branch: "main",
         owner: { login: "acme" },
       },
+      installation: { id: 55 },
     });
     expect(await ingest("pull_request", body, "pr-sync-none")).toMatchObject({
       httpStatus: 200,
       body: { message: "ignored", reason: "no_publication" },
     });
     expect(syncPublishedPostFromPullRequestHead).not.toHaveBeenCalled();
+  });
+
+  test("ignores a synchronize delivery without an installation", async () => {
+    const body = JSON.stringify({
+      action: "synchronize",
+      pull_request: {
+        number: 42,
+        title: "docs: add release",
+        html_url: "https://github.com/acme/app/pull/42",
+        merged: false,
+        head: { ref: "notra/changelog", sha: "applied" },
+        base: { ref: "main", sha: "def" },
+      },
+      repository: {
+        id: 99,
+        name: "app",
+        full_name: "acme/app",
+        default_branch: "main",
+        owner: { login: "acme" },
+      },
+    });
+    expect(
+      await ingest("pull_request", body, "pr-sync-no-install")
+    ).toMatchObject({
+      httpStatus: 200,
+      body: { message: "ignored", reason: "missing_payload_fields" },
+    });
+    expect(findOpenContentPublicationByPullRequest).not.toHaveBeenCalled();
   });
 
   test("rejects invalid signatures", async () => {

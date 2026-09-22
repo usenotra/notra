@@ -38,6 +38,7 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
   const { db } = await import("@notra/db/drizzle");
   const {
     contentPublications,
+    githubAppInstallations,
     githubIntegrations,
     organizations,
     postCollections,
@@ -58,6 +59,7 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
     publication: "localtest_pub_mention",
     skill: "localtest_skill_mention",
     blankSkill: "localtest_skill_blank",
+    installation: "localtest_ghai_mention",
   };
 
   await db.delete(organizations).where(eq(organizations.id, ids.org));
@@ -74,6 +76,17 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
     name: "Local Tester",
     email: "localtest-mention@usenotra.com",
   });
+  await db.insert(githubAppInstallations).values({
+    id: ids.installation,
+    organizationId: ids.org,
+    createdByUserId: ids.user,
+    installationId: "55",
+    accountId: "1",
+    accountLogin: "acme",
+    accountAvatarUrl: "https://example.com/acme.png",
+    accountType: "Organization",
+    enabled: true,
+  });
   await db.insert(githubIntegrations).values({
     id: ids.integration,
     organizationId: ids.org,
@@ -83,6 +96,7 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
     repo: "App",
     defaultBranch: "main",
     githubRepositoryId: "99",
+    githubAppInstallationId: ids.installation,
   });
   await db.insert(postCollections).values({
     id: ids.collection,
@@ -142,10 +156,21 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
       owner: "acme",
       repo: "app",
       pullRequestNumber: 42,
+      installationId: "55",
+      githubRepositoryId: "99",
     });
     expect(publication?.id).toBe(ids.publication);
     expect(publication?.organizationId).toBe(ids.org);
     expect(publication?.markdown).toContain("Old intro");
+    expect(
+      await findOpenContentPublicationByPullRequest({
+        owner: "acme",
+        repo: "app",
+        pullRequestNumber: 42,
+        installationId: "999",
+        githubRepositoryId: "99",
+      })
+    ).toBeNull();
   });
 
   test("mention lookup matches GitHub's case-insensitive owner/repo", async () => {
@@ -183,6 +208,8 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
       owner: "ACME",
       repo: "APP",
       pullRequestNumber: 42,
+      installationId: "55",
+      githubRepositoryId: "99",
     });
     if (!publication) {
       throw new Error("missing publication");
@@ -240,6 +267,8 @@ if (process.env.NOTRA_LOCAL_MENTION_DB_TEST !== "1") {
         owner: "acme",
         repo: "app",
         pullRequestNumber: 42,
+        installationId: "55",
+        githubRepositoryId: "99",
       })
     ).toBeNull();
   });
