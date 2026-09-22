@@ -1,4 +1,3 @@
-import { GeoWriterCreditsExhaustedError } from "@notra/geo-core/geo/errors";
 import { generateGeoPersonas } from "@notra/geo-core/geo/personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Effect } from "effect";
@@ -56,8 +55,18 @@ export async function generatePersonasStep(
 // after an ambiguous failure could generate and charge twice.
 generatePersonasStep.maxRetries = 0;
 
-function creditsExhaustedMessage(error: unknown): string | null {
-  return GeoWriterCreditsExhaustedError.is(error) ? error.message : null;
+export function creditsExhaustedMessage(error: unknown): string | null {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("_tag" in error) ||
+    error._tag !== "GeoWriterCreditsExhaustedError" ||
+    !("message" in error) ||
+    typeof error.message !== "string"
+  ) {
+    return null;
+  }
+  return error.message;
 }
 
 export async function finishPersonaGenerationStep(

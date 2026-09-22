@@ -53,17 +53,19 @@ if (process.env.NOTRA_ORGANIZATION_PROVIDER_TEST !== "1") {
   };
 
   const OrgListStatus = () => {
-    const { isLoading, organizations } = useOrganizationsContext();
+    const { isLoading, isOrganizationListLoading, organizations } =
+      useOrganizationsContext();
     return (
       <div>
-        {isLoading ? "loading" : "ready"}:
+        {isLoading ? "route-loading" : "route-ready"}:
+        {isOrganizationListLoading ? "list-loading" : "list-ready"}:
         {organizations.map((org) => org.slug).join(",")}
       </div>
     );
   };
 
   describe("OrganizationsProvider list completeness", () => {
-    test("treats the active-organization placeholder as loading", () => {
+    test("keeps the route ready while the organization list is still a placeholder", () => {
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } },
       });
@@ -77,8 +79,7 @@ if (process.env.NOTRA_ORGANIZATION_PROVIDER_TEST !== "1") {
         </QueryClientProvider>
       );
 
-      expect(html).toContain("loading");
-      expect(html).not.toContain("ready:");
+      expect(html).toContain("route-ready:list-loading:acme");
     });
   });
 }

@@ -105,9 +105,8 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  const isOrganizationListLoading = orgListRequested
-    ? isPendingOrgs || Boolean(isOrgListPlaceholder)
-    : false;
+  const isOrganizationListLoading =
+    isPendingOrgs || Boolean(isOrgListPlaceholder);
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
