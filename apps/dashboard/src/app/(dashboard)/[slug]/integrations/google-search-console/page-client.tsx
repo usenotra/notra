@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { GscQueryRow } from "@notra/ai/types/google-search-console";
 import { GSC_OAUTH_AUTHORIZE_PATH } from "@notra/geo-core/constants/google-search-console";
 import type { GeoSearchConsoleStatus } from "@notra/geo-core/types/google-search-console";
 import {
@@ -20,6 +21,14 @@ import {
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Google } from "@notra/ui/components/ui/svgs/google";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@notra/ui/components/ui/table";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import Link from "next/link";
@@ -35,7 +44,9 @@ import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integratio
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
+  useGeoSuggestions,
   useGscDisconnect,
+  useGscKeywords,
   useGscSites,
   useGscStatus,
   useGscSync,
@@ -45,12 +56,36 @@ import { GSC_ERROR_MESSAGES } from "@/lib/integrations/google-search-console/oau
 import type {
   GoogleSearchConsoleChangePropertyDialogProps,
   GoogleSearchConsoleIntegrationCardProps,
+  GoogleSearchConsoleLastSyncPanelProps,
   GoogleSearchConsolePageClientProps,
 } from "@/types/integrations/pages";
 import { formatRelative } from "@/utils/format-relative";
 import { formatGscSiteUrl } from "@/utils/gsc-site-url";
 
 import { GoogleSearchConsolePageSkeleton } from "./skeleton";
+
+const VISIBLE_QUERIES = 8;
+
+function formatCount(value: number): string {
+  return value.toLocaleString("en-US");
+}
+
+function summarizeQueries(queries: readonly GscQueryRow[]) {
+  let clicks = 0;
+  let impressions = 0;
+  let weightedPosition = 0;
+  for (const query of queries) {
+    clicks += query.clicks;
+    impressions += query.impressions;
+    weightedPosition += query.position * query.impressions;
+  }
+  return {
+    clicks,
+    impressions,
+    position: impressions > 0 ? weightedPosition / impressions : null,
+    queries: queries.length,
+  };
+}
 
 function connectionLabel(status: GeoSearchConsoleStatus): string {
   if (status.status === "reauth_required") {
@@ -133,6 +168,143 @@ function ChangePropertyDialog({
   );
 }
 
+function LastSyncPanel({
+  busy,
+  onSync,
+  organizationId,
+  organizationSlug,
+}: GoogleSearchConsoleLastSyncPanelProps) {
+  const keywords = useGscKeywords(organizationId);
+  const suggestions = useGeoSuggestions(organizationId);
+  const queries = keywords.data?.keywords ?? [];
+  const added = suggestions.data?.suggestions ?? [];
+  const summary = summarizeQueries(queries);
+  const visibleQueries = queries.slice(0, VISIBLE_QUERIES);
+  const visibleSuggestions = added.slice(0, VISIBLE_QUERIES);
+  const loading = keywords.isPending || suggestions.isPending;
+  const stats = [
+    { label: "Queries", value: formatCount(summary.queries) },
+    { label: "Clicks", value: formatCount(summary.clicks) },
+    { label: "Impressions", value: formatCount(summary.impressions) },
+    {
+      label: "Avg. position",
+      value: summary.position === null ? "—" : summary.position.toFixed(1),
+    },
+    { label: "Suggestions", value: formatCount(added.length) },
+  ];
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold">Last sync</h2>
+        <Button disabled={busy} onClick={onSync} size="sm" variant="outline">
+          {busy ? <StatusSpinner /> : null}
+          {busy ? "Syncing…" : "Sync now"}
+        </Button>
+      </div>
+      <div className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border sm:grid-cols-5">
+        {stats.map((stat) => (
+          <div className="bg-background px-4 py-3" key={stat.label}>
+            <p className="text-muted-foreground text-xs">{stat.label}</p>
+            <p className="mt-1 text-lg font-medium tabular-nums">
+              {loading ? "—" : stat.value}
+            </p>
+          </div>
+        ))}
+      </div>
+      {!loading && queries.length === 0 ? (
+        <p className="text-muted-foreground text-sm">
+          No search queries in the last sync.
+        </p>
+      ) : null}
+      {!loading && queries.length > 0 ? (
+        <div className="overflow-hidden rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Query</TableHead>
+                <TableHead className="text-right">Clicks</TableHead>
+                <TableHead className="text-right">Impressions</TableHead>
+                <TableHead className="text-right">Position</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleQueries.map((query) => (
+                <TableRow key={query.query}>
+                  <TableCell className="max-w-64">
+                    <span className="block truncate font-medium">
+                      {query.query}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="tabular-nums">
+                      {formatCount(query.clicks)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="tabular-nums">
+                      {formatCount(query.impressions)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="tabular-nums">
+                      {query.position.toFixed(1)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {queries.length > VISIBLE_QUERIES ? (
+            <p className="text-muted-foreground border-t px-3 py-2 text-xs">
+              Showing {VISIBLE_QUERIES} of {formatCount(queries.length)} queries
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      {loading || added.length === 0 ? null : (
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between gap-4">
+            <h3 className="text-sm font-medium">Added</h3>
+            <Link
+              className="text-muted-foreground text-sm underline underline-offset-4"
+              href={`/${organizationSlug}/geo/prompts`}
+            >
+              Prompts
+            </Link>
+          </div>
+          <div className="overflow-hidden rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prompt suggestion</TableHead>
+                  <TableHead>From query</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleSuggestions.map((suggestion) => (
+                  <TableRow key={suggestion.id}>
+                    <TableCell className="max-w-80">
+                      <span className="block truncate">
+                        {suggestion.prompt}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-48">
+                      <span className="text-muted-foreground block truncate">
+                        {suggestion.keywords[0]?.query ?? "—"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function GoogleSearchConsoleIntegrationCard({
   callbackPath,
   onReconnect,
@@ -152,79 +324,95 @@ function GoogleSearchConsoleIntegrationCard({
 
   return (
     <>
-      <TitleCard
-        action={
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Badge variant={needsReconnect ? "secondary" : "default"}>
-              {connectionLabel(status)}
-            </Badge>
-            {needsReconnect ? (
-              <Button onClick={onReconnect} size="sm">
-                Reconnect
-              </Button>
-            ) : null}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button disabled={busy} size="icon-sm" variant="ghost">
-                    <svg
-                      aria-label="More options"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+      <div className="space-y-6">
+        <TitleCard
+          action={
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Badge variant={needsReconnect ? "secondary" : "default"}>
+                {connectionLabel(status)}
+              </Badge>
+              {needsReconnect ? (
+                <Button onClick={onReconnect} size="sm">
+                  Reconnect
+                </Button>
+              ) : null}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button disabled={busy} size="icon-sm" variant="ghost">
+                      <svg
+                        aria-label="More options"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <title>More options</title>
+                        <circle cx="12" cy="12" r="1" />
+                        <circle cx="12" cy="5" r="1" />
+                        <circle cx="12" cy="19" r="1" />
+                      </svg>
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end">
+                  {hasProperty ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => setPropertyDialogOpen(true)}
                     >
-                      <title>More options</title>
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="12" cy="5" r="1" />
-                      <circle cx="12" cy="19" r="1" />
-                    </svg>
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="end">
-                {hasProperty ? (
+                      Change property
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => setPropertyDialogOpen(true)}
+                    onClick={() => disconnect.mutate()}
+                    variant="destructive"
                   >
-                    Change property
+                    Disconnect
                   </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => disconnect.mutate()}
-                  variant="destructive"
-                >
-                  Disconnect
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        }
-        heading={title}
-        icon={<Google />}
-      >
-        <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-start sm:justify-between">
-          <div className="text-muted-foreground min-w-0 space-y-1">
-            <p>
-              {status.email ?? "Google account connected"}
-              {status.lastSyncedAt
-                ? ` · Last synced ${formatRelative(status.lastSyncedAt)}`
-                : null}
-            </p>
-            {status.weeklySyncScheduled ? <p>Weekly sync is on</p> : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          }
+          heading={title}
+          icon={<Google />}
+        >
+          <div className="space-y-4">
+            <dl className="grid gap-4 sm:grid-cols-3">
+              <div className="min-w-0">
+                <dt className="text-muted-foreground text-xs">Account</dt>
+                <dd className="mt-1 truncate text-sm font-medium">
+                  {status.email ?? "Google account"}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-muted-foreground text-xs">Last sync</dt>
+                <dd className="mt-1 truncate text-sm font-medium">
+                  {status.lastSyncedAt
+                    ? formatRelative(status.lastSyncedAt)
+                    : "Not yet"}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-muted-foreground text-xs">Schedule</dt>
+                <dd className="mt-1 truncate text-sm font-medium">
+                  {status.weeklySyncScheduled ? "Weekly" : "Manual"}
+                </dd>
+              </div>
+            </dl>
             {needsReconnect ? (
-              <p>
-                Google access expired. Reconnect to keep syncing keyword
-                suggestions.
+              <p className="text-muted-foreground text-sm">
+                Google access expired. Reconnect to keep syncing.
               </p>
             ) : null}
             {status.lastError ? (
-              <p className="text-destructive text-pretty">{status.lastError}</p>
+              <p className="text-destructive text-sm text-pretty">
+                {status.lastError}
+              </p>
             ) : null}
             {!needsReconnect && !status.siteUrl && status.sites.length > 0 ? (
               <SearchConsolePropertyPicker
@@ -237,38 +425,21 @@ function GoogleSearchConsoleIntegrationCard({
             !status.siteUrl &&
             status.sites.length === 0 &&
             !status.lastError ? (
-              <p>
-                No properties were found for this Google account. Add or verify
-                a property in Search Console, then reconnect.
-              </p>
-            ) : null}
-            {hasProperty ? (
-              <p>
-                Prompt suggestions from this property show up in{" "}
-                <Link
-                  className="text-foreground underline underline-offset-4"
-                  href={`/${organizationSlug}/geo/prompts`}
-                >
-                  Prompts
-                </Link>
-                .
+              <p className="text-muted-foreground text-sm">
+                No properties were found for this Google account.
               </p>
             ) : null}
           </div>
-          {hasProperty ? (
-            <Button
-              className="shrink-0"
-              disabled={busy}
-              onClick={() => sync.mutate()}
-              size="sm"
-              variant="outline"
-            >
-              {sync.isPending ? <StatusSpinner /> : null}
-              {sync.isPending ? "Syncing…" : "Sync now"}
-            </Button>
-          ) : null}
-        </div>
-      </TitleCard>
+        </TitleCard>
+        {hasProperty ? (
+          <LastSyncPanel
+            busy={busy}
+            onSync={() => sync.mutate()}
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+          />
+        ) : null}
+      </div>
       {hasProperty ? (
         <ChangePropertyDialog
           callbackPath={callbackPath}

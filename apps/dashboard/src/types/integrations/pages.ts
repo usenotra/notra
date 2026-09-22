@@ -16,6 +16,13 @@ export interface GoogleSearchConsoleIntegrationCardProps {
   status: GeoSearchConsoleStatus;
 }
 
+export interface GoogleSearchConsoleLastSyncPanelProps {
+  busy: boolean;
+  onSync: () => void;
+  organizationId: string;
+  organizationSlug: string;
+}
+
 export interface GoogleSearchConsoleChangePropertyDialogProps {
   callbackPath: string;
   onOpenChange: (open: boolean) => void;
