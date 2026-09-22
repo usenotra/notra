@@ -1,5 +1,7 @@
 import type { ChartArtifact } from "@notra/ai/types/chart-artifact";
 
+import type { DocumentDiffProps } from "@/types/content/document-diff";
+import { getEditMarkdownDiff } from "@/utils/chat-document-diff";
 import { parseToolOutputChart } from "@/utils/chat-tool-chart";
 import { parseCreatePostDraft } from "@/utils/chat-tool-draft";
 
@@ -8,6 +10,7 @@ import { collectToolOutputImages } from "./tool-output-images/utils";
 
 export interface ChatToolBlockVisuals {
   chart: ChartArtifact | undefined;
+  documentDiff: DocumentDiffProps | null;
   draft: { title: string; markdown: string } | undefined;
   showDraftPreview: boolean;
   hasApprovalActions: boolean;
@@ -45,6 +48,8 @@ export function resolveChatToolBlockVisuals({
 }): ChatToolBlockVisuals {
   const chart =
     hasOutput && !isError ? parseToolOutputChart(output) : undefined;
+  const documentDiff =
+    hasOutput && !isError && !isStreaming ? getEditMarkdownDiff(output) : null;
   const draft = parseCreatePostDraft(input, toolName);
   const showDraftPreview = Boolean(
     draft && (isAwaitingApproval || editorHref || onApprove || onDeny)
@@ -53,11 +58,12 @@ export function resolveChatToolBlockVisuals({
     isAwaitingApproval && (onApprove || onDeny) && !showDraftPreview
   );
   const showJsonInput = hasInput && !showDraftPreview;
-  const showJsonOutput = hasOutput && !chart;
+  const showJsonOutput = hasOutput && !chart && !documentDiff;
   const showJsonDetails = showJsonInput || showJsonOutput;
 
   return {
     chart,
+    documentDiff,
     draft,
     showDraftPreview,
     hasApprovalActions,
