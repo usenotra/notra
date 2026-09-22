@@ -673,12 +673,10 @@ export function EngineFamilySheet({
   onOpenChange,
 }: EngineFamilySheetProps) {
   const [family, releaseFamily] = useRetainedValue(familyProp);
+  // A stand-in sheet here would mount, then get replaced once `family` arrives,
+  // replaying the slide. The real sheet mounts once, when there is something to show.
   if (!family) {
-    return (
-      <Sheet onOpenChange={onOpenChange} open={open}>
-        <SheetContent className={FAMILY_SHEET_CONTENT_CLASS} />
-      </Sheet>
-    );
+    return null;
   }
 
   return (

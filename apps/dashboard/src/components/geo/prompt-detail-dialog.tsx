@@ -24,7 +24,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/button";
 import { GeoPromptAnswerSkeleton } from "@/components/geo/geo-prompt-answer-skeleton";
@@ -362,7 +369,29 @@ function PromptAnswerTagsFooter({
   );
 }
 
-function PromptAnswerPage({
+function useSheetArrowKeys(
+  onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+) {
+  const ref = useRef<HTMLDivElement>(null);
+  const handlerRef = useRef(onKeyDown);
+  handlerRef.current = onKeyDown;
+  useEffect(() => {
+    const sheet = ref.current?.closest<HTMLElement>(
+      "[data-slot=sheet-content]"
+    );
+    if (!sheet) {
+      return;
+    }
+    const listener = (event: KeyboardEvent) => {
+      handlerRef.current(event as unknown as ReactKeyboardEvent<HTMLElement>);
+    };
+    sheet.addEventListener("keydown", listener);
+    return () => sheet.removeEventListener("keydown", listener);
+  }, []);
+  return ref;
+}
+
+export function PromptAnswerPage({
   onPrepareScan,
   row,
   open,
@@ -438,7 +467,7 @@ function PromptAnswerPage({
     setView("raw");
   }
 
-  function handleArrowNavigation(event: KeyboardEvent<HTMLElement>) {
+  function handleArrowNavigation(event: ReactKeyboardEvent<HTMLElement>) {
     const delta = promptEngineArrowDelta(event, results.length);
     if (delta === null) {
       return;
@@ -450,12 +479,10 @@ function PromptAnswerPage({
     );
   }
 
+  const frameRef = useSheetArrowKeys(handleArrowNavigation);
+
   return (
-    <SheetContent
-      className="gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]"
-      onKeyDown={handleArrowNavigation}
-      side="right"
-    >
+    <div className="contents" ref={frameRef}>
       <PromptAnswerHeader
         promptText={promptText}
         onPrepareScan={onPrepareScan}
@@ -527,6 +554,25 @@ function PromptAnswerPage({
           />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+const PROMPT_ANSWER_SHEET_CLASS =
+  "gap-0 overflow-hidden p-0 data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
+
+/**
+ * The slide lives on the popup. Keep this node mounted for the whole open
+ * session and swap only its children, or loading → ready replays the enter.
+ */
+export function PromptAnswerSheetContent({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <SheetContent className={PROMPT_ANSWER_SHEET_CLASS} side="right">
+      {children}
     </SheetContent>
   );
 }
@@ -557,18 +603,20 @@ export function PromptDetailDialog({
       }}
       open={open}
     >
-      <PromptAnswerPage
-        onPrepareScan={() => onOpenChange(false)}
-        initialEngine={initialEngine}
-        initialLanguage={initialLanguage}
-        scanId={scanId}
-        isScanning={isScanning}
-        key={`${row.id}-${scanId ?? "latest"}`}
-        open={open}
-        organizationId={resolvedOrganizationId}
-        row={row}
-        surface={surface}
-      />
+      <PromptAnswerSheetContent>
+        <PromptAnswerPage
+          onPrepareScan={() => onOpenChange(false)}
+          initialEngine={initialEngine}
+          initialLanguage={initialLanguage}
+          scanId={scanId}
+          isScanning={isScanning}
+          key={`${row.id}-${scanId ?? "latest"}`}
+          open={open}
+          organizationId={resolvedOrganizationId}
+          row={row}
+          surface={surface}
+        />
+      </PromptAnswerSheetContent>
     </Sheet>
   ) : null;
   return scanControls ? (
