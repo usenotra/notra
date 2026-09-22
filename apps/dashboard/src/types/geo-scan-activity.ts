@@ -13,6 +13,8 @@ export interface GeoScanActivityProps {
 
 export interface GeoScanActivityStatusProps {
   run: GeoScanRunSummary | undefined;
+  runs: GeoScanRunSummary[];
+  onSelectRun: (id: string) => void;
 }
 
 export interface GeoScanRequest {
@@ -138,7 +140,6 @@ export interface ScanRunDetailViewInput {
   view: GeoScanRunView;
   data: ReturnType<typeof useGeoScanRun>["data"];
   isPending: boolean;
-  isPlaceholderData: boolean;
   pendingOffset: number;
 }
 

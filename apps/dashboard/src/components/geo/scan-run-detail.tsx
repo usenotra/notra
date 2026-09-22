@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  Clock01Icon,
-  Loading03Icon,
-  MinusSignIcon,
-  Tick02Icon,
-} from "@hugeicons/core-free-icons";
+import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_SCAN_RESULTS_PAGE_SIZE } from "@notra/geo-core/constants/geo-scan-history";
 import type { GeoScanResultSummary } from "@notra/geo-core/types/geo-scan-history";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
-import { Badge } from "@notra/ui/components/ui/badge";
-import {
-  PermissionOption,
-  PermissionRow,
-} from "@notra/ui/components/ui/permission-selector";
 import {
   Select,
   SelectContent,
@@ -31,6 +21,7 @@ import { ScanAnswerSheet } from "@/components/geo/scan-answer-sheet";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
+import { cn } from "@/lib/utils";
 import type {
   GeoScanModelCellProps,
   GeoScanPendingAnswer,
@@ -43,7 +34,7 @@ import type {
   GeoScanRunView,
   GeoScanTablePaginationProps,
 } from "@/types/geo-scan-activity";
-import { formatEngineWithMode } from "@/utils/geo-charts";
+import { formatEngineFamily } from "@/utils/geo-charts";
 import { scanRunDetailView } from "@/utils/geo-scan-activity";
 
 const ALL_MODELS = "";
@@ -52,7 +43,7 @@ function ModelCell({ engine }: GeoScanModelCellProps) {
   return (
     <span className="flex min-w-0 items-center gap-2">
       <EngineIcon className="size-3.5 shrink-0" engine={engine} />
-      <TruncateWithTooltip>{formatEngineWithMode(engine)}</TruncateWithTooltip>
+      <TruncateWithTooltip>{formatEngineFamily(engine)}</TruncateWithTooltip>
     </span>
   );
 }
@@ -91,7 +82,7 @@ function answerColumns(
     {
       key: "engine",
       header: "Model",
-      width: "12.5rem",
+      width: "10rem",
       cell: (row) => <ModelCell engine={row.engine} />,
     },
     ...(showLanguage
@@ -109,16 +100,13 @@ function answerColumns(
     {
       key: "mentioned",
       header: "Mention",
-      width: "9.5rem",
-      cell: (row) => (
-        <Badge variant={row.mentioned ? "success" : "secondary"}>
-          <HugeiconsIcon
-            aria-hidden="true"
-            icon={row.mentioned ? Tick02Icon : MinusSignIcon}
-          />
-          {row.mentioned ? "Mentioned" : "Not mentioned"}
-        </Badge>
-      ),
+      width: "5.5rem",
+      cell: (row) =>
+        row.mentioned ? (
+          "Yes"
+        ) : (
+          <span className="text-muted-foreground">–</span>
+        ),
     },
     {
       key: "position",
@@ -147,12 +135,12 @@ function answerColumns(
 
 function pendingStatusLabel(status: GeoScanPendingAnswer["status"]) {
   if (status === "running") {
-    return "Generating answer…";
+    return "Generating";
   }
   if (status === "queued") {
     return "Queued";
   }
-  return "No answer saved";
+  return "No answer";
 }
 
 function pendingColumns(
@@ -169,7 +157,7 @@ function pendingColumns(
     {
       key: "engine",
       header: "Model",
-      width: "12.5rem",
+      width: "10rem",
       cell: (row) => <ModelCell engine={row.engine} />,
     },
     ...(showLanguage
@@ -187,23 +175,17 @@ function pendingColumns(
     {
       key: "status",
       header: "Status",
-      width: "12rem",
+      width: "8rem",
       cell: (row) => (
         <span className="text-muted-foreground inline-flex items-center gap-2">
-          <HugeiconsIcon
-            aria-hidden="true"
-            className={
-              row.status === "running"
-                ? "text-primary shrink-0 motion-safe:animate-spin"
-                : "shrink-0"
-            }
-            icon={
-              (row.status === "running" && Loading03Icon) ||
-              (row.status === "queued" && Clock01Icon) ||
-              MinusSignIcon
-            }
-            size={14}
-          />
+          {row.status === "running" ? (
+            <HugeiconsIcon
+              aria-hidden="true"
+              className="text-primary shrink-0 motion-safe:animate-spin"
+              icon={Loading03Icon}
+              size={14}
+            />
+          ) : null}
           {pendingStatusLabel(row.status)}
         </span>
       ),
@@ -281,12 +263,14 @@ function ScanRunPendingTable({
       data={pending}
       emptyState={emptyState}
       footer={
-        <ScanTablePagination
-          itemLabel={running ? "in progress" : "missing"}
-          offset={offset}
-          onOffsetChange={onOffsetChange}
-          total={total}
-        />
+        total > GEO_SCAN_RESULTS_PAGE_SIZE ? (
+          <ScanTablePagination
+            itemLabel={running ? "in progress" : "missing"}
+            offset={offset}
+            onOffsetChange={onOffsetChange}
+            total={total}
+          />
+        ) : null
       }
       getRowId={(row) => row.key}
       height={height}
@@ -316,7 +300,7 @@ function ScanRunAnswersTable({
       data={results}
       emptyState={emptyState}
       footer={
-        total > 0 ? (
+        total > GEO_SCAN_RESULTS_PAGE_SIZE ? (
           <ScanTablePagination
             itemLabel="answers"
             offset={offset}
@@ -352,32 +336,46 @@ function ScanRunFilters({
     return null;
   }
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
       {showViews ? (
-        <PermissionRow
-          className="w-fit shrink-0"
-          label="Scan answers"
-          layout="compact"
-          onValueChange={(value) => {
-            if (value === "answers" || value === "pending") {
-              onViewChange(value);
-            }
-          }}
-          value={view}
+        <div
+          aria-label="Scan answers"
+          className="flex items-center gap-3 text-sm"
+          role="group"
         >
-          <PermissionOption value="answers">
+          <button
+            aria-pressed={view === "answers"}
+            className={cn(
+              "focus-visible:ring-ring/50 inline-flex items-center gap-1.5 rounded-sm focus-visible:ring-2 focus-visible:outline-none",
+              view === "answers"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={() => onViewChange("answers")}
+            type="button"
+          >
             Answers
-            <span className="text-xs tabular-nums opacity-70">
+            <span className="tabular-nums opacity-70">
               {answerCount.toLocaleString()}
             </span>
-          </PermissionOption>
-          <PermissionOption value="pending">
+          </button>
+          <button
+            aria-pressed={view === "pending"}
+            className={cn(
+              "focus-visible:ring-ring/50 inline-flex items-center gap-1.5 rounded-sm focus-visible:ring-2 focus-visible:outline-none",
+              view === "pending"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={() => onViewChange("pending")}
+            type="button"
+          >
             {running ? "In progress" : "Missing"}
-            <span className="text-xs tabular-nums opacity-70">
+            <span className="tabular-nums opacity-70">
               {pendingCount.toLocaleString()}
             </span>
-          </PermissionOption>
-        </PermissionRow>
+          </button>
+        </div>
       ) : (
         <span />
       )}
@@ -390,7 +388,7 @@ function ScanRunFilters({
             <SelectValue>
               {engine === ALL_MODELS
                 ? "All models"
-                : formatEngineWithMode(engine)}
+                : formatEngineFamily(engine)}
             </SelectValue>
           </SelectTrigger>
           <SelectContent align="end" alignItemWithTrigger={false}>
@@ -399,7 +397,7 @@ function ScanRunFilters({
               <SelectItem key={item} value={item}>
                 <span className="flex items-center gap-2">
                   <EngineIcon className="size-3.5" engine={item} />
-                  {formatEngineWithMode(item)}
+                  {formatEngineFamily(item)}
                 </span>
               </SelectItem>
             ))}
@@ -428,7 +426,6 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
     view,
     data: query.data,
     isPending: query.isPending,
-    isPlaceholderData: query.isPlaceholderData,
     pendingOffset,
   });
   const emptyState = scanRunEmptyState({

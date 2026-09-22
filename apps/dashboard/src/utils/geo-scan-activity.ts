@@ -5,6 +5,7 @@ import type {
   ScanRunDetailView,
   ScanRunDetailViewInput,
 } from "@/types/geo-scan-activity";
+import { formatRelative } from "@/utils/format-relative";
 import { paginatedTableHeightFor } from "@/utils/table";
 
 export function geoRunProgress(run: GeoScanRunSummary) {
@@ -34,7 +35,7 @@ export function scanRunDetailView(
     results,
     activeView,
     showLanguage: (input.run.plan?.languages.length ?? 0) > 1,
-    loading: input.isPending || input.isPlaceholderData,
+    loading: input.isPending,
     hasFilters: pendingTotal > 0 || engines.length > 1,
     engines,
     height: paginatedTableHeightFor(
@@ -44,6 +45,14 @@ export function scanRunDetailView(
     total: input.data?.total ?? 0,
     answerCount: input.data?.total ?? input.run.checks,
   };
+}
+
+export function formatScanRunOption(run: GeoScanRunSummary, now = Date.now()) {
+  if (run.status === "running") {
+    return "Scanning now";
+  }
+  const when = formatRelative(run.finishedAt ?? run.startedAt, now);
+  return run.status === "failed" ? `Stopped early · ${when}` : when;
 }
 
 export function formatGeoRunDuration(

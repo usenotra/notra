@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoMentionChecks, geoScans } from "@notra/db/schema";
 import type { GeoScanPlanSnapshot } from "@notra/db/types/geo-scan";
-import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -114,47 +114,31 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
     scopeFilter,
     input.engine ? eq(geoMentionChecks.engine, input.engine) : undefined
   );
-  const [results, totals, sources] = yield* geoDb(
-    "scan results lookup failed",
-    () =>
-      Promise.all([
-        db
-          .select({
-            id: geoMentionChecks.id,
-            prompt: geoMentionChecks.prompt,
-            engine: geoMentionChecks.engine,
-            mentioned: geoMentionChecks.mentioned,
-            position: geoMentionChecks.position,
-            language: geoMentionChecks.language,
-            turn: geoMentionChecks.turn,
-            sequenceId: geoMentionChecks.sequenceId,
-            sources:
-              sql<number>`jsonb_array_length(${geoMentionChecks.sources})`.mapWith(
-                Number
-              ),
-            capturedAt: geoMentionChecks.capturedAt,
-          })
-          .from(geoMentionChecks)
-          .where(resultFilter)
-          .orderBy(asc(geoMentionChecks.createdAt), asc(geoMentionChecks.id))
-          .limit(GEO_SCAN_RESULTS_PAGE_SIZE)
-          .offset(input.offset),
-        db
-          .select({ count: count() })
-          .from(geoMentionChecks)
-          .where(resultFilter),
-        db
-          .select({
-            count: sql<number>`count(distinct source.value->>'url')`.mapWith(
+  const [results, totals] = yield* geoDb("scan results lookup failed", () =>
+    Promise.all([
+      db
+        .select({
+          id: geoMentionChecks.id,
+          prompt: geoMentionChecks.prompt,
+          engine: geoMentionChecks.engine,
+          mentioned: geoMentionChecks.mentioned,
+          position: geoMentionChecks.position,
+          language: geoMentionChecks.language,
+          turn: geoMentionChecks.turn,
+          sequenceId: geoMentionChecks.sequenceId,
+          sources:
+            sql<number>`jsonb_array_length(${geoMentionChecks.sources})`.mapWith(
               Number
             ),
-          })
-          .from(geoMentionChecks)
-          .crossJoin(
-            sql`jsonb_array_elements(${geoMentionChecks.sources}) as source(value)`
-          )
-          .where(scopeFilter),
-      ])
+          capturedAt: geoMentionChecks.capturedAt,
+        })
+        .from(geoMentionChecks)
+        .where(resultFilter)
+        .orderBy(desc(geoMentionChecks.capturedAt), desc(geoMentionChecks.id))
+        .limit(GEO_SCAN_RESULTS_PAGE_SIZE)
+        .offset(input.offset),
+      db.select({ count: count() }).from(geoMentionChecks).where(resultFilter),
+    ])
   );
   const saved = scan.plan?.tasks?.length
     ? yield* geoDb("saved scan tasks lookup failed", () =>
@@ -205,6 +189,5 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
       capturedAt: row.capturedAt.toISOString(),
     })),
     total: totals[0]?.count ?? 0,
-    uniqueSources: sources[0]?.count ?? 0,
   };
 });
