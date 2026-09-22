@@ -8,6 +8,7 @@ export const COLLECTION_GRID_SKELETON_KEYS = Array.from(
 );
 export const COLLECTION_TYPE_STACK_LIMIT = 4;
 export const CONTENT_COLLECTION_VIEWS = ["list", "grid"] as const;
+export const CONTENT_COLLECTION_PAGE_SIZE = 20;
 
 export const COLLECTION_SOURCE_LABELS: Record<PostCollectionSource, string> = {
   manual: "Manual",

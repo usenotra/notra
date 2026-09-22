@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { validateOrganizationAccess } from "@/lib/auth/actions";
 import type { AgentReadinessPageProps } from "@/types/agent-readiness";
 
+import { GeoScopeListPrefetch } from "../geo-project-scope";
 import PageClient from "./page-client";
 import { AgentReadinessSkeleton } from "./skeleton";
 
@@ -15,8 +15,11 @@ export const instant = true;
 
 async function PageContent({ params }: AgentReadinessPageProps) {
   const { slug } = await params;
-  await validateOrganizationAccess(slug);
-  return <PageClient organizationSlug={slug} />;
+  return (
+    <GeoScopeListPrefetch procedure="agentReadiness" slug={slug}>
+      <PageClient organizationSlug={slug} />
+    </GeoScopeListPrefetch>
+  );
 }
 
 function Page({ params }: AgentReadinessPageProps) {

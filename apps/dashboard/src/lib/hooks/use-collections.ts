@@ -6,24 +6,34 @@ import type {
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
 
+import { CONTENT_COLLECTION_PAGE_SIZE } from "@/constants/content-collections";
+
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
 
-const DEFAULT_PAGE_SIZE = 20;
 const GENERATING_POLL_INTERVAL = 4000;
 
-export function useCollections(organizationId: string, page: number) {
-  const { projectId, isResolved } = useActiveProject();
+export function useCollections(
+  organizationId: string,
+  page: number,
+  serverProject?: { id: string | undefined }
+) {
+  const { projectId: activeProjectId, isResolved } = useActiveProject();
+  // The server already resolved the project and prefetched this key. Waiting
+  // for the client project list used to hold the collections query behind it.
+  const projectId = isResolved
+    ? (activeProjectId ?? undefined)
+    : serverProject?.id;
   return useQuery<PostCollectionListResponse>({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: {
         organizationId,
-        projectId: projectId ?? undefined,
+        projectId,
         page,
-        pageSize: DEFAULT_PAGE_SIZE,
+        pageSize: CONTENT_COLLECTION_PAGE_SIZE,
       },
     }),
-    enabled: !!organizationId && isResolved,
+    enabled: !!organizationId && (isResolved || serverProject !== undefined),
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating

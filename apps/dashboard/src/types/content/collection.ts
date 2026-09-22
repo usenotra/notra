@@ -26,6 +26,7 @@ export interface CollectionDetailPageClientProps {
 
 export interface ContentListPageClientProps {
   organizationSlug: string;
+  initialProjectId?: string;
 }
 
 export interface GroupTypeIconProps {

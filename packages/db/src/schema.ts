@@ -1862,6 +1862,25 @@ export const geoMentionChecks = pgTable(
       table.sentiment,
       table.sequenceId
     ),
+    // Every aggregate filters `persona_id is null`, which the cover index
+    // above cannot answer without the heap. The heap is the answer text
+    // (~200MB at a hundred thousand checks), so overview, timeseries and
+    // competitor share were sequential scans. This partial index holds only
+    // the columns those queries read.
+    index("geoMentionChecks_window_idx")
+      .on(
+        table.projectId,
+        table.capturedAt,
+        table.organizationId,
+        table.language,
+        table.engine,
+        table.mentioned,
+        table.ownedSourceCited,
+        table.position,
+        table.sequenceId,
+        table.competitors
+      )
+      .where(sql`${table.personaId} IS NULL`),
     // Matches the `distinct on (prompt_id, engine) ... order by captured_at desc`
     // shape used by promptResultSummaries/promptResults/competitorDetail/gaps;
     // the existing projectEnginePrompt index has the leading columns swapped.

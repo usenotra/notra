@@ -1,0 +1,1 @@
+CREATE INDEX "geoMentionChecks_window_idx" ON "geo_mention_checks" USING btree ("project_id","captured_at","organization_id","language","engine","mentioned","owned_source_cited","position","sequence_id","competitors") WHERE "geo_mention_checks"."persona_id" IS NULL;

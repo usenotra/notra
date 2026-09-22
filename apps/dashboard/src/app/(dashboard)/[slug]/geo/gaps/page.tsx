@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { GeoScopeListPrefetch } from "../geo-project-scope";
 import PageClient from "./page-client";
 import { GeoGapsSkeleton } from "./skeleton";
 
@@ -18,7 +19,11 @@ async function PageContent({
   }>;
 }) {
   const { slug } = await params;
-  return <PageClient organizationSlug={slug} />;
+  return (
+    <GeoScopeListPrefetch procedure="writerGaps" slug={slug}>
+      <PageClient organizationSlug={slug} />
+    </GeoScopeListPrefetch>
+  );
 }
 
 function Page({

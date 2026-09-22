@@ -182,6 +182,9 @@ const postReadColumns = {
 // List consumers (sidebar "Recent", dashboard home cards) render a title, a
 // status and a two-line preview, so text bodies stay in the database.
 const POST_LIST_MARKDOWN_PREVIEW_CHARS = 2000;
+// Collection cards render three lines, capped at 200 characters. The shared
+// list preview is longer than that, and a 250-post collection was still ~900KB.
+const COLLECTION_MARKDOWN_PREVIEW_CHARS = 400;
 
 const postListColumns = {
   id: true,
@@ -1505,28 +1508,40 @@ export const contentRouter = {
           organizationId: input.organizationId,
         });
 
-        const collection = await db.query.postCollections.findFirst({
-          where: and(
-            eq(postCollections.id, input.collectionId),
-            eq(postCollections.organizationId, input.organizationId)
-          ),
-          with: {
-            posts: {
-              columns: {
-                id: true,
-                title: true,
-                content: true,
-                markdown: true,
-                contentType: true,
-                contentSubtype: true,
-                status: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-              orderBy: [asc(posts.createdAt), asc(posts.id)],
+        // Cards only render a short preview. Loading every post body made a
+        // 250-post collection a 3MB response.
+        const [collection, collectionPosts] = await Promise.all([
+          db.query.postCollections.findFirst({
+            where: and(
+              eq(postCollections.id, input.collectionId),
+              eq(postCollections.organizationId, input.organizationId)
+            ),
+          }),
+          db.query.posts.findMany({
+            where: and(
+              eq(posts.collectionId, input.collectionId),
+              eq(posts.organizationId, input.organizationId)
+            ),
+            columns: {
+              id: true,
+              title: true,
+              contentType: true,
+              contentSubtype: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true,
             },
-          },
-        });
+            extras: {
+              content: postListExtras.content,
+              markdown: sql<
+                string | null
+              >`case when ${posts.contentType} = 'image' then ${posts.markdown} else left(${posts.markdown}, ${COLLECTION_MARKDOWN_PREVIEW_CHARS}) end`.as(
+                "markdown"
+              ),
+            },
+            orderBy: [asc(posts.createdAt), asc(posts.id)],
+          }),
+        ]);
 
         if (!collection) {
           throw notFound("Post collection not found");
@@ -1538,7 +1553,7 @@ export const contentRouter = {
             )
           : [];
         const postTypes: string[] = [];
-        for (const post of collection.posts) {
+        for (const post of collectionPosts) {
           if (!postTypes.includes(post.contentType)) {
             postTypes.push(post.contentType);
           }
@@ -1559,7 +1574,7 @@ export const contentRouter = {
             expectedPostCount: collection.expectedPostCount,
             isGenerating,
             createdAt: collection.createdAt.toISOString(),
-            posts: collection.posts.map((post) => ({
+            posts: collectionPosts.map((post) => ({
               id: post.id,
               title: post.title,
               content: post.content,
