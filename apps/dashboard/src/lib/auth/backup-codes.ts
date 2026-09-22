@@ -49,7 +49,29 @@ export async function replaceBackupCodes(userId: string): Promise<string[]> {
 }
 
 export async function clearBackupCodes(userId: string): Promise<void> {
-  await db.delete(userBackupCodes).where(eq(userBackupCodes.userId, userId));
+  await db.transaction(async (tx) => {
+    await lockBackupCodes(tx, userId);
+    await tx.delete(userBackupCodes).where(eq(userBackupCodes.userId, userId));
+  });
+}
+
+/**
+ * Hands a consumed code back when the change it authorized did not happen,
+ * so a transient failure does not cost the user a recovery option.
+ */
+export async function restoreBackupCode(
+  userId: string,
+  code: string
+): Promise<void> {
+  await db
+    .update(userBackupCodes)
+    .set({ usedAt: null })
+    .where(
+      and(
+        eq(userBackupCodes.userId, userId),
+        eq(userBackupCodes.codeHash, hashBackupCode(code))
+      )
+    );
 }
 
 export async function countRemainingBackupCodes(

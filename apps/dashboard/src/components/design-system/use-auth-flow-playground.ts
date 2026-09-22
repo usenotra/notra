@@ -89,6 +89,30 @@ export function useAuthFlowPlayground() {
   // A first-time enrollment shows backup codes before the redirect, so the
   // session only becomes visible once the login form reports completion.
   const pendingSessionRef = useRef<DevSession | null>(null);
+  const backupCodesRef = useRef<string[]>([]);
+  const generationRef = useRef(0);
+
+  // Mirrors the state synchronously so two confirmations racing on the same
+  // code cannot both see it as unused.
+  function updateBackupCodes(
+    next: string[] | ((current: string[]) => string[])
+  ) {
+    const value =
+      typeof next === "function" ? next(backupCodesRef.current) : next;
+    backupCodesRef.current = value;
+    updateBackupCodes(value);
+  }
+
+  // Rejects once the playground was reset, so in-flight simulations cannot
+  // repopulate state that the reset just cleared.
+  async function simulateLatency() {
+    const generation = generationRef.current;
+    await wait(SIMULATED_LATENCY_MS);
+    if (generation !== generationRef.current) {
+      throw new Error("Playground was reset");
+    }
+  }
+
   // Handlers are captured by the login form at render time; reading through
   // a ref keeps a re-submitted sign-in (after a backup code) on fresh state.
   const accountRef = useRef(account);
@@ -106,13 +130,15 @@ export function useAuthFlowPlayground() {
   }, []);
 
   function reset() {
+    generationRef.current += 1;
+    pendingSessionRef.current = null;
     setAccount({
       email: DEFAULT_EMAIL,
       password: DEFAULT_PASSWORD,
       totpSecret: null,
       totpEnrolledAt: null,
     });
-    setBackupCodes([]);
+    updateBackupCodes([]);
     setOrgRequiresMfa(false);
     setSession(null);
     setPending(null);
@@ -135,7 +161,7 @@ export function useAuthFlowPlayground() {
   async function signInWithPassword(
     input: SignInWithPasswordInput
   ): Promise<AuthFlowResult> {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     const account = accountRef.current;
     const matches =
       input.email.trim().toLowerCase() === account.email &&
@@ -196,7 +222,7 @@ export function useAuthFlowPlayground() {
   async function verifyMfaCode(
     input: VerifyMfaCodeInput
   ): Promise<AuthFlowResult> {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     if (
       !pending ||
       pending.token !== input.pendingAuthenticationToken ||
@@ -245,7 +271,7 @@ export function useAuthFlowPlayground() {
       totpEnrolledAt: new Date().toISOString(),
     }));
     const issuedCodes = randomBackupCodes();
-    setBackupCodes(issuedCodes);
+    updateBackupCodes(issuedCodes);
     pendingSessionRef.current = nextSession;
     appendLog(
       "authenticateWithTotp → factor verified and enrolled, backup codes issued"
@@ -260,7 +286,7 @@ export function useAuthFlowPlayground() {
   async function redeemBackupCode(
     input: RedeemBackupCodeInput
   ): Promise<RedeemBackupCodeResult> {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     if (!pending || pending.challengeId !== input.authenticationChallengeId) {
       return {
         status: "error",
@@ -268,14 +294,14 @@ export function useAuthFlowPlayground() {
       };
     }
     const normalized = normalizeBackupCode(input.code);
-    if (!backupCodes.includes(normalized)) {
+    if (!backupCodesRef.current.includes(normalized)) {
       appendLog("redeemBackupCode → rejected");
       return {
         status: "error",
         message: "That backup code isn't valid or was already used.",
       };
     }
-    setBackupCodes([]);
+    updateBackupCodes([]);
     setAccount((current) => ({
       ...current,
       totpSecret: null,
@@ -287,7 +313,7 @@ export function useAuthFlowPlayground() {
   }
 
   async function startSocialSignIn() {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     appendLog("Social sign-in is not simulated in this playground");
     throw new Error("Social sign-in is not part of this playground.");
   }
@@ -296,7 +322,7 @@ export function useAuthFlowPlayground() {
 
   async function startSettingsEnrollment() {
     setIsStartingEnrollment(true);
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     const secret = generateTotpSecret();
     setSettingsEnrollment({
       secret,
@@ -310,7 +336,7 @@ export function useAuthFlowPlayground() {
   async function verifySettingsEnrollment({
     code,
   }: TotpEnrollmentSubmission): Promise<TotpVerifyResult> {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     if (!settingsEnrollment) {
       return { ok: false, message: "Start the setup again." };
     }
@@ -325,7 +351,7 @@ export function useAuthFlowPlayground() {
       totpEnrolledAt: new Date().toISOString(),
     }));
     const codes = randomBackupCodes();
-    setBackupCodes(codes);
+    updateBackupCodes(codes);
     appendLog("verifyChallenge → factor verified, 2FA on, backup codes issued");
     toast.success("Two-factor authentication is on");
     return { ok: true, backupCodes: codes };
@@ -336,8 +362,8 @@ export function useAuthFlowPlayground() {
     confirmationCode: string
   ): Promise<SecurityActionOutcome> {
     const normalized = normalizeBackupCode(confirmationCode);
-    if (backupCodes.includes(normalized)) {
-      setBackupCodes((current) => current.filter((c) => c !== normalized));
+    if (backupCodesRef.current.includes(normalized)) {
+      updateBackupCodes((current) => current.filter((c) => c !== normalized));
       appendLog("confirmSecondFactor → backup code accepted");
       return { ok: true };
     }
@@ -357,13 +383,13 @@ export function useAuthFlowPlayground() {
   async function regenerateBackupCodes(
     confirmationCode: string
   ): Promise<BackupCodesOutcome> {
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     const confirmation = await confirmSecondFactor(confirmationCode);
     if (!confirmation.ok) {
       return confirmation;
     }
     const codes = randomBackupCodes();
-    setBackupCodes(codes);
+    updateBackupCodes(codes);
     appendLog("regenerateBackupCodes → new set issued");
     return { ok: true, codes };
   }
@@ -378,7 +404,7 @@ export function useAuthFlowPlayground() {
     confirmationCode: string
   ): Promise<SecurityActionOutcome> {
     setRemovingFactorId(factorId);
-    await wait(SIMULATED_LATENCY_MS);
+    await simulateLatency();
     const confirmation = await confirmSecondFactor(confirmationCode);
     if (!confirmation.ok) {
       setRemovingFactorId(null);
@@ -389,7 +415,7 @@ export function useAuthFlowPlayground() {
       totpSecret: null,
       totpEnrolledAt: null,
     }));
-    setBackupCodes([]);
+    updateBackupCodes([]);
     setRemovingFactorId(null);
     appendLog("deleteFactor → 2FA off");
     toast.success("Two-factor authentication turned off");

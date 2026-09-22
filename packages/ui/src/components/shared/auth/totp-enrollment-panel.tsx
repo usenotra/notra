@@ -110,6 +110,15 @@ export function TotpEnrollmentPanel({
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  // Cancelling mid-request discards the factor; a verification that lands
+  // after that must not report success for a setup that no longer exists.
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   async function handleSubmit(submittedCode: string) {
     if (submittedCode.length !== TOTP_CODE_LENGTH || isPending) {
@@ -124,9 +133,11 @@ export function TotpEnrollmentPanel({
       result = await onSubmit({ code: submittedCode });
     } catch {
       result = { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
-    } finally {
-      setIsPending(false);
     }
+    if (!isMountedRef.current) {
+      return;
+    }
+    setIsPending(false);
 
     if (!result.ok) {
       setError(result.message || ENROLLMENT_ERROR_FALLBACK);

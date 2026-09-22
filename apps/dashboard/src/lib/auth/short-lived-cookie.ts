@@ -29,3 +29,12 @@ export async function clearShortLivedCookie(name: string) {
   const cookieStore = await cookies();
   cookieStore.delete({ name, path: "/" });
 }
+
+export async function clearShortLivedCookiesWithPrefix(prefix: string) {
+  const cookieStore = await cookies();
+  for (const cookie of cookieStore.getAll()) {
+    if (cookie.name.startsWith(prefix)) {
+      cookieStore.delete({ name: cookie.name, path: "/" });
+    }
+  }
+}

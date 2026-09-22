@@ -10,6 +10,7 @@ import {
 } from "@/constants/security";
 import {
   clearSignedCookie,
+  clearSignedCookiesWithPrefix,
   readSignedCookie,
   storeSignedCookie,
 } from "@/lib/auth/signed-cookie";
@@ -85,6 +86,11 @@ export function readPendingMfaFlow(flowId: string) {
   return cookieName
     ? readSignedCookie(cookieName, pendingMfaFlowSchema)
     : Promise.resolve(null);
+}
+
+/** Once a sign-in completes, no handoff that led to it may be replayed. */
+export function clearAllPendingMfaFlows() {
+  return clearSignedCookiesWithPrefix(`${MFA_PENDING_COOKIE_PREFIX}_`);
 }
 
 export async function clearPendingMfaFlow(flowId: string) {

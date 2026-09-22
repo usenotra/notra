@@ -68,13 +68,14 @@ async function resetFactors(workosUserId: string) {
   const factors = await workos.multiFactorAuth.listUserAuthFactors({
     userId: workosUserId,
   });
+  const totpFactors = factors.data.filter((factor) => factor.type === "totp");
   await Promise.all(
-    factors.data.map(async (factor) => {
+    totpFactors.map(async (factor) => {
       await workos.multiFactorAuth.deleteFactor(factor.id);
       console.log(`Removed ${factor.type} factor ${factor.id}`);
     })
   );
-  if (factors.data.length === 0) {
+  if (totpFactors.length === 0) {
     console.log("No MFA factors to remove");
   }
 }
@@ -119,7 +120,9 @@ async function ensureOrganization(userId: string) {
   let organization = await db.query.organizations.findFirst({
     where: eq(organizations.slug, ORG_SLUG),
   });
+  let createdHere = false;
   if (!organization) {
+    createdHere = true;
     const [created] = await db
       .insert(organizations)
       .values({
@@ -144,6 +147,11 @@ async function ensureOrganization(userId: string) {
       eq(members.userId, userId)
     ),
   });
+  if (!membership && !createdHere) {
+    throw new Error(
+      `Organization "${ORG_SLUG}" already exists and the dev account is not a member. Pick another DEV_AUTH_ORG_SLUG rather than joining someone else's organization.`
+    );
+  }
   if (!membership) {
     await db.insert(members).values({
       id: crypto.randomUUID(),

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import type { SecondFactorConfirmProps } from "../../../types/security";
 import { Button } from "../../ui/button";
@@ -22,6 +22,8 @@ export function SecondFactorConfirm({
   onConfirm,
   onCancel,
 }: SecondFactorConfirmProps) {
+  const inputId = useId();
+  const errorId = `${inputId}-error`;
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -58,18 +60,18 @@ export function SecondFactorConfirm({
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="second-factor-confirm-code">
+        <Label htmlFor={inputId}>
           Authenticator or backup code
         </Label>
         <Input
-          aria-describedby={error ? "second-factor-confirm-error" : undefined}
+          aria-describedby={error ? errorId : undefined}
           aria-invalid={error ? true : undefined}
           autoCapitalize="off"
           autoComplete="one-time-code"
           autoFocus
           className="font-mono tracking-wider"
           disabled={isPending}
-          id="second-factor-confirm-code"
+          id={inputId}
           inputMode="text"
           onChange={(event) => setCode(event.target.value)}
           placeholder="123456 or xxxx-xxxx"
@@ -79,7 +81,7 @@ export function SecondFactorConfirm({
         {error && (
           <p
             className="text-destructive text-xs"
-            id="second-factor-confirm-error"
+            id={errorId}
             role="alert"
           >
             {error}

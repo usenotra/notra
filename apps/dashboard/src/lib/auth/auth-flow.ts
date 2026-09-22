@@ -5,7 +5,10 @@ import { saveSession } from "@workos-inc/authkit-nextjs";
 import type { AuthenticationResponse } from "@workos-inc/node";
 import { Effect } from "effect";
 
-import { ANALYTICS_AUTH_METHODS } from "@/constants/analytics-events";
+import {
+  ANALYTICS_AUTH_METHODS,
+  WORKOS_AUTH_METHOD_TO_ANALYTICS,
+} from "@/constants/analytics-events";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { UserSyncError, WorkOSAuthError } from "@/lib/auth/errors";
@@ -72,7 +75,12 @@ export const completeAuthentication = Effect.fn("auth.completeSession")(
       yield* Effect.promise(() =>
         trackAuthEvent(
           completionEvent,
-          { method: ANALYTICS_AUTH_METHODS.PASSWORD },
+          {
+            method:
+              WORKOS_AUTH_METHOD_TO_ANALYTICS[
+                response.authenticationMethod ?? ""
+              ] ?? ANALYTICS_AUTH_METHODS.UNKNOWN,
+          },
           localUser.id
         )
       );

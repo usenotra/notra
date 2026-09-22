@@ -34,9 +34,11 @@ import {
   consumeBackupCode,
   hasBackupCodes,
   replaceBackupCodes,
+  restoreBackupCode,
 } from "@/lib/auth/backup-codes";
 import { beginTotpEnrollment } from "@/lib/auth/mfa";
 import {
+  clearAllPendingMfaFlows,
   clearMfaAttemptCookie,
   clearPendingMfaFlow,
   readMfaAttempt,
@@ -45,7 +47,7 @@ import {
 import { authenticateResolvingOrgSelection } from "@/lib/auth/org-selection";
 import { readWorkOSError } from "@/lib/auth/workos-error";
 import type { MfaAttempt } from "@/types/auth/mfa-cookies";
-import { isRateLimited, ratelimit } from "@/utils/ratelimit";
+import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
 
 const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
 const ATTEMPT_EXPIRED_MESSAGE =
@@ -56,18 +58,36 @@ const BACKUP_CODE_REJECTED_MESSAGE =
 /**
  * Every password attempt mints a fresh challenge, so limiting by challenge id
  * alone would hand out a new guess budget per attempt. The attempt cookie
- * adds a stable per-account key on top.
+ * adds a stable per-account key on top. Neither bucket is keyed by IP: the
+ * budget is the account's, wherever the guesses come from.
  */
-async function isMfaVerifyRateLimited(
-  authenticationChallengeId: string,
-  attempt: MfaAttempt | null
-) {
-  if (await isRateLimited(ratelimit.mfaVerify, authenticationChallengeId)) {
+async function isMfaVerifyRateLimited(attempt: MfaAttempt) {
+  if (
+    await isAccountRateLimited(
+      ratelimit.mfaVerify,
+      `challenge:${attempt.authenticationChallengeId}`
+    )
+  ) {
     return true;
   }
-  return attempt
-    ? isRateLimited(ratelimit.mfaVerify, `user:${attempt.workosUserId}`)
-    : false;
+  return isAccountRateLimited(
+    ratelimit.mfaVerify,
+    `user:${attempt.workosUserId}`
+  );
+}
+
+/**
+ * The attempt cookie is signed by the server after WorkOS accepted the first
+ * factor, so it cannot be forged to point at another account. It is also
+ * browser-wide: a second attempt in another tab replaces it, so the challenge
+ * on screen has to match as well. Without a matching attempt there is no
+ * account to charge the guess to, so the request is refused outright.
+ */
+async function readMatchingAttempt(authenticationChallengeId: string) {
+  const attempt = await readMfaAttempt();
+  return attempt?.authenticationChallengeId === authenticationChallengeId
+    ? attempt
+    : null;
 }
 
 /**
@@ -97,10 +117,13 @@ export async function verifyMfaCodeAction(
     };
   }
 
-  const attempt = await readMfaAttempt();
-  if (
-    await isMfaVerifyRateLimited(parsed.data.authenticationChallengeId, attempt)
-  ) {
+  const attempt = await readMatchingAttempt(
+    parsed.data.authenticationChallengeId
+  );
+  if (!attempt) {
+    return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
+  }
+  if (await isMfaVerifyRateLimited(attempt)) {
     return { status: "error", message: RATE_LIMITED_MESSAGE };
   }
 
@@ -122,6 +145,7 @@ export async function verifyMfaCodeAction(
         POSTHOG_EVENTS.MFA_VERIFIED
       );
       yield* Effect.promise(clearMfaAttemptCookie);
+      yield* Effect.promise(clearAllPendingMfaFlows);
 
       // The session is live from here on: nothing below may turn the result
       // into an error, or the client would show a failure for a signed-in user.
@@ -160,20 +184,15 @@ export async function redeemBackupCodeAction(
     };
   }
 
-  // The attempt cookie is signed by the server after WorkOS accepted the
-  // first factor, so it cannot be forged to point at another account. It is
-  // also browser-wide: a second attempt in another tab replaces it, so the
-  // challenge on screen has to match as well.
-  const attempt = await readMfaAttempt();
-  if (
-    !attempt ||
-    attempt.authenticationChallengeId !== parsed.data.authenticationChallengeId
-  ) {
+  const attempt = await readMatchingAttempt(
+    parsed.data.authenticationChallengeId
+  );
+  if (!attempt) {
     return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
   }
   const { workosUserId, startedAt } = attempt;
 
-  if (await isRateLimited(ratelimit.backupCode, workosUserId)) {
+  if (await isAccountRateLimited(ratelimit.backupCode, workosUserId)) {
     return { status: "error", message: RATE_LIMITED_MESSAGE };
   }
 
@@ -195,7 +214,9 @@ export async function redeemBackupCodeAction(
       }
 
       // Burns the code first and atomically: a second request with the same
-      // code, or the same code from two tabs, cannot both get this far.
+      // code, or the same code from two tabs, cannot both get this far. If
+      // the factor cleanup below fails, the code is handed back so the retry
+      // does not cost a second one.
       const accepted = yield* Effect.promise(() =>
         consumeBackupCode(localUser.id, parsed.data.code)
       );
@@ -205,27 +226,37 @@ export async function redeemBackupCodeAction(
 
       // Only the factors this attempt was locked out by go away. One that
       // was enrolled from a signed-in tab after the attempt began stays.
-      const factors = yield* tryWorkOSAuth(() =>
-        getWorkOS().multiFactorAuth.listUserAuthFactors({
-          userId: workosUserId,
-        })
-      );
-      const totpFactors = factors.data.filter(
-        (factor) => factor.type === TOTP_FACTOR_TYPE
-      );
-      const lockedOutFactors = totpFactors.filter(
-        (factor) => Date.parse(factor.createdAt) <= startedAt
-      );
-      yield* Effect.forEach(
-        lockedOutFactors,
-        (factor) =>
-          tryWorkOSAuth(() =>
-            getWorkOS().multiFactorAuth.deleteFactor(factor.id)
-          ),
-        { discard: true }
+      const removeLockedOutFactors = Effect.gen(function* () {
+        const factors = yield* tryWorkOSAuth(() =>
+          getWorkOS().multiFactorAuth.listUserAuthFactors({
+            userId: workosUserId,
+          })
+        );
+        const totpFactors = factors.data.filter(
+          (factor) => factor.type === TOTP_FACTOR_TYPE
+        );
+        const lockedOutFactors = totpFactors.filter(
+          (factor) => Date.parse(factor.createdAt) <= startedAt
+        );
+        yield* Effect.forEach(
+          lockedOutFactors,
+          (factor) =>
+            tryWorkOSAuth(() =>
+              getWorkOS().multiFactorAuth.deleteFactor(factor.id)
+            ),
+          { discard: true }
+        );
+        return lockedOutFactors.length === totpFactors.length;
+      });
+      const allFactorsRemoved = yield* removeLockedOutFactors.pipe(
+        Effect.tapError(() =>
+          Effect.promise(() =>
+            restoreBackupCode(localUser.id, parsed.data.code)
+          ).pipe(Effect.ignore)
+        )
       );
 
-      if (lockedOutFactors.length === totpFactors.length) {
+      if (allFactorsRemoved) {
         yield* Effect.promise(() => clearBackupCodes(localUser.id));
       }
       yield* Effect.promise(clearMfaAttemptCookie);
@@ -268,13 +299,16 @@ export async function resumeSocialEnrollmentAction(
   if (flow?.kind !== "enrollment") {
     return { status: "error", message: ATTEMPT_EXPIRED_MESSAGE };
   }
-  // Single use: every call mints a factor at WorkOS.
-  await clearPendingMfaFlow(parsed.data.flowId);
   if (
-    await isRateLimited(ratelimit.signIn, `enrollment:${flow.workosUserId}`)
+    await isAccountRateLimited(
+      ratelimit.signIn,
+      `enrollment:${flow.workosUserId}`
+    )
   ) {
     return { status: "error", message: RATE_LIMITED_MESSAGE };
   }
+  // Single use: every call mints a factor at WorkOS.
+  await clearPendingMfaFlow(parsed.data.flowId);
 
   return runAuthFlow(
     flow.email,

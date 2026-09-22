@@ -90,10 +90,9 @@ export const resolveMfaFlow = Effect.fn("auth.mfa.resolveFlow")(function* (
   const resolvedEmail = email || info.email || "";
 
   if (info.code === MFA_ERROR_CODES.CHALLENGE) {
-    const factor =
-      info.authenticationFactors.find(
-        (candidate) => candidate.type === TOTP_FACTOR_TYPE
-      ) ?? info.authenticationFactors[0];
+    const factor = info.authenticationFactors.find(
+      (candidate) => candidate.type === TOTP_FACTOR_TYPE
+    );
 
     if (!factor) {
       return null;

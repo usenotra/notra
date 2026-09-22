@@ -7,7 +7,10 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "../../ui/input-otp";
 import { Label } from "../../ui/label";
 import { AuthFieldError } from "./auth-field-error";
 
-const SLOT_INDEXES = [0, 1, 2, 3, 4, 5] as const;
+const SLOT_INDEXES = Array.from(
+  { length: TOTP_CODE_LENGTH },
+  (_, index) => index
+);
 
 export function TotpCodeInput({
   id,

@@ -35,6 +35,7 @@ import {
   consumeBackupCode,
   countRemainingBackupCodes,
   replaceBackupCodes,
+  restoreBackupCode,
 } from "@/lib/auth/backup-codes";
 import {
   clearTotpEnrollmentInProgress,
@@ -45,7 +46,7 @@ import { readWorkOSError } from "@/lib/auth/workos-error";
 import { createTotpFactor } from "@/lib/auth/workos-mfa";
 import { requireSession } from "@/lib/organizations/guards";
 import type { ActionResult } from "@/types/organizations/actions";
-import { isRateLimited, ratelimit } from "@/utils/ratelimit";
+import { isAccountRateLimited, ratelimit } from "@/utils/ratelimit";
 
 const RATE_LIMITED_MESSAGE = "Too many attempts. Please try again shortly.";
 const INVALID_TOTP_MESSAGE =
@@ -54,6 +55,8 @@ const INVALID_CONFIRMATION_MESSAGE =
   "That code didn't work. Enter the code from your authenticator app or an unused backup code.";
 const ENROLLMENT_EXPIRED_MESSAGE =
   "This setup expired or belongs to another session. Start the setup again.";
+const ALREADY_ENABLED_MESSAGE =
+  "Two-factor authentication is already on. Remove the current authenticator app before adding another.";
 
 const tryWorkOS = <T>(run: () => Promise<T>) =>
   Effect.tryPromise({
@@ -80,7 +83,7 @@ const attemptDb = <T>(run: () => Promise<T>) =>
   );
 
 const enforceRateLimit = (limiter: Ratelimit, key: string) =>
-  Effect.promise(() => isRateLimited(limiter, key)).pipe(
+  Effect.promise(() => isAccountRateLimited(limiter, key)).pipe(
     Effect.andThen((limited) =>
       limited
         ? Effect.fail(new ActionFailure({ message: RATE_LIMITED_MESSAGE }))
@@ -168,6 +171,8 @@ const verifyTotpAgainstFactors = Effect.fn("auth.security.verifyTotp")(
  * A live session is not enough to weaken the second factor: someone at an
  * unlocked laptop could otherwise switch it off. The caller has to present
  * the second factor again, as a fresh authenticator code or a backup code.
+ * Returns the backup code it consumed, if any, so the caller can hand it
+ * back when the change it authorized does not go through.
  */
 const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
   function* (
@@ -179,13 +184,13 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
       ratelimit.mfaVerify,
       `confirm:${context.localUserId}`
     );
-    const confirmed = isTotpCode(code)
-      ? yield* verifyTotpAgainstFactors(factors, code)
-      : yield* tryDb(
-          () =>
-            consumeBackupCode(context.localUserId, normalizeBackupCode(code)),
+    const backupCode = isTotpCode(code) ? null : normalizeBackupCode(code);
+    const confirmed = backupCode
+      ? yield* tryDb(
+          () => consumeBackupCode(context.localUserId, backupCode),
           "Couldn't check the backup code. Please try again."
-        );
+        )
+      : yield* verifyTotpAgainstFactors(factors, code);
     if (!confirmed) {
       return yield* Effect.fail(
         new ActionFailure({
@@ -194,8 +199,29 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
         })
       );
     }
+    return backupCode;
   }
 );
+
+/** Runs `change` behind a fresh second factor; a failed change costs no backup code. */
+const withSecondFactor = <A>(
+  context: SecurityContext,
+  factors: TotpFactorSummary[],
+  code: string,
+  change: Effect.Effect<A, ActionFailure>
+) =>
+  Effect.gen(function* () {
+    const usedBackupCode = yield* confirmSecondFactor(context, factors, code);
+    return yield* change.pipe(
+      Effect.tapError(() =>
+        usedBackupCode
+          ? Effect.promise(() =>
+              restoreBackupCode(context.localUserId, usedBackupCode)
+            ).pipe(Effect.ignore)
+          : Effect.void
+      )
+    );
+  });
 
 export async function getSecurityOverviewAction(): Promise<
   ActionResult<SecurityOverview>
@@ -227,6 +253,15 @@ export async function startTotpEnrollmentAction(): Promise<
   return runAction(
     Effect.gen(function* () {
       const context = yield* requireSecurityContext();
+      // The UI only offers setup while no authenticator exists; the server
+      // holds the same line so a live session cannot add a second factor
+      // and rotate the backup codes without confirming the first.
+      const existing = yield* listTotpFactors(context.workosUserId);
+      if (existing.length > 0) {
+        return yield* Effect.fail(
+          new ActionFailure({ message: ALREADY_ENABLED_MESSAGE })
+        );
+      }
       const enrollment = yield* tryWorkOS(() =>
         createTotpFactor(context.workosUserId, context.email)
       );
@@ -372,10 +407,14 @@ export async function regenerateBackupCodesAction(
           })
         );
       }
-      yield* confirmSecondFactor(context, factors, input.confirmationCode);
-      const codes = yield* tryDb(
-        () => replaceBackupCodes(context.localUserId),
-        "Couldn't generate backup codes. Please try again."
+      const codes = yield* withSecondFactor(
+        context,
+        factors,
+        input.confirmationCode,
+        tryDb(
+          () => replaceBackupCodes(context.localUserId),
+          "Couldn't generate backup codes. Please try again."
+        )
       );
       yield* trackSecurityEvent(
         POSTHOG_EVENTS.MFA_BACKUP_CODES_REGENERATED,
@@ -405,10 +444,13 @@ export async function removeAuthFactorAction(
           })
         );
       }
-      yield* confirmSecondFactor(context, factors, input.confirmationCode);
-
-      yield* tryWorkOS(() =>
-        getWorkOS().multiFactorAuth.deleteFactor(input.factorId)
+      yield* withSecondFactor(
+        context,
+        factors,
+        input.confirmationCode,
+        tryWorkOS(() =>
+          getWorkOS().multiFactorAuth.deleteFactor(input.factorId)
+        )
       );
       if (factors.length === 1) {
         yield* Effect.promise(() => clearBackupCodes(context.localUserId));

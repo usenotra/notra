@@ -76,6 +76,7 @@ export function MfaChallengeForm({
   function fail(message: string | undefined) {
     setFormError(message || MFA_ERROR_FALLBACK);
     setCode("");
+    setBackupCode("");
     setIsPending(false);
   }
 
@@ -110,7 +111,7 @@ export function MfaChallengeForm({
   }
 
   async function handleBackupCode() {
-    if (isPending) {
+    if (isPending || !backupCodeReady) {
       return;
     }
     const isCurrent = beginRequest();

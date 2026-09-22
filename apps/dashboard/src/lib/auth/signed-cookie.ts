@@ -4,6 +4,7 @@ import type * as z from "zod";
 
 import {
   clearShortLivedCookie,
+  clearShortLivedCookiesWithPrefix,
   readShortLivedCookie,
   storeShortLivedCookie,
 } from "@/lib/auth/short-lived-cookie";
@@ -78,4 +79,8 @@ export async function readSignedCookie<T>(
 
 export function clearSignedCookie(name: string) {
   return clearShortLivedCookie(name);
+}
+
+export function clearSignedCookiesWithPrefix(prefix: string) {
+  return clearShortLivedCookiesWithPrefix(prefix);
 }

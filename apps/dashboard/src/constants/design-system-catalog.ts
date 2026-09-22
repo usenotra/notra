@@ -82,7 +82,7 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
   {
     id: "auth-mfa",
     label: "Auth · Two-factor",
-    href: "/design-system#auth-mfa",
+    href: "/design-system/auth-flow",
     level: "section",
   },
   {

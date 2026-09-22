@@ -56,7 +56,7 @@ export function AccountSettingsPane() {
   });
 
   const securityQuery = useQuery({
-    queryKey: QUERY_KEYS.AUTH.security,
+    queryKey: [...QUERY_KEYS.AUTH.security, user?.id],
     queryFn: async () => {
       const result = await authClient.security.getOverview();
       if (result.error) {

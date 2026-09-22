@@ -215,11 +215,7 @@ export async function isRateLimited(
   limiter: Ratelimit,
   key: string
 ): Promise<boolean> {
-  const skipInDevelopment =
-    process.env.NODE_ENV !== "production" &&
-    (!process.env.UPSTASH_REDIS_REST_URL ||
-      !process.env.UPSTASH_REDIS_REST_TOKEN);
-  if (skipInDevelopment) {
+  if (shouldSkipRateLimiting()) {
     return false;
   }
 
@@ -227,4 +223,27 @@ export async function isRateLimited(
   const ip = getClientIpFromHeaders(headersList);
   const { success } = await limiter.limit(`${ip}:${key.toLowerCase()}`);
   return !success;
+}
+
+/**
+ * Sliding-window check keyed only by the caller-provided key, for budgets
+ * that must hold across IPs (guesses against one account or challenge).
+ */
+export async function isAccountRateLimited(
+  limiter: Ratelimit,
+  key: string
+): Promise<boolean> {
+  if (shouldSkipRateLimiting()) {
+    return false;
+  }
+  const { success } = await limiter.limit(key.toLowerCase());
+  return !success;
+}
+
+function shouldSkipRateLimiting() {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    (!process.env.UPSTASH_REDIS_REST_URL ||
+      !process.env.UPSTASH_REDIS_REST_TOKEN)
+  );
 }

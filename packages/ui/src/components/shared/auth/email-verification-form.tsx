@@ -5,7 +5,6 @@ import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { EmailVerificationFormProps } from "../../../types/auth";
 import { CtaButton } from "../cta-button";
-import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { TotpCodeInput } from "./totp-code-input";
 
@@ -69,6 +68,7 @@ export function EmailVerificationForm({
         <TotpCodeInput
           autoFocus
           disabled={isPending}
+          error={formError}
           id="verification-code"
           label="Verification code"
           onChange={setCode}
@@ -77,8 +77,6 @@ export function EmailVerificationForm({
         />
 
         <div>
-          <AuthFormError className="mb-4" error={formError} />
-
           <CtaButton
             className="w-full"
             disabled={isPending || code.length !== TOTP_CODE_LENGTH}
