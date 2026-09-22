@@ -1,14 +1,25 @@
 import { expect, mock, test } from "bun:test";
 
 import {
+  $createTableNodeWithDimensions,
+  $createTableSelectionFrom,
+  $isTableCellNode,
+  TableCellNode,
+  TableNode,
+  TableRowNode,
+} from "@lexical/table";
+import {
   $createParagraphNode,
   $createTextNode,
   $getRoot,
+  $getSelection,
+  $isTextNode,
   $setSelection,
   createEditor,
 } from "lexical";
 
 const editor = createEditor({
+  nodes: [TableNode, TableRowNode, TableCellNode],
   onError: (error) => {
     throw error;
   },
@@ -34,15 +45,17 @@ mock.module("react", () => ({
 const { SelectionPlugin } =
   await import("../../src/components/content/editor/plugins/selection-plugin");
 
+function renderSelectionPlugin(
+  onSelectionChange: ReturnType<typeof mock>,
+  selectedExcerpt: Parameters<typeof SelectionPlugin>[0]["selectedExcerpt"]
+) {
+  hookIndex = 0;
+  SelectionPlugin({ onSelectionChange, selectedExcerpt });
+}
+
 test("select, change, blur, collapse, whitespace, and delete", () => {
   const onSelectionChange = mock();
-  const renderPlugin = (
-    selectedExcerpt: Parameters<typeof SelectionPlugin>[0]["selectedExcerpt"]
-  ) => {
-    hookIndex = 0;
-    SelectionPlugin({ onSelectionChange, selectedExcerpt });
-  };
-  renderPlugin(null);
+  renderSelectionPlugin(onSelectionChange, null);
   editor.update(
     () => {
       const text = $createTextNode("Alpha beta gamma");
@@ -59,8 +72,8 @@ test("select, change, blur, collapse, whitespace, and delete", () => {
     endChar: 11,
   });
   const selectedExcerpt = onSelectionChange.mock.calls.at(-1)?.[0] ?? null;
-  renderPlugin(selectedExcerpt);
-  renderPlugin(null);
+  renderSelectionPlugin(onSelectionChange, selectedExcerpt);
+  renderSelectionPlugin(onSelectionChange, null);
   const callsAfterExternalClear = onSelectionChange.mock.calls.length;
   editor.update(() => $getRoot().getAllTextNodes()[0]?.select(6, 10), {
     discrete: true,
@@ -95,4 +108,59 @@ test("select, change, blur, collapse, whitespace, and delete", () => {
     { discrete: true }
   );
   expect(onSelectionChange.mock.calls.at(-1)?.[0]).toBeNull();
+});
+
+test("table row selection is attached as chat excerpt", () => {
+  for (const cleanup of cleanups) {
+    cleanup?.();
+  }
+  cleanups.length = 0;
+  refs.length = 0;
+  const onSelectionChange = mock();
+  renderSelectionPlugin(onSelectionChange, null);
+  editor.update(
+    () => {
+      $getRoot().clear();
+      const table = $createTableNodeWithDimensions(2, 3, false);
+      const rows = [
+        ["Notra", "Source-connected", "Changelogs"],
+        ["row", "two", "unused"],
+      ];
+      for (const [rowIndex, rowNode] of table.getChildren().entries()) {
+        const cells = rowNode.getChildren().filter($isTableCellNode);
+        for (const [cellIndex, cell] of cells.entries()) {
+          const text = cell.getFirstDescendant();
+          if ($isTextNode(text)) {
+            text.setTextContent(rows[rowIndex]?.[cellIndex] ?? "");
+          }
+        }
+      }
+      $getRoot().append(table);
+      const cells = table
+        .getFirstChildOrThrow()
+        .getChildren()
+        .filter($isTableCellNode);
+      const firstCell = cells[0];
+      const lastCell = cells.at(-1);
+      if (!(firstCell && lastCell)) {
+        throw new Error("expected a table row with cells");
+      }
+      $setSelection($createTableSelectionFrom(table, firstCell, lastCell));
+    },
+    { discrete: true }
+  );
+  expect(onSelectionChange.mock.calls.at(-1)?.[0]).toEqual({
+    text: "Notra\tSource-connected\tChangelogs",
+    startLine: 1,
+    startChar: 1,
+    endLine: 5,
+    endChar: 11,
+  });
+  const selectedExcerpt = onSelectionChange.mock.calls.at(-1)?.[0] ?? null;
+  renderSelectionPlugin(onSelectionChange, selectedExcerpt);
+  renderSelectionPlugin(onSelectionChange, null);
+  editor.update(() => undefined, { discrete: true });
+  editor.getEditorState().read(() => {
+    expect($getSelection()).toBeNull();
+  });
 });
