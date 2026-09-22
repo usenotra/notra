@@ -18,8 +18,13 @@ export function usePersonaAddFlow(
   );
   const hasPersonas = personas.length > 0;
   const atPersonaLimit = personas.length >= GEO_PERSONA_MAX_COUNT;
+  const holdUntilPersonas =
+    generatePersonas.startedJobId !== null &&
+    personas.length === 0 &&
+    generatePersonas.generationStatus !== "failed";
+  const isGenerating = generatePersonas.isPending || holdUntilPersonas;
   const progress = usePersonaGenerationProgress(
-    generatePersonas.isPending,
+    isGenerating,
     generatePersonas.startedAt
   );
   const autoOpenPersona =
@@ -59,7 +64,7 @@ export function usePersonaAddFlow(
     clearAutoOpenPersona: () => setAutoOpenBaseline(null),
     hasPersonas,
     isAddingPersona,
-    isGenerating: generatePersonas.isPending,
+    isGenerating,
     onGenerateClick,
     progress,
     setAddOpen,

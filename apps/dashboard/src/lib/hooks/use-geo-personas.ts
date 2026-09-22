@@ -8,7 +8,7 @@ import type {
   GeoPersonasResponse,
 } from "@notra/geo-core/types/geo-personas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -26,6 +26,7 @@ import { toErrorMessage } from "@/utils/error-message";
 import {
   geoPersonaUpdateMutationKey,
   invalidatePersonaList,
+  personaGenerationListAction,
 } from "@/utils/geo-persona-queries";
 
 export function useGeoPersonas(organizationId: string) {
@@ -58,7 +59,8 @@ export function useGeoPersonaActivity(
 export function useGeoPersonasGenerate(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
-  const activeJob = useRef<string | null>(null);
+  const [startedJobId, setStartedJobId] = useState<string | null>(null);
+  const refreshedJobId = useRef<string | null>(null);
   const statusOptions = dashboardOrpc.geo.personasGenerationStatus.queryOptions(
     {
       input: { organizationId, projectId },
@@ -77,23 +79,24 @@ export function useGeoPersonasGenerate(organizationId: string) {
   });
   const job = status.data;
   useEffect(() => {
-    if (!job) {
-      return;
-    }
-    if (job.status === "queued" || job.status === "running") {
-      activeJob.current = job.id;
-      return;
-    }
-    if (activeJob.current !== job.id) {
-      return;
-    }
-    activeJob.current = null;
-    if (job.status === "completed") {
+    const action = personaGenerationListAction(job, startedJobId);
+    if (action === "refresh") {
+      if (!job || refreshedJobId.current === job.id) {
+        return;
+      }
+      refreshedJobId.current = job.id;
       void invalidatePersonaList(queryClient, organizationId, projectId);
-    } else {
+      return;
+    }
+    if (action === "fail") {
+      if (!job || refreshedJobId.current === job.id) {
+        return;
+      }
+      refreshedJobId.current = job.id;
+      setStartedJobId(null);
       toast.error(job.error || PERSONA_GENERATION_FAILED_MESSAGE);
     }
-  }, [job, queryClient, organizationId, projectId]);
+  }, [job, startedJobId, queryClient, organizationId, projectId]);
 
   const mutation = useMutation<
     PersonaGenerationJob,
@@ -106,20 +109,24 @@ export function useGeoPersonasGenerate(organizationId: string) {
         projectId,
         ...request,
       }),
-    onSuccess: (started) => {
+    onSuccess: async (started) => {
+      refreshedJobId.current = null;
+      setStartedJobId(started.id);
+      await queryClient.cancelQueries({ queryKey: statusOptions.queryKey });
       queryClient.setQueryData(statusOptions.queryKey, started);
+      void queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });
     },
     onError: (error) => {
+      setStartedJobId(null);
       void queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });
       toast.error(toErrorMessage(error, "Failed to generate personas"));
     },
   });
-  let startedAt = "";
-  if (job?.status === "queued" || job?.status === "running") {
-    startedAt = job.startedAt;
-  } else if (mutation.isPending && mutation.submittedAt > 0) {
-    startedAt = new Date(mutation.submittedAt).toISOString();
-  }
+  const startedAt =
+    job?.startedAt ||
+    (mutation.isPending && mutation.submittedAt > 0
+      ? new Date(mutation.submittedAt).toISOString()
+      : "");
   return {
     ...mutation,
     isPending:
@@ -127,6 +134,7 @@ export function useGeoPersonasGenerate(organizationId: string) {
       job?.status === "queued" ||
       job?.status === "running",
     startedAt,
+    startedJobId,
     generationStatus: job?.status,
     generatingPersonaId: job?.personaId,
   };
