@@ -282,6 +282,7 @@ export function EngineRateTable({
             emptyState="No engines match this filter"
             getRowId={(row) => row.family}
             height={tableHeightFor(filtered.length)}
+            loading={isScanning}
             onRowClick={setSelected}
             resizable
             rowHeight={TABLE_ROW_HEIGHT}
