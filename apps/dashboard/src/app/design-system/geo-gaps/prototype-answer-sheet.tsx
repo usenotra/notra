@@ -1,6 +1,9 @@
 "use client";
 
-import type { GeoPromptReceiptView } from "@notra/geo-core/types/geo";
+import type {
+  GeoPromptHistoryCheck,
+  GeoPromptReceiptView,
+} from "@notra/geo-core/types/geo";
 import {
   Sheet,
   SheetContent,
@@ -21,6 +24,31 @@ import {
   DESIGN_SYSTEM_GAP_RESULTS,
   DESIGN_SYSTEM_PROMPT_GAP,
 } from "@/constants/design-system-gaps";
+
+const DEMO_HISTORY: GeoPromptHistoryCheck[] = [
+  {
+    id: "demo-h1",
+    scanId: "demo-s1",
+    engine: "openai",
+    mentioned: false,
+    position: null,
+    sentiment: null,
+    competitors: ["Jasper", "Copy.ai"],
+    language: "de",
+    capturedAt: "2026-09-22T21:34:00.000Z",
+  },
+  {
+    id: "demo-h2",
+    scanId: "demo-s2",
+    engine: "openai",
+    mentioned: false,
+    position: null,
+    sentiment: null,
+    competitors: ["Jasper"],
+    language: "de",
+    capturedAt: "2026-09-21T21:37:00.000Z",
+  },
+];
 
 export function PrototypeAnswerSheet({
   open,
@@ -72,12 +100,14 @@ export function PrototypeAnswerSheet({
               transition={reduceMotion ? { duration: 0 } : tween("fast")}
             >
               <PromptAnswerContent
-                history={[]}
+                history={DEMO_HISTORY.filter(
+                  (check) => check.engine === active.engine
+                )}
                 isHistoryLoading={false}
                 onRetry={() => undefined}
                 prompt={DESIGN_SYSTEM_PROMPT_GAP.prompt}
                 scrollable={false}
-                showHistory={false}
+                showHistory
                 state={{ status: "ready", result: active }}
                 view={view}
               />

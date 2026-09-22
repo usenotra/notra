@@ -224,7 +224,6 @@ export function PromptReceiptAnalysis({
         {showHistory ? (
           <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.history}>
             <PromptReceiptHistory
-              competitors={competitors}
               entries={entries}
               isLoading={isHistoryLoading}
               key={entries[0]?.check.id ?? "empty"}
