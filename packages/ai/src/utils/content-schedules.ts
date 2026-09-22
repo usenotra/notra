@@ -49,7 +49,7 @@ interface ScheduleRow {
   outputConfig: unknown;
 }
 
-export function contentScheduleDedupeHash(input: {
+function contentScheduleDedupeHash(input: {
   cron: TriggerCronConfig;
   repositoryIds: string[];
   outputType: string;
