@@ -405,6 +405,10 @@ export interface PublishContentDraftPullRequestParams {
   path: string;
   title: string;
   markdown: string;
+  /** Organization billed for follow-up commit-message generation. */
+  organizationId?: string;
+  /** Markdown last recorded on the Notra post, used to describe follow-up edits. */
+  previousMarkdown?: string | null;
   assets?: GitHubContentAsset[];
   assetPathsToDelete?: string[];
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */

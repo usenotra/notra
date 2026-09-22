@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import {
+  fallbackContentCommitHeadline,
+  generateContentCommitHeadline,
+} from "@notra/ai/utils/content-commit-message";
 import { slugify } from "@notra/utils/slugify";
 
 import {
@@ -607,8 +611,21 @@ async function commitContentToBranch(
   octokit: GitHubClient,
   params: PublishContentDraftPullRequestParams,
   branchName: string,
-  branchHeadSha: string
+  branchHeadSha: string,
+  followUp: boolean,
+  editorMarkdown: string
 ) {
+  const fallback = fallbackContentCommitHeadline(params.title, followUp);
+  const headline =
+    followUp && params.organizationId
+      ? await generateContentCommitHeadline({
+          organizationId: params.organizationId,
+          title: params.title,
+          previousMarkdown: params.previousMarkdown,
+          nextMarkdown: editorMarkdown,
+          fallback,
+        })
+      : fallback;
   // Authored by the GitHub App bot when the caller uses an installation token.
   try {
     const result = await octokit.graphql<GitHubCreateCommitOnBranchResult>(
@@ -620,7 +637,7 @@ async function commitContentToBranch(
             branchName,
           },
           message: {
-            headline: `docs: add ${params.title}`,
+            headline,
             body: renderContentCommitMetadata(params),
           },
           expectedHeadOid: branchHeadSha,
@@ -757,6 +774,7 @@ export async function publishContentDraftPullRequest(
   octokit: GitHubClient,
   requestedParams: PublishContentDraftPullRequestParams
 ) {
+  const editorMarkdown = requestedParams.markdown;
   let baseSha: string;
 
   try {
@@ -1048,7 +1066,9 @@ export async function publishContentDraftPullRequest(
     octokit,
     params,
     branchName,
-    branchHeadSha
+    branchHeadSha,
+    contentBranch.aheadBy > 0,
+    editorMarkdown
   );
 
   if (existingPullRequest) {
