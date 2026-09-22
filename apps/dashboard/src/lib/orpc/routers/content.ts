@@ -114,7 +114,10 @@ import {
   getCompletedGenerations,
 } from "@/lib/generations/tracking";
 import { requestGeoRescanForPublishedPost } from "@/lib/geo/rescan";
-import { prepareR2GitHubContentAssets } from "@/lib/integrations/github/content-assets";
+import {
+  prepareR2GitHubContentAssets,
+  resolveGitHubImagePathTemplate,
+} from "@/lib/integrations/github/content-assets";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   publishContentDraftPullRequest,
@@ -1158,32 +1161,32 @@ export const contentRouter = {
           path,
           title: post.title,
           markdown: savedMarkdown,
+          organizationId: input.organizationId,
           ...(linkedPullRequest ? { linkedPullRequest } : {}),
           ...(input.linkedOnly ? { requireLinkedPullRequest: true } : {}),
           ...(publisherLogin ? { publisherLogin } : {}),
-          ...(outputConfig.success && outputConfig.data.imagePath
-            ? {
-                prepareContent: async (contentPath: string) => {
-                  const preparedContent = await prepareR2GitHubContentAssets({
-                    contentPath,
-                    imagePathTemplate: outputConfig.data.imagePath ?? "",
-                    markdown: savedMarkdown,
-                    slug: contentSlug,
-                  });
-                  if (
-                    preparedContent.assets.some(
-                      (asset) =>
-                        asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
-                    )
-                  ) {
-                    throw badRequest(
-                      "The configured image path exceeds GitHub's path limit"
-                    );
-                  }
-                  return preparedContent;
-                },
-              }
-            : {}),
+          prepareContent: async (contentPath: string) => {
+            const preparedContent = await prepareR2GitHubContentAssets({
+              contentPath,
+              imagePathTemplate: resolveGitHubImagePathTemplate(
+                contentPath,
+                outputConfig.success ? outputConfig.data.imagePath : null
+              ),
+              markdown: savedMarkdown,
+              organizationId: input.organizationId,
+              slug: contentSlug,
+            });
+            if (
+              preparedContent.assets.some(
+                (asset) => asset.path.length > GITHUB_CONTENT_PATH_MAX_LENGTH
+              )
+            ) {
+              throw badRequest(
+                "The configured image path exceeds GitHub's path limit"
+              );
+            }
+            return preparedContent;
+          },
           ...(notraBaseUrl && organization
             ? {
                 badgeUrls: buildOpenInNotraBadgeUrls(notraBaseUrl),

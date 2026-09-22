@@ -124,12 +124,14 @@ export default function PageClient({
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{greetingText}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-balance @min-[40rem]/main:text-3xl">
+            {greetingText}
+          </h1>
         </div>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold">Today&apos;s Content</h2>
               <p className="text-muted-foreground text-sm">
                 Latest items created today

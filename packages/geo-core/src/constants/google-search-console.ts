@@ -10,10 +10,18 @@ export const GSC_SYNC_WORKFLOW_PATH = "/api/workflows/gsc-sync";
 /** Mondays 06:00 UTC */
 export const GSC_SYNC_CRON = "0 6 * * 1";
 export const GSC_SYNC_LOOKBACK_DAYS = 28;
-export const GSC_SYNC_ROW_LIMIT = 250;
+/**
+ * Google returns rows sorted by clicks. A wider pull keeps high-impression
+ * queries that almost nobody clicks, which are the content gaps.
+ */
+export const GSC_SYNC_ROW_LIMIT = 2000;
 /** Queries below this are noise and waste model context. */
 export const GSC_SYNC_MIN_IMPRESSIONS = 5;
 export const GSC_SYNC_MAX_KEYWORDS_FOR_MODEL = 80;
+/** Head terms that share this many leading words count as one intent. */
+export const GSC_QUERY_CLUSTER_WORDS = 3;
+/** Near-duplicate queries of one head term that may reach the model. */
+export const GSC_QUERY_CLUSTER_CAP = 3;
 export const GSC_SUGGESTIONS_MAX_PER_SYNC = 15;
 export const GSC_MAX_KEYWORDS_PER_SUGGESTION = 8;
 export const GSC_SUGGESTION_MODEL = UTILITY_MODEL_ID;

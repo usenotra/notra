@@ -11,6 +11,7 @@ import {
   GeoTableSkeleton,
 } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 
 const COMPETITOR_ROW_COUNT = 6;
 
@@ -42,14 +43,11 @@ export function GeoCompetitorsSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Competitors</h1>
-            <p className="text-muted-foreground">
-              Who AI engines recommend instead of you
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        <PageHeading
+          description="Who AI engines recommend instead of you"
+          title="Competitors"
+        >
+          <div className="flex flex-wrap items-center gap-2">
             <Skeleton className="h-9 w-36 rounded-md" />
             <Button className="gap-1.5" variant="outline">
               <HugeiconsIcon className="size-4" icon={Upload01Icon} />
@@ -61,7 +59,7 @@ export function GeoCompetitorsSkeleton() {
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           </div>
-        </header>
+        </PageHeading>
         <GeoTableSkeleton rows={COMPETITOR_ROW_COUNT} />
         <GeoSectionSkeleton eyebrow="Share of voice">
           <Skeleton className="h-64 w-full rounded-xl" />

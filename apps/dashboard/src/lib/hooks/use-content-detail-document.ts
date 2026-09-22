@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import type { EditorRefHandle } from "@/components/content/editor/plugins/editor-ref-plugin";
 import {
+  CONTENT_AUTOSAVE_MS,
   CONTENT_SAVE_TOAST_POSITION,
   SAVE_BAR_SELECTOR,
 } from "@/constants/content-detail";
@@ -93,6 +94,7 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [loadedArticleBriefId, setLoadedArticleBriefId] = useState<
     string | null
   >(null);
@@ -181,8 +183,8 @@ export function useContentDetailDocument({
     hasTitleChanges,
     serverSlug,
     serverTitle,
-    setEditingSlug,
-    setEditingTitle,
+    setEditingSlug: setEditingSlugState,
+    setEditingTitle: setEditingTitleState,
     setPersistedSlug,
     setPersistedTitle,
     title,
@@ -191,6 +193,25 @@ export function useContentDetailDocument({
     contentSlug: data?.content?.slug,
     currentMarkdown,
   });
+
+  const setEditingTitle = useCallback(
+    (nextTitle: string | null) => {
+      setSaveFailed(false);
+      setEditingTitleState(nextTitle);
+    },
+    [setEditingTitleState]
+  );
+  const setEditingSlug = useCallback(
+    (nextSlug: string | null) => {
+      setSaveFailed(false);
+      setEditingSlugState(nextSlug);
+    },
+    [setEditingSlugState]
+  );
+  const setEditedMarkdownAndRetry = useCallback((markdown: string | null) => {
+    setSaveFailed(false);
+    setEditedMarkdown(markdown);
+  }, []);
 
   const hasMarkdownChanges =
     resolvedEditedMarkdown !== resolvedOriginalMarkdown;
@@ -254,8 +275,8 @@ export function useContentDetailDocument({
         editedMarkdownRef.current = article.content.markdown ?? "";
         originalMarkdownRef.current = article.content.markdown ?? "";
         setPersistedSlug(null);
-        setEditingTitle(null);
-        setEditingSlug(null);
+        setEditingTitleState(null);
+        setEditingSlugState(null);
         setReviewPreviousMarkdown(null);
         needsNormalizationRef.current = true;
         setEditorKey((key) => key + 1);
@@ -280,8 +301,8 @@ export function useContentDetailDocument({
       pendingArticleBriefId,
       organizationId,
       queryClient,
-      setEditingSlug,
-      setEditingTitle,
+      setEditingSlugState,
+      setEditingTitleState,
       setPersistedSlug,
     ]
   );
@@ -306,119 +327,174 @@ export function useContentDetailDocument({
 
   const linkedGitHubPublish = linkedPublishForContent(data?.content);
 
-  const handleSave = useCallback(async () => {
-    if (!hasChanges) {
-      return true;
-    }
-
-    setIsSaving(true);
-    try {
-      const { persistedTitle, persistedSlug } = await saveContentDetail({
-        organizationId,
-        contentId,
-        queryClient,
-        hasTitleChanges,
-        hasSlugChanges,
-        title,
-        editingSlug,
-        editedMarkdown: resolvedEditedMarkdown,
-      });
-
-      setEditedMarkdown(null);
-      setOriginalMarkdown("");
-      originalMarkdownRef.current = resolvedEditedMarkdown;
-      editedMarkdownRef.current = null;
-      if (reviewPreviousMarkdown) {
-        setEditorKey((key) => key + 1);
+  const handleSave = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!hasChanges) {
+        return true;
       }
-      setReviewPreviousMarkdown(null);
-      setPersistedTitle(persistedTitle);
-      setEditingTitle(null);
-      setPersistedSlug(persistedSlug);
-      setEditingSlug(null);
-      if (
-        linkedGitHubPublish &&
-        (data?.content?.contentType === "changelog" ||
-          data?.content?.contentType === "blog_post")
-      ) {
-        try {
-          const result =
-            await dashboardOrpc.content.publishChangelogToGitHub.call({
-              organizationId,
-              contentId,
-              contentType: data.content.contentType,
-              repositoryId: linkedGitHubPublish.repositoryId,
-              linkedOnly: true,
-            });
-          queryClient.setQueryData<ContentApiResponse>(
-            dashboardOrpc.content.get.queryKey({
-              input: { organizationId, contentId },
-            }),
-            (current) => {
-              if (!current) {
-                return current;
-              }
 
-              return {
-                ...current,
-                content: {
-                  ...current.content,
-                  githubPublish: {
-                    branchName: result.branchName,
-                    owner: linkedGitHubPublish.owner,
-                    path: result.path,
-                    pullRequestNumber: result.pullRequestNumber,
-                    pullRequestUrl: result.pullRequestUrl,
-                    repo: linkedGitHubPublish.repo,
-                    repositoryId: linkedGitHubPublish.repositoryId,
-                  },
-                },
-              };
-            }
+      const silent = options?.silent === true;
+      const markdownToSave = resolvedEditedMarkdown;
+      const titleToSave = title;
+      const slugToSave = editingSlug;
+
+      setIsSaving(true);
+      try {
+        const { persistedTitle, persistedSlug } = await saveContentDetail({
+          organizationId,
+          contentId,
+          queryClient,
+          hasTitleChanges,
+          hasSlugChanges,
+          title,
+          editingSlug,
+          editedMarkdown: resolvedEditedMarkdown,
+        });
+
+        const markClean = () => {
+          setOriginalMarkdown(markdownToSave);
+          originalMarkdownRef.current = markdownToSave;
+          if (editedMarkdownRef.current === markdownToSave) {
+            setEditedMarkdown(markdownToSave);
+          }
+          if (reviewPreviousMarkdown && !silent) {
+            setEditorKey((key) => key + 1);
+            setReviewPreviousMarkdown(null);
+          }
+          setPersistedTitle(persistedTitle);
+          setEditingTitleState((current) =>
+            current === null || current === titleToSave ? null : current
           );
-          toast.success("Pull request updated", {
-            position: CONTENT_SAVE_TOAST_POSITION,
-          });
-        } catch (error) {
-          const message =
-            error instanceof Error && error.message
-              ? error.message
-              : "Couldn't update the linked pull request";
-          toast.error(message, {
-            position: CONTENT_SAVE_TOAST_POSITION,
-          });
+          setPersistedSlug(persistedSlug);
+          setEditingSlugState((current) =>
+            current === null || current === slugToSave ? null : current
+          );
+          setSaveFailed(false);
+        };
+
+        if (
+          linkedGitHubPublish &&
+          (data?.content?.contentType === "changelog" ||
+            data?.content?.contentType === "blog_post")
+        ) {
+          try {
+            const result =
+              await dashboardOrpc.content.publishChangelogToGitHub.call({
+                organizationId,
+                contentId,
+                contentType: data.content.contentType,
+                repositoryId: linkedGitHubPublish.repositoryId,
+                linkedOnly: true,
+              });
+            queryClient.setQueryData<ContentApiResponse>(
+              dashboardOrpc.content.get.queryKey({
+                input: { organizationId, contentId },
+              }),
+              (current) => {
+                if (!current) {
+                  return current;
+                }
+
+                return {
+                  ...current,
+                  content: {
+                    ...current.content,
+                    githubPublish: {
+                      branchName: result.branchName,
+                      owner: linkedGitHubPublish.owner,
+                      path: result.path,
+                      pullRequestNumber: result.pullRequestNumber,
+                      pullRequestUrl: result.pullRequestUrl,
+                      repo: linkedGitHubPublish.repo,
+                      repositoryId: linkedGitHubPublish.repositoryId,
+                    },
+                  },
+                };
+              }
+            );
+            markClean();
+            toast.success("Pull request updated", {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error && error.message
+                ? error.message
+                : "Couldn't update the linked pull request";
+            toast.error(message, {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+            setSaveFailed(true);
+            setIsSaving(false);
+            return false;
+          }
+        } else {
+          markClean();
+          if (!silent) {
+            toast.success("Content saved", {
+              position: CONTENT_SAVE_TOAST_POSITION,
+            });
+          }
         }
-      } else {
-        toast.success("Content saved", {
+        setIsSaving(false);
+        return true;
+      } catch (error) {
+        toast.error(getSaveContentDetailErrorMessage(error), {
           position: CONTENT_SAVE_TOAST_POSITION,
         });
+        setSaveFailed(true);
+        setIsSaving(false);
+        return false;
       }
-      setIsSaving(false);
-      return true;
-    } catch (error) {
-      toast.error(getSaveContentDetailErrorMessage(error), {
-        position: CONTENT_SAVE_TOAST_POSITION,
-      });
-      setIsSaving(false);
-      return false;
+    },
+    [
+      hasChanges,
+      hasTitleChanges,
+      hasSlugChanges,
+      editingSlug,
+      title,
+      resolvedEditedMarkdown,
+      reviewPreviousMarkdown,
+      organizationId,
+      contentId,
+      queryClient,
+      setEditingSlugState,
+      setEditingTitleState,
+      setPersistedSlug,
+      setPersistedTitle,
+      linkedGitHubPublish,
+      data?.content?.contentType,
+    ]
+  );
+
+  useEffect(() => {
+    if (
+      !hasChanges ||
+      isSaving ||
+      saveFailed ||
+      linkedGitHubPublish ||
+      reviewPreviousMarkdown
+    ) {
+      return;
     }
+
+    const timeoutId = window.setTimeout(() => {
+      void handleSave({ silent: true });
+    }, CONTENT_AUTOSAVE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [
-    hasChanges,
-    hasTitleChanges,
-    hasSlugChanges,
     editingSlug,
-    title,
+    handleSave,
+    hasChanges,
+    isSaving,
+    linkedGitHubPublish,
+    saveFailed,
     resolvedEditedMarkdown,
     reviewPreviousMarkdown,
-    organizationId,
-    contentId,
-    queryClient,
-    setEditingSlug,
-    setEditingTitle,
-    setPersistedSlug,
-    setPersistedTitle,
-    linkedGitHubPublish,
-    data?.content?.contentType,
+    title,
   ]);
 
   useHotkey(
@@ -435,11 +511,12 @@ export function useContentDetailDocument({
     setOriginalMarkdown("");
     editedMarkdownRef.current = resolvedOriginalMarkdown;
     editorRef.current?.setMarkdown(resolvedOriginalMarkdown);
-    setEditingTitle(null);
-    setEditingSlug(null);
+    setEditingTitleState(null);
+    setEditingSlugState(null);
     setReviewPreviousMarkdown(null);
+    setSaveFailed(false);
     setEditorKey((key) => key + 1);
-  }, [resolvedOriginalMarkdown, setEditingSlug, setEditingTitle]);
+  }, [resolvedOriginalMarkdown, setEditingSlugState, setEditingTitleState]);
 
   const handleToggleStatus = useCallback(async () => {
     const currentStatus = data?.content?.status;
@@ -472,6 +549,7 @@ export function useContentDetailDocument({
     needsNormalizationRef.current = false;
     setEditedMarkdown(markdown);
     editedMarkdownRef.current = markdown;
+    setSaveFailed(false);
   }, []);
 
   const invalidateContentQueries = useCallback(
@@ -552,6 +630,7 @@ export function useContentDetailDocument({
     isPlanDirty,
     isTogglingStatus,
     isSaving,
+    saveFailed,
     isGeoArticleLoading,
     originalMarkdown,
     originalMarkdownRef,
@@ -559,7 +638,7 @@ export function useContentDetailDocument({
     resolvePlanConflictLoadLatest,
     resolvePlanConflictSaveMine,
     reviewPreviousMarkdown,
-    setEditedMarkdown,
+    setEditedMarkdown: setEditedMarkdownAndRetry,
     setEditingSlug,
     setEditingTitle,
     setIsPlanDirty,

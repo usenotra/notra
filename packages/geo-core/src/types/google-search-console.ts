@@ -45,7 +45,10 @@ export interface GscSyncResult {
 
 export interface GscSuggestionSyncOutcome {
   suggestions: (typeof geoPromptSuggestions.$inferInsert)[];
+  /** Opportunity-ranked queries stored for suggestions and editor highlighting. */
   topQueries: GscQueryRow[];
+  /** Rows Search Console returned, before ranking. Drives the sync toast. */
+  fetchedQueries: number;
 }
 
 export interface GscSyncPayload {

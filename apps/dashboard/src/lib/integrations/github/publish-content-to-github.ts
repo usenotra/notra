@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
+import {
+  fallbackContentCommitHeadline,
+  generateContentCommitHeadline,
+} from "@notra/ai/utils/content-commit-message";
 import { slugify } from "@notra/utils/slugify";
 
 import {
@@ -603,12 +607,68 @@ async function resolveGitHubPublishParams(
   };
 }
 
+async function readGitHubContentFile(
+  octokit: GitHubClient,
+  params: {
+    owner: string;
+    repo: string;
+    path: string;
+    ref: string;
+  }
+): Promise<string | null> {
+  try {
+    const { data } = await octokit.request(
+      "GET /repos/{owner}/{repo}/contents/{path}",
+      {
+        owner: params.owner,
+        repo: params.repo,
+        path: params.path,
+        ref: params.ref,
+        headers: GITHUB_API_VERSION_HEADERS,
+      }
+    );
+    if (
+      Array.isArray(data) ||
+      data.type !== "file" ||
+      typeof data.content !== "string"
+    ) {
+      return null;
+    }
+    return Buffer.from(data.content, "base64").toString("utf8");
+  } catch (error) {
+    if (!hasGitHubStatus(error, 404)) {
+      throw new GitHubContentPublishError(
+        "Failed to read the existing content file",
+        error
+      );
+    }
+    return null;
+  }
+}
+
 async function commitContentToBranch(
   octokit: GitHubClient,
   params: PublishContentDraftPullRequestParams,
   branchName: string,
-  branchHeadSha: string
+  branchHeadSha: string,
+  followUp: boolean
 ) {
+  const fallback = fallbackContentCommitHeadline(params.title, followUp);
+  const headline =
+    followUp && params.organizationId
+      ? await generateContentCommitHeadline({
+          organizationId: params.organizationId,
+          title: params.title,
+          previousMarkdown: await readGitHubContentFile(octokit, {
+            owner: params.owner,
+            repo: params.repo,
+            path: params.path,
+            ref: branchHeadSha,
+          }),
+          nextMarkdown: params.markdown,
+          fallback,
+        })
+      : fallback;
   // Authored by the GitHub App bot when the caller uses an installation token.
   try {
     const result = await octokit.graphql<GitHubCreateCommitOnBranchResult>(
@@ -620,7 +680,7 @@ async function commitContentToBranch(
             branchName,
           },
           message: {
-            headline: `docs: add ${params.title}`,
+            headline,
             body: renderContentCommitMetadata(params),
           },
           expectedHeadOid: branchHeadSha,
@@ -1048,7 +1108,8 @@ export async function publishContentDraftPullRequest(
     octokit,
     params,
     branchName,
-    branchHeadSha
+    branchHeadSha,
+    contentBranch.aheadBy > 0
   );
 
   if (existingPullRequest) {

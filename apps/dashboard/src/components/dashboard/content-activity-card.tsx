@@ -45,7 +45,7 @@ export const ContentActivityCard = () => {
   }
 
   return (
-    <div className="border-border/80 bg-background w-full overflow-x-auto rounded-lg border px-4 py-3">
+    <div className="border-border/80 bg-background w-full min-w-0 overflow-hidden rounded-lg border px-4 py-3">
       {metrics?.graph.activity ? (
         <ContributionGraph
           blockMargin={3}

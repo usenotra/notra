@@ -69,6 +69,22 @@ export function sortSkills<T extends SkillListItem>(
   });
 }
 
+export function skillQuickstartError(url: string): string | null {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname !== "skills.sh") {
+      return "Only skills.sh links are supported.";
+    }
+    return null;
+  } catch {
+    return "Enter a valid skills.sh URL.";
+  }
+}
+
 export function toggleSkillSort(
   current: SkillSortState,
   key: SkillSortKey

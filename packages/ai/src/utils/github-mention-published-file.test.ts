@@ -5,8 +5,10 @@ import {
   resolveEditableMarkdown,
 } from "./github-mention-published-file";
 
-const POST = "# Release\n\n![Chart](https://cdn.notra.dev/a.png)\n\nOld intro.";
-const FILE = "# Release\n\n![Chart](../images/release/a.png)\n\nOld intro.";
+const POST =
+  '# Release\n\n![Chart](https://cdn.notra.dev/a.png)\n\n<video controls src="https://cdn.notra.dev/a.mp4"></video>\n\nOld intro.';
+const FILE =
+  '# Release\n\n![Chart](../images/release/a.png)\n\n<video controls src="./a.mp4"></video>\n\nOld intro.';
 
 describe("carryOverImageTargets", () => {
   test("keeps the repository paths when post text is committed", () => {
@@ -29,6 +31,28 @@ describe("carryOverImageTargets", () => {
         repository
       )
     ).toBe("![B](./b.png)\n![A](./a.png)");
+  });
+
+  test("leaves video URLs inside fenced examples unchanged", () => {
+    const sample =
+      '```html\n<video controls src="https://cdn.notra.dev/a.mp4"></video>\n```';
+    const source = `${POST}\n\n${sample}`;
+    const repository = `${FILE}\n\n${sample}`;
+    expect(
+      carryOverImageTargets(
+        source.replace("Old intro.", "New intro."),
+        source,
+        repository
+      )
+    ).toBe(`${FILE.replace("Old intro.", "New intro.")}\n\n${sample}`);
+  });
+
+  test("does not treat data-src as a video source", () => {
+    const source =
+      '<video data-src="https://cdn.notra.dev/a.mp4" controls src="https://cdn.notra.dev/b.mp4"></video>';
+    const repository =
+      '<video data-src="https://cdn.notra.dev/a.mp4" controls src="./b.mp4"></video>';
+    expect(carryOverImageTargets(source, source, repository)).toBe(repository);
   });
 });
 

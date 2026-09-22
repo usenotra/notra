@@ -27,6 +27,7 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
     preparePublicationSyncRepair,
     updatePublishedContentAndCommit,
     syncPublishedPostAfterCommit,
+    syncPublishedPostFromPullRequestHead,
   } = await import("./update-published-content");
   const { commitFilesToPullRequest } = await import("./github-pr-commit");
 
@@ -261,6 +262,97 @@ if (process.env.NOTRA_PUBLICATION_TEST_WORKER !== "1") {
       },
       expect.any(Function)
     );
+  });
+
+  test("an applied suggestion copies the pull request file into the post", async () => {
+    const octokit = {
+      request: async (route: string, args: { ref?: string; path?: string }) => {
+        if (String(route).includes("/contents/")) {
+          expect(args.ref).toBe("applied");
+          expect(args.path).toBe("docs/page.md");
+          return {
+            data: {
+              type: "file",
+              content: Buffer.from("# Applied suggestion").toString("base64"),
+            },
+          };
+        }
+        return { data: { status: "ahead" } };
+      },
+    } as unknown as GitHubMentionOctokit;
+    const result = await syncPublishedPostFromPullRequestHead({
+      octokit,
+      organizationId: "org",
+      publication: { ...publication, headSha: null },
+      commitSha: "applied",
+      branch: "content",
+    });
+    expect(result).toEqual({
+      status: "synchronized",
+      markdown: "# Updated",
+    });
+    expect(syncWrite).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commitSha: "applied",
+        markdown: "# Applied suggestion",
+      }),
+      expect.any(Function)
+    );
+  });
+
+  test("a missing published file is ignored, but GitHub outages retry", async () => {
+    const missing = Object.assign(new Error("Not Found"), { status: 404 });
+    const unavailable = Object.assign(new Error("Bad Gateway"), {
+      status: 502,
+    });
+    expect(
+      await syncPublishedPostFromPullRequestHead({
+        octokit: {
+          request: async () => {
+            throw missing;
+          },
+        } as unknown as GitHubMentionOctokit,
+        organizationId: "org",
+        publication,
+        commitSha: "applied",
+        branch: "content",
+      })
+    ).toBe(false);
+    await expect(
+      syncPublishedPostFromPullRequestHead({
+        octokit: {
+          request: async () => {
+            throw unavailable;
+          },
+        } as unknown as GitHubMentionOctokit,
+        organizationId: "org",
+        publication,
+        commitSha: "applied",
+        branch: "content",
+      })
+    ).rejects.toThrow("Bad Gateway");
+  });
+
+  test("a head that is already recorded does not reread GitHub", async () => {
+    const octokit = {
+      request: async () => {
+        throw new Error("should not read GitHub");
+      },
+    } as unknown as GitHubMentionOctokit;
+    expect(
+      await syncPublishedPostFromPullRequestHead({
+        octokit,
+        organizationId: "org",
+        publication: {
+          ...publication,
+          headSha: "applied",
+          markdown: "# Applied",
+        },
+        commitSha: "applied",
+        branch: "content",
+      })
+    ).toEqual({ status: "synchronized", markdown: "# Applied" });
+    expect(syncWrite).not.toHaveBeenCalled();
   });
 
   test("failed image translation schedules the immutable mapping payload", async () => {

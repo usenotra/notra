@@ -5,6 +5,7 @@ import type {
   GitHubPR,
   GitHubRepo,
   GitHubSearchCount,
+  GitHubSearchPRs,
   GitHubUser,
   IssueTypeBadge,
 } from "~types/github";
@@ -12,6 +13,8 @@ import type {
 const GITHUB_OWNER = "usenotra";
 const GITHUB_REPO = "notra";
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}`;
+const NOTRA_AI_BOT_AUTHOR = "app/notra-ai";
+const NOTRA_AI_BOT_ID = -1;
 
 const GITHUB_CACHE_TAG = "github-contributors";
 
@@ -22,6 +25,7 @@ const EMPTY_DATA: ContributorsData = {
   contributors: [],
   issues: [],
   prs: [],
+  notraAiPrCount: 0,
   stats: {
     totalStars: 0,
     totalForks: 0,
@@ -71,21 +75,34 @@ export async function fetchContributorsData(): Promise<ContributorsData> {
   const search = "https://api.github.com/search/issues";
   const repoQuery = `repo:${GITHUB_OWNER}/${GITHUB_REPO}+state:open`;
 
-  const [repo, contributorsRaw, issuesRaw, prsRaw, issueSearch, prSearch] =
-    await Promise.all([
-      fetchJson<GitHubRepo>(base),
-      fetchJson<GitHubUser[]>(`${base}/contributors?per_page=100`),
-      fetchJson<GitHubIssue[]>(
-        `${base}/issues?state=open&per_page=20&sort=created&direction=desc`
-      ),
-      fetchJson<GitHubPR[]>(
-        `${base}/pulls?state=open&per_page=5&sort=created&direction=desc`
-      ),
-      fetchJson<GitHubSearchCount>(
-        `${search}?q=${repoQuery}+is:issue&per_page=1`
-      ),
-      fetchJson<GitHubSearchCount>(`${search}?q=${repoQuery}+is:pr&per_page=1`),
-    ]);
+  const [
+    repo,
+    contributorsRaw,
+    issuesRaw,
+    prsRaw,
+    issueSearch,
+    prSearch,
+    notraAiSearch,
+  ] = await Promise.all([
+    fetchJson<GitHubRepo>(base),
+    fetchJson<GitHubUser[]>(`${base}/contributors?per_page=100`),
+    fetchJson<GitHubIssue[]>(
+      `${base}/issues?state=open&per_page=20&sort=created&direction=desc`
+    ),
+    fetchJson<GitHubPR[]>(
+      `${base}/pulls?state=open&per_page=5&sort=created&direction=desc`
+    ),
+    fetchJson<GitHubSearchCount>(
+      `${search}?q=${repoQuery}+is:issue&per_page=1`
+    ),
+    fetchJson<GitHubSearchCount>(`${search}?q=${repoQuery}+is:pr&per_page=1`),
+    fetchJson<GitHubSearchPRs>(
+      `${search}?q=repo:${GITHUB_OWNER}/${GITHUB_REPO}+is:pr+author:${NOTRA_AI_BOT_AUTHOR}&per_page=10&sort=created&order=desc`
+    ),
+    fetchJson<GitHubSearchCount>(
+      `${search}?q=repo:${GITHUB_OWNER}/${GITHUB_REPO}+is:pr+is:merged+author:${NOTRA_AI_BOT_AUTHOR}&per_page=1`
+    ),
+  ]);
 
   if (!(repo || contributorsRaw || issuesRaw || prsRaw)) {
     return EMPTY_DATA;
@@ -102,11 +119,28 @@ export async function fetchContributorsData(): Promise<ContributorsData> {
 
   const prs = (prsRaw ?? []).slice().sort(byNewest).slice(0, 5);
 
+  const notraAiUser = notraAiSearch?.items[0]?.user;
+  const notraAiPrCount = notraAiSearch?.total_count ?? 0;
+  const notraAiContributor: GitHubUser[] =
+    notraAiUser && notraAiPrCount > 0
+      ? [
+          {
+            ...notraAiUser,
+            id: NOTRA_AI_BOT_ID,
+            contributions: notraAiPrCount,
+            type: "Bot",
+          },
+        ]
+      : [];
+
   return {
     repo,
-    contributors: contributors.slice(0, 24),
+    contributors: [...notraAiContributor, ...contributors]
+      .sort((a, b) => b.contributions - a.contributions)
+      .slice(0, 24),
     issues,
     prs,
+    notraAiPrCount,
     stats: {
       totalStars: repo?.stargazers_count ?? 0,
       totalForks: repo?.forks_count ?? 0,
@@ -167,6 +201,10 @@ export function getIssueTypeFromLabels(labels: GitHubLabel[]): IssueTypeBadge {
     className:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
   };
+}
+
+export function formatNotraAiPrCountLabel(prCount: number): string {
+  return `${prCount} pull request${prCount === 1 ? "" : "s"}`;
 }
 
 export function formatViewAllLabel(total: number | null): string {

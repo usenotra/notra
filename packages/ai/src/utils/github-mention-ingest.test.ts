@@ -4,6 +4,9 @@ import { createHmac } from "node:crypto";
 const resolveGitHubMentionContext = mock();
 const processGitHubMention = mock();
 const closeContentPublicationForPullRequest = mock();
+const findOpenContentPublicationByPullRequest = mock();
+const getGitHubPublishToken = mock();
+const syncPublishedPostFromPullRequestHead = mock();
 
 mock.module("@notra/ai/utils/redis", () => ({
   redis: { set: async () => "OK", del: async () => 1 },
@@ -17,6 +20,16 @@ mock.module("@notra/ai/utils/github-mention-process", () => ({
 }));
 mock.module("@notra/ai/utils/content-publication", () => ({
   closeContentPublicationForPullRequest,
+  findOpenContentPublicationByPullRequest,
+}));
+mock.module("@notra/ai/integrations/github-publish-auth", () => ({
+  getGitHubPublishToken,
+}));
+mock.module("@notra/ai/utils/octokit", () => ({
+  createOctokit: () => ({ mocked: true }),
+}));
+mock.module("@notra/ai/utils/update-published-content", () => ({
+  syncPublishedPostFromPullRequestHead,
 }));
 
 const { ingestGitHubAppMentionWebhook } =
@@ -63,6 +76,9 @@ describe("ingestGitHubAppMentionWebhook", () => {
     resolveGitHubMentionContext.mockReset();
     processGitHubMention.mockReset();
     closeContentPublicationForPullRequest.mockReset();
+    findOpenContentPublicationByPullRequest.mockReset();
+    getGitHubPublishToken.mockReset();
+    syncPublishedPostFromPullRequestHead.mockReset();
   });
 
   test("marks the publication merged when its pull request closes", async () => {
@@ -97,6 +113,219 @@ describe("ingestGitHubAppMentionWebhook", () => {
       merged: true,
     });
     expect(resolveGitHubMentionContext).not.toHaveBeenCalled();
+  });
+
+  test("copies an applied suggestion into the Notra post", async () => {
+    findOpenContentPublicationByPullRequest.mockResolvedValue({
+      id: "pub",
+      organizationId: "org_1",
+      postId: "post_1",
+      repositoryId: "int_1",
+      path: "docs/release.md",
+      owner: "acme",
+      repo: "app",
+      headSha: "abc",
+      markdown: "# Old",
+    });
+    getGitHubPublishToken.mockResolvedValue("token");
+    syncPublishedPostFromPullRequestHead.mockResolvedValue({
+      status: "synchronized",
+      markdown: "# Applied",
+    });
+    const body = JSON.stringify({
+      action: "synchronize",
+      pull_request: {
+        number: 42,
+        title: "docs: add release",
+        html_url: "https://github.com/acme/app/pull/42",
+        merged: false,
+        head: { ref: "notra/changelog", sha: "applied" },
+        base: { ref: "main", sha: "def" },
+      },
+      repository: {
+        id: 99,
+        name: "app",
+        full_name: "acme/app",
+        default_branch: "main",
+        owner: { login: "acme" },
+      },
+      installation: { id: 55 },
+    });
+    const result = await ingest("pull_request", body, "pr-sync-1");
+    expect(result).toMatchObject({
+      httpStatus: 200,
+      body: { message: "publication_synced", status: "synchronized" },
+    });
+    expect(getGitHubPublishToken).toHaveBeenCalledWith("int_1", {
+      organizationId: "org_1",
+    });
+    expect(syncPublishedPostFromPullRequestHead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org_1",
+        commitSha: "applied",
+        branch: "notra/changelog",
+      })
+    );
+    expect(closeContentPublicationForPullRequest).not.toHaveBeenCalled();
+    expect(resolveGitHubMentionContext).not.toHaveBeenCalled();
+  });
+
+  test("parses a GitHub synchronize payload that includes extra webhook fields", async () => {
+    findOpenContentPublicationByPullRequest.mockResolvedValue({
+      id: "pub",
+      organizationId: "org_1",
+      postId: "post_1",
+      repositoryId: "int_1",
+      path: "docs/release.md",
+      owner: "Acme",
+      repo: "App",
+      headSha: "abc",
+      markdown: "# Old",
+    });
+    getGitHubPublishToken.mockResolvedValue("token");
+    syncPublishedPostFromPullRequestHead.mockResolvedValue({
+      status: "synchronized",
+      markdown: "# Applied",
+    });
+    // GitHub's documented payload is much larger than our schema. Extra keys
+    // (before/after, nested user objects, organization) must not 400.
+    const body = JSON.stringify({
+      action: "synchronize",
+      number: 42,
+      before: "abc",
+      after: "applied",
+      organization: { login: "acme", id: 1 },
+      sender: {
+        id: 7,
+        login: "alice",
+        type: "User",
+        avatar_url: "https://avatars.githubusercontent.com/u/7",
+        site_admin: false,
+      },
+      pull_request: {
+        url: "https://api.github.com/repos/acme/app/pulls/42",
+        id: 99,
+        node_id: "PR_kw",
+        number: 42,
+        title: "docs: add release",
+        html_url: "https://github.com/acme/app/pull/42",
+        body: "Apply the suggestion.",
+        draft: false,
+        merged: false,
+        merged_at: null,
+        labels: [],
+        user: { login: "alice", id: 7, type: "User", site_admin: false },
+        head: {
+          label: "acme:notra/changelog",
+          ref: "notra/changelog",
+          sha: "applied",
+          user: { login: "acme", id: 1, type: "Organization" },
+          repo: {
+            id: 99,
+            name: "app",
+            full_name: "acme/app",
+            private: false,
+            owner: { login: "acme" },
+          },
+        },
+        base: {
+          label: "acme:main",
+          ref: "main",
+          sha: "def",
+          repo: { full_name: "acme/app" },
+        },
+      },
+      repository: {
+        id: 99,
+        name: "app",
+        full_name: "acme/app",
+        private: false,
+        html_url: "https://github.com/acme/app",
+        default_branch: "main",
+        owner: {
+          login: "acme",
+          id: 1,
+          node_id: "MDEyOk9yZw",
+          type: "Organization",
+          avatar_url: "https://avatars.githubusercontent.com/u/1",
+        },
+      },
+      installation: { id: 55, node_id: "MDIzOkluc3RhbGxhdGlvbjU1" },
+    });
+    const result = await ingest("pull_request", body, "pr-sync-extra");
+    expect(result).toMatchObject({
+      httpStatus: 200,
+      body: { message: "publication_synced", status: "synchronized" },
+    });
+    expect(findOpenContentPublicationByPullRequest).toHaveBeenCalledWith({
+      owner: "acme",
+      repo: "app",
+      pullRequestNumber: 42,
+      installationId: "55",
+      githubRepositoryId: "99",
+    });
+    expect(syncPublishedPostFromPullRequestHead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commitSha: "applied",
+        branch: "notra/changelog",
+      })
+    );
+  });
+
+  test("ignores a pull request head update with no linked publication", async () => {
+    findOpenContentPublicationByPullRequest.mockResolvedValue(null);
+    const body = JSON.stringify({
+      action: "synchronize",
+      pull_request: {
+        number: 42,
+        title: "docs: add release",
+        html_url: "https://github.com/acme/app/pull/42",
+        merged: false,
+        head: { ref: "notra/changelog", sha: "applied" },
+        base: { ref: "main", sha: "def" },
+      },
+      repository: {
+        id: 99,
+        name: "app",
+        full_name: "acme/app",
+        default_branch: "main",
+        owner: { login: "acme" },
+      },
+      installation: { id: 55 },
+    });
+    expect(await ingest("pull_request", body, "pr-sync-none")).toMatchObject({
+      httpStatus: 200,
+      body: { message: "ignored", reason: "no_publication" },
+    });
+    expect(syncPublishedPostFromPullRequestHead).not.toHaveBeenCalled();
+  });
+
+  test("ignores a synchronize delivery without an installation", async () => {
+    const body = JSON.stringify({
+      action: "synchronize",
+      pull_request: {
+        number: 42,
+        title: "docs: add release",
+        html_url: "https://github.com/acme/app/pull/42",
+        merged: false,
+        head: { ref: "notra/changelog", sha: "applied" },
+        base: { ref: "main", sha: "def" },
+      },
+      repository: {
+        id: 99,
+        name: "app",
+        full_name: "acme/app",
+        default_branch: "main",
+        owner: { login: "acme" },
+      },
+    });
+    expect(
+      await ingest("pull_request", body, "pr-sync-no-install")
+    ).toMatchObject({
+      httpStatus: 200,
+      body: { message: "ignored", reason: "missing_payload_fields" },
+    });
+    expect(findOpenContentPublicationByPullRequest).not.toHaveBeenCalled();
   });
 
   test("rejects invalid signatures", async () => {

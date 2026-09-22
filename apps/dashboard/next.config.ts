@@ -57,6 +57,7 @@ const nextConfig: NextConfig = {
     "@cursor/sdk",
     "@ai-sdk/code-mode",
     "run",
+    "sharp",
   ],
   skipTrailingSlashRedirect: true,
   async rewrites() {

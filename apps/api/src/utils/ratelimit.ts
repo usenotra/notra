@@ -60,13 +60,11 @@ export const RATE_LIMITS = {
 export const ratelimit = {
   postGeneration: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:post-generation",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.postGeneration.requests, "1m"),
   }),
   brandGeneration: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:brand-generation",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.brandGeneration.requests,
@@ -75,7 +73,6 @@ export const ratelimit = {
   }),
   chatGeneration: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:chat-generation",
     limiter: Ratelimit.slidingWindow(
       CHAT_GENERATION_RATE_LIMIT.requests,
@@ -84,7 +81,6 @@ export const ratelimit = {
   }),
   integrationCreate: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:integration-create",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.integrationCreate.requests,
@@ -93,19 +89,16 @@ export const ratelimit = {
   }),
   postUpdate: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:post-update",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.postUpdate.requests, "1m"),
   }),
   feedbackIngest: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:feedback-ingest",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.feedbackIngest.requests, "1m"),
   }),
   feedbackIngestIp: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:feedback-ingest-ip",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.feedbackIngestIp.requests,
@@ -114,7 +107,6 @@ export const ratelimit = {
   }),
   feedbackIngestOrganization: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:feedback-ingest-organization",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.feedbackIngestOrganization.requests,
@@ -123,25 +115,21 @@ export const ratelimit = {
   }),
   scanTrigger: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-scan-trigger",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.scanTrigger.requests, "1h"),
   }),
   sequenceRun: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-sequence-run",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.sequenceRun.requests, "10m"),
   }),
   promptImport: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-prompt-import",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.promptImport.requests, "10m"),
   }),
   competitorImport: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-competitor-import",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.competitorImport.requests,
@@ -150,7 +138,6 @@ export const ratelimit = {
   }),
   competitorSuggestions: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-competitor-suggestions",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.competitorSuggestions.requests,
@@ -159,19 +146,16 @@ export const ratelimit = {
   }),
   writerPlan: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-writer-plan",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.writerPlan.requests, "10m"),
   }),
   writerApprove: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-writer-approve",
     limiter: Ratelimit.slidingWindow(RATE_LIMITS.writerApprove.requests, "10m"),
   }),
   agentReadinessScan: new Ratelimit({
     redis,
-    analytics: true,
     prefix: "ratelimit:api:geo-agent-readiness-scan",
     limiter: Ratelimit.slidingWindow(
       RATE_LIMITS.agentReadinessScan.requests,

@@ -23,4 +23,4 @@ export const GEO_SCAN_PERSONA_BATCH_SIZE = 3;
 export const GEO_PERSONA_PROMPT_ID_PREFIX = "persona-";
 export const GEO_PERSONA_GENERATION_TRIGGER_ID = "geo-personas";
 export const GEO_PERSONA_GENERATION_SYSTEM_PROMPT =
-  "You design distinct buyer archetypes for AI visibility research. Each archetype has a short, recognizable name and a concrete customer profile grounded in the supplied audience and category. You output only JSON matching the requested schema, and you never invent facts about the company itself.";
+  "You design distinct buyer archetypes for AI visibility research. Each archetype has a short, recognizable name and a concrete customer profile grounded in the supplied audience and category. The conversation prompts are the literal messages that person would type into ChatGPT: everyday words, one intent, no marketing language. You output only JSON matching the requested schema, and you never invent facts about the company itself.";

@@ -45,6 +45,7 @@ import { SearchConsolePropertyPicker } from "@/components/geo/search-console-car
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -693,16 +694,10 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Google Search Console
-            </h1>
-            <p className="text-muted-foreground">
-              Turn the search queries you already rank for into AI prompt
-              suggestions
-            </p>
-          </div>
+        <PageHeading
+          description="Turn the search queries you already rank for into AI prompt suggestions"
+          title="Google Search Console"
+        >
           {canConnect ? (
             <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
@@ -710,7 +705,7 @@ export default function PageClient({
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           ) : null}
-        </div>
+        </PageHeading>
 
         <GoogleSearchConsolePageBody
           callbackPath={pathname}

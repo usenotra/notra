@@ -53,7 +53,7 @@ Notra requests Google's `webmasters.readonly` scope plus `openid` and `email` (t
 ## How suggestions are generated
 
 * Notra pulls the last 28 days of query data for the property (Search Console data lags by about 3 days).
-* It keeps the top 250 queries with at least 5 impressions and passes up to 80 of them to a model.
+* It reads up to 2000 queries. Google returns them sorted by clicks, so the wider pull keeps high-impression queries that get few clicks. Branded queries and own-site lookups (login, careers, impressum) are dropped. Category queries that only mention those words ("changelog generator") stay. Up to 80 of the rest go to the model, preferring queries the site shows up for but does not win, with near-duplicate head terms capped.
 * The model returns up to 15 prompt suggestions per sync, each citing up to 8 of your queries.
 * The sync repeats every Monday at 06:00 UTC while the property stays connected.
 

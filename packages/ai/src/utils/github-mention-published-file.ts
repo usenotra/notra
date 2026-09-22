@@ -6,7 +6,15 @@ import type {
 import { getRepositoryFileContents } from "@notra/ai/utils/github-pr-commit";
 
 const MARKDOWN_IMAGE_PATTERN = /(!\[[^\]]*\]\()(<[^>\n]*>|[^)\s]+)/g;
+const VIDEO_SRC_PATTERN = /(<video\b[^>]*?\ssrc=")([^"]+)/g;
+const FENCE_OR_TEXT_PATTERN = /```[\s\S]*?```|[\s\S]+?(?=```|$)/g;
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+
+function mapOutsideFences(markdown: string, map: (text: string) => string) {
+  return markdown.replace(FENCE_OR_TEXT_PATTERN, (segment) =>
+    segment.startsWith("```") ? segment : map(segment)
+  );
+}
 
 function unwrappedTarget(target: string) {
   return target.startsWith("<") && target.endsWith(">")
@@ -14,20 +22,25 @@ function unwrappedTarget(target: string) {
     : target;
 }
 
-function imageTargets(markdown: string) {
-  return [...markdown.matchAll(MARKDOWN_IMAGE_PATTERN)].map(
-    (match) => match[2] ?? ""
-  );
+function matchedTargets(markdown: string, pattern: RegExp) {
+  const targets: string[] = [];
+  mapOutsideFences(markdown, (text) => {
+    for (const match of text.matchAll(new RegExp(pattern.source, "g"))) {
+      targets.push(match[2] ?? "");
+    }
+    return text;
+  });
+  return targets;
 }
 
-/** Translate image identities using two versions known to be synchronized. */
-export function carryOverImageTargets(
+function carryOverMatchedTargets(
   next: string,
   originalSource: string,
-  repositoryMarkdown: string
+  repositoryMarkdown: string,
+  pattern: RegExp
 ) {
-  const sourceTargets = imageTargets(originalSource);
-  const repositoryTargets = imageTargets(repositoryMarkdown);
+  const sourceTargets = matchedTargets(originalSource, pattern);
+  const repositoryTargets = matchedTargets(repositoryMarkdown, pattern);
   if (
     sourceTargets.length === 0 ||
     sourceTargets.length !== repositoryTargets.length
@@ -52,10 +65,31 @@ export function carryOverImageTargets(
         : null
     );
   }
-  return next.replace(MARKDOWN_IMAGE_PATTERN, (match, prefix, target) => {
-    const repositoryTarget = targets.get(target);
-    return repositoryTarget ? `${prefix}${repositoryTarget}` : match;
-  });
+  return mapOutsideFences(next, (text) =>
+    text.replace(new RegExp(pattern.source, "g"), (match, prefix, target) => {
+      const repositoryTarget = targets.get(target);
+      return repositoryTarget ? `${prefix}${repositoryTarget}` : match;
+    })
+  );
+}
+
+/** Translate image and video identities using two versions known to be synchronized. */
+export function carryOverImageTargets(
+  next: string,
+  originalSource: string,
+  repositoryMarkdown: string
+) {
+  return carryOverMatchedTargets(
+    carryOverMatchedTargets(
+      next,
+      originalSource,
+      repositoryMarkdown,
+      MARKDOWN_IMAGE_PATTERN
+    ),
+    originalSource,
+    repositoryMarkdown,
+    VIDEO_SRC_PATTERN
+  );
 }
 
 /**
