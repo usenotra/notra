@@ -29,7 +29,8 @@ const NAVIGATIONAL_QUERY =
 const WINNING_POSITION = 3;
 const STRIKING_POSITION = 20;
 const WEAK_POSITION = 40;
-const WINNING_WEIGHT = 0.15;
+/** 0.02: a 12k-impression 40% CTR #1 still loses to a 200-impression gap at position 11. */
+const WINNING_WEIGHT = 0.02;
 const STRIKING_WEIGHT = 1;
 const WEAK_WEIGHT = 0.6;
 const DISTANT_WEIGHT = 0.25;

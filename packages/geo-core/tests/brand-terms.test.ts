@@ -105,6 +105,20 @@ describe("selectKeywordsForModel", () => {
     ]);
   });
 
+  test("a high-CTR position-1 head term loses to a smaller mid-position gap", () => {
+    const selected = selectKeywordsForModel(
+      [
+        query("transactional email api", 12_000, 4800, 1.2),
+        query("cheapest transactional email for startups", 200, 8, 11.2),
+      ],
+      []
+    );
+    expect(selected.map((row) => row.query)).toEqual([
+      "cheapest transactional email for startups",
+      "transactional email api",
+    ]);
+  });
+
   test("drops branded and navigational queries", () => {
     const selected = selectKeywordsForModel(
       [
