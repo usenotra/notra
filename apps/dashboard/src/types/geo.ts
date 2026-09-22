@@ -72,7 +72,6 @@ import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
-import type { TablePaginationState } from "@/types/table";
 
 export interface GeoProjectCreateInput {
   name: string;
@@ -877,7 +876,6 @@ export interface CitationsTableProps {
   entries: GeoTrafficLogEntry[];
   height: number;
   loading?: boolean;
-  pagination?: TablePaginationState;
 }
 
 export interface PurposeBadgeProps {

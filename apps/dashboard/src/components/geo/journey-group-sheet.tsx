@@ -248,7 +248,6 @@ function JourneyGroupContent({
           Math.min(overview.paths.length, GROUP_TABLE_MAX_ROWS)
         )}
         rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
       />
     </section>
   ) : (
@@ -263,7 +262,6 @@ function JourneyGroupContent({
           Math.min(overview.sources.length, GROUP_TABLE_MAX_ROWS)
         )}
         rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
       />
     </section>
   );
@@ -325,7 +323,6 @@ function JourneyGroupContent({
             onRowClick={onOpenJourney}
             onRowPointerEnter={onPrefetchJourney}
             rowHeight={TABLE_ROW_HEIGHT}
-            scrollFade
           />
         </section>
       </div>

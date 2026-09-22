@@ -46,11 +46,8 @@ export default function PageClient({
     parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")
   );
 
-  const { data, isPending, isError, refetch } = useCollections(
-    organizationId,
-    page,
-    initialProjectId
-  );
+  const { data, isPending, isError, isPlaceholderData, refetch } =
+    useCollections(organizationId, page, initialProjectId);
 
   const collections = useMemo(
     () => data?.collections ?? [],
@@ -160,6 +157,7 @@ export default function PageClient({
           {!(isPending || isEmpty || isError) ? (
             <CollectionsView
               collections={collections}
+              loading={isPlaceholderData}
               organizationSlug={organizationSlug}
               pagination={pagination}
               view={view}

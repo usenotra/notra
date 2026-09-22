@@ -14,9 +14,7 @@ import {
   GEO_CHANGES_EMPTY_DETAIL,
   GEO_CHANGES_EMPTY_NEEDS_SCANS,
   GEO_CHANGES_EMPTY_NO_CHANGES,
-  GEO_CHANGES_ITEM_LABEL,
   GEO_CHANGES_LABEL,
-  GEO_CHANGES_PAGE_KEY,
   GEO_CHANGES_SKELETON_ROWS,
   GEO_CHANGES_SUMMARY_GROUPS,
   GEO_CHANGES_SUMMARY_HINTS,
@@ -29,7 +27,6 @@ import { findCompetitor } from "@notra/geo-core/geo/domain";
 import type { GeoChangeEvent, GeoCompetitor } from "@notra/geo-core/types/geo";
 import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   Tooltip,
@@ -43,7 +40,6 @@ import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -58,7 +54,6 @@ import {
 } from "@/constants/geo-change-icons";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoChanges } from "@/lib/hooks/use-geo";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import { cn } from "@/lib/utils";
 import type {
   GeoChangeCellProps,
@@ -76,7 +71,7 @@ import {
 } from "@/utils/geo-changes";
 import { withGeoProject } from "@/utils/geo-paths";
 import { promptTableRowForId } from "@/utils/geo-prompts";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const STAT_ICON_SIZE = 10;
 const STAT_ICON_STROKE = 2.5;
@@ -347,11 +342,6 @@ export function WhatChangedCard({
 
   const events = data?.events ?? [];
   const columns = changeColumnsFor(competitors);
-  const pagination = useTablePagination({
-    key: GEO_CHANGES_PAGE_KEY,
-    totalItems: events.length,
-    isReady: !isPending,
-  });
 
   function openEvent(event: GeoChangeEvent) {
     if (promptTableRowForId(event.promptId, promptResults)) {
@@ -366,7 +356,23 @@ export function WhatChangedCard({
     );
   }
 
-  let body = <GeoTableSkeleton rows={GEO_CHANGES_SKELETON_ROWS} />;
+  let body = (
+    <Table
+      className="rounded-2xl"
+      columns={columns}
+      data={events}
+      defaultSort={CHANGES_DEFAULT_SORT}
+      getRowId={changeRowId}
+      height={tableHeightFor(
+        isPending ? GEO_CHANGES_SKELETON_ROWS : events.length
+      )}
+      loading={isPending}
+      onRowClick={openEvent}
+      resizable
+      rowHeight={TABLE_ROW_HEIGHT}
+      toolbar={data ? <SummaryToolbar summary={data.summary} /> : undefined}
+    />
+  );
   if (!isPending && data) {
     if (!data.previousScan) {
       body = (
@@ -406,30 +412,6 @@ export function WhatChangedCard({
             </div>
           }
           seed={GEO_CHANGES_LABEL}
-        />
-      );
-    } else {
-      body = (
-        <Table
-          className="rounded-2xl"
-          columns={columns}
-          data={events}
-          defaultSort={CHANGES_DEFAULT_SORT}
-          footer={
-            <TablePagination
-              {...pagination}
-              itemLabel={GEO_CHANGES_ITEM_LABEL}
-            />
-          }
-          getRowId={changeRowId}
-          height={paginatedTableHeightFor(pagination.pageRowCount)}
-          onRowClick={openEvent}
-          onSortChange={() => pagination.setPage(1)}
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          resizable
-          rowHeight={TABLE_ROW_HEIGHT}
-          toolbar={<SummaryToolbar summary={data.summary} />}
         />
       );
     }

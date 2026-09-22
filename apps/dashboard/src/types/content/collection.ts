@@ -48,6 +48,7 @@ export interface CollectionsViewProps {
   pagination: TablePaginationState;
   organizationSlug: string;
   view: ContentCollectionView;
+  loading?: boolean;
 }
 
 export type CollectionsSkeletonProps = Partial<

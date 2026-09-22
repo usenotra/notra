@@ -4,7 +4,6 @@ import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_TRAFFIC_HOST_ALL,
-  GEO_TRAFFIC_PAGES_PAGE_PARAM,
   GEO_TRAFFIC_PAGES_PATH_PARAM,
 } from "@notra/geo-core/constants/geo";
 import {
@@ -15,7 +14,6 @@ import {
   formatTrafficLocation,
   trafficLogHostFilter,
 } from "@notra/geo-core/utils/geo-project-domains";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Input } from "@notra/ui/components/ui/input";
 import {
@@ -29,7 +27,6 @@ import { parseAsString, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";
 import {
   InstrumentEmpty,
@@ -38,7 +35,6 @@ import {
 import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { GeoTrafficPageGroup, TrafficPagesCardProps } from "@/types/geo";
 import {
   filterTrafficPageGroups,
@@ -48,7 +44,7 @@ import {
   trafficHostSelectValue,
   trafficHostsFromPages,
 } from "@/utils/ai-traffic-pages";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const PAGE_SKELETON_ROWS = 4;
 const PAGE_COLUMN_WIDTH = "1fr";
@@ -76,17 +72,10 @@ export function TrafficPagesCard({
     filterTrafficPageGroups(groups, pathQuery),
     appliedHost
   );
-  const pagination = useTablePagination({
-    key: GEO_TRAFFIC_PAGES_PAGE_PARAM,
-    totalItems: filteredGroups.length,
-    isReady: !isPending,
-  });
   const handlePathQueryChange = (value: string) => {
-    pagination.setPage(1);
     setPathQuery(value);
   };
   const handleHostQueryChange = (value: string) => {
-    pagination.setPage(1);
     setHostQuery(value);
   };
   const columns: TableColumn<GeoTrafficPageGroup>[] = [
@@ -138,9 +127,7 @@ export function TrafficPagesCard({
   ];
 
   let body: ReactNode;
-  if (isPending) {
-    body = <GeoTableSkeleton rows={PAGE_SKELETON_ROWS} />;
-  } else if (groups.length === 0 && !hasActiveFilter) {
+  if (groups.length === 0 && !hasActiveFilter && !isPending) {
     body = (
       <InstrumentEmpty
         message="No AI visits captured yet"
@@ -200,7 +187,7 @@ export function TrafficPagesCard({
             />
           </div>
         </div>
-        {filteredGroups.length === 0 ? (
+        {filteredGroups.length === 0 && !isPending ? (
           <InstrumentEmpty
             message="No pages match this filter"
             seed="geo-traffic-pages-filter"
@@ -212,12 +199,11 @@ export function TrafficPagesCard({
             data={filteredGroups}
             defaultSort={{ key: "visits", direction: "desc" }}
             emptyState="No pages match this filter"
-            footer={<TablePagination {...pagination} itemLabel="pages" />}
             getRowId={(row) => `${row.host}\n${row.path}`}
-            height={paginatedTableHeightFor(pagination.pageRowCount)}
-            onSortChange={() => pagination.setPage(1)}
-            page={pagination.page}
-            pageSize={pagination.pageSize}
+            height={tableHeightFor(
+              isPending ? PAGE_SKELETON_ROWS : filteredGroups.length
+            )}
+            loading={isPending}
             resizable
             rowHeight={TABLE_ROW_HEIGHT}
           />

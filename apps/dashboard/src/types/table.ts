@@ -6,13 +6,6 @@ import type {
   TableRow,
 } from "@/components/motion/table/types";
 
-export interface UseTablePaginationOptions {
-  key: string;
-  totalItems: number;
-  pageSize?: number;
-  isReady?: boolean;
-}
-
 export interface TablePaginationState {
   page: number;
   pageCount: number;
@@ -20,12 +13,6 @@ export interface TablePaginationState {
   totalItems: number;
   pageRowCount: number;
   setPage: (page: number) => void;
-}
-
-export interface TablePaginationProps extends TablePaginationState {
-  itemLabel?: string;
-  className?: string;
-  showPageNumbers?: boolean;
 }
 
 export interface TableSkeletonProps {
@@ -106,6 +93,7 @@ export interface TableBodyProps<T> extends Pick<
   rowHeight: number;
   bodyHeight: number;
   loading: boolean;
+  loadingMore: boolean;
   skeletonRows: number;
   selectable: boolean;
   selected: Set<string>;

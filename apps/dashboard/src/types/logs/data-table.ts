@@ -26,6 +26,7 @@ export interface DataTableProps<TData> {
   data: TData[];
   getRowId?: (row: TData, index: number) => string;
   page: number;
+  pageSize: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   isLoading?: boolean;

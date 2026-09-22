@@ -106,7 +106,6 @@ export function JourneysCard({
           pageSize={limit}
           resizable
           rowHeight={TABLE_ROW_HEIGHT}
-          scrollFade
         />
       )}
     </InstrumentSection>

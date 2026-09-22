@@ -75,7 +75,27 @@ describe("shared dashboard table", () => {
 
     expect(html).toContain("Full invoice description");
     expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('data-loading="dimmed"');
+    expect(html).toContain("opacity-60");
+    expect(html).not.toContain('data-slot="skeleton"');
     expect(html).toContain("max-height:156px");
+  });
+
+  test("empty loading tables keep skeleton rows instead of dimming", () => {
+    const html = renderToStaticMarkup(
+      <Table
+        columns={[{ key: "label", header: "Invoice" }]}
+        data={[]}
+        height={208}
+        loading
+        rowHeight={52}
+      />
+    );
+
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('data-loading="skeleton"');
+    expect(html).toContain('data-slot="skeleton"');
+    expect(html).not.toContain("opacity-60");
   });
 
   test("numeric date sorting preserves row identity and selection", () => {

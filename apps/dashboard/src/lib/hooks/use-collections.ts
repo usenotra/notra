@@ -4,7 +4,7 @@ import type {
   PostCollectionDetail,
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 
@@ -34,6 +34,7 @@ export function useCollections(
       },
     }),
     enabled: !!organizationId && (isResolved || initialProjectId !== undefined),
+    placeholderData: keepPreviousData,
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating

@@ -148,6 +148,7 @@ export function CollectionsView({
   pagination,
   organizationSlug,
   view,
+  loading = false,
 }: CollectionsViewProps) {
   const router = useRouter();
   const columns: TableColumn<PostCollectionSummary>[] = [
@@ -226,6 +227,7 @@ export function CollectionsView({
         pagination.pageRowCount,
         COLLECTION_TABLE_ROW_HEIGHT
       )}
+      loading={loading}
       onRowClick={(collection) =>
         router.push(collectionHref(organizationSlug, collection))
       }

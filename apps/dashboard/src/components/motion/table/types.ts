@@ -87,7 +87,11 @@ interface TableBaseProps<T> {
   overscan?: number;
   /** Fires when the viewport scrolls near the bottom — load the next page. */
   onEndReached?: () => void;
-  /** Currently fetching — shows skeleton rows and pauses `onEndReached`. */
+  /**
+   * Currently fetching — pauses `onEndReached`. Empty tables fill with
+   * skeleton rows; tables that already have rows dim in place. Load-more
+   * (`onEndReached`) still appends `skeletonRows` at the bottom.
+   */
   loading?: boolean;
   /** How many skeleton rows to show while loading more (default 3). */
   skeletonRows?: number;
@@ -116,7 +120,7 @@ interface TableBaseProps<T> {
   flushBottom?: boolean;
   /** Pad the header band so the table can tuck 20px under the rounded bottom of a surface above it. */
   overlapTop?: boolean;
-  /** Fade the bottom edge while more rows can be scrolled into view. */
+  /** Fade the bottom edge while more rows can be scrolled into view. Default on. */
   scrollFade?: boolean;
   className?: string;
 }

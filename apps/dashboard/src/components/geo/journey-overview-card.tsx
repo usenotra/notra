@@ -99,7 +99,6 @@ export function JourneyOverviewCard({
         height={tableHeightFor(previewRows)}
         onRowClick={onOpenSource}
         rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
       />
     </JourneyStatCard>
   );

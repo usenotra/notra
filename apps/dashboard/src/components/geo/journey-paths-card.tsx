@@ -78,7 +78,6 @@ export function JourneyPathsCard({
         height={tableHeightFor(previewRows)}
         onRowClick={onOpenPath}
         rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
       />
     </JourneyStatCard>
   );

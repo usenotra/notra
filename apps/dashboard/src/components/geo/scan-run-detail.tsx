@@ -327,7 +327,7 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
   // Fall back to answers once every pending task has been saved.
   const activeView = pendingTotal > 0 ? view : "answers";
   const showLanguage = (run.plan?.languages.length ?? 0) > 1;
-  const loading = query.isPending;
+  const loading = query.isPending || query.isPlaceholderData;
 
   const hasFilters = pendingTotal > 0 || (run.plan?.engines.length ?? 0) > 1;
   const toolbar = hasFilters ? (
@@ -394,6 +394,7 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
           }
           getRowId={(row) => row.key}
           height={height}
+          loading={loading}
           rowHeight={TABLE_ROW_HEIGHT}
           toolbar={toolbar}
         />

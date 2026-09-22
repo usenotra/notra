@@ -81,7 +81,7 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
-  scrollFade = false,
+  scrollFade = true,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -177,6 +177,17 @@ export function Table<T>({
     />
   );
   const isEmpty = pagedRows.length === 0 && !loading;
+  const hasRows = pagedRows.length > 0;
+  const dimRows = loading && hasRows && !onEndReached;
+  const loadingMore = loading && hasRows && Boolean(onEndReached);
+  let loadingState: "dimmed" | "more" | "skeleton" | undefined;
+  if (dimRows) {
+    loadingState = "dimmed";
+  } else if (loadingMore) {
+    loadingState = "more";
+  } else if (loading) {
+    loadingState = "skeleton";
+  }
   const hasRowMenu = !!(onInsertRow || onDeleteRow);
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
   // Shrink-wrap only after every column has an explicit resized width.
@@ -259,8 +270,12 @@ export function Table<T>({
         className={cn(
           "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
           isEmpty ? "overflow-hidden" : overflowClass,
-          flushBottom && !footer && "rounded-b-none border-b-0"
+          flushBottom && !footer && "rounded-b-none border-b-0",
+          dimRows &&
+            "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
         )}
+        data-loading={loadingState}
+        inert={dimRows ? true : undefined}
         onScroll={handleScroll}
         ref={scrollRef}
         style={bodyStyle}
@@ -275,6 +290,7 @@ export function Table<T>({
             rowSizing={rowSizing}
             bodyHeight={bodyHeight}
             loading={loading}
+            loadingMore={loadingMore}
             skeletonRows={skeletonRows}
             emptyState={emptyState}
             selectable={selectable}
