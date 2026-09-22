@@ -1,4 +1,12 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+
+import Loading from "./loading";
+import PageClient from "./page-client";
+
+export const metadata: Metadata = {
+  title: "Google Search Console",
+};
 
 async function Page({
   params,
@@ -8,6 +16,11 @@ async function Page({
   }>;
 }) {
   const { slug } = await params;
-  redirect(`/${slug}/geo/prompts`);
+
+  return (
+    <Suspense fallback={<Loading />}>
+      <PageClient organizationSlug={slug} />
+    </Suspense>
+  );
 }
 export default Page;

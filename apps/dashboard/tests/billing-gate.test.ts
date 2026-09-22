@@ -16,6 +16,20 @@ mock.module("@/lib/billing/subscription", () => ({
     expect(started).toBe(2);
     return organizationId === "org-b";
   },
+  // Other files in this process import the real module. A partial mock hides
+  // those exports and fails their suites while this file is loaded.
+  hasAiCreditsGrant: async () => false,
+  resolveZdrEntitlement: async () => "unknown",
+  resolveAiProductAccess: async () => ({
+    hasAccess: true,
+    activePlanId: null,
+  }),
+  assertActiveSubscription: async () => undefined,
+  resolveGeoEntitlement: async () => "skipped",
+  rejectGeoEntitlementDenied: () => {
+    throw new Error("GEO entitlement denied");
+  },
+  assertGeoEntitlement: async () => undefined,
 }));
 
 const { findFirstPaidOrganization } =

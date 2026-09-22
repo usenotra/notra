@@ -26,6 +26,7 @@ const DIRECT_TOOL_NAMES = [
   "createImage",
   "createInvestorUpdate",
   "createLinkedInPost",
+  "createSchedule",
   "createSkill",
   "createTwitterPost",
   "getBrandIdentity",

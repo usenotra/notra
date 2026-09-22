@@ -1,8 +1,5 @@
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 
-import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
 
@@ -16,11 +13,7 @@ export default function Loading() {
           description="Reusable instructions your agents load when generating content."
           title="Skills"
         >
-          <Button className="gap-1.5">
-            <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Create Skill
-            <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
-          </Button>
+          <Skeleton className="h-9 w-36 rounded-md" />
         </PageHeading>
         <SkillsPageSkeleton />
       </div>

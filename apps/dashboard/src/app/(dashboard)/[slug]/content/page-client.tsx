@@ -26,6 +26,7 @@ import { CollectionsPageSkeleton } from "./skeleton";
 
 export default function PageClient({
   organizationSlug,
+  initialProjectId,
 }: ContentListPageClientProps) {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
@@ -47,7 +48,8 @@ export default function PageClient({
 
   const { data, isPending, isError, refetch } = useCollections(
     organizationId,
-    page
+    page,
+    initialProjectId
   );
 
   const collections = useMemo(

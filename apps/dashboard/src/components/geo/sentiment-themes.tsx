@@ -30,6 +30,18 @@ export function SentimentThemes({
         eyebrow="Sentiment themes"
         className="lg:col-span-12"
         bodyClassName="min-w-0 space-y-3"
+        action={
+          view.canAnalyze && view.showResults ? (
+            <SentimentThemesEmpty
+              inline
+              title={view.title}
+              message={view.message}
+              canAnalyze={view.canAnalyze}
+              retrying={retrying}
+              analyze={analyze}
+            />
+          ) : null
+        }
       >
         {query.isError ? (
           <div

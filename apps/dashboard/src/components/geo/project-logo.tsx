@@ -2,10 +2,12 @@
 
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { projectLogoSources } from "@notra/geo-core/geo/logo";
+import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 
+import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { GeoProjectLogoProps } from "@/types/geo";
 
@@ -54,9 +56,18 @@ export function ProjectLogo({
   className,
   fallbackClassName,
 }: GeoProjectLogoProps) {
-  const { data } = useCompanyLogo(domain);
-  const logo = data?.url ?? null;
+  const engine = brandEngineIconKey(name);
+  const { data } = useCompanyLogo(engine ? null : domain);
+  if (engine) {
+    return (
+      <EngineIcon
+        className={cn("size-4 shrink-0", className)}
+        engine={engine}
+      />
+    );
+  }
 
+  const logo = data?.url ?? null;
   return (
     <ProjectLogoInner
       className={className}

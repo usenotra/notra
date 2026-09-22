@@ -1,4 +1,5 @@
 import { getGitHubIntegrationsByOrganization } from "@notra/ai/integrations/github";
+import { getGscIntegration } from "@notra/ai/integrations/google-search-console";
 import { getGranolaIntegrationsByOrganization } from "@notra/ai/integrations/granola";
 import { getLinearIntegrationsByOrganization } from "@notra/ai/integrations/linear";
 import { getSlackIntegrationsByOrganization } from "@notra/ai/integrations/slack-workspace";
@@ -88,6 +89,23 @@ const integrationFetchers: Partial<
       createdAt: integration.createdAt,
       repositories: [],
     }));
+  },
+  "google-search-console": async (organizationId) => {
+    const integration = await getGscIntegration(organizationId);
+    if (!integration || integration.disconnectingAt) {
+      return [];
+    }
+
+    return [
+      {
+        id: integration.id,
+        displayName: integration.googleAccountEmail ?? "Google Search Console",
+        type: "google-search-console" as const,
+        enabled: integration.status === "active",
+        createdAt: integration.createdAt,
+        repositories: [],
+      },
+    ];
   },
 };
 

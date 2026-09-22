@@ -1,5 +1,4 @@
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
-import { FEATURES } from "@notra/ai/billing/features";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { GeoCheckInsertSummary } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
@@ -39,7 +38,7 @@ export const runGeoConversationReplay = Effect.fn("geo.runConversationReplay")(
         organizationId,
         executionId: runId,
         outputType: null,
-        quotaFeatureId: FEATURES.AI_ANSWERS,
+        allowPlanIncluded: true,
       })
       .pipe(
         Effect.mapError(

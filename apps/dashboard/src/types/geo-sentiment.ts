@@ -57,6 +57,7 @@ export interface SentimentThemesEmptyProps {
   canAnalyze: boolean;
   retrying: boolean;
   analyze: () => void;
+  inline?: boolean;
 }
 
 export interface SentimentThemesStateInput {

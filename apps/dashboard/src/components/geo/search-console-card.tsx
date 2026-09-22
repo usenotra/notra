@@ -162,7 +162,7 @@ function ConnectAction({
   );
 }
 
-function PropertyPicker({
+export function SearchConsolePropertyPicker({
   organizationId,
   sites,
   websiteUrl,
@@ -273,7 +273,7 @@ function SelectSiteState({
         </ResponsiveDialogHeader>
         {status.sites.length > 0 ? (
           <div className="px-4 md:px-0">
-            <PropertyPicker
+            <SearchConsolePropertyPicker
               onSelected={() => onOpenChange(false)}
               organizationId={organizationId}
               sites={status.sites}
@@ -344,7 +344,7 @@ function ConnectedState({
   } else if (sites.data?.sites.length) {
     changeDialogBody = (
       <div className="px-4 md:px-0">
-        <PropertyPicker
+        <SearchConsolePropertyPicker
           onSelected={() => onPropertyPickerOpenChange(false)}
           organizationId={organizationId}
           sites={sites.data.sites}
