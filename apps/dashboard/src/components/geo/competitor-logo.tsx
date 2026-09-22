@@ -3,7 +3,7 @@
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { findCompetitorDomain } from "@notra/geo-core/geo/domain";
 import { competitorLogoSources } from "@notra/geo-core/geo/logo";
-import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-icon";
+import { brandEngineIconKey } from "@notra/geo-core/utils/geo-engine-family";
 import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -11,31 +11,6 @@ import { useEffect, useState } from "react";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { useCompanyLogo } from "@/lib/hooks/use-onboarding";
 import type { CompetitorLogoProps } from "@/types/geo";
-
-function KnownEngineLogo({
-  engine,
-  className,
-  onSettled,
-}: {
-  engine: string;
-  className?: string;
-  onSettled?: () => void;
-}) {
-  useEffect(() => {
-    onSettled?.();
-  }, [onSettled]);
-
-  return (
-    <span
-      className={cn(
-        "inline-flex size-5 shrink-0 items-center justify-center",
-        className
-      )}
-    >
-      <EngineIcon className="size-full" engine={engine} />
-    </span>
-  );
-}
 
 function CompetitorLogoFallback({
   name,
@@ -97,30 +72,6 @@ function CompetitorLogoInner({
   );
 }
 
-function RemoteCompetitorLogo({
-  name,
-  domain = null,
-  competitors,
-  className,
-  onSettled,
-}: CompetitorLogoProps) {
-  const trackedDomain = domain ?? findCompetitorDomain(competitors, name);
-  const { data } = useCompanyLogo(trackedDomain, name);
-  const resolvedDomain = trackedDomain ?? data?.domain ?? null;
-  const logo = data?.url ?? null;
-
-  return (
-    <CompetitorLogoInner
-      className={className}
-      domain={resolvedDomain}
-      key={`${resolvedDomain ?? ""}:${name}:${logo ?? ""}`}
-      logo={logo}
-      name={name}
-      onSettled={onSettled}
-    />
-  );
-}
-
 export function CompetitorLogo({
   name,
   domain = null,
@@ -128,24 +79,34 @@ export function CompetitorLogo({
   className,
   onSettled,
 }: CompetitorLogoProps) {
-  const engine = brandEngineIconKey(
-    name,
-    domain ?? findCompetitorDomain(competitors, name)
-  );
+  const engine = brandEngineIconKey(name);
+  const trackedDomain = engine
+    ? null
+    : (domain ?? findCompetitorDomain(competitors, name));
+  const { data } = useCompanyLogo(trackedDomain, engine ? null : name);
+  useEffect(() => {
+    if (engine) {
+      onSettled?.();
+    }
+  }, [engine, onSettled]);
+
   if (engine) {
     return (
-      <KnownEngineLogo
-        className={className}
+      <EngineIcon
+        className={cn("size-5 shrink-0", className)}
         engine={engine}
-        onSettled={onSettled}
       />
     );
   }
+
+  const resolvedDomain = trackedDomain ?? data?.domain ?? null;
+  const logo = data?.url ?? null;
   return (
-    <RemoteCompetitorLogo
+    <CompetitorLogoInner
       className={className}
-      competitors={competitors}
-      domain={domain}
+      domain={resolvedDomain}
+      key={`${resolvedDomain ?? ""}:${name}:${logo ?? ""}`}
+      logo={logo}
       name={name}
       onSettled={onSettled}
     />
