@@ -63,15 +63,19 @@ export function SelectionPlugin({
             return;
           }
           if (!($isRangeSelection(selection) && !selection.isCollapsed())) {
-            selectedExcerptRef.current = null;
-            onSelectionChange(null);
+            if (selectedExcerptRef.current !== null) {
+              selectedExcerptRef.current = null;
+              onSelectionChange(null);
+            }
             return;
           }
 
           const text = selection.getTextContent().trim();
           if (!text) {
-            selectedExcerptRef.current = null;
-            onSelectionChange(null);
+            if (selectedExcerptRef.current !== null) {
+              selectedExcerptRef.current = null;
+              onSelectionChange(null);
+            }
             return;
           }
 

@@ -543,12 +543,18 @@ export function useContentDetailDocument({
       editedMarkdownRef.current === originalMarkdownRef.current
     ) {
       needsNormalizationRef.current = false;
-      setOriginalMarkdown(markdown);
       originalMarkdownRef.current = markdown;
+      editedMarkdownRef.current = markdown;
+      setOriginalMarkdown(markdown);
+      setEditedMarkdown(markdown);
+      return;
     }
     needsNormalizationRef.current = false;
-    setEditedMarkdown(markdown);
+    if (editedMarkdownRef.current === markdown) {
+      return;
+    }
     editedMarkdownRef.current = markdown;
+    setEditedMarkdown(markdown);
     setSaveFailed(false);
   }, []);
 
