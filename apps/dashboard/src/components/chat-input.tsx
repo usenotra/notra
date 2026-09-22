@@ -425,7 +425,9 @@ const ChatInput = ({
                 setValue(
                   nextValueAfterFilePaste(
                     value,
-                    event.clipboardData.getData("text/plain")
+                    event.clipboardData.getData("text/plain"),
+                    event.currentTarget.selectionStart,
+                    event.currentTarget.selectionEnd
                   )
                 );
               }}

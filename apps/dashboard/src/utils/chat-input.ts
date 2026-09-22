@@ -30,16 +30,16 @@ export function getComposerSendChrome(showStop: boolean, canQueue: boolean) {
 
 export function nextValueAfterFilePaste(
   current: string,
-  clipboardText: string
+  clipboardText: string,
+  selectionStart = current.length,
+  selectionEnd = current.length
 ): string {
-  const pastedText = clipboardText.trim();
-  if (!pastedText) {
+  if (!clipboardText.trim()) {
     return current;
   }
-  if (current.length === 0) {
-    return pastedText;
-  }
-  return `${current}${current.endsWith("\n") ? "" : "\n"}${pastedText}`;
+  const start = Math.min(Math.max(0, selectionStart), current.length);
+  const end = Math.min(Math.max(start, selectionEnd), current.length);
+  return `${current.slice(0, start)}${clipboardText}${current.slice(end)}`;
 }
 
 export function getSelectionPreview(selection: TextSelection) {

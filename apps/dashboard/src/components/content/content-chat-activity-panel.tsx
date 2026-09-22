@@ -8,6 +8,7 @@ import {
   PlusSignIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { isTrustedChatFileUrl } from "@notra/ai/schemas/chat";
 import {
   Message,
   MessageContent,
@@ -151,7 +152,7 @@ function ContentChatActivityMessage({
           <div className="ml-auto flex max-w-full flex-col items-end gap-1.5">
             {imageParts.map((part, index) => {
               const { url, mediaType, filename } = getChatFilePartFields(part);
-              if (!url) {
+              if (!isTrustedChatFileUrl(url)) {
                 return null;
               }
               return (
@@ -244,7 +245,7 @@ function ContentChatActivityMessage({
                 {fileParts.map((part, index) => {
                   const { url, mediaType, filename } =
                     getChatFilePartFields(part);
-                  if (!url) {
+                  if (!isTrustedChatFileUrl(url)) {
                     return null;
                   }
                   return (

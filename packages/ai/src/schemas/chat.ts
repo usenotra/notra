@@ -72,7 +72,7 @@ export const chatMessageMetadataSchema = z.object({
 
 export const UI_MESSAGES_MAX = 200;
 
-function isTrustedChatFileUrl(url: string): boolean {
+export function isTrustedChatFileUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return parsed.protocol === "http:" || parsed.protocol === "https:";

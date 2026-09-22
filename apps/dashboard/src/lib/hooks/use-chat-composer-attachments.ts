@@ -313,7 +313,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
       if (accepted.length === 0) {
         return false;
       }
-      handleFilesSelected(renamePastedFiles(files)).catch(() => undefined);
+      handleFilesSelected(renamePastedFiles(accepted)).catch(() => undefined);
       return true;
     },
     [handleFilesSelected]

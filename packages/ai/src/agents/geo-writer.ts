@@ -388,7 +388,7 @@ function isSuccessfulWebSearch(result: unknown): boolean {
 }
 
 function headingLines(markdown: string): string[] {
-  return [...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map((match) =>
+  return [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) =>
     (match[1] ?? "").trim().toLowerCase()
   );
 }
