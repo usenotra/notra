@@ -139,7 +139,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
             ) : null
           }
         >
-          <div className="flex min-w-0 items-end gap-1 p-1.5">
+          <section aria-label="Chat input drop area">
             <input
               accept={allowedChatMimeTypes.join(",")}
               className="hidden"
@@ -148,26 +148,9 @@ function ContentChatInputComposer(props: ChatInputProps) {
               ref={fileInputRef}
               type="file"
             />
-            <ChatComposerAttachButton
-              attachmentCount={attachments.length}
-              disabled={isInputLocked || isLoading}
-              onAttach={onAttach}
-              pendingUploadCount={pendingUploads.length}
-              tooltip={attachmentTooltipText}
-            />
-            <ChatInputContextPicker
-              contextOptions={contextOptions}
-              contextPickerId={contextPickerId}
-              disabledReason={contextPickerDisabledReason}
-              isInContext={isInContext}
-              isOpen={isContextPickerOpen}
-              onOpenChange={setIsContextPickerOpen}
-              organizationSlug={organizationSlug}
-              toggleContextItem={toggleContextItem}
-            />
             <Textarea
               aria-label="Send a message"
-              className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-7 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-none border-0 bg-transparent px-1 py-1 text-sm leading-5 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
+              className="text-foreground caret-foreground block field-sizing-fixed max-h-50 min-h-12 w-full min-w-0 resize-none overflow-y-auto rounded-none border-0 bg-transparent px-3 py-2 text-sm leading-6 whitespace-pre-wrap shadow-none ring-0 outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-50 dark:bg-transparent dark:disabled:bg-transparent"
               disabled={isInputLocked}
               onBlur={() => setIsFocused(false)}
               onChange={(event) => {
@@ -185,19 +168,38 @@ function ContentChatInputComposer(props: ChatInputProps) {
               rows={1}
               value={value}
             />
-            <Composer.Send
-              disabled={sendDisabled}
-              label={sendLabel}
-              onClick={showStop ? onStop : handleSend}
-              tooltip={sendTooltip}
-            >
-              <HugeiconsIcon
-                className="size-4"
-                icon={showStop ? StopIcon : ArrowUp02Icon}
-                strokeWidth={2}
+            <Composer.Toolbar>
+              <ChatComposerAttachButton
+                attachmentCount={attachments.length}
+                disabled={isInputLocked || isLoading}
+                onAttach={onAttach}
+                pendingUploadCount={pendingUploads.length}
+                tooltip={attachmentTooltipText}
               />
-            </Composer.Send>
-          </div>
+              <ChatInputContextPicker
+                contextOptions={contextOptions}
+                contextPickerId={contextPickerId}
+                disabledReason={contextPickerDisabledReason}
+                isInContext={isInContext}
+                isOpen={isContextPickerOpen}
+                onOpenChange={setIsContextPickerOpen}
+                organizationSlug={organizationSlug}
+                toggleContextItem={toggleContextItem}
+              />
+              <Composer.Send
+                disabled={sendDisabled}
+                label={sendLabel}
+                onClick={showStop ? onStop : handleSend}
+                tooltip={sendTooltip}
+              >
+                <HugeiconsIcon
+                  className="size-4"
+                  icon={showStop ? StopIcon : ArrowUp02Icon}
+                  strokeWidth={2}
+                />
+              </Composer.Send>
+            </Composer.Toolbar>
+          </section>
         </Composer.Frame>
       </div>
       <AttachmentPreviewDialog
