@@ -112,6 +112,8 @@ import {
   getReferenceDisplay,
 } from "@/utils/integration-reference";
 import {
+  extractSkillDraftTokens,
+  formatSkillDraftTokens,
   getSlashSkillQuery,
   handleSlashMenuKeyDown,
   prependTaggedSkills,
@@ -611,7 +613,7 @@ function ChatComposerNudge({
   setPreviewAttachment: (attachment: ChatAttachment) => void;
   shouldShowLowCredits: boolean;
   taggedSkills: SkillSlashOption[];
-  untagSkill: (name: string) => void;
+  untagSkill?: (name: string) => void;
   usageLimitError: string | null;
 }) {
   const hasContextChips = context.length > 0 || taggedSkills.length > 0;
@@ -642,7 +644,10 @@ function ChatComposerNudge({
     >
       {hasContextChips || hasAttachmentChips ? (
         <>
-          <ChatSkillTagChips onRemove={untagSkill} skills={taggedSkills} />
+          <ChatSkillTagChips
+            onRemove={isQueued ? undefined : untagSkill}
+            skills={taggedSkills}
+          />
           {context.map((item) => {
             const label = getReferenceDisplay(item);
             return (
@@ -1245,6 +1250,7 @@ export function ChatInputAdvanced({
   ref,
 }: ChatInputAdvancedProps) {
   const contextPickerId = useId();
+  const slashListId = useId();
   const currentModel =
     AVAILABLE_MODELS.find((availableModel) => availableModel.id === model) ??
     AVAILABLE_MODELS[0];
@@ -1262,6 +1268,7 @@ export function ChatInputAdvanced({
     slashIndex,
     isSlashMenuOpen,
     slashListRef,
+    taggedSkillsRef,
     closeSlashMenu,
     syncSlashQuery,
     moveSlashIndex,
@@ -1815,7 +1822,10 @@ export function ChatInputAdvanced({
         const references = draftContext
           .map(getIntegrationReferenceValue)
           .join("\n");
-        const draft = [text, references].filter(Boolean).join("\n");
+        const skillRefs = formatSkillDraftTokens(
+          taggedSkillsRef.current.map((skill) => skill.name)
+        );
+        const draft = [text, references, skillRefs].filter(Boolean).join("\n");
         if (draft) {
           window.localStorage.setItem(draftStorageKey, draft);
         } else {
@@ -1958,13 +1968,17 @@ export function ChatInputAdvanced({
       return;
     }
     const restoredDraft = extractIntegrationReferences(draft);
+    const restoredSkills = extractSkillDraftTokens(restoredDraft.text);
     for (const referencedItem of restoredDraft.items) {
       onAddContext?.(referencedItem);
     }
-    const restoredText = restoredDraft.text.trim();
+    for (const name of restoredSkills.names) {
+      tagSkill({ name, description: "" });
+    }
+    const restoredText = restoredSkills.text.trim();
     editor.textContent = restoredText;
     setIsEmpty(restoredText.length === 0);
-  }, [draftStorageKey, initialValue, onAddContext, readEditorText]);
+  }, [draftStorageKey, initialValue, onAddContext, readEditorText, tagSkill]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -2069,9 +2083,18 @@ export function ChatInputAdvanced({
       slashAnchorRef.current = null;
       closeSlashMenu();
       editor.dispatchEvent(new Event("input", { bubbles: true }));
+      persistDraft(contextRef.current);
       editor.focus();
     },
-    [closeSlashMenu, tagSkill]
+    [closeSlashMenu, persistDraft, tagSkill]
+  );
+
+  const handleUntagSkill = useCallback(
+    (name: string) => {
+      untagSkill(name);
+      persistDraft(contextRef.current);
+    },
+    [persistDraft, untagSkill]
   );
 
   const addContext = useCallback(
@@ -2491,6 +2514,7 @@ export function ChatInputAdvanced({
         {isSlashMenuOpen ? (
           <ChatSkillSlashMenu
             filteredSkills={filteredSkills}
+            listboxId={slashListId}
             onSelect={insertSlashSkill}
             skillCount={skills.length}
             slashIndex={slashIndex}
@@ -2513,7 +2537,7 @@ export function ChatInputAdvanced({
                 setPreviewAttachment={setPreviewAttachment}
                 shouldShowLowCredits={shouldShowLowCredits}
                 taggedSkills={taggedSkills}
-                untagSkill={untagSkill}
+                untagSkill={isQueued ? undefined : handleUntagSkill}
                 usageLimitError={usageLimitError}
               />
             ) : null
@@ -2533,9 +2557,17 @@ export function ChatInputAdvanced({
                 <div className="relative flex min-w-0 flex-1 cursor-text transition-colors [--lh:1lh]">
                   {/* biome-ignore lint/a11y/useSemanticElements: rich mention editor requires a contentEditable host instead of a native textarea. */}
                   <div
+                    aria-activedescendant={
+                      isSlashMenuOpen && filteredSkills[slashIndex]
+                        ? `chat-skill-slash-option-${filteredSkills[slashIndex].name}`
+                        : undefined
+                    }
+                    aria-autocomplete={isSlashMenuOpen ? "list" : undefined}
+                    aria-controls={isSlashMenuOpen ? slashListId : undefined}
                     aria-disabled={isQueued}
+                    aria-expanded={isSlashMenuOpen}
+                    aria-haspopup={isSlashMenuOpen ? "listbox" : undefined}
                     aria-label="Send a message"
-                    aria-multiline="true"
                     className="text-foreground caret-foreground data-[empty=true]:before:text-muted-foreground relative max-h-50 min-h-12 w-full min-w-0 overflow-y-auto rounded-t-[12px] px-3 py-2 text-sm leading-6 wrap-anywhere whitespace-pre-wrap outline-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[empty=true]:before:pointer-events-none data-[empty=true]:before:absolute data-[empty=true]:before:top-2 data-[empty=true]:before:left-3 data-[empty=true]:before:content-[attr(data-placeholder)]"
                     contentEditable={!isQueued}
                     data-empty={isEmpty ? "true" : "false"}
@@ -2566,7 +2598,7 @@ export function ChatInputAdvanced({
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
                     ref={editorRef}
-                    role="textbox"
+                    role="combobox"
                     suppressContentEditableWarning
                     tabIndex={isLoading || isQueued ? -1 : 0}
                   />

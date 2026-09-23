@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import Link from "next/link";
+import { useId } from "react";
 
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import {
@@ -54,6 +55,7 @@ const ChatInput = (props: ChatInputProps) => (
 );
 
 function ContentChatInputComposer(props: ChatInputProps) {
+  const slashListId = useId();
   const {
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
@@ -129,6 +131,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
         {isSlashMenuOpen ? (
           <ChatSkillSlashMenu
             filteredSkills={filteredSkills}
+            listboxId={slashListId}
             onSelect={insertSlashSkill}
             skillCount={skillCount}
             slashIndex={slashIndex}
@@ -179,6 +182,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
                   : undefined
               }
               aria-autocomplete={isSlashMenuOpen ? "list" : undefined}
+              aria-controls={isSlashMenuOpen ? slashListId : undefined}
               aria-expanded={isSlashMenuOpen}
               aria-haspopup={isSlashMenuOpen ? "listbox" : undefined}
               aria-label="Send a message"
@@ -209,6 +213,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
                   : (placeholder ?? "Send a message... (type / for skills)")
               }
               ref={textareaRef}
+              role="combobox"
               rows={1}
               value={value}
             />

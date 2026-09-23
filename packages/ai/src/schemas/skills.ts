@@ -16,10 +16,7 @@ export const skillNameSchema = z
     SKILL_NAME_MAX_LENGTH,
     `Name must be ${SKILL_NAME_MAX_LENGTH} characters or fewer`
   )
-  .regex(
-    SKILL_NAME_REGEX,
-    "Name must be lowercase, start and end with a letter or digit, and contain only letters, digits, and hyphens"
-  );
+  .regex(SKILL_NAME_REGEX, "Name must be lowercase kebab-case");
 
 export const skillDescriptionSchema = z
   .string()

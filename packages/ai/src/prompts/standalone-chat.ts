@@ -76,6 +76,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - **Blog posts / Changelogs**: Use markdown formatting. Structure with headings, lists, and code blocks as appropriate.
 
     ## Guidelines
+    - If the user writes /skill-name in their message, load that skill with getSkillByName before responding.
     - Keep responses concise and actionable
     - Never use em dashes or en dashes in content. Use hyphens or rewrite the sentence.
     - When creating posts, use the matching create tool instead of only outputting content as text.

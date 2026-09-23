@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SkillSlashOption, SlashSkillQuery } from "@/types/skills/slash";
@@ -20,7 +20,10 @@ export function useChatSkillSlash(organizationId?: string) {
   });
   const [slashQuery, setSlashQuery] = useState<SlashSkillQuery | null>(null);
   const [slashIndex, setSlashIndex] = useState(0);
+  const [taggedSkills, setTaggedSkills] = useState<SkillSlashOption[]>([]);
   const slashListRef = useRef<HTMLDivElement | null>(null);
+  const taggedSkillsRef = useRef<SkillSlashOption[]>([]);
+  const organizationIdRef = useRef(organizationId);
 
   const skills = useMemo(
     () =>
@@ -34,7 +37,16 @@ export function useChatSkillSlash(organizationId?: string) {
     [skills, slashQuery]
   );
 
-  const [taggedSkills, setTaggedSkills] = useState<SkillSlashOption[]>([]);
+  useEffect(() => {
+    if (organizationIdRef.current === organizationId) {
+      return;
+    }
+    organizationIdRef.current = organizationId;
+    taggedSkillsRef.current = [];
+    setTaggedSkills([]);
+    setSlashQuery(null);
+    setSlashIndex(0);
+  }, [organizationId]);
 
   const closeSlashMenu = useCallback(() => {
     setSlashQuery(null);
@@ -42,20 +54,25 @@ export function useChatSkillSlash(organizationId?: string) {
   }, []);
 
   const tagSkill = useCallback((skill: SkillSlashOption) => {
-    setTaggedSkills((current) =>
-      current.some((tagged) => tagged.name === skill.name)
-        ? current
-        : [...current, skill]
-    );
+    const next = taggedSkillsRef.current.some(
+      (tagged) => tagged.name === skill.name
+    )
+      ? taggedSkillsRef.current
+      : [...taggedSkillsRef.current, skill];
+    taggedSkillsRef.current = next;
+    setTaggedSkills(next);
   }, []);
 
   const untagSkill = useCallback((name: string) => {
-    setTaggedSkills((current) =>
-      current.filter((tagged) => tagged.name !== name)
+    const next = taggedSkillsRef.current.filter(
+      (tagged) => tagged.name !== name
     );
+    taggedSkillsRef.current = next;
+    setTaggedSkills(next);
   }, []);
 
   const clearTaggedSkills = useCallback(() => {
+    taggedSkillsRef.current = [];
     setTaggedSkills([]);
   }, []);
 
@@ -83,6 +100,7 @@ export function useChatSkillSlash(organizationId?: string) {
     slashIndex,
     isSlashMenuOpen: slashQuery !== null,
     slashListRef,
+    taggedSkillsRef,
     closeSlashMenu,
     syncSlashQuery,
     moveSlashIndex,

@@ -9,6 +9,7 @@ import { skillDisplayName } from "@/utils/skills";
 
 export function ChatSkillSlashMenu({
   filteredSkills,
+  listboxId,
   onSelect,
   skillCount,
   slashIndex,
@@ -22,6 +23,7 @@ export function ChatSkillSlashMenu({
       <div
         aria-label="Skills"
         className="border-border bg-background max-h-64 overflow-y-auto rounded-xl border p-1 shadow-sm dark:shadow-none"
+        id={listboxId}
         role="listbox"
       >
         {filteredSkills.length > 0 ? (
@@ -42,6 +44,11 @@ export function ChatSkillSlashMenu({
                   event.preventDefault();
                   onSelect(skill);
                 }}
+                ref={(element) => {
+                  if (selected && element) {
+                    element.scrollIntoView({ block: "nearest" });
+                  }
+                }}
                 role="option"
                 type="button"
               >
@@ -50,7 +57,9 @@ export function ChatSkillSlashMenu({
                   icon={MagicWand01Icon}
                   strokeWidth={2}
                 />
-                <span className="shrink-0">{skillDisplayName(skill.name)}</span>
+                <span className="min-w-0 truncate">
+                  {skillDisplayName(skill.name)}
+                </span>
                 {skill.description ? (
                   <span className="text-muted-foreground min-w-0 truncate">
                     {skill.description}

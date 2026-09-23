@@ -386,9 +386,9 @@ export function useContentChatInput({
     },
     {
       enableOnFormTags: ["TEXTAREA"],
-      enabled: isFocused && !isSlashMenuOpen,
+      enabled: isFocused && !(isSlashMenuOpen && filteredSkills.length > 0),
     },
-    [handleSend, isFocused, isSlashMenuOpen]
+    [handleSend, filteredSkills.length, isFocused, isSlashMenuOpen]
   );
 
   const handlePaste = useCallback(

@@ -25,9 +25,13 @@ export function ChatSkillTagChips({
             }
             key={skill.name}
             label={label}
-            onRemove={() => {
-              onRemove(skill.name);
-            }}
+            onRemove={
+              onRemove
+                ? () => {
+                    onRemove(skill.name);
+                  }
+                : undefined
+            }
             removeLabel={`Remove ${label}`}
           />
         );

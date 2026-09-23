@@ -13,7 +13,7 @@ export const listSkillsInputSchema = z.object({});
 
 export const createSkillInputSchema = z.object({
   name: skillNameSchema.describe(
-    "Unique skill name in lowercase kebab-case: start and end with a letter or digit, letters, digits, and hyphens only."
+    "Unique skill name in lowercase kebab-case: letters, digits, and single hyphens only."
   ),
   description: skillDescriptionSchema.describe(
     "One-sentence description of when to apply this skill."

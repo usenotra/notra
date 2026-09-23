@@ -4,6 +4,7 @@ import type { SkillSlashOption } from "@/types/skills/slash";
 
 export interface ChatSkillSlashMenuProps {
   filteredSkills: readonly SkillSlashOption[];
+  listboxId: string;
   onSelect: (skill: SkillSlashOption) => void;
   skillCount: number;
   slashIndex: number;

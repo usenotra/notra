@@ -6,6 +6,12 @@ import type {
 } from "@/types/skills/slash";
 
 const SLASH_QUERY_CHARS = /^[a-z0-9-]*$/i;
+const SKILL_DRAFT_TOKEN_SPLIT_REGEX = /(@skill\/[a-z0-9]+(?:-[a-z0-9]+)*)/g;
+const SKILL_DRAFT_TOKEN_VALUE = /^@skill\/([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+
+function isSlashWhitespace(char: string): boolean {
+  return /\s/.test(char);
+}
 
 export function getSlashSkillQuery(
   text: string,
@@ -21,23 +27,14 @@ export function getSlashSkillQuery(
     return null;
   }
 
-  const charBefore = start > 0 ? textBefore[start - 1] : " ";
-  const isBoundary =
-    start === 0 ||
-    charBefore === " " ||
-    charBefore === "\n" ||
-    charBefore === "\u00A0";
+  const charBefore = start > 0 ? (textBefore[start - 1] ?? " ") : " ";
+  const isBoundary = start === 0 || isSlashWhitespace(charBefore);
   if (!isBoundary) {
     return null;
   }
 
   const query = textBefore.slice(start + 1);
-  if (
-    query.includes(" ") ||
-    query.includes("\n") ||
-    query.includes("\u00A0") ||
-    !SLASH_QUERY_CHARS.test(query)
-  ) {
+  if (/\s/.test(query) || !SLASH_QUERY_CHARS.test(query)) {
     return null;
   }
 
@@ -86,6 +83,27 @@ export function prependTaggedSkills(
   return `${prefix} ${trimmed}`;
 }
 
+export function formatSkillDraftTokens(names: readonly string[]): string {
+  return names.map((name) => `@skill/${name}`).join("\n");
+}
+
+export function extractSkillDraftTokens(value: string): {
+  names: string[];
+  text: string;
+} {
+  const names: string[] = [];
+  const textSegments: string[] = [];
+  for (const segment of value.split(SKILL_DRAFT_TOKEN_SPLIT_REGEX)) {
+    const match = segment.match(SKILL_DRAFT_TOKEN_VALUE);
+    if (match?.[1]) {
+      names.push(match[1]);
+      continue;
+    }
+    textSegments.push(segment);
+  }
+  return { names, text: textSegments.join("") };
+}
+
 export function cycleSlashIndex(
   index: number,
   length: number,
@@ -123,10 +141,11 @@ export function handleSlashMenuKeyDown(
   }
 
   if (event.key === "Enter" || event.key === "Tab") {
-    event.preventDefault();
-    if (matchCount > 0) {
-      onSelect();
+    if (matchCount <= 0) {
+      return false;
     }
+    event.preventDefault();
+    onSelect();
     return true;
   }
 
