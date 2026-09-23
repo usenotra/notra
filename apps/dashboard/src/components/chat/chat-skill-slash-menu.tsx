@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
 import type { ChatSkillSlashMenuProps } from "@/types/components/chat-skill-slash-menu";
+import { skillDisplayName } from "@/utils/skills";
 
 export function ChatSkillSlashMenu({
   filteredSkills,
@@ -49,7 +50,9 @@ export function ChatSkillSlashMenu({
                   icon={MagicWand01Icon}
                 />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm">/{skill.name}</span>
+                  <span className="truncate text-sm">
+                    {skillDisplayName(skill.name)}
+                  </span>
                   {skill.description ? (
                     <span className="text-muted-foreground truncate text-xs">
                       {skill.description}

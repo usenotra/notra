@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Composer } from "@/components/composer/composer-shell";
 import type { ChatSkillTagChipsProps } from "@/types/components/chat-skill-tag-chips";
+import { skillDisplayName } from "@/utils/skills";
 
 export function ChatSkillTagChips({
   onRemove,
@@ -13,7 +14,7 @@ export function ChatSkillTagChips({
   return (
     <>
       {skills.map((skill) => {
-        const label = `/${skill.name}`;
+        const label = skillDisplayName(skill.name);
         return (
           <Composer.Chip
             icon={

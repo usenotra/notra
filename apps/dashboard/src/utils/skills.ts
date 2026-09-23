@@ -17,6 +17,14 @@ const relativeFormatter = new Intl.RelativeTimeFormat("en", {
   numeric: "auto",
 });
 
+export function skillDisplayName(name: string): string {
+  return name
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function formatSkillUpdatedAt(
   value: string | Date,
   now = Date.now()
