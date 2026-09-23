@@ -8,7 +8,6 @@ import {
 
 import { Button } from "@/components/button";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -58,10 +57,19 @@ export function SentimentThemesEmpty({
         ) : null}
         {canAnalyze || analyzing ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button className="min-w-32" disabled={analyzing} onClick={analyze}>
-              {analyzing ? <StatusSpinner /> : null}
+            <Button
+              className="relative min-w-32 overflow-hidden"
+              disabled={analyzing}
+              onClick={analyze}
+            >
+              {analyzing ? (
+                <span
+                  aria-hidden="true"
+                  className="sentiment-analysis-progress bg-primary-foreground/20 absolute inset-0 origin-left motion-reduce:hidden"
+                />
+              ) : null}
               <span
-                className="sentiment-state-copy"
+                className="sentiment-state-copy relative"
                 key={analyzing ? "busy" : "idle"}
               >
                 {analyzing
