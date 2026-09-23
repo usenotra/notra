@@ -374,6 +374,28 @@ function getCardGridClass(
   return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 }
 
+export function EmptyStateArticlePreview() {
+  return (
+    <div className="mx-auto w-full max-w-xl space-y-8 px-4 pt-2">
+      <div className="space-y-3">
+        <GhostBar className="h-6" width="72%" />
+        <GhostBar className="h-3" width={128} />
+      </div>
+      <div className="space-y-2.5">
+        <GhostBar className="h-3 w-full" />
+        <GhostBar className="h-3 w-full" />
+        <GhostBar className="h-3 w-[92%]" />
+        <GhostBar className="h-3 w-[60%]" />
+      </div>
+      <div className="space-y-2.5">
+        <GhostBar className="h-3 w-full" />
+        <GhostBar className="h-3 w-[88%]" />
+        <GhostBar className="h-3 w-[40%]" />
+      </div>
+    </div>
+  );
+}
+
 export function EmptyStateCardsPreview({
   variant = "content",
   count,

@@ -1,7 +1,9 @@
-import { Button } from "@notra/ui/components/ui/button";
 import Link from "next/link";
 
+import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
+import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
+import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
 
 interface ContentDetailNotFoundProps {
   organizationSlug: string;
@@ -15,13 +17,22 @@ export function ContentDetailNotFound({
       <div className="mx-auto w-full max-w-5xl space-y-6 px-4 lg:px-6">
         <EmptyState
           action={
-            <Link href={`/${organizationSlug}/content`}>
-              <Button tabIndex={-1} variant="outline">
-                Back to Content
-              </Button>
-            </Link>
+            <Button
+              nativeButton={false}
+              render={<Link href={`/${organizationSlug}/content`} />}
+              variant="outline"
+            >
+              Back to Content
+            </Button>
           }
-          description="This content may have been deleted or you don't have access to it."
+          description="This content may have been deleted, or you don't have access to it."
+          preview={
+            <EmptyStateCardsPreview
+              columns={3}
+              count={EMPTY_STATE_CARD_COUNT.content}
+              variant="content"
+            />
+          }
           title="Content not found"
         />
       </div>

@@ -23,6 +23,14 @@ export const getUnlistedSharedContent = cache(
         markdown: true,
         contentType: true,
         createdAt: true,
+        updatedAt: true,
+      },
+      with: {
+        createdByUser: {
+          columns: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -30,10 +38,14 @@ export const getUnlistedSharedContent = cache(
       return null;
     }
 
+    const authorName = post.createdByUser?.name.trim() || null;
+
     const meta = {
       title: post.title,
       slug: post.slug,
       date: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      authorName,
       contentType: post.contentType,
     };
 

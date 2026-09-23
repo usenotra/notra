@@ -14,6 +14,8 @@ export interface SharedContentViewModel {
   title: string;
   slug: string | null;
   date: string;
+  updatedAt: string;
+  authorName: string | null;
   contentType: string;
   bodyHtml: string | null;
   imageSrc: string | null;
