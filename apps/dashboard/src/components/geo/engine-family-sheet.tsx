@@ -87,7 +87,7 @@ const FAMILY_TREND_STROKE_WIDTH = 1.5;
 // Matches the visibility activity card: the headline series carries the fill
 // and a heavier stroke, the comparison lines stay thin.
 const FAMILY_TOTAL_STROKE_WIDTH = 2;
-const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full";
+const FAMILY_CHART_HEIGHT_CLASS = "h-52 w-full cursor-crosshair";
 const FAMILY_SHEET_CONTENT_CLASS =
   "gap-0 overflow-hidden rounded-xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl";
 const BRAND_ROW_CLASS =
@@ -355,6 +355,7 @@ function FamilyTrend({
           position="fixed"
           roundness="xl"
           rowKeys={visibleModes}
+          scrub
           valueFormatter={formatChartPercent}
         />
       </EChartsAreaChart>

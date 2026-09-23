@@ -84,6 +84,16 @@ import type {
   TooltipValueFormatter,
 } from "@/types/charts";
 import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
+import {
+  SCRUB_MUTE_OPACITY,
+  clipSeriesToX,
+  emptyScrubStore,
+  interpolateAt,
+  readScrubGrid,
+  syncScrubOverlay,
+  type ScrubDot,
+  type ScrubOverlayStore,
+} from "@/components/evilcharts/ui/echarts-scrub";
 
 // Modular registration keeps the bundle lean — only the pieces this chart needs.
 // `DataZoomComponent` bundles both the slider (brush footer) and inside (wheel/drag)
@@ -293,6 +303,10 @@ export interface TooltipProps {
   roundness?: TooltipRoundness; // border-radius of the tooltip
   cursor?: boolean; // whether the vertical cursor line follows the pointer
   crosshair?: boolean; // also draw the horizontal line to the value axis
+  // Mouse-follow hover (Liveline-style): a 1px line tracks X, the series clips
+  // to it, and a solid dot rides the curve. No snap, no glow. The HTML tooltip
+  // still reads the nearest category.
+  scrub?: boolean;
   position?: TooltipPosition; // "variable" follows both axes (default); "fixed" pins the tooltip near the top and sits beside the pointer's X
   layout?: TooltipLayout; // "rows" is the default swatch list; "bars" ranks series as a mini bar chart
   valueFormatter?: TooltipValueFormatter;
@@ -372,6 +386,7 @@ type TooltipSlot = {
   roundness: TooltipRoundness;
   cursor: boolean;
   crosshair?: boolean;
+  scrub: boolean;
   position: TooltipPosition;
   layout: TooltipLayout;
   valueFormatter?: TooltipValueFormatter;
@@ -421,6 +436,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
     variant: "default",
     roundness: "lg",
     cursor: true,
+    scrub: false,
     position: "variable",
     layout: "rows",
     confine: true,
@@ -504,6 +520,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
         roundness: props.roundness ?? "lg",
         cursor: props.cursor ?? true,
         crosshair: props.crosshair ?? false,
+        scrub: props.scrub ?? false,
         position: props.position ?? "variable",
         layout: props.layout ?? "rows",
         valueFormatter: props.valueFormatter,
@@ -873,6 +890,8 @@ const BUFFERFILL_PREFIX = "__bufferfill-";
 // The `__reveal-` prefix marks the muted base layer of a hover-reveal area — see
 // buildAreaSeries. Internal, so the tooltip drops it like the mini/loading rows.
 const REVEAL_PREFIX = "__reveal-";
+const SCRUB_SKIP_PREFIXES = [REVEAL_PREFIX, "__mini-", "__loading"] as const;
+const SCRUB_LERP = 0.18;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Option builders — pure functions from a snapshot context to ECharts option
@@ -1238,7 +1257,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
   return {
     ...tooltipBaseOption({
       present: tooltipSlot.present && !isLoading,
-      cursor: tooltipSlot.cursor,
+      cursor: tooltipSlot.scrub ? false : tooltipSlot.cursor,
       crosshair: tooltipSlot.crosshair,
       tokens,
       position: tooltipSlot.position,
@@ -1400,6 +1419,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     revealSink,
     resolved,
     rendererSize,
+    tooltipSlot,
   } = ctx;
 
   // Optional per-row normalization for the expanded (100%) stack.
@@ -1428,9 +1448,12 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     const lastPresent = lastPresentIndex(values);
     // Hover-reveal is a root-level mode and owns the whole area rendering, so it
     // takes precedence over a per-area buffer tail when both are set.
-    const reveal = enableHoverReveal;
+    const scrub = tooltipSlot.scrub;
+    const reveal = enableHoverReveal || scrub;
     const buffer = !reveal && area.enableBufferLine && lastPresent >= 1;
-    const revealActive = reveal && revealIndex !== null;
+    // Scrub clips in pixels instead of dropping points, so the series stays
+    // full and the cut rides the pointer. Classic hover-reveal still slices.
+    const revealActive = enableHoverReveal && !scrub && revealIndex !== null;
 
     const restingDot = dotStyle(
       area.dotVariant,
@@ -1553,14 +1576,19 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: area.connectNulls,
-      cursor: area.isClickable && !isHidden ? "pointer" : "default",
+      cursor: scrub
+        ? "crosshair"
+        : area.isClickable && !isHidden
+          ? "pointer"
+          : "default",
       // By default ECharts only fires mouse events on the symbols — this makes
       // the line AND the filled area clickable, like the Recharts <Area>.
       // (`true` covers both; the deprecated `triggerLineEvent` did the same.)
       triggerEvent: area.isClickable && !isHidden,
       // Resting dots stay on the line; ActiveDot-only series keep symbols
       // invisible until the axis pointer highlights the scrubbed index.
-      showSymbol: !isHidden && (restingVisible || hoverSymbol),
+      // Scrub draws its own solid dots on the overlay, so native symbols stay off.
+      showSymbol: !scrub && !isHidden && (restingVisible || hoverSymbol),
       symbol: "circle",
       symbolSize: area.dotIndices
         ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
@@ -1572,6 +1600,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         opacity: strokeOpacity,
         type: mainDash,
         dashOffset: 0,
+        ...(scrub
+          ? { cap: "round" as const, join: "round" as const, shadowBlur: 0 }
+          : {}),
       },
       itemStyle: multiColor
         ? {
@@ -1597,7 +1628,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         color: fillPaint(area.variant, showUnselected, slots, rendererSize),
         opacity: fillOpacity,
       },
-      emphasis: isHidden
+      emphasis: isHidden || scrub
         ? { disabled: true }
         : {
         // focus "series" blurs every other series in this grid while one is
@@ -1665,7 +1696,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
           color: muted,
           width: area.strokeWidth,
           type: mainDash,
-          opacity: revealActive ? 0.3 : 0,
+          // Scrub turns this on from the hover handler so a mousemove never
+          // rebuilds the option. Classic reveal still keys it off the slice.
+          opacity: scrub ? 0 : revealActive ? 0.3 : 0,
         },
         emphasis: { disabled: true },
         blur: { lineStyle: { opacity: revealActive ? 0.3 : 0 } },
@@ -1885,6 +1918,13 @@ type LiveState = {
   brushGeom: BrushGeometry | null; // brush footer layout of the last build
   brushOverlay: BrushOverlayElements | null; // zrender elements, owned by syncBrushOverlay
   brushHover: { inside: boolean; left: boolean; right: boolean };
+  scrubStore: ScrubOverlayStore;
+  scrubX: number | null;
+  scrubOpacity: number;
+  scrubTarget: number;
+  scrubRaf: number;
+  scrubValues: Record<string, (number | null)[]>;
+  paintScrub: () => void;
   // Latest callbacks/flags for the imperative ECharts event handlers.
   handlers: {
     onBrushChange?: (range: { startIndex: number; endIndex: number }) => void;
@@ -1895,6 +1935,7 @@ type LiveState = {
     seriesKeys: string[];
     enableHoverHighlight: boolean;
     enableHoverReveal: boolean;
+    enableScrub: boolean;
   };
   // Update-style re-push for paths that bypass React entirely (theme flips,
   // resizes) — set by the sync effect.
@@ -1964,6 +2005,13 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     brushGeom: null,
     brushOverlay: null,
     brushHover: { inside: false, left: false, right: false },
+    scrubStore: emptyScrubStore(),
+    scrubX: null,
+    scrubOpacity: 0,
+    scrubTarget: 0,
+    scrubRaf: 0,
+    scrubValues: {},
+    paintScrub: () => {},
     handlers: {
       onBrushChange: undefined, // set per-render from the <Brush> child's onChange
       onSelectionChange,
@@ -1973,6 +2021,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       seriesKeys: [],
       enableHoverHighlight,
       enableHoverReveal,
+      enableScrub: false,
     },
     repush: () => {},
   }).current;
@@ -2060,6 +2109,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     seriesKeys,
     enableHoverHighlight,
     enableHoverReveal,
+    enableScrub: tooltipSlot.scrub,
   };
   live.dataLength = data.length;
 
@@ -2193,7 +2243,17 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     const series = [...buildAreaSeries(ctx), ...(brush?.miniSeries ?? [])];
     // buildAreaSeries has now filled revealSink with each area's full per-datum
     // points — hand them to the hover handler for slicing.
-    if (enableHoverReveal) live.revealValues = revealSink;
+    if (enableHoverReveal || tooltipSlot.scrub) live.revealValues = revealSink;
+    if (tooltipSlot.scrub) {
+      live.scrubValues = Object.fromEntries(
+        areas.map((area) => [
+          area.dataKey,
+          data.map((row) =>
+            areaPointValue(row, area.dataKey, area.gapMissing)
+          ),
+        ])
+      );
+    }
     // Record the exact series order so an area-polygon click (which reports only
     // a seriesIndex) can recover its key — buffer/reveal/mini/loading series
     // break the "index === key position" shortcut, so map each index to its id.
@@ -2214,7 +2274,8 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
           `${BUFFERFILL_PREFIX}${area.dataKey}`
         );
       }
-      if (enableHoverReveal) ids.push(`${REVEAL_PREFIX}${area.dataKey}`);
+      if (enableHoverReveal || tooltipSlot.scrub)
+        ids.push(`${REVEAL_PREFIX}${area.dataKey}`);
       if (ids.length) companionIdsByKey.set(area.dataKey, ids);
     }
     live.companionIdsByKey = companionIdsByKey;
@@ -2405,8 +2466,114 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       pushReveal(null);
     };
 
+    const setMutedOpacity = (opacity: number) => {
+      const keys = live.handlers.seriesKeys;
+      if (keys.length === 0) return;
+      chart.setOption(
+        {
+          series: keys.map((key) => ({
+            id: `${REVEAL_PREFIX}${key}`,
+            lineStyle: { opacity },
+          })),
+        },
+        { silent: true }
+      );
+    };
+
+    const paintScrub = () => {
+      const x = live.scrubX;
+      const grid = readScrubGrid(chart);
+      if (x === null || !grid) {
+        syncScrubOverlay(chart, live.scrubStore, null);
+        clipSeriesToX(chart, live.scrubStore, null, SCRUB_SKIP_PREFIXES);
+        return;
+      }
+      clipSeriesToX(chart, live.scrubStore, x, SCRUB_SKIP_PREFIXES);
+      if (live.scrubOpacity < 0.01) {
+        syncScrubOverlay(chart, live.scrubStore, null);
+        return;
+      }
+      const resolved = live.resolved;
+      const dots: ScrubDot[] = [];
+      if (resolved) {
+        const raw =
+          chart.convertFromPixel({ gridIndex: 0 }, [x, grid.y])[0] ?? 0;
+        const t = Math.max(0, Math.min(Math.max(live.dataLength - 1, 0), raw));
+        for (const key of live.handlers.seriesKeys) {
+          const value = interpolateAt(live.scrubValues[key] ?? [], t);
+          if (value === null) continue;
+          const pixel = chart.convertToPixel({ gridIndex: 0 }, [0, value]);
+          const y = pixel?.[1];
+          if (typeof y !== "number") continue;
+          dots.push({
+            x,
+            y,
+            color: (resolved.series[key] ?? [])[0] ?? "rgba(120, 120, 120, 1)",
+          });
+        }
+      }
+      const lineColor = withAlpha(
+        resolved?.tokens.mutedForeground ?? "rgba(120, 120, 120, 1)",
+        AXIS_POINTER_OPACITY
+      );
+      syncScrubOverlay(chart, live.scrubStore, {
+        x,
+        grid,
+        lineColor,
+        opacity: live.scrubOpacity,
+        dots,
+      });
+    };
+    live.paintScrub = paintScrub;
+
+    const tickScrub = () => {
+      live.scrubOpacity += (live.scrubTarget - live.scrubOpacity) * SCRUB_LERP;
+      if (Math.abs(live.scrubTarget - live.scrubOpacity) < 0.01) {
+        live.scrubOpacity = live.scrubTarget;
+        live.scrubRaf = 0;
+        if (live.scrubTarget === 0) {
+          setMutedOpacity(0);
+          live.scrubX = null;
+          chart.dispatchAction({ type: "hideTip" });
+        }
+        paintScrub();
+        return;
+      }
+      paintScrub();
+      live.scrubRaf = requestAnimationFrame(tickScrub);
+    };
+
+    const leaveScrub = () => {
+      if (live.scrubTarget === 0 && live.scrubOpacity === 0) return;
+      live.scrubTarget = 0;
+      if (!live.scrubRaf) live.scrubRaf = requestAnimationFrame(tickScrub);
+    };
+
+    const applyScrub = (event: { offsetX?: number; offsetY?: number }) => {
+      const x = event.offsetX ?? -1;
+      const y = event.offsetY ?? -1;
+      if (!chart.containPixel({ gridIndex: 0 }, [x, y])) {
+        leaveScrub();
+        return;
+      }
+      const entering = live.scrubTarget === 0;
+      live.scrubX = x;
+      live.scrubTarget = 1;
+      if (entering) setMutedOpacity(SCRUB_MUTE_OPACITY);
+      const zrDom = chart.getZr()?.dom as HTMLElement | undefined;
+      if (zrDom) zrDom.style.cursor = "crosshair";
+      chart.dispatchAction({ type: "showTip", x, y });
+      paintScrub();
+      if (!live.scrubRaf) live.scrubRaf = requestAnimationFrame(tickScrub);
+    };
+
     const zrHover = chart.getZr();
     const onZrHoverMove = (event: { offsetX?: number; offsetY?: number }) => {
+      // Scrub is the pixel-follow hover; it replaces snap-to-category reveal.
+      if (live.handlers.enableScrub) {
+        applyScrub(event);
+        return;
+      }
       // Reveal is a standalone hover mode and takes precedence over highlight.
       if (live.handlers.enableHoverReveal) {
         applyReveal(event);
@@ -2427,7 +2594,8 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       );
     };
     const onZrHoverOut = () => {
-      if (live.handlers.enableHoverReveal) clearReveal();
+      if (live.handlers.enableScrub) leaveScrub();
+      else if (live.handlers.enableHoverReveal) clearReveal();
       else if (live.handlers.enableHoverHighlight) applyHoverKey(null);
     };
     zrHover.on("mousemove", onZrHoverMove);
@@ -2436,9 +2604,9 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // The native hover still emphasizes whichever element the pointer entered —
     // cancel it whenever it disagrees with the tracker's resolved key.
     chart.on("mouseover", (params) => {
-      const { enableHoverHighlight: hoverOn, enableHoverReveal: revealOn } =
+      const { enableHoverHighlight: hoverOn, enableHoverReveal: revealOn, enableScrub: scrubOn } =
         live.handlers;
-      if (!hoverOn || revealOn) return;
+      if (!hoverOn || revealOn || scrubOn) return;
       // While a selection is active, hover highlighting is disabled — never
       // dispatch emphasis/downplay so the selection dim is the only dimming.
       if (live.handlers.selectedDataKey !== null) return;
@@ -2524,6 +2692,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       zrHover.off("globalout", onZrHoverOut);
       zr.off("mousemove", onZrMove);
       zr.off("globalout", onZrOut);
+      if (live.scrubRaf) cancelAnimationFrame(live.scrubRaf);
+      live.scrubRaf = 0;
+      live.scrubStore = emptyScrubStore();
+      live.scrubX = null;
+      live.scrubOpacity = 0;
+      live.scrubTarget = 0;
       stopResizeObserver();
       themeObserver.disconnect();
       chart.dispose();
@@ -2574,6 +2748,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       chart.setOption(merged as EChartsOption, { notMerge: true });
       // Overlays live outside the option — reposition them after every push.
       syncBrushOverlayNow();
+      if (live.scrubX !== null) live.paintScrub();
     };
 
     // Intro reveal — ECharts' native progressive draw, enabled only for the first
