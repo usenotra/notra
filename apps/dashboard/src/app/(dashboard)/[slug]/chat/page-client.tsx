@@ -607,6 +607,7 @@ function StandaloneChatPageClient({
     // Populated after dispatchMessage is defined below.
   });
   const steerAfterStopRef = useRef<QueuedMessage | null>(null);
+  const queuedMessagesRef = useRef<QueuedMessage[]>([]);
   const isDrainingRef = useRef(false);
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
@@ -1680,8 +1681,6 @@ function StandaloneChatPageClient({
       prev.map((m) => (m.id === id ? { ...m, text } : m))
     );
   }, []);
-
-  const queuedMessagesRef = useRef(queuedMessages);
 
   useEffect(() => {
     queuedMessagesRef.current = queuedMessages;
