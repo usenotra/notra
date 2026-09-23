@@ -50,7 +50,7 @@ export function ChatQueue({
       role="group"
     >
       {messages.map((message) => (
-        <Composer.Chip>
+        <Composer.Chip
           className={COMPOSER_QUEUED_CHIP}
           editLabel="Edit queued message"
           icon={
