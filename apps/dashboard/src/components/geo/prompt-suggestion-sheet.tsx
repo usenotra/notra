@@ -34,15 +34,10 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
   );
 
   return (
-    <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
-      <div className="bg-muted/70 flex items-center justify-between gap-3 border-b px-4 py-3">
-        <h3 className="text-sm font-medium">Search queries</h3>
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {rows.length}
-        </span>
-      </div>
+    <section className="min-w-0 space-y-2">
+      <h3 className="text-sm font-medium">Search queries</h3>
       {rows.length === 0 ? (
-        <p className="text-muted-foreground p-4 text-sm">
+        <p className="text-muted-foreground text-sm">
           No query-level data for this prompt.
         </p>
       ) : (

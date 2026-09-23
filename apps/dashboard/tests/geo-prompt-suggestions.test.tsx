@@ -70,6 +70,11 @@ describe("PromptSuggestionSheet", () => {
     expect(html).toContain("75");
     expect(html).toContain("2.7%");
     expect(html).toContain("#5.3");
+    expect(html).toContain("Search queries");
+    expect(html).toContain("Query");
+    expect(html).toContain("Impressions");
+    expect(html).toContain("Clicks");
+    expect(html).toContain("Position");
     expect(html).toContain("market my ai tool");
     expect(html).toContain("changelog tools");
   });
