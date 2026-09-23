@@ -1,3 +1,4 @@
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Popover,
   PopoverContent,
@@ -49,7 +50,7 @@ export function SentimentThemesEmpty({
             className="sentiment-state-copy"
             key={analyzing ? "busy" : "idle"}
           >
-            {analyzing ? "Analyzing themes" : title}
+            {analyzing ? <Shimmer as="span">Analyzing themes</Shimmer> : title}
           </span>
         </h3>
         {message && !analyzing ? (
@@ -58,7 +59,7 @@ export function SentimentThemesEmpty({
         {canAnalyze || analyzing ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button
-              className="relative min-w-32 overflow-hidden"
+              className="relative overflow-hidden"
               disabled={analyzing}
               onClick={analyze}
             >

@@ -94,7 +94,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .sentiment-analysis-progress {
-    animation: sentiment-analysis-progress 12s cubic-bezier(0.23, 1, 0.32, 1)
+    animation: sentiment-analysis-progress 24s cubic-bezier(0.23, 1, 0.32, 1)
       forwards;
   }
 
