@@ -368,10 +368,6 @@ function ColorSwatch({ name, label }: { name: string; label: string }) {
   );
 }
 
-/*
- * Tailwind must see these class strings literally, so each row spells out its
- * own utilities rather than interpolating the token name.
- */
 const MOTION_DURATIONS = [
   {
     token: "duration-instant",

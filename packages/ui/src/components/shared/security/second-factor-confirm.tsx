@@ -10,10 +10,6 @@ import { Label } from "../../ui/label";
 
 const CONFIRM_ERROR_FALLBACK = "That code didn't work. Please try again.";
 
-/**
- * Inline prompt for a fresh authenticator or backup code. A signed-in
- * session alone must not be able to switch two-factor off.
- */
 export function SecondFactorConfirm({
   title,
   description,

@@ -9,7 +9,6 @@ export interface ActionError {
   code?: string;
 }
 
-/** Discriminated on `error`: checking it narrows `data` to `T`. */
 export type ActionResult<T> =
   | { data: T; error: null }
   | { data: null; error: ActionError };

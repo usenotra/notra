@@ -130,7 +130,6 @@ export interface MfaChallengeFormProps {
   step: AuthFlowMfaRequired;
   returnTo?: string | null;
   onResult: ApplyAuthResult;
-  /** Called once the user has seen backup codes issued during sign-in. */
   onFinish: (redirectTo: string) => void;
   onBack?: () => void;
   onRecovered: (email: string) => void;

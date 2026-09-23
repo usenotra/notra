@@ -12,12 +12,6 @@ import {
 const SIGNATURE_SEPARATOR = ".";
 const KEY_CONTEXT = "notra-signed-cookie";
 
-/**
- * Cookies are httpOnly but still live in the browser, so anything the server
- * later trusts (a user id, a challenge id) must carry a signature the
- * browser cannot produce. The key is derived from the AuthKit cookie
- * password, which is already required to run the app.
- */
 function getSigningKey(): Buffer {
   const password = process.env.WORKOS_COOKIE_PASSWORD;
   if (!password) {
@@ -45,7 +39,6 @@ export async function storeSignedCookie(
   );
 }
 
-/** Returns the payload only when the signature and the schema both hold. */
 export async function readSignedCookie<T>(
   name: string,
   schema: z.ZodType<T>

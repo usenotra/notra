@@ -1,12 +1,3 @@
-/**
- * Exercises the server-side TOTP flow against real WorkOS for the dev account
- * from create-dev-auth-account.ts: enroll → verify → sign in → mfa_challenge →
- * challenge → authenticateWithTotp. Cleans the factor up afterwards.
- *
- *   cd apps/dashboard
- *   bun --env-file=../../.env scripts/mfa-smoke.ts
- */
-
 import { AuthenticationException, WorkOS } from "@workos-inc/node";
 
 import { generateTotpCode } from "../src/lib/auth/dev-totp";

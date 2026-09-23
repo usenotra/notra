@@ -1,21 +1,8 @@
 export const TOTP_ISSUER = "Notra";
 export const TOTP_FACTOR_TYPE = "totp";
 
-/**
- * Identifies the user and challenge of the sign-in attempt that is currently
- * mid-MFA, so backup-code recovery and per-account rate limits can be bound
- * to it without the client ever handling the user's identity.
- */
 export const MFA_ATTEMPT_COOKIE = "notra_mfa_attempt";
-/**
- * Carries the pending WorkOS credentials from the social callback to the
- * login page so they never appear in a URL.
- */
 export const MFA_PENDING_COOKIE_PREFIX = "notra_mfa_pending";
-/**
- * Binds a settings enrollment to the account that started it, so a
- * challenge from another tab or account cannot be verified against this one.
- */
 export const TOTP_ENROLLMENT_COOKIE = "notra_totp_enrollment";
 export const MFA_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 
@@ -29,9 +16,7 @@ export const SECURITY_ERROR_CODES = {
   UNAVAILABLE: "unavailable",
 } as const;
 
-/** `/login?mfa=<attempt-id>` binds the page to one pending social sign-in. */
 export const LOGIN_MFA_QUERY_KEY = "mfa";
 
 export const BACKUP_CODE_COUNT = 10;
-/** Lowercase, no ambiguous characters (0/o, 1/l/i). */
 export const BACKUP_CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";

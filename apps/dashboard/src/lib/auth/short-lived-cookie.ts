@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 
-/** httpOnly cookies that carry a single short-lived auth credential. */
 export async function readShortLivedCookie(
   name: string
 ): Promise<string | null> {

@@ -17,7 +17,6 @@ export type SecurityActionOutcome =
   | { ok: true }
   | { ok: false; message: string };
 
-/** Asks for the second factor again before a sensitive change. */
 export interface SecondFactorConfirmProps {
   title: string;
   description: string;
@@ -85,7 +84,6 @@ export interface TwoFactorSettingsProps {
   ) => Promise<TotpVerifyResult>;
   onCancelEnrollment: () => void;
   onEnrollmentDone: () => void;
-  /** Both take a fresh authenticator code or a backup code as proof. */
   onRemoveFactor: (
     factorId: string,
     confirmationCode: string

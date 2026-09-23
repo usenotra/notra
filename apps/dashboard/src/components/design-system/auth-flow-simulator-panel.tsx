@@ -18,8 +18,6 @@ import type {
 const DEFAULT_EMAIL = "jane@company.com";
 const TOTP_TICK_MS = 1000;
 
-// Log entries only ever exist in the browser, so formatting in the user's
-// zone is safe; the explicit locale keeps the output stable across devices.
 const CLOCK_TIME_ZONE =
   typeof Intl === "undefined"
     ? "UTC"

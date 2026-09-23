@@ -33,8 +33,8 @@ import {
   clearBackupCodes,
   consumeBackupCode,
   hasBackupCodes,
+  hasUnusedBackupCode,
   replaceBackupCodes,
-  restoreBackupCode,
 } from "@/lib/auth/backup-codes";
 import { beginTotpEnrollment } from "@/lib/auth/mfa";
 import {
@@ -55,12 +55,6 @@ const ATTEMPT_EXPIRED_MESSAGE =
 const BACKUP_CODE_REJECTED_MESSAGE =
   "That backup code isn't valid or was already used.";
 
-/**
- * Every password attempt mints a fresh challenge, so limiting by challenge id
- * alone would hand out a new guess budget per attempt. The attempt cookie
- * adds a stable per-account key on top. Neither bucket is keyed by IP: the
- * budget is the account's, wherever the guesses come from.
- */
 async function isMfaVerifyRateLimited(attempt: MfaAttempt) {
   if (
     await isAccountRateLimited(
@@ -76,13 +70,6 @@ async function isMfaVerifyRateLimited(attempt: MfaAttempt) {
   );
 }
 
-/**
- * The attempt cookie is signed by the server after WorkOS accepted the first
- * factor, so it cannot be forged to point at another account. It is also
- * browser-wide: a second attempt in another tab replaces it, so the challenge
- * on screen has to match as well. Without a matching attempt there is no
- * account to charge the guess to, so the request is refused outright.
- */
 async function readMatchingAttempt(authenticationChallengeId: string) {
   const attempt = await readMfaAttempt();
   return attempt?.authenticationChallengeId === authenticationChallengeId
@@ -90,11 +77,6 @@ async function readMatchingAttempt(authenticationChallengeId: string) {
     : null;
 }
 
-/**
- * Best-effort bookkeeping after the session already exists. A database
- * failure must not report the sign-in as failed, so it is logged and the
- * user can regenerate or rename from settings.
- */
 const attemptAfterSignIn = <T>(run: () => Promise<T>, what: string) =>
   Effect.tryPromise(run).pipe(
     Effect.catch((error) =>
@@ -147,8 +129,6 @@ export async function verifyMfaCodeAction(
       yield* Effect.promise(clearMfaAttemptCookie);
       yield* Effect.promise(clearAllPendingMfaFlows);
 
-      // The session is live from here on: nothing below may turn the result
-      // into an error, or the client would show a failure for a signed-in user.
       const alreadyHasCodes = yield* attemptAfterSignIn(
         () => hasBackupCodes(session.localUserId),
         "checking backup codes"
@@ -213,19 +193,13 @@ export async function redeemBackupCodeAction(
         return rejected;
       }
 
-      // Burns the code first and atomically: a second request with the same
-      // code, or the same code from two tabs, cannot both get this far. If
-      // the factor cleanup below fails, the code is handed back so the retry
-      // does not cost a second one.
-      const accepted = yield* Effect.promise(() =>
-        consumeBackupCode(localUser.id, parsed.data.code)
+      const unused = yield* Effect.promise(() =>
+        hasUnusedBackupCode(localUser.id, parsed.data.code)
       );
-      if (!accepted) {
+      if (!unused) {
         return rejected;
       }
 
-      // Only the factors this attempt was locked out by go away. One that
-      // was enrolled from a signed-in tab after the attempt began stays.
       const removeLockedOutFactors = Effect.gen(function* () {
         const factors = yield* tryWorkOSAuth(() =>
           getWorkOS().multiFactorAuth.listUserAuthFactors({
@@ -248,12 +222,9 @@ export async function redeemBackupCodeAction(
         );
         return lockedOutFactors.length === totpFactors.length;
       });
-      const allFactorsRemoved = yield* removeLockedOutFactors.pipe(
-        Effect.tapError(() =>
-          Effect.promise(() =>
-            restoreBackupCode(localUser.id, parsed.data.code)
-          ).pipe(Effect.ignore)
-        )
+      const allFactorsRemoved = yield* removeLockedOutFactors;
+      yield* Effect.promise(() =>
+        consumeBackupCode(localUser.id, parsed.data.code)
       );
 
       if (allFactorsRemoved) {
@@ -282,11 +253,6 @@ export async function redeemBackupCodeAction(
   );
 }
 
-/**
- * Finishes a social sign-in that WorkOS answered with `mfa_enrollment`. The
- * callback could only hand over the pending token, so the factor (and its
- * QR code, too large for a cookie) is created here once the page is up.
- */
 export async function resumeSocialEnrollmentAction(
   rawInput: ResumeSocialEnrollmentInput
 ): Promise<AuthFlowResult> {
@@ -307,7 +273,6 @@ export async function resumeSocialEnrollmentAction(
   ) {
     return { status: "error", message: RATE_LIMITED_MESSAGE };
   }
-  // Single use: every call mints a factor at WorkOS.
   await clearPendingMfaFlow(parsed.data.flowId);
 
   return runAuthFlow(

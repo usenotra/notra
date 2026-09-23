@@ -35,10 +35,6 @@ const noop = () => {
 const subscribeToNothing = () => noop;
 const returnNull = () => null;
 
-/**
- * Leaving an untouched field (for example by clicking a social sign-in
- * button) should not flag it as missing; "required" surfaces on submit.
- */
 const validateFilledField = (
   validate: (value: string) => string | undefined,
   value: string
@@ -80,7 +76,6 @@ export function LoginForm({
     setAuthMethod(null);
   }
 
-  /** Runs a redirect-style sign-in (social); a Next redirect throws by design. */
   function startRedirectSignIn(
     method: AuthMethod,
     start: () => Promise<void>,
@@ -150,10 +145,6 @@ export function LoginForm({
     setFormError(null);
   }
 
-  /**
-   * A backup code removed the authenticator. If the password is still in the
-   * form, sign in again right away; otherwise ask the user to sign in.
-   */
   async function handleRecovered(recoveredEmail: string) {
     flow.reset();
     const { email, password } = form.state.values;

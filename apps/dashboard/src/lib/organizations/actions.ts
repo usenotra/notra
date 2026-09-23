@@ -562,11 +562,6 @@ export async function setActiveOrganizationAction(
   );
 }
 
-/**
- * Organization row for a `/[slug]` route, without the member join. Unlike
- * `validateOrganizationAccess` this never redirects, so it is safe to call from
- * a client query.
- */
 export async function getOrganizationSummaryAction(
   rawSlug: string
 ): Promise<ActionResult<OrganizationRow>> {

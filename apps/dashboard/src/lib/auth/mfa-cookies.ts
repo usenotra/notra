@@ -70,7 +70,6 @@ export function clearMfaAttemptCookie() {
   return clearSignedCookie(MFA_ATTEMPT_COOKIE);
 }
 
-/** Returns the flow id that `/login?mfa=<id>` uses to find the cookie. */
 export async function storePendingMfaFlow(flow: PendingMfaFlow) {
   const flowId = crypto.randomUUID();
   await storeSignedCookie(
@@ -88,7 +87,6 @@ export function readPendingMfaFlow(flowId: string) {
     : Promise.resolve(null);
 }
 
-/** Once a sign-in completes, no handoff that led to it may be replayed. */
 export function clearAllPendingMfaFlows() {
   return clearSignedCookiesWithPrefix(`${MFA_PENDING_COOKIE_PREFIX}_`);
 }

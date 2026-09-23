@@ -21,10 +21,6 @@ function isFinderModule(x: number, y: number) {
   return inFinder(0, 0) ?? inFinder(offset, 0) ?? inFinder(0, offset);
 }
 
-/**
- * Deterministic QR-looking pattern (not scannable) so enrollment UIs render
- * without a real WorkOS secret. `seed` varies the data area.
- */
 export function buildPlaceholderQrCode(seed = 0) {
   const rects: string[] = [];
   for (let y = 0; y < DEMO_QR_MODULES; y += 1) {

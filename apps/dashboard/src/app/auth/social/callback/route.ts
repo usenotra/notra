@@ -83,8 +83,6 @@ const mapFailure = (error: WorkOSAuthError | UserSyncError) => {
     info.pendingAuthenticationToken &&
     info.userId
   ) {
-    // Social-only accounts have no password to fall back to, so the login
-    // page picks the enrollment up and creates the factor there.
     return Effect.succeed<SocialCallbackOutcome>({
       kind: "mfa-enrollment-required",
       pendingAuthenticationToken: info.pendingAuthenticationToken,
@@ -165,8 +163,6 @@ export async function GET(request: NextRequest) {
     redirect(`/login?${params.toString()}`);
   }
 
-  // The pending token and challenge are credentials: they travel in a signed
-  // httpOnly cookie, never in the URL where history and logs would keep them.
   if (outcome.kind === "mfa-required") {
     const flowId = await storePendingMfaFlow({
       kind: "challenge",

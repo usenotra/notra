@@ -63,10 +63,6 @@ function randomBackupCodes() {
   );
 }
 
-/**
- * In-browser stand-in for the WorkOS side of the auth flow. Returns the
- * simulated account state plus handlers shaped like the real server actions.
- */
 export function useAuthFlowPlayground() {
   const [account, setAccount] = useState<DevAccount>({
     email: DEFAULT_EMAIL,
@@ -86,14 +82,10 @@ export function useAuthFlowPlayground() {
     useState<DevSettingsEnrollment | null>(null);
   const [isStartingEnrollment, setIsStartingEnrollment] = useState(false);
   const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
-  // A first-time enrollment shows backup codes before the redirect, so the
-  // session only becomes visible once the login form reports completion.
   const pendingSessionRef = useRef<DevSession | null>(null);
   const backupCodesRef = useRef<string[]>([]);
   const generationRef = useRef(0);
 
-  // Mirrors the state synchronously so two confirmations racing on the same
-  // code cannot both see it as unused.
   function updateBackupCodes(
     next: string[] | ((current: string[]) => string[])
   ) {
@@ -103,8 +95,6 @@ export function useAuthFlowPlayground() {
     setBackupCodes(value);
   }
 
-  // Rejects once the playground was reset, so in-flight simulations cannot
-  // repopulate state that the reset just cleared.
   async function simulateLatency() {
     const generation = generationRef.current;
     await wait(SIMULATED_LATENCY_MS);
@@ -113,8 +103,6 @@ export function useAuthFlowPlayground() {
     }
   }
 
-  // Handlers are captured by the login form at render time; reading through
-  // a ref keeps a re-submitted sign-in (after a backup code) on fresh state.
   const accountRef = useRef(account);
   useEffect(() => {
     accountRef.current = account;
@@ -157,8 +145,6 @@ export function useAuthFlowPlayground() {
     setLoginKey((key) => key + 1);
     appendLog("Session ended");
   }
-
-  // --- Sign-in handlers (stand in for the WorkOS server actions) -----------
 
   async function signInWithPassword(
     input: SignInWithPasswordInput
@@ -320,8 +306,6 @@ export function useAuthFlowPlayground() {
     throw new Error("Social sign-in is not part of this playground.");
   }
 
-  // --- Settings handlers ----------------------------------------------------
-
   async function startSettingsEnrollment() {
     setIsStartingEnrollment(true);
     await simulateLatency();
@@ -359,7 +343,6 @@ export function useAuthFlowPlayground() {
     return { ok: true, backupCodes: codes };
   }
 
-  /** Stand-in for the server's step-up: a live code or an unused backup code. */
   async function confirmSecondFactor(
     confirmationCode: string
   ): Promise<SecurityActionOutcome> {
@@ -434,7 +417,6 @@ export function useAuthFlowPlayground() {
       ]
     : [];
 
-  /** The login form finished; a held-back enrollment session becomes visible. */
   function completeSignIn() {
     if (pendingSessionRef.current) {
       setSession(pendingSessionRef.current);

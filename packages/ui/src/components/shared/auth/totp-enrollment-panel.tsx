@@ -110,8 +110,6 @@ export function TotpEnrollmentPanel({
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
-  // Cancelling mid-request discards the factor; a verification that lands
-  // after that must not report success for a setup that no longer exists.
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -154,8 +152,6 @@ export function TotpEnrollmentPanel({
     onDone?.();
   }
 
-  // One secondary action next to the primary one: leaving on the first step
-  // cancels the whole enrollment, on later steps it goes back to the QR code.
   const isFirstStep = step === "scan";
   const secondaryButton =
     isFirstStep && !onCancel ? null : (
@@ -263,7 +259,6 @@ export function TotpEnrollmentPanel({
           Scan this with 1Password, Google Authenticator, or Authy.
         </p>
         <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-xs ring-1 ring-black/5">
-          {/* Data-URI QR code from WorkOS: nothing for next/image to optimize. */}
           <img
             alt={qrAltText}
             className="block"

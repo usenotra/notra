@@ -128,7 +128,6 @@ export type StartTotpEnrollmentResult = TotpEnrollment;
 
 export interface VerifyTotpEnrollmentResult {
   verified: true;
-  /** `null` when the factor is on but issuing codes failed; see `warning`. */
   backupCodes: string[] | null;
   warning: string | null;
 }

@@ -5,10 +5,6 @@ import type * as React from "react";
 
 import { cn } from "@notra/ui/lib/utils";
 
-/**
- * One-time-code input built on Base UI's OTP Field. Each slot is a real
- * `<input>`; the root handles focus movement, paste, and autofill.
- */
 function InputOTP({
   className,
   ...props

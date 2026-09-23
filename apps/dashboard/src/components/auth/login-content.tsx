@@ -8,7 +8,6 @@ import { LOGIN_MFA_QUERY_KEY } from "@/constants/security";
 import { readPendingMfaFlow } from "@/lib/auth/mfa-cookies";
 import type { LoginPageProps, LoginPageStart } from "@/types/auth/login-page";
 
-/** Which screen the page opens on, from the social handoff or the URL. */
 async function resolveStart(
   mfa: string | undefined,
   verify: string | undefined,

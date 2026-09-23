@@ -11,18 +11,11 @@ import type { SocialEnrollmentResumeProps } from "@/types/auth/login-page";
 const RESUME_ERROR_FALLBACK =
   "Couldn't continue the two-factor setup. Please sign in again.";
 
-/**
- * A social sign-in that needs two-factor enrollment lands here. The factor
- * is created on mount (its QR code cannot travel through the redirect) and
- * the login form then opens straight on the enrollment step.
- */
 export function SocialEnrollmentResume({
   flowId,
   returnTo,
 }: SocialEnrollmentResumeProps) {
   const [result, setResult] = useState<AuthFlowResult | null>(null);
-  // The handoff cookie is single-use; StrictMode's double effect must not
-  // spend it twice.
   const startedRef = useRef(false);
 
   useEffect(() => {

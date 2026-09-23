@@ -1,15 +1,3 @@
-/**
- * Creates (or repairs) a dev account for testing 2FA against the
- * real WorkOS environment in the root `.env`.
- *
- *   cd apps/dashboard
- *   bun --env-file=../../.env scripts/create-dev-auth-account.ts
- *   bun --env-file=../../.env scripts/create-dev-auth-account.ts --reset-mfa
- *
- * `--reset-mfa` removes every enrolled TOTP factor so enrollment can be tested
- * again. Override the identity with DEV_AUTH_EMAIL / DEV_AUTH_PASSWORD.
- */
-
 import { db } from "@notra/db/drizzle";
 import {
   members,
@@ -175,7 +163,6 @@ const workosUser = await ensureWorkOSUser();
 const localUser = await ensureLocalUser(workosUser.id);
 if (RESET_MFA) {
   await resetFactors(workosUser.id);
-  // Mirror what removing a factor in the app does.
   await db
     .delete(userBackupCodes)
     .where(eq(userBackupCodes.userId, localUser.id));

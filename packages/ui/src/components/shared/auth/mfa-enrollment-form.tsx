@@ -35,7 +35,6 @@ export function MfaEnrollmentForm({
     if (!result) {
       return { ok: false, message: ENROLLMENT_ERROR_FALLBACK };
     }
-    // Hold the redirect until the user has seen their backup codes.
     if (result.status === "enrolled") {
       redirectToRef.current = result.redirectTo;
       return { ok: true, backupCodes: result.backupCodes };

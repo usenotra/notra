@@ -1,8 +1,3 @@
-/**
- * RFC 6238 TOTP helpers backed by WebCrypto. Only used by the dev-only auth
- * playground so the whole flow can be exercised without a real WorkOS factor.
- */
-
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const BASE32_BITS_PER_CHAR = 5;
 const BYTE_BITS = 8;

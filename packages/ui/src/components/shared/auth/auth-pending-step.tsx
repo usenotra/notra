@@ -5,7 +5,6 @@ import { EmailVerificationForm } from "./email-verification-form";
 import { MfaChallengeForm } from "./mfa-challenge-form";
 import { MfaEnrollmentForm } from "./mfa-enrollment-form";
 
-/** Renders whichever intermediate auth step the server asked for. */
 export function AuthPendingStep({
   step,
   returnTo,

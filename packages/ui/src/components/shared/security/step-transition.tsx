@@ -13,10 +13,6 @@ import type { StepTransitionProps } from "../../../types/security";
 
 const ENTER_OFFSET = 6;
 
-/**
- * Cross-fades between steps of a small flow. Re-keys on `stepKey`, so the
- * outgoing step slides up while the incoming one settles from below.
- */
 export function StepTransition({
   stepKey,
   children,

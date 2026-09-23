@@ -38,7 +38,6 @@ export function TwoFactorSection({
   const [isStartingEnrollment, setIsStartingEnrollment] = useState(false);
   const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
 
-  // Walking away from an unverified enrollment would leave a dangling factor.
   useEffect(() => {
     return () => {
       const current = enrollmentRef.current;
@@ -52,23 +51,20 @@ export function TwoFactorSection({
 
   async function startEnrollment() {
     setIsStartingEnrollment(true);
-    try {
-      const result = await authClient.security.startTotpEnrollment();
-      if (result.error) {
-        toast.error(
-          errorMessageOr(
-            result.error.message,
-            "Couldn't start two-factor setup"
-          )
-        );
-        return;
-      }
-      setEnrollment({ kind: "scanning", ...result.data });
-    } catch {
-      toast.error("Couldn't start two-factor setup");
-    } finally {
-      setIsStartingEnrollment(false);
+    const result = await authClient.security
+      .startTotpEnrollment()
+      .catch(() => null);
+    setIsStartingEnrollment(false);
+    if (!result || result.error) {
+      toast.error(
+        errorMessageOr(
+          result?.error?.message,
+          "Couldn't start two-factor setup"
+        )
+      );
+      return;
     }
+    setEnrollment({ kind: "scanning", ...result.data });
   }
 
   async function removeFactor(
@@ -76,22 +72,19 @@ export function TwoFactorSection({
     confirmationCode: string
   ): Promise<SecurityActionOutcome> {
     setRemovingFactorId(factorId);
-    try {
-      const result = await authClient.security.removeAuthFactor({
-        factorId,
-        confirmationCode,
-      });
-      if (result.error) {
-        return { ok: false, message: result.error.message };
-      }
-      toast.success("Two-factor authentication turned off");
-      await onRefresh();
-      return { ok: true };
-    } catch {
+    const result = await authClient.security
+      .removeAuthFactor({ factorId, confirmationCode })
+      .catch(() => null);
+    setRemovingFactorId(null);
+    if (!result) {
       return { ok: false, message: "Couldn't remove the authenticator app" };
-    } finally {
-      setRemovingFactorId(null);
     }
+    if (result.error) {
+      return { ok: false, message: result.error.message };
+    }
+    toast.success("Two-factor authentication turned off");
+    await onRefresh();
+    return { ok: true };
   }
 
   async function verifyEnrollment({

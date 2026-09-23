@@ -94,8 +94,6 @@ export function MfaChallengeForm({
     if (!isCurrent()) {
       return;
     }
-    // The account had no backup codes yet, so the server issued a set. Hold
-    // the redirect until the user has had a chance to save them.
     if (result?.status === "enrolled") {
       setIsPending(false);
       setIssuedCodes({

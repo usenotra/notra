@@ -40,16 +40,11 @@ export const backupCodeSchema = z
   .pipe(z.string().regex(BACKUP_CODE_REGEX, "Enter a valid backup code"));
 
 export const redeemBackupCodeInputSchema = z.object({
-  /** The challenge on screen; the server rejects codes for any other attempt. */
   authenticationChallengeId: workosIdSchema("Challenge"),
   code: backupCodeSchema,
   returnTo: returnToSchema,
 });
 
-/**
- * Proof that the caller holds the second factor: a code from the
- * authenticator app, or one of the backup codes. The server tells them apart.
- */
 export const secondFactorCodeSchema = z
   .string()
   .trim()

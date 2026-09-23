@@ -5,11 +5,6 @@ import { useState } from "react";
 
 import type { ApplyAuthResult, UseAuthFlowOptions } from "../types/auth";
 
-/**
- * Owns the "what does the auth screen show next" state shared by the login
- * and signup forms: either the credentials form or one pending step
- * (email verification, MFA challenge, MFA enrollment).
- */
 export function useAuthFlow({ initialPending, onSuccess }: UseAuthFlowOptions) {
   const [pending, setPending] = useState<PendingAuthStep | null>(
     initialPending ?? null

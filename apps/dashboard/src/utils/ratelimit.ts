@@ -197,9 +197,6 @@ export function getClientIpFromHeaders(headersList: Headers): string {
 }
 
 export function getClientIp(request: NextRequest): string {
-  // Vercel injects this header at its trusted network boundary. Do not fall
-  // back to generic forwarding headers: outside Vercel they are supplied by
-  // the client unless the deployment configures its own trusted proxy.
   if (process.env.VERCEL !== "1") {
     return "unknown";
   }
@@ -207,10 +204,6 @@ export function getClientIp(request: NextRequest): string {
   return request.headers.get("x-vercel-forwarded-for")?.trim() || "unknown";
 }
 
-/**
- * Sliding-window check keyed by client IP plus a caller-provided key. Skipped
- * outside production when no Upstash credentials are configured.
- */
 export async function isRateLimited(
   limiter: Ratelimit,
   key: string
@@ -225,10 +218,6 @@ export async function isRateLimited(
   return !success;
 }
 
-/**
- * Sliding-window check keyed only by the caller-provided key, for budgets
- * that must hold across IPs (guesses against one account or challenge).
- */
 export async function isAccountRateLimited(
   limiter: Ratelimit,
   key: string

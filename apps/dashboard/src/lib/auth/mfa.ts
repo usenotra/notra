@@ -27,11 +27,6 @@ const createMfaChallenge = Effect.fn("auth.mfa.createChallenge")(function* (
   return challenge.id;
 });
 
-/**
- * Binds the browser to this attempt: the challenge form can fall back to a
- * backup code and verification is rate-limited per account, without the
- * client ever handling the user's identity.
- */
 const rememberAttempt = (
   workosUserId: string,
   authenticationChallengeId: string
@@ -55,13 +50,6 @@ async function forgetFactorState(workosUserId: string) {
   await clearBackupCodes(localUser.id);
 }
 
-/**
- * Creates the TOTP factor for a sign-in that WorkOS answered with
- * `mfa_enrollment`, and binds the browser to its challenge. WorkOS only asks
- * for enrollment when no factor is live, so anything left from an earlier
- * factor is stale and would otherwise stop the new backup codes from being
- * issued after verification.
- */
 export const beginTotpEnrollment = Effect.fn("auth.mfa.beginEnrollment")(
   function* (workosUserId: string, email: string) {
     yield* Effect.promise(() => forgetFactorState(workosUserId));
@@ -73,11 +61,6 @@ export const beginTotpEnrollment = Effect.fn("auth.mfa.beginEnrollment")(
   }
 );
 
-/**
- * Turns a WorkOS `mfa_challenge` / `mfa_enrollment` authentication error into
- * the next step of the sign-in flow. Returns `null` when the error is not an
- * MFA error so the caller can fall through to its generic handling.
- */
 export const resolveMfaFlow = Effect.fn("auth.mfa.resolveFlow")(function* (
   info: WorkOSErrorInfo,
   email: string

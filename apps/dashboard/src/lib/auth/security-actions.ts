@@ -34,8 +34,8 @@ import {
   clearBackupCodes,
   consumeBackupCode,
   countRemainingBackupCodes,
+  hasUnusedBackupCode,
   replaceBackupCodes,
-  restoreBackupCode,
 } from "@/lib/auth/backup-codes";
 import {
   clearTotpEnrollmentInProgress,
@@ -71,7 +71,6 @@ const tryDb = <T>(run: () => Promise<T>, message: string) =>
     catch: (cause) => new ActionFailure({ message, cause }),
   });
 
-/** Runs a write that must not fail the action; `null` means it did not happen. */
 const attemptDb = <T>(run: () => Promise<T>) =>
   Effect.tryPromise(run).pipe(
     Effect.catch((error) =>
@@ -144,7 +143,6 @@ interface SecurityContext {
 const isTotpCode = (code: string) =>
   code.length === TOTP_CODE_LENGTH && /^\d+$/.test(code);
 
-/** True when `code` is valid for one of the user's authenticator apps. */
 const verifyTotpAgainstFactors = Effect.fn("auth.security.verifyTotp")(
   function* (factors: TotpFactorSummary[], code: string) {
     for (const factor of factors) {
@@ -167,13 +165,6 @@ const verifyTotpAgainstFactors = Effect.fn("auth.security.verifyTotp")(
   }
 );
 
-/**
- * A live session is not enough to weaken the second factor: someone at an
- * unlocked laptop could otherwise switch it off. The caller has to present
- * the second factor again, as a fresh authenticator code or a backup code.
- * Returns the backup code it consumed, if any, so the caller can hand it
- * back when the change it authorized does not go through.
- */
 const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
   function* (
     context: SecurityContext,
@@ -184,14 +175,24 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
       ratelimit.mfaVerify,
       `confirm:${context.localUserId}`
     );
-    const backupCode = isTotpCode(code) ? null : normalizeBackupCode(code);
-    const confirmed = backupCode
-      ? yield* tryDb(
-          () => consumeBackupCode(context.localUserId, backupCode),
-          "Couldn't check the backup code. Please try again."
-        )
-      : yield* verifyTotpAgainstFactors(factors, code);
-    if (!confirmed) {
+    if (isTotpCode(code)) {
+      const confirmed = yield* verifyTotpAgainstFactors(factors, code);
+      if (!confirmed) {
+        return yield* Effect.fail(
+          new ActionFailure({
+            code: SECURITY_ERROR_CODES.INVALID_CODE,
+            message: INVALID_CONFIRMATION_MESSAGE,
+          })
+        );
+      }
+      return null;
+    }
+    const backupCode = normalizeBackupCode(code);
+    const unused = yield* tryDb(
+      () => hasUnusedBackupCode(context.localUserId, backupCode),
+      "Couldn't check the backup code. Please try again."
+    );
+    if (!unused) {
       return yield* Effect.fail(
         new ActionFailure({
           code: SECURITY_ERROR_CODES.INVALID_CODE,
@@ -203,7 +204,6 @@ const confirmSecondFactor = Effect.fn("auth.security.confirmSecondFactor")(
   }
 );
 
-/** Runs `change` behind a fresh second factor; a failed change costs no backup code. */
 const withSecondFactor = <A>(
   context: SecurityContext,
   factors: TotpFactorSummary[],
@@ -211,12 +211,12 @@ const withSecondFactor = <A>(
   change: Effect.Effect<A, ActionFailure>
 ) =>
   Effect.gen(function* () {
-    const usedBackupCode = yield* confirmSecondFactor(context, factors, code);
+    const backupCode = yield* confirmSecondFactor(context, factors, code);
     return yield* change.pipe(
-      Effect.tapError(() =>
-        usedBackupCode
+      Effect.tap(() =>
+        backupCode
           ? Effect.promise(() =>
-              restoreBackupCode(context.localUserId, usedBackupCode)
+              consumeBackupCode(context.localUserId, backupCode)
             ).pipe(Effect.ignore)
           : Effect.void
       )
@@ -253,9 +253,6 @@ export async function startTotpEnrollmentAction(): Promise<
   return runAction(
     Effect.gen(function* () {
       const context = yield* requireSecurityContext();
-      // The UI only offers setup while no authenticator exists; the server
-      // holds the same line so a live session cannot add a second factor
-      // and rotate the backup codes without confirming the first.
       const existing = yield* listTotpFactors(context.workosUserId);
       if (existing.length > 0) {
         return yield* Effect.fail(
@@ -265,7 +262,6 @@ export async function startTotpEnrollmentAction(): Promise<
       const enrollment = yield* tryWorkOS(() =>
         createTotpFactor(context.workosUserId, context.email)
       );
-      // Ties the challenge to this account and browser; see verify below.
       yield* Effect.promise(() =>
         storeTotpEnrollmentInProgress({
           localUserId: context.localUserId,
@@ -278,11 +274,6 @@ export async function startTotpEnrollmentAction(): Promise<
   );
 }
 
-/**
- * Deletes a factor that was started from settings and never verified. It
- * takes no confirmation because such a factor cannot be used yet, and the
- * signed cookie proves it is this session's own abandoned setup.
- */
 export async function discardTotpEnrollmentAction(
   rawInput: DiscardTotpEnrollmentInput
 ): Promise<ActionResult<{ discarded: boolean }>> {
@@ -319,13 +310,8 @@ export async function verifyTotpEnrollmentAction(
         verifyTotpEnrollmentInputSchema,
         rawInput
       );
-      // Keyed by account, not by challenge: restarting the setup mints a new
-      // challenge and must not hand out a fresh guess budget.
       yield* enforceRateLimit(ratelimit.mfaVerify, context.localUserId);
 
-      // The challenge must be the one this account started in this browser.
-      // Otherwise a challenge from another tab or account could be verified
-      // here and its codes and name would land on the wrong user.
       const inProgress = yield* Effect.promise(readTotpEnrollmentInProgress);
       const isOwnEnrollment =
         inProgress?.localUserId === context.localUserId &&
@@ -359,10 +345,6 @@ export async function verifyTotpEnrollmentAction(
       }
       yield* Effect.promise(clearTotpEnrollmentInProgress);
 
-      // The factor is live from here on, so nothing below may fail the
-      // action: the client would keep the setup in its unverified state and
-      // delete the working factor on cleanup. Problems become a warning and
-      // the user can regenerate from settings.
       const warnings: string[] = [];
       const backupCodes = yield* attemptDb(() =>
         replaceBackupCodes(context.localUserId)
