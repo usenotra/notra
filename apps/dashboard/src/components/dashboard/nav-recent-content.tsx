@@ -12,10 +12,9 @@ import { usePathname } from "next/navigation";
 import {
   CONTENT_NAV_LINK,
   NAV_RECENT_LABEL,
-  NAV_RECENT_LIMIT,
   NAV_RECENT_SKELETON_IDS,
 } from "@/constants/nav";
-import { usePosts } from "@/lib/hooks/use-posts";
+import { useRecentPosts } from "@/lib/hooks/use-posts";
 import type { NavRecentContentProps } from "@/types/components/nav";
 
 import { NavRecentContentItem } from "./nav-recent-content-item";
@@ -27,13 +26,7 @@ export function NavRecentContent({
   enabled = true,
 }: NavRecentContentProps) {
   const pathname = usePathname();
-  // Request only what the sidebar shows — a full page ships every post body.
-  const { data, isPending } = usePosts(
-    organizationId,
-    1,
-    enabled,
-    NAV_RECENT_LIMIT
-  );
+  const { data, isPending } = useRecentPosts(organizationId, enabled);
   const posts = data?.posts ?? [];
 
   if (!enabled || (!isPending && posts.length === 0)) {

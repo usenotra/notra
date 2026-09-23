@@ -49,6 +49,7 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { GITHUB_CONTENT_PATH_MAX_LENGTH } from "@notra/schemas/constants/dashboard/github";
 import {
   contentListQuerySchema,
+  contentRecentsQuerySchema,
   dashboardHomeContentQuerySchema,
 } from "@notra/schemas/dashboard/api-params";
 import type {
@@ -567,6 +568,36 @@ export const contentRouter = {
         };
       }),
   },
+  recents: baseProcedure
+    .input(contentOrganizationIdInputSchema.and(contentRecentsQuerySchema))
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+      });
+
+      const filters = [eq(posts.organizationId, input.organizationId)];
+      const collectionIds = projectScopedCollectionIds(
+        input.organizationId,
+        input.projectId
+      );
+      if (collectionIds) {
+        filters.push(inArray(posts.collectionId, collectionIds));
+      }
+
+      const items = await db.query.posts.findMany({
+        where: and(...filters),
+        orderBy: [desc(posts.createdAt), desc(posts.id)],
+        limit: input.limit,
+        columns: {
+          id: true,
+          title: true,
+          status: true,
+        },
+      });
+
+      return { posts: items };
+    }),
   list: baseProcedure
     .input(contentOrganizationIdInputSchema.and(contentListQuerySchema))
     .handler(async ({ context, input }) => {

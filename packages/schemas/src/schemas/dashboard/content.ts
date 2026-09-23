@@ -146,6 +146,20 @@ export const postsResponseSchema = z.object({
 
 export type PostsResponse = z.infer<typeof postsResponseSchema>;
 
+export const recentPostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: postStatusSchema,
+});
+
+export type RecentPost = z.infer<typeof recentPostSchema>;
+
+export const recentPostsResponseSchema = z.object({
+  posts: z.array(recentPostSchema),
+});
+
+export type RecentPostsResponse = z.infer<typeof recentPostsResponseSchema>;
+
 export const createChatPostSchema = z.object({
   chatId: z.string().trim().min(1),
   title: z.string().trim().min(1).max(120),

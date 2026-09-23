@@ -28,6 +28,7 @@ export function NavModeSwitch({
   slug,
   projectId,
   onModeChange,
+  onPrefetchMode,
 }: NavModeSwitchProps) {
   const handleModeSelect = (
     next: SidebarMode,
@@ -66,6 +67,7 @@ export function NavModeSwitch({
                     ? "text-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground"
                 )}
+                eagerPrefetch={!isActive}
                 href={geoNavHref(
                   slug,
                   SIDEBAR_MODE_HOME_LINKS[option.id],
@@ -73,6 +75,8 @@ export function NavModeSwitch({
                 )}
                 key={option.id}
                 onClick={(event) => handleModeSelect(option.id, event)}
+                onFocus={() => onPrefetchMode?.(option.id)}
+                onMouseEnter={() => onPrefetchMode?.(option.id)}
               >
                 <HugeiconsIcon className="size-3.5" icon={option.icon} />
                 {option.label}
@@ -88,12 +92,15 @@ export function NavModeSwitch({
               isActive={option.id === mode}
               render={
                 <SidebarNavLink
+                  eagerPrefetch={option.id !== mode}
                   href={geoNavHref(
                     slug,
                     SIDEBAR_MODE_HOME_LINKS[option.id],
                     projectId
                   )}
                   onClick={(event) => handleModeSelect(option.id, event)}
+                  onFocus={() => onPrefetchMode?.(option.id)}
+                  onMouseEnter={() => onPrefetchMode?.(option.id)}
                 >
                   <HugeiconsIcon icon={option.icon} />
                   <SidebarLabel>{option.label}</SidebarLabel>

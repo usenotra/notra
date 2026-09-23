@@ -49,6 +49,8 @@ export interface NavModeSwitchProps {
   slug: string;
   projectId?: string;
   onModeChange: (mode: SidebarMode) => void;
+  /** Warm the destination before the click, e.g. Studio recents. */
+  onPrefetchMode?: (mode: SidebarMode) => void;
 }
 
 export interface NavGeoProps {
@@ -63,7 +65,7 @@ export interface NavStudioProps {
   organizationId: string;
   /** Route to resolve the active item against; may lead the real pathname. */
   pathname: string;
-  /** Skip recent-post fetching while the Studio panel is hidden. */
+  /** Skip fetching while hidden; pass true once Studio is shown or warmed. */
   loadRecent?: boolean;
 }
 

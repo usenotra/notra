@@ -270,6 +270,7 @@ export const SIDEBAR_MODE_SLOT_CLASS = `grid transition-[grid-template-rows,opac
 
 export const NAV_RECENT_LABEL = "Recent";
 export const NAV_RECENT_LIMIT = 3;
+export const NAV_RECENT_WARM_IDLE_TIMEOUT_MS = 1200;
 export const NAV_RECENT_SKELETON_IDS = ["first", "second", "third"] as const;
 export const NAV_RECENT_TITLE_CLASS = "min-w-0 max-w-[8.5rem] flex-1 truncate";
 export const NAV_PROJECTS_MENU_LABEL = "Projects";
