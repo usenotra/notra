@@ -15,6 +15,18 @@ export function takeQueuedMessage<T extends { id: string }>(
   };
 }
 
+export function shouldDrainQueueAfterError({
+  hasPendingSteer,
+  hasSteerInFlight,
+  isUsageLimit,
+}: {
+  hasPendingSteer: boolean;
+  hasSteerInFlight: boolean;
+  isUsageLimit: boolean;
+}): boolean {
+  return !hasPendingSteer && !hasSteerInFlight && !isUsageLimit;
+}
+
 export function parseQueuedMessages(value: unknown): QueuedMessage[] {
   if (!Array.isArray(value)) {
     return [];

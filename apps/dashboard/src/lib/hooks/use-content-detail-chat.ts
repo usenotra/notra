@@ -45,7 +45,10 @@ import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import { isTerminalToolState } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { buildUserMessageParts } from "@/utils/chat-message-parts";
-import { takeQueuedMessage } from "@/utils/chat-queue";
+import {
+  shouldDrainQueueAfterError,
+  takeQueuedMessage,
+} from "@/utils/chat-queue";
 import { snapshotContentChatAttachments } from "@/utils/content-chat-attachments";
 
 interface UseContentDetailChatParams {
@@ -99,6 +102,8 @@ export function useContentDetailChat({
   const wasStoppedByUserRef = useRef(false);
   const queuedMessagesRef = useRef<QueuedMessage[]>([]);
   const steerAfterStopRef = useRef<QueuedMessage | null>(null);
+  const steerInFlightRef = useRef<QueuedMessage | null>(null);
+  const skipQueueDrainRef = useRef(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
   const seenToolOutputsRef = useRef<Set<string>>(new Set());
@@ -181,6 +186,8 @@ export function useContentDetailChat({
         });
       isDrainingRef.current = false;
       isAgentBusyRef.current = false;
+      steerInFlightRef.current = null;
+      skipQueueDrainRef.current = false;
       if (steerAfterStopRef.current) {
         flushSteerAfterStopRef.current();
         return;
@@ -198,6 +205,15 @@ export function useContentDetailChat({
         flushSteerAfterStopRef.current();
         return;
       }
+      const steered = steerInFlightRef.current;
+      const skipQueueDrain = skipQueueDrainRef.current || Boolean(steered);
+      if (steered) {
+        steerInFlightRef.current = null;
+        const restored = [steered, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
+      }
+      skipQueueDrainRef.current = false;
       queryClient
         .invalidateQueries({
           queryKey: contentChatSessionsQueryKey(organizationId, contentId),
@@ -228,6 +244,14 @@ export function useContentDetailChat({
       });
       if (!isUsageLimit) {
         toast.error("Failed to edit content");
+      }
+      if (
+        shouldDrainQueueAfterError({
+          hasPendingSteer: false,
+          hasSteerInFlight: skipQueueDrain,
+          isUsageLimit,
+        })
+      ) {
         drainQueueRef.current();
       }
     },
@@ -250,6 +274,8 @@ export function useContentDetailChat({
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
     steerAfterStopRef.current = null;
+    steerInFlightRef.current = null;
+    skipQueueDrainRef.current = false;
     setChatError(null);
     processedToolCallsRef.current = new Set();
     wasStoppedByUserRef.current = false;
@@ -360,6 +386,8 @@ export function useContentDetailChat({
       setQueuedMessages([]);
       queuedMessagesRef.current = [];
       steerAfterStopRef.current = null;
+      steerInFlightRef.current = null;
+      skipQueueDrainRef.current = false;
       processedToolCallsRef.current = new Set();
       setMessages([]);
       setActiveChatId(chatId);
@@ -375,6 +403,8 @@ export function useContentDetailChat({
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
     steerAfterStopRef.current = null;
+    steerInFlightRef.current = null;
+    skipQueueDrainRef.current = false;
     setChatInputValue("");
     if (messagesRef.current.length === 0) {
       processedToolCallsRef.current = new Set();
@@ -553,25 +583,43 @@ export function useContentDetailChat({
     }
   }, []);
 
+  const restoreSteeredMessage = useCallback(() => {
+    const next = steerInFlightRef.current;
+    if (!next) {
+      return;
+    }
+    steerInFlightRef.current = null;
+    isAgentBusyRef.current = false;
+    const restored = [next, ...queuedMessagesRef.current];
+    queuedMessagesRef.current = restored;
+    setQueuedMessages(restored);
+  }, []);
+
+  const sendSteeredMessage = useCallback(
+    (message: QueuedMessage) => {
+      steerInFlightRef.current = message;
+      skipQueueDrainRef.current = true;
+      wasStoppedByUserRef.current = false;
+      isAgentBusyRef.current = true;
+      dispatchContentEdit(message.text, {
+        selection: message.selection,
+        context: message.context,
+      }).catch((error) => {
+        console.error("[Content] Failed to steer queued message:", error);
+        restoreSteeredMessage();
+      });
+    },
+    [dispatchContentEdit, restoreSteeredMessage]
+  );
+
   const flushSteerAfterStop = useCallback(() => {
     const next = steerAfterStopRef.current;
     if (!next) {
       return;
     }
     steerAfterStopRef.current = null;
-    wasStoppedByUserRef.current = false;
-    isAgentBusyRef.current = true;
-    dispatchContentEdit(next.text, {
-      selection: next.selection,
-      context: next.context,
-    }).catch((error) => {
-      console.error("[Content] Failed to steer queued message:", error);
-      isAgentBusyRef.current = false;
-      const restored = [next, ...queuedMessagesRef.current];
-      queuedMessagesRef.current = restored;
-      setQueuedMessages(restored);
-    });
-  }, [dispatchContentEdit]);
+    sendSteeredMessage(next);
+  }, [sendSteeredMessage]);
 
   const handleSteerQueued = useCallback(
     (message: QueuedMessage) => {
@@ -582,29 +630,23 @@ export function useContentDetailChat({
       queuedMessagesRef.current = taken.remaining;
       setQueuedMessages(taken.remaining);
       if (!isAgentBusyRef.current) {
-        wasStoppedByUserRef.current = false;
-        isAgentBusyRef.current = true;
-        dispatchContentEdit(taken.message.text, {
-          selection: taken.message.selection,
-          context: taken.message.context,
-        }).catch((error) => {
-          console.error("[Content] Failed to steer queued message:", error);
-          isAgentBusyRef.current = false;
-          const restored = [taken.message, ...queuedMessagesRef.current];
-          queuedMessagesRef.current = restored;
-          setQueuedMessages(restored);
-        });
+        sendSteeredMessage(taken.message);
         return;
       }
       steerAfterStopRef.current = taken.message;
       wasStoppedByUserRef.current = false;
       stop();
     },
-    [dispatchContentEdit, stop]
+    [sendSteeredMessage, stop]
   );
 
   const drainQueue = useCallback(() => {
-    if (isDrainingRef.current || steerAfterStopRef.current) {
+    if (
+      isDrainingRef.current ||
+      steerAfterStopRef.current ||
+      steerInFlightRef.current ||
+      skipQueueDrainRef.current
+    ) {
       return;
     }
     const queue = queuedMessagesRef.current;

@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { parseQueuedMessages, takeQueuedMessage } from "./chat-queue";
+import {
+  parseQueuedMessages,
+  shouldDrainQueueAfterError,
+  takeQueuedMessage,
+} from "./chat-queue";
 
 describe("takeQueuedMessage", () => {
   test("pulls a queued message without changing the rest of the order", () => {
@@ -26,6 +30,35 @@ describe("takeQueuedMessage", () => {
     expect(takeQueuedMessage([{ id: "a", text: "first" }], "missing")).toBe(
       null
     );
+  });
+});
+
+describe("shouldDrainQueueAfterError", () => {
+  test("does not drain while a steered send is in flight or still pending", () => {
+    expect(
+      shouldDrainQueueAfterError({
+        hasPendingSteer: false,
+        hasSteerInFlight: true,
+        isUsageLimit: false,
+      })
+    ).toBe(false);
+    expect(
+      shouldDrainQueueAfterError({
+        hasPendingSteer: true,
+        hasSteerInFlight: false,
+        isUsageLimit: false,
+      })
+    ).toBe(false);
+  });
+
+  test("drains the remaining queue after a normal send error", () => {
+    expect(
+      shouldDrainQueueAfterError({
+        hasPendingSteer: false,
+        hasSteerInFlight: false,
+        isUsageLimit: false,
+      })
+    ).toBe(true);
   });
 });
 
