@@ -70,5 +70,6 @@ export function usePersonaGenerationProgress(
     total: GEO_PERSONA_GENERATION_STEPS.length,
     label: entry?.label ?? "",
     fill: personaGenerationFill(elapsedMs),
+    startedAtMs: Date.parse(generationStartedAt),
   };
 }

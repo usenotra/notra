@@ -112,6 +112,8 @@ export interface PersonaGenerationProgress {
   label: string;
   /** 0–1 width of the in-button fill; eases within the current step. */
   fill: number;
+  /** When set, the fill overlay tracks elapsed time every frame. */
+  startedAtMs?: number;
 }
 
 export interface GeneratePersonasButtonProps {

@@ -4,13 +4,15 @@ import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Counter from "@notra/ui/components/shared/counter";
 import { useReducedMotion } from "motion/react";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 
 import { Button } from "@/components/button";
+import { personaGenerationFill } from "@/lib/hooks/use-persona-generation-progress";
 import { cn } from "@/lib/utils";
 import type {
   GeneratePersonasButtonProps,
   PersonaGenerationCounterProps,
+  PersonaGenerationProgress,
 } from "@/types/geo-personas-ui";
 
 function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
@@ -37,6 +39,47 @@ function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
   );
 }
 
+function GenerateFill({
+  fill,
+  startedAtMs,
+}: Pick<PersonaGenerationProgress, "fill" | "startedAtMs">) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) {
+      return;
+    }
+
+    const paint = (value: number) => {
+      node.style.setProperty("--generate-fill", String(value));
+    };
+
+    if (reducedMotion || startedAtMs === undefined) {
+      paint(fill);
+      return;
+    }
+
+    let frame = 0;
+    const tick = () => {
+      paint(personaGenerationFill(Date.now() - startedAtMs));
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [fill, startedAtMs, reducedMotion]);
+
+  return (
+    <span
+      aria-hidden="true"
+      className="bg-primary-foreground/25 pointer-events-none absolute inset-0 origin-left scale-x-(--generate-fill)"
+      ref={ref}
+      style={{ "--generate-fill": String(fill) } as CSSProperties}
+    />
+  );
+}
+
 export function GeneratePersonasButton({
   hasPersonas,
   progress,
@@ -44,10 +87,9 @@ export function GeneratePersonasButton({
 }: GeneratePersonasButtonProps) {
   const label = hasPersonas ? "Add personas" : "Generate personas";
   const isGenerating = progress !== null;
-  const reducedMotion = useReducedMotion();
   return (
     <div className="flex flex-col items-start gap-2 sm:items-end">
-      <span aria-live="polite" aria-atomic="true" className="sr-only">
+      <span aria-atomic="true" aria-live="polite" className="sr-only">
         {progress
           ? `${progress.label}, step ${progress.step} of ${progress.total}`
           : ""}
@@ -67,19 +109,9 @@ export function GeneratePersonasButton({
         size="lg"
       >
         {progress ? (
-          <span
-            aria-hidden="true"
-            className={cn(
-              "bg-primary-foreground/25 pointer-events-none absolute inset-0 origin-left scale-x-(--generate-fill)",
-              reducedMotion
-                ? undefined
-                : "transition-transform duration-500 ease-linear"
-            )}
-            style={
-              {
-                "--generate-fill": String(progress.fill),
-              } as CSSProperties
-            }
+          <GenerateFill
+            fill={progress.fill}
+            startedAtMs={progress.startedAtMs}
           />
         ) : null}
         <HugeiconsIcon

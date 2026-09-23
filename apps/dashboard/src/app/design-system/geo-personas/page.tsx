@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { GeneratePersonasButton } from "@/components/geo/generate-personas-button";
@@ -11,16 +13,12 @@ import {
   GEO_PERSONAS_EMPTY_DESCRIPTION,
   GEO_PERSONAS_EMPTY_TITLE,
 } from "@/constants/geo-personas";
-import type { PersonaGenerationProgress } from "@/types/geo-personas-ui";
-
-const WRITING_MEMORIES_PROGRESS: PersonaGenerationProgress = {
-  step: 3,
-  total: 4,
-  label: "Writing memories",
-  fill: 0.82,
-};
+import { usePersonaGenerationProgress } from "@/lib/hooks/use-persona-generation-progress";
 
 export default function GeoPersonasDesignSystemPage() {
+  const [startedAt] = useState(() => new Date().toISOString());
+  const progress = usePersonaGenerationProgress(true, startedAt);
+
   return (
     <div className="dark bg-background text-foreground min-h-screen">
       <main className="flex min-h-screen items-center justify-center p-8">
@@ -30,7 +28,7 @@ export default function GeoPersonasDesignSystemPage() {
               <GeneratePersonasButton
                 hasPersonas={false}
                 onClick={() => undefined}
-                progress={WRITING_MEMORIES_PROGRESS}
+                progress={progress}
               />
             }
             description={GEO_PERSONAS_EMPTY_DESCRIPTION}
