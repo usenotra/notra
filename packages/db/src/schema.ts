@@ -23,6 +23,7 @@ import {
 import {
   BLOG_POST_SUBTYPES,
   CONTENT_PUBLICATION_STATUSES,
+  POST_VISIBILITIES,
 } from "./constants/content";
 import { GEO_PERSONA_MEMORY_KINDS } from "./constants/geo-personas";
 import { GEO_PROSPECT_REPORT_STATUSES } from "./constants/geo-prospect-reports";
@@ -61,6 +62,8 @@ export const lookbackWindowEnum = pgEnum("lookback_window", [
 ]);
 
 export const postStatusEnum = pgEnum("post_status", ["draft", "published"]);
+
+export const postVisibilityEnum = pgEnum("post_visibility", POST_VISIBILITIES);
 
 export const postCollectionSourceEnum = pgEnum("post_collection_source", [
   "manual",
@@ -2227,6 +2230,13 @@ export const posts = pgTable(
     sourceMetadata: jsonb("source_metadata"),
     githubPublish: jsonb("github_publish").$type<PostGitHubPublish | null>(),
     status: postStatusEnum("status").default("draft").notNull(),
+    visibility: postVisibilityEnum("visibility")
+      .default("organization")
+      .notNull(),
+    shareToken: text("share_token"),
+    createdByUserId: text("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
@@ -2236,6 +2246,9 @@ export const posts = pgTable(
     uniqueIndex("posts_org_slug_uidx")
       .on(table.organizationId, table.slug)
       .where(sql`${table.slug} IS NOT NULL`),
+    uniqueIndex("posts_shareToken_uidx")
+      .on(table.shareToken)
+      .where(sql`${table.shareToken} IS NOT NULL`),
     index("posts_org_createdAt_id_idx").on(
       table.organizationId,
       table.createdAt,
@@ -3534,6 +3547,10 @@ export const postsRelations = relations(posts, ({ many, one }) => ({
   collection: one(postCollections, {
     fields: [posts.collectionId],
     references: [postCollections.id],
+  }),
+  createdByUser: one(users, {
+    fields: [posts.createdByUserId],
+    references: [users.id],
   }),
   chatSessions: many(chatSessions),
   contentPublications: many(contentPublications),

@@ -23,4 +23,5 @@ export const RESERVED_ORGANIZATION_SLUGS = [
   "terms",
   "privacy",
   "contact",
+  "s",
 ] as const;

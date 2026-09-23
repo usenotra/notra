@@ -701,6 +701,20 @@
       "when": 1790019760563,
       "tag": "0099_sticky_triathlon",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1790105540533,
+      "tag": "0100_content_share",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1790158500000,
+      "tag": "0101_drop_private_visibility",
+      "breakpoints": true
     }
   ]
 }

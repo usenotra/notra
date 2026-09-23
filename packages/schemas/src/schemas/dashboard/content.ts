@@ -11,7 +11,10 @@ import {
 } from "@notra/ai/schemas/limits";
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import { createContentGenerationRequestSchema } from "@notra/content-generation/schemas";
-import { BLOG_POST_SUBTYPES } from "@notra/db/constants/content";
+import {
+  BLOG_POST_SUBTYPES,
+  POST_VISIBILITIES,
+} from "@notra/db/constants/content";
 import type { PostGitHubPublish } from "@notra/db/types/post-github-publish";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -30,6 +33,9 @@ import {
 
 export const postStatusSchema = z.enum(["draft", "published"]);
 export type PostStatus = z.infer<typeof postStatusSchema>;
+
+export const postVisibilitySchema = z.enum(POST_VISIBILITIES);
+export type PostVisibility = z.infer<typeof postVisibilitySchema>;
 
 export const sourceMetadataSchema = z
   .looseObject({
@@ -102,6 +108,8 @@ export const contentSchema = z.object({
   recommendations: z.string().nullable(),
   contentType: contentTypeSchema,
   status: postStatusSchema,
+  visibility: postVisibilitySchema,
+  shareToken: z.string().nullable(),
   date: z.string(),
   sourceMetadata: sourceMetadataSchema,
   githubPublish: postGitHubPublishSchema.nullable(),
@@ -366,13 +374,15 @@ export const updateContentSchema = z
     slug: postSlugSchema.nullable().optional(),
     markdown: z.string().max(POST_MARKDOWN_MAX_LENGTH).optional(),
     status: postStatusSchema.optional(),
+    visibility: postVisibilitySchema.optional(),
   })
   .refine(
     (data) =>
       data.title !== undefined ||
       data.slug !== undefined ||
       data.markdown !== undefined ||
-      data.status !== undefined,
+      data.status !== undefined ||
+      data.visibility !== undefined,
     {
       message: "At least one field must be provided",
     }

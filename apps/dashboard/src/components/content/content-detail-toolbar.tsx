@@ -19,6 +19,7 @@ import {
 import { Github } from "@notra/ui/components/ui/svgs/github";
 
 import { Button } from "@/components/button";
+import { ContentShareMenu } from "@/components/content/content-share-menu";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
@@ -276,6 +277,12 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
           </Button>
         </>
       ) : null}
+      <ContentShareMenu
+        content={content}
+        contentId={props.contentId}
+        organizationId={organizationId}
+        organizationSlug={props.organizationSlug}
+      />
       {content.contentType === "image" ? (
         <ContentDetailImageActions {...props} />
       ) : (

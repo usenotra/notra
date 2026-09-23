@@ -180,6 +180,9 @@ const postReadColumns = {
   sourceMetadata: true,
   githubPublish: true,
   status: true,
+  visibility: true,
+  shareToken: true,
+  createdByUserId: true,
   updatedAt: true,
 } as const;
 
@@ -252,7 +255,9 @@ function serializeContent(post: {
   sourceMetadata: unknown;
   githubPublish: unknown;
   status: "draft" | "published";
+  shareToken: string | null;
   title: string;
+  visibility: ContentResponse["visibility"];
 }): ContentResponse {
   const githubPublish = postGitHubPublishSchema.safeParse(post.githubPublish);
 
@@ -267,6 +272,8 @@ function serializeContent(post: {
     recommendations: post.recommendations,
     contentType: post.contentType as ContentResponse["contentType"],
     status: post.status,
+    visibility: post.visibility,
+    shareToken: post.shareToken,
     date: post.createdAt.toISOString(),
     sourceMetadata: post.sourceMetadata as ContentResponse["sourceMetadata"],
     githubPublish: githubPublish.success ? githubPublish.data : null,
@@ -533,7 +540,7 @@ export const contentRouter = {
         contentOrganizationIdInputSchema.and(dashboardHomeContentQuerySchema)
       )
       .handler(async ({ context, input }) => {
-        await assertOrganizationAccess({
+        const auth = await assertOrganizationAccess({
           headers: context.headers,
           organizationId: input.organizationId,
         });
@@ -601,7 +608,7 @@ export const contentRouter = {
   list: baseProcedure
     .input(contentOrganizationIdInputSchema.and(contentListQuerySchema))
     .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
+      const auth = await assertOrganizationAccess({
         headers: context.headers,
         organizationId: input.organizationId,
       });
@@ -659,7 +666,7 @@ export const contentRouter = {
   get: baseProcedure
     .input(contentInputSchema)
     .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
+      const auth = await assertOrganizationAccess({
         headers: context.headers,
         organizationId: input.organizationId,
       });
@@ -771,6 +778,8 @@ export const contentRouter = {
             markdown,
             contentType: input.contentType,
             status: "draft",
+            visibility: "organization",
+            createdByUserId: auth.user.id,
             sourceMetadata: null,
             createdAt: now,
             updatedAt: now,
@@ -819,6 +828,8 @@ export const contentRouter = {
           title: true,
           contentType: true,
           status: true,
+          visibility: true,
+          shareToken: true,
         },
       });
 
@@ -838,6 +849,13 @@ export const contentRouter = {
           );
         }
         updateData.slug = input.slug;
+      }
+
+      if (input.visibility !== undefined) {
+        updateData.visibility = input.visibility;
+        if (input.visibility === "unlisted" && !existingPost.shareToken) {
+          updateData.shareToken = nanoid();
+        }
       }
 
       try {
@@ -865,6 +883,8 @@ export const contentRouter = {
             sourceMetadata: posts.sourceMetadata,
             githubPublish: posts.githubPublish,
             status: posts.status,
+            visibility: posts.visibility,
+            shareToken: posts.shareToken,
             updatedAt: posts.updatedAt,
           });
 
@@ -1409,7 +1429,7 @@ export const contentRouter = {
     list: baseProcedure
       .input(postCollectionsListInputSchema)
       .handler(async ({ context, input }) => {
-        await assertOrganizationAccess({
+        const auth = await assertOrganizationAccess({
           headers: context.headers,
           organizationId: input.organizationId,
         });
@@ -1534,7 +1554,7 @@ export const contentRouter = {
     get: baseProcedure
       .input(postCollectionInputSchema)
       .handler(async ({ context, input }) => {
-        await assertOrganizationAccess({
+        const auth = await assertOrganizationAccess({
           headers: context.headers,
           organizationId: input.organizationId,
         });
