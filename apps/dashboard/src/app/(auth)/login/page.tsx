@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoginContent } from "@/components/auth/login-content";
 import { LoginFormSkeleton } from "@/components/auth/login-form-skeleton";
 
-export const instant = true;
+export const instant = false;
 
 export default function Login() {
   return (
