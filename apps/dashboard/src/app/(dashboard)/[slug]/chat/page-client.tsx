@@ -119,6 +119,7 @@ import type {
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
 import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
+import { getChatDraftStorageKey } from "@/utils/chat-draft";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import {
   resolveChatMessageAuthor,
@@ -1029,8 +1030,9 @@ function StandaloneChatPageClient({
     });
   }, [initialChatId]);
 
-  const draftStorageKey = localStorageKeys.chatDraft(
-    initialChatId ?? `new:${organizationSlug}`
+  const draftStorageKey = getChatDraftStorageKey(
+    initialChatId,
+    organizationSlug
   );
   const queueStorageKey = currentAuthorUserId
     ? localStorageKeys.chatQueue(stableChatId, currentAuthorUserId)

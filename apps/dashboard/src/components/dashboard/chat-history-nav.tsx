@@ -59,6 +59,7 @@ import {
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
 import { cn } from "@/lib/utils";
+import { carryLiveChatDraftToNewChat } from "@/utils/chat-draft";
 import { getChatHistoryGroups } from "@/utils/chat-history-groups";
 
 import { SidebarLabel } from "./sidebar-label";
@@ -395,6 +396,11 @@ export function ChatHistoryNav() {
                 render={
                   <SidebarNavLink
                     href={`/${slug}/chat`}
+                    onClick={() => {
+                      if (currentChatId) {
+                        carryLiveChatDraftToNewChat(currentChatId, slug);
+                      }
+                    }}
                     replace={isOnChatRoute}
                   >
                     <HugeiconsIcon icon={Add01Icon} />

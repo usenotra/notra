@@ -99,6 +99,7 @@ import {
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
+import { rememberLiveChatDraft } from "@/utils/chat-draft";
 import {
   CHAT_INPUT_LIMIT_MESSAGE,
   contextItemKey,
@@ -1027,6 +1028,15 @@ interface QueuedSendSnapshot {
   pendingUploadIds: string[];
 }
 
+function composerDraftSnapshot(
+  editor: HTMLElement,
+  draftContext: readonly ContextItem[]
+) {
+  const text = serializeEditorWithReferences(editor).trim();
+  const references = draftContext.map(getIntegrationReferenceValue).join("\n");
+  return [text, references].filter(Boolean).join("\n");
+}
+
 function handleComposerEditorKeyDown(
   event: KeyboardEvent<HTMLDivElement>,
   {
@@ -1741,6 +1751,9 @@ export function ChatInputAdvanced({
         }
         editor.textContent = text;
         setIsEmpty(text.trim().length === 0);
+        if (draftStorageKey) {
+          rememberLiveChatDraft(draftStorageKey, text.trim());
+        }
         editor.focus();
         const range = document.createRange();
         range.selectNodeContents(editor);
@@ -1756,7 +1769,7 @@ export function ChatInputAdvanced({
         submitRef.current();
       },
     }),
-    []
+    [draftStorageKey]
   );
 
   const persistDraft = useCallback(
@@ -1767,11 +1780,8 @@ export function ChatInputAdvanced({
       }
 
       try {
-        const text = serializeEditorWithReferences(editor).trim();
-        const references = draftContext
-          .map(getIntegrationReferenceValue)
-          .join("\n");
-        const draft = [text, references].filter(Boolean).join("\n");
+        const draft = composerDraftSnapshot(editor, draftContext);
+        rememberLiveChatDraft(draftStorageKey, draft);
         if (draft) {
           window.localStorage.setItem(draftStorageKey, draft);
         } else {
@@ -1821,6 +1831,12 @@ export function ChatInputAdvanced({
       return;
     }
     setIsEmpty(readEditorText().trim().length === 0);
+    if (draftStorageKey) {
+      rememberLiveChatDraft(
+        draftStorageKey,
+        composerDraftSnapshot(editor, contextRef.current)
+      );
+    }
     schedulePersistDraft(contextRef.current);
 
     const sel = window.getSelection();
@@ -1871,7 +1887,7 @@ export function ChatInputAdvanced({
 
     mentionAnchorRef.current = null;
     setMentionQuery(null);
-  }, [schedulePersistDraft, readEditorText]);
+  }, [draftStorageKey, schedulePersistDraft, readEditorText]);
 
   const restoredDraftKeyRef = useRef<string | null>(null);
 
@@ -2054,6 +2070,7 @@ export function ChatInputAdvanced({
       editor.innerHTML = "";
     }
     if (draftStorageKey) {
+      rememberLiveChatDraft(draftStorageKey, "");
       try {
         window.localStorage.removeItem(draftStorageKey);
       } catch {
