@@ -29,7 +29,7 @@ export const CHAT_DOCUMENT_DIFF_THEME = "notra-chat";
 
 export const CHAT_DOCUMENT_DIFF_THEME_DEFAULTS = {
   foreground: "var(--foreground)",
-  background: "var(--background)",
+  background: "transparent",
   "token-constant": "var(--foreground)",
   "token-string": "var(--foreground)",
   "token-comment": "var(--muted-foreground)",

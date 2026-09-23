@@ -159,4 +159,6 @@
   --diffs-modified-dark: var(--info);
   --diffs-fg-number-override: var(--muted-foreground);
   --diffs-bg-separator-override: var(--muted);
+  --diffs-token-light-bg: transparent;
+  --diffs-token-dark-bg: transparent;
 }
