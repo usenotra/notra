@@ -19,6 +19,8 @@ import {
   getLinearToolContextByIntegrationId,
 } from "@notra/ai/integrations/linear";
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
+import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
+import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
@@ -197,6 +199,9 @@ export const POST = withEvlog(async function POST(
     });
 
     const autumnClient = autumn;
+    const streamStartedAt = Date.now();
+    let firstChunkAt: number | null = null;
+    const usageSnapshot: ChatUsageSnapshot = {};
     const imageDefaults =
       contentType === "image"
         ? await getImageDefaults({ organizationId, contentId }).catch(
@@ -247,7 +252,20 @@ export const POST = withEvlog(async function POST(
         },
         resolveContext: getGitHubToolRepositoryContextByIntegrationId,
         resolveLinearContext: getLinearToolContextByIntegrationId,
+        onFirstChunk() {
+          if (firstChunkAt === null) {
+            firstChunkAt = Date.now();
+          }
+        },
         async onUsage(usage, modelId, routeUsage) {
+          usageSnapshot.inputTokens = usage.inputTokens ?? 0;
+          usageSnapshot.outputTokens = usage.outputTokens ?? 0;
+          usageSnapshot.totalTokens = usage.totalTokens ?? 0;
+          usageSnapshot.cacheReadTokens =
+            usage.inputTokenDetails?.cacheReadTokens ?? 0;
+          usageSnapshot.cacheWriteTokens =
+            usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+
           if (
             !autumnClient ||
             allowUnmeteredAiInDevelopment ||
@@ -326,6 +344,30 @@ export const POST = withEvlog(async function POST(
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: true,
+      messageMetadata: ({ part }) => {
+        if (part.type === "start") {
+          return {
+            authorUserId: auth.context.user.id,
+            model: routingDecision.model,
+            thinkingLevel: routingDecision.thinkingLevel,
+            createdAt: streamStartedAt,
+          };
+        }
+
+        if (part.type === "finish") {
+          return buildChatFinishMetadata({
+            streamStartedAt,
+            firstChunkAt,
+            finishedAt: Date.now(),
+            partUsage: part.totalUsage,
+            usageSnapshot,
+            model: routingDecision.model,
+            thinkingLevel: routingDecision.thinkingLevel,
+          });
+        }
+
+        return;
+      },
       onEnd: async ({ messages: responseMessages }) => {
         if (request.signal.aborted) {
           return;

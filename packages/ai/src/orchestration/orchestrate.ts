@@ -121,6 +121,7 @@ export async function orchestrateChat(
   });
 
   const messagesForModel = normalizeMarkdownFileAttachments(messages);
+  let firstChunkFired = false;
 
   const thinkingProviderOptions = getThinkingProviderOptions(
     routingDecision.model,
@@ -146,6 +147,15 @@ export async function orchestrateChat(
       }
     ),
     ...buildTelemetryOptions(telemetryMetadata),
+    onChunk({ chunk }) {
+      if (firstChunkFired) {
+        return;
+      }
+      if (chunk.type === "text-delta" || chunk.type === "reasoning-delta") {
+        firstChunkFired = true;
+        deps?.onFirstChunk?.();
+      }
+    },
     async onEnd({ usage, steps }) {
       await deps?.onUsage?.(
         usage,

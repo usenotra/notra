@@ -15,6 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { cn } from "@notra/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
@@ -199,7 +200,14 @@ export function AssistantMetadataHover({
   }
 
   return (
-    <div className="text-muted-foreground duration-fast mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs opacity-0 transition-opacity group-hover:opacity-100">
+    <div
+      className={cn(
+        "text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs",
+        showAgentStats
+          ? "opacity-100"
+          : "duration-fast opacity-0 transition-opacity group-hover:opacity-100"
+      )}
+    >
       {items}
     </div>
   );
