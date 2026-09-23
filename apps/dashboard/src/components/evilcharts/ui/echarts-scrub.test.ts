@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  interpolateAt,
   nearestCategoryIndex,
+  yAtXOnPackedPoints,
 } from "@/components/evilcharts/ui/echarts-scrub";
 
 describe("nearestCategoryIndex", () => {
@@ -15,17 +15,19 @@ describe("nearestCategoryIndex", () => {
   });
 });
 
-describe("interpolateAt", () => {
-  test("lerps between adjacent samples", () => {
-    expect(interpolateAt([0, 10, 20], 0.5)).toBe(5);
-    expect(interpolateAt([0, 10, 20], 1.25)).toBe(12.5);
+describe("yAtXOnPackedPoints", () => {
+  test("lerps between adjacent vertices", () => {
+    expect(yAtXOnPackedPoints([0, 10, 10, 20], 5)).toBe(15);
+    expect(yAtXOnPackedPoints([0, 10, 10, 20], 0)).toBe(10);
+    expect(yAtXOnPackedPoints([0, 10, 10, 20], 10)).toBe(20);
   });
 
-  test("holds at the ends and skips nulls", () => {
-    expect(interpolateAt([4, 8], -1)).toBe(4);
-    expect(interpolateAt([4, 8], 3)).toBe(8);
-    expect(interpolateAt([4, null, 12], 0.5)).toBe(4);
-    expect(interpolateAt([null, 8], 0)).toBe(null);
-    expect(interpolateAt([], 0)).toBe(null);
+  test("holds at the ends and skips NaN gaps", () => {
+    expect(yAtXOnPackedPoints([0, 4, 10, 8], -1)).toBe(4);
+    expect(yAtXOnPackedPoints([0, 4, 10, 8], 11)).toBe(8);
+    expect(yAtXOnPackedPoints([0, 4, Number.NaN, Number.NaN, 10, 12], 5)).toBe(
+      12
+    );
+    expect(yAtXOnPackedPoints([], 0)).toBe(null);
   });
 });
