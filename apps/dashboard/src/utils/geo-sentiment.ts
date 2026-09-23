@@ -76,18 +76,15 @@ export function sentimentThemesState({
     message =
       state.message ?? "Theme analysis is not configured for this project.";
   }
-  if (busy) {
-    message = "Analyzing saved answers…";
-  }
   const settled = !loading && !isError && !busy && !noRatings;
   const showResults =
     !isError && !noRatings && (state?.result?.themes.length ?? 0) > 0;
   let statusText = "";
-  if (busy) {
-    statusText = "Analyzing saved answers…";
-  }
   if (loading) {
     statusText = "Loading analysis…";
+  }
+  if (busy) {
+    statusText = "Finding themes…";
   }
   const canAnalyze =
     settled &&
@@ -99,8 +96,8 @@ export function sentimentThemesState({
     message,
     statusText,
     showResults,
-    showTable: busy || loading || showResults,
-    showEmpty: !loading && !busy && !isError && !showResults,
+    showTable: loading || showResults,
+    showEmpty: !loading && !isError && !showResults,
     canAnalyze,
   };
 }

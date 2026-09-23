@@ -83,6 +83,26 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .sentiment-results-table[data-ready="true"] tbody tr {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .sentiment-state-copy {
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @starting-style {
+    .sentiment-results-table[data-ready="true"] tbody tr {
+      opacity: 0.55;
+    }
+
+    .sentiment-state-copy {
+      opacity: 0.55;
+    }
+  }
+}
+
 @keyframes thinking-letter {
   0%,
   100% {

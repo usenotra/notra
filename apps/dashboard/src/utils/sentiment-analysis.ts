@@ -14,7 +14,7 @@ export function sentimentAnalysisInterval(state?: SentimentAnalysisState) {
 export function sentimentAnalysisStatus(state?: SentimentAnalysisState) {
   switch (state?.status) {
     case "pending":
-      return "Analyzing saved answers…";
+      return "Finding themes…";
     case "stale":
       return state.result
         ? "Showing previous themes. Analysis needs an update."

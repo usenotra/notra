@@ -54,6 +54,58 @@ test("a stale analysis keeps its themes on screen", () => {
   expect(view.canAnalyze).toBe(true);
 });
 
+test("analysis in progress keeps existing themes and otherwise shows the analyzing state", () => {
+  const base = {
+    summary: summarizeSentiment([
+      {
+        positive: 1,
+        neutral: 0,
+        negative: 0,
+        mentions: 1,
+        totalChecks: 1,
+        lastCheckedAt: null,
+      },
+    ]),
+    isAnalyzing: false,
+    isPending: false,
+    isError: false,
+    aggregatePending: false,
+  };
+  const pending = sentimentThemesState({
+    ...base,
+    state: { status: "pending", message: null, result: null },
+  });
+  expect(pending.pending).toBe(true);
+  expect(pending.showTable).toBe(false);
+  expect(pending.showEmpty).toBe(true);
+  expect(pending.statusText).toBe("Finding themes…");
+
+  const withResults = sentimentThemesState({
+    ...base,
+    state: {
+      status: "pending",
+      message: null,
+      result: {
+        fingerprint: "day-1",
+        generatedAt: "2026-09-21T00:00:00.000Z",
+        sampled: 1,
+        eligible: 1,
+        themes: [
+          {
+            title: "Easy setup",
+            polarity: "positive",
+            evidence: [],
+            claims: [],
+          },
+        ],
+      },
+    },
+  });
+  expect(withResults.pending).toBe(false);
+  expect(withResults.showTable).toBe(true);
+  expect(withResults.showEmpty).toBe(false);
+});
+
 test("lookup failures never render pending ghosts and configuration explanations survive empty aggregates", () => {
   const base = {
     summary: summarizeSentiment([]),

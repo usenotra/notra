@@ -135,8 +135,10 @@ export function SentimentResultsTable({
   return (
     <div
       id="sentiment-claims"
-      className="min-w-0 scroll-mt-24 space-y-3"
-      aria-busy={pending}
+      className="sentiment-results-table min-w-0 scroll-mt-24 space-y-3"
+      aria-hidden={pending}
+      data-ready={!pending}
+      inert={pending || undefined}
     >
       <Table
         columns={

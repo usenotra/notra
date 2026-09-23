@@ -1,6 +1,7 @@
 import { Button } from "@/components/button";
 import { SentimentResultsTable } from "@/components/geo/sentiment-results-table";
 import { SentimentThemesEmpty } from "@/components/geo/sentiment-themes-empty";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type { SentimentThemesProps } from "@/types/geo-sentiment";
@@ -24,10 +25,20 @@ export function SentimentThemes({
   });
   const themes = state?.result?.themes ?? [];
   const retrying = state?.status === "failed" || mutationError;
+  const analyzing = isAnalyzing || state?.status === "pending";
   return (
     <div id="sentiment-themes" className="scroll-mt-24">
       <InstrumentSection
         eyebrow="Sentiment themes"
+        readout={
+          (view.pending && !view.showEmpty) ||
+          (view.showResults && analyzing) ? (
+            <span className="inline-flex items-center gap-2">
+              <StatusSpinner />
+              {view.showResults ? "Updating themes…" : view.statusText}
+            </span>
+          ) : undefined
+        }
         className="lg:col-span-12"
         bodyClassName="min-w-0 space-y-3"
         action={
@@ -72,14 +83,12 @@ export function SentimentThemes({
             title={view.title}
             message={view.message}
             canAnalyze={view.canAnalyze}
+            analyzing={analyzing}
             retrying={retrying}
             analyze={analyze}
           />
         ) : null}
-        <p
-          role="status"
-          className={view.pending ? "text-muted-foreground text-xs" : "sr-only"}
-        >
+        <p role="status" className="sr-only">
           {view.statusText}
         </p>
       </InstrumentSection>
