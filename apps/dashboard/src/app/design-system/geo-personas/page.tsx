@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
@@ -10,14 +10,24 @@ import {
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
 import {
+  GEO_PERSONA_GENERATION_STEPS,
   GEO_PERSONAS_EMPTY_DESCRIPTION,
   GEO_PERSONAS_EMPTY_TITLE,
 } from "@/constants/geo-personas";
 import { usePersonaGenerationProgress } from "@/lib/hooks/use-persona-generation-progress";
 
+const PREVIEW_LOOP_MS = GEO_PERSONA_GENERATION_STEPS[1]?.afterMs ?? 12_000;
+
 export default function GeoPersonasDesignSystemPage() {
-  const [startedAt] = useState(() => new Date().toISOString());
+  const [startedAt, setStartedAt] = useState(() => new Date().toISOString());
   const progress = usePersonaGenerationProgress(true, startedAt);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStartedAt(new Date().toISOString());
+    }, PREVIEW_LOOP_MS);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="dark bg-background text-foreground min-h-screen">
