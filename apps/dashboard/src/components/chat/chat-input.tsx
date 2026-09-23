@@ -2503,6 +2503,26 @@ export function ChatInputAdvanced({
     skillTagCount: taggedSkills.length,
     usageLimitError,
   });
+  const isMentionMenuOpen = mentionQuery !== null;
+  const isComposerPopupOpen = isSlashMenuOpen || isMentionMenuOpen;
+  const selectedSlashOption = isSlashMenuOpen
+    ? filteredSkills[slashIndex]
+    : undefined;
+  const selectedMentionOption = isMentionMenuOpen
+    ? filteredMentionItems[mentionIndex]
+    : undefined;
+  let composerActiveDescendant: string | undefined;
+  if (selectedSlashOption) {
+    composerActiveDescendant = `chat-skill-slash-option-${selectedSlashOption.name}`;
+  } else if (selectedMentionOption) {
+    composerActiveDescendant = `chat-mention-option-${selectedMentionOption.id}`;
+  }
+  let composerListboxId: string | undefined;
+  if (isSlashMenuOpen) {
+    composerListboxId = slashListId;
+  } else if (isMentionMenuOpen) {
+    composerListboxId = mentionListId;
+  }
 
   return (
     <>
@@ -2570,33 +2590,12 @@ export function ChatInputAdvanced({
                 <div className="relative flex min-w-0 flex-1 cursor-text transition-colors [--lh:1lh]">
                   {/* biome-ignore lint/a11y/useSemanticElements: rich mention editor requires a contentEditable host instead of a native textarea. */}
                   <div
-                    aria-activedescendant={
-                      isSlashMenuOpen && filteredSkills[slashIndex]
-                        ? `chat-skill-slash-option-${filteredSkills[slashIndex].name}`
-                        : mentionQuery !== null &&
-                            filteredMentionItems[mentionIndex]
-                          ? `chat-mention-option-${filteredMentionItems[mentionIndex].id}`
-                          : undefined
-                    }
-                    aria-autocomplete={
-                      isSlashMenuOpen || mentionQuery !== null
-                        ? "list"
-                        : undefined
-                    }
-                    aria-controls={
-                      isSlashMenuOpen
-                        ? slashListId
-                        : mentionQuery !== null
-                          ? mentionListId
-                          : undefined
-                    }
+                    aria-activedescendant={composerActiveDescendant}
+                    aria-autocomplete={isComposerPopupOpen ? "list" : undefined}
+                    aria-controls={composerListboxId}
                     aria-disabled={isQueued}
-                    aria-expanded={isSlashMenuOpen || mentionQuery !== null}
-                    aria-haspopup={
-                      isSlashMenuOpen || mentionQuery !== null
-                        ? "listbox"
-                        : undefined
-                    }
+                    aria-expanded={isComposerPopupOpen}
+                    aria-haspopup={isComposerPopupOpen ? "listbox" : undefined}
                     aria-label="Send a message"
                     className="text-foreground caret-foreground data-[empty=true]:before:text-muted-foreground relative max-h-50 min-h-12 w-full min-w-0 overflow-y-auto rounded-t-[12px] px-3 py-2 text-sm leading-6 wrap-anywhere whitespace-pre-wrap outline-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[empty=true]:before:pointer-events-none data-[empty=true]:before:absolute data-[empty=true]:before:top-2 data-[empty=true]:before:left-3 data-[empty=true]:before:content-[attr(data-placeholder)]"
                     contentEditable={!isQueued}
