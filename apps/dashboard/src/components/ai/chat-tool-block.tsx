@@ -37,6 +37,7 @@ import { type ReactNode, useState } from "react";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
+import { getChatToolIcon } from "@/utils/chat-tool-icon";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 
 import {
@@ -859,6 +860,7 @@ export function ChatToolBlock({
     const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
     toolIcon = (
       <McpIcon
+        className="size-3.5"
         darkUrl={
           iconUrl ?? mcpLogoDarkUrl ?? mcpLogoLightUrl ?? mcpIconUrls.darkUrl
         }
@@ -869,12 +871,24 @@ export function ChatToolBlock({
     );
   } else if (iconUrl) {
     toolIcon = (
-      <Avatar className="size-4 shrink-0 rounded-sm after:hidden">
+      <Avatar className="size-3.5 shrink-0 rounded-sm after:hidden">
         <AvatarImage className="rounded-sm" src={iconUrl} />
         <AvatarFallback className="rounded-sm bg-transparent">
-          <HugeiconsIcon className="size-3" icon={CpuIcon} />
+          <HugeiconsIcon
+            className="size-3.5"
+            icon={CpuIcon}
+            strokeWidth={1.8}
+          />
         </AvatarFallback>
       </Avatar>
+    );
+  } else {
+    toolIcon = (
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={getChatToolIcon(toolName)}
+        strokeWidth={1.8}
+      />
     );
   }
 
@@ -890,27 +904,25 @@ export function ChatToolBlock({
             {subtitle}
           </Shimmer>
         ) : (
-          <span className="inline-block min-w-0 truncate leading-5">
-            {subtitle}
-          </span>
+          <span className="min-w-0 truncate leading-5">{subtitle}</span>
         )}
         {showElapsedTimer && (
           <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
             {formatElapsedSeconds(elapsedSeconds)}
           </span>
         )}
-        <HugeiconsIcon
-          aria-hidden
-          className={cn(
-            "text-muted-foreground/60 size-3.5 shrink-0 transition-all",
-            !hasDetails && "invisible",
-            hasDetails && isOpen && "rotate-180 opacity-100",
-            hasDetails &&
-              !isOpen &&
-              "rotate-0 opacity-0 group-hover:opacity-100"
-          )}
-          icon={ArrowDown01Icon}
-        />
+        {hasDetails ? (
+          <HugeiconsIcon
+            aria-hidden
+            className={cn(
+              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
+              isOpen
+                ? "rotate-180"
+                : "rotate-0 opacity-0 group-hover:opacity-100"
+            )}
+            icon={ArrowDown01Icon}
+          />
+        ) : null}
       </CollapsibleTrigger>
       <ToolOutputImages images={outputImages} />
       {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}

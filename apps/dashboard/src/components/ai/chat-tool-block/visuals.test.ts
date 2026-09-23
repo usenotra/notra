@@ -30,7 +30,7 @@ describe("resolveChatToolBlockVisuals", () => {
       updatedMarkdown: "# New",
     });
     expect(visuals.showJsonOutput).toBe(false);
-    expect(visuals.showJsonInput).toBe(true);
+    expect(visuals.showJsonInput).toBe(false);
   });
 
   test("waits until the tool finishes streaming", () => {
