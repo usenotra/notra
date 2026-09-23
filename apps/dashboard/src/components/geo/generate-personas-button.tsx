@@ -4,7 +4,7 @@ import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Counter from "@notra/ui/components/shared/counter";
 import { useReducedMotion } from "motion/react";
-import { type CSSProperties, useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 import { Button } from "@/components/button";
 import { personaGenerationFill } from "@/lib/hooks/use-persona-generation-progress";
@@ -46,14 +46,14 @@ function GenerateFill({
   const ref = useRef<HTMLSpanElement>(null);
   const reducedMotion = useReducedMotion();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = ref.current;
     if (!node) {
       return;
     }
 
     const paint = (value: number) => {
-      node.style.setProperty("--generate-fill", String(value));
+      node.style.transform = `scaleX(${value})`;
     };
 
     if (reducedMotion || startedAtMs === undefined) {
@@ -73,9 +73,8 @@ function GenerateFill({
   return (
     <span
       aria-hidden="true"
-      className="bg-primary-foreground/25 pointer-events-none absolute inset-0 origin-left scale-x-(--generate-fill)"
+      className="bg-primary-foreground/25 pointer-events-none absolute inset-0 origin-left"
       ref={ref}
-      style={{ "--generate-fill": String(fill) } as CSSProperties}
     />
   );
 }
