@@ -8,7 +8,7 @@ const SCRUB_Z = 110;
 const DOT_RADIUS = 4;
 const LINE_WIDTH = 1;
 
-/** Muted stroke of the unclipped trail while scrubbing — matches hover-reveal. */
+/** Opacity of the unclipped trail while scrubbing — original color, faded. */
 export const SCRUB_MUTE_OPACITY = 0.3;
 
 export type ScrubDot = {
