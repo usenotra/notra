@@ -75,15 +75,17 @@ export function TwoFactorSection({
     const result = await authClient.security
       .removeAuthFactor({ factorId, confirmationCode })
       .catch(() => null);
-    setRemovingFactorId(null);
     if (!result) {
+      setRemovingFactorId(null);
       return { ok: false, message: "Couldn't remove the authenticator app" };
     }
     if (result.error) {
+      setRemovingFactorId(null);
       return { ok: false, message: result.error.message };
     }
     toast.success("Two-factor authentication turned off");
     await onRefresh();
+    setRemovingFactorId(null);
     return { ok: true };
   }
 
