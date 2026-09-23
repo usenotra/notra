@@ -32,7 +32,7 @@ export function NavMain() {
   const loadRecent = mode === "studio" || recentWarmed || idleReady;
 
   const prefetchModeHome = (next: SidebarMode) => {
-    if (!slug) {
+    if (!slug || next === mode) {
       return;
     }
     router.prefetch(geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[next], projectId));

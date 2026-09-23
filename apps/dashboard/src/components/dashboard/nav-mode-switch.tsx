@@ -44,6 +44,12 @@ export function NavModeSwitch({
     onModeChange(next);
   };
 
+  const prefetchInactive = (next: SidebarMode) => {
+    if (next !== mode) {
+      onPrefetchMode?.(next);
+    }
+  };
+
   return (
     <SidebarGroup className="pt-0">
       <div className="bg-sidebar-accent rounded-lg p-0.5 group-data-[collapsible=icon]:hidden">
@@ -75,8 +81,8 @@ export function NavModeSwitch({
                 )}
                 key={option.id}
                 onClick={(event) => handleModeSelect(option.id, event)}
-                onFocus={() => onPrefetchMode?.(option.id)}
-                onMouseEnter={() => onPrefetchMode?.(option.id)}
+                onFocus={() => prefetchInactive(option.id)}
+                onMouseEnter={() => prefetchInactive(option.id)}
               >
                 <HugeiconsIcon className="size-3.5" icon={option.icon} />
                 {option.label}
@@ -99,8 +105,8 @@ export function NavModeSwitch({
                     projectId
                   )}
                   onClick={(event) => handleModeSelect(option.id, event)}
-                  onFocus={() => onPrefetchMode?.(option.id)}
-                  onMouseEnter={() => onPrefetchMode?.(option.id)}
+                  onFocus={() => prefetchInactive(option.id)}
+                  onMouseEnter={() => prefetchInactive(option.id)}
                 >
                   <HugeiconsIcon icon={option.icon} />
                   <SidebarLabel>{option.label}</SidebarLabel>
