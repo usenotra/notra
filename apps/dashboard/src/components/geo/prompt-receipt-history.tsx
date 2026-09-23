@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  GEO_PROMPT_HISTORY_ANSWER_LABELS,
   GEO_PROMPT_HISTORY_CHANGE_LABELS,
   GEO_PROMPT_HISTORY_COLUMN_LABELS,
   GEO_PROMPT_HISTORY_EMPTY_COMPETITORS,
@@ -227,46 +226,27 @@ export function PromptReceiptHistory({
 
   return (
     <Table
+      className="rounded-2xl"
       columns={[
         {
           key: "scan",
           header: GEO_PROMPT_HISTORY_COLUMN_LABELS.date,
-          // Fits "Sep 17, 11:41 AM" plus the button and cell padding on one
-          // line. No `minWidth`: that raises the table floor, and the five
-          // columns together already only just fit the sheet.
+          // Fits "Sep 17, 11:41 AM" plus cell padding on one line. No
+          // `minWidth`: that raises the table floor, and the five columns
+          // together already only just fit the sheet.
           width: "160px",
-          cell: ({ check }) => {
-            const timestamp = formatAiTrafficTimestamp(check.capturedAt);
-            const date = (
-              <time
-                className="whitespace-nowrap tabular-nums"
-                dateTime={check.capturedAt}
-                title={check.scanId}
-              >
-                {timestamp}
-              </time>
-            );
-
-            return onSelect ? (
-              <button
-                aria-label={`${GEO_PROMPT_HISTORY_ANSWER_LABELS.viewAnswer} · ${timestamp}`}
-                className={cn(
-                  HISTORY_LINE_CLASS,
-                  "focus-visible:ring-ring cursor-pointer rounded-sm text-left underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                )}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onSelect(check);
-                }}
-                title={GEO_PROMPT_HISTORY_ANSWER_LABELS.viewAnswer}
-                type="button"
-              >
-                {date}
-              </button>
-            ) : (
-              <span className={HISTORY_LINE_CLASS}>{date}</span>
-            );
-          },
+          cell: ({ check }) => (
+            <time
+              className={cn(
+                HISTORY_LINE_CLASS,
+                "whitespace-nowrap tabular-nums"
+              )}
+              dateTime={check.capturedAt}
+              title={check.scanId}
+            >
+              {formatAiTrafficTimestamp(check.capturedAt)}
+            </time>
+          ),
         },
         {
           key: "outcome",
@@ -334,9 +314,17 @@ export function PromptReceiptHistory({
           : TABLE_MAX_HEIGHT
       }
       loading={isLoading}
+      onRowClick={onSelect ? (entry) => onSelect(entry.check) : undefined}
       rowHeight={TABLE_ROW_HEIGHT}
       rowSizing="content"
       skeletonRows={GEO_PROMPT_HISTORY_SKELETON_ROWS}
+      toolbar={
+        <div className="px-4 py-3">
+          <h2 className="text-sm font-medium">
+            {GEO_PROMPT_RECEIPT_LABELS.history}
+          </h2>
+        </div>
+      }
     />
   );
 }

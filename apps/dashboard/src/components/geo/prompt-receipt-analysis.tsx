@@ -222,15 +222,13 @@ export function PromptReceiptAnalysis({
           </ReceiptSection>
         ) : null}
         {showHistory ? (
-          <ReceiptSection title={GEO_PROMPT_RECEIPT_LABELS.history}>
-            <PromptReceiptHistory
-              competitors={competitors}
-              entries={entries}
-              isLoading={isHistoryLoading}
-              key={entries[0]?.check.id ?? "empty"}
-              onSelect={onSelectCheck}
-            />
-          </ReceiptSection>
+          <PromptReceiptHistory
+            competitors={competitors}
+            entries={entries}
+            isLoading={isHistoryLoading}
+            key={entries[0]?.check.id ?? "empty"}
+            onSelect={onSelectCheck}
+          />
         ) : null}
       </div>
     </div>
