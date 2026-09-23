@@ -1,13 +1,10 @@
 import { attachDatabasePool } from "@vercel/functions";
-import { upstashCache } from "drizzle-orm/cache/upstash";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 
 // biome-ignore lint/performance/noNamespaceImport: Required for drizzle-kit
 import * as schema from "./schema";
 
 const databaseUrl = process.env.DATABASE_URL;
-const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const dbByUrl = new Map<string, NodePgDatabase<typeof schema>>();
 
@@ -17,23 +14,15 @@ export function createDb(databaseUrl: string): NodePgDatabase<typeof schema> {
     return cached;
   }
 
+  // No Upstash query cache. Drizzle runs an invalidation script on every
+  // insert, update, and delete once a cache is attached, and a scan writes
+  // one row per prompt per engine. That script was the write side of the
+  // cache. The aggregates it covered are index-only scans now.
   const client = drizzle({
     connection: {
       connectionString: databaseUrl,
       connectionTimeoutMillis: 10_000,
     },
-    cache:
-      upstashUrl && upstashToken
-        ? upstashCache({
-            url: upstashUrl,
-            token: upstashToken,
-            // Opt-in only: with `global: true` a cache miss paid 2 Upstash HTTP
-            // round trips (HGET, then a write-back pipeline of HSET + HEXPIRE +
-            // SADD) for a 1 s TTL. Query hashing is local, not a Redis RT.
-            // Expensive, slowly changing queries opt in via `.$withCache(...)`.
-            global: false,
-          })
-        : undefined,
     schema,
   });
   // Fluid compute suspends idle instances; this closes idle clients first so a

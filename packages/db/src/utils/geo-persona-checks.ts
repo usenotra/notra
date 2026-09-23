@@ -1,6 +1,5 @@
 import { and, desc, eq, gte, lt, type SQL, sql } from "drizzle-orm";
 
-import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
 import { GEO_PERSONA_SCAN_HISTORY_LIMIT } from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks } from "../schema";
@@ -145,7 +144,6 @@ export async function queryGeoCheckPersonaActivity(
         ),
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       and(
         scopeWhere(scope),

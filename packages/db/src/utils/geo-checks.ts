@@ -12,7 +12,6 @@ import {
   sql,
 } from "drizzle-orm";
 
-import { GEO_CHECK_AGGREGATE_CACHE } from "../constants/geo-check-cache";
 import { GEO_CHECK_ENGLISH_LANGUAGES } from "../constants/geo-checks";
 import { db } from "../drizzle";
 import { geoMentionChecks, geoScans, geoSettings } from "../schema";
@@ -67,7 +66,6 @@ export async function queryGeoCheckSentiment(
       lastCheckedAt: sql<string>`to_char(max(${geoMentionChecks.capturedAt}), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       and(
         mentionFilters(scope, window, {
@@ -154,7 +152,6 @@ export async function queryGeoSentimentAnalysisSnapshot(
       >`to_char(max(${geoMentionChecks.capturedAt}), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       and(
         mentionFilters(scope, window, {
@@ -409,7 +406,6 @@ export async function queryGeoCheckOverview(
       lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       mentionFilters(scope, window, { sequences: "single", englishOnly: true })
     )
@@ -449,7 +445,6 @@ export async function queryGeoCheckTimeseries(
       >`round(avg(${geoMentionChecks.position}) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.position} is not null), 1)::float8`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       mentionFilters(scope, window, {
         ...options,
@@ -607,7 +602,6 @@ export async function queryGeoCheckPromptSummaries(
   const rows = db
     .select()
     .from(latest)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(
       and(
         query?.engine ? eq(latest.engine, query.engine) : undefined,
@@ -677,7 +671,6 @@ export async function queryGeoCheckCompetitorShare(
     })
     .from(geoMentionChecks)
     .crossJoinLateral(unnestedCompetitorBrand)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(mentionFilters(scope, window, options))
     .groupBy(competitorBrand)
     .orderBy(sql`count(*) desc`)
@@ -702,7 +695,6 @@ export async function queryGeoCheckCompetitorShareTimeseries(
     })
     .from(geoMentionChecks)
     .crossJoinLateral(unnestedCompetitorBrand)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(mentionFilters(scope, window))
     .groupBy(competitorBrand, day)
     .orderBy(day);
@@ -719,7 +711,7 @@ export async function queryGeoCheckCompetitorShareTrends(
   window: GeoCheckWindow | undefined,
   limit: number
 ): Promise<GeoCheckCompetitorShareTrendRow[]> {
-  // ponytail: db.execute has no $withCache; nested subqueries drop join aliases
+  // ponytail: nested subqueries drop the join aliases the query builder needs
   const withinParts = capturedWithin(window);
   const projectFilter = scope.projectId
     ? sql`and ${geoMentionChecks.projectId} = ${scope.projectId}`
@@ -798,7 +790,6 @@ export async function queryGeoCheckCompetitorTimeseries(
       checks: sql<number>`count(*)::int`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(sql`(${geoMentionChecks.capturedAt})::date`)
     .orderBy(sql`(${geoMentionChecks.capturedAt})::date asc`);
@@ -832,7 +823,6 @@ export async function queryGeoCheckCompetitorPrompts(
       capturedAt: geoMentionChecks.capturedAt,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .orderBy(
       geoMentionChecks.promptId,
@@ -890,8 +880,7 @@ export async function queryGeoCheckCompetitorPromptSummary(
       >`coalesce(array_agg(distinct ${latest.engine}), '{}')`,
       ownMentioned: sql<number>`count(*) filter (where ${latest.mentioned})::int`,
     })
-    .from(latest)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE);
+    .from(latest);
 
   return {
     answers: toNumber(row?.answers),
@@ -926,7 +915,6 @@ export async function queryGeoCheckLanguageShare(
       lastCheckedAt: sql<Date>`max(${geoMentionChecks.capturedAt})`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(
       sql`case when ${geoMentionChecks.language} = '' then 'English' else ${geoMentionChecks.language} end`
@@ -968,7 +956,6 @@ export async function queryGeoCheckLanguageShareTrends(
       visibilityRate: sql<number>`round(count(*) filter (where ${geoMentionChecks.mentioned} or ${geoMentionChecks.ownedSourceCited})::numeric / nullif(count(*), 0), 3)::float8`,
     })
     .from(geoMentionChecks)
-    .$withCache(GEO_CHECK_AGGREGATE_CACHE)
     .where(and(...filters))
     .groupBy(day, language)
     .orderBy(day, language);
