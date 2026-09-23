@@ -7,7 +7,7 @@ import type {
   AssistantPartRef,
   GroupAssistantMessagePartsOptions,
 } from "@/types/chat-activity";
-import { isSearchToolPart } from "@/utils/chat-search-activity";
+import { isStackableSearchPart } from "@/utils/chat-search-activity";
 
 function isSkippablePart(part: AssistantMessagePart): boolean {
   if (part.type === "step-start") {
@@ -91,7 +91,7 @@ export function stackAssistantActivityItems(
   }
 
   for (const item of items) {
-    if (isSearchToolPart(item.part)) {
+    if (isStackableSearchPart(item.part)) {
       searches.push(item);
       continue;
     }
@@ -104,28 +104,18 @@ export function stackAssistantActivityItems(
 }
 
 export function isAssistantActivityStreaming(
-  items: AssistantPartRef[],
-  isLoading: boolean
+  isLoading: boolean,
+  isLastSegment: boolean
 ): boolean {
-  if (!isLoading) {
-    return false;
-  }
-
-  return items.some(({ part }) => {
-    if (part.type === "reasoning") {
-      return part.state === "streaming";
-    }
-    if (!isToolUIPart(part)) {
-      return false;
-    }
-    return part.state === "input-streaming" || part.state === "input-available";
-  });
+  return isLoading && isLastSegment;
 }
 
-export function isAssistantActivityAwaitingApproval(
+export function isAssistantActivityForceOpen(
   items: AssistantPartRef[]
 ): boolean {
   return items.some(
-    ({ part }) => isToolUIPart(part) && part.state === "approval-requested"
+    ({ part }) =>
+      isToolUIPart(part) &&
+      (part.state === "approval-requested" || part.state === "output-error")
   );
 }

@@ -142,7 +142,7 @@ function renderContentChatToolPart({
 
 function ContentChatActivityMessage({
   message,
-  status,
+  isLoading,
   organizationSlug,
   onApproveTool,
   onDenyTool,
@@ -232,7 +232,7 @@ function ContentChatActivityMessage({
             {message.role === "assistant" ? (
               <ChatAssistantParts
                 durationMs={assistantMetadata?.generationDurationMs}
-                isLoading={status === "streaming"}
+                isLoading={isLoading}
                 isStandaloneTool={isContentEditorStandaloneTool}
                 messageId={message.id}
                 parts={message.parts}
@@ -538,6 +538,9 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
   const lastUserMessageId = [...visibleMessages]
     .reverse()
     .find((message) => message.role === "user")?.id;
+  const lastAssistantMessageId = [...visibleMessages]
+    .reverse()
+    .find((message) => message.role === "assistant")?.id;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -555,11 +558,14 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
                 scrollAnchor={message.id === lastUserMessageId}
               >
                 <ContentChatActivityMessage
+                  isLoading={
+                    status === "streaming" &&
+                    message.id === lastAssistantMessageId
+                  }
                   message={message}
                   onApproveTool={onApproveTool}
                   onDenyTool={onDenyTool}
                   organizationSlug={organizationSlug}
-                  status={status}
                 />
               </MessageScrollerItem>
             ))}

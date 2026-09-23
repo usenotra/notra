@@ -79,6 +79,13 @@ export function isSearchToolPart(part: AssistantMessagePart): boolean {
   return SEARCH_TOOL_NAME_SET.has(getToolName(part));
 }
 
+export function isStackableSearchPart(part: AssistantMessagePart): boolean {
+  if (!isSearchToolPart(part) || !isToolUIPart(part)) {
+    return false;
+  }
+  return part.state !== "output-error" && part.state !== "approval-requested";
+}
+
 export function getSearchQuery(input: unknown): string | undefined {
   const parsed = webSearchInputSchema.safeParse(input);
   const query = parsed.success ? parsed.data.query?.trim() : undefined;

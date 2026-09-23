@@ -11,7 +11,7 @@ import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import type { ChatAssistantPartsProps } from "@/types/components/chat-activity-group";
 import {
   groupAssistantMessageParts,
-  isAssistantActivityAwaitingApproval,
+  isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
   stackAssistantActivityItems,
 } from "@/utils/group-assistant-message-parts";
@@ -26,8 +26,12 @@ export function ChatAssistantParts({
   renderTool,
 }: ChatAssistantPartsProps) {
   const segments = groupAssistantMessageParts(parts, { isStandaloneTool });
+  const activityCount = segments.filter(
+    (segment) => segment.kind === "activity"
+  ).length;
+  const lastSegmentIndex = segments.length - 1;
 
-  return segments.map((segment) => {
+  return segments.map((segment, segmentIndex) => {
     if (segment.kind === "standalone") {
       if (isToolUIPart(segment.part)) {
         return (
@@ -43,12 +47,15 @@ export function ChatAssistantParts({
       );
     }
 
-    const isStreaming = isAssistantActivityStreaming(segment.items, isLoading);
-    const forceOpen = isAssistantActivityAwaitingApproval(segment.items);
+    const isStreaming = isAssistantActivityStreaming(
+      isLoading,
+      segmentIndex === lastSegmentIndex
+    );
+    const forceOpen = isAssistantActivityForceOpen(segment.items);
 
     return (
       <ChatActivityGroup
-        durationMs={durationMs}
+        durationMs={activityCount === 1 ? durationMs : undefined}
         forceOpen={forceOpen}
         groupId={`${messageId}-${segment.startIndex}`}
         isStreaming={isStreaming}

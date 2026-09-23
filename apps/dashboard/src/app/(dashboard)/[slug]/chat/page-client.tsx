@@ -2681,7 +2681,8 @@ function StandaloneChatPageClient({
                                   isStandaloneTool={(part) =>
                                     isToolUIPart(part) &&
                                     part.type !== "dynamic-tool" &&
-                                    isCreateTool(part.type)
+                                    (isCreateTool(part.type) ||
+                                      part.type === "tool-createImage")
                                   }
                                   messageId={message.id}
                                   parts={message.parts}

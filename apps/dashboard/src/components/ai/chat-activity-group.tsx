@@ -45,16 +45,9 @@ function useWorkedDurationSeconds(
   const fromMetadata =
     durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
   const startedAtRef = useRef<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(
-    fromMetadata
-  );
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
 
   useEffect(() => {
-    if (fromMetadata !== null) {
-      setElapsedSeconds(fromMetadata);
-      return;
-    }
-
     if (isStreaming) {
       startedAtRef.current ??= Date.now();
       const started = startedAtRef.current;
@@ -73,9 +66,9 @@ function useWorkedDurationSeconds(
         Math.max(1, Math.ceil((Date.now() - startedAtRef.current) / 1000))
       );
     }
-  }, [fromMetadata, isStreaming]);
+  }, [isStreaming]);
 
-  return fromMetadata ?? elapsedSeconds;
+  return elapsedSeconds ?? fromMetadata;
 }
 
 export function ChatActivityGroup({

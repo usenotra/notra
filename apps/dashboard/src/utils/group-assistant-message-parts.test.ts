@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { isContentEditorStandaloneTool } from "./content-editor-standalone-tool";
 import {
   groupAssistantMessageParts,
+  isAssistantActivityForceOpen,
+  isAssistantActivityStreaming,
   stackAssistantActivityItems,
 } from "./group-assistant-message-parts";
 
@@ -159,5 +161,64 @@ describe("stackAssistantActivityItems", () => {
       throw new Error("expected searches");
     }
     expect(stacked[1].items).toHaveLength(2);
+  });
+
+  test("keeps failed and approval-gated searches as tool parts", () => {
+    const failedSearch = {
+      type: "tool-webSearch" as const,
+      toolCallId: "webSearch-err",
+      state: "output-error" as const,
+      input: { query: "sanctions" },
+      errorText: "Connection timed out",
+    };
+    const approvalSearch = {
+      type: "tool-webSearch" as const,
+      toolCallId: "webSearch-approval",
+      state: "approval-requested" as const,
+      input: { query: "sanctions" },
+      approval: { id: "approval-1" },
+    };
+    const stacked = stackAssistantActivityItems([
+      { part: failedSearch, index: 0 },
+      { part: tool("webSearch"), index: 1 },
+      { part: approvalSearch, index: 2 },
+    ]);
+
+    expect(stacked.map((item) => item.kind)).toEqual([
+      "part",
+      "searches",
+      "part",
+    ]);
+  });
+});
+
+describe("isAssistantActivityStreaming", () => {
+  test("stays streaming for the last segment of a loading message", () => {
+    expect(isAssistantActivityStreaming(true, true)).toBe(true);
+    expect(isAssistantActivityStreaming(true, false)).toBe(false);
+    expect(isAssistantActivityStreaming(false, true)).toBe(false);
+  });
+});
+
+describe("isAssistantActivityForceOpen", () => {
+  test("pins the group open for failed tools and approvals", () => {
+    expect(
+      isAssistantActivityForceOpen([
+        {
+          part: {
+            type: "dynamic-tool" as const,
+            toolName: "mcp_compliance_check_sanctions",
+            toolCallId: "mcp-1",
+            state: "output-error" as const,
+            input: {},
+            errorText: "Connection timed out",
+          },
+          index: 0,
+        },
+      ])
+    ).toBe(true);
+    expect(
+      isAssistantActivityForceOpen([{ part: tool("webSearch"), index: 0 }])
+    ).toBe(false);
   });
 });

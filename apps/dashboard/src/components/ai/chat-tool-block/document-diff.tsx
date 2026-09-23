@@ -11,7 +11,9 @@ import {
 } from "@/constants/document-diff";
 import type { DocumentDiffProps } from "@/types/content/document-diff";
 
-function chatDiffThemeType(resolvedTheme: string | undefined) {
+function chatDiffThemeType(
+  resolvedTheme: string | undefined
+): "light" | "dark" | "system" {
   if (resolvedTheme === "light" || resolvedTheme === "dark") {
     return resolvedTheme;
   }
