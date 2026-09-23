@@ -128,7 +128,7 @@ export function useContentChatInput({
       requiredBalance: 1,
     });
   }, [check, customer]);
-  const chatIncludedInPlan = hasIncludedChatPlan(customer);
+  const chatIncludedInPlan = hasIncludedChatPlan(customer) === true;
   const remainingChatCredits = getRemainingChatCredits(
     checkResult?.balance?.remaining
   );
@@ -136,10 +136,8 @@ export function useContentChatInput({
     chatIncludedInPlan,
     remainingChatCredits
   );
-  const isUsageBlocked = isChatUsageBlocked(
-    checkResult?.allowed,
-    chatIncludedInPlan
-  );
+  const isUsageBlocked =
+    isChatUsageBlocked(checkResult?.allowed, chatIncludedInPlan) === true;
   const usageLimitError = resolveUsageLimitError(
     externalError,
     internalError,

@@ -1588,10 +1588,10 @@ export function ChatInputAdvanced({
     externalError,
     internalError,
   });
-  const chatIncludedInPlan = chatUsage.chatIncludedInPlan;
+  const chatIncludedInPlan = chatUsage.chatIncludedInPlan === true;
   const remainingChatCredits = chatUsage.remainingChatCredits;
-  const shouldShowLowCredits = chatUsage.shouldShowLowCredits;
-  const isUsageBlocked = chatUsage.isUsageBlocked;
+  const shouldShowLowCredits = chatUsage.shouldShowLowCredits === true;
+  const isUsageBlocked = chatUsage.isUsageBlocked === true;
   const usageLimitError = chatUsage.usageLimitError;
 
   const clearError = useCallback(() => {
@@ -1948,21 +1948,22 @@ export function ChatInputAdvanced({
     if (!editor || initialValue || readEditorText().trim().length > 0) {
       return;
     }
+    let draft: string | null = null;
     try {
-      const draft = window.localStorage.getItem(draftStorageKey);
-      if (!draft) {
-        return;
-      }
-      const restoredDraft = extractIntegrationReferences(draft);
-      for (const referencedItem of restoredDraft.items) {
-        onAddContext?.(referencedItem);
-      }
-      const restoredText = restoredDraft.text.trim();
-      editor.textContent = restoredText;
-      setIsEmpty(restoredText.length === 0);
+      draft = window.localStorage.getItem(draftStorageKey);
     } catch {
-      // noop
+      return;
     }
+    if (!draft) {
+      return;
+    }
+    const restoredDraft = extractIntegrationReferences(draft);
+    for (const referencedItem of restoredDraft.items) {
+      onAddContext?.(referencedItem);
+    }
+    const restoredText = restoredDraft.text.trim();
+    editor.textContent = restoredText;
+    setIsEmpty(restoredText.length === 0);
   }, [draftStorageKey, initialValue, onAddContext, readEditorText]);
 
   useEffect(() => {
