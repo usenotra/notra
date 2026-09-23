@@ -88,6 +88,7 @@ import {
   SCRUB_MUTE_OPACITY,
   clipSeriesToX,
   emptyScrubStore,
+  nearestCategoryIndex,
   pointOnSeriesAtX,
   readScrubGrid,
   syncScrubOverlay,
@@ -2548,20 +2549,25 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         leaveScrub();
         return;
       }
+      const raw = chart.convertFromPixel({ gridIndex: 0 }, [x, y])[0] ?? 0;
+      const idx = nearestCategoryIndex(raw, live.dataLength);
+      const snapX = chart.convertToPixel({ xAxisIndex: 0 }, idx);
+      if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
+      if (live.scrubTarget === 1 && live.scrubX === snapX) return;
       const entering = live.scrubTarget === 0;
-      live.scrubX = x;
+      live.scrubX = snapX;
       live.scrubTarget = 1;
       if (entering) setMutedOpacity(SCRUB_MUTE_OPACITY);
       const zrDom = chart.getZr()?.dom as HTMLElement | undefined;
       if (zrDom) zrDom.style.cursor = "crosshair";
-      chart.dispatchAction({ type: "showTip", x, y });
+      chart.dispatchAction({ type: "showTip", x: snapX, y });
       paintScrub();
       if (!live.scrubRaf) live.scrubRaf = requestAnimationFrame(tickScrub);
     };
 
     const zrHover = chart.getZr();
     const onZrHoverMove = (event: { offsetX?: number; offsetY?: number }) => {
-      // Scrub is the pixel-follow hover; it replaces snap-to-category reveal.
+      // Scrub snaps to the nearest day; it replaces pixel-follow reveal.
       if (live.handlers.enableScrub) {
         applyScrub(event);
         return;
