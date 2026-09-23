@@ -80,6 +80,7 @@ import { toast } from "sonner";
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
+import { AVAILABLE_MODELS } from "@/constants/chat-models";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
@@ -98,6 +99,7 @@ import {
   isImageMimeType,
 } from "@/lib/upload/mime";
 import type { ChatMessageAuthor } from "@/types/chat";
+import type { ChatModelOption } from "@/types/chat-model";
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
@@ -138,66 +140,7 @@ import {
 
 const GENERIC_PASTED_IMAGE_NAME_RE = /^image\.(jpe?g|png|gif|webp)$/i;
 
-export const AVAILABLE_MODELS = [
-  {
-    id: "auto",
-    label: "Auto",
-    description: "Picks the best model for your message",
-    pricing: "Varies by selected model",
-    provider: "auto",
-  },
-  {
-    id: "anthropic/claude-opus-5",
-    label: "Claude Opus 5",
-    description: "Most advanced reasoning",
-    pricing: "$5 input / $25 output per 1M",
-    provider: "anthropic",
-  },
-  {
-    id: "anthropic/claude-opus-4.8",
-    label: "Claude Opus 4.8",
-    description: "Deepest reasoning",
-    pricing: "$5 input / $25 output per 1M",
-    provider: "anthropic",
-  },
-  {
-    id: "anthropic/claude-sonnet-5",
-    label: "Sonnet 5",
-    description: "Near-Opus quality at Sonnet speed",
-    pricing: "$2 input / $10 output per 1M",
-    provider: "anthropic",
-  },
-  {
-    id: "anthropic/claude-sonnet-4.6",
-    label: "Sonnet 4.6",
-    description: "Best everyday default",
-    pricing: "$3 input / $15 output per 1M",
-    provider: "anthropic",
-  },
-  {
-    id: "anthropic/claude-haiku-4.5",
-    label: "Haiku 4.5",
-    description: "Fastest responses",
-    pricing: "$1 input / $5 output per 1M",
-    provider: "anthropic",
-  },
-  {
-    id: "openai/gpt-5.4",
-    label: "GPT-5.4",
-    description: "Best for creative writing",
-    pricing: "$2.50 input / $15 output per 1M",
-    provider: "openai",
-  },
-  {
-    id: "openai/gpt-5.5",
-    label: "GPT-5.5",
-    description: "Latest OpenAI flagship",
-    pricing: "$5 input / $30 output per 1M",
-    provider: "openai",
-  },
-] as const;
-
-type ModelProvider = (typeof AVAILABLE_MODELS)[number]["provider"];
+type ModelProvider = ChatModelOption["provider"];
 
 export function ModelIcon({
   provider,
@@ -765,7 +708,6 @@ function ChatComposerNudge({
 }
 
 function ChatComposerModelPicker({
-  attachmentsRef,
   currentModel,
   isLoading,
   isModelPickerOpen,
@@ -774,8 +716,7 @@ function ChatComposerModelPicker({
   onModelChange,
   setIsModelPickerOpen,
 }: {
-  attachmentsRef: RefObject<{ mediaType: string }[]>;
-  currentModel: (typeof AVAILABLE_MODELS)[number];
+  currentModel: ChatModelOption;
   isLoading: boolean;
   isModelPickerOpen: boolean;
   isQueued: boolean;
@@ -808,22 +749,6 @@ function ChatComposerModelPicker({
                     availableModel.description,
                   ]}
                   onSelect={() => {
-                    const attachments = attachmentsRef.current ?? [];
-                    if (
-                      availableModel.id === "openai/gpt-5.4" &&
-                      attachments.some(
-                        (attachment) =>
-                          !isAllowedChatMimeType(
-                            attachment.mediaType,
-                            availableModel.id
-                          )
-                      )
-                    ) {
-                      toast.error(
-                        getUnsupportedAttachmentMessage(availableModel.label)
-                      );
-                      return;
-                    }
                     onModelChange?.(availableModel.id);
                     setIsModelPickerOpen(false);
                   }}
@@ -1303,7 +1228,13 @@ export function ChatInputAdvanced({
   const mentionListId = useId();
   const currentModel =
     AVAILABLE_MODELS.find((availableModel) => availableModel.id === model) ??
-    AVAILABLE_MODELS[0];
+    ({
+      id: "auto",
+      label: model,
+      description: "",
+      pricing: "",
+      provider: model.startsWith("openai/") ? "openai" : "anthropic",
+    } satisfies ChatModelOption);
   const [isModelPickerOpen, setIsModelPickerOpen] = useState(false);
   const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -2721,7 +2652,6 @@ export function ChatInputAdvanced({
               />
 
               <ChatComposerModelPicker
-                attachmentsRef={attachmentsRef}
                 currentModel={currentModel}
                 isLoading={isLoading}
                 isModelPickerOpen={isModelPickerOpen}

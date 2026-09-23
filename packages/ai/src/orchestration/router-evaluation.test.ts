@@ -52,17 +52,22 @@ describe("routing decision from evaluation", () => {
       selectAutoModel(
         routingDecisionFromEvaluation(evaluation("simple", 0.1, 0))
       )
-    ).toEqual({ model: "anthropic/claude-sonnet-4.6", thinkingLevel: "off" });
+    ).toEqual({ model: "anthropic/claude-sonnet-5", thinkingLevel: "off" });
     expect(
       selectAutoModel(
         routingDecisionFromEvaluation(evaluation("complex", 0.9, 0.95))
       )
-    ).toEqual({ model: "anthropic/claude-opus-4.8", thinkingLevel: "high" });
+    ).toEqual({ model: "anthropic/claude-opus-5.5", thinkingLevel: "high" });
     expect(
       selectAutoModel(
         routingDecisionFromEvaluation(evaluation("simple", 0.5, 0.49))
       )
-    ).toEqual({ model: "anthropic/claude-sonnet-4.6", thinkingLevel: "low" });
+    ).toEqual({ model: "anthropic/claude-sonnet-5", thinkingLevel: "low" });
+    expect(
+      selectAutoModel(
+        routingDecisionFromEvaluation(evaluation("complex", 0.9, 0.49))
+      )
+    ).toEqual({ model: "anthropic/claude-sonnet-5", thinkingLevel: "medium" });
   });
 
   test("state carries the message and the integration flag", () => {

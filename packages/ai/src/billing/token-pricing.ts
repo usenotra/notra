@@ -138,6 +138,32 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
       cacheWritePerMillionTokens: 0,
     },
   },
+  "openai/gpt-6-sol": {
+    inputPerMillionTokens: 2.0,
+    outputPerMillionTokens: 10.0,
+    cacheReadPerMillionTokens: 0.2,
+    cacheWritePerMillionTokens: 2.5,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 4.0,
+      outputPerMillionTokens: 15.0,
+      cacheReadPerMillionTokens: 0.4,
+      cacheWritePerMillionTokens: 5.0,
+    },
+  },
+  "openai/gpt-6-luna": {
+    inputPerMillionTokens: 0.1,
+    outputPerMillionTokens: 0.5,
+    cacheReadPerMillionTokens: 0.01,
+    cacheWritePerMillionTokens: 0.125,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 0.2,
+      outputPerMillionTokens: 0.75,
+      cacheReadPerMillionTokens: 0.02,
+      cacheWritePerMillionTokens: 0.25,
+    },
+  },
   "openai/gpt-5.6-luna": {
     inputPerMillionTokens: 0.2,
     outputPerMillionTokens: 1.2,

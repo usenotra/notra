@@ -9,19 +9,14 @@ import type {
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
-import {
-  convertToModelMessages,
-  isStepCount,
-  streamText,
-  type UIMessage,
-} from "ai";
+import { convertToModelMessages, isStepCount, streamText } from "ai";
 
 import {
   hasEnabledGitHubIntegration,
   hasEnabledLinearIntegration,
   validateIntegrations,
 } from "./integration-validator";
-import { routeAndSelectModel } from "./router";
+import { routeMessage, selectAutoModel } from "./router";
 import { getThinkingProviderOptions } from "./thinking";
 import {
   buildToolSet,
@@ -62,23 +57,23 @@ export async function orchestrateChat(
 
   const hasGitHub = hasEnabledGitHubIntegration(validatedIntegrations);
   const hasLinear = hasEnabledLinearIntegration(validatedIntegrations);
-  const hasIntegrationContext = hasGitHub || hasLinear;
-
-  const lastUserMessage = getLastUserMessage(messages);
-  const hasAttachments = lastUserMessageHasNonTextParts(messages);
-  const routedDecision = await routeAndSelectModel(
-    lastUserMessage,
-    hasIntegrationContext,
+  const userParts = messages.findLast(
+    (message) => message.role === "user"
+  )?.parts;
+  const decision = await routeMessage(
+    userParts?.find((part) => part.type === "text")?.text ?? "",
+    hasGitHub || hasLinear,
     log,
-    hasAttachments,
+    userParts?.some((part) => part.type !== "text") ?? false,
     telemetryMetadata
   );
+  const auto = selectAutoModel(decision);
   const routingDecision = {
-    ...routedDecision,
+    model: auto.model,
+    complexity: decision.complexity,
     requiresTools: true,
-    reasoning: routedDecision.requiresTools
-      ? routedDecision.reasoning
-      : `${routedDecision.reasoning} (tools available by default)`,
+    reasoning: `auto → ${auto.model}: ${decision.reasoning}`,
+    thinkingLevel: auto.thinkingLevel,
   };
 
   const modelWithMemory = createModel(
@@ -125,7 +120,7 @@ export async function orchestrateChat(
   const thinkingProviderOptions = getThinkingProviderOptions(
     routingDecision.model,
     true,
-    routingDecision.thinkingLevel ?? "low"
+    routingDecision.thinkingLevel
   );
   const stream = streamText({
     model: modelWithMemory,
@@ -163,38 +158,4 @@ export async function orchestrateChat(
   });
 
   return { stream, routingDecision };
-}
-
-function lastUserMessageHasNonTextParts(messages: UIMessage[]): boolean {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (!message || message.role !== "user") {
-      continue;
-    }
-    if (!Array.isArray(message.parts)) {
-      return false;
-    }
-    return message.parts.some((part) => part.type !== "text");
-  }
-  return false;
-}
-
-function getLastUserMessage(messages: UIMessage[]): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (!message) {
-      continue;
-    }
-    if (message.role === "user") {
-      const parts = message.parts;
-      if (Array.isArray(parts)) {
-        for (const part of parts) {
-          if (part.type === "text") {
-            return part.text;
-          }
-        }
-      }
-    }
-  }
-  return "";
 }

@@ -2,7 +2,7 @@ import {
   CLAUDE_CHAT_EFFORTS,
   CLAUDE_CHAT_HOCH_EFFORT,
   CLAUDE_CHAT_MODELS,
-  CLAUDE_CHAT_OPUS_5_MODEL,
+  CLAUDE_CHAT_OPUS_5_5_MODEL,
 } from "../constants/claude-chat-models";
 import type {
   ClaudeChatEffortId,
@@ -15,7 +15,7 @@ export function getClaudeChatModel(
   id: ClaudeChatModelId
 ): ClaudeChatModelOption {
   return (
-    CLAUDE_CHAT_MODELS.find((item) => item.id === id) ?? CLAUDE_CHAT_OPUS_5_MODEL
+    CLAUDE_CHAT_MODELS.find((item) => item.id === id) ?? CLAUDE_CHAT_OPUS_5_5_MODEL
   );
 }
 

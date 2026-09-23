@@ -29,7 +29,8 @@ import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
-import { AVAILABLE_MODELS, ModelIcon } from "@/components/chat/chat-input";
+import { ModelIcon } from "@/components/chat/chat-input";
+import { AVAILABLE_MODELS } from "@/constants/chat-models";
 import type {
   UserMessageEditorProps,
   UserMessageTextBubbleProps,

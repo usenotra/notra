@@ -91,6 +91,15 @@ export const GEO_MODEL_PROVIDERS: readonly GeoModelProvider[] = [
 export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   // Anthropic
   {
+    id: "anthropic/claude-opus-5.5",
+    provider: "anthropic",
+    label: "Claude Opus 5.5",
+    zdr: "all",
+    released: "2026-09-22",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "anthropic/claude-fable-5.1",
     provider: "anthropic",
     label: "Claude Fable 5.1",
@@ -105,7 +114,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "Claude Opus 5",
     zdr: "all",
     released: "2026-07-24",
-    default: true,
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
@@ -137,6 +146,24 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
   },
   // OpenAI
   {
+    id: "openai/gpt-6-sol",
+    provider: "openai",
+    label: "GPT-6 Sol",
+    zdr: "none",
+    released: "2026-09-22",
+    default: true,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
+    id: "openai/gpt-6-luna",
+    provider: "openai",
+    label: "GPT-6 Luna",
+    zdr: "none",
+    released: "2026-09-22",
+    default: false,
+    gateways: ["vercel", "openrouter"],
+  },
+  {
     id: "openai/gpt-6-astra",
     provider: "openai",
     label: "GPT-6 Astra",
@@ -151,6 +178,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "GPT-5.6 Sol",
     zdr: "some",
     released: "2026-07-09",
+    // ZDR-capable counterpart to GPT-6 Sol for technical scans.
     default: true,
     gateways: ["vercel", "openrouter"],
   },
