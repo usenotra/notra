@@ -71,6 +71,8 @@ describe("PromptSuggestionSheet", () => {
     expect(html).toContain("2.7%");
     expect(html).toContain("#5.3");
     expect(html).toContain("Search queries");
+    expect(html).toContain("<table");
+    expect(html).toContain("border-collapse");
     expect(html).toContain("Query");
     expect(html).toContain("Impressions");
     expect(html).toContain("Clicks");

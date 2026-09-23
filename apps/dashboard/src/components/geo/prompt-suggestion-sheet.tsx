@@ -10,14 +10,6 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { useMemo } from "react";
 
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -41,36 +33,46 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
           No query-level data for this prompt.
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-full">Query</TableHead>
-              <TableHead className="text-right">Impressions</TableHead>
-              <TableHead className="text-right">Clicks</TableHead>
-              <TableHead className="text-right">Position</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((query) => (
-              <TableRow key={query.query}>
-                <TableCell className="whitespace-normal">
-                  <span className="block leading-relaxed wrap-anywhere">
-                    {query.query}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCount(query.impressions)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCount(query.clicks)}
-                </TableCell>
-                <TableCell className="text-right">
-                  #{query.position.toFixed(1)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm tabular-nums">
+            <thead>
+              <tr className="bg-muted/80">
+                <th className="border-border border px-3 py-2 text-left font-medium">
+                  Query
+                </th>
+                <th className="border-border border px-3 py-2 text-right font-medium">
+                  Impressions
+                </th>
+                <th className="border-border border px-3 py-2 text-right font-medium">
+                  Clicks
+                </th>
+                <th className="border-border border px-3 py-2 text-right font-medium">
+                  Position
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-background">
+              {rows.map((query) => (
+                <tr key={query.query}>
+                  <td className="border-border border px-3 py-2 whitespace-normal">
+                    <span className="block leading-relaxed wrap-anywhere">
+                      {query.query}
+                    </span>
+                  </td>
+                  <td className="border-border border px-3 py-2 text-right">
+                    {formatCount(query.impressions)}
+                  </td>
+                  <td className="border-border border px-3 py-2 text-right">
+                    {formatCount(query.clicks)}
+                  </td>
+                  <td className="border-border border px-3 py-2 text-right">
+                    #{query.position.toFixed(1)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );
