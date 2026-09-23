@@ -58,14 +58,14 @@ export function SentimentThemesEmpty({
         ) : null}
         {canAnalyze || analyzing ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button className="min-w-44" disabled={analyzing} onClick={analyze}>
+            <Button className="min-w-32" disabled={analyzing} onClick={analyze}>
               {analyzing ? <StatusSpinner /> : null}
               <span
                 className="sentiment-state-copy"
                 key={analyzing ? "busy" : "idle"}
               >
                 {analyzing
-                  ? "Analyzing themes…"
+                  ? "Analyzing…"
                   : retrying
                     ? "Retry analysis"
                     : "Analyze now"}
