@@ -6,7 +6,6 @@ import type {
 } from "@/types/skills/slash";
 
 const SLASH_QUERY_CHARS = /^[a-z0-9-]*$/i;
-const SKILL_DRAFT_TOKEN_SPLIT_REGEX = /(@skill\/[a-z0-9]+(?:-[a-z0-9]+)*)/g;
 const SKILL_DRAFT_TOKEN_VALUE = /^@skill\/([a-z0-9]+(?:-[a-z0-9]+)*)$/;
 
 function isSlashWhitespace(char: string): boolean {
@@ -91,17 +90,17 @@ export function extractSkillDraftTokens(value: string): {
   names: string[];
   text: string;
 } {
+  const lines = value.split("\n");
   const names: string[] = [];
-  const textSegments: string[] = [];
-  for (const segment of value.split(SKILL_DRAFT_TOKEN_SPLIT_REGEX)) {
-    const match = segment.match(SKILL_DRAFT_TOKEN_VALUE);
-    if (match?.[1]) {
-      names.push(match[1]);
-      continue;
+  while (lines.length > 0) {
+    const match = lines.at(-1)?.match(SKILL_DRAFT_TOKEN_VALUE);
+    if (!match?.[1]) {
+      break;
     }
-    textSegments.push(segment);
+    names.unshift(match[1]);
+    lines.pop();
   }
-  return { names, text: textSegments.join("") };
+  return { names, text: lines.join("\n") };
 }
 
 export function cycleSlashIndex(

@@ -495,6 +495,7 @@ function ChatMentionMenu({
   filteredMentionItems,
   insertMention,
   isInContext,
+  listboxId,
   mentionIndex,
   mentionListRef,
   organizationSlug,
@@ -503,6 +504,7 @@ function ChatMentionMenu({
   filteredMentionItems: ChatContextOption[];
   insertMention: (option: ChatContextOption) => void;
   isInContext: (item: ContextItem) => boolean;
+  listboxId: string;
   mentionIndex: number;
   mentionListRef: Ref<HTMLDivElement>;
   organizationSlug?: string;
@@ -512,7 +514,12 @@ function ChatMentionMenu({
       className="absolute bottom-full left-1 z-50 mb-1 w-72"
       ref={mentionListRef}
     >
-      <div className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md">
+      <div
+        aria-label="Context"
+        className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md"
+        id={listboxId}
+        role="listbox"
+      >
         {filteredMentionItems.length > 0 ? (
           <>
             {filteredMentionItems.map((option, idx) => {
@@ -521,6 +528,7 @@ function ChatMentionMenu({
               const startsGroup =
                 idx === 0 ||
                 (previousOption?.kind === "mcp") !== (option.kind === "mcp");
+              const selected = idx === mentionIndex;
               return (
                 <div key={option.id}>
                   {startsGroup ? (
@@ -529,15 +537,18 @@ function ChatMentionMenu({
                     </div>
                   ) : null}
                   <button
+                    aria-selected={selected}
                     className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
-                      idx === mentionIndex
+                      selected
                         ? "bg-accent text-accent-foreground"
                         : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
+                    id={`chat-mention-option-${option.id}`}
                     onMouseDown={(event) => {
                       event.preventDefault();
                       insertMention(option);
                     }}
+                    role="option"
                     type="button"
                   >
                     <ChatContextOptionContent option={option} />
@@ -1251,6 +1262,7 @@ export function ChatInputAdvanced({
 }: ChatInputAdvancedProps) {
   const contextPickerId = useId();
   const slashListId = useId();
+  const mentionListId = useId();
   const currentModel =
     AVAILABLE_MODELS.find((availableModel) => availableModel.id === model) ??
     AVAILABLE_MODELS[0];
@@ -2506,6 +2518,7 @@ export function ChatInputAdvanced({
             filteredMentionItems={filteredMentionItems}
             insertMention={insertMention}
             isInContext={isInContext}
+            listboxId={mentionListId}
             mentionIndex={mentionIndex}
             mentionListRef={mentionListRef}
             organizationSlug={organizationSlug}
@@ -2560,13 +2573,30 @@ export function ChatInputAdvanced({
                     aria-activedescendant={
                       isSlashMenuOpen && filteredSkills[slashIndex]
                         ? `chat-skill-slash-option-${filteredSkills[slashIndex].name}`
+                        : mentionQuery !== null &&
+                            filteredMentionItems[mentionIndex]
+                          ? `chat-mention-option-${filteredMentionItems[mentionIndex].id}`
+                          : undefined
+                    }
+                    aria-autocomplete={
+                      isSlashMenuOpen || mentionQuery !== null
+                        ? "list"
                         : undefined
                     }
-                    aria-autocomplete={isSlashMenuOpen ? "list" : undefined}
-                    aria-controls={isSlashMenuOpen ? slashListId : undefined}
+                    aria-controls={
+                      isSlashMenuOpen
+                        ? slashListId
+                        : mentionQuery !== null
+                          ? mentionListId
+                          : undefined
+                    }
                     aria-disabled={isQueued}
-                    aria-expanded={isSlashMenuOpen}
-                    aria-haspopup={isSlashMenuOpen ? "listbox" : undefined}
+                    aria-expanded={isSlashMenuOpen || mentionQuery !== null}
+                    aria-haspopup={
+                      isSlashMenuOpen || mentionQuery !== null
+                        ? "listbox"
+                        : undefined
+                    }
                     aria-label="Send a message"
                     className="text-foreground caret-foreground data-[empty=true]:before:text-muted-foreground relative max-h-50 min-h-12 w-full min-w-0 overflow-y-auto rounded-t-[12px] px-3 py-2 text-sm leading-6 wrap-anywhere whitespace-pre-wrap outline-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[empty=true]:before:pointer-events-none data-[empty=true]:before:absolute data-[empty=true]:before:top-2 data-[empty=true]:before:left-3 data-[empty=true]:before:content-[attr(data-placeholder)]"
                     contentEditable={!isQueued}
