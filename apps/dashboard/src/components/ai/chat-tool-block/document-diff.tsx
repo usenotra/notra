@@ -1,23 +1,15 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import { registerCustomCSSVariableTheme } from "@pierre/diffs";
 import { MultiFileDiff } from "@pierre/diffs/react";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 
 import {
   CHAT_DOCUMENT_DIFF_OPTIONS,
-  CHAT_DOCUMENT_DIFF_THEME,
-  CHAT_DOCUMENT_DIFF_THEME_DEFAULTS,
   DOCUMENT_DIFF_FRAME_CLASSNAME,
 } from "@/constants/document-diff";
 import type { DocumentDiffProps } from "@/types/content/document-diff";
-
-registerCustomCSSVariableTheme(
-  CHAT_DOCUMENT_DIFF_THEME,
-  CHAT_DOCUMENT_DIFF_THEME_DEFAULTS
-);
 
 function chatDiffThemeType(resolvedTheme: string | undefined) {
   if (resolvedTheme === "light" || resolvedTheme === "dark") {

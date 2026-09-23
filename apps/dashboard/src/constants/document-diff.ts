@@ -25,27 +25,8 @@ export const CHAT_DOCUMENT_DIFF_UNSAFE_CSS = `
 }
 `.trim();
 
-export const CHAT_DOCUMENT_DIFF_THEME = "notra-chat";
-
-export const CHAT_DOCUMENT_DIFF_THEME_DEFAULTS = {
-  foreground: "var(--foreground)",
-  background: "transparent",
-  "token-constant": "var(--foreground)",
-  "token-string": "var(--foreground)",
-  "token-comment": "var(--muted-foreground)",
-  "token-keyword": "var(--primary)",
-  "token-parameter": "var(--foreground)",
-  "token-function": "var(--foreground)",
-  "token-string-expression": "var(--foreground)",
-  "token-punctuation": "var(--muted-foreground)",
-  "token-link": "var(--primary)",
-};
-
 export const CHAT_DOCUMENT_DIFF_OPTIONS = {
-  theme: {
-    dark: CHAT_DOCUMENT_DIFF_THEME,
-    light: CHAT_DOCUMENT_DIFF_THEME,
-  },
+  theme: { dark: "github-dark", light: "github-light" },
   diffStyle: "unified",
   overflow: "wrap",
   hunkSeparators: "line-info-basic",
