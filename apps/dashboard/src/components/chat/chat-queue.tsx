@@ -15,6 +15,7 @@ export interface QueuedMessage {
   authorUserId?: string;
   selection?: TextSelection;
   context?: ContextItem[];
+  steering?: boolean;
 }
 
 interface ChatQueueProps {
@@ -43,6 +44,7 @@ export function ChatQueue({
 }: ChatQueueProps) {
   const reduceMotion = useReducedMotion();
   const hasMessages = messages.length > 0;
+  const hasPendingSteer = messages.some((message) => message.steering);
   const containerTransition = reduceMotion ? INSTANT : SPRING.snappy;
   const itemTransition = reduceMotion ? INSTANT : SPRING.snappy;
 
@@ -86,8 +88,17 @@ export function ChatQueue({
                       label={message.text}
                       onEdit={() => onEdit(message)}
                       onRemove={() => onRemove(message.id)}
-                      onSteer={onSteer ? () => onSteer(message) : undefined}
-                      removeLabel="Remove from queue"
+                      onSteer={
+                        hasPendingSteer || !onSteer
+                          ? undefined
+                          : () => onSteer(message)
+                      }
+                      pending={Boolean(message.steering)}
+                      removeLabel={
+                        message.steering
+                          ? "Cancel steering"
+                          : "Remove from queue"
+                      }
                       steerLabel="Steer with this message"
                     />
                   </m.div>

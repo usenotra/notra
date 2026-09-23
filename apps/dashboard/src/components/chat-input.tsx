@@ -237,6 +237,8 @@ function ChatInputComposerNudge({
   shouldShowLowCredits,
   usageLimitError,
 }: ChatInputComposerNudgeProps) {
+  const hasPendingSteer = queuedMessages.some((message) => message.steering);
+
   return (
     <Composer.Nudge
       action={
@@ -273,8 +275,15 @@ function ChatInputComposerNudge({
               onRemove={
                 onRemoveQueued ? () => onRemoveQueued(message.id) : undefined
               }
-              onSteer={onSteerQueued ? () => onSteerQueued(message) : undefined}
-              removeLabel="Remove from queue"
+              onSteer={
+                hasPendingSteer || !onSteerQueued
+                  ? undefined
+                  : () => onSteerQueued(message)
+              }
+              pending={Boolean(message.steering)}
+              removeLabel={
+                message.steering ? "Cancel steering" : "Remove from queue"
+              }
               steerLabel="Steer with this message"
             />
           ))}

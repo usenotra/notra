@@ -1,5 +1,13 @@
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 
+export function markQueuedMessageSteering<
+  T extends { id: string; steering?: boolean },
+>(queue: T[], id: string): T[] {
+  return queue.map((item) =>
+    item.id === id ? { ...item, steering: true } : item
+  );
+}
+
 export function takeQueuedMessage<T extends { id: string }>(
   queue: T[],
   id: string

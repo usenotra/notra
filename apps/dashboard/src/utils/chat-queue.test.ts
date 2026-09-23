@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  markQueuedMessageSteering,
   parseQueuedMessages,
   shouldDrainQueueAfterError,
   takeQueuedMessage,
@@ -30,6 +31,23 @@ describe("takeQueuedMessage", () => {
     expect(takeQueuedMessage([{ id: "a", text: "first" }], "missing")).toBe(
       null
     );
+  });
+});
+
+describe("markQueuedMessageSteering", () => {
+  test("marks only the chosen chip as steering and leaves it in place", () => {
+    expect(
+      markQueuedMessageSteering(
+        [
+          { id: "a", text: "first" },
+          { id: "b", text: "steer me" },
+        ],
+        "b"
+      )
+    ).toEqual([
+      { id: "a", text: "first" },
+      { id: "b", text: "steer me", steering: true },
+    ]);
   });
 });
 

@@ -114,6 +114,7 @@ function ComposerChip({
 
   return (
     <span
+      aria-busy={pending || undefined}
       className={cn(
         "border-foreground/25 bg-background text-foreground inline-flex max-w-full items-center gap-1.5 rounded-md border border-dashed py-1 pr-1 pl-1.5 text-xs",
         pending ? "border-foreground/15 text-muted-foreground" : null,
@@ -136,7 +137,7 @@ function ComposerChip({
           <span className={labelClasses}>{label}</span>
         </>
       )}
-      {onSteer ? (
+      {onSteer && !pending ? (
         <button
           aria-label={steerLabel ?? `Steer with ${label}`}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
@@ -146,7 +147,7 @@ function ComposerChip({
           <HugeiconsIcon className="size-3" icon={ArrowUp02Icon} />
         </button>
       ) : null}
-      {onEdit ? (
+      {onEdit && !pending ? (
         <button
           aria-label={editLabel ?? `Edit ${label}`}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"

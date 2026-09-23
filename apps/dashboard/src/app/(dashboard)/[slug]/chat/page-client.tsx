@@ -136,7 +136,11 @@ import {
   readStoredChatPreferences,
   writeStoredChatPreferences,
 } from "@/utils/chat-preferences";
-import { parseQueuedMessages, takeQueuedMessage } from "@/utils/chat-queue";
+import {
+  markQueuedMessageSteering,
+  parseQueuedMessages,
+  takeQueuedMessage,
+} from "@/utils/chat-queue";
 import {
   clearPendingChatClientState,
   resetNewChatClientState,
@@ -1587,28 +1591,25 @@ function StandaloneChatPageClient({
   ]);
 
   const handleRemoveQueued = useCallback((id: string) => {
-    setQueuedMessages((prev) => prev.filter((m) => m.id !== id));
+    if (steerAfterStopRef.current?.id === id) {
+      steerAfterStopRef.current = null;
+    }
+    const next = queuedMessagesRef.current.filter((m) => m.id !== id);
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
-    setQueuedMessages((prev) => prev.filter((m) => m.id !== message.id));
+    if (steerAfterStopRef.current?.id === message.id) {
+      steerAfterStopRef.current = null;
+    }
+    const next = queuedMessagesRef.current.filter((m) => m.id !== message.id);
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
     chatInputRef.current?.setText(message.text);
   }, []);
 
-  const flushSteerAfterStop = useCallback(() => {
-    const next = steerAfterStopRef.current;
-    if (!next) {
-      return;
-    }
-    steerAfterStopRef.current = null;
-    updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
-    dispatchMessage(next.text).catch((error) => {
-      console.error("[Chat] Failed to steer queued message:", error);
-      setQueuedMessages((prev) => [next, ...prev]);
-    });
-  }, [dispatchMessage]);
-
-  const handleSteerQueued = useCallback(
+  const sendSteeredQueued = useCallback(
     (message: QueuedMessage) => {
       const taken = takeQueuedMessage(queuedMessagesRef.current, message.id);
       if (!taken) {
@@ -1616,14 +1617,46 @@ function StandaloneChatPageClient({
       }
       queuedMessagesRef.current = taken.remaining;
       setQueuedMessages(taken.remaining);
-      if (!(isLoading || isWaitingForActiveStream)) {
-        dispatchMessage(taken.message.text).catch((error) => {
-          console.error("[Chat] Failed to steer queued message:", error);
-          setQueuedMessages((prev) => [taken.message, ...prev]);
-        });
+      updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
+      dispatchMessage(message.text).catch((error) => {
+        console.error("[Chat] Failed to steer queued message:", error);
+        queuedMessagesRef.current = [message, ...queuedMessagesRef.current];
+        setQueuedMessages((prev) => [message, ...prev]);
+      });
+    },
+    [dispatchMessage]
+  );
+
+  const flushSteerAfterStop = useCallback(() => {
+    const next = steerAfterStopRef.current;
+    if (!next) {
+      return;
+    }
+    steerAfterStopRef.current = null;
+    sendSteeredQueued(next);
+  }, [sendSteeredQueued]);
+
+  const handleSteerQueued = useCallback(
+    (message: QueuedMessage) => {
+      if (steerAfterStopRef.current) {
         return;
       }
-      steerAfterStopRef.current = taken.message;
+      if (
+        !queuedMessagesRef.current.some((queued) => queued.id === message.id)
+      ) {
+        return;
+      }
+      if (!(isLoading || isWaitingForActiveStream)) {
+        sendSteeredQueued(message);
+        return;
+      }
+      const next = markQueuedMessageSteering(
+        queuedMessagesRef.current,
+        message.id
+      );
+      queuedMessagesRef.current = next;
+      setQueuedMessages(next);
+      steerAfterStopRef.current = message;
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
       stopActiveResponse().catch((error) => {
         console.error(
@@ -1634,10 +1667,10 @@ function StandaloneChatPageClient({
       });
     },
     [
-      dispatchMessage,
       flushSteerAfterStop,
       isLoading,
       isWaitingForActiveStream,
+      sendSteeredQueued,
       stopActiveResponse,
     ]
   );
