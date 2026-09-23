@@ -61,6 +61,12 @@ const ToolOutputChart = dynamic(
   { ssr: false }
 );
 
+const DocumentDiff = dynamic(
+  () =>
+    import("./chat-tool-block/document-diff").then((mod) => mod.DocumentDiff),
+  { ssr: false }
+);
+
 function firstStringValue<T extends object>(
   values: T,
   keys: readonly (keyof T)[]
@@ -814,6 +820,7 @@ export function ChatToolBlock({
   const hasOutput = output != null;
   const {
     chart,
+    documentDiff,
     draft,
     showDraftPreview,
     hasApprovalActions,
@@ -907,6 +914,7 @@ export function ChatToolBlock({
       </CollapsibleTrigger>
       <ToolOutputImages images={outputImages} />
       {chart && !isStreaming ? <ToolOutputChart chart={chart} /> : null}
+      {documentDiff ? <DocumentDiff {...documentDiff} /> : null}
       {showDraftPreview && draft ? (
         <ToolDraftPreview
           editorHref={editorHref}
