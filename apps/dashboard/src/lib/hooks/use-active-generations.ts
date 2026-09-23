@@ -87,6 +87,9 @@ export function useActiveGenerations(organizationId: string) {
       void queryClient.invalidateQueries({
         queryKey: dashboardOrpc.content.list.key(),
       });
+      void queryClient.invalidateQueries({
+        queryKey: dashboardOrpc.content.recents.key(),
+      });
     }
   }, [
     clearResultMutate,

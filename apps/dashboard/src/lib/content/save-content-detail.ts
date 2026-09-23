@@ -53,6 +53,9 @@ export async function saveContentDetail({
       queryKey: dashboardOrpc.content.list.key(),
     }),
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.content.recents.key(),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.collections.list.key(),
     }),
   ]);
@@ -102,6 +105,9 @@ export async function toggleContentDetailStatus({
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.list.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.content.recents.key(),
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.collections.list.key(),

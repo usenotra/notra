@@ -78,6 +78,15 @@ export function resolveOrgRootRedirect(
   return geoNavHref(slug, GEO_OVERVIEW_NAV_LINK, projectId);
 }
 
+/**
+ * Studio home is the org root. Prefetching `/{slug}` while the sidebar cookie
+ * is still `geo` follows `resolveOrgRootRedirect` and can cache GEO as that
+ * URL, so the next Studio switch lands back on GEO.
+ */
+export function canPrefetchSidebarModeHome(next: SidebarMode): boolean {
+  return next === "geo";
+}
+
 export function resolveNavItems(
   links: readonly string[],
   visibility: NavVisibility = DEFAULT_NAV_VISIBILITY

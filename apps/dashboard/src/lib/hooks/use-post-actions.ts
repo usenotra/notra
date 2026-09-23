@@ -23,6 +23,9 @@ export function usePostActions(organizationId: string) {
           queryKey: dashboardOrpc.content.list.key(),
         }),
         queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.recents.key(),
+        }),
+        queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.home.get.key(),
         }),
         queryClient.invalidateQueries({

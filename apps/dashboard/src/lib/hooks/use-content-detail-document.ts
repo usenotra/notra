@@ -269,6 +269,9 @@ export function useContentDetailDocument({
           queryClient.invalidateQueries({
             queryKey: dashboardOrpc.content.list.key(),
           }),
+          queryClient.invalidateQueries({
+            queryKey: dashboardOrpc.content.recents.key(),
+          }),
         ]);
         setEditedMarkdown(null);
         setOriginalMarkdown("");
@@ -562,6 +565,9 @@ export function useContentDetailDocument({
         }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.list.key(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.recents.key(),
         }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.collections.list.key(),
