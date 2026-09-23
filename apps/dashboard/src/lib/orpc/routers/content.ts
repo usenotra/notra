@@ -105,7 +105,6 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { getUtcDayRange } from "@/lib/content/content-calendar";
 import { getContentPublishingMetrics } from "@/lib/content/content-publishing-metrics.server";
-import { postsVisibleToUser } from "@/lib/content/post-visibility";
 import { projectScopedCollectionIds } from "@/lib/content/project-scope";
 import {
   addActiveGeneration,
@@ -546,10 +545,7 @@ export const contentRouter = {
         });
 
         const dateRange = getUtcDayRange("today");
-        const filters = [
-          eq(posts.organizationId, input.organizationId),
-          postsVisibleToUser(auth.user.id),
-        ];
+        const filters = [eq(posts.organizationId, input.organizationId)];
         const collectionIds = projectScopedCollectionIds(
           input.organizationId,
           input.projectId
@@ -592,10 +588,7 @@ export const contentRouter = {
         throw badRequest("Invalid date");
       }
 
-      const baseFilters = [
-        eq(posts.organizationId, input.organizationId),
-        postsVisibleToUser(auth.user.id),
-      ];
+      const baseFilters = [eq(posts.organizationId, input.organizationId)];
       const projectCollectionIds = projectScopedCollectionIds(
         input.organizationId,
         input.projectId
@@ -650,8 +643,7 @@ export const contentRouter = {
       const post = await db.query.posts.findFirst({
         where: and(
           eq(posts.id, input.contentId),
-          eq(posts.organizationId, input.organizationId),
-          postsVisibleToUser(auth.user.id)
+          eq(posts.organizationId, input.organizationId)
         ),
         columns: postReadColumns,
       });
@@ -675,7 +667,7 @@ export const contentRouter = {
             },
             // The current post is excluded in SQL, and the rail is bounded: a
             // collection can hold hundreds of posts.
-            where: and(ne(posts.id, post.id), postsVisibleToUser(auth.user.id)),
+            where: ne(posts.id, post.id),
             orderBy: [asc(posts.createdAt), asc(posts.id)],
             limit: CONTENT_SIBLING_LIMIT,
           },
@@ -799,8 +791,7 @@ export const contentRouter = {
       const existingPost = await db.query.posts.findFirst({
         where: and(
           eq(posts.id, input.contentId),
-          eq(posts.organizationId, input.organizationId),
-          postsVisibleToUser(auth.user.id)
+          eq(posts.organizationId, input.organizationId)
         ),
         columns: {
           title: true,
@@ -831,9 +822,6 @@ export const contentRouter = {
 
       if (input.visibility !== undefined) {
         updateData.visibility = input.visibility;
-        if (input.visibility === "private") {
-          updateData.createdByUserId = auth.user.id;
-        }
         if (input.visibility === "unlisted" && !existingPost.shareToken) {
           updateData.shareToken = nanoid();
         }
@@ -846,8 +834,7 @@ export const contentRouter = {
           .where(
             and(
               eq(posts.id, input.contentId),
-              eq(posts.organizationId, input.organizationId),
-              postsVisibleToUser(auth.user.id)
+              eq(posts.organizationId, input.organizationId)
             )
           )
           .returning({
@@ -1373,8 +1360,7 @@ export const contentRouter = {
       const existingPost = await db.query.posts.findFirst({
         where: and(
           eq(posts.id, input.contentId),
-          eq(posts.organizationId, input.organizationId),
-          postsVisibleToUser(auth.user.id)
+          eq(posts.organizationId, input.organizationId)
         ),
         columns: {
           id: true,
@@ -1391,8 +1377,7 @@ export const contentRouter = {
         .where(
           and(
             eq(posts.id, input.contentId),
-            eq(posts.organizationId, input.organizationId),
-            postsVisibleToUser(auth.user.id)
+            eq(posts.organizationId, input.organizationId)
           )
         );
 
@@ -1462,12 +1447,7 @@ export const contentRouter = {
                   >`array_agg(distinct ${posts.contentType})`,
                 })
                 .from(posts)
-                .where(
-                  and(
-                    inArray(posts.collectionId, collectionIds),
-                    postsVisibleToUser(auth.user.id)
-                  )
-                )
+                .where(inArray(posts.collectionId, collectionIds))
                 .groupBy(posts.collectionId)
             : [];
 
@@ -1566,7 +1546,6 @@ export const contentRouter = {
                 createdAt: true,
                 updatedAt: true,
               },
-              where: postsVisibleToUser(auth.user.id),
               orderBy: [asc(posts.createdAt), asc(posts.id)],
             },
           },

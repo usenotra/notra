@@ -1,18 +1,8 @@
-import {
-  Globe02Icon,
-  LockKeyIcon,
-  UserGroupIcon,
-} from "@hugeicons/core-free-icons";
+import { Globe02Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { POST_VISIBILITIES } from "@notra/db/constants/content";
 import type { PostVisibility } from "@notra/schemas/dashboard/content";
 
 export const CONTENT_SHARE_OPTIONS = [
-  {
-    value: "private",
-    label: "Only me",
-    description: "Only you can access",
-    icon: LockKeyIcon,
-  },
   {
     value: "organization",
     label: "Organization",
@@ -27,7 +17,7 @@ export const CONTENT_SHARE_OPTIONS = [
   },
 ] as const satisfies readonly {
   description: string;
-  icon: typeof LockKeyIcon;
+  icon: typeof UserGroupIcon;
   label: string;
   value: PostVisibility;
 }[];
@@ -45,5 +35,5 @@ export function getContentShareOption(visibility: PostVisibility) {
     }
   }
 
-  return CONTENT_SHARE_OPTIONS[1];
+  return CONTENT_SHARE_OPTIONS[0];
 }

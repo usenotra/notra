@@ -2,16 +2,6 @@ import type { PostVisibility } from "@notra/schemas/dashboard/content";
 
 const SHARE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
 
-export function canAccessPost(
-  post: {
-    createdByUserId: string | null;
-    visibility: PostVisibility;
-  },
-  userId: string
-): boolean {
-  return post.visibility !== "private" || post.createdByUserId === userId;
-}
-
 export function isShareToken(value: string): boolean {
   return SHARE_TOKEN_PATTERN.test(value);
 }
