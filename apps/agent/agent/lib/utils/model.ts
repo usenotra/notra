@@ -1,4 +1,5 @@
 import { devToolsMiddleware } from "@ai-sdk/devtools";
+import { withGatewayAgentOptions } from "@notra/ai/utils/gateway-agent-model";
 import { gateway, type LanguageModel, wrapLanguageModel } from "ai";
 import { defineDynamic } from "eve";
 import { defineState } from "eve/context";
@@ -16,23 +17,7 @@ export function createAgentModel(
   modelId: string,
   tag = "agent-chat"
 ): LanguageModel {
-  const base = gateway(modelId);
-  const tagged = wrapLanguageModel({
-    model: base,
-    middleware: {
-      transformParams: async ({ params }) => ({
-        ...params,
-        providerOptions: {
-          ...params.providerOptions,
-          gateway: {
-            ...params.providerOptions?.gateway,
-            caching: "auto",
-            tags: [tag],
-          },
-        },
-      }),
-    },
-  });
+  const tagged = withGatewayAgentOptions(gateway(modelId), tag);
   if (process.env.AI_SDK_DEVTOOLS !== "true") {
     return tagged;
   }
