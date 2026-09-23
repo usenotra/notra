@@ -119,6 +119,7 @@ import type {
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
 import {
+  hasPendingApproval,
   isTerminalToolState,
   shouldContinueAfterApprovalResponse,
 } from "@/utils/chat-approvals";
@@ -237,20 +238,6 @@ function getCreateToolContentType(
   type: keyof typeof CREATE_TOOL_TYPES
 ): CreateToolContentType {
   return CREATE_TOOL_TYPES[type];
-}
-
-function hasPendingApproval(messages: readonly ChatUIMessage[]): boolean {
-  for (const message of messages) {
-    if (message.role !== "assistant") {
-      continue;
-    }
-    for (const part of message.parts) {
-      if (isToolUIPart(part) && part.state === "approval-requested") {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 function hasSendableParts(message: ChatUIMessage): boolean {
@@ -1603,6 +1590,7 @@ function StandaloneChatPageClient({
   const handleRemoveQueued = useCallback((id: string) => {
     if (steerAfterStopRef.current?.id === id) {
       steerAfterStopRef.current = null;
+      updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
     }
     const next = queuedMessagesRef.current.filter((m) => m.id !== id);
     queuedMessagesRef.current = next;
@@ -1612,6 +1600,7 @@ function StandaloneChatPageClient({
   const handleEditQueued = useCallback((message: QueuedMessage) => {
     if (steerAfterStopRef.current?.id === message.id) {
       steerAfterStopRef.current = null;
+      updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
     }
     const next = queuedMessagesRef.current.filter((m) => m.id !== message.id);
     queuedMessagesRef.current = next;
@@ -1867,6 +1856,10 @@ function StandaloneChatPageClient({
       return;
     }
     wasWaitingForActiveStreamRef.current = false;
+    if (steerAfterStopRef.current) {
+      flushSteerAfterStopRef.current();
+      return;
+    }
     drainQueueRef.current();
   }, [isLoading, isWaitingForActiveStream]);
 

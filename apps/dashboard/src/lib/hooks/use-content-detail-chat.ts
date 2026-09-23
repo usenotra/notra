@@ -42,7 +42,10 @@ import {
 } from "@/lib/content/apply-content-chat-tool-output";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
-import { isTerminalToolState } from "@/utils/chat-approvals";
+import {
+  hasPendingApproval,
+  isTerminalToolState,
+} from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import { buildUserMessageParts } from "@/utils/chat-message-parts";
 import {
@@ -564,6 +567,7 @@ export function useContentDetailChat({
   const handleRemoveQueued = useCallback((id: string) => {
     if (steerAfterStopRef.current?.id === id) {
       steerAfterStopRef.current = null;
+      wasStoppedByUserRef.current = true;
     }
     const next = queuedMessagesRef.current.filter(
       (message) => message.id !== id
@@ -575,6 +579,7 @@ export function useContentDetailChat({
   const handleEditQueued = useCallback((message: QueuedMessage) => {
     if (steerAfterStopRef.current?.id === message.id) {
       steerAfterStopRef.current = null;
+      wasStoppedByUserRef.current = true;
     }
     const next = queuedMessagesRef.current.filter(
       (queued) => queued.id !== message.id
@@ -666,7 +671,8 @@ export function useContentDetailChat({
       isDrainingRef.current ||
       steerAfterStopRef.current ||
       steerInFlightRef.current ||
-      skipQueueDrainRef.current
+      skipQueueDrainRef.current ||
+      hasPendingApproval(messagesRef.current)
     ) {
       return;
     }
@@ -726,6 +732,9 @@ export function useContentDetailChat({
       return;
     }
     if (queuedMessages.length === 0) {
+      return;
+    }
+    if (hasPendingApproval(messages)) {
       return;
     }
 

@@ -44,9 +44,13 @@ export function ChatQueue({
   }
 
   return (
-    <>
+    <div
+      aria-label="Queued messages"
+      className="flex w-full min-w-0 flex-col gap-1.5"
+      role="group"
+    >
       {messages.map((message) => (
-        <Composer.Chip
+        <Composer.Chip>
           className={COMPOSER_QUEUED_CHIP}
           editLabel="Edit queued message"
           icon={
@@ -75,6 +79,6 @@ export function ChatQueue({
           steerLabel="Steer with this message"
         />
       ))}
-    </>
+    </div>
   );
 }
