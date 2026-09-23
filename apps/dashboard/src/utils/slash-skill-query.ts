@@ -6,7 +6,9 @@ import type {
 } from "@/types/skills/slash";
 
 const SLASH_QUERY_CHARS = /^[a-z0-9-]*$/i;
+const SKILL_NAME_VALUE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SKILL_DRAFT_TOKEN_VALUE = /^@skill\/([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+const SKILL_DRAFT_STORAGE_SUFFIX = ":skills";
 
 function isSlashWhitespace(char: string): boolean {
   return /\s/.test(char);
@@ -82,8 +84,26 @@ export function prependTaggedSkills(
   return `${prefix} ${trimmed}`;
 }
 
-export function formatSkillDraftTokens(names: readonly string[]): string {
-  return names.map((name) => `@skill/${name}`).join("\n");
+export function skillDraftStorageKey(draftStorageKey: string): string {
+  return `${draftStorageKey}${SKILL_DRAFT_STORAGE_SUFFIX}`;
+}
+
+export function parseSkillDraftNames(raw: string | null): string[] {
+  if (!raw) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter(
+      (name): name is string =>
+        typeof name === "string" && SKILL_NAME_VALUE.test(name)
+    );
+  } catch {
+    return [];
+  }
 }
 
 export function extractSkillDraftTokens(value: string): {

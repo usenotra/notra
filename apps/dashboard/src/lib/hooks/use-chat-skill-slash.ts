@@ -12,12 +12,13 @@ import {
 } from "@/utils/slash-skill-query";
 
 export function useChatSkillSlash(organizationId?: string) {
-  const { data: skillRows = [] } = useQuery({
+  const { data: skillRows = [], isFetched } = useQuery({
     ...dashboardOrpc.skills.list.queryOptions({
       input: { organizationId: organizationId ?? "" },
     }),
     enabled: Boolean(organizationId),
   });
+  const isSkillsReady = !organizationId || isFetched;
   const [slashQuery, setSlashQuery] = useState<SlashSkillQuery | null>(null);
   const [slashIndex, setSlashIndex] = useState(0);
   const [taggedSkills, setTaggedSkills] = useState<SkillSlashOption[]>([]);
@@ -47,6 +48,20 @@ export function useChatSkillSlash(organizationId?: string) {
     setSlashQuery(null);
     setSlashIndex(0);
   }, [organizationId]);
+
+  useEffect(() => {
+    if (!isFetched) {
+      return;
+    }
+    const allowed = new Set(skills.map((skill) => skill.name));
+    const current = taggedSkillsRef.current;
+    if (current.every((tagged) => allowed.has(tagged.name))) {
+      return;
+    }
+    const next = current.filter((tagged) => allowed.has(tagged.name));
+    taggedSkillsRef.current = next;
+    setTaggedSkills(next);
+  }, [isFetched, skills, taggedSkills]);
 
   const closeSlashMenu = useCallback(() => {
     setSlashQuery(null);
@@ -95,6 +110,7 @@ export function useChatSkillSlash(organizationId?: string) {
 
   return {
     skills,
+    isSkillsReady,
     filteredSkills,
     slashQuery,
     slashIndex,

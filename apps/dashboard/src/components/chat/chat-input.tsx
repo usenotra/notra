@@ -114,7 +114,8 @@ import {
 } from "@/utils/integration-reference";
 import {
   extractSkillDraftTokens,
-  formatSkillDraftTokens,
+  parseSkillDraftNames,
+  skillDraftStorageKey,
   getSlashSkillQuery,
   handleSlashMenuKeyDown,
   prependTaggedSkills,
@@ -518,69 +519,69 @@ function ChatMentionMenu({
       className="absolute bottom-full left-1 z-50 mb-1 w-72"
       ref={mentionListRef}
     >
-      <div
-        aria-label="Context"
-        className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md"
-        id={listboxId}
-        role="listbox"
-      >
-        {filteredMentionItems.length > 0 ? (
-          <>
-            {filteredMentionItems.map((option, idx) => {
-              const inContext = isInContext(option.contextItem);
-              const previousOption = filteredMentionItems[idx - 1];
-              const startsGroup =
-                idx === 0 ||
-                (previousOption?.kind === "mcp") !== (option.kind === "mcp");
-              const selected = idx === mentionIndex;
-              return (
-                <div key={option.id}>
-                  {startsGroup ? (
-                    <div className="px-2 py-1.5 text-xs font-semibold">
-                      {option.kind === "mcp" ? "MCP tools" : "Context"}
-                    </div>
-                  ) : null}
-                  <button
-                    aria-selected={selected}
-                    className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
-                      selected
-                        ? "bg-accent text-accent-foreground"
-                        : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                    id={`chat-mention-option-${option.id}`}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      insertMention(option);
-                    }}
-                    role="option"
-                    type="button"
-                  >
-                    <ChatContextOptionContent option={option} />
-                    {inContext ? (
-                      <span className="text-success shrink-0 text-xs">
-                        Added
-                      </span>
-                    ) : null}
-                  </button>
-                </div>
-              );
-            })}
-            {organizationSlug ? (
-              <>
-                <div className="bg-border -mx-1 my-1 h-px" />
-                <Link
-                  className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
-                  href={`/${organizationSlug}/integrations`}
+      <div className="border-border bg-popover text-popover-foreground overflow-hidden rounded-md border shadow-md">
+        <div
+          aria-label="Context"
+          className={
+            filteredMentionItems.length > 0
+              ? "max-h-64 overflow-y-auto p-1"
+              : undefined
+          }
+          id={listboxId}
+          role="listbox"
+        >
+          {filteredMentionItems.map((option, idx) => {
+            const inContext = isInContext(option.contextItem);
+            const previousOption = filteredMentionItems[idx - 1];
+            const startsGroup =
+              idx === 0 ||
+              (previousOption?.kind === "mcp") !== (option.kind === "mcp");
+            const selected = idx === mentionIndex;
+            return (
+              <div key={option.id}>
+                {startsGroup ? (
+                  <div className="px-2 py-1.5 text-xs font-semibold">
+                    {option.kind === "mcp" ? "MCP tools" : "Context"}
+                  </div>
+                ) : null}
+                <button
+                  aria-selected={selected}
+                  className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
+                    selected
+                      ? "bg-accent text-accent-foreground"
+                      : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  id={`chat-mention-option-${option.id}`}
                   onMouseDown={(event) => {
-                    event.stopPropagation();
+                    event.preventDefault();
+                    insertMention(option);
                   }}
+                  role="option"
+                  type="button"
                 >
-                  Manage integrations
-                </Link>
-              </>
-            ) : null}
-          </>
-        ) : (
+                  <ChatContextOptionContent option={option} />
+                  {inContext ? (
+                    <span className="text-success shrink-0 text-xs">Added</span>
+                  ) : null}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {filteredMentionItems.length > 0 && organizationSlug ? (
+          <div className="border-border border-t p-1">
+            <Link
+              className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
+              href={`/${organizationSlug}/integrations`}
+              onMouseDown={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              Manage integrations
+            </Link>
+          </div>
+        ) : null}
+        {filteredMentionItems.length === 0 ? (
           <div className="flex flex-col items-center gap-1 px-3 py-4 text-center">
             <span className="text-muted-foreground text-xs">
               {contextOptionsCount === 0
@@ -596,7 +597,7 @@ function ChatMentionMenu({
               </Link>
             ) : null}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -1313,6 +1314,7 @@ export function ChatInputAdvanced({
   const slashAnchorRef = useRef<{ node: Node; offset: number } | null>(null);
   const {
     skills,
+    isSkillsReady,
     filteredSkills,
     slashIndex,
     isSlashMenuOpen,
@@ -1871,14 +1873,18 @@ export function ChatInputAdvanced({
         const references = draftContext
           .map(getIntegrationReferenceValue)
           .join("\n");
-        const skillRefs = formatSkillDraftTokens(
-          taggedSkillsRef.current.map((skill) => skill.name)
-        );
-        const draft = [text, references, skillRefs].filter(Boolean).join("\n");
+        const draft = [text, references].filter(Boolean).join("\n");
+        const skillKey = skillDraftStorageKey(draftStorageKey);
+        const skillNames = taggedSkillsRef.current.map((skill) => skill.name);
         if (draft) {
           window.localStorage.setItem(draftStorageKey, draft);
         } else {
           window.localStorage.removeItem(draftStorageKey);
+        }
+        if (skillNames.length > 0) {
+          window.localStorage.setItem(skillKey, JSON.stringify(skillNames));
+        } else {
+          window.localStorage.removeItem(skillKey);
         }
       } catch {
         // noop
@@ -2002,32 +2008,58 @@ export function ChatInputAdvanced({
     if (!draftStorageKey || restoredDraftKeyRef.current === draftStorageKey) {
       return;
     }
+    if (!isSkillsReady) {
+      return;
+    }
     restoredDraftKeyRef.current = draftStorageKey;
     const editor = editorRef.current;
     if (!editor || initialValue || readEditorText().trim().length > 0) {
       return;
     }
     let draft: string | null = null;
+    let storedSkillNames: string[] = [];
     try {
       draft = window.localStorage.getItem(draftStorageKey);
+      storedSkillNames = parseSkillDraftNames(
+        window.localStorage.getItem(skillDraftStorageKey(draftStorageKey))
+      );
     } catch {
       return;
     }
-    if (!draft) {
+    if (!draft && storedSkillNames.length === 0) {
       return;
     }
-    const restoredDraft = extractIntegrationReferences(draft);
-    const restoredSkills = extractSkillDraftTokens(restoredDraft.text);
+    const restoredDraft = extractIntegrationReferences(draft ?? "");
+    const restoredSkills =
+      storedSkillNames.length > 0
+        ? { names: storedSkillNames, text: restoredDraft.text }
+        : extractSkillDraftTokens(restoredDraft.text);
     for (const referencedItem of restoredDraft.items) {
       onAddContext?.(referencedItem);
     }
+    const skillsByName = new Map(
+      skills.map((skill) => [skill.name, skill] as const)
+    );
     for (const name of restoredSkills.names) {
-      tagSkill({ name, description: "" });
+      const skill = skillsByName.get(name);
+      if (skill) {
+        tagSkill(skill);
+      }
     }
     const restoredText = restoredSkills.text.trim();
     editor.textContent = restoredText;
     setIsEmpty(restoredText.length === 0);
-  }, [draftStorageKey, initialValue, onAddContext, readEditorText, tagSkill]);
+    persistDraft(restoredDraft.items);
+  }, [
+    draftStorageKey,
+    initialValue,
+    isSkillsReady,
+    onAddContext,
+    persistDraft,
+    readEditorText,
+    skills,
+    tagSkill,
+  ]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -2228,6 +2260,7 @@ export function ChatInputAdvanced({
     if (draftStorageKey) {
       try {
         window.localStorage.removeItem(draftStorageKey);
+        window.localStorage.removeItem(skillDraftStorageKey(draftStorageKey));
       } catch {
         // noop
       }
