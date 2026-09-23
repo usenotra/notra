@@ -2,6 +2,7 @@ import {
   GEO_WRITER_HUMANIZER_MAX_TOKENS,
   GEO_WRITER_MAX_STEPS,
   GEO_WRITER_MODEL,
+  GEO_WRITER_PLANNER_MODEL,
   GEO_WRITER_PLANNER_MAX_TOKENS,
   GEO_WRITER_PLANNER_REPAIR_ATTEMPTS,
 } from "@notra/ai/constants/models";
@@ -81,11 +82,12 @@ export class GeoWriterError extends Error {
 
 function toTokenUsage(
   usage: LanguageModelUsage | undefined,
+  modelId = GEO_WRITER_MODEL,
   route?: AgentTokenUsage["route"]
 ): AgentTokenUsage {
   return {
     ...toAgentTokenUsage(usage),
-    modelId: GEO_WRITER_MODEL,
+    modelId,
     route,
     raw: usage,
   };
@@ -185,11 +187,14 @@ export async function generateGeoContentBrief(
 ): Promise<GenerateGeoContentBriefResult> {
   const { organizationId, input, log } = options;
 
-  await assertRouteHasCredits({ organizationId, modelId: GEO_WRITER_MODEL });
+  await assertRouteHasCredits({
+    organizationId,
+    modelId: GEO_WRITER_PLANNER_MODEL,
+  });
 
   const model = createModel(
     organizationId,
-    GEO_WRITER_MODEL,
+    GEO_WRITER_PLANNER_MODEL,
     { disableMemory: true },
     log
   );
@@ -197,7 +202,10 @@ export async function generateGeoContentBrief(
   const basePrompt = buildGeoPlannerPrompt(input);
 
   let prompt = basePrompt;
-  let usage: AgentTokenUsage = toTokenUsage(undefined);
+  let usage: AgentTokenUsage = toTokenUsage(
+    undefined,
+    GEO_WRITER_PLANNER_MODEL
+  );
   let lastError = "The planner produced no output";
 
   for (
@@ -215,11 +223,14 @@ export async function generateGeoContentBrief(
         providerOptions: withRouterDefaults(
           { gateway: { tags: ["geo-writer"] } },
           {
-            modelId: GEO_WRITER_MODEL,
+            modelId: GEO_WRITER_PLANNER_MODEL,
           }
         ),
       });
-      usage = mergeTokenUsage(usage, toTokenUsage(result.usage));
+      usage = mergeTokenUsage(
+        usage,
+        toTokenUsage(result.usage, GEO_WRITER_PLANNER_MODEL)
+      );
       if (result.finishReason !== "stop") {
         const failure = describeUnfinishedPlan(
           result.finishReason,
@@ -585,7 +596,7 @@ export async function runGeoWriter(
     prompt: `Research with webSearch first, then write the article "${brief.workingTitle}". Follow the brief and the steps in your instructions, then save it with createBlogPost.`,
   });
   const routeUsage = await summarizeRouteUsage(result.steps);
-  let usage = toTokenUsage(result.usage, routeUsage.route);
+  let usage = toTokenUsage(result.usage, GEO_WRITER_MODEL, routeUsage.route);
   const primaryPost = postToolsResult.posts?.at(0);
 
   if (!postToolsResult.failReason && primaryPost) {

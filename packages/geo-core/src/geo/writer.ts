@@ -1,6 +1,6 @@
 import { generateGeoContentBrief } from "@notra/ai/agents/geo-writer";
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
-import { GEO_WRITER_MODEL } from "@notra/ai/constants/models";
+import { GEO_WRITER_PLANNER_MODEL } from "@notra/ai/constants/models";
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import type {
   GeoContentBrief,
@@ -763,7 +763,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
           reservation: gate,
           action: "confirm",
           usage: result.usage,
-          fallbackModelId: GEO_WRITER_MODEL,
+          fallbackModelId: GEO_WRITER_PLANNER_MODEL,
           properties: {
             source: "geo_writer_planner",
             run_id: planningRunId,
