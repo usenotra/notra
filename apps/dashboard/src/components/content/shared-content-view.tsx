@@ -51,25 +51,20 @@ function SharedContentByline({ content }: { content: SharedContentViewModel }) {
   const editedLabel = updatedLabel === createdLabel ? null : updatedLabel;
 
   return (
-    <p className="mt-2 text-sm">
+    <div className="mt-2 space-y-1 text-sm">
       {content.authorName ? (
-        <>
-          <span className="text-foreground">{content.authorName}</span>
-          <span className="text-muted-foreground"> · </span>
-        </>
+        <p className="text-foreground">{content.authorName}</p>
       ) : null}
-      <time className="text-muted-foreground" dateTime={content.date}>
-        {createdLabel}
-      </time>
-      {editedLabel ? (
-        <>
-          <span className="text-muted-foreground"> · Edited </span>
-          <time className="text-muted-foreground" dateTime={content.updatedAt}>
-            {editedLabel}
-          </time>
-        </>
-      ) : null}
-    </p>
+      <p className="text-muted-foreground">
+        <time dateTime={content.date}>{createdLabel}</time>
+        {editedLabel ? (
+          <>
+            <span> · Edited </span>
+            <time dateTime={content.updatedAt}>{editedLabel}</time>
+          </>
+        ) : null}
+      </p>
+    </div>
   );
 }
 

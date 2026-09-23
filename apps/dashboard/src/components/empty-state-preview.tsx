@@ -376,21 +376,21 @@ function getCardGridClass(
 
 export function EmptyStateArticlePreview() {
   return (
-    <div className="mx-auto w-full max-w-xl space-y-8 px-4 pt-2">
+    <div className="w-full space-y-6 px-2 pt-1 sm:px-8">
       <div className="space-y-3">
-        <GhostBar className="h-6" width="72%" />
-        <GhostBar className="h-3" width={128} />
+        <GhostBar className="h-7" width="56%" />
+        <GhostBar className="h-3" width={148} />
       </div>
       <div className="space-y-2.5">
         <GhostBar className="h-3 w-full" />
         <GhostBar className="h-3 w-full" />
-        <GhostBar className="h-3 w-[92%]" />
-        <GhostBar className="h-3 w-[60%]" />
+        <GhostBar className="h-3 w-[90%]" />
+        <GhostBar className="h-3 w-[54%]" />
       </div>
       <div className="space-y-2.5">
         <GhostBar className="h-3 w-full" />
-        <GhostBar className="h-3 w-[88%]" />
-        <GhostBar className="h-3 w-[40%]" />
+        <GhostBar className="h-3 w-[86%]" />
+        <GhostBar className="h-3 w-[38%]" />
       </div>
     </div>
   );
