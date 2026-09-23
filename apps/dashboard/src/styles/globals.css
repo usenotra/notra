@@ -140,3 +140,23 @@
 .chat-branch-fade-in {
   animation: chat-branch-fade-in 220ms ease-out both;
 }
+
+/* Pierre diffs inherit these into Shadow DOM. */
+.chat-document-diff {
+  --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-sans);
+  --diffs-font-size: 0.75rem;
+  --diffs-line-height: 1.25rem;
+  --diffs-light-bg: var(--background);
+  --diffs-dark-bg: var(--background);
+  --diffs-light: var(--foreground);
+  --diffs-dark: var(--foreground);
+  --diffs-added-light: var(--success);
+  --diffs-added-dark: var(--success);
+  --diffs-deleted-light: var(--destructive);
+  --diffs-deleted-dark: var(--destructive);
+  --diffs-modified-light: var(--info);
+  --diffs-modified-dark: var(--info);
+  --diffs-fg-number-override: var(--muted-foreground);
+  --diffs-bg-separator-override: var(--muted);
+}
