@@ -1666,16 +1666,15 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
 
     if (isHidden) return [mainSeries];
 
-    // Hover-reveal: a muted gray BASE layer of the FULL series sits one z below
+    // Hover-reveal: a low-opacity BASE layer of the FULL series sits one z below
     // the real one. It is invisible while idle (opacity 0 → the chart looks
     // normal) and fades in only while hovering, so the region PAST the cursor —
-    // where the truncated real series has stopped — shows as neutral gray.
+    // where the truncated real series has stopped — keeps the series color.
     if (reveal) {
-      const muted = resolved.tokens.mutedForeground;
       const revealBase: LineSeriesOption = {
         id: `${REVEAL_PREFIX}${key}`,
         type: "line",
-        // Only the region FROM the cursor onward (null before it), so the gray
+        // Only the region FROM the cursor onward (null before it), so the tail
         // never sits under the colored part — the two meet exactly at the
         // pointer and their colors can't mix.
         data: revealActive ? sliceFrom(values, revealIndex as number) : values,
@@ -1691,9 +1690,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         showSymbol: false,
         symbol: "circle",
         z: z - 1,
-        // Neutral gray, NO fill, SAME dash pattern as the colored line.
+        // Same color and dash as the colored line, NO fill, faded.
         lineStyle: {
-          color: muted,
+          color: strokePaint,
           width: area.strokeWidth,
           type: mainDash,
           // Scrub turns this on from the hover handler so a mousemove never
@@ -1822,8 +1821,8 @@ function sliceToNull<T>(vals: readonly T[], idx: number): (T | null)[] {
   return vals.map((v, i) => (i > idx ? null : v));
 }
 
-// Copy a value list with everything BEFORE `idx` nulled — the reveal's gray tail.
-// The muted base keeps only the region from the cursor onward, so it never sits
+// Copy a value list with everything BEFORE `idx` nulled — the reveal's faded tail.
+// The base keeps only the region from the cursor onward, so it never sits
 // under the colored part; both include `idx` so they meet at the pointer.
 // Generic so it preserves per-datum point objects (multi-color dot itemStyle).
 function sliceFrom<T>(vals: readonly T[], idx: number): (T | null)[] {
@@ -2429,7 +2428,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
             },
             {
               id: `${REVEAL_PREFIX}${key}`,
-              // Gray tail keeps only the region from the cursor onward.
+              // Tail keeps only the region from the cursor onward.
               data: on
                 ? sliceFrom(live.revealValues[key] ?? [], idx)
                 : (live.revealValues[key] ?? []),
