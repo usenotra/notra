@@ -100,7 +100,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
         mentioned: judged.mentioned,
         ownedSourceCited: hasOwnedSourceCitation(
           context.websiteUrl,
-          [...answer.grounding.sources, ...answer.sources],
+          answer.sources,
           context.domains
         ),
         position: normalizePosition(judged.position),

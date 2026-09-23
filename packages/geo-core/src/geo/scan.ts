@@ -503,7 +503,7 @@ const runGeoCheck = Effect.fn("geo.runCheck")(function* (
   const durationMs = Math.round(performance.now() - startedMs);
   const ownedSourceCited = hasOwnedSourceCitation(
     context.websiteUrl,
-    [...answer.grounding.sources, ...answer.sources],
+    answer.sources,
     context.domains
   );
   const engineUsage = agentTokenUsageFrom(answer.usage);
@@ -1890,7 +1890,7 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
       judgeUsage = addTokenUsage(judgeUsage, agentTokenUsageFrom(judged.usage));
       const ownedSourceCited = hasOwnedSourceCitation(
         context.websiteUrl,
-        [...answer.grounding.sources, ...answer.sources],
+        answer.sources,
         context.domains
       );
 

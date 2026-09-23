@@ -330,7 +330,9 @@ describe("model service in real scan batches", () => {
                   },
                 ],
               },
-              sources: [],
+              sources: [
+                { title: "Email guide", url: "https://docs.example.com/email" },
+              ],
               finishReason: "stop",
               zdrEnforced: null,
             }),
@@ -350,6 +352,64 @@ describe("model service in real scan batches", () => {
     expect(overview?.citations).toBe(1);
     expect(overview?.visibility).toBe(1);
     expect(overview?.visibilityRate).toBe(1);
+  });
+
+  test("a search result alone does not count as an owned citation", async () => {
+    const scope = await seedProject("search-result");
+    await testDb.insert(geoScans).values({ id: "scan-test", ...scope });
+    await Effect.runPromise(
+      runGeoScanTaskBatch(
+        {
+          ...scope,
+          scanId: "scan-test",
+          runId: "test-run",
+          companyName: "Email SDK",
+          aliases: [],
+          websiteUrl: "https://example.com",
+          gate: testBillingGate,
+          startedAtMs: Date.now(),
+        },
+        [
+          {
+            engine: "openai/gpt-4o-mini",
+            groundedKey: null,
+            prompt: {
+              id: "custom-search",
+              text: "Which tools should I choose?",
+            },
+            language: "English",
+            zdr: "none",
+          },
+        ]
+      ).pipe(
+        Effect.provideService(GeoModelService, {
+          ...fakeModels,
+          answer: () =>
+            Effect.succeed({
+              text: "Other tools are a better fit.",
+              grounding: {
+                queries: ["email tools"],
+                sources: [
+                  {
+                    title: "Email guide",
+                    url: "https://docs.example.com/email",
+                    domain: "docs.example.com",
+                  },
+                ],
+              },
+              sources: [],
+              finishReason: "stop",
+              zdrEnforced: null,
+            }),
+        }),
+        Effect.provideService(GeoFeatureFlagService, testFeatureFlags)
+      )
+    );
+    const [row] = await testDb.select().from(geoMentionChecks);
+    expect(row?.mentioned).toBe(false);
+    expect(row?.ownedSourceCited).toBe(false);
+    const [overview] = await queryGeoCheckOverview(scope, undefined);
+    expect(overview?.citations).toBe(0);
   });
 
   test("typed provider refusal drops the check without a domain retry", async () => {

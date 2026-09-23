@@ -123,15 +123,11 @@ export const geoModelLive = Layer.succeed(
             maxOutputTokens: GEO_GROUNDED_ANSWER_MAX_TOKENS,
             abortSignal: signal,
           });
-          const grounding = extractGrounding(result);
-          const sources = collectSources(result.sources);
           return {
             text: result.text,
-            grounding,
+            grounding: extractGrounding(result),
             finishReason: result.finishReason,
-            sources: sources.length
-              ? sources
-              : grounding.sources.map(({ title, url }) => ({ title, url })),
+            sources: collectSources(result.sources),
             usage: usageWithModel(result.usage, input.engine.key),
             zdrEnforced: GEO_DIRECT_GROUNDED_PROVIDERS.has(
               input.engine.provider
