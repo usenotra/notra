@@ -1,7 +1,7 @@
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";
 import { alertMissedGeoScan } from "@notra/geo-core/utils/geo-scan-alert";
-import { and, asc, desc, eq, gte, lte, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
 
 import { GEO_SCAN_ALERTS } from "@/constants/workflow-monitoring";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
@@ -15,12 +15,19 @@ export async function checkMissedGeoScans(): Promise<void> {
         organizationId: true,
         projectId: true,
         nextScanAt: true,
+        updatedAt: true,
         lastScanAt: true,
         scanLeaseUntil: true,
       },
       where: and(
         eq(geoSettings.enabled, true),
-        lte(geoSettings.nextScanAt, new Date(startedAt - 30 * 60_000))
+        or(
+          lte(geoSettings.nextScanAt, new Date(startedAt - 30 * 60_000)),
+          and(
+            isNull(geoSettings.nextScanAt),
+            lte(geoSettings.updatedAt, new Date(startedAt - 30 * 60_000))
+          )
+        )
       ),
       orderBy: [asc(geoSettings.nextScanAt)],
     }),
@@ -53,7 +60,9 @@ export async function checkMissedGeoScans(): Promise<void> {
       outcome: "error",
       count: overdue.length,
       projectIds: overdue.slice(0, 25).map((row) => row.projectId),
-      oldestDueAt: overdue[0]?.nextScanAt?.toISOString(),
+      oldestDueAt: (
+        overdue[0]?.nextScanAt ?? overdue[0]?.updatedAt
+      )?.toISOString(),
     });
   }
   const alerts = [
@@ -67,22 +76,16 @@ export async function checkMissedGeoScans(): Promise<void> {
           : `Scan ${row.id} stopped before completing`,
       dedupeSeconds: GEO_SCAN_ALERTS.staleLookbackSeconds,
     })),
-    ...overdue.flatMap((row) =>
-      row.nextScanAt
-        ? [
-            {
-              organizationId: row.organizationId,
-              projectId: row.projectId,
-              dueAt: row.nextScanAt,
-              lastScanAt: row.lastScanAt,
-              reason:
-                row.scanLeaseUntil && row.scanLeaseUntil > new Date()
-                  ? `Scan start is leased until ${row.scanLeaseUntil.toISOString()}`
-                  : "Scheduled scan has not started",
-            },
-          ]
-        : []
-    ),
+    ...overdue.map((row) => ({
+      organizationId: row.organizationId,
+      projectId: row.projectId,
+      dueAt: row.nextScanAt ?? row.updatedAt,
+      lastScanAt: row.lastScanAt,
+      reason:
+        row.scanLeaseUntil && row.scanLeaseUntil > new Date()
+          ? `Scan start is leased until ${row.scanLeaseUntil.toISOString()}`
+          : "Scheduled scan has not started",
+    })),
   ];
   if (alerts.length === 0) {
     return;
@@ -109,7 +112,7 @@ export async function checkMissedGeoScans(): Promise<void> {
             await alertMissedGeoScan(alert);
           } catch (error) {
             logWorkflowTelemetry({
-              event: "geo.scan.alert_failed",
+              event: "geo.scan.alert.failed",
               outcome: "error",
               projectId: alert.projectId,
               organizationId: alert.organizationId,

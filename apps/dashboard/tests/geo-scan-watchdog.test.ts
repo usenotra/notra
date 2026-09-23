@@ -56,7 +56,7 @@ test("retries a failed stale-scan alert on the next monitoring sweep", async () 
     dedupeSeconds: 7 * 24 * 60 * 60,
   });
   expect(telemetry).toHaveBeenCalledWith(
-    expect.objectContaining({ event: "geo.scan.alert_failed" })
+    expect.objectContaining({ event: "geo.scan.alert.failed" })
   );
 });
 
@@ -74,6 +74,25 @@ test("reports an exhausted start window via the same retryable alert path", asyn
   expect(alert.mock.calls[0]?.[0]).toMatchObject({
     projectId: "project-2",
     reason: expect.stringContaining("failed for 12 hours"),
+  });
+});
+
+test("alerts when an enabled schedule never received a due timestamp", async () => {
+  const updatedAt = new Date("2026-09-20T12:00:00Z");
+  dueRows.mockImplementation(async () => [
+    {
+      organizationId: "org-1",
+      projectId: "migrated-project",
+      nextScanAt: null,
+      updatedAt,
+      lastScanAt: null,
+      scanLeaseUntil: null,
+    },
+  ]);
+  await checkMissedGeoScans();
+  expect(alert.mock.calls[0]?.[0]).toMatchObject({
+    projectId: "migrated-project",
+    dueAt: updatedAt,
   });
 });
 

@@ -688,12 +688,11 @@ describe("scheduled GEO scans", () => {
       expect(settings?.nextScanAt).toEqual(nextGeoScanAtAfter(24, anchor));
       expect(
         (
-          await testDb.query.geoScans.findFirst({
+          await testDb.query.geoScans.findMany({
             where: eq(geoScans.projectId, "exhausted"),
-            orderBy: (scans, { asc }) => asc(scans.startedAt),
           })
-        )?.errorCode
-      ).toBe("scan_retry_exhausted");
+        ).some((scan) => scan.errorCode === "scan_retry_exhausted")
+      ).toBe(true);
       expect((await sweep()).due).toBe(0);
       startWorkflow.mockImplementation(() =>
         Effect.succeed({ runId: "workflow-next-slot" })
@@ -704,6 +703,33 @@ describe("scheduled GEO scans", () => {
     } finally {
       setSystemTime();
     }
+  });
+
+  test("an unrelated stale scan does not consume a scheduled slot's retry window", async () => {
+    const anchor = wholeMinutesAgo(15 * 60);
+    await seedProject("unrelated-stale", { nextScanAt: anchor });
+    await testDb.insert(geoScans).values({
+      id: "manual-stale",
+      organizationId: "org-test",
+      projectId: "unrelated-stale",
+      startedAt: new Date(anchor.getTime() + 60_000),
+      finishedAt: new Date(anchor.getTime() + GEO_SCAN_STALE_MS),
+      status: "failed",
+      errorCode: "scan_stale",
+    });
+    startWorkflow.mockImplementationOnce(() =>
+      Effect.fail(
+        Object.assign(new Error("503"), { name: "InternalDashboardError" })
+      )
+    );
+
+    expect((await sweep()).failed).toBe(1);
+    const settings = await settingsFor("unrelated-stale");
+    expect(settings?.nextScanAt).toEqual(anchor);
+    expect(settings?.scanFirstFailedAt?.getTime()).toBeGreaterThan(
+      Date.now() - 60_000
+    );
+    expect(settings?.scanLeaseUntil?.getTime()).toBeGreaterThan(Date.now());
   });
 
   test("an ambiguous timeout holds the claim and running row to prevent duplicate billing", async () => {

@@ -20,9 +20,9 @@ export async function alertMissedGeoScan(input: {
   const key = `geo:scan:missed-alert:${input.projectId}:${input.dueAt.toISOString()}`;
   // Overdue slots can remind daily; a terminal stale run alerts only once.
   // Overlapping monitoring invocations must not page twice at once.
-  const claimed = await redis.set(key, "1", {
+  const claimed = await redis.set(key, "pending", {
     nx: true,
-    ex: input.dedupeSeconds ?? 24 * 60 * 60,
+    ex: 30,
   });
   if (!claimed) {
     return;
@@ -48,6 +48,7 @@ export async function alertMissedGeoScan(input: {
     if (!response.ok) {
       throw new Error(`Slack alert returned HTTP ${response.status}`);
     }
+    await redis.set(key, "sent", { ex: input.dedupeSeconds ?? 24 * 60 * 60 });
   } catch (error) {
     await redis.del(key);
     throw error;

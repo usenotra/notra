@@ -1,0 +1,1 @@
+ALTER TABLE "geo_settings" ADD COLUMN "scan_first_failed_at" timestamp;

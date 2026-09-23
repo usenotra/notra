@@ -42,9 +42,10 @@ test("sends one actionable Slack message per slot", async () => {
 
   expect(set).toHaveBeenCalledWith(
     "geo:scan:missed-alert:project-1:2026-09-23T12:00:00.000Z",
-    "1",
-    { nx: true, ex: 86_400 }
+    "pending",
+    { nx: true, ex: 30 }
   );
+  expect(set).toHaveBeenCalledWith(expect.any(String), "sent", { ex: 86_400 });
   expect(send).toHaveBeenCalledTimes(1);
   const [url, options] = send.mock.calls[0] as unknown as [string, RequestInit];
   expect(url).toBe("https://hooks.slack.com/test");
@@ -66,8 +67,7 @@ test("releases the deduplication key if Slack rejects the alert", async () => {
 
 test("keeps a delivered stale-run alert deduplicated for the retry window", async () => {
   await alertMissedGeoScan({ ...slot, dedupeSeconds: 7 * 86_400 });
-  expect(set).toHaveBeenCalledWith(expect.any(String), "1", {
-    nx: true,
+  expect(set).toHaveBeenCalledWith(expect.any(String), "sent", {
     ex: 7 * 86_400,
   });
 });

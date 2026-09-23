@@ -177,7 +177,7 @@ const advanceGeoScanSlot = Effect.fn("geo.advanceScanSlot")(function* (
   const advanced = yield* geoDb("scan slot advance failed", () =>
     db
       .update(geoSettings)
-      .set({ nextScanAt, scanLeaseUntil: null })
+      .set({ nextScanAt, scanLeaseUntil: null, scanFirstFailedAt: null })
       .where(
         and(
           eq(geoSettings.id, row.id),
@@ -256,6 +256,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
           projectId: true,
           scanIntervalHours: true,
           nextScanAt: true,
+          scanFirstFailedAt: true,
           lastScanAt: true,
         },
         where: and(
@@ -391,61 +392,73 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       }
 
       failed += 1;
-      // Use the first *failed attempt*, not the original due stamp: a cron
-      // outage must not exhaust a slot before it has ever been attempted.
-      const firstFailure = yield* geoDb(
-        "scan first failure lookup failed",
-        () =>
-          db.query.geoScans.findFirst({
-            columns: { id: true, startedAt: true },
-            where: and(
-              eq(geoScans.projectId, row.projectId),
-              gte(geoScans.startedAt, anchor),
-              or(
-                eq(geoScans.errorCode, "scan_handoff_failed"),
-                eq(geoScans.errorCode, "scan_stale")
+      // Only this scheduled slot's failures count. A manual stale scan or a
+      // late first cron tick cannot exhaust its 12-hour retry window.
+      const firstFailureAt = row.scanFirstFailedAt ?? new Date();
+      if (!row.scanFirstFailedAt) {
+        yield* geoDb("scan first failure stamp failed", () =>
+          db
+            .update(geoSettings)
+            .set({ scanFirstFailedAt: firstFailureAt })
+            .where(
+              and(
+                eq(geoSettings.id, row.id),
+                eq(geoSettings.scanLeaseUntil, leaseUntil),
+                isNull(geoSettings.scanFirstFailedAt)
               )
-            ),
-            orderBy: [asc(geoScans.startedAt)],
-          })
-      );
+            )
+        );
+      }
       if (
-        firstFailure &&
-        Date.now() - firstFailure.startedAt.getTime() >=
-          GEO_SCAN_START_RETRY_WINDOW_MS
+        Date.now() - firstFailureAt.getTime() >=
+        GEO_SCAN_START_RETRY_WINDOW_MS
       ) {
         const advanced = yield* advance(row, leaseUntil);
         if (advanced) {
+          const failedRow = yield* geoDb("scan failed row lookup failed", () =>
+            db.query.geoScans.findFirst({
+              columns: { id: true },
+              where: and(
+                eq(geoScans.projectId, row.projectId),
+                eq(geoScans.errorCode, "scan_handoff_failed"),
+                gte(geoScans.startedAt, anchor)
+              ),
+              orderBy: [desc(geoScans.startedAt)],
+            })
+          );
           // Keep the exhausted slot visible to the monitoring cron. A one-off
           // Slack request here would be lost if Slack rejects it after the
           // schedule has already advanced.
-          yield* geoDb("scan retry exhaustion stamp failed", () =>
-            db
-              .update(geoScans)
-              .set({
-                errorCode: "scan_retry_exhausted",
-                errorMessage: "Scheduled scan could not start within 12 hours.",
-                retryable: false,
-              })
-              .where(
-                and(
-                  eq(geoScans.id, firstFailure.id),
-                  eq(geoScans.status, "failed")
+          if (failedRow) {
+            yield* geoDb("scan retry exhaustion stamp failed", () =>
+              db
+                .update(geoScans)
+                .set({
+                  errorCode: "scan_retry_exhausted",
+                  errorMessage:
+                    "Scheduled scan could not start within 12 hours.",
+                  retryable: false,
+                })
+                .where(
+                  and(
+                    eq(geoScans.id, failedRow.id),
+                    eq(geoScans.status, "failed")
+                  )
                 )
-              )
-          ).pipe(
-            geoSkip("scan retry exhaustion stamp failed", {
-              event: "geo.scan.stamp_failed",
-              organizationId: row.organizationId,
-              projectId: row.projectId,
-            })
-          );
+            ).pipe(
+              geoSkip("scan retry exhaustion stamp failed", {
+                event: "geo.scan.stamp_failed",
+                organizationId: row.organizationId,
+                projectId: row.projectId,
+              })
+            );
+          }
           yield* geoLogWarn({
             event: "geo.scan.slot_abandoned",
             organizationId: row.organizationId,
             projectId: row.projectId,
             anchor: anchor.toISOString(),
-            firstFailureAt: firstFailure.startedAt.toISOString(),
+            firstFailureAt: firstFailureAt.toISOString(),
           });
         }
         continue;

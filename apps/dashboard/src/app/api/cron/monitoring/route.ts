@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     await checkMissedGeoScans();
   } catch (error) {
     logWorkflowTelemetry({
-      event: "geo.scan.watchdog_failed",
+      event: "geo.scan.watchdog.failed",
       outcome: "error",
       errorName: error instanceof Error ? error.name : "UnknownError",
       errorMessage: error instanceof Error ? error.message : String(error),

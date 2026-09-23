@@ -708,6 +708,13 @@
       "when": 1790112228943,
       "tag": "0100_complete_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1790193817604,
+      "tag": "0101_geo_scan_first_failed",
+      "breakpoints": true
     }
   ]
 }

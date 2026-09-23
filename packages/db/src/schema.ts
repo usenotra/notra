@@ -1493,6 +1493,7 @@ export const geoSettings = pgTable(
     sentimentAttemptedAt: timestamp("sentiment_attempted_at"),
     nextScanAt: timestamp("next_scan_at"),
     scanLeaseUntil: timestamp("scan_lease_until"),
+    scanFirstFailedAt: timestamp("scan_first_failed_at"),
     scanStartedAt: timestamp("scan_started_at"),
     lastScanAt: timestamp("last_scan_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
