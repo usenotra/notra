@@ -20,6 +20,7 @@ import type {
 } from "@/types/components/geo";
 import { formatCount, formatPercent } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
+import { tableHeightFor } from "@/utils/table";
 
 function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
   return (
@@ -69,7 +70,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
         defaultSort={{ key: "impressions", direction: "desc" }}
         emptyState="No query-level data for this prompt."
         getRowId={(query) => query.query}
-        height={360}
+        height={tableHeightFor(queries.length)}
         rowSizing="content"
       />
     </section>
