@@ -66,7 +66,7 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
             cell: (query) => `#${query.position.toFixed(1)}`,
           },
         ]}
-        data={queries}
+        data={[...queries]}
         defaultSort={{ key: "impressions", direction: "desc" }}
         emptyState="No query-level data for this prompt."
         getRowId={(query) => query.query}
