@@ -1050,9 +1050,12 @@ export async function generateAndSetChatTitle(
       instructions: `Generate a short, descriptive title (max 50 chars) for a chat conversation based on the user's first message. Return ONLY the title text, nothing else. No quotes, no prefix. Be specific and concise.`,
       prompt: userMessage,
       maxOutputTokens: 30,
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: "openai/gpt-5.4-nano",
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["chat-title"] } },
+        {
+          modelId: "openai/gpt-5.4-nano",
+        }
+      ),
       ...buildTelemetryOptions({
         chatId,
         feature: "chat_title",

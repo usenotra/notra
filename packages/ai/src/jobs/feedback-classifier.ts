@@ -49,7 +49,10 @@ async function generateClassification(
       prompt: buildPrompt(params),
       abortSignal: AbortSignal.timeout(FEEDBACK_CLASSIFIER_TIMEOUT_MS),
       providerOptions: withRouterDefaults(
-        { openai: { reasoningEffort: FEEDBACK_CLASSIFIER_REASONING_EFFORT } },
+        {
+          openai: { reasoningEffort: FEEDBACK_CLASSIFIER_REASONING_EFFORT },
+          gateway: { tags: ["feedback-classifier"] },
+        },
         { modelId: FEEDBACK_CLASSIFIER_MODEL_ID }
       ),
       ...buildTelemetryOptions({

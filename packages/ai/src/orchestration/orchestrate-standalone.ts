@@ -209,11 +209,14 @@ export async function orchestrateStandaloneChat(
     enableThinking && (autoThinkingLevel ? autoThinkingLevel !== "off" : true);
 
   const providerOptions = withRouterDefaults(
-    getThinkingProviderOptions(
-      routingDecision.model,
-      effectiveEnableThinking,
-      effectiveThinkingLevel
-    ),
+    {
+      ...getThinkingProviderOptions(
+        routingDecision.model,
+        effectiveEnableThinking,
+        effectiveThinkingLevel
+      ),
+      gateway: { tags: ["standalone-chat"] },
+    },
     { modelId: routingDecision.model }
   );
 
@@ -284,6 +287,9 @@ export async function orchestrateStandaloneChat(
       try {
         const { output: repairedInput } = await generateText({
           model: modelWithMemory,
+          providerOptions: {
+            gateway: { tags: ["standalone-chat-tool-repair"] },
+          },
           output: Output.object({ schema: brokenTool.inputSchema }),
           prompt: [
             `The assistant called the tool "${toolCall.toolName}" with inputs that failed validation:`,

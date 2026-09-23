@@ -71,7 +71,7 @@ import {
   ChatInputAdvanced,
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
-import { ChatQueue, type QueuedMessage } from "@/components/chat/chat-queue";
+import type { QueuedMessage } from "@/components/chat/chat-queue";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { renderTextWithIntegrationReferences } from "@/components/chat/integration-reference";
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
@@ -118,7 +118,11 @@ import type {
   UserImageGridProps,
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
-import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
+import {
+  hasPendingApproval,
+  isTerminalToolState,
+  shouldContinueAfterApprovalResponse,
+} from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import {
   resolveChatMessageAuthor,
@@ -133,7 +137,11 @@ import {
   readStoredChatPreferences,
   writeStoredChatPreferences,
 } from "@/utils/chat-preferences";
-import { parseQueuedMessages } from "@/utils/chat-queue";
+import {
+  markQueuedMessageSteering,
+  parseQueuedMessages,
+  takeQueuedMessage,
+} from "@/utils/chat-queue";
 import {
   clearPendingChatClientState,
   resetNewChatClientState,
@@ -230,28 +238,6 @@ function getCreateToolContentType(
   type: keyof typeof CREATE_TOOL_TYPES
 ): CreateToolContentType {
   return CREATE_TOOL_TYPES[type];
-}
-
-function hasPendingApproval(messages: readonly ChatUIMessage[]): boolean {
-  for (const message of messages) {
-    if (message.role !== "assistant") {
-      continue;
-    }
-    for (const part of message.parts) {
-      if (isToolUIPart(part) && part.state === "approval-requested") {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function isTerminalToolState(state: string): boolean {
-  return (
-    state === "output-available" ||
-    state === "output-error" ||
-    state === "output-denied"
-  );
 }
 
 function hasSendableParts(message: ChatUIMessage): boolean {
@@ -604,6 +590,11 @@ function StandaloneChatPageClient({
   const drainQueueRef = useRef<() => void>(() => {
     // Populated after dispatchMessage is defined below.
   });
+  const flushSteerAfterStopRef = useRef<() => void>(() => {
+    // Populated after dispatchMessage is defined below.
+  });
+  const steerAfterStopRef = useRef<QueuedMessage | null>(null);
+  const queuedMessagesRef = useRef<QueuedMessage[]>([]);
   const isDrainingRef = useRef(false);
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
@@ -626,6 +617,10 @@ function StandaloneChatPageClient({
         queryKey: ["chat-sessions", organizationId],
       });
       isDrainingRef.current = false;
+      if (steerAfterStopRef.current) {
+        flushSteerAfterStopRef.current();
+        return;
+      }
       drainQueueRef.current();
       navigateToNewChatRef.current();
     },
@@ -647,6 +642,10 @@ function StandaloneChatPageClient({
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
     onFinish: handleFinish,
     onError: (err) => {
+      if (steerAfterStopRef.current) {
+        flushSteerAfterStopRef.current();
+        return;
+      }
       const conflictedMessageId = activeStreamConflictRef.current;
       activeStreamConflictRef.current = null;
       if (
@@ -1007,6 +1006,7 @@ function StandaloneChatPageClient({
     previousInitialChatIdRef.current = initialChatId;
 
     if (initialChatId) {
+      queuedMessagesRef.current = [];
       clearPendingChatClientState({
         setChatError,
         setPendingMessageId,
@@ -1015,6 +1015,7 @@ function StandaloneChatPageClient({
       return;
     }
 
+    queuedMessagesRef.current = [];
     resetNewChatClientState({
       hasUpdatedUrlRef,
       setChatError,
@@ -1048,11 +1049,15 @@ function StandaloneChatPageClient({
     try {
       const raw = window.localStorage.getItem(queueStorageKey);
       if (!raw) {
+        queuedMessagesRef.current = [];
         setQueuedMessages([]);
         return;
       }
-      setQueuedMessages(parseQueuedMessages(JSON.parse(raw)));
+      const parsed = parseQueuedMessages(JSON.parse(raw));
+      queuedMessagesRef.current = parsed;
+      setQueuedMessages(parsed);
     } catch {
+      queuedMessagesRef.current = [];
       setQueuedMessages([]);
     }
   }, [isSlackMirrored, queueStorageKey]);
@@ -1479,14 +1484,16 @@ function StandaloneChatPageClient({
         if (attachments.length > 0) {
           return;
         }
-        setQueuedMessages((prev) => [
-          ...prev,
+        const next = [
+          ...queuedMessagesRef.current,
           {
             id: nanoid(10),
             text,
             authorUserId: currentAuthorUserId,
           },
-        ]);
+        ];
+        queuedMessagesRef.current = next;
+        setQueuedMessages(next);
         return;
       }
       await dispatchMessage(text, attachments);
@@ -1524,6 +1531,7 @@ function StandaloneChatPageClient({
         return;
       }
       pendingInitialQueryResetRef.current = trimmedInitialQuery;
+      queuedMessagesRef.current = [];
       resetNewChatClientState({
         hasUpdatedUrlRef,
         setChatError,
@@ -1580,25 +1588,104 @@ function StandaloneChatPageClient({
   ]);
 
   const handleRemoveQueued = useCallback((id: string) => {
-    setQueuedMessages((prev) => prev.filter((m) => m.id !== id));
+    if (steerAfterStopRef.current?.id === id) {
+      steerAfterStopRef.current = null;
+      updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
+    }
+    const next = queuedMessagesRef.current.filter((m) => m.id !== id);
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
-    setQueuedMessages((prev) => prev.filter((m) => m.id !== message.id));
+    if (steerAfterStopRef.current?.id === message.id) {
+      steerAfterStopRef.current = null;
+      updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
+    }
+    const next = queuedMessagesRef.current.filter((m) => m.id !== message.id);
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
     chatInputRef.current?.setText(message.text);
   }, []);
 
+  const sendSteeredQueued = useCallback(
+    (message: QueuedMessage) => {
+      const taken = takeQueuedMessage(queuedMessagesRef.current, message.id);
+      if (!taken) {
+        return;
+      }
+      queuedMessagesRef.current = taken.remaining;
+      setQueuedMessages(taken.remaining);
+      updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
+      dispatchMessage(message.text).catch((error) => {
+        console.error("[Chat] Failed to steer queued message:", error);
+        const restored = [message, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
+      });
+    },
+    [dispatchMessage]
+  );
+
+  const flushSteerAfterStop = useCallback(() => {
+    const next = steerAfterStopRef.current;
+    if (!next) {
+      return;
+    }
+    steerAfterStopRef.current = null;
+    sendSteeredQueued(next);
+  }, [sendSteeredQueued]);
+
+  const handleSteerQueued = useCallback(
+    (message: QueuedMessage) => {
+      if (steerAfterStopRef.current) {
+        return;
+      }
+      if (
+        !queuedMessagesRef.current.some((queued) => queued.id === message.id)
+      ) {
+        return;
+      }
+      if (!(isLoading || isWaitingForActiveStream)) {
+        sendSteeredQueued(message);
+        return;
+      }
+      const next = markQueuedMessageSteering(
+        queuedMessagesRef.current,
+        message.id
+      );
+      queuedMessagesRef.current = next;
+      setQueuedMessages(next);
+      steerAfterStopRef.current = message;
+      updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
+      stopActiveResponse().catch((error) => {
+        console.error(
+          "[Chat] Failed to stop active response for steer:",
+          error
+        );
+        flushSteerAfterStop();
+      });
+    },
+    [
+      flushSteerAfterStop,
+      isLoading,
+      isWaitingForActiveStream,
+      sendSteeredQueued,
+      stopActiveResponse,
+    ]
+  );
+
   const handleUpdateQueued = useCallback((id: string, text: string) => {
-    setQueuedMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, text } : m))
+    const next = queuedMessagesRef.current.map((m) =>
+      m.id === id ? { ...m, text } : m
     );
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
   }, []);
 
-  const queuedMessagesRef = useRef(queuedMessages);
-
   useEffect(() => {
-    queuedMessagesRef.current = queuedMessages;
-  }, [queuedMessages]);
+    flushSteerAfterStopRef.current = flushSteerAfterStop;
+  }, [flushSteerAfterStop]);
 
   const navigateToNewChat = useCallback(() => {
     if (
@@ -1643,6 +1730,9 @@ function StandaloneChatPageClient({
       if (wasStoppedByUserRef.current) {
         return;
       }
+      if (steerAfterStopRef.current) {
+        return;
+      }
       if (hasPendingApproval(messagesRef.current)) {
         return;
       }
@@ -1653,11 +1743,15 @@ function StandaloneChatPageClient({
       }
 
       isDrainingRef.current = true;
-      setQueuedMessages(queue.slice(1));
+      const remaining = queue.slice(1);
+      queuedMessagesRef.current = remaining;
+      setQueuedMessages(remaining);
       dispatchMessage(next.text).catch((error) => {
         console.error("[Chat] Failed to drain queued message:", error);
         isDrainingRef.current = false;
-        setQueuedMessages((prev) => [next, ...prev]);
+        const restored = [next, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
       });
     };
   }, [dispatchMessage, isSlackMirrored]);
@@ -1762,6 +1856,10 @@ function StandaloneChatPageClient({
       return;
     }
     wasWaitingForActiveStreamRef.current = false;
+    if (steerAfterStopRef.current) {
+      flushSteerAfterStopRef.current();
+      return;
+    }
     drainQueueRef.current();
   }, [isLoading, isWaitingForActiveStream]);
 
@@ -2369,6 +2467,7 @@ function StandaloneChatPageClient({
               <ProjectScopeLoadingInput />
             ) : (
               <ChatInputAdvanced
+                authorsById={messageAuthorsById}
                 context={context}
                 draftStorageKey={draftStorageKey}
                 error={chatError}
@@ -2378,10 +2477,13 @@ function StandaloneChatPageClient({
                 model={selectedModel}
                 onAddContext={handleAddContext}
                 onClearError={handleClearError}
+                onEditQueued={handleEditQueued}
                 onEmptyChange={setIsInputEmpty}
                 onModelChange={handleModelChange}
                 onRemoveContext={handleRemoveContext}
+                onRemoveQueued={handleRemoveQueued}
                 onSend={handleSend}
+                onSteerQueued={handleSteerQueued}
                 onStop={handleStop}
                 onThinkingLevelChange={handleThinkingLevelChange}
                 onUpdateQueued={handleUpdateQueued}
@@ -2389,6 +2491,7 @@ function StandaloneChatPageClient({
                 organizationSlug={organizationSlug}
                 queuedMessages={queuedMessages}
                 ref={chatInputRef}
+                showAuthorAvatars={showMessageAuthorAvatars}
                 thinkingLevel={thinkingLevel}
               />
             )}
@@ -2669,13 +2772,6 @@ function StandaloneChatPageClient({
                   Waiting for the previous response to finish before sending.
                 </p>
               )}
-              <ChatQueue
-                authorsById={messageAuthorsById}
-                messages={queuedMessages}
-                onEdit={handleEditQueued}
-                onRemove={handleRemoveQueued}
-                showAuthorAvatars={showMessageAuthorAvatars}
-              />
               {isSlackMirrored && (
                 <div className="mb-2 flex justify-center">
                   <SlackRelayFooterNotice
@@ -2687,7 +2783,7 @@ function StandaloneChatPageClient({
                 <ProjectScopeLoadingInput />
               ) : (
                 <ChatInputAdvanced
-                  connectedTop={queuedMessages.length > 0}
+                  authorsById={messageAuthorsById}
                   context={context}
                   draftStorageKey={draftStorageKey}
                   error={null}
@@ -2697,9 +2793,12 @@ function StandaloneChatPageClient({
                   model={selectedModel}
                   onAddContext={handleAddContext}
                   onClearError={handleClearError}
+                  onEditQueued={handleEditQueued}
                   onModelChange={handleModelChange}
                   onRemoveContext={handleRemoveContext}
+                  onRemoveQueued={handleRemoveQueued}
                   onSend={handleSend}
+                  onSteerQueued={handleSteerQueued}
                   onStop={handleStop}
                   onThinkingLevelChange={handleThinkingLevelChange}
                   onUpdateQueued={handleUpdateQueued}
@@ -2707,6 +2806,7 @@ function StandaloneChatPageClient({
                   organizationSlug={organizationSlug}
                   queuedMessages={queuedMessages}
                   ref={chatInputRef}
+                  showAuthorAvatars={showMessageAuthorAvatars}
                   thinkingLevel={thinkingLevel}
                 />
               )}

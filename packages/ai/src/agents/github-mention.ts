@@ -107,6 +107,7 @@ export async function runGitHubMentionAgent(params: {
     }),
     providerOptions: withRouterDefaults(
       {
+        gateway: { tags: ["github-mention"] },
         anthropic: {
           thinking: { type: "adaptive" },
         },

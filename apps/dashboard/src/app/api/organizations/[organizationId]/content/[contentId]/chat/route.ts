@@ -225,6 +225,7 @@ export const POST = withEvlog(async function POST(
         selection,
         context,
         maxSteps: 50,
+        abortSignal: request.signal,
         log,
         timezone,
         useMarkup,
@@ -326,6 +327,9 @@ export const POST = withEvlog(async function POST(
       generateMessageId: nanoid,
       sendReasoning: true,
       onEnd: async ({ messages: responseMessages }) => {
+        if (request.signal.aborted) {
+          return;
+        }
         const saved = await replaceContentChatHistory(
           organizationId,
           contentId,

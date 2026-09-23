@@ -67,6 +67,7 @@ export function useContentChatInput({
   queuedMessages = [],
   onEditQueued,
   onRemoveQueued,
+  onSteerQueued,
 }: ChatInputProps): UseContentChatInputResult {
   const contextPickerId = useId();
   const [isFocused, setIsFocused] = useState(false);
@@ -460,6 +461,7 @@ export function useContentChatInput({
     onFileInputChange,
     onRemoveContext,
     onRemoveQueued,
+    onSteerQueued,
     onStop,
     organizationSlug,
     placeholder,

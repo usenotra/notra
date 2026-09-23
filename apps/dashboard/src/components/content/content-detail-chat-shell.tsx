@@ -24,6 +24,7 @@ export interface ContentDetailChatComposerProps {
   onEditQueued: (message: QueuedMessage) => void;
   onRemoveContext: (item: ContextItem) => void;
   onRemoveQueued: (id: string) => void;
+  onSteerQueued: (message: QueuedMessage) => void;
   onSend: (
     instruction: string,
     attachments?: ChatAttachment[]

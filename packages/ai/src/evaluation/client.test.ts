@@ -64,6 +64,7 @@ describe("evaluation client", () => {
     expect(body.state).toEqual({ message: "hi" });
     expect(body.questions).toEqual(QUESTIONS);
     expect(body.providerOptions.gateway.zeroDataRetention).toBe(true);
+    expect(body.providerOptions.gateway.tags).toEqual(["evaluation-test"]);
 
     expect(result.answers.tone.choice).toBe("warm");
     expect(result.answers.urgent.probability).toBe(0.2);

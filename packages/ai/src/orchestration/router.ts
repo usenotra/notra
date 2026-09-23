@@ -160,9 +160,12 @@ export async function routeMessage(
       prompt: `Classify this user message:
 
 "${userMessage}"${contextHint}`,
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: MODELS.router,
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["chat-router"] } },
+        {
+          modelId: MODELS.router,
+        }
+      ),
       repairText: async ({ text, error }) => {
         try {
           const { text: repairedText } = await generateText({
@@ -193,9 +196,12 @@ export async function routeMessage(
               error.message,
             ].join("\n"),
             maxOutputTokens: 200,
-            providerOptions: withRouterDefaults(undefined, {
-              modelId: MODELS.router,
-            }),
+            providerOptions: withRouterDefaults(
+              { gateway: { tags: ["chat-router"] } },
+              {
+                modelId: MODELS.router,
+              }
+            ),
             ...buildTelemetryOptions(telemetryMetadata),
           });
 

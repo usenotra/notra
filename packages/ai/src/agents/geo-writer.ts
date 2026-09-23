@@ -212,9 +212,12 @@ export async function generateGeoContentBrief(
         instructions: system,
         prompt,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
-        providerOptions: withRouterDefaults(undefined, {
-          modelId: GEO_WRITER_MODEL,
-        }),
+        providerOptions: withRouterDefaults(
+          { gateway: { tags: ["geo-writer"] } },
+          {
+            modelId: GEO_WRITER_MODEL,
+          }
+        ),
       });
       usage = mergeTokenUsage(usage, toTokenUsage(result.usage));
       if (result.finishReason !== "stop") {
@@ -359,9 +362,12 @@ async function humanizeMarkdown(
     instructions: GEO_HUMANIZER_SYSTEM,
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
-    providerOptions: withRouterDefaults(undefined, {
-      modelId: GEO_WRITER_MODEL,
-    }),
+    providerOptions: withRouterDefaults(
+      { gateway: { tags: ["geo-writer"] } },
+      {
+        modelId: GEO_WRITER_MODEL,
+      }
+    ),
     ...buildTelemetryOptions({
       ...options.telemetryMetadata,
       stage: "geo_writer_humanize",
@@ -560,7 +566,10 @@ export async function runGeoWriter(
   const agent = new ToolLoopAgent({
     model,
     providerOptions: withRouterDefaults(
-      { anthropic: { thinking: { type: "adaptive" } } },
+      {
+        anthropic: { thinking: { type: "adaptive" } },
+        gateway: { tags: ["geo-writer"] },
+      },
       { modelId: GEO_WRITER_MODEL }
     ),
     tools,

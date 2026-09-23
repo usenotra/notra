@@ -97,6 +97,7 @@ import {
   isAllowedChatMimeType,
   isImageMimeType,
 } from "@/lib/upload/mime";
+import type { ChatMessageAuthor } from "@/types/chat";
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
@@ -126,7 +127,7 @@ import {
 } from "./chat-composer-attachments";
 import { ChatContextConnectSuggestions } from "./chat-context-connect-suggestions";
 import { ChatContextOptionContent } from "./chat-context-option-content";
-import type { QueuedMessage } from "./chat-queue";
+import { ChatQueue, type QueuedMessage } from "./chat-queue";
 import { ChatSkillSlashMenu } from "./chat-skill-slash-menu";
 import { ChatSkillTagChips } from "./chat-skill-tag-chips";
 import {
@@ -454,6 +455,7 @@ function getComposerNudgeVisibility({
   attachmentCount,
   contextCount,
   pendingUploadCount,
+  queuedCount,
   shouldShowLowCredits,
   skillTagCount,
   usageLimitError,
@@ -461,11 +463,13 @@ function getComposerNudgeVisibility({
   attachmentCount: number;
   contextCount: number;
   pendingUploadCount: number;
+  queuedCount: number;
   shouldShowLowCredits: boolean;
   skillTagCount: number;
   usageLimitError: string | null;
 }) {
   return (
+    queuedCount > 0 ||
     contextCount > 0 ||
     skillTagCount > 0 ||
     attachmentCount > 0 ||
@@ -600,33 +604,46 @@ function ChatMentionMenu({
 
 function ChatComposerNudge({
   attachments,
+  authorsById,
   context,
   isQueued,
+  onEditQueued,
+  onRemoveQueued,
+  onSteerQueued,
   organizationSlug,
   pendingUploads,
+  queuedMessages,
   remainingChatCredits,
   removeAttachment,
   removeContext,
   setPreviewAttachment,
   shouldShowLowCredits,
+  showAuthorAvatars,
   taggedSkills,
   untagSkill,
   usageLimitError,
 }: {
   attachments: ChatAttachment[];
+  authorsById?: Map<string, ChatMessageAuthor>;
   context: ContextItem[];
   isQueued: boolean;
+  onEditQueued?: (message: QueuedMessage) => void;
+  onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
   organizationSlug?: string;
   pendingUploads: PendingUploadItem[];
+  queuedMessages: QueuedMessage[];
   remainingChatCredits: number;
   removeAttachment: (key: string) => void;
   removeContext: (item: ContextItem) => void;
   setPreviewAttachment: (attachment: ChatAttachment) => void;
   shouldShowLowCredits: boolean;
+  showAuthorAvatars?: boolean;
   taggedSkills: SkillSlashOption[];
   untagSkill?: (name: string) => void;
   usageLimitError: string | null;
 }) {
+  const hasQueuedChips = queuedMessages.length > 0;
   const hasContextChips = context.length > 0 || taggedSkills.length > 0;
   const hasAttachmentChips =
     attachments.length > 0 || pendingUploads.length > 0;
@@ -646,6 +663,7 @@ function ChatComposerNudge({
       }
       title={
         shouldShowLowCredits &&
+        !hasQueuedChips &&
         !hasContextChips &&
         !hasAttachmentChips &&
         !usageLimitError
@@ -653,8 +671,16 @@ function ChatComposerNudge({
           : undefined
       }
     >
-      {hasContextChips || hasAttachmentChips ? (
+      {hasQueuedChips || hasContextChips || hasAttachmentChips ? (
         <>
+          <ChatQueue
+            authorsById={authorsById}
+            messages={queuedMessages}
+            onEdit={onEditQueued}
+            onRemove={onRemoveQueued}
+            onSteer={onSteerQueued}
+            showAuthorAvatars={showAuthorAvatars}
+          />
           <ChatSkillTagChips
             onRemove={isQueued ? undefined : untagSkill}
             skills={taggedSkills}
@@ -1048,7 +1074,12 @@ interface ChatInputAdvancedProps {
   onThinkingLevelChange?: (level: ThinkingLevel) => void;
   connectedTop?: boolean;
   queuedMessages?: QueuedMessage[];
+  onEditQueued?: (message: QueuedMessage) => void;
+  onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
   onUpdateQueued?: (id: string, text: string) => void;
+  authorsById?: Map<string, ChatMessageAuthor>;
+  showAuthorAvatars?: boolean;
   onEmptyChange?: (isEmpty: boolean) => void;
   draftStorageKey?: string;
   ref?: Ref<ChatInputHandle>;
@@ -1256,6 +1287,12 @@ export function ChatInputAdvanced({
   thinkingLevel = "medium",
   onThinkingLevelChange,
   connectedTop = false,
+  queuedMessages = [],
+  onEditQueued,
+  onRemoveQueued,
+  onSteerQueued,
+  authorsById,
+  showAuthorAvatars = false,
   onEmptyChange,
   draftStorageKey,
   ref,
@@ -2499,6 +2536,7 @@ export function ChatInputAdvanced({
     attachmentCount: attachments.length,
     contextCount: context.length,
     pendingUploadCount: pendingUploads.length,
+    queuedCount: queuedMessages.length,
     shouldShowLowCredits,
     skillTagCount: taggedSkills.length,
     usageLimitError,
@@ -2560,15 +2598,21 @@ export function ChatInputAdvanced({
             showComposerNudge ? (
               <ChatComposerNudge
                 attachments={attachments}
+                authorsById={authorsById}
                 context={context}
                 isQueued={isQueued}
+                onEditQueued={onEditQueued}
+                onRemoveQueued={onRemoveQueued}
+                onSteerQueued={onSteerQueued}
                 organizationSlug={organizationSlug}
                 pendingUploads={pendingUploads}
+                queuedMessages={queuedMessages}
                 remainingChatCredits={remainingChatCredits ?? 0}
                 removeAttachment={removeAttachment}
                 removeContext={removeContext}
                 setPreviewAttachment={setPreviewAttachment}
                 shouldShowLowCredits={shouldShowLowCredits}
+                showAuthorAvatars={showAuthorAvatars}
                 taggedSkills={taggedSkills}
                 untagSkill={isQueued ? undefined : handleUntagSkill}
                 usageLimitError={usageLimitError}

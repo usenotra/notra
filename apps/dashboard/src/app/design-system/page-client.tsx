@@ -226,6 +226,7 @@ import { DesignSystemOpencodeCatalog } from "@/app/design-system/opencode/page-c
 import { DesignSystemPerplexityCatalog } from "@/app/design-system/perplexity/page-client";
 import { Button, buttonVariants } from "@/components/button";
 import ChatInput from "@/components/chat-input";
+import { DesignSystemChatQueueDemo } from "@/components/design-system/design-system-chat-queue-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
@@ -1418,6 +1419,17 @@ export default function DesignSystemClientPage() {
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      <Separator />
+
+      <section className="scroll-mt-10 space-y-6" id="chat-queue">
+        <DesignSystemSectionHeader
+          description="Queued follow-ups stay visible until the steered send starts. The pending chip is muted and only offers cancel."
+          id="chat-queue"
+          title="Chat Queue"
+        />
+        <DesignSystemChatQueueDemo />
       </section>
 
       <Separator />

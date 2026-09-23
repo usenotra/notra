@@ -7,6 +7,28 @@ const TERMINAL_APPROVAL_STEP_STATES = new Set([
   "approval-responded",
 ]);
 
+export function isTerminalToolState(state: string): boolean {
+  return (
+    state === "output-available" ||
+    state === "output-error" ||
+    state === "output-denied"
+  );
+}
+
+export function hasPendingApproval(messages: readonly UIMessage[]): boolean {
+  for (const message of messages) {
+    if (message.role !== "assistant") {
+      continue;
+    }
+    for (const part of message.parts) {
+      if (isToolUIPart(part) && part.state === "approval-requested") {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function shouldContinueAfterApprovalResponse({
   messages,
 }: {

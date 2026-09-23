@@ -212,6 +212,7 @@ const extractDiscovery = Effect.fn("geo.discover.extract")(function* (
         model: gateway(GEO_DISCOVERY_MODEL, {
           organizationId,
         }),
+        providerOptions: { gateway: { tags: ["geo-discovery"] } },
         output: Output.object({ schema: geoWebsiteDiscoverySchema }),
         prompt: buildDiscoveryPrompt(url, content),
         instructions: GEO_DISCOVERY_SYSTEM_PROMPT,

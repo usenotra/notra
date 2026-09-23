@@ -105,11 +105,6 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/",
-        destination: "/login",
-        permanent: false,
-      },
-      {
         source: "/:slug/settings",
         destination: "/:slug?settings=general",
         permanent: false,
