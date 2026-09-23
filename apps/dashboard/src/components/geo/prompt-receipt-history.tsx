@@ -19,7 +19,7 @@ import {
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { Table } from "@/components/motion/table";
-import { TABLE_MAX_HEIGHT, TABLE_ROW_HEIGHT } from "@/constants/table";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
   PromptHistoryBrandTokenProps,
@@ -308,11 +308,9 @@ export function PromptReceiptHistory({
       emptyState={GEO_PROMPT_RECEIPT_LABELS.noHistory}
       footer={footer}
       getRowId={(entry) => entry.check.id}
-      height={
-        isLoading || entries.length === 0
-          ? tableHeightFor(isLoading ? GEO_PROMPT_HISTORY_SKELETON_ROWS : 0)
-          : TABLE_MAX_HEIGHT
-      }
+      height={tableHeightFor(
+        isLoading ? GEO_PROMPT_HISTORY_SKELETON_ROWS : entries.length
+      )}
       loading={isLoading}
       onRowClick={onSelect ? (entry) => onSelect(entry.check) : undefined}
       rowHeight={TABLE_ROW_HEIGHT}
