@@ -1,7 +1,12 @@
 "use client";
 
-import type { PostsResponse } from "@notra/schemas/dashboard/content";
+import type {
+  PostsResponse,
+  RecentPostsResponse,
+} from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
+
+import { recentPostsQueryInput } from "@/utils/recent-posts-query";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
@@ -26,6 +31,17 @@ export function usePosts(
     }),
     enabled: enabled && !!organizationId && isResolved,
     meta: { errorMessage: "Failed to load content" },
+  });
+}
+
+export function useRecentPosts(organizationId: string, enabled = true) {
+  const { projectId, isResolved } = useActiveProject();
+  return useQuery<RecentPostsResponse>({
+    ...dashboardOrpc.content.recents.queryOptions({
+      input: recentPostsQueryInput(organizationId, projectId ?? undefined),
+    }),
+    enabled: enabled && !!organizationId && isResolved,
+    meta: { errorMessage: "Failed to load recent posts" },
   });
 }
 

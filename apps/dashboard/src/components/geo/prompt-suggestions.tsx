@@ -12,10 +12,10 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { type RefObject, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
+import { PromptSuggestionSheet } from "@/components/geo/prompt-suggestion-sheet";
 import { SearchConsoleToolbar } from "@/components/geo/search-console-card";
 import { StatusSpinner } from "@/components/geo/status-spinner";
 import { Table, type TableColumn } from "@/components/motion/table";
@@ -38,28 +38,9 @@ import type {
   SuggestionRowActionsProps,
 } from "@/types/components/geo";
 import type { GeoPromptSuggestion } from "@/types/geo";
+import { formatCount } from "@/utils/format";
+import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
 import { tableHeightFor } from "@/utils/table";
-
-function totalImpressions(suggestion: GeoPromptSuggestion): number {
-  return suggestion.keywords.reduce(
-    (total, keyword) => total + keyword.impressions,
-    0
-  );
-}
-
-function totalClicks(suggestion: GeoPromptSuggestion): number {
-  return suggestion.keywords.reduce(
-    (total, keyword) => total + keyword.clicks,
-    0
-  );
-}
-
-function bestPosition(suggestion: GeoPromptSuggestion): number | null {
-  if (suggestion.keywords.length === 0) {
-    return null;
-  }
-  return Math.min(...suggestion.keywords.map((keyword) => keyword.position));
-}
 
 function SuggestionRowActions({
   accepting,
@@ -146,6 +127,7 @@ function suggestionColumns({
   disabled,
   onAccept,
   onDismiss,
+  onOpen,
 }: SuggestionColumnsOptions): TableColumn<GeoPromptSuggestion>[] {
   return [
     {
@@ -154,58 +136,62 @@ function suggestionColumns({
       minWidth: "16rem",
       sortable: true,
       width: "1fr",
-      cell: (row) => {
-        const queries = row.keywords.map((keyword) => keyword.query).join(", ");
-        return (
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <TruncateWithTooltip className="text-sm leading-snug font-medium">
-              {row.prompt}
-            </TruncateWithTooltip>
-            {queries ? (
-              <TruncateWithTooltip className="text-muted-foreground text-xs leading-snug">
-                {queries}
-              </TruncateWithTooltip>
-            ) : null}
+      cell: (row) => (
+        <button
+          aria-label={`Open details: ${row.prompt}`}
+          className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center rounded-sm text-left hover:underline focus-visible:ring-2"
+          onClick={() => onOpen(row)}
+          type="button"
+        >
+          <span className="text-sm leading-snug font-medium wrap-anywhere">
+            {row.prompt}
           </span>
-        );
-      },
+        </button>
+      ),
     },
     {
       key: "impressions",
       align: "right",
       header: "Impressions",
       sortable: true,
-      width: "9rem",
-      cell: (row) => {
-        const clicks = totalClicks(row);
-        return (
-          <span className="flex flex-col items-end gap-0.5 tabular-nums">
-            <span className="text-sm leading-snug">
-              {totalImpressions(row).toLocaleString()}
-            </span>
-            <span className="text-muted-foreground text-xs leading-snug">
-              {clicks.toLocaleString()} {clicks === 1 ? "click" : "clicks"}
-            </span>
-          </span>
-        );
-      },
-      sortValue: totalImpressions,
+      width: "7.5rem",
+      cell: (row) => (
+        <span className="tabular-nums">
+          {formatCount(suggestionKeywordTotals(row.keywords).impressions)}
+        </span>
+      ),
+      sortValue: (row) => suggestionKeywordTotals(row.keywords).impressions,
+    },
+    {
+      key: "clicks",
+      align: "right",
+      header: "Clicks",
+      sortable: true,
+      width: "6rem",
+      cell: (row) => (
+        <span className="tabular-nums">
+          {formatCount(suggestionKeywordTotals(row.keywords).clicks)}
+        </span>
+      ),
+      sortValue: (row) => suggestionKeywordTotals(row.keywords).clicks,
     },
     {
       key: "position",
       align: "right",
       header: "Position",
       sortable: true,
-      width: "7.5rem",
+      width: "6.5rem",
       cell: (row) => {
-        const position = bestPosition(row);
+        const { position } = suggestionKeywordTotals(row.keywords);
         return (
-          <span className="text-sm tabular-nums">
+          <span className="tabular-nums">
             {position === null ? "–" : `#${position.toFixed(1)}`}
           </span>
         );
       },
-      sortValue: (row) => bestPosition(row) ?? Number.MAX_SAFE_INTEGER,
+      sortValue: (row) =>
+        suggestionKeywordTotals(row.keywords).position ??
+        Number.MAX_SAFE_INTEGER,
     },
     {
       key: "actions",
@@ -377,6 +363,7 @@ export function PromptSuggestions({
   const [isTrackAllQueued, setIsTrackAllQueued] = useState(false);
   const [confirmDismiss, setConfirmDismiss] =
     useState<GeoPromptSuggestion | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [propertyPickerOpen, setPropertyPickerOpen] =
     useState(connectionSucceeded);
   const pendingSuggestionRequests = useRef(new Map<string, Promise<unknown>>());
@@ -395,7 +382,14 @@ export function PromptSuggestions({
     );
   const suggestions = data?.suggestions ?? [];
   const hasSuggestions = suggestions.length > 0;
+  const detail = suggestions.find((row) => row.id === detailId) ?? null;
   const trackAllPending = isTrackAllQueued || acceptAll.isPending;
+  const detailBusy =
+    detail !== null &&
+    (checking ||
+      trackAllPending ||
+      acceptingSuggestionIds.has(detail.id) ||
+      dismissingSuggestionIds.has(detail.id));
   const connectPromo = gscConnectPromo(
     isSearchConsolePending,
     searchConsoleStatus
@@ -436,6 +430,7 @@ export function PromptSuggestions({
     disabled: checking || trackAllPending,
     onAccept: acceptSuggestion,
     onDismiss: setConfirmDismiss,
+    onOpen: (row) => setDetailId(row.id),
   });
 
   if (!(checking || hasSuggestions || showSearchConsole)) {
@@ -474,8 +469,43 @@ export function PromptSuggestions({
         getRowId={(row) => row.id}
         height={tableHeightFor(Math.max(suggestions.length, checking ? 3 : 1))}
         loading={checking}
+        onRowClick={(row) => setDetailId(row.id)}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
+        rowSizing="content"
+      />
+      <PromptSuggestionSheet
+        actions={
+          detail ? (
+            <>
+              <Button
+                disabled={detailBusy}
+                onClick={() => setConfirmDismiss(detail)}
+                variant="outline"
+              >
+                {dismissingSuggestionIds.has(detail.id) ? (
+                  <StatusSpinner />
+                ) : null}
+                Remove
+              </Button>
+              <Button
+                disabled={detailBusy}
+                onClick={() => acceptSuggestion(detail.id)}
+              >
+                {acceptingSuggestionIds.has(detail.id) ? (
+                  <StatusSpinner />
+                ) : null}
+                {acceptingSuggestionIds.has(detail.id) ? "Adding…" : "Track"}
+              </Button>
+            </>
+          ) : null
+        }
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailId(null);
+          }
+        }}
+        suggestion={detail}
       />
       <DismissSuggestionDialog
         onConfirm={dismissPromptSuggestion}

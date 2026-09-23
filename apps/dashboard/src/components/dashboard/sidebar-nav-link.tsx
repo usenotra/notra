@@ -9,18 +9,34 @@ import { useState } from "react";
  * mounted for the mode swoosh). Viewport prefetch would compile and fetch
  * every route on first paint. Keep prefetch off until hover or focus, then
  * restore Link's default so Next.js prefetches the App Shell and keeps the
- * cache in sync.
+ * cache in sync. Mode-switch links pass `eagerPrefetch` so the inactive home
+ * is already in the App Shell cache before the click.
  */
 export function SidebarNavLink({
   href,
   onFocus,
   onMouseEnter,
+  eagerPrefetch = false,
+  disablePrefetch = false,
   ...props
-}: Omit<ComponentProps<typeof Link>, "prefetch">) {
-  const [prefetch, setPrefetch] = useState<false | null>(false);
+}: Omit<ComponentProps<typeof Link>, "prefetch"> & {
+  eagerPrefetch?: boolean;
+  /** Keep prefetch off even on hover. Org-root Studio home redirects to GEO. */
+  disablePrefetch?: boolean;
+}) {
+  const [hoverPrefetch, setHoverPrefetch] = useState<false | null>(false);
+  let prefetch: false | null = hoverPrefetch;
+  if (disablePrefetch) {
+    prefetch = false;
+  } else if (eagerPrefetch) {
+    prefetch = null;
+  }
 
   function enablePrefetch() {
-    setPrefetch(null);
+    if (disablePrefetch) {
+      return;
+    }
+    setHoverPrefetch(null);
   }
 
   return (
