@@ -32,9 +32,7 @@ function SharedContentFrame({ children }: { children: ReactNode }) {
               className="flex h-8 items-center gap-2"
               href={MARKETING_SITE_HREF}
             >
-              <span className="bg-background flex size-7 shrink-0 items-center justify-center rounded-lg dark:bg-[#F6F3F1]">
-                <Notra className="size-7 dark:size-5" />
-              </span>
+              <Notra className="size-7" />
               <span className="text-base font-semibold">Notra</span>
             </Link>
           </header>
