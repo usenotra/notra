@@ -36,15 +36,12 @@ describe("takeQueuedMessage", () => {
 
 describe("markQueuedMessageSteering", () => {
   test("marks only the chosen chip as steering and leaves it in place", () => {
-    expect(
-      markQueuedMessageSteering(
-        [
-          { id: "a", text: "first" },
-          { id: "b", text: "steer me" },
-        ],
-        "b"
-      )
-    ).toEqual([
+    const queue: { id: string; text: string; steering?: boolean }[] = [
+      { id: "a", text: "first" },
+      { id: "b", text: "steer me" },
+    ];
+
+    expect(markQueuedMessageSteering(queue, "b")).toEqual([
       { id: "a", text: "first" },
       { id: "b", text: "steer me", steering: true },
     ]);
