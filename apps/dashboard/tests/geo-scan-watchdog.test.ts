@@ -1,4 +1,13 @@
-import { beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, expect, mock, test } from "bun:test";
+
+const originalWebhook = process.env.GEO_SCAN_ALERT_WEBHOOK_URL;
+afterAll(() => {
+  if (originalWebhook === undefined) {
+    delete process.env.GEO_SCAN_ALERT_WEBHOOK_URL;
+  } else {
+    process.env.GEO_SCAN_ALERT_WEBHOOK_URL = originalWebhook;
+  }
+});
 
 const dueRows = mock(async () => [] as unknown[]);
 const staleRows = mock(async () => [] as unknown[]);
@@ -23,6 +32,7 @@ const { checkMissedGeoScans } =
   await import("../src/lib/analytics/geo-scan-watchdog");
 
 beforeEach(() => {
+  process.env.GEO_SCAN_ALERT_WEBHOOK_URL = "https://hooks.slack.com/test";
   dueRows.mockReset();
   dueRows.mockImplementation(async () => []);
   staleRows.mockReset();
@@ -30,6 +40,15 @@ beforeEach(() => {
   alert.mockReset();
   alert.mockImplementation(async () => undefined);
   telemetry.mockClear();
+});
+
+test("does nothing when the Slack webhook is not configured", async () => {
+  delete process.env.GEO_SCAN_ALERT_WEBHOOK_URL;
+  await checkMissedGeoScans();
+  expect(dueRows).not.toHaveBeenCalled();
+  expect(staleRows).not.toHaveBeenCalled();
+  expect(alert).not.toHaveBeenCalled();
+  expect(telemetry).not.toHaveBeenCalled();
 });
 
 test("retries a failed stale-scan alert on the next monitoring sweep", async () => {

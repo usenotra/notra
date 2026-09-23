@@ -8,6 +8,9 @@ import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
 /** Runs independently of the GEO cron, including after a stale row was failed. */
 export async function checkMissedGeoScans(): Promise<void> {
+  if (!process.env.GEO_SCAN_ALERT_WEBHOOK_URL) {
+    return;
+  }
   const startedAt = Date.now();
   const [overdue, stale] = await Promise.all([
     db.query.geoSettings.findMany({
