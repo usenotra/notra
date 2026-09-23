@@ -12,6 +12,7 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { useMemo } from "react";
 
+import { Table } from "@/components/motion/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   PromptSuggestionSheetProps,
@@ -21,59 +22,56 @@ import { formatCount, formatPercent } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
 
 function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
-  const rows = queries.toSorted(
-    (left, right) => right.impressions - left.impressions
-  );
-
   return (
     <section className="min-w-0 space-y-2">
       <h3 className="text-sm font-medium">Search queries</h3>
-      {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No query-level data for this prompt.
-        </p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm tabular-nums">
-            <thead>
-              <tr className="bg-muted/80">
-                <th className="border-foreground/20 border px-3 py-2 text-left font-medium">
-                  Query
-                </th>
-                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
-                  Impressions
-                </th>
-                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
-                  Clicks
-                </th>
-                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
-                  Position
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-background">
-              {rows.map((query) => (
-                <tr key={query.query}>
-                  <td className="border-foreground/20 border px-3 py-2 whitespace-normal">
-                    <span className="block leading-relaxed wrap-anywhere">
-                      {query.query}
-                    </span>
-                  </td>
-                  <td className="border-foreground/20 border px-3 py-2 text-right">
-                    {formatCount(query.impressions)}
-                  </td>
-                  <td className="border-foreground/20 border px-3 py-2 text-right">
-                    {formatCount(query.clicks)}
-                  </td>
-                  <td className="border-foreground/20 border px-3 py-2 text-right">
-                    #{query.position.toFixed(1)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <Table
+        className="rounded-2xl"
+        columns={[
+          {
+            key: "query",
+            header: "Query",
+            width: "1fr",
+            minWidth: "10rem",
+            sortable: true,
+            cell: (query) => (
+              <span className="block leading-relaxed wrap-anywhere">
+                {query.query}
+              </span>
+            ),
+          },
+          {
+            key: "impressions",
+            header: "Impressions",
+            width: "8.5rem",
+            align: "right",
+            sortable: true,
+            cell: (query) => formatCount(query.impressions),
+          },
+          {
+            key: "clicks",
+            header: "Clicks",
+            width: "6rem",
+            align: "right",
+            sortable: true,
+            cell: (query) => formatCount(query.clicks),
+          },
+          {
+            key: "position",
+            header: "Position",
+            width: "6.5rem",
+            align: "right",
+            sortable: true,
+            cell: (query) => `#${query.position.toFixed(1)}`,
+          },
+        ]}
+        data={queries}
+        defaultSort={{ key: "impressions", direction: "desc" }}
+        emptyState="No query-level data for this prompt."
+        getRowId={(query) => query.query}
+        height={360}
+        rowSizing="content"
+      />
     </section>
   );
 }
