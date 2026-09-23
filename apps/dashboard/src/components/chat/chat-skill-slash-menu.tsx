@@ -21,7 +21,7 @@ export function ChatSkillSlashMenu({
     >
       <div
         aria-label="Skills"
-        className="border-border bg-background max-h-64 overflow-y-auto rounded-xl border p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none"
+        className="border-border bg-background max-h-64 overflow-y-auto rounded-xl border p-1 shadow-sm dark:shadow-none"
         role="listbox"
       >
         {filteredSkills.length > 0 ? (
@@ -31,7 +31,7 @@ export function ChatSkillSlashMenu({
               <button
                 aria-selected={selected}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors outline-none",
+                  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors outline-none",
                   selected
                     ? "bg-muted text-foreground"
                     : "text-foreground hover:bg-muted"
