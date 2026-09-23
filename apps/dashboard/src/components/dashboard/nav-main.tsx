@@ -4,10 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import {
-  NAV_RECENT_WARM_IDLE_TIMEOUT_MS,
-  SIDEBAR_MODE_HOME_LINKS,
-} from "@/constants/nav";
+import { SIDEBAR_MODE_HOME_LINKS } from "@/constants/nav";
+import { useDeferredMount } from "@/lib/hooks/use-deferred-mount";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { SidebarMode } from "@/types/components/nav";
@@ -27,9 +25,11 @@ export function NavMain() {
   const [projectParam] = useGeoProjectQueryState();
   const route = sidebarRouteFromPathname(pathname);
   const { mode, setMode, pendingMode } = useSidebarMode(route);
+  const idleReady = useDeferredMount();
   const [recentWarmed, setRecentWarmed] = useState(mode === "studio");
   const slug = activeOrganization?.slug;
   const projectId = projectParam ?? undefined;
+  const loadRecent = mode === "studio" || recentWarmed || idleReady;
 
   const prefetchModeHome = (next: SidebarMode) => {
     if (!slug) {
@@ -49,25 +49,7 @@ export function NavMain() {
     router.prefetch(
       geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[other], projectId)
     );
-    if (mode === "studio") {
-      setRecentWarmed(true);
-      return;
-    }
-    if (recentWarmed) {
-      return;
-    }
-    if (typeof window.requestIdleCallback === "function") {
-      const idleId = window.requestIdleCallback(() => setRecentWarmed(true), {
-        timeout: NAV_RECENT_WARM_IDLE_TIMEOUT_MS,
-      });
-      return () => window.cancelIdleCallback(idleId);
-    }
-    const timeoutId = window.setTimeout(
-      () => setRecentWarmed(true),
-      NAV_RECENT_WARM_IDLE_TIMEOUT_MS
-    );
-    return () => window.clearTimeout(timeoutId);
-  }, [mode, recentWarmed, slug, projectId, router]);
+  }, [mode, slug, projectId, router]);
 
   if (!slug || !activeOrganization) {
     return null;
@@ -127,7 +109,7 @@ export function NavMain() {
             side: "right",
             children: (
               <NavStudio
-                loadRecent={mode === "studio" || recentWarmed}
+                loadRecent={loadRecent}
                 organizationId={activeOrganization.id}
                 pathname={navPathname}
                 slug={slug}
