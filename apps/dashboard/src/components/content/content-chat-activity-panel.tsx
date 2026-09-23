@@ -63,6 +63,7 @@ import {
   hasContentChatAttachments,
 } from "@/utils/content-chat-attachments";
 import { getContentChatHistoryGroups } from "@/utils/content-chat-history";
+import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { parseChatMessageMetadata } from "@/utils/parse-chat-message-metadata";
 
 const ACTIVITY_MESSAGE_CLASSNAME =
@@ -224,6 +225,7 @@ function ContentChatActivityMessage({
               <ChatAssistantParts
                 durationMs={assistantMetadata?.generationDurationMs}
                 isLoading={status === "streaming"}
+                isStandaloneTool={isContentEditorStandaloneTool}
                 messageId={message.id}
                 parts={message.parts}
                 renderStandalone={(part, index) => {

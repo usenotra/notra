@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { isContentEditorStandaloneTool } from "./content-editor-standalone-tool";
 import {
   groupAssistantMessageParts,
   stackAssistantActivityItems,
@@ -78,6 +79,37 @@ describe("groupAssistantMessageParts", () => {
       "standalone",
       "standalone",
     ]);
+  });
+
+  test("keeps document edits visible outside the activity group", () => {
+    const segments = groupAssistantMessageParts(
+      [
+        reasoning("Planning the research"),
+        tool("webSearch"),
+        tool("getMarkdown"),
+        tool("editMarkdown"),
+        text("Updated the title."),
+      ],
+      { isStandaloneTool: isContentEditorStandaloneTool }
+    );
+
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "activity",
+      "standalone",
+      "standalone",
+    ]);
+    if (segments[0]?.kind !== "activity") {
+      throw new Error("expected activity");
+    }
+    expect(segments[0].items.map((item) => item.part.type)).toEqual([
+      "reasoning",
+      "tool-webSearch",
+      "tool-getMarkdown",
+    ]);
+    if (segments[1]?.kind !== "standalone") {
+      throw new Error("expected standalone edit");
+    }
+    expect(segments[1].part.type).toBe("tool-editMarkdown");
   });
 });
 
