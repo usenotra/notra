@@ -1019,6 +1019,7 @@ function StandaloneChatPageClient({
     previousInitialChatIdRef.current = initialChatId;
 
     if (initialChatId) {
+      queuedMessagesRef.current = [];
       clearPendingChatClientState({
         setChatError,
         setPendingMessageId,
@@ -1027,6 +1028,7 @@ function StandaloneChatPageClient({
       return;
     }
 
+    queuedMessagesRef.current = [];
     resetNewChatClientState({
       hasUpdatedUrlRef,
       setChatError,
@@ -1060,11 +1062,15 @@ function StandaloneChatPageClient({
     try {
       const raw = window.localStorage.getItem(queueStorageKey);
       if (!raw) {
+        queuedMessagesRef.current = [];
         setQueuedMessages([]);
         return;
       }
-      setQueuedMessages(parseQueuedMessages(JSON.parse(raw)));
+      const parsed = parseQueuedMessages(JSON.parse(raw));
+      queuedMessagesRef.current = parsed;
+      setQueuedMessages(parsed);
     } catch {
+      queuedMessagesRef.current = [];
       setQueuedMessages([]);
     }
   }, [isSlackMirrored, queueStorageKey]);
@@ -1491,14 +1497,16 @@ function StandaloneChatPageClient({
         if (attachments.length > 0) {
           return;
         }
-        setQueuedMessages((prev) => [
-          ...prev,
+        const next = [
+          ...queuedMessagesRef.current,
           {
             id: nanoid(10),
             text,
             authorUserId: currentAuthorUserId,
           },
-        ]);
+        ];
+        queuedMessagesRef.current = next;
+        setQueuedMessages(next);
         return;
       }
       await dispatchMessage(text, attachments);
@@ -1536,6 +1544,7 @@ function StandaloneChatPageClient({
         return;
       }
       pendingInitialQueryResetRef.current = trimmedInitialQuery;
+      queuedMessagesRef.current = [];
       resetNewChatClientState({
         hasUpdatedUrlRef,
         setChatError,
@@ -1621,8 +1630,9 @@ function StandaloneChatPageClient({
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
       dispatchMessage(message.text).catch((error) => {
         console.error("[Chat] Failed to steer queued message:", error);
-        queuedMessagesRef.current = [message, ...queuedMessagesRef.current];
-        setQueuedMessages((prev) => [message, ...prev]);
+        const restored = [message, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
       });
     },
     [dispatchMessage]
@@ -1677,14 +1687,12 @@ function StandaloneChatPageClient({
   );
 
   const handleUpdateQueued = useCallback((id: string, text: string) => {
-    setQueuedMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, text } : m))
+    const next = queuedMessagesRef.current.map((m) =>
+      m.id === id ? { ...m, text } : m
     );
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
   }, []);
-
-  useEffect(() => {
-    queuedMessagesRef.current = queuedMessages;
-  }, [queuedMessages]);
 
   useEffect(() => {
     flushSteerAfterStopRef.current = flushSteerAfterStop;
@@ -1746,11 +1754,15 @@ function StandaloneChatPageClient({
       }
 
       isDrainingRef.current = true;
-      setQueuedMessages(queue.slice(1));
+      const remaining = queue.slice(1);
+      queuedMessagesRef.current = remaining;
+      setQueuedMessages(remaining);
       dispatchMessage(next.text).catch((error) => {
         console.error("[Chat] Failed to drain queued message:", error);
         isDrainingRef.current = false;
-        setQueuedMessages((prev) => [next, ...prev]);
+        const restored = [next, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
       });
     };
   }, [dispatchMessage, isSlackMirrored]);
