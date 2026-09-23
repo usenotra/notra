@@ -29,6 +29,7 @@ export interface SuggestionColumnsOptions {
   disabled: boolean;
   onAccept: (suggestionId: string) => void;
   onDismiss: (suggestion: GeoPromptSuggestion) => void;
+  onOpen: (suggestion: GeoPromptSuggestion) => void;
 }
 
 export interface SearchConsoleToolbarProps {

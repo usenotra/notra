@@ -127,6 +127,7 @@ function suggestionColumns({
   disabled,
   onAccept,
   onDismiss,
+  onOpen,
 }: SuggestionColumnsOptions): TableColumn<GeoPromptSuggestion>[] {
   return [
     {
@@ -136,9 +137,16 @@ function suggestionColumns({
       sortable: true,
       width: "1fr",
       cell: (row) => (
-        <span className="text-sm leading-snug font-medium wrap-anywhere">
-          {row.prompt}
-        </span>
+        <button
+          aria-label={`Open details: ${row.prompt}`}
+          className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center rounded-sm text-left hover:underline focus-visible:ring-2"
+          onClick={() => onOpen(row)}
+          type="button"
+        >
+          <span className="text-sm leading-snug font-medium wrap-anywhere">
+            {row.prompt}
+          </span>
+        </button>
       ),
     },
     {
@@ -422,6 +430,7 @@ export function PromptSuggestions({
     disabled: checking || trackAllPending,
     onAccept: acceptSuggestion,
     onDismiss: setConfirmDismiss,
+    onOpen: (row) => setDetailId(row.id),
   });
 
   if (!(checking || hasSuggestions || showSearchConsole)) {
