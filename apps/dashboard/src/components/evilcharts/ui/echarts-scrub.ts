@@ -29,16 +29,30 @@ export type ScrubGrid = {
   height: number;
 };
 
+type SeriesData = {
+  getLayout?: (key: string) => ArrayLike<number> | undefined;
+};
+
+type ZrEl = {
+  type?: string;
+  getPointOn?: (xOrY: number, dim: "x" | "y") => number[] | undefined;
+  eachChild?: (cb: (child: ZrEl) => void) => void;
+  traverse?: (cb: (el: ZrEl) => void) => void;
+};
+
 type SeriesModel = {
   id?: string | number;
   coordinateSystem?: { getArea?: () => ScrubGrid };
+  getData?: () => SeriesData;
+};
+
+type SeriesView = {
+  group?: ZrEl & { setClipPath?: (clip: ZrRect) => void };
 };
 
 type ChartInternals = {
   getModel?: () => { getSeries?: () => SeriesModel[] };
-  getViewOfSeriesModel?: (
-    model: SeriesModel
-  ) => { group?: { setClipPath?: (clip: ZrRect) => void } } | undefined;
+  getViewOfSeriesModel?: (model: SeriesModel) => SeriesView | undefined;
 };
 
 function internals(chart: EChartsInstance): ChartInternals {
@@ -50,21 +64,86 @@ export function nearestCategoryIndex(raw: number, length: number): number {
   return Math.max(0, Math.min(length - 1, Math.round(raw)));
 }
 
-export function interpolateAt(
-  values: readonly (number | null)[],
-  t: number
+/** Pixel-space Y on a packed [x0,y0,x1,y1,…] polyline. NaN breaks the segment. */
+export function yAtXOnPackedPoints(
+  packed: ArrayLike<number>,
+  x: number
 ): number | null {
-  if (values.length === 0) return null;
-  if (t <= 0) return values[0] ?? null;
-  const last = values.length - 1;
-  if (t >= last) return values[last] ?? null;
-  const index = Math.floor(t);
-  const from = values[index];
-  const to = values[index + 1];
-  if (typeof from !== "number" || typeof to !== "number") {
-    return from ?? to ?? null;
+  const n = packed.length;
+  if (n < 2) return null;
+  let prevX = Number.NaN;
+  let prevY = Number.NaN;
+  let firstY = Number.NaN;
+  for (let i = 0; i < n; i += 2) {
+    const px = packed[i];
+    const py = packed[i + 1];
+    if (!Number.isFinite(px) || !Number.isFinite(py)) {
+      prevX = Number.NaN;
+      prevY = Number.NaN;
+      continue;
+    }
+    if (!Number.isFinite(firstY)) firstY = py;
+    if (px === x || (px > x && !Number.isFinite(prevX))) return py;
+    if (px > x) {
+      const span = px - prevX;
+      return span === 0 ? py : prevY + ((x - prevX) / span) * (py - prevY);
+    }
+    prevX = px;
+    prevY = py;
   }
-  return from + (to - from) * (t - index);
+  return Number.isFinite(prevY) ? prevY : Number.isFinite(firstY) ? firstY : null;
+}
+
+function findEcPolyline(root: ZrEl | undefined): ZrEl | null {
+  if (!root) return null;
+  let found: ZrEl | null = null;
+  const take = (el: ZrEl) => {
+    if (
+      !found &&
+      el.type === "ec-polyline" &&
+      typeof el.getPointOn === "function"
+    ) {
+      found = el;
+    }
+  };
+  if (typeof root.traverse === "function") {
+    root.traverse(take);
+    return found;
+  }
+  const visit = (el: ZrEl) => {
+    if (found) return;
+    take(el);
+    el.eachChild?.(visit);
+  };
+  visit(root);
+  return found;
+}
+
+/**
+ * Y on the drawn series path at pixel x — ECharts' own polyline (smooth,
+ * stacked, scaled). Falls back to a chord through the layout points.
+ */
+export function pointOnSeriesAtX(
+  chart: EChartsInstance,
+  seriesId: string,
+  x: number
+): [number, number] | null {
+  const views = internals(chart);
+  const model = (views.getModel?.().getSeries?.() ?? []).find(
+    (series) => String(series.id ?? "") === seriesId
+  );
+  if (!model) return null;
+
+  const polyline = findEcPolyline(views.getViewOfSeriesModel?.(model)?.group);
+  const onCurve = polyline?.getPointOn?.(x, "x");
+  if (onCurve && typeof onCurve[1] === "number" && Number.isFinite(onCurve[1])) {
+    return [x, onCurve[1]];
+  }
+
+  const packed = model.getData?.().getLayout?.("points");
+  if (!packed) return null;
+  const y = yAtXOnPackedPoints(packed, x);
+  return y == null ? null : [x, y];
 }
 
 export function emptyScrubStore(): ScrubOverlayStore {

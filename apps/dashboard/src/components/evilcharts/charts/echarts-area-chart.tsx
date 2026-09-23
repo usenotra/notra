@@ -88,7 +88,7 @@ import {
   SCRUB_MUTE_OPACITY,
   clipSeriesToX,
   emptyScrubStore,
-  interpolateAt,
+  pointOnSeriesAtX,
   readScrubGrid,
   syncScrubOverlay,
   type ScrubDot,
@@ -1922,7 +1922,6 @@ type LiveState = {
   scrubOpacity: number;
   scrubTarget: number;
   scrubRaf: number;
-  scrubValues: Record<string, (number | null)[]>;
   scrubDotKeys: string[];
   paintScrub: () => void;
   // Latest callbacks/flags for the imperative ECharts event handlers.
@@ -2010,7 +2009,6 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     scrubOpacity: 0,
     scrubTarget: 0,
     scrubRaf: 0,
-    scrubValues: {},
     scrubDotKeys: [],
     paintScrub: () => {},
     handlers: {
@@ -2250,14 +2248,6 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // points — hand them to the hover handler for slicing.
     if (enableHoverReveal || tooltipSlot.scrub) live.revealValues = revealSink;
     if (tooltipSlot.scrub) {
-      live.scrubValues = Object.fromEntries(
-        areas.map((area) => [
-          area.dataKey,
-          data.map((row) =>
-            areaPointValue(row, area.dataKey, area.gapMissing)
-          ),
-        ])
-      );
       live.scrubDotKeys = areas
         .filter((area) => area.strokeVariant !== "dashed")
         .map((area) => area.dataKey);
@@ -2504,18 +2494,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       const resolved = live.resolved;
       const dots: ScrubDot[] = [];
       if (resolved) {
-        const raw =
-          chart.convertFromPixel({ gridIndex: 0 }, [x, grid.y])[0] ?? 0;
-        const t = Math.max(0, Math.min(Math.max(live.dataLength - 1, 0), raw));
         for (const key of live.scrubDotKeys) {
-          const value = interpolateAt(live.scrubValues[key] ?? [], t);
-          if (value === null) continue;
-          const pixel = chart.convertToPixel({ gridIndex: 0 }, [0, value]);
-          const y = pixel?.[1];
-          if (typeof y !== "number") continue;
+          const point = pointOnSeriesAtX(chart, key, x);
+          if (!point) continue;
           dots.push({
-            x,
-            y,
+            x: point[0],
+            y: point[1],
             color: (resolved.series[key] ?? [])[0] ?? "rgba(120, 120, 120, 1)",
           });
         }
