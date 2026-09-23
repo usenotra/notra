@@ -29,7 +29,18 @@ export function ChatAssistantParts({
 
   return segments.map((segment) => {
     if (segment.kind === "standalone") {
-      return renderStandalone(segment.part, segment.index);
+      if (isToolUIPart(segment.part)) {
+        return (
+          <Fragment key={`${messageId}-standalone-tool-${segment.index}`}>
+            {renderTool(segment.part, segment.index)}
+          </Fragment>
+        );
+      }
+      return (
+        <Fragment key={`${messageId}-standalone-${segment.index}`}>
+          {renderStandalone(segment.part, segment.index)}
+        </Fragment>
+      );
     }
 
     const isStreaming = isAssistantActivityStreaming(segment.items, isLoading);
