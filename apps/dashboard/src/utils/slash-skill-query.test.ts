@@ -6,6 +6,7 @@ import {
   filterSlashSkills,
   getSlashSkillQuery,
   handleSlashMenuKeyDown,
+  prependTaggedSkills,
 } from "./slash-skill-query";
 
 const SKILLS = [
@@ -48,13 +49,21 @@ test("filters skills by name or description", () => {
   ).toEqual(["blog-post"]);
 });
 
-test("replaces the slash query with a tagged skill token", () => {
-  expect(
-    applySlashSkill("use /hum", { query: "hum", start: 4 }, 8, "humanizer")
-  ).toEqual({
-    text: "use /humanizer ",
-    cursor: 15,
+test("removes the slash query so the skill can live on a chip", () => {
+  expect(applySlashSkill("use /hum", { query: "hum", start: 4 }, 8)).toEqual({
+    text: "use ",
+    cursor: 4,
   });
+});
+
+test("prefixes the outbound message with tagged skill names", () => {
+  expect(prependTaggedSkills("rewrite this", ["humanizer"])).toBe(
+    "/humanizer rewrite this"
+  );
+  expect(prependTaggedSkills("", ["humanizer", "blog-post"])).toBe(
+    "/humanizer /blog-post"
+  );
+  expect(prependTaggedSkills("hello", [])).toBe("hello");
 });
 
 test("cycles the highlighted skill", () => {

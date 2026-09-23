@@ -74,6 +74,7 @@ export function getContentChatInputChrome({
   pendingUploadCount,
   queuedCount,
   shouldShowLowCredits,
+  skillTagCount,
   usageLimitError,
   value,
 }: {
@@ -88,15 +89,17 @@ export function getContentChatInputChrome({
   pendingUploadCount: number;
   queuedCount: number;
   shouldShowLowCredits: boolean;
+  skillTagCount: number;
   usageLimitError: string | null;
   value: string;
 }): ContentChatInputChrome {
-  const isEmpty = value.trim().length === 0;
+  const isEmpty = value.trim().length === 0 && skillTagCount === 0;
   const hasAttachmentChips = hasReadyAttachments || pendingUploadCount > 0;
   const isInputLocked = disabled || isUsageBlocked;
   const canQueue = isLoading && !isEmpty && !hasAttachmentChips;
   const showStop = isLoading && !canQueue && Boolean(onStop);
-  const hasContextChips = contextCount > 0 || hasSelection || queuedCount > 0;
+  const hasContextChips =
+    contextCount > 0 || hasSelection || queuedCount > 0 || skillTagCount > 0;
   const showComposerNudge =
     hasContextChips ||
     hasAttachmentChips ||

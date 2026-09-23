@@ -83,8 +83,10 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   skillCount: number;
   slashIndex: number;
   slashListRef: RefObject<HTMLDivElement | null>;
+  taggedSkills: SkillSlashOption[];
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   toggleContextItem: (item: ContextItem, inContext: boolean) => void;
+  untagSkill: (name: string) => void;
   usageLimitError: string | null;
   value: string;
 }

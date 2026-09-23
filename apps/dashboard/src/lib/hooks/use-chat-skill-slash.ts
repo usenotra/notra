@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { SlashSkillQuery } from "@/types/skills/slash";
+import type { SkillSlashOption, SlashSkillQuery } from "@/types/skills/slash";
 import {
   cycleSlashIndex,
   filterSlashSkills,
@@ -34,9 +34,29 @@ export function useChatSkillSlash(organizationId?: string) {
     [skills, slashQuery]
   );
 
+  const [taggedSkills, setTaggedSkills] = useState<SkillSlashOption[]>([]);
+
   const closeSlashMenu = useCallback(() => {
     setSlashQuery(null);
     setSlashIndex(0);
+  }, []);
+
+  const tagSkill = useCallback((skill: SkillSlashOption) => {
+    setTaggedSkills((current) =>
+      current.some((tagged) => tagged.name === skill.name)
+        ? current
+        : [...current, skill]
+    );
+  }, []);
+
+  const untagSkill = useCallback((name: string) => {
+    setTaggedSkills((current) =>
+      current.filter((tagged) => tagged.name !== name)
+    );
+  }, []);
+
+  const clearTaggedSkills = useCallback(() => {
+    setTaggedSkills([]);
   }, []);
 
   const syncSlashQuery = useCallback((text: string, cursor: number) => {
@@ -66,5 +86,9 @@ export function useChatSkillSlash(organizationId?: string) {
     closeSlashMenu,
     syncSlashQuery,
     moveSlashIndex,
+    taggedSkills,
+    tagSkill,
+    untagSkill,
+    clearTaggedSkills,
   };
 }

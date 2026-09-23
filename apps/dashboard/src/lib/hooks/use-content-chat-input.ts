@@ -43,6 +43,7 @@ import {
 import {
   applySlashSkill,
   handleSlashMenuKeyDown,
+  prependTaggedSkills,
 } from "@/utils/slash-skill-query";
 
 export function useContentChatInput({
@@ -84,6 +85,10 @@ export function useContentChatInput({
     closeSlashMenu,
     syncSlashQuery,
     moveSlashIndex,
+    taggedSkills,
+    tagSkill,
+    untagSkill,
+    clearTaggedSkills,
   } = useChatSkillSlash(organizationId);
   const {
     acceptedFileTypesLabel,
@@ -177,17 +182,13 @@ export function useContentChatInput({
         return;
       }
 
-      const next = applySlashSkill(
-        value,
-        slashQuery,
-        element.selectionStart,
-        skill.name
-      );
+      const next = applySlashSkill(value, slashQuery, element.selectionStart);
       pendingSlashCursorRef.current = next.cursor;
       setValue(next.text);
+      tagSkill(skill);
       closeSlashMenu();
     },
-    [closeSlashMenu, setValue, slashQuery, value]
+    [closeSlashMenu, setValue, slashQuery, tagSkill, value]
   );
 
   const onComposerKeyDown = useCallback(
@@ -312,7 +313,10 @@ export function useContentChatInput({
   }, [resizeTextarea, value]);
 
   const handleSend = useCallback(() => {
-    const trimmed = value.trim();
+    const trimmed = prependTaggedSkills(
+      value,
+      taggedSkills.map((skill) => skill.name)
+    );
     const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
     if (disabled || isUploading) {
       return;
@@ -347,6 +351,7 @@ export function useContentChatInput({
     onSend?.(trimmed, nextAttachments);
     onClearSelection?.();
     closeSlashMenu();
+    clearTaggedSkills();
     setValue("");
     requestAnimationFrame(resizeTextarea);
   }, [
@@ -354,6 +359,7 @@ export function useContentChatInput({
     chatIncludedInPlan,
     check,
     clearError,
+    clearTaggedSkills,
     closeSlashMenu,
     consumeAttachments,
     customer,
@@ -366,6 +372,7 @@ export function useContentChatInput({
     pendingUploads.length,
     resizeTextarea,
     setValue,
+    taggedSkills,
     value,
   ]);
 
@@ -419,6 +426,7 @@ export function useContentChatInput({
     pendingUploadCount: pendingUploads.length,
     queuedCount: queuedMessages.length,
     shouldShowLowCredits,
+    skillTagCount: taggedSkills.length,
     usageLimitError,
     value,
   });
@@ -471,8 +479,10 @@ export function useContentChatInput({
     skillCount: skills.length,
     slashIndex,
     slashListRef,
+    taggedSkills,
     textareaRef,
     toggleContextItem,
+    untagSkill,
     usageLimitError,
     value,
     isInContext,

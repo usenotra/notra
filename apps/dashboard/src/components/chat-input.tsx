@@ -40,6 +40,7 @@ import { ChatContextConnectSuggestions } from "@/components/chat/chat-context-co
 import { ChatContextOptionContent } from "@/components/chat/chat-context-option-content";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
 import { ChatSkillSlashMenu } from "@/components/chat/chat-skill-slash-menu";
+import { ChatSkillTagChips } from "@/components/chat/chat-skill-tag-chips";
 import { Composer } from "@/components/composer/composer-shell";
 import { useContentChatInput } from "@/lib/hooks/use-content-chat-input";
 import type {
@@ -109,8 +110,10 @@ function ContentChatInputComposer(props: ChatInputProps) {
     skillCount,
     slashIndex,
     slashListRef,
+    taggedSkills,
     textareaRef,
     toggleContextItem,
+    untagSkill,
     usageLimitError,
     value,
   } = useContentChatInput(props);
@@ -154,6 +157,8 @@ function ContentChatInputComposer(props: ChatInputProps) {
                 selection={selection}
                 setPreviewAttachment={setPreviewAttachment}
                 shouldShowLowCredits={shouldShowLowCredits}
+                taggedSkills={taggedSkills}
+                untagSkill={untagSkill}
                 usageLimitError={usageLimitError}
               />
             ) : null
@@ -272,6 +277,8 @@ function ChatInputComposerNudge({
   selection,
   setPreviewAttachment,
   shouldShowLowCredits,
+  taggedSkills,
+  untagSkill,
   usageLimitError,
 }: ChatInputComposerNudgeProps) {
   return (
@@ -313,6 +320,7 @@ function ChatInputComposerNudge({
               removeLabel="Remove from queue"
             />
           ))}
+          <ChatSkillTagChips onRemove={untagSkill} skills={taggedSkills} />
           <ChatInputContextRow
             context={context}
             onClearSelection={onClearSelection}

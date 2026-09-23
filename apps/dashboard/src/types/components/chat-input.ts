@@ -8,6 +8,7 @@ import type {
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
 import type { GitHubRepository } from "@/types/integrations";
+import type { SkillSlashOption } from "@/types/skills/slash";
 
 export type ChatModelProvider = "anthropic" | "openai" | "auto";
 
@@ -100,6 +101,8 @@ export interface ChatInputComposerNudgeProps {
   selection?: TextSelection | null;
   setPreviewAttachment: (attachment: ChatAttachment) => void;
   shouldShowLowCredits: boolean;
+  taggedSkills: SkillSlashOption[];
+  untagSkill: (name: string) => void;
   usageLimitError: string | null;
 }
 

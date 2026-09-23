@@ -63,14 +63,27 @@ export function filterSlashSkills<T extends SkillSlashOption>(
 export function applySlashSkill(
   text: string,
   slashQuery: SlashSkillQuery,
-  cursor: number,
-  skillName: string
+  cursor: number
 ): ApplySlashSkillResult {
-  const token = `/${skillName} `;
   return {
-    text: `${text.slice(0, slashQuery.start)}${token}${text.slice(cursor)}`,
-    cursor: slashQuery.start + token.length,
+    text: `${text.slice(0, slashQuery.start)}${text.slice(cursor)}`,
+    cursor: slashQuery.start,
   };
+}
+
+export function prependTaggedSkills(
+  text: string,
+  skillNames: readonly string[]
+): string {
+  const prefix = skillNames.map((name) => `/${name}`).join(" ");
+  const trimmed = text.trim();
+  if (!prefix) {
+    return trimmed;
+  }
+  if (!trimmed) {
+    return prefix;
+  }
+  return `${prefix} ${trimmed}`;
 }
 
 export function cycleSlashIndex(

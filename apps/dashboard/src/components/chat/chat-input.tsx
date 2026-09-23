@@ -114,6 +114,7 @@ import {
 import {
   getSlashSkillQuery,
   handleSlashMenuKeyDown,
+  prependTaggedSkills,
 } from "@/utils/slash-skill-query";
 
 import { AttachmentPreviewDialog } from "./attachment-preview";
@@ -125,6 +126,7 @@ import { ChatContextConnectSuggestions } from "./chat-context-connect-suggestion
 import { ChatContextOptionContent } from "./chat-context-option-content";
 import type { QueuedMessage } from "./chat-queue";
 import { ChatSkillSlashMenu } from "./chat-skill-slash-menu";
+import { ChatSkillTagChips } from "./chat-skill-tag-chips";
 import {
   serializeEditorWithReferences,
   serializeFragmentWithReferences,
@@ -451,16 +453,19 @@ function getComposerNudgeVisibility({
   contextCount,
   pendingUploadCount,
   shouldShowLowCredits,
+  skillTagCount,
   usageLimitError,
 }: {
   attachmentCount: number;
   contextCount: number;
   pendingUploadCount: number;
   shouldShowLowCredits: boolean;
+  skillTagCount: number;
   usageLimitError: string | null;
 }) {
   return (
     contextCount > 0 ||
+    skillTagCount > 0 ||
     attachmentCount > 0 ||
     pendingUploadCount > 0 ||
     shouldShowLowCredits ||
@@ -591,6 +596,8 @@ function ChatComposerNudge({
   removeContext,
   setPreviewAttachment,
   shouldShowLowCredits,
+  taggedSkills,
+  untagSkill,
   usageLimitError,
 }: {
   attachments: ChatAttachment[];
@@ -603,9 +610,11 @@ function ChatComposerNudge({
   removeContext: (item: ContextItem) => void;
   setPreviewAttachment: (attachment: ChatAttachment) => void;
   shouldShowLowCredits: boolean;
+  taggedSkills: SkillSlashOption[];
+  untagSkill: (name: string) => void;
   usageLimitError: string | null;
 }) {
-  const hasContextChips = context.length > 0;
+  const hasContextChips = context.length > 0 || taggedSkills.length > 0;
   const hasAttachmentChips =
     attachments.length > 0 || pendingUploads.length > 0;
   return (
@@ -633,6 +642,7 @@ function ChatComposerNudge({
     >
       {hasContextChips || hasAttachmentChips ? (
         <>
+          <ChatSkillTagChips onRemove={untagSkill} skills={taggedSkills} />
           {context.map((item) => {
             const label = getReferenceDisplay(item);
             return (
@@ -1127,11 +1137,11 @@ function sendOrQueueComposer({
   isUsageBlocked,
   onSend,
   performSend,
-  readEditorText,
   setInternalError,
   setPendingSend,
   attachments,
   pendingUploads,
+  taggedSkillNames,
 }: {
   attachments: ChatAttachment[];
   chatIncludedInPlan: boolean;
@@ -1150,14 +1160,17 @@ function sendOrQueueComposer({
   onSend?: (value: string, attachments: ChatAttachment[]) => void;
   performSend: () => boolean;
   pendingUploads: PendingUploadItem[];
-  readEditorText: () => string;
   setInternalError: Dispatch<SetStateAction<string | null>>;
   setPendingSend: Dispatch<SetStateAction<QueuedSendSnapshot | null>>;
+  taggedSkillNames: readonly string[];
 }) {
   if (isLoading) {
-    const hasText = readEditorText().trim().length > 0;
+    const outbound = prependTaggedSkills(
+      serializeEditorWithReferences(editor),
+      taggedSkillNames
+    );
     const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
-    if (!hasText || hasAttachments) {
+    if (!outbound || hasAttachments) {
       return;
     }
     clearError();
@@ -1175,14 +1188,19 @@ function sendOrQueueComposer({
         return;
       }
     }
-    onSend?.(serializeEditorWithReferences(editor).trim(), []);
+    onSend?.(outbound, []);
     clearComposer();
     return;
   }
   if (isUploading) {
-    const hasText = readEditorText().trim().length > 0;
+    const outbound = prependTaggedSkills(
+      serializeEditorWithReferences(editor),
+      taggedSkillNames
+    );
     const hasContent =
-      hasText || attachments.length > 0 || pendingUploads.length > 0;
+      outbound.length > 0 ||
+      attachments.length > 0 ||
+      pendingUploads.length > 0;
     if (!hasContent) {
       return;
     }
@@ -1195,7 +1213,7 @@ function sendOrQueueComposer({
     }
     clearError();
     setPendingSend({
-      value: serializeEditorWithReferences(editor).trim(),
+      value: outbound,
       attachments: [...attachments],
       pendingUploadIds: pendingUploads.map((pending) => pending.id),
     });
@@ -1248,6 +1266,10 @@ export function ChatInputAdvanced({
     closeSlashMenu,
     syncSlashQuery,
     moveSlashIndex,
+    taggedSkills,
+    tagSkill,
+    untagSkill,
+    clearTaggedSkills,
   } = useChatSkillSlash(organizationId);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const persistDraftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -2035,22 +2057,17 @@ export function ChatInputAdvanced({
       replaceRange.setStart(anchor.node, anchor.offset);
       replaceRange.setEnd(cursor.startContainer, cursor.startOffset);
       replaceRange.deleteContents();
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(replaceRange);
 
-      const token = document.createTextNode(`/${skill.name} `);
-      replaceRange.insertNode(token);
-
-      const after = document.createRange();
-      after.setStartAfter(token);
-      after.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(after);
-
+      tagSkill(skill);
       slashAnchorRef.current = null;
       closeSlashMenu();
       editor.dispatchEvent(new Event("input", { bubbles: true }));
       editor.focus();
     },
-    [closeSlashMenu]
+    [closeSlashMenu, tagSkill]
   );
 
   const addContext = useCallback(
@@ -2147,7 +2164,8 @@ export function ChatInputAdvanced({
     for (const item of contextRef.current) {
       onRemoveContext?.(item);
     }
-  }, [draftStorageKey, onRemoveContext]);
+    clearTaggedSkills();
+  }, [clearTaggedSkills, draftStorageKey, onRemoveContext]);
 
   const sendSnapshot = useCallback(
     (value: string, snapshotAttachments: ChatAttachment[]) => {
@@ -2205,14 +2223,16 @@ export function ChatInputAdvanced({
     if (!editor || isLoading) {
       return false;
     }
-    const hasText = readEditorText().trim().length > 0;
+    const outbound = prependTaggedSkills(
+      serializeEditorWithReferences(editor).trim(),
+      taggedSkills.map((skill) => skill.name)
+    );
     const currentAttachments = attachmentsRef.current;
-    if (!hasText && currentAttachments.length === 0) {
+    if (!outbound && currentAttachments.length === 0) {
       return false;
     }
-    const outbound = serializeEditorWithReferences(editor).trim();
     return sendSnapshot(outbound, currentAttachments);
-  }, [isLoading, readEditorText, sendSnapshot]);
+  }, [isLoading, sendSnapshot, taggedSkills]);
 
   const handleSend = useCallback(() => {
     const editor = editorRef.current;
@@ -2234,9 +2254,9 @@ export function ChatInputAdvanced({
       onSend,
       pendingUploads: pendingUploadsRef.current,
       performSend,
-      readEditorText,
       setInternalError,
       setPendingSend,
+      taggedSkillNames: taggedSkills.map((skill) => skill.name),
     });
   }, [
     check,
@@ -2246,11 +2266,11 @@ export function ChatInputAdvanced({
     chatIncludedInPlan,
     isLoading,
     isUploading,
-    readEditorText,
     hasUnsupportedAttachmentsForModel,
     isUsageBlocked,
     onSend,
     performSend,
+    taggedSkills,
   ]);
 
   useEffect(() => {
@@ -2441,6 +2461,7 @@ export function ChatInputAdvanced({
     contextCount: context.length,
     pendingUploadCount: pendingUploads.length,
     shouldShowLowCredits,
+    skillTagCount: taggedSkills.length,
     usageLimitError,
   });
 
@@ -2488,6 +2509,8 @@ export function ChatInputAdvanced({
                 removeContext={removeContext}
                 setPreviewAttachment={setPreviewAttachment}
                 shouldShowLowCredits={shouldShowLowCredits}
+                taggedSkills={taggedSkills}
+                untagSkill={untagSkill}
                 usageLimitError={usageLimitError}
               />
             ) : null
@@ -2593,7 +2616,7 @@ export function ChatInputAdvanced({
               <ChatComposerSendButton
                 attachmentCount={attachments.length}
                 hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
-                isEmpty={isEmpty}
+                isEmpty={isEmpty && taggedSkills.length === 0}
                 isLoading={isLoading}
                 isQueued={isQueued}
                 isStopping={isStopping}
