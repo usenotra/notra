@@ -34,6 +34,7 @@ export function renderSkillGuidance(skills: SkillSummary[] = []) {
     ## Skills
     Skills are task-specific instructions. You only see the skill catalog here, not the full skill bodies.
     Use getSkillByName to load the full skill body before applying a matching skill. Do not invent skill names.
+    If the user writes /skill-name in their message, load that skill with getSkillByName before responding.
 
     <available_skills>
     ${promptableSkills.map(formatSkillCatalogLine).join("\n")}

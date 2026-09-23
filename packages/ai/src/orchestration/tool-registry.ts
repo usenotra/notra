@@ -54,7 +54,7 @@ export function buildToolSet(
   };
 
   const descriptions: string[] = [
-    "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName",
+    "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. If the user writes /skill-name, load that skill with getSkillByName before responding.",
   ];
 
   registerWebSearchTools(tools, descriptions);

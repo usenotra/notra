@@ -82,6 +82,7 @@ import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import {
   dragEventHasFiles,
@@ -98,6 +99,7 @@ import {
 } from "@/lib/upload/mime";
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
+import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
 import {
   CHAT_INPUT_LIMIT_MESSAGE,
@@ -109,6 +111,10 @@ import {
   getIntegrationReferenceValue,
   getReferenceDisplay,
 } from "@/utils/integration-reference";
+import {
+  getSlashSkillQuery,
+  handleSlashMenuKeyDown,
+} from "@/utils/slash-skill-query";
 
 import { AttachmentPreviewDialog } from "./attachment-preview";
 import {
@@ -118,6 +124,7 @@ import {
 import { ChatContextConnectSuggestions } from "./chat-context-connect-suggestions";
 import { ChatContextOptionContent } from "./chat-context-option-content";
 import type { QueuedMessage } from "./chat-queue";
+import { ChatSkillSlashMenu } from "./chat-skill-slash-menu";
 import {
   serializeEditorWithReferences,
   serializeFragmentWithReferences,
@@ -1230,6 +1237,18 @@ export function ChatInputAdvanced({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
   const mentionAnchorRef = useRef<{ node: Node; offset: number } | null>(null);
+  const slashAnchorRef = useRef<{ node: Node; offset: number } | null>(null);
+  const {
+    skills,
+    filteredSkills,
+    slashQuery,
+    slashIndex,
+    isSlashMenuOpen,
+    slashListRef,
+    closeSlashMenu,
+    syncSlashQuery,
+    moveSlashIndex,
+  } = useChatSkillSlash(organizationId);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const persistDraftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -1827,18 +1846,34 @@ export function ChatInputAdvanced({
     if (!sel || sel.rangeCount === 0) {
       setMentionQuery(null);
       mentionAnchorRef.current = null;
+      slashAnchorRef.current = null;
+      closeSlashMenu();
       return;
     }
     const range = sel.getRangeAt(0);
     if (!editor.contains(range.startContainer)) {
       setMentionQuery(null);
       mentionAnchorRef.current = null;
+      slashAnchorRef.current = null;
+      closeSlashMenu();
       return;
     }
 
     if (range.startContainer.nodeType === Node.TEXT_NODE) {
       const nodeText = range.startContainer.textContent ?? "";
       const textBefore = nodeText.slice(0, range.startOffset);
+      const slash = getSlashSkillQuery(textBefore, textBefore.length);
+
+      if (slash) {
+        slashAnchorRef.current = {
+          node: range.startContainer,
+          offset: slash.start,
+        };
+        syncSlashQuery(textBefore, textBefore.length);
+        setMentionQuery(null);
+        mentionAnchorRef.current = null;
+        return;
+      }
 
       const atIndex = textBefore.lastIndexOf("@");
       if (atIndex !== -1) {
@@ -1863,6 +1898,8 @@ export function ChatInputAdvanced({
             };
             setMentionQuery(query);
             setMentionIndex(0);
+            slashAnchorRef.current = null;
+            closeSlashMenu();
             return;
           }
         }
@@ -1871,7 +1908,9 @@ export function ChatInputAdvanced({
 
     mentionAnchorRef.current = null;
     setMentionQuery(null);
-  }, [schedulePersistDraft, readEditorText]);
+    slashAnchorRef.current = null;
+    closeSlashMenu();
+  }, [closeSlashMenu, schedulePersistDraft, readEditorText, syncSlashQuery]);
 
   const restoredDraftKeyRef = useRef<string | null>(null);
 
@@ -1917,6 +1956,8 @@ export function ChatInputAdvanced({
     setIsEmpty(!(initialValue?.trim().length ?? 0));
     setMentionQuery(null);
     mentionAnchorRef.current = null;
+    slashAnchorRef.current = null;
+    closeSlashMenu();
 
     if (!initialValue) {
       return;
@@ -1929,7 +1970,7 @@ export function ChatInputAdvanced({
     range.collapse(false);
     selection?.removeAllRanges();
     selection?.addRange(range);
-  }, [initialValue]);
+  }, [closeSlashMenu, initialValue]);
 
   const insertMention = useCallback(
     (option: ChatContextOption) => {
@@ -1972,6 +2013,44 @@ export function ChatInputAdvanced({
       editor.focus();
     },
     [onAddContext, persistDraft]
+  );
+
+  const insertSlashSkill = useCallback(
+    (skill: SkillSlashOption) => {
+      const editor = editorRef.current;
+      const anchor = slashAnchorRef.current;
+      if (!editor || !anchor) {
+        return;
+      }
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) {
+        return;
+      }
+      const cursor = sel.getRangeAt(0);
+      if (!editor.contains(cursor.startContainer)) {
+        return;
+      }
+
+      const replaceRange = document.createRange();
+      replaceRange.setStart(anchor.node, anchor.offset);
+      replaceRange.setEnd(cursor.startContainer, cursor.startOffset);
+      replaceRange.deleteContents();
+
+      const token = document.createTextNode(`/${skill.name} `);
+      replaceRange.insertNode(token);
+
+      const after = document.createRange();
+      after.setStartAfter(token);
+      after.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(after);
+
+      slashAnchorRef.current = null;
+      closeSlashMenu();
+      editor.dispatchEvent(new Event("input", { bubbles: true }));
+      editor.focus();
+    },
+    [closeSlashMenu]
   );
 
   const addContext = useCallback(
@@ -2311,6 +2390,25 @@ export function ChatInputAdvanced({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
+      const slashHandled = handleSlashMenuKeyDown(event, {
+        isOpen: isSlashMenuOpen,
+        matchCount: filteredSkills.length,
+        onMove: moveSlashIndex,
+        onSelect: () => {
+          const selected = filteredSkills[slashIndex];
+          if (selected) {
+            insertSlashSkill(selected);
+          }
+        },
+        onClose: () => {
+          slashAnchorRef.current = null;
+          closeSlashMenu();
+        },
+      });
+      if (slashHandled) {
+        return;
+      }
+
       handleComposerEditorKeyDown(event, {
         editor: editorRef.current,
         filteredMentionItems,
@@ -2324,11 +2422,17 @@ export function ChatInputAdvanced({
       });
     },
     [
+      closeSlashMenu,
       filteredMentionItems,
+      filteredSkills,
       handleSend,
       insertMention,
+      insertSlashSkill,
+      isSlashMenuOpen,
       mentionIndex,
       mentionQuery,
+      moveSlashIndex,
+      slashIndex,
     ]
   );
 
@@ -2359,6 +2463,16 @@ export function ChatInputAdvanced({
             organizationSlug={organizationSlug}
           />
         )}
+        {isSlashMenuOpen ? (
+          <ChatSkillSlashMenu
+            filteredSkills={filteredSkills}
+            onSelect={insertSlashSkill}
+            organizationSlug={organizationSlug}
+            skillCount={skills.length}
+            slashIndex={slashIndex}
+            slashListRef={slashListRef}
+          />
+        ) : null}
         <Composer.Frame
           connectedTop={connectedTop}
           nudge={
@@ -2402,17 +2516,21 @@ export function ChatInputAdvanced({
                     data-placeholder={
                       isLoading
                         ? "Queue a message..."
-                        : "Send a message... (type @ for tools and context)"
+                        : "Send a message... (type @ for tools, / for skills)"
                     }
                     onBlur={() => {
                       setTimeout(() => {
+                        const active = document.activeElement;
                         if (
-                          !mentionListRef.current?.contains(
-                            document.activeElement
+                          !(
+                            mentionListRef.current?.contains(active) ||
+                            slashListRef.current?.contains(active)
                           )
                         ) {
                           setMentionQuery(null);
                           mentionAnchorRef.current = null;
+                          slashAnchorRef.current = null;
+                          closeSlashMenu();
                         }
                       }, 150);
                     }}

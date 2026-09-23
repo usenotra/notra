@@ -5,6 +5,7 @@ import type { ContextItem } from "@notra/ai/types/chat";
 import { useQuery } from "@tanstack/react-query";
 import {
   type ClipboardEvent,
+  type KeyboardEvent,
   useCallback,
   useEffect,
   useId,
@@ -17,6 +18,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatComposerAttachments } from "@/lib/hooks/use-chat-composer-attachments";
+import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   ChatInputProps,
@@ -24,6 +26,7 @@ import type {
   EnabledRepo,
 } from "@/types/components/chat-input";
 import type { UseContentChatInputResult } from "@/types/hooks/content-chat-input";
+import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
 import {
   buildContentChatContextOptions,
@@ -37,6 +40,10 @@ import {
   resolveUsageLimitError,
   shouldShowLowChatCredits,
 } from "@/utils/chat-input";
+import {
+  applySlashSkill,
+  handleSlashMenuKeyDown,
+} from "@/utils/slash-skill-query";
 
 export function useContentChatInput({
   onSend,
@@ -66,6 +73,18 @@ export function useContentChatInput({
   const [internalValue, setInternalValue] = useState("");
   const [internalError, setInternalError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const pendingSlashCursorRef = useRef<number | null>(null);
+  const {
+    skills,
+    filteredSkills,
+    slashQuery,
+    slashIndex,
+    isSlashMenuOpen,
+    slashListRef,
+    closeSlashMenu,
+    syncSlashQuery,
+    moveSlashIndex,
+  } = useChatSkillSlash(organizationId);
   const {
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
@@ -134,6 +153,78 @@ export function useContentChatInput({
     },
     [isControlled, onValueChange]
   );
+
+  const onComposerValueChange = useCallback(
+    (nextValue: string, cursor: number) => {
+      setValue(nextValue);
+      syncSlashQuery(nextValue, cursor);
+    },
+    [setValue, syncSlashQuery]
+  );
+
+  const onComposerSelect = useCallback(() => {
+    const element = textareaRef.current;
+    if (!element) {
+      return;
+    }
+    syncSlashQuery(element.value, element.selectionStart);
+  }, [syncSlashQuery]);
+
+  const insertSlashSkill = useCallback(
+    (skill: SkillSlashOption) => {
+      const element = textareaRef.current;
+      if (!element || !slashQuery) {
+        return;
+      }
+
+      const next = applySlashSkill(
+        value,
+        slashQuery,
+        element.selectionStart,
+        skill.name
+      );
+      pendingSlashCursorRef.current = next.cursor;
+      setValue(next.text);
+      closeSlashMenu();
+    },
+    [closeSlashMenu, setValue, slashQuery, value]
+  );
+
+  const onComposerKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLTextAreaElement>) => {
+      handleSlashMenuKeyDown(event, {
+        isOpen: isSlashMenuOpen,
+        matchCount: filteredSkills.length,
+        onMove: moveSlashIndex,
+        onSelect: () => {
+          const selected = filteredSkills[slashIndex];
+          if (selected) {
+            insertSlashSkill(selected);
+          }
+        },
+        onClose: closeSlashMenu,
+      });
+    },
+    [
+      closeSlashMenu,
+      filteredSkills,
+      insertSlashSkill,
+      isSlashMenuOpen,
+      moveSlashIndex,
+      slashIndex,
+    ]
+  );
+
+  useEffect(() => {
+    const cursor = pendingSlashCursorRef.current;
+    const element = textareaRef.current;
+    if (cursor === null || !element) {
+      return;
+    }
+    pendingSlashCursorRef.current = null;
+    element.selectionStart = cursor;
+    element.selectionEnd = cursor;
+  }, [value]);
 
   const { data: integrationsData } = useQuery(
     dashboardOrpc.integrations.list.queryOptions({
@@ -255,6 +346,7 @@ export function useContentChatInput({
     const nextAttachments = consumeAttachments();
     onSend?.(trimmed, nextAttachments);
     onClearSelection?.();
+    closeSlashMenu();
     setValue("");
     requestAnimationFrame(resizeTextarea);
   }, [
@@ -262,6 +354,7 @@ export function useContentChatInput({
     chatIncludedInPlan,
     check,
     clearError,
+    closeSlashMenu,
     consumeAttachments,
     customer,
     disabled,
@@ -287,9 +380,9 @@ export function useContentChatInput({
     },
     {
       enableOnFormTags: ["TEXTAREA"],
-      enabled: isFocused,
+      enabled: isFocused && !isSlashMenuOpen,
     },
-    [handleSend, isFocused]
+    [handleSend, isFocused, isSlashMenuOpen]
   );
 
   const handlePaste = useCallback(
@@ -339,17 +432,23 @@ export function useContentChatInput({
     connectedTop,
     context,
     contextOptions,
+    closeSlashMenu,
     contextPickerId,
     dragHandlers,
     fileInputRef,
+    filteredSkills,
     handlePaste,
     handleSend,
+    insertSlashSkill,
     isContextPickerOpen,
     isDraggingFile,
     isLoading,
     isUploading,
     onAttach,
     onClearSelection,
+    onComposerKeyDown,
+    onComposerSelect,
+    onComposerValueChange,
     onEditQueued,
     onFileInputChange,
     onRemoveContext,
@@ -369,10 +468,14 @@ export function useContentChatInput({
     setPreviewAttachment,
     setValue,
     shouldShowLowCredits,
+    skillCount: skills.length,
+    slashIndex,
+    slashListRef,
     textareaRef,
     toggleContextItem,
     usageLimitError,
     value,
     isInContext,
+    isSlashMenuOpen,
   };
 }

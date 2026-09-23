@@ -3,11 +3,18 @@ import type {
   ContextItem,
   TextSelection,
 } from "@notra/ai/types/chat";
-import type { ChangeEvent, ClipboardEvent, DragEvent, RefObject } from "react";
+import type {
+  ChangeEvent,
+  ClipboardEvent,
+  DragEvent,
+  KeyboardEvent,
+  RefObject,
+} from "react";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { ChatContextOption } from "@/types/components/chat-input";
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
+import type { SkillSlashOption } from "@/types/skills/slash";
 
 export interface ContentChatInputChrome {
   contextPickerDisabledReason: string | null;
@@ -38,8 +45,12 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
     onDrop: (event: DragEvent<HTMLElement>) => void;
   };
   fileInputRef: RefObject<HTMLInputElement | null>;
+  filteredSkills: SkillSlashOption[];
   handlePaste: (event: ClipboardEvent<HTMLTextAreaElement>) => void;
   handleSend: () => void;
+  insertSlashSkill: (skill: SkillSlashOption) => void;
+  isSlashMenuOpen: boolean;
+  closeSlashMenu: () => void;
   isContextPickerOpen: boolean;
   isDraggingFile: boolean;
   isInContext: (item: ContextItem) => boolean;
@@ -48,6 +59,9 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   onAttach: () => void;
   onClearSelection?: () => void;
   onEditQueued?: (message: QueuedMessage) => void;
+  onComposerKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  onComposerSelect: () => void;
+  onComposerValueChange: (value: string, cursor: number) => void;
   onFileInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onRemoveContext?: (item: ContextItem) => void;
   onRemoveQueued?: (id: string) => void;
@@ -66,6 +80,9 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   setPreviewAttachment: (attachment: ChatAttachment | null) => void;
   setValue: (value: string) => void;
   shouldShowLowCredits: boolean;
+  skillCount: number;
+  slashIndex: number;
+  slashListRef: RefObject<HTMLDivElement | null>;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   toggleContextItem: (item: ContextItem, inContext: boolean) => void;
   usageLimitError: string | null;
