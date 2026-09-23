@@ -48,9 +48,11 @@ export async function alertMissedGeoScan(input: {
     if (!response.ok) {
       throw new Error(`Slack alert returned HTTP ${response.status}`);
     }
-    await redis.set(key, "sent", { ex: input.dedupeSeconds ?? 24 * 60 * 60 });
   } catch (error) {
     await redis.del(key);
     throw error;
   }
+  // Once Slack accepted the webhook, never release the claim on a Redis error:
+  // that would send the same alert again on the next monitoring sweep.
+  await redis.set(key, "sent", { ex: input.dedupeSeconds ?? 24 * 60 * 60 });
 }

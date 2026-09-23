@@ -65,6 +65,17 @@ test("releases the deduplication key if Slack rejects the alert", async () => {
   expect(send).toHaveBeenCalledTimes(2);
 });
 
+test("keeps the claim when recording an accepted Slack alert fails", async () => {
+  set
+    .mockImplementationOnce(async () => "OK")
+    .mockImplementationOnce(async () => {
+      throw new Error("Redis unavailable");
+    });
+  await expect(alertMissedGeoScan(slot)).rejects.toThrow("Redis unavailable");
+  expect(send).toHaveBeenCalledTimes(1);
+  expect(del).not.toHaveBeenCalled();
+});
+
 test("keeps a delivered stale-run alert deduplicated for the retry window", async () => {
   await alertMissedGeoScan({ ...slot, dedupeSeconds: 7 * 86_400 });
   expect(set).toHaveBeenCalledWith(expect.any(String), "sent", {

@@ -732,6 +732,34 @@ describe("scheduled GEO scans", () => {
     expect(settings?.scanLeaseUntil?.getTime()).toBeGreaterThan(Date.now());
   });
 
+  test("an exhausted slot with only ambiguous starts marks its stale scan", async () => {
+    const anchor = wholeMinutesAgo(60);
+    await seedProject("timed-out-retries", { nextScanAt: anchor });
+    startWorkflow.mockImplementation(() =>
+      Effect.fail(new Error("Request timed out"))
+    );
+    try {
+      expect((await sweep()).failed).toBe(1);
+      setSystemTime(
+        new Date(Date.now() + GEO_SCAN_START_RETRY_WINDOW_MS + 60_000)
+      );
+      await expireGeoScanLease("timed-out-retries");
+      expect((await sweep()).failed).toBe(1);
+      expect((await settingsFor("timed-out-retries"))?.nextScanAt).toEqual(
+        nextGeoScanAtAfter(24, anchor)
+      );
+      expect(
+        (
+          await testDb.query.geoScans.findMany({
+            where: eq(geoScans.projectId, "timed-out-retries"),
+          })
+        ).some((scan) => scan.errorCode === "scan_retry_exhausted")
+      ).toBe(true);
+    } finally {
+      setSystemTime();
+    }
+  });
+
   test("an ambiguous timeout holds the claim and running row to prevent duplicate billing", async () => {
     await seedProject("timeout");
     startWorkflow.mockImplementationOnce(() =>

@@ -394,7 +394,7 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
       failed += 1;
       // Only this scheduled slot's failures count. A manual stale scan or a
       // late first cron tick cannot exhaust its 12-hour retry window.
-      const firstFailureAt = row.scanFirstFailedAt ?? new Date();
+      const firstFailureAt = row.scanFirstFailedAt ?? claim.claimedAt;
       if (!row.scanFirstFailedAt) {
         yield* geoDb("scan first failure stamp failed", () =>
           db
@@ -420,8 +420,12 @@ export const runGeoScanCronSweep = Effect.fn("geo.runScanCronSweep")(
               columns: { id: true },
               where: and(
                 eq(geoScans.projectId, row.projectId),
-                eq(geoScans.errorCode, "scan_handoff_failed"),
-                gte(geoScans.startedAt, anchor)
+                or(
+                  eq(geoScans.errorCode, "scan_handoff_failed"),
+                  eq(geoScans.errorCode, "scan_stale")
+                ),
+                gte(geoScans.startedAt, firstFailureAt),
+                eq(geoScans.status, "failed")
               ),
               orderBy: [desc(geoScans.startedAt)],
             })
