@@ -95,23 +95,26 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
     db.query.geoScans.findFirst({
       columns: { id: true, status: true, plan: true },
       where: and(
-        eq(geoScans.id, input.scanId),
+        input.scanId ? eq(geoScans.id, input.scanId) : undefined,
         eq(geoScans.organizationId, scope.organizationId),
         eq(geoScans.projectId, scope.projectId)
       ),
+      orderBy: [desc(geoScans.startedAt), desc(geoScans.id)],
     })
   );
-  if (!scan) {
+  if (input.scanId && !scan) {
     return null;
   }
 
-  const scopeFilter = and(
-    eq(geoMentionChecks.scanId, scan.id),
+  const projectFilter = and(
     eq(geoMentionChecks.organizationId, scope.organizationId),
     eq(geoMentionChecks.projectId, scope.projectId)
   );
+  const scanFilter = scan
+    ? and(projectFilter, eq(geoMentionChecks.scanId, scan.id))
+    : projectFilter;
   const resultFilter = and(
-    scopeFilter,
+    input.scanId ? scanFilter : projectFilter,
     input.engine ? eq(geoMentionChecks.engine, input.engine) : undefined
   );
   const [results, totals] = yield* geoDb("scan results lookup failed", () =>
@@ -119,6 +122,7 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
       db
         .select({
           id: geoMentionChecks.id,
+          scanId: geoMentionChecks.scanId,
           prompt: geoMentionChecks.prompt,
           engine: geoMentionChecks.engine,
           mentioned: geoMentionChecks.mentioned,
@@ -140,44 +144,50 @@ export const loadGeoScanRun = Effect.fn("geo.scanRun")(function* (
       db.select({ count: count() }).from(geoMentionChecks).where(resultFilter),
     ])
   );
-  const saved = scan.plan?.tasks?.length
-    ? yield* geoDb("saved scan tasks lookup failed", () =>
-        db
-          .select({
-            promptId: geoMentionChecks.promptId,
-            engine: geoMentionChecks.engine,
-            language: geoMentionChecks.language,
-            turn: geoMentionChecks.turn,
-          })
-          .from(geoMentionChecks)
-          .where(scopeFilter)
-      )
-    : [];
+  const showPending = Boolean(
+    scan && (input.scanId || scan.status === "running")
+  );
+  const saved =
+    showPending && scan?.plan?.tasks?.length
+      ? yield* geoDb("saved scan tasks lookup failed", () =>
+          db
+            .select({
+              promptId: geoMentionChecks.promptId,
+              engine: geoMentionChecks.engine,
+              language: geoMentionChecks.language,
+              turn: geoMentionChecks.turn,
+            })
+            .from(geoMentionChecks)
+            .where(scanFilter)
+        )
+      : [];
   const savedKeys = new Set(
     saved.map((row) =>
       geoScanAnswerKey(row.promptId, row.engine, row.language, row.turn)
     )
   );
-  const pending = (scan.plan?.tasks ?? [])
-    .filter(
-      (task) =>
-        !savedKeys.has(task.key) &&
-        (!input.engine || task.engine === input.engine)
-    )
-    .map((task) => ({
-      ...task,
-      status:
-        scan.status === "running"
-          ? (scan.plan?.taskStates?.[task.key] ?? "queued")
-          : "failed",
-    }));
+  const pending = showPending
+    ? (scan?.plan?.tasks ?? [])
+        .filter(
+          (task) =>
+            !savedKeys.has(task.key) &&
+            (!input.engine || task.engine === input.engine)
+        )
+        .map((task) => ({
+          ...task,
+          status:
+            scan?.status === "running"
+              ? (scan.plan?.taskStates?.[task.key] ?? "queued")
+              : "failed",
+        }))
+    : [];
   const pendingOffset = Math.min(
     input.pendingOffset ?? 0,
     Math.max(0, Math.ceil(pending.length / GEO_SCAN_RESULTS_PAGE_SIZE) - 1) *
       GEO_SCAN_RESULTS_PAGE_SIZE
   );
   return {
-    status: scan.status,
+    status: scan?.status ?? "completed",
     pendingOffset,
     pending: pending.slice(
       pendingOffset,

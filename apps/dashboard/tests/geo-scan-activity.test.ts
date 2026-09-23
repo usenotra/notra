@@ -4,12 +4,9 @@ import { GEO_SCAN_POLL_INTERVAL_MS } from "@notra/geo-core/constants/geo";
 import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
 
 import {
-  formatScanRunOption,
   geoScanRefetchInterval,
   scanRunDetailView,
 } from "@/utils/geo-scan-activity";
-
-const NOW = Date.parse("2026-09-22T12:00:00Z");
 
 function run(overrides: Partial<GeoScanRunSummary> = {}): GeoScanRunSummary {
   return {
@@ -31,16 +28,6 @@ function run(overrides: Partial<GeoScanRunSummary> = {}): GeoScanRunSummary {
 }
 
 describe("scan activity helpers", () => {
-  test("labels runs by recency", () => {
-    expect(
-      formatScanRunOption(run({ status: "running", checks: 3 }), NOW)
-    ).toBe("Scanning now");
-    expect(formatScanRunOption(run(), NOW)).toBe("2 hours ago");
-    expect(formatScanRunOption(run({ status: "failed", checks: 2 }), NOW)).toBe(
-      "Stopped early · 2 hours ago"
-    );
-  });
-
   test("does not treat placeholder data as a loading flash", () => {
     const view = scanRunDetailView({
       run: run(),

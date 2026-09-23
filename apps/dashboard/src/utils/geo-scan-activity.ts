@@ -6,7 +6,6 @@ import type {
   ScanRunDetailView,
   ScanRunDetailViewInput,
 } from "@/types/geo-scan-activity";
-import { formatRelative } from "@/utils/format-relative";
 import { paginatedTableHeightFor } from "@/utils/table";
 
 export function geoScanRefetchInterval(live: boolean, status?: string | null) {
@@ -50,14 +49,6 @@ export function scanRunDetailView(
     total: input.data?.total ?? 0,
     answerCount: Math.max(input.data?.total ?? 0, input.run.checks),
   };
-}
-
-export function formatScanRunOption(run: GeoScanRunSummary, now = Date.now()) {
-  if (run.status === "running") {
-    return "Scanning now";
-  }
-  const when = formatRelative(run.finishedAt ?? run.startedAt, now);
-  return run.status === "failed" ? `Stopped early · ${when}` : when;
 }
 
 export function formatGeoRunDuration(

@@ -34,7 +34,6 @@ export function useGeoScanRuns(
 
 export function useGeoScanRun(
   organizationId: string,
-  scanId: string,
   offset: number,
   engine?: string,
   pendingOffset = 0,
@@ -46,13 +45,12 @@ export function useGeoScanRun(
       input: {
         organizationId,
         projectId,
-        scanId,
         offset,
         engine,
         pendingOffset,
       },
     }),
-    enabled: !!organizationId && !!scanId,
+    enabled: !!organizationId,
     placeholderData: keepPreviousData,
     staleTime: 0,
     refetchInterval: (query) =>

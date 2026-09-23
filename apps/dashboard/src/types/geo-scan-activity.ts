@@ -13,8 +13,6 @@ export interface GeoScanActivityProps {
 
 export interface GeoScanActivityStatusProps {
   run: GeoScanRunSummary | undefined;
-  runs: GeoScanRunSummary[];
-  onSelectRun: (id: string) => void;
 }
 
 export interface GeoScanRequest {

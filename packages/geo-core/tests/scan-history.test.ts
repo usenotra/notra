@@ -404,6 +404,47 @@ describe("scan history", () => {
     expect(filtered?.results[0]?.engine).toBe("engine-b");
   });
 
+  test("unscoped answers page across scans with the newest first", async () => {
+    const scope = await seedProject("feed");
+    await testDb.insert(geoScans).values([
+      { id: "older", ...scope, status: "completed", startedAt: new Date(1) },
+      { id: "live", ...scope, status: "running", startedAt: new Date(2) },
+    ]);
+    await testDb.insert(geoMentionChecks).values([
+      {
+        id: "old-answer",
+        ...scope,
+        scanId: "older",
+        promptId: "p1",
+        prompt: "old",
+        engine: "engine",
+        answer: "old",
+        mentioned: false,
+        capturedAt: new Date(1_000),
+      },
+      {
+        id: "live-answer",
+        ...scope,
+        scanId: "live",
+        promptId: "p2",
+        prompt: "live",
+        engine: "engine",
+        answer: "live",
+        mentioned: true,
+        capturedAt: new Date(2_000),
+      },
+    ]);
+    const feed = await Effect.runPromise(
+      loadGeoScanRun({ ...scope, offset: 0 })
+    );
+    expect(feed?.results.map((row) => row.id)).toEqual([
+      "live-answer",
+      "old-answer",
+    ]);
+    expect(feed?.results[0]?.scanId).toBe("live");
+    expect(feed?.total).toBe(2);
+  });
+
   test("paginates tied timestamps deterministically and supports legacy runs", async () => {
     const scope = await seedProject("selected");
     const startedAt = new Date("2026-09-09T12:00:00Z");

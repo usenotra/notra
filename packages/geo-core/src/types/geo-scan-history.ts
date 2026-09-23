@@ -21,6 +21,7 @@ export interface GeoScanRunSummary {
 
 export interface GeoScanResultSummary {
   id: string;
+  scanId: string;
   prompt: string;
   engine: string;
   mentioned: boolean;

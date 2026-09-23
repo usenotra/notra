@@ -416,7 +416,6 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
   const [checkId, setCheckId] = useState<string | null>(null);
   const query = useGeoScanRun(
     organizationId,
-    run.id,
     offset,
     engine || undefined,
     pendingOffset,
@@ -494,7 +493,10 @@ export function ScanRunDetail({ organizationId, run }: GeoScanRunDetailProps) {
         key={checkId}
         onClose={() => setCheckId(null)}
         organizationId={organizationId}
-        scanId={run.id}
+        scanId={
+          model.results.find((result) => result.id === checkId)?.scanId ??
+          run.id
+        }
       />
     </div>
   );

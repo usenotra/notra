@@ -1,7 +1,6 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useState } from "react";
 
 import { ScanActivityStatus } from "@/components/geo/scan-activity-status";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
@@ -12,13 +11,11 @@ import type { GeoScanActivityProps } from "@/types/geo-scan-activity";
 
 const SCAN_SKELETON_ROWS = 3;
 
-/** Recent scans as a regular section: status header plus the selected run. */
+/** Recent scan answers, newest first, with a status line while a run is live. */
 export function ScanActivity({ organizationId }: GeoScanActivityProps) {
   const isScanning = useIsGeoScanning(organizationId);
   const history = useGeoScanRuns(organizationId);
-  const [runId, setRunId] = useState<string | null>(null);
-  const runs = history.data?.runs ?? [];
-  const selected = runs.find((run) => run.id === runId) ?? runs[0];
+  const latest = history.data?.runs[0];
 
   if (history.isPending) {
     return (
@@ -32,19 +29,15 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
     );
   }
 
-  if (!selected && !isScanning) {
+  if (!latest && !isScanning) {
     return null;
   }
 
   return (
     <section aria-label="Scans" className="min-w-0 space-y-3">
-      <ScanActivityStatus onSelectRun={setRunId} run={selected} runs={runs} />
-      {selected ? (
-        <ScanRunDetail
-          key={selected.id}
-          organizationId={organizationId}
-          run={selected}
-        />
+      <ScanActivityStatus run={latest} />
+      {latest ? (
+        <ScanRunDetail organizationId={organizationId} run={latest} />
       ) : (
         <GeoTableSkeleton rows={SCAN_SKELETON_ROWS} />
       )}
