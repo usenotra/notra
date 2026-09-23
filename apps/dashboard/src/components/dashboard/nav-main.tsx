@@ -10,7 +10,10 @@ import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSidebarMode } from "@/lib/hooks/use-sidebar-mode";
 import type { SidebarMode } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
-import { sidebarRouteFromPathname } from "@/utils/nav";
+import {
+  canPrefetchSidebarModeHome,
+  sidebarRouteFromPathname,
+} from "@/utils/nav";
 
 import { NavGeo } from "./nav-geo";
 import { NavModePrimaryAction } from "./nav-mode-primary-action";
@@ -35,10 +38,13 @@ export function NavMain() {
     if (!slug || next === mode) {
       return;
     }
-    router.prefetch(geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[next], projectId));
     if (next === "studio") {
       setRecentWarmed(true);
     }
+    if (!canPrefetchSidebarModeHome(next)) {
+      return;
+    }
+    router.prefetch(geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[next], projectId));
   };
 
   useEffect(() => {
@@ -46,6 +52,9 @@ export function NavMain() {
       return;
     }
     const other: SidebarMode = mode === "studio" ? "geo" : "studio";
+    if (!canPrefetchSidebarModeHome(other)) {
+      return;
+    }
     router.prefetch(
       geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[other], projectId)
     );
@@ -64,8 +73,10 @@ export function NavMain() {
     : pathname;
 
   const handleModeChange = (next: SidebarMode) => {
-    prefetchModeHome(next);
+    // Cookie first: org-root navigation reads it. Prefetching Studio before
+    // persist would cache the GEO restore redirect as `/{slug}`.
     setMode(next);
+    prefetchModeHome(next);
     router.push(geoNavHref(slug, SIDEBAR_MODE_HOME_LINKS[next], projectId));
   };
 

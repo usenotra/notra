@@ -17,14 +17,24 @@ export function SidebarNavLink({
   onFocus,
   onMouseEnter,
   eagerPrefetch = false,
+  disablePrefetch = false,
   ...props
 }: Omit<ComponentProps<typeof Link>, "prefetch"> & {
   eagerPrefetch?: boolean;
+  /** Keep prefetch off even on hover. Org-root Studio home redirects to GEO. */
+  disablePrefetch?: boolean;
 }) {
   const [hoverPrefetch, setHoverPrefetch] = useState<false | null>(false);
-  const prefetch = eagerPrefetch ? null : hoverPrefetch;
+  const prefetch = disablePrefetch
+    ? false
+    : eagerPrefetch
+      ? null
+      : hoverPrefetch;
 
   function enablePrefetch() {
+    if (disablePrefetch) {
+      return;
+    }
     setHoverPrefetch(null);
   }
 

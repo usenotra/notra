@@ -19,6 +19,7 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import type { NavModeSwitchProps, SidebarMode } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
+import { canPrefetchSidebarModeHome } from "@/utils/nav";
 
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
@@ -63,6 +64,7 @@ export function NavModeSwitch({
           />
           {SIDEBAR_MODES.map((option) => {
             const isActive = option.id === mode;
+            const prefetchHome = canPrefetchSidebarModeHome(option.id);
             return (
               <SidebarNavLink
                 aria-current={isActive ? "page" : undefined}
@@ -73,7 +75,8 @@ export function NavModeSwitch({
                     ? "text-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground"
                 )}
-                eagerPrefetch={!isActive}
+                disablePrefetch={!prefetchHome}
+                eagerPrefetch={!isActive && prefetchHome}
                 href={geoNavHref(
                   slug,
                   SIDEBAR_MODE_HOME_LINKS[option.id],
@@ -98,7 +101,10 @@ export function NavModeSwitch({
               isActive={option.id === mode}
               render={
                 <SidebarNavLink
-                  eagerPrefetch={option.id !== mode}
+                  disablePrefetch={!canPrefetchSidebarModeHome(option.id)}
+                  eagerPrefetch={
+                    option.id !== mode && canPrefetchSidebarModeHome(option.id)
+                  }
                   href={geoNavHref(
                     slug,
                     SIDEBAR_MODE_HOME_LINKS[option.id],
