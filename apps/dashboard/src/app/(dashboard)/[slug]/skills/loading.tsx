@@ -1,9 +1,7 @@
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 
-import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 
 import { SkillsPageSkeleton } from "./skeleton";
 
@@ -11,19 +9,12 @@ export default function Loading() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Skills</h1>
-            <p className="text-muted-foreground">
-              Reusable instructions your agents load when generating content.
-            </p>
-          </div>
-          <Button className="gap-1.5">
-            <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-            Create Skill
-            <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
-          </Button>
-        </div>
+        <PageHeading
+          description="Reusable instructions your agents load when generating content."
+          title="Skills"
+        >
+          <Skeleton className="h-9 w-36 rounded-md" />
+        </PageHeading>
         <SkillsPageSkeleton />
       </div>
     </PageContainer>

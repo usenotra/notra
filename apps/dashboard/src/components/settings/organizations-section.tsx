@@ -37,8 +37,12 @@ import { settingsPath } from "@/utils/settings-path";
 export function OrganizationsSection() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { organizations, activeOrganization, isLoading, requestOrganizations } =
-    useOrganizationsContext();
+  const {
+    organizations,
+    activeOrganization,
+    isOrganizationListLoading,
+    requestOrganizations,
+  } = useOrganizationsContext();
 
   useEffect(() => {
     requestOrganizations();
@@ -153,7 +157,7 @@ export function OrganizationsSection() {
     setIsProcessingOrgAction(null);
   }
 
-  if (isLoading) {
+  if (isOrganizationListLoading) {
     return (
       <TitleCard className="lg:col-span-2" heading="Organizations">
         <div className="space-y-3">

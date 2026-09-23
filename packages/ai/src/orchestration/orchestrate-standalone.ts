@@ -49,7 +49,7 @@ import {
 import { getThinkingProviderOptions } from "./thinking";
 
 const NOTRA_TOOLING_DESCRIPTION =
-  "Read-only Notra data tools (GitHub, Linear, Granola, posts, integrations, brand references, skills, web search, webpage fetch, GEO projects, prompt results, and project context) run inside code_mode. Content, brand identity, GEO chart, and approval tools are called directly. Context.dev tools require API configuration when called.";
+  "Read-only Notra data tools (GitHub, Linear, Granola, posts, integrations, brand references, skills, schedules, web search, webpage fetch, GEO projects, prompt results, and project context) run inside code_mode. Content, brand identity, GEO chart, schedule creation, and approval tools are called directly. Context.dev tools require API configuration when called.";
 
 export async function orchestrateStandaloneChat(
   input: StandaloneChatInput,

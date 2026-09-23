@@ -1,3 +1,4 @@
+import { GITHUB_MENTION_FILE_CONTENT_MAX_BYTES } from "@notra/ai/constants/github-mention";
 import type {
   PublicationAncestryValidator,
   PublicationCommitSyncStatus,
@@ -218,4 +219,66 @@ export async function syncPublishedPostAfterCommit(params: {
     params.octokit
   );
   return result;
+}
+
+/**
+ * Copies the published file on a pull request head into the Notra post.
+ * Used when GitHub moved the head (applied suggestion, human push) without
+ * going through a mention write tool.
+ */
+export async function syncPublishedPostFromPullRequestHead(params: {
+  octokit: GitHubMentionOctokit;
+  organizationId: string;
+  publication: {
+    id: string;
+    postId: string;
+    path: string;
+    owner: string;
+    repo: string;
+    headSha: string | null;
+    markdown?: string | null;
+  };
+  commitSha: string;
+  branch: string;
+  scheduleRepair?: PublicationRepairScheduler;
+}) {
+  if (params.publication.headSha === params.commitSha) {
+    return {
+      status: "synchronized" as const,
+      markdown: params.publication.markdown ?? "",
+    };
+  }
+  const contents = await getRepositoryFileContents({
+    octokit: params.octokit,
+    owner: params.publication.owner,
+    repo: params.publication.repo,
+    path: params.publication.path,
+    ref: params.commitSha,
+  }).catch((error: unknown) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      error.status === 404
+    ) {
+      return null;
+    }
+    throw error;
+  });
+  if (
+    contents === null ||
+    Buffer.byteLength(contents, "utf8") > GITHUB_MENTION_FILE_CONTENT_MAX_BYTES
+  ) {
+    return false;
+  }
+  return syncPublishedPostAfterCommit({
+    octokit: params.octokit,
+    organizationId: params.organizationId,
+    publication: params.publication,
+    files: [{ path: params.publication.path, contents }],
+    commitSha: params.commitSha,
+    branch: params.branch,
+    recordPublicationHead: true,
+    scheduleRepair: params.scheduleRepair,
+  });
 }

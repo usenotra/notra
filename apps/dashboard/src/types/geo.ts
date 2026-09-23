@@ -72,7 +72,6 @@ import type { TableColumn } from "@/components/motion/table";
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { ChartConfig, ChartSeriesColors } from "@/types/charts";
 import type { GeoPromptDetailState } from "@/types/geo-prompt-detail";
-import type { TablePaginationState } from "@/types/table";
 
 export interface GeoProjectCreateInput {
   name: string;
@@ -127,6 +126,23 @@ export interface GeoProjectLogoProps {
 
 export interface GeoPageClientProps {
   organizationSlug: string;
+}
+
+export interface TrafficPageViewProps {
+  organizationId: string;
+  organizationSlug: string;
+  projectId: string | undefined;
+  settings: GeoSettings | null;
+  isEmptyTraffic: boolean;
+  revealActive: boolean;
+  geoRange: GeoRangeControl;
+  traffic: AiTrafficResponse | undefined;
+  isTrafficPending: boolean;
+  inventoryPages: readonly GeoTrafficPage[];
+  knownHosts: readonly string[];
+  isPagesPending: boolean;
+  trafficPages: readonly GeoTrafficPage[];
+  ingestSetup: GeoIngestSetupResponse | undefined;
 }
 
 export interface GeoLayoutProps {
@@ -485,6 +501,7 @@ export interface JourneysCardProps {
   journeys: GeoJourney[];
   onOpenJourney: (journey: GeoJourney) => void;
   onPrefetchJourney: (journey: GeoJourney) => void;
+  loading?: boolean;
 }
 
 export type GeoJourneyGroupSelection =
@@ -522,6 +539,17 @@ export interface JourneyGroupContentProps {
   onPrefetchJourney: (journey: GeoJourney) => void;
 }
 
+export interface JourneyGroupHeadingProps {
+  selection: JourneyGroupContentProps["selection"];
+  lastSeen: string | undefined;
+}
+
+export interface JourneyGroupBreakdownProps {
+  isSource: boolean;
+  sampleMeta: string | undefined;
+  overview: GeoJourneyOverview;
+}
+
 export interface JourneyGroupSectionTitleProps {
   title: string;
   meta?: string;
@@ -552,12 +580,14 @@ export interface JourneyOverviewCardProps {
   failed: boolean;
   previewRows: number;
   onOpenSource: (row: GeoJourneySourceStats) => void;
+  loading?: boolean;
 }
 
 export interface JourneyPathsCardProps {
   pages: GeoJourneyPageStats[];
   /** Renders the failure copy instead of the empty state. */
   failed: boolean;
+  loading?: boolean;
   totalPages: number;
   previousTotalPages: number;
   previewRows: number;
@@ -636,6 +666,7 @@ export interface AiTrafficCardProps {
   /** Top pages across every host, for the source drawer. */
   pages: readonly GeoTrafficPage[];
   settingsHref: string;
+  isPending?: boolean;
 }
 
 export interface GeoTrafficPageSource {
@@ -659,9 +690,24 @@ export interface TrafficPageSourcesCellProps {
 }
 
 export interface TrafficPagesCardProps {
-  pages: GeoTrafficPage[];
+  pages: readonly GeoTrafficPage[];
   isPending?: boolean;
   hosts?: readonly string[];
+}
+
+export interface TrafficPagesResultsProps {
+  columns: TableColumn<GeoTrafficPageGroup>[];
+  filteredGroups: GeoTrafficPageGroup[];
+  isPending: boolean;
+}
+
+export interface TrafficPagesFiltersProps {
+  showHostFilter: boolean;
+  hostSelectValue: string;
+  hostOptions: readonly string[];
+  onHostChange: (value: string) => void;
+  pathQuery: string;
+  onPathQueryChange: (value: string) => void;
 }
 
 export interface PresenceBadgeProps {
@@ -877,7 +923,6 @@ export interface CitationsTableProps {
   entries: GeoTrafficLogEntry[];
   height: number;
   loading?: boolean;
-  pagination?: TablePaginationState;
 }
 
 export interface PurposeBadgeProps {
@@ -1348,6 +1393,7 @@ export interface CompetitorsTableProps {
   companyName: string;
   aliases: string[];
   ownDomain: string | null;
+  isScanning?: boolean;
 }
 
 export interface PromptsTableProps {
@@ -1685,6 +1731,7 @@ export interface TrafficSourcesGroupProps {
   onToggle: () => void;
   onOpen: (group: GeoTrafficSourceGroup) => void;
   stacked: boolean;
+  loading?: boolean;
 }
 
 export interface TrafficSourcesStackProps {
@@ -1693,6 +1740,7 @@ export interface TrafficSourcesStackProps {
   collapsed: ReadonlySet<GeoTrafficSourceBand>;
   onToggle: (band: GeoTrafficSourceBand) => void;
   onOpen: (group: GeoTrafficSourceGroup) => void;
+  loading?: boolean;
 }
 
 export interface WhatChangedCardProps {

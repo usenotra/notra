@@ -362,10 +362,12 @@ export interface GitHubSourceImageAsset {
 }
 
 export interface PrepareGitHubContentAssetsParams {
+  appOrigin: string | null;
   contentPath: string;
   imagePathTemplate: string;
   markdown: string;
-  publicUrl: string;
+  organizationId: string;
+  publicUrl: string | null;
   slug: string;
   loadImage: (key: string, maxBytes: number) => Promise<GitHubSourceImageAsset>;
 }
@@ -405,6 +407,8 @@ export interface PublishContentDraftPullRequestParams {
   path: string;
   title: string;
   markdown: string;
+  /** Organization billed for follow-up commit-message generation. */
+  organizationId?: string;
   assets?: GitHubContentAsset[];
   assetPathsToDelete?: string[];
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */

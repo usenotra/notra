@@ -139,8 +139,10 @@ export function LogsSettingsPane() {
           onPageChange={setPage}
           onRowClick={(log) => setSelection({ organizationId, log })}
           page={result.page}
+          pageSize={LOGS_PAGE_SIZE}
           totalPages={result.totalPages}
           totalCount={result.totalCount}
+          isLoading={logsQuery.isFetching && Boolean(logsQuery.data)}
         />
       ) : null}
       <LogDetailsSheet

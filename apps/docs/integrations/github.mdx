@@ -98,14 +98,14 @@ Every delivery is written to the organization's webhook log (**Settings**, then 
 
 Mention Notra in a pull request comment, for example `@usenotra shorten the intro`. Mentions on ordinary issues are ignored without a reply or reaction. You do not need the exact App name: `@usenotra`, `@notra`, `@notra-ai`, and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done or 👎 when a safeguard declines the request. The reply and any commits come from the App's bot account.
 
-When your comment is about how something reads ("the intro feels heavy", "show me a punchier opening"), Notra does not commit. It answers with a GitHub suggestion on the lines in question, and you apply it with **Commit suggestion**, or reply "shorter please" to get another take. Nothing on the branch changes until you accept one. Notra commits directly when you tell it to ("apply it", "go ahead"), for plain corrections such as a typo or a wrong number, and for changes a suggestion cannot express, like edits across several files.
+When your comment is about how something reads ("the intro feels heavy", "show me a punchier opening"), Notra does not commit. It answers with a GitHub suggestion on the lines in question, and you apply it with **Commit suggestion**, or reply "shorter please" to get another take. Nothing on the branch changes until you accept one. Applying that suggestion, or a commit Notra makes itself, updates the matching Notra post. Notra commits directly when you tell it to ("apply it", "go ahead"), for plain corrections such as a typo or a wrong number, and for changes a suggestion cannot express, like edits across several files.
 
 Notra writes in the brand voice the post was created with, and it reads the pull request description, so an edit from a comment sounds like the rest of the post.
 
 After a commit, Notra replies right at the lines it edited under **Files changed**, with a before and after of the text and a link to the commit. When you wrote in a review thread, the reply stays in that thread. You can also mention Notra in a review comment on specific lines, or reply inside its thread ("shorter please"); it reads the earlier comments, so you do not have to repeat yourself.
 
 * **Questions** get an answer in the thread. Nothing is committed.
-* **Change requests** on a pull request Notra published commit the file onto that pull request, then synchronize the Notra post.
+* **Change requests** on a pull request Notra published commit the file onto that pull request, then synchronize the Notra post. The same happens when you apply a GitHub suggestion on that file.
 * **Separate pull request**: say so in the comment ("open a separate PR") and Notra commits to a new branch and opens a draft pull request stacked on the one you commented on. The Notra post stays as it is. Once you merge that pull request into the published one, the next change picks it up.
 
 Notra only acts on comments from members of your Notra organization whose login is linked to the commenting GitHub account. Other mentions are ignored and logged as skipped. Mentions inside code, quotes, or email addresses do not count.

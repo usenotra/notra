@@ -1,7 +1,6 @@
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
 
-import { CONTENT_COLLECTION_PAGE_SIZE } from "@/constants/content-collections";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { contentRouter } from "@/lib/orpc/routers/content";
@@ -46,33 +45,6 @@ export async function dehydrateContentDetailQueries(
   void queryClient.prefetchQuery({
     ...dashboardOrpc.content.get.queryOptions({ input }),
     queryFn: () => client.content.get(input),
-  });
-
-  return dehydrate(queryClient);
-}
-
-export async function dehydrateContentListQueries(
-  organizationId: string,
-  projectId: string | undefined,
-  page: number,
-  requestHeaders: Headers,
-  membership?: OrganizationMembership & { userId: string }
-) {
-  const { client, queryClient } = await contentQueryClient(
-    requestHeaders,
-    organizationId,
-    membership
-  );
-  const input = {
-    organizationId,
-    projectId,
-    page,
-    pageSize: CONTENT_COLLECTION_PAGE_SIZE,
-  };
-
-  void queryClient.prefetchQuery({
-    ...dashboardOrpc.content.collections.list.queryOptions({ input }),
-    queryFn: () => client.content.collections.list(input),
   });
 
   return dehydrate(queryClient);

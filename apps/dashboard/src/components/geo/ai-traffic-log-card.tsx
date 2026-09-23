@@ -4,7 +4,6 @@ import { FilterHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_CITATIONS_ROW_HEIGHT,
-  GEO_TRAFFIC_LOG_PAGE_PARAM,
   GEO_TRAFFIC_LOG_PURPOSE_OPTIONS,
   GEO_TRAFFIC_LOG_VISITOR_OPTIONS,
 } from "@notra/geo-core/constants/geo";
@@ -22,10 +21,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { CitationsTable } from "@/components/geo/citations-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -34,9 +32,8 @@ import { TRAFFIC_LOG_FILTER_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoTrafficLog } from "@/lib/hooks/use-geo";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { AiTrafficLogCardProps } from "@/types/geo";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const LOG_SKELETON_ROWS = 6;
 
@@ -46,30 +43,17 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     categories: [],
   });
   const [hostQuery] = useGeoTrafficHostQuery();
-  const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
-    host: hostQuery,
-  });
-  const log = data?.log ?? [];
-  const pagination = useTablePagination({
-    key: GEO_TRAFFIC_LOG_PAGE_PARAM,
-    totalItems: log.length,
-    isReady: !isPending,
-  });
-  const previousHostRef = useRef(hostQuery);
-  const setLogPage = pagination.setPage;
-
-  useEffect(() => {
-    if (previousHostRef.current === hostQuery) {
-      return;
+  const { data, isPending, isFetching } = useGeoTrafficLog(
+    organizationId,
+    filters,
+    {
+      host: hostQuery,
     }
-    previousHostRef.current = hostQuery;
-    setLogPage(1);
-  }, [hostQuery, setLogPage]);
+  );
+  const log = data?.log ?? [];
 
   let body: ReactNode;
-  if (isPending) {
-    body = <GeoTableSkeleton rows={LOG_SKELETON_ROWS} />;
-  } else if (log.length === 0) {
+  if (!isPending && log.length === 0) {
     body = (
       <InstrumentEmpty
         message="No visits match these filters"
@@ -80,11 +64,11 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     body = (
       <CitationsTable
         entries={log}
-        height={paginatedTableHeightFor(
-          pagination.pageRowCount,
+        height={tableHeightFor(
+          log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
-        pagination={pagination}
+        loading={isPending || isFetching}
       />
     );
   }
@@ -93,7 +77,6 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   const toggleVisitor = (
     value: GeoTrafficLogFilters["visitorTypes"][number]
   ) => {
-    pagination.setPage(1);
     trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
       filter: TRAFFIC_LOG_FILTER_KINDS.VISITOR_TYPE,
       value,
@@ -105,7 +88,6 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     }));
   };
   const togglePurpose = (value: GeoTrafficLogFilters["categories"][number]) => {
-    pagination.setPage(1);
     trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
       filter: TRAFFIC_LOG_FILTER_KINDS.PURPOSE,
       value,
@@ -164,7 +146,6 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                pagination.setPage(1);
                 setFilters({ visitorTypes: [], categories: [] });
               }}
             >

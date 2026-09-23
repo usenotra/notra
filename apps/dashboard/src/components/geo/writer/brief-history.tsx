@@ -96,6 +96,7 @@ export function BriefHistory({
   activeBriefId,
   onOpen,
   onHover,
+  loading = false,
 }: BriefHistoryProps) {
   const [tableRef, tableHeight] = useFillHeight(GEO_WRITE_TABLE_HEIGHT);
   const tableBodyHeight = Math.min(
@@ -168,6 +169,7 @@ export function BriefHistory({
         defaultSort={{ key: "createdAt", direction: "desc" }}
         getRowId={(brief) => brief.id}
         height={tableBodyHeight}
+        loading={loading}
         onRowClick={(brief) => onOpen(brief.id)}
         onRowPointerEnter={(brief) => onHover?.(brief.id)}
         rowHeight={GEO_WRITE_TABLE_ROW_HEIGHT}

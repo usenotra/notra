@@ -46,7 +46,7 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
         <header className="space-y-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <GeoRangePicker control={page.geoRange} />
               <Button
                 className="w-fit gap-2"

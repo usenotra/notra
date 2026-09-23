@@ -6,34 +6,39 @@ import type {
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
 
-import { CONTENT_COLLECTION_PAGE_SIZE } from "@/constants/content-collections";
+import { COLLECTIONS_PAGE_SIZE } from "@/constants/content-collections";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
+import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GENERATING_POLL_INTERVAL = 4000;
 
 export function useCollections(
   organizationId: string,
   page: number,
-  serverProject?: { id: string | undefined }
+  initialProjectId: string | null
 ) {
-  const { projectId: activeProjectId, isResolved } = useActiveProject();
-  // The server already resolved the project and prefetched this key. Waiting
-  // for the client project list used to hold the collections query behind it.
-  const projectId = isResolved
-    ? (activeProjectId ?? undefined)
-    : serverProject?.id;
+  const { projectId, isResolved } = useActiveProject();
+  // The server already resolved the same project the switcher will settle on.
+  // Waiting for the projects collection first made the list a second round trip.
+  const scopedProjectId = isResolved
+    ? (projectId ?? undefined)
+    : (initialProjectId ?? undefined);
+  const placeholderData = useScopedPreviousData<PostCollectionListResponse>(
+    `${organizationId}:${scopedProjectId ?? ""}`
+  );
   return useQuery<PostCollectionListResponse>({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: {
         organizationId,
-        projectId,
+        projectId: scopedProjectId,
         page,
-        pageSize: CONTENT_COLLECTION_PAGE_SIZE,
+        pageSize: COLLECTIONS_PAGE_SIZE,
       },
     }),
-    enabled: !!organizationId && (isResolved || serverProject !== undefined),
+    enabled: !!organizationId && (isResolved || initialProjectId !== undefined),
+    placeholderData,
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating

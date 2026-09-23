@@ -12,6 +12,7 @@ import { TableBody } from "./table-body";
 import { TableColumnGroup } from "./table-column-group";
 import { TableHeader } from "./table-header";
 import {
+  TableBodySurface,
   TableFooterSurface,
   TableHeaderSurface,
   TableScrollFade,
@@ -31,6 +32,7 @@ import {
   pageRows,
   pinRowsFirst,
   REORDER_HANDLE_PX,
+  tableLoadingOverlay,
   tableMinWidthCss,
 } from "./utils";
 
@@ -66,6 +68,7 @@ export function Table<T>({
   overscan = 10,
   onEndReached,
   loading = false,
+  loadingMore: loadingMoreProp,
   skeletonRows = 3,
   emptyState = "No data",
   onRowClick,
@@ -81,7 +84,7 @@ export function Table<T>({
   flushTop = false,
   flushBottom = false,
   overlapTop = false,
-  scrollFade = false,
+  scrollFade = true,
   className,
 }: TableProps<T>) {
   const reduce = useReducedMotion();
@@ -177,6 +180,12 @@ export function Table<T>({
     />
   );
   const isEmpty = pagedRows.length === 0 && !loading;
+  const { loadingMore, dimRows, loadingState } = tableLoadingOverlay(
+    loading,
+    pagedRows.length,
+    loadingMoreProp,
+    Boolean(onEndReached)
+  );
   const hasRowMenu = !!(onInsertRow || onDeleteRow);
   const hasColumnMenu = !!(onInsertColumn || onDeleteColumn);
   // Shrink-wrap only after every column has an explicit resized width.
@@ -255,14 +264,15 @@ export function Table<T>({
           </table>
         </div>
       </TableHeaderSurface>
-      <div
-        className={cn(
-          "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
-          isEmpty ? "overflow-hidden" : overflowClass,
-          flushBottom && !footer && "rounded-b-none border-b-0"
-        )}
+      <TableBodySurface
+        dimRows={dimRows}
+        flushBottom={flushBottom}
+        hasFooter={Boolean(footer)}
+        isEmpty={isEmpty}
+        loadingState={loadingState}
         onScroll={handleScroll}
-        ref={scrollRef}
+        overflowClass={overflowClass}
+        scrollRef={scrollRef}
         style={bodyStyle}
       >
         <table className={tableClassName} style={tableStyle}>
@@ -275,6 +285,7 @@ export function Table<T>({
             rowSizing={rowSizing}
             bodyHeight={bodyHeight}
             loading={loading}
+            loadingMore={loadingMore}
             skeletonRows={skeletonRows}
             emptyState={emptyState}
             selectable={selectable}
@@ -297,7 +308,7 @@ export function Table<T>({
           />
         </table>
         <TableScrollFade atEnd={atEnd} scrollFade={scrollFade} />
-      </div>
+      </TableBodySurface>
       <TableFooterSurface footer={footer} flushBottom={flushBottom} />
       {hasRowMenu && activeRow ? (
         <RowHandle

@@ -4,7 +4,9 @@ import {
   SVG_MIME_TYPE,
 } from "@notra/schemas/constants/dashboard/upload";
 
+import { CONTENT_MEDIA } from "@/constants/content-media";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { ContentMediaKind } from "@/types/content/media";
 import type {
   DeleteChatUploadProps,
   UploadFileProps,
@@ -79,6 +81,42 @@ export async function uploadFile({
   }
 
   return { url: publicUrl, key };
+}
+
+export async function uploadContentMedia(file: File, kind: ContentMediaKind) {
+  const fallback = CONTENT_MEDIA[kind].failed;
+  const body = new FormData();
+  body.set("file", file);
+  body.set("kind", kind);
+  const response = await fetch("/api/uploads/content-image", {
+    body,
+    method: "POST",
+  });
+  if (!response.ok) {
+    const payload: unknown = await response.json().catch(() => null);
+    const message =
+      payload &&
+      typeof payload === "object" &&
+      "message" in payload &&
+      typeof payload.message === "string"
+        ? payload.message
+        : fallback;
+    throw new Error(message);
+  }
+  const payload: unknown = await response.json().catch(() => null);
+  if (
+    !(
+      payload &&
+      typeof payload === "object" &&
+      "url" in payload &&
+      typeof payload.url === "string" &&
+      "key" in payload &&
+      typeof payload.key === "string"
+    )
+  ) {
+    throw new Error(fallback);
+  }
+  return { key: payload.key, url: payload.url };
 }
 
 export async function deleteChatUpload({

@@ -89,6 +89,7 @@ import {
 import { toGeoWindowInput } from "@/utils/geo-range";
 
 import { dashboardOrpc } from "../orpc/query";
+import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
 
@@ -388,7 +389,7 @@ export function useGeoChanges(organizationId: string) {
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
-    placeholderData: keepPreviousData,
+    placeholderData: useScopedPreviousData<GeoChangesResponse>(projectId),
     meta: { errorMessage: "Failed to load scan changes" },
   });
 }
@@ -780,19 +781,6 @@ export function useAgentReadinessScan(organizationId: string) {
   });
 }
 
-// keepPreviousData, but only while the project scope is unchanged: carrying
-// rows across a project switch would briefly render the previous project's
-// traffic under the new one. The ref still holds the previous project while
-// the first render of a new scope runs, so the placeholder is skipped there.
-function useProjectScopedPreviousData<TData>(projectId: string | undefined) {
-  const previousProjectId = useRef(projectId);
-  useEffect(() => {
-    previousProjectId.current = projectId;
-  }, [projectId]);
-  return (previousData: TData | undefined): TData | undefined =>
-    previousProjectId.current === projectId ? previousData : undefined;
-}
-
 export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
   const { projectId } = useGeoProjectScope();
   return useQuery<AiTrafficResponse>({
@@ -800,7 +788,7 @@ export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
       input: geoOverviewQueryInput({ organizationId, projectId }, range),
     }),
     enabled: !!organizationId,
-    placeholderData: useProjectScopedPreviousData<AiTrafficResponse>(projectId),
+    placeholderData: useScopedPreviousData<AiTrafficResponse>(projectId),
     refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
     refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI traffic" },
@@ -822,7 +810,7 @@ export function useGeoTrafficLog(
       ),
     }),
     enabled: !!organizationId,
-    placeholderData: keepPreviousData,
+    placeholderData: useScopedPreviousData<GeoTrafficLogResponse>(projectId),
     refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
     refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load AI tracking log" },
@@ -844,8 +832,7 @@ export function useGeoTrafficPages(
       ),
     }),
     enabled: !!organizationId,
-    placeholderData:
-      useProjectScopedPreviousData<GeoTrafficPagesResponse>(projectId),
+    placeholderData: useScopedPreviousData<GeoTrafficPagesResponse>(projectId),
     refetchInterval: GEO_TRAFFIC_LIVE_INTERVAL_MS,
     refetchIntervalInBackground: false,
     meta: { errorMessage: "Failed to load top AI pages" },

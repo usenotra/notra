@@ -33,7 +33,11 @@ export interface AiCreditCostResult {
   tokenCostCents: number;
 }
 
-export type ContentBillingMode = "unmetered" | "plan_quota" | "ai_credits";
+export type ContentBillingMode =
+  | "unmetered"
+  | "plan_quota"
+  | "ai_credits"
+  | "plan_included";
 
 export type ContentQuotaFeatureId =
   | "long_form_posts"
@@ -68,6 +72,11 @@ export interface ReserveContentBillingInput {
   executionId?: string;
   lockTtlMs?: number;
   countTowardQuota?: boolean;
+  /**
+   * When this run has no content quota and credits are missing or empty, an
+   * active paid plan still includes it. Posts and scans leave this unset.
+   */
+  allowPlanIncluded?: boolean;
 }
 
 export type GitHubMentionBillingFeatureId =

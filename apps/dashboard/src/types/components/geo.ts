@@ -80,6 +80,28 @@ export interface SearchConsoleConnectedStateProps {
   websiteUrl: string | null;
 }
 
+export interface PromptSuggestionsToolbarProps {
+  checking: boolean;
+  showSearchConsole: boolean;
+  trackAllPending: boolean;
+  suggestionsCount: number;
+  callbackPath: string;
+  isSearchConsolePending: boolean;
+  connectPromo: boolean;
+  onDismissCard: () => void;
+  onPropertyPickerOpenChange: (open: boolean) => void;
+  organizationId: string;
+  propertyPickerOpen: boolean;
+  status: GeoSearchConsoleStatus | undefined;
+  onTrackAll: () => void;
+}
+
+export interface DismissSuggestionDialogProps {
+  suggestion: GeoPromptSuggestion | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (suggestionId: string) => void;
+}
+
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;

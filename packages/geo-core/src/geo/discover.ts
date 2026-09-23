@@ -94,7 +94,8 @@ Prompt rules:
 - Each prompt must be between ${MIN_PROMPT_LENGTH} and ${MAX_PROMPT_LENGTH} characters.
 
 Title rules:
-- The title is the headline of the article that would win this prompt: specific, publishable and in Title Case, following proven formats such as "Best {Category} Tools in ${year}: {Facets} Compared", "Best {Competitor} Alternatives for {Use Case} in ${year}", "{A} vs {B}: Features, Pricing & Which to Choose in ${year}", "{Product} Pricing: Plans & Cost Breakdown for ${year}", "How to {Task} (Step-by-Step ${year})", or "What Is {Term}? Definition, Examples & How to Measure It".
+- The title is the headline of the article that would win this prompt: specific, publishable and in Title Case, following proven formats such as "Best {Category} Tools in ${year}: {Facets} Compared", "Best {Competitor} Alternatives for {Use Case}", "{A} vs {B}: Features, Pricing & Which to Choose", "How to {Task} (Step-by-Step)", or "What Is {Term}? Definition, Examples & How to Measure It".
+- Use "${year}" only in ranking or comparison titles, never in how-to or definition titles.
 - Write titles in the same language as the prompt and keep each under ${GEO_GAP_TITLE_MAX_LENGTH} characters.
 
 ${geoConversationRules("the company")}`;

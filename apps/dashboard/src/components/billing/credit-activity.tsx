@@ -18,6 +18,7 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { CREDIT_EVENTS_PAGE_SIZE } from "@/constants/billing-credits";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { authClient } from "@/lib/auth/client";
+import { useScopedPreviousData } from "@/lib/hooks/use-scoped-previous-data";
 import type { ListEventsRow } from "@/types/billing/credits";
 import { getCreditEventLabel } from "@/utils/credit-events";
 import { formatDollars, formatFullDate } from "@/utils/format";
@@ -64,10 +65,17 @@ export function CreditActivity() {
   const autumnClient = useAutumnClient({ caller: "CreditsPageClient" });
   const { activeOrganization } = useOrganizationsContext();
   const { data: session } = authClient.useSession();
+  const placeholderData = useScopedPreviousData<
+    Awaited<ReturnType<typeof autumnClient.listEvents>>
+  >(activeOrganization?.id);
   const sessionMatchesOrganization =
     Boolean(activeOrganization?.id) &&
     session?.session.activeOrganizationId === activeOrganization?.id;
-  const { data: eventsData, isLoading } = useQuery({
+  const {
+    data: eventsData,
+    isPending,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: [
       "autumn",
       "events",
@@ -86,6 +94,7 @@ export function CreditActivity() {
       return autumnClient.listEvents(params);
     },
     enabled: sessionMatchesOrganization,
+    placeholderData,
   });
   const hasMore = hasMorePaginatedResults(eventsData, CREDIT_EVENTS_PAGE_SIZE);
   const hasPrevious = page > 1;
@@ -97,41 +106,47 @@ export function CreditActivity() {
       <h2 className="text-lg font-semibold">Recent Activity</h2>
       <Table
         columns={eventColumns}
-        data={isLoading ? [] : visibleEvents}
+        data={visibleEvents}
         emptyState="No usage events yet"
+        footer={
+          hasPrevious || hasMore ? (
+            <Pagination className="mx-0 w-auto justify-end px-3">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    className={cn(
+                      !hasPrevious && "pointer-events-none opacity-50"
+                    )}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      if (hasPrevious) {
+                        setPage(Math.max(1, page - 1));
+                      }
+                    }}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    className={cn(!hasMore && "pointer-events-none opacity-50")}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      if (hasMore) {
+                        setPage(page + 1);
+                      }
+                    }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          ) : undefined
+        }
         getRowId={(event) => event.id}
-        height={paginatedTableHeightFor(isLoading ? 5 : visibleEvents.length)}
-        loading={isLoading}
+        height={paginatedTableHeightFor(
+          isPending && visibleEvents.length === 0 ? 5 : visibleEvents.length
+        )}
+        loading={isPending || isPlaceholderData}
         rowHeight={TABLE_ROW_HEIGHT}
       />
-      {(hasPrevious || hasMore) && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                className={cn(!hasPrevious && "pointer-events-none opacity-50")}
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (hasPrevious) {
-                    setPage(Math.max(1, page - 1));
-                  }
-                }}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                className={cn(!hasMore && "pointer-events-none opacity-50")}
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (hasMore) {
-                    setPage(page + 1);
-                  }
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
     </div>
   );
 }

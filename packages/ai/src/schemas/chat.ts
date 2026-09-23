@@ -72,14 +72,30 @@ export const chatMessageMetadataSchema = z.object({
 
 export const UI_MESSAGES_MAX = 200;
 
+export function isTrustedChatFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 const uiMessagePartSchema = z
   .looseObject({
     type: z.string().min(1).max(100),
     text: z.string().max(100_000).optional(),
+    url: z.string().max(2000).optional(),
   })
   .refine((part) => part.type !== "text" || typeof part.text === "string", {
     message: "Text parts must include a text string",
-  });
+  })
+  .refine(
+    (part) =>
+      part.type !== "file" ||
+      (typeof part.url === "string" && isTrustedChatFileUrl(part.url)),
+    { message: "File parts must include an http(s) URL" }
+  );
 
 export const uiMessageSchema = z.object({
   id: z.string().min(1).max(200),

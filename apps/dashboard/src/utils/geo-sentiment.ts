@@ -95,12 +95,12 @@ export function sentimentThemesState({
     (state?.status === "stale" || state?.status === "failed");
   return {
     pending: (busy || loading) && !showResults,
-    title: showResults ? "Update themes" : "No themes yet",
+    title: "No themes yet",
     message,
     statusText,
     showResults,
     showTable: busy || loading || showResults,
-    showEmpty: !loading && !busy && !isError && (!showResults || canAnalyze),
+    showEmpty: !loading && !busy && !isError && !showResults,
     canAnalyze,
   };
 }

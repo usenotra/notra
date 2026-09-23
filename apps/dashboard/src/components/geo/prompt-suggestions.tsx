@@ -31,7 +31,9 @@ import {
 } from "@/lib/hooks/use-geo";
 import { useGscConnectionToast } from "@/lib/hooks/use-gsc-connection-toast";
 import type {
+  DismissSuggestionDialogProps,
   PromptSuggestionsProps,
+  PromptSuggestionsToolbarProps,
   SuggestionColumnsOptions,
   SuggestionRowActionsProps,
 } from "@/types/components/geo";
@@ -229,6 +231,135 @@ function suggestionColumns({
   ];
 }
 
+function gscConnectPromo(
+  isSearchConsolePending: boolean,
+  searchConsoleStatus: PromptSuggestionsToolbarProps["status"]
+): boolean {
+  return (
+    !isSearchConsolePending &&
+    searchConsoleStatus !== undefined &&
+    !searchConsoleStatus.connected
+  );
+}
+
+function showGscSuggestionsCard(
+  dismissed: boolean,
+  isSearchConsolePending: boolean,
+  searchConsoleStatus: PromptSuggestionsToolbarProps["status"],
+  connectPromo: boolean
+): boolean {
+  return !(
+    dismissed &&
+    (isSearchConsolePending || !searchConsoleStatus || connectPromo)
+  );
+}
+
+function PromptSuggestionsToolbar({
+  checking,
+  showSearchConsole,
+  trackAllPending,
+  suggestionsCount,
+  callbackPath,
+  isSearchConsolePending,
+  connectPromo,
+  onDismissCard,
+  onPropertyPickerOpenChange,
+  organizationId,
+  propertyPickerOpen,
+  status,
+  onTrackAll,
+}: PromptSuggestionsToolbarProps) {
+  const trackAllAction =
+    !checking && suggestionsCount > 1 ? (
+      <Button
+        disabled={trackAllPending}
+        onClick={onTrackAll}
+        size="sm"
+        variant="outline"
+      >
+        {trackAllPending ? (
+          <StatusSpinner />
+        ) : (
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
+        )}
+        {trackAllPending ? "Adding…" : "Track all"}
+      </Button>
+    ) : null;
+
+  if (showSearchConsole) {
+    return (
+      <SearchConsoleToolbar
+        action={trackAllAction}
+        callbackPath={callbackPath}
+        isPending={isSearchConsolePending}
+        onDismiss={connectPromo ? onDismissCard : undefined}
+        onPropertyPickerOpenChange={onPropertyPickerOpenChange}
+        organizationId={organizationId}
+        propertyPickerOpen={propertyPickerOpen}
+        status={status}
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0 space-y-1">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          {checking ? <StatusSpinner /> : null}
+          Suggested prompts
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Based on queries your site already ranks for
+        </p>
+      </div>
+      {trackAllAction}
+    </div>
+  );
+}
+
+function DismissSuggestionDialog({
+  suggestion,
+  onOpenChange,
+  onConfirm,
+}: DismissSuggestionDialogProps) {
+  return (
+    <ResponsiveAlertDialog
+      onOpenChange={onOpenChange}
+      open={suggestion !== null}
+    >
+      <ResponsiveAlertDialogContent className="sm:max-w-md">
+        <ResponsiveAlertDialogHeader>
+          <ResponsiveAlertDialogTitle>
+            Remove suggestion?
+          </ResponsiveAlertDialogTitle>
+          <ResponsiveAlertDialogDescription>
+            {suggestion
+              ? `"${suggestion.prompt}" won't be suggested again.`
+              : null}
+          </ResponsiveAlertDialogDescription>
+        </ResponsiveAlertDialogHeader>
+        <ResponsiveAlertDialogFooter>
+          <ResponsiveAlertDialogCancel onClick={() => onOpenChange(false)}>
+            Cancel
+          </ResponsiveAlertDialogCancel>
+          <ResponsiveAlertDialogAction
+            onClick={() => {
+              if (suggestion) {
+                onConfirm(suggestion.id);
+              }
+              onOpenChange(false);
+            }}
+            type="button"
+            variant="destructive"
+          >
+            Remove
+          </ResponsiveAlertDialogAction>
+        </ResponsiveAlertDialogFooter>
+      </ResponsiveAlertDialogContent>
+    </ResponsiveAlertDialog>
+  );
+}
+
 export function PromptSuggestions({
   organizationId,
   callbackPath,
@@ -265,13 +396,15 @@ export function PromptSuggestions({
   const suggestions = data?.suggestions ?? [];
   const hasSuggestions = suggestions.length > 0;
   const trackAllPending = isTrackAllQueued || acceptAll.isPending;
-  const connectPromo =
-    !isSearchConsolePending &&
-    searchConsoleStatus !== undefined &&
-    !searchConsoleStatus.connected;
-  const showSearchConsole = !(
-    dismissed &&
-    (isSearchConsolePending || !searchConsoleStatus || connectPromo)
+  const connectPromo = gscConnectPromo(
+    isSearchConsolePending,
+    searchConsoleStatus
+  );
+  const showSearchConsole = showGscSuggestionsCard(
+    dismissed,
+    isSearchConsolePending,
+    searchConsoleStatus,
+    connectPromo
   );
 
   const acceptAllSuggestions = async () => {
@@ -309,56 +442,29 @@ export function PromptSuggestions({
     return null;
   }
 
-  const trackAllAction =
-    !checking && suggestions.length > 1 ? (
-      <Button
-        disabled={trackAllPending}
-        onClick={acceptAllSuggestions}
-        size="sm"
-        variant="outline"
-      >
-        {trackAllPending ? (
-          <StatusSpinner />
-        ) : (
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
-        )}
-        {trackAllPending ? "Adding…" : "Track all"}
-      </Button>
-    ) : null;
-
-  const toolbar = showSearchConsole ? (
-    <SearchConsoleToolbar
-      action={trackAllAction}
-      callbackPath={callbackPath}
-      isPending={isSearchConsolePending}
-      onDismiss={connectPromo ? dismissCard : undefined}
-      onPropertyPickerOpenChange={setPropertyPickerOpen}
-      organizationId={organizationId}
-      propertyPickerOpen={propertyPickerOpen}
-      status={searchConsoleStatus}
-    />
-  ) : (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0 space-y-1">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-          {checking ? <StatusSpinner /> : null}
-          Suggested prompts
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Based on queries your site already ranks for
-        </p>
-      </div>
-      {trackAllAction}
-    </div>
-  );
-
   return (
     <section
       aria-busy={checking}
       aria-label="Suggested prompts"
       className="space-y-3"
     >
-      {toolbar}
+      <PromptSuggestionsToolbar
+        callbackPath={callbackPath}
+        checking={checking}
+        connectPromo={connectPromo}
+        isSearchConsolePending={isSearchConsolePending}
+        onDismissCard={dismissCard}
+        onPropertyPickerOpenChange={setPropertyPickerOpen}
+        onTrackAll={() => {
+          void acceptAllSuggestions();
+        }}
+        organizationId={organizationId}
+        propertyPickerOpen={propertyPickerOpen}
+        showSearchConsole={showSearchConsole}
+        status={searchConsoleStatus}
+        suggestionsCount={suggestions.length}
+        trackAllPending={trackAllPending}
+      />
       <Table
         className="rounded-2xl"
         columns={columns}
@@ -367,50 +473,19 @@ export function PromptSuggestions({
         emptyState="No Google Search suggestions yet"
         getRowId={(row) => row.id}
         height={tableHeightFor(Math.max(suggestions.length, checking ? 3 : 1))}
-        loading={checking && !hasSuggestions}
+        loading={checking}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
       />
-      <ResponsiveAlertDialog
+      <DismissSuggestionDialog
+        onConfirm={dismissPromptSuggestion}
         onOpenChange={(open) => {
           if (!open) {
             setConfirmDismiss(null);
           }
         }}
-        open={confirmDismiss !== null}
-      >
-        <ResponsiveAlertDialogContent className="sm:max-w-md">
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Remove suggestion?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {confirmDismiss
-                ? `"${confirmDismiss.prompt}" won't be suggested again.`
-                : null}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel
-              onClick={() => setConfirmDismiss(null)}
-            >
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              onClick={() => {
-                if (confirmDismiss) {
-                  dismissPromptSuggestion(confirmDismiss.id);
-                }
-                setConfirmDismiss(null);
-              }}
-              type="button"
-              variant="destructive"
-            >
-              Remove
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        suggestion={confirmDismiss}
+      />
     </section>
   );
 }

@@ -30,6 +30,40 @@ export function countEnabledGeoPrompts(
   return prompts.filter((prompt) => prompt.enabled).length;
 }
 
+export function geoOverviewQueriesEnabled(
+  organizationId: string,
+  isSettingsPending: boolean,
+  hasSettings: boolean
+): boolean {
+  return Boolean(organizationId) && !isSettingsPending && hasSettings;
+}
+
+export function geoOverviewTabEnabled(
+  queriesEnabled: boolean,
+  activeTab: GeoTab,
+  tab: GeoTab
+): boolean {
+  return queriesEnabled && activeTab === tab;
+}
+
+export function geoJourneysTabLoading(input: {
+  activeTab: GeoTab;
+  isJourneysPending: boolean;
+  isJourneyStatsPending: boolean;
+  isJourneysPlaceholder: boolean;
+  isJourneyStatsPlaceholder: boolean;
+}): boolean {
+  if (input.activeTab !== "journeys") {
+    return false;
+  }
+  return (
+    input.isJourneysPending ||
+    input.isJourneyStatsPending ||
+    input.isJourneysPlaceholder ||
+    input.isJourneyStatsPlaceholder
+  );
+}
+
 export function toGeoOverviewReadyPage(input: {
   organizationId: string;
   organizationSlug: string;

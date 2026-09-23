@@ -17,6 +17,7 @@ import type {
   GeoJourneyEvent,
   GeoJourneyPathKind,
 } from "@notra/geo-core/types/geo";
+import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 
 import type {
   GeoJourneyGroupSelection,
@@ -26,6 +27,7 @@ import type {
   GeoJourneyPathRow,
   GeoJourneySourceRow,
   GeoJourneyTreeNode,
+  SheetStat,
 } from "@/types/geo";
 
 const WWW_PREFIX = /^www\./;
@@ -454,6 +456,55 @@ export function formatJourneyDepth(pages: number, journeys: number): string {
 
 export function formatJourneyShare(count: number, total: number): string {
   return `${Math.round(shareOf(count, total) * 100)}%`;
+}
+
+export function journeyGroupSheetStats(input: {
+  sourceRow: GeoJourneySourceStats | undefined;
+  pageRow: GeoJourneyPageStats | undefined;
+  totalJourneys: number;
+}): SheetStat[] {
+  const row = input.sourceRow ?? input.pageRow;
+  const journeyStat: SheetStat = {
+    label: "Journeys",
+    value: row ? row.journeys.toLocaleString() : "—",
+    delta: row ? trafficVisitDelta(row.journeys, row.previousJourneys) : null,
+  };
+  if (input.sourceRow) {
+    return [
+      journeyStat,
+      {
+        label: "Avg. depth",
+        value: formatJourneyDepth(
+          input.sourceRow.pages,
+          input.sourceRow.journeys
+        ),
+      },
+      {
+        label: `Crawled ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ pages`,
+        value: formatJourneyShare(
+          input.sourceRow.deepCrawls,
+          input.sourceRow.journeys
+        ),
+      },
+    ];
+  }
+  if (input.pageRow) {
+    return [
+      journeyStat,
+      {
+        label: "Entry page",
+        value: formatJourneyShare(
+          input.pageRow.entries,
+          input.pageRow.journeys
+        ),
+      },
+      {
+        label: "Of all journeys",
+        value: formatJourneyShare(input.pageRow.journeys, input.totalJourneys),
+      },
+    ];
+  }
+  return [journeyStat];
 }
 
 export function journeyPageKindCounts(

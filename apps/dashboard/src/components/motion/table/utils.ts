@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { TableLoadingOverlay } from "@/types/table";
+
 import type { TableColumn, TableRow } from "./types";
 
 export const CHECKBOX_WIDTH = "3rem";
@@ -227,4 +229,26 @@ export function mergeHiddenColumnKeys(
     present.add(key);
   }
   return merged;
+}
+
+/** Dim existing rows, append skeletons for load-more, or fill an empty table. */
+export function tableLoadingOverlay(
+  loading: boolean,
+  rowCount: number,
+  loadingMoreProp: boolean | undefined,
+  hasEndReached: boolean
+): TableLoadingOverlay {
+  const hasRows = rowCount > 0;
+  const loadingMore = loading && hasRows && (loadingMoreProp ?? hasEndReached);
+  const dimRows = loading && hasRows && !loadingMore;
+  if (dimRows) {
+    return { loadingMore, dimRows, loadingState: "dimmed" };
+  }
+  if (loadingMore) {
+    return { loadingMore, dimRows, loadingState: "more" };
+  }
+  if (loading) {
+    return { loadingMore, dimRows, loadingState: "skeleton" };
+  }
+  return { loadingMore, dimRows, loadingState: undefined };
 }

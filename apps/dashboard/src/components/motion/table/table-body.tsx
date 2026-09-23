@@ -15,6 +15,7 @@ export function TableBody<T>({
   rowSizing,
   bodyHeight,
   loading,
+  loadingMore,
   skeletonRows,
   emptyState,
   selectable,
@@ -151,7 +152,7 @@ export function TableBody<T>({
           <td colSpan={colSpan} />
         </tr>
       ) : null}
-      {loading ? (
+      {loadingMore ? (
         <SkeletonRows
           columns={columns}
           count={skeletonRows}

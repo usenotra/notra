@@ -36,92 +36,29 @@ import {
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import type { GeoPageClientProps } from "@/types/geo";
+import type { GeoPageClientProps, TrafficPageViewProps } from "@/types/geo";
 import { trafficHostsFromPages } from "@/utils/ai-traffic-pages";
 import { withGeoProject } from "@/utils/geo-paths";
 import { geoSettingsPath } from "@/utils/settings-path";
 
 import { GeoTrafficSkeleton } from "./skeleton";
 
-export default function PageClient({ organizationSlug }: GeoPageClientProps) {
-  const { projectId } = useGeoProjectScope();
-  const { getOrganization, activeOrganization } = useOrganizationsContext();
-  const orgFromList = getOrganization(organizationSlug);
-  const organization =
-    activeOrganization?.slug === organizationSlug
-      ? activeOrganization
-      : orgFromList;
-  const organizationId = organization?.id ?? "";
-  const { domain: brandDomain } = useGeoActiveProject(organizationId);
-
-  const geoRange = useGeoRange();
-  const [hostQuery] = useGeoTrafficHostQuery();
-  const { data: settingsData, isPending: isSettingsPending } =
-    useGeoSettings(organizationId);
-  const { data: traffic, isPending: isTrafficPending } = useAiTraffic(
-    organizationId,
-    geoRange.query
-  );
-  const { data: ingestSetup, isPending: isIngestPending } =
-    useGeoIngestSetup(organizationId);
-  const inventoryPages = useGeoTrafficPages(organizationId, geoRange.query);
-  const { data: trafficPages, isPending: isPagesPending } = useGeoTrafficPages(
-    organizationId,
-    geoRange.query,
-    hostQuery
-  );
-  const knownHosts = unionTrafficHosts(
-    ingestAllowedHosts(brandDomain, settingsData?.settings?.domains),
-    trafficHostsFromPages(inventoryPages.data?.pages ?? [])
-  );
-
-  const settings = settingsData?.settings ?? null;
-  const sources = traffic?.sources ?? [];
-  const isEmptyTraffic = !isTrafficPending && sources.length === 0;
-  const showSkeleton = isTrafficPagePending({
-    isSettingsPending,
-    hasSettings: settings !== null,
-    isTrafficPending,
-    isEmptyTraffic,
-    isIngestPending,
-  });
-
-  const reduceMotion = useReducedMotion();
-  const [modulesVisible, setModulesVisible] = useState(false);
-  const ready = !showSkeleton;
-  const revealActive = ready && (Boolean(reduceMotion) || modulesVisible);
-
-  useEffect(() => {
-    if (!(ready && !reduceMotion)) {
-      return;
-    }
-    const timer = setTimeout(
-      () => setModulesVisible(true),
-      GEO_TRAFFIC_REVEAL_MS
-    );
-    return () => clearTimeout(timer);
-  }, [ready, reduceMotion]);
-
-  const viewedRef = useRef(false);
-  const hasSettings = settings !== null;
-  const rangePreset = geoRange.preset;
-
-  useEffect(() => {
-    if (viewedRef.current || !ready) {
-      return;
-    }
-    viewedRef.current = true;
-    trackEvent(POSTHOG_EVENTS.TRAFFIC_VIEWED, {
-      has_traffic: hasSettings && !isEmptyTraffic,
-      has_settings: hasSettings,
-      range: rangePreset,
-    });
-  }, [hasSettings, isEmptyTraffic, rangePreset, ready]);
-
-  if (showSkeleton) {
-    return <GeoTrafficSkeleton />;
-  }
-
+function TrafficPageView({
+  organizationId,
+  organizationSlug,
+  projectId,
+  settings,
+  isEmptyTraffic,
+  revealActive,
+  geoRange,
+  traffic,
+  isTrafficPending,
+  inventoryPages,
+  knownHosts,
+  isPagesPending,
+  trafficPages,
+  ingestSetup,
+}: TrafficPageViewProps) {
   if (!settings) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -182,7 +119,8 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
         <div className="flex flex-col gap-6">
           <InstrumentReveal active={revealActive} order={0}>
             <AiTrafficCard
-              pages={inventoryPages.data?.pages ?? []}
+              isPending={isTrafficPending}
+              pages={inventoryPages}
               settingsHref={withGeoProject(
                 geoSettingsPath(organizationSlug),
                 projectId
@@ -194,7 +132,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
             <TrafficPagesCard
               hosts={knownHosts}
               isPending={isPagesPending}
-              pages={trafficPages?.pages ?? []}
+              pages={trafficPages}
             />
           </InstrumentReveal>
           <InstrumentReveal active={revealActive} order={2}>
@@ -203,5 +141,105 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
         </div>
       </div>
     </PageContainer>
+  );
+}
+
+export default function PageClient({ organizationSlug }: GeoPageClientProps) {
+  const { projectId } = useGeoProjectScope();
+  const { getOrganization, activeOrganization } = useOrganizationsContext();
+  const orgFromList = getOrganization(organizationSlug);
+  const organization =
+    activeOrganization?.slug === organizationSlug
+      ? activeOrganization
+      : orgFromList;
+  const organizationId = organization?.id ?? "";
+  const { domain: brandDomain } = useGeoActiveProject(organizationId);
+
+  const geoRange = useGeoRange();
+  const [hostQuery] = useGeoTrafficHostQuery();
+  const { data: settingsData, isPending: isSettingsPending } =
+    useGeoSettings(organizationId);
+  const {
+    data: traffic,
+    isPending: isTrafficPending,
+    isPlaceholderData: isTrafficPlaceholder,
+  } = useAiTraffic(organizationId, geoRange.query);
+  const { data: ingestSetup, isPending: isIngestPending } =
+    useGeoIngestSetup(organizationId);
+  const inventoryPages = useGeoTrafficPages(organizationId, geoRange.query);
+  const {
+    data: trafficPages,
+    isPending: isPagesPending,
+    isPlaceholderData: isPagesPlaceholder,
+  } = useGeoTrafficPages(organizationId, geoRange.query, hostQuery);
+  const knownHosts = unionTrafficHosts(
+    ingestAllowedHosts(brandDomain, settingsData?.settings?.domains),
+    trafficHostsFromPages(inventoryPages.data?.pages ?? [])
+  );
+
+  const settings = settingsData?.settings ?? null;
+  const sources = traffic?.sources ?? [];
+  const isEmptyTraffic = !isTrafficPending && sources.length === 0;
+  const showSkeleton = isTrafficPagePending({
+    isSettingsPending,
+    hasSettings: settings !== null,
+    isTrafficPending,
+    isEmptyTraffic,
+    isIngestPending,
+  });
+
+  const reduceMotion = useReducedMotion();
+  const [modulesVisible, setModulesVisible] = useState(false);
+  const ready = !showSkeleton;
+  const revealActive = ready && (Boolean(reduceMotion) || modulesVisible);
+
+  useEffect(() => {
+    if (!(ready && !reduceMotion)) {
+      return;
+    }
+    const timer = setTimeout(
+      () => setModulesVisible(true),
+      GEO_TRAFFIC_REVEAL_MS
+    );
+    return () => clearTimeout(timer);
+  }, [ready, reduceMotion]);
+
+  const viewedRef = useRef(false);
+  const hasSettings = settings !== null;
+  const rangePreset = geoRange.preset;
+
+  useEffect(() => {
+    if (viewedRef.current || !ready) {
+      return;
+    }
+    viewedRef.current = true;
+    trackEvent(POSTHOG_EVENTS.TRAFFIC_VIEWED, {
+      has_traffic: hasSettings && !isEmptyTraffic,
+      has_settings: hasSettings,
+      range: rangePreset,
+    });
+  }, [hasSettings, isEmptyTraffic, rangePreset, ready]);
+
+  if (showSkeleton) {
+    return <GeoTrafficSkeleton />;
+  }
+
+  return (
+    <TrafficPageView
+      geoRange={geoRange}
+      ingestSetup={ingestSetup}
+      inventoryPages={inventoryPages.data?.pages ?? []}
+      isEmptyTraffic={isEmptyTraffic}
+      isPagesPending={isPagesPending || isPagesPlaceholder}
+      isTrafficPending={isTrafficPending || isTrafficPlaceholder}
+      knownHosts={knownHosts}
+      organizationId={organizationId}
+      organizationSlug={organizationSlug}
+      projectId={projectId}
+      revealActive={revealActive}
+      settings={settings}
+      traffic={traffic}
+      trafficPages={trafficPages?.pages ?? []}
+    />
   );
 }

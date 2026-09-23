@@ -100,7 +100,7 @@ export function JourneysTab({
     Math.min(GEO_JOURNEY_OVERVIEW_ROWS, Math.max(activeSources, pages.length))
   );
 
-  if (loading) {
+  if (loading && journeys.length === 0) {
     return <JourneysTabSkeleton />;
   }
 
@@ -110,6 +110,7 @@ export function JourneysTab({
         <InstrumentReveal active={revealActive} className="h-full" order={0}>
           <JourneyOverviewCard
             failed={journeyStatsFailed}
+            loading={loading}
             onOpenSource={(row) =>
               setGroup({
                 kind: "source",
@@ -124,6 +125,7 @@ export function JourneysTab({
         <InstrumentReveal active={revealActive} className="h-full" order={1}>
           <JourneyPathsCard
             failed={journeyStatsFailed}
+            loading={loading}
             onOpenPath={(row) => setGroup({ kind: "page", path: row.path })}
             pages={pages}
             previewRows={previewRows}
@@ -135,6 +137,7 @@ export function JourneysTab({
       <InstrumentReveal active={revealActive} order={2}>
         <JourneysCard
           journeys={journeys}
+          loading={loading}
           onOpenJourney={openJourney}
           onPrefetchJourney={prefetchJourney}
         />

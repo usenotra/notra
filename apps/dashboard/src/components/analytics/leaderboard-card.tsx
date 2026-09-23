@@ -57,7 +57,10 @@ export function LeaderboardCard({
   const router = useRouter();
   const range = useAnalyticsRange("leaderboardRange", "7d");
   const untrack = useUntrackAccount(organizationId);
-  const { data } = useLeaderboardRange(organizationId, range.range);
+  const { data, isPending, isPlaceholderData } = useLeaderboardRange(
+    organizationId,
+    range.range
+  );
 
   const [search, setSearch] = useQueryState(
     "account",
@@ -241,7 +244,7 @@ export function LeaderboardCard({
       action={<AnalyticsRangePicker control={range} />}
       eyebrow="Leaderboard"
     >
-      {entries.length === 0 ? (
+      {entries.length === 0 && !isPending ? (
         <InstrumentEmpty
           className="h-32"
           message="No accounts yet"
@@ -305,6 +308,7 @@ export function LeaderboardCard({
             emptyState="No accounts match these filters"
             getRowId={(row) => row.key}
             height={tableHeight}
+            loading={isPending || isPlaceholderData}
             onRowClick={(row) =>
               router.push(
                 `/${organizationSlug}/analytics/accounts/${encodeURIComponent(row.username)}`

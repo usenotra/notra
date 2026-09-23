@@ -1,5 +1,8 @@
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
-import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
+import type {
+  GeoScanResultSummary,
+  GeoScanRunSummary,
+} from "@notra/geo-core/types/geo-scan-history";
 import type { ReactNode } from "react";
 
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
@@ -94,4 +97,63 @@ export interface GeoScanTablePaginationProps {
   total: number;
   itemLabel: string;
   onOffsetChange: (offset: number) => void;
+}
+
+export interface GeoScanRunEmptyStateInput {
+  running: boolean;
+  isError: boolean;
+  hasData: boolean;
+  loading: boolean;
+  onRetry: () => void;
+}
+
+export interface GeoScanRunPendingTableProps {
+  pending: GeoScanPendingAnswer[];
+  showLanguage: boolean;
+  emptyState: ReactNode;
+  running: boolean;
+  offset: number;
+  onOffsetChange: (offset: number) => void;
+  total: number;
+  height: number;
+  loading: boolean;
+  toolbar: ReactNode;
+}
+
+export interface GeoScanRunAnswersTableProps {
+  results: GeoScanResultSummary[];
+  showLanguage: boolean;
+  emptyState: ReactNode;
+  offset: number;
+  onOffsetChange: (offset: number) => void;
+  total: number;
+  height: number;
+  loading: boolean;
+  toolbar: ReactNode;
+  onRowClick: (row: GeoScanResultSummary) => void;
+}
+
+export interface ScanRunDetailViewInput {
+  run: GeoScanRunSummary;
+  view: GeoScanRunView;
+  data: ReturnType<typeof useGeoScanRun>["data"];
+  isPending: boolean;
+  isPlaceholderData: boolean;
+  pendingOffset: number;
+}
+
+export interface ScanRunDetailView {
+  running: boolean;
+  pendingTotal: number;
+  pending: GeoScanPendingAnswer[];
+  results: GeoScanResultSummary[];
+  activeView: GeoScanRunView;
+  showLanguage: boolean;
+  loading: boolean;
+  hasFilters: boolean;
+  engines: readonly string[];
+  height: number;
+  pendingOffset: number;
+  total: number;
+  answerCount: number;
 }

@@ -210,7 +210,6 @@ function TrafficSourceSheetContent({
               Math.min(members.length, SHEET_TABLE_MAX_ROWS)
             )}
             rowHeight={TABLE_ROW_HEIGHT}
-            scrollFade
           />
         </section>
 
@@ -232,7 +231,6 @@ function TrafficSourceSheetContent({
               Math.min(topPages.length, SHEET_TABLE_MAX_ROWS)
             )}
             rowHeight={TABLE_ROW_HEIGHT}
-            scrollFade
           />
         </section>
       </div>

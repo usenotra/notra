@@ -13,6 +13,7 @@ import {
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
+import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,
   CollectionsViewProps,
@@ -148,6 +149,7 @@ export function CollectionsView({
   pagination,
   organizationSlug,
   view,
+  loading = false,
 }: CollectionsViewProps) {
   const router = useRouter();
   const columns: TableColumn<PostCollectionSummary>[] = [
@@ -172,7 +174,15 @@ export function CollectionsView({
 
   if (view === "grid") {
     return (
-      <div className="space-y-4">
+      <div
+        aria-busy={loading || undefined}
+        className={cn(
+          "space-y-4",
+          loading &&
+            "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
+        )}
+        inert={loading ? true : undefined}
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {collections.map((collection) => (
             <Link
@@ -226,6 +236,7 @@ export function CollectionsView({
         pagination.pageRowCount,
         COLLECTION_TABLE_ROW_HEIGHT
       )}
+      loading={loading}
       onRowClick={(collection) =>
         router.push(collectionHref(organizationSlug, collection))
       }

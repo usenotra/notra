@@ -3,6 +3,7 @@ import {
   GITHUB_MENTION_FILE_CONTENT_MAX_BYTES,
   GITHUB_MENTION_SUGGESTION,
 } from "@notra/ai/constants/github-mention";
+import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
 import type { PublicationRepairScheduler } from "@notra/ai/types/content-publication";
 import type {
   GitHubMentionContext,
@@ -125,8 +126,17 @@ export function buildGitHubMentionTools(params: {
 }): Record<string, Tool> {
   const { octokit, context, state } = params;
   const replyOnly = context.destination.mode === "reply_only";
+  const skillTools: Record<string, Tool> = {
+    listAvailableSkills: listAvailableSkills({
+      organizationId: context.organizationId,
+    }),
+    getSkillByName: getSkillByName({
+      organizationId: context.organizationId,
+    }),
+  };
 
   const readTools: Record<string, Tool> = {
+    ...skillTools,
     viewPublishedPost: tool({
       description:
         "Reads the Notra post linked to this pull request, or a post by id in this organization.",

@@ -305,6 +305,7 @@ export function ShelfTable({
       height={GEO_SHELF_TABLE_HEIGHT}
       isRowPinned={(row) => pendingSourceIds.has(row.id)}
       loading={isFetchingNextPage}
+      loadingMore={isFetchingNextPage}
       manualSort
       // The table only re-arms end-of-list after `loading` settles, so it must
       // not fire during a filter or refetch that `loadMore` would ignore.

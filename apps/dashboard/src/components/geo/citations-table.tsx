@@ -10,7 +10,6 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogEntry } from "@notra/geo-core/types/geo";
 import { formatTrafficLocation } from "@notra/geo-core/utils/geo-project-domains";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -233,7 +232,6 @@ export function CitationsTable({
   entries,
   height,
   loading = false,
-  pagination,
 }: CitationsTableProps) {
   return (
     <Table
@@ -241,17 +239,9 @@ export function CitationsTable({
       columns={CITATIONS_COLUMNS}
       data={entries}
       defaultSort={CITATIONS_DEFAULT_SORT}
-      footer={
-        pagination ? (
-          <TablePagination {...pagination} itemLabel="requests" />
-        ) : undefined
-      }
       getRowId={citationRowId}
       height={height}
       loading={loading}
-      onSortChange={pagination ? () => pagination.setPage(1) : undefined}
-      page={pagination?.page}
-      pageSize={pagination?.pageSize}
       resizable
       rowHeight={GEO_CITATIONS_ROW_HEIGHT}
     />

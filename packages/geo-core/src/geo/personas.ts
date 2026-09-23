@@ -484,6 +484,7 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
       executionId: runId,
       outputType: null,
       countTowardQuota: false,
+      allowPlanIncluded: true,
     })
     .pipe(
       Effect.mapError(

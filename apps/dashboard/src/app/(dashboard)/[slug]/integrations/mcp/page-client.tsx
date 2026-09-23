@@ -15,6 +15,7 @@ import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { AddMcpServerDialog } from "@/components/integrations/add-mcp-server-dialog";
 import { McpServerCard } from "@/components/integrations/mcp-server-card";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
@@ -127,20 +128,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">MCP Servers</h1>
-            <p className="text-muted-foreground">
-              Connect custom Model Context Protocol servers to bring your own
-              tools and context into Notra
-            </p>
-          </div>
+        <PageHeading
+          description="Connect custom Model Context Protocol servers to bring your own tools and context into Notra"
+          title="MCP Servers"
+        >
           <Button className="gap-1.5" onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
             Connect MCP Server
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
-        </div>
+        </PageHeading>
 
         <div>
           {showLoading ? <IntegrationsPageSkeleton /> : null}
@@ -169,7 +166,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           ) : null}
 
           {!showLoading && servers.length > 0 ? (
-            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {servers.map((server) => (
                 <McpServerCard
                   key={server.id}

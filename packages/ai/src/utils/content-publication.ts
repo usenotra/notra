@@ -8,7 +8,12 @@ import type {
 } from "@notra/ai/types/content-publication";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { db } from "@notra/db/drizzle";
-import { contentPublications, posts } from "@notra/db/schema";
+import {
+  contentPublications,
+  githubAppInstallations,
+  githubIntegrations,
+  posts,
+} from "@notra/db/schema";
 import { and, desc, eq, gt, ne, or, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 
@@ -339,6 +344,59 @@ export async function closeContentPublicationForPullRequest(params: {
   });
 }
 
+export async function findOpenContentPublicationByPullRequest(params: {
+  owner: string;
+  repo: string;
+  pullRequestNumber: number;
+  installationId: string;
+  githubRepositoryId: string;
+}): Promise<(ContentPublication & { organizationId: string }) | null> {
+  const [row] = await db
+    .select({ publication: contentPublications })
+    .from(contentPublications)
+    .innerJoin(
+      githubIntegrations,
+      eq(contentPublications.repositoryId, githubIntegrations.id)
+    )
+    .innerJoin(
+      githubAppInstallations,
+      eq(githubIntegrations.githubAppInstallationId, githubAppInstallations.id)
+    )
+    .where(
+      and(
+        eq(githubAppInstallations.installationId, params.installationId),
+        eq(githubAppInstallations.enabled, true),
+        eq(githubIntegrations.enabled, true),
+        eq(githubIntegrations.repositoryEnabled, true),
+        eq(githubIntegrations.githubRepositoryId, params.githubRepositoryId),
+        sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
+        sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
+        eq(contentPublications.pullRequestNumber, params.pullRequestNumber),
+        eq(contentPublications.status, "open")
+      )
+    )
+    .limit(1);
+  const publication = row?.publication;
+  if (!publication) {
+    return null;
+  }
+  const post = await db.query.posts.findFirst({
+    where: and(
+      eq(posts.id, publication.postId),
+      eq(posts.organizationId, publication.organizationId)
+    ),
+    columns: {
+      contentType: true,
+      title: true,
+      markdown: true,
+    },
+  });
+  return {
+    ...toPublication(publication, post),
+    organizationId: publication.organizationId,
+  };
+}
+
 export async function findContentPublicationForPullRequest(params: {
   organizationId: string;
   owner: string;
@@ -348,8 +406,8 @@ export async function findContentPublicationForPullRequest(params: {
   const publication = await db.query.contentPublications.findFirst({
     where: and(
       eq(contentPublications.organizationId, params.organizationId),
-      eq(contentPublications.owner, params.owner),
-      eq(contentPublications.repo, params.repo),
+      sql`lower(${contentPublications.owner}) = ${params.owner.toLowerCase()}`,
+      sql`lower(${contentPublications.repo}) = ${params.repo.toLowerCase()}`,
       eq(contentPublications.pullRequestNumber, params.pullRequestNumber),
       eq(contentPublications.status, "open")
     ),

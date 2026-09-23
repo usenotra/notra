@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import { loadGeoPageScope } from "@/lib/geo/page-scope.server";
 import type { GeoServerPageProps } from "@/types/geo-hydration";
-import { dehydrateContentListQueries } from "@/utils/content-prefetch.server";
+import { dehydrateContentListQueries } from "@/utils/dashboard-list-prefetch.server";
 
 import Loading from "./loading";
 import PageClient from "./page-client";
@@ -15,10 +15,15 @@ export const metadata: Metadata = {
 
 export const instant = true;
 
-function pageFromSearch(value: string | string[] | undefined): number {
-  const raw = Array.isArray(value) ? value[0] : value;
+function listPage(
+  search: Record<string, string | string[] | undefined>
+): number {
+  const raw = Array.isArray(search.page) ? search.page[0] : search.page;
   const page = Number(raw);
-  return Number.isInteger(page) && page > 0 ? page : 1;
+  if (!Number.isInteger(page) || page < 1) {
+    return 1;
+  }
+  return page;
 }
 
 async function PageContent({ params, searchParams }: GeoServerPageProps) {
@@ -30,12 +35,15 @@ async function PageContent({ params, searchParams }: GeoServerPageProps) {
       state={await dehydrateContentListQueries(
         scope.organizationId,
         scope.projectId,
-        pageFromSearch(scope.search.page),
+        listPage(scope.search),
         scope.requestHeaders,
         scope.membership
       )}
     >
-      <PageClient initialProjectId={scope.projectId} organizationSlug={slug} />
+      <PageClient
+        initialProjectId={scope.projectId ?? null}
+        organizationSlug={slug}
+      />
     </HydrationBoundary>
   );
 }

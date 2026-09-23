@@ -138,7 +138,10 @@ export function AgentFeedbackTable({
   onStatusChange,
   onDelete,
 }: AgentFeedbackTableProps) {
-  const rowCount = isPending ? FEEDBACK_SKELETON_ROW_COUNT : items.length;
+  const rowCount =
+    isPending && items.length === 0
+      ? FEEDBACK_SKELETON_ROW_COUNT
+      : items.length;
   const [tableRef, tableHeight] = useAvailableTableHeight(
     feedbackTableHeight(rowCount)
   );

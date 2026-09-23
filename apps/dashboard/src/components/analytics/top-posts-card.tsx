@@ -21,7 +21,7 @@ import {
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
 import { ANALYTICS_TOOLTIP_DELAY_MS } from "@/constants/analytics";
-import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { TABLE_ROW_HEIGHT, TABLE_SKELETON_ROWS } from "@/constants/table";
 import type { TopPostItem, TopPostsCardProps } from "@/types/analytics";
 import { formatMetric, previewPostContent } from "@/utils/analytics-charts";
 import { tableHeightFor } from "@/utils/table";
@@ -40,7 +40,11 @@ function PostAvatar({ post }: { post: TopPostItem }) {
   );
 }
 
-export function TopPostsCard({ posts, action }: TopPostsCardProps) {
+export function TopPostsCard({
+  posts,
+  action,
+  isPending = false,
+}: TopPostsCardProps) {
   const columns = useMemo<TableColumn<TopPostItem>[]>(
     () => [
       {
@@ -138,7 +142,7 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
       eyebrow="Top posts"
       variant="panel"
     >
-      {posts.length === 0 ? (
+      {posts.length === 0 && !isPending ? (
         <InstrumentEmpty
           className="h-40"
           message="No posts for this time frame"
@@ -152,7 +156,10 @@ export function TopPostsCard({ posts, action }: TopPostsCardProps) {
           defaultSort={{ key: "engagement", direction: "desc" }}
           emptyState="No posts for this time frame"
           getRowId={(row) => `${row.provider}:${row.platformPostId}`}
-          height={tableHeightFor(posts.length)}
+          height={tableHeightFor(
+            isPending ? TABLE_SKELETON_ROWS : posts.length
+          )}
+          loading={isPending}
           onRowClick={(row) => {
             if (row.url) {
               window.open(row.url, "_blank", "noopener,noreferrer");

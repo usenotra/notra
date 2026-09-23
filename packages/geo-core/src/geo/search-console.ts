@@ -111,7 +111,7 @@ const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
     }
     return {
       status: "completed",
-      keywords: outcome.topQueries.length,
+      keywords: outcome.fetchedQueries,
       suggestionsAdded,
     } satisfies GscSyncResult;
   }
@@ -293,7 +293,8 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
   if (keywords.length === 0) {
     return {
       suggestions: [],
-      topQueries: rows,
+      topQueries: [],
+      fetchedQueries: rows.length,
     };
   }
 
@@ -357,6 +358,7 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
 
   return {
     suggestions: values,
-    topQueries: rows,
+    topQueries: keywords,
+    fetchedQueries: rows.length,
   } satisfies GscSuggestionSyncOutcome;
 });

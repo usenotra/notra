@@ -20,4 +20,5 @@ export const INTEGRATIONS_WITH_CONNECT_DIALOG = new Set<string>([
   "linear",
   "granola",
   "slack",
+  "google-search-console",
 ]);

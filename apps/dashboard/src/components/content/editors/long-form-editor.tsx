@@ -4,6 +4,7 @@ import { supportsPostSlug } from "@notra/ai/schemas/post";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { ContentDetailSourceMetadata } from "@/components/content/content-detail-source-metadata";
+import { ContentEditorMediaInsert } from "@/components/content/editor/content-editor-media-insert";
 import { LexicalEditor } from "@/components/content/editor/lexical-editor";
 import { longFormEditorTheme } from "@/components/content/editor/long-form-editor-theme";
 import { formatArticleDate } from "@/utils/format";
@@ -61,31 +62,38 @@ export function LongFormEditor({
 
   return (
     <div className="w-full">
-      <textarea
-        aria-label="Post title"
-        className="placeholder:text-muted-foreground/40 block h-auto min-h-0 w-full resize-none overflow-hidden bg-transparent p-0 text-2xl leading-tight font-semibold tracking-tight outline-none md:text-3xl"
-        onChange={(e) => actions.setEditingTitle(e.target.value)}
-        onFocus={(e) => {
-          if (state.editingTitle === null) {
-            actions.setEditingTitle(e.target.value);
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            titleInputRef.current?.blur();
-          }
-          if (e.key === "Escape") {
-            actions.setEditingTitle(null);
-            titleInputRef.current?.blur();
-          }
-        }}
-        placeholder="Untitled"
-        readOnly={readOnly}
-        ref={titleInputRef}
-        rows={1}
-        value={title}
-      />
+      <div className="flex items-start gap-2 text-2xl leading-tight md:text-3xl">
+        <textarea
+          aria-label="Post title"
+          className="placeholder:text-muted-foreground/40 block h-auto min-h-0 min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 font-semibold tracking-tight outline-none"
+          onChange={(e) => actions.setEditingTitle(e.target.value)}
+          onFocus={(e) => {
+            if (state.editingTitle === null) {
+              actions.setEditingTitle(e.target.value);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              titleInputRef.current?.blur();
+            }
+            if (e.key === "Escape") {
+              actions.setEditingTitle(null);
+              titleInputRef.current?.blur();
+            }
+          }}
+          placeholder="Untitled"
+          readOnly={readOnly}
+          ref={titleInputRef}
+          rows={1}
+          value={title}
+        />
+        {readOnly ? null : (
+          <div className="flex h-[1.25em] shrink-0 items-center">
+            <ContentEditorMediaInsert editorRef={editorRef} />
+          </div>
+        )}
+      </div>
       <div className="text-muted-foreground mt-4 space-y-2 text-sm">
         {showSlug ? (
           <div className="text-muted-foreground flex min-w-0 flex-1 items-start gap-1 font-mono text-xs">

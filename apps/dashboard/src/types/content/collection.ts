@@ -26,7 +26,8 @@ export interface CollectionDetailPageClientProps {
 
 export interface ContentListPageClientProps {
   organizationSlug: string;
-  initialProjectId?: string;
+  /** Project the server prefetch used. Null when the organization has none. */
+  initialProjectId: string | null;
 }
 
 export interface GroupTypeIconProps {
@@ -47,6 +48,7 @@ export interface CollectionsViewProps {
   pagination: TablePaginationState;
   organizationSlug: string;
   view: ContentCollectionView;
+  loading?: boolean;
 }
 
 export type CollectionsSkeletonProps = Partial<

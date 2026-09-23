@@ -10,8 +10,7 @@ import type {
 export function sentimentAnalysisKey(
   organizationId: string,
   projectId: string | null,
-  from: string,
-  to: string
+  ...parts: string[]
 ) {
   return `geo:sentiment:analysis:${createHash("sha256")
     .update(
@@ -19,11 +18,40 @@ export function sentimentAnalysisKey(
         SENTIMENT_ANALYSIS_MODEL,
         organizationId,
         projectId,
-        from,
-        to,
+        ...parts,
       ])
     )
     .digest("hex")}`;
+}
+
+function shiftIsoDate(day: string, deltaDays: number) {
+  return new Date(Date.parse(`${day}T00:00:00Z`) + deltaDays * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/** Stable project key, then date-scoped keys from before the window left the cache identity. */
+export function sentimentAnalysisLookupKeys(
+  organizationId: string,
+  projectId: string | null,
+  from: string,
+  to: string,
+  rolling: { from: boolean; to: boolean }
+): [string, ...string[]] {
+  // A pinned `from` stays put when `to` rolls. A derived `from` only moves with `to`.
+  // ponytail: 8 days matches the Redis TTL. Drop the date walk once those keys have expired.
+  const shiftFrom = rolling.from && rolling.to;
+  return [
+    sentimentAnalysisKey(organizationId, projectId),
+    ...Array.from({ length: 8 }, (_, day) =>
+      sentimentAnalysisKey(
+        organizationId,
+        projectId,
+        shiftIsoDate(from, shiftFrom ? -day : 0),
+        shiftIsoDate(to, rolling.to ? -day : 0)
+      )
+    ),
+  ];
 }
 
 function compactSentimentQuote(value: string) {

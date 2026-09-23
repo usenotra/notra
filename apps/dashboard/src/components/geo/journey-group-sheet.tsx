@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  GEO_JOURNEY_DEEP_CRAWL_PAGES,
   GEO_JOURNEY_RECENT_LIMIT,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
@@ -9,7 +8,6 @@ import type { GeoJourney } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoSource,
-  trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -32,15 +30,15 @@ import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   GeoJourneyPathRow,
   GeoJourneySourceRow,
+  JourneyGroupBreakdownProps,
   JourneyGroupContentProps,
+  JourneyGroupHeadingProps,
   JourneyGroupSectionTitleProps,
   JourneyGroupSheetProps,
-  SheetStat,
 } from "@/types/geo";
 import {
   buildJourneyOverview,
-  formatJourneyDepth,
-  formatJourneyShare,
+  journeyGroupSheetStats,
   journeySeries,
   journeysForGroup,
   journeyTotals,
@@ -164,6 +162,79 @@ function journeyColumns(showSource: boolean): TableColumn<GeoJourney>[] {
   return columns;
 }
 
+function JourneyGroupHeading({
+  selection,
+  lastSeen,
+}: JourneyGroupHeadingProps) {
+  return (
+    <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
+      <SheetTitle className="flex min-w-0 items-center gap-2 text-base leading-snug">
+        {selection.kind === "source" ? (
+          <>
+            <EngineIcon className="size-4" engine={selection.source} />
+            <span className="min-w-0 truncate">
+              {formatGeoSource(selection.source)}
+            </span>
+            <Badge variant="secondary">
+              {selection.visitorType === "crawler" ? "Crawler" : "AI referral"}
+            </Badge>
+          </>
+        ) : (
+          <span className="min-w-0 truncate font-mono text-sm">
+            {selection.path}
+          </span>
+        )}
+      </SheetTitle>
+      <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+        <span>
+          {lastSeen
+            ? `Last seen ${formatAiTrafficTimestamp(lastSeen)}`
+            : "No journeys in this range"}
+        </span>
+      </SheetDescription>
+    </SheetHeader>
+  );
+}
+
+function JourneyGroupBreakdown({
+  isSource,
+  sampleMeta,
+  overview,
+}: JourneyGroupBreakdownProps) {
+  if (isSource) {
+    return (
+      <section className="space-y-3">
+        <SectionTitle meta={sampleMeta} title="Pages fetched" />
+        <Table
+          className="rounded-2xl"
+          columns={PAGE_COLUMNS}
+          data={overview.paths}
+          getRowId={(row) => row.path}
+          height={tableHeightFor(
+            Math.min(overview.paths.length, GROUP_TABLE_MAX_ROWS)
+          )}
+          rowHeight={TABLE_ROW_HEIGHT}
+        />
+      </section>
+    );
+  }
+  return (
+    <section className="space-y-3">
+      <SectionTitle meta={sampleMeta} title="Sources" />
+      <Table
+        className="rounded-2xl"
+        columns={SOURCE_COLUMNS}
+        data={overview.sources}
+        getRowId={(row) => `${row.source}-${row.visitorType}`}
+        height={tableHeightFor(
+          Math.min(overview.sources.length, GROUP_TABLE_MAX_ROWS)
+        )}
+        rowHeight={TABLE_ROW_HEIGHT}
+      />
+    </section>
+  );
+}
+
 function JourneyGroupContent({
   selection,
   journeys: allJourneys,
@@ -201,103 +272,15 @@ function JourneyGroupContent({
   const sampleMeta = sampled
     ? `From the latest ${allJourneys.length.toLocaleString()} journeys`
     : undefined;
-
-  const journeyStat = {
-    label: "Journeys",
-    value: row ? row.journeys.toLocaleString() : "—",
-    delta: row ? trafficVisitDelta(row.journeys, row.previousJourneys) : null,
-  };
-  let stats: SheetStat[];
-  if (sourceRow) {
-    stats = [
-      journeyStat,
-      {
-        label: "Avg. depth",
-        value: formatJourneyDepth(sourceRow.pages, sourceRow.journeys),
-      },
-      {
-        label: `Crawled ${GEO_JOURNEY_DEEP_CRAWL_PAGES}+ pages`,
-        value: formatJourneyShare(sourceRow.deepCrawls, sourceRow.journeys),
-      },
-    ];
-  } else if (pageRow) {
-    stats = [
-      journeyStat,
-      {
-        label: "Entry page",
-        value: formatJourneyShare(pageRow.entries, pageRow.journeys),
-      },
-      {
-        label: "Of all journeys",
-        value: formatJourneyShare(pageRow.journeys, totalJourneys),
-      },
-    ];
-  } else {
-    stats = [journeyStat];
-  }
-
-  const breakdown = isSource ? (
-    <section className="space-y-3">
-      <SectionTitle meta={sampleMeta} title="Pages fetched" />
-      <Table
-        className="rounded-2xl"
-        columns={PAGE_COLUMNS}
-        data={overview.paths}
-        getRowId={(row) => row.path}
-        height={tableHeightFor(
-          Math.min(overview.paths.length, GROUP_TABLE_MAX_ROWS)
-        )}
-        rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
-      />
-    </section>
-  ) : (
-    <section className="space-y-3">
-      <SectionTitle meta={sampleMeta} title="Sources" />
-      <Table
-        className="rounded-2xl"
-        columns={SOURCE_COLUMNS}
-        data={overview.sources}
-        getRowId={(row) => `${row.source}-${row.visitorType}`}
-        height={tableHeightFor(
-          Math.min(overview.sources.length, GROUP_TABLE_MAX_ROWS)
-        )}
-        rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
-      />
-    </section>
-  );
+  const stats = journeyGroupSheetStats({
+    sourceRow,
+    pageRow,
+    totalJourneys,
+  });
 
   return (
     <>
-      <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
-        <SheetTitle className="flex min-w-0 items-center gap-2 text-base leading-snug">
-          {selection.kind === "source" ? (
-            <>
-              <EngineIcon className="size-4" engine={selection.source} />
-              <span className="min-w-0 truncate">
-                {formatGeoSource(selection.source)}
-              </span>
-              <Badge variant="secondary">
-                {selection.visitorType === "crawler"
-                  ? "Crawler"
-                  : "AI referral"}
-              </Badge>
-            </>
-          ) : (
-            <span className="min-w-0 truncate font-mono text-sm">
-              {selection.path}
-            </span>
-          )}
-        </SheetTitle>
-        <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <span>
-            {lastSeen
-              ? `Last seen ${formatAiTrafficTimestamp(lastSeen)}`
-              : "No journeys in this range"}
-          </span>
-        </SheetDescription>
-      </SheetHeader>
+      <JourneyGroupHeading lastSeen={lastSeen} selection={selection} />
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
         <SheetStatGrid stats={stats} />
@@ -309,7 +292,11 @@ function JourneyGroupContent({
           </section>
         ) : null}
 
-        {breakdown}
+        <JourneyGroupBreakdown
+          isSource={isSource}
+          overview={overview}
+          sampleMeta={sampleMeta}
+        />
 
         <section className="space-y-3">
           <SectionTitle meta={sampleMeta} title="Recent journeys" />
@@ -325,7 +312,6 @@ function JourneyGroupContent({
             onRowClick={onOpenJourney}
             onRowPointerEnter={onPrefetchJourney}
             rowHeight={TABLE_ROW_HEIGHT}
-            scrollFade
           />
         </section>
       </div>

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type {
+  TableBodySurfaceProps,
   TableFooterSurfaceProps,
   TableHeaderSurfaceProps,
   TableScrollFadeProps,
@@ -39,6 +40,38 @@ export function TableScrollFade({ scrollFade, atEnd }: TableScrollFadeProps) {
         atEnd ? "opacity-0" : "opacity-100"
       )}
     />
+  );
+}
+
+export function TableBodySurface({
+  isEmpty,
+  overflowClass,
+  flushBottom,
+  hasFooter,
+  dimRows,
+  loadingState,
+  onScroll,
+  scrollRef,
+  style,
+  children,
+}: TableBodySurfaceProps) {
+  return (
+    <div
+      className={cn(
+        "scrollbar-floating border-border bg-background relative -mt-5 box-content rounded-2xl border outline-none",
+        isEmpty ? "overflow-hidden" : overflowClass,
+        flushBottom && !hasFooter && "rounded-b-none border-b-0",
+        dimRows &&
+          "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
+      )}
+      data-loading={loadingState}
+      inert={dimRows ? true : undefined}
+      onScroll={onScroll}
+      ref={scrollRef}
+      style={style}
+    >
+      {children}
+    </div>
   );
 }
 

@@ -7,10 +7,8 @@ import {
   ArrowUp02Icon,
   AtIcon,
   File02Icon,
-  PlusSignIcon,
   StopIcon,
   Tick02Icon,
-  Upload04Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FEATURES } from "@notra/ai/billing/features";
@@ -77,7 +75,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { Composer } from "@/components/composer/composer-shell";
@@ -114,6 +111,10 @@ import {
 } from "@/utils/integration-reference";
 
 import { AttachmentPreviewDialog } from "./attachment-preview";
+import {
+  ChatComposerAttachButton,
+  ChatComposerDropOverlay,
+} from "./chat-composer-attachments";
 import { ChatContextConnectSuggestions } from "./chat-context-connect-suggestions";
 import { ChatContextOptionContent } from "./chat-context-option-content";
 import type { QueuedMessage } from "./chat-queue";
@@ -460,41 +461,6 @@ function getComposerNudgeVisibility({
   );
 }
 
-function ChatComposerAttachButton({
-  attachmentCount,
-  disabled,
-  fileInputRef,
-  pendingUploadCount,
-  tooltip,
-}: {
-  attachmentCount: number;
-  disabled: boolean;
-  fileInputRef: RefObject<HTMLInputElement | null>;
-  pendingUploadCount: number;
-  tooltip: string;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Composer.ToolbarButton
-            aria-label="Attach files"
-            className="size-7 justify-center px-0"
-            disabled={
-              disabled ||
-              attachmentCount + pendingUploadCount >= MAX_CHAT_ATTACHMENTS
-            }
-            onClick={() => fileInputRef.current?.click()}
-          />
-        }
-      >
-        <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-      </TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 function ContextChipIcon({ item }: { item: ContextItem }) {
   if (item.type === "github-repo") {
     return <Github className="size-3.5 shrink-0" />;
@@ -508,45 +474,6 @@ function ContextChipIcon({ item }: { item: ContextItem }) {
 interface PendingUploadItem {
   id: string;
   filename: string;
-}
-
-function ChatComposerDropOverlay({
-  acceptedFileTypesLabel,
-}: {
-  acceptedFileTypesLabel: string;
-}) {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      aria-hidden="true"
-      className="fade-in-0 animate-in bg-background/75 duration-fast pointer-events-none fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
-    >
-      <div className="flex flex-col items-center gap-5">
-        <HugeiconsIcon
-          className="text-foreground size-14"
-          icon={Upload04Icon}
-          strokeWidth={1.5}
-        />
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-foreground text-2xl font-semibold tracking-tight">
-            Add Attachment
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Drop a file here to attach it to your message
-          </p>
-          {acceptedFileTypesLabel ? (
-            <p className="text-muted-foreground/70 text-xs">
-              Accepted file types: {acceptedFileTypesLabel}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
 }
 
 function ChatMentionMenu({
@@ -1651,7 +1578,7 @@ export function ChatInputAdvanced({
     const result: Array<GitHubRepository & { integrationId: string }> = [];
     for (const integration of integrationsData?.integrations ?? []) {
       for (const repo of integration.repositories) {
-        if (repo.enabled) {
+        if (integration.enabled && repo.enabled) {
           result.push({ ...repo, integrationId: integration.id });
         }
       }
@@ -2506,7 +2433,7 @@ export function ChatInputAdvanced({
               <ChatComposerAttachButton
                 attachmentCount={attachments.length}
                 disabled={isLoading || isQueued}
-                fileInputRef={fileInputRef}
+                onAttach={() => fileInputRef.current?.click()}
                 pendingUploadCount={pendingUploads.length}
                 tooltip={attachmentTooltipText}
               />
