@@ -33,6 +33,7 @@ export const listSuggestions = Effect.fn("geo.suggestions.list")(function* (
     suggestions: rows.map((row) => ({
       id: row.id,
       prompt: row.prompt,
+      title: row.title,
       source: row.source,
       keywords: row.sourceKeywords,
       createdAt: row.createdAt.toISOString(),

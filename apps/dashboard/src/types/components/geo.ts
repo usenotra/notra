@@ -102,6 +102,19 @@ export interface DismissSuggestionDialogProps {
   onConfirm: (suggestionId: string) => void;
 }
 
+export interface PromptSuggestionSheetProps {
+  suggestion: GeoPromptSuggestion | null;
+  actions?: ReactNode;
+  onOpenChange: (open: boolean) => void;
+}
+
+export interface SuggestionKeywordTotals {
+  impressions: number;
+  clicks: number;
+  position: number | null;
+  ctr: number | null;
+}
+
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;

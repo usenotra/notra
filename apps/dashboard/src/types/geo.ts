@@ -1622,6 +1622,7 @@ export interface GeoPromptSuggestionRow {
 export interface GeoPromptSuggestion {
   id: string;
   prompt: string;
+  title: string | null;
   source: "search_console";
   keywords: GeoSuggestionKeyword[];
   createdAt: string;
