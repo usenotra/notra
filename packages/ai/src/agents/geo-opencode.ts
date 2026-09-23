@@ -182,10 +182,12 @@ async function runGeoOpenCodePrompt(
     if (!text) {
       throw new BoxError("Box agent returned no result");
     }
-    collectSources(text);
     return {
       text,
-      sources: [...sourceUrls].map((url) => ({ url, title: null })),
+      sources: extractHttpUrls(text)
+        .slice(0, GEO_OPENCODE_SOURCE_LIMIT)
+        .map((url) => ({ url, title: null })),
+      groundingSources: [...sourceUrls].map((url) => ({ url, title: null })),
       toolCalls,
       usage: geoBoxTokenUsage(stream.cost, model),
     };

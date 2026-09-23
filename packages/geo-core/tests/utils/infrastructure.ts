@@ -1,5 +1,9 @@
 import { mock } from "bun:test";
 
+import type {
+  askGeoOpenCode,
+  askGeoOpenCodeConversation,
+} from "@notra/ai/agents/geo-opencode";
 import { Effect } from "effect";
 
 import { seedGeoModelCatalog } from "../../src/utils/geo-model-catalog";
@@ -24,11 +28,15 @@ mock.module("@notra/ai/utils/geo-opencode-box", () => ({
 mock.module("../../src/geo/model-catalog", () => ({
   loadGeoModelCatalog: () => Effect.succeed(seedGeoModelCatalog()),
 }));
+export const mockAskGeoOpenCode = mock<typeof askGeoOpenCode>(() => {
+  throw new Error("Unexpected OpenCode request");
+});
+export const mockAskGeoOpenCodeConversation = mock<
+  typeof askGeoOpenCodeConversation
+>(() => {
+  throw new Error("Unexpected OpenCode conversation");
+});
 mock.module("@notra/ai/agents/geo-opencode", () => ({
-  askGeoOpenCode: () => {
-    throw new Error("Unexpected OpenCode request");
-  },
-  askGeoOpenCodeConversation: () => {
-    throw new Error("Unexpected OpenCode conversation");
-  },
+  askGeoOpenCode: mockAskGeoOpenCode,
+  askGeoOpenCodeConversation: mockAskGeoOpenCodeConversation,
 }));

@@ -274,7 +274,10 @@ const askOpenCodeEngineEffect = Effect.fn("geo.askOpenCodeEngine")(function* (
   );
   const answer: GeoEngineAnswer = {
     text: result.text,
-    grounding: extractGrounding(result),
+    grounding: extractGrounding({
+      ...result,
+      sources: [...result.groundingSources, ...result.sources],
+    }),
     sources: result.sources,
     finishReason: "stop",
     usage: result.usage,
@@ -1818,7 +1821,10 @@ const runGeoOpenCodeSequenceCheck = Effect.fn("geo.runOpenCodeSequenceCheck")(
       }
       const answer: GeoEngineAnswer = {
         text: result.text,
-        grounding: extractGrounding(result),
+        grounding: extractGrounding({
+          ...result,
+          sources: [...result.groundingSources, ...result.sources],
+        }),
         sources: result.sources,
         finishReason: "stop",
         usage: result.usage,
