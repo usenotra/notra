@@ -69,7 +69,7 @@ The remaining six, in one block:
 - Human review step. You want a draft you edit, not an autopublish button. Nobody should ship release notes nobody read.
 - Approval workflow. Who signs off before a post goes public, and can the tool enforce it?
 - Data handling. Before you connect a source code repository, ask for a published subprocessor list and privacy terms. Notra publishes both, including a [subprocessor list](https://www.usenotra.com/subprocessors). Also ask about log retention and whether zero data retention is available.
-- Pricing model. Is it seats, generations, or usage? Notra prices by plan: Starter at $1,000 per year, Growth at $2,500, Scale at $5,500, and Enterprise custom. Full breakdown on [Notra pricing](https://www.usenotra.com/pricing).
+- Pricing model. Is it seats, generations, or usage? Notra prices by plan: Starter at $1,000/year, Growth at $2,500/year, Scale at $5,500/year. Full breakdown on [Notra pricing](https://www.usenotra.com/pricing).
 - Publishing destinations. Where does the finished draft go? Blog, changelog, X, LinkedIn, or an API your own pipeline calls.
 
 Add these to the first four and you have your ten.
@@ -124,7 +124,7 @@ Ask for a published subprocessor list and privacy terms, not a verbal assurance.
 
 ### How much does Notra cost?
 
-Notra pricing is listed on the pricing page.
+Notra pricing is listed on the pricing page: Starter at $1,000/year, Growth at $2,500/year, and Scale at $5,500/year.
 
 ### Do I still need a human to review AI-generated changelogs?
 
