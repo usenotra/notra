@@ -57,7 +57,7 @@ export function resolveChatToolBlockVisuals({
   const hasApprovalActions = Boolean(
     isAwaitingApproval && (onApprove || onDeny) && !showDraftPreview
   );
-  const showJsonInput = hasInput && !showDraftPreview;
+  const showJsonInput = hasInput && !showDraftPreview && !documentDiff;
   const showJsonOutput = hasOutput && !chart && !documentDiff;
   const showJsonDetails = showJsonInput || showJsonOutput;
 
