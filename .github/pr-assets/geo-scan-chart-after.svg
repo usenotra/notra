@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="320" viewBox="0 0 680 320" role="img" aria-label="Illustrative GEO visibility chart after: September 21 is omitted because no scan ran">
+  <rect width="680" height="320" rx="16" fill="#101827"/>
+  <text x="32" y="42" fill="#f8fafc" font-family="sans-serif" font-size="18" font-weight="600">GEO visibility · after</text>
+  <text x="32" y="66" fill="#9ca9bc" font-family="sans-serif" font-size="12">Illustrative data · no scan on Sep 21</text>
+  <path d="M72 92V246H632" fill="none" stroke="#475569" stroke-width="1"/>
+  <path d="M72 128H632M72 190H632" stroke="#334155" stroke-width="1" stroke-dasharray="4 6"/>
+  <path d="M128 132L576 117" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="132" r="6" fill="#34d399"/>
+  <circle cx="576" cy="117" r="6" fill="#34d399"/>
+  <text x="96" y="277" fill="#b8c4d4" font-family="sans-serif" font-size="13">Sep 20</text>
+  <text x="544" y="277" fill="#b8c4d4" font-family="sans-serif" font-size="13">Sep 22</text>
+  <text x="236" y="303" fill="#34d399" font-family="sans-serif" font-size="12">Unscanned day omitted</text>
+</svg>
