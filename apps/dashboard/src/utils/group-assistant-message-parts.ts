@@ -114,8 +114,6 @@ export function isAssistantActivityForceOpen(
   items: AssistantPartRef[]
 ): boolean {
   return items.some(
-    ({ part }) =>
-      isToolUIPart(part) &&
-      (part.state === "approval-requested" || part.state === "output-error")
+    ({ part }) => isToolUIPart(part) && part.state === "output-error"
   );
 }

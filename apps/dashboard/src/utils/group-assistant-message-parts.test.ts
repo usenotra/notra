@@ -163,7 +163,7 @@ describe("stackAssistantActivityItems", () => {
     expect(stacked[1].items).toHaveLength(2);
   });
 
-  test("keeps failed and approval-gated searches as tool parts", () => {
+  test("keeps failed searches as tool parts", () => {
     const failedSearch = {
       type: "tool-webSearch" as const,
       toolCallId: "webSearch-err",
@@ -171,24 +171,12 @@ describe("stackAssistantActivityItems", () => {
       input: { query: "sanctions" },
       errorText: "Connection timed out",
     };
-    const approvalSearch = {
-      type: "tool-webSearch" as const,
-      toolCallId: "webSearch-approval",
-      state: "approval-requested" as const,
-      input: { query: "sanctions" },
-      approval: { id: "approval-1" },
-    };
     const stacked = stackAssistantActivityItems([
       { part: failedSearch, index: 0 },
       { part: tool("webSearch"), index: 1 },
-      { part: approvalSearch, index: 2 },
     ]);
 
-    expect(stacked.map((item) => item.kind)).toEqual([
-      "part",
-      "searches",
-      "part",
-    ]);
+    expect(stacked.map((item) => item.kind)).toEqual(["part", "searches"]);
   });
 });
 
@@ -201,7 +189,7 @@ describe("isAssistantActivityStreaming", () => {
 });
 
 describe("isAssistantActivityForceOpen", () => {
-  test("pins the group open for failed tools and approvals", () => {
+  test("pins the group open for failed tools", () => {
     expect(
       isAssistantActivityForceOpen([
         {

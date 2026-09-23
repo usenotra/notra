@@ -98,12 +98,8 @@ export async function createLazyMcpRuntime({
   ]);
 
   const tools: Record<string, Tool> = sharedTools ?? {};
-  const approvalToolNames = new Set<string>();
 
   const ensureRuntimeTool = (indexedTool: IndexedMcpTool) => {
-    if (shouldRequireApproval(indexedTool.annotations)) {
-      approvalToolNames.add(indexedTool.runtimeToolName);
-    }
     tools[indexedTool.runtimeToolName] ??= createRuntimeMcpTool({
       organizationId,
       sessionId,
@@ -301,7 +297,6 @@ export async function createLazyMcpRuntime({
     prepareStep: async () => ({
       activeTools: Array.from(activeToolNames),
     }),
-    requiresApproval: (toolName) => approvalToolNames.has(toolName),
     descriptions: [
       LAZY_MCP_DESCRIPTION,
       ...formatActiveToolDescriptions(activatedTools),
@@ -631,13 +626,6 @@ function summarizeJsonSchema(schema: unknown) {
   }
 
   return `Input parameters: ${names.slice(0, 12).join(", ")}${names.length > 12 ? ", ..." : ""}`;
-}
-
-function shouldRequireApproval(annotations: unknown) {
-  if (typeof annotations !== "object" || annotations === null) {
-    return true;
-  }
-  return (annotations as { readOnlyHint?: unknown }).readOnlyHint !== true;
 }
 
 function isLikelySchemaOrUnknownToolError(message: string) {

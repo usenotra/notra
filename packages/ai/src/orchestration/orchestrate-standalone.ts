@@ -44,7 +44,6 @@ import {
   buildStandaloneToolSet,
   getLinearContextFromIntegrations,
   getRepoContextFromIntegrations,
-  getStandaloneApprovalToolNames,
 } from "./standalone-tool-registry";
 import { getThinkingProviderOptions } from "./thinking";
 
@@ -154,7 +153,6 @@ export async function orchestrateStandaloneChat(
     withToolErrorPayloads(baseToolSet.tools)
   );
   const notraToolNames = Object.keys(tools);
-  const approvalToolNames = getStandaloneApprovalToolNames();
 
   const lazyMcpRuntime =
     !chatId || !hasMcp
@@ -257,11 +255,6 @@ export async function orchestrateStandaloneChat(
     prepareStep: async (options) => ({
       activeTools: await getActiveToolNames(options),
     }),
-    toolApproval: ({ toolCall }) =>
-      approvalToolNames.has(toolCall.toolName) ||
-      lazyMcpRuntime?.requiresApproval(toolCall.toolName)
-        ? "user-approval"
-        : undefined,
     stopWhen: isStepCount(maxSteps),
     experimental_transform: smoothStream(),
     // Without this, a tool call whose inputs fail schema validation throws an

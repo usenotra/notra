@@ -83,7 +83,7 @@ export function isStackableSearchPart(part: AssistantMessagePart): boolean {
   if (!isSearchToolPart(part) || !isToolUIPart(part)) {
     return false;
   }
-  return part.state !== "output-error" && part.state !== "approval-requested";
+  return part.state !== "output-error";
 }
 
 export function getSearchQuery(input: unknown): string | undefined {
