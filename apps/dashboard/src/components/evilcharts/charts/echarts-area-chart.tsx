@@ -1924,6 +1924,7 @@ type LiveState = {
   scrubTarget: number;
   scrubRaf: number;
   scrubValues: Record<string, (number | null)[]>;
+  scrubDotKeys: string[];
   paintScrub: () => void;
   // Latest callbacks/flags for the imperative ECharts event handlers.
   handlers: {
@@ -2011,6 +2012,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     scrubTarget: 0,
     scrubRaf: 0,
     scrubValues: {},
+    scrubDotKeys: [],
     paintScrub: () => {},
     handlers: {
       onBrushChange: undefined, // set per-render from the <Brush> child's onChange
@@ -2084,7 +2086,11 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   // The intro draw-in follows the first area's setting, falling back to the root default.
   const effectiveAnimation = areas[0]?.animationType ?? animationType;
 
-  const css = useMemo(() => buildChartCss(chartId, config), [chartId, config]);
+  const css = useMemo(() => {
+    const base = buildChartCss(chartId, config);
+    if (!tooltipSlot.scrub) return base;
+    return `${base}\n[data-chart="${chartId}"] canvas{cursor:crosshair!important;}`;
+  }, [chartId, config, tooltipSlot.scrub]);
 
   const hasSelection = selectedDataKey !== null;
   const isExpanded = stackType === "expanded";
@@ -2253,6 +2259,9 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
           ),
         ])
       );
+      live.scrubDotKeys = areas
+        .filter((area) => area.strokeVariant !== "dashed")
+        .map((area) => area.dataKey);
     }
     // Record the exact series order so an area-polygon click (which reports only
     // a seriesIndex) can recover its key — buffer/reveal/mini/loading series
@@ -2499,7 +2508,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         const raw =
           chart.convertFromPixel({ gridIndex: 0 }, [x, grid.y])[0] ?? 0;
         const t = Math.max(0, Math.min(Math.max(live.dataLength - 1, 0), raw));
-        for (const key of live.handlers.seriesKeys) {
+        for (const key of live.scrubDotKeys) {
           const value = interpolateAt(live.scrubValues[key] ?? [], t);
           if (value === null) continue;
           const pixel = chart.convertToPixel({ gridIndex: 0 }, [0, value]);
