@@ -195,6 +195,9 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
           model: gateway(GEO_DISCOVERY_MODEL, {
             organizationId: scope.organizationId,
           }),
+          providerOptions: {
+            gateway: { tags: ["geo-conversation-generation"] },
+          },
           output: Output.object({ schema: geoConversationGenerationSchema }),
           instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
           prompt: buildConversationGenerationPrompt(context),

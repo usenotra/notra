@@ -91,7 +91,11 @@ export function createEvaluationClient(
         params.abortSignal
       ),
       providerOptions: {
-        gateway: { zeroDataRetention: true, disallowPromptTraining: true },
+        gateway: {
+          zeroDataRetention: true,
+          disallowPromptTraining: true,
+          tags: [`evaluation-${params.feature}`],
+        },
       },
     });
 

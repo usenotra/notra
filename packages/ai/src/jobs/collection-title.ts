@@ -120,9 +120,12 @@ export async function generateCollectionTitle(
     output: Output.object({ schema: collectionTitleResultSchema }),
     instructions: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
-    providerOptions: withRouterDefaults(undefined, {
-      modelId: COLLECTION_TITLE_MODEL_ID,
-    }),
+    providerOptions: withRouterDefaults(
+      { gateway: { tags: ["content-collection-title"] } },
+      {
+        modelId: COLLECTION_TITLE_MODEL_ID,
+      }
+    ),
     ...buildTelemetryOptions({
       feature: "collection_title",
       organizationId: params.organizationId,

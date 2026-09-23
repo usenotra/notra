@@ -209,9 +209,12 @@ const generateIrisText = Effect.fn("iris.capabilities.generateText")(
           }),
           prompt: params.prompt,
           maxOutputTokens: params.maxOutputTokens,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IRIS_CONTENT_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-content"] } },
+            {
+              modelId: IRIS_CONTENT_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) =>
         new IrisCapabilityError({
@@ -478,9 +481,12 @@ const reviewIrisImage = Effect.fn("iris.capabilities.reviewImage")(
             },
           ],
           maxOutputTokens: IMAGE_REVIEW_MAX_OUTPUT_TOKENS,
-          providerOptions: withRouterDefaults(undefined, {
-            modelId: IMAGE_REVIEW_MODEL_ID,
-          }),
+          providerOptions: withRouterDefaults(
+            { gateway: { tags: ["iris-image-review"] } },
+            {
+              modelId: IMAGE_REVIEW_MODEL_ID,
+            }
+          ),
         }),
       catch: (cause) => cause,
     });

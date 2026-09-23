@@ -265,9 +265,12 @@ async function reviewRenderedRepoImageForLogoIssues(params: {
       },
     ],
     maxOutputTokens: 700,
-    providerOptions: withRouterDefaults(undefined, {
-      modelId: IMAGE_REVIEW_MODEL_ID,
-    }),
+    providerOptions: withRouterDefaults(
+      { gateway: { tags: ["content-image-review"] } },
+      {
+        modelId: IMAGE_REVIEW_MODEL_ID,
+      }
+    ),
   });
 
   return output;

@@ -158,6 +158,7 @@ export async function runBackgroundGen(
         anthropic: {
           thinking: { type: "adaptive" },
         },
+        gateway: { tags: ["content-generation"] },
       },
       { modelId: AGENT_DEFAULT_MODEL }
     ),

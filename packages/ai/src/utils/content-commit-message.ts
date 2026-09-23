@@ -95,9 +95,12 @@ export async function generateContentCommitHeadline(params: {
       ]
         .filter(Boolean)
         .join("\n\n"),
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: UTILITY_MODEL_ID,
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["content-commit-message"] } },
+        {
+          modelId: UTILITY_MODEL_ID,
+        }
+      ),
       abortSignal: AbortSignal.timeout(CONTENT_COMMIT_TIMEOUT_MS),
       ...buildTelemetryOptions({
         feature: "content_commit_message",

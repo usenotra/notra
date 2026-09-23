@@ -59,9 +59,12 @@ const generatePlannerDraft = Effect.fn("iris.planner.generate")(function* (
         instructions: buildIrisPlannerSystemPrompt(),
         prompt,
         maxOutputTokens: PLANNER_MAX_OUTPUT_TOKENS,
-        providerOptions: withRouterDefaults(undefined, {
-          modelId: IRIS_PLANNER_MODEL_ID,
-        }),
+        providerOptions: withRouterDefaults(
+          { gateway: { tags: ["iris-planner"] } },
+          {
+            modelId: IRIS_PLANNER_MODEL_ID,
+          }
+        ),
       });
       return { output: result.output, usage: result.usage };
     },

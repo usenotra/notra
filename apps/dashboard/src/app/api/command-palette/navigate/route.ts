@@ -293,9 +293,12 @@ export async function POST(request: NextRequest) {
           : "No matching entities found.",
         `User query: ${query}`,
       ].join("\n"),
-      providerOptions: withRouterDefaults(undefined, {
-        modelId: UTILITY_MODEL_ID,
-      }),
+      providerOptions: withRouterDefaults(
+        { gateway: { tags: ["command-palette-navigation"] } },
+        {
+          modelId: UTILITY_MODEL_ID,
+        }
+      ),
       abortSignal: request.signal,
       ...buildTelemetryOptions({
         feature: "command_palette",
