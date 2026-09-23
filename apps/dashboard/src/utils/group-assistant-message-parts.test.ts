@@ -111,6 +111,34 @@ describe("groupAssistantMessageParts", () => {
     }
     expect(segments[1].part.type).toBe("tool-editMarkdown");
   });
+
+  test("keeps mcp calls inside the activity group", () => {
+    const mcp = {
+      type: "dynamic-tool" as const,
+      toolName: "mcp_compliance_check_sanctions",
+      toolCallId: "mcp-1",
+      state: "output-error" as const,
+      input: { entity: "Nordstrom Shipping GmbH" },
+      errorText: "Connection timed out",
+    };
+    const segments = groupAssistantMessageParts(
+      [reasoning("Checking lists"), mcp, tool("editMarkdown"), text("Done.")],
+      { isStandaloneTool: isContentEditorStandaloneTool }
+    );
+
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "activity",
+      "standalone",
+      "standalone",
+    ]);
+    if (segments[0]?.kind !== "activity") {
+      throw new Error("expected activity");
+    }
+    expect(segments[0].items.map((item) => item.part.type)).toEqual([
+      "reasoning",
+      "dynamic-tool",
+    ]);
+  });
 });
 
 describe("stackAssistantActivityItems", () => {

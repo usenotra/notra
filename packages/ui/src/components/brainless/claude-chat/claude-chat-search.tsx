@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CancelCircleIcon,
   Clock01Icon,
   GlobalIcon,
   Tick02Icon,
@@ -95,8 +96,8 @@ function StepIcon({ icon }: { icon: ClaudeChatSearchStepIcon }) {
   if (icon === "error") {
     return (
       <HugeiconsIcon
-        className="text-[#6b8cae]"
-        icon={GlobalIcon}
+        className="text-destructive"
+        icon={CancelCircleIcon}
         size={14}
         strokeWidth={1.75}
       />
@@ -331,9 +332,11 @@ export function ClaudeChatSearch({
             <p
               className={cn(
                 "flex h-5 items-center text-[13px] leading-5",
-                step.icon === "check"
-                  ? "text-[#8a8680]"
-                  : "text-[#3f3e3a] dark:text-foreground"
+                step.icon === "error"
+                  ? "text-destructive"
+                  : step.icon === "check"
+                    ? "text-[#8a8680]"
+                    : "text-[#3f3e3a] dark:text-foreground"
               )}
             >
               {step.label}

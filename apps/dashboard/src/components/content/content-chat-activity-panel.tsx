@@ -44,6 +44,7 @@ import { Fragment, type ReactNode, useState } from "react";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatEmptyDither } from "@/components/ai/chat-empty-dither";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
+import { isMcpToolName } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
@@ -106,7 +107,10 @@ function renderContentChatToolPart({
 }) {
   const approvalId =
     part.state === "approval-requested" ? part.approval?.id : undefined;
-  const postId = parseCreatedPostId(part.output);
+  const toolName = getToolName(part);
+  const output =
+    part.state === "output-error" ? { error: part.errorText } : part.output;
+  const postId = parseCreatedPostId(output);
   return (
     <ChatToolBlock
       editorHref={
@@ -115,6 +119,7 @@ function renderContentChatToolPart({
           : undefined
       }
       input={part.input}
+      isMcp={isMcpToolName(toolName)}
       key={part.toolCallId}
       onApprove={
         approvalId && onApproveTool
@@ -124,10 +129,13 @@ function renderContentChatToolPart({
       onDeny={
         approvalId && onDenyTool ? () => onDenyTool(approvalId) : undefined
       }
-      output={part.output}
+      output={output}
       state={part.state}
       toolCallId={part.toolCallId}
-      toolName={getToolName(part)}
+      toolMetadata={
+        part.type === "dynamic-tool" ? part.toolMetadata : undefined
+      }
+      toolName={toolName}
     />
   );
 }

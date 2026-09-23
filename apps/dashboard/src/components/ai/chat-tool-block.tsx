@@ -895,7 +895,12 @@ export function ChatToolBlock({
   return (
     <Collapsible onOpenChange={setIsDetailsOpen} open={isOpen}>
       <CollapsibleTrigger
-        className="group text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default"
+        className={cn(
+          "group flex w-full min-w-0 items-center gap-2 text-sm transition-colors disabled:cursor-default",
+          isError
+            ? "text-destructive hover:text-destructive disabled:hover:text-destructive"
+            : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
+        )}
         disabled={!hasDetails}
       >
         {toolIcon}
