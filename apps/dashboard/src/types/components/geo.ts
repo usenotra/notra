@@ -1,3 +1,4 @@
+import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type {
   GeoCsvParseResult,
   GeoImportKind,
@@ -106,6 +107,10 @@ export interface PromptSuggestionSheetProps {
   suggestion: GeoPromptSuggestion | null;
   actions?: ReactNode;
   onOpenChange: (open: boolean) => void;
+}
+
+export interface SuggestionQueryTableProps {
+  queries: readonly GeoSuggestionKeyword[];
 }
 
 export interface SuggestionKeywordTotals {

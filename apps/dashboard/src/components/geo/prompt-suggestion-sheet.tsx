@@ -1,7 +1,6 @@
 "use client";
 
 import { GSC_SYNC_LOOKBACK_DAYS } from "@notra/geo-core/constants/google-search-console";
-import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import {
   Sheet,
   SheetContent,
@@ -11,51 +10,76 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@notra/ui/components/ui/table";
 import { useMemo } from "react";
 
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
-import type { PromptSuggestionSheetProps } from "@/types/components/geo";
+import type {
+  PromptSuggestionSheetProps,
+  SuggestionQueryTableProps,
+} from "@/types/components/geo";
 import { formatCount, formatPercent } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
-import { tableHeightFor } from "@/utils/table";
 
-const QUERY_COLUMNS: TableColumn<GeoSuggestionKeyword>[] = [
-  {
-    key: "query",
-    header: "Query",
-    width: "1fr",
-    minWidth: "10rem",
-    sortable: true,
-    cell: (query) => (
-      <span className="block leading-relaxed wrap-anywhere">{query.query}</span>
-    ),
-  },
-  {
-    key: "impressions",
-    header: "Impressions",
-    width: "8.5rem",
-    align: "right",
-    sortable: true,
-    cell: (query) => formatCount(query.impressions),
-  },
-  {
-    key: "clicks",
-    header: "Clicks",
-    width: "6rem",
-    align: "right",
-    sortable: true,
-    cell: (query) => formatCount(query.clicks),
-  },
-  {
-    key: "position",
-    header: "Position",
-    width: "6.5rem",
-    align: "right",
-    sortable: true,
-    cell: (query) => `#${query.position.toFixed(1)}`,
-  },
-];
+function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
+  const rows = queries.toSorted(
+    (left, right) => right.impressions - left.impressions
+  );
+
+  return (
+    <section className="bg-background min-w-0 overflow-hidden rounded-xl border">
+      <div className="bg-muted/70 flex items-center justify-between gap-3 border-b px-4 py-3">
+        <h3 className="text-sm font-medium">Search queries</h3>
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {rows.length}
+        </span>
+      </div>
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground p-4 text-sm">
+          No query-level data for this prompt.
+        </p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-full">Query</TableHead>
+              <TableHead className="text-right">Impressions</TableHead>
+              <TableHead className="text-right">Clicks</TableHead>
+              <TableHead className="text-right">Position</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((query) => (
+              <TableRow key={query.query}>
+                <TableCell className="whitespace-normal">
+                  <span className="block leading-relaxed wrap-anywhere">
+                    {query.query}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCount(query.impressions)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCount(query.clicks)}
+                </TableCell>
+                <TableCell className="text-right">
+                  #{query.position.toFixed(1)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </section>
+  );
+}
 
 export function PromptSuggestionSheet({
   suggestion,
@@ -153,26 +177,7 @@ export function PromptSuggestionSheet({
                 </section>
               ) : null}
 
-              <section className="min-w-0">
-                <Table
-                  className="rounded-2xl"
-                  toolbar={
-                    <div className="bg-muted/70 flex items-center justify-between gap-3 px-4 py-3">
-                      <h3 className="text-sm font-medium">Search queries</h3>
-                      <span className="text-muted-foreground text-xs tabular-nums">
-                        {detail.keywords.length}
-                      </span>
-                    </div>
-                  }
-                  columns={QUERY_COLUMNS}
-                  data={detail.keywords}
-                  defaultSort={{ key: "impressions", direction: "desc" }}
-                  emptyState="No query-level data for this prompt."
-                  getRowId={(query) => query.query}
-                  height={tableHeightFor(Math.max(detail.keywords.length, 1))}
-                  rowSizing="content"
-                />
-              </section>
+              <SuggestionQueryTable queries={detail.keywords} />
             </div>
           </SheetScrollArea>
         ) : null}

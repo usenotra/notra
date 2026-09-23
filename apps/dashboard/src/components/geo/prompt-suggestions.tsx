@@ -12,7 +12,6 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
-import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { type RefObject, useRef, useState } from "react";
 
 import { Button } from "@/components/button";
@@ -39,6 +38,7 @@ import type {
   SuggestionRowActionsProps,
 } from "@/types/components/geo";
 import type { GeoPromptSuggestion } from "@/types/geo";
+import { formatCount } from "@/utils/format";
 import { suggestionKeywordTotals } from "@/utils/geo-prompt-suggestions";
 import { tableHeightFor } from "@/utils/table";
 
@@ -135,53 +135,48 @@ function suggestionColumns({
       minWidth: "16rem",
       sortable: true,
       width: "1fr",
-      cell: (row) => {
-        const queries = row.keywords.map((keyword) => keyword.query).join(", ");
-        return (
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <TruncateWithTooltip className="text-sm leading-snug font-medium">
-              {row.prompt}
-            </TruncateWithTooltip>
-            {queries ? (
-              <TruncateWithTooltip className="text-muted-foreground text-xs leading-snug">
-                {queries}
-              </TruncateWithTooltip>
-            ) : null}
-          </span>
-        );
-      },
+      cell: (row) => (
+        <span className="text-sm leading-snug font-medium wrap-anywhere">
+          {row.prompt}
+        </span>
+      ),
     },
     {
       key: "impressions",
       align: "right",
       header: "Impressions",
       sortable: true,
-      width: "9rem",
-      cell: (row) => {
-        const { clicks, impressions } = suggestionKeywordTotals(row.keywords);
-        return (
-          <span className="flex flex-col items-end gap-0.5 tabular-nums">
-            <span className="text-sm leading-snug">
-              {impressions.toLocaleString()}
-            </span>
-            <span className="text-muted-foreground text-xs leading-snug">
-              {clicks.toLocaleString()} {clicks === 1 ? "click" : "clicks"}
-            </span>
-          </span>
-        );
-      },
+      width: "7.5rem",
+      cell: (row) => (
+        <span className="tabular-nums">
+          {formatCount(suggestionKeywordTotals(row.keywords).impressions)}
+        </span>
+      ),
       sortValue: (row) => suggestionKeywordTotals(row.keywords).impressions,
+    },
+    {
+      key: "clicks",
+      align: "right",
+      header: "Clicks",
+      sortable: true,
+      width: "6rem",
+      cell: (row) => (
+        <span className="tabular-nums">
+          {formatCount(suggestionKeywordTotals(row.keywords).clicks)}
+        </span>
+      ),
+      sortValue: (row) => suggestionKeywordTotals(row.keywords).clicks,
     },
     {
       key: "position",
       align: "right",
       header: "Position",
       sortable: true,
-      width: "7.5rem",
+      width: "6.5rem",
       cell: (row) => {
         const { position } = suggestionKeywordTotals(row.keywords);
         return (
-          <span className="text-sm tabular-nums">
+          <span className="tabular-nums">
             {position === null ? "–" : `#${position.toFixed(1)}`}
           </span>
         );
@@ -468,6 +463,7 @@ export function PromptSuggestions({
         onRowClick={(row) => setDetailId(row.id)}
         resizable
         rowHeight={TABLE_ROW_HEIGHT}
+        rowSizing="content"
       />
       <PromptSuggestionSheet
         actions={

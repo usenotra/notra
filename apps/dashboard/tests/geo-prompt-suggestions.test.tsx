@@ -25,16 +25,6 @@ mock.module("@notra/ui/components/ui/sheet", () => ({
   SheetTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
 }));
 
-mock.module("@/components/motion/table", () => ({
-  Table: ({ data }: { data: { query: string }[] }) => (
-    <ul>
-      {data.map((row) => (
-        <li key={row.query}>{row.query}</li>
-      ))}
-    </ul>
-  ),
-}));
-
 const { PromptSuggestionSheet } =
   await import("../src/components/geo/prompt-suggestion-sheet");
 
