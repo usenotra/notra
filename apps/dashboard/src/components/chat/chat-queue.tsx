@@ -21,6 +21,7 @@ interface ChatQueueProps {
   messages: QueuedMessage[];
   onEdit: (message: QueuedMessage) => void;
   onRemove: (id: string) => void;
+  onSteer?: (message: QueuedMessage) => void;
   authorsById?: Map<string, ChatMessageAuthor>;
   showAuthorAvatars?: boolean;
 }
@@ -36,6 +37,7 @@ export function ChatQueue({
   messages,
   onEdit,
   onRemove,
+  onSteer,
   authorsById,
   showAuthorAvatars = false,
 }: ChatQueueProps) {
@@ -84,7 +86,9 @@ export function ChatQueue({
                       label={message.text}
                       onEdit={() => onEdit(message)}
                       onRemove={() => onRemove(message.id)}
+                      onSteer={onSteer ? () => onSteer(message) : undefined}
                       removeLabel="Remove from queue"
+                      steerLabel="Steer with this message"
                     />
                   </m.div>
                 ))}

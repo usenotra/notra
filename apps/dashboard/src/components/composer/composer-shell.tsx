@@ -1,6 +1,10 @@
 "use client";
 
-import { Cancel01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowUp02Icon,
+  Cancel01Icon,
+  Edit02Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Tooltip,
@@ -99,6 +103,8 @@ function ComposerChip({
   removeLabel,
   onEdit,
   editLabel,
+  onSteer,
+  steerLabel,
   onClick,
   pending = false,
   className,
@@ -130,6 +136,16 @@ function ComposerChip({
           <span className={labelClasses}>{label}</span>
         </>
       )}
+      {onSteer ? (
+        <button
+          aria-label={steerLabel ?? `Steer with ${label}`}
+          className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
+          onClick={onSteer}
+          type="button"
+        >
+          <HugeiconsIcon className="size-3" icon={ArrowUp02Icon} />
+        </button>
+      ) : null}
       {onEdit ? (
         <button
           aria-label={editLabel ?? `Edit ${label}`}

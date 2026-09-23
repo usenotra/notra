@@ -79,6 +79,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
     onFileInputChange,
     onRemoveContext,
     onRemoveQueued,
+    onSteerQueued,
     onStop,
     organizationSlug,
     placeholder,
@@ -126,6 +127,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
                 onEditQueued={onEditQueued}
                 onRemoveContext={onRemoveContext}
                 onRemoveQueued={onRemoveQueued}
+                onSteerQueued={onSteerQueued}
                 organizationSlug={organizationSlug}
                 pendingUploads={pendingUploads}
                 queuedMessages={queuedMessages}
@@ -224,6 +226,7 @@ function ChatInputComposerNudge({
   onEditQueued,
   onRemoveContext,
   onRemoveQueued,
+  onSteerQueued,
   organizationSlug,
   pendingUploads,
   queuedMessages,
@@ -270,7 +273,9 @@ function ChatInputComposerNudge({
               onRemove={
                 onRemoveQueued ? () => onRemoveQueued(message.id) : undefined
               }
+              onSteer={onSteerQueued ? () => onSteerQueued(message) : undefined}
               removeLabel="Remove from queue"
+              steerLabel="Steer with this message"
             />
           ))}
           <ChatInputContextRow

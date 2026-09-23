@@ -7,6 +7,14 @@ const TERMINAL_APPROVAL_STEP_STATES = new Set([
   "approval-responded",
 ]);
 
+export function isTerminalToolState(state: string): boolean {
+  return (
+    state === "output-available" ||
+    state === "output-error" ||
+    state === "output-denied"
+  );
+}
+
 export function shouldContinueAfterApprovalResponse({
   messages,
 }: {

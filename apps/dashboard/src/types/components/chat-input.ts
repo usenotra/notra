@@ -41,6 +41,7 @@ export interface ChatInputProps {
   queuedMessages?: QueuedMessage[];
   onEditQueued?: (message: QueuedMessage) => void;
   onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
 }
 
 export type EnabledRepo = GitHubRepository & { integrationId: string };
@@ -92,6 +93,7 @@ export interface ChatInputComposerNudgeProps {
   onEditQueued?: (message: QueuedMessage) => void;
   onRemoveContext?: (item: ContextItem) => void;
   onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
   organizationSlug?: string;
   pendingUploads: PendingChatUpload[];
   queuedMessages: QueuedMessage[];

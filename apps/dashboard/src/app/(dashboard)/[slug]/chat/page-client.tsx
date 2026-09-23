@@ -118,7 +118,10 @@ import type {
   UserImageGridProps,
 } from "@/types/components/chat-page";
 import type { PublishedSocialPost } from "@/types/content/post-social";
-import { shouldContinueAfterApprovalResponse } from "@/utils/chat-approvals";
+import {
+  isTerminalToolState,
+  shouldContinueAfterApprovalResponse,
+} from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
 import {
   resolveChatMessageAuthor,
@@ -133,7 +136,7 @@ import {
   readStoredChatPreferences,
   writeStoredChatPreferences,
 } from "@/utils/chat-preferences";
-import { parseQueuedMessages } from "@/utils/chat-queue";
+import { parseQueuedMessages, takeQueuedMessage } from "@/utils/chat-queue";
 import {
   clearPendingChatClientState,
   resetNewChatClientState,
@@ -244,14 +247,6 @@ function hasPendingApproval(messages: readonly ChatUIMessage[]): boolean {
     }
   }
   return false;
-}
-
-function isTerminalToolState(state: string): boolean {
-  return (
-    state === "output-available" ||
-    state === "output-error" ||
-    state === "output-denied"
-  );
 }
 
 function hasSendableParts(message: ChatUIMessage): boolean {
@@ -604,6 +599,10 @@ function StandaloneChatPageClient({
   const drainQueueRef = useRef<() => void>(() => {
     // Populated after dispatchMessage is defined below.
   });
+  const flushSteerAfterStopRef = useRef<() => void>(() => {
+    // Populated after dispatchMessage is defined below.
+  });
+  const steerAfterStopRef = useRef<QueuedMessage | null>(null);
   const isDrainingRef = useRef(false);
   // Moving a new chat to its own URL remounts this page, so it waits until no
   // response is streaming or queued.
@@ -626,6 +625,10 @@ function StandaloneChatPageClient({
         queryKey: ["chat-sessions", organizationId],
       });
       isDrainingRef.current = false;
+      if (steerAfterStopRef.current) {
+        flushSteerAfterStopRef.current();
+        return;
+      }
       drainQueueRef.current();
       navigateToNewChatRef.current();
     },
@@ -647,6 +650,10 @@ function StandaloneChatPageClient({
     sendAutomaticallyWhen: shouldContinueAfterApprovalResponse,
     onFinish: handleFinish,
     onError: (err) => {
+      if (steerAfterStopRef.current) {
+        flushSteerAfterStopRef.current();
+        return;
+      }
       const conflictedMessageId = activeStreamConflictRef.current;
       activeStreamConflictRef.current = null;
       if (
@@ -1588,6 +1595,53 @@ function StandaloneChatPageClient({
     chatInputRef.current?.setText(message.text);
   }, []);
 
+  const flushSteerAfterStop = useCallback(() => {
+    const next = steerAfterStopRef.current;
+    if (!next) {
+      return;
+    }
+    steerAfterStopRef.current = null;
+    updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
+    dispatchMessage(next.text).catch((error) => {
+      console.error("[Chat] Failed to steer queued message:", error);
+      setQueuedMessages((prev) => [next, ...prev]);
+    });
+  }, [dispatchMessage]);
+
+  const handleSteerQueued = useCallback(
+    (message: QueuedMessage) => {
+      const taken = takeQueuedMessage(queuedMessagesRef.current, message.id);
+      if (!taken) {
+        return;
+      }
+      queuedMessagesRef.current = taken.remaining;
+      setQueuedMessages(taken.remaining);
+      if (!(isLoading || isWaitingForActiveStream)) {
+        dispatchMessage(taken.message.text).catch((error) => {
+          console.error("[Chat] Failed to steer queued message:", error);
+          setQueuedMessages((prev) => [taken.message, ...prev]);
+        });
+        return;
+      }
+      steerAfterStopRef.current = taken.message;
+      updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
+      stopActiveResponse().catch((error) => {
+        console.error(
+          "[Chat] Failed to stop active response for steer:",
+          error
+        );
+        flushSteerAfterStop();
+      });
+    },
+    [
+      dispatchMessage,
+      flushSteerAfterStop,
+      isLoading,
+      isWaitingForActiveStream,
+      stopActiveResponse,
+    ]
+  );
+
   const handleUpdateQueued = useCallback((id: string, text: string) => {
     setQueuedMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, text } : m))
@@ -1599,6 +1653,10 @@ function StandaloneChatPageClient({
   useEffect(() => {
     queuedMessagesRef.current = queuedMessages;
   }, [queuedMessages]);
+
+  useEffect(() => {
+    flushSteerAfterStopRef.current = flushSteerAfterStop;
+  }, [flushSteerAfterStop]);
 
   const navigateToNewChat = useCallback(() => {
     if (
@@ -1641,6 +1699,9 @@ function StandaloneChatPageClient({
         return;
       }
       if (wasStoppedByUserRef.current) {
+        return;
+      }
+      if (steerAfterStopRef.current) {
         return;
       }
       if (hasPendingApproval(messagesRef.current)) {
@@ -2674,6 +2735,7 @@ function StandaloneChatPageClient({
                 messages={queuedMessages}
                 onEdit={handleEditQueued}
                 onRemove={handleRemoveQueued}
+                onSteer={handleSteerQueued}
                 showAuthorAvatars={showMessageAuthorAvatars}
               />
               {isSlackMirrored && (

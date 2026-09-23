@@ -45,6 +45,7 @@ export async function orchestrateChat(
     selection,
     context = [],
     maxSteps = 1,
+    abortSignal,
     log: inputLog,
     timezone,
     telemetryMetadata,
@@ -129,6 +130,7 @@ export async function orchestrateChat(
     }),
     tools,
     stopWhen: isStepCount(maxSteps),
+    abortSignal,
     providerOptions: withRouterDefaults(
       getThinkingProviderOptions(
         routingDecision.model,

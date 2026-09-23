@@ -20,6 +20,8 @@ export interface ComposerChipProps {
   removeLabel?: string;
   onEdit?: () => void;
   editLabel?: string;
+  onSteer?: () => void;
+  steerLabel?: string;
   onClick?: () => void;
   pending?: boolean;
   className?: string;

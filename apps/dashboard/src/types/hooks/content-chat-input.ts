@@ -51,6 +51,7 @@ export interface UseContentChatInputResult extends ContentChatInputChrome {
   onFileInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onRemoveContext?: (item: ContextItem) => void;
   onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
   onStop?: () => void;
   organizationSlug?: string;
   placeholder?: string;

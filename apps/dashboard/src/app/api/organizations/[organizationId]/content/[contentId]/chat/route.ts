@@ -225,6 +225,7 @@ export const POST = withEvlog(async function POST(
         selection,
         context,
         maxSteps: 50,
+        abortSignal: request.signal,
         log,
         timezone,
         useMarkup,
