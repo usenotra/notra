@@ -25,11 +25,12 @@ export function SidebarNavLink({
   disablePrefetch?: boolean;
 }) {
   const [hoverPrefetch, setHoverPrefetch] = useState<false | null>(false);
-  const prefetch = disablePrefetch
-    ? false
-    : eagerPrefetch
-      ? null
-      : hoverPrefetch;
+  let prefetch: false | null = hoverPrefetch;
+  if (disablePrefetch) {
+    prefetch = false;
+  } else if (eagerPrefetch) {
+    prefetch = null;
+  }
 
   function enablePrefetch() {
     if (disablePrefetch) {
