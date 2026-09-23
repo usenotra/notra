@@ -37,16 +37,16 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
           <table className="w-full border-collapse text-sm tabular-nums">
             <thead>
               <tr className="bg-muted/80">
-                <th className="border-border border px-3 py-2 text-left font-medium">
+                <th className="border-foreground/20 border px-3 py-2 text-left font-medium">
                   Query
                 </th>
-                <th className="border-border border px-3 py-2 text-right font-medium">
+                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
                   Impressions
                 </th>
-                <th className="border-border border px-3 py-2 text-right font-medium">
+                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
                   Clicks
                 </th>
-                <th className="border-border border px-3 py-2 text-right font-medium">
+                <th className="border-foreground/20 border px-3 py-2 text-right font-medium">
                   Position
                 </th>
               </tr>
@@ -54,18 +54,18 @@ function SuggestionQueryTable({ queries }: SuggestionQueryTableProps) {
             <tbody className="bg-background">
               {rows.map((query) => (
                 <tr key={query.query}>
-                  <td className="border-border border px-3 py-2 whitespace-normal">
+                  <td className="border-foreground/20 border px-3 py-2 whitespace-normal">
                     <span className="block leading-relaxed wrap-anywhere">
                       {query.query}
                     </span>
                   </td>
-                  <td className="border-border border px-3 py-2 text-right">
+                  <td className="border-foreground/20 border px-3 py-2 text-right">
                     {formatCount(query.impressions)}
                   </td>
-                  <td className="border-border border px-3 py-2 text-right">
+                  <td className="border-foreground/20 border px-3 py-2 text-right">
                     {formatCount(query.clicks)}
                   </td>
-                  <td className="border-border border px-3 py-2 text-right">
+                  <td className="border-foreground/20 border px-3 py-2 text-right">
                     #{query.position.toFixed(1)}
                   </td>
                 </tr>
