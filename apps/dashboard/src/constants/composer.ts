@@ -17,3 +17,8 @@ export const COMPOSER_NUDGE_ENTER =
 
 export const COMPOSER_INNER_FRAME =
   "min-w-0 overflow-hidden rounded-xl border border-border bg-background shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none";
+
+export const COMPOSER_QUEUED_CHIP =
+  "hover:border-border hover:bg-background w-full border-solid border-transparent bg-transparent transition-colors";
+
+export const COMPOSER_QUEUED_CHIP_LABEL = "min-w-0 flex-1 max-w-none";

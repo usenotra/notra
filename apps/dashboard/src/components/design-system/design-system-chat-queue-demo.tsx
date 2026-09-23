@@ -1,7 +1,7 @@
 "use client";
 
 import ChatInput from "@/components/chat-input";
-import { ChatQueue } from "@/components/chat/chat-queue";
+import { ChatInputAdvanced } from "@/components/chat/chat-input";
 import {
   DESIGN_SYSTEM_QUEUED_MESSAGES,
   DESIGN_SYSTEM_STEERING_MESSAGES,
@@ -18,17 +18,13 @@ function AiChatQueuePreview({
 }) {
   return (
     <div className="max-w-2xl">
-      <ChatQueue
-        messages={messages}
-        onEdit={ignoreQueuedEdit}
-        onRemove={ignoreQueuedRemove}
-        onSteer={ignoreQueuedSteer}
-      />
-      <ChatInput
-        connectedTop={messages.length > 0}
+      <ChatInputAdvanced
         isLoading
+        onEditQueued={ignoreQueuedEdit}
+        onRemoveQueued={ignoreQueuedRemove}
+        onSteerQueued={ignoreQueuedSteer}
         onStop={ignoreQueuedRemove}
-        placeholder="Ask anything..."
+        queuedMessages={messages}
       />
     </div>
   );

@@ -71,7 +71,7 @@ import {
   ChatInputAdvanced,
   type ThinkingLevel,
 } from "@/components/chat/chat-input";
-import { ChatQueue, type QueuedMessage } from "@/components/chat/chat-queue";
+import type { QueuedMessage } from "@/components/chat/chat-queue";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { renderTextWithIntegrationReferences } from "@/components/chat/integration-reference";
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
@@ -2463,6 +2463,7 @@ function StandaloneChatPageClient({
               <ProjectScopeLoadingInput />
             ) : (
               <ChatInputAdvanced
+                authorsById={messageAuthorsById}
                 context={context}
                 draftStorageKey={draftStorageKey}
                 error={chatError}
@@ -2472,10 +2473,13 @@ function StandaloneChatPageClient({
                 model={selectedModel}
                 onAddContext={handleAddContext}
                 onClearError={handleClearError}
+                onEditQueued={handleEditQueued}
                 onEmptyChange={setIsInputEmpty}
                 onModelChange={handleModelChange}
                 onRemoveContext={handleRemoveContext}
+                onRemoveQueued={handleRemoveQueued}
                 onSend={handleSend}
+                onSteerQueued={handleSteerQueued}
                 onStop={handleStop}
                 onThinkingLevelChange={handleThinkingLevelChange}
                 onUpdateQueued={handleUpdateQueued}
@@ -2483,6 +2487,7 @@ function StandaloneChatPageClient({
                 organizationSlug={organizationSlug}
                 queuedMessages={queuedMessages}
                 ref={chatInputRef}
+                showAuthorAvatars={showMessageAuthorAvatars}
                 thinkingLevel={thinkingLevel}
               />
             )}
@@ -2763,14 +2768,6 @@ function StandaloneChatPageClient({
                   Waiting for the previous response to finish before sending.
                 </p>
               )}
-              <ChatQueue
-                authorsById={messageAuthorsById}
-                messages={queuedMessages}
-                onEdit={handleEditQueued}
-                onRemove={handleRemoveQueued}
-                onSteer={handleSteerQueued}
-                showAuthorAvatars={showMessageAuthorAvatars}
-              />
               {isSlackMirrored && (
                 <div className="mb-2 flex justify-center">
                   <SlackRelayFooterNotice
@@ -2782,7 +2779,7 @@ function StandaloneChatPageClient({
                 <ProjectScopeLoadingInput />
               ) : (
                 <ChatInputAdvanced
-                  connectedTop={queuedMessages.length > 0}
+                  authorsById={messageAuthorsById}
                   context={context}
                   draftStorageKey={draftStorageKey}
                   error={null}
@@ -2792,9 +2789,12 @@ function StandaloneChatPageClient({
                   model={selectedModel}
                   onAddContext={handleAddContext}
                   onClearError={handleClearError}
+                  onEditQueued={handleEditQueued}
                   onModelChange={handleModelChange}
                   onRemoveContext={handleRemoveContext}
+                  onRemoveQueued={handleRemoveQueued}
                   onSend={handleSend}
+                  onSteerQueued={handleSteerQueued}
                   onStop={handleStop}
                   onThinkingLevelChange={handleThinkingLevelChange}
                   onUpdateQueued={handleUpdateQueued}
@@ -2802,6 +2802,7 @@ function StandaloneChatPageClient({
                   organizationSlug={organizationSlug}
                   queuedMessages={queuedMessages}
                   ref={chatInputRef}
+                  showAuthorAvatars={showMessageAuthorAvatars}
                   thinkingLevel={thinkingLevel}
                 />
               )}

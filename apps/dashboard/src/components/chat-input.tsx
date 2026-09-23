@@ -39,6 +39,7 @@ import {
 import { ChatContextConnectSuggestions } from "@/components/chat/chat-context-connect-suggestions";
 import { ChatContextOptionContent } from "@/components/chat/chat-context-option-content";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
+import { ChatQueue } from "@/components/chat/chat-queue";
 import { Composer } from "@/components/composer/composer-shell";
 import { useContentChatInput } from "@/lib/hooks/use-content-chat-input";
 import type {
@@ -237,8 +238,6 @@ function ChatInputComposerNudge({
   shouldShowLowCredits,
   usageLimitError,
 }: ChatInputComposerNudgeProps) {
-  const hasPendingSteer = queuedMessages.some((message) => message.steering);
-
   return (
     <Composer.Nudge
       action={
@@ -264,29 +263,12 @@ function ChatInputComposerNudge({
     >
       {hasContextChips || hasAttachmentChips ? (
         <>
-          {queuedMessages.map((message) => (
-            <Composer.Chip
-              className="hover:border-border hover:bg-background w-full border-solid border-transparent bg-transparent transition-colors"
-              editLabel="Edit queued message"
-              key={message.id}
-              label={message.text}
-              labelClassName="min-w-0 flex-1 max-w-none"
-              onEdit={onEditQueued ? () => onEditQueued(message) : undefined}
-              onRemove={
-                onRemoveQueued ? () => onRemoveQueued(message.id) : undefined
-              }
-              onSteer={
-                hasPendingSteer || !onSteerQueued
-                  ? undefined
-                  : () => onSteerQueued(message)
-              }
-              pending={Boolean(message.steering)}
-              removeLabel={
-                message.steering ? "Cancel steering" : "Remove from queue"
-              }
-              steerLabel="Steer with this message"
-            />
-          ))}
+          <ChatQueue
+            messages={queuedMessages}
+            onEdit={onEditQueued}
+            onRemove={onRemoveQueued}
+            onSteer={onSteerQueued}
+          />
           <ChatInputContextRow
             context={context}
             onClearSelection={onClearSelection}
