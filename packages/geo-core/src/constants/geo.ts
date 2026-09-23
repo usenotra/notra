@@ -508,6 +508,7 @@ export const GEO_SCAN_INTERVAL_LABEL_PREFIX = /^Every\s+/;
 export const GEO_SCAN_INTERVAL_FALLBACK_NOUN = "scan interval";
 export const GEO_SCAN_NO_RESULTS_RETRY_DELAY = "5m";
 export const GEO_SCAN_STALE_MS = 2 * 60 * 60 * 1000;
+export const GEO_SCAN_START_RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 /**
  * How long a cron sweep owns a due schedule row before another sweep may
  * retry it. A tick whose scan did not provably start keeps this lease instead
@@ -1065,7 +1066,6 @@ export const GEO_SENTIMENT_LABELS: Record<string, string> = {
 export const GEO_PROMPT_PREVIEW_ROW_HEIGHT = 72;
 export const GEO_PROMPT_NO_MENTION = "No engine named you";
 
-export const GEO_MENTION_TREND_BACKFILL_DAYS = 6;
 export const GEO_MENTION_TREND_TOTAL_KEY = "total";
 export const GEO_MENTION_TREND_TOTAL_LABEL = "All Models";
 export const GEO_DEFAULT_RANGE: GeoRangePreset = "30d";

@@ -1,6 +1,5 @@
 import {
   GEO_ENGINE_LABELS,
-  GEO_MENTION_TREND_BACKFILL_DAYS,
   GEO_MENTION_TREND_TOTAL_KEY,
   GEO_WITHOUT_SEARCH_LABEL,
   GEO_SHARE_OF_VOICE_TOP_BRANDS,
@@ -168,26 +167,6 @@ export function barWidthPercent(value: number, max: number): number {
   return Math.max((value / max) * CHART_PERCENT_SCALE, CHART_MIN_BAR_PERCENT);
 }
 
-const DAY_MS = 86_400_000;
-
-export function listDaysThrough(firstDay: string, lastDay: string): string[] {
-  const start = new Date(`${firstDay}T00:00:00Z`);
-  const end = new Date(`${lastDay}T00:00:00Z`);
-  if (
-    Number.isNaN(start.getTime()) ||
-    Number.isNaN(end.getTime()) ||
-    start.getTime() > end.getTime()
-  ) {
-    return [];
-  }
-  const days: string[] = [];
-  for (let time = start.getTime(); time <= end.getTime(); time += DAY_MS) {
-    const day = new Date(time).toISOString().slice(0, 10);
-    days.push(day);
-  }
-  return days;
-}
-
 export function fitMentionTrendLine(
   rows: readonly MentionTrendRow[],
   key: string,
@@ -241,13 +220,6 @@ export function mentionTrendEmptyLabel(
   const scanned =
     row != null && keys.some((key) => typeof row[key] === "number");
   return scanned ? "No visibility" : "Not scanned";
-}
-
-export function latestChartDay(
-  lastKnownDay: string,
-  today = todayIsoDate()
-): string {
-  return lastKnownDay > today ? lastKnownDay : today;
 }
 
 function ratePercent(mentions: number, checks: number): number | null {
@@ -360,23 +332,7 @@ export function buildMentionTrendRows(
   const engines = [
     ...new Set(points.map((point) => engineFamilyOf(point.engine))),
   ];
-  const firstDay = knownDays.at(0);
-  const lastDay = knownDays.at(-1);
-  const isFirstScan = knownDays.length === 1;
-  const chartFirstDay =
-    firstDay && isFirstScan
-      ? new Date(
-          new Date(`${firstDay}T00:00:00Z`).getTime() -
-            GEO_MENTION_TREND_BACKFILL_DAYS * DAY_MS
-        )
-          .toISOString()
-          .slice(0, 10)
-      : firstDay;
-  const days =
-    isFirstScan && chartFirstDay && lastDay
-      ? listDaysThrough(chartFirstDay, lastDay)
-      : knownDays;
-  const rows = days.map((day) => {
+  const rows = knownDays.map((day) => {
     const row: MentionTrendRow = { day: formatDayLabel(day), rawDay: day };
     const dayPoints = byDay.get(day);
     let total = 0;
@@ -390,8 +346,7 @@ export function buildMentionTrendRows(
         sampled = true;
       }
     }
-    row[GEO_MENTION_TREND_TOTAL_KEY] =
-      sampled || (isFirstScan && !dayPoints) ? total : null;
+    row[GEO_MENTION_TREND_TOTAL_KEY] = sampled ? total : null;
     return row;
   });
 
@@ -599,12 +554,7 @@ export function buildEngineFamilyModeTrendRows(
       ...memoryByDay.keys(),
     ]),
   ].sort();
-  const firstDay = knownDays.at(0);
-  const lastDay = knownDays.at(-1);
-  const days =
-    firstDay && lastDay ? listDaysThrough(firstDay, lastDay) : knownDays;
-
-  return days.map((day) => ({
+  return knownDays.map((day) => ({
     day: formatDayLabel(day),
     rawDay: day,
     all: allByDay.get(day) ?? null,
