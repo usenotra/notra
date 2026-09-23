@@ -53,7 +53,7 @@ function SharedContentByline({ content }: { content: SharedContentViewModel }) {
   return (
     <div className="mt-2 space-y-1 text-sm">
       {content.authorName ? (
-        <p className="text-foreground">{content.authorName}</p>
+        <p className="text-foreground">{content.authorName} wrote this</p>
       ) : null}
       <p className="text-muted-foreground">
         <time dateTime={content.date}>{createdLabel}</time>
