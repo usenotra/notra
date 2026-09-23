@@ -130,7 +130,6 @@ function ContentChatInputComposer(props: ChatInputProps) {
           <ChatSkillSlashMenu
             filteredSkills={filteredSkills}
             onSelect={insertSlashSkill}
-            organizationSlug={organizationSlug}
             skillCount={skillCount}
             slashIndex={slashIndex}
             slashListRef={slashListRef}

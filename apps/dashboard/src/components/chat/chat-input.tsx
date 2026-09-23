@@ -2488,7 +2488,6 @@ export function ChatInputAdvanced({
           <ChatSkillSlashMenu
             filteredSkills={filteredSkills}
             onSelect={insertSlashSkill}
-            organizationSlug={organizationSlug}
             skillCount={skills.length}
             slashIndex={slashIndex}
             slashListRef={slashListRef}

@@ -2,40 +2,40 @@
 
 import { MagicWand01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
 
+import { cn } from "@/lib/utils";
 import type { ChatSkillSlashMenuProps } from "@/types/components/chat-skill-slash-menu";
 import { skillDisplayName } from "@/utils/skills";
 
 export function ChatSkillSlashMenu({
   filteredSkills,
   onSelect,
-  organizationSlug,
   skillCount,
   slashIndex,
   slashListRef,
 }: ChatSkillSlashMenuProps) {
   return (
     <div
-      className="absolute bottom-full left-1 z-50 mb-1 w-72"
+      className="absolute inset-x-0 bottom-full z-50 mb-1"
       ref={slashListRef}
     >
       <div
         aria-label="Skills"
-        className="border-border bg-popover text-popover-foreground max-h-64 overflow-y-auto rounded-md border p-1 shadow-md"
+        className="border-border bg-background max-h-64 overflow-y-auto rounded-xl border p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none"
         role="listbox"
       >
         {filteredSkills.length > 0 ? (
-          <>
-            <div className="px-2 py-1.5 text-xs font-semibold">Skills</div>
-            {filteredSkills.map((skill, idx) => (
+          filteredSkills.map((skill, idx) => {
+            const selected = idx === slashIndex;
+            return (
               <button
-                aria-selected={idx === slashIndex}
-                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none ${
-                  idx === slashIndex
-                    ? "bg-accent text-accent-foreground"
-                    : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+                aria-selected={selected}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors outline-none",
+                  selected
+                    ? "bg-muted text-foreground"
+                    : "text-foreground hover:bg-muted"
+                )}
                 id={`chat-skill-slash-option-${skill.name}`}
                 key={skill.name}
                 onMouseDown={(event) => {
@@ -46,49 +46,22 @@ export function ChatSkillSlashMenu({
                 type="button"
               >
                 <HugeiconsIcon
-                  className="size-4 shrink-0"
+                  className="text-muted-foreground size-4 shrink-0"
                   icon={MagicWand01Icon}
+                  strokeWidth={2}
                 />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm">
-                    {skillDisplayName(skill.name)}
+                <span className="shrink-0">{skillDisplayName(skill.name)}</span>
+                {skill.description ? (
+                  <span className="text-muted-foreground min-w-0 truncate">
+                    {skill.description}
                   </span>
-                  {skill.description ? (
-                    <span className="text-muted-foreground truncate text-xs">
-                      {skill.description}
-                    </span>
-                  ) : null}
-                </span>
+                ) : null}
               </button>
-            ))}
-            {organizationSlug ? (
-              <>
-                <div className="bg-border -mx-1 my-1 h-px" />
-                <Link
-                  className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none"
-                  href={`/${organizationSlug}/skills`}
-                  onMouseDown={(event) => {
-                    event.stopPropagation();
-                  }}
-                >
-                  Manage skills
-                </Link>
-              </>
-            ) : null}
-          </>
+            );
+          })
         ) : (
-          <div className="flex flex-col items-center gap-1 px-3 py-4 text-center">
-            <span className="text-muted-foreground text-xs">
-              {skillCount === 0 ? "No skills yet" : "No matching skills"}
-            </span>
-            {skillCount === 0 && organizationSlug ? (
-              <Link
-                className="text-primary text-xs hover:underline"
-                href={`/${organizationSlug}/skills`}
-              >
-                Add a skill
-              </Link>
-            ) : null}
+          <div className="text-muted-foreground px-2 py-3 text-center text-xs">
+            {skillCount === 0 ? "No skills yet" : "No matching skills"}
           </div>
         )}
       </div>
