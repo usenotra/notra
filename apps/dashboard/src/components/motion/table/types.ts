@@ -43,7 +43,7 @@ export interface TableColumn<T> {
 export type InsertPosition = "before" | "after";
 
 interface TableBaseProps<T> {
-  data: T[];
+  data: readonly T[];
   columns: TableColumn<T>[];
   /** Stable id per row, required for correct selection across sorts. Defaults to row index. */
   getRowId?: (row: T, index: number) => string;

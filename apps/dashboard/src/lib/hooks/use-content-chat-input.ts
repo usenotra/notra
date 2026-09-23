@@ -90,6 +90,10 @@ export function useContentChatInput({
     untagSkill,
     clearTaggedSkills,
   } = useChatSkillSlash(organizationId);
+  const taggedSkillNames = useMemo(
+    () => taggedSkills.map((skill) => skill.name),
+    [taggedSkills]
+  );
   const {
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
@@ -313,10 +317,7 @@ export function useContentChatInput({
   }, [resizeTextarea, value]);
 
   const handleSend = useCallback(() => {
-    const trimmed = prependTaggedSkills(
-      value,
-      taggedSkills.map((skill) => skill.name)
-    );
+    const trimmed = prependTaggedSkills(value, taggedSkillNames);
     const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
     if (disabled || isUploading) {
       return;
@@ -372,7 +373,7 @@ export function useContentChatInput({
     pendingUploads.length,
     resizeTextarea,
     setValue,
-    taggedSkills,
+    taggedSkillNames,
     value,
   ]);
 

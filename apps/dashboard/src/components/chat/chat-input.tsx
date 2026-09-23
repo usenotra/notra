@@ -1259,7 +1259,6 @@ export function ChatInputAdvanced({
   const {
     skills,
     filteredSkills,
-    slashQuery,
     slashIndex,
     isSlashMenuOpen,
     slashListRef,
@@ -1271,6 +1270,10 @@ export function ChatInputAdvanced({
     untagSkill,
     clearTaggedSkills,
   } = useChatSkillSlash(organizationId);
+  const taggedSkillNames = useMemo(
+    () => taggedSkills.map((skill) => skill.name),
+    [taggedSkills]
+  );
   const editorRef = useRef<HTMLDivElement | null>(null);
   const persistDraftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -2225,14 +2228,14 @@ export function ChatInputAdvanced({
     }
     const outbound = prependTaggedSkills(
       serializeEditorWithReferences(editor).trim(),
-      taggedSkills.map((skill) => skill.name)
+      taggedSkillNames
     );
     const currentAttachments = attachmentsRef.current;
     if (!outbound && currentAttachments.length === 0) {
       return false;
     }
     return sendSnapshot(outbound, currentAttachments);
-  }, [isLoading, sendSnapshot, taggedSkills]);
+  }, [isLoading, sendSnapshot, taggedSkillNames]);
 
   const handleSend = useCallback(() => {
     const editor = editorRef.current;
@@ -2256,7 +2259,7 @@ export function ChatInputAdvanced({
       performSend,
       setInternalError,
       setPendingSend,
-      taggedSkillNames: taggedSkills.map((skill) => skill.name),
+      taggedSkillNames,
     });
   }, [
     check,
@@ -2270,7 +2273,7 @@ export function ChatInputAdvanced({
     isUsageBlocked,
     onSend,
     performSend,
-    taggedSkills,
+    taggedSkillNames,
   ]);
 
   useEffect(() => {
