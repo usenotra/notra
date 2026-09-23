@@ -40,12 +40,20 @@ export const DESIGN_SYSTEM_GEO_POINTS: GeoTimeseriesPoint[] = Array.from(
   }
 ).flat();
 
-const DESIGN_SYSTEM_GEO_FIRST_SCAN_DAY = DESIGN_SYSTEM_GEO_POINTS.at(-1)?.day;
+const DESIGN_SYSTEM_GEO_DAYS = [
+  ...new Set(DESIGN_SYSTEM_GEO_POINTS.map((point) => point.day)),
+];
+const DESIGN_SYSTEM_GEO_FIRST_SCAN_DAY = DESIGN_SYSTEM_GEO_DAYS.at(-1);
+const DESIGN_SYSTEM_GEO_FEW_DAYS = new Set(DESIGN_SYSTEM_GEO_DAYS.slice(-5));
 
 export const DESIGN_SYSTEM_GEO_FIRST_SCAN_POINTS =
   DESIGN_SYSTEM_GEO_POINTS.filter(
     (point) => point.day === DESIGN_SYSTEM_GEO_FIRST_SCAN_DAY
   );
+
+export const DESIGN_SYSTEM_GEO_POINTS_FEW = DESIGN_SYSTEM_GEO_POINTS.filter(
+  (point) => DESIGN_SYSTEM_GEO_FEW_DAYS.has(point.day)
+);
 
 export const DESIGN_SYSTEM_GEO_OVERVIEW: GeoOverviewEngine[] = PROVIDERS.map(
   (provider) => {
