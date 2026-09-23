@@ -1226,6 +1226,7 @@ export const COPY_FEEDBACK_MS = 2000;
 export const GEO_TAB_VALUES = [
   "visibility",
   "brand-sentiment",
+  "accuracy",
   "journeys",
 ] as const satisfies readonly GeoTab[];
 
@@ -1246,6 +1247,7 @@ export const GEO_CHAT_SKIN_SURFACE: Record<GeoChatSkin, string> = {
 export const GEO_TAB_BREADCRUMB_LABELS = {
   visibility: "Visibility",
   "brand-sentiment": "Brand sentiment",
+  accuracy: "Accuracy",
   journeys: "Journeys",
 } satisfies Record<GeoTab, string>;
 

@@ -1,4 +1,5 @@
 import {
+  BookOpen01Icon,
   Comment01Icon,
   CorporateIcon,
   GlobalIcon,
@@ -65,6 +66,7 @@ export const BRAND_IDENTITY_TAB_VALUES = [
   "references",
   "sitemap",
   "guidelines",
+  "knowledge",
 ] as const satisfies readonly BrandTab[];
 
 export const BRAND_IDENTITY_NAV_ITEMS: readonly NavBrandIdentityItemConfig[] = [
@@ -77,6 +79,7 @@ export const BRAND_IDENTITY_NAV_ITEMS: readonly NavBrandIdentityItemConfig[] = [
     countKey: "references",
   },
   { tab: "sitemap", label: "Sitemap", icon: GlobalIcon, countKey: "sitemap" },
+  { tab: "knowledge", label: "Knowledge", icon: BookOpen01Icon },
 ];
 
 export const BRAND_TAB_HEADERS: Record<
@@ -99,5 +102,10 @@ export const BRAND_TAB_HEADERS: Record<
     title: "Brand Guidelines",
     description:
       "Logos, colors, typography, and landing page screenshots pulled from your site",
+  },
+  knowledge: {
+    title: "Knowledge",
+    description:
+      "Facts distilled from your website and GitHub. Accuracy checks AI answers against this list.",
   },
 };

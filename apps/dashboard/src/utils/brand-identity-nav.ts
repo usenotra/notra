@@ -40,7 +40,8 @@ export function resolveBrandIdentityNavView(
   if (
     viewParam === "references" ||
     viewParam === "sitemap" ||
-    viewParam === "guidelines"
+    viewParam === "guidelines" ||
+    viewParam === "knowledge"
   ) {
     return viewParam;
   }

@@ -16,7 +16,12 @@ import type {
   BrandGuidelineToken,
 } from "@/types/hooks/brand-guidelines";
 
-export type BrandTab = "identity" | "references" | "sitemap" | "guidelines";
+export type BrandTab =
+  | "identity"
+  | "references"
+  | "sitemap"
+  | "guidelines"
+  | "knowledge";
 
 export interface BrandIdentityUiState {
   addIdentityOpen: boolean;

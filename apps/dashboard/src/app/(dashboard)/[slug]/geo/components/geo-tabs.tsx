@@ -8,6 +8,7 @@ import {
 } from "@notra/ui/components/ui/permission-selector";
 import type { ReactNode } from "react";
 
+import { AccuracyTab } from "@/components/geo/accuracy-tab";
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
 import { JourneysTab } from "@/components/geo/journeys-tab";
@@ -94,6 +95,7 @@ export function GeoTabs({
         <PermissionOption value="brand-sentiment">
           Brand Sentiment
         </PermissionOption>
+        <PermissionOption value="accuracy">Accuracy</PermissionOption>
         <PermissionOption value="journeys">
           <span className="flex items-baseline gap-1.5">
             Journeys
@@ -194,6 +196,16 @@ export function GeoTabs({
             />
           </TabSection>
         </div>
+      ) : null}
+
+      {activeTab === "accuracy" ? (
+        <TabSection active={revealActive} order={0}>
+          <AccuracyTab
+            isScanning={isScanning}
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+          />
+        </TabSection>
       ) : null}
 
       {activeTab === "journeys" ? (

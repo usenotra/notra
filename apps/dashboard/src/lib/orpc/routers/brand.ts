@@ -21,7 +21,17 @@ import {
   contentTriggers,
 } from "@notra/db/schema";
 import { deleteBrandReferenceMemory } from "@notra/db/utils/supermemory";
+import {
+  loadBrandKnowledge,
+  saveBrandKnowledge,
+  scanBrandKnowledge,
+} from "@notra/geo-core/geo/brand-knowledge";
 import { invalidateGeoIngestHostsCacheForBrand } from "@notra/geo-core/geo/ingest";
+import {
+  brandKnowledgeSaveInputSchema,
+  brandKnowledgeScanInputSchema,
+  brandKnowledgeVoiceInputSchema,
+} from "@notra/geo-core/schemas/brand-knowledge";
 import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -65,6 +75,7 @@ import {
 } from "@/lib/brand-guidelines";
 import { countBrandVoices } from "@/lib/brand-voice-count";
 import { isUniqueConstraintError } from "@/lib/db/errors";
+import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { baseProcedure } from "@/lib/orpc/base";
 import {
   startBrandAnalysisRun,
@@ -1761,6 +1772,70 @@ export const brandRouter = {
           const message =
             error instanceof Error ? error.message : "Failed to fetch tweet";
 
+          throw badRequest(message);
+        }
+      }),
+  },
+  knowledge: {
+    get: baseProcedure
+      .input(brandKnowledgeVoiceInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+        });
+        await verifyVoiceOwnership(input.organizationId, input.voiceId);
+        return Effect.runPromise(
+          loadBrandKnowledge(input.organizationId, input.voiceId).pipe(
+            Effect.provide(geoCoreDashboardLayer)
+          )
+        );
+      }),
+    save: baseProcedure
+      .input(brandKnowledgeSaveInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+        });
+        await verifyVoiceOwnership(input.organizationId, input.voiceId);
+        const records = input.records.map((record) => ({
+          id: record.id?.trim() || randomUUID(),
+          statement: record.statement,
+          category: record.category,
+          origin: record.origin,
+          ...(record.sourceUrl ? { sourceUrl: record.sourceUrl } : {}),
+          ...(record.sourcePath ? { sourcePath: record.sourcePath } : {}),
+          ...(record.pinned ? { pinned: true } : {}),
+        }));
+        return Effect.runPromise(
+          saveBrandKnowledge(
+            input.organizationId,
+            input.voiceId,
+            records,
+            input.githubIntegrationId
+          ).pipe(Effect.provide(geoCoreDashboardLayer))
+        );
+      }),
+    scan: baseProcedure
+      .route({ method: "POST" })
+      .input(brandKnowledgeScanInputSchema)
+      .handler(async ({ context, input }) => {
+        await assertOrganizationAccess({
+          headers: context.headers,
+          organizationId: input.organizationId,
+        });
+        await assertActiveSubscription(input.organizationId);
+        await verifyVoiceOwnership(input.organizationId, input.voiceId);
+        try {
+          return await Effect.runPromise(
+            scanBrandKnowledge(input).pipe(
+              Effect.provide(geoCoreDashboardLayer)
+            )
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Knowledge scan failed";
           throw badRequest(message);
         }
       }),

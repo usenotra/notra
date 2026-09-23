@@ -27,6 +27,7 @@ import {
   GSC_SYNC_CRON,
   GSC_SYNC_WORKFLOW_PATH,
 } from "@notra/geo-core/constants/google-search-console";
+import { loadGeoAccuracyAnalysis } from "@notra/geo-core/geo/accuracy-analysis";
 import {
   loadAgentReadiness,
   startAgentReadinessScan,
@@ -144,6 +145,7 @@ import {
   planGeoContentBrief,
   updateGeoContentBrief,
 } from "@notra/geo-core/geo/writer";
+import { accuracyPeriodInputSchema } from "@notra/geo-core/schemas/accuracy-analysis";
 import {
   AgentReadinessApiError,
   AgentReadinessTargetMissingError,
@@ -952,6 +954,27 @@ export const geoRouter = {
     .input(geoSentimentEvidenceInputSchema)
     .handler(
       geoHandler((input) => loadGeoSentimentEvidence(input, geoWindow(input)))
+    ),
+  accuracyAnalysis: authorizedProcedure
+    .input(accuracyPeriodInputSchema)
+    .handler(
+      geoHandler((input) => loadGeoAccuracyAnalysis(input, geoWindow(input)))
+    ),
+  analyzeAccuracy: authorizedProcedure
+    .route({ method: "POST" })
+    .input(accuracyPeriodInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadGeoAccuracyAnalysis(input, geoWindow(input), true, (task) =>
+          after(async () => {
+            try {
+              await task();
+            } catch (error) {
+              console.error("Could not analyze GEO accuracy", { error });
+            }
+          })
+        )
+      )
     ),
   timeseries: authorizedProcedure
     .input(geoTimeseriesInputSchema)

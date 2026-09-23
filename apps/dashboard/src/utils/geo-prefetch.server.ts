@@ -83,11 +83,21 @@ export async function dehydrateGeoOverviewQueries(
       }),
       queryFn: () => client.geo.competitorShare(input.competitorShare),
     });
+  }
+  if (input.activeTab === "visibility") {
     void queryClient.prefetchQuery({
       ...dashboardOrpc.geo.languageShare.queryOptions({
         input: input.languageShare,
       }),
       queryFn: () => client.geo.languageShare(input.languageShare),
+    });
+  }
+  if (input.activeTab === "accuracy") {
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.accuracyAnalysis.queryOptions({
+        input: input.overview,
+      }),
+      queryFn: () => client.geo.accuracyAnalysis(input.overview),
     });
   }
 

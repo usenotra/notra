@@ -11,6 +11,7 @@ import type { BrandIdentityTabsProps, BrandTab } from "@/types/brand-identity";
 
 import { BrandForm } from "./brand-form";
 import { GuidelinesPanel } from "./guidelines-panel";
+import { KnowledgePanel } from "./knowledge-panel";
 import { ReferencesList } from "./references-list";
 import { SitemapList } from "./sitemap-list";
 
@@ -40,6 +41,7 @@ export function BrandIdentityTabs({
             <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
             <TabsTrigger value="references">References</TabsTrigger>
             <TabsTrigger value="sitemap">Sitemap</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
           </TabsList>
         </div>
         {activeTab === "identity" && isSaving ? (
@@ -86,6 +88,15 @@ export function BrandIdentityTabs({
           dialogOpen={addSitemapOpen}
           key={`sitemap-${voiceId}`}
           onDialogOpenChange={onAddSitemapOpenChange}
+          organizationId={organizationId}
+          voiceId={voiceId}
+          voiceWebsiteUrl={voiceWebsiteUrl}
+        />
+      </TabsContent>
+
+      <TabsContent className="mt-6" value="knowledge">
+        <KnowledgePanel
+          key={`knowledge-${voiceId}`}
           organizationId={organizationId}
           voiceId={voiceId}
           voiceWebsiteUrl={voiceWebsiteUrl}

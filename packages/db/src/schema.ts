@@ -35,6 +35,7 @@ import type {
   AgentReadinessIssue,
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
+import type { BrandKnowledgeRecord, GeoBrandFact } from "./types/geo-accuracy";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type {
   GeoPersonaProfile,
@@ -871,6 +872,15 @@ export const brandSettings = pgTable(
     customInstructions: text("custom_instructions"),
     audience: text("audience"),
     language: text("language").default("English"),
+    knowledgeGithubIntegrationId: text(
+      "knowledge_github_integration_id"
+    ).references(() => githubIntegrations.id, { onDelete: "set null" }),
+    knowledgeRecords: jsonb("knowledge_records")
+      .$type<BrandKnowledgeRecord[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    knowledgeSyncedAt: timestamp("knowledge_synced_at"),
+    knowledgeSyncError: text("knowledge_sync_error"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -1449,6 +1459,10 @@ export const geoSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY[]::text[]`),
+    brandFacts: jsonb("brand_facts")
+      .$type<GeoBrandFact[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     competitors: text("competitors")
       .array()
       .notNull()
@@ -3164,6 +3178,10 @@ export const brandSettingsRelations = relations(
     organization: one(organizations, {
       fields: [brandSettings.organizationId],
       references: [organizations.id],
+    }),
+    knowledgeGithub: one(githubIntegrations, {
+      fields: [brandSettings.knowledgeGithubIntegrationId],
+      references: [githubIntegrations.id],
     }),
     references: many(brandReferences),
     guidelines: many(brandGuidelines),

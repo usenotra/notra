@@ -1285,7 +1285,7 @@ export interface GeoPromptSummary {
   results: GeoPromptResultSummary[];
 }
 
-export type GeoTab = "visibility" | "brand-sentiment" | "journeys";
+export type GeoTab = "visibility" | "brand-sentiment" | "accuracy" | "journeys";
 
 export type GeoRangePreset =
   | "today"
