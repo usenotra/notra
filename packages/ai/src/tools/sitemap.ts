@@ -294,13 +294,15 @@ export function createCrawlSitemapTool(): Tool {
           total: result.urls.length,
         };
       } catch (error) {
-        const timedOut =
+        if (
           error instanceof Error &&
-          (error.name === "TimeoutError" || error.name === "AbortError");
+          (error.name === "TimeoutError" || error.name === "AbortError")
+        ) {
+          return { error: "Sitemap crawl timed out." };
+        }
         return {
-          error: timedOut
-            ? "Sitemap crawl timed out."
-            : error instanceof Error
+          error:
+            error instanceof Error
               ? `Failed to crawl the sitemap: ${error.message}`
               : "Failed to crawl the sitemap.",
         };
