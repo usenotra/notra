@@ -19,12 +19,6 @@ A Muse connector is an MCP server, so the list is short:
 
 If you already have an MCP server running, you're most of the way there. If you only have a REST API, you'll need a thin MCP layer on top. The [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) is the fastest way to get there.
 
-## A real example: Blotato
-
-Before writing a single line, look at [Blotato](https://blotato.com/meta-muse). They ship a social scheduling tool and they already have a working Muse connector. Their MCP server runs at `https://mcp.blotato.com/mcp`, uses streamable HTTP, and authenticates with a `blotato-api-key` header. A user connects it by asking Muse to set it up, and Muse handles the rest.
-
-That's the whole pattern. One public endpoint, one auth header, tools with useful descriptions. Everything else is your product logic.
-
 ## Build the server
 
 A minimal MCP server in TypeScript looks like this:
