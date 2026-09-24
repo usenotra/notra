@@ -1106,13 +1106,20 @@ export function useGscSync(organizationId: string) {
 }
 
 export function useGscDisconnect(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
-  const invalidate = useInvalidateGscQueries(organizationId, projectId);
+  const invalidate = useInvalidateGscQueries(organizationId);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
       dashboardOrpc.geo.searchConsoleDisconnect.call({ organizationId }),
     onSuccess: async () => {
-      await invalidate();
+      await Promise.all([
+        invalidate(),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.geo.searchConsoleSites.queryKey({
+            input: { organizationId },
+          }),
+        }),
+      ]);
       toast.success("Google Search Console disconnected");
     },
     onError: (error) => {

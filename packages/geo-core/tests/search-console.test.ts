@@ -197,6 +197,36 @@ describe("Search Console Effect sync", () => {
     );
   });
 
+  test("project changed during generation does not stamp the integration", async () => {
+    await seedGsc();
+    const outcome = await Effect.runPromise(
+      withGscServices(syncGscSuggestions("org-test"), {
+        ...fakeModels,
+        suggest: (input) =>
+          Effect.gen(function* () {
+            yield* Effect.promise(() =>
+              testDb
+                .update(projects)
+                .set({ gscSiteUrl: "https://changed.example" })
+                .where(eq(projects.id, "gsc"))
+            );
+            return yield* fakeModels.suggest(input);
+          }),
+      })
+    );
+    expect(outcome).toEqual({
+      status: "skipped",
+      reason: "integration_changed",
+    });
+    expect(
+      (await testDb.query.googleSearchConsoleIntegrations.findFirst())
+        ?.lastSyncedAt
+    ).toBeNull();
+    expect((await testDb.query.geoPromptSuggestions.findFirst())?.id).toBe(
+      "old-pending"
+    );
+  });
+
   test("generation failure preserves pending rows and stores curated copy", async () => {
     await seedGsc();
     const result = await Effect.runPromise(

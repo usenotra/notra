@@ -25,6 +25,7 @@ export async function runGscSyncStep(
   let suggestionsAdded = 0;
   let completed = 0;
   let failed = 0;
+  let skippedReason: string | undefined;
   // The shared OAuth integration row is a compare-and-swap sync lease.
   // Run projects in order so each call sees the previous sync's version.
   for (const project of selectedProjects) {
@@ -38,22 +39,32 @@ export async function runGscSyncStep(
         completed++;
         keywords += outcome.keywords ?? 0;
         suggestionsAdded += outcome.suggestionsAdded ?? 0;
+      } else {
+        skippedReason =
+          outcome.reason === "reauth_required"
+            ? outcome.reason
+            : (skippedReason ?? outcome.reason);
       }
     } catch (error) {
       failed++;
       console.error(`[GSC] Failed to sync project ${project.id}:`, error);
     }
   }
-  if (failed && !completed) {
-    throw new Error("Search Console failed to sync all selected projects");
+  if (failed) {
+    throw new Error(
+      `Search Console failed to sync ${failed} of ${selectedProjects.length} selected projects`
+    );
+  }
+  if (completed && completed < selectedProjects.length) {
+    throw new Error(
+      `Search Console skipped ${selectedProjects.length - completed} of ${selectedProjects.length} selected projects: ${skippedReason ?? "unknown"}`
+    );
   }
   const result: GscSyncResult = completed
     ? { status: "completed", keywords, suggestionsAdded }
     : {
         status: "skipped",
-        reason: selectedProjects.length
-          ? "integration_changed"
-          : "no_site_selected",
+        reason: skippedReason ?? "no_site_selected",
       };
   await trackServerEventAndFlush({
     organizationId,

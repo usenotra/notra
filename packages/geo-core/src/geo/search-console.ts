@@ -63,67 +63,78 @@ const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
     const lastSyncedAt = new Date(
       Math.max(Date.now(), (integration.lastSyncedAt?.getTime() ?? 0) + 1)
     );
+    const projectChanged = new Error(
+      "Search Console project changed during sync"
+    );
     const suggestionsAdded = yield* geoDb(
       "commit Search Console suggestions",
-      () =>
-        db.transaction(async (tx) => {
-          const currentIntegration = await updateGscIntegrationIfUnchanged(
-            integration,
-            {
-              lastSyncedAt,
-              lastError: null,
-            },
-            tx
-          );
-          if (!currentIntegration) {
-            return null;
-          }
-
-          const [updatedProject] = await tx
-            .update(projects)
-            .set({
-              gscSiteUrl: siteUrl,
-              gscTopQueries: outcome.topQueries,
-              gscLastSyncedAt: lastSyncedAt,
-              gscLastError: null,
-            })
-            .where(
-              and(
-                eq(projects.id, projectId),
-                eq(projects.organizationId, integration.organizationId),
-                previousSiteUrl === null
-                  ? isNull(projects.gscSiteUrl)
-                  : eq(projects.gscSiteUrl, previousSiteUrl)
-              )
-            )
-            .returning({ id: projects.id });
-          if (!updatedProject) {
-            return null;
-          }
-
-          await tx
-            .delete(geoPromptSuggestions)
-            .where(
-              and(
-                eq(
-                  geoPromptSuggestions.organizationId,
-                  integration.organizationId
-                ),
-                eq(geoPromptSuggestions.projectId, projectId),
-                eq(geoPromptSuggestions.status, "pending")
-              )
+      async () => {
+        try {
+          return await db.transaction(async (tx) => {
+            const currentIntegration = await updateGscIntegrationIfUnchanged(
+              integration,
+              {
+                lastSyncedAt,
+                lastError: null,
+              },
+              tx
             );
-          if (outcome.suggestions.length === 0) {
-            return 0;
-          }
+            if (!currentIntegration) {
+              return null;
+            }
 
-          const inserted = await tx
-            .insert(geoPromptSuggestions)
-            .values(outcome.suggestions)
-            .onConflictDoNothing()
-            .returning({ id: geoPromptSuggestions.id });
-          return inserted.length;
-        })
+            const [updatedProject] = await tx
+              .update(projects)
+              .set({
+                gscSiteUrl: siteUrl,
+                gscTopQueries: outcome.topQueries,
+                gscLastSyncedAt: lastSyncedAt,
+                gscLastError: null,
+              })
+              .where(
+                and(
+                  eq(projects.id, projectId),
+                  eq(projects.organizationId, integration.organizationId),
+                  previousSiteUrl === null
+                    ? isNull(projects.gscSiteUrl)
+                    : eq(projects.gscSiteUrl, previousSiteUrl)
+                )
+              )
+              .returning({ id: projects.id });
+            if (!updatedProject) {
+              throw projectChanged;
+            }
+
+            await tx
+              .delete(geoPromptSuggestions)
+              .where(
+                and(
+                  eq(
+                    geoPromptSuggestions.organizationId,
+                    integration.organizationId
+                  ),
+                  eq(geoPromptSuggestions.projectId, projectId),
+                  eq(geoPromptSuggestions.status, "pending")
+                )
+              );
+            if (outcome.suggestions.length === 0) {
+              return 0;
+            }
+
+            const inserted = await tx
+              .insert(geoPromptSuggestions)
+              .values(outcome.suggestions)
+              .onConflictDoNothing()
+              .returning({ id: geoPromptSuggestions.id });
+            return inserted.length;
+          });
+        } catch (error) {
+          if (error === projectChanged) {
+            return null;
+          }
+          throw error;
+        }
+      }
     );
     if (suggestionsAdded === null) {
       return {

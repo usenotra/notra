@@ -233,7 +233,7 @@ export async function upsertGscIntegration(
           })
         : null;
     const googleAccountChanged =
-      oldSiteMustBeCleared || Boolean(selectedProject);
+      !existing || oldSiteMustBeCleared || Boolean(selectedProject);
 
     signal?.throwIfAborted();
     const [row] = await tx

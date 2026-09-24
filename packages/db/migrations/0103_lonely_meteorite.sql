@@ -1,0 +1,1 @@
+CREATE INDEX "geoPromptSuggestions_organizationId_status_idx" ON "geo_prompt_suggestions" USING btree ("organization_id","status");

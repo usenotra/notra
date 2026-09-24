@@ -899,7 +899,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         columns: { prompt: true },
         where: and(
           eq(geoPromptSuggestions.id, sourceId),
-          eq(geoPromptSuggestions.organizationId, organizationId)
+          eq(geoPromptSuggestions.organizationId, organizationId),
+          eq(geoPromptSuggestions.projectId, projectId)
         ),
       })
     );

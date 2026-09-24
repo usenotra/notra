@@ -2039,6 +2039,10 @@ export const geoPromptSuggestions = pgTable(
       .notNull(),
   },
   (table) => [
+    index("geoPromptSuggestions_organizationId_status_idx").on(
+      table.organizationId,
+      table.status
+    ),
     index("geoPromptSuggestions_projectId_status_idx").on(
       table.projectId,
       table.status
