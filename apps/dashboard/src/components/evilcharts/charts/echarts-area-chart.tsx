@@ -2617,6 +2617,10 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       }
       const raw = chart.convertFromPixel({ gridIndex: 0 }, [x, y])[0] ?? 0;
       const idx = nearestCategoryIndex(raw, live.dataLength);
+      if (idx === null) {
+        leaveScrub();
+        return;
+      }
       const snapX = chart.convertToPixel({ xAxisIndex: 0 }, idx);
       if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
       if (live.scrubTarget === 1 && live.scrubIndex === idx) return;

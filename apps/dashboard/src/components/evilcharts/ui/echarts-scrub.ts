@@ -59,13 +59,30 @@ function internals(chart: EChartsInstance): ChartInternals {
   return chart as unknown as ChartInternals;
 }
 
-export function nearestCategoryIndex(raw: number, length: number): number {
-  if (length <= 0) return 0;
+export function nearestCategoryIndex(
+  raw: number,
+  length: number
+): number | null {
+  if (length <= 0) return null;
   return Math.max(0, Math.min(length - 1, Math.round(raw)));
 }
 
+/** True for generated companion IDs (`__reveal-key`, `__loading`), not user keys. */
+export function isScrubSkipSeries(
+  id: string,
+  prefixes: readonly string[],
+  seriesKeys: readonly string[] = []
+): boolean {
+  const keySet = seriesKeys.length > 0 ? new Set(seriesKeys) : null;
+  return prefixes.some((prefix) => {
+    if (!id.startsWith(prefix)) return false;
+    if (!keySet) return true;
+    return id === prefix || keySet.has(id.slice(prefix.length));
+  });
+}
+
 /** Pixel-space Y on a packed [x0,y0,x1,y1,…] polyline. NaN breaks the segment. */
-function yAtXOnPackedPoints(
+export function yAtXOnPackedPoints(
   packed: ArrayLike<number>,
   x: number
 ): number | null {
@@ -74,8 +91,8 @@ function yAtXOnPackedPoints(
   let prevX = Number.NaN;
   let prevY = Number.NaN;
   for (let i = 0; i < n; i += 2) {
-    const px = packed[i];
-    const py = packed[i + 1];
+    const px = packed[i] ?? Number.NaN;
+    const py = packed[i + 1] ?? Number.NaN;
     if (!Number.isFinite(px) || !Number.isFinite(py)) {
       prevX = Number.NaN;
       prevY = Number.NaN;
@@ -249,19 +266,9 @@ export function clipSeriesToX(
       ? grid.width
       : Math.max(0, Math.min(grid.width, mouseX - grid.x));
 
-  const keySet = seriesKeys.length > 0 ? new Set(seriesKeys) : null;
-
   for (const model of series) {
     const id = String(model.id ?? "");
-    if (
-      skipPrefixes.some((prefix) => {
-        if (!id.startsWith(prefix)) return false;
-        if (!keySet) return true;
-        return id === prefix || keySet.has(id.slice(prefix.length));
-      })
-    ) {
-      continue;
-    }
+    if (isScrubSkipSeries(id, skipPrefixes, seriesKeys)) continue;
     const view = views.getViewOfSeriesModel(model);
     if (!view?.group?.setClipPath) continue;
     let clip = store.clips.get(id);
