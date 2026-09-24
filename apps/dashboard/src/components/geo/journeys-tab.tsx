@@ -63,6 +63,7 @@ function JourneysTabSkeleton() {
 
 export function JourneysTab({
   journeys,
+  journeysFailed,
   journeyStats,
   journeyStatsFailed,
   loading,
@@ -137,7 +138,7 @@ export function JourneysTab({
       </InstrumentGrid>
       <InstrumentReveal active={revealActive} order={2}>
         <JourneysCard
-          failed={journeyStatsFailed}
+          failed={journeysFailed}
           journeys={journeys}
           loading={loading}
           organizationSlug={organizationSlug}

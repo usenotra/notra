@@ -28,8 +28,6 @@ export interface InstrumentRevealProps {
 export interface InstrumentEmptyProps {
   seed: string;
   message: string;
-  media?: ReactNode;
-  description?: string;
   className?: string;
   busy?: boolean;
   action?: ReactNode;

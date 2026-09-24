@@ -11,6 +11,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { JourneyEmpty } from "@/components/geo/journey-empty";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
 import {
   InstrumentEmpty,
@@ -99,7 +100,7 @@ export function JourneysCard({
             seed="geo-journeys-error"
           />
         ) : (
-          <InstrumentEmpty
+          <JourneyEmpty
             action={
               <Button
                 nativeButton={false}
@@ -118,8 +119,7 @@ export function JourneysCard({
             className="min-h-72 px-6 py-10 [&_h3]:text-lg"
             description="Journeys appear when AI traffic reaches your site."
             media={<RouteIcon className="size-5" />}
-            message="See how AI agents explore your site"
-            seed="geo-journeys"
+            title="See how AI agents explore your site"
           />
         )}
       </InstrumentModule>

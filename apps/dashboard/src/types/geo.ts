@@ -490,6 +490,7 @@ export interface GeoJourneyTreeNode extends GeoJourneyPathNode {
 
 export interface JourneysTabProps {
   journeys: GeoJourney[];
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | null;
   journeyStatsFailed: boolean;
   loading: boolean;
@@ -577,6 +578,14 @@ export interface JourneyStatCardProps {
   emptyMedia?: ReactNode;
   emptySeed: string;
   children: ReactNode;
+}
+
+export interface JourneyEmptyProps {
+  title: string;
+  description: string;
+  media: ReactNode;
+  action?: ReactNode;
+  className?: string;
 }
 
 export interface JourneyOverviewCardProps {
@@ -863,6 +872,7 @@ export interface GeoTabsProps {
   promptCount: number;
   isScanning: boolean;
   journeys: GeoJourney[];
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | null;
   journeyStatsFailed: boolean;
   journeysLoading: boolean;

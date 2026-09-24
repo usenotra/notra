@@ -198,8 +198,6 @@ export function InstrumentSection({
 
 export function InstrumentEmpty({
   message,
-  media,
-  description,
   className,
   busy = false,
   action,
@@ -221,15 +219,6 @@ export function InstrumentEmpty({
           className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_70%,transparent_100%)] opacity-40 select-none"
         >
           {preview}
-        </div>
-      ) : null}
-      {media && !busy ? (
-        <div aria-hidden="true" className="relative z-10 mb-3 size-12">
-          <span className="bg-card border-border/80 absolute inset-0 origin-bottom-left -translate-x-1 scale-85 -rotate-10 rounded-lg border" />
-          <span className="bg-card border-border/80 absolute inset-0 origin-bottom-right translate-x-1 scale-85 rotate-10 rounded-lg border" />
-          <span className="bg-card text-foreground relative flex size-12 items-center justify-center rounded-lg border shadow-sm">
-            {media}
-          </span>
         </div>
       ) : null}
       {message || busy ? (
@@ -268,25 +257,10 @@ export function InstrumentEmpty({
               </svg>
             </span>
           ) : null}
-          {description ? (
-            <h3 className="text-foreground text-base font-semibold text-balance">
-              {message}
-            </h3>
-          ) : (
-            <p className="text-muted-foreground text-sm capitalize">
-              {message}
-            </p>
-          )}
+          <p className="text-muted-foreground text-sm capitalize">{message}</p>
         </div>
       ) : null}
-      {description && !busy ? (
-        <p className="text-muted-foreground relative z-10 max-w-md px-4 text-sm leading-relaxed text-pretty">
-          {description}
-        </p>
-      ) : null}
-      {action && !busy ? (
-        <div className="relative z-10 mt-2">{action}</div>
-      ) : null}
+      {action && !busy ? <div className="relative z-10">{action}</div> : null}
     </div>
   );
 }
