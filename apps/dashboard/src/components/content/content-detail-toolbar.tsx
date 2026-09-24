@@ -248,7 +248,7 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
     saveLabel = "Saving…";
   }
   return (
-    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+    <div className="**:data-[slot=button]:[&.border-border]:dark:bg-background ml-auto flex flex-wrap items-center justify-end gap-2">
       {document.hasChanges &&
       (updatesLinkedPullRequest ||
         document.saveFailed ||
