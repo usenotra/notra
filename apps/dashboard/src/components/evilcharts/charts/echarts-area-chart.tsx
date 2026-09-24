@@ -2554,7 +2554,8 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       }
       const snapX = chart.convertToPixel({ xAxisIndex: 0 }, index);
       if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
-      const displayX = (live.scrubX ??= snapX);
+      const displayX = live.scrubX ?? snapX;
+      live.scrubX = displayX;
       clipSeriesToX(
         chart,
         live.scrubStore,
