@@ -65,7 +65,7 @@ export function nearestCategoryIndex(raw: number, length: number): number {
 }
 
 /** Pixel-space Y on a packed [x0,y0,x1,y1,…] polyline. NaN breaks the segment. */
-export function yAtXOnPackedPoints(
+function yAtXOnPackedPoints(
   packed: ArrayLike<number>,
   x: number
 ): number | null {
