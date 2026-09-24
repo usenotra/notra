@@ -129,7 +129,7 @@ export function buildGitHubMentionReplyFooter(params: {
     const deletions = params.files.reduce((sum, f) => sum + f.deletions, 0);
     parts.push(`+${additions} −${deletions}`);
   }
-  parts.push("mention me again to keep iterating");
+  parts.push("reply here or mention me again to keep iterating");
   return `<sub>${parts.join(" · ")}</sub>`;
 }
 
@@ -238,7 +238,7 @@ function proposalFooter(
     proposals.length === 1 && first
       ? inlineCode(first.path)
       : `${proposals.length} files`;
-  return `<sub>Suggestion · ${where} · ${howToApply} · mention me again to keep iterating</sub>`;
+  return `<sub>Suggestion · ${where} · ${howToApply} · reply here or mention me again to keep iterating</sub>`;
 }
 
 /**

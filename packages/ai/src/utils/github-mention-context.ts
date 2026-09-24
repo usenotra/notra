@@ -8,7 +8,9 @@ import type {
 import { findContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
 import {
   commentMentionsNotra,
+  getGitHubMentionAppHandles,
   isGitHubBotSender,
+  normalizeHandle,
 } from "@notra/ai/utils/github-mention";
 import {
   findGitHubIntegrationForMention,
@@ -20,9 +22,29 @@ import {
   buildGitHubMentionPermissionReply,
   isGitHubPermissionError,
 } from "@notra/ai/utils/github-mention-permissions";
-import { postGitHubIssueComment } from "@notra/ai/utils/github-pr-comments";
+import {
+  listGitHubReviewComments,
+  postGitHubIssueComment,
+} from "@notra/ai/utils/github-pr-comments";
 import { getPullRequestHead } from "@notra/ai/utils/github-pr-commit";
 import { createOctokit } from "@notra/ai/utils/octokit";
+
+async function isReplyInNotraReviewThread(params: {
+  octokit: ReturnType<typeof createOctokit>;
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  threadRootId: number;
+}) {
+  const appHandles = new Set(getGitHubMentionAppHandles());
+  const comments = await listGitHubReviewComments(params).catch(() => []);
+  return comments.some(
+    (comment) =>
+      comment.threadRootId === params.threadRootId &&
+      comment.authorIsBot &&
+      appHandles.has(normalizeHandle(comment.authorLogin))
+  );
+}
 
 export async function resolveGitHubMentionContext(params: {
   payload: GitHubAppWebhookPayload;
@@ -44,7 +66,11 @@ export async function resolveGitHubMentionContext(params: {
   if (isGitHubBotSender(sender)) {
     return { status: "ignored", reason: "bot_sender" };
   }
-  if (!commentMentionsNotra(comment.body)) {
+  // A reply in a review thread Notra already answered is aimed at Notra even
+  // without the handle. Only the thread lookup below can tell, and that needs
+  // the integration first.
+  const mentioned = commentMentionsNotra(comment.body);
+  if (!(mentioned || comment.in_reply_to_id)) {
     return { status: "ignored", reason: "not_mentioned" };
   }
 
@@ -91,6 +117,24 @@ export async function resolveGitHubMentionContext(params: {
   const match = candidates[0];
   if (match) {
     const { organizationId, userId, integrationId, owner, repo } = match;
+
+    if (!mentioned) {
+      const token = await getGitHubPublishToken(integrationId, {
+        organizationId,
+      });
+      const inNotraThread =
+        token &&
+        (await isReplyInNotraReviewThread({
+          octokit: createOctokit(token),
+          owner,
+          repo,
+          pullNumber: issueNumber,
+          threadRootId: comment.in_reply_to_id ?? comment.id,
+        }));
+      if (!inNotraThread) {
+        return { status: "ignored", reason: "not_mentioned" };
+      }
+    }
 
     let pullRequest: GitHubMentionPullRequest | null = null;
     if (issue?.pull_request || params.payload.pull_request) {
