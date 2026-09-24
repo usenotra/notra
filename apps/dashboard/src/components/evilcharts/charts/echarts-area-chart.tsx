@@ -24,6 +24,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -86,6 +87,7 @@ import type {
 import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 import {
   SCRUB_MUTE_OPACITY,
+  clearScrub,
   clipSeriesToX,
   emptyScrubStore,
   nearestCategoryIndex,
@@ -1451,10 +1453,13 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     // takes precedence over a per-area buffer tail when both are set.
     const scrub = tooltipSlot.scrub;
     const reveal = enableHoverReveal || scrub;
-    const buffer = !reveal && area.enableBufferLine && lastPresent >= 1;
     // Scrub clips in pixels instead of dropping points, so the series stays
     // full and the cut rides the pointer. Classic hover-reveal still slices.
     const revealActive = enableHoverReveal && !scrub && revealIndex !== null;
+    // Scrub still uses the faded reveal base, but the dashed "today is
+    // incomplete" overlay stays unless classic hover-reveal is actively slicing.
+    const buffer =
+      area.enableBufferLine && lastPresent >= 1 && !revealActive;
 
     const restingDot = dotStyle(
       area.dotVariant,
@@ -1919,6 +1924,7 @@ type LiveState = {
   brushOverlay: BrushOverlayElements | null; // zrender elements, owned by syncBrushOverlay
   brushHover: { inside: boolean; left: boolean; right: boolean };
   scrubStore: ScrubOverlayStore;
+  scrubIndex: number | null;
   scrubX: number | null;
   scrubOpacity: number;
   scrubTarget: number;
@@ -1961,6 +1967,7 @@ function createLiveState(): LiveState {
     brushOverlay: null,
     brushHover: { inside: false, left: false, right: false },
     scrubStore: emptyScrubStore(),
+    scrubIndex: null,
     scrubX: null,
     scrubOpacity: 0,
     scrubTarget: 0,
@@ -2023,10 +2030,15 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   const mountRef = useRef<HTMLDivElement>(null);
   const echartsRef = useRef<EChartsInstance | null>(null);
 
-  // Imperative ECharts bag. useState (not useRef) so React Compiler does not
-  // treat the box as a ref that is read during render. Identity is stable;
-  // handlers/dataLength are overwritten each render for the event closures.
-  const [live] = useState(createLiveState);
+  // Imperative ECharts bag. Identity is stable; zr handlers mutate fields and
+  // nothing in here drives a render. Lazy init matches the bar chart twin.
+  const liveRef = useRef<LiveState | null>(null);
+  // react-doctor-disable-next-line react-hooks-js/refs -- bag is for ECharts event handlers, not render output
+  if (liveRef.current === null) {
+    liveRef.current = createLiveState();
+  }
+  // react-doctor-disable-next-line react-hooks-js/refs -- bag is for ECharts event handlers, not render output
+  const live = liveRef.current;
 
   // Skeleton rows roll lazily on first use — an impure useRef initializer would
   // re-roll Math.random() on every render.
@@ -2105,19 +2117,50 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     [areas]
   );
 
-  // Refresh the handlers' snapshot of the latest callbacks/flags every render.
-  live.handlers = {
-    onBrushChange: brushSlot.onChange,
+  // Snapshot callbacks after commit so zr handlers never see a half-built option.
+  useLayoutEffect(() => {
+    live.handlers = {
+      onBrushChange: brushSlot.onChange,
+      onSelectionChange,
+      clickableKeys,
+      selectedDataKey,
+      brushFormatLabel: brushSlot.formatLabel,
+      seriesKeys,
+      enableHoverHighlight,
+      enableHoverReveal,
+      enableScrub: tooltipSlot.scrub,
+    };
+    live.dataLength = data.length;
+    if (live.scrubIndex !== null && live.scrubIndex >= data.length) {
+      live.scrubIndex = data.length <= 0 ? null : data.length - 1;
+    }
+    const chart = echartsRef.current;
+    if (!chart) return;
+    if (tooltipSlot.scrub && !isLoading) return;
+    if (live.scrubRaf) cancelAnimationFrame(live.scrubRaf);
+    live.scrubRaf = 0;
+    live.scrubIndex = null;
+    live.scrubX = null;
+    live.scrubOpacity = 0;
+    live.scrubTarget = 0;
+    clearScrub(chart, live.scrubStore, SCRUB_SKIP_PREFIXES, seriesKeys);
+    const zrDom = chart.getZr()?.dom as HTMLElement | undefined;
+    if (zrDom) zrDom.style.cursor = "";
+    chart.dispatchAction({ type: "hideTip" });
+  }, [
+    live,
+    brushSlot.onChange,
+    brushSlot.formatLabel,
     onSelectionChange,
     clickableKeys,
     selectedDataKey,
-    brushFormatLabel: brushSlot.formatLabel,
     seriesKeys,
     enableHoverHighlight,
     enableHoverReveal,
-    enableScrub: tooltipSlot.scrub,
-  };
-  live.dataLength = data.length;
+    tooltipSlot.scrub,
+    data.length,
+    isLoading,
+  ]);
 
   // Reads the CURRENT selection through live.handlers so the identity stays
   // stable for the init effect's click closure, and stays correct when the
@@ -2252,7 +2295,9 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     if (enableHoverReveal || tooltipSlot.scrub) live.revealValues = revealSink;
     if (tooltipSlot.scrub) {
       live.scrubDotKeys = areas
-        .filter((area) => area.strokeVariant !== "dashed")
+        .filter(
+          (area) => area.visible !== false && area.strokeVariant !== "dashed"
+        )
         .map((area) => area.dataKey);
     }
     // Record the exact series order so an area-polygon click (which reports only
@@ -2330,7 +2375,10 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // The brush overlay is raw zrender, outside the option — nothing resizes it,
     // so it is repositioned with every resize while the repush stays deferred.
     const stopResizeObserver = observeChartResize(mount, chart, {
-      onResized: () => syncBrushOverlayNow(),
+      onResized: () => {
+        syncBrushOverlayNow();
+        live.paintScrub();
+      },
       onSettled: () => live.repush(),
     });
 
@@ -2482,14 +2530,29 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     };
 
     const paintScrub = () => {
-      const x = live.scrubX;
       const grid = readScrubGrid(chart);
-      if (x === null || !grid) {
+      const index = live.scrubIndex;
+      if (index === null || !grid || live.dataLength <= 0) {
         syncScrubOverlay(chart, live.scrubStore, null);
-        clipSeriesToX(chart, live.scrubStore, null, SCRUB_SKIP_PREFIXES);
+        clipSeriesToX(
+          chart,
+          live.scrubStore,
+          null,
+          SCRUB_SKIP_PREFIXES,
+          live.handlers.seriesKeys
+        );
         return;
       }
-      clipSeriesToX(chart, live.scrubStore, x, SCRUB_SKIP_PREFIXES);
+      const snapX = chart.convertToPixel({ xAxisIndex: 0 }, index);
+      if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
+      live.scrubX = snapX;
+      clipSeriesToX(
+        chart,
+        live.scrubStore,
+        snapX,
+        SCRUB_SKIP_PREFIXES,
+        live.handlers.seriesKeys
+      );
       if (live.scrubOpacity < 0.01) {
         syncScrubOverlay(chart, live.scrubStore, null);
         return;
@@ -2498,7 +2561,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       const dots: ScrubDot[] = [];
       if (resolved) {
         for (const key of live.scrubDotKeys) {
-          const point = pointOnSeriesAtX(chart, key, x);
+          const point = pointOnSeriesAtX(chart, key, snapX);
           if (!point) continue;
           dots.push({
             x: point[0],
@@ -2512,7 +2575,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         AXIS_POINTER_OPACITY
       );
       syncScrubOverlay(chart, live.scrubStore, {
-        x,
+        x: snapX,
         grid,
         lineColor,
         opacity: live.scrubOpacity,
@@ -2528,6 +2591,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         live.scrubRaf = 0;
         if (live.scrubTarget === 0) {
           setMutedOpacity(0);
+          live.scrubIndex = null;
           live.scrubX = null;
           chart.dispatchAction({ type: "hideTip" });
         }
@@ -2547,7 +2611,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     const applyScrub = (event: { offsetX?: number; offsetY?: number }) => {
       const x = event.offsetX ?? -1;
       const y = event.offsetY ?? -1;
-      if (!chart.containPixel({ gridIndex: 0 }, [x, y])) {
+      if (live.dataLength <= 0 || !chart.containPixel({ gridIndex: 0 }, [x, y])) {
         leaveScrub();
         return;
       }
@@ -2555,8 +2619,9 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       const idx = nearestCategoryIndex(raw, live.dataLength);
       const snapX = chart.convertToPixel({ xAxisIndex: 0 }, idx);
       if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
-      if (live.scrubTarget === 1 && live.scrubX === snapX) return;
+      if (live.scrubTarget === 1 && live.scrubIndex === idx) return;
       const entering = live.scrubTarget === 0;
+      live.scrubIndex = idx;
       live.scrubX = snapX;
       live.scrubTarget = 1;
       if (entering) setMutedOpacity(SCRUB_MUTE_OPACITY);
@@ -2695,6 +2760,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       if (live.scrubRaf) cancelAnimationFrame(live.scrubRaf);
       live.scrubRaf = 0;
       live.scrubStore = emptyScrubStore();
+      live.scrubIndex = null;
       live.scrubX = null;
       live.scrubOpacity = 0;
       live.scrubTarget = 0;
@@ -2748,7 +2814,18 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       chart.setOption(merged as EChartsOption, { notMerge: true });
       // Overlays live outside the option — reposition them after every push.
       syncBrushOverlayNow();
-      if (live.scrubX !== null) live.paintScrub();
+      if (live.scrubIndex !== null && live.scrubTarget === 1) {
+        chart.setOption(
+          {
+            series: seriesKeys.map((key) => ({
+              id: `${REVEAL_PREFIX}${key}`,
+              lineStyle: { opacity: SCRUB_MUTE_OPACITY },
+            })),
+          },
+          { silent: true }
+        );
+        live.paintScrub();
+      }
     };
 
     // Intro reveal — ECharts' native progressive draw, enabled only for the first

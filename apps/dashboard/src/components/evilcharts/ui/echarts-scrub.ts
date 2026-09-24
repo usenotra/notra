@@ -73,7 +73,6 @@ function yAtXOnPackedPoints(
   if (n < 2) return null;
   let prevX = Number.NaN;
   let prevY = Number.NaN;
-  let firstY = Number.NaN;
   for (let i = 0; i < n; i += 2) {
     const px = packed[i];
     const py = packed[i + 1];
@@ -82,16 +81,16 @@ function yAtXOnPackedPoints(
       prevY = Number.NaN;
       continue;
     }
-    if (!Number.isFinite(firstY)) firstY = py;
-    if (px === x || (px > x && !Number.isFinite(prevX))) return py;
+    if (px === x) return py;
     if (px > x) {
+      if (!Number.isFinite(prevX)) return null;
       const span = px - prevX;
       return span === 0 ? py : prevY + ((x - prevX) / span) * (py - prevY);
     }
     prevX = px;
     prevY = py;
   }
-  return Number.isFinite(prevY) ? prevY : Number.isFinite(firstY) ? firstY : null;
+  return Number.isFinite(prevY) ? prevY : null;
 }
 
 function findEcPolyline(root: ZrEl | undefined): ZrEl | null {
@@ -237,7 +236,8 @@ export function clipSeriesToX(
   chart: EChartsInstance,
   store: ScrubOverlayStore,
   mouseX: number | null,
-  skipPrefixes: readonly string[]
+  skipPrefixes: readonly string[],
+  seriesKeys: readonly string[] = []
 ) {
   const views = internals(chart);
   const series = views.getModel?.().getSeries?.() ?? [];
@@ -251,7 +251,15 @@ export function clipSeriesToX(
 
   for (const model of series) {
     const id = String(model.id ?? "");
-    if (skipPrefixes.some((prefix) => id.startsWith(prefix))) continue;
+    if (
+      skipPrefixes.some((prefix) => {
+        if (!id.startsWith(prefix)) return false;
+        if (seriesKeys.length === 0) return true;
+        return seriesKeys.includes(id.slice(prefix.length));
+      })
+    ) {
+      continue;
+    }
     const view = views.getViewOfSeriesModel(model);
     if (!view?.group?.setClipPath) continue;
     let clip = store.clips.get(id);
@@ -275,8 +283,9 @@ export function clipSeriesToX(
 export function clearScrub(
   chart: EChartsInstance,
   store: ScrubOverlayStore,
-  skipPrefixes: readonly string[]
+  skipPrefixes: readonly string[],
+  seriesKeys: readonly string[] = []
 ) {
   syncScrubOverlay(chart, store, null);
-  clipSeriesToX(chart, store, null, skipPrefixes);
+  clipSeriesToX(chart, store, null, skipPrefixes, seriesKeys);
 }
