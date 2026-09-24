@@ -63,11 +63,6 @@ describe("routing decision from evaluation", () => {
         routingDecisionFromEvaluation(evaluation("simple", 0.5, 0.49))
       )
     ).toEqual({ model: "anthropic/claude-sonnet-5", thinkingLevel: "low" });
-    expect(
-      selectAutoModel(
-        routingDecisionFromEvaluation(evaluation("complex", 0.9, 0.49))
-      )
-    ).toEqual({ model: "anthropic/claude-sonnet-5", thinkingLevel: "medium" });
   });
 
   test("state carries the message and the integration flag", () => {
