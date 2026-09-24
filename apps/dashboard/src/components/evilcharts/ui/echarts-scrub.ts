@@ -257,7 +257,7 @@ export function clipSeriesToX(
       skipPrefixes.some((prefix) => {
         if (!id.startsWith(prefix)) return false;
         if (!keySet) return true;
-        return keySet.has(id.slice(prefix.length));
+        return id === prefix || keySet.has(id.slice(prefix.length));
       })
     ) {
       continue;

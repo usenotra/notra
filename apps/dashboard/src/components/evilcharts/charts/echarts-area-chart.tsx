@@ -2136,7 +2136,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     }
     const chart = echartsRef.current;
     if (!chart) return;
-    if (tooltipSlot.scrub && !isLoading) return;
+    if (tooltipSlot.scrub && !isLoading && data.length > 0) return;
     if (live.scrubRaf) cancelAnimationFrame(live.scrubRaf);
     live.scrubRaf = 0;
     live.scrubIndex = null;
