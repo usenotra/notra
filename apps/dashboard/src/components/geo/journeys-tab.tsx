@@ -67,6 +67,7 @@ export function JourneysTab({
   journeyStatsFailed,
   loading,
   organizationId,
+  organizationSlug,
   revealActive,
 }: JourneysTabProps) {
   const sources = journeyStats?.sources ?? [];
@@ -136,8 +137,10 @@ export function JourneysTab({
       </InstrumentGrid>
       <InstrumentReveal active={revealActive} order={2}>
         <JourneysCard
+          failed={journeyStatsFailed}
           journeys={journeys}
           loading={loading}
+          organizationSlug={organizationSlug}
           onOpenJourney={openJourney}
           onPrefetchJourney={prefetchJourney}
         />

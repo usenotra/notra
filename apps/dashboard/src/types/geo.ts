@@ -494,11 +494,14 @@ export interface JourneysTabProps {
   journeyStatsFailed: boolean;
   loading: boolean;
   organizationId: string;
+  organizationSlug: string;
   revealActive: boolean;
 }
 
 export interface JourneysCardProps {
   journeys: GeoJourney[];
+  failed: boolean;
+  organizationSlug: string;
   onOpenJourney: (journey: GeoJourney) => void;
   onPrefetchJourney: (journey: GeoJourney) => void;
   loading?: boolean;
@@ -570,6 +573,8 @@ export interface JourneyStatCardProps {
   delta?: number | null;
   stats: { label: string; value: string }[];
   emptyMessage: string;
+  emptyDescription?: string;
+  emptyMedia?: ReactNode;
   emptySeed: string;
   children: ReactNode;
 }

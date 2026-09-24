@@ -18,6 +18,8 @@ export function JourneyStatCard({
   delta,
   stats,
   emptyMessage,
+  emptyDescription,
+  emptyMedia,
   emptySeed,
   children,
 }: JourneyStatCardProps) {
@@ -26,6 +28,8 @@ export function JourneyStatCard({
       {total === 0 ? (
         <InstrumentEmpty
           className="h-full"
+          description={emptyDescription}
+          media={emptyMedia}
           message={emptyMessage}
           seed={emptySeed}
         />

@@ -5,28 +5,37 @@ import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
+import { RouteIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
+import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
 import {
   InstrumentEmpty,
+  InstrumentModule,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
 import { Table, type TableColumn } from "@/components/motion/table";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneysCardProps } from "@/types/geo";
+import { withGeoProject } from "@/utils/geo-paths";
 import { tableHeightFor } from "@/utils/table";
 
 const JOURNEYS_PAGE_SIZE = 50;
 
 export function JourneysCard({
+  failed,
   journeys,
+  organizationSlug,
   onOpenJourney,
   onPrefetchJourney,
   loading = false,
 }: JourneysCardProps) {
   const [limit, setLimit] = useState(JOURNEYS_PAGE_SIZE);
+  const { projectId } = useGeoProjectScope();
   const hasMore = limit < journeys.length;
 
   const columns: TableColumn<GeoJourney>[] = [
@@ -81,35 +90,64 @@ export function JourneysCard({
     },
   ];
 
+  if (journeys.length === 0) {
+    return (
+      <InstrumentModule eyebrow="Agent journeys">
+        {failed ? (
+          <InstrumentEmpty
+            message="Could not load agent journeys. Try refreshing the page."
+            seed="geo-journeys-error"
+          />
+        ) : (
+          <InstrumentEmpty
+            action={
+              <Button
+                nativeButton={false}
+                render={
+                  <Link
+                    href={withGeoProject(
+                      `/${organizationSlug}/geo/traffic`,
+                      projectId
+                    )}
+                  />
+                }
+              >
+                View AI traffic
+              </Button>
+            }
+            className="min-h-72 px-6 py-10 [&_h3]:text-lg"
+            description="Journeys appear when AI traffic reaches your site."
+            media={<RouteIcon className="size-5" />}
+            message="See how AI agents explore your site"
+            seed="geo-journeys"
+          />
+        )}
+      </InstrumentModule>
+    );
+  }
+
   return (
     <InstrumentSection eyebrow="Agent journeys">
-      {journeys.length === 0 ? (
-        <InstrumentEmpty
-          message="No agent journeys captured yet"
-          seed="geo-journeys"
-        />
-      ) : (
-        <Table
-          className="rounded-2xl"
-          columns={columns}
-          data={journeys}
-          defaultSort={{ key: "lastSeenAt", direction: "desc" }}
-          emptyState="No agent journeys captured yet"
-          getRowId={(row) => row.journeyId}
-          height={tableHeightFor(journeys.length)}
-          loading={loading}
-          onEndReached={
-            hasMore
-              ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
-              : undefined
-          }
-          onRowClick={onOpenJourney}
-          onRowPointerEnter={onPrefetchJourney}
-          pageSize={limit}
-          resizable
-          rowHeight={TABLE_ROW_HEIGHT}
-        />
-      )}
+      <Table
+        className="rounded-2xl"
+        columns={columns}
+        data={journeys}
+        defaultSort={{ key: "lastSeenAt", direction: "desc" }}
+        emptyState="No agent journeys captured yet"
+        getRowId={(row) => row.journeyId}
+        height={tableHeightFor(journeys.length)}
+        loading={loading}
+        onEndReached={
+          hasMore
+            ? () => setLimit((value) => value + JOURNEYS_PAGE_SIZE)
+            : undefined
+        }
+        onRowClick={onOpenJourney}
+        onRowPointerEnter={onPrefetchJourney}
+        pageSize={limit}
+        resizable
+        rowHeight={TABLE_ROW_HEIGHT}
+      />
     </InstrumentSection>
   );
 }

@@ -6,6 +6,7 @@ import {
   formatGeoSource,
   trafficVisitDelta,
 } from "@notra/geo-core/utils/ai-traffic";
+import { RouteIcon } from "lucide-react";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
@@ -69,10 +70,12 @@ export function JourneyOverviewCard({
       caption={totals.journeys === 1 ? "journey" : "journeys"}
       delta={trafficVisitDelta(totals.journeys, totals.previousJourneys)}
       emptyMessage={
-        failed
-          ? "Could not load agent journeys"
-          : "No agent journeys captured yet"
+        failed ? "Could not load agent journeys" : "No journeys yet"
       }
+      emptyDescription={
+        failed ? undefined : "See the paths AI agents take through your site."
+      }
+      emptyMedia={failed ? undefined : <RouteIcon className="size-5" />}
       emptySeed="geo-journey-overview"
       eyebrow="Journeys"
       stats={[

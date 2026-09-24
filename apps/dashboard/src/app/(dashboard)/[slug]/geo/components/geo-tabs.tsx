@@ -203,6 +203,7 @@ export function GeoTabs({
           journeys={journeys}
           loading={journeysLoading}
           organizationId={organizationId}
+          organizationSlug={organizationSlug}
           revealActive={revealActive}
         />
       ) : null}
