@@ -96,10 +96,26 @@ export async function processGitHubMention(
   // Eyes on the comment while working, swapped for a thumbs up, thumbs down on
   // a declined request, or a confused face on failure. Reactions are cosmetic,
   // so never fail on them.
-  // The check run shows the run on the pull request's checks list. Only an App
-  // token may create one, and it is as cosmetic as the reactions.
+  // Without the GitHub App the token is a personal one with its own scopes.
+  const access = isGitHubAppConfigured()
+    ? await getGitHubAppInstallationPublishAccess(context.installationId)
+    : null;
+  // The check run shows the run on the pull request's checks list. It needs
+  // Checks: write on the App, and is as cosmetic as the reactions.
   const headSha = context.pullRequest?.headSha ?? null;
-  const [workingReaction, checkRun, access] = await Promise.all([
+  const checksGranted = access?.checks === "write";
+  if (access && headSha && !checksGranted) {
+    logGitHubMentionEvent(
+      GITHUB_MENTION_LOG_EVENTS.ignored,
+      {
+        deliveryId: context.deliveryId,
+        reason: "check_run_permission_missing",
+        settingsUrl: access.settingsUrl ?? null,
+      },
+      "warn"
+    );
+  }
+  const [workingReaction, checkRun] = await Promise.all([
     addGitHubCommentReaction({
       octokit,
       owner: context.owner,
@@ -108,7 +124,7 @@ export async function processGitHubMention(
       kind: commentKind,
       content: "eyes",
     }).catch(() => null),
-    isGitHubAppConfigured() && headSha
+    checksGranted && headSha
       ? startGitHubMentionCheckRun({
           octokit,
           owner: context.owner,
@@ -116,10 +132,6 @@ export async function processGitHubMention(
           headSha,
           detailsUrl: context.comment.htmlUrl,
         }).catch(() => null)
-      : null,
-    // Without the GitHub App the token is a personal one with its own scopes.
-    isGitHubAppConfigured()
-      ? getGitHubAppInstallationPublishAccess(context.installationId)
       : null,
   ]);
   const finishReaction = async (content: "+1" | "-1" | "confused") => {
@@ -223,8 +235,14 @@ export async function processGitHubMention(
   }
 
   // Every run spends credits, so a loop on the repository side must not be
-  // able to burn a month of them in a minute.
-  const rateLimit = await consumeGitHubMentionRateLimit(context.organizationId);
+  // able to burn a month of them in a minute. A store that is down here would
+  // otherwise leave the check run in progress forever.
+  const rateLimit = await consumeGitHubMentionRateLimit(
+    context.organizationId
+  ).catch(async (error: unknown) => {
+    await finishReaction("confused");
+    throw error;
+  });
   if (!rateLimit.allowed) {
     return await refuse({
       reply: buildGitHubMentionRateLimitReply(rateLimit.resetAt),
@@ -238,6 +256,9 @@ export async function processGitHubMention(
   const reservation = await reserveGitHubMentionBilling({
     organizationId: context.organizationId,
     mentionKey: context.deliveryId ?? String(context.comment.id),
+  }).catch(async (error: unknown) => {
+    await finishReaction("confused");
+    throw error;
   });
   if (!reservation.allowed) {
     return await refuse({

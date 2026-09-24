@@ -26,6 +26,7 @@ export interface GitHubAppPublishAccess {
   contents?: string;
   issues?: string;
   pullRequests?: string;
+  checks?: string;
   /** The installation's settings page on GitHub. */
   settingsUrl?: string;
 }
