@@ -30,7 +30,7 @@ export const GET_SITEMAP_PAGES_TOOL_NAME = "getSitemapPages";
 export const FETCH_SITEMAP_PAGE_TOOL_NAME = "fetchSitemapPage";
 
 export const GET_SITEMAP_PAGES_TOOL_DESCRIPTION =
-  "**Sitemap**: List the brand's crawled pages with getSitemapPages before adding internal links. Fetch one listed URL with fetchSitemapPage when you need its content. If hasSitemap is false, crawl a live domain with crawlSitemap, then read pages with fetchWebpage. A query that matches nothing is not a missing sitemap.";
+  "**Sitemap**: List the brand's crawled pages with getSitemapPages before adding internal links. Fetch one listed URL with fetchSitemapPage when you need its content. If hasSitemap is false, crawlSitemap the websiteUrl from getBrandIdentity, then read pages with fetchWebpage. A query that matches nothing is not a missing sitemap.";
 
 const brandIdentityIdSchema = z
   .string()

@@ -56,7 +56,7 @@ export function getContentEditorChatPrompt(
     1. If the user asks for edits, ALWAYS call getMarkdown first.
     2. Apply edits with editMarkdown (work from bottom to top).
     3. If the user asks to research, search the web, or fetch a URL, use webSearch or fetchWebpage. Do not claim those tools are missing.
-    4. Before adding internal links, call getSitemapPages and copy returned URLs exactly. Pass the same brandIdentityId from listBrandIdentities / getBrandIdentity to getSitemapPages, fetchSitemapPage, getBrandReferences, and searchBrandReferences. Only crawlSitemap when getSitemapPages returns hasSitemap: false; a query that matches nothing is not a missing sitemap. Then fetchWebpage.
+    4. Before adding internal links, call getSitemapPages and copy returned URLs exactly. Pass the same brandIdentityId from listBrandIdentities / getBrandIdentity to getSitemapPages, fetchSitemapPage, getBrandReferences, and searchBrandReferences. Only crawlSitemap when getSitemapPages returns hasSitemap: false, using websiteUrl from getBrandIdentity; a query that matches nothing is not a missing sitemap. Then fetchWebpage.
     5. Match brand voice with getBrandReferences or searchBrandReferences. Use GEO tools (listGeoProjects, getGeoPromptResults, getGeoCompetitorShare, getGeoProjectContext) when writing for AI visibility or competitors.
 
     ## Edit Operations
