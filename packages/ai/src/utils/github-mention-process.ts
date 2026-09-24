@@ -6,7 +6,10 @@ import {
   releaseGitHubMentionBilling,
   reserveGitHubMentionBilling,
 } from "@notra/ai/billing/github-mention-billing";
-import { GITHUB_MENTION_LOG_EVENTS } from "@notra/ai/constants/github-mention";
+import {
+  GITHUB_MENTION_CHECK_RUN_CONCLUSION_BY_REACTION,
+  GITHUB_MENTION_LOG_EVENTS,
+} from "@notra/ai/constants/github-mention";
 import {
   getGitHubAppInstallationPublishAccess,
   isGitHubAppConfigured,
@@ -18,6 +21,10 @@ import type {
   GitHubMentionContext,
   GitHubMentionProcessResult,
 } from "@notra/ai/types/github-mention";
+import {
+  completeGitHubMentionCheckRun,
+  startGitHubMentionCheckRun,
+} from "@notra/ai/utils/github-check-run";
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import {
   buildGitHubMentionPermissionReply,
@@ -89,7 +96,10 @@ export async function processGitHubMention(
   // Eyes on the comment while working, swapped for a thumbs up, thumbs down on
   // a declined request, or a confused face on failure. Reactions are cosmetic,
   // so never fail on them.
-  const [workingReaction, access] = await Promise.all([
+  // The check run shows the run on the pull request's checks list. Only an App
+  // token may create one, and it is as cosmetic as the reactions.
+  const headSha = context.pullRequest?.headSha ?? null;
+  const [workingReaction, checkRun, access] = await Promise.all([
     addGitHubCommentReaction({
       octokit,
       owner: context.owner,
@@ -98,12 +108,31 @@ export async function processGitHubMention(
       kind: commentKind,
       content: "eyes",
     }).catch(() => null),
+    isGitHubAppConfigured() && headSha
+      ? startGitHubMentionCheckRun({
+          octokit,
+          owner: context.owner,
+          repo: context.repo,
+          headSha,
+          detailsUrl: context.comment.htmlUrl,
+        }).catch(() => null)
+      : null,
     // Without the GitHub App the token is a personal one with its own scopes.
     isGitHubAppConfigured()
       ? getGitHubAppInstallationPublishAccess(context.installationId)
       : null,
   ]);
   const finishReaction = async (content: "+1" | "-1" | "confused") => {
+    if (checkRun) {
+      await completeGitHubMentionCheckRun({
+        octokit,
+        owner: context.owner,
+        repo: context.repo,
+        checkRunId: checkRun.id,
+        conclusion: GITHUB_MENTION_CHECK_RUN_CONCLUSION_BY_REACTION[content],
+        detailsUrl: context.comment.htmlUrl,
+      }).catch(() => undefined);
+    }
     await addGitHubCommentReaction({
       octokit,
       owner: context.owner,
