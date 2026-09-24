@@ -5,33 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 
-import { REASONING_TITLE_MAX_LENGTH } from "@/constants/chat-activity";
 import type { ChatReasoningBlockProps } from "@/types/components/chat-reasoning-block";
-
-const MARKDOWN_FIRST_LINE = /^(#{1,6}\s|[-*+]\s|\d+\.\s|```|>\s|\|)/;
-
-function splitReasoningText(text: string): { title: string; body: string } {
-  const trimmed = text.trim();
-  const newline = trimmed.indexOf("\n");
-  const firstLine = (
-    newline === -1 ? trimmed : trimmed.slice(0, newline)
-  ).trim();
-  const rest = newline === -1 ? "" : trimmed.slice(newline + 1).trim();
-  const title =
-    firstLine.length <= REASONING_TITLE_MAX_LENGTH
-      ? firstLine
-      : `${firstLine.slice(0, REASONING_TITLE_MAX_LENGTH - 1)}…`;
-
-  if (!rest) {
-    return { title, body: "" };
-  }
-
-  if (MARKDOWN_FIRST_LINE.test(firstLine) || firstLine.includes("`")) {
-    return { title, body: trimmed };
-  }
-
-  return { title, body: rest };
-}
+import { splitReasoningText } from "@/utils/split-reasoning-text";
 
 export function ChatReasoningBlock({
   children,
