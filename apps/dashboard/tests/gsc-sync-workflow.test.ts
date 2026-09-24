@@ -1,7 +1,9 @@
 import { beforeEach, expect, mock, test } from "bun:test";
 
 import type { GscSyncResult } from "@notra/geo-core/types/google-search-console";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
 import { FatalError } from "workflow";
 
 import { dashboardOrpc } from "../src/lib/orpc/query";
@@ -37,6 +39,25 @@ mock.module("../src/workflows/steps/content-generation-steps", () => ({
 }));
 
 const { gscSyncWorkflow } = await import("../src/workflows/gsc-sync");
+const disconnectCall = mock(async () => ({ disconnected: true }));
+const originalGeo = dashboardOrpc.geo;
+mock.module("../src/lib/orpc/query", () => ({
+  dashboardOrpc: {
+    geo: new Proxy(originalGeo, {
+      get(target, key) {
+        if (key === "searchConsoleDisconnect") {
+          return { ...target.searchConsoleDisconnect, call: disconnectCall };
+        }
+        return Reflect.get(target, key);
+      },
+    }),
+  },
+}));
+// A separate module identity avoids unrelated tests' partial use-geo mocks.
+const isolatedHookPath = "../src/lib/hooks/use-geo.ts?gsc-disconnect-test";
+const { useGscDisconnect } = (await import(
+  isolatedHookPath
+)) as typeof import("../src/lib/hooks/use-geo");
 
 beforeEach(() => {
   listProjects.mockClear();
@@ -90,6 +111,11 @@ test("successful project steps aggregate their results", async () => {
 
 test("disconnect invalidates cached queries for both projects but not other organizations", async () => {
   const client = new QueryClient();
+  const result: { current?: ReturnType<typeof useGscDisconnect> } = {};
+  function DisconnectHook() {
+    result.current = useGscDisconnect("org-test");
+    return null;
+  }
   const status = {
     configured: true,
     connected: true,
@@ -101,30 +127,48 @@ test("disconnect invalidates cached queries for both projects but not other orga
     weeklySyncScheduled: false,
     sites: [],
   };
-  const prefix = dashboardOrpc.geo.searchConsoleStatus.queryKey({
+  for (const query of [
+    dashboardOrpc.geo.searchConsoleStatus,
+    dashboardOrpc.geo.searchConsoleKeywords,
+    dashboardOrpc.geo.suggestionsList,
+  ]) {
+    for (const projectId of ["project-a", "project-b"]) {
+      client.setQueryData(
+        query.queryKey({ input: { organizationId: "org-test", projectId } }),
+        status
+      );
+    }
+  }
+  const sitesKey = dashboardOrpc.geo.searchConsoleSites.queryKey({
     input: { organizationId: "org-test" },
   });
-  for (const projectId of ["project-a", "project-b"]) {
-    client.setQueryData(
-      dashboardOrpc.geo.searchConsoleStatus.queryKey({
-        input: { organizationId: "org-test", projectId },
-      }),
-      status
-    );
-  }
+  client.setQueryData(sitesKey, status);
   const otherKey = dashboardOrpc.geo.searchConsoleStatus.queryKey({
     input: { organizationId: "other", projectId: "project-c" },
   });
   client.setQueryData(otherKey, status);
-  await client.invalidateQueries({ queryKey: prefix, refetchType: "none" });
-  for (const projectId of ["project-a", "project-b"]) {
-    expect(
-      client.getQueryState(
-        dashboardOrpc.geo.searchConsoleStatus.queryKey({
-          input: { organizationId: "org-test", projectId },
-        })
-      )?.isInvalidated
-    ).toBe(true);
+  renderToString(
+    createElement(
+      QueryClientProvider,
+      { client },
+      createElement(DisconnectHook)
+    )
+  );
+  await result.current?.mutateAsync();
+  expect(disconnectCall).toHaveBeenCalledWith({ organizationId: "org-test" });
+  for (const query of [
+    dashboardOrpc.geo.searchConsoleStatus,
+    dashboardOrpc.geo.searchConsoleKeywords,
+    dashboardOrpc.geo.suggestionsList,
+  ]) {
+    for (const projectId of ["project-a", "project-b"]) {
+      expect(
+        client.getQueryState(
+          query.queryKey({ input: { organizationId: "org-test", projectId } })
+        )?.isInvalidated
+      ).toBe(true);
+    }
   }
+  expect(client.getQueryState(sitesKey)?.isInvalidated).toBe(true);
   expect(client.getQueryState(otherKey)?.isInvalidated).toBe(false);
 });

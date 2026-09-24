@@ -46,6 +46,7 @@ import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
+import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -665,6 +666,7 @@ export default function PageClient({
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const pathname = usePathname();
+  const { projectId } = useGeoProjectScope();
   const [dialogOpen, setDialogOpen] = useState(false);
   const organizationId = organization?.id ?? "";
 
@@ -682,9 +684,12 @@ export default function PageClient({
     status?.configured !== false && (!status?.connected || needsReconnect);
   const showLoading = !!organizationId && isLoading && !status;
   const showError = !showLoading && isError && !status;
+  const callbackPath = projectId
+    ? `${pathname}?${new URLSearchParams({ project: projectId })}`
+    : pathname;
   const authorizeUrl = `${GSC_OAUTH_AUTHORIZE_PATH}?${new URLSearchParams({
     organizationId,
-    callbackPath: pathname,
+    callbackPath,
   }).toString()}`;
 
   useHotkey("C", () => setDialogOpen(true), {
@@ -708,7 +713,7 @@ export default function PageClient({
         </PageHeading>
 
         <GoogleSearchConsolePageBody
-          callbackPath={pathname}
+          callbackPath={callbackPath}
           onConnect={() => setDialogOpen(true)}
           onReconnect={() => setDialogOpen(true)}
           onRetry={() => refetch()}
