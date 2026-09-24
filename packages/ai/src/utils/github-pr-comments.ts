@@ -154,6 +154,47 @@ export async function listGitHubReviewComments(params: {
   }));
 }
 
+/**
+ * Whether a review thread already holds a comment by one of `authorLogins`.
+ * Pages newest-first, so recent threads resolve on the first page; lookup
+ * failures propagate so a valid reply is never mistaken for silence.
+ */
+export async function reviewThreadHasCommentBy(params: {
+  octokit: CommitFilesToPullRequestParams["octokit"];
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  threadRootId: number;
+  authorLogins: ReadonlySet<string>;
+}) {
+  for (let page = 1; ; page += 1) {
+    const { data } = await params.octokit.request(
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+      {
+        owner: params.owner,
+        repo: params.repo,
+        pull_number: params.pullNumber,
+        per_page: 100,
+        sort: "created",
+        direction: "desc",
+        page,
+        headers: GITHUB_API_VERSION_HEADERS,
+      }
+    );
+    const found = data.some(
+      (comment) =>
+        (comment.in_reply_to_id ?? comment.id) === params.threadRootId &&
+        params.authorLogins.has(comment.user?.login ?? "")
+    );
+    if (found) {
+      return true;
+    }
+    if (data.length < 100) {
+      return false;
+    }
+  }
+}
+
 export async function postGitHubReviewComment(params: {
   octokit: CommitFilesToPullRequestParams["octokit"];
   owner: string;

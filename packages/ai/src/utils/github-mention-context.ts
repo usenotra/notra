@@ -1,7 +1,9 @@
+import { isGitHubAppConfigured } from "@notra/ai/integrations/github";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import type {
   GitHubAppWebhookPayload,
   GitHubMentionLogTarget,
+  GitHubMentionOctokit,
   GitHubMentionPullRequest,
   GitHubMentionResolveResult,
 } from "@notra/ai/types/github-mention";
@@ -10,7 +12,6 @@ import {
   commentMentionsNotra,
   getGitHubMentionAppHandles,
   isGitHubBotSender,
-  normalizeHandle,
 } from "@notra/ai/utils/github-mention";
 import {
   findGitHubIntegrationForMention,
@@ -23,27 +24,26 @@ import {
   isGitHubPermissionError,
 } from "@notra/ai/utils/github-mention-permissions";
 import {
-  listGitHubReviewComments,
   postGitHubIssueComment,
+  reviewThreadHasCommentBy,
 } from "@notra/ai/utils/github-pr-comments";
 import { getPullRequestHead } from "@notra/ai/utils/github-pr-commit";
 import { createOctokit } from "@notra/ai/utils/octokit";
 
-async function isReplyInNotraReviewThread(params: {
-  octokit: ReturnType<typeof createOctokit>;
-  owner: string;
-  repo: string;
-  pullNumber: number;
-  threadRootId: number;
-}) {
-  const appHandles = new Set(getGitHubMentionAppHandles());
-  const comments = await listGitHubReviewComments(params).catch(() => []);
-  return comments.some(
-    (comment) =>
-      comment.threadRootId === params.threadRootId &&
-      comment.authorIsBot &&
-      appHandles.has(normalizeHandle(comment.authorLogin))
-  );
+/**
+ * Notra's replies come from the App bot, or from the token's own user when a
+ * personal token publishes instead of the App.
+ */
+async function listNotraReplyLogins(octokit: GitHubMentionOctokit) {
+  const logins = getGitHubMentionAppHandles().flatMap((handle) => [
+    handle,
+    `${handle}[bot]`,
+  ]);
+  if (!isGitHubAppConfigured()) {
+    const { data } = await octokit.request("GET /user");
+    logins.push(data.login);
+  }
+  return new Set(logins);
 }
 
 export async function resolveGitHubMentionContext(params: {
@@ -122,15 +122,18 @@ export async function resolveGitHubMentionContext(params: {
       const token = await getGitHubPublishToken(integrationId, {
         organizationId,
       });
-      const inNotraThread =
-        token &&
-        (await isReplyInNotraReviewThread({
-          octokit: createOctokit(token),
-          owner,
-          repo,
-          pullNumber: issueNumber,
-          threadRootId: comment.in_reply_to_id ?? comment.id,
-        }));
+      if (!token) {
+        return { status: "ignored", reason: "github_token_unavailable" };
+      }
+      const octokit = createOctokit(token);
+      const inNotraThread = await reviewThreadHasCommentBy({
+        octokit,
+        owner,
+        repo,
+        pullNumber: issueNumber,
+        threadRootId: comment.in_reply_to_id ?? comment.id,
+        authorLogins: await listNotraReplyLogins(octokit),
+      });
       if (!inNotraThread) {
         return { status: "ignored", reason: "not_mentioned" };
       }

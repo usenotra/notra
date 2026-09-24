@@ -1,4 +1,7 @@
-import { GITHUB_MENTION_REPLY_DIFF } from "@notra/ai/constants/github-mention";
+import {
+  GITHUB_MENTION_ITERATE_HINT,
+  GITHUB_MENTION_REPLY_DIFF,
+} from "@notra/ai/constants/github-mention";
 import { GITHUB_MENTION_RATE_LIMIT } from "@notra/ai/constants/rate-limits";
 import type {
   GitHubMentionChangedFile,
@@ -129,7 +132,7 @@ export function buildGitHubMentionReplyFooter(params: {
     const deletions = params.files.reduce((sum, f) => sum + f.deletions, 0);
     parts.push(`+${additions} −${deletions}`);
   }
-  parts.push("reply here or mention me again to keep iterating");
+  parts.push(GITHUB_MENTION_ITERATE_HINT);
   return `<sub>${parts.join(" · ")}</sub>`;
 }
 
@@ -238,7 +241,7 @@ function proposalFooter(
     proposals.length === 1 && first
       ? inlineCode(first.path)
       : `${proposals.length} files`;
-  return `<sub>Suggestion · ${where} · ${howToApply} · reply here or mention me again to keep iterating</sub>`;
+  return `<sub>Suggestion · ${where} · ${howToApply} · ${GITHUB_MENTION_ITERATE_HINT}</sub>`;
 }
 
 /**

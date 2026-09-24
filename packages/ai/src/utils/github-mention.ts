@@ -30,7 +30,7 @@ export function parseGitHubMentionAgentReply(reply: string) {
   };
 }
 
-export function normalizeHandle(value: string) {
+function normalizeHandle(value: string) {
   return value
     .trim()
     .replace(/\[bot\]$/i, "")

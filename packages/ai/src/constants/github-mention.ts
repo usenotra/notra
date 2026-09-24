@@ -7,6 +7,12 @@ export const GITHUB_MENTION_COMMENT_MAX_LENGTH = 65_536;
 
 export const GITHUB_MENTION_AGENT_MAX_STEPS = 20;
 
+export const GITHUB_MENTION_ITERATE_HINT = "mention me again to keep iterating";
+
+/** Only replies inside a review thread are picked up without a mention. */
+export const GITHUB_MENTION_THREAD_ITERATE_HINT =
+  "reply here or mention me again to keep iterating";
+
 export const GITHUB_MENTION_DECLINED_REPLY_MARKER = "<!-- notra:declined -->";
 
 export const GITHUB_MENTION_SANDBOX_TIMEOUT_MS = 180_000;

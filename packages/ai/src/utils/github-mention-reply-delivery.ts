@@ -1,6 +1,8 @@
 import {
   GITHUB_MENTION_COMMENT_MAX_LENGTH,
+  GITHUB_MENTION_ITERATE_HINT,
   GITHUB_MENTION_LOG_EVENTS,
+  GITHUB_MENTION_THREAD_ITERATE_HINT,
 } from "@notra/ai/constants/github-mention";
 import type {
   GitHubMentionChangedFile,
@@ -46,6 +48,10 @@ export async function postGitHubMentionReply(params: {
 }) {
   const { octokit, context, body } = params;
   const pullNumber = context.pullRequest?.number;
+  const threadBody = body.replace(
+    GITHUB_MENTION_ITERATE_HINT,
+    GITHUB_MENTION_THREAD_ITERATE_HINT
+  );
   try {
     if (context.comment.review && pullNumber) {
       return await replyToGitHubReviewThread({
@@ -54,7 +60,7 @@ export async function postGitHubMentionReply(params: {
         repo: context.repo,
         pullNumber,
         rootCommentId: context.comment.review.rootCommentId,
-        body,
+        body: threadBody,
       });
     }
     const anchor = params.commitSha
@@ -73,7 +79,7 @@ export async function postGitHubMentionReply(params: {
         path: anchor.path,
         startLine: anchor.startLine,
         line: anchor.line,
-        body,
+        body: threadBody,
       });
     }
   } catch (error) {
