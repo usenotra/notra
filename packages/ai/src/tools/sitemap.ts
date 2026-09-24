@@ -1,3 +1,7 @@
+import {
+  BRAND_ANALYSIS_SITEMAP_TIMEOUT_MS,
+  BRAND_ANALYSIS_WWW_PREFIX,
+} from "@notra/ai/constants/context-dev";
 import type { SitemapToolsConfig } from "@notra/ai/types/geo-writer";
 import { crawlSitemap, fetchWebpage } from "@notra/ai/utils/context-dev";
 import { toolDescription } from "@notra/ai/utils/description";
@@ -26,28 +30,76 @@ export const GET_SITEMAP_PAGES_TOOL_NAME = "getSitemapPages";
 export const FETCH_SITEMAP_PAGE_TOOL_NAME = "fetchSitemapPage";
 
 export const GET_SITEMAP_PAGES_TOOL_DESCRIPTION =
-  "**Sitemap**: List the brand's crawled pages with getSitemapPages before adding internal links. Fetch one listed URL with fetchSitemapPage when you need its content. If the sitemap is empty, crawl a live domain with crawlSitemap, then read pages with fetchWebpage.";
+  "**Sitemap**: List the brand's crawled pages with getSitemapPages before adding internal links. Fetch one listed URL with fetchSitemapPage when you need its content. If hasSitemap is false, crawl a live domain with crawlSitemap, then read pages with fetchWebpage. A query that matches nothing is not a missing sitemap.";
+
+const brandIdentityIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .optional()
+  .describe(
+    "Pass an id from listBrandIdentities or getBrandIdentity. Omit to use the default brand."
+  );
+
+function toCrawlDomain(value: string): string {
+  const trimmed = value.trim();
+  try {
+    const url = trimmed.includes("://")
+      ? new URL(trimmed)
+      : new URL(`https://${trimmed}`);
+    const hostname = url.hostname.toLowerCase();
+    return hostname.startsWith(BRAND_ANALYSIS_WWW_PREFIX)
+      ? hostname.slice(BRAND_ANALYSIS_WWW_PREFIX.length)
+      : hostname;
+  } catch {
+    const lowered = trimmed.toLowerCase();
+    return lowered.startsWith(BRAND_ANALYSIS_WWW_PREFIX)
+      ? lowered.slice(BRAND_ANALYSIS_WWW_PREFIX.length)
+      : trimmed;
+  }
+}
 
 async function resolveBrandSettingsId(
-  config: SitemapToolsConfig
+  config: SitemapToolsConfig,
+  brandIdentityId?: string
 ): Promise<string | undefined> {
-  if (config.brandSettingsId) {
-    return config.brandSettingsId;
+  const organizationId =
+    "organizationId" in config ? config.organizationId : undefined;
+  const configuredId =
+    "brandSettingsId" in config ? config.brandSettingsId : undefined;
+
+  if (brandIdentityId && organizationId) {
+    const identity = await db.query.brandSettings.findFirst({
+      where: and(
+        eq(brandSettings.id, brandIdentityId),
+        eq(brandSettings.organizationId, organizationId)
+      ),
+      columns: { id: true },
+    });
+    return identity?.id;
   }
-  if (!config.organizationId) {
+
+  if (configuredId) {
+    return configuredId;
+  }
+
+  if (!organizationId) {
     return undefined;
   }
 
   const identity = await db.query.brandSettings.findFirst({
-    where: eq(brandSettings.organizationId, config.organizationId),
+    where: eq(brandSettings.organizationId, organizationId),
     columns: { id: true },
     orderBy: [desc(brandSettings.isDefault), desc(brandSettings.createdAt)],
   });
   return identity?.id;
 }
 
-async function listSitemapIds(config: SitemapToolsConfig): Promise<string[]> {
-  const brandSettingsId = await resolveBrandSettingsId(config);
+async function listSitemapIds(
+  config: SitemapToolsConfig,
+  brandIdentityId?: string
+): Promise<string[]> {
+  const brandSettingsId = await resolveBrandSettingsId(config, brandIdentityId);
   if (!brandSettingsId) {
     return [];
   }
@@ -68,7 +120,7 @@ export function createGetSitemapPagesTool(config: SitemapToolsConfig): Tool {
       whenToUse:
         "Before adding any internal link, and when you want to know which product, pricing, docs, or comparison pages exist.",
       usageNotes:
-        "Only URLs returned here may be used as internal links. Filter with query, which matches the title or path. Returns an empty list when no sitemap has been crawled; in that case, use no internal links.",
+        "Only URLs returned here may be used as internal links. Filter with query, which matches the title or path. hasSitemap is false only when this brand has no crawled sitemap; an empty pages list with hasSitemap true means the query matched nothing. Pass brandIdentityId after listBrandIdentities when writing for a non-default brand.",
     }),
     inputSchema: z.object({
       query: z
@@ -83,9 +135,10 @@ export function createGetSitemapPagesTool(config: SitemapToolsConfig): Tool {
         .min(1)
         .max(MAX_PAGE_LIMIT)
         .default(DEFAULT_PAGE_LIMIT),
+      brandIdentityId: brandIdentityIdSchema,
     }),
-    execute: async ({ query, limit }) => {
-      const sitemapIds = await listSitemapIds(config);
+    execute: async ({ query, limit, brandIdentityId }) => {
+      const sitemapIds = await listSitemapIds(config, brandIdentityId);
       if (sitemapIds.length === 0) {
         return { pages: [], total: 0, hasSitemap: false };
       }
@@ -130,13 +183,14 @@ export function createFetchSitemapPageTool(config: SitemapToolsConfig): Tool {
       whenToUse:
         "When you plan to link to a page and want to describe it accurately, or when you need a product detail from the brand's site.",
       usageNotes:
-        "The URL must come from getSitemapPages. Content is truncated. Use it on at most a handful of pages.",
+        "The URL must come from getSitemapPages. Content is truncated. Use it on at most a handful of pages. Pass the same brandIdentityId you used for getSitemapPages.",
     }),
     inputSchema: z.object({
       url: z.string().url().describe("A URL returned by getSitemapPages"),
+      brandIdentityId: brandIdentityIdSchema,
     }),
-    execute: async ({ url }) => {
-      const sitemapIds = await listSitemapIds(config);
+    execute: async ({ url, brandIdentityId }) => {
+      const sitemapIds = await listSitemapIds(config, brandIdentityId);
       if (sitemapIds.length === 0) {
         return { error: "This brand has no crawled sitemap." };
       }
@@ -213,23 +267,40 @@ export function createCrawlSitemapTool(): Tool {
       intro:
         "Discovers public URLs from a website's live sitemap via Context.dev.",
       whenToUse:
-        "When getSitemapPages is empty, when researching a competitor or company domain, or when you need a fresh list of blog, docs, pricing, or product pages before writing.",
+        "When getSitemapPages returns hasSitemap: false, when researching a competitor or company domain, or when you need a fresh list of blog, docs, pricing, or product pages before writing.",
       usageNotes:
-        "Pass a domain like example.com, not a full article URL. Filter with urlRegex when you only need a section of the site. Then read interesting URLs with fetchWebpage. Do not invent URLs that were not returned.",
+        "Pass a hostname like example.com. A full website URL is accepted and reduced to its hostname. Filter with urlRegex when you only need a section of the site. Then read interesting URLs with fetchWebpage. Do not invent URLs that were not returned. Do not crawl just because a sitemap query returned no rows.",
     }),
     inputSchema: crawlSitemapInputSchema,
     execute: async ({ domain, urlRegex, maxLinks }) => {
+      const hostname = toCrawlDomain(domain);
+      if (!hostname) {
+        return { error: "Pass a hostname or website URL to crawl." };
+      }
+
       try {
-        const result = await crawlSitemap({ domain, urlRegex, maxLinks });
+        const result = await crawlSitemap(
+          {
+            domain: hostname,
+            urlRegex,
+            maxLinks,
+            timeoutMS: BRAND_ANALYSIS_SITEMAP_TIMEOUT_MS,
+          },
+          { signal: AbortSignal.timeout(BRAND_ANALYSIS_SITEMAP_TIMEOUT_MS) }
+        );
         return {
           domain: result.domain,
           urls: result.urls,
           total: result.urls.length,
         };
       } catch (error) {
+        const timedOut =
+          error instanceof Error &&
+          (error.name === "TimeoutError" || error.name === "AbortError");
         return {
-          error:
-            error instanceof Error
+          error: timedOut
+            ? "Sitemap crawl timed out."
+            : error instanceof Error
               ? `Failed to crawl the sitemap: ${error.message}`
               : "Failed to crawl the sitemap.",
         };

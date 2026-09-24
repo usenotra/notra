@@ -120,10 +120,9 @@ export interface GeoWriterResult {
   usage: AgentTokenUsage;
 }
 
-export interface SitemapToolsConfig {
-  brandSettingsId?: string;
-  organizationId?: string;
-}
+export type SitemapToolsConfig =
+  | { brandSettingsId: string; organizationId?: string }
+  | { organizationId: string };
 
 export interface GeoContextToolConfig {
   organizationId: string;

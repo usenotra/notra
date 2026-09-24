@@ -230,7 +230,7 @@ function registerBrandAndGeoTools(
   });
 
   descriptions.push(
-    "**Brand**: Load company and voice details with listBrandIdentities and getBrandIdentity. Match writing style with getBrandReferences or searchBrandReferences before drafting."
+    "**Brand**: Load company and voice details with listBrandIdentities and getBrandIdentity. Match writing style with getBrandReferences or searchBrandReferences before drafting. Pass the same brandIdentityId to sitemap and brand-reference tools when writing for a non-default brand."
   );
   descriptions.push(
     "**GEO Analytics**: List GEO projects, then inspect AI visibility, prompt wins/losses, competitor share, and project context with listGeoProjects, getGeoOverview, getGeoPromptResults, getGeoCompetitorShare, and getGeoProjectContext."
