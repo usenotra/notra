@@ -32,13 +32,11 @@ import { createOctokit } from "@notra/ai/utils/octokit";
 
 /**
  * Notra's replies come from the App bot, or from the token's own user when a
- * personal token publishes instead of the App.
+ * personal token publishes instead of the App. Only the `[bot]` login counts
+ * for the App, so a human sharing the slug cannot pass as Notra.
  */
 async function listNotraReplyLogins(octokit: GitHubMentionOctokit) {
-  const logins = getGitHubMentionAppHandles().flatMap((handle) => [
-    handle,
-    `${handle}[bot]`,
-  ]);
+  const logins = getGitHubMentionAppHandles().map((handle) => `${handle}[bot]`);
   if (!isGitHubAppConfigured()) {
     const { data } = await octokit.request("GET /user");
     logins.push(data.login);

@@ -1,6 +1,7 @@
 import {
   GITHUB_MENTION_ITERATE_HINT,
   GITHUB_MENTION_REPLY_DIFF,
+  GITHUB_MENTION_THREAD_ITERATE_HINT,
 } from "@notra/ai/constants/github-mention";
 import { GITHUB_MENTION_RATE_LIMIT } from "@notra/ai/constants/rate-limits";
 import type {
@@ -14,6 +15,14 @@ import {
 } from "@notra/ai/utils/github-mention-suggestion";
 
 const SHORT_SHA_LENGTH = 7;
+const FOOTER_HINT_SUFFIX = `${GITHUB_MENTION_ITERATE_HINT}</sub>`;
+
+/** Only the closing footer changes; the same words in prose stay untouched. */
+export function toGitHubMentionThreadReplyBody(body: string) {
+  return body.endsWith(FOOTER_HINT_SUFFIX)
+    ? `${body.slice(0, -FOOTER_HINT_SUFFIX.length)}${GITHUB_MENTION_THREAD_ITERATE_HINT}</sub>`
+    : body;
+}
 const PULL_REQUEST_NUMBER_PATTERN = /\/pull\/(\d+)/;
 
 function clipLine(line: string) {
