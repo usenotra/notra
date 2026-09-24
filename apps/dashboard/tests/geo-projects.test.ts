@@ -11,6 +11,7 @@ import {
   rememberPendingDeleteSnapshot,
 } from "@/lib/db/geo-project-pending-deletes";
 import { geoProjectQueryParser } from "@/lib/hooks/use-geo-project-query";
+import { geoProjectRepairPath } from "@/utils/geo-hydration";
 import { sortGeoProjectsOldestFirst } from "@/utils/geo-projects";
 
 const sampleProject = {
@@ -52,6 +53,19 @@ describe("geoProjectQueryParser", () => {
     expect(geoProjectQueryParser.parse("  project-1  ")).toBe("project-1");
     expect(geoProjectQueryParser.parse("   ")).toBeNull();
   });
+});
+
+test("repairs a foreign integration project without losing the callback query", () => {
+  expect(
+    geoProjectRepairPath(
+      "org",
+      { project: "foreign", connected: "true" },
+      "project-b",
+      "/integrations/google-search-console"
+    )
+  ).toBe(
+    "/org/integrations/google-search-console?connected=true&project=project-b"
+  );
 });
 
 describe("geo project create handoff", () => {

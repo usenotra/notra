@@ -1083,7 +1083,11 @@ export function useGscSelectSite(organizationId: string) {
       }),
     onSuccess: async (result) => {
       await invalidate();
-      toast.success(describeSyncResult(result));
+      if (result.status === "failed") {
+        toast.error(describeSyncResult(result));
+      } else {
+        toast.success(describeSyncResult(result));
+      }
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to select property"));
@@ -1100,7 +1104,11 @@ export function useGscSync(organizationId: string) {
       dashboardOrpc.geo.searchConsoleSync.call({ organizationId, projectId }),
     onSuccess: async (result) => {
       await invalidate();
-      toast.success(describeSyncResult(result));
+      if (result.status === "failed") {
+        toast.error(describeSyncResult(result));
+      } else {
+        toast.success(describeSyncResult(result));
+      }
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to sync Search Console"));
