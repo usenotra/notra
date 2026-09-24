@@ -12,12 +12,14 @@ const GITHUB_API_VERSION_HEADERS = {
   "X-GitHub-Api-Version": GITHUB_API_VERSION_HEADER,
 } as const;
 
-export async function startGitHubMentionCheckRun(params: {
+/** In progress without a conclusion; already completed with one. */
+export async function createGitHubMentionCheckRun(params: {
   octokit: GitHubMentionOctokit;
   owner: string;
   repo: string;
   headSha: string;
   detailsUrl: string;
+  conclusion?: GitHubMentionCheckRunConclusion;
 }) {
   const { data } = await params.octokit.request(
     "POST /repos/{owner}/{repo}/check-runs",
@@ -26,10 +28,13 @@ export async function startGitHubMentionCheckRun(params: {
       repo: params.repo,
       name: GITHUB_MENTION_CHECK_RUN_NAME,
       head_sha: params.headSha,
-      status: "in_progress",
       details_url: params.detailsUrl,
+      ...(params.conclusion
+        ? { status: "completed" as const, conclusion: params.conclusion }
+        : { status: "in_progress" as const }),
       output: {
-        title: GITHUB_MENTION_CHECK_RUN_SUMMARY.in_progress,
+        title:
+          GITHUB_MENTION_CHECK_RUN_SUMMARY[params.conclusion ?? "in_progress"],
         summary: params.detailsUrl,
       },
       headers: GITHUB_API_VERSION_HEADERS,

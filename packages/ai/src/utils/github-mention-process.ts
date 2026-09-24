@@ -23,7 +23,7 @@ import type {
 } from "@notra/ai/types/github-mention";
 import {
   completeGitHubMentionCheckRun,
-  startGitHubMentionCheckRun,
+  createGitHubMentionCheckRun,
 } from "@notra/ai/utils/github-check-run";
 import { logGitHubMentionEvent } from "@notra/ai/utils/github-mention-log";
 import {
@@ -125,25 +125,69 @@ export async function processGitHubMention(
       content: "eyes",
     }).catch(() => null),
     checksGranted && headSha
-      ? startGitHubMentionCheckRun({
+      ? createGitHubMentionCheckRun({
           octokit,
           owner: context.owner,
           repo: context.repo,
           headSha,
           detailsUrl: context.comment.htmlUrl,
-        }).catch(() => null)
+        }).catch((error: unknown) => {
+          logGitHubMentionEvent(
+            GITHUB_MENTION_LOG_EVENTS.ignored,
+            {
+              deliveryId: context.deliveryId,
+              reason: "check_run_create_failed",
+              error: error instanceof Error ? error.message : String(error),
+            },
+            "warn"
+          );
+          return null;
+        })
       : null,
   ]);
+  // A commit on this pull request moves its head, so the result is reported
+  // on the new commit as well or the checks list shows nothing for it.
+  let committedHeadSha: string | null = null;
   const finishReaction = async (content: "+1" | "-1" | "confused") => {
     if (checkRun) {
-      await completeGitHubMentionCheckRun({
-        octokit,
-        owner: context.owner,
-        repo: context.repo,
-        checkRunId: checkRun.id,
-        conclusion: GITHUB_MENTION_CHECK_RUN_CONCLUSION_BY_REACTION[content],
-        detailsUrl: context.comment.htmlUrl,
-      }).catch(() => undefined);
+      const conclusion =
+        GITHUB_MENTION_CHECK_RUN_CONCLUSION_BY_REACTION[content];
+      try {
+        await retryWrite(() =>
+          completeGitHubMentionCheckRun({
+            octokit,
+            owner: context.owner,
+            repo: context.repo,
+            checkRunId: checkRun.id,
+            conclusion,
+            detailsUrl: context.comment.htmlUrl,
+          })
+        );
+        const newHeadSha = committedHeadSha;
+        if (newHeadSha) {
+          await retryWrite(() =>
+            createGitHubMentionCheckRun({
+              octokit,
+              owner: context.owner,
+              repo: context.repo,
+              headSha: newHeadSha,
+              detailsUrl: context.comment.htmlUrl,
+              conclusion,
+            })
+          );
+        }
+      } catch (error) {
+        logGitHubMentionEvent(
+          GITHUB_MENTION_LOG_EVENTS.ignored,
+          {
+            deliveryId: context.deliveryId,
+            reason: "check_run_complete_failed",
+            checkRunId: checkRun.id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "warn"
+        );
+      }
     }
     await addGitHubCommentReaction({
       octokit,
@@ -335,6 +379,9 @@ export async function processGitHubMention(
         commitSha: agentResult.commitSha,
         pullRequestUrl: agentResult.pullRequestUrl,
       };
+      if (context.destination.mode === "same_pull_request") {
+        committedHeadSha = agentResult.commitSha;
+      }
     }
     if (agentResult.permissionDenied && !agentResult.committed) {
       return await refuseForPermission([]);
