@@ -1,58 +1,71 @@
 "use client";
 
-import { Robot01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUpDownIcon, Robot01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useId } from "react";
+import { GEO_FILTER_TRIGGER_CLASS } from "@notra/geo-core/constants/geo";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@notra/ui/components/ui/dropdown-menu";
 
-import { buildChartCss } from "@/components/evilcharts/ui/echarts-chart";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { cn } from "@/lib/utils";
 import type { TrafficProviderLegendProps } from "@/types/geo";
 
 export function TrafficProviderLegend({
-  config,
   series,
   hiddenKeys,
   onToggle,
 }: TrafficProviderLegendProps) {
-  const rawId = useId();
-  const legendId = `legend-${rawId.replace(/:/g, "")}`;
-  const css = buildChartCss(legendId, config);
+  const visibleCount = series.length - hiddenKeys.size;
 
   return (
-    <div
-      className="mt-3 flex flex-wrap items-center gap-1.5"
-      data-chart={legendId}
-    >
-      <style>{css}</style>
-      {series.map((entry) => {
-        const hidden = hiddenKeys.has(entry.key);
-        return (
-          <button
-            aria-pressed={!hidden}
-            className={cn(
-              "border-border flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2 text-xs transition-all",
-              hidden
-                ? "text-muted-foreground border-transparent opacity-50 hover:opacity-80"
-                : "bg-card text-foreground hover:bg-muted"
-            )}
-            key={entry.key}
-            onClick={() => onToggle(entry.key)}
-            type="button"
-          >
-            {entry.icon === null ? (
-              <HugeiconsIcon
-                aria-hidden="true"
-                className="text-muted-foreground size-3.5 shrink-0"
-                icon={Robot01Icon}
-              />
-            ) : (
-              <EngineIcon className="size-3.5" engine={entry.icon} />
-            )}
-            <span className={cn(hidden && "line-through")}>{entry.label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Traffic providers, ${visibleCount} of ${series.length} shown`}
+        className={GEO_FILTER_TRIGGER_CLASS}
+      >
+        <span>
+          Providers
+          {visibleCount === series.length
+            ? ""
+            : ` (${visibleCount}/${series.length})`}
+        </span>
+        <HugeiconsIcon
+          className="text-muted-foreground"
+          icon={ArrowUpDownIcon}
+          size={12}
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="max-h-80 w-56 overflow-y-auto"
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Show traffic from</DropdownMenuLabel>
+          {series.map((entry) => (
+            <DropdownMenuCheckboxItem
+              checked={!hiddenKeys.has(entry.key)}
+              key={entry.key}
+              onCheckedChange={() => onToggle(entry.key)}
+            >
+              {entry.icon === null ? (
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0"
+                  icon={Robot01Icon}
+                />
+              ) : (
+                <EngineIcon className="size-3.5 shrink-0" engine={entry.icon} />
+              )}
+              {entry.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

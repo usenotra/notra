@@ -1717,7 +1717,6 @@ export interface TrafficTrendProvider {
 }
 
 export interface TrafficProviderLegendProps {
-  config: ChartConfig;
   series: readonly TrafficTrendSeries[];
   hiddenKeys: ReadonlySet<string>;
   onToggle: (key: string) => void;
