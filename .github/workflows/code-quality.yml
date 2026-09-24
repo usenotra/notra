@@ -25,6 +25,10 @@ jobs:
         with:
           bun-version: 1.4.0
 
+      - name: Check dashboard Vercel install
+        working-directory: apps/dashboard
+        run: bash -c "$(bun -p 'require("./vercel.json").installCommand')"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
