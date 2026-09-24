@@ -20,7 +20,7 @@ import {
   withGscIntegrationLock,
 } from "@notra/ai/utils/gsc-integration-lock";
 import { db } from "@notra/db/drizzle";
-import { geoAgentReadinessReports } from "@notra/db/schema";
+import { geoAgentReadinessReports, projects } from "@notra/db/schema";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
 import {
   GSC_SCHEDULE_ID_PREFIX,
@@ -99,6 +99,7 @@ import {
   listGeoProjects,
   requireBrandIdentity,
   requireGeoProject,
+  resolveGeoScope,
 } from "@notra/geo-core/geo/projects";
 import {
   loadGeoPromptResultDetail,
@@ -406,11 +407,12 @@ async function runAgentReadinessOrBadRequest<T>(
 }
 
 async function runGscSyncOrBadRequest(
-  organizationId: string
+  organizationId: string,
+  projectId: string
 ): Promise<GscSyncResult> {
   try {
     return await Effect.runPromise(
-      syncGscSuggestions(organizationId).pipe(
+      syncGscSuggestions(organizationId, projectId).pipe(
         Effect.provide(geoCoreDashboardLayer)
       )
     );
@@ -1895,7 +1897,20 @@ export const geoRouter = {
       });
 
       const configured = getGscOAuthCredentials() !== null;
-      const integration = await getGscIntegration(input.organizationId);
+      const [integration, scope] = await Promise.all([
+        getGscIntegration(input.organizationId),
+        runOrpcEffect(resolveGeoScope(input), toGeoOrpcError),
+      ]);
+      const project = scope.projectId
+        ? await db.query.projects.findFirst({
+            columns: {
+              gscSiteUrl: true,
+              gscLastSyncedAt: true,
+              gscLastError: true,
+            },
+            where: eq(projects.id, scope.projectId),
+          })
+        : null;
       if (!integration) {
         return {
           configured,
@@ -1911,11 +1926,11 @@ export const geoRouter = {
       }
 
       let sites: GeoSearchConsoleStatus["sites"] = [];
-      let lastError = integration.lastError;
+      let lastError: string | null = null;
       let refreshed = integration;
       if (
         !integration.disconnectingAt &&
-        !integration.siteUrl &&
+        !project?.gscSiteUrl &&
         integration.status === "active"
       ) {
         try {
@@ -1937,10 +1952,10 @@ export const geoRouter = {
         configured,
         connected: true,
         email: refreshed.googleAccountEmail,
-        siteUrl: refreshed.siteUrl,
+        siteUrl: project?.gscSiteUrl ?? null,
         status: refreshed.status,
-        lastSyncedAt: refreshed.lastSyncedAt?.toISOString() ?? null,
-        lastError,
+        lastSyncedAt: project?.gscLastSyncedAt?.toISOString() ?? null,
+        lastError: project?.gscLastError ?? lastError,
         weeklySyncScheduled: refreshed.qstashScheduleId !== null,
         sites,
       };
@@ -1954,13 +1969,22 @@ export const geoRouter = {
         user: context.user,
       });
 
-      const integration = await getGscIntegration(input.organizationId);
+      const [integration, scope] = await Promise.all([
+        getGscIntegration(input.organizationId),
+        runOrpcEffect(resolveGeoScope(input), toGeoOrpcError),
+      ]);
+      const project = scope.projectId
+        ? await db.query.projects.findFirst({
+            columns: { gscTopQueries: true },
+            where: eq(projects.id, scope.projectId),
+          })
+        : null;
       // A disconnect in flight may still fail its revocation; do not keep
       // highlighting keywords from an integration that is on its way out.
       return {
         keywords:
           integration && !integration.disconnectingAt
-            ? integration.topQueries
+            ? (project?.gscTopQueries ?? [])
             : [],
       };
     }),
@@ -2017,13 +2041,19 @@ export const geoRouter = {
           "That property is not available on the connected Google account"
         );
       }
+      const { projectId } = await runOrpcEffect(
+        requireGeoProject(input),
+        toGeoOrpcError
+      );
 
       let synced: GscSyncResult;
       try {
         synced = await Effect.runPromise(
-          selectGscSiteAndSyncSuggestions(integration, input.siteUrl).pipe(
-            Effect.provide(geoCoreDashboardLayer)
-          )
+          selectGscSiteAndSyncSuggestions(
+            integration,
+            input.siteUrl,
+            projectId
+          ).pipe(Effect.provide(geoCoreDashboardLayer))
         );
       } catch (error) {
         console.error(
@@ -2042,7 +2072,7 @@ export const geoRouter = {
 
       const selectedIntegration = await getGscIntegration(input.organizationId);
       let scheduleId = selectedIntegration?.qstashScheduleId ?? null;
-      if (selectedIntegration?.siteUrl === input.siteUrl) {
+      if (selectedIntegration && synced.status === "completed") {
         try {
           scheduleId = await ensureGscSchedule(selectedIntegration);
         } catch (error) {
@@ -2095,7 +2125,15 @@ export const geoRouter = {
         throw notFound("Google Search Console is not connected");
       }
       assertGscDisconnectNotInProgress(integration);
-      if (!integration.siteUrl) {
+      const { projectId } = await runOrpcEffect(
+        requireGeoProject(input),
+        toGeoOrpcError
+      );
+      const project = await db.query.projects.findFirst({
+        columns: { gscSiteUrl: true },
+        where: eq(projects.id, projectId),
+      });
+      if (!project?.gscSiteUrl) {
         throw badRequest("Select a Search Console property first");
       }
 
@@ -2104,7 +2142,7 @@ export const geoRouter = {
         await ensureGscSchedule(integration);
       }
 
-      return await runGscSyncOrBadRequest(input.organizationId);
+      return await runGscSyncOrBadRequest(input.organizationId, projectId);
     }),
   searchConsoleDisconnect: authorizedProcedure
     .input(geoOrganizationInputSchema)

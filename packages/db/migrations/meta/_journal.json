@@ -715,6 +715,13 @@
       "when": 1790193817604,
       "tag": "0101_geo_scan_first_failed",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1790259141303,
+      "tag": "0102_melted_magus",
+      "breakpoints": true
     }
   ]
 }

@@ -2,8 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
-import { organizations } from "@notra/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { organizations, projects } from "@notra/db/schema";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -69,12 +69,16 @@ end
 return 0
 `;
 
-function generationCacheKey(organizationId: string): string {
-  return `${GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX}:${organizationId}`;
+function generationCacheKey(
+  organizationId: string,
+  projectId?: string | null
+): string {
+  return `${GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX}:${organizationId}:${projectId ?? "-"}`;
 }
 
 async function cacheGeneration(
   organizationId: string,
+  projectId: string | null | undefined,
   value: number | null
 ): Promise<void> {
   const client = redis;
@@ -89,24 +93,25 @@ async function cacheGeneration(
   await client
     .eval(
       CACHE_GENERATION_SCRIPT,
-      [generationCacheKey(organizationId)],
+      [generationCacheKey(organizationId, projectId)],
       [encoded, String(ttl)]
     )
     .catch(() => null);
 }
 
 /**
- * The organization's current tracking-token generation, or null when the
- * organization no longer exists. Cached briefly; rotation writes through the
- * cache so revocation takes effect immediately.
+ * The organization's or selected project's current tracking-token generation.
+ * Cached briefly; rotation writes through the cache so revocation takes effect
+ * immediately without invalidating sibling project tokens.
  */
 export async function getGeoIngestTokenGeneration(
-  organizationId: string
+  organizationId: string,
+  projectId?: string | null
 ): Promise<number | null> {
   const client = redis;
   if (client) {
     const cached = await client
-      .get<string | number>(generationCacheKey(organizationId))
+      .get<string | number>(generationCacheKey(organizationId, projectId))
       .catch(() => null);
     if (cached === MISSING) {
       return null;
@@ -117,34 +122,84 @@ export async function getGeoIngestTokenGeneration(
     }
   }
 
-  const row = await db.query.organizations.findFirst({
-    columns: { geoIngestTokenGeneration: true },
-    where: eq(organizations.id, organizationId),
-  });
+  const row = projectId
+    ? await db.query.projects.findFirst({
+        columns: { geoIngestTokenGeneration: true },
+        where: and(
+          eq(projects.id, projectId),
+          eq(projects.organizationId, organizationId)
+        ),
+      })
+    : await db.query.organizations.findFirst({
+        columns: { geoIngestTokenGeneration: true },
+        where: eq(organizations.id, organizationId),
+      });
   const generation = row?.geoIngestTokenGeneration ?? null;
-  await cacheGeneration(organizationId, generation);
+  await cacheGeneration(organizationId, projectId, generation);
   return generation;
 }
 
 /**
- * Revoke every outstanding tracking token for the organization by bumping the
- * generation. Returns the new generation.
+ * Revoke one project's tokens, or all tokens when no project is provided.
+ * Returns the new generation for the requested scope.
  */
 async function rotateGeoIngestTokenGeneration(
-  organizationId: string
+  organizationId: string,
+  projectId?: string | null
 ): Promise<number | null> {
-  const [row] = await db
-    .update(organizations)
-    .set({
-      geoIngestTokenGeneration: sql`${organizations.geoIngestTokenGeneration} + 1`,
-    })
-    .where(eq(organizations.id, organizationId))
-    .returning({ generation: organizations.geoIngestTokenGeneration });
-  if (!row) {
+  if (projectId) {
+    const [row] = await db
+      .update(projects)
+      .set({
+        geoIngestTokenGeneration: sql`${projects.geoIngestTokenGeneration} + 1`,
+      })
+      .where(
+        and(
+          eq(projects.id, projectId),
+          eq(projects.organizationId, organizationId)
+        )
+      )
+      .returning({ generation: projects.geoIngestTokenGeneration });
+    if (!row) {
+      return null;
+    }
+    await cacheGeneration(organizationId, projectId, row.generation);
+    return row.generation;
+  }
+
+  const outcome = await db.transaction(async (tx) => {
+    const [organization] = await tx
+      .update(organizations)
+      .set({
+        geoIngestTokenGeneration: sql`${organizations.geoIngestTokenGeneration} + 1`,
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning({ generation: organizations.geoIngestTokenGeneration });
+    if (!organization) {
+      return null;
+    }
+    const children = await tx
+      .update(projects)
+      .set({
+        geoIngestTokenGeneration: sql`${projects.geoIngestTokenGeneration} + 1`,
+      })
+      .where(eq(projects.organizationId, organizationId))
+      .returning({
+        id: projects.id,
+        generation: projects.geoIngestTokenGeneration,
+      });
+    return { organization, children };
+  });
+  if (!outcome) {
     return null;
   }
-  await cacheGeneration(organizationId, row.generation);
-  return row.generation;
+  await Promise.all([
+    cacheGeneration(organizationId, null, outcome.organization.generation),
+    ...outcome.children.map((project) =>
+      cacheGeneration(organizationId, project.id, project.generation)
+    ),
+  ]);
+  return outcome.organization.generation;
 }
 
 export function getGeoIngestSecret(): string | null {
@@ -423,7 +478,7 @@ export const issueGeoIngestSetupResponse = Effect.fn("geo.ingest.issueSetup")(
 
     const generation = yield* geoDb(
       "ingest token generation lookup failed",
-      () => getGeoIngestTokenGeneration(input.organizationId)
+      () => getGeoIngestTokenGeneration(input.organizationId, input.projectId)
     );
     if (generation === null) {
       return null;
@@ -444,7 +499,7 @@ export const rotateGeoIngestSetupResponse = Effect.fn("geo.ingest.rotateSetup")(
     }
 
     const generation = yield* geoDb("ingest token rotation failed", () =>
-      rotateGeoIngestTokenGeneration(input.organizationId)
+      rotateGeoIngestTokenGeneration(input.organizationId, input.projectId)
     );
     if (generation === null) {
       return null;

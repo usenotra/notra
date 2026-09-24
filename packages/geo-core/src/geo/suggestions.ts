@@ -20,10 +20,12 @@ import { promptKey } from "./prompt-key";
 export const listSuggestions = Effect.fn("geo.suggestions.list")(function* (
   input: GeoScopeInput
 ) {
+  const scope = yield* requireGeoProject(input);
   const rows = yield* geoDb("list suggestions", () =>
     db.query.geoPromptSuggestions.findMany({
       where: and(
         eq(geoPromptSuggestions.organizationId, input.organizationId),
+        eq(geoPromptSuggestions.projectId, scope.projectId),
         eq(geoPromptSuggestions.status, "pending")
       ),
       orderBy: [desc(geoPromptSuggestions.createdAt)],
@@ -79,6 +81,7 @@ async function acceptSuggestionInTx(
       and(
         eq(geoPromptSuggestions.id, suggestion.id),
         eq(geoPromptSuggestions.organizationId, organizationId),
+        eq(geoPromptSuggestions.projectId, projectId),
         eq(geoPromptSuggestions.status, "pending")
       )
     );
@@ -101,6 +104,7 @@ export const acceptSuggestion = Effect.fn("geo.suggestions.accept")(function* (
             and(
               eq(geoPromptSuggestions.id, input.suggestionId),
               eq(geoPromptSuggestions.organizationId, input.organizationId),
+              eq(geoPromptSuggestions.projectId, projectId),
               eq(geoPromptSuggestions.status, "pending")
             )
           )
@@ -127,19 +131,20 @@ export const acceptSuggestion = Effect.fn("geo.suggestions.accept")(function* (
 
 export const acceptAllSuggestions = Effect.fn("geo.suggestions.acceptAll")(
   function* (input: GeoScopeInput) {
+    const { projectId } = yield* requireGeoProject(input);
     const pending = yield* geoDb("check pending suggestions", () =>
       db.query.geoPromptSuggestions.findFirst({
         columns: { id: true },
         where: and(
           eq(geoPromptSuggestions.organizationId, input.organizationId),
+          eq(geoPromptSuggestions.projectId, projectId),
           eq(geoPromptSuggestions.status, "pending")
         ),
       })
     );
     if (!pending) {
-      return { projectId: input.projectId, suggestions: [], accepted: 0 };
+      return { projectId, suggestions: [], accepted: 0 };
     }
-    const { projectId } = yield* requireGeoProject(input);
     return yield* geoDb("accept all suggestions", () =>
       db.transaction(async (tx) => {
         await lockGeoProjectInTransaction(tx, projectId);
@@ -149,6 +154,7 @@ export const acceptAllSuggestions = Effect.fn("geo.suggestions.acceptAll")(
           .where(
             and(
               eq(geoPromptSuggestions.organizationId, input.organizationId),
+              eq(geoPromptSuggestions.projectId, projectId),
               eq(geoPromptSuggestions.status, "pending")
             )
           )
@@ -168,6 +174,7 @@ export const acceptAllSuggestions = Effect.fn("geo.suggestions.acceptAll")(
 
 export const dismissSuggestion = Effect.fn("geo.suggestions.dismiss")(
   function* (input: GeoSuggestionInput) {
+    const { projectId } = yield* requireGeoProject(input);
     const [row] = yield* geoDb("dismiss suggestion", () =>
       db
         .update(geoPromptSuggestions)
@@ -176,6 +183,7 @@ export const dismissSuggestion = Effect.fn("geo.suggestions.dismiss")(
           and(
             eq(geoPromptSuggestions.id, input.suggestionId),
             eq(geoPromptSuggestions.organizationId, input.organizationId),
+            eq(geoPromptSuggestions.projectId, projectId),
             eq(geoPromptSuggestions.status, "pending")
           )
         )

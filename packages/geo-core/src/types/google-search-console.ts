@@ -34,6 +34,7 @@ export interface GscKeywordsResponse {
 
 export interface GscSelectSiteInput {
   siteUrl: string;
+  projectId?: string;
 }
 
 export interface GscSyncResult {
