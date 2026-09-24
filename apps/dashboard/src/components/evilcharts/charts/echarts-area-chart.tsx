@@ -2569,7 +2569,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       }
       const resolved = live.resolved;
       const dots: ScrubDot[] = [];
-      if (resolved) {
+      if (resolved && live.scrubTarget === 1) {
         for (const key of live.scrubDotKeys) {
           const point = pointOnSeriesAtX(chart, key, displayX);
           if (!point) continue;
@@ -2596,27 +2596,26 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     const tickScrub = () => {
       live.scrubOpacity += (live.scrubTarget - live.scrubOpacity) * SCRUB_LERP;
+      const grid = live.scrubTarget === 0 ? readScrubGrid(chart) : null;
       const snapX =
-        live.scrubIndex === null
-          ? null
-          : chart.convertToPixel({ xAxisIndex: 0 }, live.scrubIndex);
-      if (
-        live.scrubTarget === 1 &&
-        typeof snapX === "number" &&
-        Number.isFinite(snapX) &&
-        live.scrubX !== null
-      ) {
-        live.scrubX += (snapX - live.scrubX) * CHART_SCRUB_POSITION_LERP;
-        if (Math.abs(snapX - live.scrubX) < 0.5) live.scrubX = snapX;
+        live.scrubTarget === 1 && live.scrubIndex !== null
+          ? chart.convertToPixel({ xAxisIndex: 0 }, live.scrubIndex)
+          : grid
+            ? grid.x + grid.width
+            : null;
+      const validSnapX =
+        typeof snapX === "number" && Number.isFinite(snapX) ? snapX : null;
+      if (validSnapX !== null && live.scrubX !== null) {
+        live.scrubX += (validSnapX - live.scrubX) * CHART_SCRUB_POSITION_LERP;
+        if (Math.abs(validSnapX - live.scrubX) < 0.5) live.scrubX = validSnapX;
       }
-      const opacitySettled = Math.abs(live.scrubTarget - live.scrubOpacity) < 0.01;
-      const positionSettled =
-        live.scrubTarget === 0 ||
-        typeof snapX !== "number" ||
-        !Number.isFinite(snapX) ||
-        live.scrubX === snapX;
-      if (opacitySettled) live.scrubOpacity = live.scrubTarget;
-      if (opacitySettled && positionSettled) {
+      if (Math.abs(live.scrubTarget - live.scrubOpacity) < 0.01) {
+        live.scrubOpacity = live.scrubTarget;
+      }
+      const settled =
+        live.scrubOpacity === live.scrubTarget &&
+        (validSnapX === null || live.scrubX === validSnapX);
+      if (settled) {
         live.scrubRaf = 0;
         if (live.scrubTarget === 0) {
           setMutedOpacity(0);
@@ -2624,16 +2623,18 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
           live.scrubX = null;
           chart.dispatchAction({ type: "hideTip" });
         }
-        paintScrub();
-        return;
       }
       paintScrub();
-      live.scrubRaf = requestAnimationFrame(tickScrub);
+      if (!settled) live.scrubRaf = requestAnimationFrame(tickScrub);
     };
 
     const leaveScrub = () => {
       if (live.scrubTarget === 0 && live.scrubOpacity === 0) return;
       live.scrubTarget = 0;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const grid = readScrubGrid(chart);
+        if (grid) live.scrubX = grid.x + grid.width;
+      }
       if (!live.scrubRaf) live.scrubRaf = requestAnimationFrame(tickScrub);
     };
 
@@ -2656,7 +2657,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       const entering = live.scrubTarget === 0;
       live.scrubIndex = idx;
       if (
-        entering ||
+        live.scrubX === null ||
         window.matchMedia("(prefers-reduced-motion: reduce)").matches
       ) {
         live.scrubX = snapX;
