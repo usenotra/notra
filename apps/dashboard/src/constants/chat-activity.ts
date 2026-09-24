@@ -1,4 +1,3 @@
-export const WORKING_LABEL = "Working";
 export const WORKED_LABEL = "Worked";
 export const ACTIVITY_AUTO_CLOSE_DELAY_MS = 400;
 export const ACTIVITY_CONTENT_CLASSNAME =

@@ -3,9 +3,9 @@ import { describe, expect, test } from "bun:test";
 import { formatWorkedDurationLabel } from "./format-worked-duration";
 
 describe("formatWorkedDurationLabel", () => {
-  test("uses Working while the timer has not started", () => {
-    expect(formatWorkedDurationLabel(null, true)).toBe("Working");
-    expect(formatWorkedDurationLabel(0, true)).toBe("Working");
+  test("shows Worked for 0s while streaming before the first tick", () => {
+    expect(formatWorkedDurationLabel(null, true)).toBe("Worked for 0s");
+    expect(formatWorkedDurationLabel(0, true)).toBe("Worked for 0s");
   });
 
   test("uses Worked for Xs once a duration exists", () => {

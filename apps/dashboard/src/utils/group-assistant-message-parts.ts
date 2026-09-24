@@ -105,9 +105,24 @@ export function stackAssistantActivityItems(
 
 export function isAssistantActivityStreaming(
   isLoading: boolean,
-  isLastSegment: boolean
+  isLastActivity: boolean,
+  hasVisibleTextAfter: boolean
 ): boolean {
-  return isLoading && isLastSegment;
+  return isLoading && isLastActivity && !hasVisibleTextAfter;
+}
+
+export function hasVisibleAssistantTextAfter(
+  segments: AssistantMessageSegment[],
+  segmentIndex: number
+): boolean {
+  return segments
+    .slice(segmentIndex + 1)
+    .some(
+      (segment) =>
+        segment.kind === "standalone" &&
+        segment.part.type === "text" &&
+        Boolean(segment.part.text.trim())
+    );
 }
 
 export function isAssistantActivityForceOpen(

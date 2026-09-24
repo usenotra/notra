@@ -11,6 +11,7 @@ import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import type { ChatAssistantPartsProps } from "@/types/components/chat-activity-group";
 import {
   groupAssistantMessageParts,
+  hasVisibleAssistantTextAfter,
   isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
   stackAssistantActivityItems,
@@ -29,7 +30,9 @@ export function ChatAssistantParts({
   const activityCount = segments.filter(
     (segment) => segment.kind === "activity"
   ).length;
-  const lastSegmentIndex = segments.length - 1;
+  const lastActivityIndex = segments.findLastIndex(
+    (segment) => segment.kind === "activity"
+  );
 
   return segments.map((segment, segmentIndex) => {
     if (segment.kind === "standalone") {
@@ -49,7 +52,8 @@ export function ChatAssistantParts({
 
     const isStreaming = isAssistantActivityStreaming(
       isLoading,
-      segmentIndex === lastSegmentIndex
+      segmentIndex === lastActivityIndex,
+      hasVisibleAssistantTextAfter(segments, segmentIndex)
     );
     const forceOpen = isAssistantActivityForceOpen(segment.items);
 

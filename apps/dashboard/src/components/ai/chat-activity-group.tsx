@@ -45,7 +45,9 @@ function useWorkedDurationSeconds(
   const fromMetadata =
     durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
   const startedAtRef = useRef<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(
+    isStreaming ? 0 : null
+  );
 
   useEffect(() => {
     if (isStreaming) {

@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { isContentEditorStandaloneTool } from "./content-editor-standalone-tool";
 import {
   groupAssistantMessageParts,
+  hasVisibleAssistantTextAfter,
   isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
   stackAssistantActivityItems,
@@ -181,10 +182,47 @@ describe("stackAssistantActivityItems", () => {
 });
 
 describe("isAssistantActivityStreaming", () => {
-  test("stays streaming for the last segment of a loading message", () => {
-    expect(isAssistantActivityStreaming(true, true)).toBe(true);
-    expect(isAssistantActivityStreaming(true, false)).toBe(false);
-    expect(isAssistantActivityStreaming(false, true)).toBe(false);
+  test("stays streaming after a standalone create tool while the turn is loading", () => {
+    const segments = groupAssistantMessageParts(
+      [reasoning("Planning the draft"), tool("createBlogPost")],
+      {
+        isStandaloneTool: (part) =>
+          "type" in part && part.type === "tool-createBlogPost",
+      }
+    );
+
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "activity",
+      "standalone",
+    ]);
+    expect(
+      isAssistantActivityStreaming(
+        true,
+        true,
+        hasVisibleAssistantTextAfter(segments, 0)
+      )
+    ).toBe(true);
+  });
+
+  test("stops streaming once visible text follows the activity", () => {
+    const segments = groupAssistantMessageParts([
+      reasoning("Planning the draft"),
+      text("Here is the post."),
+    ]);
+
+    expect(
+      isAssistantActivityStreaming(
+        true,
+        true,
+        hasVisibleAssistantTextAfter(segments, 0)
+      )
+    ).toBe(false);
+  });
+
+  test("only the last activity streams", () => {
+    expect(isAssistantActivityStreaming(true, true, false)).toBe(true);
+    expect(isAssistantActivityStreaming(true, false, false)).toBe(false);
+    expect(isAssistantActivityStreaming(false, true, false)).toBe(false);
   });
 });
 
