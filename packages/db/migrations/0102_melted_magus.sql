@@ -12,7 +12,6 @@ ALTER TABLE "geo_prompt_suggestions" ADD COLUMN "project_id" text;--> statement-
 -- remain stored but are not returned by project-scoped reads.
 UPDATE "geo_prompt_suggestions" s SET "project_id" = COALESCE((SELECT gp.project_id FROM "geo_prompts" gp WHERE gp.id = s.accepted_prompt_id AND gp.organization_id = s.organization_id), (SELECT p.id FROM "projects" p WHERE p.organization_id = s.organization_id ORDER BY p.created_at, p.id LIMIT 1)) WHERE (SELECT count(*) FROM "projects" p WHERE p.organization_id = s.organization_id) = 1 OR s.accepted_prompt_id IS NOT NULL;--> statement-breakpoint
 ALTER TABLE "geo_prompt_suggestions" ADD CONSTRAINT "geo_prompt_suggestions_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-DROP INDEX "geoPromptSuggestions_organizationId_status_idx";--> statement-breakpoint
 DROP INDEX "geoPromptSuggestions_organizationId_prompt_uidx";--> statement-breakpoint
 CREATE INDEX "geoPromptSuggestions_projectId_status_idx" ON "geo_prompt_suggestions" USING btree ("project_id","status");--> statement-breakpoint
 CREATE UNIQUE INDEX "geoPromptSuggestions_projectId_prompt_uidx" ON "geo_prompt_suggestions" USING btree ("project_id","prompt");

@@ -722,13 +722,6 @@
       "when": 1790259141303,
       "tag": "0102_melted_magus",
       "breakpoints": true
-    },
-    {
-      "idx": 103,
-      "version": "7",
-      "when": 1790259981388,
-      "tag": "0103_lonely_meteorite",
-      "breakpoints": true
     }
   ]
 }

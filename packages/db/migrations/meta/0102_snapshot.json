@@ -6656,6 +6656,27 @@
         }
       },
       "indexes": {
+        "geoPromptSuggestions_organizationId_status_idx": {
+          "name": "geoPromptSuggestions_organizationId_status_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "geoPromptSuggestions_projectId_status_idx": {
           "name": "geoPromptSuggestions_projectId_status_idx",
           "columns": [
