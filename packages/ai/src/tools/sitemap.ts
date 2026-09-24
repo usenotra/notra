@@ -1,19 +1,57 @@
 import type { SitemapToolsConfig } from "@notra/ai/types/geo-writer";
-import { fetchWebpage } from "@notra/ai/utils/context-dev";
+import { crawlSitemap, fetchWebpage } from "@notra/ai/utils/context-dev";
 import { toolDescription } from "@notra/ai/utils/description";
 import { db } from "@notra/db/drizzle";
-import { brandSitemapPages, brandSitemaps } from "@notra/db/schema";
+import {
+  brandSettings,
+  brandSitemapPages,
+  brandSitemaps,
+} from "@notra/db/schema";
 import { type Tool, tool } from "ai";
-import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
+
+import { isWebSearchAvailable } from "./web-search";
 
 const DEFAULT_PAGE_LIMIT = 40;
 const MAX_PAGE_LIMIT = 100;
 const MAX_FETCHED_MARKDOWN_CHARS = 6000;
 const FETCH_TIMEOUT_MS = 20_000;
+const DEFAULT_CRAWL_MAX_LINKS = 100;
+const MAX_CRAWL_LINKS = 500;
 
-async function listSitemapIds(brandSettingsId: string): Promise<string[]> {
+export const CRAWL_SITEMAP_TOOL_NAME = "crawlSitemap";
+export const GET_SITEMAP_PAGES_TOOL_NAME = "getSitemapPages";
+export const FETCH_SITEMAP_PAGE_TOOL_NAME = "fetchSitemapPage";
+
+export const GET_SITEMAP_PAGES_TOOL_DESCRIPTION =
+  "**Sitemap**: List the brand's crawled pages with getSitemapPages before adding internal links. Fetch one listed URL with fetchSitemapPage when you need its content. If the sitemap is empty, crawl a live domain with crawlSitemap, then read pages with fetchWebpage.";
+
+async function resolveBrandSettingsId(
+  config: SitemapToolsConfig
+): Promise<string | undefined> {
+  if (config.brandSettingsId) {
+    return config.brandSettingsId;
+  }
+  if (!config.organizationId) {
+    return undefined;
+  }
+
+  const identity = await db.query.brandSettings.findFirst({
+    where: eq(brandSettings.organizationId, config.organizationId),
+    columns: { id: true },
+    orderBy: [desc(brandSettings.isDefault), desc(brandSettings.createdAt)],
+  });
+  return identity?.id;
+}
+
+async function listSitemapIds(config: SitemapToolsConfig): Promise<string[]> {
+  const brandSettingsId = await resolveBrandSettingsId(config);
+  if (!brandSettingsId) {
+    return [];
+  }
+
   const rows = await db
     .select({ id: brandSitemaps.id })
     .from(brandSitemaps)
@@ -47,7 +85,7 @@ export function createGetSitemapPagesTool(config: SitemapToolsConfig): Tool {
         .default(DEFAULT_PAGE_LIMIT),
     }),
     execute: async ({ query, limit }) => {
-      const sitemapIds = await listSitemapIds(config.brandSettingsId);
+      const sitemapIds = await listSitemapIds(config);
       if (sitemapIds.length === 0) {
         return { pages: [], total: 0, hasSitemap: false };
       }
@@ -98,7 +136,7 @@ export function createFetchSitemapPageTool(config: SitemapToolsConfig): Tool {
       url: z.string().url().describe("A URL returned by getSitemapPages"),
     }),
     execute: async ({ url }) => {
-      const sitemapIds = await listSitemapIds(config.brandSettingsId);
+      const sitemapIds = await listSitemapIds(config);
       if (sitemapIds.length === 0) {
         return { error: "This brand has no crawled sitemap." };
       }
@@ -146,4 +184,88 @@ export function createFetchSitemapPageTool(config: SitemapToolsConfig): Tool {
       }
     },
   });
+}
+
+const crawlSitemapInputSchema = z.object({
+  domain: z
+    .string()
+    .trim()
+    .min(1)
+    .describe("Hostname or domain, for example example.com"),
+  urlRegex: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Optional regex to keep matching URLs, for example /blog/"),
+  maxLinks: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_CRAWL_LINKS)
+    .default(DEFAULT_CRAWL_MAX_LINKS),
+});
+
+export function createCrawlSitemapTool(): Tool {
+  return tool({
+    description: toolDescription({
+      toolName: CRAWL_SITEMAP_TOOL_NAME,
+      intro:
+        "Discovers public URLs from a website's live sitemap via Context.dev.",
+      whenToUse:
+        "When getSitemapPages is empty, when researching a competitor or company domain, or when you need a fresh list of blog, docs, pricing, or product pages before writing.",
+      usageNotes:
+        "Pass a domain like example.com, not a full article URL. Filter with urlRegex when you only need a section of the site. Then read interesting URLs with fetchWebpage. Do not invent URLs that were not returned.",
+    }),
+    inputSchema: crawlSitemapInputSchema,
+    execute: async ({ domain, urlRegex, maxLinks }) => {
+      try {
+        const result = await crawlSitemap({ domain, urlRegex, maxLinks });
+        return {
+          domain: result.domain,
+          urls: result.urls,
+          total: result.urls.length,
+        };
+      } catch (error) {
+        return {
+          error:
+            error instanceof Error
+              ? `Failed to crawl the sitemap: ${error.message}`
+              : "Failed to crawl the sitemap.",
+        };
+      }
+    },
+  });
+}
+
+export function createUnavailableCrawlSitemapTool(): Tool {
+  return tool({
+    description: toolDescription({
+      toolName: CRAWL_SITEMAP_TOOL_NAME,
+      intro:
+        "Explain that live sitemap crawling is unavailable because Context.dev is not configured.",
+      whenToUse:
+        "Use when the user asks to crawl a sitemap and Context.dev API credentials are missing.",
+      usageNotes:
+        "Return the configuration error. Do not claim that no sitemap tool exists.",
+    }),
+    inputSchema: crawlSitemapInputSchema,
+    execute: async () => ({
+      error:
+        "Context.dev is not configured. Set CONTEXT_DEV_API_KEY to crawl sitemaps.",
+    }),
+  });
+}
+
+export function registerSitemapTools(
+  tools: Record<string, Tool>,
+  descriptions: string[],
+  config: SitemapToolsConfig
+) {
+  tools[GET_SITEMAP_PAGES_TOOL_NAME] = createGetSitemapPagesTool(config);
+  tools[FETCH_SITEMAP_PAGE_TOOL_NAME] = createFetchSitemapPageTool(config);
+  tools[CRAWL_SITEMAP_TOOL_NAME] = isWebSearchAvailable()
+    ? createCrawlSitemapTool()
+    : createUnavailableCrawlSitemapTool();
+  descriptions.push(GET_SITEMAP_PAGES_TOOL_DESCRIPTION);
 }

@@ -498,6 +498,15 @@ const TOOL_COPY: Record<string, ToolCopy> = {
     verbs: ["Loading", "Loaded"],
     noun: "brand references",
   },
+  getBrandReferences: {
+    verbs: ["Loading", "Loaded"],
+    noun: "brand references",
+  },
+  searchBrandReferences: {
+    verbs: ["Searching", "Searched"],
+    noun: "brand references",
+    suffix: (input) => quotedSuffix(input, ["query"]),
+  },
   getAvailableIntegrations: {
     verbs: ["Checking", "Checked"],
     noun: "integrations",
@@ -532,6 +541,25 @@ const TOOL_COPY: Record<string, ToolCopy> = {
     verbs: ["Loading", "Loaded"],
     noun: "GEO project context",
     suffix: (input) => idSuffix(input, ["projectId"]),
+  },
+  getSitemapPages: {
+    verbs: ["Listing", "Listed"],
+    noun: "sitemap pages",
+    suffix: (input, output) =>
+      quotedSuffix(input, ["query"]) ??
+      countSuffix(getNumericValue(output, "total"), "page", "pages"),
+  },
+  fetchSitemapPage: {
+    verbs: ["Fetching", "Fetched"],
+    noun: "sitemap page",
+    suffix: (input) => quotedSuffix(input, ["url"]),
+  },
+  crawlSitemap: {
+    verbs: ["Crawling", "Crawled"],
+    noun: "sitemap",
+    suffix: (input, output) =>
+      quotedSuffix(input, ["domain"]) ??
+      countSuffix(getNumericValue(output, "total"), "URL", "URLs"),
   },
   getMarkdown: { verbs: ["Reading", "Read"], noun: "document" },
   editMarkdown: { verbs: ["Editing", "Edited"], noun: "document" },

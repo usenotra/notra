@@ -1,6 +1,17 @@
 import { unavailableImageRevisionToolInputSchema } from "@notra/ai/schemas/repo-image";
+import {
+  createGetBrandReferencesTool,
+  createSearchBrandReferencesTool,
+} from "@notra/ai/tools/brand-references";
 import { createMarkdownTools } from "@notra/ai/tools/edit-markdown";
 import { exampleTool } from "@notra/ai/tools/example";
+import {
+  createGetGeoCompetitorShareTool,
+  createGetGeoOverviewTool,
+  createGetGeoProjectContextTool,
+  createGetGeoPromptResultsTool,
+  createListGeoProjectsTool,
+} from "@notra/ai/tools/geo";
 import {
   createGetCommitsByTimeframeTool,
   createGetPullRequestsTool,
@@ -12,8 +23,14 @@ import {
   createGetLinearIssuesTool,
   createGetLinearProjectsTool,
 } from "@notra/ai/tools/linear";
+import {
+  createGetBrandIdentityTool,
+  createListBrandIdentitiesTool,
+} from "@notra/ai/tools/organization";
+import { registerSitemapTools } from "@notra/ai/tools/sitemap";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
 import { registerWebSearchTools } from "@notra/ai/tools/web-search";
+import type { AgentType } from "@notra/ai/types/brand-references";
 import type {
   BuildToolSetDeps,
   BuildToolSetParams,
@@ -58,6 +75,8 @@ export function buildToolSet(
   ];
 
   registerWebSearchTools(tools, descriptions);
+  registerSitemapTools(tools, descriptions, { organizationId });
+  registerBrandAndGeoTools(tools, descriptions, organizationId, contentType);
 
   if (isImageContent) {
     if (currentPostId && userId && imageDefaults) {
@@ -176,6 +195,64 @@ export function buildToolSet(
   }
 
   return { tools, descriptions };
+}
+
+function registerBrandAndGeoTools(
+  tools: Record<string, Tool>,
+  descriptions: string[],
+  organizationId: string,
+  contentType?: string
+) {
+  const agentType = brandAgentTypeFromContent(contentType);
+
+  tools.listBrandIdentities = createListBrandIdentitiesTool({
+    organizationId,
+  });
+  tools.getBrandIdentity = createGetBrandIdentityTool({ organizationId });
+  tools.getBrandReferences = createGetBrandReferencesTool({
+    organizationId,
+    agentType,
+  });
+  tools.searchBrandReferences = createSearchBrandReferencesTool({
+    organizationId,
+    agentType,
+  });
+  tools.listGeoProjects = createListGeoProjectsTool({ organizationId });
+  tools.getGeoOverview = createGetGeoOverviewTool({ organizationId });
+  tools.getGeoPromptResults = createGetGeoPromptResultsTool({
+    organizationId,
+  });
+  tools.getGeoCompetitorShare = createGetGeoCompetitorShareTool({
+    organizationId,
+  });
+  tools.getGeoProjectContext = createGetGeoProjectContextTool({
+    organizationId,
+  });
+
+  descriptions.push(
+    "**Brand**: Load company and voice details with listBrandIdentities and getBrandIdentity. Match writing style with getBrandReferences or searchBrandReferences before drafting."
+  );
+  descriptions.push(
+    "**GEO Analytics**: List GEO projects, then inspect AI visibility, prompt wins/losses, competitor share, and project context with listGeoProjects, getGeoOverview, getGeoPromptResults, getGeoCompetitorShare, and getGeoProjectContext."
+  );
+}
+
+function brandAgentTypeFromContent(
+  contentType?: string
+): AgentType | undefined {
+  if (contentType === "blog_post") {
+    return "blog";
+  }
+  if (contentType === "twitter_post") {
+    return "twitter";
+  }
+  if (contentType === "linkedin_post") {
+    return "linkedin";
+  }
+  if (contentType === "changelog") {
+    return "changelog";
+  }
+  return undefined;
 }
 
 function createUnavailableImageRevisionTool(): Tool {

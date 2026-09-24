@@ -121,7 +121,8 @@ export interface GeoWriterResult {
 }
 
 export interface SitemapToolsConfig {
-  brandSettingsId: string;
+  brandSettingsId?: string;
+  organizationId?: string;
 }
 
 export interface GeoContextToolConfig {
