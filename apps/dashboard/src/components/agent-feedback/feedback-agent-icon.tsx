@@ -61,7 +61,11 @@ function AgentBrandMark({
     return <Playwright className={className} />;
   }
   if (brand === "notra") {
-    return <Notra className={className} />;
+    return (
+      <span className="flex shrink-0 items-center justify-center rounded-sm dark:bg-[#F6F3F1] dark:ring-1 dark:ring-white/10">
+        <Notra className={className} />
+      </span>
+    );
   }
   if (brand === "cline") {
     return <Cline className={className} />;
