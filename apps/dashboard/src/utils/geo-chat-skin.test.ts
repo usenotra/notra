@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { claudeModelForEngine } from "@notra/ui/lib/geo-chat-model";
+
 import { geoChatSkin } from "./geo-chat-skin";
 
 describe("geoChatSkin", () => {
@@ -27,4 +29,9 @@ describe("geoChatSkin", () => {
     expect(geoChatSkin("perplexity/sonar")).toBe("perplexity");
     expect(geoChatSkin("openai/gpt-5.4")).toBe("chatgpt");
   });
+});
+
+test("Claude answer threads show the matching Opus generation", () => {
+  expect(claudeModelForEngine("anthropic/claude-opus-5.5")).toBe("opus-5.5");
+  expect(claudeModelForEngine("anthropic/claude-opus-5")).toBe("opus-5");
 });

@@ -83,6 +83,10 @@ import {
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHAT_ACTIVE_STREAM_POLL_INTERVAL_MS } from "@/constants/chat-active-stream";
 import { MAX_VISIBLE_CHAT_IMAGES } from "@/constants/chat-images";
+import {
+  AVAILABLE_MODELS,
+  ZDR_AVAILABLE_MODELS,
+} from "@/constants/chat-models";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { INTEGRATION_REFERENCE_TOKEN_SPLIT_REGEX } from "@/constants/integration-reference";
 import { MIRROR_WORKING_TIMEOUT_MS } from "@/constants/slack-mirror";
@@ -102,6 +106,7 @@ import {
   useChatSessionMutations,
 } from "@/lib/hooks/use-chat-sessions";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
+import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
 import { useSlackMirrorStream } from "@/lib/hooks/use-slack-mirror-stream";
 import { getMcpIconUrls } from "@/lib/integrations/mcp";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -421,6 +426,10 @@ function StandaloneChatPageClient({
   const organizationId = organization?.id ?? "";
   const { projectId: activeProjectId, isResolved: isProjectResolved } =
     useActiveProject();
+  const { canUseNonZdr } = useHasZdrEntitlement();
+  const availableModels = canUseNonZdr
+    ? AVAILABLE_MODELS
+    : ZDR_AVAILABLE_MODELS;
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
   const { insertPendingChatSession, removePendingChatSession } =
@@ -504,6 +513,12 @@ function StandaloneChatPageClient({
   const [selectedModel, setSelectedModel] = useState(
     DEFAULT_CHAT_PREFERENCES.model
   );
+  const effectiveSelectedModel =
+    !canUseNonZdr &&
+    (selectedModel === "openai/gpt-6-sol" ||
+      selectedModel === "openai/gpt-6-luna")
+      ? "auto"
+      : selectedModel;
   const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevel>(
     DEFAULT_CHAT_PREFERENCES.thinkingLevel
   );
@@ -550,7 +565,7 @@ function StandaloneChatPageClient({
   useEffect(() => {
     contextRef.current = context;
     hasCustomizedContextRef.current = hasCustomizedContext;
-    selectedModelRef.current = selectedModel;
+    selectedModelRef.current = effectiveSelectedModel;
     thinkingLevelRef.current = thinkingLevel;
     organizationIdRef.current = organizationId;
     activeProjectIdRef.current = activeProjectId;
@@ -562,7 +577,7 @@ function StandaloneChatPageClient({
     hasCustomizedContext,
     initialChatId,
     organizationId,
-    selectedModel,
+    effectiveSelectedModel,
     thinkingLevel,
   ]);
 
@@ -2467,6 +2482,7 @@ function StandaloneChatPageClient({
               <ProjectScopeLoadingInput />
             ) : (
               <ChatInputAdvanced
+                availableModels={availableModels}
                 authorsById={messageAuthorsById}
                 context={context}
                 draftStorageKey={draftStorageKey}
@@ -2474,7 +2490,7 @@ function StandaloneChatPageClient({
                 initialValue={initialQuery ?? undefined}
                 isLoading={isLoading}
                 isStopping={isStopping}
-                model={selectedModel}
+                model={effectiveSelectedModel}
                 onAddContext={handleAddContext}
                 onClearError={handleClearError}
                 onEditQueued={handleEditQueued}
@@ -2673,6 +2689,7 @@ function StandaloneChatPageClient({
                             )}
                             {isUser && !isSlackMirrored && (
                               <UserMessageActions
+                                availableModels={availableModels}
                                 branchIndex={
                                   branchTotal > 1 ? branchIdx : undefined
                                 }
@@ -2783,6 +2800,7 @@ function StandaloneChatPageClient({
                 <ProjectScopeLoadingInput />
               ) : (
                 <ChatInputAdvanced
+                  availableModels={availableModels}
                   authorsById={messageAuthorsById}
                   context={context}
                   draftStorageKey={draftStorageKey}
@@ -2790,7 +2808,7 @@ function StandaloneChatPageClient({
                   initialValue={initialQuery ?? undefined}
                   isLoading={isLoading}
                   isStopping={isStopping}
-                  model={selectedModel}
+                  model={effectiveSelectedModel}
                   onAddContext={handleAddContext}
                   onClearError={handleClearError}
                   onEditQueued={handleEditQueued}

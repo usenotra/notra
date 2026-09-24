@@ -9,9 +9,13 @@ import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
  * while loading; check `isLoading` before treating it as a final answer.
  */
 export function useHasZdrEntitlement() {
-  const { check, isLoading } = useBillingCustomer();
+  const { check, data: customer, isLoading } = useBillingCustomer();
   const hasZdr = check({ featureId: FEATURES.ZDR }).allowed === true;
-  return { hasZdr, isLoading };
+  return {
+    hasZdr,
+    isLoading,
+    canUseNonZdr: Boolean(customer) && !isLoading && !hasZdr,
+  };
 }
 
 export function useHasAiCreditsFeature() {

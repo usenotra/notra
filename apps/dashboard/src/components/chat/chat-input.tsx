@@ -80,7 +80,7 @@ import { toast } from "sonner";
 import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
-import { AVAILABLE_MODELS } from "@/constants/chat-models";
+import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatSkillSlash } from "@/lib/hooks/use-chat-skill-slash";
@@ -99,8 +99,10 @@ import {
   isImageMimeType,
 } from "@/lib/upload/mime";
 import type { ChatMessageAuthor } from "@/types/chat";
-import type { ChatModelOption } from "@/types/chat-model";
-import type { ChatContextOption } from "@/types/components/chat-input";
+import type {
+  ChatContextOption,
+  ChatModelOption,
+} from "@/types/components/chat-input";
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
@@ -708,6 +710,7 @@ function ChatComposerNudge({
 }
 
 function ChatComposerModelPicker({
+  availableModels,
   currentModel,
   isLoading,
   isModelPickerOpen,
@@ -716,6 +719,7 @@ function ChatComposerModelPicker({
   onModelChange,
   setIsModelPickerOpen,
 }: {
+  availableModels: readonly ChatModelOption[];
   currentModel: ChatModelOption;
   isLoading: boolean;
   isModelPickerOpen: boolean;
@@ -739,7 +743,12 @@ function ChatComposerModelPicker({
           <CommandList>
             <CommandEmpty>No models found.</CommandEmpty>
             <CommandGroup>
-              {AVAILABLE_MODELS.map((availableModel) => (
+              {(availableModels.some(
+                (availableModel) => availableModel.id === model
+              )
+                ? availableModels
+                : [...availableModels, currentModel]
+              ).map((availableModel) => (
                 <CommandItem
                   data-checked={model === availableModel.id}
                   key={availableModel.id}
@@ -982,6 +991,7 @@ function ChatComposerContextPicker({
 }
 
 interface ChatInputAdvancedProps {
+  availableModels?: readonly ChatModelOption[];
   onSend?: (value: string, attachments: ChatAttachment[]) => void;
   onStop?: () => void;
   initialValue?: string;
@@ -1196,6 +1206,7 @@ function sendOrQueueComposer({
 }
 
 export function ChatInputAdvanced({
+  availableModels = AVAILABLE_MODELS,
   onSend,
   onStop,
   initialValue,
@@ -1227,7 +1238,9 @@ export function ChatInputAdvanced({
   const slashListId = useId();
   const mentionListId = useId();
   const currentModel =
-    AVAILABLE_MODELS.find((availableModel) => availableModel.id === model) ??
+    [...AVAILABLE_MODELS, ...LEGACY_CHAT_MODELS].find(
+      (availableModel) => availableModel.id === model
+    ) ??
     ({
       id: "auto",
       label: model,
@@ -2652,6 +2665,7 @@ export function ChatInputAdvanced({
               />
 
               <ChatComposerModelPicker
+                availableModels={availableModels}
                 currentModel={currentModel}
                 isLoading={isLoading}
                 isModelPickerOpen={isModelPickerOpen}

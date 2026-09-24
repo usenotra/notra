@@ -31,12 +31,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { ModelIcon } from "@/components/chat/chat-input";
 import { AVAILABLE_MODELS } from "@/constants/chat-models";
+import type { ChatModelOption } from "@/types/components/chat-input";
 import type {
   UserMessageEditorProps,
   UserMessageTextBubbleProps,
 } from "@/types/components/chat-page";
 
 interface UserMessageActionsProps {
+  availableModels?: readonly ChatModelOption[];
   messageText: string;
   canInteract: boolean;
   onEdit: () => void;
@@ -50,6 +52,7 @@ interface UserMessageActionsProps {
 }
 
 export function UserMessageActions({
+  availableModels = AVAILABLE_MODELS,
   messageText,
   canInteract,
   onEdit,
@@ -152,7 +155,7 @@ export function UserMessageActions({
             <DropdownMenuGroup>
               <DropdownMenuLabel>Model</DropdownMenuLabel>
             </DropdownMenuGroup>
-            {AVAILABLE_MODELS.map((m) => (
+            {availableModels.map((m) => (
               <DropdownMenuItem key={m.id} onClick={() => onRetry(m.id)}>
                 <ModelIcon className="size-4 shrink-0" provider={m.provider} />
                 <div className="flex min-w-0 flex-col">

@@ -1,4 +1,4 @@
-import type { ChatModelOption } from "@/types/chat-model";
+import type { ChatModelOption } from "@/types/components/chat-input";
 
 export const AVAILABLE_MODELS = [
   {
@@ -51,3 +51,45 @@ export const AVAILABLE_MODELS = [
     provider: "openai",
   },
 ] satisfies [ChatModelOption, ...ChatModelOption[]];
+
+export const ZDR_AVAILABLE_MODELS = AVAILABLE_MODELS.filter(
+  (model) => model.id !== "openai/gpt-6-sol" && model.id !== "openai/gpt-6-luna"
+);
+
+export const LEGACY_CHAT_MODELS = [
+  {
+    id: "anthropic/claude-opus-5",
+    label: "Claude Opus 5",
+    description: "Previous Opus generation",
+    pricing: "$5 input / $25 output per 1M",
+    provider: "anthropic",
+  },
+  {
+    id: "anthropic/claude-opus-4.8",
+    label: "Claude Opus 4.8",
+    description: "Previous Opus generation",
+    pricing: "$5 input / $25 output per 1M",
+    provider: "anthropic",
+  },
+  {
+    id: "anthropic/claude-sonnet-4.6",
+    label: "Sonnet 4.6",
+    description: "Previous Sonnet generation",
+    pricing: "$3 input / $15 output per 1M",
+    provider: "anthropic",
+  },
+  {
+    id: "openai/gpt-5.5",
+    label: "GPT-5.5",
+    description: "Previous OpenAI model",
+    pricing: "$5 input / $30 output per 1M",
+    provider: "openai",
+  },
+  {
+    id: "openai/gpt-5.4",
+    label: "GPT-5.4",
+    description: "Previous OpenAI model",
+    pricing: "$2.50 input / $15 output per 1M",
+    provider: "openai",
+  },
+] satisfies ChatModelOption[];

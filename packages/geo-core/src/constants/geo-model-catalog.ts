@@ -151,7 +151,7 @@ export const GEO_MODEL_CATALOG_SEED: readonly GeoModelCatalogEntry[] = [
     label: "GPT-6 Sol",
     zdr: "none",
     released: "2026-09-22",
-    default: true,
+    default: false,
     gateways: ["vercel", "openrouter"],
   },
   {
