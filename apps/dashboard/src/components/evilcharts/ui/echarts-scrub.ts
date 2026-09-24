@@ -71,9 +71,8 @@ export function nearestCategoryIndex(
 export function isScrubSkipSeries(
   id: string,
   prefixes: readonly string[],
-  seriesKeys: readonly string[] = []
+  keySet: ReadonlySet<string> | null = null
 ): boolean {
-  const keySet = seriesKeys.length > 0 ? new Set(seriesKeys) : null;
   return prefixes.some((prefix) => {
     if (!id.startsWith(prefix)) return false;
     if (!keySet) return true;
@@ -266,9 +265,10 @@ export function clipSeriesToX(
       ? grid.width
       : Math.max(0, Math.min(grid.width, mouseX - grid.x));
 
+  const keySet = seriesKeys.length > 0 ? new Set(seriesKeys) : null;
   for (const model of series) {
     const id = String(model.id ?? "");
-    if (isScrubSkipSeries(id, skipPrefixes, seriesKeys)) continue;
+    if (isScrubSkipSeries(id, skipPrefixes, keySet)) continue;
     const view = views.getViewOfSeriesModel(model);
     if (!view?.group?.setClipPath) continue;
     let clip = store.clips.get(id);

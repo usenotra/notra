@@ -43,20 +43,18 @@ describe("yAtXOnPackedPoints", () => {
 });
 
 describe("isScrubSkipSeries", () => {
+  const keys = new Set(["mentions"]);
+
   test("skips generated companions and exact prefix ids", () => {
-    expect(isScrubSkipSeries("__reveal-mentions", PREFIXES, ["mentions"])).toBe(
-      true
-    );
-    expect(isScrubSkipSeries("__mini-mentions", PREFIXES, ["mentions"])).toBe(
-      true
-    );
-    expect(isScrubSkipSeries("__loading", PREFIXES, ["mentions"])).toBe(true);
+    expect(isScrubSkipSeries("__reveal-mentions", PREFIXES, keys)).toBe(true);
+    expect(isScrubSkipSeries("__mini-mentions", PREFIXES, keys)).toBe(true);
+    expect(isScrubSkipSeries("__loading", PREFIXES, keys)).toBe(true);
   });
 
   test("clips user series even when the key starts like a prefix", () => {
-    expect(isScrubSkipSeries("__reveal-mentions", PREFIXES, ["other"])).toBe(
-      false
-    );
-    expect(isScrubSkipSeries("mentions", PREFIXES, ["mentions"])).toBe(false);
+    expect(
+      isScrubSkipSeries("__reveal-mentions", PREFIXES, new Set(["other"]))
+    ).toBe(false);
+    expect(isScrubSkipSeries("mentions", PREFIXES, keys)).toBe(false);
   });
 });
