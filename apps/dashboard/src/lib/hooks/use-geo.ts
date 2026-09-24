@@ -992,6 +992,9 @@ export function useGeoSequenceResults(
 }
 
 function describeSyncResult(result: GscSyncResult): string {
+  if (result.status === "failed") {
+    return "Search Console sync failed";
+  }
   if (result.status !== "completed") {
     return "Search Console sync skipped";
   }
@@ -1042,17 +1045,17 @@ function useInvalidateGscQueries(organizationId: string, projectId?: string) {
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.searchConsoleStatus.queryKey({
-          input: { organizationId, projectId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.suggestionsList.queryKey({
-          input: { organizationId, projectId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.searchConsoleKeywords.queryKey({
-          input: { organizationId, projectId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
     ]);
