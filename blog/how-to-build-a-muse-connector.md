@@ -21,7 +21,7 @@ If you already have an MCP server running, you're most of the way there. If you 
 
 ## Build the server
 
-A minimal MCP server in TypeScript looks like this:
+Here's that same list, in code: an HTTP endpoint, an auth check on the request header, and a tool with a description specific enough for Muse to know when to call it. A minimal MCP server in TypeScript looks like this:
 
 ```typescript
 
