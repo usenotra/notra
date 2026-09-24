@@ -24,23 +24,25 @@ export function JourneyStatCard({
   emptySeed,
   children,
 }: JourneyStatCardProps) {
+  const empty = emptyDescription ? (
+    <JourneyEmpty
+      className="h-full"
+      description={emptyDescription}
+      media={emptyMedia}
+      title={emptyMessage}
+    />
+  ) : (
+    <InstrumentEmpty
+      className="h-full"
+      message={emptyMessage}
+      seed={emptySeed}
+    />
+  );
+
   return (
     <InstrumentModule className="h-full" eyebrow={eyebrow}>
       {total === 0 ? (
-        emptyDescription ? (
-          <JourneyEmpty
-            className="h-full"
-            description={emptyDescription}
-            media={emptyMedia}
-            title={emptyMessage}
-          />
-        ) : (
-          <InstrumentEmpty
-            className="h-full"
-            message={emptyMessage}
-            seed={emptySeed}
-          />
-        )
+        empty
       ) : (
         <div className="flex h-full flex-col gap-5">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
