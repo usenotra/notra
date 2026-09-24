@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowDown01Icon, CpuIcon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  CancelCircleIcon,
+  CpuIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   commitsByTimeframeInputSchema,
@@ -38,6 +42,7 @@ import { McpIcon } from "@/components/integrations/mcp-icon";
 import { TOOL_TIMER_THRESHOLD_SECONDS } from "@/constants/chat-tool-timer";
 import { useElapsedSeconds } from "@/lib/hooks/use-elapsed-seconds";
 import { getChatToolIcon } from "@/utils/chat-tool-icon";
+import { isFailedToolOutput } from "@/utils/chat-tool-output";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 
 import {
@@ -769,13 +774,6 @@ function ToolDataSection({ label, value }: { label: string; value: unknown }) {
   );
 }
 
-function isErrorOutputPayload(output: unknown): boolean {
-  if (output === null || typeof output !== "object") {
-    return false;
-  }
-  return "isError" in output && output.isError === true;
-}
-
 export function ChatToolBlock({
   toolCallId,
   toolName,
@@ -794,7 +792,7 @@ export function ChatToolBlock({
   const isAwaitingApproval = state === "approval-requested";
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isOpen = isAwaitingApproval || isDetailsOpen;
-  const isError = state === "output-error" || isErrorOutputPayload(output);
+  const isError = state === "output-error" || isFailedToolOutput(output);
   const isStreaming =
     state === "input-streaming" || state === "input-available";
   const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
@@ -856,7 +854,15 @@ export function ChatToolBlock({
       : output;
   let toolIcon: ReactNode = null;
 
-  if (isMcp) {
+  if (isError) {
+    toolIcon = (
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={CancelCircleIcon}
+        strokeWidth={1.8}
+      />
+    );
+  } else if (isMcp) {
     const mcpIconUrls = getMcpToolIconUrls(toolMetadata);
     toolIcon = (
       <McpIcon

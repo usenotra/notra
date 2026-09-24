@@ -31,6 +31,7 @@ import {
   getSearchRowLabel,
   getSearchSources,
   getSearchStackLabel,
+  isPublicSearchDomain,
   uniqueSearchSources,
 } from "@/utils/chat-search-activity";
 import { formatWorkedDurationLabel } from "@/utils/format-worked-duration";
@@ -51,7 +52,9 @@ function useWorkedDurationSeconds(
 
   useEffect(() => {
     if (isStreaming) {
-      startedAtRef.current ??= Date.now();
+      if (startedAtRef.current === null) {
+        startedAtRef.current = Date.now();
+      }
       const started = startedAtRef.current;
       const tick = () => {
         setElapsedSeconds(
@@ -89,6 +92,8 @@ export function ChatActivityGroup({
     if (isStreaming || forceOpen) {
       setIsOpen(true);
     }
+  } else if (forceOpen && !isOpen) {
+    setIsOpen(true);
   }
 
   useEffect(() => {
@@ -141,7 +146,7 @@ export function ChatActivityGroup({
 
 function SearchFavicon({ domain }: { domain?: string }) {
   const [failed, setFailed] = useState(false);
-  if (!domain || failed) {
+  if (!isPublicSearchDomain(domain) || failed) {
     return (
       <HugeiconsIcon
         className="size-3.5 shrink-0"

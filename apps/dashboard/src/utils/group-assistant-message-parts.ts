@@ -8,6 +8,7 @@ import type {
   GroupAssistantMessagePartsOptions,
 } from "@/types/chat-activity";
 import { isStackableSearchPart } from "@/utils/chat-search-activity";
+import { isFailedToolOutput } from "@/utils/chat-tool-output";
 
 function isSkippablePart(part: AssistantMessagePart): boolean {
   if (part.type === "step-start") {
@@ -128,7 +129,13 @@ export function hasVisibleAssistantTextAfter(
 export function isAssistantActivityForceOpen(
   items: AssistantPartRef[]
 ): boolean {
-  return items.some(
-    ({ part }) => isToolUIPart(part) && part.state === "output-error"
-  );
+  return items.some(({ part }) => {
+    if (!isToolUIPart(part)) {
+      return false;
+    }
+    if (part.state === "output-error") {
+      return true;
+    }
+    return part.state === "output-available" && isFailedToolOutput(part.output);
+  });
 }

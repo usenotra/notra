@@ -33,6 +33,21 @@ describe("resolveChatToolBlockVisuals", () => {
     expect(visuals.showJsonInput).toBe(false);
   });
 
+  test("does not treat other tools as document diffs", () => {
+    expect(
+      resolveChatToolBlockVisuals({
+        ...baseVisuals,
+        toolName: "mcp_write_file",
+        output: {
+          success: true,
+          filename: "post.md",
+          previousMarkdown: "# Old",
+          updatedMarkdown: "# New",
+        },
+      }).documentDiff
+    ).toBeNull();
+  });
+
   test("waits until the tool finishes streaming", () => {
     expect(
       resolveChatToolBlockVisuals({

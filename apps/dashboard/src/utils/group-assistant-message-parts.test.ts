@@ -172,12 +172,27 @@ describe("stackAssistantActivityItems", () => {
       input: { query: "sanctions" },
       errorText: "Connection timed out",
     };
+    const failedPayload = {
+      type: "tool-webSearch" as const,
+      toolCallId: "webSearch-unconfigured",
+      state: "output-available" as const,
+      input: { query: "sanctions" },
+      output: {
+        success: false,
+        error: "Context.dev is not configured.",
+      },
+    };
     const stacked = stackAssistantActivityItems([
       { part: failedSearch, index: 0 },
-      { part: tool("webSearch"), index: 1 },
+      { part: failedPayload, index: 1 },
+      { part: tool("webSearch"), index: 2 },
     ]);
 
-    expect(stacked.map((item) => item.kind)).toEqual(["part", "searches"]);
+    expect(stacked.map((item) => item.kind)).toEqual([
+      "part",
+      "part",
+      "searches",
+    ]);
   });
 });
 
@@ -246,5 +261,22 @@ describe("isAssistantActivityForceOpen", () => {
     expect(
       isAssistantActivityForceOpen([{ part: tool("webSearch"), index: 0 }])
     ).toBe(false);
+    expect(
+      isAssistantActivityForceOpen([
+        {
+          part: {
+            type: "tool-webSearch" as const,
+            toolCallId: "webSearch-unconfigured",
+            state: "output-available" as const,
+            input: { query: "sanctions" },
+            output: {
+              success: false,
+              error: "Context.dev is not configured.",
+            },
+          },
+          index: 0,
+        },
+      ])
+    ).toBe(true);
   });
 });

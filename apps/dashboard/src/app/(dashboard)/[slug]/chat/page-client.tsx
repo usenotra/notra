@@ -148,6 +148,7 @@ import {
   resetNewChatClientState,
   updateWasStoppedByUser,
 } from "@/utils/chat-state";
+import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
 import { formatLongDate, getGreeting } from "@/utils/dashboard-greeting";
 import { formatElapsedSeconds } from "@/utils/format-elapsed-seconds";
 import {
@@ -2560,9 +2561,11 @@ function StandaloneChatPageClient({
                     const lastUserMessageId = [...visibleMessages]
                       .reverse()
                       .find((m) => m.role === "user")?.id;
-                    const lastAssistantMessageId = [...visibleMessages]
-                      .reverse()
-                      .find((m) => m.role === "assistant")?.id;
+                    const lastVisibleMessage = visibleMessages.at(-1);
+                    const lastAssistantMessageId =
+                      lastVisibleMessage?.role === "assistant"
+                        ? lastVisibleMessage.id
+                        : undefined;
                     return visibleMessages.map((message, messageIndex) => {
                       const isUser = message.role === "user";
                       const isEditing =
@@ -2679,10 +2682,11 @@ function StandaloneChatPageClient({
                                     message.id === lastAssistantMessageId
                                   }
                                   isStandaloneTool={(part) =>
-                                    isToolUIPart(part) &&
-                                    part.type !== "dynamic-tool" &&
-                                    (isCreateTool(part.type) ||
-                                      part.type === "tool-createImage")
+                                    isContentEditorStandaloneTool(part) ||
+                                    (isToolUIPart(part) &&
+                                      part.type !== "dynamic-tool" &&
+                                      (isCreateTool(part.type) ||
+                                        part.type === "tool-createImage"))
                                   }
                                   messageId={message.id}
                                   parts={message.parts}

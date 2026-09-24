@@ -9,6 +9,7 @@ import type {
   AssistantMessagePart,
   ChatSearchSource,
 } from "@/types/chat-activity";
+import { isFailedToolOutput } from "@/utils/chat-tool-output";
 
 const WWW_PREFIX = /^www\./;
 const SEARCH_TOOL_NAME_SET = new Set<string>(SEARCH_TOOL_NAMES);
@@ -27,13 +28,29 @@ function hostnameFromUrl(url: string): string | undefined {
   }
 }
 
+function httpUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 function sourceFromUnknown(value: unknown): ChatSearchSource | undefined {
   const record = asRecord(value);
   if (!record) {
     return undefined;
   }
 
-  const url = typeof record.url === "string" ? record.url : undefined;
+  const rawUrl = typeof record.url === "string" ? record.url : undefined;
+  const url = rawUrl ? httpUrl(rawUrl) : undefined;
+  if (rawUrl && !url) {
+    return undefined;
+  }
   const title = typeof record.title === "string" ? record.title.trim() : "";
   const domain =
     (typeof record.domain === "string" ? record.domain : undefined) ??
@@ -79,11 +96,33 @@ export function isSearchToolPart(part: AssistantMessagePart): boolean {
   return SEARCH_TOOL_NAME_SET.has(getToolName(part));
 }
 
+const PRIVATE_DOMAIN_SUFFIX = /\.(?:local|internal|lan|home|corp|localhost)$/i;
+const IPV4_HOST = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+
+export function isPublicSearchDomain(
+  domain: string | undefined
+): domain is string {
+  if (!domain) {
+    return false;
+  }
+
+  const host = domain.trim().replace(/\.$/, "").toLowerCase();
+  if (!host.includes(".") || host.includes(":")) {
+    return false;
+  }
+  return !PRIVATE_DOMAIN_SUFFIX.test(host) && !IPV4_HOST.test(host);
+}
+
 export function isStackableSearchPart(part: AssistantMessagePart): boolean {
   if (!isSearchToolPart(part) || !isToolUIPart(part)) {
     return false;
   }
-  return part.state !== "output-error";
+  if (part.state === "output-error") {
+    return false;
+  }
+  return !(
+    part.state === "output-available" && isFailedToolOutput(part.output)
+  );
 }
 
 export function getSearchQuery(input: unknown): string | undefined {

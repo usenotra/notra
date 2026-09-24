@@ -538,9 +538,11 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
   const lastUserMessageId = [...visibleMessages]
     .reverse()
     .find((message) => message.role === "user")?.id;
-  const lastAssistantMessageId = [...visibleMessages]
-    .reverse()
-    .find((message) => message.role === "assistant")?.id;
+  const lastVisibleMessage = visibleMessages.at(-1);
+  const lastAssistantMessageId =
+    lastVisibleMessage?.role === "assistant"
+      ? lastVisibleMessage.id
+      : undefined;
 
   return (
     <div className="flex h-full min-h-0 flex-col">

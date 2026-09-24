@@ -49,7 +49,9 @@ export function resolveChatToolBlockVisuals({
   const chart =
     hasOutput && !isError ? parseToolOutputChart(output) : undefined;
   const documentDiff =
-    hasOutput && !isError && !isStreaming ? getEditMarkdownDiff(output) : null;
+    toolName === "editMarkdown" && hasOutput && !isError && !isStreaming
+      ? getEditMarkdownDiff(output)
+      : null;
   const draft = parseCreatePostDraft(input, toolName);
   const showDraftPreview = Boolean(
     draft && (isAwaitingApproval || editorHref || onApprove || onDeny)
