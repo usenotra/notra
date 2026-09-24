@@ -1942,6 +1942,46 @@ type LiveState = {
   repush: () => void;
 };
 
+function createLiveState(): LiveState {
+  return {
+    resolved: null,
+    hoveredKey: null,
+    hasRevealed: false,
+    revealEndsAt: 0,
+    loadingRows: null,
+    categories: [],
+    dataLength: 0,
+    plottedTops: {},
+    seriesKeyByIndex: [],
+    companionIdsByKey: new Map<string, string[]>(),
+    revealIndex: null,
+    revealValues: {},
+    brushRange: { start: 0, end: 100 },
+    brushGeom: null,
+    brushOverlay: null,
+    brushHover: { inside: false, left: false, right: false },
+    scrubStore: emptyScrubStore(),
+    scrubX: null,
+    scrubOpacity: 0,
+    scrubTarget: 0,
+    scrubRaf: 0,
+    scrubDotKeys: [],
+    paintScrub: () => {},
+    handlers: {
+      onBrushChange: undefined,
+      onSelectionChange: undefined,
+      clickableKeys: new Set<string>(),
+      selectedDataKey: null,
+      brushFormatLabel: undefined,
+      seriesKeys: [],
+      enableHoverHighlight: false,
+      enableHoverReveal: false,
+      enableScrub: false,
+    },
+    repush: () => {},
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1983,48 +2023,10 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   const mountRef = useRef<HTMLDivElement>(null);
   const echartsRef = useRef<EChartsInstance | null>(null);
 
-  // The single imperative surface (see LiveState). `resolved` lives here rather
-  // than in state: as state it forced an extra render pass and an effect whose
-  // only job was to trigger the option push — the "chain of computations"
-  // react.dev/learn/you-might-not-need-an-effect warns about. The object
-  // identity is stable for the component's lifetime.
-  const live = useRef<LiveState>({
-    resolved: null,
-    hoveredKey: null,
-    hasRevealed: false,
-    revealEndsAt: 0,
-    loadingRows: null,
-    categories: [],
-    dataLength: 0,
-    plottedTops: {},
-    seriesKeyByIndex: [],
-    companionIdsByKey: new Map<string, string[]>(),
-    revealIndex: null,
-    revealValues: {},
-    brushRange: { start: 0, end: 100 },
-    brushGeom: null,
-    brushOverlay: null,
-    brushHover: { inside: false, left: false, right: false },
-    scrubStore: emptyScrubStore(),
-    scrubX: null,
-    scrubOpacity: 0,
-    scrubTarget: 0,
-    scrubRaf: 0,
-    scrubDotKeys: [],
-    paintScrub: () => {},
-    handlers: {
-      onBrushChange: undefined, // set per-render from the <Brush> child's onChange
-      onSelectionChange,
-      clickableKeys: new Set<string>(),
-      selectedDataKey: defaultSelectedDataKey,
-      brushFormatLabel: undefined, // set per-render from the <Brush> child's formatLabel
-      seriesKeys: [],
-      enableHoverHighlight,
-      enableHoverReveal,
-      enableScrub: false,
-    },
-    repush: () => {},
-  }).current;
+  // Imperative ECharts bag. useState (not useRef) so React Compiler does not
+  // treat the box as a ref that is read during render. Identity is stable;
+  // handlers/dataLength are overwritten each render for the event closures.
+  const [live] = useState(createLiveState);
 
   // Skeleton rows roll lazily on first use — an impure useRef initializer would
   // re-roll Math.random() on every render.
