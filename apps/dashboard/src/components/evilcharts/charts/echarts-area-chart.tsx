@@ -30,6 +30,7 @@ import {
   useState,
 } from "react";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
+import { CHART_SCRUB_POSITION_LERP } from "@/constants/charts";
 import {
   Brush,
   type BrushGeometry,
@@ -2384,6 +2385,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     const stopResizeObserver = observeChartResize(mount, chart, {
       onResized: () => {
         syncBrushOverlayNow();
+        live.scrubX = null;
         live.paintScrub();
       },
       onSettled: () => live.repush(),
@@ -2552,11 +2554,11 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       }
       const snapX = chart.convertToPixel({ xAxisIndex: 0 }, index);
       if (typeof snapX !== "number" || !Number.isFinite(snapX)) return;
-      live.scrubX = snapX;
+      const displayX = (live.scrubX ??= snapX);
       clipSeriesToX(
         chart,
         live.scrubStore,
-        snapX,
+        displayX,
         SCRUB_SKIP_PREFIXES,
         live.handlers.seriesKeys
       );
@@ -2568,7 +2570,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       const dots: ScrubDot[] = [];
       if (resolved) {
         for (const key of live.scrubDotKeys) {
-          const point = pointOnSeriesAtX(chart, key, snapX);
+          const point = pointOnSeriesAtX(chart, key, displayX);
           if (!point) continue;
           dots.push({
             x: point[0],
@@ -2582,7 +2584,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         AXIS_POINTER_OPACITY
       );
       syncScrubOverlay(chart, live.scrubStore, {
-        x: snapX,
+        x: displayX,
         grid,
         lineColor,
         opacity: live.scrubOpacity,
@@ -2593,8 +2595,27 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     const tickScrub = () => {
       live.scrubOpacity += (live.scrubTarget - live.scrubOpacity) * SCRUB_LERP;
-      if (Math.abs(live.scrubTarget - live.scrubOpacity) < 0.01) {
-        live.scrubOpacity = live.scrubTarget;
+      const snapX =
+        live.scrubIndex === null
+          ? null
+          : chart.convertToPixel({ xAxisIndex: 0 }, live.scrubIndex);
+      if (
+        live.scrubTarget === 1 &&
+        typeof snapX === "number" &&
+        Number.isFinite(snapX) &&
+        live.scrubX !== null
+      ) {
+        live.scrubX += (snapX - live.scrubX) * CHART_SCRUB_POSITION_LERP;
+        if (Math.abs(snapX - live.scrubX) < 0.5) live.scrubX = snapX;
+      }
+      const opacitySettled = Math.abs(live.scrubTarget - live.scrubOpacity) < 0.01;
+      const positionSettled =
+        live.scrubTarget === 0 ||
+        typeof snapX !== "number" ||
+        !Number.isFinite(snapX) ||
+        live.scrubX === snapX;
+      if (opacitySettled) live.scrubOpacity = live.scrubTarget;
+      if (opacitySettled && positionSettled) {
         live.scrubRaf = 0;
         if (live.scrubTarget === 0) {
           setMutedOpacity(0);
@@ -2633,7 +2654,12 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       if (live.scrubTarget === 1 && live.scrubIndex === idx) return;
       const entering = live.scrubTarget === 0;
       live.scrubIndex = idx;
-      live.scrubX = snapX;
+      if (
+        entering ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        live.scrubX = snapX;
+      }
       live.scrubTarget = 1;
       if (entering) setMutedOpacity(SCRUB_MUTE_OPACITY);
       const zrDom = chart.getZr()?.dom as HTMLElement | undefined;
