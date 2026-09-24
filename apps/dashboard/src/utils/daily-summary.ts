@@ -139,16 +139,9 @@ function mentionRateMoved(
 export function isUnchangedDailySummary({
   yesterday,
   previousDay,
-  changes,
-  hasNewEngine,
+  hasChanges,
 }: DailySummaryUnchangedInput) {
-  return (
-    !hasNewEngine &&
-    !mentionRateMoved(yesterday.rate, previousDay.rate) &&
-    changes.gained === changes.lost &&
-    changes.positionImproved === changes.positionDropped &&
-    changes.citationsAdded === changes.citationsRemoved
-  );
+  return !hasChanges && !mentionRateMoved(yesterday.rate, previousDay.rate);
 }
 
 export function buildDailySummaryHeadline({

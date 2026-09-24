@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 
 import type { DailySummaryMentionTotals } from "@/types/email/daily-summary";
 import {
-  emptyChangesSummary,
   formatDailySummaryChangeDetail,
   groupDailySummaryItems,
   isUnchangedDailySummary,
@@ -21,24 +20,22 @@ const noChecks: DailySummaryMentionTotals = {
   rate: null,
 };
 
-test("skips the recap when yesterday matched the prior day", () => {
+test("skips the recap when nothing moved", () => {
   expect(
     isUnchangedDailySummary({
       yesterday: zeroMentions,
       previousDay: zeroMentions,
-      changes: emptyChangesSummary(),
-      hasNewEngine: false,
+      hasChanges: false,
     })
   ).toBe(true);
 });
 
-test("skips the recap when there is no prior day to compare", () => {
+test("skips the recap when there is no prior day and nothing moved", () => {
   expect(
     isUnchangedDailySummary({
       yesterday: zeroMentions,
       previousDay: noChecks,
-      changes: emptyChangesSummary(),
-      hasNewEngine: false,
+      hasChanges: false,
     })
   ).toBe(true);
 });
@@ -48,19 +45,17 @@ test("sends the recap when mention rate moved", () => {
     isUnchangedDailySummary({
       yesterday: { checks: 10, mentions: 4, rate: 0.4 },
       previousDay: { checks: 10, mentions: 3, rate: 0.3 },
-      changes: emptyChangesSummary(),
-      hasNewEngine: false,
+      hasChanges: false,
     })
   ).toBe(false);
 });
 
-test("sends the recap when a prompt was gained", () => {
+test("sends the recap when a prompt changed", () => {
   expect(
     isUnchangedDailySummary({
       yesterday: zeroMentions,
-      previousDay: noChecks,
-      changes: { ...emptyChangesSummary(), gained: 1 },
-      hasNewEngine: false,
+      previousDay: zeroMentions,
+      hasChanges: true,
     })
   ).toBe(false);
 });
