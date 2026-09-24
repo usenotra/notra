@@ -44,46 +44,12 @@ export const DESIGN_SYSTEM_TRAFFIC_SOURCES: GeoTrafficSource[] = [
 
 export const DESIGN_SYSTEM_TRAFFIC_RESPONSE: AiTrafficResponse = {
   configured: true,
-  points: [
-    { day: "2026-09-16", visitorType: "crawler", source: "GPTBot", visits: 3 },
-    {
-      day: "2026-09-17",
-      visitorType: "crawler",
-      source: "ClaudeBot",
-      visits: 2,
-    },
-    {
-      day: "2026-09-18",
-      visitorType: "crawler",
-      source: "Amazonbot",
-      visits: 4,
-    },
-    {
-      day: "2026-09-19",
-      visitorType: "ai_referral",
-      source: "chatgpt",
-      visits: 1,
-    },
-    { day: "2026-09-20", visitorType: "crawler", source: "GPTBot", visits: 3 },
-    {
-      day: "2026-09-21",
-      visitorType: "crawler",
-      source: "ClaudeBot",
-      visits: 2,
-    },
-    {
-      day: "2026-09-22",
-      visitorType: "crawler",
-      source: "GPTBot",
-      visits: 1,
-    },
-    {
-      day: "2026-09-23",
-      visitorType: "crawler",
-      source: "PerplexityBot",
-      visits: 2,
-    },
-  ],
+  points: DESIGN_SYSTEM_TRAFFIC_SOURCES.map((row, index) => ({
+    day: `2026-09-${16 + (index % 8)}`,
+    visitorType: row.visitorType,
+    source: row.source,
+    visits: row.visits,
+  })),
   previousConversions: null,
   sources: DESIGN_SYSTEM_TRAFFIC_SOURCES,
   totals: toGeoTrafficTotals(DESIGN_SYSTEM_TRAFFIC_SOURCES),

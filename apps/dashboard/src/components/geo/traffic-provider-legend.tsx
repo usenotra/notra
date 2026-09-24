@@ -20,7 +20,9 @@ export function TrafficProviderLegend({
   hiddenKeys,
   onToggle,
 }: TrafficProviderLegendProps) {
-  const visibleCount = series.length - hiddenKeys.size;
+  const visibleCount = series.filter(
+    (entry) => !hiddenKeys.has(entry.key)
+  ).length;
 
   return (
     <DropdownMenu>
