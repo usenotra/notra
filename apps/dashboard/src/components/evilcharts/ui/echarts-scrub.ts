@@ -249,13 +249,15 @@ export function clipSeriesToX(
       ? grid.width
       : Math.max(0, Math.min(grid.width, mouseX - grid.x));
 
+  const keySet = seriesKeys.length > 0 ? new Set(seriesKeys) : null;
+
   for (const model of series) {
     const id = String(model.id ?? "");
     if (
       skipPrefixes.some((prefix) => {
         if (!id.startsWith(prefix)) return false;
-        if (seriesKeys.length === 0) return true;
-        return seriesKeys.includes(id.slice(prefix.length));
+        if (!keySet) return true;
+        return keySet.has(id.slice(prefix.length));
       })
     ) {
       continue;
