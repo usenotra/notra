@@ -9,6 +9,7 @@ export function useChatActivityTimer(
 ): number | undefined {
   const startedAt = useRef<number | null>(null);
   const [seconds, setSeconds] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
   const [measuredChatId, setMeasuredChatId] = useState<string | undefined>();
   const [measuredResponseId, setMeasuredResponseId] = useState<
     string | undefined
@@ -28,12 +29,14 @@ export function useChatActivityTimer(
         );
       }
       startedAt.current = null;
+      setHasStarted(false);
       return;
     }
 
     startedAt.current = Date.now();
     setMeasuredChatId(chatId);
     setSeconds(0);
+    setHasStarted(true);
     const interval = window.setInterval(() => {
       setSeconds(
         Math.floor((Date.now() - (startedAt.current ?? Date.now())) / 1000)
@@ -43,7 +46,7 @@ export function useChatActivityTimer(
   }, [isRunning, chatId]);
 
   if (isRunning) {
-    return measuredChatId !== chatId ? 0 : seconds;
+    return !hasStarted || measuredChatId !== chatId ? 0 : seconds;
   }
   return measuredChatId === chatId &&
     measuredResponseId === responseId &&
