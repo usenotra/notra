@@ -9,13 +9,13 @@ import {
   ReleaseNoteFooter,
   ReleaseNoteHeader,
   ReleaseNoteTitle,
-  ReleaseNoteTrigger,
   ReleaseNoteVisual,
 } from "@notra/ui/components/ui/release-note";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { Openai } from "@notra/ui/components/ui/svgs/openai";
 import { Perplexity } from "@notra/ui/components/ui/svgs/perplexity";
+import { useState } from "react";
 
 const ENGINES = [
   { name: "ChatGPT", Icon: Openai },
@@ -71,11 +71,13 @@ function GeoLaunchVisual() {
 }
 
 export function GeoLaunchReleaseDemo() {
+  const [open, setOpen] = useState(true);
+
   return (
-    <ReleaseNote>
-      <ReleaseNoteTrigger render={<Button variant="outline" />}>
-        Preview GEO launch
-      </ReleaseNoteTrigger>
+    <ReleaseNote onOpenChange={setOpen} open={open}>
+      <Button disabled={open} onClick={() => setOpen(true)} variant="outline">
+        Show release note
+      </Button>
       <ReleaseNoteContent>
         <ReleaseNoteVisual>
           <GeoLaunchVisual />
