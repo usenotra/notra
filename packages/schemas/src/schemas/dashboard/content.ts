@@ -162,6 +162,7 @@ export type RecentPostsResponse = z.infer<typeof recentPostsResponseSchema>;
 
 export const createChatPostSchema = z.object({
   chatId: z.string().trim().min(1),
+  toolCallId: z.string().trim().min(1).optional(),
   title: z.string().trim().min(1).max(120),
   slug: z.string().trim().min(1).nullable().optional(),
   markdown: z.string().trim().min(1),

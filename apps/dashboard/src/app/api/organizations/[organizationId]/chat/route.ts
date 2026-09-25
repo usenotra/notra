@@ -21,6 +21,7 @@ import {
   setActiveChatStream,
 } from "@notra/ai/chat/history";
 import { getStandaloneChatIntegrations } from "@notra/ai/chat/integrations-cache";
+import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getGranolaToolContextByIntegrationId } from "@notra/ai/integrations/granola";
@@ -246,7 +247,7 @@ export const POST = withEvlog(async function POST(
     cleanupStreamId = latestMessage.id;
 
     messages = preserveConversationSelection(
-      messages,
+      await hydrateSavedChatPosts(organizationId, chatId, messages),
       await loadChatHistory(organizationId, chatId)
     );
 

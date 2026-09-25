@@ -805,6 +805,7 @@ export function ChatToolBlock({
   toolCallId,
   toolName,
   state,
+  isActive,
   input,
   output,
   onApprove,
@@ -820,8 +821,8 @@ export function ChatToolBlock({
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isOpen = isAwaitingApproval || isDetailsOpen;
   const isError = state === "output-error" || isFailedToolOutput(output);
-  const isStreaming =
-    state === "input-streaming" || state === "input-available";
+  const isPending = state === "input-streaming" || state === "input-available";
+  const isStreaming = isActive && isPending;
   const elapsedSeconds = useElapsedSeconds(isStreaming, toolCallId);
   const showElapsedTimer =
     isStreaming && elapsedSeconds >= TOOL_TIMER_THRESHOLD_SECONDS;
@@ -839,9 +840,12 @@ export function ChatToolBlock({
     isStreaming &&
     elapsedSeconds >= 8 * 60 &&
     (toolName === "createImage" || toolName === "reviseImage");
-  const subtitle = isLongRunningImage
-    ? `${toolName === "reviseImage" ? "Revising" : "Generating"} image — still working; large repos can take longer`
-    : defaultSubtitle;
+  let subtitle = defaultSubtitle;
+  if (isPending && !isActive) {
+    subtitle = "Tool execution interrupted";
+  } else if (isLongRunningImage) {
+    subtitle = `${toolName === "reviseImage" ? "Revising" : "Generating"} image — still working; large repos can take longer`;
+  }
   const hasInput = input != null;
   const hasOutput = output != null;
   const {

@@ -12,6 +12,7 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -162,6 +163,10 @@ export function DashboardShell({
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
+  const pathname = usePathname();
+  const [, , section, contentId] = pathname.split("/");
+  const pageOwnsScroll =
+    section === "chat" || (section === "content" && Boolean(contentId));
   const { activeOrganization } = useOrganizationsContext();
   const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
@@ -276,7 +281,14 @@ export function DashboardShell({
         >
           <SiteHeader />
           <RestoreSidebarHome />
-          <div className="scrollbar-stable @container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-contain">
+          <div
+            className={cn(
+              "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain",
+              pageOwnsScroll
+                ? "overflow-hidden"
+                : "scrollbar-thin overflow-x-hidden overflow-y-auto"
+            )}
+          >
             <SubscriptionGate>{children}</SubscriptionGate>
           </div>
         </SidebarInset>

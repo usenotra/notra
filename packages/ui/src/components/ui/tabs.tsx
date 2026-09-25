@@ -2,7 +2,7 @@
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion } from "motion/react";
+import { domMax, LazyMotion, m } from "motion/react";
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 
 import { SPRING } from "@notra/ui/lib/motion";
@@ -111,11 +111,13 @@ function TabsTrigger({
     >
       {children}
       {layoutId && isSelected && (
-        <motion.span
-          className="absolute inset-x-0 bottom-[-5px] h-0.5 bg-foreground group-data-[orientation=vertical]/tabs:inset-x-auto group-data-[orientation=vertical]/tabs:inset-y-0 group-data-[orientation=vertical]/tabs:-right-1 group-data-[orientation=vertical]/tabs:w-0.5"
-          layoutId={layoutId}
-          transition={SPRING.indicator}
-        />
+        <LazyMotion features={domMax} strict>
+          <m.span
+            className="absolute inset-x-0 bottom-[-5px] h-0.5 bg-foreground group-data-[orientation=vertical]/tabs:inset-x-auto group-data-[orientation=vertical]/tabs:inset-y-0 group-data-[orientation=vertical]/tabs:-right-1 group-data-[orientation=vertical]/tabs:w-0.5"
+            layoutId={layoutId}
+            transition={SPRING.indicator}
+          />
+        </LazyMotion>
       )}
     </TabsPrimitive.Tab>
   );

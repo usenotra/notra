@@ -66,66 +66,71 @@ export function ContentDetailLoadedView({
         onArticleReady={document.handleGeoArticleReady}
         organizationId={organizationId}
       >
-        <div className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6">
-          <div
-            aria-hidden="true"
-            className="bg-secondary pointer-events-none absolute inset-x-0 top-full h-4"
-          >
-            <div className="bg-background h-full rounded-t-2xl" />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Link
-                    aria-label={backLabel}
-                    className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex min-h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                    href={backHref}
-                  />
-                }
-              >
-                <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
-                {backLabel}
-              </TooltipTrigger>
-              <TooltipContent>{backLabel}</TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <ContentDetailToolbar
-              content={content}
-              contentId={contentId}
-              document={document}
-              organizationId={organizationId}
-              organizationSlug={organizationSlug}
-            />
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col py-4 md:py-6">
-          <div
-            className={`mx-auto w-full space-y-6 px-4 lg:px-6 ${isLongForm ? "max-w-3xl" : "max-w-5xl"}`}
-          >
-            {document.geoWriterDraft ? <WriterExecute.Banner /> : null}
-            {!isLongForm ? (
-              <ContentDetailSourceMetadata
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6">
+            <div
+              aria-hidden="true"
+              className="bg-secondary pointer-events-none absolute inset-x-0 top-full h-4"
+            >
+              <div className="bg-background h-full rounded-t-2xl" />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Link
+                      aria-label={backLabel}
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex min-h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                      href={backHref}
+                    />
+                  }
+                >
+                  <HugeiconsIcon className="size-4" icon={ArrowLeft02Icon} />
+                  {backLabel}
+                </TooltipTrigger>
+                <TooltipContent>{backLabel}</TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              <ContentDetailToolbar
+                content={content}
+                contentId={contentId}
+                document={document}
                 organizationId={organizationId}
-                sourceMetadata={content.sourceMetadata}
+                organizationSlug={organizationSlug}
               />
-            ) : null}
+            </div>
+          </div>
+          <div
+            className="min-h-0 flex-1 scrollbar-thin overflow-y-auto overscroll-contain py-4 md:py-6"
+            data-content-scroll-viewport
+          >
+            <div
+              className={`mx-auto w-full space-y-6 px-4 lg:px-6 ${isLongForm ? "max-w-3xl" : "max-w-5xl"}`}
+            >
+              {document.geoWriterDraft ? <WriterExecute.Banner /> : null}
+              {!isLongForm ? (
+                <ContentDetailSourceMetadata
+                  organizationId={organizationId}
+                  sourceMetadata={content.sourceMetadata}
+                />
+              ) : null}
 
-            <ContentDetailMainDocument
-              contentId={contentId}
-              data={data}
-              document={document}
-              onSelectionChange={onSelectionChange}
-              organizationId={organizationId}
-              selectedExcerpt={selectedExcerpt}
-            />
+              <ContentDetailMainDocument
+                contentId={contentId}
+                data={data}
+                document={document}
+                onSelectionChange={onSelectionChange}
+                organizationId={organizationId}
+                selectedExcerpt={selectedExcerpt}
+              />
 
-            {document.isGeoWriterPlanMode ? null : (
-              <RecommendationsSection value={content.recommendations} />
-            )}
+              {document.isGeoWriterPlanMode ? null : (
+                <RecommendationsSection value={content.recommendations} />
+              )}
 
-            <div className="h-24" />
+              <div className="h-24" />
+            </div>
           </div>
         </div>
       </WriterExecute.Root>

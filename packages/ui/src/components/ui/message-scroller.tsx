@@ -70,10 +70,7 @@ function MessageScrollerItem({
 }: React.ComponentProps<typeof MessageScrollerPrimitive.Item>) {
   return (
     <MessageScrollerPrimitive.Item
-      className={cn(
-        "min-w-0 shrink-0 [contain-intrinsic-size:auto_10rem] [content-visibility:auto]",
-        className
-      )}
+      className={cn("min-w-0 shrink-0", className)}
       data-slot="message-scroller-item"
       scrollAnchor={scrollAnchor}
       {...props}

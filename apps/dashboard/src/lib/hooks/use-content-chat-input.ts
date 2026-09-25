@@ -15,6 +15,7 @@ import {
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { useChatQuote } from "@/components/chat/chat-quote";
 import { useAutumnRefreshListener } from "@/lib/hooks/use-autumn-refresh-listener";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useChatComposerAttachments } from "@/lib/hooks/use-chat-composer-attachments";
@@ -40,6 +41,7 @@ import {
   resolveUsageLimitError,
   shouldShowLowChatCredits,
 } from "@/utils/chat-input";
+import { prependChatQuote } from "@/utils/chat-quote";
 import {
   applySlashSkill,
   handleSlashMenuKeyDown,
@@ -69,6 +71,7 @@ export function useContentChatInput({
   onRemoveQueued,
   onSteerQueued,
 }: ChatInputProps): UseContentChatInputResult {
+  const quoteContext = useChatQuote();
   const contextPickerId = useId();
   const [isFocused, setIsFocused] = useState(false);
   const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
@@ -348,7 +351,8 @@ export function useContentChatInput({
     }
 
     const nextAttachments = consumeAttachments();
-    onSend?.(trimmed, nextAttachments);
+    onSend?.(prependChatQuote(trimmed, quoteContext?.quote), nextAttachments);
+    quoteContext?.setQuote(null);
     onClearSelection?.();
     closeSlashMenu();
     clearTaggedSkills();
@@ -356,6 +360,7 @@ export function useContentChatInput({
     requestAnimationFrame(resizeTextarea);
   }, [
     attachments.length,
+    quoteContext,
     chatIncludedInPlan,
     check,
     clearError,

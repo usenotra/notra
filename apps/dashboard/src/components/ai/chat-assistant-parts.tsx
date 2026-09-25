@@ -56,6 +56,43 @@ export function ChatAssistantParts({
       segmentIndex === lastActivityIndex
     );
     const forceOpen = isAssistantActivityForceOpen(segment.items);
+    const details = stackAssistantActivityItems(segment.items)
+      .map((item) => {
+        if (item.kind === "searches") {
+          return (
+            <ChatSearchStack
+              items={item.items.flatMap(({ part }) =>
+                isToolUIPart(part)
+                  ? [
+                      {
+                        input: part.input,
+                        output: part.output,
+                        state: part.state,
+                        toolCallId: part.toolCallId,
+                      },
+                    ]
+                  : []
+              )}
+              key={`${messageId}-searches-${item.items[0]?.index}`}
+            />
+          );
+        }
+        if (item.part.type === "reasoning") {
+          return item.part.text.trim() ? (
+            <ChatReasoningBlock key={`${messageId}-reasoning-${item.index}`}>
+              {item.part.text}
+            </ChatReasoningBlock>
+          ) : null;
+        }
+        if (isToolUIPart(item.part)) {
+          const tool = renderTool(item.part, item.index);
+          return tool == null || tool === false ? null : (
+            <Fragment key={`${messageId}-tool-${item.index}`}>{tool}</Fragment>
+          );
+        }
+        return null;
+      })
+      .filter((detail) => detail !== null);
 
     return (
       <ChatActivityGroup
@@ -65,53 +102,13 @@ export function ChatAssistantParts({
         }
         forceOpen={forceOpen}
         groupId={`${messageId}-${segment.startIndex}`}
+        hasDetails={details.length > 0}
         isLoading={isLoading}
         isStreaming={isStreaming}
         step={getAssistantActivityStep(parts)}
         key={`${messageId}-activity-${segment.startIndex}`}
       >
-        {stackAssistantActivityItems(segment.items).map((item) => {
-          if (item.kind === "searches") {
-            return (
-              <ChatSearchStack
-                items={item.items.flatMap(({ part }) =>
-                  isToolUIPart(part)
-                    ? [
-                        {
-                          input: part.input,
-                          output: part.output,
-                          state: part.state,
-                          toolCallId: part.toolCallId,
-                        },
-                      ]
-                    : []
-                )}
-                key={`${messageId}-searches-${item.items[0]?.index}`}
-              />
-            );
-          }
-
-          if (item.part.type === "reasoning") {
-            if (!item.part.text.trim()) {
-              return null;
-            }
-            return (
-              <ChatReasoningBlock key={`${messageId}-reasoning-${item.index}`}>
-                {item.part.text}
-              </ChatReasoningBlock>
-            );
-          }
-
-          if (isToolUIPart(item.part)) {
-            return (
-              <Fragment key={`${messageId}-tool-${item.index}`}>
-                {renderTool(item.part, item.index)}
-              </Fragment>
-            );
-          }
-
-          return null;
-        })}
+        {details}
       </ChatActivityGroup>
     );
   });

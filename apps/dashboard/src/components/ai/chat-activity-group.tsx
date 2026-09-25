@@ -72,6 +72,7 @@ export function ChatActivityGroup({
   elapsedSeconds,
   forceOpen = false,
   groupId,
+  hasDetails,
   isLoading,
   isStreaming,
   step,
@@ -97,6 +98,18 @@ export function ChatActivityGroup({
   }, [forceOpen, hasInteracted, isLoading]);
 
   const label = isStreaming ? step : formatWorkedDurationLabel(durationSeconds);
+
+  if (!hasDetails) {
+    return (
+      <div data-activity-group={groupId}>
+        <ChatActivityStatus
+          active={isStreaming && step !== "Waiting for approval"}
+          label={label}
+          seconds={elapsedSeconds ?? measuredSeconds ?? 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <Collapsible

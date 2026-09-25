@@ -1,3 +1,5 @@
+import type { ContentType } from "@notra/ai/schemas/content";
+
 import type { PublishedSocialPost } from "@/types/content/post-social";
 
 export type PreviewIncomingState = "draft" | "finished";
@@ -28,30 +30,30 @@ export type SocialPreviewAction =
 export type BlogChangelogPreviewUserAction =
   | "none"
   | "saving"
-  | "publishing"
-  | "generating"
+  | "saved"
   | "save-failed";
 
-export interface BlogChangelogPreviewState {
-  userAction: BlogChangelogPreviewUserAction;
-  draftTitle: string;
-  draftMarkdown: string;
-  regenerateOpen: boolean;
-  regenerateInstructions: string;
-  isOpen: boolean;
+export interface BlogChangelogPreviewProps {
+  organizationId: string;
+  organizationSlug: string;
+  postId?: string;
+  onRevise?: () => void;
+  state: PreviewIncomingState;
+  title: string;
+  markdown: string;
+  contentType: Extract<
+    ContentType,
+    "blog_post" | "changelog" | "investor_update"
+  >;
+  persistedStatus?: "draft" | "published";
+  readOnly?: boolean;
+  onApprove?: () => void | PromiseLike<void>;
+  onDeny?: () => void;
+  onPersist?: (
+    status: "draft" | "published",
+    payload: { title: string; markdown: string }
+  ) => Promise<void>;
 }
-
-export type BlogChangelogPreviewAction =
-  | {
-      type: "userActionChanged";
-      userAction: BlogChangelogPreviewUserAction;
-    }
-  | { type: "draftTitleChanged"; draftTitle: string }
-  | { type: "draftMarkdownChanged"; draftMarkdown: string }
-  | { type: "regenerateOpenChanged"; open: boolean }
-  | { type: "regenerateOpenToggled" }
-  | { type: "regenerateInstructionsChanged"; instructions: string }
-  | { type: "openChanged"; open: boolean };
 
 export interface SocialPreviewCallbacks {
   onApprove?: () => void;

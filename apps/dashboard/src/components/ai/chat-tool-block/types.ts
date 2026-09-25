@@ -14,6 +14,7 @@ export interface ChatToolBlockProps {
   toolCallId: string;
   toolName: string;
   state: string;
+  isActive: boolean;
   input?: unknown;
   output?: unknown;
   onApprove?: () => void;
