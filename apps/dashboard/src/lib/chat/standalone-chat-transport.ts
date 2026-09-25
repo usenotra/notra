@@ -5,6 +5,7 @@ import type { RefObject } from "react";
 
 import { CHAT_ACTIVE_STREAM_CONFLICT_STATUS } from "@/constants/chat-active-stream";
 import { CHAT_STREAM_ID_HEADER } from "@/constants/chat-stream";
+import { encodeChatStreamId } from "@/utils/chat-stream-id";
 import { fetchResumableChatStream } from "@/utils/fetch-resumable-chat-stream";
 
 export type StandaloneChatTransportLive = {
@@ -98,7 +99,10 @@ export function createStandaloneChatTransport({
 
       const streamHeaders = new Headers(init?.headers);
       if (latestMessageId) {
-        streamHeaders.set(CHAT_STREAM_ID_HEADER, latestMessageId);
+        streamHeaders.set(
+          CHAT_STREAM_ID_HEADER,
+          encodeChatStreamId(latestMessageId)
+        );
       }
       return fetchResumableChatStream(
         `/api/organizations/${live.organizationId.current}/chat/${requestBody.chatId}/stream`,

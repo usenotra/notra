@@ -19,6 +19,7 @@ import {
 } from "@/constants/chat-stream";
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { chatStreamResumeSchema } from "@/schemas/chat-stream";
+import { encodeChatStreamId } from "@/utils/chat-stream-id";
 import { ratelimit } from "@/utils/ratelimit";
 
 interface RouteContext {
@@ -237,7 +238,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   return new Response(stream, {
     headers: {
       ...UI_MESSAGE_STREAM_HEADERS,
-      [CHAT_STREAM_ID_HEADER]: streamId,
+      [CHAT_STREAM_ID_HEADER]: encodeChatStreamId(streamId),
     },
   });
 }
