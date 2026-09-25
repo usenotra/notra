@@ -3301,6 +3301,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   geoSettings: one(geoSettings),
   geoPrompts: many(geoPrompts),
+  geoPromptSuggestions: many(geoPromptSuggestions),
   geoPromptSequences: many(geoPromptSequences),
   geoCompetitors: many(geoCompetitors),
   geoShelfSources: many(geoShelfSources),
@@ -3465,6 +3466,10 @@ export const geoPromptSuggestionsRelations = relations(
     organization: one(organizations, {
       fields: [geoPromptSuggestions.organizationId],
       references: [organizations.id],
+    }),
+    project: one(projects, {
+      fields: [geoPromptSuggestions.projectId],
+      references: [projects.id],
     }),
     acceptedPrompt: one(geoPrompts, {
       fields: [geoPromptSuggestions.acceptedPromptId],

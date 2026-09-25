@@ -6,6 +6,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { FatalError } from "workflow";
 
+import { GeoProjectProvider } from "../src/components/providers/geo-project-provider";
 import { dashboardOrpc } from "../src/lib/orpc/query";
 
 const listProjects = mock(async () => ({
@@ -40,6 +41,11 @@ mock.module("../src/workflows/steps/content-generation-steps", () => ({
 
 const { gscSyncWorkflow } = await import("../src/workflows/gsc-sync");
 const disconnectCall = mock(async () => ({ disconnected: true }));
+const analyzeCall = mock(async (): Promise<GscSyncResult> => ({
+  status: "completed",
+  keywords: 1,
+  suggestionsAdded: 0,
+}));
 const originalGeo = dashboardOrpc.geo;
 mock.module("../src/lib/orpc/query", () => ({
   dashboardOrpc: {
@@ -48,6 +54,9 @@ mock.module("../src/lib/orpc/query", () => ({
         if (key === "searchConsoleDisconnect") {
           return { ...target.searchConsoleDisconnect, call: disconnectCall };
         }
+        if (key === "searchConsoleSync" || key === "searchConsoleSelectSite") {
+          return { ...Reflect.get(target, key), call: analyzeCall };
+        }
         return Reflect.get(target, key);
       },
     }),
@@ -55,9 +64,8 @@ mock.module("../src/lib/orpc/query", () => ({
 }));
 // A separate module identity avoids unrelated tests' partial use-geo mocks.
 const isolatedHookPath = "../src/lib/hooks/use-geo.ts?gsc-disconnect-test";
-const { useGscDisconnect } = (await import(
-  isolatedHookPath
-)) as typeof import("../src/lib/hooks/use-geo");
+const { useGscAnalyzing, useGscDisconnect, useGscSelectSite, useGscSync } =
+  (await import(isolatedHookPath)) as typeof import("../src/lib/hooks/use-geo");
 
 beforeEach(() => {
   listProjects.mockClear();
@@ -171,4 +179,72 @@ test("disconnect invalidates cached queries for both projects but not other orga
   }
   expect(client.getQueryState(sitesKey)?.isInvalidated).toBe(true);
   expect(client.getQueryState(otherKey)?.isInvalidated).toBe(false);
+});
+
+test("Search Console analysis mutations and pending state are project-scoped", async () => {
+  const client = new QueryClient();
+  const result: {
+    sync?: ReturnType<typeof useGscSync>;
+    select?: ReturnType<typeof useGscSelectSite>;
+  } = {};
+  function AnalyzeHook() {
+    result.sync = useGscSync("org-test");
+    result.select = useGscSelectSite("org-test");
+    return null;
+  }
+  renderToString(
+    createElement(
+      QueryClientProvider,
+      { client },
+      createElement(
+        GeoProjectProvider,
+        {
+          projectId: "project-a",
+        } as Parameters<typeof GeoProjectProvider>[0],
+        createElement(AnalyzeHook)
+      )
+    )
+  );
+  await result.sync?.mutateAsync();
+  await result.select?.mutateAsync({ siteUrl: "sc-domain:example.com" });
+  expect(analyzeCall).toHaveBeenCalledWith({
+    organizationId: "org-test",
+    projectId: "project-a",
+  });
+  expect(
+    client
+      .getMutationCache()
+      .getAll()
+      .map((mutation) => mutation.options.mutationKey)
+  ).toEqual([
+    ["gsc-analyze", "org-test", "project-a"],
+    ["gsc-analyze", "org-test", "project-a"],
+  ]);
+
+  const pending = client.getMutationCache().build(client, {
+    mutationKey: ["gsc-analyze", "org-test", "project-a"],
+    mutationFn: async () => undefined,
+  });
+  const running = pending.execute(undefined);
+  function CheckingHook() {
+    return createElement("output", null, String(useGscAnalyzing("org-test")));
+  }
+  function checking(projectId: string) {
+    return renderToString(
+      createElement(
+        QueryClientProvider,
+        { client },
+        createElement(
+          GeoProjectProvider,
+          {
+            projectId,
+          } as Parameters<typeof GeoProjectProvider>[0],
+          createElement(CheckingHook)
+        )
+      )
+    );
+  }
+  expect(checking("project-a")).toContain("true");
+  expect(checking("project-b")).toContain("false");
+  await running;
 });

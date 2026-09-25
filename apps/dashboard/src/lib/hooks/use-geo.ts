@@ -93,8 +93,8 @@ import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
 
-function gscAnalyzeMutationKey(organizationId: string) {
-  return [GSC_ANALYZE_MUTATION_KEY, organizationId] as const;
+function gscAnalyzeMutationKey(organizationId: string, projectId?: string) {
+  return [GSC_ANALYZE_MUTATION_KEY, organizationId, projectId] as const;
 }
 
 async function invalidateCompetitorQueries(
@@ -1063,9 +1063,11 @@ function useInvalidateGscQueries(organizationId: string, projectId?: string) {
 }
 
 export function useGscAnalyzing(organizationId: string): boolean {
+  const { projectId } = useGeoProjectScope();
   return (
     useIsMutating({
-      mutationKey: gscAnalyzeMutationKey(organizationId),
+      mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
+      exact: true,
     }) > 0
   );
 }
@@ -1074,7 +1076,7 @@ export function useGscSelectSite(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateGscQueries(organizationId, projectId);
   return useMutation({
-    mutationKey: gscAnalyzeMutationKey(organizationId),
+    mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
     mutationFn: (input: GscSelectSiteInput) =>
       dashboardOrpc.geo.searchConsoleSelectSite.call({
         ...input,
@@ -1099,7 +1101,7 @@ export function useGscSync(organizationId: string) {
   const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateGscQueries(organizationId, projectId);
   return useMutation({
-    mutationKey: gscAnalyzeMutationKey(organizationId),
+    mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
     mutationFn: () =>
       dashboardOrpc.geo.searchConsoleSync.call({ organizationId, projectId }),
     onSuccess: async (result) => {
