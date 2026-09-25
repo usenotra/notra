@@ -1,9 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-import { CommandPaletteProvider } from "@/components/command-palette/command-palette-context";
+import {
+  CommandPaletteProvider,
+  useCommandPalette,
+} from "@/components/command-palette/command-palette-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FeedbackProvider } from "@/components/dashboard/feedback-context";
 import { RightPanelProvider } from "@/components/dashboard/right-panel-context";
@@ -13,6 +16,7 @@ import {
   type InitialActiveOrganization,
   OrganizationsProvider,
 } from "@/components/providers/organization-provider";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
 const CommandPalette = dynamic(
@@ -30,6 +34,29 @@ const SettingsModal = dynamic(
     ),
   { ssr: false }
 );
+
+function DashboardOverlays() {
+  const { open } = useCommandPalette();
+  const { isOpen } = useSettingsModal();
+  const [openedPalette, setOpenedPalette] = useState(false);
+  const [openedSettings, setOpenedSettings] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setOpenedPalette(true);
+    }
+    if (isOpen) {
+      setOpenedSettings(true);
+    }
+  }, [open, isOpen]);
+
+  return (
+    <>
+      {open || openedPalette ? <CommandPalette /> : null}
+      {isOpen || openedSettings ? <SettingsModal /> : null}
+    </>
+  );
+}
 
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
@@ -64,9 +91,8 @@ export function DashboardClientWrapper({
                 >
                   {children}
                 </DashboardShell>
-                <CommandPalette />
                 <Suspense fallback={null}>
-                  <SettingsModal />
+                  <DashboardOverlays />
                 </Suspense>
               </RightPanelProvider>
             </CommandPaletteProvider>

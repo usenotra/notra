@@ -37,7 +37,6 @@ import {
   useSyncExternalStore,
   useTransition,
 } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import { useFeedback } from "@/components/dashboard/feedback-context";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -48,7 +47,6 @@ import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { CommandPaletteOpenSource } from "@/types/analytics/studio-events";
 import type {
   AiResult,
   CommandPaletteDialogProps,
@@ -298,7 +296,7 @@ function BrailleSpinner({ className }: { className?: string }) {
 }
 
 export function CommandPalette() {
-  const { open, setOpen } = useCommandPalette();
+  const { open, setOpen, openSourceRef } = useCommandPalette();
   const { activeOrganization } = useOrganizationsContext();
   const { hasAiCredits } = useHasAiCreditsFeature();
   const { openSettings } = useSettingsModal();
@@ -318,7 +316,6 @@ export function CommandPalette() {
   const [, startNavigation] = useTransition();
   const { openFeedback: triggerFeedback } = useFeedback();
   const abortRef = useRef<AbortController | null>(null);
-  const openSourceRef = useRef<CommandPaletteOpenSource | null>(null);
   const wasOpenRef = useRef(false);
   const lastTrackedSearchRef = useRef<string | null>(null);
 
@@ -328,12 +325,16 @@ export function CommandPalette() {
         source: openSourceRef.current ?? "button",
       });
     }
-    if (!open) {
+    if (!open && wasOpenRef.current) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setQuery("");
+      setAiState({ status: "idle" });
       openSourceRef.current = null;
       lastTrackedSearchRef.current = null;
     }
     wasOpenRef.current = open;
-  }, [open]);
+  }, [open, openSourceRef]);
 
   const slug = activeOrganization?.slug ?? "";
   const organizationId = activeOrganization?.id ?? "";
@@ -396,32 +397,7 @@ export function CommandPalette() {
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
-    if (!next) {
-      abortRef.current?.abort();
-      abortRef.current = null;
-      setQuery("");
-      setAiState({ status: "idle" });
-    }
   };
-
-  useHotkeys(
-    "mod+k",
-    (event) => {
-      if (
-        !open &&
-        typeof document !== "undefined" &&
-        document.querySelector('[role="dialog"][data-state="open"]')
-      ) {
-        return;
-      }
-      event.preventDefault();
-      if (!open) {
-        openSourceRef.current = "hotkey";
-      }
-      handleOpenChange(!open);
-    },
-    { enableOnFormTags: true, enableOnContentEditable: true }
-  );
 
   useEffect(() => {
     return () => {

@@ -12,13 +12,13 @@ import {
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 
-import { ChatHistoryNav } from "./chat-history-nav";
 import {
   DeferredSidebarStatus,
   DeferredSidebarUpgrade,
@@ -31,6 +31,10 @@ import { SidebarLabel } from "./sidebar-label";
 import { SidebarProjectSwitcher } from "./sidebar-project-switcher";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
 import { SidebarSwap } from "./sidebar-swap";
+
+const ChatHistoryNav = dynamic(() =>
+  import("./chat-history-nav").then((module) => module.ChatHistoryNav)
+);
 
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
   return (

@@ -163,7 +163,7 @@ export function DashboardShell({
   initialSidebarWidth,
 }: DashboardShellProps) {
   const { activeOrganization } = useOrganizationsContext();
-  const { expanded } = useRightPanel();
+  const { expanded, hasOpened } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
   const { data } = useOnboardingAgentRun(
     organizationId,
@@ -281,7 +281,7 @@ export function DashboardShell({
           </div>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
-        <DashboardAgentHost />
+        {hasOpened.agent ? <DashboardAgentHost /> : null}
       </SidebarProvider>
     </div>
   );
