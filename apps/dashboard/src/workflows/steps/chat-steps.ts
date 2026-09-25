@@ -119,6 +119,7 @@ export async function rejectChatGenerationStep(
   );
 
   try {
+    await clearActiveChatStream(organizationId, chatId, streamId);
     if (channel) {
       await channel.emit("ai.chunk", {
         type: "error",
@@ -197,6 +198,7 @@ export async function streamChatResponseStep(
   let streamFailed = false;
   let streamAborted = false;
   let terminalPublished = false;
+  const terminalChunks: UIMessageChunk[] = [];
 
   let buffer: UIMessageChunk[] = [];
   let flushPromise: Promise<void> | null = null;
@@ -223,6 +225,16 @@ export async function streamChatResponseStep(
       await flushPromise;
     }
     await flushBuffer();
+  };
+
+  const publishTerminal = async (chunks: UIMessageChunk[]) => {
+    await drainPendingFlushes();
+    stopAbortPolling?.();
+    // onEnd has saved history before the reader reaches EOF. Release only
+    // this generation's lease before clients can drain their queued messages.
+    await clearActiveChatStream(organizationId, chatId, streamId);
+    await channel.emit("ai.chunk", chunks as never);
+    terminalPublished = true;
   };
 
   try {
@@ -418,9 +430,18 @@ export async function streamChatResponseStep(
         }
         streamFailed ||= value.type === "error";
         streamAborted ||= value.type === "abort";
-        terminalPublished ||= value.type === "finish" || value.type === "abort";
-        buffer.push(value as UIMessageChunk);
-        scheduleFlush();
+        // AI SDK also ends the client request on error chunks. Hold all
+        // terminal output until history is saved and the lease is released.
+        if (
+          value.type === "finish" ||
+          value.type === "abort" ||
+          value.type === "error"
+        ) {
+          terminalChunks.push(value);
+        } else {
+          buffer.push(value as UIMessageChunk);
+          scheduleFlush();
+        }
       }
     } finally {
       try {
@@ -432,17 +453,28 @@ export async function streamChatResponseStep(
       }
     }
 
-    if (abortController.signal.aborted) {
-      buffer.push(
-        { type: "abort", reason: "user-stopped" },
-        { type: "finish", finishReason: "stop" }
-      );
-      scheduleFlush();
-    } else if (streamFailed && !terminalPublished) {
-      buffer.push({ type: "finish", finishReason: "error" });
+    if (abortController.signal.aborted || streamAborted) {
+      if (!terminalChunks.some((chunk) => chunk.type === "abort")) {
+        terminalChunks.unshift({
+          type: "abort",
+          reason: abortController.signal.aborted ? "user-stopped" : undefined,
+        });
+      }
+      if (!terminalChunks.some((chunk) => chunk.type === "finish")) {
+        terminalChunks.push({ type: "finish", finishReason: "stop" });
+      }
+    } else if (!terminalChunks.some((chunk) => chunk.type === "finish")) {
+      streamFailed = true;
+      if (!terminalChunks.some((chunk) => chunk.type === "error")) {
+        terminalChunks.push({
+          type: "error",
+          errorText: "The response ended unexpectedly. Please try again.",
+        });
+      }
+      terminalChunks.push({ type: "finish", finishReason: "error" });
     }
 
-    await drainPendingFlushes();
+    await publishTerminal(terminalChunks);
     return abortController.signal.aborted || streamAborted
       ? { status: "aborted" }
       : { status: streamFailed ? "failed" : "completed" };
@@ -451,36 +483,33 @@ export async function streamChatResponseStep(
       abortController.signal.aborted ||
       (error instanceof Error && error.name === "AbortError");
 
-    await drainPendingFlushes();
-
     if (isAbort) {
       console.log(`${LOG_PREFIX} Aborted by user:`, { requestId, chatId });
-      await channel.emit("ai.chunk", {
-        type: "abort",
-        reason: "user-stopped",
-      });
-      await channel.emit("ai.chunk", {
-        type: "finish",
-        finishReason: "stop",
-      });
+      if (!terminalPublished) {
+        await publishTerminal([
+          { type: "abort", reason: "user-stopped" },
+          { type: "finish", finishReason: "stop" },
+        ]);
+      }
     } else {
       console.error(`${LOG_PREFIX} Error:`, {
         requestId,
         chatId,
         error: error instanceof Error ? error.message : String(error),
       });
+      if (!terminalPublished) {
+        await publishTerminal([
+          {
+            type: "error",
+            errorText: "An error occurred while processing your request.",
+          },
+          { type: "finish", finishReason: "error" },
+        ]);
+      }
       await reportStepError(error, {
         workflow: WORKFLOW_ANALYTICS_NAMES.CHAT,
         step: "streamChatResponse",
         organizationId,
-      });
-      await channel.emit("ai.chunk", {
-        type: "error",
-        errorText: "An error occurred while processing your request.",
-      });
-      await channel.emit("ai.chunk", {
-        type: "finish",
-        finishReason: "error",
       });
     }
 

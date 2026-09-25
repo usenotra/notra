@@ -14,6 +14,21 @@ import {
 } from "@/utils/geo-hydration";
 import { getGeoServerQueryClient } from "@/utils/geo-query-client.server";
 
+async function canPrefetchGeoQueries(organizationId: string, headers: Headers) {
+  await createORPCContext({ headers });
+  // Authorization is mandatory even when the optional billing prefetch fails.
+  await assertOrganizationAccess({ organizationId, headers });
+  try {
+    return (await resolveGeoEntitlement(organizationId, headers)) !== "denied";
+  } catch (error) {
+    console.warn("[geo] Skipping prefetch: entitlement lookup unavailable", {
+      organizationId,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return false;
+  }
+}
+
 /**
  * Starts the GEO overview queries on the server and returns the dehydrated
  * cache. The queries are intentionally not awaited: the query client dehydrates
@@ -25,11 +40,7 @@ export async function dehydrateGeoOverviewQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
-  await createORPCContext({ headers: requestHeaders });
-  await assertOrganizationAccess({ organizationId, headers: requestHeaders });
-  if (
-    (await resolveGeoEntitlement(organizationId, requestHeaders)) === "denied"
-  ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
     return dehydrate(getGeoServerQueryClient());
   }
   const input = geoHydrationInputs(organizationId, projectId, search);
@@ -121,11 +132,7 @@ export async function dehydrateGeoTrafficQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
-  await createORPCContext({ headers: requestHeaders });
-  await assertOrganizationAccess({ organizationId, headers: requestHeaders });
-  if (
-    (await resolveGeoEntitlement(organizationId, requestHeaders)) === "denied"
-  ) {
+  if (!(await canPrefetchGeoQueries(organizationId, requestHeaders))) {
     return dehydrate(getGeoServerQueryClient());
   }
   const input = geoTrafficHydrationInputs(organizationId, projectId, search);

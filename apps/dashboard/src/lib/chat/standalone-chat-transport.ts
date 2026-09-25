@@ -4,6 +4,8 @@ import { DefaultChatTransport } from "ai";
 import type { RefObject } from "react";
 
 import { CHAT_ACTIVE_STREAM_CONFLICT_STATUS } from "@/constants/chat-active-stream";
+import { CHAT_STREAM_ID_HEADER } from "@/constants/chat-stream";
+import { fetchResumableChatStream } from "@/utils/fetch-resumable-chat-stream";
 
 export type StandaloneChatTransportLive = {
   activeProjectId: RefObject<string | null>;
@@ -49,7 +51,7 @@ export function createStandaloneChatTransport({
       const headers = new Headers(init?.headers);
 
       if (headers.get("x-chat-reconnect") === "true") {
-        return fetch(input, init);
+        return fetchResumableChatStream(String(input), init);
       }
 
       const parsedRequestBody = chatTransportRequestInputSchema.safeParse(
@@ -94,11 +96,15 @@ export function createStandaloneChatTransport({
         return triggerResponse;
       }
 
-      return fetch(
+      const streamHeaders = new Headers(init?.headers);
+      if (latestMessageId) {
+        streamHeaders.set(CHAT_STREAM_ID_HEADER, latestMessageId);
+      }
+      return fetchResumableChatStream(
         `/api/organizations/${live.organizationId.current}/chat/${requestBody.chatId}/stream`,
         {
           method: "GET",
-          headers: init?.headers,
+          headers: streamHeaders,
           credentials: init?.credentials,
           signal: init?.signal,
         }

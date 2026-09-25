@@ -12,15 +12,21 @@ import { UI_MESSAGE_STREAM_HEADERS } from "ai";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import {
+  CHAT_STREAM_CURSOR_HEADER,
+  CHAT_STREAM_HISTORY_LIMIT,
+  CHAT_STREAM_ID_HEADER,
+} from "@/constants/chat-stream";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { chatStreamResumeSchema } from "@/schemas/chat-stream";
 import { ratelimit } from "@/utils/ratelimit";
 
 interface RouteContext {
   params: Promise<{ organizationId: string; chatId: string }>;
 }
 
-function toSseChunk(chunk: UIMessageChunk) {
-  return `data: ${JSON.stringify(chunk)}\n\n`;
+function toSseChunk(chunk: UIMessageChunk, cursor: string) {
+  return `id: ${cursor}\ndata: ${JSON.stringify(chunk)}\n\n`;
 }
 
 // react-doctor-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler -- pending.delete only mutates this connection's replay buffer, not application state
@@ -41,6 +47,16 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 
   const safeChatId = chatIdParse.data;
+  const resume = chatStreamResumeSchema.safeParse({
+    streamId: request.headers.get(CHAT_STREAM_ID_HEADER),
+    cursor: request.headers.get(CHAT_STREAM_CURSOR_HEADER),
+  });
+  if (!resume.success || (resume.data.cursor && !resume.data.streamId)) {
+    return NextResponse.json(
+      { error: "Invalid stream resume cursor" },
+      { status: 400 }
+    );
+  }
   const { success: withinLimit, reset } = await ratelimit.chatStream.limit(
     `${organizationId}:${auth.context.user.id}`
   );
@@ -57,8 +73,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 
   const activeStreamId = await getActiveChatStream(organizationId, safeChatId);
+  // Reconnect to the same generation even after its lease has been released.
+  // Its terminal chunk may be in history while a newer generation is active.
+  const streamId = resume.data.streamId ?? activeStreamId;
 
-  if (!activeStreamId) {
+  if (!streamId) {
     return new Response(null, { status: 204 });
   }
 
@@ -67,7 +86,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 
   const channel = realtime.channel(
-    getChatStreamChannelName(organizationId, safeChatId, activeStreamId)
+    getChatStreamChannelName(organizationId, safeChatId, streamId)
   );
 
   let unsubscribe: (() => void) | undefined;
@@ -106,11 +125,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         return;
       }
 
-      const emit = (chunk: UIMessageChunk) => {
+      const emit = (chunk: UIMessageChunk, cursor: string) => {
         if (closed) {
           return true;
         }
-        controller.enqueue(encoder.encode(toSseChunk(chunk)));
+        controller.enqueue(encoder.encode(toSseChunk(chunk, cursor)));
         return chunk.type === "finish" || chunk.type === "abort";
       };
 
@@ -118,9 +137,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         const pending = new Map<string, unknown>();
         const replayedIds = new Set<string>();
         let replaying = true;
-        const emitData = (data: unknown) => {
-          for (const chunk of toChunks(data)) {
-            if (emit(chunk)) {
+        const emitData = (id: string, data: unknown, startIndex = 0) => {
+          const chunks = toChunks(data);
+          for (let index = startIndex; index < chunks.length; index += 1) {
+            const chunk = chunks[index];
+            if (chunk && emit(chunk, `${id}:${index}`)) {
               close();
               return;
             }
@@ -141,7 +162,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
             if (replaying) {
               pending.set(id, data);
             } else {
-              emitData(data);
+              emitData(id, data);
             }
           },
         });
@@ -149,7 +170,27 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           unsubscribe();
           return;
         }
-        const history = await channel.history();
+        const [resumeId, resumeIndex] = resume.data.cursor?.split(":") ?? [];
+        // Start at the cursor's timestamp instead of the oldest retained item.
+        // A full page is ambiguous: fail rather than silently skip its tail.
+        const history = await channel.history({
+          start: resumeId ? Number(resumeId.split("-")[0]) : undefined,
+          limit: CHAT_STREAM_HISTORY_LIMIT,
+        });
+        if (resumeId && history.length >= CHAT_STREAM_HISTORY_LIMIT) {
+          throw new Error("Chat replay window is too large to resume safely");
+        }
+        const resumeItem = resumeId
+          ? history.find((item) => item.id === resumeId)
+          : undefined;
+        if (
+          resumeId &&
+          (!resumeItem ||
+            Number(resumeIndex) >= toChunks(resumeItem.data).length)
+        ) {
+          throw new Error("Chat replay cursor is no longer available");
+        }
+        let reachedCursor = !resumeId;
 
         for (const item of history) {
           if (item.event !== "ai.chunk") {
@@ -157,18 +198,20 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           }
           pending.delete(item.id);
           replayedIds.add(item.id);
-
-          for (const chunk of toChunks(item.data)) {
-            if (emit(chunk)) {
-              close();
-              return;
-            }
+          if (item.id === resumeId) {
+            reachedCursor = true;
+            emitData(item.id, item.data, Number(resumeIndex) + 1);
+          } else if (reachedCursor) {
+            emitData(item.id, item.data);
+          }
+          if (closed) {
+            return;
           }
         }
 
         replaying = false;
-        for (const data of pending.values()) {
-          emitData(data);
+        for (const [id, data] of pending) {
+          emitData(id, data);
         }
         pending.clear();
       } catch (error) {
@@ -191,5 +234,10 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     },
   });
 
-  return new Response(stream, { headers: UI_MESSAGE_STREAM_HEADERS });
+  return new Response(stream, {
+    headers: {
+      ...UI_MESSAGE_STREAM_HEADERS,
+      [CHAT_STREAM_ID_HEADER]: streamId,
+    },
+  });
 }
