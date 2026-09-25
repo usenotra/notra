@@ -130,6 +130,9 @@ describe("standalone code mode policy", () => {
       sortedNames(modelTools.map((modelTool) => modelTool.name)),
       sortedNames([...DIRECT_TOOL_NAMES, CODE_MODE_TOOL_NAME])
     );
+    for (const modelTool of modelTools) {
+      assert.equal(modelTool.inputSchema.type, "object", modelTool.name);
+    }
 
     const codeModeDescription =
       modelTools.find((modelTool) => modelTool.name === CODE_MODE_TOOL_NAME)

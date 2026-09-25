@@ -153,4 +153,33 @@ export const createScheduleInputSchema = z.discriminatedUnion("frequency", [
   }),
 ]);
 
+export const createScheduleToolInputSchema = z
+  .object({
+    ...scheduleFields,
+    frequency: z.enum(SCHEDULE_FREQUENCIES),
+    dayOfWeek: z.number().int().min(0).max(6).optional(),
+    dayOfMonth: z.number().int().min(1).max(31).optional(),
+    intervalDays: z
+      .number()
+      .int()
+      .min(CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS)
+      .max(CUSTOM_SCHEDULE_MAX_INTERVAL_DAYS)
+      .optional(),
+    anchorDate: z.string().optional(),
+  })
+  .transform((input, ctx) => {
+    const parsed = createScheduleInputSchema.safeParse(input);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        ctx.addIssue({
+          code: "custom",
+          message: issue.message,
+          path: issue.path,
+        });
+      }
+      return z.NEVER;
+    }
+    return parsed.data;
+  });
+
 export type CreateScheduleInput = z.infer<typeof createScheduleInputSchema>;

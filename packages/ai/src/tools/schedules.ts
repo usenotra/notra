@@ -1,6 +1,6 @@
 import {
   type CreateScheduleInput,
-  createScheduleInputSchema,
+  createScheduleToolInputSchema,
 } from "@notra/ai/schemas/schedules";
 import {
   createContentSchedule,
@@ -46,7 +46,7 @@ export function createCreateScheduleTool(ctx: ScheduleToolContext): Tool {
       usageNotes:
         "Call listSchedules first. Times are UTC. repositoryIds are GitHub integration IDs. Ask which repository to use when more than one is connected and the user did not name one. autoPublish applies only to changelog and blog_post; leave it false unless they explicitly want those drafts published. LinkedIn, Twitter, and image schedules stay drafts. A matching schedule, including the same brand voice, is returned as duplicate instead of creating a second one.",
     }),
-    inputSchema: createScheduleInputSchema,
+    inputSchema: createScheduleToolInputSchema,
     execute: async (input: CreateScheduleInput) =>
       createContentSchedule(ctx.organizationId, input),
   });
