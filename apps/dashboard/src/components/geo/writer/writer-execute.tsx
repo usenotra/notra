@@ -55,7 +55,7 @@ function WriterExecuteProvider({
   children,
 }: Omit<WriterExecuteRootProps, "briefId"> & { briefId: string }) {
   const briefQuery = useGeoWriterBrief(organizationId, briefId, projectId);
-  const startMutation = useGeoWriterStart(organizationId);
+  const startMutation = useGeoWriterStart(organizationId, projectId);
   const status = briefQuery.data?.status;
   const isStarting = startMutation.isPending;
   const isBusy = isStarting || status === "writing" || status === "approved";

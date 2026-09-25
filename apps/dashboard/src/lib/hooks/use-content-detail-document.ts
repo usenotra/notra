@@ -68,7 +68,11 @@ export function useContentDetailDocument({
     geoWriterDraft?.briefId ?? null,
     geoWriterDraft?.projectId
   );
-  const geoWriterUpdate = useGeoWriterUpdate(organizationId, contentId);
+  const geoWriterUpdate = useGeoWriterUpdate(
+    organizationId,
+    contentId,
+    geoWriterDraft?.projectId
+  );
 
   const [isPlanDirty, setIsPlanDirty] = useState(false);
   const [hasPlanConflict, setHasPlanConflict] = useState(false);

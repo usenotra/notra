@@ -148,8 +148,12 @@ export function useGeoWriterPlan(organizationId: string) {
   });
 }
 
-export function useGeoWriterStart(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterStart(
+  organizationId: string,
+  briefProjectId?: string
+) {
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
   const invalidate = useInvalidateWriterQueries(organizationId);
   return useMutation({
@@ -175,8 +179,13 @@ export function useGeoWriterStart(organizationId: string) {
   });
 }
 
-export function useGeoWriterUpdate(organizationId: string, contentId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterUpdate(
+  organizationId: string,
+  contentId: string,
+  briefProjectId?: string
+) {
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
   const invalidate = useInvalidateWriterQueries(organizationId);
   const latestRevisionByBrief = useRef(new Map<string, string>());
