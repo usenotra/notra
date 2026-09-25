@@ -1,3 +1,4 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd ../.. && bunx bun@1.4.0 install --frozen-lockfile --filter '@notra/onboarding-agent...' --filter turbo"
 }

@@ -53,6 +53,8 @@ const nextConfig: NextConfig = {
     "@usenotra/geo",
   ],
   serverExternalPackages: [
+    // Let Next.js remove the guarded import before devtools filesystem tracing.
+    ...(process.env.NODE_ENV === "production" ? ["@ai-sdk/devtools"] : []),
     "@resvg/resvg-js",
     "@cursor/sdk",
     "@ai-sdk/code-mode",
