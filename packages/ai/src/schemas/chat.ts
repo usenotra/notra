@@ -18,6 +18,12 @@ export const chatModelSchema = z.enum([
 
 export const thinkingLevelSchema = z.enum(["off", "low", "medium", "high"]);
 
+export const chatToolApprovalResponseSchema = z.object({
+  id: z.string().min(1).max(500),
+  approved: z.boolean(),
+  reason: z.string().max(2000).optional(),
+});
+
 export const chatIdSchema = z.uuid();
 
 export const externalChannelSourceSchema = z.enum([

@@ -81,6 +81,7 @@ export async function createDirectStandaloneChatResponse({
     const { stream, routingDecision } = await orchestrateStandaloneChat(
       {
         organizationId,
+        chatId,
         messages: messages as never,
         context,
         maxSteps: 50,

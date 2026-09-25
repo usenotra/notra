@@ -5,6 +5,7 @@ import type * as z from "zod";
 import type {
   chatMessageMetadataSchema,
   chatModelSchema,
+  chatToolApprovalResponseSchema,
   chatSessionSummarySchema,
   chatSurfaceSchema,
   chatTransportRequestInputSchema,
@@ -25,6 +26,9 @@ export type TextSelection = OrchestrationTextSelection;
 export type ContextItem = OrchestrationContextItem;
 export type StandaloneChatContextItem = OrchestrationContextItem;
 export type ChatModel = z.infer<typeof chatModelSchema>;
+export type ChatToolApprovalResponse = z.infer<
+  typeof chatToolApprovalResponseSchema
+>;
 export type ThinkingLevel = z.infer<typeof thinkingLevelSchema>;
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;
 export type ChatUIMessage = UIMessage<ChatMessageMetadata>;

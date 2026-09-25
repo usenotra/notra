@@ -22,6 +22,7 @@ import { withStandaloneCodeMode } from "@notra/ai/utils/code-mode";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
+import { getToolApprovalSecret } from "@notra/ai/utils/tool-approval-secret";
 import { withToolErrorPayloads } from "@notra/ai/utils/tool-error-payload";
 import {
   convertToModelMessages,
@@ -44,6 +45,7 @@ import {
   buildStandaloneToolSet,
   getLinearContextFromIntegrations,
   getRepoContextFromIntegrations,
+  getStandaloneApprovalToolNames,
 } from "./standalone-tool-registry";
 import { getThinkingProviderOptions } from "./thinking";
 
@@ -74,6 +76,7 @@ export async function orchestrateStandaloneChat(
   } = input;
 
   const log = deps?.log ?? inputLog;
+  const approvalSecret = getToolApprovalSecret(organizationId, chatId);
 
   const validatedIntegrations =
     deps?.preValidatedIntegrations ??
@@ -153,6 +156,7 @@ export async function orchestrateStandaloneChat(
     withToolErrorPayloads(baseToolSet.tools)
   );
   const notraToolNames = Object.keys(tools);
+  const approvalToolNames = getStandaloneApprovalToolNames();
 
   const lazyMcpRuntime =
     !chatId || !hasMcp
@@ -255,6 +259,12 @@ export async function orchestrateStandaloneChat(
     prepareStep: async (options) => ({
       activeTools: await getActiveToolNames(options),
     }),
+    toolApproval: ({ toolCall }) =>
+      approvalToolNames.has(toolCall.toolName) ||
+      lazyMcpRuntime?.requiresApproval(toolCall.toolName)
+        ? "user-approval"
+        : undefined,
+    experimental_toolApprovalSecret: approvalSecret,
     stopWhen: isStepCount(maxSteps),
     experimental_transform: smoothStream(),
     // Without this, a tool call whose inputs fail schema validation throws an
