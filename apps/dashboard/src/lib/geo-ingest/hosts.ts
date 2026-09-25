@@ -2,6 +2,7 @@ import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, geoSettings, projects } from "@notra/db/schema";
 import { GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS } from "@notra/geo-core/constants/geo";
+import { GEO_PROJECTS_OLDEST_ORDER } from "@notra/geo-core/constants/geo-projects";
 import { geoIngestHostsCacheKey } from "@notra/geo-core/geo/ingest";
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import { ingestAllowedHosts } from "@notra/geo-core/utils/geo-project-domains";
@@ -31,12 +32,20 @@ function parseCachedHosts(value: unknown): string[] | undefined {
 async function lookupAllowedHosts(
   identity: GeoIngestIdentity
 ): Promise<string[]> {
-  const scope = identity.projectId
-    ? and(
-        eq(projects.organizationId, identity.organizationId),
-        eq(projects.id, identity.projectId)
-      )
-    : eq(projects.organizationId, identity.organizationId);
+  // Legacy organization tokens belong to the oldest project only. Never
+  // accept another project's host and attribute its traffic to the oldest.
+  const projectId =
+    identity.projectId ??
+    (
+      await db.query.projects.findFirst({
+        columns: { id: true },
+        where: eq(projects.organizationId, identity.organizationId),
+        orderBy: GEO_PROJECTS_OLDEST_ORDER,
+      })
+    )?.id;
+  if (!projectId) {
+    return [];
+  }
 
   const rows = await db
     .select({
@@ -46,7 +55,12 @@ async function lookupAllowedHosts(
     .from(projects)
     .innerJoin(brandSettings, eq(projects.brandSettingsId, brandSettings.id))
     .leftJoin(geoSettings, eq(geoSettings.projectId, projects.id))
-    .where(scope);
+    .where(
+      and(
+        eq(projects.organizationId, identity.organizationId),
+        eq(projects.id, projectId)
+      )
+    );
 
   const seen = new Set<string>();
   const hosts: string[] = [];

@@ -14,8 +14,8 @@ export function geoIngestHostsCacheKey(
 
 /**
  * Drop the cached allowlist after settings or project identity change so a
- * newly linked brand is accepted immediately. Org-scoped tokens union every
- * project, so that key is cleared too.
+ * newly linked brand is accepted immediately. Legacy organization tokens
+ * follow the oldest project, so their key is cleared too.
  */
 export async function invalidateGeoIngestHostsCache(
   organizationId: string,
@@ -34,9 +34,9 @@ export async function invalidateGeoIngestHostsCache(
 
 /**
  * Brand website changes affect every project linked to that voice, including
- * org-scoped tokens that union those hosts. Best-effort: a lookup blip must
- * not fail the settings write that already committed, and the org key is
- * still dropped so org-scoped tokens do not keep a stale union.
+ * legacy organization tokens for the oldest project. Best-effort: a lookup
+ * blip must not fail the settings write that already committed, and the org
+ * key is still dropped so legacy tokens do not keep stale hosts.
  */
 export async function invalidateGeoIngestHostsCacheForBrand(
   organizationId: string,

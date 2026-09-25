@@ -168,6 +168,15 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   if (!active) {
     return yield* Effect.fail(new GeoIngestInvalidTokenError({}));
   }
+  // A legacy token has no project in its signature. On a host-lookup outage,
+  // failing open could accept a sibling project's traffic as unassigned.
+  if (!identity.projectId && allowedHosts === null) {
+    return yield* Effect.fail(
+      new GeoIngestFailedError({
+        cause: new Error("Traffic host lookup failed"),
+      })
+    );
+  }
   if (!acceptsIngestHost(url.hostname, allowedHosts)) {
     yield* Effect.sync(() =>
       emitIngestLog({

@@ -598,7 +598,7 @@ export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
 export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
-export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v1";
+export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
 export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
 export const GEO_ONBOARDING_MAX_PROMPTS = 30;
