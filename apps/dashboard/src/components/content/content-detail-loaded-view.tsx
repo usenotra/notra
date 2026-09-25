@@ -65,6 +65,7 @@ export function ContentDetailLoadedView({
         }
         onArticleReady={document.handleGeoArticleReady}
         organizationId={organizationId}
+        projectId={document.geoWriterDraft?.projectId}
       >
         <div className="bg-secondary sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-6">
           <div

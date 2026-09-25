@@ -74,7 +74,8 @@ export function isGeoWriterPlanReviewable(status: string | undefined): boolean {
 export function getGeoWriterDocumentState(
   hasDraft: boolean,
   briefError: unknown,
-  briefStatus: string | undefined
+  briefStatus: string | undefined,
+  isPostStillPlan: boolean
 ) {
   const hasBriefError = briefError !== null && briefError !== undefined;
   const isBriefMissing = hasBriefError && isNotFoundError(briefError);
@@ -87,7 +88,10 @@ export function getGeoWriterDocumentState(
       !isBriefMissing &&
       !isPlanReviewable &&
       briefStatus !== "completed",
-    isPlanMode: hasDraft && !isBriefMissing && briefStatus !== "completed",
+    isPlanMode:
+      hasDraft &&
+      !isBriefMissing &&
+      (briefStatus !== "completed" || isPostStillPlan),
     isPlanReviewable,
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { GeoContentBrief } from "@notra/ai/types/geo-writer";
+import { isGeoBriefMarkdown } from "@notra/geo-core/utils/geo-writer-brief-markdown";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,7 +65,8 @@ export function useContentDetailDocument({
   const geoWriterDraft = parseGeoWriterDraft(data?.content?.sourceMetadata);
   const geoWriterBriefQuery = useGeoWriterBrief(
     organizationId,
-    geoWriterDraft?.briefId ?? null
+    geoWriterDraft?.briefId ?? null,
+    geoWriterDraft?.projectId
   );
   const geoWriterUpdate = useGeoWriterUpdate(organizationId, contentId);
 
@@ -72,6 +74,7 @@ export function useContentDetailDocument({
   const [hasPlanConflict, setHasPlanConflict] = useState(false);
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
+  const serverMarkdown = data?.content?.markdown ?? "";
   const {
     isBriefError: isGeoWriterBriefError,
     isChatLocked: isGeoWriterChatLocked,
@@ -80,10 +83,10 @@ export function useContentDetailDocument({
   } = getGeoWriterDocumentState(
     Boolean(geoWriterDraft),
     geoWriterBriefQuery.error,
-    briefStatus
+    briefStatus,
+    isGeoBriefMarkdown(serverMarkdown)
   );
 
-  const serverMarkdown = data?.content?.markdown ?? "";
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
   const [originalMarkdown, setOriginalMarkdown] = useState("");
   const [editorKey, setEditorKey] = useState(0);

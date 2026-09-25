@@ -42,9 +42,11 @@ export function useGeoWriterBriefs(organizationId: string) {
 
 export function useGeoWriterBrief(
   organizationId: string,
-  briefId: string | null
+  briefId: string | null,
+  briefProjectId?: string
 ) {
-  const { projectId } = useGeoProjectScope();
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   return useQuery<GeoContentBriefDetail>({
     ...dashboardOrpc.geo.writerBrief.queryOptions({
       input: { organizationId, projectId, briefId: briefId ?? "" },

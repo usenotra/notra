@@ -49,11 +49,12 @@ function useWriterExecute() {
 function WriterExecuteProvider({
   organizationId,
   briefId,
+  projectId,
   hasUnsavedChanges,
   onArticleReady,
   children,
 }: Omit<WriterExecuteRootProps, "briefId"> & { briefId: string }) {
-  const briefQuery = useGeoWriterBrief(organizationId, briefId);
+  const briefQuery = useGeoWriterBrief(organizationId, briefId, projectId);
   const startMutation = useGeoWriterStart(organizationId);
   const status = briefQuery.data?.status;
   const isStarting = startMutation.isPending;
@@ -64,15 +65,22 @@ function WriterExecuteProvider({
     onArticleReadyRef.current = onArticleReady;
   }, [onArticleReady]);
   const notifiedCompletionRef = useRef(false);
+  const sawWritingRef = useRef(false);
 
   useEffect(() => {
     if (status !== "completed") {
       notifiedCompletionRef.current = false;
+      sawWritingRef.current ||= isBusy;
       return;
     }
-    if (hasUnsavedChanges || notifiedCompletionRef.current) {
+    if (notifiedCompletionRef.current) {
       return;
     }
+    // Edits made while the writer ran belong to the plan, never the article.
+    if (hasUnsavedChanges && !sawWritingRef.current) {
+      return;
+    }
+    sawWritingRef.current = false;
     notifiedCompletionRef.current = true;
     trackEvent(POSTHOG_EVENTS.GEO_WRITER_ARTICLE_READY_VIEWED, {
       brief_id: briefId,
@@ -81,7 +89,7 @@ function WriterExecuteProvider({
     if (ready instanceof Promise) {
       ready.catch(() => undefined);
     }
-  }, [briefId, hasUnsavedChanges, status]);
+  }, [briefId, hasUnsavedChanges, isBusy, status]);
 
   const value: WriterExecuteContextValue = {
     state: {

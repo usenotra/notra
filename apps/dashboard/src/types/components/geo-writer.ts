@@ -103,6 +103,7 @@ export interface GeoGapsWriteEntry {
 export interface WriterExecuteRootProps {
   organizationId: string;
   briefId: string | null;
+  projectId?: string;
   hasUnsavedChanges: boolean;
   onArticleReady: () => void | Promise<void>;
   children: ReactNode;

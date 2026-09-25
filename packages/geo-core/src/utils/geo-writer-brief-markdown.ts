@@ -18,6 +18,7 @@ const HEADER_PREFIXES = [
   "job to be done",
 ] as const;
 const FAQ_HEADING = "faq";
+const TARGET_PROMPT_LABEL = "Target prompt:";
 const LINKS_HEADING = "internal links";
 const CHECKLIST_HEADING = "acceptance checklist";
 const TYPE_LINE_REGEX = /^blog post\s*\(([^)]+)\)\s*$/i;
@@ -101,6 +102,10 @@ function evidenceMarkdown(brief: GeoWriterBrief): string[] {
   return lines;
 }
 
+export function isGeoBriefMarkdown(markdown: string): boolean {
+  return markdown.trimStart().startsWith(TARGET_PROMPT_LABEL);
+}
+
 export function geoBriefToMarkdown(brief: GeoWriterBrief): string {
   const sections = brief.sections
     .map((section) => {
@@ -130,7 +135,7 @@ export function geoBriefToMarkdown(brief: GeoWriterBrief): string {
       : `- ${EMPTY_CHECKLIST}`;
 
   return [
-    `Target prompt: ${brief.targetPrompt}`,
+    `${TARGET_PROMPT_LABEL} ${brief.targetPrompt}`,
     `Intent: ${brief.intent}`,
     `Type: blog post (${brief.contentSubtype})`,
     `Audience: ${brief.audience}`,
