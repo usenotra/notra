@@ -221,9 +221,12 @@ export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
         </div>
       )}
       <form action={skipOnboarding} className="mt-8 flex justify-center">
-        <Button type="submit" variant="outline">
+        <button
+          className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
+          type="submit"
+        >
           Skip onboarding
-        </Button>
+        </button>
       </form>
     </div>
   );

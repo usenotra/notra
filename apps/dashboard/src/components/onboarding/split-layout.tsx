@@ -1,6 +1,5 @@
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
-import { Button } from "@/components/button";
 import { getLastActiveOrganization } from "@/lib/auth/actions";
 import { skipOnboarding } from "@/lib/onboarding/skip";
 import type { OnboardingSplitLayoutProps } from "@/types/onboarding";
@@ -17,9 +16,12 @@ export async function OnboardingSplitLayout({
         <div className="w-full max-w-md min-w-0 py-6">{children}</div>
         {organization ? (
           <form action={skipOnboarding} className="flex justify-center py-2">
-            <Button type="submit" variant="outline">
+            <button
+              className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
+              type="submit"
+            >
               Skip onboarding
-            </Button>
+            </button>
           </form>
         ) : (
           <div aria-hidden="true" className="h-7" />
