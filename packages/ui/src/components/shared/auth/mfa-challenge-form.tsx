@@ -221,7 +221,7 @@ export function MfaChallengeForm({
       />
       <form
         aria-busy={isPending}
-        className="grid gap-4"
+        className="mt-4 grid gap-0 max-[360px]:mt-7"
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
@@ -230,22 +230,21 @@ export function MfaChallengeForm({
       >
         <TotpCodeInput
           autoFocus
+          className={`gap-2 [&>div:last-child]:min-h-7 max-[360px]:[&>div:last-child]:min-h-8 [&>div:last-child]:text-center [&>div:last-child>p]:text-xs [&>label]:sr-only ${formError ? "mfa-code-shake" : ""}`}
           disabled={isPending}
+          error={formError}
           id="mfa-code"
           label="Authentication code"
           onChange={setCode}
           onComplete={handleVerify}
           value={code}
         />
-        <div>
-          <AuthFormError className="mb-4" error={formError} />
-          <SubmitButton
-            disabled={isPending || code.length !== TOTP_CODE_LENGTH}
-            isPending={isPending}
-            label="Verify code"
-            pendingLabel="Verifying..."
-          />
-        </div>
+        <SubmitButton
+          disabled={isPending || code.length !== TOTP_CODE_LENGTH}
+          isPending={isPending}
+          label="Verify code"
+          pendingLabel="Verifying..."
+        />
       </form>
       <div className="flex flex-col items-center gap-1">
         <Button

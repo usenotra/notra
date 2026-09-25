@@ -104,6 +104,28 @@
   }
 }
 
+@keyframes mfa-code-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mfa-code-shake [data-slot="input-otp-group"] {
+    animation: mfa-code-shake var(--transition-duration-normal) var(--ease-emphasized-in-out);
+  }
+}
+
 /*
  * Baseline reduced-motion policy for every app.
  *
