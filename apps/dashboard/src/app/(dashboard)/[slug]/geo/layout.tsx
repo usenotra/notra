@@ -10,14 +10,7 @@ export const instant = true;
 
 export default function GeoLayout({ children, modal, params }: GeoLayoutProps) {
   return (
-    <Suspense
-      fallback={
-        <>
-          {children}
-          {modal}
-        </>
-      }
-    >
+    <Suspense fallback={null}>
       <GeoLayoutProviders params={params}>
         {children}
         {modal}

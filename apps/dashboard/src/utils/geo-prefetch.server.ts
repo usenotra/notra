@@ -1,6 +1,8 @@
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
 
+import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { resolveGeoEntitlement } from "@/lib/billing/subscription";
 import { createORPCContext } from "@/lib/orpc/context";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { contentRouter } from "@/lib/orpc/routers/content";
@@ -23,6 +25,13 @@ export async function dehydrateGeoOverviewQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  await createORPCContext({ headers: requestHeaders });
+  await assertOrganizationAccess({ organizationId, headers: requestHeaders });
+  if (
+    (await resolveGeoEntitlement(organizationId, requestHeaders)) === "denied"
+  ) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { content: contentRouter, geo: geoRouter },
@@ -112,6 +121,13 @@ export async function dehydrateGeoTrafficQueries(
   search: Record<string, string | string[] | undefined>,
   requestHeaders: Headers
 ) {
+  await createORPCContext({ headers: requestHeaders });
+  await assertOrganizationAccess({ organizationId, headers: requestHeaders });
+  if (
+    (await resolveGeoEntitlement(organizationId, requestHeaders)) === "denied"
+  ) {
+    return dehydrate(getGeoServerQueryClient());
+  }
   const input = geoTrafficHydrationInputs(organizationId, projectId, search);
   const client = createRouterClient(
     { geo: geoRouter },

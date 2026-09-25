@@ -194,6 +194,9 @@ export async function streamChatResponseStep(
   const streamStartedAt = Date.now();
   const timing: { firstChunkAt: number | null } = { firstChunkAt: null };
   const usageSnapshot: ChatUsageSnapshot = {};
+  let streamFailed = false;
+  let streamAborted = false;
+  let terminalPublished = false;
 
   let buffer: UIMessageChunk[] = [];
   let flushPromise: Promise<void> | null = null;
@@ -382,23 +385,21 @@ export async function streamChatResponseStep(
 
         return;
       },
-      onEnd: async ({ messages: responseMessages }) => {
-        try {
-          const saved = await replaceChatHistory(
-            organizationId,
-            chatId,
-            responseMessages,
-            undefined,
-            streamId
+      onEnd: async ({ messages: responseMessages, outcome }) => {
+        streamFailed ||= outcome.status === "failed";
+        streamAborted ||= outcome.status === "aborted";
+        const saved = await replaceChatHistory(
+          organizationId,
+          chatId,
+          responseMessages,
+          undefined,
+          streamId
+        );
+        if (!saved) {
+          console.warn(
+            `${LOG_PREFIX} Skipped saving response: chat was deleted`,
+            { requestId, organizationId, chatId }
           );
-          if (!saved) {
-            console.warn(
-              `${LOG_PREFIX} Skipped saving response: chat was deleted`,
-              { requestId, organizationId, chatId }
-            );
-          }
-        } finally {
-          await clearActiveChatStream(organizationId, chatId, streamId);
         }
       },
       onError: (error) => {
@@ -415,11 +416,20 @@ export async function streamChatResponseStep(
         if (done) {
           break;
         }
+        streamFailed ||= value.type === "error";
+        streamAborted ||= value.type === "abort";
+        terminalPublished ||= value.type === "finish" || value.type === "abort";
         buffer.push(value as UIMessageChunk);
         scheduleFlush();
       }
     } finally {
-      reader.releaseLock();
+      try {
+        if (abortController.signal.aborted) {
+          await reader.cancel();
+        }
+      } finally {
+        reader.releaseLock();
+      }
     }
 
     if (abortController.signal.aborted) {
@@ -428,12 +438,14 @@ export async function streamChatResponseStep(
         { type: "finish", finishReason: "stop" }
       );
       scheduleFlush();
+    } else if (streamFailed && !terminalPublished) {
+      buffer.push({ type: "finish", finishReason: "error" });
     }
 
     await drainPendingFlushes();
-    return abortController.signal.aborted
+    return abortController.signal.aborted || streamAborted
       ? { status: "aborted" }
-      : { status: "completed" };
+      : { status: streamFailed ? "failed" : "completed" };
   } catch (error) {
     const isAbort =
       abortController.signal.aborted ||
@@ -472,10 +484,10 @@ export async function streamChatResponseStep(
       });
     }
 
-    await clearActiveChatStream(organizationId, chatId, streamId);
     return isAbort ? { status: "aborted" } : { status: "failed" };
   } finally {
     stopAbortPolling?.();
+    await clearActiveChatStream(organizationId, chatId, streamId);
     await clearChatAbortFlag(organizationId, chatId, streamId).catch(
       () => undefined
     );

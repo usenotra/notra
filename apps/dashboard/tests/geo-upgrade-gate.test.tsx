@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
-const geoFeature = mock(() => ({ isLocked: false, isLoading: true }));
+const geoFeature = mock(() => ({
+  hasGeo: false,
+  isLocked: false,
+  isLoading: true,
+}));
 const GeoPage = mock(() => <h1>Protected page content</h1>);
 
 mock.module("@/lib/hooks/use-plan", () => ({
@@ -27,26 +31,48 @@ const { GeoUpgradeGate } =
   await import("../src/components/geo/geo-upgrade-gate");
 
 beforeEach(() => {
-  geoFeature.mockReturnValue({ isLocked: false, isLoading: true });
+  geoFeature.mockReturnValue({
+    hasGeo: false,
+    isLocked: false,
+    isLoading: true,
+  });
   GeoPage.mockClear();
 });
 
 describe("GEO billing gate", () => {
-  test("keeps nested GEO page children while billing loads", () => {
+  test("does not mount paid queries or show a paywall for an unknown customer", () => {
+    geoFeature.mockReturnValue({
+      hasGeo: false,
+      isLocked: false,
+      isLoading: false,
+    });
+    const html = renderToStaticMarkup(
+      <GeoUpgradeGate slug="fixture">
+        <GeoPage />
+      </GeoUpgradeGate>
+    );
+    expect(GeoPage).not.toHaveBeenCalled();
+    expect(html).not.toContain("Upgrade required");
+  });
+  test("does not mount paid queries while billing loads", () => {
     const html = renderToStaticMarkup(
       <GeoUpgradeGate slug="fixture">
         <GeoPage />
       </GeoUpgradeGate>
     );
 
-    expect(html).toContain("Protected page content");
+    expect(html).not.toContain("Protected page content");
     expect(html).not.toContain("How AI engines talk about your brand");
     expect(html).not.toContain("Upgrade required");
-    expect(GeoPage).toHaveBeenCalled();
+    expect(GeoPage).not.toHaveBeenCalled();
   });
 
   test("renders the page for a confirmed entitled customer", () => {
-    geoFeature.mockReturnValue({ isLocked: false, isLoading: false });
+    geoFeature.mockReturnValue({
+      hasGeo: true,
+      isLocked: false,
+      isLoading: false,
+    });
     const html = renderToStaticMarkup(
       <GeoUpgradeGate slug="fixture">
         <GeoPage />
@@ -59,7 +85,11 @@ describe("GEO billing gate", () => {
   });
 
   test("keeps the paywall and excludes page children for a confirmed locked customer", () => {
-    geoFeature.mockReturnValue({ isLocked: true, isLoading: false });
+    geoFeature.mockReturnValue({
+      hasGeo: false,
+      isLocked: true,
+      isLoading: false,
+    });
     const html = renderToStaticMarkup(
       <GeoUpgradeGate slug="fixture">
         <GeoPage />
