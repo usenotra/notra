@@ -29,10 +29,8 @@ export function useWriterPromptSelection({
 
   const changeTopic = (value: string) => {
     setTopic(value);
-    if (sourceKind === "prompt" || sourceKind === "gap") {
-      setSourceKind("manual");
-      setSourceId(undefined);
-    }
+    setSourceKind("manual");
+    setSourceId(undefined);
   };
 
   const selectPrompt = (id: string) => {
