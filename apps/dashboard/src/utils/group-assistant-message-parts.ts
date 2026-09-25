@@ -1,4 +1,4 @@
-import { isToolUIPart } from "ai";
+import { getToolName, isToolUIPart } from "ai";
 
 import type {
   AssistantActivityStackItem,
@@ -7,7 +7,10 @@ import type {
   AssistantPartRef,
   GroupAssistantMessagePartsOptions,
 } from "@/types/chat-activity";
-import { isStackableSearchPart } from "@/utils/chat-search-activity";
+import {
+  isSearchToolPart,
+  isStackableSearchPart,
+} from "@/utils/chat-search-activity";
 import { isFailedToolOutput } from "@/utils/chat-tool-output";
 
 function isSkippablePart(part: AssistantMessagePart): boolean {
@@ -15,9 +18,6 @@ function isSkippablePart(part: AssistantMessagePart): boolean {
     return true;
   }
   if (part.type === "text" && !part.text.trim()) {
-    return true;
-  }
-  if (part.type === "reasoning" && !part.text.trim()) {
     return true;
   }
   return false;
@@ -28,7 +28,7 @@ function isActivityPart(
   isStandaloneTool?: (part: AssistantMessagePart) => boolean
 ): boolean {
   if (part.type === "reasoning") {
-    return Boolean(part.text.trim());
+    return true;
   }
   if (!isToolUIPart(part)) {
     return false;
@@ -41,20 +41,7 @@ export function groupAssistantMessageParts(
   options: GroupAssistantMessagePartsOptions = {}
 ): AssistantMessageSegment[] {
   const segments: AssistantMessageSegment[] = [];
-  let activity: AssistantPartRef[] = [];
-
-  function flushActivity() {
-    const first = activity[0];
-    if (!first) {
-      return;
-    }
-    segments.push({
-      kind: "activity",
-      startIndex: first.index,
-      items: activity,
-    });
-    activity = [];
-  }
+  const activity: AssistantPartRef[] = [];
 
   parts.forEach((part, index) => {
     if (isSkippablePart(part)) {
@@ -64,7 +51,6 @@ export function groupAssistantMessageParts(
       activity.push({ part, index });
       return;
     }
-    flushActivity();
     segments.push({
       kind: "standalone",
       startIndex: index,
@@ -73,7 +59,14 @@ export function groupAssistantMessageParts(
     });
   });
 
-  flushActivity();
+  const first = activity[0];
+  if (first) {
+    segments.unshift({
+      kind: "activity",
+      startIndex: first.index,
+      items: activity,
+    });
+  }
   return segments;
 }
 
@@ -106,24 +99,47 @@ export function stackAssistantActivityItems(
 
 export function isAssistantActivityStreaming(
   isLoading: boolean,
-  isLastActivity: boolean,
-  hasVisibleTextAfter: boolean
+  isLastActivity: boolean
 ): boolean {
-  return isLoading && isLastActivity && !hasVisibleTextAfter;
+  return isLoading && isLastActivity;
 }
 
-export function hasVisibleAssistantTextAfter(
-  segments: AssistantMessageSegment[],
-  segmentIndex: number
-): boolean {
-  return segments
-    .slice(segmentIndex + 1)
-    .some(
-      (segment) =>
-        segment.kind === "standalone" &&
-        segment.part.type === "text" &&
-        Boolean(segment.part.text.trim())
-    );
+export function getAssistantActivityStep(
+  parts: AssistantMessagePart[]
+): string {
+  for (let index = parts.length - 1; index >= 0; index--) {
+    const part = parts[index];
+    if (!part || part.type === "step-start") {
+      continue;
+    }
+    if (part.type === "text") {
+      if (part.text.trim()) {
+        return "Writing response";
+      }
+      continue;
+    }
+    if (part.type === "reasoning") {
+      return "Thinking";
+    }
+    if (isToolUIPart(part)) {
+      if (part.state === "approval-requested") {
+        return "Waiting for approval";
+      }
+      if (
+        part.state === "input-streaming" ||
+        part.state === "input-available"
+      ) {
+        if (isSearchToolPart(part)) {
+          return "Searching web";
+        }
+        return getToolName(part) === "code_mode"
+          ? "Executing tools"
+          : "Running tool";
+      }
+      return "Thinking";
+    }
+  }
+  return "Thinking";
 }
 
 export function isAssistantActivityForceOpen(

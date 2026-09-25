@@ -10,8 +10,8 @@ import {
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import type { ChatAssistantPartsProps } from "@/types/components/chat-activity-group";
 import {
+  getAssistantActivityStep,
   groupAssistantMessageParts,
-  hasVisibleAssistantTextAfter,
   isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
   stackAssistantActivityItems,
@@ -19,6 +19,7 @@ import {
 
 export function ChatAssistantParts({
   durationMs,
+  elapsedSeconds,
   isLoading,
   isStandaloneTool,
   messageId,
@@ -52,17 +53,21 @@ export function ChatAssistantParts({
 
     const isStreaming = isAssistantActivityStreaming(
       isLoading,
-      segmentIndex === lastActivityIndex,
-      hasVisibleAssistantTextAfter(segments, segmentIndex)
+      segmentIndex === lastActivityIndex
     );
     const forceOpen = isAssistantActivityForceOpen(segment.items);
 
     return (
       <ChatActivityGroup
         durationMs={activityCount === 1 ? durationMs : undefined}
+        elapsedSeconds={
+          segmentIndex === lastActivityIndex ? elapsedSeconds : undefined
+        }
         forceOpen={forceOpen}
         groupId={`${messageId}-${segment.startIndex}`}
+        isLoading={isLoading}
         isStreaming={isStreaming}
+        step={getAssistantActivityStep(parts)}
         key={`${messageId}-activity-${segment.startIndex}`}
       >
         {stackAssistantActivityItems(segment.items).map((item) => {
@@ -87,11 +92,11 @@ export function ChatAssistantParts({
           }
 
           if (item.part.type === "reasoning") {
+            if (!item.part.text.trim()) {
+              return null;
+            }
             return (
-              <ChatReasoningBlock
-                isStreaming={isLoading && item.part.state === "streaming"}
-                key={`${messageId}-reasoning-${item.index}`}
-              >
+              <ChatReasoningBlock key={`${messageId}-reasoning-${item.index}`}>
                 {item.part.text}
               </ChatReasoningBlock>
             );

@@ -21,7 +21,6 @@ import {
   webSearchInputSchema,
   webSearchOutputSchema,
 } from "@notra/schemas/dashboard/ai/chat-tool-block";
-import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import {
   Avatar,
   AvatarFallback,
@@ -338,8 +337,8 @@ function geoDaysSuffix(input: unknown): string | undefined {
 
 const TOOL_COPY: Record<string, ToolCopy> = {
   code_mode: {
-    verbs: ["Running", "Ran"],
-    noun: "tool program",
+    verbs: ["Executing", "Executed"],
+    noun: "tools",
   },
   // Notra tool provisioning was replaced by code_mode; kept for older chats.
   searchNotraTools: {
@@ -910,13 +909,7 @@ export function ChatToolBlock({
         disabled={!hasDetails}
       >
         {toolIcon}
-        {isStreaming ? (
-          <Shimmer as="span" className="min-w-0 truncate text-sm leading-5">
-            {subtitle}
-          </Shimmer>
-        ) : (
-          <span className="min-w-0 truncate leading-5">{subtitle}</span>
-        )}
+        <span className="min-w-0 truncate leading-5">{subtitle}</span>
         {showElapsedTimer && (
           <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
             {formatElapsedSeconds(elapsedSeconds)}

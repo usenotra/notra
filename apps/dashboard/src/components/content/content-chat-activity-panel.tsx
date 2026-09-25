@@ -14,7 +14,6 @@ import {
   MessageContent,
   MessageResponse,
 } from "@notra/ui/components/ai-elements/message";
-import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -41,6 +40,7 @@ import {
 import { getToolName, isToolUIPart } from "ai";
 import { Fragment, type ReactNode, useState } from "react";
 
+import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatEmptyDither } from "@/components/ai/chat-empty-dither";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
@@ -50,6 +50,7 @@ import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
+import { useChatActivityTimer } from "@/lib/hooks/use-chat-activity-timer";
 import { isImageMimeType } from "@/lib/upload/mime";
 import type {
   ContentChatActivityMessageProps,
@@ -143,6 +144,7 @@ function renderContentChatToolPart({
 function ContentChatActivityMessage({
   message,
   isLoading,
+  elapsedSeconds,
   organizationSlug,
   onApproveTool,
   onDenyTool,
@@ -182,7 +184,10 @@ function ContentChatActivityMessage({
   const hasBubbleContent =
     fileParts.length > 0 ||
     message.parts.some((part) => {
-      if (part.type === "text" || part.type === "reasoning") {
+      if (part.type === "reasoning") {
+        return true;
+      }
+      if (part.type === "text") {
         return Boolean(part.text.trim());
       }
       return isToolUIPart(part);
@@ -232,6 +237,7 @@ function ContentChatActivityMessage({
             {message.role === "assistant" ? (
               <ChatAssistantParts
                 durationMs={assistantMetadata?.generationDurationMs}
+                elapsedSeconds={elapsedSeconds}
                 isLoading={isLoading}
                 isStandaloneTool={isContentEditorStandaloneTool}
                 messageId={message.id}
@@ -520,12 +526,17 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
   } = props;
   const isAgentBusy = status === "streaming" || status === "submitted";
   const lastMessage = messages.at(-1);
+  const activitySeconds = useChatActivityTimer(
+    isAgentBusy,
+    activeChatId ?? "",
+    lastMessage?.role === "assistant" ? lastMessage.id : undefined
+  );
   const lastAssistantHasNoVisibleContent =
     lastMessage?.role === "assistant" &&
     !lastMessage.parts.some(
       (part) =>
         (part.type === "text" && Boolean(part.text.trim())) ||
-        (part.type === "reasoning" && Boolean(part.text.trim())) ||
+        part.type === "reasoning" ||
         isToolUIPart(part)
     );
   const showThinkingIndicator =
@@ -564,6 +575,9 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
                     status === "streaming" &&
                     message.id === lastAssistantMessageId
                   }
+                  elapsedSeconds={
+                    message.id === lastMessage?.id ? activitySeconds : undefined
+                  }
                   message={message}
                   onApproveTool={onApproveTool}
                   onDenyTool={onDenyTool}
@@ -577,10 +591,12 @@ export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
                 messageId="thinking"
                 style={{ contentVisibility: "visible" }}
               >
-                <BrailleLoader
-                  className="text-muted-foreground text-sm"
-                  label="Thinking"
-                />
+                <span
+                  className="text-muted-foreground flex items-center gap-2 text-sm leading-5"
+                  role="status"
+                >
+                  <ChatActivityStatus seconds={activitySeconds ?? 0} />
+                </span>
               </MessageScrollerItem>
             ) : null}
           </ContentChatActivityFeed>

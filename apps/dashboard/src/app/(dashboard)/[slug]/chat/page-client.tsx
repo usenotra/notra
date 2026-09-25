@@ -20,7 +20,6 @@ import {
   MessageContent,
   MessageResponse,
 } from "@notra/ui/components/ai-elements/message";
-import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -45,7 +44,7 @@ import {
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { nanoid } from "nanoid";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import {
   Children,
@@ -61,6 +60,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
@@ -98,6 +98,7 @@ import {
 } from "@/lib/chat/slack-relay";
 import { createStandaloneChatTransport } from "@/lib/chat/standalone-chat-transport";
 import { useActiveProject } from "@/lib/hooks/use-active-project";
+import { useChatActivityTimer } from "@/lib/hooks/use-chat-activity-timer";
 import {
   reconcileCreatedChatTitle,
   useChatSessionMutations,
@@ -204,7 +205,7 @@ function CreateToolPendingIndicator({
 
   return (
     <div className="text-muted-foreground flex items-center gap-2 text-xs">
-      <BrailleLoader className="text-sm" label="Thinking" />
+      <span>Working</span>
       {elapsedSeconds >= TOOL_TIMER_THRESHOLD_SECONDS && (
         <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums">
           {formatElapsedSeconds(elapsedSeconds)}
@@ -999,10 +1000,18 @@ function StandaloneChatPageClient({
   }, [chatHistoryData, setMessages]);
 
   const hasUpdatedUrlRef = useRef(false);
+  const pathname = usePathname();
   const previousInitialChatIdRef = useRef(initialChatId);
 
   useEffect(() => {
-    if (previousInitialChatIdRef.current === initialChatId) {
+    const returnedToNewChat =
+      !initialChatId &&
+      hasUpdatedUrlRef.current &&
+      pathname === `/${organizationSlug}/chat`;
+    if (
+      previousInitialChatIdRef.current === initialChatId &&
+      !returnedToNewChat
+    ) {
       return;
     }
     previousInitialChatIdRef.current = initialChatId;
@@ -1018,6 +1027,7 @@ function StandaloneChatPageClient({
     }
 
     queuedMessagesRef.current = [];
+    hasPendingChatNavigationRef.current = false;
     resetNewChatClientState({
       hasUpdatedUrlRef,
       setChatError,
@@ -1030,7 +1040,7 @@ function StandaloneChatPageClient({
       setWasStoppedByUser,
       wasStoppedByUserRef,
     });
-  }, [initialChatId]);
+  }, [initialChatId, organizationSlug, pathname]);
 
   const draftStorageKey = localStorageKeys.chatDraft(
     initialChatId ?? `new:${organizationSlug}`
@@ -1090,6 +1100,11 @@ function StandaloneChatPageClient({
       isChatHistoryPending ||
       pendingHistoryMessages > 0);
   const isLoading = status === "streaming" || status === "submitted";
+  const activitySeconds = useChatActivityTimer(
+    isLoading || isMirrorWorking,
+    stableChatId,
+    messages.at(-1)?.role === "assistant" ? messages.at(-1)?.id : undefined
+  );
   const isPendingAutoSubmit =
     !initialChatId && Boolean(initialQuery?.trim()) && messages.length === 0;
   const isProjectScopePending = !initialChatId && !isProjectResolved;
@@ -2075,15 +2090,7 @@ function StandaloneChatPageClient({
         return null;
       }
       const reasoningKey = `${messageId}-reasoning-${index}`;
-      const reasoningState = part.state as "streaming" | "done" | undefined;
-      return (
-        <ChatReasoningBlock
-          isStreaming={isLoading && reasoningState === "streaming"}
-          key={reasoningKey}
-        >
-          {text}
-        </ChatReasoningBlock>
-      );
+      return <ChatReasoningBlock key={reasoningKey}>{text}</ChatReasoningBlock>;
     }
 
     if (isToolUIPart(part)) {
@@ -2531,9 +2538,15 @@ function StandaloneChatPageClient({
     lastMessage != null &&
     (lastMessage.role === "user" ||
       lastAssistantHasNoVisibleContent ||
-      isAwaitingAssistantContinuation);
-  const thinkingIndicatorLabel =
-    lastMessage?.role === "user" ? "Getting Started" : "Working";
+      (isAwaitingAssistantContinuation &&
+        !lastMessage.parts.some(
+          (part) =>
+            part.type === "reasoning" ||
+            (isToolUIPart(part) &&
+              !isContentEditorStandaloneTool(part) &&
+              (part.type === "dynamic-tool" ||
+                (!isCreateTool(part.type) && part.type !== "tool-createImage")))
+        )));
   const visibleMessages =
     showThinkingIndicator && lastAssistantHasNoVisibleContent
       ? messages.slice(0, -1)
@@ -2546,12 +2559,7 @@ function StandaloneChatPageClient({
           <MessageScrollerProvider autoScroll>
             <MessageScroller className="min-h-0 flex-1">
               <MessageScrollerViewport className="min-w-0 overflow-x-hidden">
-                <MessageScrollerContent
-                  className={cn(
-                    "gap-4 px-4 pt-6 pb-6",
-                    isFirstMessageTransition && "chat-messages-fade-in"
-                  )}
-                >
+                <MessageScrollerContent className="gap-4 px-4 pt-6 pb-6">
                   {(() => {
                     const branchPointIndex = branchSwitchSignal
                       ? visibleMessages.findIndex(
@@ -2677,8 +2685,13 @@ function StandaloneChatPageClient({
                                   durationMs={
                                     message.metadata?.generationDurationMs
                                   }
+                                  elapsedSeconds={
+                                    message.id === lastMessage?.id
+                                      ? activitySeconds
+                                      : undefined
+                                  }
                                   isLoading={
-                                    isLoading &&
+                                    (isLoading || isMirrorWorking) &&
                                     message.id === lastAssistantMessageId
                                   }
                                   isStandaloneTool={(part) =>
@@ -2770,12 +2783,16 @@ function StandaloneChatPageClient({
                     <div className="mx-auto w-full max-w-2xl">
                       <Message from="assistant">
                         <MessageContent>
-                          <BrailleLoader
-                            className="text-sm"
-                            label={
-                              isStopping ? "Stopping" : thinkingIndicatorLabel
-                            }
-                          />
+                          <span
+                            className="text-muted-foreground flex items-center gap-2 text-sm leading-5"
+                            role="status"
+                          >
+                            <ChatActivityStatus
+                              active={!isStopping}
+                              label={isStopping ? "Stopping" : "Thinking"}
+                              seconds={activitySeconds ?? 0}
+                            />
+                          </span>
                         </MessageContent>
                       </Message>
                     </div>

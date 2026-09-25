@@ -1,12 +1,22 @@
 import type { UIMessage } from "ai";
 import type { ReactNode } from "react";
 
+export interface ChatActivityStatusProps {
+  children?: ReactNode;
+  seconds: number;
+  label?: string;
+  active?: boolean;
+}
+
 export interface ChatActivityGroupProps {
   children: ReactNode;
   durationMs?: number;
+  elapsedSeconds?: number;
   forceOpen?: boolean;
   groupId: string;
+  isLoading: boolean;
   isStreaming: boolean;
+  step: string;
 }
 
 export interface ChatSearchStackProps {
@@ -20,6 +30,7 @@ export interface ChatSearchStackProps {
 
 export interface ChatAssistantPartsProps {
   durationMs?: number;
+  elapsedSeconds?: number;
   isLoading: boolean;
   isStandaloneTool?: (part: UIMessage["parts"][number]) => boolean;
   messageId: string;

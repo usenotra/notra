@@ -2,12 +2,45 @@ import { describe, expect, test } from "bun:test";
 
 import { isContentEditorStandaloneTool } from "./content-editor-standalone-tool";
 import {
+  getAssistantActivityStep,
   groupAssistantMessageParts,
-  hasVisibleAssistantTextAfter,
   isAssistantActivityForceOpen,
   isAssistantActivityStreaming,
   stackAssistantActivityItems,
 } from "./group-assistant-message-parts";
+
+test("current step follows the latest streamed part, not a completed tool", () => {
+  expect(
+    getAssistantActivityStep([reasoning("Checking sources", "streaming")])
+  ).toBe("Thinking");
+  expect(
+    getAssistantActivityStep([
+      reasoning("Checking sources"),
+      {
+        type: "tool-webSearch",
+        toolCallId: "search-1",
+        state: "input-available",
+        input: { query: "news" },
+      },
+    ])
+  ).toBe("Searching web");
+  expect(
+    getAssistantActivityStep([
+      reasoning("Checking sources"),
+      {
+        type: "tool-code_mode",
+        toolCallId: "code-1",
+        state: "input-available",
+        input: {},
+      },
+    ])
+  ).toBe("Executing tools");
+  expect(getAssistantActivityStep([tool("webSearch")])).toBe("Thinking");
+  expect(
+    getAssistantActivityStep([tool("webSearch"), text("Here is the answer")])
+  ).toBe("Writing response");
+  expect(getAssistantActivityStep([])).toBe("Thinking");
+});
 
 function text(value: string) {
   return { type: "text" as const, text: value };
@@ -28,7 +61,7 @@ function tool(name: string) {
 }
 
 describe("groupAssistantMessageParts", () => {
-  test("groups consecutive reasoning and tools until visible text", () => {
+  test("groups reasoning and tools above visible text", () => {
     const segments = groupAssistantMessageParts([
       reasoning("Planning the research"),
       tool("webSearch"),
@@ -44,6 +77,35 @@ describe("groupAssistantMessageParts", () => {
       throw new Error("expected activity");
     }
     expect(segments[0].items).toHaveLength(3);
+  });
+
+  test("keeps one activity above commentary across tool steps", () => {
+    const parts = [
+      text("Let me fetch this page."),
+      tool("fetchWebpage"),
+      text("Checking another source."),
+      reasoning("Compare the sources"),
+      tool("webSearch"),
+      text("Here is the answer."),
+    ];
+    const segments = groupAssistantMessageParts(parts);
+
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "activity",
+      "standalone",
+      "standalone",
+      "standalone",
+    ]);
+    expect(segments[0]).toMatchObject({
+      kind: "activity",
+      items: [{ index: 1 }, { index: 3 }, { index: 4 }],
+    });
+    expect(segments.slice(1).map((segment) => segment.startIndex)).toEqual([
+      0, 2, 5,
+    ]);
+    expect(groupAssistantMessageParts(parts.slice(0, 2))[0]?.startIndex).toBe(
+      segments[0]?.startIndex
+    );
   });
 
   test("does not split a group on empty text or step-start parts", () => {
@@ -210,34 +272,24 @@ describe("isAssistantActivityStreaming", () => {
       "activity",
       "standalone",
     ]);
-    expect(
-      isAssistantActivityStreaming(
-        true,
-        true,
-        hasVisibleAssistantTextAfter(segments, 0)
-      )
-    ).toBe(true);
+    expect(isAssistantActivityStreaming(true, true)).toBe(true);
   });
 
-  test("stops streaming once visible text follows the activity", () => {
+  test("stays working until the assistant finishes, even after text starts", () => {
     const segments = groupAssistantMessageParts([
       reasoning("Planning the draft"),
       text("Here is the post."),
     ]);
 
     expect(
-      isAssistantActivityStreaming(
-        true,
-        true,
-        hasVisibleAssistantTextAfter(segments, 0)
-      )
-    ).toBe(false);
+      isAssistantActivityStreaming(true, segments[0]?.kind === "activity")
+    ).toBe(true);
   });
 
   test("only the last activity streams", () => {
-    expect(isAssistantActivityStreaming(true, true, false)).toBe(true);
-    expect(isAssistantActivityStreaming(true, false, false)).toBe(false);
-    expect(isAssistantActivityStreaming(false, true, false)).toBe(false);
+    expect(isAssistantActivityStreaming(true, true)).toBe(true);
+    expect(isAssistantActivityStreaming(true, false)).toBe(false);
+    expect(isAssistantActivityStreaming(false, true)).toBe(false);
   });
 });
 

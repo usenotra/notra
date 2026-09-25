@@ -30,7 +30,7 @@ export function ChatPageSkeleton() {
           <div className="bg-background sticky bottom-0 z-10 px-4 pb-4">
             <div className="from-background pointer-events-none absolute -inset-x-4 bottom-full h-12 bg-linear-to-t to-transparent" />
             <div className="mx-auto w-full max-w-2xl">
-              <Skeleton className="h-28 w-full rounded-2xl" />
+              <div className="bg-muted h-28 w-full rounded-2xl" />
             </div>
           </div>
         </div>

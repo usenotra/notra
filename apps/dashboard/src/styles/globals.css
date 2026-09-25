@@ -110,22 +110,6 @@
   animation: chat-input-slide-down 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes chat-messages-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.chat-messages-fade-in {
-  animation: chat-messages-fade-in 360ms ease-out both;
-  animation-delay: 120ms;
-}
-
 @keyframes chat-branch-fade-in {
   from {
     opacity: 0;
@@ -139,6 +123,13 @@
 
 .chat-branch-fade-in {
   animation: chat-branch-fade-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-input-slide-down,
+  .chat-branch-fade-in {
+    animation: none;
+  }
 }
 
 /* Pierre diffs inherit these into Shadow DOM. */

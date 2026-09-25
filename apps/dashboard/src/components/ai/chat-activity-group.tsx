@@ -6,8 +6,6 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
-import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,6 +15,7 @@ import { cn } from "@notra/ui/lib/utils";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
 import {
   ACTIVITY_AUTO_CLOSE_DELAY_MS,
   ACTIVITY_CONTENT_CLASSNAME,
@@ -46,99 +45,88 @@ function useWorkedDurationSeconds(
   const fromMetadata =
     durationMs == null ? null : Math.max(1, Math.round(durationMs / 1000));
   const startedAtRef = useRef<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(
-    isStreaming ? 0 : null
-  );
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
 
   useEffect(() => {
     if (isStreaming) {
       if (startedAtRef.current === null) {
         startedAtRef.current = Date.now();
       }
-      const started = startedAtRef.current;
-      const tick = () => {
-        setElapsedSeconds(
-          Math.max(0, Math.floor((Date.now() - started) / 1000))
-        );
-      };
-      tick();
-      const interval = window.setInterval(tick, 1000);
-      return () => window.clearInterval(interval);
+      return;
     }
 
     if (startedAtRef.current !== null) {
       setElapsedSeconds(
         Math.max(1, Math.ceil((Date.now() - startedAtRef.current) / 1000))
       );
+      startedAtRef.current = null;
     }
   }, [isStreaming]);
 
-  return elapsedSeconds ?? fromMetadata;
+  return fromMetadata ?? elapsedSeconds;
 }
 
 export function ChatActivityGroup({
   children,
   durationMs,
+  elapsedSeconds,
   forceOpen = false,
   groupId,
+  isLoading,
   isStreaming,
+  step,
 }: ChatActivityGroupProps) {
-  const durationSeconds = useWorkedDurationSeconds(isStreaming, durationMs);
-  const [isOpen, setIsOpen] = useState(isStreaming || forceOpen);
-  const [wasStreaming, setWasStreaming] = useState(isStreaming);
+  const measuredSeconds = useWorkedDurationSeconds(isStreaming, durationMs);
+  const durationSeconds =
+    elapsedSeconds && !isStreaming ? elapsedSeconds : measuredSeconds;
+  const [isOpen, setIsOpen] = useState(isLoading || forceOpen);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-  if (wasStreaming !== isStreaming) {
-    setWasStreaming(isStreaming);
-    if (isStreaming || forceOpen) {
-      setIsOpen(true);
-    }
-  } else if (forceOpen && !isOpen) {
+  if (forceOpen && !isOpen) {
     setIsOpen(true);
   }
 
   useEffect(() => {
-    if (isStreaming || forceOpen) {
+    if (isLoading || forceOpen || hasInteracted) {
       return;
     }
     const closeTimer = window.setTimeout(() => {
       setIsOpen(false);
     }, ACTIVITY_AUTO_CLOSE_DELAY_MS);
     return () => window.clearTimeout(closeTimer);
-  }, [forceOpen, isStreaming]);
+  }, [forceOpen, hasInteracted, isLoading]);
 
-  const label = formatWorkedDurationLabel(durationSeconds, isStreaming);
-  const showWorkingLoader =
-    isStreaming && (!durationSeconds || durationSeconds <= 0);
+  const label = isStreaming ? step : formatWorkedDurationLabel(durationSeconds);
 
   return (
     <Collapsible
       data-activity-group={groupId}
-      onOpenChange={setIsOpen}
+      onOpenChange={(open) => {
+        setHasInteracted(true);
+        setIsOpen(open);
+      }}
       open={isOpen}
     >
       <CollapsibleTrigger className="text-muted-foreground hover:text-foreground group flex w-full min-w-0 items-center gap-1 text-sm transition-colors">
-        {showWorkingLoader ? (
-          <BrailleLoader className="text-sm" label={label} />
-        ) : null}
-        {isStreaming && !showWorkingLoader ? (
-          <Shimmer as="span" className="min-w-0 truncate text-sm leading-5">
-            {label}
-          </Shimmer>
-        ) : null}
-        {isStreaming ? null : (
-          <span className="min-w-0 truncate leading-5">{label}</span>
-        )}
-        <HugeiconsIcon
-          aria-hidden
-          className={cn(
-            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
-            isOpen ? "rotate-180" : "rotate-0"
-          )}
-          icon={ArrowDown01Icon}
-        />
+        <ChatActivityStatus
+          active={isStreaming && step !== "Waiting for approval"}
+          label={label}
+          seconds={elapsedSeconds ?? measuredSeconds ?? 0}
+        >
+          <HugeiconsIcon
+            aria-hidden
+            className={cn(
+              "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
+              isOpen ? "rotate-180" : "rotate-0"
+            )}
+            icon={ArrowDown01Icon}
+          />
+        </ChatActivityStatus>
       </CollapsibleTrigger>
       <CollapsibleContent className={ACTIVITY_CONTENT_CLASSNAME}>
-        <div className="mt-1.5 flex flex-col gap-1">{children}</div>
+        <div className="border-border/70 mt-2 ml-1.5 flex min-w-0 flex-col gap-2 border-l pl-3">
+          {children}
+        </div>
       </CollapsibleContent>
     </Collapsible>
   );
@@ -171,7 +159,7 @@ function SearchFavicon({ domain }: { domain?: string }) {
 
 export function ChatSearchStack({ items }: ChatSearchStackProps) {
   const [showAllSources, setShowAllSources] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const isStreaming = items.some(
     (item) =>
       item.state === "input-streaming" || item.state === "input-available"
@@ -194,17 +182,11 @@ export function ChatSearchStack({ items }: ChatSearchStackProps) {
           icon={Search01Icon}
           strokeWidth={1.8}
         />
-        {isStreaming ? (
-          <Shimmer as="span" className="min-w-0 truncate text-sm leading-5">
-            {label}
-          </Shimmer>
-        ) : (
-          <span className="min-w-0 truncate leading-5">{label}</span>
-        )}
+        <span className="min-w-0 truncate leading-5">{label}</span>
         <HugeiconsIcon
           aria-hidden
           className={cn(
-            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform",
+            "text-muted-foreground/60 size-3.5 shrink-0 transition-transform motion-reduce:transition-none",
             isOpen ? "rotate-180" : "rotate-0"
           )}
           icon={ArrowDown01Icon}
