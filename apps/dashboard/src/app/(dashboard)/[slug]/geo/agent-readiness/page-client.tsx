@@ -12,6 +12,7 @@ import { useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateReadinessPreview } from "@/components/empty-state-preview";
+import { CrawlabilityReportCard } from "@/components/geo/agent-readiness/crawlability-report";
 import { AgentReadinessChecklist } from "@/components/geo/agent-readiness/readiness-checklist";
 import { AgentReadinessScanDialog } from "@/components/geo/agent-readiness/readiness-scan-dialog";
 import { AgentReadinessScanningNotice } from "@/components/geo/agent-readiness/readiness-scanning-notice";
@@ -45,39 +46,51 @@ function ReadinessBody({
 
   if (!report) {
     if (isScanning) {
-      return <AgentReadinessScanningNotice targetUrl={targetUrl} />;
+      return (
+        <>
+          <AgentReadinessScanningNotice targetUrl={targetUrl} />
+          {scan?.crawlability ? (
+            <CrawlabilityReportCard report={scan.crawlability} />
+          ) : null}
+        </>
+      );
     }
     return (
-      <EmptyState
-        actionLabel={
-          scan?.status === "failed" ? "Try again" : "Scan your website"
-        }
-        description={
-          scan?.status === "failed" ? (
-            scanErrorMessage
-          ) : (
-            <>
-              Check how ready{" "}
-              <strong className="font-semibold">
-                {stripWebsiteProtocol(targetUrl)}
-              </strong>{" "}
-              is for AI agents. The scan is public and takes a few minutes.
-            </>
-          )
-        }
-        onActionClick={onRequestScan}
-        preview={<EmptyStateReadinessPreview />}
-        title={scan?.status === "failed" ? "Scan failed" : "No scan yet"}
-        titleIcon={
-          scan?.status === "failed" ? (
-            <HugeiconsIcon
-              className="text-destructive size-5"
-              icon={AlertCircleIcon}
-              strokeWidth={2}
-            />
-          ) : null
-        }
-      />
+      <>
+        {scan?.crawlability ? (
+          <CrawlabilityReportCard report={scan.crawlability} />
+        ) : null}
+        <EmptyState
+          actionLabel={
+            scan?.status === "failed" ? "Try again" : "Scan your website"
+          }
+          description={
+            scan?.status === "failed" ? (
+              scanErrorMessage
+            ) : (
+              <>
+                Check how ready{" "}
+                <strong className="font-semibold">
+                  {stripWebsiteProtocol(targetUrl)}
+                </strong>{" "}
+                is for AI agents. The scan is public and takes a few minutes.
+              </>
+            )
+          }
+          onActionClick={onRequestScan}
+          preview={<EmptyStateReadinessPreview />}
+          title={scan?.status === "failed" ? "Scan failed" : "No scan yet"}
+          titleIcon={
+            scan?.status === "failed" ? (
+              <HugeiconsIcon
+                className="text-destructive size-5"
+                icon={AlertCircleIcon}
+                strokeWidth={2}
+              />
+            ) : null
+          }
+        />
+      </>
     );
   }
 
@@ -94,6 +107,9 @@ function ReadinessBody({
         onRescan={onRequestScan}
         previousScore={previousScore}
         report={report}
+      />
+      <CrawlabilityReportCard
+        report={scan?.crawlability ?? report.crawlability}
       />
       <AgentReadinessChecklist issues={report.issues} targetUrl={targetUrl} />
     </div>

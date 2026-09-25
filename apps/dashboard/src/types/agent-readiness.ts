@@ -1,5 +1,6 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import type { AgentReadinessIssue } from "@notra/db/types/agent-readiness";
+import type { CrawlabilityReport } from "@notra/db/types/crawlability";
 import type {
   AgentReadinessIssueGroups,
   AgentReadinessReportView,
@@ -89,4 +90,8 @@ export interface AgentReadinessBreakdownTileProps {
 export interface AgentReadinessScoreGaugeProps {
   score: number;
   className?: string;
+}
+
+export interface CrawlabilityReportCardProps {
+  report: CrawlabilityReport | null;
 }

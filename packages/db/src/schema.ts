@@ -35,6 +35,7 @@ import type {
   AgentReadinessIssue,
   AgentReadinessScoreBreakdown,
 } from "./types/agent-readiness";
+import type { CrawlabilityReport } from "./types/crawlability";
 import type { GeoCheckGrounding } from "./types/geo-checks";
 import type {
   GeoPersonaProfile,
@@ -1933,6 +1934,9 @@ export const geoAgentReadinessReports = pgTable(
       .$type<AgentReadinessIssue[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    crawlability: jsonb("crawlability")
+      .$type<CrawlabilityReport | null>()
+      .default(null),
     eligibleChecks: integer("eligible_checks"),
     reportUrl: text("report_url"),
     errorMessage: text("error_message"),

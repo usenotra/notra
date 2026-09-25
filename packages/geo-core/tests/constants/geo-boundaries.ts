@@ -5,6 +5,13 @@ import type { AgentReadinessNetworkShape } from "../../src/types/agent-readiness
 import type { GeoModelServiceShape } from "../../src/types/model";
 
 export const readinessNetwork: AgentReadinessNetworkShape = {
+  crawlability: () =>
+    Effect.succeed({
+      checkedAt: "2026-09-25T00:00:00Z",
+      pageLimit: 20,
+      pages: [],
+      discovery: [],
+    }),
   report: () =>
     Effect.succeed({
       score: 80,

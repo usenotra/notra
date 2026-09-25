@@ -41,6 +41,7 @@ type AgentReadinessReportFields = Pick<
   | "scoreLabel"
   | "scoreBreakdown"
   | "issues"
+  | "crawlability"
   | "eligibleChecks"
   | "reportUrl"
   | "errorMessage"
@@ -59,6 +60,7 @@ function toReportView(
     scoreLabel: row.scoreLabel,
     scoreBreakdown: row.scoreBreakdown ?? null,
     issues: row.issues,
+    crawlability: row.crawlability ?? null,
     eligibleChecks: row.eligibleChecks,
     reportUrl: row.reportUrl,
     errorMessage: row.errorMessage,
@@ -120,6 +122,7 @@ const readinessReportColumns = {
   scoreLabel: geoAgentReadinessReports.scoreLabel,
   scoreBreakdown: geoAgentReadinessReports.scoreBreakdown,
   issues: geoAgentReadinessReports.issues,
+  crawlability: geoAgentReadinessReports.crawlability,
   eligibleChecks: geoAgentReadinessReports.eligibleChecks,
   reportUrl: geoAgentReadinessReports.reportUrl,
   errorMessage: geoAgentReadinessReports.errorMessage,
@@ -387,6 +390,21 @@ export const executeAgentReadinessScan = Effect.fn(
 )(function* (payload: AgentReadinessWorkflowPayload) {
   const network = yield* AgentReadinessNetwork;
   return yield* Effect.gen(function* () {
+    const crawlability = yield* network.crawlability(payload.targetUrl);
+    yield* geoDb("save crawler checks", () =>
+      db
+        .update(geoAgentReadinessReports)
+        .set({ crawlability })
+        .where(
+          and(
+            eq(geoAgentReadinessReports.id, payload.reportId),
+            eq(geoAgentReadinessReports.organizationId, payload.organizationId),
+            eq(geoAgentReadinessReports.projectId, payload.projectId),
+            eq(geoAgentReadinessReports.targetUrl, payload.targetUrl),
+            eq(geoAgentReadinessReports.status, "running")
+          )
+        )
+    );
     const previous = yield* geoDb("read previous readiness", () =>
       latestCompletedBefore(
         payload.projectId,
@@ -428,6 +446,7 @@ export const executeAgentReadinessScan = Effect.fn(
           // feedback.md is a Notra bonus check, so it does not alter the
           // externally owned Is Agentic score or breakdown.
           issues,
+          crawlability,
           eligibleChecks: report.eligibleChecks,
           reportUrl: report.reportUrl,
           errorMessage: null,

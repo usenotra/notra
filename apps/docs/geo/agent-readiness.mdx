@@ -60,6 +60,21 @@ On top of the external report, Notra adds one check of its own named **feedback.
 
 This check is added as a `bonus` issue and does not alter the externally computed score or breakdown. Notra's own feedback endpoint is documented under [Agent Feedback](/api/agent-feedback).
 
+## Crawler access and readability
+
+Each new scan also runs deterministic checks from Notra. Expand a page in **Crawler access and readability** to see evidence and suggested actions:
+
+- Published robots.txt permissions for Googlebot, Bingbot, OAI-SearchBot, PerplexityBot, Claude-SearchBot, ClaudeBot, and GPTBot. Search and training purposes are labeled separately.
+- Public HTTP responses and redirect destinations.
+- Google-applicable meta robots and X-Robots-Tag noindex directives.
+- Declared HTML canonicals, text available without JavaScript, and main heading structure.
+
+Results are **passed**, **blocked**, **review**, or **unknown**. Blocked means a restriction was observed, not that it is necessarily wrong. Preserve intentional login/private-page exclusions and training preferences. Redirects and alternate canonicals are review items rather than automatic errors. Short source text and heading structure are heuristics, not indexing verdicts.
+
+The sample includes the configured target and up to 19 sitemap pages on its final origin, prioritizing top-level paths. Discovery reads at most three sitemap files, supports sitemap indexes, and lists coverage limitations. Off-origin sitemap entries and unlisted pages are not scanned. Requests have time, body-size, redirect, and public-network restrictions. Incomplete fetches are **unknown**, never passed.
+
+Requests use Notra's user agent and network, not verified crawler IP addresses. The scan does not execute JavaScript, reproduce Google rendering, establish Google's index status, or guarantee AI citation. These diagnostics are stored separately from the Is Agentic score. They remain available if the external readiness scan fails. Older reports show **not checked** until you run a new scan.
+
 ## Score bands
 
 The score card shows the number, a gauge, and a band label based on the same thresholds the report uses:
