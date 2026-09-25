@@ -80,6 +80,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "release-note",
+    label: "Release note",
+    href: "/design-system#release-note",
+    level: "section",
+  },
+  {
     id: "braille-loader",
     label: "Braille Loader",
     href: "/design-system#braille-loader",

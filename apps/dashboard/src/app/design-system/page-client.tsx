@@ -229,6 +229,7 @@ import ChatInput from "@/components/chat-input";
 import { DesignSystemChatQueueDemo } from "@/components/design-system/design-system-chat-queue-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
+import { GeoLaunchReleaseDemo } from "@/components/design-system/geo-launch-release";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
@@ -1710,6 +1711,19 @@ export default function DesignSystemClientPage() {
           </OnboardingChecklist>
         </div>
       </section>
+
+      <Separator />
+
+      <section className="scroll-mt-10 space-y-6" id="release-note">
+        <DesignSystemSectionHeader
+          description="One-page release modal. The top is a slot for whatever visual the launch needs."
+          id="release-note"
+          title="Release note"
+        />
+        <GeoLaunchReleaseDemo />
+      </section>
+
+      <Separator />
 
       <section className="scroll-mt-10 space-y-6" id="geo-range-picker">
         <DesignSystemSectionHeader
