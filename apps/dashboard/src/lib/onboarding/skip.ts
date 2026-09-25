@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { getSession, validateOrganizationAccess } from "@/lib/auth/actions";
+import { validatedOnboardingProjectId } from "@/lib/onboarding/project";
 import type { OnboardingStep } from "@/types/analytics/events";
 import { withGeoProject } from "@/utils/geo-paths";
 
@@ -23,23 +24,27 @@ export async function skipOnboarding(slug: string, step: OnboardingStep) {
     redirect(`/${slug}`);
   }
 
-  const [[updated], requestHeaders] = await Promise.all([
-    db
-      .update(organizations)
-      .set({ onboardingDismissed: true })
-      .where(
-        and(
-          eq(organizations.id, organization.id),
-          eq(organizations.onboardingDismissed, false)
-        )
-      )
-      .returning({ id: organizations.id }),
-    readRequestHeaders(),
-  ]);
-  const projectId =
+  const requestHeaders = await readRequestHeaders();
+  const requestedProjectId =
     URL.parse(requestHeaders?.get("referer") ?? "")?.searchParams.get(
       "project"
     ) ?? undefined;
+  // Validate before writing so a failed lookup cannot leave onboarding dismissed.
+  const projectId = await validatedOnboardingProjectId(
+    organization.id,
+    requestedProjectId
+  );
+
+  const [updated] = await db
+    .update(organizations)
+    .set({ onboardingDismissed: true })
+    .where(
+      and(
+        eq(organizations.id, organization.id),
+        eq(organizations.onboardingDismissed, false)
+      )
+    )
+    .returning({ id: organizations.id });
   if (updated) {
     trackServerEvent({
       event: POSTHOG_EVENTS.ONBOARDING_STEP_SKIPPED,

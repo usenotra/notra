@@ -3,6 +3,7 @@ import { organizations } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
+import { validatedOnboardingProjectId } from "@/lib/onboarding/project";
 import { withGeoProject } from "@/utils/geo-paths";
 
 export async function redirectIfOnboardingDismissed(
@@ -20,6 +21,10 @@ export async function redirectIfOnboardingDismissed(
     columns: { onboardingDismissed: true },
   });
   if (organization?.onboardingDismissed) {
-    redirect(withGeoProject(`/${slug}`, projectId));
+    const validProjectId = await validatedOnboardingProjectId(
+      organizationId,
+      projectId
+    );
+    redirect(withGeoProject(`/${slug}`, validProjectId));
   }
 }
