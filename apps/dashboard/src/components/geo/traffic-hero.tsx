@@ -48,6 +48,7 @@ import {
   toggleTrafficTrendKey,
   trafficTrendProviderTypeKey,
 } from "@/utils/ai-traffic-trend";
+import { formatFullDayLabel } from "@/utils/analytics-charts";
 import { seriesColors } from "@/utils/chart-colors";
 import { engineIconHtml } from "@/utils/engine-icon-html";
 import { formatChartInteger } from "@/utils/geo-charts";
@@ -223,10 +224,20 @@ export function TrafficHero({
           className={TRAFFIC_HERO_CHART_SURFACE_CLASS}
           data-chart-title="AI traffic"
         >
+          <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
+            <h2 className="text-sm font-medium">Traffic activity</h2>
+            <TrafficProviderLegend
+              hiddenKeys={hiddenKeys}
+              onToggle={(key) =>
+                setHiddenKeys((current) => toggleTrafficTrendKey(current, key))
+              }
+              series={providerSeries}
+            />
+          </div>
           <EChartsAreaChart
             animation={false}
             chartOptions={HERO_CHART_OPTIONS}
-            className="h-52 w-full @md/hero:h-72"
+            className="h-52 w-full cursor-crosshair @md/hero:h-72"
             config={config}
             curveType="monotone"
             data={chartRows}
@@ -258,21 +269,16 @@ export function TrafficHero({
             <EChartsAreaChart.Tooltip
               confine={false}
               hideZeros
-              layout="bars"
+              labelFormatter={formatFullDayLabel}
+              labelKey="rawDay"
+              layout="activity"
               position="fixed"
               rowGroups={tooltipGroups}
               roundness="xl"
+              scrub
               valueFormatter={formatChartInteger}
             />
           </EChartsAreaChart>
-          <TrafficProviderLegend
-            config={config}
-            hiddenKeys={hiddenKeys}
-            onToggle={(key) =>
-              setHiddenKeys((current) => toggleTrafficTrendKey(current, key))
-            }
-            series={providerSeries}
-          />
         </div>
       ) : null}
     </div>

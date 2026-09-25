@@ -73,7 +73,7 @@ export function SentimentResultsTable({
         key: "title",
         header: "Claim",
         width: "1fr",
-        minWidth: isMobile ? "8rem" : "15rem",
+        minWidth: "8rem",
         sortable: true,
         cell: (row) => (
           <span className="flex min-w-0 items-center gap-2 text-sm">
@@ -93,6 +93,7 @@ export function SentimentResultsTable({
         key: "models",
         header: "Models",
         width: "8rem",
+        collapsePriority: 1,
         cell: (row) => (
           <span className="flex items-center gap-1.5">
             {[...new Set(row.evidence.map((evidence) => evidence.engine))]
@@ -117,7 +118,7 @@ export function SentimentResultsTable({
       {
         key: "answers",
         header: "Evidence",
-        width: "6rem",
+        width: "9rem",
         align: "right",
         sortable: true,
         sortValue: (row) =>
@@ -135,8 +136,10 @@ export function SentimentResultsTable({
   return (
     <div
       id="sentiment-claims"
-      className="min-w-0 scroll-mt-24 space-y-3"
-      aria-busy={pending}
+      className="sentiment-results-table min-w-0 scroll-mt-24 space-y-3"
+      aria-hidden={pending}
+      data-ready={!pending}
+      inert={pending || undefined}
     >
       <Table
         columns={

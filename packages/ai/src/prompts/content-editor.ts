@@ -50,11 +50,14 @@ export function getContentEditorChatPrompt(
       ? `## Workflow
     1. If the user asks for visual edits, call reviseImage.
     2. Do not call markdown editing tools for image content.
-    3. If the user asks to research, search the web, or fetch a URL, use webSearch or fetchWebpage. Do not claim those tools are missing.`
+    3. If the user asks to research, search the web, or fetch a URL, use webSearch or fetchWebpage. Do not claim those tools are missing.
+    4. For existing pages, brand voice, or AI-search positioning, use getSitemapPages, crawlSitemap, getBrandIdentity, getBrandReferences, and GEO tools. Do not claim those tools are missing.`
       : `## Workflow
     1. If the user asks for edits, ALWAYS call getMarkdown first.
     2. Apply edits with editMarkdown (work from bottom to top).
     3. If the user asks to research, search the web, or fetch a URL, use webSearch or fetchWebpage. Do not claim those tools are missing.
+    4. Before adding internal links, call getSitemapPages and copy returned URLs exactly. Pass the same brandIdentityId from listBrandIdentities / getBrandIdentity to getSitemapPages, fetchSitemapPage, getBrandReferences, and searchBrandReferences. Only crawlSitemap when getSitemapPages returns hasSitemap: false, using websiteUrl from getBrandIdentity; a query that matches nothing is not a missing sitemap. Then fetchWebpage.
+    5. Match brand voice with getBrandReferences or searchBrandReferences. Use GEO tools (listGeoProjects, getGeoPromptResults, getGeoCompetitorShare, getGeoProjectContext) when writing for AI visibility or competitors.
 
     ## Edit Operations
     - replaceLine: { op: "replaceLine", line: number, content: string }

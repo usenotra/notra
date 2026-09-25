@@ -1,6 +1,6 @@
 "use client";
 
-import { useSidebar } from "@notra/ui/components/ui/sidebar";
+import { SidebarRail, useSidebar } from "@notra/ui/components/ui/sidebar";
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
 import {
@@ -18,13 +18,13 @@ export function SidebarResizeHandle({
   onWidthChangeStart,
   width,
 }: SidebarResizeHandleProps) {
-  const { state } = useSidebar();
+  const { setOpen, state } = useSidebar();
   const currentWidthRef = useRef<number | null>(null);
   const startWidthRef = useRef(0);
   const startXRef = useRef(0);
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0 || state === "collapsed") {
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) {
       return;
     }
 
@@ -36,19 +36,33 @@ export function SidebarResizeHandle({
     onWidthChangeStart();
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     if (currentWidthRef.current === null) {
       return;
     }
 
-    const nextWidth = clampSidebarWidth(
-      startWidthRef.current + event.clientX - startXRef.current
-    );
+    if (Math.abs(event.clientX - startXRef.current) < 4) {
+      return;
+    }
+    const draggedWidth =
+      startWidthRef.current + event.clientX - startXRef.current;
+    if (state === "collapsed") {
+      if (event.clientX - startXRef.current >= 40) {
+        finishResize(event);
+        setOpen(true);
+      }
+      return;
+    }
+    const nextWidth = clampSidebarWidth(draggedWidth);
     currentWidthRef.current = nextWidth;
     onWidthChange(nextWidth);
+    if (draggedWidth < SIDEBAR_MIN_WIDTH - 40) {
+      finishResize(event);
+      setOpen(false);
+    }
   };
 
-  const finishResize = (event: PointerEvent<HTMLDivElement>) => {
+  const finishResize = (event: PointerEvent<HTMLButtonElement>) => {
     const currentWidth = currentWidthRef.current;
     if (currentWidth === null) {
       return;
@@ -61,12 +75,25 @@ export function SidebarResizeHandle({
     onWidthChangeEnd(currentWidth);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     let nextWidth: number | undefined;
 
     if (event.key === "ArrowLeft") {
+      if (state === "collapsed") {
+        return;
+      }
+      if (width === SIDEBAR_MIN_WIDTH) {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
       nextWidth = clampSidebarWidth(width - SIDEBAR_RESIZE_STEP);
     } else if (event.key === "ArrowRight") {
+      if (state === "collapsed") {
+        event.preventDefault();
+        setOpen(true);
+        return;
+      }
       nextWidth = clampSidebarWidth(width + SIDEBAR_RESIZE_STEP);
     } else if (event.key === "Home") {
       nextWidth = SIDEBAR_MIN_WIDTH;
@@ -79,19 +106,30 @@ export function SidebarResizeHandle({
     }
 
     event.preventDefault();
+    if (state === "collapsed") {
+      setOpen(true);
+    }
     onWidthChange(nextWidth);
     onWidthChangeEnd(nextWidth);
   };
 
   return (
-    <div
+    <SidebarRail
       aria-label="Resize sidebar"
       aria-orientation="vertical"
       aria-valuemax={SIDEBAR_MAX_WIDTH}
-      aria-valuemin={SIDEBAR_MIN_WIDTH}
-      aria-valuenow={width}
-      className="absolute inset-y-2 right-0 z-20 hidden w-2 cursor-col-resize touch-none outline-none group-data-[collapsible=icon]:hidden md:block"
+      aria-valuemin={0}
+      aria-valuenow={state === "collapsed" ? 0 : width}
+      aria-valuetext={state === "collapsed" ? "Collapsed" : `${width} pixels`}
+      className="touch-none group-data-[collapsible=icon]:-right-5.5! after:hidden max-sm:hidden"
+      onClick={(event) => {
+        // A mouse click must not move the rail before the second click lands.
+        if (event.detail === 0) {
+          setOpen(state === "collapsed");
+        }
+      }}
       onDoubleClick={() => {
+        setOpen(true);
         onWidthChange(SIDEBAR_DEFAULT_WIDTH);
         onWidthChangeEnd(SIDEBAR_DEFAULT_WIDTH);
       }}
@@ -102,8 +140,8 @@ export function SidebarResizeHandle({
       onPointerMove={handlePointerMove}
       onPointerUp={finishResize}
       role="separator"
-      tabIndex={state === "collapsed" ? -1 : 0}
-      title="Drag to resize sidebar. Double-click to reset."
+      tabIndex={0}
+      title="Drag to resize or collapse sidebar. Double-click to reset."
     />
   );
 }

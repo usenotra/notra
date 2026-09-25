@@ -438,6 +438,7 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps")(function* (
           .where(
             and(
               eq(geoPromptSuggestions.organizationId, scope.organizationId),
+              eq(geoPromptSuggestions.projectId, projectId),
               eq(geoPromptSuggestions.status, "pending")
             )
           )

@@ -182,7 +182,7 @@ const issueTokenRoute = createRoute({
   operationId: "issueGeoIngestToken",
   summary: "Issue the tracking token",
   description:
-    "Returns the current tracking token together with the install snippets. Organization-level: pass `projectId` to bind the token to one project. Issuing does not invalidate previously issued tokens; use rotation for that.",
+    "Returns the current tracking token together with the install snippets. Pass `projectId` for a project-specific token; without it, the legacy token only accepts the organization's oldest project's hosts. Issuing does not invalidate previously issued tokens; use rotation for that.",
   request: { query: ingestTokenQuerySchema },
   responses: {
     200: {

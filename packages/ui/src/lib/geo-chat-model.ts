@@ -22,6 +22,9 @@ export function chatgptModelForEngine(engine: string): ChatgptModelId {
 
 export function claudeModelForEngine(engine: string): ClaudeChatModelId {
   const key = engineKey(engine);
+  if (key.includes("opus-5.5")) {
+    return "opus-5.5";
+  }
   if (key.includes("haiku")) {
     return "haiku-4.5";
   }

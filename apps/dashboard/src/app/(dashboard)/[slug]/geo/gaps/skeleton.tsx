@@ -22,7 +22,7 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
         </div>
       </div>
       <GeoTableSkeleton rows={GAP_ROW_COUNT} />
-      <p aria-live="polite" className="text-muted-foreground text-xs">
+      <p aria-live="polite" className="sr-only">
         {GEO_GAPS_LOADING_STATUS}
       </p>
     </div>

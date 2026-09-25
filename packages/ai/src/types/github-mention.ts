@@ -9,6 +9,8 @@ import type { z } from "zod";
 
 export type GitHubMentionOctokit = ReturnType<typeof createOctokit>;
 
+export type GitHubMentionCheckRunConclusion = "success" | "neutral" | "failure";
+
 export type GitHubAppWebhookPayload = z.infer<
   typeof githubAppWebhookPayloadSchema
 >;

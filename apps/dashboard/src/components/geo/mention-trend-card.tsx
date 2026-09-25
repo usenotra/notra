@@ -156,7 +156,7 @@ export function MentionTrendCard({
       ) : (
         <EChartsAreaChart
           animation={false}
-          className="min-h-64 w-full flex-1"
+          className="min-h-64 w-full flex-1 cursor-crosshair"
           config={config}
           curveType="monotone"
           data={chartRows}
@@ -208,6 +208,7 @@ export function MentionTrendCard({
             position="fixed"
             roundness="xl"
             rowKeys={visibleKeys}
+            scrub
             valueFormatter={formatChartInteger}
           />
         </EChartsAreaChart>

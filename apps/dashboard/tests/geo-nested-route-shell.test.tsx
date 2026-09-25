@@ -19,6 +19,8 @@ describe("GEO nested route shells", () => {
   test("content gaps loading shell is the gaps skeleton, not GEO overview", () => {
     const html = renderToStaticMarkup(<GeoGapsLoading />);
     expect(html).toContain("Content Gaps");
+    expect(html).toContain('aria-live="polite" class="sr-only"');
+    expect(html).toContain("Calculating gaps from the latest scan.");
     expect(html).not.toContain(OVERVIEW_SKELETON_COPY);
     expect(html).not.toContain(">GEO<");
   });

@@ -1,19 +1,15 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
-import { organizations } from "@notra/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { organizations, projects } from "@notra/db/schema";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
-  GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS,
-  GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS,
   GEO_INGEST_PATH,
   GEO_INGEST_SECRET_ENV,
   GEO_INGEST_SECRET_FALLBACK_ENV,
   GEO_INGEST_TOKEN_ENV,
-  GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX,
   GEO_INGEST_TOKEN_SEPARATOR,
 } from "../constants/geo";
 import type {
@@ -37,114 +33,89 @@ export {
  * Tracking-token issuing, revocation and install snippets.
  *
  * This used to live in `apps/dashboard/src/lib/geo-ingest/*`. It is entirely
- * Next-free — `node:crypto`, drizzle, Upstash and `process.env` — and the
+ * Next-free — `node:crypto`, drizzle and `process.env` — and the
  * public API needs the exact same answers as the dashboard, so it moved here
  * rather than being copied. The dashboard modules now re-export from this file,
  * which keeps a single implementation and leaves every existing dashboard
  * import path working.
  */
 
-const MISSING = "missing";
 const GENERATION_SEGMENT_REGEX = /^g\d+$/;
 const FALLBACK_APP_URL = "https://app.usenotra.com";
-const CACHE_GENERATION_SCRIPT = `
-local current = redis.call("GET", KEYS[1])
-local incoming = ARGV[1]
-local ttl = tonumber(ARGV[2])
-
-if incoming == "${MISSING}" then
-  if not current then
-    redis.call("SET", KEYS[1], incoming, "EX", ttl)
-    return 1
-  end
-  return 0
-end
-
-local currentNumber = tonumber(current)
-if not current or current == "${MISSING}" or not currentNumber or currentNumber <= tonumber(incoming) then
-  redis.call("SET", KEYS[1], incoming, "EX", ttl)
-  return 1
-end
-
-return 0
-`;
-
-function generationCacheKey(organizationId: string): string {
-  return `${GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX}:${organizationId}`;
-}
-
-async function cacheGeneration(
-  organizationId: string,
-  value: number | null
-): Promise<void> {
-  const client = redis;
-  if (!client) {
-    return;
-  }
-  const encoded = value === null ? MISSING : String(value);
-  const ttl =
-    value === null
-      ? GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS
-      : GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS;
-  await client
-    .eval(
-      CACHE_GENERATION_SCRIPT,
-      [generationCacheKey(organizationId)],
-      [encoded, String(ttl)]
-    )
-    .catch(() => null);
-}
 
 /**
- * The organization's current tracking-token generation, or null when the
- * organization no longer exists. Cached briefly; rotation writes through the
- * cache so revocation takes effect immediately.
+ * The organization's or selected project's current tracking-token generation.
+ * Read from the database so revocation never depends on a cache write.
  */
 export async function getGeoIngestTokenGeneration(
-  organizationId: string
+  organizationId: string,
+  projectId?: string | null
 ): Promise<number | null> {
-  const client = redis;
-  if (client) {
-    const cached = await client
-      .get<string | number>(generationCacheKey(organizationId))
-      .catch(() => null);
-    if (cached === MISSING) {
-      return null;
-    }
-    const parsed = typeof cached === "number" ? cached : Number(cached);
-    if (Number.isInteger(parsed) && parsed >= 1) {
-      return parsed;
-    }
-  }
-
-  const row = await db.query.organizations.findFirst({
-    columns: { geoIngestTokenGeneration: true },
-    where: eq(organizations.id, organizationId),
-  });
-  const generation = row?.geoIngestTokenGeneration ?? null;
-  await cacheGeneration(organizationId, generation);
-  return generation;
+  const row = projectId
+    ? await db.query.projects.findFirst({
+        columns: { geoIngestTokenGeneration: true },
+        where: and(
+          eq(projects.id, projectId),
+          eq(projects.organizationId, organizationId)
+        ),
+      })
+    : await db.query.organizations.findFirst({
+        columns: { geoIngestTokenGeneration: true },
+        where: eq(organizations.id, organizationId),
+      });
+  return row?.geoIngestTokenGeneration ?? null;
 }
 
 /**
- * Revoke every outstanding tracking token for the organization by bumping the
- * generation. Returns the new generation.
+ * Revoke one project's tokens, or all tokens when no project is provided.
+ * Returns the new generation for the requested scope.
  */
 async function rotateGeoIngestTokenGeneration(
-  organizationId: string
+  organizationId: string,
+  projectId?: string | null
 ): Promise<number | null> {
-  const [row] = await db
-    .update(organizations)
-    .set({
-      geoIngestTokenGeneration: sql`${organizations.geoIngestTokenGeneration} + 1`,
-    })
-    .where(eq(organizations.id, organizationId))
-    .returning({ generation: organizations.geoIngestTokenGeneration });
-  if (!row) {
+  if (projectId) {
+    const [row] = await db
+      .update(projects)
+      .set({
+        geoIngestTokenGeneration: sql`${projects.geoIngestTokenGeneration} + 1`,
+      })
+      .where(
+        and(
+          eq(projects.id, projectId),
+          eq(projects.organizationId, organizationId)
+        )
+      )
+      .returning({ generation: projects.geoIngestTokenGeneration });
+    if (!row) {
+      return null;
+    }
+    return row.generation;
+  }
+
+  const outcome = await db.transaction(async (tx) => {
+    const [organization] = await tx
+      .update(organizations)
+      .set({
+        geoIngestTokenGeneration: sql`${organizations.geoIngestTokenGeneration} + 1`,
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning({ generation: organizations.geoIngestTokenGeneration });
+    if (!organization) {
+      return null;
+    }
+    await tx
+      .update(projects)
+      .set({
+        geoIngestTokenGeneration: sql`${projects.geoIngestTokenGeneration} + 1`,
+      })
+      .where(eq(projects.organizationId, organizationId));
+    return organization;
+  });
+  if (!outcome) {
     return null;
   }
-  await cacheGeneration(organizationId, row.generation);
-  return row.generation;
+  return outcome.generation;
 }
 
 export function getGeoIngestSecret(): string | null {
@@ -423,7 +394,7 @@ export const issueGeoIngestSetupResponse = Effect.fn("geo.ingest.issueSetup")(
 
     const generation = yield* geoDb(
       "ingest token generation lookup failed",
-      () => getGeoIngestTokenGeneration(input.organizationId)
+      () => getGeoIngestTokenGeneration(input.organizationId, input.projectId)
     );
     if (generation === null) {
       return null;
@@ -444,7 +415,7 @@ export const rotateGeoIngestSetupResponse = Effect.fn("geo.ingest.rotateSetup")(
     }
 
     const generation = yield* geoDb("ingest token rotation failed", () =>
-      rotateGeoIngestTokenGeneration(input.organizationId)
+      rotateGeoIngestTokenGeneration(input.organizationId, input.projectId)
     );
     if (generation === null) {
       return null;

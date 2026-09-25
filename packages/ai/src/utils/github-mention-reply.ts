@@ -1,4 +1,8 @@
-import { GITHUB_MENTION_REPLY_DIFF } from "@notra/ai/constants/github-mention";
+import {
+  GITHUB_MENTION_ITERATE_HINT,
+  GITHUB_MENTION_REPLY_DIFF,
+  GITHUB_MENTION_THREAD_ITERATE_HINT,
+} from "@notra/ai/constants/github-mention";
 import { GITHUB_MENTION_RATE_LIMIT } from "@notra/ai/constants/rate-limits";
 import type {
   GitHubMentionChangedFile,
@@ -11,6 +15,14 @@ import {
 } from "@notra/ai/utils/github-mention-suggestion";
 
 const SHORT_SHA_LENGTH = 7;
+const FOOTER_HINT_SUFFIX = `${GITHUB_MENTION_ITERATE_HINT}</sub>`;
+
+/** Only the closing footer changes; the same words in prose stay untouched. */
+export function toGitHubMentionThreadReplyBody(body: string) {
+  return body.endsWith(FOOTER_HINT_SUFFIX)
+    ? `${body.slice(0, -FOOTER_HINT_SUFFIX.length)}${GITHUB_MENTION_THREAD_ITERATE_HINT}</sub>`
+    : body;
+}
 const PULL_REQUEST_NUMBER_PATTERN = /\/pull\/(\d+)/;
 
 function clipLine(line: string) {
@@ -129,7 +141,7 @@ export function buildGitHubMentionReplyFooter(params: {
     const deletions = params.files.reduce((sum, f) => sum + f.deletions, 0);
     parts.push(`+${additions} −${deletions}`);
   }
-  parts.push("mention me again to keep iterating");
+  parts.push(GITHUB_MENTION_ITERATE_HINT);
   return `<sub>${parts.join(" · ")}</sub>`;
 }
 
@@ -238,7 +250,7 @@ function proposalFooter(
     proposals.length === 1 && first
       ? inlineCode(first.path)
       : `${proposals.length} files`;
-  return `<sub>Suggestion · ${where} · ${howToApply} · mention me again to keep iterating</sub>`;
+  return `<sub>Suggestion · ${where} · ${howToApply} · ${GITHUB_MENTION_ITERATE_HINT}</sub>`;
 }
 
 /**

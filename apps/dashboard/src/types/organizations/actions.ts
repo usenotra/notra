@@ -6,12 +6,12 @@ import type {
 
 export interface ActionError {
   message: string;
+  code?: string;
 }
 
-export interface ActionResult<T> {
-  data: T | null;
-  error: ActionError | null;
-}
+export type ActionResult<T> =
+  | { data: T; error: null }
+  | { data: null; error: ActionError };
 
 export type OrganizationRow = typeof organizations.$inferSelect;
 export type MemberRow = typeof members.$inferSelect;

@@ -65,6 +65,12 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
           "github",
           "name",
           "delete account",
+          "security",
+          "2fa",
+          "mfa",
+          "two-factor",
+          "authenticator",
+          "backup codes",
         ],
       },
       {

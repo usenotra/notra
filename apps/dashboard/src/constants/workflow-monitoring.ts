@@ -10,6 +10,13 @@ export const WORKFLOW_MONITORING = {
   sweepBudgetMs: 40_000,
 };
 
+export const GEO_SCAN_ALERTS = {
+  budgetMs: 20_000,
+  concurrency: 5,
+  staleLookbackSeconds: 7 * 24 * 60 * 60,
+  sweepIntervalMs: 5 * 60_000,
+};
+
 export const MONITORED_WORKFLOW_STATUSES = [
   "pending",
   "running",

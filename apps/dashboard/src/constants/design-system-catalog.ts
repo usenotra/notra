@@ -86,6 +86,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "auth-mfa",
+    label: "Auth · Two-factor",
+    href: "/design-system/auth-flow",
+    level: "section",
+  },
+  {
     id: "claude-session",
     label: "Claude · Session",
     href: "/design-system#claude-session",
@@ -315,11 +321,6 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
   },
 ];
 
-/*
- * The displayed section number is the entry's position in the list, so it is
- * derived here rather than stored on every entry. Inserting a section no longer
- * means renumbering every one that follows it.
- */
 export const DESIGN_SYSTEM_CATALOG_BY_ID = Object.fromEntries(
   DESIGN_SYSTEM_CATALOG.map((item, index) => [
     item.id,

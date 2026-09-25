@@ -22,7 +22,7 @@ import {
   hasEnabledLinearIntegration,
   validateIntegrations,
 } from "./integration-validator";
-import { routeAndSelectModel } from "./router";
+import { routeMessage, selectAutoModel } from "./router";
 import { getThinkingProviderOptions } from "./thinking";
 import {
   buildToolSet,
@@ -70,14 +70,25 @@ export async function orchestrateChat(
   const routedDecision = await resolveConversationRoute(
     messages,
     undefined,
-    () =>
-      routeAndSelectModel(
+    async () => {
+      const decision = await routeMessage(
         lastUserMessage,
         hasIntegrationContext,
         log,
         hasAttachments,
         telemetryMetadata
-      )
+      );
+      const auto = selectAutoModel(decision);
+      return {
+        model: auto.model,
+        thinkingLevel: auto.thinkingLevel,
+        complexity: decision.complexity,
+        requiresTools: true,
+        reasoning: decision.requiresTools
+          ? `auto → ${auto.model}: ${decision.reasoning}`
+          : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`,
+      };
+    }
   );
   const routingDecision = {
     ...routedDecision,
@@ -198,17 +209,16 @@ function lastUserMessageHasNonTextParts(messages: UIMessage[]): boolean {
 function getLastUserMessage(messages: UIMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
-    if (!message) {
+    if (!message || message.role !== "user") {
       continue;
     }
-    if (message.role === "user") {
-      const parts = message.parts;
-      if (Array.isArray(parts)) {
-        for (const part of parts) {
-          if (part.type === "text") {
-            return part.text;
-          }
-        }
+    const parts = message.parts;
+    if (!Array.isArray(parts)) {
+      continue;
+    }
+    for (const part of parts) {
+      if (part.type === "text") {
+        return part.text;
       }
     }
   }

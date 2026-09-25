@@ -289,7 +289,7 @@ export function ContactForm() {
             {CONTACT_FORM_ASSURANCE}
           </p>
           <p className="font-sans text-xs/4.5 text-[#1E1E1E80] dark:text-white/40">
-            By submitting you agree to our{" "}
+            We screen messages for spam. See our{" "}
             <Link
               className="hover:text-primary font-medium text-[#1E1E1E] underline underline-offset-2 dark:text-white"
               href="/privacy"

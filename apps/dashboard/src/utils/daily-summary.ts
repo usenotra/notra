@@ -125,19 +125,23 @@ export function isQuietDailySummary({
   return scansCompleted === 0 && yesterdayChecks === 0;
 }
 
+function mentionRateMoved(
+  yesterday: number | null,
+  previousDay: number | null
+) {
+  if (yesterday === null || previousDay === null) {
+    return false;
+  }
+
+  return Math.round((yesterday - previousDay) * 100) !== 0;
+}
+
 export function isUnchangedDailySummary({
   yesterday,
   previousDay,
-  changes,
-  hasNewEngine,
+  hasChanges,
 }: DailySummaryUnchangedInput) {
-  return (
-    !hasNewEngine &&
-    formatMentionRateDelta(yesterday.rate, previousDay.rate) === "unchanged" &&
-    changes.gained === changes.lost &&
-    changes.positionImproved === changes.positionDropped &&
-    changes.citationsAdded === changes.citationsRemoved
-  );
+  return !hasChanges && !mentionRateMoved(yesterday.rate, previousDay.rate);
 }
 
 export function buildDailySummaryHeadline({

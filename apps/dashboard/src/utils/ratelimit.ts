@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
 import { COMPANY_LOGO_RATE_LIMIT_PER_QUERY_PER_MINUTE } from "@/constants/company-logo";
@@ -170,6 +171,18 @@ export const ratelimit = {
     prefix: "ratelimit:auth-social-start",
     limiter: Ratelimit.slidingWindow(10, "1m"),
   }),
+  mfaVerify: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:auth-mfa-verify",
+    limiter: Ratelimit.slidingWindow(5, "1m"),
+  }),
+  backupCode: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:auth-backup-code",
+    limiter: Ratelimit.slidingWindow(5, "10m"),
+  }),
 };
 
 export function getClientIpFromHeaders(headersList: Headers): string {
@@ -184,12 +197,42 @@ export function getClientIpFromHeaders(headersList: Headers): string {
 }
 
 export function getClientIp(request: NextRequest): string {
-  // Vercel injects this header at its trusted network boundary. Do not fall
-  // back to generic forwarding headers: outside Vercel they are supplied by
-  // the client unless the deployment configures its own trusted proxy.
   if (process.env.VERCEL !== "1") {
     return "unknown";
   }
 
   return request.headers.get("x-vercel-forwarded-for")?.trim() || "unknown";
+}
+
+export async function isRateLimited(
+  limiter: Ratelimit,
+  key: string
+): Promise<boolean> {
+  if (shouldSkipRateLimiting()) {
+    return false;
+  }
+
+  const headersList = await headers();
+  const ip = getClientIpFromHeaders(headersList);
+  const { success } = await limiter.limit(`${ip}:${key.toLowerCase()}`);
+  return !success;
+}
+
+export async function isAccountRateLimited(
+  limiter: Ratelimit,
+  key: string
+): Promise<boolean> {
+  if (shouldSkipRateLimiting()) {
+    return false;
+  }
+  const { success } = await limiter.limit(key.toLowerCase());
+  return !success;
+}
+
+function shouldSkipRateLimiting() {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    (!process.env.UPSTASH_REDIS_REST_URL ||
+      !process.env.UPSTASH_REDIS_REST_TOKEN)
+  );
 }

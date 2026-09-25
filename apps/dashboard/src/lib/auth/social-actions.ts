@@ -1,7 +1,7 @@
 "use server";
 
 import { startSocialSignInInputSchema } from "@notra/schemas/dashboard/auth/social";
-import type { StartSocialSignInInput } from "@notra/ui/lib/auth-types";
+import type { StartSocialSignInInput } from "@notra/schemas/types/dashboard/auth";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";

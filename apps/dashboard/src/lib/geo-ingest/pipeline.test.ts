@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
+import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
+
 import type { GeoVisitorClassification } from "@/types/geo";
 
 const CRAWLER_CLASSIFICATION: GeoVisitorClassification = {
@@ -20,12 +22,14 @@ const HUMAN_CLASSIFICATION: GeoVisitorClassification = {
 
 const ingestGeoTrafficEvents = mock(async () => null);
 const isGeoIngestIdentityActive = mock(async () => true);
-const loadIngestAllowedHosts = mock(async () => ["example.com"]);
+const loadIngestAllowedHosts = mock(async (): Promise<string[] | null> => [
+  "example.com",
+]);
 const ratelimitLimit = mock(async () => ({ success: true }));
 const trackGeoIngestAnalytics = mock(async () => {});
 const geoLogInfo = mock(() => {});
 const flushGeoLog = mock(async () => {});
-const verifyGeoIngestToken = mock(() => ({
+const verifyGeoIngestToken = mock((): GeoIngestIdentity => ({
   organizationId: "org_1",
   projectId: "proj_1",
   generation: 1,
@@ -74,6 +78,7 @@ const { runGeoIngest } = await import("./pipeline");
 const {
   GeoIngestInvalidPayloadError,
   GeoIngestInvalidTokenError,
+  GeoIngestFailedError,
   GeoIngestUnparseableUrlError,
 } = await import("./errors");
 
@@ -109,6 +114,11 @@ describe("runGeoIngest ordering", () => {
       m.mockClear();
     }
     verifyGeoIngestToken.mockClear();
+    verifyGeoIngestToken.mockImplementation(() => ({
+      organizationId: "org_1",
+      projectId: "proj_1",
+      generation: 1,
+    }));
     classifyVisitor.mockClear();
     resolveJourneyId.mockClear();
     classifyVisitor.mockImplementation(() => CRAWLER_CLASSIFICATION);
@@ -157,6 +167,42 @@ describe("runGeoIngest ordering", () => {
     const outcome = await run(ingestRequest());
 
     expect(outcome._tag).toBe("Success");
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
+  });
+
+  test("legacy organization tokens do not ingest a sibling project's host", async () => {
+    verifyGeoIngestToken.mockImplementation(() => ({
+      organizationId: "org_1",
+      projectId: null,
+      generation: 1,
+    }));
+    loadIngestAllowedHosts.mockImplementation(async () => ["oldest.example"]);
+
+    const outcome = await run(ingestRequest());
+
+    expect(outcome._tag).toBe("Success");
+    expect(loadIngestAllowedHosts).toHaveBeenCalledWith({
+      organizationId: "org_1",
+      projectId: null,
+      generation: 1,
+    });
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
+  });
+
+  test("legacy organization tokens fail closed if host lookup is unavailable", async () => {
+    verifyGeoIngestToken.mockImplementation(() => ({
+      organizationId: "org_1",
+      projectId: null,
+      generation: 1,
+    }));
+    loadIngestAllowedHosts.mockImplementation(async () => null);
+
+    const outcome = await run(ingestRequest());
+
+    expect(outcome._tag).toBe("Failure");
+    if (outcome._tag === "Failure") {
+      expect(outcome.failure).toBeInstanceOf(GeoIngestFailedError);
+    }
     expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
   });
 

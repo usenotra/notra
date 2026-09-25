@@ -18,7 +18,10 @@ export interface WorkflowTelemetryEvent extends Record<string, unknown> {
     | "job.step.snapshot"
     | "monitoring.sweep.completed"
     | "monitoring.operation.failed"
-    | "backend.dependency.checked";
+    | "backend.dependency.checked"
+    | "geo.scan.schedule.overdue"
+    | "geo.scan.alert.failed"
+    | "geo.scan.watchdog.failed";
   outcome?: "success" | "error";
   runId?: string;
   organizationId?: string | null;

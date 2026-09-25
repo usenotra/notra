@@ -164,6 +164,7 @@ export function useGeoOverviewPage(
     data: trafficJourneys,
     isPending: isJourneysPending,
     isPlaceholderData: isJourneysPlaceholder,
+    isError: isJourneysError,
   } = useGeoTrafficJourneys(organizationId, geoRange.query, journeysEnabled);
   const {
     data: journeyStats,
@@ -215,6 +216,7 @@ export function useGeoOverviewPage(
     promptResults: promptResults?.results,
     promptCount: prompts.length,
     journeys: trafficJourneys?.journeys,
+    journeysFailed: isJourneysError && trafficJourneys === undefined,
     journeyStats,
     journeyStatsFailed: isJourneyStatsError && journeyStats === undefined,
     journeysLoading: geoJourneysTabLoading({

@@ -1,4 +1,4 @@
-import type { LoginFormProps as SharedLoginFormProps } from "@notra/ui/lib/auth-types";
+import type { LoginFormProps as SharedLoginFormProps } from "@notra/ui/types/auth";
 
 export type LoginFormProps = Omit<
   SharedLoginFormProps,
@@ -6,5 +6,7 @@ export type LoginFormProps = Omit<
   | "validators"
   | "signInWithPassword"
   | "verifyEmailCode"
+  | "verifyMfaCode"
+  | "redeemBackupCode"
   | "startSocialSignIn"
 >;

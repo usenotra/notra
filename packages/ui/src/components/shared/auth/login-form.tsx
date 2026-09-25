@@ -4,12 +4,12 @@ import { useForm } from "@tanstack/react-form";
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
+import { useAuthFlow } from "../../../hooks/use-auth-flow";
 import type {
   AuthMethod,
   LoginFormProps,
-  PendingVerification,
   SocialProvider,
-} from "../../../lib/auth-types";
+} from "../../../types/auth";
 import {
   getLastUsedLoginMethod,
   setLastUsedLoginMethod,
@@ -23,16 +23,22 @@ import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { AuthOrDivider } from "./auth-or-divider";
 import { AuthPasswordField } from "./auth-password-field";
+import { AuthPendingStep } from "./auth-pending-step";
 import { AuthSocialButtons } from "./auth-social-buttons";
-import { EmailVerificationForm } from "./email-verification-form";
 
 const LOGIN_ERROR_FALLBACK = "Failed to sign in. Please try again.";
+const SOCIAL_ERROR_FALLBACK = "Social sign-in failed. Please try again.";
 
 const noop = () => {
   return;
 };
 const subscribeToNothing = () => noop;
 const returnNull = () => null;
+
+const validateFilledField = (
+  validate: (value: string) => string | undefined,
+  value: string
+) => (value.length > 0 ? validate(value) : undefined);
 
 export function LoginForm({
   title = "Welcome back",
@@ -42,114 +48,127 @@ export function LoginForm({
   showSignupLink = true,
   showForgotPasswordLink = true,
   initialError,
-  initialPendingVerification,
+  initialPending,
   callbackPath,
   validators,
   signInWithPassword,
   verifyEmailCode,
+  verifyMfaCode,
+  redeemBackupCode,
   startSocialSignIn,
 }: LoginFormProps) {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(
     initialError ?? null
   );
-  const [pendingVerification, setPendingVerification] =
-    useState<PendingVerification | null>(initialPendingVerification ?? null);
   const authInFlightRef = useRef(false);
+  const flow = useAuthFlow({ initialPending, onSuccess });
   const lastMethod = useSyncExternalStore(
     subscribeToNothing,
     getLastUsedLoginMethod,
     returnNull
   );
   const isAuthLoading = authMethod !== null;
-
   const callbackURL = returnTo ?? callbackPath;
 
-  function handleSocialLogin(provider: SocialProvider) {
+  function releaseAuth() {
+    authInFlightRef.current = false;
+    setAuthMethod(null);
+  }
+
+  function startRedirectSignIn(
+    method: AuthMethod,
+    start: () => Promise<void>,
+    fallbackError: string
+  ) {
     if (authInFlightRef.current) {
       return;
     }
-
     setFormError(null);
     authInFlightRef.current = true;
-    setAuthMethod(provider);
-    setLastUsedLoginMethod(provider);
-    startSocialSignIn({ provider, returnTo: callbackURL }).catch((error) => {
+    setAuthMethod(method);
+    setLastUsedLoginMethod(method);
+    start().catch((error) => {
       if (isNextRedirectError(error)) {
         return;
       }
-      authInFlightRef.current = false;
-      setAuthMethod(null);
-      setFormError("Social sign-in failed. Please try again.");
+      releaseAuth();
+      setFormError(fallbackError);
     });
   }
 
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      if (authInFlightRef.current) {
-        return;
+  async function submitPassword(email: string, password: string) {
+    if (authInFlightRef.current) {
+      return;
+    }
+    setFormError(null);
+    authInFlightRef.current = true;
+    setAuthMethod("email");
+    try {
+      const result = await signInWithPassword({
+        email,
+        password,
+        returnTo: callbackURL,
+      });
+      if (result.status === "success") {
+        setLastUsedLoginMethod("email");
       }
+      if (!flow.applyResult(result)) {
+        setFormError(
+          result.status === "error"
+            ? result.message || LOGIN_ERROR_FALLBACK
+            : LOGIN_ERROR_FALLBACK
+        );
+      }
+      if (result.status !== "success") {
+        releaseAuth();
+      }
+    } catch (error) {
+      console.error("Email login error:", error);
+      setFormError(LOGIN_ERROR_FALLBACK);
+      releaseAuth();
+    }
+  }
 
+  const form = useForm({
+    defaultValues: { email: "", password: "" },
+    onSubmit: async ({ value }) => {
       if (validators.email(value.email) || validators.password(value.password)) {
         return;
       }
-
-      setFormError(null);
-      authInFlightRef.current = true;
-      setAuthMethod("email");
-      try {
-        const result = await signInWithPassword({
-          email: value.email,
-          password: value.password,
-          returnTo: callbackURL,
-        });
-
-        if (result.status === "error") {
-          setFormError(result.message || LOGIN_ERROR_FALLBACK);
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          return;
-        }
-
-        if (result.status === "verification-required") {
-          authInFlightRef.current = false;
-          setAuthMethod(null);
-          setPendingVerification({
-            pendingAuthenticationToken: result.pendingAuthenticationToken,
-            email: result.email,
-          });
-          return;
-        }
-
-        setLastUsedLoginMethod("email");
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      } catch (error) {
-        console.error("Email login error:", error);
-        setFormError(LOGIN_ERROR_FALLBACK);
-        authInFlightRef.current = false;
-        setAuthMethod(null);
-      }
+      await submitPassword(value.email, value.password);
     },
   });
 
-  if (pendingVerification) {
+  function resetToSignIn() {
+    flow.reset();
+    setFormError(null);
+  }
+
+  async function handleRecovered(recoveredEmail: string) {
+    flow.reset();
+    const { email, password } = form.state.values;
+    if (email && password) {
+      await submitPassword(email, password);
+      return;
+    }
+    setFormError(
+      `Backup code accepted. Two-factor authentication was turned off for ${recoveredEmail}. Sign in again to continue.`
+    );
+  }
+
+  if (flow.pending) {
     return (
-      <EmailVerificationForm
-        email={pendingVerification.email}
-        onSuccess={onSuccess}
-        pendingAuthenticationToken={
-          pendingVerification.pendingAuthenticationToken
-        }
+      <AuthPendingStep
+        onBack={resetToSignIn}
+        onFinish={flow.finish}
+        onRecovered={handleRecovered}
+        onResult={flow.applyResult}
+        redeemBackupCode={redeemBackupCode}
         returnTo={callbackURL}
+        step={flow.pending}
         verifyEmailCode={verifyEmailCode}
+        verifyMfaCode={verifyMfaCode}
       />
     );
   }
@@ -163,7 +182,13 @@ export function LoginForm({
           authMethod={authMethod}
           disabled={isAuthLoading}
           lastMethod={lastMethod}
-          onSelect={handleSocialLogin}
+          onSelect={(provider: SocialProvider) =>
+            startRedirectSignIn(
+              provider,
+              () => startSocialSignIn({ provider, returnTo: callbackURL }),
+              SOCIAL_ERROR_FALLBACK
+            )
+          }
         />
 
         <AuthOrDivider />
@@ -182,7 +207,8 @@ export function LoginForm({
             <form.Field
               name="email"
               validators={{
-                onBlur: ({ value }) => validators.email(value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.email, value),
                 onSubmit: ({ value }) => validators.email(value),
               }}
             >
@@ -202,7 +228,8 @@ export function LoginForm({
             <form.Field
               name="password"
               validators={{
-                onBlur: ({ value }) => validators.password(value),
+                onBlur: ({ value }) =>
+                  validateFilledField(validators.password, value),
                 onSubmit: ({ value }) => validators.password(value),
               }}
             >

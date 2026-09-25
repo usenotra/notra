@@ -30,11 +30,11 @@ async function lookupProject(identity: GeoIngestIdentity): Promise<boolean> {
 
 /**
  * A valid signature is not enough: the token's generation must match the
- * organization's current one (rotation revokes older generations), and the
+ * token's organization or project scope (rotation revokes older generations), and the
  * organization (and project, when the token is project-scoped) must still
  * exist so leaked tokens die with the resources they were minted for. Lookups
- * are cached briefly and fail open on infrastructure errors so an outage
- * never drops real traffic.
+ * are cached briefly. Generation checks fail closed so a database outage
+ * cannot reauthorize a revoked token.
  */
 export async function isGeoIngestIdentityActive(
   identity: GeoIngestIdentity
@@ -48,13 +48,14 @@ export async function isGeoIngestIdentityActive(
 
   try {
     const generation = await getGeoIngestTokenGeneration(
-      identity.organizationId
+      identity.organizationId,
+      identity.projectId
     );
     if (generation === null || generation !== identity.generation) {
       return false;
     }
   } catch {
-    return true;
+    return false;
   }
 
   const cached = await cachedLookup;

@@ -37,7 +37,7 @@ export interface GscSelectSiteInput {
 }
 
 export interface GscSyncResult {
-  status: "completed" | "skipped" | "invalid_payload";
+  status: "completed" | "skipped" | "failed" | "invalid_payload";
   keywords?: number;
   suggestionsAdded?: number;
   reason?: string;

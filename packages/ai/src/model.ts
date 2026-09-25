@@ -63,6 +63,11 @@ function createLazyDevToolsMiddleware(): LanguageModelMiddleware {
   let middlewarePromise: Promise<LanguageModelMiddleware> | undefined;
 
   const getMiddleware = async () => {
+    // Next.js must be able to eliminate this import from the workflow bundle.
+    if (process.env.NODE_ENV !== "development") {
+      return undefined;
+    }
+
     middlewarePromise ??= import("@ai-sdk/devtools").then(
       ({ devToolsMiddleware }: { devToolsMiddleware: DevToolsMiddleware }) =>
         devToolsMiddleware()
@@ -74,19 +79,19 @@ function createLazyDevToolsMiddleware(): LanguageModelMiddleware {
     specificationVersion: "v4",
     async transformParams(options) {
       const middleware = await getMiddleware();
-      return middleware.transformParams
+      return middleware?.transformParams
         ? middleware.transformParams(options)
         : options.params;
     },
     async wrapGenerate(options) {
       const middleware = await getMiddleware();
-      return middleware.wrapGenerate
+      return middleware?.wrapGenerate
         ? middleware.wrapGenerate(options)
         : options.doGenerate();
     },
     async wrapStream(options) {
       const middleware = await getMiddleware();
-      return middleware.wrapStream
+      return middleware?.wrapStream
         ? middleware.wrapStream(options)
         : options.doStream();
     },

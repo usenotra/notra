@@ -265,17 +265,13 @@ async function sendDailySummaryForOrganization({
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
-  const hasNewEngine = changeEvents.some(
-    (event) => event.kind === "new_engine"
-  );
   const previousDay = aggregateMentionTotals(previousOverview);
   const changes = mergeChangesSummaries(summaries);
   if (
     isUnchangedDailySummary({
       yesterday,
       previousDay,
-      changes,
-      hasNewEngine,
+      hasChanges: changeEvents.some((event) => event.kind !== "new_engine"),
     })
   ) {
     return "quiet";

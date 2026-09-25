@@ -458,6 +458,7 @@ export interface DueGeoScanRow {
   projectId: string;
   scanIntervalHours: number;
   nextScanAt: Date | null;
+  scanFirstFailedAt: Date | null;
   lastScanAt: Date | null;
 }
 

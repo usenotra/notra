@@ -3,6 +3,7 @@
 import type { GeoJourneyPageStats } from "@notra/geo-core/types/geo";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import { FilesIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
@@ -63,8 +64,12 @@ export function JourneyPathsCard({
       caption={sampled ? `${pageNoun} (top ${pages.length} shown)` : pageNoun}
       delta={trafficVisitDelta(totalPages, previousTotalPages)}
       emptyMessage={
-        failed ? "Could not load fetched pages" : "No fetched pages yet"
+        failed ? "Could not load fetched pages" : "No pages fetched yet"
       }
+      emptyDescription={
+        failed ? undefined : "Pages fetched by AI agents will appear here."
+      }
+      emptyMedia={failed ? undefined : <FilesIcon className="size-5" />}
       emptySeed="geo-journey-paths"
       eyebrow="Fetched pages"
       stats={journeyPageKindStats(kindCounts, totalPages)}

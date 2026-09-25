@@ -13,6 +13,7 @@ import {
   buildGitHubMentionProposalFallbackReply,
   buildGitHubMentionProposalReply,
   findGitHubMentionReplyAnchor,
+  toGitHubMentionThreadReplyBody,
 } from "@notra/ai/utils/github-mention-reply";
 import {
   fitGitHubMentionSuggestionsToRange,
@@ -46,6 +47,7 @@ export async function postGitHubMentionReply(params: {
 }) {
   const { octokit, context, body } = params;
   const pullNumber = context.pullRequest?.number;
+  const threadBody = toGitHubMentionThreadReplyBody(body);
   try {
     if (context.comment.review && pullNumber) {
       return await replyToGitHubReviewThread({
@@ -54,7 +56,7 @@ export async function postGitHubMentionReply(params: {
         repo: context.repo,
         pullNumber,
         rootCommentId: context.comment.review.rootCommentId,
-        body,
+        body: threadBody,
       });
     }
     const anchor = params.commitSha
@@ -73,7 +75,7 @@ export async function postGitHubMentionReply(params: {
         path: anchor.path,
         startLine: anchor.startLine,
         line: anchor.line,
-        body,
+        body: threadBody,
       });
     }
   } catch (error) {
@@ -177,7 +179,7 @@ export async function postGitHubMentionProposal(params: {
         repo: context.repo,
         pullNumber,
         rootCommentId: context.comment.review.rootCommentId,
-        body,
+        body: toGitHubMentionThreadReplyBody(body),
       });
       return body;
     }

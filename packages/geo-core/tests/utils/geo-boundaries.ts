@@ -2,7 +2,9 @@ import {
   geoAgentReadinessReports,
   geoPromptSuggestions,
   googleSearchConsoleIntegrations,
+  projects,
 } from "@notra/db/schema";
+import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -55,11 +57,13 @@ export async function seedReadiness(): Promise<AgentReadinessWorkflowPayload> {
 
 export async function seedSuggestion(
   id = "suggestion",
-  organizationId = "org-test"
+  organizationId = "org-test",
+  projectId = "selected"
 ) {
   await testDb.insert(geoPromptSuggestions).values({
     id,
     organizationId,
+    projectId,
     prompt: `Which ${id} tools should I use?`,
     title: "Tools",
   });
@@ -67,6 +71,10 @@ export async function seedSuggestion(
 
 export async function seedGsc() {
   await seedProject("gsc");
+  await testDb
+    .update(projects)
+    .set({ gscSiteUrl: "https://example.com" })
+    .where(eq(projects.id, "gsc"));
   const [integration] = await testDb
     .insert(googleSearchConsoleIntegrations)
     .values({
@@ -81,6 +89,6 @@ export async function seedGsc() {
   if (!integration) {
     throw new Error("Failed to seed integration");
   }
-  await seedSuggestion("old-pending");
+  await seedSuggestion("old-pending", "org-test", "gsc");
   return integration;
 }

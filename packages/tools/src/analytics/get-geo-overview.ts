@@ -1,8 +1,11 @@
+import { db } from "@notra/db/drizzle";
+import { projects } from "@notra/db/schema";
 import {
   queryGeoCheckCompetitorShare,
   queryGeoCheckOverview,
   toGeoCheckWindow,
 } from "@notra/db/utils/geo-checks";
+import { and, asc, eq } from "drizzle-orm";
 import { defineTool } from "eve/tools";
 
 import { ANALYTICS_QUERY_FAILED_MESSAGE } from "../constants/analytics";
@@ -14,14 +17,26 @@ const COMPETITOR_LIMIT = 10;
 export function createGetGeoOverviewTool() {
   return defineTool({
     description:
-      "Get the organization's GEO (AI visibility) status: how often AI engines like ChatGPT, Claude, and Gemini mention the company when asked relevant questions, per engine mention rate, average position, and the competitor brands engines recommend instead. Use to inform content strategy that improves AI visibility.",
+      "Get one GEO project's AI visibility status. Supply projectId for a specific project; otherwise uses the organization's oldest project. Returns the project ID and name alongside per-engine mention rates and competitor brands. Never combines different projects.",
     inputSchema: getGeoOverviewInputSchema,
-    async execute({ days }, ctx) {
+    async execute({ days, projectId }, ctx) {
       const organizationId = requireOrganizationId(ctx);
-      // GEO mention checks live in Postgres (all projects of the org).
-      const scope = { organizationId, projectId: null };
 
       try {
+        const project = await db.query.projects.findFirst({
+          columns: { id: true, name: true },
+          where: projectId
+            ? and(
+                eq(projects.id, projectId),
+                eq(projects.organizationId, organizationId)
+              )
+            : eq(projects.organizationId, organizationId),
+          orderBy: [asc(projects.createdAt), asc(projects.id)],
+        });
+        if (!project) {
+          return "GEO project not found in this organization.";
+        }
+        const scope = { organizationId, projectId: project.id };
         const window = toGeoCheckWindow({ days });
         const [overview, competitors] = await Promise.all([
           queryGeoCheckOverview(scope, window),
@@ -29,6 +44,7 @@ export function createGetGeoOverviewTool() {
         ]);
 
         return {
+          project: { id: project.id, name: project.name },
           engines: overview.map((row) => ({
             engine: row.engine,
             checks: row.checks,

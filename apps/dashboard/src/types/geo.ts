@@ -490,15 +490,19 @@ export interface GeoJourneyTreeNode extends GeoJourneyPathNode {
 
 export interface JourneysTabProps {
   journeys: GeoJourney[];
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | null;
   journeyStatsFailed: boolean;
   loading: boolean;
   organizationId: string;
+  organizationSlug: string;
   revealActive: boolean;
 }
 
 export interface JourneysCardProps {
   journeys: GeoJourney[];
+  failed: boolean;
+  organizationSlug: string;
   onOpenJourney: (journey: GeoJourney) => void;
   onPrefetchJourney: (journey: GeoJourney) => void;
   loading?: boolean;
@@ -570,8 +574,18 @@ export interface JourneyStatCardProps {
   delta?: number | null;
   stats: { label: string; value: string }[];
   emptyMessage: string;
+  emptyDescription?: string;
+  emptyMedia?: ReactNode;
   emptySeed: string;
   children: ReactNode;
+}
+
+export interface JourneyEmptyProps {
+  title: string;
+  description: string;
+  media: ReactNode;
+  action?: ReactNode;
+  className?: string;
 }
 
 export interface JourneyOverviewCardProps {
@@ -858,6 +872,7 @@ export interface GeoTabsProps {
   promptCount: number;
   isScanning: boolean;
   journeys: GeoJourney[];
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | null;
   journeyStatsFailed: boolean;
   journeysLoading: boolean;
@@ -1717,7 +1732,6 @@ export interface TrafficTrendProvider {
 }
 
 export interface TrafficProviderLegendProps {
-  config: ChartConfig;
   series: readonly TrafficTrendSeries[];
   hiddenKeys: ReadonlySet<string>;
   onToggle: (key: string) => void;

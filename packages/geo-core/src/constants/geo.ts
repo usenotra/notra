@@ -508,6 +508,7 @@ export const GEO_SCAN_INTERVAL_LABEL_PREFIX = /^Every\s+/;
 export const GEO_SCAN_INTERVAL_FALLBACK_NOUN = "scan interval";
 export const GEO_SCAN_NO_RESULTS_RETRY_DELAY = "5m";
 export const GEO_SCAN_STALE_MS = 2 * 60 * 60 * 1000;
+export const GEO_SCAN_START_RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 /**
  * How long a cron sweep owns a due schedule row before another sweep may
  * retry it. A tick whose scan did not provably start keeps this lease instead
@@ -597,8 +598,7 @@ export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
 export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
-export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v1";
-export const GEO_INGEST_TOKEN_GENERATION_CACHE_PREFIX = "geo:ingest-gen:v1";
+export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
 export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
 export const GEO_ONBOARDING_MAX_PROMPTS = 30;
@@ -921,6 +921,26 @@ export const GEO_TRAFFIC_GROUPS_BY_ENGINE: Partial<
     icon: "firecrawlagent",
   },
   parallel: { key: "parallel", label: "Parallel", icon: "shapbot" },
+  cloudflare: {
+    key: "cloudflare",
+    label: "Cloudflare",
+    icon: "cloudflare-autorag",
+  },
+  liner: { key: "liner", label: "Liner", icon: "linerbot" },
+  diffbot: { key: "diffbot", label: "Diffbot", icon: "diffbot" },
+  timpi: { key: "timpi", label: "Timpi", icon: "timpibot" },
+  devin: { key: "devin", label: "Devin", icon: "devin" },
+  cline: { key: "cline", label: "Cline", icon: "cline" },
+  mozilla: { key: "mozilla", label: "Mozilla", icon: "mozilla tabstack" },
+  kagi: { key: "kagi", label: "Kagi", icon: "kagi-fetcher" },
+  tavily: { key: "tavily", label: "Tavily", icon: "tavilybot" },
+  tencent: { key: "tencent", label: "Tencent", icon: "tencent" },
+  xiaomi: { key: "xiaomi", label: "Xiaomi", icon: "xiaomi" },
+  youcom: { key: "youcom", label: "You.com", icon: "youbot" },
+  kimi: { key: "kimi", label: "Kimi", icon: "kimi-searchbot" },
+  zai: { key: "zai", label: "Z.ai", icon: "chatglm-spider" },
+  huawei: { key: "huawei", label: "Huawei", icon: "pangubot" },
+  manus: { key: "manus", label: "Manus", icon: "manus-user" },
 };
 
 export const GEO_TRAFFIC_TREND_CRAWLER_KEY = "crawler";
@@ -1065,7 +1085,6 @@ export const GEO_SENTIMENT_LABELS: Record<string, string> = {
 export const GEO_PROMPT_PREVIEW_ROW_HEIGHT = 72;
 export const GEO_PROMPT_NO_MENTION = "No engine named you";
 
-export const GEO_MENTION_TREND_BACKFILL_DAYS = 6;
 export const GEO_MENTION_TREND_TOTAL_KEY = "total";
 export const GEO_MENTION_TREND_TOTAL_LABEL = "All Models";
 export const GEO_DEFAULT_RANGE: GeoRangePreset = "30d";

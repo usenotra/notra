@@ -729,7 +729,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   // A re-armed or cleared schedule must not stay leased by the sweep that was
   // mid-tick, or the new stamp would be ignored until the lease expires. An
   // untouched schedule keeps whatever lease that sweep holds.
-  const clearedLease = keepNextScanAt ? {} : { scanLeaseUntil: null };
+  const clearedLease = keepNextScanAt
+    ? {}
+    : { scanLeaseUntil: null, scanFirstFailedAt: null };
 
   yield* geoDb("settings upsert failed", () =>
     db

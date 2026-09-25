@@ -93,8 +93,8 @@ import { useScopedPreviousData } from "./use-scoped-previous-data";
 
 const GSC_ANALYZE_MUTATION_KEY = "gsc-analyze" as const;
 
-function gscAnalyzeMutationKey(organizationId: string) {
-  return [GSC_ANALYZE_MUTATION_KEY, organizationId] as const;
+function gscAnalyzeMutationKey(organizationId: string, projectId?: string) {
+  return [GSC_ANALYZE_MUTATION_KEY, organizationId, projectId] as const;
 }
 
 async function invalidateCompetitorQueries(
@@ -992,6 +992,9 @@ export function useGeoSequenceResults(
 }
 
 function describeSyncResult(result: GscSyncResult): string {
+  if (result.status === "failed") {
+    return "Search Console sync failed";
+  }
   if (result.status !== "completed") {
     return "Search Console sync skipped";
   }
@@ -1005,9 +1008,10 @@ function describeSyncResult(result: GscSyncResult): string {
 }
 
 export function useGscStatus(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   return useQuery<GeoSearchConsoleStatus>({
     ...dashboardOrpc.geo.searchConsoleStatus.queryOptions({
-      input: { organizationId },
+      input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
     meta: { errorMessage: "Failed to load Search Console status" },
@@ -1015,9 +1019,10 @@ export function useGscStatus(organizationId: string) {
 }
 
 export function useGscKeywords(organizationId: string, enabled = true) {
+  const { projectId } = useGeoProjectScope();
   return useQuery<GscKeywordsResponse>({
     ...dashboardOrpc.geo.searchConsoleKeywords.queryOptions({
-      input: { organizationId },
+      input: { organizationId, projectId },
     }),
     enabled: !!organizationId && enabled,
     meta: { errorMessage: "Failed to load Search Console keywords" },
@@ -1034,23 +1039,23 @@ export function useGscSites(organizationId: string, enabled: boolean) {
   });
 }
 
-function useInvalidateGscQueries(organizationId: string) {
+function useInvalidateGscQueries(organizationId: string, projectId?: string) {
   const queryClient = useQueryClient();
   return async () => {
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.searchConsoleStatus.queryKey({
-          input: { organizationId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.suggestionsList.queryKey({
-          input: { organizationId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.searchConsoleKeywords.queryKey({
-          input: { organizationId },
+          input: projectId ? { organizationId, projectId } : { organizationId },
         }),
       }),
     ]);
@@ -1058,25 +1063,33 @@ function useInvalidateGscQueries(organizationId: string) {
 }
 
 export function useGscAnalyzing(organizationId: string): boolean {
+  const { projectId } = useGeoProjectScope();
   return (
     useIsMutating({
-      mutationKey: gscAnalyzeMutationKey(organizationId),
+      mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
+      exact: true,
     }) > 0
   );
 }
 
 export function useGscSelectSite(organizationId: string) {
-  const invalidate = useInvalidateGscQueries(organizationId);
+  const { projectId } = useGeoProjectScope();
+  const invalidate = useInvalidateGscQueries(organizationId, projectId);
   return useMutation({
-    mutationKey: gscAnalyzeMutationKey(organizationId),
+    mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
     mutationFn: (input: GscSelectSiteInput) =>
       dashboardOrpc.geo.searchConsoleSelectSite.call({
         ...input,
         organizationId,
+        projectId,
       }),
     onSuccess: async (result) => {
       await invalidate();
-      toast.success(describeSyncResult(result));
+      if (result.status === "failed") {
+        toast.error(describeSyncResult(result));
+      } else {
+        toast.success(describeSyncResult(result));
+      }
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to select property"));
@@ -1085,14 +1098,19 @@ export function useGscSelectSite(organizationId: string) {
 }
 
 export function useGscSync(organizationId: string) {
-  const invalidate = useInvalidateGscQueries(organizationId);
+  const { projectId } = useGeoProjectScope();
+  const invalidate = useInvalidateGscQueries(organizationId, projectId);
   return useMutation({
-    mutationKey: gscAnalyzeMutationKey(organizationId),
+    mutationKey: gscAnalyzeMutationKey(organizationId, projectId),
     mutationFn: () =>
-      dashboardOrpc.geo.searchConsoleSync.call({ organizationId }),
+      dashboardOrpc.geo.searchConsoleSync.call({ organizationId, projectId }),
     onSuccess: async (result) => {
       await invalidate();
-      toast.success(describeSyncResult(result));
+      if (result.status === "failed") {
+        toast.error(describeSyncResult(result));
+      } else {
+        toast.success(describeSyncResult(result));
+      }
     },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Failed to sync Search Console"));
@@ -1102,11 +1120,19 @@ export function useGscSync(organizationId: string) {
 
 export function useGscDisconnect(organizationId: string) {
   const invalidate = useInvalidateGscQueries(organizationId);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
       dashboardOrpc.geo.searchConsoleDisconnect.call({ organizationId }),
     onSuccess: async () => {
-      await invalidate();
+      await Promise.all([
+        invalidate(),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.geo.searchConsoleSites.queryKey({
+            input: { organizationId },
+          }),
+        }),
+      ]);
       toast.success("Google Search Console disconnected");
     },
     onError: (error) => {
@@ -1116,9 +1142,10 @@ export function useGscDisconnect(organizationId: string) {
 }
 
 export function useGeoSuggestions(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   return useQuery<GeoPromptSuggestionsResponse>({
     ...dashboardOrpc.geo.suggestionsList.queryOptions({
-      input: { organizationId },
+      input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
     meta: { errorMessage: "Failed to load prompt suggestions" },
@@ -1126,22 +1153,23 @@ export function useGeoSuggestions(organizationId: string) {
 }
 
 function useInvalidateSuggestionQueries(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   return async () => {
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.suggestionsList.queryKey({
-          input: { organizationId },
+          input: { organizationId, projectId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.promptsList.queryKey({
-          input: { organizationId },
+          input: { organizationId, projectId },
         }),
       }),
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.writerGaps.queryKey({
-          input: { organizationId },
+          input: { organizationId, projectId },
         }),
       }),
       queryClient.invalidateQueries({
@@ -1214,10 +1242,15 @@ export function useGeoSuggestionsAcceptAll(organizationId: string) {
 }
 
 export function useGeoSuggestionDismiss(organizationId: string) {
+  const { projectId } = useGeoProjectScope();
   const invalidate = useInvalidateSuggestionQueries(organizationId);
   return useMutation({
     mutationFn: (input: GeoSuggestionIdInput) =>
-      dashboardOrpc.geo.suggestionDismiss.call({ ...input, organizationId }),
+      dashboardOrpc.geo.suggestionDismiss.call({
+        ...input,
+        organizationId,
+        projectId,
+      }),
     onSuccess: async () => {
       await invalidate();
     },

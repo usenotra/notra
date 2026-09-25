@@ -432,7 +432,8 @@ export async function fetchWebpage(
 }
 
 export async function crawlSitemap(
-  input: ContextDevCrawlSitemapInput
+  input: ContextDevCrawlSitemapInput,
+  options?: { signal?: AbortSignal }
 ): Promise<ContextDevCrawlSitemapResponse> {
   const params = new URLSearchParams({
     domain: input.domain,
@@ -450,7 +451,7 @@ export async function crawlSitemap(
 
   return requestContextDev<ContextDevCrawlSitemapResponse>(
     `/web/scrape/sitemap?${params.toString()}`,
-    { method: "GET" }
+    { method: "GET", signal: options?.signal }
   );
 }
 

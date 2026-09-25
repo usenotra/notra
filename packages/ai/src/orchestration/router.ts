@@ -17,25 +17,19 @@ import { routingDecisionSchema } from "@notra/ai/schemas/orchestration";
 import type {
   AutoSelection,
   RoutingDecision,
-  RoutingResult,
 } from "@notra/ai/types/orchestration";
 import { buildTelemetryOptions, type TccMetadata } from "@notra/ai/utils/tcc";
 import { generateObject, generateText } from "ai";
 
-const MODELS = {
-  router: "openai/gpt-oss-120b",
-  simple: "openai/gpt-5.4-mini",
-  complex: "anthropic/claude-sonnet-4.6",
-} as const;
-
+const LLM_ROUTER_FALLBACK_MODEL = "openai/gpt-oss-120b";
 const ROUTER_EVALUATION_FEATURE = "chat_router";
 // Slower than this and the LLM router would have answered anyway.
 const ROUTER_EVALUATION_TIMEOUT_MS = 2500;
 
 const AUTO_POOL = {
-  trivial: "anthropic/claude-sonnet-4.6",
-  everyday: "anthropic/claude-sonnet-4.6",
-  deep: "anthropic/claude-opus-4.8",
+  trivial: "anthropic/claude-sonnet-5",
+  everyday: "anthropic/claude-sonnet-5",
+  deep: "anthropic/claude-opus-5.5",
 } as const;
 
 const TRIVIAL_MESSAGE_PATTERNS = [
@@ -143,7 +137,7 @@ export async function routeMessage(
     : "";
 
   const routerModel = wrapModelWithObservability(
-    gateway(MODELS.router, {
+    gateway(LLM_ROUTER_FALLBACK_MODEL, {
       organizationId:
         typeof telemetryMetadata?.organizationId === "string"
           ? telemetryMetadata.organizationId
@@ -163,7 +157,7 @@ export async function routeMessage(
       providerOptions: withRouterDefaults(
         { gateway: { tags: ["chat-router"] } },
         {
-          modelId: MODELS.router,
+          modelId: LLM_ROUTER_FALLBACK_MODEL,
         }
       ),
       repairText: async ({ text, error }) => {
@@ -199,7 +193,7 @@ export async function routeMessage(
             providerOptions: withRouterDefaults(
               { gateway: { tags: ["chat-router"] } },
               {
-                modelId: MODELS.router,
+                modelId: LLM_ROUTER_FALLBACK_MODEL,
               }
             ),
             ...buildTelemetryOptions(telemetryMetadata),
@@ -233,36 +227,4 @@ export async function routeMessage(
         "Router structured output failed; falling back to Sonnet without tool routing.",
     };
   }
-}
-
-export function selectModel(decision: RoutingDecision): string {
-  if (decision.complexity === "complex") {
-    return MODELS.complex;
-  }
-  return MODELS.simple;
-}
-
-export async function routeAndSelectModel(
-  userMessage: string,
-  hasIntegrationContext: boolean,
-  log?: AILogTarget,
-  hasAttachments = false,
-  telemetryMetadata?: TccMetadata
-): Promise<RoutingResult> {
-  const decision = await routeMessage(
-    userMessage,
-    hasIntegrationContext,
-    log,
-    hasAttachments,
-    telemetryMetadata
-  );
-  const model = selectModel(decision);
-
-  return {
-    model,
-    complexity: decision.complexity,
-    requiresTools: decision.requiresTools,
-    reasoning: decision.reasoning,
-    thinkingLevel: decision.complexity === "complex" ? "medium" : "low",
-  };
 }

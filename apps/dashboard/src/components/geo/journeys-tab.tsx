@@ -63,10 +63,12 @@ function JourneysTabSkeleton() {
 
 export function JourneysTab({
   journeys,
+  journeysFailed,
   journeyStats,
   journeyStatsFailed,
   loading,
   organizationId,
+  organizationSlug,
   revealActive,
 }: JourneysTabProps) {
   const sources = journeyStats?.sources ?? [];
@@ -136,8 +138,10 @@ export function JourneysTab({
       </InstrumentGrid>
       <InstrumentReveal active={revealActive} order={2}>
         <JourneysCard
+          failed={journeysFailed}
           journeys={journeys}
           loading={loading}
+          organizationSlug={organizationSlug}
           onOpenJourney={openJourney}
           onPrefetchJourney={prefetchJourney}
         />

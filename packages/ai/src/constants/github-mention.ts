@@ -7,6 +7,27 @@ export const GITHUB_MENTION_COMMENT_MAX_LENGTH = 65_536;
 
 export const GITHUB_MENTION_AGENT_MAX_STEPS = 20;
 
+export const GITHUB_MENTION_ITERATE_HINT = "mention me again to keep iterating";
+
+/** Only replies inside a review thread are picked up without a mention. */
+export const GITHUB_MENTION_THREAD_ITERATE_HINT =
+  "reply here or mention me again to keep iterating";
+
+export const GITHUB_MENTION_CHECK_RUN_NAME = "Notra";
+
+export const GITHUB_MENTION_CHECK_RUN_CONCLUSION_BY_REACTION = {
+  "+1": "success",
+  "-1": "neutral",
+  confused: "failure",
+} as const;
+
+export const GITHUB_MENTION_CHECK_RUN_SUMMARY = {
+  in_progress: "Working on the request",
+  success: "Replied",
+  neutral: "Declined the request",
+  failure: "Could not finish the request",
+} as const;
+
 export const GITHUB_MENTION_DECLINED_REPLY_MARKER = "<!-- notra:declined -->";
 
 export const GITHUB_MENTION_SANDBOX_TIMEOUT_MS = 180_000;

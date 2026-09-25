@@ -20,6 +20,7 @@ export const gscAuthorizeQuerySchema = object({
 
 export const gscSelectSiteInputSchema = object({
   organizationId: string().min(1),
+  projectId: string().min(1).optional(),
   siteUrl: string().min(1),
 });
 

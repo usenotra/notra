@@ -263,6 +263,7 @@ export async function getGitHubAppInstallationPublishAccess(
       contents: data.permissions?.contents,
       issues: data.permissions?.issues,
       pullRequests: data.permissions?.pull_requests,
+      checks: data.permissions?.checks,
       settingsUrl: data.html_url,
     };
   } catch {

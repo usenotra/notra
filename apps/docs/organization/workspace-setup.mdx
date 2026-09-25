@@ -20,6 +20,10 @@ docolin:
     - onboarding
     - brand identity setup
     - organization slug
+    - two-factor authentication
+    - 2FA
+    - authenticator app
+    - backup codes
   next: ./team-management.mdx
 ---
 
@@ -94,13 +98,53 @@ Only owners and admins can save organization settings.
 
 | Page                | What it does                                                                                       |
 | ------------------- | -------------------------------------------------------------------------------------------------- |
-| **Account**         | Your profile, login details, connected sign-in accounts, privacy options, the organizations you belong to, and account deletion |
+| **Account**         | Your profile, login details, two-factor authentication, connected sign-in accounts, privacy options, the organizations you belong to and account deletion |
 | **Members**         | Invite people, change roles, remove members, manage pending invitations. See [Team Management](/organization/team-management) |
 | **Notifications**   | Email notifications for the organization, sent to owner email addresses                          |
 | **Attachments**     | Manage the files you have uploaded                                                                  |
 | **Billing & Usage** | Plans, add-ons, invoices, and feature usage. See [Billing & Plans](/organization/billing)         |
 | **Credits**         | AI credit balance and top-ups; shown when your plan includes AI credits                            |
 | **Logs**            | Automation and API activity for the workspace. Retention depends on your plan                     |
+
+## Two-Factor Authentication
+
+Notra supports two-factor authentication with any TOTP authenticator app such as 1Password, Google Authenticator or Authy. Once it is on, every sign-in asks for a code from your app after your password or your Google or GitHub login.
+
+### Turning It On
+
+<Steps>
+  <Step title="Open Account settings">
+    Go to **Settings > Account** and find **Two-factor authentication**. Click **Set up**.
+  </Step>
+
+  <Step title="Scan the QR code">
+    Scan it with your authenticator app. If you cannot scan it, click **Can't scan it?** to copy the setup key instead.
+  </Step>
+
+  <Step title="Enter the code">
+    Type the 6-digit code your app shows. Two-factor authentication is on as soon as the code is accepted.
+  </Step>
+
+  <Step title="Save your backup codes">
+    Notra shows 10 one-time backup codes. Store them somewhere safe. Each code works once and lets you sign in if you lose access to your authenticator app.
+  </Step>
+</Steps>
+
+### Signing In With a Backup Code
+
+On the code prompt during sign-in, choose the backup code option and enter one of your unused codes. Signing in this way removes the authenticator from your account so you can set up a new one from **Settings > Account**.
+
+### Managing Backup Codes
+
+**Settings > Account** shows how many backup codes are left. Click **Regenerate** to get a fresh set. Confirm with a code from your authenticator app or an unused backup code. Regenerating invalidates every earlier code.
+
+### Turning It Off
+
+Under **Two-factor authentication**, click **Remove** next to your authenticator app and confirm with a code from the app or an unused backup code. Your backup codes are deleted at the same time.
+
+<Note>
+  Backup codes and a fresh code from your authenticator app are the only ways to turn two-factor authentication off or regenerate codes. Being signed in is not enough on its own.
+</Note>
 
 ## Brand Identity
 

@@ -1,7 +1,9 @@
 import type {
   GeoPersona,
+  GeoPersonaActivityPoint,
   GeoPersonaActivityResponse,
 } from "@notra/geo-core/types/geo-personas";
+import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 
 import {
   GEO_PERSONA_FORECAST_DAYS,
@@ -59,10 +61,31 @@ export function buildPersonaActivitySeries(
   });
 }
 
+function mentionRate(point: GeoPersonaActivityPoint | undefined) {
+  return point && point.checks > 0
+    ? (point.mentions / point.checks) * 100
+    : null;
+}
+
+function firstScanDayByKey(points: readonly GeoPersonaActivityPoint[]) {
+  const firstDay = new Map<string, string>();
+  for (const point of points) {
+    if (point.checks <= 0) {
+      continue;
+    }
+    const key = personaActivityKey(point.personaId, point.snapshotVersion);
+    const current = firstDay.get(key);
+    if (!current || point.day < current) {
+      firstDay.set(key, point.day);
+    }
+  }
+  return firstDay;
+}
+
 export function buildPersonaActivityRows(
   activity: GeoPersonaActivityResponse,
   series: readonly PersonaActivitySeries[],
-  today = new Date().toISOString().slice(0, 10)
+  today = todayIsoDate()
 ) {
   const points = new Map(
     activity.points.map((point) => [
@@ -70,19 +93,19 @@ export function buildPersonaActivityRows(
       point,
     ])
   );
+  const firstScanDay = firstScanDayByKey(activity.points);
   const rows: Record<string, string | number | null>[] = [];
   const date = new Date(`${activity.from}T00:00:00Z`);
   while (date.toISOString().slice(0, 10) < activity.to) {
     const day = date.toISOString().slice(0, 10);
     const row: Record<string, string | number | null> = { day };
     for (const item of series) {
-      const point = points.get(
-        activityPointKey(day, item.personaId, item.snapshotVersion)
+      const rate = mentionRate(
+        points.get(activityPointKey(day, item.personaId, item.snapshotVersion))
       );
+      const first = firstScanDay.get(item.dataKey);
       row[item.dataKey] =
-        point && point.checks > 0
-          ? (point.mentions / point.checks) * 100
-          : null;
+        rate ?? (first !== undefined && day < first ? 0 : null);
     }
     rows.push(row);
     date.setUTCDate(date.getUTCDate() + 1);

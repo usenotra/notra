@@ -1,21 +1,19 @@
 "use client";
 
+import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import { Loader2Icon } from "lucide-react";
 import { useRef, useState } from "react";
-import type { EmailVerificationFormProps } from "../../../lib/auth-types";
-import { Input } from "../../ui/input";
-import { Label } from "../../ui/label";
+import type { EmailVerificationFormProps } from "../../../types/auth";
 import { CtaButton } from "../cta-button";
-import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
+import { TotpCodeInput } from "./totp-code-input";
 
-const NON_DIGIT_REGEX = /\D/g;
+const VERIFY_ERROR_FALLBACK = "Verification failed. Please try again.";
 
 export function EmailVerificationForm({
-  pendingAuthenticationToken,
-  email,
+  step,
   returnTo,
-  onSuccess,
+  onResult,
   verifyEmailCode,
 }: EmailVerificationFormProps) {
   const [code, setCode] = useState("");
@@ -23,81 +21,65 @@ export function EmailVerificationForm({
   const [isPending, setIsPending] = useState(false);
   const requestIdRef = useRef(0);
 
-  async function handleVerify() {
+  async function handleVerify(submittedCode: string) {
+    if (submittedCode.length !== TOTP_CODE_LENGTH || isPending) {
+      return;
+    }
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
     setFormError(null);
     setIsPending(true);
 
     const result = await verifyEmailCode({
-      pendingAuthenticationToken,
-      code,
+      pendingAuthenticationToken: step.pendingAuthenticationToken,
+      code: submittedCode,
       returnTo,
     }).catch(() => null);
 
-    if (result?.status === "success") {
-      if (requestIdRef.current === requestId) {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.assign(result.redirectTo);
-        }
-      }
+    if (requestIdRef.current !== requestId) {
       return;
     }
-
-    const nextError =
-      result?.status === "error"
-        ? result.message
-        : "Verification failed. Please try again.";
-
-    setFormError((previous) =>
-      requestIdRef.current === requestId ? nextError : previous
+    if (result && onResult(result)) {
+      return;
+    }
+    setFormError(
+      result?.status === "error" ? result.message : VERIFY_ERROR_FALLBACK
     );
-    setIsPending((previous) =>
-      requestIdRef.current === requestId ? false : previous
-    );
+    setCode("");
+    setIsPending(false);
   }
 
   return (
     <div className="flex w-full flex-col gap-5">
       <AuthFormHeader
-        description={`We sent a 6-digit code to ${email || "your email address"}. Enter it below to continue.`}
+        description={`We sent a 6-digit code to ${step.email || "your email address"}. Enter it below to continue.`}
         title="Check your email"
       />
 
       <form
+        aria-busy={isPending}
         className="grid gap-4"
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          handleVerify();
+          handleVerify(code);
         }}
       >
-        <div className="grid gap-2">
-          <Label htmlFor="verification-code">Verification code</Label>
-          <Input
-            autoComplete="one-time-code"
-            autoFocus
-            className="h-11 rounded-xl px-3.5 text-center font-mono text-lg tracking-[0.5em]"
-            disabled={isPending}
-            id="verification-code"
-            inputMode="numeric"
-            maxLength={6}
-            onChange={(event) =>
-              setCode(event.target.value.replace(NON_DIGIT_REGEX, ""))
-            }
-            placeholder="000000"
-            value={code}
-          />
-        </div>
+        <TotpCodeInput
+          autoFocus
+          disabled={isPending}
+          error={formError}
+          id="verification-code"
+          label="Verification code"
+          onChange={setCode}
+          onComplete={handleVerify}
+          value={code}
+        />
 
         <div>
-          <AuthFormError className="mb-4" error={formError} />
-
           <CtaButton
             className="w-full"
-            disabled={isPending || code.length !== 6}
+            disabled={isPending || code.length !== TOTP_CODE_LENGTH}
             type="submit"
           >
             {isPending ? (

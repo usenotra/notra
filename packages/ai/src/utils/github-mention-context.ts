@@ -1,13 +1,16 @@
+import { isGitHubAppConfigured } from "@notra/ai/integrations/github";
 import { getGitHubPublishToken } from "@notra/ai/integrations/github-publish-auth";
 import type {
   GitHubAppWebhookPayload,
   GitHubMentionLogTarget,
+  GitHubMentionOctokit,
   GitHubMentionPullRequest,
   GitHubMentionResolveResult,
 } from "@notra/ai/types/github-mention";
 import { findContentPublicationForPullRequest } from "@notra/ai/utils/content-publication";
 import {
   commentMentionsNotra,
+  getGitHubMentionAppHandles,
   isGitHubBotSender,
 } from "@notra/ai/utils/github-mention";
 import {
@@ -20,9 +23,26 @@ import {
   buildGitHubMentionPermissionReply,
   isGitHubPermissionError,
 } from "@notra/ai/utils/github-mention-permissions";
-import { postGitHubIssueComment } from "@notra/ai/utils/github-pr-comments";
+import {
+  postGitHubIssueComment,
+  reviewThreadHasCommentBy,
+} from "@notra/ai/utils/github-pr-comments";
 import { getPullRequestHead } from "@notra/ai/utils/github-pr-commit";
 import { createOctokit } from "@notra/ai/utils/octokit";
+
+/**
+ * Notra's replies come from the App bot, or from the token's own user when a
+ * personal token publishes instead of the App. Only the `[bot]` login counts
+ * for the App, so a human sharing the slug cannot pass as Notra.
+ */
+async function listNotraReplyLogins(octokit: GitHubMentionOctokit) {
+  const logins = getGitHubMentionAppHandles().map((handle) => `${handle}[bot]`);
+  if (!isGitHubAppConfigured()) {
+    const { data } = await octokit.request("GET /user");
+    logins.push(data.login);
+  }
+  return new Set(logins);
+}
 
 export async function resolveGitHubMentionContext(params: {
   payload: GitHubAppWebhookPayload;
@@ -44,7 +64,11 @@ export async function resolveGitHubMentionContext(params: {
   if (isGitHubBotSender(sender)) {
     return { status: "ignored", reason: "bot_sender" };
   }
-  if (!commentMentionsNotra(comment.body)) {
+  // A reply in a review thread Notra already answered is aimed at Notra even
+  // without the handle. Only the thread lookup below can tell, and that needs
+  // the integration first.
+  const mentioned = commentMentionsNotra(comment.body);
+  if (!(mentioned || comment.in_reply_to_id)) {
     return { status: "ignored", reason: "not_mentioned" };
   }
 
@@ -91,6 +115,27 @@ export async function resolveGitHubMentionContext(params: {
   const match = candidates[0];
   if (match) {
     const { organizationId, userId, integrationId, owner, repo } = match;
+
+    if (!mentioned) {
+      const token = await getGitHubPublishToken(integrationId, {
+        organizationId,
+      });
+      if (!token) {
+        return { status: "ignored", reason: "github_token_unavailable" };
+      }
+      const octokit = createOctokit(token);
+      const inNotraThread = await reviewThreadHasCommentBy({
+        octokit,
+        owner,
+        repo,
+        pullNumber: issueNumber,
+        threadRootId: comment.in_reply_to_id ?? comment.id,
+        authorLogins: await listNotraReplyLogins(octokit),
+      });
+      if (!inNotraThread) {
+        return { status: "ignored", reason: "not_mentioned" };
+      }
+    }
 
     let pullRequest: GitHubMentionPullRequest | null = null;
     if (issue?.pull_request || params.payload.pull_request) {

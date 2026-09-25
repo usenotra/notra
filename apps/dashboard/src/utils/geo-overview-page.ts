@@ -82,6 +82,7 @@ export function toGeoOverviewReadyPage(input: {
   promptResults: GeoPromptResultSummary[] | undefined;
   promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | undefined;
   journeyStatsFailed: boolean;
   journeysLoading: boolean;
@@ -127,6 +128,7 @@ export function toGeoOverviewReadyPage(input: {
       promptResults,
       isScanning: input.isScanning,
       journeys,
+      journeysFailed: input.journeysFailed,
       journeyStats: input.journeyStats ?? null,
       journeyStatsFailed: input.journeyStatsFailed,
       journeysLoading: input.journeysLoading,

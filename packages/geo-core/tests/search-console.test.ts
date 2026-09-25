@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import {
   geoPromptSuggestions,
   googleSearchConsoleIntegrations,
+  projects,
 } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { Effect, Result } from "effect";
@@ -24,6 +25,7 @@ import {
   initializeDatabase,
   resetDatabase,
   database,
+  seedProject,
   testDb,
 } from "./utils/database";
 import {
@@ -46,7 +48,10 @@ describe("Search Console Effect sync", () => {
       ...fakeModels,
       suggest: () => Effect.die("Skipped integrations must not generate"),
     };
-    await testDb.update(googleSearchConsoleIntegrations).set({ siteUrl: null });
+    await testDb
+      .update(projects)
+      .set({ gscSiteUrl: null })
+      .where(eq(projects.id, "gsc"));
     expect(
       await Effect.runPromise(
         withGscServices(syncGscSuggestions("org-test"), models)
@@ -64,7 +69,7 @@ describe("Search Console Effect sync", () => {
 
   test("empty keywords replace pending rows but preserve curated decisions", async () => {
     await seedGsc();
-    await seedSuggestion("dismissed");
+    await seedSuggestion("dismissed", "org-test", "gsc");
     await testDb
       .update(geoPromptSuggestions)
       .set({ status: "dismissed" })
@@ -99,7 +104,8 @@ describe("Search Console Effect sync", () => {
         withGscServices(
           selectGscSiteAndSyncSuggestions(
             { ...integration, status: "reauth_required" },
-            integration.siteUrl ?? ""
+            integration.siteUrl ?? "",
+            "gsc"
           )
         )
       )
@@ -110,7 +116,11 @@ describe("Search Console Effect sync", () => {
     const integration = await seedGsc();
     const outcome = await Effect.runPromise(
       withGscServices(
-        selectGscSiteAndSyncSuggestions(integration, "https://new.example")
+        selectGscSiteAndSyncSuggestions(
+          integration,
+          "https://new.example",
+          "gsc"
+        )
       )
     );
     expect(outcome).toEqual({
@@ -125,9 +135,41 @@ describe("Search Console Effect sync", () => {
       (await testDb.query.googleSearchConsoleIntegrations.findFirst())
         ?.lastSyncedAt
     ).not.toBeNull();
+    expect((await testDb.query.projects.findFirst())?.gscSiteUrl).toBe(
+      "https://new.example"
+    );
+  });
+
+  test("syncing another project preserves the first project's property and suggestions", async () => {
+    const integration = await seedGsc();
+    await seedProject("other");
+    await seedSuggestion("other-old", "org-test", "other");
+    const outcome = await Effect.runPromise(
+      withGscServices(
+        selectGscSiteAndSyncSuggestions(
+          integration,
+          "https://other.example",
+          "other"
+        )
+      )
+    );
+    expect(outcome.status).toBe("completed");
+    const rows = await testDb.select().from(geoPromptSuggestions);
     expect(
-      (await testDb.query.googleSearchConsoleIntegrations.findFirst())?.siteUrl
-    ).toBe("https://new.example");
+      rows.filter((row) => row.projectId === "gsc").map((row) => row.id)
+    ).toEqual(["old-pending"]);
+    expect(rows.filter((row) => row.projectId === "other")).toHaveLength(1);
+    expect(
+      (await testDb.query.projects.findFirst({ where: eq(projects.id, "gsc") }))
+        ?.gscSiteUrl
+    ).toBe("https://example.com");
+    expect(
+      (
+        await testDb.query.projects.findFirst({
+          where: eq(projects.id, "other"),
+        })
+      )?.gscSiteUrl
+    ).toBe("https://other.example");
   });
 
   test("integration changed during generation cannot replace pending rows", async () => {
@@ -155,6 +197,36 @@ describe("Search Console Effect sync", () => {
     );
   });
 
+  test("project changed during generation does not stamp the integration", async () => {
+    await seedGsc();
+    const outcome = await Effect.runPromise(
+      withGscServices(syncGscSuggestions("org-test"), {
+        ...fakeModels,
+        suggest: (input) =>
+          Effect.gen(function* () {
+            yield* Effect.promise(() =>
+              testDb
+                .update(projects)
+                .set({ gscSiteUrl: "https://changed.example" })
+                .where(eq(projects.id, "gsc"))
+            );
+            return yield* fakeModels.suggest(input);
+          }),
+      })
+    );
+    expect(outcome).toEqual({
+      status: "skipped",
+      reason: "integration_changed",
+    });
+    expect(
+      (await testDb.query.googleSearchConsoleIntegrations.findFirst())
+        ?.lastSyncedAt
+    ).toBeNull();
+    expect((await testDb.query.geoPromptSuggestions.findFirst())?.id).toBe(
+      "old-pending"
+    );
+  });
+
   test("generation failure preserves pending rows and stores curated copy", async () => {
     await seedGsc();
     const result = await Effect.runPromise(
@@ -174,10 +246,7 @@ describe("Search Console Effect sync", () => {
     expect((await testDb.query.geoPromptSuggestions.findFirst())?.id).toBe(
       "old-pending"
     );
-    expect(
-      (await testDb.query.googleSearchConsoleIntegrations.findFirst())
-        ?.lastError
-    ).toBe(
+    expect((await testDb.query.projects.findFirst())?.gscLastError).toBe(
       "We could not turn your Search Console keywords into prompt suggestions."
     );
   });

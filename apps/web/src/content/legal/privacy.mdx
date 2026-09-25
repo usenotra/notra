@@ -2,7 +2,7 @@
 title: Privacy Policy
 ---
 
-**Last updated: April 8, 2026**
+**Last updated: September 25, 2026**
 
 ## 1. Privacy Statement
 
@@ -44,13 +44,16 @@ We collect the following types of information:
 
 **Content Data:** When you connect third-party integrations (such as GitHub, Linear, or Slack), we collect and process the data you authorize us to access from those services. This includes repository activity, issue data, and messages that you explicitly choose to connect.
 
+**Contact Data:** When you use our contact form, we collect your name, email address, company (if provided), and message to handle your inquiry. To screen for spam, we send only the message text to TypeSafe AI's Jev model through Vercel AI Gateway; the separate name, email, and company fields are not sent to the model. Your message may contain personal information you choose to include. Messages classified as spam are not forwarded to our team.
+
 **Payment Data:** If you subscribe to a paid plan, payment processing is handled by our billing provider [Autumn](https://useautumn.com) (powered by Stripe). We do not store your credit card details directly. When you sign up, we create an Autumn customer profile to enable usage tracking. If you later initiate a payment and a Stripe customer does not already exist, we may create one to process the transaction.
 
 ## 6. Third-Party Services
 
 We use the following third-party services to operate and improve the Service:
 
-- **Vercel** — Hosting, deployment, and AI Gateway model access for content generation
+- **Vercel** — Hosting, deployment, and AI Gateway access for content generation and contact-form spam classification
+- **TypeSafe AI** — Jev model used through Vercel AI Gateway to classify contact-form messages for spam
 - **[Resend](https://resend.com)** — Transactional email delivery
 - **Upstash** — Redis database and message queues
 - **[Autumn](https://useautumn.com)** — Subscription billing (powered by Stripe)
@@ -63,6 +66,8 @@ Each of these services has its own privacy policy governing the data they proces
 ## 7. Retention and Deletion
 
 We retain your personal data for as long as your account is active or as needed to provide you with the Service. If you request deletion of your account, we will delete your personal data within 30 days, except where we are required to retain certain information for legal or regulatory purposes.
+
+Contact messages forwarded to our team are retained as needed to handle the inquiry. We do not save messages classified as spam.
 
 To request deletion of your account and associated data, contact us at dominik@usenotra.com.
 
@@ -78,6 +83,7 @@ We use the information we collect for the following purposes:
 - **Billing:** To process subscriptions and payments
 - **Communications:** To send you important updates about the Service, including security notices and changes to our terms. Marketing emails are opt-in only, and you can unsubscribe using the link in the footer of each marketing email.
 - **AI content generation:** To process your connected data through AI models and generate content drafts on your behalf
+- **Contact inquiries and spam prevention:** To handle contact-form submissions and classify message text for spam before forwarding inquiries
 - **Analytics:** To understand how the Service is used and to improve the user experience
 
 We do not sell your personal data to third parties.

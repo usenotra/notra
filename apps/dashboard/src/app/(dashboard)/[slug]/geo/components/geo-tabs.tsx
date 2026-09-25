@@ -72,6 +72,7 @@ export function GeoTabs({
   promptResults,
   isScanning,
   journeys,
+  journeysFailed,
   journeyStats,
   journeyStatsFailed,
   journeysLoading,
@@ -198,11 +199,13 @@ export function GeoTabs({
 
       {activeTab === "journeys" ? (
         <JourneysTab
+          journeysFailed={journeysFailed}
           journeyStats={journeyStats}
           journeyStatsFailed={journeyStatsFailed}
           journeys={journeys}
           loading={journeysLoading}
           organizationId={organizationId}
+          organizationSlug={organizationSlug}
           revealActive={revealActive}
         />
       ) : null}

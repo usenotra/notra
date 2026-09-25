@@ -2,10 +2,7 @@ import {
   getGscIntegration,
   updateGscIntegrationIfUnchanged,
 } from "@notra/ai/integrations/google-search-console";
-import type {
-  GscIntegrationRow,
-  GscIntegrationUpdate,
-} from "@notra/ai/types/google-search-console";
+import type { GscIntegrationRow } from "@notra/ai/types/google-search-console";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
@@ -13,8 +10,9 @@ import {
   geoPromptSuggestions,
   geoPrompts,
   geoSettings,
+  projects,
 } from "@notra/db/schema";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
 import {
@@ -32,6 +30,7 @@ import type {
   GscSyncResult,
 } from "../types/google-search-console";
 import { geoDb } from "./effect";
+import { requireGeoProject } from "./projects";
 import {
   buildBrandTerms,
   normalizeSuggestionKey,
@@ -56,52 +55,86 @@ function toStoredSyncError(error: unknown): string {
 const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
   function* (
     integration: GscIntegrationRow,
-    outcome: GscSuggestionSyncOutcome,
-    integrationUpdates: GscIntegrationUpdate
+    projectId: string,
+    siteUrl: string,
+    previousSiteUrl: string | null,
+    outcome: GscSuggestionSyncOutcome
   ) {
     const lastSyncedAt = new Date(
       Math.max(Date.now(), (integration.lastSyncedAt?.getTime() ?? 0) + 1)
     );
+    const projectChanged = new Error(
+      "Search Console project changed during sync"
+    );
     const suggestionsAdded = yield* geoDb(
       "commit Search Console suggestions",
-      () =>
-        db.transaction(async (tx) => {
-          const currentIntegration = await updateGscIntegrationIfUnchanged(
-            integration,
-            {
-              ...integrationUpdates,
-              lastSyncedAt,
-              lastError: null,
-              topQueries: outcome.topQueries,
-            },
-            tx
-          );
-          if (!currentIntegration) {
+      async () => {
+        try {
+          return await db.transaction(async (tx) => {
+            const currentIntegration = await updateGscIntegrationIfUnchanged(
+              integration,
+              {
+                lastSyncedAt,
+                lastError: null,
+              },
+              tx
+            );
+            if (!currentIntegration) {
+              return null;
+            }
+
+            const [updatedProject] = await tx
+              .update(projects)
+              .set({
+                gscSiteUrl: siteUrl,
+                gscTopQueries: outcome.topQueries,
+                gscLastSyncedAt: lastSyncedAt,
+                gscLastError: null,
+              })
+              .where(
+                and(
+                  eq(projects.id, projectId),
+                  eq(projects.organizationId, integration.organizationId),
+                  previousSiteUrl === null
+                    ? isNull(projects.gscSiteUrl)
+                    : eq(projects.gscSiteUrl, previousSiteUrl)
+                )
+              )
+              .returning({ id: projects.id });
+            if (!updatedProject) {
+              throw projectChanged;
+            }
+
+            await tx
+              .delete(geoPromptSuggestions)
+              .where(
+                and(
+                  eq(
+                    geoPromptSuggestions.organizationId,
+                    integration.organizationId
+                  ),
+                  eq(geoPromptSuggestions.projectId, projectId),
+                  eq(geoPromptSuggestions.status, "pending")
+                )
+              );
+            if (outcome.suggestions.length === 0) {
+              return 0;
+            }
+
+            const inserted = await tx
+              .insert(geoPromptSuggestions)
+              .values(outcome.suggestions)
+              .onConflictDoNothing()
+              .returning({ id: geoPromptSuggestions.id });
+            return inserted.length;
+          });
+        } catch (error) {
+          if (error === projectChanged) {
             return null;
           }
-
-          await tx
-            .delete(geoPromptSuggestions)
-            .where(
-              and(
-                eq(
-                  geoPromptSuggestions.organizationId,
-                  integration.organizationId
-                ),
-                eq(geoPromptSuggestions.status, "pending")
-              )
-            );
-          if (outcome.suggestions.length === 0) {
-            return 0;
-          }
-
-          const inserted = await tx
-            .insert(geoPromptSuggestions)
-            .values(outcome.suggestions)
-            .onConflictDoNothing()
-            .returning({ id: geoPromptSuggestions.id });
-          return inserted.length;
-        })
+          throw error;
+        }
+      }
     );
     if (suggestionsAdded === null) {
       return {
@@ -119,7 +152,11 @@ const commitGscSuggestionSync = Effect.fn("geo.searchConsole.commit")(
 
 export const selectGscSiteAndSyncSuggestions = Effect.fn(
   "geo.searchConsole.selectSite"
-)(function* (integration: GscIntegrationRow, siteUrl: string) {
+)(function* (
+  integration: GscIntegrationRow,
+  siteUrl: string,
+  projectId: string
+) {
   if (integration.disconnectingAt) {
     return {
       status: "skipped",
@@ -133,11 +170,11 @@ export const selectGscSiteAndSyncSuggestions = Effect.fn(
     } satisfies GscSyncResult;
   }
 
-  return yield* syncIntegration(integration, siteUrl, { siteUrl });
+  return yield* syncIntegration(integration, siteUrl, projectId);
 });
 
 export const syncGscSuggestions = Effect.fn("geo.searchConsole.sync")(
-  function* (organizationId: string) {
+  function* (organizationId: string, requestedProjectId?: string) {
     const integration = yield* geoDb("read Search Console integration", () =>
       getGscIntegration(organizationId)
     );
@@ -153,7 +190,17 @@ export const syncGscSuggestions = Effect.fn("geo.searchConsole.sync")(
         reason: "integration_changed",
       } satisfies GscSyncResult;
     }
-    if (!integration.siteUrl) {
+    const scope = yield* requireGeoProject({
+      organizationId,
+      projectId: requestedProjectId,
+    });
+    const project = yield* geoDb("read Search Console project", () =>
+      db.query.projects.findFirst({
+        columns: { gscSiteUrl: true },
+        where: eq(projects.id, scope.projectId),
+      })
+    );
+    if (!project?.gscSiteUrl) {
       return {
         status: "skipped",
         reason: "no_site_selected",
@@ -166,7 +213,11 @@ export const syncGscSuggestions = Effect.fn("geo.searchConsole.sync")(
       } satisfies GscSyncResult;
     }
 
-    return yield* syncIntegration(integration, integration.siteUrl, {});
+    return yield* syncIntegration(
+      integration,
+      project.gscSiteUrl,
+      scope.projectId
+    );
   }
 );
 
@@ -174,11 +225,37 @@ const syncIntegration = Effect.fn("geo.searchConsole.syncIntegration")(
   function* (
     integration: GscIntegrationRow,
     siteUrl: string,
-    updates: GscIntegrationUpdate
+    projectId: string
   ) {
-    return yield* runSync(integration, siteUrl).pipe(
+    const project = yield* geoDb("read Search Console project", () =>
+      db.query.projects.findFirst({
+        columns: { brandSettingsId: true, gscSiteUrl: true },
+        where: and(
+          eq(projects.id, projectId),
+          eq(projects.organizationId, integration.organizationId)
+        ),
+      })
+    );
+    if (!project) {
+      return {
+        status: "skipped",
+        reason: "project_deleted",
+      } satisfies GscSyncResult;
+    }
+    return yield* runSync(
+      integration,
+      siteUrl,
+      projectId,
+      project.brandSettingsId
+    ).pipe(
       Effect.flatMap((outcome) =>
-        commitGscSuggestionSync(integration, outcome, updates)
+        commitGscSuggestionSync(
+          integration,
+          projectId,
+          siteUrl,
+          project.gscSiteUrl,
+          outcome
+        )
       ),
       Effect.catch((error) =>
         Effect.gen(function* () {
@@ -187,9 +264,16 @@ const syncIntegration = Effect.fn("geo.searchConsole.syncIntegration")(
             !(error instanceof GeoSearchConsoleError && error.reauthRequired)
           ) {
             yield* geoDb("stamp Search Console sync error", () =>
-              updateGscIntegrationIfUnchanged(integration, {
-                lastError: toStoredSyncError(error),
-              })
+              db
+                .update(projects)
+                .set({ gscLastError: toStoredSyncError(error) })
+                .where(
+                  and(
+                    eq(projects.id, projectId),
+                    eq(projects.organizationId, integration.organizationId),
+                    eq(projects.gscSiteUrl, siteUrl)
+                  )
+                )
             ).pipe(
               Effect.mapError(
                 (stampCause) =>
@@ -231,7 +315,9 @@ function mergeCompetitorNames(
 
 const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
   integration: GscIntegrationRow,
-  siteUrl: string
+  siteUrl: string,
+  projectId: string,
+  projectBrandSettingsId: string
 ) {
   const organizationId = integration.organizationId;
   const google = yield* GeoSearchConsoleService;
@@ -248,7 +334,10 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
       google.topQueries(integration, siteUrl),
       geoDb("read suggestion settings", () =>
         db.query.geoSettings.findFirst({
-          where: eq(geoSettings.organizationId, organizationId),
+          where: and(
+            eq(geoSettings.organizationId, organizationId),
+            eq(geoSettings.projectId, projectId)
+          ),
           columns: { companyName: true, aliases: true, competitors: true },
         })
       ),
@@ -256,20 +345,26 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
         db.query.brandSettings.findFirst({
           where: and(
             eq(brandSettings.organizationId, organizationId),
-            eq(brandSettings.isDefault, true)
+            eq(brandSettings.id, projectBrandSettingsId)
           ),
           columns: { companyDescription: true },
         })
       ),
       geoDb("read suggestion competitors", () =>
         db.query.geoCompetitors.findMany({
-          where: eq(geoCompetitors.organizationId, organizationId),
+          where: and(
+            eq(geoCompetitors.organizationId, organizationId),
+            eq(geoCompetitors.projectId, projectId)
+          ),
           columns: { name: true },
         })
       ),
       geoDb("read tracked suggestions", () =>
         db.query.geoPrompts.findMany({
-          where: eq(geoPrompts.organizationId, organizationId),
+          where: and(
+            eq(geoPrompts.organizationId, organizationId),
+            eq(geoPrompts.projectId, projectId)
+          ),
           columns: { prompt: true },
         })
       ),
@@ -279,6 +374,7 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
         db.query.geoPromptSuggestions.findMany({
           where: and(
             eq(geoPromptSuggestions.organizationId, organizationId),
+            eq(geoPromptSuggestions.projectId, projectId),
             ne(geoPromptSuggestions.status, "pending")
           ),
           columns: { prompt: true },
@@ -348,6 +444,7 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
     values.push({
       id: crypto.randomUUID(),
       organizationId,
+      projectId,
       prompt,
       title: title.length > 0 ? title : null,
       source: "search_console",
