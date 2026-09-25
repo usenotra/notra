@@ -83,6 +83,7 @@ export function getGeoWriterDocumentState(
   const isPlanReviewable = isGeoWriterPlanReviewable(briefStatus);
   return {
     isBriefError,
+    isBriefMissing,
     isChatLocked:
       hasDraft &&
       !isBriefMissing &&
@@ -90,8 +91,7 @@ export function getGeoWriterDocumentState(
       briefStatus !== "completed",
     isPlanMode:
       hasDraft &&
-      !isBriefMissing &&
-      (briefStatus !== "completed" || isPostStillPlan),
+      (isPostStillPlan || (!isBriefMissing && briefStatus !== "completed")),
     isPlanReviewable,
   };
 }

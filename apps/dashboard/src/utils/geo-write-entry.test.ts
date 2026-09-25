@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { ORPCError } from "@orpc/client";
+
 import { getGeoWriterDocumentState } from "./geo-write-entry";
 
 describe("getGeoWriterDocumentState", () => {
@@ -33,5 +35,15 @@ describe("getGeoWriterDocumentState", () => {
     expect(
       getGeoWriterDocumentState(true, null, "completed", false)
     ).toMatchObject({ isPlanMode: false });
+  });
+
+  test("never shows a missing brief's plan as a publishable article", () => {
+    const notFound = new ORPCError("NOT_FOUND");
+    expect(
+      getGeoWriterDocumentState(true, notFound, undefined, true)
+    ).toMatchObject({ isBriefMissing: true, isPlanMode: true });
+    expect(
+      getGeoWriterDocumentState(true, notFound, undefined, false)
+    ).toMatchObject({ isBriefMissing: true, isPlanMode: false });
   });
 });

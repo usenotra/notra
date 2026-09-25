@@ -79,8 +79,10 @@ export function useContentDetailDocument({
   const [planEditorVersion, setPlanEditorVersion] = useState(0);
   const briefStatus = geoWriterBriefQuery.data?.status;
   const serverMarkdown = data?.content?.markdown ?? "";
+  const isPostStillPlan = isGeoBriefMarkdown(serverMarkdown);
   const {
     isBriefError: isGeoWriterBriefError,
+    isBriefMissing: isGeoWriterBriefMissing,
     isChatLocked: isGeoWriterChatLocked,
     isPlanMode: isGeoWriterPlanMode,
     isPlanReviewable: isGeoWriterPlanReviewableNow,
@@ -88,7 +90,7 @@ export function useContentDetailDocument({
     Boolean(geoWriterDraft),
     geoWriterBriefQuery.error,
     briefStatus,
-    isGeoBriefMarkdown(serverMarkdown)
+    isPostStillPlan
   );
 
   const [editedMarkdown, setEditedMarkdown] = useState<string | null>(null);
@@ -109,10 +111,14 @@ export function useContentDetailDocument({
     string | null
   >(null);
   const geoWriterBriefId = geoWriterDraft?.briefId;
+  const isCompletedArticleStale =
+    briefStatus === "completed" &&
+    isPostStillPlan &&
+    loadedArticleBriefId !== geoWriterBriefId;
   if (
     geoWriterBriefId &&
     briefStatus &&
-    briefStatus !== "completed" &&
+    (briefStatus !== "completed" || isCompletedArticleStale) &&
     pendingArticleBriefId !== geoWriterBriefId
   ) {
     setPendingArticleBriefId(geoWriterBriefId);
@@ -316,6 +322,12 @@ export function useContentDetailDocument({
       setPersistedSlug,
     ]
   );
+
+  useEffect(() => {
+    if (isCompletedArticleStale && isGeoArticleLoading) {
+      void handleGeoArticleReady();
+    }
+  }, [handleGeoArticleReady, isCompletedArticleStale, isGeoArticleLoading]);
 
   useEffect(() => {
     if (!hasChanges) {
@@ -637,6 +649,7 @@ export function useContentDetailDocument({
     imageExportTarget,
     invalidateContentQueries,
     isGeoWriterBriefError,
+    isGeoWriterBriefMissing,
     isGeoWriterChatLocked,
     isGeoWriterPlanMode,
     isGeoWriterPlanReviewableNow,

@@ -66,8 +66,10 @@ export function useGeoWriterBrief(
   });
 }
 
-function useInvalidateWriterQueries(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+function useInvalidateWriterQueries(
+  organizationId: string,
+  projectId: string | undefined
+) {
   const queryClient = useQueryClient();
   return async () => {
     await queryClient.invalidateQueries({
@@ -131,7 +133,7 @@ export function useGeoPromptGapIgnore(organizationId: string) {
 
 export function useGeoWriterPlan(organizationId: string) {
   const { projectId } = useGeoProjectScope();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (input: GeoWriterPlanInput) =>
       dashboardOrpc.geo.writerPlan.call({
@@ -155,7 +157,7 @@ export function useGeoWriterStart(
   const { projectId: scopeProjectId } = useGeoProjectScope();
   const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (briefId: string) =>
       dashboardOrpc.geo.writerStart.call({
@@ -187,7 +189,7 @@ export function useGeoWriterUpdate(
   const { projectId: scopeProjectId } = useGeoProjectScope();
   const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   const latestRevisionByBrief = useRef(new Map<string, string>());
   return useMutation({
     scope: { id: `geo-writer-update:${organizationId}:${projectId}` },
