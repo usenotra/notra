@@ -13,6 +13,7 @@ import {
   useCommandPalette,
 } from "@/components/command-palette/command-palette-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { ProductTour } from "@/components/dashboard/product-tour";
 import { FeedbackProvider } from "@/components/dashboard/feedback-context";
 import { RightPanelProvider } from "@/components/dashboard/right-panel-context";
 import { DashboardRuntimeProviders } from "@/components/providers/dashboard-runtime-providers";
@@ -129,6 +130,7 @@ export function DashboardClientWrapper({
                 <Suspense fallback={null}>
                   <DashboardOverlays />
                 </Suspense>
+                <ProductTour />
               </RightPanelProvider>
             </CommandPaletteProvider>
           </FeedbackProvider>

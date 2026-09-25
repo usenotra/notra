@@ -40,7 +40,10 @@ export function NavList({
             <SidebarMenuButton
               isActive={item.link === activeLink}
               render={
-                <SidebarNavLink href={geoNavHref(slug, item.link, projectId)}>
+                <SidebarNavLink
+                  data-product-tour={`nav:${item.link}`}
+                  href={geoNavHref(slug, item.link, projectId)}
+                >
                   <HugeiconsIcon icon={item.icon} />
                   <SidebarLabel>{item.label}</SidebarLabel>
                   {item.badge && (

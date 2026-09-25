@@ -91,7 +91,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   if (!settings) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full space-y-6 px-4 lg:px-6">
+        <div
+          className="w-full space-y-6 px-4 lg:px-6"
+          data-product-tour="geo-competitors"
+        >
           <PageHeading
             description="Who AI engines recommend instead of you"
             title="Competitors"
@@ -114,7 +117,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="w-full space-y-6 px-4 lg:px-6">
+      <div
+        className="w-full space-y-6 px-4 lg:px-6"
+        data-product-tour="geo-competitors"
+      >
         <PageHeading
           description="Who AI engines recommend instead of you"
           title="Competitors"

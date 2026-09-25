@@ -35,6 +35,7 @@ import {
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
+import { armProductTour } from "@/utils/product-tour";
 
 export function PricingClient({
   canSkipOnboarding,
@@ -106,6 +107,7 @@ export function PricingClient({
         successUrl,
       });
 
+      armProductTour(slug);
       if (result.paymentUrl) {
         window.location.assign(result.paymentUrl);
       } else {
@@ -187,7 +189,11 @@ export function PricingClient({
           Use feedback for free, or upgrade for AI content and visibility
           tracking.
         </p>
-        <Button render={<Link href={`/${slug}/feedback`} />} variant="outline">
+        <Button
+          onClick={() => armProductTour(slug)}
+          render={<Link href={`/${slug}/feedback`} />}
+          variant="outline"
+        >
           Continue with free feedback
         </Button>
       </div>

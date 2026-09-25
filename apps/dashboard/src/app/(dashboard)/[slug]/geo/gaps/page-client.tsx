@@ -74,7 +74,10 @@ function GeoGapsLoaded({ page }: GeoGapsLoadedProps) {
       className="flex h-full min-h-full flex-1 flex-col overflow-hidden py-4 md:py-6"
       data-geo-gaps-page=""
     >
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
+      <div
+        className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6"
+        data-product-tour="geo-gaps"
+      >
         <header className="flex shrink-0 flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Content Gaps</h1>

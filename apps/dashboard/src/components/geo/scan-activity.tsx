@@ -19,7 +19,11 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
 
   if (latest.isPending) {
     return (
-      <section aria-hidden="true" className="space-y-3">
+      <section
+        aria-hidden="true"
+        className="space-y-3"
+        data-product-tour="geo-scan"
+      >
         <div className="space-y-1.5">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-64 max-w-full" />
@@ -34,7 +38,11 @@ export function ScanActivity({ organizationId }: GeoScanActivityProps) {
   }
 
   return (
-    <section aria-label="Scans" className="min-w-0 space-y-3">
+    <section
+      aria-label="Scans"
+      className="min-w-0 space-y-3"
+      data-product-tour="geo-scan"
+    >
       <ScanActivityStatus run={newest} />
       {newest ? (
         <ScanRunDetail

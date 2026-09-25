@@ -25,6 +25,7 @@ export const localStorageKeys = {
     `notra:geo-prompt-views:v1:${organizationId}:${projectId ?? "all"}`,
   githubPublishRepository: (organizationId: string) =>
     `notra:github-publish-repository:v1:${organizationId}`,
+  productTour: (slug: string) => `notra:product-tour:v1:${slug}`,
 } as const;
 
 export const sessionStorageKeys = {

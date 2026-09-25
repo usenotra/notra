@@ -43,7 +43,7 @@ function GeoOverviewLoaded({ page }: GeoOverviewLoadedProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
+        <header className="space-y-1" data-product-tour="geo-overview">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight">GEO</h1>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
