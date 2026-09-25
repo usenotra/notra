@@ -6,7 +6,6 @@ import { STANDALONE_SKILL_CATALOG_LIMIT } from "@notra/ai/skills/constants";
 import { listSkillSummaries } from "@notra/ai/skills/functions/service";
 import { createLazyMcpRuntime } from "@notra/ai/tools/mcp-lazy";
 import type {
-  AutoThinkingLevel,
   IntegrationFetchers,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
@@ -20,6 +19,7 @@ import type {
 import { loadChatWorkspace } from "@notra/ai/utils/chat-workspace";
 import { withStandaloneCodeMode } from "@notra/ai/utils/code-mode";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
+import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { getToolApprovalSecret } from "@notra/ai/utils/tool-approval-secret";
@@ -93,40 +93,31 @@ export async function orchestrateStandaloneChat(
 
   const lastUserMessage = getLastUserMessage(messages);
   const hasNonTextPartsOnLatestTurn = lastUserMessageHasNonTextParts(messages);
-  const isAuto = requestedModel === undefined || requestedModel === "auto";
 
-  let selectedModel: string;
-  let autoThinkingLevel: AutoThinkingLevel | undefined;
-  let decisionReasoning: string;
-  let decisionComplexity: "simple" | "complex" = "complex";
-
-  if (isAuto) {
-    const decision = await routeMessage(
-      lastUserMessage,
-      hasGitHub || hasLinear || hasMcp,
-      log,
-      hasNonTextPartsOnLatestTurn,
-      telemetryMetadata
-    );
-    const auto = selectAutoModel(decision);
-    selectedModel = auto.model;
-    autoThinkingLevel = auto.thinkingLevel;
-    decisionComplexity = decision.complexity;
-    decisionReasoning = decision.requiresTools
-      ? `auto → ${auto.model}: ${decision.reasoning}`
-      : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`;
-  } else {
-    selectedModel = requestedModel;
-    decisionReasoning = "User selected model explicitly";
-  }
-
-  const routingDecision = {
-    model: selectedModel,
-    complexity: decisionComplexity,
-    requiresTools: true,
-    reasoning: decisionReasoning,
-    thinkingLevel: autoThinkingLevel,
-  };
+  const routingDecision = await resolveConversationRoute(
+    messages,
+    requestedModel,
+    async () => {
+      const decision = await routeMessage(
+        lastUserMessage,
+        hasGitHub || hasLinear || hasMcp,
+        log,
+        hasNonTextPartsOnLatestTurn,
+        telemetryMetadata
+      );
+      const auto = selectAutoModel(decision);
+      return {
+        model: auto.model,
+        thinkingLevel: auto.thinkingLevel,
+        complexity: decision.complexity,
+        requiresTools: true,
+        reasoning: decision.requiresTools
+          ? `auto → ${auto.model}: ${decision.reasoning}`
+          : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`,
+      };
+    }
+  );
+  const autoThinkingLevel = routingDecision.thinkingLevel;
 
   const modelWithMemory = createModel(
     organizationId,

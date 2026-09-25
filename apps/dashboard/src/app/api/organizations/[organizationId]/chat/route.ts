@@ -16,6 +16,7 @@ import {
   getChatProjectId,
   getChatSession,
   isChatDeleted,
+  loadChatHistory,
   replaceChatHistory,
   setActiveChatStream,
 } from "@notra/ai/chat/history";
@@ -38,6 +39,7 @@ import {
   buildChatFinishMetadata,
   stampUserMessageAuthors,
 } from "@notra/ai/utils/chat";
+import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
@@ -104,7 +106,7 @@ export const POST = withEvlog(async function POST(
       );
     }
 
-    const messages = stampUserMessageAuthors(
+    let messages = stampUserMessageAuthors(
       parseResult.data.messages,
       auth.context.user.id
     );
@@ -242,6 +244,11 @@ export const POST = withEvlog(async function POST(
       );
     }
     cleanupStreamId = latestMessage.id;
+
+    messages = preserveConversationSelection(
+      messages,
+      await loadChatHistory(organizationId, chatId)
+    );
 
     const [historySaved] = await Promise.all([
       replaceChatHistory(

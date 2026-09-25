@@ -7,6 +7,7 @@ import type {
   OrchestrateResult,
 } from "@notra/ai/types/orchestration";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
+import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import {
@@ -66,12 +67,17 @@ export async function orchestrateChat(
 
   const lastUserMessage = getLastUserMessage(messages);
   const hasAttachments = lastUserMessageHasNonTextParts(messages);
-  const routedDecision = await routeAndSelectModel(
-    lastUserMessage,
-    hasIntegrationContext,
-    log,
-    hasAttachments,
-    telemetryMetadata
+  const routedDecision = await resolveConversationRoute(
+    messages,
+    undefined,
+    () =>
+      routeAndSelectModel(
+        lastUserMessage,
+        hasIntegrationContext,
+        log,
+        hasAttachments,
+        telemetryMetadata
+      )
   );
   const routingDecision = {
     ...routedDecision,

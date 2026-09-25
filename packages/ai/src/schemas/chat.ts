@@ -18,6 +18,11 @@ export const chatModelSchema = z.enum([
 
 export const thinkingLevelSchema = z.enum(["off", "low", "medium", "high"]);
 
+export const conversationSelectionSchema = z.object({
+  model: chatModelSchema.exclude(["auto"]).or(z.literal("openai/gpt-5.4-mini")),
+  thinkingLevel: thinkingLevelSchema.optional(),
+});
+
 export const chatToolApprovalResponseSchema = z.object({
   id: z.string().min(1).max(500),
   approved: z.boolean(),

@@ -7,6 +7,7 @@ import { checkChatBilling } from "@notra/ai/billing/chat-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import {
   listContentChatSessions,
+  loadContentChatHistory,
   replaceContentChatHistory,
 } from "@notra/ai/chat/history";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
@@ -21,6 +22,7 @@ import {
 import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
+import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
@@ -153,7 +155,7 @@ export const POST = withEvlog(async function POST(
 
     const {
       chatId,
-      messages,
+      messages: inputMessages,
       currentMarkdown,
       contentType,
       documentMode,
@@ -173,6 +175,10 @@ export const POST = withEvlog(async function POST(
       return NextResponse.json({ error: "Content not found" }, { status: 404 });
     }
 
+    const messages = preserveConversationSelection(
+      inputMessages,
+      (await loadContentChatHistory(organizationId, contentId, chatId)) ?? []
+    );
     const historySaved = await replaceContentChatHistory(
       organizationId,
       contentId,
