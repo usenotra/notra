@@ -57,7 +57,7 @@ export function ChatSkillSlashMenu({
                   icon={MagicWand01Icon}
                   strokeWidth={2}
                 />
-                <span className="shrink-0 whitespace-nowrap">
+                <span className="min-w-0 truncate">
                   {skillDisplayName(skill.name)}
                 </span>
                 {skill.description ? (

@@ -157,15 +157,39 @@ export const createScheduleToolInputSchema = z
   .object({
     ...scheduleFields,
     frequency: z.enum(SCHEDULE_FREQUENCIES),
-    dayOfWeek: z.number().int().min(0).max(6).optional(),
-    dayOfMonth: z.number().int().min(1).max(31).optional(),
+    dayOfWeek: z
+      .number()
+      .int()
+      .min(0)
+      .max(6)
+      .optional()
+      .describe(
+        "Required for weekly schedules. 0 is Sunday through 6 Saturday, in UTC."
+      ),
+    dayOfMonth: z
+      .number()
+      .int()
+      .min(1)
+      .max(31)
+      .optional()
+      .describe(
+        "Required for monthly schedules. Day of the month, 1-31, in UTC."
+      ),
     intervalDays: z
       .number()
       .int()
       .min(CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS)
       .max(CUSTOM_SCHEDULE_MAX_INTERVAL_DAYS)
-      .optional(),
-    anchorDate: z.string().optional(),
+      .optional()
+      .describe(
+        `Required for custom schedules. Run every N days (${CUSTOM_SCHEDULE_MIN_INTERVAL_DAYS}-${CUSTOM_SCHEDULE_MAX_INTERVAL_DAYS}).`
+      ),
+    anchorDate: z
+      .string()
+      .optional()
+      .describe(
+        "UTC date (YYYY-MM-DD) the interval counts from. Defaults to today."
+      ),
   })
   .transform((input, ctx) => {
     const parsed = createScheduleInputSchema.safeParse(input);

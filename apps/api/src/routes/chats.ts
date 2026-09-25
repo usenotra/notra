@@ -265,7 +265,7 @@ chatsRoutes.openAPIRegistry.registerPath({
   operationId: "postChatMessage",
   summary: "Post a message to an existing chat and stream the reply",
   description:
-    "Sends a message or resumes pending tool approvals and streams the assistant reply. Earlier messages are included automatically. To approve or deny tools, send approvals: [{ id: <approvalId>, approved: true|false }] for every pending approval in the latest assistant message, without a message field. Approval IDs are emitted in tool-approval-request chunks and stored on tool parts in chat history.",
+    'Sends a message or resumes pending tool approvals and streams the assistant reply. Earlier messages are included automatically. To approve or deny tools, send approvals: [{ "id": "<approvalId>", "approved": true }] for every pending approval in the latest assistant message, without a message field. Approval IDs are emitted in tool-approval-request chunks and stored on tool parts in chat history.',
   request: {
     params: sendChatParamsSchema,
     body: {

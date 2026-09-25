@@ -76,7 +76,9 @@ export async function orchestrateStandaloneChat(
   } = input;
 
   const log = deps?.log ?? inputLog;
-  const approvalSecret = getToolApprovalSecret(organizationId, chatId);
+  const approvalSecret = chatId
+    ? getToolApprovalSecret(organizationId, chatId)
+    : undefined;
 
   const validatedIntegrations =
     deps?.preValidatedIntegrations ??
