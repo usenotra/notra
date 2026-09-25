@@ -39,6 +39,17 @@ function GeoWriterPlanDocument({
   } = document;
   const planBrief = geoWriterBriefQuery.data?.brief;
 
+  if (isGeoWriterBriefMissing) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1 py-12 text-center">
+        <p className="font-medium">This content plan no longer exists</p>
+        <p className="text-muted-foreground text-sm">
+          Start a new plan from GEO to write this article.
+        </p>
+      </div>
+    );
+  }
+
   if (planBrief) {
     return (
       <>
@@ -81,17 +92,6 @@ function GeoWriterPlanDocument({
           }
         />
       </>
-    );
-  }
-
-  if (isGeoWriterBriefMissing) {
-    return (
-      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1 py-12 text-center">
-        <p className="font-medium">This content plan no longer exists</p>
-        <p className="text-muted-foreground text-sm">
-          Start a new plan from GEO to write this article.
-        </p>
-      </div>
     );
   }
 

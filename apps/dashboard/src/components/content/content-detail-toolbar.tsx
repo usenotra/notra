@@ -175,7 +175,7 @@ function ContentDetailPublishActions({
   organizationSlug,
 }: ContentDetailToolbarProps) {
   if (document.isGeoWriterPlanMode) {
-    return <WriterExecute.Button />;
+    return document.isGeoWriterBriefMissing ? null : <WriterExecute.Button />;
   }
   return (
     <>

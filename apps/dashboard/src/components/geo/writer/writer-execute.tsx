@@ -68,6 +68,11 @@ function WriterExecuteProvider({
   const sawWritingRef = useRef(false);
 
   useEffect(() => {
+    notifiedCompletionRef.current = false;
+    sawWritingRef.current = false;
+  }, [briefId]);
+
+  useEffect(() => {
     if (status !== "completed") {
       notifiedCompletionRef.current = false;
       sawWritingRef.current ||= isBusy;

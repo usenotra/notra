@@ -324,12 +324,6 @@ export function useContentDetailDocument({
   );
 
   useEffect(() => {
-    if (isCompletedArticleStale && isGeoArticleLoading) {
-      void handleGeoArticleReady();
-    }
-  }, [handleGeoArticleReady, isCompletedArticleStale, isGeoArticleLoading]);
-
-  useEffect(() => {
     if (!hasChanges) {
       return;
     }
