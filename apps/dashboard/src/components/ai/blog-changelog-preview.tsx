@@ -1,13 +1,10 @@
 "use client";
 
-import { CHAT_PREVIEW_SAVE_TIMEOUT_MS } from "@notra/ai/constants/chat";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
-import { Loader2Icon } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/button";
+import { BlogPreviewActions } from "@/components/ai/blog-preview-actions";
 import { useContent } from "@/lib/hooks/use-content";
 import type {
   BlogChangelogPreviewProps,
@@ -41,23 +38,9 @@ export function BlogChangelogPreview({
   const [userAction, setUserAction] =
     useState<BlogChangelogPreviewUserAction>("none");
   const effectiveState = blogPreviewEffectiveState(incomingState, userAction);
-  const isSaving = isBlogPreviewBusy(userAction);
   const isFinished = effectiveState === "finished";
+  const isSaving = !isFinished && isBlogPreviewBusy(userAction);
   const canSave = !readOnly && !isFinished && Boolean(onPersist || onApprove);
-
-  useEffect(() => {
-    if (!isSaving) {
-      return;
-    }
-    if (incomingState === "finished") {
-      setUserAction("saved");
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setUserAction("save-failed");
-    }, CHAT_PREVIEW_SAVE_TIMEOUT_MS);
-    return () => window.clearTimeout(timer);
-  }, [incomingState, isSaving]);
 
   async function handleSave() {
     setUserAction("saving");
@@ -99,55 +82,18 @@ export function BlogChangelogPreview({
           {markdown}
         </MessageResponse>
       </div>
-      {isFinished ? (
-        <div className="border-border bg-muted/30 flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-          {savedStatus === "published" ? (
-            <span className="text-muted-foreground text-xs">Published</span>
-          ) : null}
-          <div className="ml-auto flex items-center gap-2">
-            {!readOnly && onRevise ? (
-              <Button onClick={onRevise} size="sm" variant="ghost">
-                Ask for changes
-              </Button>
-            ) : null}
-            {postId ? (
-              <Button
-                nativeButton={false}
-                render={
-                  <Link href={`/${organizationSlug}/content/${postId}`} />
-                }
-                size="sm"
-              >
-                Open in editor
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      ) : canSave ? (
-        <div className="border-border bg-muted/30 flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-          {onDeny ? (
-            <Button
-              className="-ml-2.5"
-              disabled={isSaving}
-              onClick={onDeny}
-              size="sm"
-              variant="ghost"
-            >
-              Discard
-            </Button>
-          ) : null}
-          <Button
-            className="ml-auto"
-            disabled={isSaving}
-            onClick={handleSave}
-            size="sm"
-          >
-            {isSaving ? <Loader2Icon className="size-4 animate-spin" /> : null}
-            {isSaving ? "Saving draft" : "Save as draft"}
-          </Button>
-        </div>
-      ) : null}
-      {userAction === "save-failed" ? (
+      <BlogPreviewActions
+        organizationSlug={organizationSlug}
+        postId={postId}
+        onRevise={readOnly ? undefined : onRevise}
+        onDeny={onDeny}
+        onSave={handleSave}
+        isFinished={isFinished}
+        isSaving={isSaving}
+        canSave={canSave}
+        savedStatus={savedStatus}
+      />
+      {!isFinished && userAction === "save-failed" ? (
         <p className="text-destructive px-4 pb-3 text-sm" role="alert">
           Could not save the draft. Try again.
         </p>

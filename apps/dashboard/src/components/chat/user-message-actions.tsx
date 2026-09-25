@@ -88,7 +88,7 @@ export function UserMessageActions({
         "text-muted-foreground duration-fast absolute top-full right-0 flex items-center gap-1 pt-1 transition-opacity",
         isEditing
           ? "pointer-events-none invisible opacity-0"
-          : "opacity-0 group-hover/message:opacity-100 focus-within:opacity-100 data-[force-visible=true]:opacity-100 [@media(hover:none)]:opacity-100",
+          : "pointer-events-none opacity-0 group-hover/message:pointer-events-auto group-hover/message:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 data-[force-visible=true]:pointer-events-auto data-[force-visible=true]:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100",
         className
       )}
       data-force-visible={retryOpen || undefined}

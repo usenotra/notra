@@ -324,7 +324,7 @@ export function useContentChatInput({
     if (disabled || isUploading) {
       return;
     }
-    if (!trimmed && attachments.length === 0) {
+    if (!trimmed && !quoteContext?.quote && attachments.length === 0) {
       return;
     }
     if (isLoading && hasAttachments) {
@@ -433,7 +433,7 @@ export function useContentChatInput({
     shouldShowLowCredits,
     skillTagCount: taggedSkills.length,
     usageLimitError,
-    value,
+    value: prependChatQuote(value, quoteContext?.quote),
   });
 
   return {

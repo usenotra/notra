@@ -1157,7 +1157,7 @@ function sendOrQueueComposer({
       taggedSkillNames
     );
     const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
-    if (!outbound || hasAttachments) {
+    if ((!outbound && !quote) || hasAttachments) {
       return;
     }
     clearError();
@@ -1186,6 +1186,7 @@ function sendOrQueueComposer({
     );
     const hasContent =
       outbound.length > 0 ||
+      Boolean(quote) ||
       attachments.length > 0 ||
       pendingUploads.length > 0;
     if (!hasContent) {
@@ -2287,7 +2288,7 @@ export function ChatInputAdvanced({
       taggedSkillNames
     );
     const currentAttachments = attachmentsRef.current;
-    if (!outbound && currentAttachments.length === 0) {
+    if (!outbound && !quoteContext?.quote && currentAttachments.length === 0) {
       return false;
     }
     return sendSnapshot(
@@ -2716,7 +2717,9 @@ export function ChatInputAdvanced({
               <ChatComposerSendButton
                 attachmentCount={attachments.length}
                 hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
-                isEmpty={isEmpty && taggedSkills.length === 0}
+                isEmpty={
+                  isEmpty && taggedSkills.length === 0 && !quoteContext?.quote
+                }
                 isLoading={isLoading}
                 isQueued={isQueued}
                 isStopping={isStopping}

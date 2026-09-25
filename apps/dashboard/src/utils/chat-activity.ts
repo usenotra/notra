@@ -1,13 +1,14 @@
 import { isToolUIPart, type UIMessage } from "ai";
 
-import type { GroupAssistantMessagePartsOptions } from "@/types/chat-activity";
+import type { ChatActivityOptions } from "@/types/chat-activity";
 import { groupAssistantMessageParts } from "@/utils/group-assistant-message-parts";
 
 export function getChatActivity(
   messages: UIMessage[],
   isRunning: boolean,
-  options: GroupAssistantMessagePartsOptions = {}
+  options: ChatActivityOptions = {}
 ) {
+  const { includeFileParts = true } = options;
   const lastMessage = messages.at(-1);
   const isAssistant = lastMessage?.role === "assistant";
   const hasInlineActivity =
@@ -21,13 +22,13 @@ export function getChatActivity(
       (part) =>
         (part.type === "text" && Boolean(part.text.trim())) ||
         part.type === "reasoning" ||
-        part.type === "file" ||
+        (includeFileParts && part.type === "file") ||
         isToolUIPart(part)
     );
   const lastPart = lastMessage?.parts.findLast(
     (part) =>
       part.type === "step-start" ||
-      part.type === "file" ||
+      (includeFileParts && part.type === "file") ||
       ((part.type === "text" || part.type === "reasoning") &&
         (Boolean(part.text.trim()) || part.state === "streaming")) ||
       isToolUIPart(part)

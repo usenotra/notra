@@ -162,6 +162,7 @@ export function ChatQuoteProvider({ children }: ChatQuoteProviderProps) {
                 variant="ghost"
                 onPointerDown={(event) => event.preventDefault()}
                 onClick={quoteSelection}
+                onBlur={() => setSelection(null)}
               >
                 <HugeiconsIcon
                   icon={QuoteUpIcon}

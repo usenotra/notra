@@ -157,16 +157,34 @@ function DashboardOnboardingBanner({
   );
 }
 
+function DashboardPageViewport({
+  children,
+}: Pick<DashboardShellProps, "children">) {
+  const pathname = usePathname();
+  const [, , section, contentId] = pathname.split("/");
+  const pageOwnsScroll =
+    section === "chat" || (section === "content" && Boolean(contentId));
+
+  return (
+    <div
+      className={cn(
+        "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain",
+        pageOwnsScroll
+          ? "overflow-hidden"
+          : "scrollbar-stable scrollbar-thin overflow-x-hidden overflow-y-auto"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function DashboardShell({
   children,
   initialOnboardingAgentRun,
   initialSidebarOpen,
   initialSidebarWidth,
 }: DashboardShellProps) {
-  const pathname = usePathname();
-  const [, , section, contentId] = pathname.split("/");
-  const pageOwnsScroll =
-    section === "chat" || (section === "content" && Boolean(contentId));
   const { activeOrganization } = useOrganizationsContext();
   const { expanded } = useRightPanel();
   const organizationId = activeOrganization?.id ?? "";
@@ -281,16 +299,9 @@ export function DashboardShell({
         >
           <SiteHeader />
           <RestoreSidebarHome />
-          <div
-            className={cn(
-              "@container/main flex min-h-0 min-w-0 flex-1 flex-col gap-2 overscroll-contain",
-              pageOwnsScroll
-                ? "overflow-hidden"
-                : "scrollbar-thin overflow-x-hidden overflow-y-auto"
-            )}
-          >
+          <DashboardPageViewport>
             <SubscriptionGate>{children}</SubscriptionGate>
-          </div>
+          </DashboardPageViewport>
         </SidebarInset>
         <div className="contents" id={RIGHT_PANEL_PORTAL_ID} />
         <DashboardAgentHost />

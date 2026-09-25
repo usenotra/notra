@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 
 import ChatInput from "@/components/chat-input";
+import { ChatQuoteProvider } from "@/components/chat/chat-quote";
 import { ChatSuggestions } from "@/components/chat/chat-suggestions";
 import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
 import { RightPanel } from "@/components/dashboard/right-panel";
@@ -379,57 +380,59 @@ function DashboardAgentChat({
 
   const chat = hasOpened ? (
     <div className="h-full min-h-0 max-w-full min-w-0">
-      <ContentChatActivityPanel
-        activeChatId={activeChatId}
-        isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
-        messages={messages}
-        onApproveTool={handleApproveTool}
-        onClose={onClose}
-        onDenyTool={handleDenyTool}
-        onNewChat={handleNewChat}
-        onOpenChat={handleOpenChat}
-        onSelectChat={handleSelectChat}
-        organizationSlug={organizationSlug}
-        showHistory={false}
-        sessions={sessions}
-        status={status}
-        title={DASHBOARD_AGENT_TITLE}
-      >
-        {showExamplePrompts ? (
-          <div className="px-2">
-            <ChatSuggestions
+      <ChatQuoteProvider key={activeChatId}>
+        <ContentChatActivityPanel
+          activeChatId={activeChatId}
+          isHistoryLoading={sessionsQuery.isPending || isHydratingHistory}
+          messages={messages}
+          onApproveTool={handleApproveTool}
+          onClose={onClose}
+          onDenyTool={handleDenyTool}
+          onNewChat={handleNewChat}
+          onOpenChat={handleOpenChat}
+          onSelectChat={handleSelectChat}
+          organizationSlug={organizationSlug}
+          showHistory={false}
+          sessions={sessions}
+          status={status}
+          title={DASHBOARD_AGENT_TITLE}
+        >
+          {showExamplePrompts ? (
+            <div className="px-2">
+              <ChatSuggestions
+                disabled={isChatDisabled}
+                dismissStorageKey={
+                  localStorageKeys.dashboardAgentSuggestionsDismissed
+                }
+                hidden={chatInputValue.trim().length > 0}
+                layout="list"
+                onSelect={handleSuggestionSelect}
+                rotate
+                suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+              />
+            </div>
+          ) : null}
+          <div className="shrink-0 p-2 pt-1">
+            <ChatInput
               disabled={isChatDisabled}
-              dismissStorageKey={
-                localStorageKeys.dashboardAgentSuggestionsDismissed
+              error={chatError}
+              isLoading={isAgentBusy}
+              onClearError={() => setChatError(null)}
+              onSend={handleSend}
+              onStop={handleStop}
+              onValueChange={setChatInputValue}
+              organizationId={organizationId}
+              organizationSlug={
+                chatError && chatError !== CHAT_USAGE_LIMIT_MESSAGE
+                  ? ""
+                  : organizationSlug
               }
-              hidden={chatInputValue.trim().length > 0}
-              layout="list"
-              onSelect={handleSuggestionSelect}
-              rotate
-              suggestions={DASHBOARD_AGENT_SUGGESTIONS}
+              placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
+              value={chatInputValue}
             />
           </div>
-        ) : null}
-        <div className="shrink-0 p-2 pt-1">
-          <ChatInput
-            disabled={isChatDisabled}
-            error={chatError}
-            isLoading={isAgentBusy}
-            onClearError={() => setChatError(null)}
-            onSend={handleSend}
-            onStop={handleStop}
-            onValueChange={setChatInputValue}
-            organizationId={organizationId}
-            organizationSlug={
-              chatError && chatError !== CHAT_USAGE_LIMIT_MESSAGE
-                ? ""
-                : organizationSlug
-            }
-            placeholder={DASHBOARD_AGENT_CHAT_PLACEHOLDER}
-            value={chatInputValue}
-          />
-        </div>
-      </ContentChatActivityPanel>
+        </ContentChatActivityPanel>
+      </ChatQuoteProvider>
     </div>
   ) : null;
 

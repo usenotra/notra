@@ -14,7 +14,10 @@ import {
 import type { ReactNode } from "react";
 
 import { useShowAgentStats } from "@/lib/hooks/use-privacy-preferences";
-import type { AssistantMetadataHoverProps } from "@/types/components/assistant-metadata";
+import type {
+  AssistantMetadataHoverProps,
+  AssistantTokenUsageProps,
+} from "@/types/components/assistant-metadata";
 
 const MODEL_LABELS = {
   auto: "Auto",
@@ -102,6 +105,48 @@ function ModelBadgeIcon({ model }: { model: string }) {
   return <ClaudeAiIcon className="size-3" />;
 }
 
+function AssistantTokenUsage({
+  metadata,
+  outputTokens,
+}: AssistantTokenUsageProps) {
+  const contextWindow = metadata.model
+    ? getModelContextWindow(metadata.model)
+    : null;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <div className="flex cursor-default items-center gap-1">
+            <HugeiconsIcon className="size-3" icon={CpuIcon} />
+            <span>{formatTokens(outputTokens)} tokens</span>
+          </div>
+        }
+      />
+      <TooltipContent>
+        <div className="flex flex-col gap-0.5 text-xs">
+          {typeof metadata.inputTokens === "number" ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Input</span>
+              <span>{metadata.inputTokens.toLocaleString("en-US")}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-muted-foreground">Output</span>
+            <span>{outputTokens.toLocaleString("en-US")}</span>
+          </div>
+          {contextWindow !== null ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Context</span>
+              <span>{formatContextWindow(contextWindow)}</span>
+            </div>
+          ) : null}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function AssistantMetadataHover({
   metadata,
   compact = false,
@@ -143,43 +188,12 @@ export function AssistantMetadataHover({
   }
 
   if (showStats && typeof metadata.outputTokens === "number") {
-    const contextWindow = metadata.model
-      ? getModelContextWindow(metadata.model)
-      : null;
-
     items.push(
-      <Tooltip key="tokens">
-        <TooltipTrigger
-          render={
-            <div className="flex cursor-default items-center gap-1">
-              <HugeiconsIcon className="size-3" icon={CpuIcon} />
-              <span>{formatTokens(metadata.outputTokens)} tokens</span>
-            </div>
-          }
-        />
-        <TooltipContent>
-          <div className="flex flex-col gap-0.5 text-xs">
-            {typeof metadata.inputTokens === "number" ? (
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Input</span>
-                <span>{metadata.inputTokens.toLocaleString()}</span>
-              </div>
-            ) : null}
-            {typeof metadata.outputTokens === "number" ? (
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Output</span>
-                <span>{metadata.outputTokens.toLocaleString()}</span>
-              </div>
-            ) : null}
-            {contextWindow !== null ? (
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Context</span>
-                <span>{formatContextWindow(contextWindow)}</span>
-              </div>
-            ) : null}
-          </div>
-        </TooltipContent>
-      </Tooltip>
+      <AssistantTokenUsage
+        key="tokens"
+        metadata={metadata}
+        outputTokens={metadata.outputTokens}
+      />
     );
   }
 

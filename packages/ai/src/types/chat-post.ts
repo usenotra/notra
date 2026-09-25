@@ -6,5 +6,5 @@ export interface SavedChatPost {
   title: string;
   markdown: string | null;
   contentType: ContentType;
-  status: string;
+  status: "draft" | "published";
 }

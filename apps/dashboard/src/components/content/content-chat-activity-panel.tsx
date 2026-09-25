@@ -48,10 +48,7 @@ import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hov
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
 import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
-import {
-  ChatQuoteProvider,
-  ChatQuoteMessage as Message,
-} from "@/components/chat/chat-quote";
+import { ChatQuoteMessage as Message } from "@/components/chat/chat-quote";
 import { ChatScrollOnSend } from "@/components/chat/chat-scroll-on-send";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
 import { useChatActivityTimer } from "@/lib/hooks/use-chat-activity-timer";
@@ -524,14 +521,6 @@ function ContentChatActivityHeader({
 }
 
 export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
-  return (
-    <ChatQuoteProvider key={props.activeChatId}>
-      <ContentChatActivityPanelInner {...props} />
-    </ChatQuoteProvider>
-  );
-}
-
-function ContentChatActivityPanelInner(props: ContentChatActivityPanelProps) {
   const {
     children,
     messages,
@@ -551,6 +540,7 @@ function ContentChatActivityPanelInner(props: ContentChatActivityPanelProps) {
   const { lastAssistantHasNoVisibleContent, showThinkingIndicator } =
     getChatActivity(messages, isAgentBusy, {
       isStandaloneTool: isContentEditorStandaloneTool,
+      includeFileParts: false,
     });
   const visibleMessages =
     showThinkingIndicator && lastAssistantHasNoVisibleContent

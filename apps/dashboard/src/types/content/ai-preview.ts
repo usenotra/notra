@@ -55,6 +55,17 @@ export interface BlogChangelogPreviewProps {
   ) => Promise<void>;
 }
 
+export interface BlogPreviewActionsProps extends Pick<
+  BlogChangelogPreviewProps,
+  "organizationSlug" | "postId" | "onRevise" | "onDeny"
+> {
+  isFinished: boolean;
+  isSaving: boolean;
+  canSave: boolean;
+  savedStatus: "draft" | "published";
+  onSave: () => Promise<void>;
+}
+
 export interface SocialPreviewCallbacks {
   onApprove?: () => void;
   onPublished?: (published: PublishedSocialPost) => void;

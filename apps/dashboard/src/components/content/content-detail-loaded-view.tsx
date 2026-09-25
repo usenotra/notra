@@ -28,7 +28,6 @@ interface ContentDetailLoadedViewProps {
   document: ContentDetailDocument;
   onSelectionChange: (selection: TextSelection | null) => void;
   selectedExcerpt: TextSelection | null;
-  rightPanelSection: ReactNode;
   chatInputSection: ReactNode;
 }
 
@@ -40,7 +39,6 @@ export function ContentDetailLoadedView({
   document,
   onSelectionChange,
   selectedExcerpt,
-  rightPanelSection,
   chatInputSection,
 }: ContentDetailLoadedViewProps) {
   const content = data.content;
@@ -134,7 +132,6 @@ export function ContentDetailLoadedView({
           </div>
         </div>
       </WriterExecute.Root>
-      {rightPanelSection}
       {chatInputSection}
     </>
   );
