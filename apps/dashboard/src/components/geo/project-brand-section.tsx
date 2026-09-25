@@ -41,9 +41,8 @@ export function GeoProjectBrandSection({
       setSelectedId(null);
     } catch {
       setError("Could not change the project identity. Try again.");
-    } finally {
-      setIsSaving(false);
     }
+    setIsSaving(false);
   };
 
   return (

@@ -10,26 +10,22 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@notra/ui/components/ui/select";
 import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/button";
+import { GeoProjectBrandSelection } from "@/components/geo/project-brand-selection";
 import {
   useAnalyzeBrand,
+  useBrandAnalysisProgress,
   useBrandSettings,
   useCreateBrandVoice,
 } from "@/lib/hooks/use-brand-analysis";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import type { GeoProjectCreateDialogProps } from "@/types/geo";
 import {
+  projectBrandIdentityName,
   projectWebsiteUrl,
   resolveProjectBrandSelection,
 } from "@/utils/geo-projects";
@@ -51,8 +47,13 @@ export function GeoProjectCreateDialog({
   const { createProject } = useGeoProjectsDb(organizationId, { enabled: open });
   const brandQuery = useBrandSettings(organizationId, { enabled: open });
   const createIdentity = useCreateBrandVoice(organizationId);
-  const analyzeIdentity = useAnalyzeBrand(organizationId, () => undefined);
+  const { startPolling } = useBrandAnalysisProgress(organizationId);
+  const analyzeIdentity = useAnalyzeBrand(organizationId, startPolling);
   const websiteUrl = projectWebsiteUrl(website);
+  const identityName = projectBrandIdentityName(
+    name,
+    brandQuery.data?.voices ?? []
+  );
   const { matches, selectedIdentity } = resolveProjectBrandSelection(
     website,
     brandQuery.data?.voices ?? [],
@@ -87,23 +88,28 @@ export function GeoProjectCreateDialog({
       let brandSettingsId = selectedIdentity?.id;
       if (!brandSettingsId) {
         const { voice } = await createIdentity.mutateAsync({
-          name: name.trim(),
+          name: identityName,
           websiteUrl,
         });
         brandSettingsId = voice.id;
         setSelectedBrandSettingsId(voice.id);
-        await analyzeIdentity
-          .mutateAsync({ url: websiteUrl, voiceId: voice.id })
-          .catch(() => {
-            toast.error(
-              "Brand identity saved, but analysis could not start. Retry from Brand Identity."
-            );
-          });
       }
       const project = await createProject({
         name: name.trim(),
         brandSettingsId,
       });
+      if (
+        !selectedIdentity ||
+        createIdentity.data?.voice.id === brandSettingsId
+      ) {
+        await analyzeIdentity
+          .mutateAsync({ url: websiteUrl, voiceId: brandSettingsId })
+          .catch(() => {
+            toast.error(
+              "Project created, but brand analysis could not start. Retry from Brand Identity."
+            );
+          });
+      }
       reset();
       onOpenChange(false);
       onCreated(project.id);
@@ -111,9 +117,8 @@ export function GeoProjectCreateDialog({
       setError(
         cause instanceof Error ? cause.message : "Failed to create project"
       );
-    } finally {
-      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -173,46 +178,13 @@ export function GeoProjectCreateDialog({
             />
           </div>
           {websiteUrl && brandQuery.isSuccess ? (
-            <div className="space-y-2">
-              {matches.length > 0 ? (
-                <>
-                  <Label htmlFor={`${id}-brand`}>Project brand identity</Label>
-                  <Select
-                    disabled={isSubmitting}
-                    onValueChange={setSelectedBrandSettingsId}
-                    value={selectedIdentity?.id ?? ""}
-                  >
-                    <SelectTrigger className="w-full" id={`${id}-brand`}>
-                      <SelectValue placeholder="Choose an identity">
-                        {selectedIdentity?.name ?? "Choose an identity"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {matches.map((voice) => (
-                        <SelectItem key={voice.id} value={voice.id}>
-                          {voice.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-muted-foreground text-xs">
-                    {selectedIdentity
-                      ? `Uses the existing identity and website: ${selectedIdentity.websiteUrl}`
-                      : "Several identities use this website. Choose one for this project."}
-                  </p>
-                </>
-              ) : (
-                <p className="text-muted-foreground text-sm">
-                  We will create a brand identity named{" "}
-                  {name.trim() || "after this project"} and analyze this website
-                  to fill it in. The analysis runs in the background.
-                </p>
-              )}
-              <p className="text-muted-foreground text-xs">
-                New articles use the project identity. You can choose another
-                identity for an individual article.
-              </p>
-            </div>
+            <GeoProjectBrandSelection
+              disabled={isSubmitting}
+              identities={matches}
+              onSelect={setSelectedBrandSettingsId}
+              projectName={identityName}
+              selectedIdentity={selectedIdentity}
+            />
           ) : null}
           {brandQuery.isError ? (
             <p className="text-destructive text-sm" role="alert">
@@ -229,6 +201,13 @@ export function GeoProjectCreateDialog({
           {error ? (
             <p className="text-destructive text-sm" role="alert">
               {error}
+            </p>
+          ) : null}
+          {error && createIdentity.isSuccess ? (
+            <p className="text-muted-foreground text-sm">
+              The brand identity was saved. Retrying reuses it; its analysis
+              starts after the project is created. You can also manage it in
+              Brand Identity.
             </p>
           ) : null}
           <ResponsiveDialogFooter>

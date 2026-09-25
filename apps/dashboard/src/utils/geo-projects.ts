@@ -1,6 +1,23 @@
+import { BRAND_NAME_MAX_LENGTH } from "@notra/ai/schemas/limits";
+import { publicWebsiteUrlSchema } from "@notra/geo-core/schemas/url";
 import type { GeoProject } from "@notra/geo-core/types/geo";
 
 import type { GeoProjectBrandIdentity } from "@/types/geo";
+
+export function projectBrandIdentityName(
+  projectName: string,
+  identities: GeoProjectBrandIdentity[]
+): string {
+  const name = projectName.trim().slice(0, BRAND_NAME_MAX_LENGTH);
+  const names = new Set(identities.map((identity) => identity.name));
+  let candidate = name;
+  let number = 2;
+  while (names.has(candidate)) {
+    const suffix = ` (${number++})`;
+    candidate = `${name.slice(0, BRAND_NAME_MAX_LENGTH - suffix.length)}${suffix}`;
+  }
+  return candidate;
+}
 
 export function resolveProjectBrandSelection(
   website: string,
@@ -26,26 +43,8 @@ export function resolveProjectBrandSelection(
 }
 
 export function projectWebsiteUrl(value: string): string | null {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-  try {
-    const url = new URL(
-      trimmed.includes("://") ? trimmed : `https://${trimmed}`
-    );
-    if (
-      !["https:", "http:"].includes(url.protocol) ||
-      url.username ||
-      url.password ||
-      !url.hostname.includes(".")
-    ) {
-      return null;
-    }
-    return url.href;
-  } catch {
-    return null;
-  }
+  const parsed = publicWebsiteUrlSchema.safeParse(value);
+  return parsed.success ? new URL(parsed.data).href : null;
 }
 
 export function projectWebsiteHost(value: string): string | null {

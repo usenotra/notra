@@ -13,6 +13,7 @@ import {
 import { geoProjectQueryParser } from "@/lib/hooks/use-geo-project-query";
 import { geoProjectRepairPath } from "@/utils/geo-hydration";
 import {
+  projectBrandIdentityName,
   projectWebsiteHost,
   projectWebsiteUrl,
   resolveProjectBrandSelection,
@@ -88,6 +89,32 @@ describe("project website selection", () => {
     );
   });
 
+  test("gives a new website a unique identity name without renaming the project", () => {
+    expect(projectBrandIdentityName("Email", identities)).toBe("Email (2)");
+    expect(
+      projectBrandIdentityName("Email", [
+        ...identities,
+        {
+          id: "other",
+          name: "Email (2)",
+          websiteUrl: "https://other.example.com",
+        },
+      ])
+    ).toBe("Email (3)");
+    expect(projectBrandIdentityName("New project", identities)).toBe(
+      "New project"
+    );
+  });
+
+  test("keeps generated names within the brand name limit", () => {
+    const name = "a".repeat(120);
+    const generated = projectBrandIdentityName(name, [
+      { id: "long", name, websiteUrl: "https://other.example.com" },
+    ]);
+    expect(generated).toHaveLength(120);
+    expect(generated.endsWith(" (2)")).toBe(true);
+  });
+
   test("matches www and case variations without mixing product subdomains", () => {
     expect(projectWebsiteHost("https://WWW.Example.com/about")).toBe(
       projectWebsiteHost("example.com")
@@ -103,6 +130,11 @@ describe("project website selection", () => {
       "not a url",
       "https://",
       "localhost",
+      "foo.local",
+      "foo.internal",
+      "192.168.1.1",
+      "127.0.0.1",
+      "https://[::1]",
       "ftp://example.com",
       "https://user:pass@example.com",
     ]) {
