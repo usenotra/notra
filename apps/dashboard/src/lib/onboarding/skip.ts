@@ -5,9 +5,14 @@ import { organizations } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
-import { getLastActiveOrganization } from "@/lib/auth/actions";
+import { getLastActiveOrganization, getSession } from "@/lib/auth/actions";
 
 export async function skipOnboarding() {
+  const session = await getSession();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   const organization = await getLastActiveOrganization();
   if (!organization) {
     redirect("/onboarding/workspace");
