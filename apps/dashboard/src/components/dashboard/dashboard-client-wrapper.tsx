@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
 import dynamic from "next/dynamic";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 
 import {
   CommandPaletteProvider,
@@ -76,22 +76,19 @@ const SettingsModal = dynamic(
 function DashboardOverlays() {
   const { open } = useCommandPalette();
   const { isOpen } = useSettingsModal();
-  const [openedPalette, setOpenedPalette] = useState(false);
-  const [openedSettings, setOpenedSettings] = useState(false);
+  const [opened, setOpened] = useState({ palette: open, settings: isOpen });
 
-  useEffect(() => {
-    if (open) {
-      setOpenedPalette(true);
-    }
-    if (isOpen) {
-      setOpenedSettings(true);
-    }
-  }, [open, isOpen]);
+  if ((open && !opened.palette) || (isOpen && !opened.settings)) {
+    setOpened({
+      palette: opened.palette || open,
+      settings: opened.settings || isOpen,
+    });
+  }
 
   return (
     <>
-      {open || openedPalette ? <CommandPalette /> : null}
-      {isOpen || openedSettings ? <SettingsModal /> : null}
+      {open || opened.palette ? <CommandPalette /> : null}
+      {isOpen || opened.settings ? <SettingsModal /> : null}
     </>
   );
 }
