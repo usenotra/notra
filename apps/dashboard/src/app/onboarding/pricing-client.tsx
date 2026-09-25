@@ -23,6 +23,7 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { attachPlanWithAddons } from "@/lib/billing/attach-plan";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { skipOnboarding } from "@/lib/onboarding/skip";
 import type { BillingPlanGroup } from "@/types/billing/plan";
 import type { PricingClientProps } from "@/types/onboarding";
 import {
@@ -219,6 +220,11 @@ export function PricingClient({ slug, progressHrefs }: PricingClientProps) {
           {planGroups.map(renderPlanCard)}
         </div>
       )}
+      <form action={skipOnboarding} className="mt-8 flex justify-center">
+        <Button type="submit" variant="outline">
+          Skip onboarding
+        </Button>
+      </form>
     </div>
   );
 }

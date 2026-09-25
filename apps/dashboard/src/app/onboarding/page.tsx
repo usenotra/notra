@@ -1,5 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import { brandSettings } from "@notra/db/schema";
+import { brandSettings, organizations } from "@notra/db/schema";
 import { getGeoOnboardingStage } from "@notra/geo-core/geo/onboarding-status";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -34,6 +34,14 @@ export default async function OnboardingPage({
 
   if (!organization) {
     redirect(geoOnboardingWorkspacePath(projectId, isDevReplay));
+  }
+
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.id, organization.id),
+    columns: { onboardingDismissed: true },
+  });
+  if (org?.onboardingDismissed && !isDevReplay) {
+    redirect(`/${organization.slug}`);
   }
 
   const brand = await db.query.brandSettings.findFirst({
