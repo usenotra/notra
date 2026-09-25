@@ -68,6 +68,7 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useSitemaps } from "@/lib/hooks/use-brand-sitemaps";
+import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoWriterPlan } from "@/lib/hooks/use-geo-writer";
 import type {
@@ -141,6 +142,7 @@ function WriteDialogForm({
 }: WriteDialogProps) {
   const router = useRouter();
   const { projectId } = useGeoProjectScope();
+  const { project } = useGeoActiveProject(organizationId);
   const fieldId = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] =
@@ -193,9 +195,10 @@ function WriteDialogForm({
     ? `Updating ${existingPageLabel(existingPageUrl)}`
     : baselineLabel;
   const mentionedCompetitors = initial?.mentionedCompetitors ?? [];
-  const [brandVoiceId, setBrandVoiceId] = useState<string | null>(
+  const [selectedBrandVoiceId, setBrandVoiceId] = useState<string | null>(
     initial?.brandVoiceId ?? null
   );
+  const brandVoiceId = selectedBrandVoiceId ?? project?.brandSettingsId ?? null;
   const [sitemapId, setSitemapId] = useState<string | null>(null);
   const [competitorIds, setCompetitorIds] = useState<string[]>(
     initial?.competitorIds ?? []
@@ -233,15 +236,6 @@ function WriteDialogForm({
   )
     ? sitemapId
     : (sitemaps[0]?.id ?? null);
-
-  useEffect(() => {
-    if (brandVoiceId || voices.length === 0) {
-      return;
-    }
-    const fallback =
-      voices.find((voice) => voice.isDefault)?.id ?? voices[0]?.id ?? null;
-    setBrandVoiceId(fallback);
-  }, [brandVoiceId, voices]);
 
   useEffect(() => {
     if (competitorsTouched || competitors.length === 0) {
@@ -295,7 +289,7 @@ function WriteDialogForm({
     }
     return (
       <WriteBrandOption
-        isDefault={voice.isDefault}
+        isDefault={voice.id === project?.brandSettingsId}
         name={voice.name}
         websiteUrl={voice.websiteUrl}
       />
@@ -308,12 +302,14 @@ function WriteDialogForm({
 
   const canSubmit =
     topic.trim().length >= GEO_WRITER_TOPIC_MIN_LENGTH &&
+    Boolean(project) &&
     !planMutation.isPending;
 
   const handleSubmit = async (action: WriteAction) => {
     const trimmed = topic.trim();
     if (
       trimmed.length < GEO_WRITER_TOPIC_MIN_LENGTH ||
+      !project ||
       planMutation.isPending
     ) {
       return;
@@ -557,7 +553,7 @@ function WriteDialogForm({
                       {voices.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <WriteBrandOption
-                            isDefault={voice.isDefault}
+                            isDefault={voice.id === project?.brandSettingsId}
                             name={voice.name}
                             websiteUrl={voice.websiteUrl}
                           />
