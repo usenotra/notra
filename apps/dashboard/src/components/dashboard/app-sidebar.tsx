@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -32,8 +33,21 @@ import { SidebarProjectSwitcher } from "./sidebar-project-switcher";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
 import { SidebarSwap } from "./sidebar-swap";
 
-const ChatHistoryNav = dynamic(() =>
-  import("./chat-history-nav").then((module) => module.ChatHistoryNav)
+const ChatHistoryNav = dynamic(
+  () => import("./chat-history-nav").then((module) => module.ChatHistoryNav),
+  {
+    loading: () => (
+      <div
+        aria-label="Loading chat history"
+        className="space-y-2 p-3"
+        role="status"
+      >
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-4/5" />
+      </div>
+    ),
+  }
 );
 
 function SidebarBackButton({ onBack }: { onBack: () => void }) {

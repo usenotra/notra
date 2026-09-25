@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@notra/ui/components/ui/dialog";
 import dynamic from "next/dynamic";
 import { Suspense, useEffect, useState } from "react";
 
@@ -19,12 +24,45 @@ import {
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import type { InitialOnboardingAgentRun } from "@/types/hooks/onboarding";
 
+function CommandPaletteLoading() {
+  const { open, setOpen } = useCommandPalette();
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogTitle>Command palette</DialogTitle>
+        <p role="status">Loading search…</p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SettingsModalLoading() {
+  const { isOpen, closeSettings } = useSettingsModal();
+
+  return (
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) {
+          closeSettings();
+        }
+      }}
+      open={isOpen}
+    >
+      <DialogContent className="sm:max-w-sm">
+        <DialogTitle>Settings</DialogTitle>
+        <p role="status">Loading settings…</p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 const CommandPalette = dynamic(
   () =>
     import("@/components/command-palette/command-palette").then(
       (module) => module.CommandPalette
     ),
-  { ssr: false }
+  { loading: CommandPaletteLoading, ssr: false }
 );
 
 const SettingsModal = dynamic(
@@ -32,7 +70,7 @@ const SettingsModal = dynamic(
     import("@/components/settings/settings-modal").then(
       (module) => module.SettingsModal
     ),
-  { ssr: false }
+  { loading: SettingsModalLoading, ssr: false }
 );
 
 function DashboardOverlays() {

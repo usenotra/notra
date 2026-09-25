@@ -48,7 +48,8 @@ export function CommandPaletteProvider({
       }
       setOpen(!open);
     },
-    { enableOnFormTags: true, enableOnContentEditable: true }
+    { enableOnFormTags: true, enableOnContentEditable: true },
+    [open]
   );
 
   useEffect(() => {
